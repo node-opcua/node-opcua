@@ -608,7 +608,7 @@ module.exports = function (test) {
 
                 const monitoredItem = subscription.monitor(itemToMonitor, parameters);
 
-                monitoredItem.on("error", function (statusMessage) {
+                monitoredItem.on("err", function (statusMessage) {
                     console.log(" ERR event received");
                     statusMessage.should.eql(StatusCodes.BadNodeIdUnknown.toString());
                     callback();
@@ -637,7 +637,7 @@ module.exports = function (test) {
                     queueSize: 1
                 });
 
-                monitoredItem.on("error", function (statusMessage) {
+                monitoredItem.on("err", function (statusMessage) {
 
                     //xx console.log(" ERR event received");
 

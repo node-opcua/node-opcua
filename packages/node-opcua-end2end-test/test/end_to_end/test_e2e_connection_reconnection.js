@@ -313,7 +313,6 @@ describe("KJH1 testing basic Client-Server communication", function () {
         ], done);
 
     });
-
     it("T7 - calling connect on the client twice shall return a error the second time", function (done) {
         server.currentChannelCount.should.equal(0);
 

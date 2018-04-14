@@ -46,12 +46,12 @@ const getFunctionParameterNames = require("node-opcua-utils").getFunctionParamet
  * @param client {OPCUAClient}
  * @constructor
  */
-const ClientSession = function (client) {
+function ClientSession(client) {
     this._closeEventHasBeenEmmitted = false;
     this._client = client;
     this._publishEngine = null;
     this._closed = false;
-};
+}
 util.inherits(ClientSession, EventEmitter);
 
 /**
@@ -107,7 +107,7 @@ function coerceBrowseDescription(data) {
  * @example
  *
  *    ``` javascript
- *    var browseDescription = {
+ *    const browseDescription = {
  *       nodeId: "ObjectsFolder",
  *       referenceTypeId: "Organizes",
  *       browseDirection: BrowseDirection.Inverse,
@@ -139,7 +139,7 @@ function coerceBrowseDescription(data) {
  *
  * @example
  *   ``` javascript
- *    var browseDescriptions = [
+ *    const browseDescriptions = [
  *      {
  *          nodeId: "ObjectsFolder",
  *          referenceTypeId: "Organizes",
@@ -179,7 +179,7 @@ ClientSession.prototype.browse = function (nodesToBrowse, callback) {
         nodesToBrowse = [nodesToBrowse];
      }
 
-    var nodesToBrowse = nodesToBrowse.map(coerceBrowseDescription);
+    nodesToBrowse = nodesToBrowse.map(coerceBrowseDescription);
 
     const request = new browse_service.BrowseRequest({
         nodesToBrowse: nodesToBrowse,
@@ -508,7 +508,7 @@ ClientSession.prototype.write = function (nodesToWrite, callback) {
     }
 
     assert(_.isFunction(callback));
-    assert(_.isArray(nodesToWrite), "nodesToWrite must be an array");
+     assert(_.isArray(nodesToWrite), "nodesToWrite must be an array");
 
     const request = new write_service.WriteRequest({nodesToWrite: nodesToWrite});
 
@@ -690,7 +690,7 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  * form1: reading a single node
  *
  *  ``` javascript
- *    var nodeToRead = {
+ *    const nodeToRead = {
 *             nodeId:      "ns=2;s=Furnace_1.Temperature",
 *             attributeId: AttributeIds.BrowseName
 *    };
@@ -714,7 +714,7 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  * @example
  *
  *   ``` javascript
- *   var nodesToRead = [
+ *   const nodesToRead = [
  *        {
  *             nodeId:      "ns=2;s=Furnace_1.Temperature",
  *             attributeId: AttributeIds.BrowseName
@@ -848,10 +848,10 @@ ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, o
                 debugLog(" lastRequestSentTime...... ", new Date(self.lastRequestSentTime).toISOString(), now - self.lastRequestSentTime);
                 debugLog(" lastResponseReceivedTime. ", new Date(self.lastResponseReceivedTime).toISOString(), now - self.lastResponseReceivedTime);
 
-                self._terminatePublishEngine();
+                //xxx  DO NOT TERMINATE SESSION, as we will need a publishEngine when we reconnect self._terminatePublishEngine();
                 /**
                  * @event session_closed
-                 * send when the session has been closed by the server ( proabably due to inactivity and timeout)
+                 * send when the session has been closed by the server ( probably due to inactivity and timeout)
                  */
                 self.emitCloseEvent(StatusCodes.BadSessionClosed);
 
@@ -1117,8 +1117,10 @@ ClientSession.prototype.translateBrowsePath = function (browsePath, callback) {
 
 ClientSession.prototype.isChannelValid = function () {
     const self = this;
-    assert(self._client);
-    return self._client._secureChannel && self._client._secureChannel.isOpened();
+    if (!self._client) {
+        debugLog("Warning SessionClient is null ?".red);
+    }
+    return (self._client!==null && self._client._secureChannel!==null && self._client._secureChannel.isOpened());
 };
 
 ClientSession.prototype.performMessageTransaction = function (request, callback) {
@@ -1129,8 +1131,10 @@ ClientSession.prototype.performMessageTransaction = function (request, callback)
     assert(self._client);
 
     if (!self.isChannelValid()) {
-        // we need to queue this transaction, as a secure token may be being reprocessed
-        console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ".bgWhite.red);
+        // the secure channel is broken, may be the server has crashed or the network cable has been disconnected
+        // for a long time
+        // we may need to queue this transaction, as a secure token may be being reprocessed
+        debugLog("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ".bgWhite.red);
         return callback(new Error("Invalid Channel "));
     }
     request.requestHeader.authenticationToken = this.authenticationToken;
@@ -1157,6 +1161,29 @@ ClientSession.prototype.performMessageTransaction = function (request, callback)
         }
         callback(err, response);
     });
+};
+
+/**
+ * evaluate the time in milliseconds that the session will live
+ * on the server end from now. The remaining live time is
+ * calculated based on when the last message was sent to the server
+ * and the session timeout.
+ * * In normal operation , when server and client communicates on a regular
+ *   basis, evaluateRemainingLifetime will return a number slightly below
+ *   session.timeout
+ * * when the client and server cannot communicate due to a network issue
+ *   (or a server crash), evaluateRemainingLifetime returns the estimated number
+ *   of milliseconds before the server (if not crash) will keep  the session alive
+ *   on its end to allow a automatic reconnection with session.
+ * * When evaluateRemainingLifetime returns zero , this mean that
+ *   the session has probably ended on the server side and will have to be recreated
+ *   from scratch in case of a reconnection.
+ * @return {number}
+ */
+ClientSession.prototype.evaluateRemainingLifetime = function() {
+    const now = Date.now();
+    const expiryTime = this.lastRequestSentTime + this.timeout;
+    return Math.max(0,(expiryTime - now));
 };
 
 ClientSession.prototype._terminatePublishEngine = function () {
@@ -1207,7 +1234,7 @@ ClientSession.prototype.hasBeenClosed = function () {
  *
  * @example :
  *
- * var methodToCall = {
+ * const methodToCall = {
  *     objectId: "ns=2;i=12",
  *     methodId: "ns=2;i=13",
  *     inputArguments: [
@@ -1234,7 +1261,7 @@ ClientSession.prototype.hasBeenClosed = function () {
  *
  * @example :
  *
- * var methodsToCall = [ {
+ * const methodsToCall = [ {
  *     objectId: "ns=2;i=12",
  *     methodId: "ns=2;i=13",
  *     inputArguments: [
@@ -1244,7 +1271,7 @@ ClientSession.prototype.hasBeenClosed = function () {
  * }];
  * session.call(methodsToCall,function(err,callResutls) {
  *    if (!err) {
- *         var callResult = callResutls[0];
+ *         const callResult = callResutls[0];
  *         console.log(" statusCode = ",rep.statusCode);
  *         console.log(" inputArgumentResults[0] = ",callResult.inputArgumentResults[0].toString());
  *         console.log(" inputArgumentResults[1] = ",callResult.inputArgumentResults[1].toString());
@@ -1266,7 +1293,7 @@ ClientSession.prototype.call = function (methodsToCall, callback) {
     //        There are two methods that can be considered:
     //           - get the object definition by querying the server
     //           - load a fake address space to have some thing to query on our end
-    // var request = self._client.factory.constructObjectId("CallRequest",{ methodsToCall: methodsToCall});
+    // const request = self._client.factory.constructObjectId("CallRequest",{ methodsToCall: methodsToCall});
     const request = new call_service.CallRequest({methodsToCall: methodsToCall});
 
     self.performMessageTransaction(request, function (err, response) {
@@ -1481,7 +1508,7 @@ ClientSession.prototype.registerNodes = function(nodesToRegister,callback) {
 
 };
 
-ClientSession.prototype.unregisterNodes = function(nodesToRegister,callback) {
+ClientSession.prototype.unregisterNodes = function(nodesToUnregister,callback) {
     const self = this;
     assert(_.isFunction(callback));
     assert(_.isArray(nodesToUnregister));
@@ -1626,8 +1653,8 @@ function __findBasicDataType(session, dataTypeId, callback) {
  *
  *
  * @example
- *     var session = ...; // ClientSession
- *     var nodeId = opcua.VariableIds.Server_ServerStatus_CurrentTime;
+ *     const session = ...; // ClientSession
+ *     const nodeId = opcua.VariableIds.Server_ServerStatus_CurrentTime;
  *     session.getBuildInDataType(nodeId,function(err,dataType) {
  *        assert(dataType === opcua.DataType.DateTime);
  *     });
@@ -1660,11 +1687,16 @@ ClientSession.prototype.getBuiltInDataType = function (nodeId, callback) {
 
 ClientSession.prototype.resumePublishEngine = function () {
     const self = this;
-
-    if (self._publishEngine.subscriptionCount > 0) {
+    assert(self._publishEngine);
+    if (self._publishEngine && self._publishEngine.subscriptionCount > 0) {
         self._publishEngine.replenish_publish_request_queue();
     }
 };
+
+ClientSession.prototype.__defineGetter__("subscriptionCount",function() {
+    const self = this;
+    return self._publishEngine ? self._publishEngine.subscriptionCount : 0;
+});
 
 exports.ClientSession = ClientSession;
 

@@ -345,10 +345,11 @@ function createUserNameIdentityToken(session, userName, password) {
         assert(securityPolicy);
     }
 
+    let userIdentityToken;
     let serverCertificate = session.serverCertificate;
     // if server does not provide certificate use unencrypted password
     if (serverCertificate === null) {
-        var userIdentityToken = new UserNameIdentityToken({
+        userIdentityToken = new UserNameIdentityToken({
             userName: userName,
             password: Buffer.from(password, "utf-8"),
             encryptionAlgorithm: null,
@@ -377,7 +378,7 @@ function createUserNameIdentityToken(session, userName, password) {
         throw new Error(" Unsupported security Policy");
     }
 
-    var userIdentityToken = new UserNameIdentityToken({
+    userIdentityToken = new UserNameIdentityToken({
         userName: userName,
         password: Buffer.from(password, "utf-8"),
         encryptionAlgorithm: cryptoFactory.asymmetricEncryptionAlgorithm,
@@ -723,17 +724,8 @@ OPCUAClient.prototype.closeSession = function (session, deleteSubscriptions, cal
     });
 };
 
-OPCUAClient.prototype._ask_for_subscription_republish = function (session, callback) {
 
-    debugLog("_ask_for_subscription_republish ".bgCyan.yellow.bold);
-    //xx assert(session.getPublishEngine().nbPendingPublishRequests === 0, "at this time, publish request queue shall still be empty");
-    session.getPublishEngine().republish(function (err) {
-        debugLog("_ask_for_subscription_republish done ".bgCyan.bold.green,err ? err.message:"OKs");
-        // xx assert(session.getPublishEngine().nbPendingPublishRequests === 0);
-        session.resumePublishEngine();
-        callback(err);
-    });
-};
+const repair_client_sessions= require("./reconnection").repair_client_sessions;
 
 OPCUAClient.prototype._on_connection_reestablished = function (callback) {
 
@@ -742,188 +734,7 @@ OPCUAClient.prototype._on_connection_reestablished = function (callback) {
 
     // call base class implementation first
     OPCUAClientBase.prototype._on_connection_reestablished.call(self, function (err) {
-
-        //
-        // a new secure channel has be created, we need to reactivate the session,
-        // and reestablish the subscription and restart the publish engine.
-        //
-        //
-        // see OPC UA part 4 ( version 1.03 ) figure 34 page 106
-        // 6.5 Reestablishing subscription....
-        //
-        //
-        //
-        //                      +---------------------+
-        //                      | CreateSecureChannel |
-        //                      | CreateSession       |
-        //                      | ActivateSession     |
-        //                      +---------------------+
-        //                                |
-        //                                |
-        //                                v
-        //                      +---------------------+
-        //                      | CreateSubscription  |<-------------------------------------------------------------+
-        //                      +---------------------+                                                              |
-        //                                |                                                                         (1)
-        //                                |
-        //                                v
-        //                      +---------------------+
-        //     (2)------------->| StartPublishEngine  |
-        //                      +---------------------+
-        //                                |
-        //                                V
-        //                      +---------------------+
-        //             +------->| Monitor Connection  |
-        //             |        +---------------------+
-        //             |                    |
-        //             |                    v
-        //             |          Good    /   \
-        //             +-----------------/ SR? \______Broken_____+
-        //                               \     /                 |
-        //                                \   /                  |
-        //                                                       |
-        //                                                       v
-        //                                                 +---------------------+
-        //                                                 |                     |
-        //                                                 | CreateSecureChannel |<-----+
-        //                                                 |                     |      |
-        //                                                 +---------------------+      |
-        //                                                         |                    |
-        //                                                         v                    |
-        //                                                       /   \                  |
-        //                                                      / SR? \______Bad________+
-        //                                                      \     /
-        //                                                       \   /
-        //                                                         |
-        //                                                         |Good
-        //                                                         v
-        //                                                 +---------------------+
-        //                                                 |                     |
-        //                                                 | ActivateSession     |
-        //                                                 |                     |
-        //                                                 +---------------------+
-        //                                                         |
-        //                                                         v                    +-------------------+       +----------------------+
-        //                                                       /   \                  | CreateSession     |       |                      |
-        //                                                      / SR? \______Bad_______>| ActivateSession   |-----> | TransferSubscription |
-        //                                                      \     /                 |                   |       |                      |       (1)
-        //                                                       \   /                  +-------------------+       +----------------------+        ^
-        //                                                         | Good                                                      |                    |
-        //                                                         v   (for each subscription)                                   |                    |
-        //                                                 +--------------------+                                            /   \                  |
-        //                                                 |                    |                                     OK    / OK? \______Bad________+
-        //                                                 | RePublish          |<----------------------------------------- \     /
-        //                                             +-->|                    |                                            \   /
-        //                                             |   +--------------------+
-        //                                             |           |
-        //                                             |           v
-        //                                             | GOOD    /   \
-        //                                             +------  / SR? \______Bad SubscriptionInvalidId______>(1)
-        // (2)                                                  \     /
-        //  ^                                                    \   /
-        //  |                                                      |
-        //  |                                                      |
-        //  |                             BadMessageNotAvailable   |
-        //  +------------------------------------------------------+
-        //
-
-
-        debugLog(" Starting Session reactivation".red.bgWhite);
-        // repair session
-        const sessions = self._sessions;
-        async.map(sessions, function (session, next) {
-
-            if(doDebug) {
-                debugLog("OPCUAClient#_on_connection_reestablished TRYING TO REACTIVATE EXISTING SESSION ",session.sessionId.toString());
-            }
-            self._activateSession(session, function (err) {
-                //
-                // Note: current limitation :
-                //  - The reconnection doesn't work if connection break is cause by a server that crashes and restarts yet.
-                //
-                debugLog("ActivateSession : ", err ? err.message : " SUCCEESS !!! ");
-                if (err) {
-                    if (session.hasBeenClosed()) {
-                        debugLog("Aborting reactivation of old session because user requested session to be closed".bgWhite.red);
-                        return callback(new Error("reconnection cancelled due to session termination"));
-                    }
-
-                    //   if failed => recreate a new Channel and transfer the subscription
-                    let new_session = null;
-                    async.series([
-                        function (callback) {
-
-                            debugLog("Activating old session has failed ! => Creating a new session ....".bgWhite.red);
-
-                            session.getPublishEngine().suspend(true);
-
-                            // create new session, based on old session,
-                            // so we can reuse subscriptions data
-                            self.__createSession_step2(session, function (err, _new_session) {
-                                debugLog(" Creating a new session (based on old session data).... Done".bgWhite.cyan);
-                                if (!err) {
-                                    new_session = _new_session;
-                                    assert(session === _new_session, "session should be recycled");
-                                }
-                                callback(err);
-                            });
-                        },
-                        function (callback) {
-                            debugLog(" activating a new session ....".bgWhite.red);
-                            self._activateSession(new_session, function (err) {
-                                debugLog(" activating a new session .... Done".bgWhite.cyan);
-                                ///xx self._addSession(new_session);
-                                callback(err);
-                            });
-                        },
-                        function (callback) {
-
-                            // get the old subscriptions id from the old session
-                            const subscriptionsIds = session.getPublishEngine().getSubscriptionIds();
-
-                            debugLog("  session subscriptionCount = ", new_session.getPublishEngine().subscriptionCount);
-                            if (subscriptionsIds.length === 0) {
-                                debugLog(" No subscriptions => skipping transfer subscriptions");
-                                return callback(); // no need to transfer subscriptions
-                            }
-                            debugLog(" asking server to transfer subscriptions = [", subscriptionsIds.join(", "), "]");
-                            // Transfer subscriptions
-                            const options = {
-                                subscriptionIds: subscriptionsIds,
-                                sendInitialValues: false
-                            };
-
-                            assert(new_session.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
-                            new_session.transferSubscriptions(options, function (err, results) {
-                                if (err) {
-                                    return callback(err);
-                                }
-                                debugLog("Transfer subscriptions  done", results.toString());
-                                debugLog("  new session subscriptionCount = ", new_session.getPublishEngine().subscriptionCount);
-                                callback();
-                            });
-                        },
-                        function (callback) {
-                            assert(new_session.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
-                            //      call Republish
-                            return self._ask_for_subscription_republish(new_session, callback);
-                        },
-                        function start_publishing_as_normal(callback) {
-                            new_session.getPublishEngine().suspend(false);
-                            callback();
-                        }
-                    ], next);
-
-                } else {
-                    // call Republish
-                    return self._ask_for_subscription_republish(session, next);
-                }
-            });
-
-        }, function (err, results) {
-            return callback(err);
-        });
-
+        repair_client_sessions(self,callback);
     });
 
 };
@@ -1080,6 +891,7 @@ OPCUAClient.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClient.p
 OPCUAClient.prototype.closeSession = thenify.withCallback(OPCUAClient.prototype.closeSession);
 
 
+const ClientSubscription = require("./client_subscription").ClientSubscription;
 OPCUAClient.prototype.withSubscription = function (endpointUrl, subscriptionParameters, innerFunc, callback) {
 
     assert(_.isFunction(innerFunc));
