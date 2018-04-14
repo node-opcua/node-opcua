@@ -78,12 +78,12 @@ const RelativePath  = require("../_generated_/_auto_generated_RelativePath").Rel
 //  <reserved-char> ::= '/' | '.' | '<' | '>' | ':' | '#' | '!' | '&'
 //  <name-char> ::= All valid characters for a String (see Part 3) excluding reserved-chars.
 //
-const name_char = /[^/\.<>:#!&]/;
-const reserved_char = /[/\.<>:#!&]/;
-const regName = new RegExp( "(" + name_char.source + "|(\&" + reserved_char.source +"))+");
+const name_char = /[^/.<>:#!&]/;
+const reserved_char = /[/.<>:#!&]/;
+const regName = new RegExp( "(" + name_char.source + "|(&" + reserved_char.source +"))+");
 const regNamespaceIndex = /[0-9]+/;
 const regBrowseName = new RegExp("("+ regNamespaceIndex.source +":)?(" + regName.source+")");
-const regReferenceType = new RegExp("\/|\\.|(\<(\#)?(\!)?("+ regBrowseName.source +")\>)");
+const regReferenceType = new RegExp("/|\\.|(<(#)?(!)?("+ regBrowseName.source +")>)");
 
 const regRelativePath = new RegExp("("+regReferenceType.source+")("+regBrowseName.source+")?");
 function unescape(str) {

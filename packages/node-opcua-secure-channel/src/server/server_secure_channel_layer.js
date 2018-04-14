@@ -1022,7 +1022,7 @@ function _check_receiverCertificateThumbprint(clientSecurityHeader) {
     if (clientSecurityHeader.receiverCertificateThumbprint) {
         // check if the receiverCertificateThumbprint is my certificate thumbprint
         const serverCertificateChain = self.getCertificateChain();
-        //xx var serverCertificate = split_der(serverCertificateChain)[0];
+        //xx const serverCertificate = split_der(serverCertificateChain)[0];
         const myCertificateThumbPrint = crypto_utils.makeSHA1Thumbprint(serverCertificateChain);
         //xx console.log("xxxx     my certificate thumbprint",myCertificateThumbPrint.toString("hex") );
         //xx console.log("xxxx receiverCertificateThumbprint",securityHeader.receiverCertificateThumbprint.toString("hex") );
@@ -1059,8 +1059,8 @@ function _check_certificate_validity(certificate) {
         return StatusCodes.BadSecurityChecksFailed;
     }
 
-    //-- var split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
-    //-- var chain = split_der(securityHeader.senderCertificate);
+    //-- const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+    //-- const  chain = split_der(securityHeader.senderCertificate);
     //-- //xx console.log("xxx NB CERTIFICATE IN CHAIN = ".red,chain.length);
 
     // Has SoftwareCertificate passed its issue date and has it not expired ?
@@ -1225,7 +1225,7 @@ ServerSecureChannelLayer.prototype.__defineGetter__("transactionsCount", functio
  */
 ServerSecureChannelLayer.prototype.__defineGetter__("isOpened", function() {
     const self = this;
-    return self.clientCertificate;
+    return !!self.clientCertificate;
 });
 
 /**

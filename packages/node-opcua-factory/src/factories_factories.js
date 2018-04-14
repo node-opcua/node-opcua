@@ -19,7 +19,6 @@ exports.getFactory = function (type_name) {
 };
 
 const registerFactory = function (type_name, constructor) {
-
     /* istanbul ignore next */
     if (exports.getFactory(type_name)) {
         console.log(exports.getFactory(type_name));

@@ -340,7 +340,8 @@ TCP_transport.prototype._install_socket = function (socket) {
         // node The "close" event will be called directly following this event.
     });
 
-    if (false) {
+    const do_destroy_on_timeout =false;
+    if (do_destroy_on_timeout) {
         // set socket timeout
         debugLog("setting client/server socket timeout to ",self.timeout);
         self._socket.setTimeout(self.timeout,function(){
@@ -420,6 +421,6 @@ TCP_transport.prototype.disconnect = function (callback) {
 
 TCP_transport.prototype.isValid = function() {
     const self = this;
-    return self._socket && !self._socket.destroyed && !self.__disconnecting__;
+    return self._socket !== null&& !self._socket.destroyed && !self.__disconnecting__;
 };
 exports.TCP_transport = TCP_transport;

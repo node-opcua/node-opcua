@@ -67,7 +67,7 @@ function _handle_add_reference_change_event(node1, node2id) {
 }
 exports._handle_add_reference_change_event = _handle_add_reference_change_event;
 
-var ModelChangeStructure = require("node-opcua-common").ModelChangeStructure;
+const ModelChangeStructure = require("node-opcua-common").ModelChangeStructure;
 
 try {
     ModelChangeStructure.prototype.toString = function(options) {

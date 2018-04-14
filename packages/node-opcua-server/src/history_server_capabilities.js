@@ -1,5 +1,6 @@
 "use strict";
 const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
 
 /**
  * @class HistoryServerCapabilities
@@ -53,5 +54,5 @@ function HistoryServerCapabilities(options) {
     this.updateEventCapability = coerceBool(options.updateEventCapability, false);
     this.deleteEventCapability = coerceBool(options.deleteEventCapability, false);
     this.insertAnnotationCapability = coerceBool(options.insertAnnotationCapability, false);
-};
+}
 exports.HistoryServerCapabilities = HistoryServerCapabilities;

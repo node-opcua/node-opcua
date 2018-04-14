@@ -7,8 +7,6 @@
 
 const _ = require("underscore");
 
-const factories = require("node-opcua-factory");
-
 const AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").AsymmetricAlgorithmSecurityHeader;
 const SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
 const SequenceHeader = require("node-opcua-service-secure-channel").SequenceHeader;

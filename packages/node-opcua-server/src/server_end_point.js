@@ -25,7 +25,6 @@ const toURI = require("node-opcua-secure-channel").toURI;
 
 const EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
 const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
 
 /**
@@ -174,9 +173,7 @@ function dumpChannelInfo(channels) {
         const socket = channel.transport._socket;
         if (!socket) {
             console.log(" SOCKET IS CLOSED");
-        } else {
         }
-        //xx channel._dump_transaction_statistics();
     }
 
     _.forEach(channels, dumpChannel);
@@ -485,8 +482,8 @@ OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, s
     assert(_.isObject(securityMode));
     assert(_.isObject(securityPolicy));
 
-    if (securityPolicy !== SecurityPolicy.None) {
-    }
+    //xx if (securityPolicy !== SecurityPolicy.None) {
+    //xx }
     if (securityMode === MessageSecurityMode.NONE && securityPolicy !== SecurityPolicy.None) {
         throw new Error(" invalid security ");
     }
@@ -689,9 +686,8 @@ OPCUAServerEndPoint.prototype.listen = function (callback) {
 OPCUAServerEndPoint.prototype.killClientSockets = function (callback) {
 
     const self = this;
-    const chnls = _.values(this._channels);
+    const chnls = _.values(self._channels);
     chnls.forEach(function(channel){
-        return;
         if (channel.transport && channel.transport._socket) {
             channel.transport._socket.close();
             channel.transport._socket.destroy();

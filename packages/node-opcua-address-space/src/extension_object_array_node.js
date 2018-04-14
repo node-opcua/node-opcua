@@ -75,7 +75,7 @@ global._extensionobject_construct = _extensionobject_construct;
 
 function _extensionobject_encode(stream) {
 
-    BaseUAObject.prototype.encode.call(this,stream,options);
+    BaseUAObject.prototype.encode.call(this,stream);
     const definition = this.constructor.dataType.definition;
     for(const field of definition) {
         const fieldName = field.$$name$$;
@@ -92,6 +92,8 @@ function struct_decode(stream) {
 }
 
 function _extensionobject_decode(stream) {
+    const definition = this.constructor.definition;
+    assert(definition,"expected a definition for this class ");
     for(const field of definition) {
         const fieldName = field.$$name$$;
         this[fieldName] = field.$$func_decode$$.call(this[fieldName],stream);
@@ -106,7 +108,7 @@ exports.findSimpleType = require("./src/factories_builtin_types").findSimpleType
 exports.findBuiltInType  = require("./src/factories_builtin_types").findBuiltInType;
 exports.registerBuiltInType = require("./src/factories_builtin_types").registerType;
 */
-var BaseUAObject = require("node-opcua-factory").BaseUAObject;
+const BaseUAObject = require("node-opcua-factory").BaseUAObject;
 const schema_helpers =  require("node-opcua-factory/src/factories_schema_helpers");
 
 function initialize_array(func,options){
@@ -157,7 +159,7 @@ function buildConstructorFromDefinition(addressSpace,dataType) {
     Constructor.prototype.decode = _extensionobject_decode;
 
 
-    for (var field of dataType.definition) {
+    for (const field of dataType.definition) {
 
         if (field.valueRank === 1) {
             field.$$name$$ = lowerFirstLetter(field.name.replace("ListOf",""));
@@ -207,7 +209,7 @@ function buildConstructorFromDefinition(addressSpace,dataType) {
 
     // reconstruct _schema form
     const fields = [];
-    for (var field of dataType.definition) {
+    for (const field of dataType.definition) {
         const data = {
             name: field.$$name$$,
             fieldType: field.$$dataType$$.browseName.name,
@@ -515,7 +517,6 @@ function removeElement(uaArrayVariableNode, element) {
         assert(elementIndex >= 0 && elementIndex < _array.length);
     } else if (element instanceof BaseNode ) {
         // find element by name
-        // var browseNameToFind = arr.$$getElementBrowseName(elementIndex);
         const browseNameToFind = element.browseName.toString();
         elementIndex = _array.findIndex(function (obj, i) {
             const browseName = uaArrayVariableNode.$$getElementBrowseName(obj).toString();

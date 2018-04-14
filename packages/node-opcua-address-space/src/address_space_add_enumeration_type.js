@@ -12,7 +12,6 @@ const _ = require("underscore");
 exports.install = function (AddressSpace) {
 
     const NodeClass = require("node-opcua-data-model").NodeClass;
-    //var DataValue =  require("node-opcua-data-value").DataValue;
     const Variant = require("node-opcua-variant").Variant;
     const DataType = require("node-opcua-variant").DataType;
     const VariantArrayType = require("node-opcua-variant").VariantArrayType;
@@ -118,7 +117,7 @@ exports.install = function (AddressSpace) {
                 return coerceLocalizedText(str);
             });
 
-            var value = new Variant({
+            let value = new Variant({
                 dataType: DataType.LocalizedText,
                 arrayType: VariantArrayType.Array,
                 value: definition
@@ -147,7 +146,7 @@ exports.install = function (AddressSpace) {
                 });
             });
 
-            var value = new Variant({
+            let value = new Variant({
                 dataType: DataType.ExtensionObject,
                 arrayType: VariantArrayType.Array,
                 value: definition

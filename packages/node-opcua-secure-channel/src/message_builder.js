@@ -60,7 +60,7 @@ function MessageBuilder(options) {
 
     this.previous_sequenceNumber = -1; // means unknown
     assert(_.isFinite(this.previous_sequenceNumber));
-};
+}
 util.inherits(MessageBuilder, MessageBuilderBase);
 
 MessageBuilder.prototype.setSecurity = function (securityMode, securityPolicy) {

@@ -320,7 +320,8 @@ ResourceLeakDetector.prototype.stop = function (info) {
         global.gc(true);
     }
 
-    if (0) {
+    const doHeapdump =false;
+    if (doHeapdump) {
         const heapdump = require('heapdump');
         heapdump.writeSnapshot(function(err, filename) {
             console.log('dump written to', filename);

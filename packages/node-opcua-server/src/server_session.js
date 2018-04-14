@@ -429,7 +429,7 @@ ServerSession.prototype._removeSessionObjectFromAddressSpace = function () {
     }
 };
 
-const Subscription = require("./subscription").Subscription;
+const Subscription = require("./server_subscription").Subscription;
 
 
 
@@ -555,7 +555,7 @@ ServerSession.prototype.__defineGetter__("currentMonitoredItemCount", function (
 });
 
 
-const SubscriptionState = require("./subscription").SubscriptionState;
+const SubscriptionState = require("./server_subscription").SubscriptionState;
 /**
  * retrieve an existing subscription by subscriptionId
  * @method getSubscription

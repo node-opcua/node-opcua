@@ -214,7 +214,7 @@ const decodeStatusCode = function (stream) {
 exports.decodeStatusCode = decodeStatusCode;
 
 /* construct status codes fast search indexes */
-var StatusCodes_reverse_map = {};
+const StatusCodes_reverse_map = {};
 _.forEach(StatusCodes, function (code) {
     code = new ConstantStatusCode(code);
     StatusCodes_reverse_map[code.value] = code;

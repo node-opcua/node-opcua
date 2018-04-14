@@ -4,7 +4,7 @@ const should = require("should");
 const sinon = require("sinon");
 
 const subscription_service = require("node-opcua-service-subscription");
-const SubscriptionState = require("../src/subscription").SubscriptionState;
+const SubscriptionState = require("../src/server_subscription").SubscriptionState;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 

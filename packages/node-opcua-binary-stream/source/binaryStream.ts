@@ -3,7 +3,7 @@
  */
 const assert = require("node-opcua-assert").assert;
 import "util";
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
+import {createFastUninitializedBuffer} from "node-opcua-buffer-utils";
 import {isFinite} from "underscore";
 
 const MAXUINT32 = 4294967295; // 2**32 -1;
@@ -175,6 +175,7 @@ class BinaryStream {
             this._buffer[this.length++] = byteArr[i];
         }
     }
+
     // writeArrayBuffer(arrayBuf, offset, length) {
     //     offset = offset || 0;
     //
@@ -201,6 +202,7 @@ class BinaryStream {
     readInt8(): number {
         return this.readByte();
     }
+
     /**
      * read a single unsigned byte (8 bits) from the stream.
      * @method readUInt8
@@ -301,10 +303,10 @@ class BinaryStream {
         if (remaining_bytes < buf.length) {
             throw new Error(
                 "BinaryStream.writeByteStream error : not enough bytes left in buffer :  bufferLength is " +
-                    buf.length +
-                    " but only " +
-                    remaining_bytes +
-                    " left"
+                buf.length +
+                " but only " +
+                remaining_bytes +
+                " left"
             );
         }
         buf.copy(this._buffer, this.length, 0, buf.length);
@@ -324,10 +326,10 @@ class BinaryStream {
         if (remaining_bytes < byteLength) {
             throw new Error(
                 "BinaryStream.writeByteStream error : not enough bytes left in buffer :  bufferLength is " +
-                    byteLength +
-                    " but only " +
-                    remaining_bytes +
-                    " left"
+                byteLength +
+                " but only " +
+                remaining_bytes +
+                " left"
             );
         }
         if (byteLength > 0) {
@@ -378,10 +380,10 @@ class BinaryStream {
         if (remaining_bytes < bufLen) {
             throw new Error(
                 "BinaryStream.readByteStream error : not enough bytes left in buffer :  bufferLength is " +
-                    bufLen +
-                    " but only " +
-                    remaining_bytes +
-                    " left"
+                bufLen +
+                " but only " +
+                remaining_bytes +
+                " left"
             );
         }
         //create a shared memory buffer ! for speed
@@ -403,10 +405,10 @@ class BinaryStream {
         if (remaining_bytes < bufLen) {
             throw new Error(
                 "BinaryStream.readByteStream error : not enough bytes left in buffer :  bufferLength is " +
-                    bufLen +
-                    " but only " +
-                    remaining_bytes +
-                    " left"
+                bufLen +
+                " but only " +
+                remaining_bytes +
+                " left"
             );
         }
         const str = this._buffer.toString("utf-8", this.length, this.length + bufLen);
@@ -521,4 +523,5 @@ class BinaryStreamSizeCalculator {
         this.length += bufLength;
     }
 }
+
 exports.BinaryStreamSizeCalculator = BinaryStreamSizeCalculator;

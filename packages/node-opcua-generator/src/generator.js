@@ -46,7 +46,7 @@ function get_caller_source_filename() {
 function registerObject(schema, optional_folder) {
     let schema_file;
     let schema_name;
-    var code;
+    let code;
     let local_schema_file;
 
     if (typeof schema === "string") {
@@ -110,7 +110,7 @@ function registerObject(schema, optional_folder) {
         if (exports.verbose) {
             console.log(" generating ", schema.name, " in ", generated_source);
         }
-        var code = produce_code(schema_file, schema_name, generated_source);
+        code = produce_code(schema_file, schema_name, generated_source);
     }
     schema.generate_source = generated_source;
 

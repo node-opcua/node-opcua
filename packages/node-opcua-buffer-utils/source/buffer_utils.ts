@@ -15,7 +15,7 @@ export const createFastUninitializedBuffer : Function = Buffer.allocUnsafe ? Buf
  * turn a string make of hexadecimal bytes into a buffer
  *
  * @example
- *     var buffer = makeBuffer("BE EF");
+ *     const buffer = makeBuffer("BE EF");
  *
  * @param listOfBytes
  * @return {Buffer}

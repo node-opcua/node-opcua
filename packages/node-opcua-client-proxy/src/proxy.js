@@ -541,7 +541,7 @@ function readUAStructure(proxyManager, obj, callback) {
 
             // istanbul ignore else
             if (!err) {
-                var childObj = new ObjectExplorer({
+                childObj = new ObjectExplorer({
                     proxyManager: proxyManager,
                     nodeId: reference.nodeId,
                     name: name,

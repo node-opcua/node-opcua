@@ -209,7 +209,7 @@ exports.findSimpleType = function findSimpleType(name) {
 
 
 // populate the default type map
-var _defaultTypeMap = {};
+const _defaultTypeMap = {};
 _defaultType.forEach(registerType);
 exports._defaultTypeMap = _defaultTypeMap;
 

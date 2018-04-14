@@ -111,7 +111,7 @@ const crypto_utils = opcua.crypto_utils;
 
 
 async function getBrowseName(session, nodeId) {
-   const dataValue =  await session.read({nodeId: nodeId, attributeId: AttributeIds.BrowseName};
+   const dataValue =  await session.read({nodeId: nodeId, attributeId: AttributeIds.BrowseName});
     if (dataValue.statusCode === opcua.StatusCodes.Good) {
         return  dataValue.value.value.name;
     }
@@ -130,7 +130,7 @@ async function __dumpEvent(session, fields, eventFields) {
     for (let variant of eventFields) {
 
         if (variant.dataType === DataType.Null) {
-            return continue;
+             continue;
         }
         if (variant.dataType === DataType.NodeId) {
 
@@ -202,7 +202,7 @@ async function enumerateAllConditionTypes(the_session) {
         browseResults[0].references = browseResults[0].references || [];
         for (let el of browseResults[0].references) {
             conditionEventTypes[el.nodeId.toString()] = el.browseName.toString();
-            await findAllNodeOfType(tree[browseName], el.nodeId, el.browseName.toString(), _inner_callback);
+            await findAllNodeOfType(tree[browseName], el.nodeId, el.browseName.toString());
         }
     }
 

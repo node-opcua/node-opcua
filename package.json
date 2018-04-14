@@ -19,7 +19,7 @@
     "_old_test": "cd source && mocha test --color -R spec --recursive --timeout 200000 --bail",
     "test": "cd packages && node --expose-gc --max-old-space-size=1024 run_all_mocha_tests.js",
     "test:withnode  ./node_modules/lerna/bin/lerna.js": "node  ./node_modules/lerna/bin/lerna.js run test",
-    "eslint": "eslint packages/*/src/**.js packages/*/test/ ",
+    "eslint": "eslint packages/*/src/**.js packages/*/test/ packages/*/source/ packages/*/test_helpers/ ",
     "eslint-fix": "eslint --fix packages/*/src/**.js packages/*/__tests__/ utils/*.js scripts/*.js",
     "generate_doc": "make doc",
     "generate_autodoc": "./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc bin/binaryStream.js",

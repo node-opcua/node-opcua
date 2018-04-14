@@ -55,7 +55,7 @@ exports.NodeIdType = NodeIdType;
  * @example
  *
  *    ``` javascript
- *    var nodeId = new NodeId(NodeIdType.NUMERIC,123,1);
+ *    const nodeId = new NodeId(NodeIdType.NUMERIC,123,1);
  *    ```
  * @constructor
  */
@@ -97,7 +97,7 @@ NodeId.NodeIdType = NodeIdType;
  * @example
  *
  *    ``` javascript
- *    var nodeid = new NodeId(NodeIdType.NUMERIC, 123,1);
+ *    const nodeid = new NodeId(NodeIdType.NUMERIC, 123,1);
  *    console.log(nodeid.toString());
  *    ```
  *

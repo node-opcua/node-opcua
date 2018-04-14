@@ -5,11 +5,11 @@ const should = require("should");
 const sinon = require("sinon");
 
 const subscription_service = require("node-opcua-service-subscription");
-const SubscriptionState = require("../src/subscription").SubscriptionState;
+const SubscriptionState = require("../src/server_subscription").SubscriptionState;
 
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const Subscription = require("../src/subscription").Subscription;
+const Subscription = require("../src/server_subscription").Subscription;
 const MonitoredItem = require("../src/monitored_item").MonitoredItem;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 

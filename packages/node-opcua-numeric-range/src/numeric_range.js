@@ -491,22 +491,24 @@ NumericRange.prototype.extract_values = function (array, dimensions) {
             statusCode: this.type === NumericRangeType.Empty ? StatusCodes.Good : StatusCodes.BadIndexRangeNoData
         };
     }
+
+    let index,low_index,high_index,rowRange,colRange;
     switch (this.type) {
         case NumericRangeType.Empty:
             return extract_empty(array, dimensions);
 
         case NumericRangeType.SingleValue:
-            const index = this.value;
+            index = this.value;
             return extract_single_value(array, index);
 
         case NumericRangeType.ArrayRange:
-            const low_index = this.value[0];
-            const high_index = this.value[1];
+            low_index = this.value[0];
+            high_index = this.value[1];
             return extract_array_range(array, low_index, high_index);
 
         case NumericRangeType.MatrixRange:
-            const rowRange = this.value[0];
-            const colRange = this.value[1];
+            rowRange = this.value[0];
+            colRange = this.value[1];
             return extract_matrix_range(array, rowRange, colRange, dimensions);
 
         default:

@@ -94,7 +94,6 @@ function make_tracer(buffer, padding, offset) {
             trace: function (operation, name, value, start, end, fieldType) {
 
                 const b = buffer.slice(start, end);
-                var str = "";
 
                 switch (operation) {
 
@@ -127,7 +126,6 @@ function make_tracer(buffer, padding, offset) {
                         display(" } // # " + value);
                         break;
 
-
                     case "member":
                         display("." + name + " : " + fieldType);
 
@@ -143,7 +141,7 @@ function make_tracer(buffer, padding, offset) {
                             if (fieldType === "ExtensionObject") {
                                 display_encodeable(value, buffer, start, end);
                             } else {
-                                var str = value.toString() || "<empty>";
+                                let str = value.toString() || "<empty>";
                                 display(str.green);
                             }
                         }

@@ -253,7 +253,6 @@ function extractEventField(eventData, selectClause) {
         // return new Variant({dataType: DataType.StatusCode, value: browsePathResult.statusCode});
         return new Variant();
     }
-    //xx var innerNode =
 }
 
 /**

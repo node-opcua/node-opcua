@@ -787,7 +787,7 @@ async.series([
         monitoredItem.on("changed", function (dataValue) {
             console.log(monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue.value.toString());
         });
-        monitoredItem.on("err", function (err_message) {
+        monitoredItem.on("error", function (err_message) {
             console.log(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
             callback();
         });

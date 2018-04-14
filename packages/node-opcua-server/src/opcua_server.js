@@ -14,8 +14,8 @@ const ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const SessionContext = require("node-opcua-address-space").SessionContext;
-var fromURI = require("node-opcua-secure-channel").fromURI;
-var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
+const fromURI = require("node-opcua-secure-channel").fromURI;
+const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 
 const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
@@ -160,7 +160,6 @@ function g_sendError(channel, message, ResponseClass, statusCode) {
 
 
 const package_info = require("../package.json");
-//xx var package_info = JSON.parse(fs.readFileSync(package_json_file));
 
 const default_build_info = {
     productName: "NODEOPCUA-SERVER",
@@ -506,6 +505,7 @@ OPCUAServer.prototype.start = function (done) {
 
 OPCUAServer.fallbackSessionName = "Client didn't provide a meaningful sessionName ...";
 
+
 /**
  * shutdown all server endpoints
  * @method shutdown
@@ -576,7 +576,6 @@ OPCUAServer.prototype.computeServerSignature = function (channel, clientCertific
     return computeSignature(clientCertificate, clientNonce, self.getPrivateKey(), channel.messageBuilder.securityPolicy);
 };
 
-const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
 
 OPCUAServer.prototype.verifyClientSignature = function (session, channel, clientSignature) {
 
@@ -980,8 +979,6 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 const UserNameIdentityToken = session_service.UserNameIdentityToken;
 const AnonymousIdentityToken = session_service.AnonymousIdentityToken;
 
-var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
-var fromURI = require("node-opcua-secure-channel").fromURI;
 const getCryptoFactory = require("node-opcua-secure-channel").getCryptoFactory;
 
 function adjustSecurityPolicy(channel, userTokenPolicy_securityPolicyUri) {
@@ -1370,9 +1367,6 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
 
 };
 
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-const ObjectTypeIds = require("node-opcua-constants").ObjectTypeIds;
-
 
 OPCUAServer.prototype.raiseEvent = function (eventType, options) {
 
@@ -1614,7 +1608,7 @@ OPCUAServer.prototype._on_CloseSessionRequest = function (message, channel) {
                 require("heapdump").writeSnapshot();
             }
             catch(err) {
-
+                /* */
             }
         }
     }
@@ -2560,7 +2554,6 @@ OPCUAServer.prototype._on_RegisterNodesRequest = function (message, channel) {
     const server = this;
     const request = message.request;
     assert(request instanceof RegisterNodesRequest);
-    //xx var server = this;
 
     this._apply_on_SessionObject(RegisterNodesResponse, message, channel, function (session, sendResponse, sendError) {
 
@@ -2595,7 +2588,6 @@ OPCUAServer.prototype._on_UnregisterNodesRequest = function (message, channel) {
     const server = this;
     const request = message.request;
     assert(request instanceof UnregisterNodesRequest);
-    //xx var server = this;
 
     this._apply_on_SessionObject(UnregisterNodesResponse, message, channel, function (session, sendResponse, sendError) {
 
@@ -2729,7 +2721,6 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
         function (callback) {
 
             if (!discoveryServerCertificateChain) { return callback(); }
-            //xx var discoveryServerCertificate = split_der(discoveryServerCertificateChain)[0];
 
             const options = {
                 securityMode: MessageSecurityMode.SIGN,
@@ -2738,7 +2729,6 @@ OPCUAServer.prototype._registerServer = function (discovery_server_endpointUrl, 
                 certificateFile: self.certificateFile,
                 privateKeyFile: self.privateKeyFile
             };
-
 
             client = new OPCUAClientBase(options);
 

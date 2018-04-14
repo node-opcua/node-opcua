@@ -178,6 +178,8 @@ function ClientSecureChannelLayer(options) {
     const self = this;
 
 
+    self._transport = null;
+
     self._lastRequestId = 0;
 
     self.parent = options.parent;
@@ -426,13 +428,13 @@ function _install_security_token_watchdog() {
     // note that, for speedup in test,
     // it is possible to tweak this interval for test by specifying a tokenRenewalInterval value
     //
-    const liveTime = self.securityToken.revisedLifeTime;
-    assert(liveTime && liveTime > 20);
-    let timeout = self.tokenRenewalInterval || liveTime * 75 / 100;
-    timeout = Math.min(timeout, liveTime * 75 / 100);
+    const lifeTime = self.securityToken.revisedLifeTime;
+    assert(lifeTime !== 0 && lifeTime > 20);
+    let timeout = self.tokenRenewalInterval || lifeTime * 75 / 100;
+    timeout = Math.min(timeout, lifeTime * 75 / 100);
 
     if (doDebug) {
-        debugLog(" time until next security token renal = ".red.bold, timeout, "( lifefime = ", liveTime + ")");
+        debugLog(" time until next security token renal = ".red.bold, timeout, "( lifefime = ", lifeTime + ")");
     }
 
     assert(self._securityTokenTimeoutId === null);
@@ -916,7 +918,7 @@ ClientSecureChannelLayer.prototype.performMessageTransaction = function (request
 
 ClientSecureChannelLayer.prototype.isValid = function () {
     const self = this;
-    return self._transport && self._transport.isValid();
+    return self._transport!==null && self._transport.isValid();
 };
 ClientSecureChannelLayer.prototype.isOpened = function () {
     const self = this;

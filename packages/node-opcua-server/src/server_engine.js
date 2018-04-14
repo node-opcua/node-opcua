@@ -29,7 +29,8 @@ const read_service = require("node-opcua-service-read");
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const TimestampsToReturn = read_service.TimestampsToReturn;
 
-var UAVariable = require("node-opcua-address-space").UAVariable;
+const UAVariable = require("node-opcua-address-space").UAVariable;
+const ServerSidePublishEngine = require("./server_publish_engine").ServerSidePublishEngine;
 
 const historizing_service = require("node-opcua-service-history");
 const HistoryReadRequest = historizing_service.HistoryReadRequest;
@@ -85,7 +86,6 @@ const HistoryServerCapabilities = require("./history_server_capabilities").Histo
 
 const eoan = require("node-opcua-address-space");
 
-var ServerSidePublishEngine = require("./server_publish_engine").ServerSidePublishEngine;
 
 /**
  * @class ServerEngine
@@ -171,7 +171,8 @@ function ServerEngine(options) {
 
     engine._applicationUri = options.applicationUri || "<unset _applicationUri>";
 
-    options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable") ? coerceoptions.serverDiagnosticsEnabled : true;
+    options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable")
+                                            ? options.serverDiagnosticsEnabled : true;
     engine.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled;
 
 }
@@ -224,8 +225,8 @@ ServerEngine.prototype.__defineGetter__("buildInfo", function () {
  * register a function that will be called when the server will perform its shut down.
  * @method registerShutdownTask
  */
-ServerEngine.prototype.registerShutdownTask = function (task) {    var engine = this;
-    var engine = this;
+ServerEngine.prototype.registerShutdownTask = function (task) {
+    const engine = this;
     assert(_.isFunction(task));
     engine._shutdownTask.push(task);
 
@@ -448,8 +449,8 @@ ServerEngine.prototype.setServerState = function (serverState) {
 };
 
 ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function () {
-    // create SessionsDiagnosticsSummary
-    const serverDiagnostics = server.getComponentByName("ServerDiagnostics");
+    const engine = this;
+    const serverDiagnostics = engine.server.getComponentByName("ServerDiagnostics");
     if (!serverDiagnostics) {
         return false;
     }
@@ -457,8 +458,8 @@ ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function () {
 };
 
 ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function () {
-    // create SessionsDiagnosticsSummary
-    const serverDiagnostics = server.getComponentByName("ServerDiagnostics");
+    const engine = this;
+    const serverDiagnostics = engine.getComponentByName("ServerDiagnostics");
     if (!serverDiagnostics) {
         return false;
     }
@@ -930,9 +931,6 @@ ServerEngine.prototype.initialize = function (options, callback) {
     });
 };
 
-var UAVariable = require("node-opcua-address-space").UAVariable;
-
-
 require("node-opcua-address-space");
 
 ServerEngine.prototype.__findObject = function (nodeId) {
@@ -1385,7 +1383,7 @@ function _get_next_subscriptionId() {
     return next_subscriptionId++;
 }
 
-const Subscription = require("./subscription").Subscription;
+const Subscription = require("./server_subscription").Subscription;
 
 ServerEngine.prototype._getServerSubscriptionDiagnosticsArray = function () {
 
@@ -1557,8 +1555,6 @@ ServerEngine.prototype.createSession = function (options) {
     return session;
 };
 
-
-var ServerSidePublishEngine = require("./server_publish_engine").ServerSidePublishEngine;
 
 /**
  * the ServerSidePublishEngineForOrphanSubscription is keeping track of
