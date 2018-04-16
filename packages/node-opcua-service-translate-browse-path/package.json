@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-translate-browse-path",
- "version": "0.2.3",
+ "version": "0.3.0",
  "description": "pure nodejs OPCUA SDK - module -service-translate-browse-path",
  "scripts": {
   "test": "mocha test",
@@ -9,17 +9,17 @@
  },
  "main": "index.js",
  "dependencies": {
-  "node-opcua-assert": "^0.2.0",
-  "node-opcua-basic-types": "^0.2.3",
+  "node-opcua-assert": "^0.3.0",
+  "node-opcua-basic-types": "^0.3.0",
   "node-opcua-constants": "^0.2.0",
-  "node-opcua-data-model": "^0.2.3",
-  "node-opcua-factory": "^0.2.3",
-  "node-opcua-nodeid": "^0.2.3",
-  "node-opcua-service-secure-channel": "^0.2.3",
+  "node-opcua-data-model": "^0.3.0",
+  "node-opcua-factory": "^0.3.0",
+  "node-opcua-nodeid": "^0.3.0",
+  "node-opcua-service-secure-channel": "^0.3.0",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.2.3",
+  "node-opcua-generator": "^0.3.0",
   "should": "13.2.1",
   "sinon": "^4.5.0"
  },

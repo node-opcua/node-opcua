@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-benchmarker",
- "version": "0.2.0",
+ "version": "0.3.0",
  "description": "pure nodejs OPCUA SDK - module -benchmarker",
  "main": "dist/benchmarker.js",
  "types": "dist/benchmarker.d.ts",
@@ -9,7 +9,7 @@
  },
  "dependencies": {
   "async": "^2.6.0",
-  "node-opcua-assert": "^0.2.0",
+  "node-opcua-assert": "^0.3.0",
   "underscore": "^1.8.3"
  },
  "author": "Etienne Rossignon",

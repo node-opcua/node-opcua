@@ -1,13 +1,13 @@
 {
  "name": "node-opcua-guid",
  "main": "./src/guid.js",
- "version": "0.2.0",
+ "version": "0.3.0",
  "description": "pure nodejs OPCUA SDK - module -guid",
  "scripts": {
   "test": "mocha test"
  },
  "dependencies": {
-  "node-opcua-assert": "^0.2.0"
+  "node-opcua-assert": "^0.3.0"
  },
  "devDependencies": {
   "should": "13.2.1"

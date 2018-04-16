@@ -1,19 +1,19 @@
 {
  "name": "node-opcua-chunkmanager",
- "version": "0.2.3",
+ "version": "0.3.0",
  "description": "pure nodejs OPCUA SDK - module -chunkmanager",
  "main": "index.js",
  "scripts": {
   "test": "exit 0 "
  },
  "dependencies": {
-  "node-opcua-assert": "^0.2.0",
-  "node-opcua-binary-stream": "^0.2.3",
-  "node-opcua-buffer-utils": "^0.2.0",
+  "node-opcua-assert": "^0.3.0",
+  "node-opcua-binary-stream": "^0.3.0",
+  "node-opcua-buffer-utils": "^0.3.0",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
-  "node-opcua-debug": "^0.2.2",
+  "node-opcua-debug": "^0.3.0",
   "should": "13.2.1"
  },
  "author": "Etienne Rossignon",

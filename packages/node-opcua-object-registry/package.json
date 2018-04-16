@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-object-registry",
- "version": "0.2.3",
+ "version": "0.3.0",
  "description": "pure nodejs OPCUA SDK - module -object-registry",
  "main": "index.js",
  "scripts": {
@@ -9,8 +9,8 @@
  "author": "Etienne Rossignon",
  "license": "MIT",
  "dependencies": {
-  "node-opcua-assert": "^0.2.0",
-  "node-opcua-debug": "^0.2.2",
+  "node-opcua-assert": "^0.3.0",
+  "node-opcua-debug": "^0.3.0",
   "underscore": "^1.8.3"
  },
  "devDependencies": {
