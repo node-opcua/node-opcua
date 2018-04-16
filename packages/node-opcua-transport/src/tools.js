@@ -57,7 +57,7 @@ function packTcpMessage(msgType, encodableObject) {
 // opc.tcp://xleuri11022:51210/UA/SampleServer
 function parseEndpointUrl(endpointUrl) {
 
-    const r = /^([a-z.]*):\/\/([a-zA-Z\_\-\.\-0-9]*):([0-9]*)(\/.*){0,1}/;
+    const r = /^([a-z.]*):\/\/([a-zA-Z_\-.\-0-9]*):([0-9]*)(\/.*){0,1}/;
 
     const matches = r.exec(endpointUrl);
 
@@ -103,7 +103,7 @@ function writeTCPMessageHeader(msgType, chunkType, total_length, stream) {
     stream.writeUInt32(total_length);
 }
 
-var encodeMessage = function (msgType, messageContent, stream) {
+function encodeMessage(msgType, messageContent, stream) {
 
     //the length of the message, in bytes. (includes the 8 bytes of the message header)
     const total_length = messageContent.binaryStoreSize() + 8;
@@ -111,7 +111,7 @@ var encodeMessage = function (msgType, messageContent, stream) {
     writeTCPMessageHeader(msgType, "F", total_length, stream);
     messageContent.encode(stream);
     assert(total_length === stream.length, "invalid message size");
-};
+}
 
 exports.writeTCPMessageHeader = writeTCPMessageHeader;
 exports.TCPErrorMessage = TCPErrorMessage;

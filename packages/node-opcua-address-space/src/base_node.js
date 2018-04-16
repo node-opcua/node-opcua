@@ -449,7 +449,7 @@ function _setup_parent_item(references) {
 
     if (references.length > 0) {
 
-        var references = this.findReferencesEx("HasChild",BrowseDirection.Inverse);
+        references = this.findReferencesEx("HasChild",BrowseDirection.Inverse);
 
         if (references.length >= 1) {
             // istanbul ignore next
@@ -1027,7 +1027,7 @@ BaseNode.prototype.addReference = function (reference) {
 
     const addressSpace = this.addressSpace;
     if (!_resolveReferenceType(addressSpace,reference)) {
-       throw new Error("BaseNode#addReference : invalid reference " + h + " " +reference.toString());
+       throw new Error("BaseNode#addReference : invalid reference  " + reference.toString());
     }
     self._clear_caches();
 
@@ -1525,8 +1525,8 @@ function dumpReferences(addressSpace, references) {
 exports.dumpBrowseDescription = dumpBrowseDescription;
 exports.dumpReferences = dumpReferences;
 
-var _resolveReferenceNode = Reference._resolveReferenceNode;
-var _resolveReferenceType = Reference._resolveReferenceType;
+const _resolveReferenceNode = Reference._resolveReferenceNode;
+const _resolveReferenceType = Reference._resolveReferenceType;
 
 
 function _filter_by_referenceType(self, browseDescription, references, referenceTypeId) {

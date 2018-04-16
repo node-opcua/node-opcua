@@ -3,8 +3,8 @@
  * @module opcua.server
  */
 
-const Subscription = require("./subscription").Subscription;
-const SubscriptionState = require("./subscription").SubscriptionState;
+const Subscription = require("./server_subscription").Subscription;
+const SubscriptionState = require("./server_subscription").SubscriptionState;
 
 const subscription_service = require("node-opcua-service-subscription");
 const NotificationMessage = subscription_service.NotificationMessage;
@@ -557,6 +557,7 @@ ServerSidePublishEngine.prototype.on_close_subscription = function (subscription
 
     if (self.subscriptionCount === 0) {
         while (self._feed_closed_subscription()) {
+            /* keep looping */
         }
         self.cancelPendingPublishRequest();
     }
@@ -614,8 +615,8 @@ ServerSidePublishEngine.prototype.findLateSubscriptionSortedByPriority = functio
     late_subscriptions.sort(compare_subscriptions);
 
     // istanbul ignore next
-    if (false) {
-        console.log(late_subscriptions.map(function (s) {
+    if (doDebug) {
+        debugLog(late_subscriptions.map(function (s) {
             return "[ id = " + s.id +
                 " prio=" + s.priority +
                 " t=" + s.timeToExpiration +

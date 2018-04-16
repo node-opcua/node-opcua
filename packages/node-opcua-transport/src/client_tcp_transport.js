@@ -39,25 +39,30 @@ function createClientSocket(endpointUrl) {
     const ep = parseEndpointUrl(endpointUrl);
     const port = ep.port;
     const hostname = ep.hostname;
+    let socket;
     switch (ep.protocol) {
         case "opc.tcp":
-            const socket = net.connect({host: hostname, port: port});
+            socket = net.connect({host: hostname, port: port});
             socket.setNoDelay(true);
+            socket.setTimeout(0);
+            socket.on("timeout",function() {
+                console.log("Socket has timed out");
+            });
 
             return socket;
         case "fake":
-            const fakeSocket = getFakeTransport();
+            socket = getFakeTransport();
             assert(ep.protocol === "fake", " Unsupported transport protocol");
             process.nextTick(function () {
-                fakeSocket.emit("connect");
+                socket.emit("connect");
             });
-            return fakeSocket;
+            return socket;
+
         case "websocket":
         case "http":
         case "https":
         default:
             throw new Error("this transport protocol is currently not supported :" + ep.protocol);
-            return null;
 
     }
 }
@@ -227,7 +232,7 @@ ClientTCP_transport.prototype._handle_ACK_response = function (message_chunk, ca
     const self = this;
     const _stream = new BinaryStream(message_chunk);
     const messageHeader = readMessageHeader(_stream);
-    var err;
+    let err;
 
     if (messageHeader.isFinal !== "F") {
         err = new Error(" invalid ACK message");
@@ -242,7 +247,7 @@ ClientTCP_transport.prototype._handle_ACK_response = function (message_chunk, ca
         _stream.rewind();
         response = decodeMessage(_stream, responseClass);
         
-        var err =new Error("ACK: ERR received " + response.statusCode.toString() + " : " + response.reason);
+        err =new Error("ACK: ERR received " + response.statusCode.toString() + " : " + response.reason);
         err.statusCode =  response.statusCode;
         callback(err);
 

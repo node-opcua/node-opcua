@@ -4,13 +4,13 @@ const path  = require("path");
 const nodeExternals = require("webpack-node-externals");
 const babiliWebpackPlugin = require("babili-webpack-plugin");
 const MinifyPlugin = require("babel-minify-webpack-plugin");
-var CopyWebpackPlugin = require("copy-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 
 // -------------------------------------------------------------
 //
 // -------------------------------------------------------------
-var config  = {
+const config  = {
     target: "node",
     //xx context: __dirname,
     entry: ["./packages/node-opcua/index.js"],
@@ -90,6 +90,6 @@ const configMax = {
     externals: [nodeExternals({
         whitelist: [/.*/,/opcua/]
     })]
-}
+};
 
 module.exports  = [ config , configMax ];

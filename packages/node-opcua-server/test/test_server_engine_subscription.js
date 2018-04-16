@@ -7,7 +7,7 @@ const subscription_service = require("node-opcua-service-subscription");
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
 
-const SubscriptionState = require("../src/subscription").SubscriptionState;
+const SubscriptionState = require("../src/server_subscription").SubscriptionState;
 const MonitoredItemCreateRequest = require("node-opcua-service-subscription").MonitoredItemCreateRequest;
 
 const PublishRequest = subscription_service.PublishRequest;
@@ -245,7 +245,7 @@ describe("ServerEngine Subscriptions service", function () {
 
             const test = this;
 
-            const SubscriptionState = require("../src/subscription").SubscriptionState;
+            const SubscriptionState = require("../src/server_subscription").SubscriptionState;
 
             // CTT : deleteSub5106004
             const subscription_parameters = {

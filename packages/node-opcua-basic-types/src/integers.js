@@ -103,7 +103,7 @@ exports.isValidUInt8 = function(value) {
     if (!_.isFinite(value)) {
         return false;
     }
-    return value >= -0x00 && value <= 0xff;
+    return value >= 0x00 && value <= 0xff;
 };
 exports.randomUInt8 = function() {
     return getRandomInt(0x00, 0xff);

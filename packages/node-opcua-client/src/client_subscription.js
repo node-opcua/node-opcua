@@ -161,6 +161,7 @@ ClientSubscription.prototype.__create_subscription = function (callback) {
                 debugLog("lifetimeCount                    ".yellow.bold, self.lifetimeCount);
                 debugLog("maxKeepAliveCount                ".yellow.bold, self.maxKeepAliveCount);
                 debugLog("publish request timeout hint =   ".yellow.bold, self.timeoutHint);
+                debugLog("hasTimedOut                      ".yellow.bold, self.hasTimedOut);
             }
 
             self.publish_engine.registerSubscription(self);
@@ -171,7 +172,6 @@ ClientSubscription.prototype.__create_subscription = function (callback) {
         }
     });
 };
-
 
 ClientSubscription.prototype.__on_publish_response_DataChangeNotification = function (notification) {
 
@@ -261,6 +261,9 @@ ClientSubscription.prototype.__on_publish_response_EventNotificationList = funct
 ClientSubscription.prototype.onNotificationMessage = function (notificationMessage) {
 
     const self = this;
+
+    self.lastRequestSentTime = Date.now();
+
     assert(notificationMessage.hasOwnProperty("sequenceNumber"));
 
     self.lastSequenceNumber = notificationMessage.sequenceNumber;
@@ -605,50 +608,6 @@ ClientSubscription.prototype.monitorItems = function (itemsToMonitor, requestedP
     return monitoredItemGroup;
 };
 
-// ClientSubscription.prototype.monitorOld = function (itemToMonitor, requestedParameters, timestampsToReturn, done) {
-//
-//     var self = this;
-//
-//
-//     assert(itemToMonitor.nodeId);
-//     assert(itemToMonitor.attributeId);
-//     assert(done === undefined || _.isFunction(done));
-//     assert(!_.isFunction(timestampsToReturn));
-//
-//     // Try to resolve the nodeId and fail fast if we can't.
-//     resolveNodeId(itemToMonitor.nodeId);
-//
-//     timestampsToReturn = timestampsToReturn || TimestampsToReturn.Neither;
-//
-//
-//     var monitoredItem = new ClientMonitoredItem(this, itemToMonitor, requestedParameters, timestampsToReturn);
-//
-//     var _watch_dog = 0;
-//
-//     function wait_for_subscription_and_monitor() {
-//
-//         _watch_dog++;
-//
-//         if (self.subscriptionId === "pending") {
-//             // the subscriptionID is not yet known because the server hasn't replied yet
-//             // let postpone this call, a little bit, to let things happen
-//             setImmediate(wait_for_subscription_and_monitor);
-//
-//         } else if (self.subscriptionId === "terminated") {
-//             // the subscription has been terminated in the meantime
-//             // this indicates a potential issue in the code using this api.
-//             if (_.isFunction(done)) {
-//                 done(new Error("subscription has been deleted"));
-//             }
-//         } else {
-//             //xxx console.log("xxxx _watch_dog ",_watch_dog);
-//             monitoredItem._monitor(done);
-//         }
-//     }
-//
-//     setImmediate(wait_for_subscription_and_monitor);
-//     return monitoredItem;
-// };
 
 ClientSubscription.prototype.isActive = function () {
     const self = this;
@@ -798,6 +757,14 @@ ClientSubscription.prototype.toString = function () {
     str += "lifetimeCsount      :" + subscription.lifetimeCount + "\n";
     str += "maxKeepAliveCount   :" + subscription.maxKeepAliveCount + "\n";
     return str;
+};
+
+ClientSubscription.prototype.evaluateRemainingLifetime = function() {
+    const subscription = this;
+    const now = Date.now();
+    const timeout = subscription.publishingInterval * subscription.lifetimeCount;
+    const expiryTime = subscription.lastRequestSentTime + timeout;
+    return Math.max(0,(expiryTime - now));
 };
 
 exports.ClientSubscription = ClientSubscription;

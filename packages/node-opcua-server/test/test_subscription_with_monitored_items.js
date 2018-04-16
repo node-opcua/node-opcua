@@ -8,8 +8,8 @@ const sinon = require("sinon");
 const subscription_service = require("node-opcua-service-subscription");
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-const Subscription = require("../src/subscription").Subscription;
-const SubscriptionState = require("../src/subscription").SubscriptionState;
+const Subscription = require("../src/server_subscription").Subscription;
+const SubscriptionState = require("../src/server_subscription").SubscriptionState;
 const ServerSidePublishEngine = require("../src/server_publish_engine").ServerSidePublishEngine;
 
 const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;

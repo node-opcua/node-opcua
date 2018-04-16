@@ -3,8 +3,8 @@
 // id out of the address_space
 //
 // For instance if ServerStatus
-//    var ServerStatusDataType = addressSpace.findDataType("ServerStatus");
-//    var serverStatus  = addressSpace.constructExtensionObject(ServerStatusDataType);
+//    const ServerStatusDataType = addressSpace.findDataType("ServerStatus");
+//    const serverStatus  = addressSpace.constructExtensionObject(ServerStatusDataType);
 //    serverStatus.constructor.name.should.eql("ServerStatus");
 //
 //

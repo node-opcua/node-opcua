@@ -14,7 +14,7 @@
  },
  "devDependencies": {
   "@types/chalk": "^2.2.0",
-  "@types/node": "^9.6.2",
+  "@types/node": "^9.6.5",
   "@types/underscore": "^1.8.8",
   "chalk": "^2.3.2",
   "should": "13.2.1",

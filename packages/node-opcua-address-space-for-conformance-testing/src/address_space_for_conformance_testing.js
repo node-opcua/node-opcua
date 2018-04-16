@@ -251,8 +251,7 @@ let build_address_space_for_conformance_testing;
 
 
 const DateTime_Min = new Date();
-
-var typeAndDefaultValue = [
+const typeAndDefaultValue = [
     {type: "Boolean", defaultValue: false},
     {type: "ByteString", defaultValue: new Buffer("OPCUA")},
     {type: "DateTime", defaultValue: DateTime_Min},
@@ -395,7 +394,6 @@ function add_simulation_variables(addressSpace, scalarFolder) {
         values_to_change = [];
     }
 
-    // var name = "Interval", "UInt16"
     const intervalVariable = addressSpace.addVariable({
         componentOf: simulation,
         browseName: "Interval",
@@ -461,7 +459,7 @@ function add_scalar_static_variables(addressSpace, scalarFolder) {
         add_variable(addressSpace, scalarStatic, dataType, realType, defaultValue, "");
     });
 
-    function setImage__(imageType, filename) {
+    function setImage2(imageType, filename) {
         const fullpath = path.join(__dirname, "../data", filename);
         const imageNode = addressSpace.findNode("ns=411;s=Scalar_Static_Image" + imageType);
 
@@ -946,8 +944,6 @@ function add_multi_state_discrete_variable(addressSpace,parentFolder) {
         enumStrings: [ "Red","Orange","Green"],
         value: 1 // Orange
     });
-    const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
-
 
 
     //MultiStateDiscrete002

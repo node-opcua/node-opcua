@@ -908,9 +908,9 @@ UAVariable.prototype.writeAttribute = function (context, writeValue, callback) {
             this.historizing = !!writeValue.value.value.value; // yes ! indeed !
 
             return callback(null, StatusCodes.Good);
-            break;
         default:
             BaseNode.prototype.writeAttribute.call(this, context, writeValue, callback);
+            break;
     }
 };
 
@@ -1535,6 +1535,9 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
     const self = this;
     const addressSpace = self.addressSpace;
     const structure = addressSpace.findDataType("Structure");
+    let Constructor;
+    let extensionObject_;
+
     if (!structure) {
         // the addressSpace is limited and doesn't provide extension object
         // bindExtensionObject cannot be performed and shall finish here.
@@ -1552,13 +1555,12 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
         return null;
     }
 
-    var Constructor;
 
     // -------------------- make sure we do not bind a variable twice ....
     if (self.$extensionObject) {
         assert(utils.isNullOrUndefined(optionalExtensionObject), "unsupported case");
         Constructor = addressSpace.getExtensionObjectConstructor(self.dataType);
-        var extensionObject_ = self.readValue().value.value;
+        extensionObject_ = self.readValue().value.value;
         assert(extensionObject_.constructor.name === Constructor.name);
         assert(self.$extensionObject.constructor.name === Constructor.name);
         return self.$extensionObject;
@@ -1612,7 +1614,7 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
     if (s.value && s.value.dataType === DataType.Null) {
 
         // create a structure and bind it
-        var extensionObject_ = self.$extensionObject || addressSpace.constructExtensionObject(self.dataType);
+        extensionObject_ = self.$extensionObject || addressSpace.constructExtensionObject(self.dataType);
         extensionObject_ = new Proxy(extensionObject_, makeHandler(self));
         self.$extensionObject = extensionObject_;
 
@@ -1642,7 +1644,7 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
         assert(self.$extensionObject && self.$extensionObject.constructor, "expecting an valid extension object");
         assert(s.statusCode.equals(StatusCodes.Good));
 
-        var Constructor = addressSpace.getExtensionObjectConstructor(self.dataType);
+        Constructor = addressSpace.getExtensionObjectConstructor(self.dataType);
         assert(Constructor);
         assert(self.$extensionObject.constructor.name === Constructor.name);
     }
@@ -1757,6 +1759,7 @@ UAVariable.prototype.updateExtensionObjectPartial = function (partialExtensionOb
 UAVariable.prototype.incrementExtensionObjectPartial = function (path) {
 
     const self = this;
+    let name;
     if (typeof path === "string") {
         path = path.split(".");
     }
@@ -1776,7 +1779,7 @@ UAVariable.prototype.incrementExtensionObjectPartial = function (path) {
 
     let c1 = partialData;
     let c2 = extensionObject;
-    var name;
+
     for (i = 0; i < path.length - 1; i++) {
         name = path[i];
         c1 = partialData[name];

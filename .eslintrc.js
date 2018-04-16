@@ -16,15 +16,18 @@ module.exports = {
         "Uint32Array": true,
         "Uint64Array": true,
         "__dirname": false,
+        "ArrayBuffer": true,
+        "Proxy": true,
+        "WeakMap": true
     },
     env: {
         node: true,
         mocha: true
     },
     rules: {
-        strict: 0,                   // controls location of Use Strict Directives
+        strict: 0,                     // controls location of Use Strict Directives
         "no-underscore-dangle": 0,     // disallow dangling underscores in identifiers
-        "no-irregular-whitespace": 0,  // disallow irregular whitespace outside of strings and comments
+        "no-irregular-whitespace": 2,  // disallow irregular whitespace outside of strings and comments
         "no-multi-spaces": 0,           // disallow use of multiple spaces
         "key-spacing": 0,               // enforces spacing between keys and values in object literal proper
         "comma-spacing": 0,             // enforce spacing before and after comma
@@ -44,6 +47,10 @@ module.exports = {
         "comma-dangle": 0,
         "dot-notation": 0,
         "no-console": 0,
+        "no-var": 2,
+        "no-empty":1,
+        "no-unreachable": 1,
+        "no-constant-condition":1
     },
     "plugins": []
 };

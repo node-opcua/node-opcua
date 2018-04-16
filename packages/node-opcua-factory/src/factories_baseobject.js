@@ -29,10 +29,9 @@ function BaseUAObject() {
  * @class BaseUAObject
  * @method encode
  * @param stream {BinaryStream}
- * @param options {BinaryStream}
  */
-BaseUAObject.prototype.encode = function (/*stream,options*/) {
-
+BaseUAObject.prototype.encode = function (stream) {
+    assert(stream !== null);
 };
 
 /**
@@ -40,10 +39,9 @@ BaseUAObject.prototype.encode = function (/*stream,options*/) {
  * @class BaseUAObject
  * @method decode
  * @param stream {BinaryStream}
- * @param options {Object}
  */
-BaseUAObject.prototype.decode = function (/*stream,options*/) {
-
+BaseUAObject.prototype.decode = function (stream) {
+    assert(stream !== null);
 };
 
 /**
@@ -51,10 +49,9 @@ BaseUAObject.prototype.decode = function (/*stream,options*/) {
  * @method binaryStoreSize
  * @return {Number}
  */
-BaseUAObject.prototype.binaryStoreSize = function (options) {
-
+BaseUAObject.prototype.binaryStoreSize = function () {
     const stream = new BinaryStreamSizeCalculator();
-    this.encode(stream, options);
+    this.encode(stream);
     return stream.length;
 };
 
@@ -192,7 +189,7 @@ function apply_on_all_schema_fields(self, schema, data, functor , args) {
 
 const _nb_elements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH) : 10;
 
-function _array_ellypsis(value,field) {
+function _array_ellypsis(value) {
 
 
     if (!value) {
@@ -251,7 +248,7 @@ function _exploreObject(self, field, data, args) {
     }
 
 
-    const _dump_simple_value = function _dump_simple_value(self, field, data, value, fieldType) {
+    function _dump_simple_value(self, field, data, value, fieldType) {
 
         let str = "";
         if (value instanceof Buffer) {
@@ -282,76 +279,72 @@ function _exploreObject(self, field, data, args) {
             data.lines.push(str);
         }
 
-    };
+    }
 
-    switch (category) {
+    function _dump_complex_value(self,field,data,value,fieldType) {
+        if (field.subtype) {
 
-        case "enumeration":
-
-            str = fieldName_f + " " + fieldType_f + ": " + value.key + " ( " + value.value + ")";
-            data.lines.push(str);
-
-            break;
-
-        case "basic":
+            // this is a synonymous
+            fieldType = field.subType;
             _dump_simple_value(self, field, data, value, fieldType);
-            break;
 
-        case "complex":
-            if (field.subtype) {
+        } else {
 
-                // this is a synonymous
-                fieldType = field.subType;
-                _dump_simple_value(self, field, data, value, fieldType);
+            field.fieldTypeConstructor = field.fieldTypeConstructor ||  getFactory(fieldType);
+            const fieldTypeConstructor = field.fieldTypeConstructor;
+
+            const _new_desc = fieldTypeConstructor.prototype._schema;
+
+            if (field.isArray) {
+                if (value === null) {
+                    data.lines.push(fieldName_f + " " + fieldType_f + ": null []");
+                } else if (value.length === 0) {
+                    data.lines.push(fieldName_f + " " + fieldType_f + ": [ /* empty */ ]");
+                } else {
+                    data.lines.push(fieldName_f + " " + fieldType_f + ": [");
+
+                    const m = Math.min(_nb_elements, value.length);
+
+                    for (let i = 0; i < m; i++) {
+                        const element = value[i];
+                        data.lines.push(padding + "  { " + ("/*" + i + "*/").cyan);
+
+                        const data1 = {padding: padding + "    ", lines: []};
+                        apply_on_all_schema_fields(element, _new_desc, data1, _exploreObject , args);
+                        data.lines = data.lines.concat(data1.lines);
+
+                        data.lines.push(padding + "  }" + ((i === value.length - 1) ? "" : ","));
+                    }
+                    if (m < value.length) {
+                        data.lines.push(padding + " ..... ( " + value.length + " elements )");
+                    }
+                    data.lines.push(padding + "]");
+
+                }
 
             } else {
 
-                field.fieldTypeConstructor = field.fieldTypeConstructor ||  getFactory(fieldType);
-                const fieldTypeConstructor = field.fieldTypeConstructor;
+                data.lines.push(fieldName_f + " " + fieldType_f + ": {");
 
-                const _new_desc = fieldTypeConstructor.prototype._schema;
+                const data1 = {padding: padding + "  ", lines: []};
+                apply_on_all_schema_fields(value, _new_desc, data1, _exploreObject,args);
+                data.lines = data.lines.concat(data1.lines);
 
-                if (field.isArray) {
-                    if (value === null) {
-                        data.lines.push(fieldName_f + " " + fieldType_f + ": null []");
-                    } else if (value.length === 0) {
-                        data.lines.push(fieldName_f + " " + fieldType_f + ": [ /* empty */ ]");
-                    } else {
-                        data.lines.push(fieldName_f + " " + fieldType_f + ": [");
-
-                        let i = 0;
-
-                        const m = Math.min(_nb_elements, value.length);
-
-                        for (i = 0; i < m; i++) {
-                            const element = value[i];
-                            data.lines.push(padding + "  { " + ("/*" + i + "*/").cyan);
-
-                            var data1 = {padding: padding + "    ", lines: []};
-                            apply_on_all_schema_fields(element, _new_desc, data1, _exploreObject , args);
-                            data.lines = data.lines.concat(data1.lines);
-
-                            data.lines.push(padding + "  }" + ((i === value.length - 1) ? "" : ","));
-                        }
-                        if (m < value.length) {
-                            data.lines.push(padding + " ..... ( " + value.length + " elements )");
-                        }
-                        data.lines.push(padding + "]");
-
-                    }
-
-                } else {
-
-                    data.lines.push(fieldName_f + " " + fieldType_f + ": {");
-
-                    data1 = {padding: padding + "  ", lines: []};
-                    apply_on_all_schema_fields(value, _new_desc, data1, _exploreObject,args);
-                    data.lines = data.lines.concat(data1.lines);
-
-                    data.lines.push(padding + "}");
-                }
+                data.lines.push(padding + "}");
             }
+        }
+    }
 
+    switch (category) {
+        case "enumeration":
+            str = fieldName_f + " " + fieldType_f + ": " + value.key + " ( " + value.value + ")";
+            data.lines.push(str);
+            break;
+        case "basic":
+            _dump_simple_value(self, field, data, value, fieldType);
+            break;
+        case "complex":
+            _dump_complex_value(self, field, data, value, fieldType);
             break;
         default:
             throw new Error("internal error: unknown kind_of_field " + category);

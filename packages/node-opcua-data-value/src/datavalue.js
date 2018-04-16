@@ -87,9 +87,9 @@ function apply_timestamps(dataValue, timestampsToReturn, attributeId) {
             cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
             break;
         case TimestampsToReturn.Both:
-            if (false && attributeId !== 13 && dataValue.sourceTimestamp && dataValue.serverTimestamp) {
-                return dataValue;
-            }
+            //xxif (false && attributeId !== 13 && dataValue.sourceTimestamp && dataValue.serverTimestamp) {
+            //xx    return dataValue;
+            //xx}
             cloneDataValue = cloneDataValue || _partial_clone(dataValue);
             cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
             cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
@@ -128,10 +128,10 @@ function apply_timestamps2(dataValue, timestampsToReturn, attributeId) {
         case TimestampsToReturn.Server:
             cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
             cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            if (true || !cloneDataValue.serverTimestamp) {
+            //xxif (true || !cloneDataValue.serverTimestamp) {
                 cloneDataValue.serverTimestamp = now.timestamp;
                 cloneDataValue.serverPicoseconds = now.picoseconds;
-            }
+            //xx}
             break;
         case TimestampsToReturn.Source:
             cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
@@ -140,10 +140,10 @@ function apply_timestamps2(dataValue, timestampsToReturn, attributeId) {
         case TimestampsToReturn.Both:
             cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
             cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            if (true || !cloneDataValue.serverTimestamp) {
+            //xxif (true || !cloneDataValue.serverTimestamp) {
                 cloneDataValue.serverTimestamp = now.timestamp;
                 cloneDataValue.serverPicoseconds = now.picoseconds;
-            }
+            //xx}
 
             cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
             cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;

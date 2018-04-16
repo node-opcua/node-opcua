@@ -54,6 +54,20 @@ console.log("  server PID          :".yellow, process.pid);
 
 server.on("post_initialize", function () {
 
+    const addressSpace = server.engine.addressSpace;
+
+    const rootFolder = addressSpace.findNode("RootFolder");
+
+    const myDevices = addressSpace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
+
+    const variable0 = addressSpace.addVariable({
+        organizedBy: myDevices,
+        browseName: "Counter",
+        nodeId: "ns=1;s=MyCounter",
+        dataType: "Int32",
+        value: new opcua.Variant({dataType: opcua.DataType.Int32, value: 1000.0})
+    });
+
 });
 
 server.start(function (err) {

@@ -1,23 +1,23 @@
 "use strict";
-var async = require("async");
-var opcua = require("node-opcua-client");
-var assert = require("assert");
-var parseBinaryXSD = require("./process_schema_file").parseBinaryXSD;
+const async = require("async");
+const opcua = require("node-opcua-client");
+const assert = require("assert");
+const parseBinaryXSD = require("./process_schema_file").parseBinaryXSD;
 
 
-var doDebug = false;
+const doDebug = false;
 
 function parse_opcua_common(session,callback)  {
 
-    var binaries = "i=83";
+    const binaries = "i=83";
 
-    var binSchemaReferences = [];
-    var xmlSchemaReferences = [];
+    let binSchemaReferences = [];
+    let xmlSchemaReferences = [];
 
     async.series([
 
         function browse_all_opc_binary_schema_and_xml_schema(callback) {
-                var browseDescriptions = [
+                const browseDescriptions = [
                 {
                     nodeId: "i=93", //OPCBinarySchema_TypeSystem
                     referenceTypeId: "HasComponent",
@@ -48,13 +48,13 @@ function parse_opcua_common(session,callback)  {
 
             async.eachLimit(binSchemaReferences, 1, function (reference, callback) {
 
-                var nodeId = reference.nodeId;
+                const nodeId = reference.nodeId;
 
                 if (doDebug) {
                     console.log("nodeId".cyan, nodeId.toString(), "browseName ", reference.browseName.toString());
                 }
 
-                var strTypeDictionary;
+                let strTypeDictionary;
                 async.series([
 
                     function read_type_definition_xsd_value(callback) {
@@ -80,7 +80,7 @@ function parse_opcua_common(session,callback)  {
                         });
                     },
                     function read_namespaceUri(callback) {
-                        var browseDescription = {
+                        const browseDescription = {
                             nodeId: nodeId,
                             referenceTypeId: "HasProperty",
                             browseDirection: opcua.BrowseDirection.Forward,
@@ -90,10 +90,10 @@ function parse_opcua_common(session,callback)  {
                             if (err) {
                                 return callback(err);
                             }
-                            var nodeId = browseResult.references[0].nodeId;
+                            const nodeId = browseResult.references[0].nodeId;
                             session.read({ nodeId: nodeId, attributeId: 13},function(err,dataValue){
                                 console.log("namespaceUri =",dataValue.value.value.toString());
-                                var namespaceUri = dataValue.value.value.toString();
+                                const namespaceUri = dataValue.value.value.toString();
                                 callback();
                             });
                         });
@@ -101,7 +101,7 @@ function parse_opcua_common(session,callback)  {
                     },
                     function enumerate_all_type_with_id(callback) {
 
-                        var browseDescription = {
+                        const browseDescription = {
                             nodeId: nodeId,
                             referenceTypeId: "HasComponent",
                             browseDirection: opcua.BrowseDirection.Forward,
@@ -118,9 +118,9 @@ function parse_opcua_common(session,callback)  {
 
                             console.log("--" ,browseResult.toString());
 
-                            if (doDebug || true) {
+                            if (doDebug) {
                                 browseResult.references = browseResult.references || [];
-                                var aa =  browseResult.references.map(function (x) {
+                                const aa =  browseResult.references.map(function (x) {
                                     return x.nodeId.toString() + " " + x.browseName;
                                 }).join("|  \n");
                                 console.log("r =",aa);
@@ -130,9 +130,9 @@ function parse_opcua_common(session,callback)  {
                             async.each(browseResult.references,
 
                               function process_structure(x, callback) {
-                                  var nodeId = x.nodeId;
-                                  var name = x.browseName.toString();
-                                  var browseDescription = {
+                                  const nodeId = x.nodeId;
+                                  const name = x.browseName.toString();
+                                  const browseDescription = {
                                       nodeId: nodeId,
                                       referenceTypeId: "HasDescription",
                                       browseDirection: opcua.BrowseDirection.Inverse,
@@ -143,7 +143,7 @@ function parse_opcua_common(session,callback)  {
                                       if (err) {
                                           return callback(err);
                                       }
-                                      var nnn = browseResult.references[0].nodeId;
+                                      const nnn = browseResult.references[0].nodeId;
                                       console.log(" ", nodeId.toString(), name, "nn=", nnn.toString());
                                       callback();
                                   });

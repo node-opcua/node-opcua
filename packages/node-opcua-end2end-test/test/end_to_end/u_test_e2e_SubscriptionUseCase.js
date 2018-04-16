@@ -28,7 +28,7 @@ const perform_operation_on_client_session = require("../../test_helpers/perform_
 const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 const perform_operation_on_monitoredItem = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_monitoredItem;
 
-const Subscription = require("node-opcua-server/src/subscription").Subscription;
+const Subscription = require("node-opcua-server/src/server_subscription").Subscription;
 
 const doDebug=false;
 const f = require("../../test_helpers/display_function_name").f.bind(null, true);

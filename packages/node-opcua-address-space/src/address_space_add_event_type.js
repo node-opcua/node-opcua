@@ -7,7 +7,7 @@
 
 
 const assert = require("node-opcua-assert").assert;
-const _ = require("underscore");
+
 
 const Variant = require("node-opcua-variant").Variant;
 const DataType = require("node-opcua-variant").DataType;
@@ -54,7 +54,7 @@ EventData.prototype.resolveSelectClause = function(selectClause) {
     const addressSpace = self.$eventDataSource.addressSpace;
 
     if (selectClause.browsePath.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
-        assert("Cannot use resolveSelectClause on this selectClause as it has no browsePath");
+        assert(!"Cannot use resolveSelectClause on this selectClause as it has no browsePath");
     }
     // navigate to the innerNode specified by the browsePath [ QualifiedName]
     const browsePath = constructBrowsePathFromQualifiedName(self.$eventDataSource, selectClause.browsePath);
@@ -417,7 +417,7 @@ exports.install = function (AddressSpace) {
             });
         }
 
-        var eventData = new EventData(eventTypeNode);
+        const eventData = new EventData(eventTypeNode);
 
         // verify standard properties...
         populate_data(eventTypeNode, eventData);

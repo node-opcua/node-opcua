@@ -46,7 +46,7 @@ exports.encodeDateTime = function (date, stream) {
         throw new Error("Expecting a Date : but got a " + typeof(date) + " " + date.toString());
     }
     assert(date instanceof Date);
-    var hl = bn_dateToHundredNanoSecondFrom1601(date);
+    let hl = bn_dateToHundredNanoSecondFrom1601(date);
     let hi = hl[0];
     let lo = hl[1];
 
@@ -55,7 +55,7 @@ exports.encodeDateTime = function (date, stream) {
         hi=0;lo=0;
     }
     if (hi <0 || lo<0 || hi > MAXUINT32 || lo > MAXUINT32 ) {
-        var hl = bn_dateToHundredNanoSecondFrom1601(date);
+        hl = bn_dateToHundredNanoSecondFrom1601(date);
         throw new Error("INVALID " + hi  + " "+lo + " "+date.toUTCString());
     }
     stream.writeUInt32(lo);

@@ -1,11 +1,11 @@
-var Xml2Json = require("node-opcua-xml2json").Xml2Json;
-var doDebug = false;
+const Xml2Json = require("node-opcua-xml2json").Xml2Json;
+const doDebug = false;
 
 function w(s, l) {
     return (s + "                                                    ").substr(0, l);
 }
 
-var predefinedType = {
+const predefinedType = {
     "opc:Bit": 1,
     "opc:Boolean": 1,
     "opc:Byte": 1,
@@ -44,10 +44,10 @@ var predefinedType = {
     "ua:DataValue": 1,
 };
 
-var found ={};
+const found ={};
 function resolveType(typeDictionary, typeName) {
 
-    var namespace = typeName.split(":")[0];
+    const namespace = typeName.split(":")[0];
     if (predefinedType[typeName]) {
         return;
     }
@@ -59,7 +59,7 @@ function resolveType(typeDictionary, typeName) {
     }
 };
 
-var state_0 = {
+const state_0 = {
     init: function () {
     },
     parser: {
@@ -101,8 +101,8 @@ var state_0 = {
                         if (doDebug) {
                             console.log("StructureType Name=".cyan, this.attrs.Name.green, " BaseType=", this.attrs.BaseType);
                         }
-                        var baseType =this.attrs.BaseType;
-                        var base =this.parent.typeDictionary.structuredTypes[baseType];
+                        const baseType =this.attrs.BaseType;
+                        const base =this.parent.typeDictionary.structuredTypes[baseType];
                         this.structuredType = {
                             name: this.attrs.Name,
                             baseType: baseType,
@@ -122,7 +122,7 @@ var state_0 = {
                                 resolveType(this.parent.typeDictionary, this.attrs.TypeName);
 
 
-                                var field = { name: this.attrs.Name, fieldType:this.attrs.TypeName};
+                                const field = { name: this.attrs.Name, fieldType:this.attrs.TypeName};
                                 if (this.attrs.LengthField) {
                                     field.isArray = true;
                                     this.parent.structuredType.fields[this.parent.structuredType.fields.length-1]=field;
@@ -143,12 +143,12 @@ var state_0 = {
 
 function parseBinaryXSD(str, callback) {
 
-    var typeDictionary = {
+    const typeDictionary = {
         structuredTypes: {},
         enumeratedTypes: {}
     };
 
-    var parser = new Xml2Json(state_0);
+    const parser = new Xml2Json(state_0);
     parser.typeDictionary = typeDictionary;
     parser.parseString(str, function (err) {
         callback(err, typeDictionary);

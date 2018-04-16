@@ -153,6 +153,16 @@ OPCUABaseServer.prototype.start = function (done) {
 };
 
 
+function cleanupEndpoint(endPoint)  {
+    if (endPoint._on_new_channel) {
+        assert(_.isFunction(endPoint._on_new_channel));
+        endPoint.removeListener("newChannel", endPoint._on_new_channel);
+    }
+    if (endPoint._on_close_channel) {
+        assert(_.isFunction(endPoint._on_close_channel));
+        endPoint.removeListener("closeChannel", endPoint._on_close_channel);
+    }
+}
 /**
  * shutdown all server endPoints
  * @method shutdown
@@ -168,21 +178,37 @@ OPCUABaseServer.prototype.shutdown = function (done) {
     const tasks = [];
     self.endpoints.forEach(function (endPoint) {
         tasks.push(function (callback) {
+            cleanupEndpoint(endPoint);
             endPoint.shutdown(callback);
-            if (endPoint._on_new_channel) {
-                assert(_.isFunction(endPoint._on_new_channel));
-                endPoint.removeListener("newChannel", endPoint._on_new_channel);
-            }
-            if (endPoint._on_close_channel) {
-                assert(_.isFunction(endPoint._on_close_channel));
-                endPoint.removeListener("closeChannel", endPoint._on_close_channel);
-            }
         });
     });
     async.parallel(tasks, function (err) {
         done(err);
         debugLog("shutdown completed");
     });
+};
+
+
+
+OPCUABaseServer.prototype.simulateCrash = function(callback) {
+
+    assert(_.isFunction(callback));
+    const self = this;
+
+    debugLog("OPCUABaseServer#simulateCrash");
+
+    const tasks = [];
+    self.endpoints.forEach(function (endPoint) {
+        tasks.push(function (callback) {
+            console.log(" crashing endpoint ",endPoint.endpointUrl);
+            endPoint.suspendConnection(function() {
+            });
+            endPoint.killClientSockets(callback);
+        });
+    });
+    //xx self.engine.shutdown();
+    //xx self.shutdown(callback);
+    async.series(tasks, callback);
 };
 
 /**
@@ -228,7 +254,7 @@ OPCUABaseServer.prototype.on_request = function (message, channel) {
     // prepare request
     this.prepare(message, channel);
 
-    var self = this;
+    const self = this;
     debugLog("--------------------------------------------------------".green.bold, channel.secureChannelId, request._schema.name);
     let errMessage, response;
     self.emit("request", request, channel);
