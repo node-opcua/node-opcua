@@ -604,6 +604,22 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                     };
                 }
             },
+            "Float": {
+                finish: function() {
+                    this.parent.parent.obj.value = {
+                        dataType: DataType.Float,
+                        value: parseFloat(this.text)
+                    }
+                }
+            },
+            "Double": {
+                finish: function() {
+                    this.parent.parent.obj.value = {
+                        dataType: DataType.Double,
+                        value: parseFloat(this.text)
+                    }
+                }
+            },
             "ListOfLocalizedText": {
                 init: function () {
                     this.listData = [];

@@ -158,6 +158,16 @@ describe("testing NodeSet XML file loading", function () {
             someBoolVariable.readValue().value.dataType.should.equal(DataType.Boolean);
             someBoolVariable.readValue().value.value.should.eql(true);
 
+            const someFloatVariable = addressSpace.findNode("ns=1;i=4");
+            someFloatVariable.browseName.toString().should.eql("1:SomeFloatVariable");
+            someFloatVariable.readValue().value.dataType.should.equal(DataType.Float);
+            someFloatVariable.readValue().value.value.should.eql(0.0);
+
+            const someDoubleVariable = addressSpace.findNode("ns=1;i=5");
+            someDoubleVariable.browseName.toString().should.eql("1:SomeDoubleVariable");
+            someDoubleVariable.readValue().value.dataType.should.equal(DataType.Double);
+            someDoubleVariable.readValue().value.value.should.eql(0.0);
+
             done(err);
         });
     });
