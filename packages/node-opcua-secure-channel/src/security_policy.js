@@ -47,7 +47,7 @@ const _ = require("underscore");
  * A suite of algorithms that are for 256-Bit encryption, algorithms include.
  *   -> SymmetricSignatureAlgorithm   - Hmac_Sha256 -(http://www.w3.org/2000/09/xmldsig#hmac-sha256).
  *   -> SymmetricEncryptionAlgorithm  -  Aes256_CBC -(http://www.w3.org/2001/04/xmlenc#aes256-cbc).
- *   -> AsymmetricSignatureAlgorithm  -  Rsa_Sha256 -(http://www.w3.org/2000/09/xmldsig#rsa-sha256).
+ *   -> AsymmetricSignatureAlgorithm  -  Rsa_Sha256 -(http://www.w3.org/2001/04/xmldsig-more#rsa-sha256).
  *   -> AsymmetricKeyWrapAlgorithm    -   KwRsaOaep -(http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p).
  *   -> AsymmetricEncryptionAlgorithm -    Rsa_Oaep -(http://www.w3.org/2001/04/xmlenc#rsa-oaep).
  *   -> KeyDerivationAlgorithm        -     PSHA256 -(http://docs.oasis-open.org/ws-sx/ws-secureconversation/200512/dk/p_sha256).
@@ -296,7 +296,7 @@ const _Basic256Sha256 = {
     asymmetricVerifyChunk: asymmetricVerifyChunk,
     asymmetricSign: RSAPKCS1V15SHA256_Sign,
     asymmetricVerify: RSAPKCS1OAEPSHA256_Verify,
-    asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha256",
+    asymmetricSignatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
 
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSAOAEP_Encrypt,
