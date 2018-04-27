@@ -20,7 +20,7 @@
     "node-opcua-service-browse": "^0.3.0",
     "node-opcua-status-code": "^0.3.0",
     "node-opcua-xml2json": "^0.3.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.9.0"
   },
   "devDependencies": {
     "node-opcua-leak-detector": "^0.3.0",

@@ -10,13 +10,13 @@
  },
  "dependencies": {
   "node-opcua-assert": "^0.3.0",
-  "underscore": "^1.8.3"
+  "underscore": "^1.9.0"
  },
  "devDependencies": {
   "@types/chalk": "^2.2.0",
-  "@types/node": "^9.6.5",
+  "@types/node": "^10.0.0",
   "@types/underscore": "^1.8.8",
-  "chalk": "^2.3.2",
+  "chalk": "^2.4.1",
   "should": "13.2.1",
   "sinon": "^4.5.0"
  },

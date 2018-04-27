@@ -14,7 +14,7 @@
   "node-opcua-factory": "^0.3.0",
   "node-opcua-nodeid": "^0.3.0",
   "node-opcua-utils": "^0.3.0",
-  "underscore": "^1.8.3"
+  "underscore": "^1.9.0"
  },
  "devDependencies": {
   "node-opcua-binary-stream": "^0.3.0",

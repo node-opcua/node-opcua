@@ -43,7 +43,7 @@
   "node-opcua-variant": "^0.3.0",
   "once": "^1.4.0",
   "thenify": "^3.3.0",
-  "underscore": "^1.8.3"
+  "underscore": "^1.9.0"
  },
  "devDependencies": {
   "dequeue": "^1.0.5",

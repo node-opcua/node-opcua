@@ -13,7 +13,7 @@
   "enum": "^2.5.0",
   "node-opcua-benchmarker": "^0.3.0",
   "should": "13.2.1",
-  "underscore": "^1.8.3"
+  "underscore": "^1.9.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

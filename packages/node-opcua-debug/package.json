@@ -7,14 +7,14 @@
   "test": "mocha test"
  },
  "dependencies": {
-  "chalk": "^2.3.2",
-  "hexy": "^0.2.10",
+  "chalk": "^2.4.1",
+  "hexy": "^0.2.11",
   "node-opcua-assert": "^0.3.0",
   "node-opcua-buffer-utils": "^0.3.0",
-  "underscore": "^1.8.3"
+  "underscore": "^1.9.0"
  },
  "devDependencies": {
-  "chalk": "^2.3.2",
+  "chalk": "^2.4.1",
   "should": "13.2.1"
  },
  "main": "dist/index.js",

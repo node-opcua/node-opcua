@@ -7,7 +7,7 @@
  },
  "main": "index.js",
  "dependencies": {
-  "async": "^2.5.0",
+  "async": "^2.6.0",
   "node-opcua-assert": "^0.3.0",
   "node-opcua-constants": "^0.2.0",
   "node-opcua-data-model": "^0.3.0",
@@ -16,7 +16,7 @@
   "node-opcua-service-browse": "^0.3.0",
   "node-opcua-status-code": "^0.3.0",
   "node-opcua-utils": "^0.3.0",
-  "underscore": "^1.8.3"
+  "underscore": "^1.9.0"
  },
  "devDependencies": {
   "node-opcua-address-space": "^0.3.0",

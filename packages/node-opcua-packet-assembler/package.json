@@ -10,7 +10,7 @@
  "license": "MIT",
  "dependencies": {
   "node-opcua-assert": "^0.3.0",
-  "underscore": "^1.8.3"
+  "underscore": "^1.9.0"
  },
  "devDependencies": {
   "should": "13.2.1"
