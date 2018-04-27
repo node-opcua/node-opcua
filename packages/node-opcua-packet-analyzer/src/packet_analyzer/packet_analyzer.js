@@ -94,6 +94,7 @@ function make_tracer(buffer, padding, offset) {
             trace: function (operation, name, value, start, end, fieldType) {
 
                 const b = buffer.slice(start, end);
+                let _hexDump="";
 
                 switch (operation) {
 
@@ -129,7 +130,7 @@ function make_tracer(buffer, padding, offset) {
                     case "member":
                         display("." + name + " : " + fieldType);
 
-                        let _hexDump = "";
+                        _hexDump = "";
                         if (value instanceof Buffer) {
                             _hexDump = hexDump(value);
                             console.log(_hexDump);

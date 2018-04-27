@@ -147,7 +147,7 @@ MessageBuilder.prototype._decrypt_OPN = function (binaryStream) {
     /* istanbul ignore next */
     if (doDebug) {
         debugLog("EN------------------------------".cyan);
-        debugLog(hexDump(binaryStream._buffer));
+        debugLog(hexDump(binaryStream._buffer,32,0xFFFFFFFF));
         debugLog("---------------------- SENDER CERTIFICATE");
         debugLog(hexDump(this.securityHeader.senderCertificate));
     }
@@ -409,7 +409,9 @@ MessageBuilder.prototype._safe_decode_message_body = function (full_message_body
         packet_analyzer(full_message_body);
 
         console.log(" ---------------- block");
+        let i=0;
         this.message_chunks.forEach(function (messageChunk) {
+            console.log(" ---------------- chunk i=",i++);
             console.log(hexDump(messageChunk));
         });
         return false;

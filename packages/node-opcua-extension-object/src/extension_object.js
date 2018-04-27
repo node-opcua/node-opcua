@@ -106,7 +106,18 @@ function decodeExtensionObject(stream) {
         stream.length += length;
         return null;
     }
+    // let verify that  decode will use the expected number of bytes
+    const streamLengthBefore = stream.length;
     object.decode(stream);
+
+    if (streamLengthBefore + length !== stream.length) {
+        // this may happen if the server or client do have a different OPCUA version
+        // for instance SubscriptionDiagnostics structure has been changed between OPCUA version 1.01 and 1.04
+        // causing 2 extra member to be added.
+        console.log("=========================================".bgWhite.red);
+        console.warn("WARNING => Extension object decoding error on ",object.constructor.name," expected size was", length, "actual size was ", stream.length - streamLengthBefore);
+        stream.length =  streamLengthBefore + length;
+    }
     return object;
 }
 
