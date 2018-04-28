@@ -8,6 +8,7 @@ node_js:
   # dropped - "7"
   - "8"
   - "9"
+  - "10"
 
 
 before_script:
