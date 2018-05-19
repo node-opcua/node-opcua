@@ -14,11 +14,11 @@
  },
  "devDependencies": {
   "@types/chalk": "^2.2.0",
-  "@types/node": "^10.0.0",
+  "@types/node": "^10.0.4",
   "@types/underscore": "^1.8.8",
   "chalk": "^2.4.1",
   "should": "13.2.1",
-  "sinon": "^4.5.0"
+  "sinon": "^5.0.7"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

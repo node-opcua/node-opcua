@@ -11,7 +11,7 @@
  "main": "index.js",
  "dependencies": {
   "async": "^2.6.0",
-  "colors": "^1.2.1",
+  "colors": "^1.2.4",
   "dequeue": "^1.0.5",
   "node-opcua-address-space": "^0.3.0",
   "node-opcua-assert": "^0.3.0",
@@ -59,7 +59,7 @@
   "node-opcua-test-helpers": "^0.3.0",
   "node-opcua-transport": "^0.3.0",
   "should": "13.2.1",
-  "sinon": "^4.5.0"
+  "sinon": "^5.0.7"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

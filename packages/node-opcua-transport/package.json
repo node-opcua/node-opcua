@@ -23,11 +23,11 @@
   "underscore": "^1.9.0"
  },
  "devDependencies": {
-  "colors": "^1.2.1",
+  "colors": "^1.2.4",
   "node-opcua-debug": "^0.3.0",
   "node-opcua-generator": "^0.3.0",
   "should": "13.2.1",
-  "sinon": "^4.5.0"
+  "sinon": "^5.0.7"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

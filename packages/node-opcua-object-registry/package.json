@@ -14,7 +14,7 @@
   "underscore": "^1.9.0"
  },
  "devDependencies": {
-  "colors": "^1.2.1",
+  "colors": "^1.2.4",
   "should": "13.2.1"
  },
  "repository": {
