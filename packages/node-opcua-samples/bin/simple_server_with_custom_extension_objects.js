@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /* eslint no-process-exit: 0 */
 "use strict";
-var _ = require("underscore");
-var path = require("path");
-var opcua = require("node-opcua");
+const _ = require("underscore");
+const path = require("path");
+const opcua = require("node-opcua");
 
 Error.stackTraceLimit = Infinity;
 
-var argv = require("yargs")
+const argv = require("yargs")
     .wrap(132)
     .string("port")
     .describe("port")
@@ -19,17 +19,17 @@ function constructFilename(filename) {
     return path.join(__dirname,"../",filename);
 }
 
-var OPCUAServer = opcua.OPCUAServer;
+const OPCUAServer = opcua.OPCUAServer;
 
-var standard_nodeset_file = opcua.standard_nodeset_file;
+const standard_nodeset_file = opcua.standard_nodeset_file;
 
-var rootFolder = path.join(__dirname,"../");
+const rootFolder = path.join(__dirname,"../");
 
-var port = parseInt(argv.port) || 26555;
-var server_certificate_file            = constructFilename("certificates/server_cert_1024.pem");
-var server_certificate_privatekey_file = constructFilename("certificates/server_key_1024.pem");
+const port = parseInt(argv.port) || 26555;
+const server_certificate_file            = constructFilename("certificates/server_cert_1024.pem");
+const server_certificate_privatekey_file = constructFilename("certificates/server_key_1024.pem");
 
-var server_options = {
+const server_options = {
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
     port: port,
@@ -41,18 +41,18 @@ var server_options = {
 
 process.title = "Node OPCUA Server on port : " + server_options.port;
 
-var server = new OPCUAServer(server_options);
+const server = new OPCUAServer(server_options);
 
-var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
-var hostname = require("os").hostname();
+const hostname = require("os").hostname();
 
 
 console.log("  server PID          :".yellow, process.pid);
 
 server.on("post_initialize", function () {
-    var addressSpace = server.engine.addressSpace;
-    var rootFolder = addressSpace.findNode("RootFolder");
+    const addressSpace = server.engine.addressSpace;
+    const rootFolder = addressSpace.findNode("RootFolder");
 });
 
 server.start(function (err) {

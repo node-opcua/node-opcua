@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /* eslint no-process-exit: 0 */
 "use strict";
-var path = require("path");
-var _ = require("underscore");
-var assert = require("assert");
-var opcua = require("node-opcua");
+const path = require("path");
+const _ = require("underscore");
+const assert = require("assert");
+const opcua = require("node-opcua");
 
 
 Error.stackTraceLimit = Infinity;
@@ -13,9 +13,9 @@ function constructFilename(filename) {
     return path.join(__dirname,"../",filename);
 }
 
-var yargs = require("yargs/yargs");
+const yargs = require("yargs/yargs");
 
-var argv = yargs(process.argv)
+const argv = yargs(process.argv)
     .wrap(132)
 
     .string("alternateHostname")
@@ -47,23 +47,23 @@ var argv = yargs(process.argv)
     .help(true)
     .argv;
 
-var OPCUAServer = opcua.OPCUAServer;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
-var get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
-var makeApplicationUrn = opcua.makeApplicationUrn;
+const OPCUAServer = opcua.OPCUAServer;
+const Variant = opcua.Variant;
+const DataType = opcua.DataType;
+const DataValue = opcua.DataValue;
+const get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
+const makeApplicationUrn = opcua.makeApplicationUrn;
 
-var install_optional_cpu_and_memory_usage_node = opcua.install_optional_cpu_and_memory_usage_node;
+const install_optional_cpu_and_memory_usage_node = opcua.install_optional_cpu_and_memory_usage_node;
 
 
-var port = argv.port;
-var maxAllowedSessionNumber   = argv.maxAllowedSessionNumber;
-var maxConnectionsPerEndpoint = maxAllowedSessionNumber;
-var maxAllowedSubscriptionNumber = argv.maxAllowedSubscriptionNumber  || 50;
+const port = argv.port;
+const maxAllowedSessionNumber   = argv.maxAllowedSessionNumber;
+const maxConnectionsPerEndpoint = maxAllowedSessionNumber;
+const maxAllowedSubscriptionNumber = argv.maxAllowedSubscriptionNumber  || 50;
 opcua.OPCUAServer.MAX_SUBSCRIPTION = maxAllowedSubscriptionNumber;
 
-var userManager = {
+const userManager = {
     isValidUser: function (userName, password) {
 
         if (userName === "user1" && password === "password1") {
@@ -78,19 +78,19 @@ var userManager = {
 
 
 
-var keySize = argv.keySize;
+const keySize = argv.keySize;
 
 
-//var server_certificate_file            = constructFilename("certificates/server_cert_"+ keySize +".pem");
-var server_certificate_file              = constructFilename("certificates/server_selfsigned_cert_"+ keySize +".pem");
-//var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_"+ keySize +".pem");
-//var server_certificate_file            = constructFilename("certificates/server_cert_"+ keySize +"_outofdate.pem");
-var server_certificate_privatekey_file   = constructFilename("certificates/server_key_"+ keySize +".pem");
+//const server_certificate_file            = constructFilename("certificates/server_cert_"+ keySize +".pem");
+const server_certificate_file              = constructFilename("certificates/server_selfsigned_cert_"+ keySize +".pem");
+//const server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_"+ keySize +".pem");
+//const server_certificate_file            = constructFilename("certificates/server_cert_"+ keySize +"_outofdate.pem");
+const server_certificate_privatekey_file   = constructFilename("certificates/server_key_"+ keySize +".pem");
 
 
 console.log(" server certificate : ", server_certificate_file);
 
-var server_options = {
+const server_options = {
 
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
@@ -108,7 +108,7 @@ var server_options = {
 
     serverInfo: {
         applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-Server"),
-        productUri: "NodeOPCUA-Server",
+        productUri: "NodeOPCUA-Server" + port,
         applicationName: {text: "NodeOPCUA" ,locale:"en"},
         gatewayServerUri: null,
         discoveryProfileUri: null,
@@ -137,11 +137,11 @@ process.title = "Node OPCUA Server on port : " + server_options.port;
 
 server_options.alternateHostname = argv.alternateHostname;
 
-var server = new OPCUAServer(server_options);
+const server = new OPCUAServer(server_options);
 
-var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
-var hostname = require("os").hostname();
+const hostname = require("os").hostname();
 
 
 server.on("post_initialize", function () {
@@ -150,12 +150,12 @@ server.on("post_initialize", function () {
 
     install_optional_cpu_and_memory_usage_node(server);
 
-    var addressSpace = server.engine.addressSpace;
+    const addressSpace = server.engine.addressSpace;
 
-    var rootFolder = addressSpace.findNode("RootFolder");
+    const rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");
 
-    var myDevices = addressSpace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
+    const myDevices = addressSpace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
 
     /*
      * variation 0:
@@ -164,7 +164,7 @@ server.on("post_initialize", function () {
      * Add a variable in folder using a raw Variant.
      * Use this variation when the variable has to be read or written by the OPCUA clients
      */
-    var variable0 = addressSpace.addVariable({
+    const variable0 = addressSpace.addVariable({
         organizedBy: myDevices,
         browseName: "FanSpeed",
         nodeId: "ns=1;s=FanSpeed",
@@ -173,7 +173,7 @@ server.on("post_initialize", function () {
     });
 
     setInterval(function () {
-        var fluctuation = Math.random() * 100 - 50;
+        const fluctuation = Math.random() * 100 - 50;
         variable0.setValueFromSource(new Variant({dataType: DataType.Double, value: 1000.0 + fluctuation}));
     }, 10);
 
@@ -200,7 +200,7 @@ server.on("post_initialize", function () {
              * @return {Variant}
              */
             get: function () {
-                var pump_speed = 200 + 100 * Math.sin(Date.now() / 10000);
+                const pump_speed = 200 + 100 * Math.sin(Date.now() / 10000);
                 return new Variant({dataType: DataType.Double, value: pump_speed});
             }
         }
@@ -227,7 +227,7 @@ server.on("post_initialize", function () {
      * The value and source timestamps are held in a external object.
      * The value and source timestamps are updated on a regular basis using a timer function.
      */
-    var external_value_with_sourceTimestamp = new opcua.DataValue({
+    const external_value_with_sourceTimestamp = new opcua.DataValue({
         value: new Variant({dataType: DataType.Double, value: 10.0}),
         sourceTimestamp: null,
         sourcePicoseconds: 0
@@ -269,9 +269,9 @@ server.on("post_initialize", function () {
         value: {
             refreshFunc: function (callback) {
 
-                var temperature = 20 + 10 * Math.sin(Date.now() / 10000);
-                var value = new Variant({dataType: DataType.Double, value: temperature});
-                var sourceTimestamp = new Date();
+                const temperature = 20 + 10 * Math.sin(Date.now() / 10000);
+                const value = new Variant({dataType: DataType.Double, value: temperature});
+                const sourceTimestamp = new Date();
 
                 // simulate a asynchronous behaviour
                 setTimeout(function () {
@@ -283,7 +283,7 @@ server.on("post_initialize", function () {
 
     // UAAnalogItem
     // add a UAAnalogItem
-    var node = addressSpace.addAnalogDataItem({
+    const node = addressSpace.addAnalogDataItem({
 
         organizedBy: myDevices,
 
@@ -303,7 +303,7 @@ server.on("post_initialize", function () {
     });
 
 
-   var m3x3 =  addressSpace.addVariable({
+   const m3x3 =  addressSpace.addVariable({
         organizedBy: addressSpace.rootFolder.objects,
         nodeId: "ns=1;s=Matrix",
         browseName: "Matrix",
@@ -322,7 +322,7 @@ server.on("post_initialize", function () {
         }
     });
 
-    var xyz =  addressSpace.addVariable({
+    const xyz =  addressSpace.addVariable({
         organizedBy: addressSpace.rootFolder.objects,
         nodeId: "ns=1;s=Position",
         browseName: "Position",
@@ -344,7 +344,7 @@ server.on("post_initialize", function () {
     //------------------------------------------------------------------------------
     // Add a view
     //------------------------------------------------------------------------------
-    var view = addressSpace.addView({
+    const view = addressSpace.addView({
         organizedBy: rootFolder.views,
         browseName: "MyView"
     });
@@ -358,7 +358,7 @@ server.on("post_initialize", function () {
 
 function dumpObject(obj) {
     function w(str, width) {
-        var tmp = str + "                                        ";
+        const tmp = str + "                                        ";
         return tmp.substr(0, width);
     }
 
@@ -447,7 +447,7 @@ server.on("response", function (response) {
 });
 
 function indent(str, nb) {
-    var spacer = "                                             ".slice(0, nb);
+    const spacer = "                                             ".slice(0, nb);
     return str.split("\n").map(function (s) {
         return spacer + s;
     }).join("\n");
@@ -466,7 +466,7 @@ server.on("request", function (request, channel) {
             console.log(request.toString());
             break;
         case "xxReadRequest":
-            var str = "    ";
+            const str = "    ";
             if (request.nodesToRead) {
                 request.nodesToRead.map(function (node) {
                     str += node.nodeId.toString() + " " + node.attributeId + " " + node.indexRange;
@@ -478,7 +478,7 @@ server.on("request", function (request, channel) {
             console.log(request.toString());
            break;
            if (request.nodesToWrite) {
-                var lines = request.nodesToWrite.map(function (node) {
+                const lines = request.nodesToWrite.map(function (node) {
                     return "     " + node.nodeId.toString().green + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(), 10) + "\n";
                 });
                 console.log(lines.join("\n"));
@@ -514,7 +514,7 @@ process.on("SIGINT", function () {
     });
 });
 
-var discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
+const discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
 
 console.log("\nregistering server to :".yellow + discovery_server_endpointUrl);
 
@@ -536,4 +536,7 @@ server.on("newChannel",function(channel) {
 
 server.on("closeChannel",function(channel) {
     console.log("Client disconnected with address = ".bgCyan,channel.remoteAddress," port = ",channel.remotePort);
+    if ( global.gc) {
+        global.gc();
+    }
 });

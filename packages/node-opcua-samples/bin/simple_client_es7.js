@@ -359,6 +359,7 @@ async.series([
     function (callback) {
 
         const options = {
+            endpoint_must_exist: false,
             keepSessionAlive: true,
             connectionStrategy: {
                 maxRetry: 10,
@@ -412,7 +413,7 @@ async.series([
                 });
                 console.log(table.toString());
 
-                endpoints.forEach(function (endpoint,) {
+                endpoints.forEach(function (endpoint) {
                     console.log("Identify Token for : Security Mode=", endpoint.securityMode.toString(), " Policy=", endpoint.securityPolicyUri);
                     const table2 = new Table();
                     endpoint.userIdentityTokens.forEach(function (token) {
@@ -449,6 +450,8 @@ async.series([
             serverCertificate: serverCertificate,
 
             defaultSecureTokenLifetime: 40000,
+
+            endpoint_must_exist:false,
 
             connectionStrategy: {
                 maxRetry: 10,
@@ -651,8 +654,7 @@ async.series([
         }
         const now = Date.now();
         const start = now - 1000; // read 1 seconds of history
-        const end = now;
-        the_session.readHistoryValue(monitored_node, start, end, function (err, historicalReadResult) {
+        the_session.readHistoryValue(monitored_node,start,now,function(err,historicalReadResult) {
 
             if (!err) {
                 console.log(" historicalReadResult =", historicalReadResult.toString());

@@ -5,11 +5,11 @@ const endpointUrl = "opc.tcp://localhost:26543";
 async function main()  {
 
     let counter = 1;
-    const client = new opcua.OPCUAClient({endpoint_must_exist: false});
-
-    client.on("backoff",(a,b)=>console.log("    backoff",a,b));
 
     while(true) {
+
+        const client = new opcua.OPCUAClient({endpoint_must_exist: false});
+        client.on("backoff",(a,b)=>console.log("    backoff",a,b));
 
         try {
             await client.connect(endpointUrl);

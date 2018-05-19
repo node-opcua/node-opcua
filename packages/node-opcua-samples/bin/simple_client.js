@@ -1,22 +1,25 @@
 #!/usr/bin/env node
 "use strict";
 
-var fs = require("fs");
-var treeify = require("treeify");
-var _ = require("underscore");
-var colors = require("colors");
-var Table = require("easy-table");
-var async = require("async");
-var assert = require("node-opcua-assert").assert;
-var opcua = require("node-opcua");
-var VariableIds = opcua.VariableIds;
-var BrowseDirection = opcua.BrowseDirection;
+const fs = require("fs");
+const treeify = require("treeify");
+const _ = require("underscore");
+const colors = require("colors");
+const Table = require("easy-table");
+const async = require("async");
+const assert = require("node-opcua-assert").assert;
+const path = require("path");
+
+const opcua = require("node-opcua");
+const VariableIds = opcua.VariableIds;
+const BrowseDirection = opcua.BrowseDirection;
+const crypto_utils = opcua.crypto_utils;
 
 
 //node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
-var yargs = require("yargs/yargs");
+const yargs = require("yargs/yargs");
 
-var argv = yargs(process.argv)
+const argv = yargs(process.argv)
     .wrap(132)
     //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
 
@@ -65,49 +68,48 @@ var argv = yargs(process.argv)
     .argv;
 
 
-var securityMode = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
+const securityMode = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
 if (!securityMode) {
     throw new Error("Invalid Security mode , should be " + opcua.MessageSecurityMode.enums.join(" "));
 }
 
-var securityPolicy = opcua.SecurityPolicy.get(argv.securityPolicy || "None");
+const securityPolicy = opcua.SecurityPolicy.get(argv.securityPolicy || "None");
 if (!securityPolicy) {
     throw new Error("Invalid securityPolicy , should be " + opcua.SecurityPolicy.enums.join(" "));
 }
 
 //xx argv.securityMode   = argv.securityMode || "SIGNANDENCRYPT";
 //xx argv.securityPolicy = argv.securityPolicy || "Basic128Rsa15";
-var timeout = parseInt(argv.timeout) * 1000 || 20000;
+const timeout = parseInt(argv.timeout) * 1000 || 20000;
 
-var monitored_node = argv.node || "ns=1;s=PumpSpeed"; //"ns=1;s=Temperature";
+const monitored_node = argv.node || "ns=1;s=PumpSpeed"; //"ns=1;s=Temperature";
 
 console.log("securityMode        = ".cyan, securityMode.toString());
 console.log("securityPolicy      = ".cyan, securityPolicy.toString());
 console.log("timeout             = ".cyan, timeout ? timeout : " Infinity " );
 console.log(" monitoring node id = ", monitored_node);
-var client = null;
+let client = null;
 
-var endpointUrl = argv.endpoint;
+const endpointUrl = argv.endpoint;
 
 
 if (!endpointUrl) {
     require("yargs").showHelp();
     process.exit(0);
 }
-var the_session = null;
-var the_subscription = null;
 
-var AttributeIds = opcua.AttributeIds;
-var DataType = opcua.DataType;
+let the_session = null;
+let the_subscription = null;
+let serverCertificate = null;
 
-var NodeCrawler = opcua.NodeCrawler;
-var doCrawling = !!argv.crawl;
-var doHistory = !!argv.history;
+const AttributeIds = opcua.AttributeIds;
+const DataType = opcua.DataType;
 
-var serverCertificate = null;
+const NodeCrawler = opcua.NodeCrawler;
+const doCrawling = !!argv.crawl;
+const doHistory = !!argv.history;
 
-var path = require("path");
-var crypto_utils = opcua.crypto_utils;
+
 
 
 function getBrowseName(session,nodeId,callback) {
@@ -115,7 +117,7 @@ function getBrowseName(session,nodeId,callback) {
         if (!err) {
             if (dataValue.statusCode === opcua.StatusCodes.Good) {
                 assert(dataValue.statusCode === opcua.StatusCodes.Good);
-                var browseName = dataValue.value.value.name;
+                const browseName = dataValue.value.value.name;
                 return callback(null,browseName);
             }
         }
@@ -162,7 +164,7 @@ function __dumpEvent(session,fields,eventFields,_callback) {
     },_callback);
 }
 
-var q = new async.queue(function(task,callback){
+const q = new async.queue(function(task,callback){
     __dumpEvent(task.session,task.fields,task.eventFields,callback);
 });
 
@@ -176,13 +178,13 @@ function dumpEvent(session,fields,eventFields,_callback) {
 
 function enumerateAllConditionTypes(the_session,callback) {
 
-    var tree = {};
+    const tree = {};
 
-    var conditionEventTypes = {};
+    const conditionEventTypes = {};
 
     function findAllNodeOfType(tree,typeNodeId,browseName,callback) {
 
-        var browseDesc1 = {
+        const browseDesc1 = {
             nodeId: typeNodeId,
             referenceTypeId: opcua.resolveNodeId("HasSubtype"),
             browseDirection: BrowseDirection.Forward,
@@ -190,7 +192,7 @@ function enumerateAllConditionTypes(the_session,callback) {
             resultMask: 63
 
         };
-        var browseDesc2 = {
+        const browseDesc2 = {
             nodeId: typeNodeId,
             referenceTypeId: opcua.resolveNodeId("HasTypeDefinition"),
             browseDirection: BrowseDirection.Inverse,
@@ -198,7 +200,7 @@ function enumerateAllConditionTypes(the_session,callback) {
             resultMask: 63
 
         };
-        var browseDesc3 = {
+        const browseDesc3 = {
             nodeId: typeNodeId,
             referenceTypeId: opcua.resolveNodeId("HasTypeDefinition"),
             browseDirection: BrowseDirection.Forward,
@@ -207,7 +209,7 @@ function enumerateAllConditionTypes(the_session,callback) {
 
         };
 
-        var nodesToBrowse = [
+        const nodesToBrowse = [
             browseDesc1,
             browseDesc2,
             browseDesc3
@@ -228,7 +230,7 @@ function enumerateAllConditionTypes(the_session,callback) {
         });
     }
 
-    var  typeNodeId = opcua.resolveNodeId("ConditionType");
+    const  typeNodeId = opcua.resolveNodeId("ConditionType");
     findAllNodeOfType(tree,typeNodeId,"ConditionType",function(err){
         if (!err) {
             return callback(null,conditionEventTypes,tree);
@@ -240,9 +242,9 @@ function enumerateAllConditionTypes(the_session,callback) {
 
 function enumerateAllAlarmAndConditionInstances(the_session,callback) {
 
-    var conditions = {};
+    let conditions = {};
 
-    var found = [];
+    const found = [];
 
     function isConditionEventType(nodeId) {
         return conditions.hasOwnProperty(nodeId.toString());
@@ -252,10 +254,10 @@ function enumerateAllAlarmAndConditionInstances(the_session,callback) {
     function exploreForObjectOfType(session,nodeId,callback) {
 
 
-        var q = async.queue(function worker(element,callback){
+        const q = async.queue(function worker(element,callback){
 
             //xx console.log(" exploring elements,",element.nodeId.toString());
-            var browseDesc1 = {
+            const browseDesc1 = {
                 nodeId: element.nodeId,
                 referenceTypeId: opcua.resolveNodeId("HierarchicalReferences"),
                 browseDirection: BrowseDirection.Forward,
@@ -264,7 +266,7 @@ function enumerateAllAlarmAndConditionInstances(the_session,callback) {
                 resultMask: 63
             };
 
-            var nodesToBrowse = [browseDesc1];
+            const nodesToBrowse = [browseDesc1];
             session.browse(nodesToBrowse,function(err,browseResults) {
                 if (err) {
                     console.log("err =",err);
@@ -273,7 +275,7 @@ function enumerateAllAlarmAndConditionInstances(the_session,callback) {
                     browseResults[0].references.forEach(function(ref) {
                         if (isConditionEventType(ref.typeDefinition)) {
                             //
-                            var alarm ={
+                            const alarm ={
                                 parent:       element.nodeId,
                                 browseName: ref.browseName,
                                 alarmNodeId : ref.nodeId,
@@ -312,19 +314,20 @@ function enumerateAllAlarmAndConditionInstances(the_session,callback) {
 }
 
 
-var makeNodeId = opcua.makeNodeId;
-var ObjectTypeIds = opcua.ObjectTypeIds;
+const makeNodeId = opcua.makeNodeId;
+const ObjectTypeIds = opcua.ObjectTypeIds;
 
 /**
  * @method getAllEventType
  * getAllEventType recursively
+ * @param session
  * @param callback
  */
 function getAllEventTypes(session,callback)
 {
-    var baseNodeId = makeNodeId(ObjectTypeIds.BaseEventType);
+    const baseNodeId = makeNodeId(ObjectTypeIds.BaseEventType);
 
-    var q = new async.queue(function(task,callback) {
+    const q = new async.queue(function(task,callback) {
 
         _getAllEventTypes(task.nodeId, task.tree, function (err, result) {
             if(err){return callback(err);}
@@ -335,7 +338,7 @@ function getAllEventTypes(session,callback)
     function _getAllEventTypes(baseNodeId,tree,callback) {
 
         //xx console.log(" exploring elements,",element.nodeId.toString());
-        var browseDesc1 = {
+        const browseDesc1 = {
             nodeId: baseNodeId,
             referenceTypeId: opcua.resolveNodeId("HasSubtype"),
             browseDirection: BrowseDirection.Forward,
@@ -349,7 +352,7 @@ function getAllEventTypes(session,callback)
             } else {
                 // to do continuation points
                 browseResult.references.forEach(function (reference) {
-                    var subtree = {nodeId: reference.nodeId.toString()};
+                    const subtree = {nodeId: reference.nodeId.toString()};
                     tree[reference.browseName.toString()] = subtree;
                     q.push({nodeId: reference.nodeId, tree: subtree});
                 });
@@ -359,7 +362,7 @@ function getAllEventTypes(session,callback)
             callback();
         });
     }
-    var result ={};
+    const result ={};
 
     q.push({nodeId: baseNodeId,tree: result});
 
@@ -368,13 +371,13 @@ function getAllEventTypes(session,callback)
     };
 
 }
-var callConditionRefresh = opcua.callConditionRefresh;
+const callConditionRefresh = opcua.callConditionRefresh;
 
 function monitorAlarm(subscription,alarmNodeId, callback) {
 
     assert(_.isFunction(callback));
 
-    callConditionRefresh(subscription, function(err) {
+    callConditionRefresh(subscription, function(/*err*/) {
         callback();
     });
 }
@@ -382,7 +385,7 @@ function monitorAlarm(subscription,alarmNodeId, callback) {
 async.series([
     function (callback) {
 
-        var options = {
+        const options = {
             endpoint_must_exist: false,
             keepSessionAlive: true,
             connectionStrategy: {
@@ -415,7 +418,7 @@ async.series([
                 console.log(treeify.asTree(endpoints, true));
             }
 
-            var table = new Table();
+            const table = new Table();
             if (!err) {
                 endpoints.forEach(function (endpoint, i) {
                     table.cell("endpoint", endpoint.endpointUrl + "");
@@ -431,7 +434,7 @@ async.series([
 
                     serverCertificate = endpoint.serverCertificate;
 
-                    var certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
+                    const certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
 
                    if (serverCertificate) {
                        fs.writeFile(certificate_filename, crypto_utils.toPem(serverCertificate, "CERTIFICATE"),function(){});
@@ -440,9 +443,9 @@ async.series([
                 });
                 console.log(table.toString());
 
-                endpoints.forEach(function (endpoint, i) {
+                endpoints.forEach(function (endpoint) {
                     console.log("Identify Token for : Security Mode=", endpoint.securityMode.toString()," Policy=", endpoint.securityPolicyUri);
-                    var table2 = new Table();
+                    const table2 = new Table();
                     endpoint.userIdentityTokens.forEach(function (token) {
                         table2.cell("policyId", token.policyId);
                         table2.cell("tokenType", token.tokenType.toString());
@@ -467,11 +470,11 @@ async.series([
     // reconnect using the correct end point URL now
     function (callback) {
 
-        var hexDump = opcua.hexDump;
+        const hexDump = opcua.hexDump;
         console.log("Server Certificate :".cyan);
         console.log(hexDump(serverCertificate).yellow);
 
-        var options = {
+        const options = {
             securityMode: securityMode,
             securityPolicy: securityPolicy,
             serverCertificate: serverCertificate,
@@ -497,7 +500,7 @@ async.series([
     //------------------------------------------
     function (callback) {
 
-        var userIdentity = null; // anonymous
+        let userIdentity = null; // anonymous
         if (argv.userName && argv.password) {
 
             userIdentity = {
@@ -533,14 +536,14 @@ async.series([
     // display namespace array
     function (callback) {
 
-        var server_NamespaceArray_Id = opcua.makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2006
+        const server_NamespaceArray_Id = opcua.makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2006
 
-        the_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue, diagnosticsInfo) {
+        the_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue) {
 
             console.log(" --- NAMESPACE ARRAY ---");
             if (!err) {
-                var namespaceArray = dataValue.value.value;
-                for (var i = 0; i < namespaceArray.length; i++) {
+                const namespaceArray = dataValue.value.value;
+                for (let i = 0; i < namespaceArray.length; i++) {
                     console.log(" Namespace ", i, "  : ", namespaceArray[i]);
                 }
             }
@@ -563,19 +566,19 @@ async.series([
     //------------------------------------------
     function (callback) {
 
-        var t1,t2;
+        let t1,t2;
         function print_stat() {
             t2 = Date.now();
-            var util = require("util");
-            var str = util.format("R= %d W= %d T=%d t= %d", client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
+            const util = require("util");
+            const str = util.format("R= %d W= %d T=%d t= %d", client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
             console.log(str.yellow.bold);
         }
 
         if (doCrawling) {
             assert(_.isObject(the_session));
-            var crawler = new NodeCrawler(the_session);
+            const crawler = new NodeCrawler(the_session);
 
-            var t = Date.now();
+            let t = Date.now();
             client.on("send_request", function () {
                 t1 = Date.now();
             });
@@ -588,7 +591,7 @@ async.series([
             //xx     console.log("->",(new Date()).getTime()-t,element.browseName.name,element.nodeId.toString());
             //xx });
 
-            var nodeId = "ObjectsFolder";
+            const nodeId = "ObjectsFolder";
             console.log("now crawling object folder ...please wait...");
             crawler.read(nodeId, function (err, obj) {
                 console.log(" Time         = ", (new Date()).getTime() - t);
@@ -660,9 +663,9 @@ async.series([
     // ------------------ check if server supports Query Services
     function (callback){
 
-        var queryFirstRequest = {};
+        const queryFirstRequest = {};
 
-        the_session.queryFirst(queryFirstRequest,function(err,queryFirstResult) {
+        the_session.queryFirst(queryFirstRequest,function(err/*,queryFirstResult*/) {
             if (err) {
                 console.log("QueryFirst is not supported by Server");
             }
@@ -684,10 +687,9 @@ async.series([
         if (!doHistory) {
             return callback();
         }
-        var now = Date.now();
-        var start = now-1000; // read 1 seconds of history
-        var end   = now;
-        the_session.readHistoryValue(monitored_node,start,end,function(err,historicalReadResult) {
+        const now = Date.now();
+        const start = now-1000; // read 1 seconds of history
+        the_session.readHistoryValue(monitored_node,start,now,function(err,historicalReadResult) {
 
             if(!err)  {
                 console.log(" historicalReadResult =",historicalReadResult.toString());
@@ -703,7 +705,7 @@ async.series([
     // create subscription
     function (callback) {
 
-        var parameters = {
+        const parameters = {
             requestedPublishingInterval: 100,
             requestedLifetimeCount: 1000,
             requestedMaxKeepAliveCount: 12,
@@ -718,7 +720,7 @@ async.series([
             return Date.now();
         }
 
-        var t = getTick();
+        let t = getTick();
 
         the_subscription.on("started", function () {
 
@@ -737,8 +739,8 @@ async.series([
 
         }).on("keepalive", function () {
 
-            var t1 = getTick();
-            var span = t1 - t;
+            const t1 = getTick();
+            const span = t1 - t;
             t = t1;
             console.log("keepalive ", span / 1000, "sec", " pending request on server = ", the_subscription.publish_engine.nbPendingPublishRequests);
 
@@ -768,7 +770,7 @@ async.series([
         // ---------------------------------------------------------------
         //  monitor a variable node value
         // ---------------------------------------------------------------
-        var monitoredItem = the_subscription.monitor(
+        const monitoredItem = the_subscription.monitor(
             {
                 nodeId: monitored_node,
                 attributeId: AttributeIds.Value
@@ -801,10 +803,10 @@ async.series([
         //  monitor the object events
         // ---------------------------------------------------------------
 
-        var baseEventTypeId = "i=2041"; // BaseEventType;
-        var serverObjectId = "i=2253";
+        const baseEventTypeId = "i=2041"; // BaseEventType;
+        const serverObjectId = "i=2253";
 
-        var fields = [
+        const fields = [
             "EventId",
             "EventType",
             "SourceNode",
@@ -844,9 +846,9 @@ async.series([
         ];
 
 
-        var eventFilter = opcua.constructEventFilter(fields,[opcua.resolveNodeId("ConditionType")]);
+        const eventFilter = opcua.constructEventFilter(fields,[opcua.resolveNodeId("ConditionType")]);
 
-        var event_monitoringItem = the_subscription.monitor(
+        const event_monitoringItem = the_subscription.monitor(
             {
                 nodeId:      serverObjectId,
                 attributeId: AttributeIds.EventNotifier
@@ -874,7 +876,7 @@ async.series([
 
     function (callback) {
         console.log("Monitoring alarms");
-        var alarmNodeId = "ns=2;s=1:Colours/EastTank?Green";
+        const alarmNodeId = "ns=2;s=1:Colours/EastTank?Green";
         monitorAlarm(the_subscription,alarmNodeId,function() {
             callback();
         });
@@ -883,9 +885,8 @@ async.series([
 
     function (callback) {
         console.log("Starting timer ",timeout);
-        var timerId;
         if (timeout > 0) {
-            timerId = setTimeout(function () {
+            setTimeout(function () {
                 if (!the_subscription) {
                     return callback();
                 }
@@ -898,7 +899,7 @@ async.series([
                 console.log("  -------------------------------------------------------------------- ".red.bgWhite);
                 console.log("  --                               SIMULATE CONNECTION BREAK        -- ".red.bgWhite);
                 console.log("  -------------------------------------------------------------------- ".red.bgWhite);
-                var socket = client._secureChannel._transport._socket;
+                const socket = client._secureChannel._transport._socket;
                 socket.end();
                 socket.emit("error", new Error("ECONNRESET"));
             }, timeout/2.0);
@@ -935,7 +936,7 @@ async.series([
     // force disconnection
     if (client) {
         client.disconnect(function () {
-            var exit = require("exit");
+            const exit = require("exit");
             console.log("Exiting");
             exit();
         });
@@ -946,7 +947,8 @@ process.on("error",function(err){
 
     console.log(" UNTRAPPED ERROR",err.message);
 });
-var user_interruption_count = 0;
+
+let user_interruption_count = 0;
 process.on("SIGINT", function () {
 
     console.log(" user interuption ...");
