@@ -20,7 +20,7 @@ var mocha = new Mocha({
     grep: filterOpts,
     fullTrace: true,
     slow: 1000,
-    reporter: "spec" //"nyan", //"tap"
+    reporter: process.env.REPORTER || "spec" //"nyan", //"tap"
 });
 
 
