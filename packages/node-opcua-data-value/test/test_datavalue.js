@@ -1,5 +1,6 @@
 "use strict";
 /* global describe,it*/
+Error.stackTraceLimit = 1000;
 
 const DataValue = require("../src/datavalue").DataValue;
 const Variant = require("node-opcua-variant").Variant;
@@ -35,10 +36,10 @@ describe("DataValue", function () {
 
         const dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"}),
-            serverTimestamp: new Date(),
-            serverPicoseconds: 1000,
-            sourceTimestamp: new Date(),
-            sourcePicoseconds: 199,
+            serverTimestamp: new Date(Date.UTC(1601, 0, 1, 0, 0, 1)),
+            serverPicoseconds: 50000,
+            sourceTimestamp: new Date(Date.UTC(1601, 0, 1, 0, 0, 2)),
+            sourcePicoseconds: 25000, // 25 nano
         });
         //xx var str = dataValue.toString();
         encode_decode_round_trip_test(dataValue, function (/*buffer, id*/) {
@@ -50,10 +51,10 @@ describe("DataValue", function () {
         const dataValue = new DataValue({
             value: new Variant({dataType: DataType.String, value: "Hello"}),
             statusCode: StatusCodes.BadCertificateHostNameInvalid,
-            serverTimestamp: new Date(),
-            serverPicoseconds: 1000,
-            sourceTimestamp: new Date(),
-            sourcePicoseconds: 2000
+            serverTimestamp: new Date(Date.UTC(2018,1,23,12,34,56,789)),
+            serverPicoseconds: 987654320,
+            sourceTimestamp: new Date(Date.UTC(2018,1,23,18,54,12,345)),
+            sourcePicoseconds: 12345670
         });
         encode_decode_round_trip_test(dataValue, function (/*buffer, id*/) {
         });
@@ -74,8 +75,8 @@ describe("DataValue", function () {
             "DataValue:",
             "   value:           Variant(Scalar<String>, value: Hello)",
             "   statusCode:      BadCertificateHostNameInvalid (0x80160000)",
-            "   serverTimestamp: 1789-07-14T00:00:00.000Z $ 1000",
-            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 2000"
+            "   serverTimestamp: 1789-07-14T00:00:00.000Z $ 000.001.000",
+            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 000.002.000"
         ]);
 
         dataValue = new DataValue({
@@ -92,7 +93,7 @@ describe("DataValue", function () {
             "   value:           Variant(Scalar<String>, value: Hello)",
             "   statusCode:      BadCertificateHostNameInvalid (0x80160000)",
             "   serverTimestamp: null",
-            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 2000"
+            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 000.002.000"
         ]);
     });
 
@@ -140,7 +141,7 @@ describe("DataValue", function () {
             value: new Variant({
                 dataType: DataType.ByteString,
                 arrayType: VariantArrayType.Scalar,
-                value: new Buffer([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+                value: Buffer.from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
             })
         });
         const dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
@@ -173,10 +174,10 @@ describe("DataValue", function () {
                 dataType: DataType.ByteString,
                 arrayType: VariantArrayType.Array,
                 value: [
-                    new Buffer("ABC"),
-                    new Buffer("DEF"),
-                    new Buffer("GHI"),
-                    new Buffer("JKL"),
+                    Buffer.from("ABC"),
+                    Buffer.from("DEF"),
+                    Buffer.from("GHI"),
+                    Buffer.from("JKL"),
                     null
                 ]
            })
@@ -197,19 +198,19 @@ describe("DataValue", function () {
                 dimensions: [3, 3],
                 value: [
                     //[
-                        new Buffer("11"),
-                        new Buffer("12"),
-                        new Buffer("13")
+                        Buffer.from("11"),
+                        Buffer.from("12"),
+                        Buffer.from("13")
                     ,//],
                     //[
-                        new Buffer("21"),
-                        new Buffer("22"),
-                        new Buffer("23")
+                        Buffer.from("21"),
+                        Buffer.from("22"),
+                        Buffer.from("23")
                     ,//],
                     //[
-                        new Buffer("31"),
-                        new Buffer("32"),
-                        new Buffer("33"),
+                        Buffer.from("31"),
+                        Buffer.from("32"),
+                        Buffer.from("33"),
                     //]
                 ]
             })
@@ -281,10 +282,10 @@ describe("DataValue", function () {
                         dataType: DataType.ByteString,
                         arrayType: VariantArrayType.Array,
                         value: [
-                            new Buffer("ABC"),
-                            new Buffer("DEF"),
-                            new Buffer("GHI"),
-                            new Buffer("JKL"),
+                            Buffer.from("ABC"),
+                            Buffer.from("DEF"),
+                            Buffer.from("GHI"),
+                            Buffer.from("JKL"),
                             null
                         ]
                     })
@@ -299,8 +300,8 @@ describe("DataValue", function () {
                 cloned.value.value[2].toString().should.eql(dv.value.value[2].toString());
                 cloned.value.value[3].toString().should.eql(dv.value.value[3].toString());
 
-                dv.value.value[0] = new Buffer("ZZZ");
-                dv.value.value[1] = new Buffer("YYY");
+                dv.value.value[0] = Buffer.from("ZZZ");
+                dv.value.value[1] = Buffer.from("YYY");
 
                 // clone object should not have been affected !
                 cloned.value.value[0].toString().should.eql("ABC");

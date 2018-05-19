@@ -26,13 +26,17 @@ function getDataValue_EncodingByte(dataValue) {
     if (dataValue.sourceTimestamp && dataValue.sourceTimestamp !== "null") {
         encoding_mask = set_flag(encoding_mask,DataValueEncodingByte.SourceTimestamp);
     }
-    if (dataValue.sourcePicoseconds) {
+
+    // the number of picoseconds that can be encoded are
+    // 100 nano * 10000;
+    // above this the value contains the excess in picosecond to make the sourceTimestamp more accurate
+    if (dataValue.sourcePicoseconds ? dataValue.sourcePicoseconds % 100000 : false) {
         encoding_mask = set_flag(encoding_mask,DataValueEncodingByte.SourcePicoseconds);
     }
     if (dataValue.serverTimestamp && dataValue.serverTimestamp !== "null") {
         encoding_mask = set_flag(encoding_mask,DataValueEncodingByte.ServerTimestamp);
     }
-    if (dataValue.serverPicoseconds) {
+    if (dataValue.serverPicoseconds ? dataValue.serverPicoseconds % 100000 : false) {
         encoding_mask = set_flag(encoding_mask,DataValueEncodingByte.ServerPicoseconds);
     }
     return encoding_mask;
@@ -78,19 +82,23 @@ const DataValue_Schema = {
         }
         // write sourceTimestamp
         if (check_flag(encoding_mask, DataValueEncodingByte.SourceTimestamp)) {
-            ec.encodeDateTime(dataValue.sourceTimestamp,stream);
+            ec.encodeHighAccuracyDateTime(dataValue.sourceTimestamp,dataValue.sourcePicoseconds,stream);
         }
         // write sourcePicoseconds
         if (check_flag(encoding_mask, DataValueEncodingByte.SourcePicoseconds)) {
-            ec.encodeUInt16(dataValue.sourcePicoseconds,stream);
+            assert(dataValue.sourcePicoseconds  != null );
+            const sourcePicoseconds = Math.floor((dataValue.sourcePicoseconds % 100000) /10);
+            ec.encodeUInt16(sourcePicoseconds,stream);
         }
         // write serverTimestamp
         if (check_flag(encoding_mask, DataValueEncodingByte.ServerTimestamp)) {
-            ec.encodeDateTime(dataValue.serverTimestamp,stream);
+            ec.encodeHighAccuracyDateTime(dataValue.serverTimestamp,dataValue.serverPicoseconds,stream);
         }
         // write serverPicoseconds
         if (check_flag(encoding_mask, DataValueEncodingByte.ServerPicoseconds)) {
-            ec.encodeUInt16(dataValue.serverPicoseconds,stream);
+            assert(dataValue.serverPicoseconds  != null);
+            const serverPicoseconds = Math.floor((dataValue.serverPicoseconds % 100000 ) / 10) ; // we encode 10-pios
+            ec.encodeUInt16(serverPicoseconds,stream);
         }
     },
     decode_debug: function(dataValue,stream,options) {
@@ -119,25 +127,31 @@ const DataValue_Schema = {
         // read sourceTimestamp
         cur = stream.length;
         if (check_flag(encoding_mask,DataValueEncodingByte.SourceTimestamp)) {
-            dataValue.sourceTimestamp  = ec.decodeDateTime(stream);
+            dataValue.sourceTimestamp  = ec.decodeHighPrecisionDateTime(stream);
+            dataValue.sourcePicoseconds= dataValue.sourceTimestamp.picoseconds;
             tracer.trace("member","sourceTimestamp", dataValue.sourceTimestamp,cur,stream.length,"DateTime");
         }
         // read sourcePicoseconds
         cur = stream.length;
+        dataValue.sourcePicoseconds = 0;
         if (check_flag(encoding_mask,DataValueEncodingByte.SourcePicoseconds)) {
-            dataValue.sourcePicoseconds  = ec.decodeUInt16(stream);
+            const tenPico = ec.decodeUInt16(stream);
+            dataValue.sourcePicoseconds  += tenPico * 10;
             tracer.trace("member","sourcePicoseconds", dataValue.sourcePicoseconds,cur,stream.length,"UInt16");
         }
         // read serverTimestamp
         cur = stream.length;
+        dataValue.serverPicoseconds = 0;
         if (check_flag(encoding_mask,DataValueEncodingByte.ServerTimestamp)) {
             dataValue.serverTimestamp  = ec.decodeDateTime(stream);
+            dataValue.serverPicoseconds = dataValue.serverTimestamp.picoseconds;
             tracer.trace("member","serverTimestamp", dataValue.serverTimestamp,cur,stream.length,"DateTime");
         }
         // read serverPicoseconds
         cur = stream.length;
         if (check_flag(encoding_mask,DataValueEncodingByte.ServerPicoseconds)) {
-            dataValue.serverPicoseconds  = ec.decodeUInt16(stream);
+            const tenPico = ec.decodeUInt16(stream);
+            dataValue.serverPicoseconds  += tenPico*10;
             tracer.trace("member","serverPicoseconds", dataValue.serverPicoseconds,cur,stream.length,"UInt16");
         }
     },
@@ -158,21 +172,26 @@ const DataValue_Schema = {
         } else {
             dataValue.statusCode = StatusCodes.Good;
         }
+
+        dataValue.sourcePicoseconds = 0;
         // read sourceTimestamp
         if (check_flag(encoding_mask,DataValueEncodingByte.SourceTimestamp)) {
-            dataValue.sourceTimestamp  = ec.decodeDateTime(stream);
+            dataValue.sourceTimestamp  = ec.decodeHighAccuracyDateTime(stream);
+            dataValue.sourcePicoseconds += dataValue.sourceTimestamp.picoseconds;
         }
         // read sourcePicoseconds
         if (check_flag(encoding_mask,DataValueEncodingByte.SourcePicoseconds)) {
-            dataValue.sourcePicoseconds  = ec.decodeUInt16(stream);
+            dataValue.sourcePicoseconds  += ec.decodeUInt16(stream) * 10 ;
         }
         // read serverTimestamp
+        dataValue.serverPicoseconds = 0;
         if (check_flag(encoding_mask,DataValueEncodingByte.ServerTimestamp)) {
-            dataValue.serverTimestamp  = ec.decodeDateTime(stream);
+            dataValue.serverTimestamp  = ec.decodeHighAccuracyDateTime(stream);
+            dataValue.serverPicoseconds += dataValue.serverTimestamp.picoseconds;
         }
         // read serverPicoseconds
         if (check_flag(encoding_mask,DataValueEncodingByte.ServerPicoseconds)) {
-            dataValue.serverPicoseconds  = ec.decodeUInt16(stream);
+            dataValue.serverPicoseconds  += ec.decodeUInt16(stream) * 10;
         }
     },
 

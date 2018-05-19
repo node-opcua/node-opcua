@@ -78,6 +78,9 @@ module.exports = {
 
     encodeDateTime: date_time.encodeDateTime,
     decodeDateTime: date_time.decodeDateTime,
+    encodeHighAccuracyDateTime: date_time.encodeHighAccuracyDateTime,
+    decodeHighAccuracyDateTime: date_time.decodeHighAccuracyDateTime,
+
     coerceDateTime: date_time.coerceDateTime,
 
     encodeNodeId: node_id.encodeNodeId,

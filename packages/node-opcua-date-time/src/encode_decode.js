@@ -35,39 +35,56 @@ exports.randomDateTime = function () {
 
 };
 const MAXUINT32 = 4294967295; // 2**32 - 1
-exports.encodeDateTime = function (date, stream) {
+
+/**
+ *
+ * @param date {Date}
+ * @param picoseconds {null|number} {number of pico seconds to improve javascript date... }
+ * @param stream
+ */
+exports.encodeHighAccuracyDateTime = function (date,picoseconds, stream) {
 
     if (!date) {
         stream.writeUInt32(0);
-        stream.writeUInt32(0);
+        stream.writeUInt32(picoseconds % 100000);
         return;
     }
     if (!(date instanceof Date)){
         throw new Error("Expecting a Date : but got a " + typeof(date) + " " + date.toString());
     }
     assert(date instanceof Date);
-    let hl = bn_dateToHundredNanoSecondFrom1601(date);
+    let hl = bn_dateToHundredNanoSecondFrom1601(date,picoseconds);
     let hi = hl[0];
     let lo = hl[1];
 
-    // make sure that date are not lower than expected limit
-    if (hi<0 || lo<0) {
-        hi=0;lo=0;
-    }
-    if (hi <0 || lo<0 || hi > MAXUINT32 || lo > MAXUINT32 ) {
-        hl = bn_dateToHundredNanoSecondFrom1601(date);
-        throw new Error("INVALID " + hi  + " "+lo + " "+date.toUTCString());
-    }
-    stream.writeUInt32(lo);
-    stream.writeUInt32(hi);
+    //xx make sure that date are not lower than expected limit
+    //xx if (hi<0 || lo<0) {
+    //xx    hi=0;lo=0;
+    //xx }
+    //xx if (hi <0 || lo<0 || hi > MAXUINT32 || lo > MAXUINT32 ) {
+    //xx    hl = bn_dateToHundredNanoSecondFrom1601(date);
+    //xx    throw new Error("INVALID " + hi  + " "+lo + " "+date.toUTCString());
+    //x}
+    stream.writeInteger(lo);
+    stream.writeInteger(hi);
     //xx assert(date.toString() === bn_hundredNanoSecondFrom1601ToDate(hi, lo).toString());
 };
 
+exports.encodeDateTime = function (date, stream) {
+    exports.encodeHighAccuracyDateTime(date,0,stream);
+};
+
+/**
+ *
+ * @param stream
+ * @returns {Date}
+ */
 exports.decodeDateTime = function (stream) {
-    const lo = stream.readUInt32();
-    const hi = stream.readUInt32();
+    const lo = stream.readInteger();
+    const hi = stream.readInteger();
     return bn_hundredNanoSecondFrom1601ToDate(hi, lo);
 };
+exports.decodeHighAccuracyDateTime = exports.decodeDateTime;
 
 
 function coerceDateTime(value) {

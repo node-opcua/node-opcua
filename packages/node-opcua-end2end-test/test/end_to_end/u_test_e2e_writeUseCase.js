@@ -291,7 +291,7 @@ module.exports = function (test) {
                             /* Variant */dataType: DataType.Double, value: -23.0
                         },
                         sourceTimestamp: date,
-                        sourcePicoseconds: 112,
+                        sourcePicoseconds: 1120,
                         statusCode: opcua.StatusCodes.GoodLocalOverride
                     })
                 }];
@@ -317,7 +317,7 @@ module.exports = function (test) {
                         //xx console.log("====", results[0].sourceTimestamp.getTime());
                         //xx console.log(results[0].toString());
                         dataValue.sourceTimestamp.getTime().should.eql(date.getTime());
-                        dataValue.sourcePicoseconds.should.eql(112);
+                        dataValue.sourcePicoseconds.should.eql(1120);
                         dataValue.statusCode.should.eql(opcua.StatusCodes.GoodLocalOverride);
                         done();
                     });
@@ -326,7 +326,7 @@ module.exports = function (test) {
 
         });
 
-        it("VQT should write Value Quality Timestamp - on async variable that support fullblow dataValue write", function (done) {
+        it("VQT should write Value Quality Timestamp - on async variable that support full blown dataValue write", function (done) {
 
             const asyncNodeId = "ns=4;s=AsynchronousFullVariable";
 
@@ -345,7 +345,7 @@ module.exports = function (test) {
                             /* Variant */dataType: DataType.Double, value: -23.0
                         },
                         sourceTimestamp: date,
-                        sourcePicoseconds: 112,
+                        sourcePicoseconds: 1120,
                         statusCode: opcua.StatusCodes.UncertainSensorNotAccurate
                     })
                 }];
@@ -372,7 +372,7 @@ module.exports = function (test) {
                         //xx console.log(" server    source timestamp =",results[0].sourceTimestamp.getTime());
                         //xx console.log(results[0].toString());
                         dataValue.sourceTimestamp.getTime().should.eql(date.getTime());
-                        dataValue.sourcePicoseconds.should.eql(112);
+                        dataValue.sourcePicoseconds.should.eql(1120); // we're only accurate at 10th of a picosecond
                         dataValue.statusCode.should.eql(opcua.StatusCodes.UncertainSensorNotAccurate);
                         done();
                     });

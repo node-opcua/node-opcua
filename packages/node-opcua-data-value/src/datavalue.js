@@ -21,7 +21,22 @@ const getCurrentClock = require("node-opcua-date-time").getCurrentClock;
 const Variant = require("node-opcua-variant").Variant;
 const sameVariant = require("node-opcua-variant/src/variant_tools").sameVariant;
 
+function w(n){
+    return ("0000"+n).substr(-3);
+}
 DataValue.prototype.toString = function () {
+
+
+    function toMicroNanoPico(picoseconds) {
+        //xx picoseconds = 123456789;
+        return ""
+            + w((picoseconds / 1000000 )>>0)
+            + "."
+            + w(((picoseconds % 1000000 )/ 1000 )>>0)
+            + "."
+            +  w((picoseconds % 1000 )>>0);
+        //    + " (" + picoseconds+ ")";
+    }
     let str = "DataValue:";
     if (this.value) {
         str += "\n   value:           " + Variant.prototype.toString.apply(this.value);//this.value.toString();
@@ -29,8 +44,12 @@ DataValue.prototype.toString = function () {
         str += "\n   value:            <null>";
     }
     str += "\n   statusCode:      " + (this.statusCode ? this.statusCode.toString() : "null");
-    str += "\n   serverTimestamp: " + (this.serverTimestamp ? this.serverTimestamp.toISOString() + " $ " + this.serverPicoseconds : "null");//+ "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
-    str += "\n   sourceTimestamp: " + (this.sourceTimestamp ? this.sourceTimestamp.toISOString() + " $ " + this.sourcePicoseconds : "null");// + "  " + (this.sourceTimestamp ? this.sourceTimestamp.getTime() :"-");
+    str += "\n   serverTimestamp: " + (this.serverTimestamp ? this.serverTimestamp.toISOString()
+        + " $ " + toMicroNanoPico(this.serverPicoseconds)
+        : "null");//+ "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
+    str += "\n   sourceTimestamp: " + (this.sourceTimestamp ? this.sourceTimestamp.toISOString()
+        + " $ " + toMicroNanoPico(this.sourcePicoseconds)
+        : "null");// + "  " + (this.sourceTimestamp ? this.sourceTimestamp.getTime() :"-");
     return str;
 };
 

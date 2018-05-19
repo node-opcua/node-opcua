@@ -68,7 +68,7 @@ describe("watch dog", function() {
         watchDog.addSubscriber(obj1, 1000);
         watchDog.removeSubscriber(obj1);
 
-        should.not.exist(watchDog._timer);
+        should.not.exist(watchDog._timer)
     });
 
     it("should fail if the object subscribing to the WatchDog doesn't provide a 'watchdogReset' method", function(done) {
