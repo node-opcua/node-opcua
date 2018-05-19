@@ -1,4 +1,4 @@
-var generator = require("node-opcua-generator");
+const generator = require("node-opcua-generator");
 var registerObject = generator.registerObject;
 
 require("node-opcua-service-secure-channel");
