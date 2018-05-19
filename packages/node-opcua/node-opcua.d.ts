@@ -275,10 +275,10 @@ export declare interface UAProxyVariable extends UAProxyBase {
 export declare class UAProxyManager {
     constructor(session: ClientSession);
 
-    start(callback: Function): void;
+    start(callback: ErrorCallback): void;
     start(): Promise<void>;
 
-    stop(callback: Function): void;
+    stop(callback: ErrorCallback): void;
     stop(): Promise<void>;
 
     getObject(nodeId: NodeId, callback: Function): void;
@@ -346,7 +346,7 @@ export interface OPCUAServerOptions {
     timeout?: number; // (default:10000)    the HEL/ACK transaction timeout in ms. Use a large value
     // ( i.e 15000 ms) for slow connections or embedded devices.
     port?: number; //  (default:26543)            the TCP port to listen to.
-    maxAllowedSessionNumber?: number; //(deafult:10) the maximum number of concurrent sessions allowed.
+    maxAllowedSessionNumber?: number; //(default:10) the maximum number of concurrent sessions allowed.
 
     nodeset_filename?: Array<string> | string; // the nodeset.xml file(s) to load
     serverInfo?: {
@@ -555,8 +555,30 @@ export declare class ServerEngine {
     addressSpace: AddressSpace;
 }
 
+
+export declare interface EndpointDescription {
+    securityPolicies: any
+    securityModes: any
+    allowAnonymous: boolean
+    disableDiscovery: boolean
+    resourcePath:string
+    hostname: string
+    endpointUrl: string
+}
+export declare interface OPCUAServerEndPoint{
+    port: number
+    defaultSecureTokenLifetime: number
+    timeout: number
+    certificateChain: any
+    privateKey: any
+    serverInfo: any
+    maxConnections: any
+
+    endpointDescriptions() : Array<EndpointDescription>;
+}
+
 export declare class OPCUAServer {
-    constructor(options: OPCUAServerOptions);
+    constructor(options?: OPCUAServerOptions);
 
     bytesWritten: number;
     bytesRead: number;
@@ -572,7 +594,9 @@ export declare class OPCUAServer {
     currentChannelCount: number;
     buildInfo: any;
 
-    secondsTillShutdown(): number;
+    endpoints: Array<OPCUAServerEndPoint>;
+
+    secondsTillShutdown: number;
 
     serverName: string;
     serverNameUrn: string;
@@ -581,9 +605,13 @@ export declare class OPCUAServer {
 
     setServerState(serverState: ServerState): void;
 
-    start(callback: (error: Error) => void): void;
+    start(callback: ErrorCallback): void;
+    start(): Promise<void>;
 
-    shutdown(timeout: number, callback: ResponseCallback<void>): void;
+    shutdown(timeout: number, callback: ErrorCallback): void;
+    shutdown(timeout: number): Promise<void>;
+
+    initialize(done: Function): void;
 
     // "postinitialize" , "session_closed", "create_session"
     on(event: string, eventHandler: Function): OPCUAServer;
