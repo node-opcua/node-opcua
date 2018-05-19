@@ -34,7 +34,7 @@ function performMessageChunkManagerTest(options) {
     let chunk_counter = 0;
 
     function collect_chunk(chunk) {
-        const copy_chunk = new Buffer(chunk.length);
+        const copy_chunk = Buffer.allocUnsafe(chunk.length);
         chunk.copy(copy_chunk, 0, 0, chunk.length);
 
         // append the copy to our chunk collection
@@ -61,7 +61,7 @@ function performMessageChunkManagerTest(options) {
     // feed chunk-manager on byte at a time
     const n = (bodySize) * 4 + 12;
 
-    const buf = new Buffer(1);
+    const buf = Buffer.alloc(1);
     for (let i = 0; i < n; i += 1) {
         buf.writeUInt8(i % 256, 0);
         msgChunkManager.write(buf, 1);

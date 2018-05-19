@@ -199,7 +199,7 @@ describe("testing ClientTCP_transport", function () {
     it("should connect and forward subsequent message chunks after a valid HEL/ACK transaction", function (done) {
 
         // lets build the subsequent message
-        const message1 = new Buffer(10);
+        const message1 = Buffer.alloc(10);
         message1.writeUInt32BE(0xDEADBEEF, 0);
         message1.writeUInt32BE(0xFEFEFEFE, 4);
         message1.writeUInt16BE(0xFFFF, 8);

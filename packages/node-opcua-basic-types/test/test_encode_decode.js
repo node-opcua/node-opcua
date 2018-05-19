@@ -146,8 +146,14 @@ describe("testing built-in type encoding", function() {
         });
     });
 
+    it("should encode and decode a DateTime - origin", function() {
+        const value = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
+        test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, function(buffer) {
+            // todo
+        });
+    });
     it("should encode and decode a DateTime", function() {
-        const value = new Date(2014, 0, 2, 15, 0);
+        const value = new Date(Date.UTC(2014, 0, 2, 15, 0));
         test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, function(buffer) {
             // todo
         });
@@ -209,7 +215,7 @@ describe("testing built-in type encoding", function() {
     });
 
     it("should encode and decode a ByteString", function() {
-        const buf = new Buffer(256);
+        const buf = Buffer.allocUnsafe(256);
         buf.write("THIS IS MY BUFFER");
 
         test_encode_decode(buf, ec.encodeByteString, ec.decodeByteString, 256 + 4, function(buffer) {
@@ -279,7 +285,7 @@ describe("testing built-in type encoding", function() {
     });
 
     it("should encode and decode a Opaque NodeId", function() {
-        const value = new Buffer(32);
+        const value = Buffer.allocUnsafe(32);
         for (let i = 0; i < 32; i++) {
             value.writeUInt8(i, i);
         }
@@ -408,7 +414,7 @@ describe("encoding and decoding arrays", function() {
             return ec.decodeArray(stream, ec.decodeByteString);
         }
 
-        let data = [new Buffer("ABCD"), null, new Buffer(0), []];
+        let data = [Buffer.from("ABCD"), null, Buffer.alloc(0), []];
         data = data.map(ec.coerceByteString);
 
         test_encode_decode(data, encode_array_string, decode_array_string, 24);
@@ -577,7 +583,7 @@ describe("DateTime", function() {
 
 describe("Float", function() {
     it("should encode float (0)", function() {
-        const buffer = new Buffer(4);
+        const buffer = Buffer.allocUnsafe(4);
         buffer[0] = 0x1;
         buffer[0] = 0x2;
         buffer[0] = 0x3;
@@ -603,7 +609,7 @@ describe("Float", function() {
     });
 
     it("should decode zero from a buffer with 4 bytes set to zero", function() {
-        const buf = new Buffer(4);
+        const buf = Buffer.allocUnsafe(4);
         buf.writeUInt32LE(0, 0);
         const stream = new BinaryStream(buf);
 
@@ -611,3 +617,4 @@ describe("Float", function() {
         value.should.eql(0.0);
     });
 });
+

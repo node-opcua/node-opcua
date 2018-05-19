@@ -76,7 +76,7 @@ function coerceVariantType(dataType, value) {
             assert(typeof value === "string" || value === null);
             break;
         case DataType.ByteString:
-            value = (typeof value === "string") ? new Buffer(value): value;
+            value = (typeof value === "string") ? Buffer.from(value): value;
             if (!(value === null || value instanceof Buffer)) {
                 throw new Error("ByteString should be null or a Buffer");
             }

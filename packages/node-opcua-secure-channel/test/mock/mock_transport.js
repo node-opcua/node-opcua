@@ -40,7 +40,7 @@ const fake_OpenSecureChannelResponse = new OpenSecureChannelResponse({
         createdAt: new Date(), // now
         revisedLifeTime: 30000
     },
-    serverNonce: new Buffer("qwerty")
+    serverNonce: Buffer.from("qwerty")
 });
 
 const fake_GetEndpointsResponse = new GetEndpointsResponse({

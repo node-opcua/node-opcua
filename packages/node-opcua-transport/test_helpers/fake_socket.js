@@ -15,7 +15,7 @@ util.inherits(HalfComChannel, EventEmitter);
 HalfComChannel.prototype.write = function (data) {
 
     if (typeof data === "string") {
-        data = new Buffer(data);
+        data = Buffer.from(data);
     }
     assert(data instanceof  Buffer, "HalfComChannel.write expecting a buffer");
     const self = this;

@@ -85,7 +85,7 @@ describe("Testing BinaryStreamSizeCalculator", function () {
         stream.writeFloat(10.00234);
         stream.writeInteger(100000);
         stream.writeDouble(100000.0);
-        stream.writeByteStream(new Buffer("Hello"));
+        stream.writeByteStream(Buffer.from("Hello"));
         stream.length.should.equal(4 + 4 + 8 + 4 + 5);
 
     });
@@ -175,7 +175,7 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
 
         largeArray[10].should.eql(10 * 0.14);
         largeArray[100].should.eql(100 * 0.14);
-        const binStream = new BinaryStream(new Buffer(n * 8 + 20));
+        const binStream = new BinaryStream(Buffer.alloc(n * 8 + 20));
 
         largeArray.length.should.eql(n);
         largeArray.byteLength.should.eql(n * 8);
@@ -206,8 +206,8 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
 
     it("should provide a efficient writeArrayBuffer", function () {
 
-        const binStream1 = new BinaryStream(new Buffer(n * 8 + 20));
-        const binStream2 = new BinaryStream(new Buffer(n * 8 + 20));
+        const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20));
+        const binStream2 = new BinaryStream(Buffer.alloc(n * 8 + 20));
 
         largeArray.byteLength.should.eql(n * 8);
         const bench = new Benchmarker();
@@ -235,10 +235,10 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
 
     it("should provide a efficient readArrayBuffer", function () {
 
-        const binStream1 = new BinaryStream(new Buffer(n * 8 + 20));
+        const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20));
         binStream1.writeArrayBuffer(largeArray.buffer, 0, largeArray.byteLength);
 
-        //var binStream2 = new BinaryStream(new Buffer(n * 8 + 20));
+        //var binStream2 = new BinaryStream(Buffer.alloc(n * 8 + 20));
         //binStream2.writeArrayBuffer(largeArray.buffer, 0, largeArray.byteLength);
 
         largeArray.byteLength.should.eql(n * 8);
@@ -287,7 +287,7 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
 
         largeArray.byteLength.should.eql(n * 8);
 
-        const binStream1 = new BinaryStream(new Buffer(n * 8 + 20));
+        const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20));
         binStream1.writeArrayBuffer(largeArray.buffer, 0, largeArray.byteLength);
 
         const bench = new Benchmarker();

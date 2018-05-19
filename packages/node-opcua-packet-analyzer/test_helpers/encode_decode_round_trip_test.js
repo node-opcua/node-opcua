@@ -32,6 +32,15 @@ function isArrayOrTypedArray(v) {
 }
 
 function compare(obj_reloaded,obj) {
+
+    function displayError(p,expected,actual) {
+        console.log(" ---------------------------------- error in encode_decode_round_trip_test".yellow);
+        console.log(" key ".red, p);
+        console.log(" expected ".red, JSON.stringify(expected));
+        console.log(" actual   ".cyan, JSON.stringify(actual));
+
+
+    }
     Object.keys(obj_reloaded).forEach(function (p) {
 
         try {
@@ -41,10 +50,10 @@ function compare(obj_reloaded,obj) {
                 JSON.stringify(obj_reloaded[p]).should.eql(JSON.stringify(obj[p]));
             }
         } catch (err) {
-            console.log(" ---------------------------------- error in encode_decode_round_trip_test".yellow);
-            console.log(" key ".red, p);
-            console.log(" expected ".red, JSON.stringify(obj[p]));
-            console.log(" actual   ".cyan, JSON.stringify(obj_reloaded[p]));
+            displayError(p,obj[p],obj_reloaded[p]);
+
+            console.log(obj.toString());
+            console.log(obj_reloaded.toString());
             // re throw exception
             throw err;
         }
@@ -74,7 +83,7 @@ function encode_decode_round_trip_test(obj, options, callback_buffer) {
 
     const size = obj.binaryStoreSize(options);
 
-    const stream = new BinaryStream(new Buffer(size));
+    const stream = new BinaryStream(Buffer.alloc(size));
 
     obj.encode(stream, options);
 

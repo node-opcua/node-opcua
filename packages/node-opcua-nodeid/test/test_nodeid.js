@@ -41,7 +41,7 @@ describe("testing NodeIds", function() {
     });
 
     it("should create a OPAQUE nodeID", function() {
-        const buffer = new Buffer(4);
+        const buffer = Buffer.alloc(4);
         buffer.writeUInt32BE(0xdeadbeef, 0);
 
         const nodeId = new NodeId(NodeIdType.BYTESTRING, buffer, 4);
@@ -86,7 +86,7 @@ describe("testing coerceNodeId", function() {
     });
 
     it("should coerce a OPAQUE buffer as a BYTESTRING", function() {
-        const buffer = new Buffer(8);
+        const buffer = Buffer.alloc(8);
         buffer.writeUInt32BE(0xb1dedada, 0);
         buffer.writeUInt32BE(0xb0b0abba, 4);
         const nodeId = coerceNodeId(buffer);
@@ -156,11 +156,11 @@ describe("testing coerceNodeId", function() {
     });
     it("should detect empty Opaque NodeIds", function() {
         // empty opaque nodeId
-        const empty_nodeId = coerceNodeId(new Buffer(0));
+        const empty_nodeId = coerceNodeId(Buffer.alloc(0));
         empty_nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
         empty_nodeId.isEmpty().should.be.eql(true);
 
-        const non_empty_nodeId = coerceNodeId(new Buffer(1));
+        const non_empty_nodeId = coerceNodeId(Buffer.alloc(1));
         empty_nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
         non_empty_nodeId.isEmpty().should.be.eql(false);
     });
@@ -195,7 +195,7 @@ describe("#sameNodeId", function() {
         new NodeId(NodeIdType.NUMERIC, 23, 2),
         new NodeId(NodeIdType.STRING, "TemperatureSensor", 4),
         new NodeId(NodeIdType.STRING, "A very long string very very long string", 4),
-        new NodeId(NodeIdType.BYTESTRING, new Buffer("AZERTY"), 4)
+        new NodeId(NodeIdType.BYTESTRING, Buffer.from("AZERTY"), 4)
     ];
     for (let i = 0; i < nodeIds.length; i++) {
         const nodeId1 = nodeIds[i];

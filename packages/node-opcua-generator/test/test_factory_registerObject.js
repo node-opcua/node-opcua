@@ -245,7 +245,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject", functio
 
         const Blob = generator.registerObject(exports.FakeBlob_Schema, temporary_folder);
 
-        const blob = new Blob({buffer0: new Buffer(0), buffer1: new Buffer(1024)});
+        const blob = new Blob({buffer0: Buffer.alloc(0), buffer1: Buffer.alloc(1024)});
 
         encode_decode_round_trip_test(blob);
 

@@ -41,7 +41,7 @@ exports.makeEndPoint = function () {
             ]
         },
 
-        serverCertificate: new Buffer(256),
+        serverCertificate: Buffer.alloc(256),
 
         securityMode: MessageSecurityMode.NONE,
 

@@ -661,7 +661,7 @@ ClientSecureChannelLayer.prototype.create = function (endpointUrl, callback) {
                 assert(!_.isUndefined(self.receiverPublicKey)); // make sure we wont go into infinite recursion calling create again.
                 self.create(endpointUrl, callback);
             });
-            return undefined;
+            return;
         }
         assert(typeof self.receiverPublicKey === "string");
     }

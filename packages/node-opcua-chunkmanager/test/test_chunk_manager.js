@@ -9,7 +9,7 @@ const _ = require("underscore");
 const hexDump = require("node-opcua-debug").hexDump;
 
 function make_packet(packet_length) {
-    const buf = new Buffer(packet_length);
+    const buf = Buffer.allocUnsafe(packet_length);
     buf.length.should.eql(packet_length);
     for (let i = 0; i < buf.length; i++) {
         buf.writeUInt8(i, i % 256);
@@ -21,7 +21,7 @@ const do_debug = false;
 
 function compute_fake_signature(section_to_sign) {
 
-    const signature = new Buffer(4);
+    const signature = Buffer.allocUnsafe(4);
     for (let i = 0; i < signature.length; i++) {
         signature.writeUInt8(0xCC, i);
     }
@@ -45,7 +45,7 @@ function fake_encrypt_block(block) {
     assert(this.plainBlockSize + 2 === this.cipherBlockSize);
     assert(this.plainBlockSize === block.length);
 
-    const encrypted_block = new Buffer(block.length + 2);
+    const encrypted_block = Buffer.alloc(block.length + 2);
     encrypted_block.writeUInt8(0xDE, 0);
     block.copy(encrypted_block, 1, 0, block.length);
     encrypted_block.writeUInt8(0xDF, block.length + 1);
@@ -60,7 +60,7 @@ function fake_encrypt_buffer(buffer) {
 
     const nbBlocks = Math.ceil(buffer.length / (this.plainBlockSize));
 
-    const outputBuffer = new Buffer(nbBlocks * this.cipherBlockSize);
+    const outputBuffer = Buffer.alloc(nbBlocks * this.cipherBlockSize);
 
     for (let i = 0; i < nbBlocks; i++) {
         const currentBlock = buffer.slice(this.plainBlockSize * i, this.plainBlockSize * (i + 1));
@@ -80,7 +80,7 @@ function no_encrypt_block(block) {
 }
 
 function make_hex_block(hexString) {
-    return new Buffer(hexString.split(" ").join(""), "hex");
+    return  Buffer.from(hexString.split(" ").join(""), "hex");
 }
 
 describe("Chunk manager - no header - no signature - no encryption", function () {
@@ -147,7 +147,7 @@ describe("Chunk manager - no header - no signature - no encryption", function ()
 
         // feed chunk-manager on byte at a time
         const n = 48 * 2 + 12;
-        const buf = new Buffer(1);
+        const buf = Buffer.alloc(1);
         for (let i = 0; i < n; i += 1) {
             buf.writeInt8(i, 0);
             chunkManager.write(buf, 1);

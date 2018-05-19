@@ -26,10 +26,10 @@ exports.decodeByteString = function(stream) {
 
 function coerceByteString(value) {
     if (_.isArray(value)) {
-        return new Buffer(value);
+        return Buffer.from(value);
     }
     if (typeof value === "string") {
-        return new Buffer(value, "base64");
+        return Buffer.from(value, "base64");
     }
     return value;
 }

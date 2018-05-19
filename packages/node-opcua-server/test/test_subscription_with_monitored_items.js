@@ -136,7 +136,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             }
 
             addVar("LocalizedText", {text: "Hello"});
-            addVar("ByteString", new Buffer("AZERTY"));
+            addVar("ByteString", Buffer.from("AZERTY"));
             addVar("SByte", 0);
             addVar("Int16", 0);
             addVar("Int32", 0);

@@ -28,7 +28,7 @@ function verify_multi_chunk_message(packets) {
     let total_length = 0;
     packets.forEach(function (packet) {
         if (packet instanceof Array) {
-            packet = new Buffer(packet);
+            packet = Buffer.from(packet);
         }
         total_length += packet.length;
         console.log(sprintf(" adding packet size : %5d l=%d", packet.length, total_length));

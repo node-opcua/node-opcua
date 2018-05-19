@@ -7,7 +7,7 @@ function makeMessage(msgType, length) {
 
     total_length.should.be.greaterThan(0);
 
-    const buf = new Buffer(total_length);
+    const buf = Buffer.alloc(total_length);
 
     buf.writeUInt8(msgType.charCodeAt(0), 0);
     buf.writeUInt32LE(total_length, 1);

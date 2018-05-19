@@ -12,7 +12,7 @@ const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
 function wrap_message_in_chunk(slice, isFinal) {
     const total_length = slice.length + 12;
-    const buf = new Buffer(total_length);
+    const buf = Buffer.allocUnsafe(total_length);
     const stream = new BinaryStream(buf);
     writeTCPMessageHeader("MSG", isFinal, total_length, stream);
     slice.copy(buf, 12);
@@ -23,7 +23,7 @@ describe("MessageBuilderBase", function () {
 
     it('should assemble a message body composed of a single chunk ', function (done) {
 
-        const message_body = new Buffer("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        const message_body = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
         const original_message_chunk = wrap_message_in_chunk(message_body, "F");
 
         const builder = new MessageBuilderBase();
@@ -43,7 +43,7 @@ describe("MessageBuilderBase", function () {
 
     it('should assemble a message body composed of a two chunks ', function (done) {
 
-        const message_body = new Buffer("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        const message_body = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
         const original_message_chunk_1 = wrap_message_in_chunk(message_body.slice(0, 10), "C");
         const original_message_chunk_2 = wrap_message_in_chunk(message_body.slice(10), "F");

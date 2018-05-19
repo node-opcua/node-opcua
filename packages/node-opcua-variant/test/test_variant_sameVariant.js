@@ -446,38 +446,38 @@ describe("testing return sameVariant for pull request", function () {
     });
 
     it('testing same variants of type ByteString', function () {
-        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Scalar, value: new Buffer([1,2,3])});
-        const b1c = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Scalar, value: new Buffer([1,2,3])});
+        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Scalar, value: Buffer.from([1,2,3])});
+        const b1c = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Scalar, value: Buffer.from([1,2,3])});
         sameVariant(b1,b1c).should.equal(true);
     });
 
     it('testing different variants of type ByteString', function () {
-        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Scalar, value: new Buffer([1,2,3])});
-        const b2 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Scalar, value: new Buffer([1,2,4])});
+        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Scalar, value: Buffer.from([1,2,3])});
+        const b2 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Scalar, value: Buffer.from([1,2,4])});
         sameVariant(b1,b2).should.equal(false);
     });
 
     it('testing same variants of type ByteString array', function () {
-        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [new Buffer([1,2,3]), new Buffer([1,2,3])]});
-        const b1c = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [new Buffer([1,2,3]), new Buffer([1,2,3])]});
+        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [Buffer.from([1,2,3]), Buffer.from([1,2,3])]});
+        const b1c = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [Buffer.from([1,2,3]), Buffer.from([1,2,3])]});
         sameVariant(b1,b1c).should.equal(true);
     });
 
     it('testing different variants of type ByteString array', function () {
-        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [new Buffer([1,2,3]), new Buffer([1,2,3])]});
-        const b2 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [new Buffer([1,2,4]), new Buffer([1,2,4])]});
+        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [Buffer.from([1,2,3]), Buffer.from([1,2,3])]});
+        const b2 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [Buffer.from([1,2,4]), Buffer.from([1,2,4])]});
         sameVariant(b1,b2).should.equal(false);
     });
 
     it('testing same variants of type ByteString matrix', function () {
-        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Matrix, dimensions: [2, 3], value: [new Buffer([1,2,3]), new Buffer([4,5,6]), new Buffer([7,8,9]), new Buffer([10,11,12]), new Buffer([13,14,15]), new Buffer([16,17,18])]});
-        const b1c = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Matrix, dimensions: [2, 3], value: [new Buffer([1,2,3]), new Buffer([4,5,6]), new Buffer([7,8,9]), new Buffer([10,11,12]), new Buffer([13,14,15]), new Buffer([16,17,18])]});
+        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Matrix, dimensions: [2, 3], value: [Buffer.from([1,2,3]), Buffer.from([4,5,6]), Buffer.from([7,8,9]), Buffer.from([10,11,12]), Buffer.from([13,14,15]), Buffer.from([16,17,18])]});
+        const b1c = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Matrix, dimensions: [2, 3], value: [Buffer.from([1,2,3]), Buffer.from([4,5,6]), Buffer.from([7,8,9]), Buffer.from([10,11,12]), Buffer.from([13,14,15]), Buffer.from([16,17,18])]});
         sameVariant(b1,b1c).should.equal(true);
     });
 
     it('testing different variants of type ByteString matrix', function () {
-        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Matrix, dimensions: [2, 3], value: [new Buffer([1,2,3]), new Buffer([4,5,6]), new Buffer([7,8,9]), new Buffer([10,11,12]), new Buffer([13,14,15]), new Buffer([16,17,18])]});
-        const b2 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Matrix, dimensions: [2, 3], value: [new Buffer([1,2,3]), new Buffer([4,5,6]), new Buffer([7,8,9]), new Buffer([10,11,12]), new Buffer([13,0,15]), new Buffer([16,17,18])]});
+        const b1 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Matrix, dimensions: [2, 3], value: [Buffer.from([1,2,3]), Buffer.from([4,5,6]), Buffer.from([7,8,9]), Buffer.from([10,11,12]), Buffer.from([13,14,15]), Buffer.from([16,17,18])]});
+        const b2 = new Variant({dataType: DataType.ByteString, arrayType: VariantArrayType.Matrix, dimensions: [2, 3], value: [Buffer.from([1,2,3]), Buffer.from([4,5,6]), Buffer.from([7,8,9]), Buffer.from([10,11,12]), Buffer.from([13,0,15]), Buffer.from([16,17,18])]});
         sameVariant(b1,b2).should.equal(false);
     });
 });

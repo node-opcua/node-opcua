@@ -47,7 +47,7 @@ module.exports = function (test) {
                                 value: {
                                     dataType: opcua.DataType.ByteString,
                                     arrayType: opcua.VariantArrayType.Scalar,
-                                    value: new Buffer([l,2,3,88])
+                                    value: Buffer.from([l,2,3,88])
                                 }
                             }
                         };

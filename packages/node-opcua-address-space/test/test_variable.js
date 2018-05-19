@@ -1121,7 +1121,7 @@ describe("testing Variable#writeValue Array", function () {
             value: {
                 dataType: DataType.Byte,
                 arrayType: VariantArrayType.Array,
-                value: new Buffer([1, 2, 3, 4, 5, 6, 7])
+                value: Buffer.from([1, 2, 3, 4, 5, 6, 7])
             }
         });
 
@@ -1134,7 +1134,7 @@ describe("testing Variable#writeValue Array", function () {
                 dataValue_check.statusCode.should.eql(StatusCodes.Good);
                 dataValue_check.value.dataType.should.eql(DataType.Byte);
                 dataValue_check.value.arrayType.should.eql(VariantArrayType.Array);
-                dataValue_check.value.value.should.eql(new Buffer([1, 2, 3, 4, 5, 6, 7]));
+                dataValue_check.value.value.should.eql(Buffer.from([1, 2, 3, 4, 5, 6, 7]));
                 setImmediate(callback);
             },
             function (callback) {
@@ -1144,7 +1144,7 @@ describe("testing Variable#writeValue Array", function () {
                     value: {
                         dataType: DataType.ByteString,
                         arrayType: VariantArrayType.Scalar,
-                        value: new Buffer([11, 12, 13, 14, 15, 16, 17])
+                        value: Buffer.from([11, 12, 13, 14, 15, 16, 17])
                     }
                 });
 
@@ -1159,7 +1159,7 @@ describe("testing Variable#writeValue Array", function () {
                 dataValue_check.should.be.instanceOf(DataValue);
                 dataValue_check.value.dataType.should.eql(DataType.Byte);
                 dataValue_check.value.arrayType.should.eql(VariantArrayType.Array);
-                dataValue_check.value.value.should.eql(new Buffer([11, 12, 13, 14, 15, 16, 17]));
+                dataValue_check.value.value.should.eql(Buffer.from([11, 12, 13, 14, 15, 16, 17]));
                 callback(null);
             }
 

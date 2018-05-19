@@ -234,7 +234,7 @@ describe("Testing numerical range", function () {
     });
     describe("extracting ranges from ByteString", function () {
 
-        const referenceByteString = new Buffer("Lorem Ipsum", "ascii");
+        const referenceByteString = Buffer.from("Lorem Ipsum", "ascii");
 
         it("it should extract a single element with a range defined with a individual integer", function () {
             referenceByteString.length.should.eql(11);
@@ -421,7 +421,7 @@ describe("Testing numerical range", function () {
     });
 
     function makeBuffer(values) {
-        const buff = new Buffer(values.length);
+        const buff = Buffer.allocUnsafe(values.length);
         for (let i = 0; i < values.length; i++) {
             buff[i] = values[i];
         }

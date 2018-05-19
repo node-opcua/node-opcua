@@ -8,7 +8,7 @@ require("should");
 exports.fixture1 = (function () {
     // empty  GetEndpointsResponse
 
-    var zeroNonce = new Buffer(1);
+    var zeroNonce = Buffer.alloc(1);
     zeroNonce.writeUInt8(0, 0);
 
     return new OpenSecureChannelRequest({

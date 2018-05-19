@@ -202,7 +202,7 @@ describe("testing the server ability to deny client session request (server with
 
                 const createSessionRequest = new opcua.session_service.CreateSessionRequest({
                     requestHeader: {},
-                    clientNonce: new Buffer(31)
+                    clientNonce: Buffer.alloc(31)
                 });
                 client.performMessageTransaction(createSessionRequest, function (err, response) {
                     response.responseHeader.serviceResult.should.eql(StatusCodes.BadNonceInvalid);

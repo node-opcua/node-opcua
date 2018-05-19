@@ -11,7 +11,7 @@ let counter = 0;
 function make_key() {
     // return crypto.randomBytes(32);
     counter += 1;
-    return new Buffer(counter.toString(), "ascii");
+    return Buffer.from(counter.toString(), "ascii");
 }
 
 function ContinuationPointManager() {
@@ -77,7 +77,7 @@ ContinuationPointManager.prototype.getNext = function (continuationPoint) {
     return result;
 };
 
-const nullBuffer = new Buffer(0);
+const nullBuffer = Buffer.alloc(0);
 
 ContinuationPointManager.prototype.cancel = function (continuationPoint) {
 

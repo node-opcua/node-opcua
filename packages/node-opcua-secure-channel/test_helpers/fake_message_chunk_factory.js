@@ -95,8 +95,8 @@ function iterate_on_signed_and_encrypted_message_chunks(buffer, callback) {
 exports.iterate_on_signed_and_encrypted_message_chunks = iterate_on_signed_and_encrypted_message_chunks;
 
 
-const secret = new Buffer("My Little Secret");
-const seed = new Buffer("My Little Seed");
+const secret = Buffer.from("My Little Secret");
+const seed = Buffer.from("My Little Seed");
 const options = {
     signingKeyLength: 16,
     encryptingKeyLength: 16,

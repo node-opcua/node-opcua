@@ -91,7 +91,7 @@ const _defaultType = [
         name: "ByteString", encode: ec.encodeByteString, decode: ec.decodeByteString,
 
         defaultValue: function () {
-            return new Buffer(0);
+            return Buffer.alloc(0);
         },
 
         coerce: ec.coerceByteString,

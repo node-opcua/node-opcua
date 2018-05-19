@@ -37,11 +37,11 @@ describe("testing buffer utils",function() {
                 bufs = null;
 
             })
-            .add("createFastUninitializedBuffer", function () {
+            .add("buffer alloc", function () {
 
                 let bufs  = new Array(n);
                 for (i = 0; i < n; i++) {
-                    bufs[i] = new Buffer(sizes[i]);
+                    bufs[i] = Buffer.alloc(sizes[i]);
                 }
                 bufs = null;
 

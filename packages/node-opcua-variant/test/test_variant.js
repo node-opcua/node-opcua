@@ -139,7 +139,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar ByteString  Variant - empty buffer", function() {
-        const var1 = new Variant({ dataType: DataType.ByteString, value: new Buffer(0) });
+        const var1 = new Variant({ dataType: DataType.ByteString, value: Buffer.alloc(0) });
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -150,7 +150,7 @@ describe("Variant", function() {
     });
 
     it("should create a Scalar ByteString  Variant - 3 bytes", function() {
-        const var1 = new Variant({ dataType: DataType.ByteString, value: new Buffer("ABC") });
+        const var1 = new Variant({ dataType: DataType.ByteString, value: Buffer.from("ABC") });
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
@@ -319,7 +319,7 @@ describe("Variant", function() {
     });
 
     it("should create a Array ByteString  Variant ", function() {
-        const var1 = new Variant({ dataType: DataType.ByteString, value: [new Buffer("ABC"), null] });
+        const var1 = new Variant({ dataType: DataType.ByteString, value: [Buffer.from("ABC"), null] });
 
         var1.dataType.should.eql(DataType.ByteString);
         var1.arrayType.should.eql(VariantArrayType.Array);
@@ -344,7 +344,7 @@ describe("Variant", function() {
     });
 
     it("should create a Array of ByteString Variant", function() {
-        const value = [new Buffer("ABCD"), null];
+        const value = [Buffer.from("ABCD"), null];
 
         const var1 = new Variant({
             arrayType: VariantArrayType.Array,
@@ -463,7 +463,7 @@ describe("Variant - Analyser", function() {
         size.should.eql(nbElements * 8 + 5);
 
         const t2 = get_clock_tick();
-        const stream = new BinaryStream(new Buffer(size));
+        const stream = new BinaryStream(Buffer.allocUnsafe(size));
         const t3 = get_clock_tick();
         very_large.encode(stream);
         const t4 = get_clock_tick();
@@ -509,7 +509,7 @@ describe("Variant - Analyser", function() {
         obj.value[100].should.eql(100);
 
         const size = obj.binaryStoreSize();
-        const stream = new BinaryStream(new Buffer(size));
+        const stream = new BinaryStream(Buffer.allocUnsafe(size));
 
         const bench = new Benchmarker();
 
@@ -1281,7 +1281,7 @@ describe("Variant with Advanced Array", function() {
         const results = nr.extract_values(v.value);
         results.statusCode.should.eql(StatusCodes.Good);
 
-        results.array.should.eql([new Buffer("EFG"), new Buffer("FGH")]);
+        results.array.should.eql([Buffer.from("EFG"), Buffer.from("FGH")]);
     });
 
     it("AA should be possible to read a sub matrix of a matrix of double", function() {
@@ -1373,7 +1373,7 @@ describe("Variant with enumeration", function() {
     it("should create a variant with builtin type 'ByteString'", function() {
         const v = new Variant({
             dataType: "ByteString",
-            value: new Buffer("abcd")
+            value: Buffer.from("abcd")
         });
         v.dataType.should.eql(DataType.ByteString);
         v.value.toString("ascii").should.eql("abcd");

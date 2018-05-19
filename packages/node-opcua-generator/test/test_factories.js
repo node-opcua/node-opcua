@@ -273,7 +273,7 @@ describe("Testing that objects created by factory can be persisted as JSON strin
         const Blob = generator.registerObject(exports.FakeBlob2_Schema, temporary_folder);
 
         const blob = new Blob({
-            buffer0: new Buffer("00FF00AA", "hex"),
+            buffer0: Buffer.from("00FF00AA", "hex"),
             nodeId: "ns=1;s=toto"
         });
 
@@ -299,7 +299,7 @@ describe("Testing that objects created by factory can be persisted as JSON strin
         const Blob = generator.registerObject(exports.FakeBlob3_Schema, temporary_folder);
 
         const blob = new Blob({
-            buffer0: [new Buffer("01020304", "hex"), [0, 1, 2, 3, 4]],
+            buffer0: [Buffer.from("01020304", "hex"), [0, 1, 2, 3, 4]],
             nodeId: ["ns=1;s=toto", "ns=2;i=1234"]
         });
 

@@ -1393,7 +1393,7 @@ module.exports = function (test) {
                 dataType: "ByteString",
                 value: {
                     dataType: DataType.ByteString,
-                    value: new Buffer("Lorem ipsum", "ascii")
+                    value: Buffer.from("Lorem ipsum", "ascii")
                 }
             });
             server.engine.addressSpace.addVariable({

@@ -41,7 +41,7 @@ describe("Session Service",function() {
             serverUri: "serverUri",
             endpointUrl: "endpointUrl",
             sessionName: "sessionName",
-            clientNonce: new Buffer("_clientNonce"),
+            clientNonce: Buffer.from("_clientNonce"),
             clientCertificate: undefined,
             requestedSessionTimeout: 300000,
             maxResponseMessageSize: 800000
