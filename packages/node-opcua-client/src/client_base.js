@@ -32,9 +32,9 @@ const ClientSession = require("./client_session").ClientSession;
 
 
 const defaultConnectionStrategy = {
-    maxRetry: 100,
+    maxRetry: 10000000, // almost infinite
     initialDelay: 1000,
-    maxDelay: 20000,
+    maxDelay: 20*1000,// 20 seconds
     randomisationFactor: 0.1
 };
 
@@ -441,7 +441,7 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
  */
 OPCUAClientBase.prototype.__defineGetter__("reconnectOnFailure", function () {
     const self = this;
-    return self.connectionStrategy.maxRetry > 0;
+    return self.connectionStrategy.maxRetry > 0 || self.connectionStrategy.maxRetry === -1;
 });
 
 
@@ -502,18 +502,21 @@ function _install_secure_channel_event_handlers(self, secureChannel) {
         debugLog(" OPCUAClientBase emitting close".yellow.bold, err);
 
         if (!err || !self.reconnectOnFailure) {
+
             // this is a normal close operation initiated byu
+
             /**
              * @event close
              * @param error {Error}
              */
             self.emit("close", err);
+
             setImmediate(function () {
                 self._destroy_secure_channel();
             });
             return;
-        } else {
 
+        } else {
 
             setImmediate(function () {
 
