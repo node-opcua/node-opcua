@@ -149,7 +149,7 @@ exports.encodeExpandedNodeId = function(expandedNodeId, stream) {
 const _decodeNodeId = function(encoding_byte, stream) {
     let value, namespace, nodeIdType;
     /*jslint bitwise: true */
-    encoding_byte &= 0x3f;
+    encoding_byte &= 0x3f; // 1 to 5
 
     switch (encoding_byte) {
         case EnumNodeIdEncoding.TwoBytes.value:
@@ -179,7 +179,7 @@ const _decodeNodeId = function(encoding_byte, stream) {
         default:
             if (encoding_byte !== EnumNodeIdEncoding.Guid.value) {
                 /*jslint bitwise: true */
-                console.log(" encoding_byte = " + encoding_byte.toString(16), encoding_byte, encoding_byte & 0x3f);
+                console.log(" encoding_byte = 0x" + encoding_byte.toString(16)," bin=", ("0000000000000000"+encoding_byte.toString(2)).substr(-16), encoding_byte, encoding_byte & 0x3f);
                 throw new Error(" encoding_byte = " + encoding_byte.toString(16));
             }
             namespace = stream.readUInt16();

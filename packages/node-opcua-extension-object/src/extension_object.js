@@ -108,7 +108,13 @@ function decodeExtensionObject(stream) {
     }
     // let verify that  decode will use the expected number of bytes
     const streamLengthBefore = stream.length;
-    object.decode(stream);
+
+    try {
+        object.decode(stream);
+    }
+    catch(err) {
+        console.log("Cannot decode object ",err.message);
+    }
 
     if (streamLengthBefore + length !== stream.length) {
         // this may happen if the server or client do have a different OPCUA version
@@ -123,6 +129,8 @@ function decodeExtensionObject(stream) {
 
 exports.ExtensionObject = ExtensionObject;
 exports.encodeExtensionObject =encodeExtensionObject;
+
+
 exports.decodeExtensionObject =decodeExtensionObject;
 
 factories.registerBuiltInType({
