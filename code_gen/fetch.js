@@ -1,11 +1,13 @@
-var request = require("request");
-var fs = require("fs");
-var ProgressBar = require('progress');
-var _ = require("underscore");
-var url =require("url");
+const request = require("request");
+const fs = require("fs");
+const ProgressBar = require('progress');
+const _ = require("underscore");
+const url =require("url");
+const https = require('https');
+let http  = require('http');
 
 
-var force = true;
+const force = true;
 
 function wget(dest_folder,file_url) {
 
@@ -15,12 +17,10 @@ function wget(dest_folder,file_url) {
         fs.mkdirSync(dest_folder);
     }
 
-    var https = require('https');
-    var http  = require('http');
     if (file_url.substr(0,5)==="https") {  http = https;   }
 
-    var path = require("path");
-    var filename = path.join(dest_folder,path.basename(file_url)); // + path.extname(url);
+    const path = require("path");
+    const filename = path.join(dest_folder,path.basename(file_url)); // + path.extname(url);
 
     if (fs.existsSync(filename) && !force)  {
         console.log("  " + filename +" already downloaded " + file_url);
@@ -28,22 +28,22 @@ function wget(dest_folder,file_url) {
     }
     console.log(" downloading " + filename + " from " + file_url);
 
-    var stream = fs.createWriteStream(filename,{ flag: "w" });
+    const stream = fs.createWriteStream(filename,{ flag: "w" });
 
-    var request_options = url.parse(file_url);
+    const request_options = url.parse(file_url);
 
     request_options.headers=  {'user-agent': 'Mozilla/5.0'};
 
     // Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.101 Safari/537.36
-    var req = http.get(request_options, function(response) {
+    const req = http.get(request_options, function(response) {
         // handle the response
-        var res_data = '';
+        let res_data = '';
         // console.log(response);
-        var fileBytes = parseInt(response.headers['content-length'],10);
+        let fileBytes = parseInt(response.headers['content-length'],10);
         if (!_.isFinite(fileBytes)) {
             fileBytes = 10000;
         }
-        var bar = new ProgressBar('  downloading ' + file_url + '[:bar] :percent :etas', {
+        const bar = new ProgressBar('  downloading ' + file_url + '[:bar] :percent :etas', {
             complete: '=',
             incomplete: ' ',
             width: 20,
@@ -107,7 +107,7 @@ OPC UA Status Codes	                  The numeric identifier for all StatusCodes
 OPC UA NodeIds	                      The numeric identifier for all NodeIds defined in the OPC UA specifications.	    NodeIds.csv	                http://opcfoundation.org/UA/schemas/1.02/NodeIds.csv
 */
 
-if (false) {
+if (true) {
 
     wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.Types.bsd.xml");
 wget("1.02","https://opcfoundation.org/UA/schemas/1.02/Opc.Ua.StatusCodes.csv");
@@ -151,13 +151,13 @@ wget("1.02","https://opcfoundation.org/UA/schemas/1.02/NodeIds.csv");
 
 wget("1.03", "https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.StatusCodes.csv");
 
-wget("1.03", "http://www.opcfoundation.org/UA/schemas/1.03/StatusCode.csv");
-wget("1.03", "http://www.opcfoundation.org/UA/schemas/1.03/NodeIds.csv");
-wget("1.03", "http://www.opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.xml");
-wget("1.03", "http://www.opcfoundation.org/UA/schemas/1.03/Opc.Ua.Types.bsd.xml");
-wget("1.03", "http://www.opcfoundation.org/UA/schemas/1.03/Opc.Ua.Endpoints.wsdl");
-wget("1.03", "http://www.opcfoundation.org/UA/schemas/1.03/SecuredApplication.xsd");
-wget("1.03", "http://www.opcfoundation.org/UA/schemas/1.03/UANodeSet.xsd");
+wget("1.03", "https://www.opcfoundation.org/UA/schemas/1.03/StatusCode.csv");
+wget("1.03", "https://www.opcfoundation.org/UA/schemas/1.03/NodeIds.csv");
+wget("1.03", "https://www.opcfoundation.org/UA/schemas/1.03/Opc.Ua.NodeSet2.xml");
+wget("1.03", "https://www.opcfoundation.org/UA/schemas/1.03/Opc.Ua.Types.bsd.xml");
+wget("1.03", "https://www.opcfoundation.org/UA/schemas/1.03/Opc.Ua.Endpoints.wsdl");
+wget("1.03", "https://www.opcfoundation.org/UA/schemas/1.03/SecuredApplication.xsd");
+wget("1.03", "https://www.opcfoundation.org/UA/schemas/1.03/UANodeSet.xsd");
 ///
 wget("1.03","https://opcfoundation.org/UA/2008/02/Types.xsd");
 wget("1.03","https://opcfoundation.org/UA/schemas/1.03/Opc.Ua.Types.bsd.xml");
