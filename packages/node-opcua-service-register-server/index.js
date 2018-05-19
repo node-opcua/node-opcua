@@ -16,6 +16,16 @@ exports.RegisterServerRequest  = require("./_generated_/_auto_generated_Register
  */
 exports.RegisterServerResponse  = require("./_generated_/_auto_generated_RegisterServerResponse").RegisterServerResponse;
 
+exports.MdnsDiscoveryConfiguration = require("./_generated_/_auto_generated_MdnsDiscoveryConfiguration").MdnsDiscoveryConfiguration;
+/**
+ * @class RegisterServerRequest
+ */
+exports.RegisterServer2Request  = require("./_generated_/_auto_generated_RegisterServer2Request").RegisterServer2Request;
+/**
+ * @class RegisterServerResponse
+ */
+exports.RegisterServer2Response  = require("./_generated_/_auto_generated_RegisterServer2Response").RegisterServer2Response;
+
 // ----------------------------------------------------
 // Discovery :  FindServers
 // ----------------------------------------------------
@@ -29,4 +39,9 @@ exports.FindServersRequest  = require("./_generated_/_auto_generated_FindServers
  * @class FindServersResponse
  */
 exports.FindServersResponse  = require("./_generated_/_auto_generated_FindServersResponse").FindServersResponse;
+
+exports.FindServersOnNetworkRequest  = require("./_generated_/_auto_generated_FindServersOnNetworkRequest").FindServersOnNetworkRequest;
+exports.FindServersOnNetworkResponse  = require("./_generated_/_auto_generated_FindServersOnNetworkResponse").FindServersOnNetworkResponse;
+
+exports.serverCapapbilities = require("./src/server_capabilities").serverCapapbilities;
 
