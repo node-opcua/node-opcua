@@ -107,7 +107,7 @@ const server_options = {
     ],
 
     serverInfo: {
-        applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-Server")+port,
+        applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-Server"),
         productUri: "NodeOPCUA-Server",
         applicationName: {text: "NodeOPCUA" ,locale:"en"},
         gatewayServerUri: null,
