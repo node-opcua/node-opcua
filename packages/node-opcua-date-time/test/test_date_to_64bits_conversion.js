@@ -24,8 +24,8 @@ function isValidInt32(value) {
     if (!_.isFinite(value)) {
         return false;
     }
-    value.should.be.greaterThan(-(2**31)-1);
-    value.should.be.lessThan(2**31+1);
+    value.should.be.greaterThan(-Math.pow(2,31)-1);
+    value.should.be.lessThan(Math.pow(2,31)+1);
     return true;
 }
 
