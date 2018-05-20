@@ -433,7 +433,7 @@ describe("understanding Javascript date", function () {
     it("ZZ1 should convert a time with picoseconds",function() {
         //const date = new Date(Date.UTC(2018,1,23,12,34,56,789));
         const date = new Date(Date.UTC(1601, 0, 1, 0,0,12,345));
-        date.setTime(date.getTime() + 2**33);
+        date.setTime(date.getTime() + Math.pow(2,33));
         const picoseconds = 987654320;
         const hundred_nano = date_time.bn_dateToHundredNanoSecondFrom1601(date, picoseconds);
         //nano[0].should.equal(0); // hi
@@ -444,7 +444,7 @@ describe("understanding Javascript date", function () {
     it("ZZ2 should convert a time with picoseconds",function() {
         //const date = new Date(Date.UTC(2018,1,23,12,34,56,789));
         const date = new Date(Date.UTC(1601, 0, 1, 0,0,12,345));
-        date.setTime(date.getTime() + 2**33);
+        date.setTime(date.getTime() + Math.pow(2,33));
         const picoseconds = 987654320;
         const hundred_nano = date_time.bn_dateToHundredNanoSecondFrom1601(date, picoseconds);
         hundred_nano[0].should.equal(20 * 1000); // hi
