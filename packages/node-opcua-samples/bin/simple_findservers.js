@@ -2,13 +2,13 @@
 "use strict";
 // this script queries the discovery server and display the discovery urls
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var perform_findServersRequest = opcua.perform_findServersRequest;
+const perform_findServers = opcua.perform_findServers;
 
-var discovery_server_endpointUrl = "opc.tcp://localhost:4840/UADiscovery";
+const discovery_server_endpointUrl = "opc.tcp://localhost:4840/UADiscovery";
 
-perform_findServersRequest(discovery_server_endpointUrl, function (err, servers) {
+perform_findServers(discovery_server_endpointUrl, function (err, servers,endpoints) {
 
     if (!err) {
 
@@ -26,6 +26,10 @@ perform_findServersRequest(discovery_server_endpointUrl, function (err, servers)
             });
             console.log("-------------");
         });
+
+        endpoints.forEach((endpoint)=>
+            console.log(endpoint.endpointUrl.toString())
+        );
     } else {
         console.log("Error", err);
     }

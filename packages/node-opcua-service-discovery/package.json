@@ -1,7 +1,7 @@
 {
- "name": "node-opcua-service-register-server",
+ "name": "node-opcua-service-discovery",
  "version": "0.3.0",
- "description": "pure nodejs OPCUA SDK - module -service-register-server",
+ "description": "pure nodejs OPCUA SDK - module -service-discovery",
  "scripts": {
   "test": "mocha test",
   "clean": "node -e \"require('rimraf').sync('_generated_');\"",

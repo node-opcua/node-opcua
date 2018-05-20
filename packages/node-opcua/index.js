@@ -84,7 +84,7 @@ module.exports.ApplicationType = require("node-opcua-service-endpoints").Applica
 
 module.exports.subscription_service = require("node-opcua-service-subscription");
 module.exports.historizing_service = require("node-opcua-service-history");
-module.exports.register_server_service = require("node-opcua-service-register-server");
+module.exports.discovery_service = require("node-opcua-service-discovery");
 module.exports.secure_channel_service = require("node-opcua-service-secure-channel");
 
 module.exports.translate_browse_paths_to_node_ids_service = require("node-opcua-service-translate-browse-path");
@@ -116,7 +116,8 @@ module.exports.ClientSubscription = require("node-opcua-client").ClientSubscript
 module.exports.ClientSession = require("node-opcua-client").ClientSession;
 
 module.exports.client_utils = require("node-opcua-client/src/client_utils");
-module.exports.perform_findServersRequest = require("node-opcua-client").perform_findServersRequest;
+module.exports.perform_findServers = require("node-opcua-client").perform_findServers;
+module.exports.perform_findServersOnNetwork = require("node-opcua-client").perform_findServersOnNetwork;
 module.exports.readHistorySeverCapabilities = require("node-opcua-client").readHistorySeverCapabilities;
 
 module.exports.callConditionRefresh = require("node-opcua-client/src/alarms_and_conditions/client_tools").callConditionRefresh;

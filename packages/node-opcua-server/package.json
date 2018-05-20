@@ -42,7 +42,7 @@
   "node-opcua-service-query": "^0.3.0",
   "node-opcua-service-read": "^0.3.0",
   "node-opcua-service-register-node": "^0.3.0",
-  "node-opcua-service-register-server": "^0.3.0",
+  "node-opcua-service-discovery": "^0.3.0",
   "node-opcua-service-secure-channel": "^0.3.0",
   "node-opcua-service-session": "^0.3.0",
   "node-opcua-service-subscription": "^0.3.0",

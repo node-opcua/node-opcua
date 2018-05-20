@@ -480,8 +480,13 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         });
 
         client.connect(endpointUrl, function (err) {
-            done(err);
+            if (!_options.doNotWaitForConnection) {
+                done(err);
+            }
         });
+        if (_options.doNotWaitForConnection) {
+            done();
+        }
     }
 
     function disconnect_client(done) {
@@ -743,6 +748,28 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
 
     });
+    it("TR4 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server",function(done){
+        async.series([
+            function(callback) {
+                endpointUrl = "opc.tcp://localhost:11111"; // uri of an unavailable opcua server
+                callback();
+            },
+            // use robust connectionStrategy
+            f(create_client_and_create_a_connection_to_server.bind(null, {doNotWaitForConnection: true}, robust_connectivity_strategy)),
+            f(wait_a_little_while),
+            f(verify_that_client_is_trying_to_reconnect),
+            f(wait_a_little_while),
+            f(disconnect_client),
+            f(wait_a_little_while),
+            f(verify_that_client_is_NOT_trying_to_reconnect),
+            f(wait_a_little_while),
+            f(verify_that_client_is_NOT_trying_to_reconnect)
+        ], function (err) {
+            done(err);
+        });
+
+    });
+
 
     let the_session = null;
 

@@ -11,7 +11,9 @@ module.exports = {
     ClientSecureChannelLayer: require("node-opcua-secure-channel/src/client/client_secure_channel_layer").ClientSecureChannelLayer,
 
     // tools
-    perform_findServersRequest: require("./src/tools/findservers").perform_findServersRequest,
+    perform_findServers: require("./src/tools/findservers").perform_findServers,
+    perform_findServersOnNetwork: require("./src/tools/findservers").perform_findServersOnNetwork,
+
     readHistorySeverCapabilities: require("./src/tools/read_history_server_capabilities").readHistorySeverCapabilities
 
 };
@@ -78,7 +80,7 @@ module.exports.ApplicationType = require("node-opcua-service-endpoints").Applica
 
 module.exports.subscription_service = require("node-opcua-service-subscription");
 module.exports.historizing_service = require("node-opcua-service-history");
-module.exports.register_server_service = require("node-opcua-service-register-server");
+module.exports.discovery_service = require("node-opcua-service-discovery");
 module.exports.secure_channel_service = require("node-opcua-service-secure-channel");
 
 module.exports.translate_browse_paths_to_node_ids_service = require("node-opcua-service-translate-browse-path");

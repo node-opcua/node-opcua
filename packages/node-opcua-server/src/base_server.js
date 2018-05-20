@@ -41,9 +41,9 @@ const ApplicationType = endpoints_service.ApplicationType;
 const OPCUASecureObject = require("node-opcua-common").OPCUASecureObject;
 
 
-const register_server_service = require("node-opcua-service-register-server");
-const FindServersRequest = register_server_service.FindServersRequest;
-const FindServersResponse = register_server_service.FindServersResponse;
+const discovery_service = require("node-opcua-service-discovery");
+const FindServersRequest = discovery_service.FindServersRequest;
+const FindServersResponse = discovery_service.FindServersResponse;
 const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
 const default_server_info = {

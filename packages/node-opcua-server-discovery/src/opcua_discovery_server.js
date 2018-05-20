@@ -10,9 +10,9 @@ const OPCUAServerEndPoint = require("node-opcua-server").OPCUAServerEndPoint;
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-const register_server_service = require("node-opcua-service-register-server");
-const RegisterServerRequest = register_server_service.RegisterServerRequest;
-const RegisterServerResponse = register_server_service.RegisterServerResponse;
+const discovery_service = require("node-opcua-service-discovery");
+const RegisterServerRequest = discovery_service.RegisterServerRequest;
+const RegisterServerResponse = discovery_service.RegisterServerResponse;
 
 const endpoints_service = require("node-opcua-service-endpoints");
 const ApplicationType = endpoints_service.ApplicationType;
@@ -142,14 +142,18 @@ OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, ch
         server.registered_servers[key] = request.server;
 
         // prepare serverInfo which will be used by FindServers
-        const serverInfo = {};
-        serverInfo.applicationUri = request.server.serverUri;
-        serverInfo.applicationType = request.server.serverType;
-        serverInfo.productUri = request.server.productUri;
-        serverInfo.applicationName = request.server.serverNames[0]; // which one shall we use ?
-        serverInfo.gatewayServerUri = request.server.gatewayServerUri;
+        const serverInfo = {
+
+            applicationUri:   request.server.serverUri,
+            productUri:       request.server.productUri,
+            applicationType:  request.server.serverType,
+            serverNames:      request.server.serverNames,
+            applicationName:  request.server.serverNames[0],  // which one shall we use ?
+            gatewayServerUri: request.server.gatewayServerUri,
         // XXX ?????? serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri;
-        serverInfo.discoveryUrls = request.server.discoveryUrls;
+            discoveryUrls: request.server.discoveryUrls,
+            semaphoreFilePath: request.server.semaphoreFilePath
+        };
         server.registered_servers[key].serverInfo = serverInfo;
 
     } else {

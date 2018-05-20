@@ -11,7 +11,7 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
 
-const perform_findServersRequest = opcua.perform_findServersRequest;
+const perform_findServers = opcua.perform_findServers;
 
 // add the tcp/ip endpoint with no security
 
@@ -56,7 +56,7 @@ describe("Discovery server", function () {
                 client.performMessageTransaction(registerServerRequest, function (err, response) {
                     if (!err) {
                         // RegisterServerResponse
-                        assert(response instanceof opcua.register_server_service.RegisterServerResponse);
+                        assert(response instanceof opcua.discovery_service.RegisterServerResponse);
                     }
                     externalFunc(err, response);
 
@@ -73,7 +73,7 @@ describe("Discovery server", function () {
 
     it("should fail to register server if discovery url is not specified (Bad_DiscoveryUrlMissing)", function (done) {
 
-        const request = new opcua.register_server_service.RegisterServerRequest({
+        const request = new opcua.discovery_service.RegisterServerRequest({
             server: {
 
                 // The globally unique identifier for the Server instance. The serverUri matches
@@ -104,7 +104,7 @@ describe("Discovery server", function () {
     });
 
     it("should fail to register server to the discover server if server type is Client (BadInvalidArgument)", function (done) {
-        const request = new opcua.register_server_service.RegisterServerRequest({
+        const request = new opcua.discovery_service.RegisterServerRequest({
             server: {
 
                 // The globally unique identifier for the Server instance. The serverUri matches
@@ -136,7 +136,7 @@ describe("Discovery server", function () {
 
     it("should fail to register server to the discover server if server name array is empty (BadServerNameMissing)", function (done) {
 
-        const request = new opcua.register_server_service.RegisterServerRequest({
+        const request = new opcua.discovery_service.RegisterServerRequest({
             server: {
 
                 // The globally unique identifier for the Server instance. The serverUri matches
@@ -175,7 +175,7 @@ describe("Discovery server", function () {
         async.series([
 
             function (callback) {
-                perform_findServersRequest(discovery_server_endpointUrl, function (err, servers) {
+                perform_findServers(discovery_server_endpointUrl, function (err, servers) {
                     initialServerCount = servers.length;
                     servers[0].discoveryUrls.length.should.eql(1);
                     //xx console.log(" initialServerCount = ", initialServerCount);
@@ -194,7 +194,7 @@ describe("Discovery server", function () {
             },
 
             function (callback) {
-                perform_findServersRequest(discovery_server_endpointUrl, function (err, servers) {
+                perform_findServers(discovery_server_endpointUrl, function (err, servers) {
                     //xx console.log(servers[0].toString());
                     servers.length.should.eql(initialServerCount + 1);
                     servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
@@ -207,7 +207,7 @@ describe("Discovery server", function () {
             },
             function (callback) {
 
-                perform_findServersRequest(discovery_server_endpointUrl, function (err, servers) {
+                perform_findServers(discovery_server_endpointUrl, function (err, servers) {
                     servers.length.should.eql(initialServerCount);
                     callback(err);
                 });

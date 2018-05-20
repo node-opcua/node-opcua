@@ -723,7 +723,7 @@ OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
     }
     assert(_.isFunction(callback));
 
-    options.endpointUrl = options.endpointUrl || self.endpointUrl;
+  //  options.endpointUrl = options.hasOwnProperty("endpointUrl") ? options.endpointUrl : self.endpointUrl;
     options.localeIds = options.localeIds || [];
     options.profileUris = options.profileUris || [];
 
@@ -754,9 +754,11 @@ OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
  * @param callback [Function}
  */
 
-const register_server_service = require("node-opcua-service-register-server");
-const FindServersRequest = register_server_service.FindServersRequest;
-const FindServersResponse = register_server_service.FindServersResponse;
+const discovery_service = require("node-opcua-service-discovery");
+const FindServersRequest = discovery_service.FindServersRequest;
+const FindServersResponse = discovery_service.FindServersResponse;
+const FindServersOnNetworkRequest = discovery_service.FindServersOnNetworkRequest;
+const FindServersOnNetworkResponse = discovery_service.FindServersOnNetworkResponse;
 
 /**
  * @method findServers
@@ -798,6 +800,37 @@ OPCUAClientBase.prototype.findServers = function (options, callback) {
     });
 };
 
+OPCUAClientBase.prototype.findServersOnNetwork = function (options, callback) {
+
+    const self = this;
+
+    if (!self._secureChannel) {
+        setImmediate(function () {
+            callback(new Error("Invalid Secure Channel"));
+        });
+        return;
+    }
+
+    if (!callback) {
+        callback = options;
+        options = {};
+    }
+
+    const request = new FindServersOnNetworkRequest({
+        endpointUrl: options.endpointUrl || this.endpointUrl,
+        localeIds: options.localeIds || [],
+        serverUris: options.serverUris || []
+    });
+
+
+    self.performMessageTransaction(request, function (err, response) {
+        if (err) {
+            return callback(err);
+        }
+        assert(response instanceof FindServersOnNetworkResponse);
+        callback(null, response.servers);
+    });
+};
 
 
 OPCUAClientBase.prototype._close_pending_sessions = function (callback) {
