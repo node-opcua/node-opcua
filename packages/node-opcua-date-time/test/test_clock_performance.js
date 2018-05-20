@@ -12,7 +12,6 @@ describe("Benchmarking javascript clock", function () {
 
         const bench = new Benchmarker();
 
-
         bench
             .add("newDate", function () {
                 const a = Date.now();
@@ -30,7 +29,12 @@ describe("Benchmarking javascript clock", function () {
 
                 console.log(" Fastest is " + this.fastest.name);
                 console.log(" Speed Up : x", this.speedUp);
-                this.fastest.name.should.eql("process.hrtime");
+                //
+                // note : we cannot make any assumption here
+                //        on travis for instance process.hrtime could be slower than new Date()
+                //        on windows barebone this could be the opposite
+                //
+                // this.fastest.name.should.eql("process.hrtime");
                 done();
             })
             .run();
