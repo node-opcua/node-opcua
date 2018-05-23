@@ -26,8 +26,10 @@ function __validateDataChangeFilter(filter,itemToMonitor,node) {
     const dataType = node.addressSpace.findDataType(node.dataType);
 
     const dataTypeNumber = node.addressSpace.findDataType("Number");
-    if (!dataType.isSupertypeOf(dataTypeNumber)) {
+    if (filter.deadbandType !== subscription_service.DeadbandType.None) {
+      if (!dataType.isSupertypeOf(dataTypeNumber)) {
         return StatusCodes.BadFilterNotAllowed;
+      }
     }
 
 
