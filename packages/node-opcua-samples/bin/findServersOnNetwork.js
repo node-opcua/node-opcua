@@ -7,8 +7,4 @@ opcua.perform_findServersOnNetwork(discovery_server_endpointUrl, function (err, 
     for (const s of servers) {
         console.log(s.toString());
     }
-    ///servers.length.should.eql(4+ 1);
-    for (const s of servers) {
-     //   console.log(s.applicationUri, s.productUri,s.applicationType.key,s.discoveryUrls[0]);
-    }
 });

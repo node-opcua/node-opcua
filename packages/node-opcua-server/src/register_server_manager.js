@@ -7,6 +7,8 @@ const _ = require("underscore");
 const discovery_service = require("node-opcua-service-discovery");
 const RegisterServerRequest = discovery_service.RegisterServerRequest;
 const RegisterServerResponse = discovery_service.RegisterServerResponse;
+const RegisterServer2Request = discovery_service.RegisterServer2Request;
+const RegisterServer2Response = discovery_service.RegisterServer2Response;
 
 const OPCUAClientBase = require("node-opcua-client").OPCUAClientBase;
 const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
@@ -270,7 +272,6 @@ RegisterServerManager.prototype._establish_initial_connection = function (outer_
 
 RegisterServerManager.prototype._trigger_next = function () {
 
-
     const self = this;
     assert(!self._registrationTimerId);
     // from spec 1.04 part 4:
@@ -335,10 +336,6 @@ RegisterServerManager.prototype.stop = function (outer_callback) {
 
     const self = this;
 
-    if(!self.selectedEndpoint|| self.state === RegisterServerManagerStatus.INACTIVE){
-        assert(self._registrationTimerId === null);
-        return outer_callback();
-    }
 
     if (self._registrationTimerId) {
         debugLog("RegisterServerManager#stop :clearing timeout");
@@ -348,6 +345,13 @@ RegisterServerManager.prototype.stop = function (outer_callback) {
 
     self._cancel_pending_client_if_any(function (err) {
         debugLog("RegisterServerManager#stop :clearing timeout");
+
+        if(!self.selectedEndpoint|| self.state === RegisterServerManagerStatus.INACTIVE){
+            self.state = RegisterServerManagerStatus.INACTIVE;
+            assert(self._registrationTimerId === null);
+            return outer_callback();
+        }
+
         if (err) {
             self._setState(RegisterServerManagerStatus.INACTIVE);
             return outer_callback(err);
@@ -389,6 +393,39 @@ function constructRegisterServerRequest(server, isOnline) {
 }
 
 
+function constructRegisterServer2Request(server, isOnline) {
+
+    const discoveryUrls = server.getDiscoveryUrls();
+    assert(!isOnline || discoveryUrls.length >= 1,"expecting some discoveryUrls if we go online ....");
+
+    const request = new RegisterServer2Request({
+
+        server: {
+            // The globally unique identifier for the Server instance. The serverUri matches
+            // the applicationUri from the ApplicationDescription defined in 7.1.
+            serverUri: server.serverInfo.applicationUri,
+
+            // The globally unique identifier for the Server product.
+            productUri: server.serverInfo.productUri,
+            serverNames: [
+                {locale: "en", text: server.serverInfo.productName}
+            ],
+            serverType: server.serverType,
+            gatewayServerUri: null,
+            discoveryUrls: discoveryUrls,
+            semaphoreFilePath: null,
+            isOnline: isOnline
+        },
+        serverCapabilities: new discovery_service.MdnsDiscoveryConfiguration({
+            mdnsServerName: server.serverInfo.applicationUri,
+            serverCapabilities: server.capabilitiesForMDNS
+        })
+    });
+
+    return request;
+}
+
+
 const no_reconnect_connectivity_strategy = {
     maxRetry: 1, // NO RETRY !!!
     initialDelay: 2000,
@@ -401,6 +438,36 @@ const infinite_connectivity_strategy = {
     maxDelay: 50000,
     randomisationFactor: 0
 };
+
+
+function sendRegisterServerRequest(self,client,isOnline,callback) {
+
+    // try to send a RegisterServer2Request
+    const request = constructRegisterServer2Request(self.server, isOnline);
+    client.performMessageTransaction(request, function (err, response) {
+        if (!err) {
+            // RegisterServerResponse
+            debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has succeeded (isOnline",isOnline,")");
+            assert(response instanceof RegisterServer2Response);
+            callback(err);
+        } else {
+            debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has failed (isOnline",isOnline,")");
+            debugLog("RegisterServerManager#_registerServer falling back to using sendRegisterServerRequest instead");
+            // fall back to
+            const request = constructRegisterServerRequest(self.server, isOnline);
+            //xx console.log("request",request.toString());
+            client.performMessageTransaction(request, function (err, response) {
+                if(!err) {
+                    debugLog("RegisterServerManager#_registerServer sendRegisterServerRequest has succeeded (isOnline",isOnline,")");
+                    assert(response instanceof RegisterServerResponse);
+                } else{
+                    debugLog("RegisterServerManager#_registerServer sendRegisterServerRequest has failed (isOnline",isOnline,")");
+                }
+                callback(err);
+            });
+        }
+    });
+}
 
 /**
  *
@@ -495,18 +562,8 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
                 }
             });
         },
-        function sendRegisterServerRequest(callback) {
-            const request = constructRegisterServerRequest(self.server, isOnline);
-            //xx console.log("request",request.toString());
-            client.performMessageTransaction(request, function (err, response) {
-                if (!err) {
-                    // RegisterServerResponse
-                    debugLog("RegisterServerManager#_registerServer sendRegisterServerRequest has succeeded (isOnline",isOnline,")");
-                    assert(response instanceof RegisterServerResponse);
-                } else {
-                    debugLog("RegisterServerManager#_registerServer sendRegisterServerRequest has failed (isOnline",isOnline,")");
-                    debugLog(err);
-                }
+        function (callback) {
+            sendRegisterServerRequest(self,client,isOnline, function (err) {
                 callback(err);
             });
         },

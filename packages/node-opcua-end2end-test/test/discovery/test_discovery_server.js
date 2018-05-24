@@ -12,11 +12,12 @@ const OPCUAClient = opcua.OPCUAClient;
 const OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
 
 const perform_findServers = opcua.perform_findServers;
+const doDebug = false;
 
 // add the tcp/ip endpoint with no security
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Discovery server", function () {
+describe("DS1 - Discovery server", function () {
 
 
     let discovery_server, discovery_server_endpointUrl;
@@ -30,7 +31,7 @@ describe("Discovery server", function () {
 
     after(function (done) {
         OPCUAServer.registry.count().should.eql(0);
-        done();
+        server.shutdown(done);
     });
 
     beforeEach(function (done) {
@@ -59,11 +60,8 @@ describe("Discovery server", function () {
                         assert(response instanceof opcua.discovery_service.RegisterServerResponse);
                     }
                     externalFunc(err, response);
-
                     callback();
-
                 });
-
             },
             function (callback) {
                 client.disconnect(callback);
@@ -161,10 +159,31 @@ describe("Discovery server", function () {
             //xx console.log(response.toString());
             response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadServerNameMissing);
         }
-
         send_registered_server_request(discovery_server_endpointUrl, request, check_response, done);
+    });
+});
 
+describe("DS2 - DiscoveryServer2", function () {
 
+    let discovery_server, discoveryServerEndpointUrl;
+    let server;
+
+    before(function () {
+        OPCUAServer.registry.count().should.eql(0);
+    });
+
+    after(function (done) {
+        OPCUAServer.registry.count().should.eql(0);
+        done();
+    });
+    beforeEach(function (done) {
+        discovery_server = new OPCUADiscoveryServer({port: 1235});
+        discoveryServerEndpointUrl = discovery_server._get_endpoints()[0].endpointUrl;
+        discovery_server.start(done);
+    });
+
+    afterEach(function (done) {
+        discovery_server.shutdown(done);
     });
 
     it("should register server to the discover server", function (done) {
@@ -175,7 +194,7 @@ describe("Discovery server", function () {
         async.series([
 
             function (callback) {
-                perform_findServers(discovery_server_endpointUrl, function (err, servers) {
+                perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
                     initialServerCount = servers.length;
                     servers[0].discoveryUrls.length.should.eql(1);
                     //xx console.log(" initialServerCount = ", initialServerCount);
@@ -185,7 +204,21 @@ describe("Discovery server", function () {
             },
 
             function (callback) {
-                server.registerServer(discovery_server_endpointUrl, callback);
+
+                server = new OPCUAServer({
+                    port: 1236,
+                    registerServerMethod: opcua.RegisterServerMethod.LDS,
+                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
+
+                });
+                server.start(function (err) {
+                    if(err) { return callback(err); }
+                });
+
+                // server registration takes place in parallel and should be checked independently
+                server.on("serverRegistered",function() {
+                    callback();
+                });
             },
 
             function (callback) {
@@ -194,7 +227,7 @@ describe("Discovery server", function () {
             },
 
             function (callback) {
-                perform_findServers(discovery_server_endpointUrl, function (err, servers) {
+                perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
                     //xx console.log(servers[0].toString());
                     servers.length.should.eql(initialServerCount + 1);
                     servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
@@ -203,18 +236,14 @@ describe("Discovery server", function () {
             },
 
             function (callback) {
-                server.unregisterServer(discovery_server_endpointUrl, callback);
+                server.shutdown(callback);
             },
             function (callback) {
-
-                perform_findServers(discovery_server_endpointUrl, function (err, servers) {
+                perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
                     servers.length.should.eql(initialServerCount);
                     callback(err);
                 });
             },
-            function (callback) {
-                server.shutdown(callback);
-            }
 
         ], done);
 

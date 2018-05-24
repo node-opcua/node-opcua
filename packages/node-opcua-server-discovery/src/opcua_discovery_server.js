@@ -13,11 +13,22 @@ const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const discovery_service = require("node-opcua-service-discovery");
 const RegisterServerRequest = discovery_service.RegisterServerRequest;
 const RegisterServerResponse = discovery_service.RegisterServerResponse;
+const RegisterServer2Request = discovery_service.RegisterServer2Request;
+const RegisterServer2Response = discovery_service.RegisterServer2Response;
+const FindServersOnNetworkRequest = discovery_service.FindServersOnNetworkRequest;
+const FindServersOnNetworkResponse = discovery_service.FindServersOnNetworkResponse;
 
 const endpoints_service = require("node-opcua-service-endpoints");
 const ApplicationType = endpoints_service.ApplicationType;
 
 const get_fully_qualified_domain_name = require("node-opcua-hostname").get_fully_qualified_domain_name;
+
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = false;
+
+const _announcedOnMulticastSubnet = require("node-opcua-service-discovery")._announcedOnMulticastSubnet;
+const _stop_announcedOnMulticastSubnet = require("node-opcua-service-discovery")._stop_announcedOnMulticastSubnet;
+
 
 function constructFilename(p) {
     const filename = path.join(__dirname, "..", p);
@@ -41,6 +52,7 @@ function OPCUADiscoveryServer(options) {
 
     const defaultApplicationUri = makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-DiscoveryServer");
 
+
     OPCUABaseServer.apply(this, arguments);
 
     const serverInfo = options.serverInfo || {};
@@ -57,6 +69,7 @@ function OPCUADiscoveryServer(options) {
 
     const port = options.port || 4840;
 
+    self.capabilitiesForMDNS = ["LDS"];
     self.registered_servers = {};
     // see OPC UA Spec 1.2 part 6 : 7.4 Well Known Addresses
     // opc.tcp://localhost:4840/UADiscovery
@@ -74,16 +87,43 @@ function OPCUADiscoveryServer(options) {
     endPoint.on("message", function (message, channel) {
         self.on_request(message, channel);
     });
+    self.mDnsResponder = null;
 }
 
 util.inherits(OPCUADiscoveryServer, OPCUABaseServer);
 
+
 OPCUADiscoveryServer.prototype.start = function (done) {
-    OPCUABaseServer.prototype.start.call(this, done);
+    const self = this;
+    assert(self.mDnsResponder === null);
+    assert(_.isArray(self.capabilitiesForMDNS));
+
+    OPCUABaseServer.prototype.start.call(this, function (err) {
+        if (!err) {
+            // declare server in bonjour
+            _announcedOnMulticastSubnet.call(self, {
+                applicationUri: self.serverInfo.applicationUri,
+                port: self.endpoints[0].port,
+                path: "/DiscoveryServer",
+                capabilities: self.capabilitiesForMDNS
+            });
+            //
+            self.mDnsResponder = new MDNSResponser();
+
+        }
+        done(err);
+    });
 };
 
-
-OPCUADiscoveryServer.prototype.shutdown = OPCUABaseServer.prototype.shutdown;
+OPCUADiscoveryServer.prototype.shutdown = function (done) {
+    const self = this;
+    _stop_announcedOnMulticastSubnet.call(self);
+    if (self.mDnsResponder) {
+        self.mDnsResponder.dispose();
+        self.mDnsResponder = null;
+    }
+    OPCUABaseServer.prototype.shutdown.apply(self, arguments);
+};
 
 /*== private
  * returns true if the serverType can be added to a discovery server.
@@ -91,7 +131,7 @@ OPCUADiscoveryServer.prototype.shutdown = OPCUABaseServer.prototype.shutdown;
  * @return {boolean}
  * @private
  */
-function _isValideServerType(serverType) {
+function _isValidServerType(serverType) {
 
     switch (serverType) {
         case ApplicationType.CLIENT:
@@ -104,21 +144,17 @@ function _isValideServerType(serverType) {
     return false;
 }
 
-OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, channel) {
-    const server = this;
-    const request = message.request;
 
-    assert(request._schema.name === "RegisterServerRequest");
-    assert(request instanceof RegisterServerRequest);
+function __internalRegisterServer(RegisterServerXResponse, self, server, discoveryConfiguration) {
 
     function sendError(statusCode) {
         ///Xx xconsole.log("_on_RegisterServerRequest error".red, statusCode.toString());
-        const response = new RegisterServerResponse({responseHeader: {serviceResult: statusCode}});
-        return channel.send_response("MSG", response, message);
+        const response = new RegisterServerXResponse({responseHeader: {serviceResult: statusCode}});
+        return response;
     }
 
     // check serverType is valid
-    if (!_isValideServerType(request.server.serverType)) {
+    if (!_isValidServerType(server.serverType)) {
         return sendError(StatusCodes.BadInvalidArgument);
     }
 
@@ -126,44 +162,160 @@ OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, ch
     // TODO
 
     // BadServerNameMissing
-    if (request.server.serverNames.length === 0) {
+    if (server.serverNames.length === 0) {
         return sendError(StatusCodes.BadServerNameMissing);
     }
 
     // BadDiscoveryUrlMissing
-    if (request.server.discoveryUrls.length === 0) {
+    if (server.discoveryUrls.length === 0) {
         return sendError(StatusCodes.BadDiscoveryUrlMissing);
     }
 
-    const key = request.server.serverUri;
-
-    if (request.server.isOnline) {
-        //xx console.log(" registering server : ".cyan, request.server.serverUri.yellow);
-        server.registered_servers[key] = request.server;
+    const key = server.serverUri;
+    if (server.isOnline) {
+        debugLog(" registering server : ".cyan, server.serverUri.yellow);
+        self.registered_servers[key] = server;
 
         // prepare serverInfo which will be used by FindServers
         const serverInfo = {
 
-            applicationUri:   request.server.serverUri,
-            productUri:       request.server.productUri,
-            applicationType:  request.server.serverType,
-            serverNames:      request.server.serverNames,
-            applicationName:  request.server.serverNames[0],  // which one shall we use ?
-            gatewayServerUri: request.server.gatewayServerUri,
-        // XXX ?????? serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri;
-            discoveryUrls: request.server.discoveryUrls,
-            semaphoreFilePath: request.server.semaphoreFilePath
+            applicationUri: server.serverUri,
+            productUri: server.productUri,
+            applicationType: server.serverType,
+            serverNames: server.serverNames,
+            applicationName: server.serverNames[0],  // which one shall we use ?
+            gatewayServerUri: server.gatewayServerUri,
+            // XXX ?????? serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri;
+            discoveryUrls: server.discoveryUrls,
+            semaphoreFilePath: server.semaphoreFilePath
         };
-        server.registered_servers[key].serverInfo = serverInfo;
+        self.registered_servers[key].serverInfo = serverInfo;
 
     } else {
-        if (key in server.registered_servers) {
-            //xx console.log(" unregistering server : ".cyan, request.server.serverUri.yellow);
-            delete server.registered_servers[key];
+        if (key in self.registered_servers) {
+            debugLog("unregistering server : ".cyan, server.serverUri.yellow);
+            delete self.registered_servers[key];
         }
     }
 
-    const response = new RegisterServerResponse({});
+    const response = new RegisterServerXResponse({});
+    if (discoveryConfiguration) {
+        // use mutlicast DNS stuff
+        response.configurationResults = null;
+
+    }
+    return response;
+}
+
+OPCUADiscoveryServer.prototype._announcedServerOnTheMulticastSubnet = function () {
+
+
+};
+
+function MDNSResponser() {
+
+    const self = this;
+
+    self.registeredServers = [];
+
+    self.bonjour = discovery_service.acquireBonjour();
+    self.recordId = 0;
+
+    self.responser = self.bonjour.find({
+        type: "opcua-tcp",
+        protocol: "tcp"
+    });
+
+    function addService(service) {
+        if (doDebug) {
+            debugLog(service);
+        }
+        // example:
+        // {
+        //     addresses: [ '172.18.207.145', 'fe80::d4e3:352c:9f8b:d0db' ],
+        //     rawTxt: <Buffer 05 70 61 74 68 3d 08 63 61 70 73 3d 4c 44 53>,
+        //     txt: { path: '', caps: 'LDS' },
+        //     name: 'UA Local Discovery Server on STERFIVEPC2',
+        //     fqdn: 'UA Local Discovery Server on STERFIVEPC2._opcua-tcp._tcp.local',
+        //     host: 'STERFIVEPC2.local',
+        //     referer:
+        //     {
+        //        address: '172.18.207.145',
+        //        family: 'IPv4',
+        //        port: 5353,
+        //        size: 363
+        //     },
+        //     port: 4840,
+        //     type: 'opcua-tcp',
+        //     protocol: 'tcp',
+        //  subtypes: []
+        // },
+        debugLog("a new OPCUA server has been registered");
+
+        const recordId = ++self.recordId;
+        const serverName = service.name;
+
+        service.txt.caps = service.txt.caps || "";
+        let serverCapabilities = service.txt.caps.split(",").map(x => x.toUpperCase()).sort().join(" ");
+
+        const path = service.txt.path || "";
+        const discoveryUrl = "opc.tcp://" + service.host + ":" + service.port + path;
+
+        self.registeredServers.push(
+            new discovery_service.ServerOnNetwork({
+                recordId: recordId,
+                serverName: serverName,
+                discoveryUrl: discoveryUrl,
+                serverCapabilities: serverCapabilities
+            }));
+        self.lastUpdateDate = new Date(Date.now());
+    }
+
+    function removeService(service) {
+        const serverName = service.name;
+        debugLog("a OPCUA server has been unregistered ", serverName);
+        const index = self.registeredServers.findIndex(server => server.serverName = serverName);
+        if (index === -1) {
+            debugLog("Cannot find server with name ", serverName, " in registeredServers");
+            return;
+        }
+        self.registeredServers.splice(index, 1); // reove element at index
+        self.lastUpdateDate = new Date(Date.now());
+    }
+
+    self.responser.on("up", function (service) {
+        addService(service);
+    });
+
+    self.responser.on("down", function (service) {
+        removeService(service);
+    });
+
+}
+MDNSResponser.prototype.dispose = function() {
+    const self = this;
+    self.bonjour = null;
+    discovery_service.releaseBonjour();
+};
+OPCUADiscoveryServer.prototype._on_RegisterServer2Request = function (message, channel) {
+
+    const self = this;
+    const request = message.request;
+
+    assert(request._schema.name === "RegisterServer2Request");
+    assert(request instanceof RegisterServer2Request);
+    const response = __internalRegisterServer(RegisterServer2Response, self, request.server, request.discoveryConfiguration);
+    assert(response instanceof RegisterServer2Response);
+    channel.send_response("MSG", response, message);
+};
+
+OPCUADiscoveryServer.prototype._on_RegisterServerRequest = function (message, channel) {
+    const self = this;
+    const request = message.request;
+    assert(request._schema.name === "RegisterServerRequest");
+    assert(request instanceof RegisterServerRequest);
+    const response = __internalRegisterServer(RegisterServerResponse, self, request.server, null);
+    assert(response instanceof RegisterServerResponse);
     channel.send_response("MSG", response, message);
 };
 
@@ -193,6 +345,85 @@ OPCUADiscoveryServer.prototype.getServers = function (channel) {
     });
 
     return servers;
+};
+
+OPCUADiscoveryServer.prototype._on_FindServersOnNetworkRequest = function (message, channel) {
+
+    // from OPCUA 1.04 part 4
+    // This Service returns the Servers known to a Discovery Server. Unlike FindServer, this Service is
+    // only implemented by Discovery Servers.
+    // The Client may reduce the number of results returned by specifying filter criteria. An empty list is
+    // returned if no Server matches the criteria specified by the Client.
+    // This Service shall not require message security but it may require transport layer security.
+    // Each time the Discovery Server creates or updates a record in its cache it shall assign a
+    // monotonically increasing identifier to the record. This allows Clients to request records in batches
+    // by specifying the identifier for the last record received in the last call to FindServersOnNetwork.
+    // To support this the Discovery Server shall return records in numerical order starting from the
+    // lowest record identifier. The Discovery Server shall also return the last time the counter was reset
+    // for example due to a restart of the Discovery Server. If a Client detects that this time is more
+    // recent than the last time the Client called the Service it shall call the Service again with a
+    // startingRecordId of 0.
+    // This Service can be used without security and it is therefore vulnerable to Denial Of Service
+    // (DOS) attacks. A Server should minimize the amount of processing required to send the response
+    // for this Service. This can be achieved by preparing the result in advance
+
+    const self = this;
+    const request = message.request;
+
+    assert(request._schema.name === "FindServerOnNetworkRequest");
+    assert(request instanceof FindServersOnNetworkRequest);
+
+    function sendError(statusCode) {
+        const response = new FindServersOnNetworkResponse({responseHeader: {serviceResult: statusCode}});
+        return channel.send_response("MSG", response, message);
+    }
+
+    //     startingRecordId         Counter Only records with an identifier greater than this number will be
+    //                              returned.
+    //                              Specify 0 to start with the first record in the cache.
+    //     maxRecordsToReturn       UInt32 The maximum number of records to return in the response.
+    //                              0 indicates that there is no limit.
+    //     serverCapabilityFilter[] String List of Server capability filters. The set of allowed server capabilities
+    //                              are defined in Part 12.
+    //                              Only records with all of the specified server capabilities are
+    //                              returned.
+    //                              The comparison is case insensitive.
+    //                              If this list is empty then no filtering is performed
+
+    // ------------------------
+
+    //The last time the counters were reset.
+    const lastCounterResetTime = new Date();
+
+    //  servers[] ServerOnNetwork List of DNS service records that meet criteria specified in the
+    // request. This list is empty if no Servers meet the criteria
+    const servers = [];
+
+    function hasCapabilities(serverCapabilities, serverCapabilityFilter) {
+        return serverCapabilities.match(serverCapabilityFilter);
+    }
+
+    const serverCapabilityFilter = request.serverCapabilityFilter.map(x => x.toUpperCase()).sort().join(" ");
+
+    for (let server of self.mDnsResponder.registeredServers) {
+        if (server.recordId <= request.startingRecordId) {
+            continue;
+        }
+        if (!hasCapabilities(server.serverCapabilities, serverCapabilityFilter)) {
+            continue;
+        }
+        servers.push(server);
+        if (servers.length === request.maxRecordsToReturn) {
+            return;
+        }
+    }
+
+    const response = new FindServersOnNetworkResponse({
+        lastCounterResetTime: lastCounterResetTime,//  UtcTime The last time the counters were reset
+        servers: servers,
+    });
+    channel.send_response("MSG", response, message);
+
 };
 
 exports.OPCUADiscoveryServer = OPCUADiscoveryServer;

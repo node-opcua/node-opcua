@@ -128,6 +128,8 @@ module.exports.parseEndpointUrl = require("node-opcua-transport").parseEndpointU
 // Server services
 //----------------------------------------------------------------------------------------------------------------------
 module.exports.OPCUAServer = require("node-opcua-server").OPCUAServer;
+module.exports.RegisterServerMethod = require("node-opcua-server").RegisterServerMethod;
+
 module.exports.ServerEngine = require("node-opcua-server").ServerEngine;
 module.exports.MonitoredItem = require("node-opcua-server").MonitoredItem;
 module.exports.ServerSession = require("node-opcua-server").ServerSession;

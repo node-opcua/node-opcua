@@ -6,4 +6,5 @@ module.exports = {
     MonitoredItem: require("./src/monitored_item").MonitoredItem,
     ServerEngine: require("./src/server_engine").ServerEngine,
     ServerSession: require("./src/server_session").ServerSession,
+    RegisterServerMethod: require("./src/opcua_server").RegisterServerMethod
 };

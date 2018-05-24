@@ -42,6 +42,12 @@ exports.FindServersResponse  = require("./_generated_/_auto_generated_FindServer
 
 exports.FindServersOnNetworkRequest  = require("./_generated_/_auto_generated_FindServersOnNetworkRequest").FindServersOnNetworkRequest;
 exports.FindServersOnNetworkResponse  = require("./_generated_/_auto_generated_FindServersOnNetworkResponse").FindServersOnNetworkResponse;
+exports.ServerOnNetwork = require("./_generated_/_auto_generated_ServerOnNetwork").ServerOnNetwork;
 
 exports.serverCapapbilities = require("./src/server_capabilities").serverCapapbilities;
 
+
+exports.acquireBonjour = require("./src/bonjour").acquireBonjour;
+exports.releaseBonjour = require("./src/bonjour").releaseBonjour;
+exports._stop_announcedOnMulticastSubnet = require("./src/bonjour")._stop_announcedOnMulticastSubnet;
+exports._announcedOnMulticastSubnet = require("./src/bonjour")._announcedOnMulticastSubnet;

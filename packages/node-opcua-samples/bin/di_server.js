@@ -2,8 +2,13 @@
 "use strict";
 const opcua = require("node-opcua");
 const _ = require("underscore");
+const path = require("path");
 
 Error.stackTraceLimit = Infinity;
+
+function constructFilename(filename) {
+    return path.join(__dirname,"../",filename);
+}
 
 const assert = require("node-opcua-assert").assert;
 const argv = require("yargs")
@@ -14,6 +19,10 @@ const argv = require("yargs")
     .string("port")
     .describe("port")
     .alias("p","port")
+    .number("keySize")
+    .describe("keySize","certificate keySize [1024|2048|3072|4096]")
+    .default("keySize",2048)
+    .alias("k","keySize")
     .argv;
 
 const OPCUAServer = opcua.OPCUAServer;
@@ -40,7 +49,14 @@ const userManager = {
 };
 
 
+const keySize = argv.keySize;
+const server_certificate_file              = constructFilename("certificates/server_selfsigned_cert_"+ keySize +".pem");
+const server_certificate_privatekey_file   = constructFilename("certificates/server_key_"+ keySize +".pem");
+
 const server_options ={
+
+    certificateFile: server_certificate_file,
+    privateKeyFile: server_certificate_privatekey_file,
 
     port: port,
     resourcePath: "UA/Server",
@@ -70,7 +86,8 @@ const server_options ={
             maxNodesPerBrowse: 2000
         }
     },
-    userManager: userManager
+    userManager: userManager,
+    registerServerMethod: opcua.RegisterServerMethod.LDS
 };
 
 process.title ="Node OPCUA Server on port : " + server_options.port;
@@ -278,18 +295,4 @@ process.on("SIGINT", function() {
     });
 });
 
-const discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
-
-console.log("\nregistering server to :".yellow + discovery_server_endpointUrl);
-
-server.registerServer(discovery_server_endpointUrl, function (err) {
-    if (err) {
-        // cannot register server in discovery
-        console.log("     warning : cannot register server into registry server".cyan);
-    } else {
-
-        console.log("     registering server to the discovery server : done.".cyan);
-    }
-    console.log("");
-});
 

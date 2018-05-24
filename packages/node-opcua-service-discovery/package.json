@@ -9,6 +9,7 @@
  },
  "main": "index.js",
  "dependencies": {
+  "bonjour": "^3.5.0",
   "node-opcua-assert": "^0.3.0",
   "node-opcua-basic-types": "^0.3.0",
   "node-opcua-data-model": "^0.3.0",

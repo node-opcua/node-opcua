@@ -1,4 +1,4 @@
-const serverCapapbilities = [
+const serverCapabilities = [
 
     "NA",  // No capability information is available. Cannot be used in combination with any other capability.
     "DA",  // Provides current data.
@@ -15,11 +15,10 @@ const serverCapapbilities = [
     "S95", // Supports the ISA95 information model (see ISA-95).
 
     // new in 1.04
-
     "RCP", // Supports the reverse connect capabilities defined in Part 6.
     "PUB", // Supports the Publisher capabilities defined in Part 14.
 
 ];
 
-exports.serverCapapbilities = serverCapapbilities;
+exports.serverCapapbilities = serverCapabilities;
 

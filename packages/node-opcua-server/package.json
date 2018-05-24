@@ -11,6 +11,7 @@
  "main": "index.js",
  "dependencies": {
   "async": "^2.6.0",
+  "bonjour": "^3.5.0",
   "colors": "^1.2.4",
   "dequeue": "^1.0.5",
   "node-opcua-address-space": "^0.3.0",
@@ -35,6 +36,7 @@
   "node-opcua-secure-channel": "^0.3.0",
   "node-opcua-service-browse": "^0.3.0",
   "node-opcua-service-call": "^0.3.0",
+  "node-opcua-service-discovery": "^0.3.0",
   "node-opcua-service-endpoints": "^0.3.0",
   "node-opcua-service-filter": "^0.3.0",
   "node-opcua-service-history": "^0.3.0",
@@ -42,7 +44,6 @@
   "node-opcua-service-query": "^0.3.0",
   "node-opcua-service-read": "^0.3.0",
   "node-opcua-service-register-node": "^0.3.0",
-  "node-opcua-service-discovery": "^0.3.0",
   "node-opcua-service-secure-channel": "^0.3.0",
   "node-opcua-service-session": "^0.3.0",
   "node-opcua-service-subscription": "^0.3.0",

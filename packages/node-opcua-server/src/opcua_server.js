@@ -167,16 +167,96 @@ const default_build_info = {
 
 
 const RegisterServerManager = require("./register_server_manager").RegisterServerManager;
+const EventEmitter = require("events").EventEmitter;
+
+function RegisterServerManagerHidden(options) {
+
+}
+util.inherits(RegisterServerManagerHidden,EventEmitter);
+RegisterServerManagerHidden.prototype.stop = function(callback)
+{
+    setImmediate(callback);
+};
+RegisterServerManagerHidden.prototype.start = function(callback)
+{
+    setImmediate(callback);
+};
+RegisterServerManagerHidden.prototype.dispose = function(){
+};
+
+const _announcedOnMulticastSubnet = require("node-opcua-service-discovery")._announcedOnMulticastSubnet;
+const _stop_announcedOnMulticastSubnet = require("node-opcua-service-discovery")._stop_announcedOnMulticastSubnet;
+
+/**
+ *
+ * @param options
+ * @constructor
+ */
+function RegisterServerManagerMDNSONLY(options) {
+    const self = this;
+    self.server = options.server;
+    assert(self.server);
+    assert(self.server instanceof OPCUABaseServer);
+    self.bonjour = null;
+}
+util.inherits(RegisterServerManagerMDNSONLY,EventEmitter);
+RegisterServerManagerMDNSONLY.prototype.stop = function(callback)
+{
+    const self = this;
+    _stop_announcedOnMulticastSubnet.call(self);
+    setImmediate(function() {
+        self.emit("serverUnregistered");
+        setImmediate(callback);
+    });
+};
+
+RegisterServerManagerMDNSONLY.prototype.start = function(callback)
+{
+    const self = this;
+    assert(self.server);
+    assert(self.server instanceof OPCUABaseServer);
+
+    _announcedOnMulticastSubnet.call(self,{
+        applicationUri: self.server.serverInfo.applicationUri,
+        port: self.server.endpoints[0].port,
+        path: "/", //<- to do
+        capabilities: self.server.capabilitiesForMDNS
+    });
+    setImmediate(function() {
+        self.emit("serverRegistered");
+        setImmediate(callback);
+    });
+};
+RegisterServerManagerMDNSONLY.prototype.dispose = function(){
+    this.server = null;
+};
 function _installRegisterServerManager(self)
 {
     assert(self instanceof OPCUAServer);
-
     assert(!self.registerServerManager);
+    assert(self.registerServerMethod);
 
-    self.registerServerManager = new RegisterServerManager({
-        server: self,
-        discoveryServerEndpointUrl: self.discoveryServerEndpointUrl
-    });
+    switch(self.registerServerMethod) {
+        case RegisterServerMethod.HIDDEN:
+            self.registerServerManager = new RegisterServerManagerHidden({
+                server: self,
+            });
+            break;
+        case RegisterServerMethod.MDNS:
+            self.registerServerManager = new RegisterServerManagerMDNSONLY({
+                server: self,
+            });
+            break;
+        case RegisterServerMethod.LDS:
+            self.registerServerManager = new RegisterServerManager({
+                server: self,
+                discoveryServerEndpointUrl: self.discoveryServerEndpointUrl
+            });
+            break;
+        default:
+            assert(false && "Invalid switch");
+    }
+
 
     self.registerServerManager.on("serverRegistrationPending", function () {
         /**
@@ -189,7 +269,6 @@ function _installRegisterServerManager(self)
         debugLog("serverRegistrationPending");
         self.emit("serverRegistrationPending");
     });
-
     self.registerServerManager.on("serverRegistered", function () {
         /**
          * emitted when the server is successfully registered to the LDS
@@ -198,7 +277,6 @@ function _installRegisterServerManager(self)
         debugLog("serverRegistered");
         self.emit("serverRegistered");
     });
-
     self.registerServerManager.on("serverRegistrationRenewed", function () {
         /**
          * emitted when the server has successfully renewed its registration to the LDS
@@ -218,6 +296,14 @@ function _installRegisterServerManager(self)
         self.emit("serverUnregistered");
     });
 }
+
+const Enum = require("node-opcua-enum");
+
+const RegisterServerMethod = new Enum({
+    "HIDDEN":1 , // the server doesn't expose itself to the external world
+    "MDNS" :2,   // the server publish itself to the mDNS Multicast network directly
+    "LDS":3 // the server registers itself to the LDS or LDS-ME (Local Discovery Server)
+});
 
 /**
  * @class OPCUAServer
@@ -252,6 +338,12 @@ function _installRegisterServerManager(self)
  * @param [options.serverCapabilities]
  *  UserNameIdentityToken is valid.
  * @param [options.isAuditing = false] {Boolean} true if server shall raise AuditingEvent
+ *
+ * @param [options.registerServerMethod= RegisterServerMethod.HIDDEN] {RegisterServerMethod}
+ * @param [options.discoveryServerEndpointUrl = "opc.tcp://localhost:4840"]
+ * @param [options.capabilitiesForMDNS = ["NA"] ] {Array<String>} supported server capabilities for the Mutlicast (mDNS)
+ *                                          (any of node-opcua-discovery.serverCapabilities)
+ *
  * @constructor
  */
 function OPCUAServer(options) {
@@ -264,7 +356,6 @@ function OPCUAServer(options) {
 
     self.options = options;
 
-    self.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://localhost:4840";
 
     /**
      * @property maxAllowedSessionNumber
@@ -358,9 +449,12 @@ function OPCUAServer(options) {
         };
     }
 
+    self.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://localhost:4840";
+    assert(typeof self.discoveryServerEndpointUrl === "string");
+    self.capabilitiesForMDNS = options.capabilitiesForMDNS || [ "NA" ];
+    self.registerServerMethod = options.registerServerMethod || RegisterServerMethod.HIDDEN;
     _installRegisterServerManager(self);
 }
-
 util.inherits(OPCUAServer, OPCUABaseServer);
 
 const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
@@ -373,7 +467,6 @@ OPCUAServer.registry = new ObjectRegistry();
  * @type {Number}
  */
 OPCUAServer.prototype.__defineGetter__("bytesWritten", function () {
-
     return this.endpoints.reduce(function (accumulated, endpoint) {
         return accumulated + endpoint.bytesWritten;
     }, 0);
@@ -562,6 +655,13 @@ OPCUAServer.prototype.start = function (done) {
         });
     });
 
+    tasks.push(function installRegisterServer(callback) {
+        self.registerServerManager.start(function() {
+
+        });
+        setImmediate(callback);
+    });
+
     async.series(tasks, done);
 
 };
@@ -604,11 +704,8 @@ OPCUAServer.prototype.shutdown = function (timeout, callback) {
     self.engine.setServerState(ServerState.Shutdown);
 
     self.registerServerManager.stop(function () {
-
         debugLog("OPCUServer unregistered from discovery server");
-
         setTimeout(function () {
-
             self.engine.shutdown();
 
             debugLog("OPCUAServer#shutdown: started");
@@ -618,11 +715,8 @@ OPCUAServer.prototype.shutdown = function (timeout, callback) {
                 self.dispose();
                 callback(err);
             });
-
         }, timeout);
-
     });
-
 
 };
 
@@ -2740,26 +2834,27 @@ OPCUAServer.prototype._on_HistoryUpdate = function (message, channel) {
  * @param isOnline
  * @param outer_callback
  */
-OPCUAServer.prototype._registerServer = function (discoveryServerEndpointUrl, isOnline, outer_callback) {
+function _registerServer(discoveryServerEndpointUrl, isOnline, outer_callback) {
 
     assert(typeof discoveryServerEndpointUrl === "string");
     assert(_.isBoolean(isOnline));
     const self = this;
-
     self.registerServerManager.discoveryServerEndpointUrl = discoveryServerEndpointUrl;
     if (isOnline) {
         self.registerServerManager.start(outer_callback);
     } else {
         self.registerServerManager.stop(outer_callback);
     }
-};
+}
 
 OPCUAServer.prototype.registerServer = function (discoveryServerEndpointUrl, callback) {
-    this._registerServer(discoveryServerEndpointUrl, true, callback);
+    assert(!"registerServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
+    _registerServer.call(this,discoveryServerEndpointUrl, true, callback);
 };
 
 OPCUAServer.prototype.unregisterServer = function (discoveryServerEndpointUrl, callback) {
-    this._registerServer(discoveryServerEndpointUrl, false, callback);
+    assert(!"unregisterServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
+    _registerServer.call(this,discoveryServerEndpointUrl, false, callback);
 };
 
 
@@ -2769,3 +2864,4 @@ OPCUAServer.prototype.__defineGetter__("isAuditing", function () {
 
 exports.OPCUAServerEndPoint = OPCUAServerEndPoint;
 exports.OPCUAServer = OPCUAServer;
+exports.RegisterServerMethod = RegisterServerMethod;

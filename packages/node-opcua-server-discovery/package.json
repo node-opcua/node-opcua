@@ -8,13 +8,15 @@
  },
  "main": "index.js",
  "dependencies": {
+  "bonjour": "^3.5.0",
   "node-opcua-assert": "^0.3.0",
   "node-opcua-common": "^0.3.0",
+  "node-opcua-debug": "^0.3.0",
   "node-opcua-hostname": "^0.3.0",
   "node-opcua-pki": "0.0.30",
   "node-opcua-server": "^0.3.0",
-  "node-opcua-service-endpoints": "^0.3.0",
   "node-opcua-service-discovery": "^0.3.0",
+  "node-opcua-service-endpoints": "^0.3.0",
   "node-opcua-status-code": "^0.3.0",
   "underscore": "^1.9.0"
  },

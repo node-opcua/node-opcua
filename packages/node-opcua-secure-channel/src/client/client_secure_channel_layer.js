@@ -740,7 +740,7 @@ ClientSecureChannelLayer.prototype.create = function (endpointUrl, callback) {
                 self.__call = null;
 
                 if (err) {
-                    callback(last_err);
+                    callback(last_err|| err);
                 } else {
                     callback();
                 }

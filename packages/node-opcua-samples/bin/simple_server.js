@@ -130,7 +130,12 @@ const server_options = {
     },
     userManager: userManager,
     
-    isAuditing: false
+    isAuditing: false,
+
+    //registerServerMethod: opcua.RegisterServerMethod.HIDDEN,
+    //registerServerMethod: opcua.RegisterServerMethod.MDNS,
+    registerServerMethod: opcua.RegisterServerMethod.LDS,
+
 };
 
 process.title = "Node OPCUA Server on port : " + server_options.port;
@@ -518,15 +523,17 @@ const discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscover
 
 console.log("\nregistering server to :".yellow + discovery_server_endpointUrl);
 
-server.registerServer(discovery_server_endpointUrl, function (err) {
-    if (err) {
-        // cannot register server in discovery
-        console.log("     warning : cannot register server into registry server".cyan);
-    } else {
-
-        console.log("     registering server to the discovery server : done.".cyan);
-    }
-    console.log("");
+server.on("serverRegistered",function() {
+    console.log("server has been registered");
+});
+server.on("serverUnregistered",function() {
+    console.log("server has been unregistered");
+});
+server.on("serverRegistrationRenewed",function() {
+    console.log("server registration has been renewed");
+});
+server.on("serverRegistrationPending",function() {
+    console.log("server registration is still pending (is Local Discovery Server up and running ?)");
 });
 
 
