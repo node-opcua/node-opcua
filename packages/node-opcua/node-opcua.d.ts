@@ -185,7 +185,7 @@ export declare class NodeId {
     identifierType: NodeIdType;
     value: any;
     namespace: number;
-    constructor(identifiertType: NodeIdType, value: any, namespace: number);
+    constructor(identifierType: NodeIdType, value: any, namespace: number);
     isEmpty(): boolean;
     toJSON(): string;
     toString(options: { addressSpace: AddressSpace }): string;
