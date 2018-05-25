@@ -128,7 +128,21 @@ export declare class OPCUAClientBase {
 
 export interface BrowseResponse {}
 
-export interface NodeId {}
+export declare enum NodeIdType {
+    BYTESTRING = 0x4,
+    GUID = 0x3,
+    NUMERIC = 0x1,
+    STRING = 0x2
+}
+export declare class NodeId {
+    identifierType: NodeIdType;
+    value: any;
+    namespace: number;
+    constructor(identifiertType: NodeIdType, value: any, namespace: number);
+    isEmpty(): boolean;
+    toJSON(): string;
+    toString(options: { addressSpace: AddressSpace }): string;
+}
 
 type UInt32 = number;
 
@@ -555,26 +569,25 @@ export declare class ServerEngine {
     addressSpace: AddressSpace;
 }
 
-
 export declare interface EndpointDescription {
-    securityPolicies: any
-    securityModes: any
-    allowAnonymous: boolean
-    disableDiscovery: boolean
-    resourcePath:string
-    hostname: string
-    endpointUrl: string
+    securityPolicies: any;
+    securityModes: any;
+    allowAnonymous: boolean;
+    disableDiscovery: boolean;
+    resourcePath: string;
+    hostname: string;
+    endpointUrl: string;
 }
-export declare interface OPCUAServerEndPoint{
-    port: number
-    defaultSecureTokenLifetime: number
-    timeout: number
-    certificateChain: any
-    privateKey: any
-    serverInfo: any
-    maxConnections: any
+export declare interface OPCUAServerEndPoint {
+    port: number;
+    defaultSecureTokenLifetime: number;
+    timeout: number;
+    certificateChain: any;
+    privateKey: any;
+    serverInfo: any;
+    maxConnections: any;
 
-    endpointDescriptions() : Array<EndpointDescription>;
+    endpointDescriptions(): Array<EndpointDescription>;
 }
 
 export declare class OPCUAServer {
