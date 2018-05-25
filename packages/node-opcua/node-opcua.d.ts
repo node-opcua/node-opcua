@@ -41,42 +41,89 @@ export interface ResponseCallback<T> {
 }
 
 export declare enum MessageSecurityMode {
-    INVALID, // The MessageSecurityMode is invalid
-    NONE, // No security is applied.
-    SIGN, // All messages are signed but not encrypted.
-    SIGNANDENCRYPT // All messages are signed and encrypted.
+    /** The MessageSecurityMode is invalid */
+    INVALID,
+    /** No security is applied. */
+    NONE,
+    /** All messages are signed but not encrypted. */
+    SIGN,
+    /** All messages are signed and encrypted. */
+    SIGNANDENCRYPT
 }
 
 export declare enum SecurityPolicy {
-    None, // "http://opcfoundation.org/UA/SecurityPolicy#None",
-    Basic128, // "http://opcfoundation.org/UA/SecurityPolicy#Basic128",
-    Basic128Rsa15, // "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
-    Basic192, // "http://opcfoundation.org/UA/SecurityPolicy#Basic192",
-    Basic192Rsa15, // "http://opcfoundation.org/UA/SecurityPolicy#Basic192Rsa15",
-    Basic256, // "http://opcfoundation.org/UA/SecurityPolicy#Basic256",
-    Basic256Rsa15, // "http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15",
-    Basic256Sha256 // "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
+    /** see http://opcfoundation.org/UA/SecurityPolicy#None */
+    None,
+    /** see http://opcfoundation.org/UA/SecurityPolicy#Basic128 */
+    Basic128,
+    /** see http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15 */
+    Basic128Rsa15,
+    /** see http://opcfoundation.org/UA/SecurityPolicy#Basic192 */
+    Basic192,
+    /** see http://opcfoundation.org/UA/SecurityPolicy#Basic192Rsa15 */
+    Basic192Rsa15,
+    /** see http://opcfoundation.org/UA/SecurityPolicy#Basic256 */
+    Basic256,
+    /** see http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15 */
+    Basic256Rsa15,
+    /** see http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha25 */
+    Basic256Sha256
 }
 
 export interface OPCUAClientOptions {
-    defaultSecureTokenLiveTime?: number; //default secure token lifetime in ms
-    serverCertificate?: any; // =null] {Certificate} the server certificate.
+    /** default secure token lifetime in ms */
+    defaultSecureTokenLiveTime?: number;
+    /** the server certificate. */
+    serverCertificate?: Uint8Array | null;
     connectionStrategy?: {
         maxRetry?: number;
         initialDelay?: number;
         maxDelay?: number;
         randomisationFactor?: number;
     };
-    // {MessageSecurityMode} the default security mode.
-    securityMode?: any; //  MessageSecurityMode, // [ =  MessageSecurityMode.None]
-    securityPolicy?: number | string; // : SecurityPolicy,//  =SecurityPolicy.NONE] {SecurityPolicy} the security mode.
-    requestedSessionTimeout?: number; //= 60000]            {Number} the requested session time out in CreateSession
-    applicationName?: string; // ="NodeOPCUA-Client"]        {string} the client application name
-    endpoint_must_exist?: boolean; // true] {Boolean} set to false if the client should accept server endpoint mismatch
-    keepSessionAlive?: boolean; //=false]{Boolean}
-    certificateFile?: string; // "certificates/client_selfsigned_cert_1024.pem"] {String} client certificate pem file.
-    privateKeyFile?: string; // "certificates/client_key_1024.pem"] {String} client private key pem file.
-    clientName?: string; //] {String} a client name string that will be used to generate session names.
+    /**
+     * the security mode
+     * @default MessageSecurityMode.NONE
+     */
+    securityMode?: MessageSecurityMode;
+    /**
+     * the security policy
+     * @default SecurityPolicy.NONE
+     */
+    securityPolicy?: number | string;
+    /**
+     * the requested session timeout in CreateSession (ms)
+     * @default 60000
+     */
+    requestedSessionTimeout?: number;
+    /**
+     * the client application name
+     * @default "NodeOPCUA-Client"
+     */
+    applicationName?: string;
+    /**
+     * set to false if the client should accept server endpoint mismatch
+     * @default true
+     */
+    endpoint_must_exist?: boolean;
+    /**
+     * @default false
+     */
+    keepSessionAlive?: boolean;
+    /**
+     * client certificate pem file.
+     * @default "certificates/client_selfsigned_cert_1024.pem"
+     */
+    certificateFile?: string;
+    /**
+     * client private key pem file.
+     * @default "certificates/client_key_1024.pem"
+     */
+    privateKeyFile?: string;
+    /**
+     * a client name string that will be used to generate session names.
+     */
+    clientName?: string;
 }
 
 export declare class OPCUAClientBase {
@@ -153,12 +200,28 @@ export enum BrowseDirection {
 }
 
 export interface BrowseDescription {
-    nodeId?: NodeId; // The id of the node to browse.
-    browseDirection?: BrowseDirection; // The direction of the references to return.
-    referenceTypeId?: NodeId; // The type of references to return.Specifies the NodeId of the ReferenceType to follow. Only instances of this ReferenceType or its subtype are returned.If not specified then all ReferenceTypes are returned and includeSubtypes is ignored.
-    includeSubtypes?: boolean; // Includes subtypes of the reference type.
-    nodeClassMask?: UInt32; // A mask indicating which node classes to return. 0 means return all nodes.
-    resultMask?: UInt32; // } A mask indicating which fields in the ReferenceDescription should be returned in the results.
+    /** The id of the node to browse. */
+    nodeId?: NodeId;
+    /** The direction of the references to return. */
+    browseDirection?: BrowseDirection;
+    /**
+     * The type of references to return.Specifies the NodeId of the
+     * ReferenceType to follow. Only instances of this ReferenceType or its
+     * subtype are returned.If not specified then all ReferenceTypes are
+     * returned and includeSubtypes is ignored.
+     */
+    referenceTypeId?: NodeId;
+    /** Includes subtypes of the reference type. */
+    includeSubtypes?: boolean;
+    /**
+     * A mask indicating which node classes to return. 0 means return all nodes.
+     */
+    nodeClassMask?: UInt32;
+    /**
+     * A mask indicating which fields in the ReferenceDescription should be
+     * returned in the results.
+     */
+    resultMask?: UInt32;
 }
 
 export type ExpandedNodeId = any;
@@ -168,13 +231,20 @@ export type LocalizedText = any;
 export type NodeClass = any;
 
 export interface ReferenceDescription {
-    referenceTypeId: NodeId; // The type of references.
-    isForward: boolean; // TRUE if the reference is a forward reference.
-    nodeId: ExpandedNodeId; // The id of the target node.
-    browseName: QualifiedName; // The browse name of the target node.
-    displayName: LocalizedText; // The display name of the target node.
-    nodeClass: NodeClass; // The node class of the target node.
-    typeDefinition: ExpandedNodeId; // The type definition of the target node.
+    /** The type of references. */
+    referenceTypeId: NodeId;
+    /** `true` if the reference is a forward reference. */
+    isForward: boolean;
+    /** The id of the target node. */
+    nodeId: ExpandedNodeId;
+    /** The browse name of the target node. */
+    browseName: QualifiedName;
+    /** The display name of the target node. */
+    displayName: LocalizedText;
+    /** The node class of the target node. */
+    nodeClass: NodeClass;
+    /** The type definition of the target node. */
+    typeDefinition: ExpandedNodeId;
 }
 
 export declare class BrowseResult {
@@ -186,10 +256,14 @@ export declare class BrowseResult {
 type CoercibleToBrowseDescription = string | BrowseDescription;
 
 export interface RelativePathElement {
-    referenceTypeId?: NodeId; // the type of reference to follow.
-    isInverse?: Boolean; // if true the reverse reference is followed.
-    includeSubtypes?: Boolean; // if true then subtypes of the reference type are followed.
-    targetName?: QualifiedName; //the browse name of the target.
+    /** the type of reference to follow. */
+    referenceTypeId?: NodeId;
+    /** if true the reverse reference is followed. */
+    isInverse?: Boolean;
+    /** if true then subtypes of the reference type are followed. */
+    includeSubtypes?: Boolean;
+    /** the browse name of the target. */
+    targetName?: QualifiedName;
 }
 
 export declare class BrowsePath {
@@ -267,7 +341,8 @@ export declare class ClientSession {
     close(): Promise<void>;
 
     // properties
-    public sessionId: NodeId; // the session Id
+    /** the session Id */
+    public sessionId: NodeId;
 }
 
 export declare interface UAProxyBase {
@@ -356,33 +431,74 @@ declare type ValidUserFunc = (username: string, password: string) => boolean;
 declare type ValidUserAsyncFunc = (username: string, password: string, callback: Function) => void;
 
 export interface OPCUAServerOptions {
-    defaultSecureTokenLifetime?: number; // the default secure token life time in ms.
-    timeout?: number; // (default:10000)    the HEL/ACK transaction timeout in ms. Use a large value
-    // ( i.e 15000 ms) for slow connections or embedded devices.
-    port?: number; //  (default:26543)            the TCP port to listen to.
-    maxAllowedSessionNumber?: number; //(default:10) the maximum number of concurrent sessions allowed.
+    /** the default secure token life time in ms. */
+    defaultSecureTokenLifetime?: number;
+    /**
+     * the HEL/ACK transaction timeout in ms. Use a large value
+     * ( i.e 15000 ms) for slow connections or embedded devices.
+     * @default 10000
+     */
+    timeout?: number;
+    /**
+     * the TCP port to listen to.
+     * @default 26543
+     */
+    port?: number;
+    /**
+     * the maximum number of concurrent sessions allowed.
+     * @default 10
+     */
+    maxAllowedSessionNumber?: number;
 
-    nodeset_filename?: Array<string> | string; // the nodeset.xml file(s) to load
+    /** the nodeset.xml file(s) to load */
+    nodeset_filename?: Array<string> | string;
     serverInfo?: {
-        //  the information used in the end point description
-        applicationUri?: string; //  (default "urn:NodeOPCUA-Server")
-        productUri?: string; // = "NodeOPCUA-Server"]{String}
-        applicationName?: LocalizedText | string; // "applicationName"}]{LocalizedText}
+        /**
+         * the information used in the end point description
+         * @default "urn:NodeOPCUA-Server"
+         */
+        applicationUri?: string;
+        /**
+         * @default "NodeOPCUA-Server"
+         */
+        productUri?: string;
+        /**
+         * @default "applicationName"
+         */
+        applicationName?: LocalizedText | string;
         gatewayServerUri?: string;
         discoveryProfileUri?: string;
         discoveryUrls?: Array<string>;
     };
-    securityPolicies?: Array<SecurityPolicy>; // SecurityPolicy.None,SecurityPolicy.Basic128Rsa15,SecurityPolicy.Basic256]]
-    securityModes?: Array<MessageSecurityMode>; // MessageSecurityMode.NONE,MessageSecurityMode.SIGN,MessageSecurityMode.SIGNANDENCRYPT]]
-    allowAnonymous?: boolean; // [default = true] tells if the server default endpoints should allow anonymous connection.
+    /**
+     * @default [SecurityPolicy.None, SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256]
+     */
+    securityPolicies?: Array<SecurityPolicy>;
+    /**
+     * @default [MessageSecurityMode.NONE, MessageSecurityMode.SIGN, MessageSecurityMode.SIGNANDENCRYPT]
+     */
+    securityModes?: Array<MessageSecurityMode>;
+    /**
+     * tells if the server default endpoints should allow anonymous connection.
+     * @default true
+     */
+    allowAnonymous?: boolean;
+    /* an object that implements user authentication methods */
     userManager?: {
-        // an object that implements user authentication methods
-        isValidUser?: ValidUserFunc; // synchronous function to check the credentials - can be overruled by isValidUserAsync
-        isValidUserAsync?: ValidUserAsyncFunc; // asynchronous function to check if the credentials - overrules isValidUser
+        /** synchronous function to check the credentials - can be overruled by isValidUserAsync */
+        isValidUser?: ValidUserFunc;
+        /** asynchronous function to check if the credentials - overrules isValidUser */
+        isValidUserAsync?: ValidUserAsyncFunc;
     };
-    resourcePath?: string; // resource Path is a string added at the end of the url such as "/UA/Server"
-    alternateHostname?: string; // alternate hostname to use
-    isAuditing?: boolean; // (default=true) if server shall raise AuditingEvent
+    /** resource Path is a string added at the end of the url such as "/UA/Server" */
+    resourcePath?: string;
+    /** alternate hostname to use */
+    alternateHostname?: string;
+    /**
+     * if server shall raise AuditingEvent
+     * @default true
+     */
+    isAuditing?: boolean;
 }
 
 export declare enum ServerState {
@@ -541,8 +657,10 @@ export enum EUEngineeringUnit {
 }
 
 export interface AddAnalogDataItemOpts extends _AddNodeOpts {
-    definition: string; // example  "(tempA -25) + tempB",
-    valuePrecision: number; // 0.5,
+    /** @example  "(tempA -25) + tempB" */
+    definition: string;
+    /** @example 0.5 */
+    valuePrecision: number;
     engineeringUnitsRange: {
         low: number;
         high: number;
