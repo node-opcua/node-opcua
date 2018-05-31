@@ -278,13 +278,13 @@ describe("Variant", function() {
         var1.toString().should.eql("Variant(Matrix[ 2,3 ]<UInt32>, l= 6, value=[0,1,2,16,17,18])");
     });
 
-    xit("not  supported !! should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a Array of Array", function() {
-        const var1 = new {
+    xit("not supported - should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a Array of Array", function() {
+        const var1 = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Matrix,
             dimensions: [2, 3],
-            value: [0x000, 0x001, 0x002, 0x010, 0x011, 0x012]
-        }();
+            value: [ [ 0x000, 0x001, 0x002], [0x010, 0x011, 0x012]]
+        });
 
         var1.arrayType.should.eql(VariantArrayType.Matrix);
         var1.dimensions.should.eql([2, 3]);

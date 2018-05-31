@@ -9,7 +9,7 @@
     },
     "typings": "./node-opcua.d.ts",
     "dependencies": {
-        "colors": "^1.2.4",
+        "colors": "^1.3.0",
         "node-opcua-address-space": "^0.3.0",
         "node-opcua-address-space-for-conformance-testing": "^0.3.0",
         "node-opcua-assert": "^0.3.0",
@@ -19,7 +19,7 @@
         "node-opcua-client-proxy": "^0.3.0",
         "node-opcua-common": "^0.3.0",
         "node-opcua-constants": "^0.2.0",
-        "node-opcua-crypto": "0.0.17",
+        "node-opcua-crypto": "0.0.18",
         "node-opcua-data-access": "^0.3.0",
         "node-opcua-data-model": "^0.3.0",
         "node-opcua-data-value": "^0.3.0",

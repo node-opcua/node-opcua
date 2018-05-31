@@ -21,7 +21,7 @@
  "devDependencies": {
   "node-opcua-generator": "^0.3.0",
   "should": "13.2.1",
-  "sinon": "^5.0.7"
+  "sinon": "^5.0.10"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

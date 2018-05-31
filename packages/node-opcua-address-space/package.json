@@ -12,7 +12,7 @@
   "generate": "node ./generate"
  },
  "dependencies": {
-  "async": "^2.6.0",
+  "async": "^2.6.1",
   "dequeue": "^1.0.5",
   "node-opcua-assert": "^0.3.0",
   "node-opcua-basic-types": "^0.3.0",
@@ -56,7 +56,7 @@
   "node-opcua-test-fixtures": "^0.3.0",
   "node-opcua-extension-object":"^0.3.0",
   "should": "13.2.1",
-  "sinon": "^5.0.7"
+  "sinon": "^5.0.10"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

@@ -8,21 +8,16 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 [![NPM version](https://badge.fury.io/js/node-opcua.png)](http://badge.fury.io/js/node-opcua)
 [![Build Status](https://travis-ci.org/node-opcua/node-opcua.png?branch=master)](https://travis-ci.org/node-opcua/node-opcua)
 [![Build status](https://ci.appveyor.com/api/projects/status/8sgtm3n15aii98oc/branch/master?svg=true)](https://ci.appveyor.com/project/erossignon/node-opcua/branch/master)
-
 [![HitCount](http://hits.dwyl.io/node-opcua/node-opcua.svg)](http://hits.dwyl.io/node-opcua/node-opcua)
-
 [![NSP Status](https://nodesecurity.io/orgs/node-opcua/projects/cb2eff26-fb17-4d6b-ab89-7fafafdc88bc/badge)](https://nodesecurity.io/orgs/node-opcua/projects/cb2eff26-fb17-4d6b-ab89-7fafafdc88bc)
-
 <!-- [![Dependency Status](https://gemnasium.com/node-opcua/node-opcua.png)](https://gemnasium.com/node-opcua/node-opcua) -->
 [![Coverage Status](https://coveralls.io/repos/node-opcua/node-opcua/badge.png)](https://coveralls.io/r/node-opcua/node-opcua)
 [![Code Climate](https://codeclimate.com/github/node-opcua/node-opcua.png)](https://codeclimate.com/github/node-opcua/node-opcua)
 
 [![OPC UA](http://b.repl.ca/v1/OPC-UA-blue.png)](http://opcfoundation.org/)
-
-
 [![Gitter chat](https://badges.gitter.im/node-opcua/node-opcua.png)](https://gitter.im/node-opcua/node-opcua)
-
 [Node-opcua](http://node-opcua.github.io/) is an full OPC-UA stack written in NodeJS.
+
 
 [![Flattr us](https://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/@gadz_er).
 
@@ -115,6 +110,8 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 |                            |FindServers()           |  :white_check_mark:       |
 |                            |GetEndpoints()          |  :white_check_mark:       |
 |                            |RegisterServer()        |  :white_check_mark:       |
+|                            |RegisterServer2()        |  :white_check_mark:       |
+|                            |FindServersOnNetwork()        |  :white_check_mark:       |
 | Secure Channel Service Set |                        |         |
 |                            |OpenSecureChannel()     |  :white_check_mark:       |
 |                            |CloseSecureChannel()    |  :white_check_mark:       |
@@ -146,7 +143,7 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 |                            |DeleteSubscriptions()  |:white_check_mark:|
 |                            |Publish()              |:white_check_mark:|
 |                            |Republish()            |:white_check_mark:|
-|                            |TransferSubscriptions()|:waxing_crescent_moon:|
+|                            |TransferSubscriptions()|:white_check_mark:|
 |Node Management Service Set |                       ||
 |                            |AddNodes()             |:new_moon:|
 |                            |AddReferences()        |:new_moon:|
@@ -187,7 +184,7 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 | Historical Access                      |:first_quarter_moon:     | |
 | Advanced Type                          |:white_check_mark:       | |
 | Programming                            |:new_moon:               | |
-| Auditing                               |:new_moon:               | |
+| Auditing                               |:first_quarter_moon:               | |
 | Redundancy                             |:new_moon:               | |
 | __**server profiles**__                |                         | |
 | Core Server                            | :white_check_mark:      | |
@@ -195,14 +192,17 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 | Embedded Server                        | :white_check_mark:      | |
 | Nano Embedded Device Server            | :white_check_mark:      | |
 | Micro Embedded Device Server           | :white_check_mark:      | |
-| Standard DataChange Subscription Server|                         | |
-| Standard Event Subscription Server     |                         | |
-| Standard UA Server                     |                         | |
+| Standard DataChange Subscription Server| :white_check_mark:                         | |
+| Standard Event Subscription Server     | :white_check_mark:                         | |
+| Standard UA Server                     | :white_check_mark:                         | |
 | Redundancy Transparent Server          | :new_moon:              | |
 | Redundancy Visible Server              | :new_moon:              | |
 | Node Management Server                 | :new_moon:              | |
-| Auditing Server                        | :new_moon:              | |
-| Complex Type Server                    |                         | |
+| Auditing Server                        | :first_quarter_moon:   | |
+| Complex Type Server                    | :first_quarter_moon:                        | |
+| Session Diagnostics                    |  :white_check_mark:                         | |
+| Subscription Diagnostics               |  :white_check_mark:                         | |
+| Alarms & Conditions                    |  :white_check_mark:                         | |
 
 
 
@@ -212,7 +212,6 @@ This are the item we would like to achieve in the next version of the API.
 
   * improved documentation 
   * Compliance testing and certification (CTT) 
-  * HA Support : improved support of historizing service
   * more tutorials
 
 

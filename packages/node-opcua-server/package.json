@@ -10,9 +10,9 @@
  },
  "main": "index.js",
  "dependencies": {
-  "async": "^2.6.0",
+  "async": "^2.6.1",
   "bonjour": "^3.5.0",
-  "colors": "^1.2.4",
+  "colors": "^1.3.0",
   "dequeue": "^1.0.5",
   "node-opcua-address-space": "^0.3.0",
   "node-opcua-assert": "^0.3.0",
@@ -20,7 +20,7 @@
   "node-opcua-client": "^0.3.0",
   "node-opcua-common": "^0.3.0",
   "node-opcua-constants": "^0.2.0",
-  "node-opcua-crypto": "0.0.17",
+  "node-opcua-crypto": "0.0.18",
   "node-opcua-data-model": "^0.3.0",
   "node-opcua-data-value": "^0.3.0",
   "node-opcua-date-time": "^0.3.0",
@@ -32,7 +32,7 @@
   "node-opcua-nodesets": "^0.3.0",
   "node-opcua-numeric-range": "^0.3.0",
   "node-opcua-object-registry": "^0.3.0",
-  "node-opcua-pki": "0.0.30",
+  "node-opcua-pki": "0.0.31",
   "node-opcua-secure-channel": "^0.3.0",
   "node-opcua-service-browse": "^0.3.0",
   "node-opcua-service-call": "^0.3.0",
@@ -60,7 +60,7 @@
   "node-opcua-test-helpers": "^0.3.0",
   "node-opcua-transport": "^0.3.0",
   "should": "13.2.1",
-  "sinon": "^5.0.7"
+  "sinon": "^5.0.10"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

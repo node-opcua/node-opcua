@@ -9,7 +9,7 @@
  "author": "Etienne Rossignon",
  "license": "MIT",
  "dependencies": {
-  "colors": "^1.2.4",
+  "colors": "^1.3.0",
   "node-opcua-assert": "^0.3.0",
   "node-opcua-debug": "^0.3.0",
   "node-opcua-object-registry": "^0.3.0",
