@@ -15,15 +15,17 @@ const StatusCodes = require("node-opcua-status-code").StatusCodes;
  * A client side implementation to deal with publish service.
  *
  * @class ClientSidePublishEngine
- *
- * @param session {ClientSession} - the client session
- * @constructor
- *
+
  * The ClientSidePublishEngine encapsulates the mechanism to
  * deal with a OPCUA Server and constantly sending PublishRequest
  * The ClientSidePublishEngine also performs  notification acknowledgements.
  * Finally, ClientSidePublishEngine dispatch PublishResponse to the correct
  * Subscription id callback
+ *
+ * @param session {ClientSession} - the client session
+ *
+ *
+ * @constructor
  */
 function ClientSidePublishEngine(session) {
     assert(session instanceof Object);

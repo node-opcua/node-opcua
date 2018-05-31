@@ -244,13 +244,13 @@ function buildConstructorFromDefinition(addressSpace,dataType) {
 
 /**
  *
+ * create a node Variable that contains a array of ExtensionObject of a given type
  * @method createExtObjArrayNode
- *         create a node Variable that contains a array of ExtensionObject of a given type
  * @param parentFolder
  * @param options
  * @param options.browseName
- * @param options.complexVariableType :
-    * @param options.variableType        : the type of Extension objects stored in the array.
+ * @param options.complexVariableType
+ * @param options.variableType        the type of Extension objects stored in the array.
  * @param options.indexPropertyName
  * @return {Object|UAVariable}
  */

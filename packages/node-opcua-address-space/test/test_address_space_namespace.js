@@ -22,8 +22,8 @@ describe("testing address space namespace", function () {
 
         const namespaceUri = "http://MyNEWNameSpace";
         addressSpace.getNamespaceIndex(namespaceUri).should.eql(-1);
-        const index = addressSpace.registerNamespace(namespaceUri);
-        addressSpace.getNamespaceIndex(namespaceUri).should.eql(index);
+        const namespace = addressSpace.registerNamespace(namespaceUri);
+        addressSpace.getNamespaceIndex(namespaceUri).should.eql(namespace.index);
 
         addressSpace.dispose();
 
@@ -52,13 +52,13 @@ describe("testing  address space namespace loading", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
 
             addressSpace.getNamespaceArray().length.should.eql(4);
-            addressSpace.getNamespaceArray()[2].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
-            addressSpace.getNamespaceArray()[3].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
+            addressSpace.getNamespaceArray()[2].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
+            addressSpace.getNamespaceArray()[3].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
 
             addressSpace.findNode("ns=2;i=1").browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
             addressSpace.findNode("ns=3;i=1").browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
 
-            addressSpace.getNamespaceArray().should.eql([
+            addressSpace.getNamespaceArray().map(x=>x.namespaceUri).should.eql([
                 "http://opcfoundation.org/UA/",
                 "ServerNamespaceURI",
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
@@ -86,9 +86,9 @@ describe("testing  address space namespace loading", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
 
             addressSpace.getNamespaceArray().length.should.eql(5);
-            addressSpace.getNamespaceArray()[2].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
-            addressSpace.getNamespaceArray()[3].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
-            addressSpace.getNamespaceArray()[4].should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/");
+            addressSpace.getNamespaceArray()[2].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
+            addressSpace.getNamespaceArray()[3].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
+            addressSpace.getNamespaceArray()[4].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/");
 
             addressSpace.findNode("ns=2;i=1").browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
             addressSpace.findNode("ns=3;i=1").browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
@@ -98,7 +98,7 @@ describe("testing  address space namespace loading", function () {
 
             addressSpace.findNode("ns=4;i=1").browseName.toString().should.eql("4:ObjectInCUSTOM_NAMESPACE3");
 
-            addressSpace.getNamespaceArray().should.eql([
+            addressSpace.getNamespaceArray().map(x=>x.namespaceUri).should.eql([
                 "http://opcfoundation.org/UA/",
                 "ServerNamespaceURI",
                 "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
@@ -130,9 +130,9 @@ describe("testing  address space namespace loading", function () {
 
             should(err).eql(null);
             addressSpace.getNamespaceArray().length.should.eql(3);
-            addressSpace.getNamespaceArray()[2].should.eql("http://opcfoundation.org/UA/DI/");
+            addressSpace.getNamespaceArray()[2].namespaceUri.should.eql("http://opcfoundation.org/UA/DI/");
 
-            addressSpace.getNamespaceArray().should.eql([
+            addressSpace.getNamespaceArray().map(x=>x.namespaceUri).should.eql([
                 "http://opcfoundation.org/UA/",   // 0
                 "ServerNamespaceURI",             // 1
                 "http://opcfoundation.org/UA/DI/",// 2

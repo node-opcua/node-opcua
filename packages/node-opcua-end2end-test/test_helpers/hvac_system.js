@@ -66,33 +66,33 @@ exports.createHVACSystem = function(addressSpace) {
     });
 
 
-    addressSpace.addAnalogDataItem({
-        componentOf: HVACModuleType,
-        browseName: "ExteriorTemperature",
-        accessLevel: "CurrentRead",
-        valuePrecision: 0.01,
-        instrumentRange: { low: -70, high: 120},
-        engineeringUnitsRange: { low: -100, high: 200},
-        engineeringUnits: standardUnits.degree_celsius, // � Celsius
-        description: "External temperature Sensor",
-        minimumSamplingInterval: 500,
-        dataType: "Double",
-        modellingRule: "Mandatory"
-    });
+        addressSpace.addAnalogDataItem({
+            componentOf: HVACModuleType,
+            browseName: "ExteriorTemperature",
+            accessLevel: "CurrentRead",
+            valuePrecision: 0.01,
+            instrumentRange: { low: -70, high: 120},
+            engineeringUnitsRange: { low: -100, high: 200},
+            engineeringUnits: standardUnits.degree_celsius, // � Celsius
+            description: "External temperature Sensor",
+            minimumSamplingInterval: 500,
+            dataType: "Double",
+            modellingRule: "Mandatory"
+        });
 
-    addressSpace.addAnalogDataItem({
-        componentOf: HVACModuleType,
-        browseName: "InteriorTemperature",
-        accessLevel: "CurrentRead",
-        valuePrecision: 0.01,
-        instrumentRange: { low: -70, high: 120},
-        engineeringUnitsRange: { low: -100, high: 200},
-        engineeringUnits: standardUnits.degree_celsius,
-        description: "External temperature Sensor",
-        minimumSamplingInterval: 500,
-        dataType: "Double",
-        modellingRule: "Mandatory"
-    });
+        addressSpace.addAnalogDataItem({
+            componentOf: HVACModuleType,
+            browseName: "InteriorTemperature",
+            accessLevel: "CurrentRead",
+            valuePrecision: 0.01,
+            instrumentRange: { low: -70, high: 120},
+            engineeringUnitsRange: { low: -100, high: 200},
+            engineeringUnits: standardUnits.degree_celsius,
+            description: "External temperature Sensor",
+            minimumSamplingInterval: 500,
+            dataType: "Double",
+            modellingRule: "Mandatory"
+        });
 
 
     // EURange (10,+27)

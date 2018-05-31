@@ -566,7 +566,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
     });
 
-    xit("QQQ4 server shall reject secure connection when client provides a nonce with the wrong length", function (done) {
+    it("QQQ4 server shall reject secure connection when client provides a nonce with the wrong length", function (done) {
 
         should.exist(serverCertificate);
 

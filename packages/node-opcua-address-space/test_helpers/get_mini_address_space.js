@@ -18,8 +18,8 @@ exports.get_mini_address_space = function (callback) {
     const addressSpace = new AddressSpace();
 
     // register namespace 1 (our namespace);
-    const serverNamespaceIndex = addressSpace.registerNamespace("http://MYNAMESPACE");
-    assert(serverNamespaceIndex === 1);
+    const serverNamespace = addressSpace.registerNamespace("http://MYNAMESPACE");
+    assert(serverNamespace.index === 1);
 
     generate_address_space(addressSpace, nodeset_filename, function (err) {
         if( err) {

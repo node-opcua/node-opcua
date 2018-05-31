@@ -90,7 +90,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
     function _register_namespace_uri(namespace_uri) {
         const index_in_xml = namespaceCounter + 1;
         namespaceCounter += 1;
-        const index = addressSpace.registerNamespace(namespace_uri);
+        const index = addressSpace.registerNamespace(namespace_uri).index;
         namespace_uri_translation[index_in_xml] = index;
     }
 
@@ -101,7 +101,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
      * @param nodeId {String|null}
      * @return {NodeId}
      *
-     * @example:
+     * @example
      *    convertToNodeId("String") => resolve alias
      *    convertToNodeId("i=58")   => resolve to nodeId in namespace 0
      *    convertToNodeId("ns=1;i=100") => convert namespace from xml namespace table to corresponding namespace in addressapce

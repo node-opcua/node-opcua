@@ -86,18 +86,49 @@ AddressSpace.prototype._constructNamespaceArray = function () {
 
 AddressSpace.prototype.getNamespaceUri = function (namespaceIndex) {
     assert(namespaceIndex >= 0 && namespaceIndex < this._namespaceArray.length);
-    return this._namespaceArray[namespaceIndex];
+    return this._namespaceArray[namespaceIndex].namespaceUri;
 };
 
+AddressSpace.prototype.getNamespace = function (namespaceIndexOrName) {
+   const self = this;
+   if (typeof namespaceIndexOrName ==="number") {
+        const namespaceIndex =namespaceIndexOrName;
+        assert(namespaceIndex >= 0 && namespaceIndex < this._namespaceArray.length);
+        return self._namespaceArray[namespaceIndex];
+    } else {
+       const namespaceUri =namespaceIndexOrName;
+       assert(typeof namespaceUri === "string");
+        const index = self.getNamespaceIndex(namespaceUri);
+        return self._namespaceArray[index];
+    }
+};
+
+const Namespace = require("./namespace").Namespace;
+
+/**
+ *
+ * @param namespaceUri {string}
+ * @returns {Namespace}
+ */
 AddressSpace.prototype.registerNamespace = function (namespaceUri) {
-    const index = this._namespaceArray.indexOf(namespaceUri);
-    if (index !== -1) { return index; }
-    this._namespaceArray.push(namespaceUri);
-    return this._namespaceArray.length - 1;
+    const self = this;
+
+    let index = this._namespaceArray.findIndex(ns=> ns.namespaceUri === namespaceUri);
+    if (index !== -1) { return self._namespaceArray[index]; }
+
+    index= self._namespaceArray.length;
+    self._namespaceArray.push(new Namespace({
+        namespaceUri: namespaceUri,
+        addressSpace:self,
+        index: index
+    }));
+    return self._namespaceArray[index];
 };
 
 AddressSpace.prototype.getNamespaceIndex = function (namespaceUri) {
-    return  this._namespaceArray.indexOf(namespaceUri);
+    assert(typeof namespaceUri === "string");
+    const self = this;
+    return  self._namespaceArray.findIndex(ns=> ns.namespaceUri === namespaceUri);
 };
 
 AddressSpace.prototype.getNamespaceArray = function () {

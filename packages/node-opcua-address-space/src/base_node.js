@@ -64,17 +64,7 @@ function _get_QualifiedBrowseName(browseName) {
  * Base class for all address_space classes
  *
  * @class BaseNode
- *
- * @param options
- * @param options.addressSpace {AddressSpace}
- * @param options.browseName {String}
- * @param [options.displayName] {String|LocalizedText}
- * @param options.references {Reference[]}
- * @param [options.description]  {String|LocalizedText}
- * @param [options.browseFilter] {Function}
- *
- * @constructor
- *
+
  * BaseNode is the base class for all the OPCUA objects in the address space
  * It provides attributes and a set of references to other nodes.
  * see:
@@ -87,6 +77,17 @@ function _get_QualifiedBrowseName(browseName) {
  * {{#crossLink "UADataType"}}{{/crossLink}},
  * {{#crossLink "UAVariableType"}}{{/crossLink}},
  *
+ * @param options
+ * @param options.addressSpace {AddressSpace}
+ * @param options.browseName {String}
+ * @param [options.displayName] {String|LocalizedText}
+ * @param options.references {Reference[]}
+ * @param [options.description]  {String|LocalizedText}
+ * @param [options.browseFilter] {Function}
+ *
+ *
+ *
+ * @constructor
  *
  */
 function BaseNode(options) {

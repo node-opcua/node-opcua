@@ -32,6 +32,13 @@ const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
  *
  * @class ClientSubscription
  * @extends EventEmitter
+
+ * events:
+ *    "started",     callback(subscriptionId)  : the subscription has been initiated
+ *    "terminated"                             : the subscription has been deleted
+ *    "error",                                 : the subscription has received an error
+ *    "keepalive",                             : the subscription has received a keep alive message from the server
+ *    "received_notifications",                : the subscription has received one or more notification
  *
  * @param session
  * @param options {Object}
@@ -41,14 +48,9 @@ const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
  * @param options.maxNotificationsPerPublish {Number}
  * @param options.publishingEnabled {Boolean}
  * @param options.priority {Number}
- * @constructor
  *
- * events:
- *    "started",     callback(subscriptionId)  : the subscription has been initiated
- *    "terminated"                             : the subscription has been deleted
- *    "error",                                 : the subscription has received an error
- *    "keepalive",                             : the subscription has received a keep alive message from the server
- *    "received_notifications",                : the subscription has received one or more notification
+ *
+ *  @constructor
  */
 function ClientSubscription(session, options) {
 

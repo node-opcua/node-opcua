@@ -638,13 +638,17 @@ export declare class DiagnosticInfo {
 
 export interface _AddNodeOpts {
     browseName: string;
+    displayName?: string | LocalizedText| LocalizedText[];
+    description?: string;
+
     organizedBy?: NodeId | BaseNode;
+    componentOf?: NodeId | BaseNode;
     nodeId?: string | NodeId;
 }
 
 export interface AddVariableOpts extends _AddNodeOpts {
     dataType: string | DataType;
-    value: {
+    value?: {
         get?: () => Variant;
         timestamp_get?: () => DataValue;
         refreshFunc?: (err: null | Error, dataValue?: DataValue) => void;

@@ -217,8 +217,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         const adi_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
         const di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
 
-        //xxx console.log(addressSpace.getNamespaceArray());
-        di_namespace.should.eql(2);
+         di_namespace.should.eql(2);
         adi_namespace.should.eql(3);
 
         const analyserDeviceType = addressSpace.findObjectType("AnalyserDeviceType", adi_namespace);

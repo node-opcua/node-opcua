@@ -898,12 +898,12 @@ ClientSecureChannelLayer.prototype.makeRequestId = function () {
  *    ```javascript
  *    var secure_channel ; // get a  ClientSecureChannelLayer somehow
  *
- *    var message = new BrowseNameRequest({...});
+ *    var message = new BrowseRequest({...});
  *    secure_channel.performMessageTransaction(message,function(err,response) {
  *       if (err) {
  *         // an error has occurred
  *       } else {
- *          assert(response instanceof BrowseNameResponse);
+ *          assert(response instanceof BrowseResponse);
  *         // do something with response.
  *       }
  *    });
@@ -1022,9 +1022,9 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
 
         self._timedout_request_count += 1;
         /**
-         * @event timed_out_request
          * notify the observer that the response from the request has not been
          * received within the timeoutHint specified
+         * @event timed_out_request
          * @param message_chunk {Object}  the message chunk
          */
         self.emit("timed_out_request", requestMessage);

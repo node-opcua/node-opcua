@@ -1528,11 +1528,11 @@ function _add_comment_method(inputArguments, context, callback) {
         conditionNode.raiseConditionEvent(branch, true);
 
         /**
+         * raised when the  branch has been added a comment
          * @event addComment
          * @param  eventId   {Buffer|null}
          * @param  comment   {LocalizedText}
          * @param  branch    {ConditionSnapshot}
-         * raised when the  branch has been added a comment
          */
         conditionNode.emit("addComment", eventId, comment, branch);
 

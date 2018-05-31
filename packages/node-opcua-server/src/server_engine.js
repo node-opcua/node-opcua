@@ -493,8 +493,8 @@ ServerEngine.prototype.initialize = function (options, callback) {
     engine.addressSpace = new AddressSpace();
 
     // register namespace 1 (our namespace);
-    const serverNamespaceIndex = engine.addressSpace.registerNamespace(engine.serverNamespaceUrn);
-    assert(serverNamespaceIndex === 1);
+    const serverNamespace = engine.addressSpace.registerNamespace(engine.serverNamespaceUrn);
+    assert(serverNamespace.index === 1);
 
     generate_address_space(engine.addressSpace, options.nodeset_filename, function () {
 
@@ -533,7 +533,7 @@ ServerEngine.prototype.initialize = function (options, callback) {
                 return new Variant({
                     dataType: DataType.String,
                     arrayType: VariantArrayType.Array,
-                    value: engine.addressSpace.getNamespaceArray()
+                    value: engine.addressSpace.getNamespaceArray().map(x=>x.namespaceUri)
                 });
             },
             set: null // read only

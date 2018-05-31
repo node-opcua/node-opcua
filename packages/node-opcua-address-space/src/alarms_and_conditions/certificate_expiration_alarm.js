@@ -8,10 +8,12 @@ const DataType = require("node-opcua-variant").DataType;
 
 /**
  * @class UACertificateExpirationAlarm
- * @extends UASystemOffNormalAlarm
- * @constructor
+ *
  * This SystemOffNormalAlarmType is raised by the Server when the Server’s Certificate is within the ExpirationLimit
  * of expiration. This alarm automatically returns to normal when the certificate is updated.
+ *
+ * @extends UASystemOffNormalAlarm
+ * @constructor
  */
 function UACertificateExpirationAlarm() {
 

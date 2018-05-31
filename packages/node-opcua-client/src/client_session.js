@@ -93,7 +93,7 @@ function coerceBrowseDescription(data) {
  * @param callback.err           {Error|null}
  * @param callback.browseResult  {BrowseResult}
  *
- * @example:
+ * @example
  *
  *    ```javascript
  *    session.browse("RootFolder",function(err,browseResult) {
@@ -240,7 +240,7 @@ ClientSession.prototype.browse = function (nodesToBrowse, callback) {
  * @param callback.err       {Error|null}- the error if write has failed or null if OK
  * @param callback.dataValue {DataValue} - the dataValue
  *
- * @example:
+ * @example
  *
  *     session.readVariableValue("ns=2;s=Furnace_1.Temperature",function(err,dataValue) {
  *        if(err) { return callback(err); }
@@ -345,7 +345,8 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
 /**
  * @method readHistoryValue
  * @async
- * @example:
+ *
+ * @example
  *
  *     session.readHistoryValue("ns=5;s=Simulation Examples.Functions.Sine1","2015-06-10T09:00:00.000Z","2015-06-10T09:01:00.000Z",function(err,dataValues) {} );
  *
@@ -614,7 +615,8 @@ function composeResult(nodes, nodesToRead, dataValues) {
 /**
  * @method readAllAttributes
  *
- * @example:
+ * @example
+ *
  *
  *    ``` javascript
  *    session.readAllAttributes("ns=2;s=Furnace_1.Temperature",function(err,data) {
@@ -632,7 +634,7 @@ function composeResult(nodes, nodesToRead, dataValues) {
  * @param nodes                  {NodeId|NodeId[]} - nodeId to read or an array of nodeId to read
  * @param callback              {Function} - the callback function
  * @param callback.err                  {Error|null} - the error or null if the transaction was OK
- * @param callback.data                  {[]} a json object with the node attributes
+ * @param callback.data                  {} a json object with the node attributes
  * @param callback.data.statusCode      {StatusCodes}
  * @param callback.data.nodeId          {NodeId}
  * @param callback.data.<attribute>     {*}
@@ -685,9 +687,12 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  * @param callback.dataValue       {DataValue}
  * @async
  *
- * @example:
+ * @example
  *
- * form1: reading a single node
+ *     ```javascript
+ *     ```
+ *
+ *   form1: reading a single node
  *
  *  ``` javascript
  *    const nodeToRead = {
@@ -734,9 +739,7 @@ ClientSession.prototype.readAllAttributes = function (nodes, callback) {
  * @param [maxAge]                 {Number}
  * @return {Promise<DataValue>}
  * @async
- *
- * @example:
- *
+ **
  *
  * @method read_form4
  * @param nodesToRead               {Array<ReadValueId>}
@@ -850,8 +853,8 @@ ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, o
 
                 //xxx  DO NOT TERMINATE SESSION, as we will need a publishEngine when we reconnect self._terminatePublishEngine();
                 /**
-                 * @event session_closed
                  * send when the session has been closed by the server ( probably due to inactivity and timeout)
+                 * @event session_closed
                  */
                 self.emitCloseEvent(StatusCodes.BadSessionClosed);
 
