@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-utils",
- "version": "0.3.0",
+ "version": "0.4.0",
  "description": "pure nodejs OPCUA SDK - module -utils",
  "main": "dist/index.js",
  "types": "dist/index.d.ts",
@@ -9,7 +9,7 @@
   "test": "mocha test"
  },
  "dependencies": {
-  "node-opcua-assert": "^0.3.0",
+  "node-opcua-assert": "^0.4.0",
   "underscore": "^1.9.0"
  },
  "devDependencies": {

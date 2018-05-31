@@ -1,25 +1,25 @@
 {
  "name": "node-opcua-factory",
- "version": "0.3.0",
+ "version": "0.4.0",
  "description": "pure nodejs OPCUA SDK - module -factory",
  "main": "index.js",
  "scripts": {
   "test": "echo no test"
  },
  "dependencies": {
-  "node-opcua-assert": "^0.3.0",
-  "node-opcua-basic-types": "^0.3.0",
-  "node-opcua-binary-stream": "^0.3.0",
-  "node-opcua-debug": "^0.3.0",
-  "node-opcua-enum": "^0.3.0",
-  "node-opcua-guid": "^0.3.0",
-  "node-opcua-nodeid": "^0.3.0",
-  "node-opcua-status-code": "^0.3.0",
-  "node-opcua-utils": "^0.3.0",
+  "node-opcua-assert": "^0.4.0",
+  "node-opcua-basic-types": "^0.4.0",
+  "node-opcua-binary-stream": "^0.4.0",
+  "node-opcua-debug": "^0.4.0",
+  "node-opcua-enum": "^0.4.0",
+  "node-opcua-guid": "^0.4.0",
+  "node-opcua-nodeid": "^0.4.0",
+  "node-opcua-status-code": "^0.4.0",
+  "node-opcua-utils": "^0.4.0",
   "underscore": "^1.9.0"
  },
  "devDependencies": {
-  "node-opcua-debug": "^0.3.0"
+  "node-opcua-debug": "^0.4.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
