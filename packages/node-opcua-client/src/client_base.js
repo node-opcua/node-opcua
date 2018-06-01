@@ -212,7 +212,7 @@ function __findEndpoint(endpointUrl, params, callback) {
             });
         },
         function (callback) {
-            client.getEndpointsRequest(function (err, endpoints) {
+            client.getEndpoints(function (err, endpoints) {
 
                 if (!err) {
                     endpoints.forEach(function (endpoint, i) {
@@ -408,7 +408,7 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
 
             if (!self.knowsServerEndpoint) {
                 assert(self._secureChannel !== null);
-                self.getEndpointsRequest(function (err/*, endpoints*/) {
+                self.getEndpoints(function (err/*, endpoints*/) {
                     assert(self._secureChannel !== null);
                     _inner_callback(err);
                 });
@@ -700,7 +700,7 @@ OPCUAClientBase.prototype.findEndpoint = function (endpointUrl, securityMode, se
 
 
 /**
- * @method getEndpointsRequest
+ * @method getEndpoints
  * @async
  * @async
  *
@@ -713,7 +713,7 @@ OPCUAClientBase.prototype.findEndpoint = function (endpointUrl, securityMode, se
  * @param callback.serverEndpoints {Array<EndpointDescription>} the array of endpoint descriptions
  *
  */
-OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
+OPCUAClientBase.prototype.getEndpoints = function (options, callback) {
 
     const self = this;
 
@@ -744,6 +744,11 @@ OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
         }
         callback(err, self._server_endpoints);
     });
+};
+
+OPCUAClientBase.prototype.getEndpointsRequest = function(options,callback) {
+    console.log("note: OPCUAClientBase#getEndpointsRequest is deprecated, use OPCUAClientBase#getEndpoints instead");
+    return this.getEndpoints(options,callback);
 };
 
 /**
@@ -1019,3 +1024,19 @@ OPCUAClientBase.prototype.toString = function () {
 };
 
 exports.OPCUAClientBase = OPCUAClientBase;
+
+const thenify = require("thenify");
+/**
+ * @method connect
+ * @param endpointUrl {string}
+ * @async
+ * @return {Promise}
+ */
+OPCUAClientBase.prototype.connect = thenify.withCallback(OPCUAClientBase.prototype.connect);
+OPCUAClientBase.prototype.disconnect = thenify.withCallback(OPCUAClientBase.prototype.disconnect);
+OPCUAClientBase.prototype.getEndpoints = thenify.withCallback(OPCUAClientBase.prototype.getEndpoints);
+OPCUAClientBase.prototype.findServers = thenify.withCallback(OPCUAClientBase.prototype.findServers);
+OPCUAClientBase.prototype.findServersOnNetwork = thenify.withCallback(OPCUAClientBase.prototype.findServersOnNetwork);
+// deprecated:
+OPCUAClientBase.prototype.getEndpointsRequest = thenify.withCallback(OPCUAClientBase.prototype.getEndpointsRequest);
+

@@ -126,6 +126,99 @@ export interface OPCUAClientOptions {
     clientName?: string;
 }
 
+export interface findServerOptions {
+    endpointUrl?: string;
+    /**
+     *   List of locales to use.
+     */
+    localeIds?: Array<LocaleId>;
+    serverUris?: Array<string>;
+}
+export interface findServerOnNetworkOptions {
+    /**
+     * Only records with an identifier greater than this number will be returned. Specify 0 to start with the first record in the cache.
+     */
+    startingRecordId?: number;
+    /**
+     * The maximum number of records to return in the response.
+     0 indicates that there is no limit.
+     */
+    maxRecordsToReturn?: number;
+
+    /**
+     * List of Server capability filters. The set of allowed server capabilities are defined in Part 12.
+     * Only records with all of the specified server capabilities are returned.
+     * The comparison is case insensitive. If this list is empty then no filtering is performed.
+     * @property serverCapabilityFilter
+     * @type {String[]}
+     */
+    serverCapabilityFilter?: Array<string>
+}
+
+export type  LocaleId= string;
+
+export interface getEndpointsOptions {
+    endpointUrl?: string;
+    /**
+     *   List of locales to use.
+     */
+    localeIds?: Array<LocaleId>;
+    /**
+     *  List of transport profiles that the returned Endpoints shall support.
+     */
+    profileUris?: Array<string>;
+
+}
+
+export enum ApplicationType {
+    SERVER= 0, // The application is a Server
+    CLIENT= 1, // The application is a Client
+    CLIENTANDSERVER= 2, // The application is a Client and a Server
+    DISCOVERYSERVER= 3  // The application is a DiscoveryServer
+}
+
+export interface ApplicationDescription {
+    // The globally unique identifier for the application instance.
+    applicationUri: string;
+    // The globally unique identifier for the product.
+    productUri: string;
+    // A localized descriptive name for the application.
+    applicationName: LocalizedText;
+    // The type of application.
+    applicationType: ApplicationType;
+    // A URI that identifies the Gateway Server associated with the discoveryUrls .
+    // this flag is not used if applicationType === CLIENT
+    gatewayServerUri: string;
+    // A URI that identifies the discovery profile supported by the URLs provided
+    discoveryProfileUri: string;
+    // A list of URLs for the discovery Endpoints provided by the application
+    discoveryUrls: Array<string>;
+}
+
+interface ServerOnNetwork {
+    /**
+     * A unique identifier for the record
+     * This can be used to fetch the next batch of Servers in a subsequent
+     * call to FindServersOnNetwork
+     */
+    recordId: number;
+
+    /**
+     * The name of the Server specified in the mDNS announcement (see Part 12).This may be the same as the ApplicationName for the Server.
+     */
+    serverName: string;
+
+    /**
+     * The URL of the discovery Endpoint.
+     */
+    discoveryUrl: string;
+
+    /**
+     * The set of Server capabilities supported by the Server.The set of allowed Server capabilities are defined in Part 12
+     */
+    serverCapabilities: Array<string>
+}
+
 export declare class OPCUAClientBase {
     /**
      *
@@ -158,11 +251,22 @@ export declare class OPCUAClientBase {
     connect(endpointUrl: string): Promise<void>;
 
     disconnect(callback: ErrorCallback): void;
-
     disconnect(): Promise<void>;
 
     performMessageTransaction(request: any, callback: ResponseCallback<any>): void;
 
+    getEndpoints(): Promise<Array<EndpointDescription>>;
+    getEndpoints(options: getEndpointsOptions): Promise<Array<EndpointDescription>>;
+    getEndpoints(options: getEndpointsOptions, callback: ResponseCallback<Array<EndpointDescription>> ): void;
+    getEndpoints(callback: ResponseCallback<Array<EndpointDescription>> ): void;
+
+    findServers(options?: findServerOptions): Promise<Array<ApplicationDescription>>;
+    findServersOnNetwork(options?: findServerOnNetworkOptions): Promise<Array<ServerOnNetwork>>;
+    findServers(options?: findServerOptions, callback: ResponseCallback<Array<ApplicationDescription>>):void;
+    findServersOnNetwork(options?: findServerOnNetworkOptions, callback: ResponseCallback<Array<ServerOnNetwork>>):void
+
+
+    findEndpointForSecurity(securityMode,securityPolicy):string;
     /**
      * @method on
      * @param {string} event

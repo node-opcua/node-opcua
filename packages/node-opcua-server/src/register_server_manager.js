@@ -236,7 +236,7 @@ RegisterServerManager.prototype._establish_initial_connection = function (outer_
         },
 
         function (callback) {
-            client.getEndpointsRequest(function (err, endpoints) {
+            client.getEndpoints(function (err, endpoints) {
                 if (!err) {
                     const endpoint = findSecureEndpoint(endpoints);
                     assert(endpoint);

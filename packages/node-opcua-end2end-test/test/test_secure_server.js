@@ -142,7 +142,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
 
             // create session
             function (callback) {
-                client.getEndpointsRequest(function (err, endpoints) {
+                client.getEndpoints(function (err, endpoints) {
                     if (!err) {
                         //xx console.log(endpoints);
                         endpoints.length.should.eql(1);

@@ -384,7 +384,7 @@ async.series([
     function (callback) {
 
 
-        client.getEndpointsRequest(function (err, endpoints) {
+        client.getEndpoints(function (err, endpoints) {
 
             if (argv.debug) {
                 fs.writeFile("tmp/endpoints.log", JSON.stringify(endpoints, null, " "));

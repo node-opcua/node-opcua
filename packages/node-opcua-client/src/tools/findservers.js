@@ -27,7 +27,7 @@ function perform_findServers(discovery_server_endpointUrl, callback) {
             });
         },
         function (callback) {
-            client.getEndpointsRequest({endpointUrl:null},function (err, _endpoints) {
+            client.getEndpoints({endpointUrl:null},function (err, _endpoints) {
                 endpoints =  _endpoints;
                 callback(err);
             });

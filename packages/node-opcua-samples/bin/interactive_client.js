@@ -524,7 +524,7 @@ function process_line(line) {
         case "gep":
         case "getEndpoints":
             apply_command(cmd,function(callback){
-                client.getEndpointsRequest(function (err, endpoints) {
+                client.getEndpoints(function (err, endpoints) {
                     if (err) {
                         log(err.message);
                     }
