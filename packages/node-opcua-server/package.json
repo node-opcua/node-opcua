@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-server",
- "version": "0.4.0",
+ "version": "0.4.1",
  "description": "pure nodejs OPCUA SDK - module -server",
  "scripts": {
   "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
@@ -17,7 +17,7 @@
   "node-opcua-address-space": "^0.4.0",
   "node-opcua-assert": "^0.4.0",
   "node-opcua-basic-types": "^0.4.0",
-  "node-opcua-client": "^0.4.0",
+  "node-opcua-client": "^0.4.1",
   "node-opcua-common": "^0.4.0",
   "node-opcua-constants": "^0.2.0",
   "node-opcua-crypto": "0.0.18",
