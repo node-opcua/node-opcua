@@ -55,7 +55,7 @@ function packTcpMessage(msgType, encodableObject) {
 
 // opc.tcp://xleuri11022:51210/UA/SampleServer
 function parseEndpointUrl(endpointUrl) {
-    const r = /^([a-z.]*):\/\/([a-zA-Z_\-.\-0-9]*)(:[0-9]{1,5})(\/.*){0,1}/;
+    const r = /^([a-z.]*):\/\/([a-zA-Z_\-.\-0-9]*):([0-9]{1,5})(\/.*){0,1}/;
 
     const matches = r.exec(endpointUrl);
 
