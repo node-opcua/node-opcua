@@ -1313,12 +1313,16 @@ ClientSecureChannelLayer.prototype.close = function (callback) {
         return callback(new Error("Transport disconnected"));
     }
 
+	/* The Client closes the connection by sending a CloseSecureChannel request and closing the
+		socket gracefully. */
     self._performMessageTransaction("CLO", request, function () {
         ///xx self._transport.disconnect(function() {
         self.dispose();
         callback();
         //xxx });
     });
+	/* socket close */
+	self._transport.disconnect(); // send [FIN,ACK]
 };
 
 ClientSecureChannelLayer.prototype.__defineGetter__("bytesRead", function () {
