@@ -1322,7 +1322,10 @@ ClientSecureChannelLayer.prototype.close = function (callback) {
         //xxx });
     });
 	/* socket close */
-	self._transport.disconnect(); // send [FIN,ACK]
+	if(self._transport){
+		self._transport.disconnect(function(){return;}); // send [FIN,ACK]	
+	}
+	
 };
 
 ClientSecureChannelLayer.prototype.__defineGetter__("bytesRead", function () {
