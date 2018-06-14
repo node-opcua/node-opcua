@@ -3,6 +3,7 @@ const assert = require("node-opcua-assert").assert;
 
 const Reference = require("../src/reference").Reference;
 const sameNodeId = require("node-opcua-nodeid").sameNodeId;
+const NodeId  = require("node-opcua-nodeid").NodeId;
 
 /**
  * asserts that the provided reference exists in the node references
@@ -26,7 +27,7 @@ function assertHasMatchingReference(node, reference) {
     const addressSpace = node.addressSpace;
 
     const normalizedReference = addressSpace.normalizeReferenceType(reference);
-    assert(typeof normalizedReference.referenceType === "string");
+    assert( normalizedReference.referenceType instanceof NodeId);
 
     let refs = node.findReferences(normalizedReference.referenceType,normalizedReference.isForward);
 

@@ -36,9 +36,14 @@ module.exports = function (test) {
                 // find the session diagnostic info...
                 const relativePath = "/Objects/Server.ServerDiagnostics.SubscriptionDiagnosticsArray";
 
+                console.log("subscriptionid",subscription.subscriptionId);
+
+                function m(name) {
+                    return "1:"+name
+                }
                 const browsePath = [
                     opcua.makeBrowsePath("RootFolder", relativePath),
-                    opcua.makeBrowsePath("RootFolder", relativePath + "." + subscription.subscriptionId)
+                    opcua.makeBrowsePath("RootFolder", relativePath + ".1:" + subscription.subscriptionId)
                 ];
                 session.translateBrowsePath(browsePath, function (err, result) {
                     //xx console.log("Result = ", result.toString());

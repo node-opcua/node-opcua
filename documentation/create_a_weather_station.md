@@ -123,8 +123,8 @@ our project folder. The key value can be easily read in nodejs using this code.
 
 ``` javascript
 // read the World Weather Online API key.
-var fs = require("fs");
-var key = fs.readFileSync("worldweatheronline.key");
+const fs = require("fs");
+const key = fs.readFileSync("worldweatheronline.key");
 ```
 
 
@@ -141,7 +141,7 @@ an object containing the temperature and pressure of a city. This function will 
 /*global require,console */
 /*jshint evil:true */
 _"get city weather"
-var city = "London";
+const city = "London";
 getCityWeather(city,function(err,data) {
     if (!err) {
     console.log("data = data",data);
@@ -159,17 +159,17 @@ Let's write the method that reads the weather of a city.
 
 ```javascript
 _"accessing the worldweatheronline API key"
+const request = require("request");
 function getCityWeather(city,callback) {
-    var api_url="http://api.worldweatheronline.com/free/v2/weather.ashx?q="+city+"+&format=json&key="+ key;
-    var options = {
+    const api_url="http://api.worldweatheronline.com/free/v2/weather.ashx?q="+city+"+&format=json&key="+ key;
+    const options = {
         url: api_url,
         "content-type": "application-json",
         json: ""
     };
-    var request = require("request");
     request(options, function (error, response, body) {
       if (!error && response.statusCode === 200) {
-        var data  = perform_read(city,body);
+        const data  = perform_read(city,body);
         callback(null,data);
       } else {
         callback(error);
@@ -185,9 +185,9 @@ The ```perform_read``` function convert the raw json data retrieved from the API
 
 ```javascript
 function perform_read(city,body) {
-    var obj = JSON.parse(body);
-    var current_condition = obj.data.current_condition[0];
-    var request = obj.data.request[0];
+    const obj = JSON.parse(body);
+    const current_condition = obj.data.current_condition[0];
+    const request = obj.data.request[0];
     return  {
         city:               request.query,
         date:               new Date(),
@@ -211,7 +211,7 @@ The Weather Station Server will have to query the weather data of a city on a re
 In NodeJs, the setInterval function can be used to perform a action periodically.
 
 ``` javascript
-var london_data = {}
+let london_data = {}
 setInterval(function() {
    getCityWeather("London",function(err,data) {
        if (!err) {
@@ -238,12 +238,12 @@ Just to make it fun, I added Longyearbyen, the [northenmost city in the world](h
 
 ```javascript
 /*global require,setInterval,console */
-var cities = [ 'London','Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
+const cities = [ 'London','Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
 _"get city weather"
-var city_data_map = { };
+const city_data_map = { };
 // a infinite round-robin iterator over the city array
-var next_city = function(arr) {
-   var counter = arr.length;
+function next_city (arr) {
+   const counter = arr.length;
    return function() {
       counter += 1;
       if (counter>=arr.length) {
@@ -263,9 +263,9 @@ function update_city_data(city) {
      });
 }
 // make a API call every 10 seconds
-var interval = 10* 1000;
+const interval = 10* 1000;
 setInterval(function() {
-     var city = next_city();
+     const city = next_city();
      update_city_data(city);
 }, interval);
 ```
@@ -284,9 +284,9 @@ Error.stackTraceLimit = Infinity;
 
 _"making a round robin read"
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var server = new opcua.OPCUAServer({
+const server = new opcua.OPCUAServer({
    port: 4334 // the port of the listening socket of the server
 });
 
@@ -302,7 +302,7 @@ function post_initialize() {
     server.start(function() {
         console.log("Server is now listening ... ( press CTRL+C to stop)");
         console.log("port ", server.endpoints[0].port);
-        var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         console.log(" the primary server endpoint url is ", endpointUrl );        
     });
 }
@@ -318,10 +318,12 @@ The server address space will be made of a ```Cities``` folder containing one fo
 
 ```javascript
 // declare some folders
-var citiesNode  = server.engine.addressSpace.addFolder("ObjectsFolder",{ browseName: "Cities"});
+const addressSpace = server.engine.addressSpace;
+const namespace = addressSpace.getPrivateNamespace();
+const citiesNode  = namespace.addFolder("ObjectsFolder",{ browseName: "Cities"});
 function create_CityNode(city_name) {
     // declare the city node
-    var cityNode = server.engine.addressSpace.addFolder(citiesNode,{ browseName: city_name });
+    const cityNode = namespace.addFolder(citiesNode,{ browseName: city_name });
     _"construct city weather variables"
 }
 cities.forEach(function(city) {
@@ -339,11 +341,11 @@ In the absence of city data, I have chose to send a BadUncertainInitalValue stat
 
 ```javascript
 function extract_value(city_name,property) {
-    var city = city_data_map[city_name];
+    const city = city_data_map[city_name];
     if (!city) {
         return opcua.StatusCodes.BadDataUnavailable
     }
-    var value = city[property];
+    const value = city[property];
     return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
 }
 ```
@@ -353,13 +355,13 @@ function extract_value(city_name,property) {
 Each city node exposes 3 read-only variables that can be instantiated this way:
 
 ```javascript
-server.engine.addressSpace.addVariable({
+namespace.addVariable({
     componentOf: cityNode,
     browseName: "Temperature",
     dataType: "Double",
     value: {  get: function () { return extract_value(city_name,"temperature"); } }
 });
-server.engine.addressSpace.addVariable({
+namespace.addVariable({
     componentOf: cityNode,
     browseName: "Humidity",
     dataType: "Double",

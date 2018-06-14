@@ -20,6 +20,9 @@ describe("DataAccess", function () {
     const data = { };
     before(function (done) {
         addressSpace = new AddressSpace();
+
+        addressSpace.registerNamespace("MyPrivateNamespace");
+
         data.addressSpace = addressSpace;
 
         const xmlFiles = [

@@ -55,7 +55,7 @@ UADataType.prototype.readAttribute = function (context, attributeId) {
     const options = {};
     switch (attributeId) {
         case AttributeIds.IsAbstract:
-            options.value = {dataType: DataType.Boolean, value: this.isAbstract ? true : false};
+            options.value = {dataType: DataType.Boolean, value: !!this.isAbstract };
             options.statusCode = StatusCodes.Good;
             break;
         default:

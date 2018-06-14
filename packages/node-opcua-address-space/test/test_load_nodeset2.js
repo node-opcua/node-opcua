@@ -6,9 +6,8 @@ const DataType = require("node-opcua-variant").DataType;
 const should = require("should");
 const path = require("path");
 const fs = require("fs");
-var getFixture = require("node-opcua-test-fixtures").getFixture;
 const nodesets = require("node-opcua-nodesets");
-var getFixture = require("node-opcua-test-fixtures").getFixture;
+const getFixture = require("node-opcua-test-fixtures").getFixture;
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -24,11 +23,13 @@ describe("testing NodeSet XML file loading", function () {
     beforeEach(function () {
 
         addressSpace = new AddressSpace();
-        Object.keys(addressSpace._aliases).length.should.equal(0);
-        Object.keys(addressSpace._variableTypeMap).length.should.equal(0);
-        Object.keys(addressSpace._referenceTypeMap).length.should.equal(0);
-        Object.keys(addressSpace._dataTypeMap).length.should.equal(0);
-        Object.keys(addressSpace._objectTypeMap).length.should.equal(0);
+        const namespace0 = addressSpace.getDefaultNamespace();
+
+        Object.keys(namespace0._aliases).length.should.equal(0);
+        Object.keys(namespace0._variableTypeMap).length.should.equal(0);
+        Object.keys(namespace0._referenceTypeMap).length.should.equal(0);
+        Object.keys(namespace0._dataTypeMap).length.should.equal(0);
+        Object.keys(namespace0._objectTypeMap).length.should.equal(0);
     });
     afterEach(function (done) {
         if (addressSpace) {
@@ -46,11 +47,12 @@ describe("testing NodeSet XML file loading", function () {
 
         generate_address_space(addressSpace, xml_file, function (err) {
 
-            Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(3);
-            Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(2);
-            Object.keys(addressSpace._objectTypeMap).length.should.be.greaterThan(1);
+            const namespace0 = addressSpace.getDefaultNamespace();
+            Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
+            Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(3);
+            Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
+            Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(2);
+            Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(1);
             done(err);
         });
     });
@@ -66,11 +68,13 @@ describe("testing NodeSet XML file loading", function () {
 
         generate_address_space(addressSpace, xml_file, function (err) {
 
-            Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._objectTypeMap).length.should.be.greaterThan(10);
+            const namespace0 = addressSpace.getDefaultNamespace();
+
+            Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
+            Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(10);
+            Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
+            Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(10);
+            Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(10);
 
             done(err);
         });
@@ -87,11 +91,23 @@ describe("testing NodeSet XML file loading", function () {
 
         generate_address_space(addressSpace, xml_files, function (err) {
 
-            Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._objectTypeMap).length.should.be.greaterThan(10);
+            const namespace0 = addressSpace.getDefaultNamespace();
+            namespace0.namespaceUri.should.eql("http://opcfoundation.org/UA/");
+
+            Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
+            Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(10);
+            Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
+            Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(10);
+            Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(10);
+
+            const namespace1 = addressSpace.getNamespace(1);
+            namespace1.namespaceUri.should.eql("http://opcfoundation.org/UA/DI/");
+
+            Object.keys(namespace1._aliases).length.should.be.eql(0);
+            Object.keys(namespace1._variableTypeMap).length.should.be.greaterThan(0);
+            Object.keys(namespace1._referenceTypeMap).length.should.be.greaterThan(2);
+            Object.keys(namespace1._dataTypeMap).length.should.be.greaterThan(4);
+            Object.keys(namespace1._objectTypeMap).length.should.be.greaterThan(9   );
 
             done(err);
         });
@@ -185,7 +201,10 @@ describe("testing NodeSet XML file loading", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
 
             const ns = addressSpace.getNamespaceIndex("MYNAMESPACE");
+            ns.should.eql(1);
             const my3x3MatrixType = addressSpace.findVariableType("My3x3MatrixType", ns);
+            should.exist(my3x3MatrixType);
+
             my3x3MatrixType.browseName.toString().should.eql("1:My3x3MatrixType");
 
             addressSpace.findDataType(my3x3MatrixType.dataType).browseName.toString().should.eql("Float");
@@ -217,6 +236,46 @@ describe("testing NodeSet XML file loading", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
             addressSpace.rootFolder.objects.server.serverStatus.valueRank.should.eql(-1);
             done(err);
+        });
+
+    });
+
+    it("VV1 should load a nodeset file with a Models section",function(done){
+
+
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
+
+        const xml_files = [
+            xml_file1
+        ];
+         generate_address_space(addressSpace, xml_files, function (err) {
+            done();
+        });
+
+    });
+    it("VV2 should load a nodeset file with hierarchy of Models",function(done){
+
+
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models_more_complex.xml");
+
+        const xml_files = [
+            xml_file1
+        ];
+        generate_address_space(addressSpace, xml_files, function (err) {
+            done();
+        });
+
+    });
+    it("VV3 should load a nodeset from UAModeler",function(done){
+
+
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        const xml_file2= path.join(__dirname, "../../../modeling/my_data_type.xml");
+
+        const xml_files = [ xml_file1, xml_file2];
+
+        generate_address_space(addressSpace, xml_files, function (err) {
+            done();
         });
 
     });

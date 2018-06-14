@@ -13,6 +13,7 @@ const Variant = require("node-opcua-variant").Variant;
 const DataType = require("node-opcua-variant").DataType;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const NodeId = require("node-opcua-nodeid").NodeId;
+const sameNodeId = require("node-opcua-nodeid").sameNodeId;
 const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
 
 const doDebug = false;
@@ -31,6 +32,8 @@ const SimpleAttributeOperand = require("node-opcua-service-filter").SimpleAttrib
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const context = require("./session_context").SessionContext.defaultContext;
 const DataValue = require("node-opcua-data-value").DataValue;
+
+const Namespace = require("./namespace").Namespace;
 
 /**
  * @class EventData
@@ -143,11 +146,11 @@ exports.install = function (AddressSpace) {
      *
      * @example
      *
-     *      var evtType = addressSpace.addEventType({
+     *      var evtType = namespace.addEventType({
      *          browseName: "MyAuditEventType",
      *          subtypeOf:  "AuditEventType"
      *      });
-     *      var myConditionType = addressSpace.addEventType({
+     *      var myConditionType = namespace.addEventType({
      *          browseName: "MyConditionType",
      *          subtypeOf:  "ConditionType",
      *          isAbstract: false
@@ -155,6 +158,11 @@ exports.install = function (AddressSpace) {
      *
      */
     AddressSpace.prototype.addEventType = function (options) {
+        console.log("AddressSpace#addEventType is deprecated. please use addressSpace.getPrivateNamespace().addEventType() instead");
+        return this._resolveRequestedNamespace(options).addEventType(options);
+    };
+
+    Namespace.prototype.addEventType = function (options) {
         options.subtypeOf = options.subtypeOf || "BaseEventType";
         // are eventType always abstract ?? No => Condition can be instantiated!
         // but, by default is abstract is true
@@ -172,7 +180,7 @@ exports.install = function (AddressSpace) {
      * find an EventType node in the address space
      * @method findEventType
      * @param eventTypeId {String|NodeId|UAObjectType} the eventType to find
-     * @param namespace the namespace index of the event to find
+     * @param namespaceIndex the namespace index of the event to find
      * @return {UAObjectType|null} the EventType found or null.
      *
      * note:
@@ -184,13 +192,13 @@ exports.install = function (AddressSpace) {
      *     var evtType = addressSpace.findEventType("AuditEventType");
      *
      */
-    AddressSpace.prototype.findEventType = function (eventTypeId,namespace) {
+    AddressSpace.prototype.findEventType = function (eventTypeId,namespaceIndex) {
 
         let eventType;
         if (eventTypeId && eventTypeId.nodeId) {
             eventType = eventTypeId;
         } else {
-            eventType = this.findObjectType(eventTypeId,namespace);
+            eventType = this.findObjectType(eventTypeId,namespaceIndex);
         }
         if (!eventType) {
             return null;
@@ -360,7 +368,7 @@ exports.install = function (AddressSpace) {
 
         function populate_data(self, eventData) {
 
-            if (baseObjectType.nodeId === self.nodeId) {
+            if (sameNodeId(baseObjectType.nodeId,self.nodeId)) {
                 return; // nothing to do
             }
 

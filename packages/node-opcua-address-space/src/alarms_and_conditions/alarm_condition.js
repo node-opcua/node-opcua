@@ -19,6 +19,8 @@ const conditions = require("./condition");
 const ConditionInfo = require("./condition").ConditionInfo;
 const ConditionSnapshot = conditions.ConditionSnapshot;
 const AddressSpace = require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
+
 const NodeId = require("node-opcua-nodeid").NodeId;
 
 const UAAcknowledgeableConditionBase = require("./acknowledgeable_condition").UAAcknowledgeableConditionBase;
@@ -697,6 +699,7 @@ exports.UAAlarmConditionBase = UAAlarmConditionBase;
 
 /**
  * @method (static)UAAlarmConditionBase.instantiate
+ * @param namespace {Namespace}
  * @param alarmConditionTypeId
  * @param options
  * @param options.inputNode
@@ -704,7 +707,10 @@ exports.UAAlarmConditionBase = UAAlarmConditionBase;
  * @param [options.maxTimeShelved {Number|null}] max TimeShelved duration (in ms)
  * @param data
  */
-UAAlarmConditionBase.instantiate = function (addressSpace, alarmConditionTypeId, options, data) {
+UAAlarmConditionBase.instantiate = function (namespace, alarmConditionTypeId, options, data) {
+
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.__addressSpace;
 
     //xx assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
     assert(options.hasOwnProperty("inputNode")); // must provide a inputNode
@@ -729,7 +735,7 @@ UAAlarmConditionBase.instantiate = function (addressSpace, alarmConditionTypeId,
 
     assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
 
-    const alarmNode = UAAcknowledgeableConditionBase.instantiate(addressSpace, alarmConditionTypeId, options, data);
+    const alarmNode = UAAcknowledgeableConditionBase.instantiate(namespace, alarmConditionTypeId, options, data);
     Object.setPrototypeOf(alarmNode, UAAlarmConditionBase.prototype);
 
     // ----------------------- Install Alarm specifics

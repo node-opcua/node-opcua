@@ -63,3 +63,4 @@ export { constructFilename } from "./construct_filename";
 export { getFunctionParameterNames } from "./get_function_parameters_name";
 export { WatchDog } from "./watchdog";
 export { LineFile } from "./linefile";
+export { setDeprecated } from "./set_deprecated";

@@ -185,7 +185,6 @@ MandatoryChildOrRequestedOptionalFilter.prototype.shouldKeep = function(node)
         case "Optional":
             // only if in requested optionals
             return (node.browseName.name in self.optionalsMap);
-            break;
         case "OptionalPlaceHolder":
             return false; // ignored
         default:
@@ -310,9 +309,18 @@ CloneHelper.prototype.registerClonedObject = function(objInType,clonedObj) {
 //
 function _initialize_properties_and_components(instance,topMostType,typeNode,optionalsMap, extraInfo) {
 
+    if (doDebug){
+        console.log("instance browseName =",instance.browseName.toString());
+        console.log("typeNode         =",typeNode.browseName.toString());
+        console.log("optionalsMap     =",Object.keys(optionalsMap).join(" "));
+
+        const c = typeNode.findReferencesEx("Aggregates");
+        console.log("type possibilities      =",c.map(x=>x.node.browseName.toString()).join(" "));
+
+    }
     optionalsMap = optionalsMap || {};
 
-    if (topMostType.nodeId === typeNode.nodeId) {
+    if (sameNodeId(topMostType.nodeId,typeNode.nodeId)) {
         return; // nothing to do
     }
 
@@ -384,14 +392,14 @@ function assertUnusedChildBrowseName(addressSpace,options) {
 exports.assertUnusedChildBrowseName = assertUnusedChildBrowseName;
 exports.initialize_properties_and_components = initialize_properties_and_components;
 
-//xx var hasTypeDefintionNodeId = makeNodeId(40);
-//xx var hasModellingRuleNodeId = makeNodeId(37);
+const hasTypeDefinitionNodeId = makeNodeId(40);
+const hasModellingRuleNodeId = makeNodeId(37);
 function _remove_unwanted_ref(references) {
     // filter out HasTypeDefinition (i=40) , HasModellingRule (i=37);
     references = _.filter(references,function(reference) {
         assert(reference instanceof Reference);
-        return reference.referenceType !== "HasTypeDefinition"  &&
-               reference.referenceType !== "HasModellingRule" ;
+        return !sameNodeId(reference.referenceType,hasTypeDefinitionNodeId)  &&
+               !sameNodeId(reference.referenceType,hasModellingRuleNodeId) ;
     });
     return references;
 }
@@ -610,7 +618,7 @@ UAVariableType.prototype.instantiate = function (options) {
     //xx assert(!self.isAbstract, "cannot instantiate abstract UAVariableType");
 
     assert(options, "missing option object");
-    assert(_.isString(options.browseName), "expecting a browse name");
+    assert(_.isString(options.browseName)|| _.isObject(options.browseName), "expecting a browse name");
     assert(!options.hasOwnProperty("propertyOf"),"Use addressSpace#addVariable({ propertyOf: xxx}); to add a property");
 
     assertUnusedChildBrowseName(addressSpace,options);
@@ -650,7 +658,8 @@ UAVariableType.prototype.instantiate = function (options) {
         minimumSamplingInterval: options.minimumSamplingInterval
     };
 
-    const instance = addressSpace.addVariable(opts);
+    const namespace = addressSpace.getPrivateNamespace();
+    const instance = namespace.addVariable(opts);
 
     //xx assert(instance.minimumSamplingInterval === options.minimumSamplingInterval);
 

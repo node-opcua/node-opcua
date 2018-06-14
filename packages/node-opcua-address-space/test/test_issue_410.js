@@ -27,11 +27,17 @@ describe("AnalogDataItem ValuePrecision issue #410", function () {
 
     before(function (done) {
         addressSpace = new AddressSpace();
+
+        let namespace = addressSpace.registerNamespace("Private");
+        namespace.index.should.eql(1);
+
+
         generateAddressSpace(addressSpace, nodesetFilename, function () {
+
 
             const objectsFolder = addressSpace.findNode("ObjectsFolder");
 
-            analogItem = addressSpace.addAnalogDataItem({
+            analogItem = namespace.addAnalogDataItem({
                 organizedBy: objectsFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",

@@ -8,6 +8,7 @@
 module.exports = {
 
     AddressSpace: require("./src/address_space").AddressSpace,
+    Namespace: require("./src/namespace").Namespace,
 
     SessionContext: require("./src/session_context").SessionContext,
 

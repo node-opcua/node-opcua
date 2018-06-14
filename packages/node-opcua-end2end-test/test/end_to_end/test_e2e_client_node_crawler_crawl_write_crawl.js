@@ -89,7 +89,7 @@ describe("NodeCrawler after write",function(){
 
                 function(inner_done) {
 
-                    const nodeId = opcua.coerceNodeId(2294);
+                    const nodeId = "ns=2;s=Scalar_Static_Boolean";// opcua.coerceNodeId(2294);
 
                     const dataValue = {
                         dataType: DataType.Boolean,

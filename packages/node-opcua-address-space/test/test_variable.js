@@ -24,6 +24,7 @@ const UAVariable = address_space.UAVariable;
 const SessionContext = address_space.SessionContext;
 const generate_address_space = address_space.generate_address_space;
 const context = SessionContext.defaultContext;
+const create_minimalist_address_space_nodeset = require("../test_helpers/create_minimalist_address_space_nodeset");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Variables ", function () {
@@ -31,10 +32,12 @@ describe("testing Variables ", function () {
     it("ZZ1- a variable should return attributes with  the expected data type ", function () {
 
         const addressSpace = new address_space.AddressSpace();
-
-        const v = new UAVariable({
+        create_minimalist_address_space_nodeset(addressSpace);
+        const namespace = addressSpace.registerNamespace("Private");
+        namespace.index.should.eql(1);
+        const v = namespace.addVariable({
+            dataType: "Double",
             browseName: "some variable",
-            addressSpace: addressSpace,
             minimumSamplingInterval: 10,
             arrayDimensions: [1, 2, 3],
             userAccessLevel: "CurrentRead",
@@ -94,11 +97,14 @@ describe("testing Variables ", function () {
 
 describe("Address Space : add Variable :  testing various variations for specifying dataType", function () {
 
-    let addressSpace;
+    let addressSpace, namespace;
     let rootFolder;
     before(function (done) {
         addressSpace = new address_space.AddressSpace();
         generate_address_space(addressSpace, nodeset_filename, function () {
+
+            namespace = addressSpace.registerNamespace("Private");
+            namespace.index.should.eql(1);
 
             rootFolder = addressSpace.findNode("RootFolder");
 
@@ -114,7 +120,7 @@ describe("Address Space : add Variable :  testing various variations for specify
 
     it("AddressSpace#addVariable should accept a dataType as String", function () {
 
-        const nodeVar = addressSpace.addVariable({
+        const nodeVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariable1",
             dataType: "ImagePNG"
@@ -126,7 +132,7 @@ describe("Address Space : add Variable :  testing various variations for specify
 
         const DataTypeIds = require("node-opcua-constants").DataTypeIds;
 
-        const nodeVar = addressSpace.addVariable({
+        const nodeVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariable2",
             dataType: DataTypeIds.ImagePNG
@@ -137,8 +143,7 @@ describe("Address Space : add Variable :  testing various variations for specify
     });
     it("AddressSpace#addVariable should accept a dataType as a NodeId object", function () {
 
-
-        const nodeVar = addressSpace.addVariable({
+        const nodeVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariable3",
             dataType: makeNodeId(2003, 0)
@@ -149,7 +154,7 @@ describe("Address Space : add Variable :  testing various variations for specify
     });
     it("AddressSpace#addVariable should accept a dataType as a NodeId string", function () {
 
-        const nodeVar = addressSpace.addVariable({
+        const nodeVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariable4",
             dataType: "ns=0;i=2003"
@@ -160,7 +165,7 @@ describe("Address Space : add Variable :  testing various variations for specify
     });
     it("AddressSpace#addVariable({propertyOf:..}) should accept a typeDefinition as a String", function () {
 
-        const nodeVar = addressSpace.addVariable({
+        const nodeVar = namespace.addVariable({
 
             propertyOf: rootFolder,
             typeDefinition: "PropertyType",
@@ -175,7 +180,7 @@ describe("Address Space : add Variable :  testing various variations for specify
 
         const VariableTypeIds = require("node-opcua-constants").VariableTypeIds;
 
-        const nodeVar = addressSpace.addVariable({
+        const nodeVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariable6",
             dataType: "Double",
@@ -186,7 +191,7 @@ describe("Address Space : add Variable :  testing various variations for specify
 
     });
     it("AddressSpace#addVariable should accept a typeDefinition as a NodeId object", function () {
-        const nodeVar = addressSpace.addVariable({
+        const nodeVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariable7",
             dataType: "Double",
@@ -196,7 +201,7 @@ describe("Address Space : add Variable :  testing various variations for specify
         nodeVar.typeDefinition.toString().should.eql("ns=0;i=68");
     });
     it("AddressSpace#addVariable should accept a typeDefinition as a NodeId string", function () {
-        const nodeVar = addressSpace.addVariable({
+        const nodeVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariable8",
             dataType: "Double",
@@ -207,7 +212,7 @@ describe("Address Space : add Variable :  testing various variations for specify
     });
     it("AddressSpace#addVariable should throw if typeDefinition is invalid", function () {
         should(function () {
-            const nodeVar = addressSpace.addVariable({
+            const nodeVar = namespace.addVariable({
                 organizedBy: rootFolder,
                 browseName: "SomeVariable9",
                 dataType: "Double",
@@ -220,10 +225,15 @@ describe("Address Space : add Variable :  testing various variations for specify
 
 describe("testing Variable#bindVariable", function () {
 
-    let addressSpace, rootFolder;
+    let addressSpace, namespace, rootFolder;
     before(function (done) {
         addressSpace = new address_space.AddressSpace();
         generate_address_space(addressSpace, nodeset_filename, function () {
+
+            addressSpace.registerNamespace("Private");
+
+            namespace = addressSpace.getPrivateNamespace();
+            namespace.index.should.eql(1);
 
             rootFolder = addressSpace.findNode("RootFolder");
 
@@ -240,7 +250,7 @@ describe("testing Variable#bindVariable", function () {
 
     it("T1 - testing Variable#bindVariable -> Getter - should create a static read only variable ( static value defined at construction time)", function (done) {
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariableT1",
             dataType: "Double",
@@ -297,7 +307,7 @@ describe("testing Variable#bindVariable", function () {
 
         const sameDataValue = require("node-opcua-data-value").sameDataValue;
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "Variable37",
             dataType: "Double",
@@ -354,7 +364,7 @@ describe("testing Variable#bindVariable", function () {
 
     it("T3 - testing Variable#bindVariable -> Getter - should create a variable with synchronous get and set functor", function (done) {
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariable",
             dataType: "Double",
@@ -425,7 +435,7 @@ describe("testing Variable#bindVariable", function () {
 
     it("T4 - testing Variable#bindVariable -> Getter - should create a read only variable with a timestamped_get", function (done) {
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariableT3",
             dataType: "Double",
@@ -494,7 +504,7 @@ describe("testing Variable#bindVariable", function () {
 
     it("T5 - testing Variable#bindVariable -> Getter - should create a read only variable with a refreshFunc", function (done) {
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariableT4",
             dataType: "Double",
@@ -565,7 +575,7 @@ describe("testing Variable#bindVariable", function () {
 
     it("Q1 - testing Variable#bindVariable -> Setter - should create a variable with a sync  setter", function (done) {
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             browseName: "SomeVariableQ1",
             dataType: "Double",
             typeDefinition: makeNodeId(68)
@@ -609,7 +619,7 @@ describe("testing Variable#bindVariable", function () {
 
     it("Q2 - testing Variable#bindVariable -> Setter - should create a variable with a async  setter", function (done) {
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariableQ1",
             dataType: "Double",
@@ -656,7 +666,7 @@ describe("testing Variable#bindVariable", function () {
 
     it("Q3 - testing Variable#bindVariable -> Setter - should create a variable with a sync timestamped setter", function (done) {
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariableQ1",
             dataType: "Double",
@@ -729,7 +739,7 @@ describe("testing Variable#bindVariable", function () {
             }
         };
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeVariableQ1",
             dataType: "Double",
@@ -769,23 +779,26 @@ describe("testing Variable#bindVariable", function () {
 
 describe("testing Variable#writeValue Scalar", function () {
 
-    let addressSpace, rootFolder, variable;
+    let addressSpace, namespace, rootFolder, variable;
 
     before(function (done) {
 
         addressSpace = new address_space.AddressSpace();
         generate_address_space(addressSpace, nodeset_filename, function () {
 
+            namespace = addressSpace.registerNamespace("Private");
+            namespace.index.should.eql(1);
+
+            namespace = addressSpace.getPrivateNamespace();
+
             rootFolder = addressSpace.findNode("RootFolder");
 
-            variable = new UAVariable({
+            variable = namespace.addVariable({
                 browseName: "some variable",
-                addressSpace: addressSpace,
                 minimumSamplingInterval: 10,
                 userAccessLevel: "CurrentRead | CurrentWrite",
                 accessLevel: "CurrentRead | CurrentWrite",
                 dataType: "Duration",
-
                 value: new Variant({
                     arrayType: VariantArrayType.Scalar,
                     dataType: DataType.Double,
@@ -843,19 +856,20 @@ describe("testing Variable#writeValue Scalar", function () {
 
 describe("testing Variable#writeValue Array", function () {
 
-    let addressSpace, rootFolder, variable;
+    let addressSpace, namespace, rootFolder, variable;
 
     before(function (done) {
         addressSpace = new address_space.AddressSpace();
         generate_address_space(addressSpace, nodeset_filename, function () {
+            addressSpace.registerNamespace("Private");
+            namespace = addressSpace.getPrivateNamespace();
 
             rootFolder = addressSpace.findNode("RootFolder");
 
 
-            variable = new UAVariable({
+            variable = addressSpace.getPrivateNamespace().addVariable({
                 browseName: "some variable",
-                addressSpace: addressSpace,
-                minimumSamplingInterval: 10,
+                minimumSamplingInterval: 100,
                 userAccessLevel: "CurrentRead | CurrentWrite",
                 accessLevel: "CurrentRead | CurrentWrite",
                 arrayDimensions: [1, 2, 3],
@@ -1112,7 +1126,7 @@ describe("testing Variable#writeValue Array", function () {
     it("A6 - should write a ByteString into a Array of Byte", function (done) {
         // as  per CTT write Attibute test 007
 
-        const variable = addressSpace.addVariable({
+        const variable = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "SomeArrayOfByte",
             dataType: "Byte",
@@ -1173,18 +1187,20 @@ describe("testing Variable#writeValue Array", function () {
 
 describe("testing Variable#writeValue on Integer", function () {
 
-    let addressSpace, rootFolder, variableInteger, variableInt32;
+    let addressSpace, namespace, rootFolder, variableInteger, variableInt32;
 
     before(function (done) {
         addressSpace = new address_space.AddressSpace();
         generate_address_space(addressSpace, nodeset_filename, function () {
 
+            addressSpace.registerNamespace("Private");
+            namespace = addressSpace.getPrivateNamespace();
+
             rootFolder = addressSpace.findNode("RootFolder");
 
 
-            variableInteger = new UAVariable({
+            variableInteger = namespace.addVariable({
                 browseName: "some INTEGER Variable",
-                addressSpace: addressSpace,
                 minimumSamplingInterval: 10,
                 userAccessLevel: "CurrentRead | CurrentWrite",
                 accessLevel: "CurrentRead | CurrentWrite",
@@ -1198,9 +1214,8 @@ describe("testing Variable#writeValue on Integer", function () {
 
             });
 
-            variableInt32 = new UAVariable({
+            variableInt32 = namespace.addVariable({
                 browseName: "some Int32 Variable",
-                addressSpace: addressSpace,
                 minimumSamplingInterval: 10,
                 userAccessLevel: "CurrentRead | CurrentWrite",
                 accessLevel: "CurrentRead | CurrentWrite",
@@ -1313,7 +1328,7 @@ describe("testing Variable#writeValue on Integer", function () {
 describe("testing UAVariable ", function () {
 
 
-    let addressSpace, rootFolder, variableInteger;
+    let addressSpace, namespace, rootFolder, variableInteger;
 
     let variable_not_readable;
 
@@ -1322,10 +1337,15 @@ describe("testing UAVariable ", function () {
         addressSpace = new address_space.AddressSpace();
         generate_address_space(addressSpace, nodeset_filename, function (err) {
 
+            addressSpace.registerNamespace("Private");
+
+             namespace = addressSpace.getPrivateNamespace();
+
             if (!err) {
+                addressSpace.registerNamespace("Private");
                 rootFolder = addressSpace.findNode("RootFolder");
 
-                variableInteger = addressSpace.addVariable({
+                variableInteger = namespace.addVariable({
                     organizedBy: rootFolder,
                     browseName: "some INTEGER Variable",
                     minimumSamplingInterval: 10,
@@ -1339,7 +1359,7 @@ describe("testing UAVariable ", function () {
                     })
                 });
 
-                variable_not_readable = addressSpace.addVariable({
+                variable_not_readable = namespace.addVariable({
                     organizedBy: rootFolder,
                     browseName: "NotReadableVariable",
                     userAccessLevel: "CurrentWrite",
@@ -1365,14 +1385,14 @@ describe("testing UAVariable ", function () {
 
     it("UAVariable#clone should clone a variable", function () {
 
-        variableInteger.browseName.toString().should.eql("some INTEGER Variable");
+        variableInteger.browseName.toString().should.eql("1:some INTEGER Variable");
         variableInteger._dataValue.value.dataType.should.eql(DataType.Int32);
         variableInteger._dataValue.value.value.should.eql(1);
 
         const variableIntegerClone = variableInteger.clone();
         variableIntegerClone.nodeId.toString().should.not.eql(variableInteger.nodeId.toString());
 
-        variableIntegerClone.browseName.toString().should.eql("some INTEGER Variable");
+        variableIntegerClone.browseName.toString().should.eql("1:some INTEGER Variable");
 
         variableIntegerClone._dataValue.value.dataType.should.eql(DataType.Int32);
         variableIntegerClone._dataValue.value.value.should.eql(1);
@@ -1410,7 +1430,7 @@ describe("testing UAVariable ", function () {
     it("UAVariable#readValueAsync should cope with faulty refreshFunc -- calling callback with an error", function (done) {
 
         rootFolder = addressSpace.findNode("RootFolder");
-        const temperatureVar = addressSpace.addVariable({
+        const temperatureVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "BadVar",
             nodeId: "ns=1;s=BadVar",
@@ -1439,7 +1459,7 @@ describe("testing UAVariable ", function () {
     it("UAVariable#readValueAsync should cope with faulty refreshFunc - crashing inside refreshFunc", function (done) {
 
         rootFolder = addressSpace.findNode("RootFolder");
-        const temperatureVar = addressSpace.addVariable({
+        const temperatureVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "BadVar2",
             nodeId: "ns=1;s=BadVar2",
@@ -1460,7 +1480,7 @@ describe("testing UAVariable ", function () {
 
     it("UAVariable#readValueAsync  should be reentrant", function (done) {
         rootFolder = addressSpace.findNode("RootFolder");
-        const temperatureVar = addressSpace.addVariable({
+        const temperatureVar = namespace.addVariable({
             organizedBy: rootFolder,
             browseName: "Temperature",
             nodeId: "ns=1;s=Temperature",
@@ -1524,7 +1544,7 @@ describe("testing UAVariable ", function () {
 
         const objectsFolder = addressSpace.findNode("ObjectsFolder");
 
-        const temperatureVar = addressSpace.addVariable({
+        const temperatureVar = namespace.addVariable({
             organizedBy: objectsFolder,
             browseName: "Testing#setValueFromSource",
             dataType: "Double",

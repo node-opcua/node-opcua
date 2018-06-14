@@ -2,24 +2,24 @@
 /* global console, require */
 var opcua = require("node-opcua");
 
-var server = new opcua.OPCUAServer({
+const server = new opcua.OPCUAServer({
     port: 4334 // the port of the listening socket of the server
 });
 
 function post_initialize() {
 
-    var addressSpace = server.engine.addressSpace;
-    
-    var myDevice = addressSpace.addObject({
+    const addressSpace = server.engine.addressSpace;
+    const namespace = addressSpace.getPrivateNamespace();
+
+    const myDevice = namespace.addObject({
         organizedBy: addressSpace.rootFolder.objects,
         browseName: "MyDevice"
     });
     
     
-    var fakeValue = 1;
-    var addressSpace = server.engine.addressSpace;
-    
-    var analogItem = addressSpace.addAnalogDataItem({
+    const fakeValue = 1;
+
+    const analogItem = namespace.addAnalogDataItem({
     
           componentOf: myDevice,
     

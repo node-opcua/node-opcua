@@ -32,12 +32,20 @@ describe("testing UADataype -  Attribute", function () {
         done();
     });
 
+    it("namespace should have HasSubtype reference", function () {
+
+        const node = addressSpace.findReferenceType("HasSubtype");
+        node.browseName.toString().should.eql("HasSubtype");
+
+    });
 
     it("UADataType#readAttribute", function () {
 
-        const dataType = new UADataType({
-            browseName: "MyDataType",
-            addressSpace: addressSpace,
+        const namespace = addressSpace.getPrivateNamespace();
+
+        const dataType = namespace.createDataType({
+            browseName:  "MyDataType",
+             superType: "BaseDataType",
             isAbstract: true
         });
 

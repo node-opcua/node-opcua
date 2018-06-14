@@ -21,7 +21,7 @@ const utils = require("node-opcua-utils");
 const assert = require("node-opcua-assert").assert;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-
+const Namespace = require("../namespace").Namespace;
 
 module.exports.install = function(AddressSpace) {
     /**
@@ -54,12 +54,17 @@ module.exports.install = function(AddressSpace) {
      * @param options.value
      */
     AddressSpace.prototype.addYArrayItem = function (options) {
+        return this._resolveRequestedNamespace(options).addYArrayItem(options);
+    };
+    utils.setDeprecated(AddressSpace,"addYArrayItem","");
+
+    Namespace.prototype.addYArrayItem = function(options) {
 
         assert(options.hasOwnProperty("engineeringUnitsRange"), "expecting engineeringUnitsRange");
         assert(options.hasOwnProperty("axisScaleType"), "expecting axisScaleType");
         assert(_.isObject(options.xAxisDefinition), "expecting a xAxisDefinition");
 
-        const addressSpace = this;
+        const addressSpace = this.__addressSpace;
 
         const YArrayItemType = addressSpace.findVariableType("YArrayItemType");
         assert(YArrayItemType, "expecting YArrayItemType to be defined , check nodeset xml file");

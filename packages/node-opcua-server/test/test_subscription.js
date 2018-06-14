@@ -338,7 +338,7 @@ describe("Subscriptions", function () {
 
     describe("T6 - a subscription shall send its first notification as soon as the publish request is available", function () {
 
-        let addressSpace;
+        let addressSpace,namespace;
         let someVariableNode;
         let engine;
 
@@ -364,7 +364,9 @@ describe("Subscriptions", function () {
             engine = new server_engine.ServerEngine();
             engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
                 addressSpace = engine.addressSpace;
-                const node = addressSpace.addVariable({
+                namespace = addressSpace.getPrivateNamespace();
+
+                const node = namespace.addVariable({
                     componentOf: "RootFolder",
                     browseName: "SomeVariable",
                     dataType: "UInt32",

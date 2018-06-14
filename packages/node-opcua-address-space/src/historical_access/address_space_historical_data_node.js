@@ -180,7 +180,7 @@ exports.install = function (AddressSpace) {
         // Note from spec : If a HistoricalDataNode has configuration defined then one
         //                    instance shall have a BrowseName of ‘HA Configuration’
         const historicalDataConfiguration = historicalDataConfigurationType.instantiate({
-            browseName: "HA Configuration",
+            browseName: {name: "HA Configuration" , namespaceIndex: 0},
             optionals: optionals,
         });
 

@@ -323,11 +323,13 @@ exports.UAAcknowledgeableConditionBase = UAAcknowledgeableConditionBase;
  * @param data
  * @return {UAAcknowledgeableConditionBase}
  */
-UAAcknowledgeableConditionBase.instantiate = function (addressSpace,conditionTypeId, options,data ) {
+UAAcknowledgeableConditionBase.instantiate = function instantiate(namespace,conditionTypeId, options,data ) {
 
     //xx assert(options.conditionOf,"must provide a conditionOf Node");
 
-    const conditionNode = UAConditionBase.instantiate(addressSpace, conditionTypeId, options, data);
+    const addressSpace = namespace.__addressSpace;
+
+    const conditionNode = UAConditionBase.instantiate(namespace, conditionTypeId, options, data);
     Object.setPrototypeOf(conditionNode,UAAcknowledgeableConditionBase.prototype);
 
     // ----------------------- Install Acknowledge-able Condition stuff

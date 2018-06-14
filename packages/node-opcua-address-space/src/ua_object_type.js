@@ -88,7 +88,7 @@ UAObjectType.prototype.instantiate = function (options) {
     assert(!self.isAbstract, "cannot instantiate abstract UAObjectType");
 
     assert(options, "missing option object");
-    assert(_.isString(options.browseName), "expecting a browse name");
+    assert(_.isString(options.browseName) || _.isObject(options.browseName), "expecting a browse name");
 
     assert(!options.hasOwnProperty("propertyOf"),"an Object shall not be a PropertyOf an other object");
     assert(!options.hasOwnProperty("optional"),"do you mean optionals ?");
@@ -116,7 +116,9 @@ UAObjectType.prototype.instantiate = function (options) {
         modellingRule : options.modellingRule
     };
 
-    const instance = addressSpace.addObject(opts);
+    const namespace = self.addressSpace.getPrivateNamespace();
+
+    const instance = namespace.addObject(opts);
 
     initialize_properties_and_components(instance, baseObjectType,self, options.optionals);
 

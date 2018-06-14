@@ -160,7 +160,10 @@ server.on("post_initialize", function () {
     const rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");
 
-    const myDevices = addressSpace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
+    const namespace = addressSpace.getPrivateNamespace();
+
+    const myDevices = namespace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
+
 
     /*
      * variation 0:
@@ -169,7 +172,7 @@ server.on("post_initialize", function () {
      * Add a variable in folder using a raw Variant.
      * Use this variation when the variable has to be read or written by the OPCUA clients
      */
-    const variable0 = addressSpace.addVariable({
+    const variable0 = namespace.addVariable({
         organizedBy: myDevices,
         browseName: "FanSpeed",
         nodeId: "ns=1;s=FanSpeed",
@@ -193,7 +196,7 @@ server.on("post_initialize", function () {
      * Avoid using this variation if the variable has to be made writable, as the server will call the getter
      * function prior to returning its value upon client read requests.
      */
-    addressSpace.addVariable({
+    namespace.addVariable({
         organizedBy: myDevices,
         browseName: "PumpSpeed",
         nodeId: "ns=1;s=PumpSpeed",
@@ -211,7 +214,7 @@ server.on("post_initialize", function () {
         }
     });
 
-    addressSpace.addVariable({
+    namespace.addVariable({
         organizedBy: myDevices,
         browseName: "SomeDate",
         nodeId: "ns=1;s=SomeDate",
@@ -242,7 +245,7 @@ server.on("post_initialize", function () {
         external_value_with_sourceTimestamp.sourceTimestamp = new Date();
     }, 1000);
 
-    addressSpace.addVariable({
+    namespace.addVariable({
         organizedBy: myDevices,
         browseName: "Pressure",
         nodeId: "ns=1;s=Pressure",
@@ -265,10 +268,10 @@ server.on("post_initialize", function () {
      *
      */
 
-    addressSpace.addVariable({
+    namespace.addVariable({
         organizedBy: myDevices,
         browseName: "Temperature",
-        nodeId: "ns=1;s=Temperature",
+        nodeId: "s=Temperature",
         dataType: "Double",
 
         value: {
@@ -288,11 +291,11 @@ server.on("post_initialize", function () {
 
     // UAAnalogItem
     // add a UAAnalogItem
-    const node = addressSpace.addAnalogDataItem({
+    const node = namespace.addAnalogDataItem({
 
         organizedBy: myDevices,
 
-        nodeId: "ns=1;s=TemperatureAnalogItem",
+        nodeId: "s=TemperatureAnalogItem",
         browseName: "TemperatureAnalogItem",
         definition: "(tempA -25) + tempB",
         valuePrecision: 0.5,
@@ -308,9 +311,9 @@ server.on("post_initialize", function () {
     });
 
 
-   const m3x3 =  addressSpace.addVariable({
+   const m3x3 =  namespace.addVariable({
         organizedBy: addressSpace.rootFolder.objects,
-        nodeId: "ns=1;s=Matrix",
+        nodeId: "s=Matrix",
         browseName: "Matrix",
         dataType: "Double",
         valueRank: 2,
@@ -327,9 +330,9 @@ server.on("post_initialize", function () {
         }
     });
 
-    const xyz =  addressSpace.addVariable({
+    const xyz =  namespace.addVariable({
         organizedBy: addressSpace.rootFolder.objects,
-        nodeId: "ns=1;s=Position",
+        nodeId: "s=Position",
         browseName: "Position",
         dataType: "Double",
         valueRank: 1,
@@ -349,7 +352,7 @@ server.on("post_initialize", function () {
     //------------------------------------------------------------------------------
     // Add a view
     //------------------------------------------------------------------------------
-    const view = addressSpace.addView({
+    const view = namespace.addView({
         organizedBy: rootFolder.views,
         browseName: "MyView"
     });
@@ -358,6 +361,7 @@ server.on("post_initialize", function () {
         referenceType:"Organizes",
         nodeId: node.nodeId
     });
+
 });
 
 

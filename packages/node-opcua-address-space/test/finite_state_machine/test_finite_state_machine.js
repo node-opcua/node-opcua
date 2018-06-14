@@ -21,6 +21,8 @@ describe("Testing Finite State Machine", function () {
     before(function (done) {
 
         addressSpace = new AddressSpace();
+        addressSpace.registerNamespace("MyPrivateNamespace");
+        
         const xml_files = [
             // opcua.mini_nodeset_filename,
             path.join(__dirname, "../../test_helpers/test_fixtures/fixture_simple_statemachine_nodeset2.xml")
@@ -231,14 +233,16 @@ describe("Testing Finite State Machine", function () {
          */
 
 
-        const myFiniteStateMachine = addressSpace.addObjectType({
+        const namespace = addressSpace.getPrivateNamespace();
+
+        const myFiniteStateMachine = namespace.addObjectType({
             browseName: "MyFiniteStateMachine",
             subtypeOf: "FiniteStateMachineType"
         });
 
 
         // The AnalyserDevice is in its power-up sequence and cannot perform any other task.
-        addressSpace.addState(myFiniteStateMachine, "Powerup", 100, true);
+        namespace.addState(myFiniteStateMachine, "Powerup", 100, true);
 
         // The AnalyserDevice is in the Operating mode.
         // The ADI Client uses this mode for normal operation: configuration, control and data collection.
@@ -246,7 +250,7 @@ describe("Testing Finite State Machine", function () {
         // Parameter values published in the address space values are expected to be valid.
         // When entering this state, all AnalyserChannels of this AnalyserDevice automatically leave the SlaveMode
         // state and enter their Operating state.
-        addressSpace.addState(myFiniteStateMachine, "Operating", 200);
+        namespace.addState(myFiniteStateMachine, "Operating", 200);
 
         // The AnalyserDevice is in the Local mode. This mode is normally used to perform local physical maintenance
         // on the analyser.
@@ -258,7 +262,7 @@ describe("Testing Finite State Machine", function () {
         // In this mode, no commands are accepted from the ADI interface and no guarantee is given on the
         // values in the address space.
 
-        addressSpace.addState(myFiniteStateMachine, "Local", 300);
+        namespace.addState(myFiniteStateMachine, "Local", 300);
 
         // The AnalyserDevice is in the Maintenance mode. This mode is used to perform remote maintenance on the
         // analyser like firmware upgrade.
@@ -268,22 +272,22 @@ describe("Testing Finite State Machine", function () {
         // the AnalyserChannelStateMachine.
         // In this mode, no commands are accepted from the ADI interface for the AnalyserChannels and no guarantee
         // is given on the values in the address space.
-        addressSpace.addState(myFiniteStateMachine, "Maintenance", 400);
+        namespace.addState(myFiniteStateMachine, "Maintenance", 400);
 
         // The AnalyserDevice is in its power-down sequence and cannot perform any other task.
-        addressSpace.addState(myFiniteStateMachine, "Shutdown", 500);
+        namespace.addState(myFiniteStateMachine, "Shutdown", 500);
 
 
-        addressSpace.addTransition(myFiniteStateMachine, "Powerup", "Operating", 1);
-        addressSpace.addTransition(myFiniteStateMachine, "Operating", "Local", 2);
-        addressSpace.addTransition(myFiniteStateMachine, "Operating", "Maintenance", 3);
-        addressSpace.addTransition(myFiniteStateMachine, "Local", "Operating", 4);
-        addressSpace.addTransition(myFiniteStateMachine, "Local", "Maintenance", 5);
-        addressSpace.addTransition(myFiniteStateMachine, "Maintenance", "Operating", 6);
-        addressSpace.addTransition(myFiniteStateMachine, "Maintenance", "Local", 7);
-        addressSpace.addTransition(myFiniteStateMachine, "Operating", "Shutdown", 8);
-        addressSpace.addTransition(myFiniteStateMachine, "Local", "Shutdown", 9);
-        addressSpace.addTransition(myFiniteStateMachine, "Maintenance", "Shutdown", 10);
+        namespace.addTransition(myFiniteStateMachine, "Powerup", "Operating", 1);
+        namespace.addTransition(myFiniteStateMachine, "Operating", "Local", 2);
+        namespace.addTransition(myFiniteStateMachine, "Operating", "Maintenance", 3);
+        namespace.addTransition(myFiniteStateMachine, "Local", "Operating", 4);
+        namespace.addTransition(myFiniteStateMachine, "Local", "Maintenance", 5);
+        namespace.addTransition(myFiniteStateMachine, "Maintenance", "Operating", 6);
+        namespace.addTransition(myFiniteStateMachine, "Maintenance", "Local", 7);
+        namespace.addTransition(myFiniteStateMachine, "Operating", "Shutdown", 8);
+        namespace.addTransition(myFiniteStateMachine, "Local", "Shutdown", 9);
+        namespace.addTransition(myFiniteStateMachine, "Maintenance", "Shutdown", 10);
 
 
     });

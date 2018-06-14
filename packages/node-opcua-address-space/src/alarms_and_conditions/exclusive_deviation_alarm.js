@@ -13,6 +13,10 @@ const UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimi
 const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const DataType = require("node-opcua-variant").DataType;
+const AddressSpace =require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
+
+
 /**
  * @class UAExclusiveDeviationAlarm
  * @extends UAExclusiveLimitAlarm
@@ -39,13 +43,17 @@ exports.UAExclusiveDeviationAlarm = UAExclusiveDeviationAlarm;
 /**
  *
  * @method instantiate
- * @param addressSpace {AddressSpace}
+ * @param namespace {Namespace}
  * @param type
  * @param options
  * @param data
  * @return {UAExclusiveLimitAlarm}
  */
-UAExclusiveDeviationAlarm.instantiate = function(addressSpace, type,options,data ){
+UAExclusiveDeviationAlarm.instantiate = function(namespace, type,options,data ){
+
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.__addressSpace;
+    assert(addressSpace instanceof AddressSpace);
 
     const exclusiveDeviationAlarmType = addressSpace.findEventType("ExclusiveDeviationAlarmType");
     /* istanbul ignore next */
@@ -55,7 +63,7 @@ UAExclusiveDeviationAlarm.instantiate = function(addressSpace, type,options,data
 
     assert(type === exclusiveDeviationAlarmType.browseName.toString());
 
-    const alarm = UAExclusiveLimitAlarm.instantiate(addressSpace, type, options, data);
+    const alarm = UAExclusiveLimitAlarm.instantiate(namespace, type, options, data);
     Object.setPrototypeOf(alarm,UAExclusiveDeviationAlarm.prototype);
 
     assert(alarm instanceof UAExclusiveDeviationAlarm);

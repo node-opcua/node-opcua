@@ -10,7 +10,8 @@ const _ = require("underscore");
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const DataType = require("node-opcua-variant").DataType;
-
+const AddressSpace = require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
 /**
  * @module opcua.address_space.AlarmsAndConditions
  */
@@ -131,7 +132,7 @@ UAOffNormalAlarm.prototype._onNormalStateDataValueChange = function (dataValue) 
 
 /**
  * @method (static)UAOffNormalAlarm.instantiate
- * @param addressSpace
+ * @param namespace {Namespace}
  * @param limitAlarmTypeId
  * @param options
  * @param options.inputNode   {NodeId|UAVariable} the input node
@@ -141,8 +142,11 @@ UAOffNormalAlarm.prototype._onNormalStateDataValueChange = function (dataValue) 
  * When the value of inputNode doesn't match the normalState node value, then the alarm is raised.
  *
  */
-UAOffNormalAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, data) {
+UAOffNormalAlarm.instantiate = function (namespace, limitAlarmTypeId, options, data) {
 
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.__addressSpace;
+    assert(addressSpace instanceof AddressSpace);
 
     const offNormalAlarmType = addressSpace.findEventType("OffNormalAlarmType");
     /* istanbul ignore next */
@@ -155,7 +159,7 @@ UAOffNormalAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options
     options.optionals = options.optionals || [];
 
     assert(options.hasOwnProperty("inputNode"), "must provide inputNode"); // must provide a inputNode
-    const alarmNode = UADiscreteAlarm.instantiate(addressSpace, limitAlarmTypeId, options, data);
+    const alarmNode = UADiscreteAlarm.instantiate(namespace, limitAlarmTypeId, options, data);
     Object.setPrototypeOf(alarmNode, UAOffNormalAlarm.prototype);
 
     const inputNode = addressSpace._coerceNode(options.inputNode);

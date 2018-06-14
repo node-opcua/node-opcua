@@ -1,4 +1,5 @@
 "use strict";
+
 /**
  * @module opcua.server
  */
@@ -7,10 +8,13 @@ const _ = require("underscore");
 const crypto = require("crypto");
 
 const NodeId = require("node-opcua-nodeid").NodeId;
+const sameNodeId = require("node-opcua-nodeid").sameNodeId;
+
 const NodeIdType = require("node-opcua-nodeid").NodeIdType;
 const ServerSidePublishEngine = require("./server_publish_engine").ServerSidePublishEngine;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const NodeClass = require("node-opcua-data-model").NodeClass;
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
 
 const DataValue = require("node-opcua-data-value").DataValue;
 const VariableIds = require("node-opcua-constants").VariableIds;
@@ -57,12 +61,11 @@ const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
  * @class ServerSession
  *
  * @param parent {SessionEngine}
- * @param sessionId {Number}
  * @param sessionTimeout {Number}
  * @private
  * @constructor
  */
-function ServerSession(parent, sessionId, sessionTimeout) {
+function ServerSession(parent, sessionTimeout) {
 
     const session = this;
 
@@ -72,9 +75,6 @@ function ServerSession(parent, sessionId, sessionTimeout) {
 
     ServerSession.registry.register(session);
 
-    assert(_.isFinite(sessionId));
-    assert(sessionId !== 0, " sessionId is null/empty. this is not allowed");
-
     assert(_.isFinite(sessionTimeout));
     assert(sessionTimeout >= 0, " sessionTimeout");
     session.sessionTimeout = sessionTimeout;
@@ -83,7 +83,8 @@ function ServerSession(parent, sessionId, sessionTimeout) {
     session.authenticationToken = new NodeId(NodeIdType.BYTESTRING, authenticationTokenBuf);
 
     // the sessionId
-    session.nodeId = new NodeId(NodeIdType.GUID, ec.randomGuid(), 1);
+    const ownNamespaceIndex = 1; // addressSpace.getPrivateNamespace().index;
+    session.nodeId = new NodeId(NodeIdType.GUID, ec.randomGuid(), ownNamespaceIndex);
 
     assert(session.authenticationToken instanceof NodeId);
     assert(session.nodeId instanceof NodeId);
@@ -323,10 +324,11 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         references.push({referenceType: "HasTypeDefinition", isForward: true, nodeId: sessionDiagnosticsObjectType});
     }
 
-    session.sessionObject = session.addressSpace.createNode({
+    const namespace = session.addressSpace.getPrivateNamespace();
+    session.sessionObject = namespace.createNode({
         nodeId: session.nodeId,
         nodeClass: NodeClass.Object,
-        browseName: session.sessionName || "Session:" + session.nodeId.toString(),
+        browseName: session.sessionName || "Session-" + session.nodeId.toString(),
         componentOf: serverDiagnosticsNode.sessionsDiagnosticsSummary,
         typeDefinition: sessionDiagnosticsObjectType,
         references: references
@@ -369,7 +371,7 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         });
 
         session.sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
-            browseName: "SessionDiagnostics",
+            browseName: new QualifiedName({ name: "SessionDiagnostics", namespaceIndex: 0}),
             componentOf: session.sessionObject,
             extensionObject: session._sessionDiagnostics,
             minimumSamplingInterval: 2000 // 2 seconds
@@ -390,7 +392,7 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
 
     session.subscriptionDiagnosticsArray=
         eoan.createExtObjArrayNode(session.sessionObject, {
-            browseName: "SubscriptionDiagnosticsArray",
+            browseName: { namespaceIndex: 0,name:"SubscriptionDiagnosticsArray" },
             complexVariableType: "SubscriptionDiagnosticsArrayType",
             variableType: "SubscriptionDiagnosticsType",
             indexPropertyName: "subscriptionId",
@@ -489,7 +491,6 @@ ServerSession.prototype.assignSubscription = function (subscription) {
     assert(!subscription.$session);
     assert(session.nodeId instanceof NodeId);
 
-
     subscription.$session = session;
 
     subscription.sessionId = session.nodeId;
@@ -519,8 +520,8 @@ ServerSession.prototype.createSubscription = function(parameters) {
     const subscription = session.parent._createSubscriptionOnSession(session,parameters);
     session.assignSubscription(subscription);
     assert(subscription.$session === session);
-    assert(subscription._sessionId instanceof NodeId);
-    assert(subscription._sessionId = session.nodeId);
+    assert(subscription.sessionId instanceof NodeId);
+    assert(sameNodeId(subscription.sessionId,session.nodeId));
     return subscription;
 };
 

@@ -26,7 +26,7 @@ module.exports = function (test) {
             const refreshRate = 500;
 
             let counter = 1;
-            const slowVar = server.engine.addressSpace.addVariable({
+            const slowVar = server.engine.addressSpace.getPrivateNamespace().addVariable({
                 organizedBy: server.engine.addressSpace.rootFolder.objects,
                 browseName: "SlowVariable",
                 dataType: "UInt32",
@@ -105,6 +105,7 @@ module.exports = function (test) {
                 function(callback) {
 
                     const sessionId /* NodeId */ = the_session.sessionId;
+                    console.log("session nodeId = ",sessionId.toString());
                     const browsePath = [
                         opcua.makeBrowsePath(sessionId,".SessionDiagnostics.CurrentMonitoredItemsCount"),
                         opcua.makeBrowsePath(sessionId,".SessionDiagnostics.CurrentSubscriptionsCount"),

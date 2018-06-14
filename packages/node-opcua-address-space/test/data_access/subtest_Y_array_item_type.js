@@ -16,9 +16,11 @@ module.exports = function(maintest) {
 
     describe("YArrayItemType", function () {
 
-        let addressSpace;
+        let addressSpace,namespace;
         before(function() {
             addressSpace = maintest.addressSpace;
+            namespace = addressSpace.getPrivateNamespace();
+
             should(addressSpace).be.instanceof(AddressSpace);
         });
 
@@ -36,7 +38,7 @@ module.exports = function(maintest) {
         });
         it("should add a YArrayItem",function() {
 
-            const yArrayItem = addressSpace.addYArrayItem({
+            const yArrayItem = namespace.addYArrayItem({
 
                 organizedBy: objectsFolder,
 
@@ -65,7 +67,7 @@ module.exports = function(maintest) {
                 })
             });
 
-            yArrayItem.browseName.toString().should.eql("MyYArrayItem");
+            yArrayItem.browseName.toString().should.eql("1:MyYArrayItem");
 
             yArrayItem.dataType.should.eql(resolveNodeId("Float"));
 
@@ -101,7 +103,7 @@ module.exports = function(maintest) {
         });
         it("should add a YArrayItem with optional instrument range",function() {
 
-            const prop = addressSpace.addYArrayItem({
+            const prop = namespace.addYArrayItem({
 
                 organizedBy: objectsFolder,
 
@@ -129,7 +131,7 @@ module.exports = function(maintest) {
 
             });
 
-            prop.browseName.toString().should.eql("MyYArrayItem");
+            prop.browseName.toString().should.eql("1:MyYArrayItem");
 
             prop.dataType.should.eql(resolveNodeId("Float"));
 

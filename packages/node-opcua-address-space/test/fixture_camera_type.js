@@ -8,17 +8,19 @@ const QualifiedName = require("node-opcua-data-model").QualifiedName;
 
 exports.createCameraType = function createCameraType(addressSpace) {
 
-    let cameraType = addressSpace.findObjectType("1:CameraType");
+    const namespace = addressSpace.getPrivateNamespace();
+
+    let cameraType = namespace.findObjectType("1:CameraType");
     if (cameraType) { return cameraType; }
 
-    cameraType = addressSpace.addObjectType({browseName: "1:CameraType"});
+    cameraType = namespace.addObjectType({browseName: "CameraType"});
 
     // MachineType.HeaderSwitch
-    const triggerMethod = addressSpace.addMethod(cameraType, {
+    const triggerMethod = namespace.addMethod(cameraType, {
 
         modellingRule: "Mandatory",
 
-        browseName: "1:Trigger",
+        browseName: "Trigger",
 
         inputArguments: [
             {

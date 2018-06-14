@@ -24,9 +24,12 @@ function _coerceParser(parser) {
 
     for (const name in parser) {
         if (parser.hasOwnProperty(name)) {
-            if (!(parser[name] instanceof ReaderState)) {
-                parser[name] = new ReaderState(parser[name]);
-            }
+            if (parser[name] && !(parser[name] instanceof ReaderState)) {
+
+                // this is to prevent recursion
+                const tmp = parser[name];
+                parser[name] = null;
+                parser[name] = new ReaderState(tmp);            }
         }
     }
     return parser;
@@ -303,3 +306,4 @@ Xml2Json.prototype.parse = function (xmlFile, callback) {
 
 
 exports.Xml2Json = Xml2Json;
+exports.ReaderState = ReaderState;

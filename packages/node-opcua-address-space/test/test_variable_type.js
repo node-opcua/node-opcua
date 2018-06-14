@@ -25,6 +25,7 @@ describe("testing UAVariableType", function () {
 
         addressSpace = new address_space.AddressSpace();
         create_minimalist_address_space_nodeset(addressSpace);
+        addressSpace.registerNamespace("Private");
 
     });
 
@@ -36,9 +37,8 @@ describe("testing UAVariableType", function () {
 
     it("should read Attribute IsAbstract on UAVariableType ", function () {
 
-        const variableType = new UAVariableType({
+        const variableType = addressSpace.getPrivateNamespace().addVariableType({
             browseName: "MyVariableType1",
-            addressSpace: addressSpace,
             isAbstract: false
         });
 
@@ -51,9 +51,8 @@ describe("testing UAVariableType", function () {
     });
     it("should read Attribute IsAbstract on Abstract UAVariableType ", function () {
 
-        const variableType = new UAVariableType({
+        const variableType = addressSpace.getPrivateNamespace().addVariableType({
             browseName: "MyVariable2",
-            addressSpace: addressSpace,
             isAbstract: true
         });
 
@@ -71,7 +70,7 @@ describe("testing UAVariableType", function () {
     it("UAVariableType#instantiate should be possible to instantiate a VariableType (nodeid not specified)", function () {
 
 
-        const variableType = addressSpace.addVariableType({
+        const variableType = addressSpace.getPrivateNamespace().addVariableType({
             browseName: "MyVariable3",
             subtypeOf: "BaseVariableType",
             isAbstract: false
@@ -82,7 +81,7 @@ describe("testing UAVariableType", function () {
             dataType: "Int32",
         });
 
-        obj.browseName.toString().should.eql("Instance3");
+        obj.browseName.toString().should.eql("1:Instance3");
 
         obj.nodeId.identifierType.should.eql(NodeId.NodeIdType.NUMERIC);
 
@@ -91,7 +90,7 @@ describe("testing UAVariableType", function () {
 
     it("UAVariableType#instantiate should be possible to instantiate a VariableType and specify its nodeId)", function () {
 
-        const variableType = addressSpace.addVariableType({
+        const variableType = addressSpace.getPrivateNamespace().addVariableType({
             browseName: "MyVariable4",
             subtypeOf: "BaseVariableType",
             isAbstract: false
@@ -99,25 +98,25 @@ describe("testing UAVariableType", function () {
 
         const obj = variableType.instantiate({
             browseName: "Instance4",
-            nodeId: "ns=3;s=HelloWorld",
+            nodeId: "ns=1;s=HelloWorld",
             dataType: "Int32",
         });
 
-        obj.browseName.toString().should.eql("Instance4");
+        obj.browseName.toString().should.eql("1:Instance4");
 
-        obj.nodeId.toString().should.eql("ns=3;s=HelloWorld");
+        obj.nodeId.toString().should.eql("ns=1;s=HelloWorld");
     });
 
     it("UAVariableType#instantiate with componentOf", function () {
 
         addressSpace.rootFolder.browseName.toString().should.eql("RootFolder");
 
-        const myFolder = addressSpace.addObject({
+        const myFolder = addressSpace.getPrivateNamespace().addObject({
             browseName: "MyFolder",
             organizedBy: addressSpace.rootFolder.objects
         });
 
-        const variableType = addressSpace.addVariableType({
+        const variableType = addressSpace.getPrivateNamespace().addVariableType({
             browseName: "MyVariable5",
             subtypeOf: "BaseVariableType",
             isAbstract: false
@@ -129,19 +128,19 @@ describe("testing UAVariableType", function () {
             componentOf: myFolder
         });
 
-        myFolder.getComponentByName("Instance5").browseName.toString().should.eql("Instance5");
+        myFolder.getComponentByName("Instance5").browseName.toString().should.eql("1:Instance5");
 
     });
     it("UAVariableType#instantiate with organizedBy", function () {
 
         addressSpace.rootFolder.browseName.toString().should.eql("RootFolder");
 
-        const myFolder = addressSpace.addObject({
+        const myFolder = addressSpace.getPrivateNamespace().addObject({
             browseName: "MyFolder2",
             organizedBy: addressSpace.rootFolder.objects
         });
 
-        const variableType = addressSpace.addVariableType({
+        const variableType = addressSpace.getPrivateNamespace().addVariableType({
             browseName: "MyVariable6",
             subtypeOf: "BaseVariableType",
             isAbstract: false
@@ -154,13 +153,13 @@ describe("testing UAVariableType", function () {
             organizedBy: myFolder
         });
 
-        myFolder.getFolderElementByName("Instance6").browseName.toString().should.eql("Instance6");
+        myFolder.getFolderElementByName("Instance6").browseName.toString().should.eql("1:Instance6");
 
     });
     it("UAVariableType#instantiate with valueRank and arrayDimension", function () {
 
 
-        const variableType = addressSpace.addVariableType({
+        const variableType = addressSpace.getPrivateNamespace().addVariableType({
             browseName: "My3x3MatrixVariableType",
             subtypeOf: "BaseVariableType",
             isAbstract: false,
@@ -181,7 +180,7 @@ describe("testing UAVariableType", function () {
             browseName: "My3x3MatrixVariable"
         });
 
-        obj.browseName.toString().should.eql("My3x3MatrixVariable");
+        obj.browseName.toString().should.eql("1:My3x3MatrixVariable");
         obj.nodeId.identifierType.should.eql(NodeId.NodeIdType.NUMERIC);
         obj.dataType.should.eql(doubleDataType.nodeId);
         obj.valueRank.should.eql(2);
@@ -195,7 +194,7 @@ describe("testing UAVariableType", function () {
 
         const postInstantiateFunc = sinon.spy();
 
-        const variableType = addressSpace.addVariableType({
+        const variableType = addressSpace.getPrivateNamespace().addVariableType({
             browseName: "MyVariable10",
             subtypeOf: "BaseVariableType",
             isAbstract: false,

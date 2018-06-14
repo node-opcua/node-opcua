@@ -40,6 +40,9 @@ describe("Testing AddressSpace memory Leaks",function(){
         let addressSpace = new AddressSpace();
 
         generate_address_space(addressSpace, xml_file, function (err) {
+
+
+
             addressSpace.dispose();
             addressSpace = null;
             done(err);

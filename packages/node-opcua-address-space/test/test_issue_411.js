@@ -20,16 +20,20 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", fu
 
     const nodesetFilename = nodesets.standard_nodeset_file;
 
-    let addressSpace = null;
+    let addressSpace,namespace;
     let analogItem;
 
     before(function (done) {
         addressSpace = new AddressSpace();
+        namespace = addressSpace.registerNamespace("Private");
+        namespace.index.should.eql(1);
+        addressSpace.getNamespace("Private").index.should.eql(addressSpace._private_namespaceIndex);
+
         generateAddressSpace(addressSpace, nodesetFilename, function () {
 
             const objectsFolder = addressSpace.findNode("ObjectsFolder");
 
-            analogItem = addressSpace.addAnalogDataItem({
+            analogItem = namespace.addAnalogDataItem({
                 organizedBy: objectsFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",
@@ -53,24 +57,25 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", fu
 
     it("should verify that addMethod doesn't mess up with dataType namespace",function() {
 
+
         // create a custom DataType ( derived from String )
-        const dataType = addressSpace.createDataType({
+        const dataType = namespace.createDataType({
             browseName: "MyCustomString",
             isAbstract: false,
-            superType: addressSpace.findDataType("String")
+            superType: "String"
         });
 
-        const myCustomStringDataType = addressSpace.findDataType("MyCustomString");
+        const myCustomStringDataType = addressSpace.findDataType("1:MyCustomString");
 
         should.exist(myCustomStringDataType);
         myCustomStringDataType.nodeId.namespace.should.not.eql(0,"namespace should not be zero for this test");
 
-        const device = addressSpace.addObject({
+        const device = namespace.addObject({
             browseName:"Devices",
             organizedBy: addressSpace.rootFolder.objects
         });
 
-        const method = addressSpace.addMethod(device, {
+        const method = namespace.addMethod(device, {
             browseName: "SomeMethod",
             inputArguments: [
                 {

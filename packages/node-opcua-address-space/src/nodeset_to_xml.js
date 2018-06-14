@@ -32,20 +32,24 @@ function _dumpDescription(xw, node) {
         xw.startElement("Description").text(desc).endElement();
     }
 }
+function _resolveNodeIdOrAlias(nodeId)
+{
+
+}
 
 function _dumpReferences(xw, node) {
     xw.startElement("References");
 
     const references = _.map(node.allReferences());
-    references.forEach(function (reference) {
+    for (let reference of references) {
         xw.startElement("Reference");
-        xw.writeAttribute("ReferenceType", reference.referenceType);
+        xw.writeAttribute("ReferenceType", reference._referenceType.browseName.toString());
         if (!reference.isForward) {
             xw.writeAttribute("IsForward", reference.isForward ? "true" : "false");
         }
         xw.text(reference.nodeId.toString());
         xw.endElement();
-    });
+    }
     xw.endElement();
 
 }
@@ -469,7 +473,7 @@ function dumpXml(node, options) {
         Object.keys(aliases).forEach(function (key) {
             xw.startElement("Alias");
             xw.writeAttribute("Alias", key);
-            xw.text("i=" + aliases[key].value.toString());
+            xw.text(aliases[key].toString().replace(/ns=0;/,""));
             xw.endElement();
         });
 
@@ -495,10 +499,10 @@ function dumpXml(node, options) {
 
     writeAliases(xw, s.aliases);
 
-    s.elements.forEach(function (el) {
+    for(let el of s.elements) {
         //xx console.log(el.nodeClass);
         el.dumpXML(xw);
-    });
+    }
 
     xw.endElement();
     xw.endDocument();

@@ -113,17 +113,17 @@ exports.install = function (AddressSpace) {
 
             if (!is_last) {
                 // explorer
-                targets.forEach(function (target) {
+                for(let target of targets) {
                     const node = self.findNode(target.targetId);
                     explore_element(node, elements, index + 1);
-                });
+                }
             } else {
-                targets.forEach(function (target) {
+                for (let target of targets) {
                     res.push({
                         targetId: target.targetId,
                         remainingPathIndex: 0xFFFFFFFF
                     });
-                });
+                }
             }
         }
 

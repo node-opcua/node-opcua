@@ -21,6 +21,7 @@ describe("AddressSpace : Conditions ", function () {
     before(function (done) {
 
         addressSpace = new AddressSpace();
+        addressSpace.registerNamespace("PRIVATE_NAMESPACE");
 
         const xml_file = nodesets.standard_nodeset_file;
 
@@ -31,27 +32,29 @@ describe("AddressSpace : Conditions ", function () {
             const FolderTypeId = addressSpace.findNode("FolderType").nodeId;
             const BaseDataVariableTypeId = addressSpace.findNode("BaseDataVariableType").nodeId;
 
+            const namespace = addressSpace.getPrivateNamespace();
+
             addressSpace.installAlarmsAndConditionsService();
 
-            const green = addressSpace.addObject({
+            const green = namespace.addObject({
                 browseName: "Green",
                 organizedBy: addressSpace.rootFolder.objects,
                 notifierOf: addressSpace.rootFolder.objects.server
             });
 
-            source = addressSpace.addObject({
+            source = namespace.addObject({
                 browseName: "Motor.RPM",
                 componentOf: green,
                 eventSourceOf: green
             });
 
-            test.variableWithAlarm = addressSpace.addVariable({
+            test.variableWithAlarm = namespace.addVariable({
                 browseName: "VariableWithLimit",
                 dataType: "Double",
                 propertyOf: source
             });
 
-            test.setpointNodeNode = addressSpace.addVariable({
+            test.setpointNodeNode = namespace.addVariable({
                 browseName: "SetPointValue",
                 dataType: "Double",
                 propertyOf: source

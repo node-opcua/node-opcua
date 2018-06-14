@@ -23,13 +23,21 @@ exports.install = function (UAObject) {
         const addressSpace = self.addressSpace;
 
         if (typeof(eventType) === "string") {
-            eventType = addressSpace.findEventType(eventType);
+            const eventTypeFound= addressSpace.findEventType(eventType);
+            if (!eventTypeFound) {
+                throw new Error("raiseEvent: eventType cannot find event Type "+ eventType.toString());
+            }
+            eventType = eventTypeFound;
+        } else if (eventType instanceof NodeId) {
+            const eventTypeFound = addressSpace.findNode(eventType);
+            if (!eventTypeFound) {
+                throw new Error("raiseEvent: eventType cannot find event Type "+ eventType.toString());
+            }
+            eventType = eventTypeFound;
         }
-        if (eventType instanceof NodeId) {
-            eventType = addressSpace.findNode(eventType);
+        if(!(eventType instanceof UAObjectType)) {
+            throw new Error("eventType must exist and be an UAObjectType" + eventType.toString());
         }
-        assert(eventType instanceof UAObjectType);
-
         let eventTypeNode = eventType;
         // istanbul ignore next
         if (!eventTypeNode) {

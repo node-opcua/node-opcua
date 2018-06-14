@@ -6,8 +6,11 @@ const fs = require("fs");
 
 
 const Xml2Json = require("node-opcua-xml2json").Xml2Json;
+const ReaderState = require("node-opcua-xml2json").ReaderState;
 const NodeClass = require("node-opcua-data-model").NodeClass;
 const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+
+const NodeId = require("node-opcua-nodeid").NodeId;
 
 const DataType = require("node-opcua-variant").DataType;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
@@ -21,21 +24,27 @@ const ec = require("node-opcua-basic-types");
 const AddressSpace = require("../address_space").AddressSpace;
 
 const EUInformation = require("node-opcua-data-access").EUInformation;
+const stringToQualifiedName = require("node-opcua-data-model").stringToQualifiedName;
+
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+
+function __make_back_references(namespace) {
+
+    _.forEach(namespace._nodeid_index, function (node) {
+        node.propagate_back_references();
+    });
+    _.forEach(namespace._nodeid_index, function (node) {
+        node.install_extra_properties();
+    });
+}
 
 /**
  * @method make_back_references
  * @param addressSpace  {AddressSpace}
  */
 function make_back_references(addressSpace) {
-
     addressSpace.suspendBackReference = false;
-
-    _.forEach(addressSpace._nodeid_index, function (node) {
-        node.propagate_back_references();
-    });
-    _.forEach(addressSpace._nodeid_index, function (node) {
-        node.install_extra_properties();
-    });
+    addressSpace._namespaceArray.map(namespace => __make_back_references(namespace))
 }
 
 function stringToUInt32Array(str) {
@@ -66,32 +75,72 @@ function convertAccessLevel(accessLevel) {
  */
 function generate_address_space(addressSpace, xmlFiles, callback) {
 
-    function add_alias(alias_name, nodeId) {
-        nodeId = resolveNodeId(nodeId);
-        addressSpace.add_alias(alias_name, nodeId);
+    let alias_map ={};
+
+    /**
+     *
+     * @param alias_name {string}
+     * @param nodeId
+     */
+    function addAlias(alias_name, nodeIdinXmlContext) {
+        assert(typeof nodeIdinXmlContext === "string");
+        const nodeId = _translateNodeId(nodeIdinXmlContext);
+        assert(nodeId instanceof NodeId);
+        alias_map[alias_name] = nodeId;
+        addressSpace.getNamespace(nodeId.namespace).addAlias(alias_name,nodeId);
     }
 
     let namespace_uri_translation = {};
     let namespaceCounter = 0;
+    let found_namespace_in_uri = {};
+
 
     function _reset_namespace_translation() {
+        debugLog("_reset_namespace_translation");
         namespace_uri_translation = {};
+        found_namespace_in_uri = {};
         namespaceCounter = 0;
+        _register_namespace_uri("http://opcfoundation.org/UA/");
+        alias_map = {};
     }
 
     function _translateNamespaceIndex(innerIndex) {
-        const namespaceIndex = namespace_uri_translation[innerIndex];
+         const namespaceIndex = namespace_uri_translation[innerIndex];
         if (namespaceIndex === undefined) {
             throw new Error("_translateNamespaceIndex! Cannot find namespace definition for index " + innerIndex);
         }
         return namespaceIndex;
     }
+    function _internal_addReferenceType(params) {
+        assert(params.nodeId instanceof NodeId); // already translated
+        addressSpace.getNamespace(params.nodeId.namespace).addReferenceType(params,false);
+    }
+    function _internal_createNode(params) {
+        assert(params.nodeId instanceof NodeId); // already translated
+        addressSpace.getNamespace(params.nodeId.namespace)._createNode(params);
+    }
 
     function _register_namespace_uri(namespace_uri) {
-        const index_in_xml = namespaceCounter + 1;
-        namespaceCounter += 1;
-        const index = addressSpace.registerNamespace(namespace_uri).index;
-        namespace_uri_translation[index_in_xml] = index;
+
+        if (found_namespace_in_uri[namespace_uri])
+            return found_namespace_in_uri[namespace_uri];
+
+        const namespace = addressSpace.registerNamespace(namespace_uri);
+        found_namespace_in_uri[namespace_uri] = namespace;
+
+        const index_in_xml =namespaceCounter; namespaceCounter++;
+        namespace_uri_translation[index_in_xml] = namespace.index;
+
+        debugLog(" _register_namespace_uri = ",namespace_uri,"index in Xml=",index_in_xml," index in addressSpace",namespace.index);
+        return namespace;
+    }
+
+
+    function _register_namespace_uri_model(model) {
+        const namespace  = _register_namespace_uri(model.modelUri);
+        namespace.version = model.version;
+        namespace.publicationDate = model.publicationDate;
+        return namespace;
     }
 
     /*=
@@ -107,35 +156,40 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
      *    convertToNodeId("ns=1;i=100") => convert namespace from xml namespace table to corresponding namespace in addressapce
      */
     const reg = /ns=([0-9]+);(.*)/;
-
     function _translateNodeId(nodeId) {
+
         assert(typeof nodeId === "string");
+        if (alias_map[nodeId]) {
+            return alias_map[nodeId];
+        }
+
         const m = nodeId.match(reg);
         if (m) {
             const namespaceIndex = _translateNamespaceIndex(parseInt(m[1]));
             nodeId = "ns=" + namespaceIndex + ";" + m[2];
         }
-        return nodeId;
+        return resolveNodeId(nodeId);
     }
 
     function _translateReferenceType(refType) {
-        return _translateNodeId(refType).toString();
+        return _translateNodeId(refType);
     }
 
     function convertToNodeId(nodeId) {
+        // treat alias
         if (!nodeId) {
             return null;
         }
         nodeId = _translateNodeId(nodeId);
+
         return addressSpace.resolveNodeId(nodeId);
     }
 
     function convertQualifiedName(qualifiedName) {
-        const stringToQualifiedName = require("node-opcua-data-model").stringToQualifiedName;
         const qn = stringToQualifiedName(qualifiedName);
-        if (qn.namespaceIndex > 0) {
-            qn.namespaceIndex = _translateNamespaceIndex(qn.namespaceIndex);
-        }
+        //Xx if (qn.namespaceIndex > 0) {
+        qn.namespaceIndex = _translateNamespaceIndex(qn.namespaceIndex);
+        //Xx }
         return qn;
     }
 
@@ -144,7 +198,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
 
     const state_Alias = {
         finish: function () {
-            add_alias(this.attrs.Alias, _translateNodeId(this.text));
+            addAlias(this.attrs.Alias, this.text);
         }
     };
 
@@ -215,8 +269,8 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
 
         },
         finish: function () {
-            //xx console.log("xxxx add object ".red,this.obj.nodeId.toString().yellow , this.obj.browseName);
-            addressSpace._createNode(this.obj);
+            //xx debugLog("xxxx add object ".red,this.obj.nodeId.toString().yellow , this.obj.browseName);
+            _internal_createNode(this.obj);
         },
         parser: {
             "DisplayName": {
@@ -244,7 +298,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.eventNotifier = ec.coerceByte(attrs.EventNotifier) || 0;
         },
         finish: function () {
-            addressSpace._createNode(this.obj);
+            _internal_createNode(this.obj);
         },
         parser: {
             "DisplayName": {
@@ -271,7 +325,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
         },
         finish: function () {
-            addressSpace.addReferenceType(this.obj, false);
+            _internal_addReferenceType(this.obj, false);
         },
         parser: {
             "DisplayName": {
@@ -304,7 +358,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.description = "";
         },
         finish: function () {
-            addressSpace._createNode(this.obj);
+            _internal_createNode(this.obj);
             assert(addressSpace.findNode(this.obj.nodeId));
         },
         parser: {
@@ -479,6 +533,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                     finish: function () {
 
                         const typeId = this.text.trim();
+                        //xx console.log("typeId = ",typeId);
                         this.parent.parent.typeId = resolveNodeId(typeId);
 
                         switch (typeId) {
@@ -489,7 +544,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                             case "i=888":  // EUInformation
                                 break;
                             default:
-                                //xx console.warn("loadnodeset2 ( checking identifier type) : unsupported typeId in ExtensionObject " + typeId);
+                                console.warn("loadnodeset2 ( checking identifier type) : unsupported typeId in ExtensionObject " + typeId);
                                 break;
                         }
                     }
@@ -521,7 +576,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                     default:
 
                         // to do: implement a post action to create and bind extension object
-                        console.log("loadnodeset2: unsupported typeId in ExtensionObject " + self.typeId);
+                        console.log("loadnodeset2: unsupported typeId in ExtensionObject " + self.typeId.toString());
                         break;
                 }
             }
@@ -605,7 +660,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                 }
             },
             "Float": {
-                finish: function() {
+                finish: function () {
                     this.parent.parent.obj.value = {
                         dataType: DataType.Float,
                         value: parseFloat(this.text)
@@ -613,7 +668,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                 }
             },
             "Double": {
-                finish: function() {
+                finish: function () {
                     this.parent.parent.obj.value = {
                         dataType: DataType.Double,
                         value: parseFloat(this.text)
@@ -705,7 +760,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.userAccessLevel = convertAccessLevel(attrs.UserAccessLevel);
         },
         finish: function () {
-            addressSpace._createNode(this.obj);
+            _internal_createNode(this.obj);
         },
         parser: {
             "DisplayName": {
@@ -743,7 +798,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         },
         finish: function () {
             try {
-                addressSpace._createNode(this.obj);
+                _internal_createNode(this.obj);
             }
             catch (err) {
                 this.obj.addressSpace = null;
@@ -780,7 +835,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
 
         },
         finish: function () {
-            addressSpace._createNode(this.obj);
+            _internal_createNode(this.obj);
         },
         parser: {
             "DisplayName": {
@@ -792,17 +847,58 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
+    const state_ModelTableEntry =  new ReaderState({ // ModelTableEntry
+
+        init: function() {
+            this._requiredModels = [];
+        },
+        parser: {
+          //xx  "RequiredModel":  null
+        },
+        finish: function () {
+
+            const modelUri = this.attrs.ModelUri; // //"http://opcfoundation.org/UA/"
+            const version = this.attrs.Version;   // 1.04
+            const publicationDate = this.attrs.PublicationDate; //"2018-05-15T00:00:00Z" "
+            // optional,
+            const symbolicName = this.attrs.SymbolicName;
+            const accessRestrictions = this.attrs.AccessRestrictions;
+
+            const namespace = _register_namespace_uri_model({
+                modelUri: modelUri,
+                version: version,
+                publicationDate: publicationDate,
+                symbolicName: symbolicName,
+                requiredModels: this._requiredModels,
+                accessRestrictions: accessRestrictions,
+            });
+            this._requiredModels.push(namespace);
+        }
+    });
+    // state_ModelTableEntry.parser["RequiredModel"] = state_ModelTableEntry;
+
     const state_0 = {
         parser: {
+
             "NamespaceUris": {
                 init: function () {
                 },
                 parser: {
                     "Uri": {
                         finish: function () {
-                            _register_namespace_uri(this.text);
+                             _register_namespace_uri(this.text);
                         }
                     }
+                }
+            },
+            "Models": { // ModelTable
+                init: function () {
+                },
+                parser: {
+                    "Model": state_ModelTableEntry
+                },
+                finish() {
+
                 }
             },
             "Aliases": {parser: {"Alias": state_Alias}},
@@ -827,6 +923,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         if (!fs.existsSync(xmlFile)) {
             throw new Error("generate_address_space : cannot file nodeset2 xml file at " + xmlFile);
         }
+        debugLog(" parsing ",xmlFile);
         _reset_namespace_translation();
         parser.parse(xmlFile, callback);
     }, function () {

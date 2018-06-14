@@ -300,6 +300,9 @@ const makeNodeId = function makeNodeId(value, namespace) {
 
     let identifierType = NodeIdType.NUMERIC;
     if (typeof value === "string") {
+        if (value.match(/^(s|g|b|i)=/)) {
+            throw new Error("please use coerce NodeId instead");
+        }
         //            1         2         3
         //  012345678901234567890123456789012345
         // "72962B91-FA75-4AE6-8D28-B404DC7DAF63"

@@ -18,9 +18,10 @@ module.exports = function (maintest) {
 
     describe("PercentDeadband", function () {
 
-        let addressSpace;
+        let addressSpace,namespace;
         before(function() {
             addressSpace = maintest.addressSpace;
+            namespace = addressSpace.getPrivateNamespace();
             should(addressSpace).be.instanceof(AddressSpace);
         });
 
@@ -28,7 +29,7 @@ module.exports = function (maintest) {
 
             const objectsFolder = addressSpace.findNode("ObjectsFolder");
 
-            const analogItem = addressSpace.addAnalogDataItem({
+            const analogItem = namespace.addAnalogDataItem({
                 organizedBy: objectsFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",

@@ -26,7 +26,9 @@ module.exports = function (test) {
             const refreshRate = 100;
 
             let counter = 1;
-            const variableToMonitor = server.engine.addressSpace.addVariable({
+            const namespace = server.engine.addressSpace.getPrivateNamespace();
+
+            const variableToMonitor = namespace.addVariable({
                 organizedBy: server.engine.addressSpace.rootFolder.objects,
                 browseName: "SlowVariable",
                 dataType: "UInt32",

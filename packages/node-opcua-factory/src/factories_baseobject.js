@@ -424,7 +424,7 @@ BaseUAObject.prototype.toJSON = function () {
     }
 };
 
-BaseUAObject.prototype.clone = function (/*options,optionalfilter,extraInfo*/) {
+BaseUAObject.prototype.clone = function (/*options,optionalFilter,extraInfo*/) {
     const self = this;
 
     const params = {};

@@ -10,22 +10,25 @@ module.exports = function (test) {
     describe("Off Normal Alarms ", function () {
 
 
-        let addressSpace, source, engine, variableWithAlarm, setpointNodeNode;
+        let addressSpace, source, engine, variableWithAlarm, setpointNodeNode,namespace;
         let normalStateNode, multiStateDiscreteNode;
         before(function () {
+
             addressSpace = test.addressSpace;
+            namespace = addressSpace.getPrivateNamespace();
+
             source = test.source;
             engine = test.engine;
             variableWithAlarm = test.variableWithAlarm;
             setpointNodeNode = test.setpointNodeNode;
 
-            multiStateDiscreteNode = addressSpace.addMultiStateDiscrete({
+            multiStateDiscreteNode = namespace.addMultiStateDiscrete({
                 organizedBy: addressSpace.rootFolder.objects,
                 browseName: "MyMultiStateVariable",
                 enumStrings: [ "Red","Orange","Green"],
                 value: 1 // Orange
             });
-            normalStateNode = addressSpace.addMultiStateDiscrete({
+            normalStateNode = namespace.addMultiStateDiscrete({
                 organizedBy: addressSpace.rootFolder.objects,
                 browseName: "MyMultiStateVariable",
                 enumStrings: ["Red", "Orange", "Green"],
@@ -39,13 +42,13 @@ module.exports = function (test) {
 
         it("should instantiate a off normal alarm of a 3 state variable",function() {
 
-            const alarm =addressSpace.instantiateOffNormalAlarm({
+            const alarm =namespace.instantiateOffNormalAlarm({
                 browseName: "MyOffNormalAlarm",
                 inputNode:   multiStateDiscreteNode,
                 normalState: normalStateNode,
                 conditionSource: null
             });
-            alarm.browseName.toString().should.eql("MyOffNormalAlarm");
+            alarm.browseName.toString().should.eql("1:MyOffNormalAlarm");
             alarm.activeState.getValue().should.eql(false);
 
             alarm.inputNode.readValue().value.value.should.eql(multiStateDiscreteNode.nodeId,
@@ -63,7 +66,7 @@ module.exports = function (test) {
             // in this test an alarm is raised whenever the multiStateDiscreteNode is not "Green"
             const inputNodeNode = multiStateDiscreteNode;
 
-            const alarm =addressSpace.instantiateOffNormalAlarm({
+            const alarm =namespace.instantiateOffNormalAlarm({
                 browseName: "MyOffNormalAlarm2",
                 conditionSource: source,
                 inputNode: inputNodeNode,

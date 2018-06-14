@@ -48,7 +48,7 @@ module.exports = function (test) {
 
                 function (callback) {
 
-                    const path  = opcua.makeBrowsePath("RootFolder","/Objects/Simulation/ObjectWithMethods");
+                    const path  = opcua.makeBrowsePath("RootFolder","/Objects/2:Simulation/2:ObjectWithMethods");
                     the_session.translateBrowsePath(path,function(err,results){
                         if (!err) {
                             if (results.targets.length > 0){
@@ -65,7 +65,7 @@ module.exports = function (test) {
 
 
                 function (callback) {
-                    const path  = opcua.makeBrowsePath(objectWithMethodsNodeId,".MethodIO");
+                    const path  = opcua.makeBrowsePath(objectWithMethodsNodeId,".2:MethodIO");
                     the_session.translateBrowsePath(path,function(err,results) {
                         if (!err) {
                             if (results.targets.length > 0){

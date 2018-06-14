@@ -39,6 +39,7 @@ describe("testing address space namespace loading", function() {
     this.timeout(Math.max(300000, this._timeout));
 
     let addressSpace;
+    let namespace;
     before(function(done) {
         addressSpace = new AddressSpace();
         const xml_files = [
@@ -48,10 +49,15 @@ describe("testing address space namespace loading", function() {
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
-        addressSpace.registerNamespace("ServerNamespaceURI");
+
+        namespace = addressSpace.registerNamespace("Private");
         addressSpace.getNamespaceArray().length.should.eql(2);
+        namespace.index.should.eql(1);
 
         generate_address_space(addressSpace, xml_files, function(err) {
+
+
+
             done(err);
         });
     });
@@ -122,7 +128,7 @@ describe("testing address space namespace loading", function() {
         const myStructureType = addressSpace.findVariableType("MyStructureType", ns);
         myStructureType.should.be.instanceOf(UAVariableType);
 
-        const folder = addressSpace.addFolder("ObjectsFolder", { browseName: "MyDevices" });
+        const folder = namespace.addFolder("ObjectsFolder", { browseName: "MyDevices" });
         assert(folder.nodeId);
         folder.should.be.instanceOf(UAObject);
 
@@ -132,7 +138,7 @@ describe("testing address space namespace loading", function() {
             browseName: "MyVar",
             organizedBy: folder
         });
-        myVar.browseName.toString().should.eql("MyVar");
+        myVar.browseName.toString().should.eql("1:MyVar");
 
         myVar.$extensionObject.should.be.instanceOf(op.constructor);
 
@@ -325,7 +331,7 @@ describe("testing address space namespace loading", function() {
 
         function createDiagnostic(index) {
             const t5 = utils.get_clock_tick();
-            const sessionObject = addressSpace.addObject({
+            const sessionObject = namespace.addObject({
                 browseName: "Session" + index,
                 organizedBy: addressSpace.rootFolder.objects
             });
@@ -335,7 +341,7 @@ describe("testing address space namespace loading", function() {
             const _sessionDiagnostics = addressSpace.constructExtensionObject(sessionDiagnosticsDataType);
             const t7 = utils.get_clock_tick();
             const sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
-                browseName: "SessionDiagnostics",
+                browseName: {name: "SessionDiagnostics", namespaceIndex: 0},
                 componentOf: sessionObject,
                 value: new Variant({ dataType: DataType.ExtensionObject, value: _sessionDiagnostics })
             });

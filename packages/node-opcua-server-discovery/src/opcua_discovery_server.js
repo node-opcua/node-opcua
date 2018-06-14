@@ -325,7 +325,7 @@ OPCUADiscoveryServer.prototype.__defineGetter__("registeredServerCount", functio
 
 //OPCUADiscoveryServer.prototype.getDiscoveryUrls = function(channel) {
 //
-//    var self = this;
+//    const self = this;
 //    assert(channel);
 //
 //    var discoveryUrls = OPCUABaseServer.prototype.getDiscoveryUrls.call(this,channel);

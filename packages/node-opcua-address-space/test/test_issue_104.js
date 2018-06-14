@@ -18,12 +18,14 @@ const assertHasMatchingReference = require("../test_helpers/assertHasMatchingRef
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104", function () {
 
-    let addressSpace = null;
+    let addressSpace , namespace;
     let rootFolder;
 
     before(function (done) {
         addressSpace = new AddressSpace();
+        namespace = addressSpace.registerNamespace("private");
         generateAddressSpace(addressSpace, nodesetFilename, function (err) {
+
             rootFolder = addressSpace.findNode("RootFolder");
             done(err);
         });
@@ -38,7 +40,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
 
     it("should not happen that node IDs are use twice", function () {
         // Create a variable with an auto-generated node ID
-        const var1 = addressSpace.addVariable({
+        const var1 = namespace.addVariable({
             browseName: "var1",
             dataType: "Double",
             value: {dataType: DataType.Double, value: 0},
@@ -50,7 +52,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         assert(var1.nodeId.identifierType === nodeId.NodeIdType.NUMERIC);
 
         // Create two variables with the next numeric node IDs
-        const var2 = addressSpace.addVariable({
+        const var2 = namespace.addVariable({
             nodeId: new nodeId.NodeId(var1.nodeId.identifierType, var1.nodeId.value + 1, var1.nodeId.namespace),
             browseName: "var2",
             dataType: "Double",
@@ -62,7 +64,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         should(var2.nodeId.namespace).eql(var1.nodeId.namespace);
         should(var2.nodeId.value).eql(var1.nodeId.value + 1);
 
-        const var3 = addressSpace.addVariable({
+        const var3 = namespace.addVariable({
             nodeId: new nodeId.NodeId(var1.nodeId.identifierType, var1.nodeId.value + 2, var1.nodeId.namespace),
             browseName: "var3",
             dataType: "Double",
@@ -76,7 +78,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
 
         // Create another value with an auto-generated node ID
         // It must not have the same node ID as the second variable.
-        const var4 = addressSpace.addVariable({
+        const var4 = namespace.addVariable({
             browseName: "var4",
             dataType: "Double",
             value: {dataType: DataType.Double, value: 0},

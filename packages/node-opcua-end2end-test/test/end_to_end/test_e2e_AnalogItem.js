@@ -79,7 +79,7 @@ describe("testing AnalogItem on client side", function () {
     it("readUAAnalogItem should extract all properties of a UAAnalogItem ", function (done) {
 
 
-        const nodeId = "ns=4;s=TemperatureAnalogItem";
+        const nodeId = "ns=1;s=TemperatureAnalogItem";
 
         client_utils.readUAAnalogItem(g_session, nodeId, function (err, data) {
 
@@ -144,7 +144,7 @@ describe("testing AnalogItem on client side", function () {
 
     it("should read the EURange property of an analog item", function (done) {
 
-        const nodeId = "ns=4;s=TemperatureAnalogItem";
+        const nodeId = "ns=1;s=TemperatureAnalogItem";
 
         findProperty(g_session, nodeId, "EURange", function (err, propertyId) {
 

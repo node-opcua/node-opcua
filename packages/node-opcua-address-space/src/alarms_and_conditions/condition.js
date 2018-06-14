@@ -34,6 +34,8 @@ const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 const AddressSpace = require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
+
 const SessionContext = require("../session_context").SessionContext;
 
 const utils = require("node-opcua-utils");
@@ -874,10 +876,15 @@ function _update_sourceTimestamp(dataValue /*, indexRange*/) {
 const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
 
 function _install_condition_variable_type(node) {
+    assert(node instanceof BaseNode);
     // from spec 1.03 : 5.3 condition variables
     // However,  a change in their value is considered important and supposed to trigger
     // an Event Notification. These information elements are called ConditionVariables.
-    node.sourceTimestamp.accessLevel = makeAccessLevel("CurrentRead");
+    if (node.sourceTimestamp) {
+        node.sourceTimestamp.accessLevel = makeAccessLevel("CurrentRead");
+    } else {
+        console.warn("cannot find node.sourceTimestamp", node.browseName.toString());
+    }
     node.accessLevel = makeAccessLevel("CurrentRead");
 
     // from spec 1.03 : 5.3 condition variables
@@ -1689,7 +1696,7 @@ function _getCompositeKey(node, key) {
  * instantiate a Condition.
  * this will create the unique EventId and will set eventType
  * @method instantiate
- * @param addressSpace
+ * @param namespace {Namespace}
  * @param conditionTypeId          {String|NodeId}  the EventType to instantiate
  * @param options                  {object}
  * @param options.browseName       {String|QualifiedName}
@@ -1712,8 +1719,10 @@ function _getCompositeKey(node, key) {
 
  * @return node        {UAConditionBase}
  */
-UAConditionBase.instantiate = function(addressSpace, conditionTypeId, options, data) {
+UAConditionBase.instantiate = function(namespace, conditionTypeId, options, data) {
     /* eslint max-statements: ["error", 100] */
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.__addressSpace;
 
     const conditionType = addressSpace.findEventType(conditionTypeId);
 
@@ -1738,7 +1747,12 @@ UAConditionBase.instantiate = function(addressSpace, conditionTypeId, options, d
 
     options.optionals = options.optionals || [];
 
+    // now optionals in 1.04
+    options.optionals.push("EventType");
+    options.optionals.push("BranchId");
+
     //
+    options.optionals.push("Comment");
     options.optionals.push("Comment.SourceTimestamp");
     options.optionals.push("EnabledState.TrueState");
     options.optionals.push("EnabledState.TrueState");
@@ -1836,7 +1850,7 @@ UAConditionBase.instantiate = function(addressSpace, conditionTypeId, options, d
      */
     // -------------- fixing missing EnabledState.EffectiveDisplayName
     if (!conditionNode.enabledState.effectiveDisplayName) {
-        addressSpace.addVariable({
+        namespace.addVariable({
             browseName: "EffectiveDisplayName",
             dataType: "LocalizedText",
             propertyOf: conditionNode.enabledState

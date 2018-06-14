@@ -11,15 +11,16 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/105", function () {
 
-    let addressSpace;
+    let addressSpace,namespace;
 
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
+            namespace = addressSpace.getPrivateNamespace();
 
             // lets declare a custom folder Type
-            const myFolderType = addressSpace.addObjectType({browseName: "MyFolderType", subtypeOf: "FolderType"});
-            myFolderType.browseName.toString().should.eql("MyFolderType");
+            const myFolderType = namespace.addObjectType({browseName: "MyFolderType", subtypeOf: "FolderType"});
+            myFolderType.browseName.toString().should.eql("1:MyFolderType");
             myFolderType.subtypeOfObj.browseName.toString().should.eql("FolderType");
 
             done(err);
@@ -40,23 +41,24 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
 
         //xx var folderType = addressSpace.findObjectType("FolderType");
 
-        const myFolderType = addressSpace.findObjectType("MyFolderType");
+        const myFolderType = addressSpace.findObjectType("MyFolderType",addressSpace.getPrivateNamespace().index);
 
         // now create a folder of type MyFolderType inside the Objects Folder
         const myFolder = myFolderType.instantiate({browseName: "MyFolder", organizedBy: "ObjectsFolder"});
 
         // now create a simple var inside the new folder (method 1)
-        const myObject = addressSpace.addVariable({
+        const myObject = namespace.addVariable({
             organizedBy: myFolder,
             browseName: "Obj1",
             dataType: "Double"
         });
-        myObject.browseName.toString().should.eql("Obj1");
+        myObject.browseName.toString().should.eql("1:Obj1");
 
         // now create a simple var isnide the new folder (method 2)
         const myObject2 = temperatureSensorType.instantiate({browseName: "Obj2", organizedBy: myFolder});
 
-        myObject2.browseName.toString().should.eql("Obj2");
+
+        myObject2.browseName.toString().should.eql("1:Obj2");
 
         assertHasMatchingReference(myFolder, {referenceType: "Organizes", nodeId: myObject2.nodeId});
 

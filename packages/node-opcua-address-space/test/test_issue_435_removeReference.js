@@ -16,6 +16,10 @@ describe("UANode#removeReference",function() {
     let boilerType = null;
     before(function (done) {
         addressSpace = new AddressSpace();
+        const namespace = addressSpace.registerNamespace("Private");
+        namespace.index.should.eql(1);
+        addressSpace.getNamespace("Private").index.should.eql(addressSpace._private_namespaceIndex);
+
         generateAddressSpace(addressSpace, nodesetFilename, function () {
             boilerType = createBoilerType(addressSpace);
             done();
@@ -34,21 +38,21 @@ describe("UANode#removeReference",function() {
 
         const boiler = boilerType.instantiate({
             browseName: "Boiler#1",
-            nodeId: "ns=36;s=MyBoiler"
+            nodeId: "ns=1;s=MyBoiler"
         });
 
-        boiler.nodeId.toString().should.eql("ns=36;s=MyBoiler");
+        boiler.nodeId.toString().should.eql("ns=1;s=MyBoiler");
 
         const componentsBefore = boiler.getComponents().map(x=>x.browseName.toString());
         console.log(componentsBefore.join(" "));
-        componentsBefore.indexOf("PipeX001").should.be.aboveOrEqual(0);
+        componentsBefore.indexOf("1:PipeX001").should.be.aboveOrEqual(0);
 
 
         boiler.removeReference({referenceType:"HasComponent",nodeId: boiler.pipeX001.nodeId});
         const componentsAfter = boiler.getComponents().map(x=>x.browseName.toString());
         console.log(componentsAfter.join(" "));
 
-        componentsAfter.indexOf("PipeX001").should.eql(-1);
+        componentsAfter.indexOf("1:PipeX001").should.eql(-1);
 
         should.not.exist(boiler.pipeX001);
 

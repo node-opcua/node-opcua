@@ -10,6 +10,7 @@ const add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
 
 const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 const EnumValueType  = require("node-opcua-data-model").EnumValueType;
+const Namespace = require("../namespace").Namespace;
 
 
 function coerceEnumValues(enumValues) {
@@ -52,7 +53,7 @@ module.exports.install = function (AddressSpace) {
      * @example
      *
      *
-     *      addressSpace.addMultiStateValueDiscrete({
+     *      namespace.addMultiStateValueDiscrete({
      *          componentOf:parentObj,
      *          browseName: "myVar",
      *          enumValues: {
@@ -85,11 +86,15 @@ module.exports.install = function (AddressSpace) {
      */
 
     AddressSpace.prototype.addMultiStateValueDiscrete = function (options) {
+        return this._resolveRequestedNamespace(options).addMultiStateValueDiscrete(options);
+    };
+    Namespace.prototype.addMultiStateValueDiscrete = function(options) {
 
         assert(options.hasOwnProperty("enumValues"));
         assert(!options.hasOwnProperty("ValuePrecision"));
 
-        const addressSpace = this;
+        const namespace = this;
+        const addressSpace = namespace.__addressSpace;
 
         const multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
         assert(multiStateValueDiscreteType, "expecting MultiStateValueDiscreteType to be defined , check nodeset xml file");
@@ -113,15 +118,15 @@ module.exports.install = function (AddressSpace) {
             value:           new Variant({dataType: DataType.UInt32, value: options.value})
         });
 
-        const variable = addressSpace.addVariable(cloned_options);
+        const variable = namespace.addVariable(cloned_options);
 
         add_dataItem_stuff(variable, options);
 
 
-        addressSpace.addVariable({
+        namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: "EnumValues",
+            browseName: {name:"EnumValues",namespaceIndex:0},
             dataType: "EnumValueType",
             accessLevel: "CurrentRead",
             userAccessLevel: "CurrentRead",
@@ -160,10 +165,10 @@ module.exports.install = function (AddressSpace) {
 
         const valueAsText = findValueAsText(options.value);
 
-        addressSpace.addVariable({
+        namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: "ValueAsText",
+            browseName: {name:"ValueAsText",namespaceIndex: 0},
             dataType: "LocalizedText",
             accessLevel: "CurrentRead",
             userAccessLevel: "CurrentRead",

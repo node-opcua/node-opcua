@@ -107,6 +107,8 @@ server.on("post_initialize", function () {
 
     const addressSpace = server.engine.addressSpace;
 
+    const namespace = addressSpace.getPrivateNamespace();
+
     const rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");
 
@@ -150,7 +152,7 @@ server.on("post_initialize", function () {
         //var parameterSet  = topologyElementType.instantiate({ browseName: "ParameterSet", componentOf: channel });
         ///  var methodSet     = topologyElementType.instantiate({ browseName: "MethodSet",    componentOf: channel });
 
-        addressSpace.addVariable({
+        namespace.addVariable({
             componentOf:     parameterSet,
             browseName:     "MyParameter",
             typeDefinition: "DataItemType",
@@ -176,7 +178,7 @@ server.on("post_initialize", function () {
     //------------------------------------------------------------------------------
     // Add a view
     //------------------------------------------------------------------------------
-    const view = addressSpace.addView({
+    const view = namespace.addView({
         organizedBy: rootFolder.views,
         browseName:"MyView"
     });

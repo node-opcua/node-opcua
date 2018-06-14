@@ -26,6 +26,7 @@ const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 const NodeId = require("node-opcua-nodeid").NodeId;
 const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
 const MonitoredItem = require("../src/monitored_item").MonitoredItem;
 const encode_decode = require("node-opcua-basic-types");
@@ -100,6 +101,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
     this.timeout(Math.max(300000, this._timeout));
 
     let addressSpace;
+    let namespace;
     let someVariableNode;
     let analogItemNode;
     let accessLevel_CurrentRead_NotUserNode;
@@ -110,11 +112,13 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
     before(function (done) {
         engine = new server_engine.ServerEngine();
         engine.initialize({nodeset_filename: server_engine.nodeset_filename}, function () {
+
             addressSpace = engine.addressSpace;
+            namespace = addressSpace.getPrivateNamespace();
 
             // build_address_space_for_conformance_testing(engine, {mass_variables: false});
 
-            const node = addressSpace.addVariable({
+            const node = namespace.addVariable({
                 organizedBy: "RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
@@ -125,9 +129,11 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
 
             function addVar(typeName, value) {
-                addressSpace.addVariable({
+                namespace.index.should.eql(1);
+
+                namespace.addVariable({
                     organizedBy: "RootFolder",
-                    nodeId: "ns=100;s=Static_" + typeName,
+                    nodeId: "s=Static_" + typeName,
                     browseName: "Static_" + typeName,
                     dataType: typeName,
                     value: {dataType: DataType[typeName], value: value}
@@ -151,14 +157,12 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
 
             const name = "AccessLevel_CurrentRead_NotUser";
-            const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-            const namespaceIndex = 100;
 
-            accessLevel_CurrentRead_NotUserNode = addressSpace.addVariable({
+            accessLevel_CurrentRead_NotUserNode = namespace.addVariable({
                 organizedBy: "RootFolder",
                 browseName: name,
                 description: {locale: "en", text: name},
-                nodeId: makeNodeId(name, namespaceIndex),
+                nodeId: "s=" + name,
                 dataType: "Int32",
                 valueRank: -1,
 
@@ -178,12 +182,11 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
             function addAnalogItem(dataType) {
 
                 const name = "AnalogItem" + dataType;
-                const nodeId = makeNodeId(name, namespaceIndex);
 
-                addressSpace.addAnalogDataItem({
+                const node = namespace.addAnalogDataItem({
 
                     organizedBy: "RootFolder",
-                    nodeId: nodeId,
+                    nodeId:  "s=" + name,
                     browseName: name,
                     definition: "(tempA -25) + tempB",
                     valuePrecision: 0.5,
@@ -197,7 +200,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
                         value: 0.0
                     })
                 });
-                return nodeId;
+                return node.nodeId;
 
             }
 
@@ -637,7 +640,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         function add_monitoredItem(subscription) {
 
-            const nodeId = 'ns=100;s=Static_Float';
+            const nodeId = 'ns=1;s=Static_Float';
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -795,8 +798,8 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         }
 
 
-        test_with_nodeId("ns=100;s=Static_ByteString").should.eql(StatusCodes.BadFilterNotAllowed);
-        test_with_nodeId("ns=100;s=Static_LocalizedText").should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_nodeId("ns=1;s=Static_ByteString").should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_nodeId("ns=1;s=Static_LocalizedText").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
         subscription.dispose();
@@ -918,7 +921,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         it("FGFG1 should return BadNodeIdUnknown when trying to monitor an invalid node",function(done) {
 
-            const nodeId = "ns=5;s=MyVariable";
+            const nodeId = "ns=567;s=MyVariable";
 
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
@@ -948,16 +951,14 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         });
         it("FGFG2 should eventually emit DataChangeNotification when trying to monitor an invalid node that become valid",function(done) {
 
-            const nodeId = "ns=5;s=MyVariable";
-            const nodeVariable = addressSpace.addVariable({
+            const nodeVariable = namespace.addVariable({
                 browseName: "MyVar",
-                nodeId: nodeId,
+                nodeId: "s=MyVariable",
                 dataType: "Double",
                 value: {dataType: "Double", value: 3.14},
                 minimumSamplingInterval: 100
             });
-
-
+            const nodeId = "ns=1;s=MyVariable";
 
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
@@ -1055,7 +1056,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
          */
         function test_deadband(dataType, deadband, writesPass, writesFail) {
 
-            const nodeId = "ns=100;s=Static_" + dataType;
+            const nodeId = "ns=1;s=Static_" + dataType;
             const node = engine.addressSpace.findNode(nodeId);
             should(!!node).not.eql(false);
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
@@ -1190,7 +1191,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         it("ZZ0 testing with String and DeadBandFilter", function (done) {
 
-            const nodeId = "ns=100;s=Static_LocalizedText";
+            const nodeId = "ns=1;s=Static_LocalizedText";
 
             const filter = new subscription_service.DataChangeFilter({
                 trigger: subscription_service.DataChangeTrigger.StatusValue,
@@ -1403,6 +1404,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 describe("monitoredItem advanced", function () {
 
     let addressSpace;
+    let namespace;
     let someVariableNode;
     let engine;
     let publishEngine;
@@ -1412,9 +1414,10 @@ describe("monitoredItem advanced", function () {
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
             addressSpace = engine.addressSpace;
+            namespace = addressSpace.getPrivateNamespace();
 
 
-            const node = addressSpace.addVariable({
+            const node = namespace.addVariable({
                 organizedBy: "RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
@@ -1422,7 +1425,7 @@ describe("monitoredItem advanced", function () {
             });
             someVariableNode = node.nodeId;
 
-            add_eventGeneratorObject(engine.addressSpace, "ObjectsFolder");
+            add_eventGeneratorObject(namespace, "ObjectsFolder");
 
             const browsePath = makeBrowsePath("RootFolder", "/Objects/EventGeneratorObject");
 

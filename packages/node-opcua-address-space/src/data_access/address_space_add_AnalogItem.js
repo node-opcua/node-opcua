@@ -15,6 +15,7 @@ const EUInformation = require("node-opcua-data-access").EUInformation;
 const Range = require("node-opcua-data-access").Range;
 
 const add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
+const Namespace = require("../namespace").Namespace;
 
 
 exports.install = function (AddressSpace) {
@@ -31,15 +32,16 @@ exports.install = function (AddressSpace) {
      * @param options.componentOf
      * @return {UAVariable}
      */
-    AddressSpace.prototype.addDataItem = function(options) {
+    Namespace.prototype.addDataItem = function(options) {
 
-        const addressSpace = this;
+        const namespace = this;
+        const addressSpace = namespace.__addressSpace;
         assert(addressSpace instanceof AddressSpace);
         const dataType = options.dataType || "Number";
 
         const dataItemType = addressSpace.findVariableType("DataItemType");
 
-        const variable = addressSpace.addVariable(_.extend(options, {
+        const variable = namespace.addVariable(_.extend(options, {
             typeDefinition: dataItemType.nodeId,
             dataType:       dataType
         }));
@@ -64,7 +66,7 @@ exports.install = function (AddressSpace) {
      * @example:
      *
      *
-     *   addressSpace.add_analog_dataItem({
+     *   namespace.add_analog_dataItem({
      *      componentOf: parentObject,
      *      browseName: "TemperatureSensor",
      *
@@ -99,8 +101,13 @@ exports.install = function (AddressSpace) {
      * @return {UAVariable}
      */
     AddressSpace.prototype.addAnalogDataItem = function (options) {
+        return this._resolveRequestedNamespace(options).addAnalogDataItem(options);
+    };
 
-        const addressSpace = this;
+    Namespace.prototype.addAnalogDataItem = function (options) {
+
+        const namespace = this;
+        const addressSpace = namespace.__addressSpace;
 
         assert(options.hasOwnProperty("engineeringUnitsRange"), "expecting engineeringUnitsRange");
 
@@ -116,10 +123,10 @@ exports.install = function (AddressSpace) {
             typeDefinition: analogItemType.nodeId,
             dataType:       dataType
         });
-        const variable = addressSpace.addVariable(clone_options);
+        const variable = namespace.addVariable(clone_options);
 
 
-        //var variable = addressSpace.addVariable({
+        //var variable = namespace.addVariable({
         //    componentOf:     options.componentOf,
         //    organizedBy:     options.organizedBy,
         //    browseName:      options.browseName,
@@ -147,10 +154,10 @@ exports.install = function (AddressSpace) {
         // prepared to handle this.
         //     Example:    EURange ::= {-200.0,1400.0}
 
-        const euRange = addressSpace.addVariable({
+        const euRange = namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: "EURange",
+            browseName: {name:"EURange",namespaceIndex:0},
             dataType: "Range",
             minimumSamplingInterval: 0,
             value: new Variant({
@@ -165,10 +172,10 @@ exports.install = function (AddressSpace) {
 
         if (options.hasOwnProperty("instrumentRange")) {
 
-            const instrumentRange =addressSpace.addVariable({
+            const instrumentRange =namespace.addVariable({
                 propertyOf: variable,
                 typeDefinition: "PropertyType",
-                browseName: "InstrumentRange",
+                browseName: {name:"InstrumentRange",namespaceIndex:0},
                 dataType: "Range",
                 minimumSamplingInterval: 0,
                 accessLevel: "CurrentRead | CurrentWrite",
@@ -190,10 +197,10 @@ exports.install = function (AddressSpace) {
             // EngineeringUnits  specifies the units for the   DataItem‟s value (e.g., DEGC, hertz, seconds).   The
             // EUInformation   type is specified in   5.6.3.
 
-            const eu = addressSpace.addVariable({
+            const eu = namespace.addVariable({
                 propertyOf: variable,
                 typeDefinition: "PropertyType",
-                browseName: "EngineeringUnits",
+                browseName: {name:"EngineeringUnits",namespaceIndex:0},
                 dataType: "EUInformation",
                 minimumSamplingInterval: 0,
                 accessLevel: "CurrentRead",

@@ -17,18 +17,18 @@ const humanize = require("humanize");
  * @param options.browseName
  * @private
  */
-function addVariableWithHumanizeText(engine, options) {
+function addVariableWithHumanizeText(namespace, options) {
 
     assert(options.componentOf || options.organizedBy);
+    assert(typeof options.description === "string");
 
-    const variable = engine.addressSpace.addVariable(options);
-
+    const variable = namespace.addVariable(options);
     // add the xxxAsText property
-    engine.addressSpace.addVariable({
+    namespace.addVariable({
 
         propertyOf: variable,
 
-        browseName: options.browseName.toString() + "AsText",
+        browseName: options.browseName.name.toString() + "AsText",
         description: options.description + " as text",
         dataType: "String",
         minimumSamplingInterval: options.minimumSamplingInterval,
@@ -67,7 +67,11 @@ function install_optional_cpu_and_memory_usage_node(server) {
         //xx return;
     }
 
-    const folder = engine.addressSpace.findNode(ObjectIds.Server_VendorServerInfo);
+    const addressSpace = engine.addressSpace;
+
+    const namespace = addressSpace.getPrivateNamespace();
+
+    const folder = addressSpace.findNode(ObjectIds.Server_VendorServerInfo);
 
     let usage_result = {memory: 0, cpu: 100};
 
@@ -85,13 +89,13 @@ function install_optional_cpu_and_memory_usage_node(server) {
             });
         }, 1000);
 
-        engine.addressSpace.addVariable({
+        namespace.addVariable({
 
             organizedBy: folder,
 
             browseName:    "CPUUsage",
             description:   "Current CPU usage of the server process",
-            nodeId:        "ns=2;s=CPUUsage",
+            nodeId:        "s=CPUUsage",
             dataType:      "Double",
             minimumSamplingInterval: 1000,
             value: {
@@ -105,10 +109,10 @@ function install_optional_cpu_and_memory_usage_node(server) {
         });
 
 
-        addVariableWithHumanizeText(engine,{
+        addVariableWithHumanizeText(namespace,{
             organizedBy: folder,
             browseName:  "MemoryUsage",
-            nodeId:      "ns=2;s=MemoryUsage",
+            nodeId:      "s=MemoryUsage",
             description: "Current memory usage of the server process",
             dataType:    "Number",
             minimumSamplingInterval: 1000,
@@ -126,12 +130,12 @@ function install_optional_cpu_and_memory_usage_node(server) {
         console.log("skipping installation of cpu_usage and memory_usage nodes");
     }
 
-    engine.addressSpace.addVariable({
+    namespace.addVariable({
         organizedBy: folder,
 
         browseName: "PercentageMemoryUsed",
         description: "% of  memory used by the server",
-        nodeId: "ns=2;s=PercentageMemoryUsed",
+        nodeId: "s=PercentageMemoryUsed",
         dataType: "Number",
         minimumSamplingInterval: 1000,
         value: {
@@ -142,11 +146,11 @@ function install_optional_cpu_and_memory_usage_node(server) {
         }
     });
 
-    addVariableWithHumanizeText(engine, {
+    addVariableWithHumanizeText(namespace, {
         organizedBy: folder,
         browseName: "SystemMemoryTotal",
         description: "Total Memory usage of the server",
-        nodeId: "ns=2;s=SystemMemoryTotal",
+        nodeId: "s=SystemMemoryTotal",
         dataType: "Number",
         accessLevel: "CurrentRead",
         minimumSamplingInterval: 1000,
@@ -158,11 +162,11 @@ function install_optional_cpu_and_memory_usage_node(server) {
         }
     });
 
-    addVariableWithHumanizeText(engine,{
+    addVariableWithHumanizeText(namespace,{
         organizedBy: folder,
         browseName: "SystemMemoryFree",
         description: "Free Memory usage of the server in MB",
-        nodeId: "ns=2;s=SystemMemoryFree",
+        nodeId: "s=SystemMemoryFree",
         dataType: "Number",
         accessLevel: "CurrentRead",
         minimumSamplingInterval: 1000,
@@ -174,11 +178,11 @@ function install_optional_cpu_and_memory_usage_node(server) {
         }
     });
 
-    engine.addressSpace.addVariable({
+    namespace.addVariable({
         organizedBy: folder,
         browseName: "NumberOfCPUs",
         description: "Number of cpus on the server",
-        nodeId: "ns=2;s=NumberOfCPUs",
+        nodeId: "s=NumberOfCPUs",
         dataType: "Number",
         accessLevel: "CurrentRead",
         minimumSamplingInterval: 1000,
@@ -189,11 +193,11 @@ function install_optional_cpu_and_memory_usage_node(server) {
         }
     });
 
-    engine.addressSpace.addVariable({
+    namespace.addVariable({
         organizedBy: folder,
         browseName: "Arch",
         description: "ServerArchitecture",
-        nodeId: "ns=2;s=ServerArchitecture",
+        nodeId: "s=ServerArchitecture",
         dataType: "String",
         accessLevel: "CurrentRead",
         minimumSamplingInterval: 1000,
@@ -204,11 +208,11 @@ function install_optional_cpu_and_memory_usage_node(server) {
         }
     });
 
-    addVariableWithHumanizeText(engine,{
+    addVariableWithHumanizeText(namespace,{
         organizedBy: folder,
         browseName: "BytesWritten",
         description: "number of bytes written by the server",
-        nodeId: "ns=2;s=BytesWritten",
+        nodeId: "s=BytesWritten",
         dataType: "Number",
         accessLevel: "CurrentRead",
         minimumSamplingInterval: 1000,
@@ -219,11 +223,11 @@ function install_optional_cpu_and_memory_usage_node(server) {
         }
     });
 
-    addVariableWithHumanizeText(engine,  {
+    addVariableWithHumanizeText(namespace,  {
         organizedBy: folder,
         browseName: "BytesRead",
         description: "number of bytes read by the server",
-        nodeId: "ns=2;s=BytesRead",
+        nodeId: "s=BytesRead",
         dataType: "Number",
         accessLevel: "CurrentRead",
         minimumSamplingInterval: 1000,
@@ -234,11 +238,11 @@ function install_optional_cpu_and_memory_usage_node(server) {
         }
     });
 
-    engine.addressSpace.addVariable({
+    namespace.addVariable({
         organizedBy: folder,
         browseName: "TransactionsCount",
         description: "total number of transactions performed the server",
-        nodeId: "ns=2;s=TransactionsCount",
+        nodeId: "s=TransactionsCount",
         dataType: "Number",
         accessLevel: "CurrentRead",
         minimumSamplingInterval: 1000,
@@ -249,17 +253,17 @@ function install_optional_cpu_and_memory_usage_node(server) {
         }
     });
 
-    engine.addressSpace.addVariable({
+    namespace.addVariable({
         organizedBy: folder,
         browseName: "ConnectionsCount",
         description: "number of active Connections",
-        nodeId: "ns=2;s=ConnectionCount",
+        nodeId: "s=ConnectionCount",
         dataType: "String",
         accessLevel: "CurrentRead",
         minimumSamplingInterval: 1000,
         value: {
             get: function () {
-                return new Variant({dataType: DataType.String, value: humanize.filesize(server.currentChannelCount)});
+                return new Variant({dataType: DataType.String, value: humanize.filesize(server.currentChannelCount)             });
             }
         }
     });

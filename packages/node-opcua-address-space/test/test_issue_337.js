@@ -29,7 +29,9 @@ describe("Testing bug found in #337", function () {
 
     it("should handle Matrix ", function () {
 
-        const n = addressSpace.addVariable({
+        const namespace =addressSpace.getPrivateNamespace();
+
+        const n = namespace.addVariable({
             organizedBy: addressSpace.rootFolder.objects,
             nodeId: "ns=1;s=Position",
             browseName: "position",

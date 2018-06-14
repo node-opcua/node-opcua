@@ -15,11 +15,13 @@ require("../src/address_space_add_enumeration_type");
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : testing add enumeration type", function () {
 
-    let addressSpace;
+    let addressSpace , namespace;
 
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
+            namespace = addressSpace.getPrivateNamespace();
+
             done(err);
         });
 
@@ -31,12 +33,12 @@ describe("AddressSpace : testing add enumeration type", function () {
 
     it("should add a new Enumeration type into an address space - Form 1", function () {
 
-        const myEnumType = addressSpace.addEnumerationType({
+        const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType2",
             enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"]
         });
 
-        myEnumType.browseName.toString().should.eql("MyEnumType2");
+        myEnumType.browseName.toString().should.eql("1:MyEnumType2");
 
         const enumerationType = addressSpace.findDataType("Enumeration");
 
@@ -53,12 +55,12 @@ describe("AddressSpace : testing add enumeration type", function () {
         });
 
         names.filter(function (x) {
-            return x === "MyEnumType2";
+            return x === "1:MyEnumType2";
         }).length.should.eql(1, "MyEnumType2 should be find in enum");
 
 
         // now instantiate a variable that have this type.
-        const e = addressSpace.addVariable({
+        const e = namespace.addVariable({
             propertyOf: addressSpace.rootFolder.objects.server.venderServerInfos,
             dataType: myEnumType,
             browseName: "RunningState",
@@ -110,7 +112,7 @@ describe("AddressSpace : testing add enumeration type", function () {
 
     it("should add a new Enumeration type into an address space - Form 2", function () {
 
-        const myEnumType = addressSpace.addEnumerationType({
+        const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType3",
             enumeration: [
                 {displayName: "VALUE01", value: 0x01},
@@ -120,7 +122,7 @@ describe("AddressSpace : testing add enumeration type", function () {
             ]
         });
 
-        myEnumType.browseName.toString().should.eql("MyEnumType3");
+        myEnumType.browseName.toString().should.eql("1:MyEnumType3");
 
         const enumerationType = addressSpace.findDataType("Enumeration");
 
@@ -137,12 +139,12 @@ describe("AddressSpace : testing add enumeration type", function () {
         });
 
         names.filter(function (x) {
-            return x === "MyEnumType2";
+            return x === "1:MyEnumType2";
         }).length.should.eql(1, "MyEnumType2 should be find in enum");
 
 
         // now instantiate a variable that have this type.
-        const e = addressSpace.addVariable({
+        const e = namespace.addVariable({
             propertyOf: addressSpace.rootFolder.objects.server.venderServerInfos,
             dataType: myEnumType,
             browseName: "RunningState",

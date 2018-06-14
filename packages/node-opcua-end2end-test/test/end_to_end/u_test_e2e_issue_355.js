@@ -20,18 +20,18 @@ module.exports = function (test) {
 
             const server = test.server;
 
-            if (!server) { return done(); }
+            if (!server) {
+                return done();
+            }
 
             const client = new opcua.OPCUAClient();
 
-
-
             perform_operation_on_subscription(client,test.endpointUrl,function(session,subscription,callback) {
 
-                redirectToFile("issue_355", function (callback) {
+               redirectToFile("issue_355", function (callback) {
 
                     const monitoredItem = subscription.monitor(
-                      {nodeId: "ns=2;s=FanSpeed", attributeId: opcua.AttributeIds.Value},
+                      {nodeId: "ns=1;s=FanSpeed", attributeId: opcua.AttributeIds.Value},
                       {
                           samplingInterval: 10, // sampling twice as fast as variable refresh rate
                           discardOldest: true,
@@ -53,15 +53,15 @@ module.exports = function (test) {
                     });
 
                     timerId  = setInterval(function() {
-                        const node = test.server.engine.addressSpace.findNode("ns=2;s=FanSpeed");
-                        console.log("Set")
+                        const node = test.server.engine.addressSpace.findNode("ns=1;s=FanSpeed");
+                        console.log("Set");
                         node.setValueFromSource( new opcua.Variant({
                             value: Math.random(),
                             dataType: "Float"
                         }));
                     },100);
 
-                }, callback);
+               }, callback);
 
 
             },done);

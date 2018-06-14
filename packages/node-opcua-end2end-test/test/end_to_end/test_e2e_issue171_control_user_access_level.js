@@ -74,8 +74,10 @@ describe("testing Client-Server with UserName/Password identity token", function
             server.userManager = userManager;
 
             const addressSpace = server.engine.addressSpace;
+            const namespace = addressSpace.getPrivateNamespace();
+
             // create a variable that can only be read and written by admin
-            node1 = addressSpace.addVariable({
+            node1 = namespace.addVariable({
                 browseName: "v1",
                 organizedBy: addressSpace.rootFolder.objects,
                 dataType: "Double",

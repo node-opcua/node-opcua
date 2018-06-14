@@ -32,7 +32,7 @@ function create_analyser_device(addressSpace) {
     const analyserDeviceType = addressSpace.findObjectType("AnalyserDeviceType", adi_namespace);
     //xx console.log(analyserDeviceType.toString());
 
-    const myAnalyserDeviceType = addressSpace.addObjectType({
+    const myAnalyserDeviceType = addressSpace.getPrivateNamespace().addObjectType({
         browseName: "MyAnalyserDeviceType",
         subtypeOf: analyserDeviceType
     });
@@ -109,7 +109,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         const di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         const deviceType = addressSpace.findObjectType("DeviceType", di_namespace);
 
-        const myDeviceType = addressSpace.addObjectType({
+        const myDeviceType = addressSpace.getPrivateNamespace().addObjectType({
             browseName: "MyDeviceType",
             subtypeOf: addressSpace.findObjectType("DeviceType")
         });
@@ -162,7 +162,8 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         analyserChannelType.browseName.toString().should.eql("3:AnalyserChannelType");
 
         const channel1 = analyserChannelType.instantiate({
-            browseName: "__Channel1"
+            browseName: "__Channel1",
+            optionals:["ParameterSet"]
         });
 
 
@@ -174,6 +175,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         const channel2 = analyserChannelType.instantiate({
             browseName: "__Channel2",
+            optionals:["ParameterSet"]
         });
 
         channel2.parameterSet.browseName.toString().should.eql("2:ParameterSet");
@@ -186,12 +188,12 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
                 console.log(c.browseName.toString())
             });
         }
-        should.exist(channel2.getComponentByName("2:ParameterSet"));
+        should.exist(channel2.getComponentByName("ParameterSet"));
 
-        channel2.getComponentByName("2:ParameterSet").browseName.toString().should.eql("2:ParameterSet");
+        channel2.getComponentByName("ParameterSet").browseName.toString().should.eql("2:ParameterSet");
 
         // isEnable Property
-        const isEnableParameter_variation1 = channel2.parameterSet.getComponentByName("3:IsEnabled");
+        const isEnableParameter_variation1 = channel2.parameterSet.getComponentByName("IsEnabled");
         isEnableParameter_variation1.browseName.toString().should.eql("3:IsEnabled");
 
 
@@ -205,7 +207,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         channel2.configuration.findReferences("Organizes").length.should.be.aboveOrEqual(1);
 
-        channel2.configuration.getFolderElementByName("3:IsEnabled").browseName.toString().should.eql("3:IsEnabled");
+        channel2.configuration.getFolderElementByName("IsEnabled").browseName.toString().should.eql("3:IsEnabled");
         channel2.configuration.isEnabled.browseName.toString().should.eql("3:IsEnabled");
 
     });

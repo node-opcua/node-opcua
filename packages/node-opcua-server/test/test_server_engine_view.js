@@ -1,8 +1,10 @@
-
 const should = require("should");
 const server_engine = require("../src/server_engine");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
+const doDebug = false;
+
 describe("Testing the server  engine - View related ", function () {
 
     let engine;
@@ -24,12 +26,16 @@ describe("Testing the server  engine - View related ", function () {
 
         const viewsFolder = engine.addressSpace.findNode("ViewsFolder");
 
-        const view = engine.addressSpace.addView({
+        const namespace = engine.addressSpace.getPrivateNamespace();
+
+        const view = namespace.addView({
             organizedBy: viewsFolder,
             browseName: "MyView"
         });
-        console.log(view.toString());
-        view.browseName.toString().should.eql("MyView");
+        if (doDebug) {
+            console.log(view.toString());
+        }
+        view.browseName.toString().should.eql("1:MyView");
         //xx view.parentObj.browseName.toString().should.eql("Views");
     });
 });

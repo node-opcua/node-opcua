@@ -359,10 +359,12 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
 
+            const namespace = server.engine.addressSpace.getPrivateNamespace();
+
             if (!err) {
                 let c = 0;
 
-                counterNode = server.engine.addressSpace.addVariable({
+                counterNode = namespace.addVariable({
                     browseName: "Counter",
                     organizedBy: server.engine.addressSpace.rootFolder.objects,
                     dataType: "UInt32",

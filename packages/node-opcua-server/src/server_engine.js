@@ -1510,7 +1510,7 @@ ServerEngine.prototype.createSession = function (options) {
 
     assert(_.isNumber(sessionTimeout));
 
-    const session = new ServerSession(engine, engine.cumulatedSessionCount, sessionTimeout);
+    const session = new ServerSession(engine, sessionTimeout);
 
     const key = session.authenticationToken.toString();
 

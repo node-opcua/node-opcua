@@ -27,6 +27,8 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
         fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
+            const namespace = addressSpace.registerNamespace("Private");
+            namespace.index.should.eql(1);
             done(err);
         });
 
@@ -41,13 +43,16 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
 
     function findOrCreateCustomObjectType(addressSpace) {
 
-        let myCustomObjectType = addressSpace.findObjectType("MyCustomObjectType");
+        let myCustomObjectType = addressSpace.findObjectType("1:MyCustomObjectType");
 
         if (!myCustomObjectType) {
-            myCustomObjectType = addressSpace.addObjectType({
+
+            const namespace= addressSpace.getPrivateNamespace();
+
+            myCustomObjectType = namespace.addObjectType({
                 browseName: "MyCustomObjectType"
             });
-            const myCustomProperty = addressSpace.addVariable({
+            const myCustomProperty = namespace.addVariable({
                 propertyOf: myCustomObjectType,
                 browseName: "CustomProperty",
                 description: "Descr",

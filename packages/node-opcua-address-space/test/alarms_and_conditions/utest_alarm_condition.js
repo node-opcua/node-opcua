@@ -44,7 +44,7 @@ module.exports = function (test) {
                 conditionSource: source,
                 browseName: "AlarmCondition1"
             });
-            alarm.browseName.toString().should.eql("AlarmCondition1");
+            alarm.browseName.toString().should.eql("1:AlarmCondition1");
 
             should.not.exist(alarm.maxTimedShelved);
             should.not.exist(alarm.confirmedState);
@@ -64,7 +64,7 @@ module.exports = function (test) {
             should.not.exist(alarm.confirmedState);
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             alarm.enabledState.getTrueSubStates().length.should.eql(2);
-            alarm.browseName.toString().should.eql("AlarmCondition2");
+            alarm.browseName.toString().should.eql("1:AlarmCondition2");
 
             alarm.inputNode.readValue().value.value.should.eql(variableWithAlarm.nodeId,"Input node must have been resolved properly");
 
@@ -445,7 +445,7 @@ module.exports = function (test) {
             condition.ackedState.isTrueSubStateOf.should.eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(3);
             condition.enabledState.getFalseSubStates().length.should.eql(0);
-            condition.browseName.toString().should.eql("AcknowledgeableCondition4");
+            condition.browseName.toString().should.eql("1:AcknowledgeableCondition4");
 
             const branch = condition.currentBranch();
 

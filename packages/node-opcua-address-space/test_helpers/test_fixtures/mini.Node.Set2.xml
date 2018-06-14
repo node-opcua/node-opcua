@@ -2,6 +2,10 @@
 <UANodeSet
         Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
         xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <Models>
+        <Model ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00Z" />
+    </Models>
+
     <Aliases>
         <Alias Alias="Boolean">i=1</Alias>
         <Alias Alias="SByte">i=2</Alias>
@@ -423,6 +427,8 @@
         </References>
         <InverseName>HistoricalConfigurationOf</InverseName>
     </UAReferenceType>
+
+
 
     <UAObjectType NodeId="i=75" BrowseName="DataTypeSystemType">
         <DisplayName>DataTypeSystemType</DisplayName>
@@ -2499,6 +2505,14 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=2782</Reference>
         </References>
     </UAVariable>
+    <UAReferenceType NodeId="i=9006" BrowseName="HasCondition">
+        <DisplayName>HasCondition</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>IsConditionOf</InverseName>
+    </UAReferenceType>
+
     <UAVariable NodeId="i=9009" BrowseName="ConditionName" ParentNodeId="i=2782" DataType="String">
         <DisplayName>ConditionName</DisplayName>
         <References>

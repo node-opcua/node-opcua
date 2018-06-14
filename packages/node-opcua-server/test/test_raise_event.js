@@ -29,12 +29,14 @@ const subscription_service = require("node-opcua-service-subscription");
 
 describe("testing Events  ", function () {
 
-    let addressSpace;
+    let addressSpace,namespace;
     let eventType;
     before(function (done) {
         get_mini_address_space(function (err,__addressSpace__) {
             addressSpace =__addressSpace__;
-            eventType = addressSpace.addEventType({browseName: "MyEventType"});
+            namespace = addressSpace.getPrivateNamespace();
+
+            eventType = namespace.addEventType({browseName: "SomeEventType"});
             done(err);
         });
     });
@@ -45,7 +47,7 @@ describe("testing Events  ", function () {
     });
 
     it("should create a new EventType", function () {
-        eventType.browseName.toString().should.eql("MyEventType");
+        eventType.browseName.toString().should.eql("1:SomeEventType");
     });
 
     const EventEmitter = require("events").EventEmitter;
@@ -60,7 +62,7 @@ describe("testing Events  ", function () {
         const serverObject = addressSpace.findNode("Server");
         serverObject.browseName.toString().should.eql("Server");
 
-        const eventType = addressSpace.findEventType("MyEventType");
+        const eventType = addressSpace.findEventType("1:SomeEventType");
 
         const observer = new Observer();
 
@@ -140,7 +142,10 @@ describe("testing Events  ", function () {
         const serverObject = addressSpace.findNode("Server");
         serverObject.browseName.toString().should.eql("Server");
 
-        const eventType = addressSpace.findEventType("MyEventType");
+        // myEventType is on the Simulation namespace
+        const eventType = addressSpace.findEventType("1:SomeEventType");
+
+        should.exist(eventType);
 
 
         const eventFilter = new EventFilter({
@@ -203,14 +208,14 @@ describe("testing Events  ", function () {
     //
     it("should bubble events up",function(){
 
-        const area1 = addressSpace.createNode({
+        const area1 = namespace.createNode({
             nodeClass: NodeClass.Object,
             browseName:  "Area1",
             organisedBy: "Objects"
         });
         area1.browseName.name.should.eql("Area1");
 
-        const tank1 = addressSpace.createNode({
+        const tank1 = namespace.createNode({
             nodeClass: NodeClass.Object,
             browseName:  "Tank1",
             componentOf: area1,
@@ -218,22 +223,22 @@ describe("testing Events  ", function () {
         });
         tank1.browseName.name.should.eql("Tank1");
 
-        const pump = addressSpace.createNode({
+        const pump = namespace.createNode({
             nodeClass: NodeClass.Object,
             browseName:    "Pump",
             componentOf:   tank1,
             eventSourceOf: tank1,
             eventNotifier: 1
         });
-        const pumpStartEventType = addressSpace.addEventType({browseName: "PumpStartEventType"});
-        pumpStartEventType.browseName.toString().should.eql("PumpStartEventType");
+        const pumpStartEventType = namespace.addEventType({browseName: "PumpStartEventType"});
+        pumpStartEventType.browseName.toString().should.eql("1:PumpStartEventType");
         pumpStartEventType.subtypeOfObj.browseName.toString().should.eql("BaseEventType");
 
         const receivers = [];
         function spyFunc(object,data) {
             const self =this;
             console.log("object ",self.browseName.toString(), " received Event");
-            receivers.push(self.browseName.toString());
+            receivers.push(self.browseName.name.toString());
         }
         const server = addressSpace.findNode("Server");
 

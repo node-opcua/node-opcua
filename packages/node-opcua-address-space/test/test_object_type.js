@@ -24,6 +24,8 @@ describe("testing UAObjectType", function () {
         before(function () {
             addressSpace = new address_space.AddressSpace();
             create_minimalist_address_space_nodeset(addressSpace);
+            addressSpace.registerNamespace("Private");
+
         });
         after(function (done) {
             if (addressSpace){
@@ -35,9 +37,9 @@ describe("testing UAObjectType", function () {
 
     it("should read Attribute IsAbstract on UAObjectType ", function () {
 
-        const objType = new UAObjectType({
+        const namespace = addressSpace.getPrivateNamespace();
+        const objType = namespace.addObjectType({
             browseName: "MyObject",
-            addressSpace: addressSpace,
             isAbstract: false
         });
 
@@ -50,9 +52,9 @@ describe("testing UAObjectType", function () {
     });
     it("should read Attribute IsAbstract on Abstract UAObjectType ", function () {
 
-        const objType = new UAObjectType({
+        const namespace = addressSpace.getPrivateNamespace();
+        const objType = namespace.addObjectType({
             browseName: "MyObject2",
-            addressSpace: addressSpace,
             isAbstract: true
         });
 
@@ -70,7 +72,8 @@ describe("testing UAObjectType", function () {
     it("UAObjectType#instantiate should be possible to instantiate a ObjectType (nodeid not specified)",function() {
 
 
-        const objType = addressSpace.addObjectType({
+        const namespace = addressSpace.getPrivateNamespace();
+        const objType = namespace.addObjectType({
             browseName: "MyObject3",
             subtypeOf: "BaseObjectType",
             isAbstract: false
@@ -80,7 +83,7 @@ describe("testing UAObjectType", function () {
             browseName: "Instance3"
         });
 
-        obj.browseName.toString().should.eql("Instance3");
+        obj.browseName.toString().should.eql("1:Instance3");
 
         obj.nodeId.identifierType.should.eql(NodeId.NodeIdType.NUMERIC);
 
@@ -88,7 +91,8 @@ describe("testing UAObjectType", function () {
 
     it("UAObjectType#instantiate should be possible to instantiate a ObjectType and specify its nodeId)",function() {
 
-        const objType = addressSpace.addObjectType({
+        const namespace = addressSpace.getPrivateNamespace();
+        const objType = namespace.addObjectType({
             browseName: "MyObject4",
             subtypeOf: "BaseObjectType",
             isAbstract: false
@@ -96,12 +100,12 @@ describe("testing UAObjectType", function () {
 
         const obj = objType.instantiate({
             browseName: "Instance4",
-            nodeId: "ns=3;s=HelloWorld"
+            nodeId: "ns=1;s=HelloWorld"
         });
 
-        obj.browseName.toString().should.eql("Instance4");
+        obj.browseName.toString().should.eql("1:Instance4");
 
-        obj.nodeId.toString().should.eql("ns=3;s=HelloWorld");
+        obj.nodeId.toString().should.eql("ns=1;s=HelloWorld");
         
     });
 

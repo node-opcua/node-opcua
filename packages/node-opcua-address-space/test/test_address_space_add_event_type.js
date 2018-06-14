@@ -20,11 +20,14 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("AddressSpace : add event type ", function () {
 
-    let addressSpace;
+    let addressSpace,namespace;
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
-            const eventType = addressSpace.addEventType({
+
+            namespace = addressSpace.getPrivateNamespace();
+
+            const eventType = namespace.addEventType({
                 browseName: "MyCustomEvent",
                 //isAbstract:false,
                 subtypeOf: "BaseEventType" // should be implicit
@@ -78,31 +81,51 @@ describe("AddressSpace : add event type ", function () {
 
         should(addressSpace.findEventType("__EventTypeForTest1")).eql(null);
 
-        const eventType = addressSpace.addEventType({
+        const eventType = namespace.addEventType({
             browseName: "__EventTypeForTest1",
             subtypeOf: "BaseEventType" // should be implicit
         });
-        eventType.browseName.toString().should.eql("__EventTypeForTest1");
+        eventType.browseName.toString().should.eql("1:__EventTypeForTest1");
 
-        const reloaded = addressSpace.findEventType("__EventTypeForTest1");
+        const privateNamespace = addressSpace.getPrivateNamespace();
+
+        const reloaded = addressSpace.findEventType("__EventTypeForTest1",privateNamespace.index);
+
         should(reloaded).not.eql(null, "cannot findEventType " + "__EventTypeForTest1");
         reloaded.nodeId.should.eql(eventType.nodeId);
 
     });
 
+    it("should retrieve EventType in several ways", function () {
+
+        const namespaceIndex= addressSpace.getPrivateNamespace().index;
+        namespaceIndex.should.eql(1);
+
+        const eventType1 = addressSpace.findEventType("MyCustomEvent",namespaceIndex);
+        const eventType2 = addressSpace.getPrivateNamespace().findObjectType("MyCustomEvent");
+        const eventType3 = addressSpace.findEventType("1:MyCustomEvent");
+
+        eventType1.should.eql(eventType2);
+        eventType1.should.eql(eventType3);
+
+    });
+
     it("added EventType should be abstract by default", function () {
-        const eventType = addressSpace.findEventType("MyCustomEvent");
-        eventType.browseName.toString().should.eql("MyCustomEvent");
+
+        const namespaceIndex= addressSpace.getPrivateNamespace().index;
+        const eventType = addressSpace.findEventType("MyCustomEvent",namespaceIndex);
         eventType.isAbstract.should.eql(true);
+
+        eventType.browseName.toString().should.eql("1:MyCustomEvent");
     });
 
     it("should be possible to add a non-abstract event type", function () {
 
-        const eventType = addressSpace.addEventType({
+        const eventType = namespace.addEventType({
             browseName: "MyConcreteCustomEvent",
             isAbstract: false
         });
-        eventType.browseName.toString().should.eql("MyConcreteCustomEvent");
+        eventType.browseName.toString().should.eql("1:MyConcreteCustomEvent");
         eventType.isAbstract.should.eql(false);
     });
 
@@ -158,19 +181,22 @@ describe("AddressSpace : add event type ", function () {
         const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
         const bench = new Benchmarker();
 
-        const eventType = addressSpace.addEventType({
+        const eventType = namespace.addEventType({
             subtypeOf: "ConditionType",
             browseName: "MyConditionType",
             isAbstract: false
         });
 
+        let counter =0;
         bench.add("test", function () {
             const condition = addressSpace.instantiateCondition(eventType, {
-                browseName: "MyCondition",
+                browseName: "MyCondition" + counter,
                 sourceName: {dataType: "String", value: "HelloWorld"},
                 conditionSource: null,
                 receiveTime: {dataType: "DateTime", value: new Date(1789, 6, 14)}
             });
+            condition.browseName.toString().should.eql("1:MyCondition"+counter);
+            counter++;
         })
 
         .on("cycle", function (message) {
@@ -192,7 +218,7 @@ describe("AddressSpace : add event type ", function () {
 
         const auditEventType = addressSpace.findObjectType("AuditEventType");
 
-        var data = {
+        let data = {
             sourceNode: {dataType: "NodeId", value: resolveNodeId("Server")},
             status: {dataType: "Null"},
             serverId: {dataType: "Null"},
@@ -201,7 +227,7 @@ describe("AddressSpace : add event type ", function () {
             actionTimeStamp: {dataType: "Null"}
         };
 
-        var data = addressSpace.constructEventData(auditEventType, data);
+        data = addressSpace.constructEventData(auditEventType, data);
 
         const expected_fields = [
             "$eventDataSource",
@@ -231,7 +257,7 @@ describe("AddressSpace : add event type ", function () {
         const eventType = addressSpace.findEventType("MyCustomEvent");
         eventType.browseName.toString().should.eql("MyCustomEvent");
 
-        addressSpace.addVariable({
+        namespace.addVariable({
             propertyOf: eventType,
             browseName: "MyCustomEventProperty",
             dataType: "Double",

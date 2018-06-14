@@ -29,14 +29,14 @@ module.exports = function (test) {
             done();
         });
 
-        const namespaceIndex = 411;
+        const namespaceIndex = 2;
 
 
         function test_write_read_cycle(client, dataValue, done) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const nodeId = makeNodeId("Scalar_Static_Float", namespaceIndex);
+                const nodeId = "ns=2;s=Scalar_Static_Float";
 
                 const nodesToWrite = [
                     {
@@ -160,9 +160,9 @@ module.exports = function (test) {
 
         });
 
-        it("ZZZ reading ns=411;s=Scalar_Static_Int16 ", function (done) {
+        it("ZZZ reading ns=2;s=Scalar_Static_Int16 ", function (done) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-                const nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
+                const nodeId = "ns=2;s=Scalar_Static_Int16";
 
                 const nodesToRead = [
                     {
@@ -229,7 +229,7 @@ module.exports = function (test) {
 
                 perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                    const nodeId = makeNodeId("Scalar_Static_Large_Array_Float", namespaceIndex);
+                    const nodeId = "s="+"Scalar_Static_Large_Array_Float";
 
                     const nodeToRead =  {
                             nodeId: nodeId,
@@ -250,7 +250,7 @@ module.exports = function (test) {
 
                 perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                    const nodeId = makeNodeId("Scalar_Static_Large_Array_Float", namespaceIndex);
+                    const nodeId = "ns=2;s=Scalar_Static_Large_Array_Float";
                     const nodeToRead = {
                             nodeId: nodeId,
                             attributeId: opcua.AttributeIds.Value,

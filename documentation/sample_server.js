@@ -1,9 +1,8 @@
 /*global require,setInterval,console */
-var opcua = require("node-opcua");
-
+const opcua = require("node-opcua");
 
 // Let's create an instance of OPCUAServer
-var server = new opcua.OPCUAServer({
+const server = new opcua.OPCUAServer({
     port: 4334, // the port of the listening socket of the server
     resourcePath: "UA/MyLittleServer", // this path will be added to the endpoint resource name
      buildInfo : {
@@ -17,22 +16,23 @@ function post_initialize() {
     console.log("initialized");
     function construct_my_address_space(server) {
     
-        var addressSpace = server.engine.addressSpace;
+        const addressSpace = server.engine.addressSpace;
+        const namespace = addressSpace.getPrivateNamespace();
         
         // declare a new object
-        var device = addressSpace.addObject({
+        const device = namespace.addObject({
             organizedBy: addressSpace.rootFolder.objects,
             browseName: "MyDevice"
         });
         
         // add some variables 
         // add a variable named MyVariable1 to the newly created folder "MyDevice"
-        var variable1 = 1;
+        let variable1 = 1;
         
         // emulate variable1 changing every 500 ms
         setInterval(function(){  variable1+=1; }, 500);
         
-        addressSpace.addVariable({
+        namespace.addVariable({
             componentOf: device,
             browseName: "MyVariable1",
             dataType: "Double",
@@ -44,9 +44,9 @@ function post_initialize() {
         });
         
         // add a variable named MyVariable2 to the newly created folder "MyDevice"
-        var variable2 = 10.0;
+        let variable2 = 10.0;
         
-        server.engine.addressSpace.addVariable({
+        namespace.addVariable({
             
             componentOf: device,
             
@@ -66,21 +66,21 @@ function post_initialize() {
                 }
             }
         });
-        var os = require("os");
+        const os = require("os");
         /**
          * returns the percentage of free memory on the running machine
          * @return {double}
          */
         function available_memory() {
             // var value = process.memoryUsage().heapUsed / 1000000;
-            var percentageMemUsed = os.freemem() / os.totalmem() * 100.0;
+            const percentageMemUsed = os.freemem() / os.totalmem() * 100.0;
             return percentageMemUsed;
         }
-        server.engine.addressSpace.addVariable({
+        namespace.addVariable({
             
             componentOf: device,
             
-            nodeId: "ns=1;s=free_memory", // a string nodeID
+            nodeId: "s=free_memory", // a string nodeID
             browseName: "FreeMemory",
             dataType: "Double",    
             value: {
@@ -92,7 +92,7 @@ function post_initialize() {
     server.start(function() {
         console.log("Server is now listening ... ( press CTRL+C to stop)");
         console.log("port ", server.endpoints[0].port);
-        var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         console.log(" the primary server endpoint url is ", endpointUrl );
     });
 }

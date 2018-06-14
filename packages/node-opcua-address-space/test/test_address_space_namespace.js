@@ -45,9 +45,14 @@ describe("testing  address space namespace loading", function () {
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
+       //xx fs.existsSync(xml_files[2]).should.be.eql(true,"invalid file : "+ xml_files[2]);
 
         addressSpace.registerNamespace("ServerNamespaceURI");
         addressSpace.getNamespaceArray().length.should.eql(2);
+        addressSpace.getNamespaceArray().map(x=>x.namespaceUri).should.eql([
+            "http://opcfoundation.org/UA/",
+            "ServerNamespaceURI"
+        ]);
 
         generate_address_space(addressSpace, xml_files, function (err) {
 

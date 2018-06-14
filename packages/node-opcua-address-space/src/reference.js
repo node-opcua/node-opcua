@@ -2,7 +2,7 @@
 const assert = require("node-opcua-assert").assert;
 
 const utils = require("node-opcua-utils");
-
+const NodeId = require("node-opcua-nodeid").NodeId;
 
 function isNodeIdString(str) {
     assert(typeof str === "string");
@@ -17,26 +17,30 @@ function is_valid_reference(ref) {
     if (!hasRequestedProperties) {
         return false;
     }
-    assert(typeof ref.referenceType === "string");
 
-    // referenceType shall no be a nodeId string (this could happen by mistake)
-    assert(!isNodeIdString(ref.referenceType));
+    assert(ref.referenceType instanceof NodeId);
+    assert(!ref.referenceTypeName || typeof ref.referenceTypeName === "string");
+    //xx // referenceType shall no be a nodeId string (this could happen by mistake)
+    //xx assert(!isNodeIdString(ref.referenceType));
     return true;
 }
 /**
  * @class Reference
- * @param options.referenceType {String}
- * @param options.nodeId {NodeId}
- * @param options.isForward {Boolean}
+ * @param options.referenceType {NodeId}
+ * @param options.nodeId        {NodeId}
+ * @param options.isForward     {Boolean}
  * @constructor
  */
 function Reference(options) {
+    assert(options.referenceType instanceof NodeId);
+    assert(options.nodeId instanceof NodeId);
     this.referenceType = options.referenceType;
     this.isForward = options.isForward;
     this.nodeId = options.nodeId;
+    this._referenceType = options._referenceType;
+    this.node = options.node;
     assert(is_valid_reference(this));
 }
-
 /**
  * @method _arrow
  * @private
@@ -85,7 +89,7 @@ Reference.prototype.toString = function (options) {
 Reference.prototype.__defineGetter__("hash",function() {
 
     if (!this.__hash) {
-        this.__hash = (this.isForward ? "" : "!") + this.referenceType + "-" + this.nodeId.toString();
+        this.__hash = (this.isForward ? "" : "!") + this.referenceType.toString() + "-" + this.nodeId.toString();
     }
     return this.__hash;
 });

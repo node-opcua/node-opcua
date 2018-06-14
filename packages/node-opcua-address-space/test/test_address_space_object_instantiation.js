@@ -29,19 +29,20 @@ describe("testing add new ObjectType ", function () {
 
     it("should instantiate a objectType that uses custom HasChild Property",function() {
 
+        const namespace =addressSpace.getPrivateNamespace();
         // ------------ Add a new aggregate
-        const weezbeChildType = addressSpace.addReferenceType({
+        const weezbeChildType = namespace.addReferenceType({
             browseName: "HasWeezbe",
             inverseName: "WeezbeOf",
             isAbstract: false,
             subtypeOf: "Aggregates"
         });
 
-        const myObjectType = addressSpace.addObjectType({
+        const myObjectType = namespace.addObjectType({
             browseName: "MyObjectType"
         });
 
-        const weezbeChild = addressSpace.addObject({
+        const weezbeChild = namespace.addObject({
             browseName:    "MyWeezBe",
             modellingRule:"Mandatory"
         });
@@ -50,7 +51,7 @@ describe("testing add new ObjectType ", function () {
             referenceType: weezbeChildType.nodeId, nodeId: weezbeChild
         });
 
-        var aggregates = myObjectType.getAggregates();
+        let aggregates = myObjectType.getAggregates();
         //xx console.log("myObjectType aggregates=  ",aggregates.map(function(c){ return c.browseName.toString(); }).join(" "));
         aggregates.length.should.eql(1);
 
@@ -58,14 +59,14 @@ describe("testing add new ObjectType ", function () {
         const instance= myObjectType.instantiate({
             browseName: "Instance"
         });
-        instance.browseName.toString().should.eql("Instance");
+        instance.browseName.toString().should.eql("1:Instance");
 
-        var aggregates = instance.getAggregates();
+         aggregates = instance.getAggregates();
         //xx console.log("equipmentType children=  ",aggregates.map(function(c){ return c.browseName.toString(); }).join(" "));
         aggregates.length.should.eql(1);
 
 
-        instance.findReferencesEx("HasWeezbe",BrowseDirection.Forward).length.should.eql(1);
+        instance.findReferencesEx("1:HasWeezbe",BrowseDirection.Forward).length.should.eql(1);
 
         const c = instance.getChildByName("MyWeezBe");
         should.exist(c);
@@ -74,35 +75,36 @@ describe("testing add new ObjectType ", function () {
 
 
     it("should be possible to choose which optional item to instantiate in sub objects",function() {
+        const namespace =addressSpace.getPrivateNamespace();
 
         function constructObjectType() {
 
-            const mySubObjectType1 = addressSpace.addObjectType({
+            const mySubObjectType1 = namespace.addObjectType({
                 browseName: "MySubObjectType1"
             });
-            const prop1 = addressSpace.addVariable({
+            const prop1 = namespace.addVariable({
                 propertyOf: mySubObjectType1,
                 browseName: "Property1",
                 dataType: "Double",
                 modellingRule: "Mandatory"
             });
 
-            mySubObjectType1.property1.browseName.toString().should.eql("Property1");
+            mySubObjectType1.property1.browseName.toString().should.eql("1:Property1");
 
-            const prop2 = addressSpace.addVariable({
+            const prop2 = namespace.addVariable({
                 propertyOf: mySubObjectType1,
                 browseName: "Property2",
                 dataType: "Double",
                 modellingRule: "Optional"
             });
-            const prop3 = addressSpace.addVariable({
+            const prop3 = namespace.addVariable({
                 propertyOf: mySubObjectType1,
                 browseName: "Property3",
                 dataType: "Double",
                 modellingRule: "Optional"
             });
 
-            const myObjectType1 = addressSpace.addObjectType({
+            const myObjectType1 = namespace.addObjectType({
                 browseName: "MyObjectType1"
             });
 
@@ -113,15 +115,15 @@ describe("testing add new ObjectType ", function () {
                 optionals: ["Property2", "Property3"]
             });
 
-            myObjectType1.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
-            myObjectType1.subObj.getPropertyByName("Property1").browseName.toString().should.eql("Property1");
-            myObjectType1.subObj.getPropertyByName("Property2").browseName.toString().should.eql("Property2");
-            myObjectType1.subObj.getPropertyByName("Property3").browseName.toString().should.eql("Property3");
+            myObjectType1.getComponentByName("SubObj").browseName.toString().should.eql("1:SubObj");
+            myObjectType1.subObj.getPropertyByName("Property1").browseName.toString().should.eql("1:Property1");
+            myObjectType1.subObj.getPropertyByName("Property2").browseName.toString().should.eql("1:Property2");
+            myObjectType1.subObj.getPropertyByName("Property3").browseName.toString().should.eql("1:Property3");
 
         }
         constructObjectType();
 
-        const myObjectType1 = addressSpace.findObjectType("MyObjectType1");
+        const myObjectType1 = addressSpace.findObjectType("1:MyObjectType1");
 
         // -----------------------------------------------
         const obj1 = myObjectType1.instantiate({
@@ -138,7 +140,7 @@ describe("testing add new ObjectType ", function () {
             optionals: ["SubObj"]
         });
         should.exist(obj2.getComponentByName("SubObj"));
-        obj2.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
+        obj2.getComponentByName("SubObj").browseName.toString().should.eql("1:SubObj");
 
         should.exist(obj2.subObj.getPropertyByName("Property1"));
         should.not.exist(obj2.subObj.getPropertyByName("Property2"));
@@ -153,7 +155,7 @@ describe("testing add new ObjectType ", function () {
                 "SubObj.Property3"
             ]
         });
-        obj3.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
+        obj3.getComponentByName("SubObj").browseName.toString().should.eql("1:SubObj");
 
         should.exist(obj3.subObj.getPropertyByName("Property1"));
         should.exist(obj3.subObj.getPropertyByName("Property2"));
@@ -167,7 +169,7 @@ describe("testing add new ObjectType ", function () {
                 "SubObj.Property3"
             ]
         });
-        obj4.getComponentByName("SubObj").browseName.toString().should.eql("SubObj");
+        obj4.getComponentByName("SubObj").browseName.toString().should.eql("1:SubObj");
 
         should.exist(obj4.subObj.getPropertyByName("Property1"));
         should.not.exist(obj4.subObj.getPropertyByName("Property2"));

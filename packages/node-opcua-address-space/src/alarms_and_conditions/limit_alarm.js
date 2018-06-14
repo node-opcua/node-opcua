@@ -17,7 +17,8 @@ const ConditionInfo = require("./condition").ConditionInfo;
 const DataValue = require("node-opcua-data-value").DataValue;
 const NodeId = require("node-opcua-nodeid").NodeId;
 
-
+const AddressSpace =require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
 /**
  * @class UALimitAlarm
  * @constructor
@@ -148,7 +149,7 @@ exports.UALimitAlarm = UALimitAlarm;
 
 /**
  * @method (static)UALimitAlarm.instantiate
- * @param addressSpace {AddressSpace}
+ * @param namespace {Namespace}
  * @param limitAlarmTypeId
  * @param options
  * @param options.inputNode
@@ -160,7 +161,11 @@ exports.UALimitAlarm = UALimitAlarm;
  * @param data
  * @return {UALimitAlarm}
  */
-UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, data) {
+UALimitAlarm.instantiate = function (namespace, limitAlarmTypeId, options, data) {
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.__addressSpace;
+    assert(addressSpace instanceof AddressSpace);
+
     /* eslint max-instructions: off */
     // must provide a inputNode
     //xx assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
@@ -190,7 +195,7 @@ UALimitAlarm.instantiate = function (addressSpace, limitAlarmTypeId, options, da
     }
 
     //xx assert(options.optionals,"must provide an optionals");
-    const alarmNode = UAAlarmConditionBase.instantiate(addressSpace, limitAlarmTypeId, options, data);
+    const alarmNode = UAAlarmConditionBase.instantiate(namespace, limitAlarmTypeId, options, data);
     Object.setPrototypeOf(alarmNode, UALimitAlarm.prototype);
 
     assert(alarmNode.conditionOfNode() !== null);

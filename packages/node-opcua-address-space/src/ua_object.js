@@ -65,14 +65,18 @@ UAObject.prototype.readAttribute = function (context, attributeId) {
 };
 
 
-UAObject.prototype.clone = function (options,optionalfilter,extraInfo) {
+UAObject.prototype.clone = function (options,optionalFilter,extraInfo) {
     const self = this;
     options = options || {};
     options = _.extend(_.clone(options),{
         eventNotifier: self.eventNotifier,
         symbolicName: self.symbolicName
     });
-    return self._clone(UAObject,options, optionalfilter, extraInfo);
+    const cloneObject =  self._clone(UAObject,options, optionalFilter, extraInfo);
+
+    //xx  newObject.propagate_back_references();
+    //xx newObject.install_extra_properties();
+    return cloneObject;
 };
 
 exports.UAObject = UAObject;

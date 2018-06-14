@@ -50,14 +50,16 @@ const valuePrecision_Description = "";
 function add_dataItem_stuff(variable, options) {
 
     const addressSpace = variable.addressSpace;
+    const namespace = addressSpace.getNamespace(variable.nodeId.namespace);
+
     assert(addressSpace instanceof AddressSpace);
 
     if (options.hasOwnProperty("definition")) {
 
-        addressSpace.addVariable({
+        namespace.addVariable({
             modellingRule: options.modellingRule ? "Mandatory" : undefined,
             propertyOf: variable,
-            browseName: "Definition",
+            browseName: {name:"Definition",namespaceIndex:0},
             typeDefinition: "PropertyType",
             description: definition_Description,
             dataType: "String",
@@ -70,10 +72,10 @@ function add_dataItem_stuff(variable, options) {
 
         assert(_.isNumber(options.valuePrecision));
 
-        addressSpace.addVariable({
+        namespace.addVariable({
             modellingRule: options.modellingRule ? "Mandatory" : undefined,
             propertyOf: variable,
-            browseName: "ValuePrecision",
+            browseName: {name:"ValuePrecision",namespaceIndex:0},
             typeDefinition: "PropertyType",
             description: valuePrecision_Description,
             dataType: "Double",

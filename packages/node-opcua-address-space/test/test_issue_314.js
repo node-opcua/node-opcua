@@ -19,11 +19,6 @@ describe("testing loading ExtensonObject value from NodeSet XML file", function 
     beforeEach(function () {
 
         addressSpace = new AddressSpace();
-        Object.keys(addressSpace._aliases).length.should.equal(0);
-        Object.keys(addressSpace._variableTypeMap).length.should.equal(0);
-        Object.keys(addressSpace._referenceTypeMap).length.should.equal(0);
-        Object.keys(addressSpace._dataTypeMap).length.should.equal(0);
-        Object.keys(addressSpace._objectTypeMap).length.should.equal(0);
     });
     afterEach(function (done) {
         if (addressSpace) {
@@ -44,12 +39,6 @@ describe("testing loading ExtensonObject value from NodeSet XML file", function 
             xml_file
         ];
         generate_address_space(addressSpace, xml_files, function (err) {
-
-            Object.keys(addressSpace._aliases).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._variableTypeMap).length.should.be.greaterThan(3);
-            Object.keys(addressSpace._referenceTypeMap).length.should.be.greaterThan(10);
-            Object.keys(addressSpace._dataTypeMap).length.should.be.greaterThan(2);
-            Object.keys(addressSpace._objectTypeMap).length.should.be.greaterThan(1);
 
             const nodeId = "ns=2;i=6038";
             const node = addressSpace.findNode(nodeId);

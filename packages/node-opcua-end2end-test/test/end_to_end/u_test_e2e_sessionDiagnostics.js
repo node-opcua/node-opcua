@@ -83,6 +83,19 @@ module.exports = function (test) {
                 let monitoredItemGroupChangeSpy;
 
                 async.series([
+                    function readSessionNode(callback){
+
+                        const nodeToRead = {
+                            nodeId: session.sessionId,
+                            attributeId: opcua.AttributeIds.BrowseName
+                        };
+
+                        session.read(nodeToRead,function(err,dataValue){
+
+                            callback();
+                        });
+
+                    },
                     function (callback) {
                         const browseDesc = {
                             nodeId: session.sessionId,
@@ -94,11 +107,12 @@ module.exports = function (test) {
                             if (err) {
                                 return callback(err);
                             }
-                            //xx console.log(browseResult[0].toString());
+                            console.log(browseResult[0].toString());
                             callback();
                         });
                     },
                     function translateNodeIds(callback) {
+
 
                         const browsePath = [
                             opcua.makeBrowsePath(session.sessionId, ".SessionDiagnostics.TotalRequestCount.TotalCount"),
@@ -184,7 +198,7 @@ module.exports = function (test) {
                     },
                     function perform_a_write_operation(callback) {
 
-                        const nodeId = "ns=411;s=Scalar_Static_Double";
+                        const nodeId = "ns=2;s=Scalar_Static_Double";
 
                         const dataValue = {
                             dataType: opcua.DataType.Double,
@@ -231,7 +245,7 @@ module.exports = function (test) {
                             sessionDiagnostic.clientConnectionTime.getTime().should.be.lessThan(
                                 sessionDiagnostic.clientLastContactTime.getTime());
                             sessionDiagnostic.writeCount.totalCount.should.eql(1);
-                            sessionDiagnostic.readCount.totalCount.should.eql(1);
+                            sessionDiagnostic.readCount.totalCount.should.eql(2);
 
                             //xx console.log(results[0].toString());
 
@@ -240,8 +254,8 @@ module.exports = function (test) {
                             });
 
                             args.length.should.be.greaterThan(4);
+                            callback();
                         });
-                        callback();
                     },
                     function terminate_monitored_items(callback) {
                         monitoredItemGroup.terminate(function () {

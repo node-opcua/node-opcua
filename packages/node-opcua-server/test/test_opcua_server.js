@@ -86,7 +86,7 @@ describe("OPCUAServer", function () {
 
         sessionNode.nodeId.should.eql(session.nodeId);
 
-        sessionNode.browseName.toString().should.eql("SessionNameGivenByClient");
+        sessionNode.browseName.toString().should.eql("1:SessionNameGivenByClient");
         done();
 
     });

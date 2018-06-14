@@ -1,6 +1,8 @@
 /**
  * @module opcua.address_space.AlarmsAndConditions
  */
+const util = require("util");
+const UAOffNormalAlarm = require("./off_normal_alarm").UAOffNormalAlarm;
 /**
  * @class UATripAlarm
  *

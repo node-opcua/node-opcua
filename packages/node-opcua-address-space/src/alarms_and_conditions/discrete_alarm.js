@@ -11,6 +11,7 @@ const _ = require("underscore");
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const DataType = require("node-opcua-variant").DataType;
 const AddressSpace =require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
 
 const UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
 
@@ -54,8 +55,10 @@ function UADiscreteAlarm() {
 }
 util.inherits(UADiscreteAlarm, UAAlarmConditionBase);
 
-UADiscreteAlarm.instantiate = function(addressSpace, discreteAlarmTypeId, options, data) {
+UADiscreteAlarm.instantiate = function(namespace, discreteAlarmTypeId, options, data) {
 
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.__addressSpace;
     assert(addressSpace instanceof AddressSpace);
 
     const discreteAlarmType = addressSpace.findEventType(discreteAlarmTypeId);
@@ -73,7 +76,7 @@ UADiscreteAlarm.instantiate = function(addressSpace, discreteAlarmTypeId, option
         throw new Error("UADiscreteAlarm.instantiate : event found is not subType of DiscreteAlarmType");
     }
 
-    const alarmNode = UAAlarmConditionBase.instantiate(addressSpace, discreteAlarmType, options, data);
+    const alarmNode = UAAlarmConditionBase.instantiate(namespace, discreteAlarmType, options, data);
     Object.setPrototypeOf(alarmNode, UADiscreteAlarm.prototype);
 
     return alarmNode;

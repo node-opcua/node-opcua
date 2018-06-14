@@ -4,6 +4,7 @@
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
+const Namespace = require("../namespace").Namespace;
 
 const DataType = require("node-opcua-variant").DataType;
 
@@ -24,8 +25,13 @@ exports.install = function (AddressSpace) {
      * @return {UAObject} {StateType|InitialStateType}
      */
     AddressSpace.prototype.addState = function (component, stateName, stateNumber, isInitialState) {
+        return this.getPrivateNamespace().addState(component, stateName, stateNumber, isInitialState);
+    };
 
-        const addressSpace = this;
+    Namespace.prototype.addState = function (component, stateName, stateNumber, isInitialState) {
+
+        const namespace = this;
+        const addressSpace = namespace.__addressSpace;
 
         isInitialState = !!isInitialState;
 
@@ -66,15 +72,20 @@ exports.install = function (AddressSpace) {
      * @return {UAObject}  TransitionType
      */
     AddressSpace.prototype.addTransition = function (component, fromState, toState, transitionNumber) {
+        this.getPrivateNamespace().addTransition(component, fromState, toState, transitionNumber);
 
-        const addressSpace = this;
+    };
+
+    Namespace.prototype.addTransition = function (component, fromState, toState, transitionNumber) {
+        const namespace = this;
+        const addressSpace = namespace.__addressSpace;
 
         assert(component instanceof UAObjectType);
         assert(_.isString(fromState));
         assert(_.isString(toState));
         assert(_.isFinite(transitionNumber));
 
-        const fromStateNode = component.getComponentByName(fromState);
+        const fromStateNode = component.getComponentByName(fromState, component.nodeId.namespace);
 
         // istanbul ignore next
         if (!fromStateNode) {

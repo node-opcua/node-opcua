@@ -32,16 +32,19 @@ describe("Testing Historical Data Node Enumeration", function () {
         fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
         generate_address_space(addressSpace, xml_files, function (err) {
 
+            const namespace = addressSpace.registerNamespace("MyPrivateNamespace");
+            namespace.namespaceUri.should.eql("MyPrivateNamespace");
+
             // create historical data nodes ...
 
-            const node1 = addressSpace.addVariable({
+            const node1 = namespace.addVariable({
                 browseName: "MyVar1",
                 dataType: "Double",
                 componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
             });
             addressSpace.installHistoricalDataNode(node1);
 
-            const node2 = addressSpace.addVariable({
+            const node2 = namespace.addVariable({
                 browseName: "MyVar2",
                 dataType: "Double",
                 componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -49,7 +52,7 @@ describe("Testing Historical Data Node Enumeration", function () {
             addressSpace.installHistoricalDataNode(node2);
 
 
-            const node3 = addressSpace.addVariable({
+            const node3 = namespace.addVariable({
                 browseName: "MyVar3",
                 dataType: "Double",
                 componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -73,7 +76,7 @@ describe("Testing Historical Data Node Enumeration", function () {
         Object.keys(addressSpace.historizingNodes).length.should.eql(3);
 
         const historizingNode = _.map(addressSpace.historizingNodes);
-        historizingNode.map(x=>x.browseName.toString()).should.eql(["MyVar1","MyVar2","MyVar3"]);
+        historizingNode.map(x=>x.browseName.toString()).should.eql(["1:MyVar1","1:MyVar2","1:MyVar3"]);
 
     });
 

@@ -223,7 +223,7 @@ module.exports = function (test) {
                     currentTime_changes++;
                 });
 
-                const pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+                const pumpSpeedId = "ns=1;b=0102030405060708090a0b0c0d0e0f10";
                 const monitoredItemPumpSpeed = subscription.monitor({
                     nodeId: resolveNodeId(pumpSpeedId),
                     attributeId: AttributeIds.Value
@@ -692,7 +692,7 @@ module.exports = function (test) {
 
                 subscription.publishingInterval.should.eql(100);
 
-                const nodeId = "ns=411;s=Scalar_Static_Array_Boolean";
+                const nodeId = "ns=2;s=Scalar_Static_Array_Boolean";
 
                 const monitoredItem = subscription.monitor({
                     nodeId: nodeId,
@@ -747,7 +747,7 @@ module.exports = function (test) {
 
                 subscription.publishingInterval.should.eql(100);
 
-                const nodeId = "ns=411;s=Scalar_Static_Array_Int32";
+                const nodeId = "ns=2;s=Scalar_Static_Array_Int32";
 
 
                 function wait(duration, callback) {
@@ -880,7 +880,7 @@ module.exports = function (test) {
 
                 subscription.publishingInterval.should.eql(100);
 
-                const nodeId = "ns=411;s=Scalar_Static_Array_Int32";
+                const nodeId = "ns=2;s=Scalar_Static_Array_Int32";
 
                 function create_monitored_item(callback) {
 
@@ -986,7 +986,7 @@ module.exports = function (test) {
         xit("AZA2-L disabled monitored item", function (done) {
 
             //TO DO
-            const nodeId = "ns=411;s=Scalar_Static_Int32";
+            const nodeId = "ns=2;s=Scalar_Static_Int32";
 
             const monitoredItemOnChangedSpy = new sinon.spy();
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
@@ -1291,8 +1291,8 @@ module.exports = function (test) {
                     function (callback) {
 
 
-                        const namespaceIndex = 411;
-                        const nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
+                        const namespaceIndex = 2;
+                        const nodeId = "s="+"Scalar_Static_Int16";
 
                         const node = server.engine.addressSpace.findNode(nodeId);
                         const parameters = {
@@ -1348,24 +1348,27 @@ module.exports = function (test) {
 
         let server, client, temperatureVariableId, endpointUrl;
 
-        const nodeIdVariant = "ns=1234;s=SomeDouble";
-        const nodeIdByteString = "ns=1234;s=ByteString";
-        const nodeIdString = "ns=1234;s=String";
+        const nodeIdVariant = "ns=1;s=SomeDouble";
+        const nodeIdByteString = "ns=1;s=ByteString";
+        const nodeIdString = "ns=1;s=String";
 
         let subscriptionId = null;
         let samplingInterval = -1;
 
         before(function (done) {
+
             server = test.server;
             endpointUrl = test.endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
+
+            const namespace = server.engine.addressSpace.getPrivateNamespace();
 
             const rootFolder = server.engine.addressSpace.rootFolder;
             const objectsFolder = rootFolder.objects;
 
             // Variable with dataItem capable of sending data change notification events
             // this type of variable can be continuously monitored.
-            const n1 = server.engine.addressSpace.addVariable({
+            const n1 = namespace.addVariable({
                 organizedBy: objectsFolder,
                 browseName: "SomeDouble",
                 nodeId: nodeIdVariant,
@@ -1377,6 +1380,7 @@ module.exports = function (test) {
             });
             n1.minimumSamplingInterval.should.eql(0);
 
+
             let changeDetected = 0;
             n1.on("value_changed", function (dataValue) {
                 changeDetected += 1;
@@ -1385,8 +1389,7 @@ module.exports = function (test) {
             n1.setValueFromSource({dataType: DataType.Double, value: 3.14}, StatusCodes.Good);
             changeDetected.should.equal(1);
 
-
-            server.engine.addressSpace.addVariable({
+            namespace.addVariable({
                 organizedBy: objectsFolder,
                 browseName: "SomeByteString",
                 nodeId: nodeIdByteString,
@@ -1396,7 +1399,7 @@ module.exports = function (test) {
                     value: Buffer.from("Lorem ipsum", "ascii")
                 }
             });
-            server.engine.addressSpace.addVariable({
+            namespace.addVariable({
                 organizedBy: objectsFolder,
                 browseName: "Some String",
                 nodeId: nodeIdString,
@@ -2186,9 +2189,7 @@ module.exports = function (test) {
 
 
             const forcedMinimumInterval = 1;
-            const namespaceIndex = 411;
-            const nodeId = makeNodeId("Scalar_Static_Int16", namespaceIndex);
-            //xx nodeId = opcua.VariableIds.Server_ServerStatus_CurrentTime;
+            const nodeId = "ns=2;s=Scalar_Static_Int16";
 
             const node = server.engine.addressSpace.findNode(nodeId);
             //xx console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~".cyan,node.toString());
@@ -2698,7 +2699,7 @@ module.exports = function (test) {
         it("#CTT6 Late Publish should have data", function (done) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const nodeId = "ns=411;s=Scalar_Static_Double";
+                const nodeId = "ns=2;s=Scalar_Static_Double";
                 const samplingInterval = 500;
                 const parameters = {
                     samplingInterval: samplingInterval,
@@ -2848,7 +2849,7 @@ module.exports = function (test) {
 
                     samplingInterval = 0; // exception based
 
-                    const nodeId = "ns=411;s=Scalar_Static_Array_Int32";
+                    const nodeId = "ns=2;s=Scalar_Static_Array_Int32";
 
                     const parameters = {
                         samplingInterval: 0, // exception based : whenever value changes
@@ -3290,7 +3291,8 @@ module.exports = function (test) {
                 VALID_RETRANSMIT_SEQNUM = 0;
 
                 client = new OPCUAClient();
-                fanSpeed = server.engine.addressSpace.findNode("ns=2;s=FanSpeed");
+                fanSpeed = server.engine.addressSpace.findNode("ns=1;s=FanSpeed");
+                should.exist(fanSpeed);
                 //xxx console.log(fanSpeed.toString());
                 done();
             });

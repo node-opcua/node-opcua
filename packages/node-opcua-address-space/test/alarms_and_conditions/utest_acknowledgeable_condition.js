@@ -26,6 +26,7 @@ module.exports = function (test) {
 
 
             const acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType");
+
             const condition = acknowledgeableConditionType.instantiate({
                 componentOf: source,
                 conditionSource: source,
@@ -34,12 +35,32 @@ module.exports = function (test) {
 
             //xx condition.should.be.instanceOf(UAAcknowledgeableConditionBase);
 
-            condition.browseName.toString().should.eql("AcknowledgeableCondition1");
+            condition.browseName.toString().should.eql("1:AcknowledgeableCondition1");
 
         });
 
-
         it("should instantiate AcknowledgeableConditionType (variation 2)", function (done) {
+
+            const namespace = addressSpace.getPrivateNamespace();
+
+            const condition = namespace.instantiateCondition("AcknowledgeableConditionType", {
+                componentOf: source,
+                conditionSource: source,
+                browseName: "AcknowledgeableCondition2"
+
+            }, {
+                "enabledState.id": {dataType: DataType.Boolean, value: true}
+            });
+
+            // HasTrueSubState and HasFalseSubState relationship must be maintained
+            condition.ackedState.isTrueSubStateOf.should.eql(condition.enabledState);
+            condition.enabledState.getTrueSubStates().length.should.eql(1);
+            condition.browseName.toString().should.eql("1:AcknowledgeableCondition2");
+
+            done();
+
+        });
+        it("should instantiate AcknowledgeableConditionType (variation 3)", function (done) {
 
             const condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
                 componentOf: source,
@@ -53,7 +74,7 @@ module.exports = function (test) {
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             condition.ackedState.isTrueSubStateOf.should.eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(1);
-            condition.browseName.toString().should.eql("AcknowledgeableCondition2");
+            condition.browseName.toString().should.eql("1:AcknowledgeableCondition2");
 
             done();
 

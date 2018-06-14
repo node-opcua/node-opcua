@@ -1,6 +1,6 @@
 "use strict";
 /* global describe,it,before*/
-
+const should = require("should");
 const async = require("async");
 const generateAddressSpace = require("..").generate_address_space;
 const AddressSpace = require("..").AddressSpace;
@@ -25,10 +25,12 @@ describe("Testing Boiler System", function () {
 
     const nodesetFilename = nodesets.standard_nodeset_file;
 
-    let addressSpace = null;
+    let addressSpace,namespace;
     before(function (done) {
         addressSpace = new AddressSpace();
         generateAddressSpace(addressSpace, nodesetFilename, function () {
+            namespace = addressSpace.registerNamespace("PRIVATE");
+            namespace.index.should.eql(1);
             done();
         });
     });
@@ -36,6 +38,7 @@ describe("Testing Boiler System", function () {
         if (addressSpace) {
             addressSpace.dispose();
             addressSpace = null;
+            namespace = null;
         }
         done();
     });
@@ -48,7 +51,7 @@ describe("Testing Boiler System", function () {
 
         UAStateMachine.promote(psm);
 
-        psm.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);
+        psm.getStates().map(getBrowseName).sort().should.eql(['Halted', 'Ready', 'Running', 'Suspended' ]);
 
 
     });
@@ -56,7 +59,9 @@ describe("Testing Boiler System", function () {
 
     it("XX should handle StateMachine derived from ProgramStateMachine", function () {
 
-        const myProgramStateMachine = addressSpace.addObjectType({
+        const namespace= addressSpace.getPrivateNamespace();
+
+        const myProgramStateMachine = namespace.addObjectType({
             browseName: "MyProgramStateMachine",
             subtypeOf: "ProgramStateMachineType"
         });
@@ -64,7 +69,7 @@ describe("Testing Boiler System", function () {
         const psm = myProgramStateMachine.instantiate({browseName: "MyStateMachine#2"});
         UAStateMachine.promote(psm);
 
-        psm.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);
+        psm.getStates().map(getBrowseName).sort().should.eql([ 'Halted', 'Ready', 'Running', 'Suspended']);
 
         psm.getTransitions().map(getBrowseName).should.eql([
             "HaltedToReady",
@@ -91,10 +96,10 @@ describe("Testing Boiler System", function () {
             browseName: "Boiler#1"
         });
 
-        boiler.pipeX001.browseName.toString().should.eql("PipeX001");
-        boiler.pipeX002.browseName.toString().should.eql("PipeX002");
-        boiler.drumX001.browseName.toString().should.eql("DrumX001");
-        boiler.simulation.browseName.toString().should.eql("Simulation");
+        boiler.pipeX001.browseName.toString().should.eql("1:PipeX001");
+        boiler.pipeX002.browseName.toString().should.eql("1:PipeX002");
+        boiler.drumX001.browseName.toString().should.eql("1:DrumX001");
+        boiler.simulation.browseName.toString().should.eql("1:Simulation");
 
         //xx boiler.pipeX001.displayName.text.toString().should.eql("Pipe1001");
 
@@ -107,7 +112,7 @@ describe("Testing Boiler System", function () {
         boiler.getEventSources().length.should.eql(1);
 
         boiler.getNotifiers().map(function (x) {
-            return x.browseName.toString()
+            return x.browseName.name.toString()
         }).join(" ").should.eql("PipeX001 DrumX001 PipeX002");
         //xx boiler.pipeX001.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
         //xx boiler.pipeX001.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());

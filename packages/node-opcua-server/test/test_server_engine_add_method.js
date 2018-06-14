@@ -21,15 +21,19 @@ const translate_service = require("node-opcua-service-translate-browse-path");
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine - addMethod", function () {
 
+    let addressSpace, namespace;
     before(function (done) {
 
         engine = new server_engine.ServerEngine();
 
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
-            FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
-            BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;
-            ref_Organizes_Id = engine.addressSpace.findReferenceType("Organizes").nodeId;
+            addressSpace = engine.addressSpace;
+            namespace = addressSpace.getPrivateNamespace();
+
+            FolderTypeId = addressSpace.findObjectType("FolderType").nodeId;
+            BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType").nodeId;
+            ref_Organizes_Id = addressSpace.findReferenceType("Organizes").nodeId;
             ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
             done();
@@ -47,13 +51,13 @@ describe("ServerEngine - addMethod", function () {
 
         const objectFolder = engine.addressSpace.findNode("ObjectsFolder");
 
-        const object = engine.addressSpace.addObject({
+        const object = namespace.addObject({
             organizedBy: objectFolder,
             browseName: "MyObject",
-            nodeId: "ns=1;s=MyObject"
+            nodeId: "s=MyObject"
         });
 
-        const method = engine.addressSpace.addMethod(object, {
+        const method = namespace.addMethod(object, {
             browseName: "Bark",
 
             inputArguments: [

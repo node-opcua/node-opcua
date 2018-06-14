@@ -326,7 +326,7 @@ module.exports = function (test) {
             let the_session2;
 
             const itemToMonitor = new opcua.read_service.ReadValueId({
-                nodeId: "ns=411;s=Scalar_Static_Double",
+                nodeId: "ns=2;s=Scalar_Static_Double",
                 attributeId: opcua.AttributeIds.Value
             });
 

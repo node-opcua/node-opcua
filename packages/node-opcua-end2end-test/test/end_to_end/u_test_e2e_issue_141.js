@@ -90,7 +90,7 @@ module.exports = function (test) {
 
         it("#141-B client should raise an event to observer when a request has timed out ( timeoutHint exhausted without response)", function (done) {
 
-            const node = server.engine.addressSpace.addVariable({
+            const node = server.engine.addressSpace.getPrivateNamespace().addVariable({
 
                 browseName: "MySlowVariable",
                 dataType: "Int32",

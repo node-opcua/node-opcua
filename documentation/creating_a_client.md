@@ -37,8 +37,8 @@ The script will be organised around the following four steps:
 
 ```javascript
 /*global require,console,setTimeout */
-var opcua = require("node-opcua");
-var async = require("async");
+const opcua = require("node-opcua");
+const async = require("async");
 ```
 
 ### client instantiation
@@ -53,8 +53,8 @@ server is running. `UA/MyLittleServer` is the endpoint defined by the server and
 ### OPCUA Client
 
 ```javascript
-var client = new opcua.OPCUAClient();
-var endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
+const client = new opcua.OPCUAClient();
+const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
 ```
 
 ### setting up a series of asynchronous operations
@@ -65,7 +65,7 @@ We'll setup a skeleton for the general schedule of the clients life-cycle with p
 
 ```javascript
 
-var the_session, the_subscription;
+let the_session, the_subscription;
 
 async.series([
 
@@ -171,8 +171,8 @@ the_session.browse("RootFolder", function(err, browseResult) {
 To read a specific VariableType node we construct a `nodeToRead` object with the two parameters `nodeId` and `attributeId` to tell the `read` function what we want it to do. The first tells it the exact node, the latter which attribute we want to obtain. The possible values provided by the SDK are enumerated within the `opcua.AttributeIds` object. Each field contains the OPC-UA complient AttributeId that is defined by the OPC-UA standard.
 
 ```javascript
-var maxAge = 0;
-var nodeToRead = { nodeId: "ns=1;s=free_memory", attributeId: opcua.AttributeIds.Value };
+const maxAge = 0;
+const nodeToRead = { nodeId: "ns=1;s=free_memory", attributeId: opcua.AttributeIds.Value };
 
 the_session.read(nodeToRead, maxAge, function(err, dataValue) {
     if (!err) {
@@ -200,11 +200,11 @@ the_session.readVariableValue("ns=1;s=free_memory", function(err, dataValue) {
 If the `nodeId` is unkown it may be obtained through browsing for it.
 
 ```javascript
-var browsePath = [
+const browsePath = [
     opcua.makeBrowsePath("RootFolder", "/Objects/Server.ServerStatus.BuildInfo.ProductName"),
 ];
 
-var productNameNodeId;
+let productNameNodeId;
 the_session.translateBrowsePath(browsePath, function (err, results) {
     if (!err) {
       console.log(results[0].toString());
@@ -242,7 +242,7 @@ setTimeout( function() {
 }, 10000);
 
 // install monitored item
-var monitoredItem  = the_subscription.monitor({
+const monitoredItem  = the_subscription.monitor({
         nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
         attributeId: opcua.AttributeIds.Value
     },

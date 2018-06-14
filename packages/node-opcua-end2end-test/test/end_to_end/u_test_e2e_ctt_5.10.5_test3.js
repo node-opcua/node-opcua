@@ -32,7 +32,7 @@ module.exports = function (test) {
         const ClientSubscription = opcua.ClientSubscription;
         let subscription = null;
 
-        const nodeId = "ns=411;s=Scalar_Static_Int32";
+        const nodeId = "ns=2;s=Scalar_Static_Int32";
         let monitoredItem1;
         let subscription_raw_notification_event;
         let spy_publish;

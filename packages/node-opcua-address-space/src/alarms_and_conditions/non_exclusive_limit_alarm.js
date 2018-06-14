@@ -13,7 +13,7 @@ const DataType = require("node-opcua-variant").DataType;
 const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
 const DataValue =  require("node-opcua-data-value").DataValue;
 const AddressSpace = require("../address_space").AddressSpace;
-
+const Namespace = require("../namespace").Namespace;
 const ConditionInfo = require("./condition").ConditionInfo;
 
 /***
@@ -142,13 +142,17 @@ exports.UANonExclusiveLimitAlarm = UANonExclusiveLimitAlarm;
 
 /**
  * @method (static)instantiate
- * @param addressSpace
+ * @param namespace {Namespace}
  * @param type
  * @param options
  * @param data
  * @return {UANonExclusiveLimitAlarm}
  */
-UANonExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, data) {
+UANonExclusiveLimitAlarm.instantiate = function (namespace, type, options, data) {
+
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.__addressSpace;
+    assert(addressSpace instanceof AddressSpace);
 
     options.optionals = options.optionals || [];
 
@@ -182,7 +186,7 @@ UANonExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, da
     }
     //assert(type nonExclusiveLimitAlarmType.browseName.toString());
 
-    const alarm = UALimitAlarm.instantiate(addressSpace, type, options, data);
+    const alarm = UALimitAlarm.instantiate(namespace, type, options, data);
     Object.setPrototypeOf(alarm, UANonExclusiveLimitAlarm.prototype);
     assert(alarm instanceof UALimitAlarm);
     assert(alarm instanceof UANonExclusiveLimitAlarm);

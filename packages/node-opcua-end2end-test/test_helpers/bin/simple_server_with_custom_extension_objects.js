@@ -58,9 +58,11 @@ server.on("post_initialize", function () {
 
     const rootFolder = addressSpace.findNode("RootFolder");
 
-    const myDevices = addressSpace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
+    const namespace = addressSpace.getPrivateNamespace();
 
-    const variable0 = addressSpace.addVariable({
+    const myDevices = namespace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
+
+    const variable0 = namespace.addVariable({
         organizedBy: myDevices,
         browseName: "Counter",
         nodeId: "ns=1;s=MyCounter",

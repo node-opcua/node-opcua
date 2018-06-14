@@ -8,6 +8,7 @@ const UAMethod = require("..").UAMethod;
 const UAObject = require("..").UAObject;
 const UAStateMachine = require("..").UAStateMachine;
 const context = require("..").SessionContext.defaultContext;
+const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
 
 function MygetExecutableFlag(toState,methodName) {
     assert(_.isString(toState));
@@ -22,10 +23,24 @@ function implementProgramStateMachine(programStateMachine) {
 
     function installMethod(methodName, toState) {
 
-        const method = programStateMachine.getMethodByName(methodName);
+        let method = programStateMachine.getMethodByName(methodName);
+
+        if (!method) {
+            // 'method' has ModellingRule=OptionalPlaceholder and should be created from the type definition
+            let methodToClone = programStateMachine.typeDefinitionObj.getMethodByName(methodName);
+            if (!methodToClone) {
+                methodToClone = programStateMachine.typeDefinitionObj.subtypeOfObj.getMethodByName(methodName);
+            }
+            methodToClone.clone({
+                componentOf: programStateMachine
+            });
+            method = programStateMachine.getMethodByName(methodName);
+            assert(method !== null, "Method clone should cause parent object to be extended");
+
+        }
         assert(method instanceof UAMethod);
         method._getExecutableFlag = function (context) {
-            return MygetExecutableFlag.call(this, toState,methodName);
+            return MygetExecutableFlag.call(this, toState, methodName);
         };
 
         method.bindMethod(function (inputArguments, context, callback) {
@@ -35,6 +50,11 @@ function implementProgramStateMachine(programStateMachine) {
             stateMachineW.setState(toState);
             callback();
         });
+        assert(programStateMachine.getMethodByName(methodName) !== null, "Method " + methodName + " should be added to parent object (checked with getMethodByName)");
+        assert(programStateMachine.getComponentByName(methodName) !== null, "Component (Method) " + methodName + " should be added to parent object (checked with getComponentByName)");
+        const lc_name = lowerFirstLetter(methodName);
+        assert(programStateMachine[lc_name] != null, "Must have a javascript member called : " + lc_name);
+        programStateMachine[lc_name].browseName.toString().should.eql(methodName);
     }
 
     installMethod("Halt", "Halted");
@@ -56,15 +76,20 @@ function addRelation(srcNode,referenceType, targetNode) {
     srcNode.addReference( { referenceType: referenceType.nodeId, nodeId: targetNode });
 }
 
-exports.createBoilerType = function (addressSpace) {
+exports.createBoilerType = function createBoilerType(addressSpace) {
 
 
+    const namespace = addressSpace.getPrivateNamespace();
+    if (namespace.findReferenceType("FlowTo")) {
+        console.warn("createBoilerType has already been called");
+        return;
+    }
     // --------------------------------------------------------
     // referenceTypes
     // --------------------------------------------------------
     // create new reference Type FlowTo HotFlowTo & SignalTo
 
-    const flowTo = addressSpace.addReferenceType({
+    const flowTo = namespace.addReferenceType({
         browseName:"FlowTo",
         inverseName:"FlowFrom",
         subtypeOf: "NonHierarchicalReferences",
@@ -72,14 +97,14 @@ exports.createBoilerType = function (addressSpace) {
     });
 
 
-    const hotFlowTo = addressSpace.addReferenceType({
+    const hotFlowTo = namespace.addReferenceType({
         browseName:"HotFlowTo",
         inverseName:"HotFlowFrom",
         subtypeOf:  flowTo,
         description: "a reference that indicates a high temperature flow between two objects"
     });
 
-    const signalTo = addressSpace.addReferenceType({
+    const signalTo = namespace.addReferenceType({
         browseName:"SignalTo",
         inverseName:"SignalFrom",
         subtypeOf: "NonHierarchicalReferences",
@@ -90,17 +115,19 @@ exports.createBoilerType = function (addressSpace) {
     flowTo.isSupertypeOf(addressSpace.findReferenceType("NonHierarchicalReferences"));
     hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("References"));
     hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("NonHierarchicalReferences"));
-    hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("FlowTo"));
+    hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("1:FlowTo"));
 
     const NonHierarchicalReferences = addressSpace.findReferenceType("NonHierarchicalReferences");
 
     const r = addressSpace.findReferenceType("References").getSubtypeIndex();
-    assert(Object.keys(r).indexOf("HotFlowTo") >= 0);
+    assert(Object.keys(r)
+        .map(k=>addressSpace.findNode(k).browseName.toString())
+        .indexOf("1:HotFlowTo") >= 0,"must expose HotFlowTo");
 
     // --------------------------------------------------------
     // EventTypes
     // --------------------------------------------------------
-    const boilerHaltedEventType = addressSpace.addEventType({
+    const boilerHaltedEventType = namespace.addEventType({
         browseName: "BoilerHaltedEventType",
         subTypeof: "TransitionEventType"
     });
@@ -110,40 +137,40 @@ exports.createBoilerType = function (addressSpace) {
     // --------------------------------------------------------
     // CustomControllerType
     // --------------------------------------------------------
-    const customControllerType = addressSpace.addObjectType({
+    const customControllerType = namespace.addObjectType({
         browseName: "CustomControllerType",
         description: "a custom PID controller with 3 inputs"
     });
 
-    const input1 = addressSpace.addVariable({
+    const input1 = namespace.addVariable({
         browseName: "Input1",
         propertyOf: customControllerType,
         dataType: "Double",
         modellingRule: "Mandatory"
     });
 
-    const input2 = addressSpace.addVariable({
+    const input2 = namespace.addVariable({
         browseName: "Input2",
         propertyOf: customControllerType,
         dataType: "Double",
         modellingRule: "Mandatory"
     });
 
-    const input3 = addressSpace.addVariable({
+    const input3 = namespace.addVariable({
         browseName: "Input3",
         propertyOf: customControllerType,
         dataType: "Double",
         modellingRule: "Mandatory"
     });
 
-    const controlOut = addressSpace.addVariable({
+    const controlOut = namespace.addVariable({
         browseName: "ControlOut",
         propertyOf: customControllerType,
         dataType: "Double",
         modellingRule: "Mandatory"
     });
 
-    const description = addressSpace.addVariable({
+    const description = namespace.addVariable({
         browseName: "Description",
         propertyOf: customControllerType,
         dataType: "LocalizedText",
@@ -155,10 +182,10 @@ exports.createBoilerType = function (addressSpace) {
     // --------------------------------------------------------
     // GenericSensorType
     // --------------------------------------------------------
-    const genericSensorType = addressSpace.addObjectType({
+    const genericSensorType = namespace.addObjectType({
         browseName: "GenericSensorType"
     });
-    addressSpace.addAnalogDataItem({
+    namespace.addAnalogDataItem({
         componentOf: genericSensorType,
         modellingRule: "Mandatory",
         browseName:    "Output",
@@ -166,25 +193,27 @@ exports.createBoilerType = function (addressSpace) {
         engineeringUnitsRange: {low: -100, high: 200}
     });
 
+    assert(genericSensorType.getComponentByName("Output"));
+    assert(genericSensorType.output.modellingRule === "Mandatory");
     // --------------------------------------------------------
     // GenericSensorType  <---- GenericControllerType
     // --------------------------------------------------------
-    const genericControllerType = addressSpace.addObjectType({
+    const genericControllerType = namespace.addObjectType({
         browseName: "GenericControllerType"
     });
-    addressSpace.addVariable({
+    namespace.addVariable({
         propertyOf: genericControllerType,
         browseName: "ControlOut",
         dataType: "Double",
         modellingRule: "Mandatory"
     });
-    addressSpace.addVariable({
+    namespace.addVariable({
         propertyOf: genericControllerType,
         browseName: "Measurement",
         dataType: "Double",
         modellingRule: "Mandatory"
     });
-    addressSpace.addVariable({
+    namespace.addVariable({
         propertyOf: genericControllerType,
         browseName: "SetPoint",
         dataType: "Double",
@@ -195,7 +224,7 @@ exports.createBoilerType = function (addressSpace) {
     // GenericSensorType  <---- GenericControllerType <--- FlowControllerType
     // --------------------------------------------------------------------------------
 
-    const flowControllerType = addressSpace.addObjectType({
+    const flowControllerType = namespace.addObjectType({
         browseName: "FlowControllerType",
         subtypeOf: genericControllerType
     });
@@ -204,7 +233,7 @@ exports.createBoilerType = function (addressSpace) {
     // --------------------------------------------------------------------------------
     // GenericSensorType  <---- GenericControllerType <--- LevelControllerType
     // --------------------------------------------------------------------------------
-    const levelControllerType = addressSpace.addObjectType({
+    const levelControllerType = namespace.addObjectType({
         browseName: "LevelControllerType",
         subtypeOf: genericControllerType
     });
@@ -213,7 +242,7 @@ exports.createBoilerType = function (addressSpace) {
     // --------------------------------------------------------------------------------
     // GenericSensorType  <---- FlowTransmitterType
     // --------------------------------------------------------------------------------
-    const flowTransmitterType = addressSpace.addObjectType({
+    const flowTransmitterType = namespace.addObjectType({
         browseName: "FlowTransmitterType",
         subtypeOf: genericSensorType
     });
@@ -221,7 +250,7 @@ exports.createBoilerType = function (addressSpace) {
     // --------------------------------------------------------------------------------
     // GenericSensorType  <---- LevelIndicatorType
     // --------------------------------------------------------------------------------
-    const levelIndicatorType = addressSpace.addObjectType({
+    const levelIndicatorType = namespace.addObjectType({
         browseName: "LevelIndicatorType",
         subtypeOf: genericSensorType
     });
@@ -229,10 +258,10 @@ exports.createBoilerType = function (addressSpace) {
     // --------------------------------------------------------------------------------
     // GenericActuatorType
     // --------------------------------------------------------------------------------
-    const genericActuatorType = addressSpace.addObjectType({
+    const genericActuatorType = namespace.addObjectType({
         browseName: "GenericActuatorType"
     });
-    addressSpace.addAnalogDataItem({
+    namespace.addAnalogDataItem({
         componentOf: genericActuatorType,
         modellingRule: "Mandatory",
         browseName: "Input",
@@ -244,7 +273,7 @@ exports.createBoilerType = function (addressSpace) {
     // --------------------------------------------------------------------------------
     // GenericActuatorType  <---- ValveType
     // --------------------------------------------------------------------------------
-    const valveType = addressSpace.addObjectType({
+    const valveType = namespace.addObjectType({
         browseName: "ValveType",
         subtypeOf: genericActuatorType
     });
@@ -254,17 +283,18 @@ exports.createBoilerType = function (addressSpace) {
     // --------------------------------------------------------------------------------
     // FolderType  <---- BoilerInputPipeType
     // --------------------------------------------------------------------------------
-    const boilerInputPipeType = addressSpace.addObjectType({
+    const boilerInputPipeType = namespace.addObjectType({
         browseName: "BoilerInputPipeType",
         subtypeOf: "FolderType"
     });
 
-    flowTransmitterType.instantiate({
+    const ftx1 = flowTransmitterType.instantiate({
         browseName: "FTX001",
         componentOf: boilerInputPipeType,
         modellingRule: "Mandatory",
         notifierOf: boilerInputPipeType
     });
+    assert(ftx1.output.browseName.toString() === "1:Output");
 
     valveType.instantiate({
         browseName: "ValveX001",
@@ -276,23 +306,24 @@ exports.createBoilerType = function (addressSpace) {
     // FolderType  <---- BoilerOutputPipeType
     // --------------------------------------------------------------------------------
 
-    const boilerOutputPipeType = addressSpace.addObjectType({
+    const boilerOutputPipeType = namespace.addObjectType({
         browseName: "BoilerOutputPipeType",
         subtypeOf: "FolderType",
         //xx hasNotifer: flowTransmitterType
     });
-    flowTransmitterType.instantiate({
+    const ftx2 = flowTransmitterType.instantiate({
         browseName: "FTX002",
         componentOf: boilerOutputPipeType,
         modellingRule: "Mandatory",
         notifierOf: boilerOutputPipeType
     });
 
+    ftx2.output.browseName.toString();
 
     // --------------------------------)------------------------------------------------
     // FolderType  <---- BoilerDrumType
     // --------------------------------------------------------------------------------
-    const boilerDrumType = addressSpace.addObjectType({
+    const boilerDrumType = namespace.addObjectType({
         browseName: "BoilerDrumType",
         subtypeOf: "FolderType"
     });
@@ -305,19 +336,39 @@ exports.createBoilerType = function (addressSpace) {
 
     //xx assert(boilerDrumType.getNotifiers().map(function(x){ return x.browseName.toString();}).join("").indexOf("LIX001") >=0);
 
+    const programStateMachineType = addressSpace.findObjectType("ProgramStateMachineType");
+
     // --------------------------------------------------------
     // define boiler State Machine
     // --------------------------------------------------------
-    const boilerStateMachineType = addressSpace.addObjectType({
+    const boilerStateMachineType = namespace.addObjectType({
         browseName: "BoilerStateMachineType",
-        subtypeOf: "ProgramStateMachineType",
-        postInstantiateFunc: implementProgramStateMachine
+        subtypeOf: programStateMachineType,
+        postInstantiateFunc: implementProgramStateMachine,
     });
+    // programStateMachineType has Optional placeHolder for method "Halt", "Reset","Start","Suspend","Resume")
+
+    function addMethod(baseType,objectType,methodName) {
+        assert(!objectType.getMethodByName(methodName));
+        const method = baseType.getMethodByName(methodName);
+        const m = method.clone({
+            componentOf: objectType,
+            modellingRule: "Mandatory"
+        });
+        assert(objectType.getMethodByName(methodName));
+        //xx console.log(" Modelling rule = ",objectType.getMethodByName(methodName).modellingRule);
+        assert(objectType.getMethodByName(methodName).modellingRule === "Mandatory");
+    }
+    addMethod(programStateMachineType,boilerStateMachineType,"Halt");
+    addMethod(programStateMachineType,boilerStateMachineType,"Reset");
+    addMethod(programStateMachineType,boilerStateMachineType,"Start");
+    addMethod(programStateMachineType,boilerStateMachineType,"Suspend");
+    addMethod(programStateMachineType,boilerStateMachineType,"Resume");
 
     // --------------------------------------------------------------------------------
     // BoilerType
     // --------------------------------------------------------------------------------
-    const boilerType = addressSpace.addObjectType({
+    const boilerType = namespace.addObjectType({
         browseName: "BoilerType"
     });
 
@@ -382,6 +433,7 @@ exports.createBoilerType = function (addressSpace) {
     addRelation(drumx001,               hotFlowTo, pipeX002);
 
 
+    assert(boilerType.pipeX001.ftX001);
     assert(boilerType.pipeX001.ftX001.output);
     assert(boilerType.fcX001.measurement);
 
@@ -405,9 +457,10 @@ exports.createBoilerType = function (addressSpace) {
 
 exports.makeBoiler = function makeBoiler(addressSpace, options) {
 
+    const namespace = addressSpace.getPrivateNamespace();
     //xx assert( addressSpace instanceof AddressSpace);
     assert(options);
-    let boilerType = addressSpace.findObjectType("BoilerType");
+    let boilerType = addressSpace.findObjectType("BoilerType",namespace.index);
 
     if (!boilerType) {
         boilerType = exports.createBoilerType(addressSpace);

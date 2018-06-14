@@ -13,7 +13,8 @@ const DataValue = require("node-opcua-data-value").DataValue;
 const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
 const UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
 const NodeId = require("node-opcua-nodeid").NodeId;
-
+const AddressSpace =require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
 
 const ConditionInfo = require("./condition").ConditionInfo;
 
@@ -91,12 +92,17 @@ exports.UAExclusiveLimitAlarm = UAExclusiveLimitAlarm;
 /***
  *
  * @method (static)instantiate
+ * @param namespace {Namespace}
  * @param type
  * @param options
  * @param data
  * @return {UAExclusiveLimitAlarm}
  */
-UAExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, data) {
+UAExclusiveLimitAlarm.instantiate = function (namespace, type, options, data) {
+
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.__addressSpace;
+    assert(addressSpace instanceof AddressSpace);
 
     //xx assert(options.conditionOf,"must provide a conditionOf Node");
     const exclusiveAlarmType = addressSpace.findEventType(type);
@@ -112,7 +118,7 @@ UAExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, data)
         throw new Error("cannot find ExclusiveLimitAlarmType");
     }
 
-    const alarm = UALimitAlarm.instantiate(addressSpace, type, options, data);
+    const alarm = UALimitAlarm.instantiate(namespace, type, options, data);
     Object.setPrototypeOf(alarm, UAExclusiveLimitAlarm.prototype);
     assert(alarm instanceof UAExclusiveLimitAlarm);
     assert(alarm instanceof UALimitAlarm);

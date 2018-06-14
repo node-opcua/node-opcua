@@ -69,7 +69,7 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
 
         arr.readValue().value.value.length.should.eql(1, "expecting a new element in array");
 
-        elementNode.browseName.toString().should.eql("10");
+        elementNode.browseName.toString().should.eql("1:10");
         elementNode.subscriptionId.should.be.instanceOf(UAVariable);
         elementNode.readValue().value.value.should.be.instanceOf(SubscriptionDiagnostics);
         elementNode.readValue().value.should.be.instanceOf(Variant);
@@ -112,9 +112,9 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         const elVar2 = eoan.addElement({subscriptionId: 1001}, arr);
         const elVar3 = eoan.addElement({subscriptionId: 1002}, arr);
 
-        elVar1.browseName.toString().should.eql("1000");
-        elVar2.browseName.toString().should.eql("1001");
-        elVar3.browseName.toString().should.eql("1002");
+        elVar1.browseName.toString().should.eql("1:1000");
+        elVar2.browseName.toString().should.eql("1:1001");
+        elVar3.browseName.toString().should.eql("1:1002");
 
         arr.readValue().value.value.length.should.eql(3, "expecting 3 elements in array");
 
@@ -277,14 +277,14 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         // ---------------------------------------------------------------------
         elemA.should.eql(elemB);
 
-        arrA.getComponentByName("1123455").browseName.toString().should.eql("1123455");
-        arrB.getComponentByName("1123455").browseName.toString().should.eql("1123455");
+        arrA.getComponentByName("1123455").browseName.toString().should.eql("1:1123455");
+        arrB.getComponentByName("1123455").browseName.toString().should.eql("1:1123455");
 
         eoan.removeElement(arrA,elemA);
         arrA.readValue().value.value.length.should.eql(0);
         arrB.readValue().value.value.length.should.eql(1);
         should.not.exist(arrA.getComponentByName("1123455"));
-        arrB.getComponentByName("1123455").browseName.toString().should.eql("1123455");
+        arrB.getComponentByName("1123455").browseName.toString().should.eql("1:1123455");
 
         eoan.removeElement(arrB,elemB);
         arrA.readValue().value.value.length.should.eql(0);

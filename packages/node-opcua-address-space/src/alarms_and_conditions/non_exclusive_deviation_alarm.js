@@ -11,6 +11,9 @@ const DeviationAlarmHelper  = require("./deviation_alarm_helper").DeviationAlarm
 
 const UANonExclusiveLimitAlarm = require("./non_exclusive_limit_alarm").UANonExclusiveLimitAlarm;
 const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
+const AddressSpace =require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
+
 /**
  * @class UANonExclusiveDeviationAlarm
  * @extends UANonExclusiveLimitAlarm
@@ -47,13 +50,18 @@ exports.UANonExclusiveDeviationAlarm = UANonExclusiveDeviationAlarm;
 
 /**
  * @method (static)UANonExclusiveDeviationAlarm.instantiate
- * @param addressSpace {AddressSpace}
+ * @param namespace {Namespace}
  * @param type
  * @param options
  * @param data
  * @return {UANonExclusiveDeviationAlarm}
  */
-UANonExclusiveDeviationAlarm.instantiate = function(addressSpace, type,options,data ){
+UANonExclusiveDeviationAlarm.instantiate = function(namespace, type,options,data ){
+
+
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.__addressSpace;
+    assert(addressSpace instanceof AddressSpace);
 
     const nonExclusiveDeviationAlarmType = addressSpace.findEventType("NonExclusiveDeviationAlarmType");
     /* istanbul ignore next */
@@ -62,7 +70,7 @@ UANonExclusiveDeviationAlarm.instantiate = function(addressSpace, type,options,d
     }
     assert(type === nonExclusiveDeviationAlarmType.browseName.toString());
 
-    const alarm = UANonExclusiveLimitAlarm.instantiate(addressSpace, type, options, data);
+    const alarm = UANonExclusiveLimitAlarm.instantiate(namespace, type, options, data);
     Object.setPrototypeOf(alarm,UANonExclusiveDeviationAlarm.prototype);
 
     assert(alarm instanceof UANonExclusiveDeviationAlarm);

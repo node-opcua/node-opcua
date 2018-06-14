@@ -17,9 +17,10 @@ module.exports = function (test) {
             const server = test.server;
 
             const addressSpace = server.engine.addressSpace;
+            const namespace = addressSpace.getPrivateNamespace();
 
-            const nodeId = new opcua.NodeId(opcua.NodeIdType.STRING, "1cf5e1fa-202a-2ab8-0440-c4fc2f22f2bf");
-            addressSpace.addObject({
+            const nodeId = new opcua.NodeId(opcua.NodeIdType.STRING, "1cf5e1fa-202a-2ab8-0440-c4fc2f22f2bf",1);
+            namespace.addObject({
                 browseName: "Node377",
                 nodeId: nodeId,
                 organizedBy: addressSpace.rootFolder.objects
@@ -51,7 +52,7 @@ module.exports = function (test) {
                     const nodeIds = browseResult.references.map(function (a) {
                         return a.nodeId;
                     });
-                    nodeIds[nodeIds.length - 1].toString().should.eql("ns=0;s=1cf5e1fa-202a-2ab8-0440-c4fc2f22f2bf");
+                    nodeIds[nodeIds.length - 1].toString().should.eql("ns=1;s=1cf5e1fa-202a-2ab8-0440-c4fc2f22f2bf");
                     callback();
                 });
 

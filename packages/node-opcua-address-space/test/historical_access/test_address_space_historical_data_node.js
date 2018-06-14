@@ -34,6 +34,10 @@ describe("Testing Historical Data Node", function () {
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
         generate_address_space(addressSpace, xml_files, function (err) {
+
+            const namespace = addressSpace.registerNamespace("MyPrivateNamespace");
+            namespace.namespaceUri.should.eql("MyPrivateNamespace");
+
             done(err);
         });
 
@@ -47,7 +51,7 @@ describe("Testing Historical Data Node", function () {
 
     it("should create a 'HA Configuration' node", function () {
 
-        const node = addressSpace.addVariable({
+        const node = addressSpace.getPrivateNamespace().addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -65,7 +69,7 @@ describe("Testing Historical Data Node", function () {
 
     it("should keep values in memory to provide historical reads", function (done) {
 
-        const node = addressSpace.addVariable({
+        const node = addressSpace.getPrivateNamespace().addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -121,7 +125,7 @@ describe("Testing Historical Data Node", function () {
 
     it("should keep values up to options.maxOnlineValues to provide historical reads", function (done) {
 
-        const node = addressSpace.addVariable({
+        const node = addressSpace.getPrivateNamespace().addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -255,7 +259,7 @@ describe("Testing Historical Data Node", function () {
     });
     it("should store initial dataValue when historical stuff is set", function (done) {
 
-        const node = addressSpace.addVariable({
+        const node = addressSpace.getPrivateNamespace().addVariable({
             browseName: "MyVar42",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -316,7 +320,7 @@ describe("Testing Historical Data Node", function () {
 
         // unseting the historizing flag shall suspend value being collected
 
-        const node = addressSpace.addVariable({
+        const node = addressSpace.getPrivateNamespace().addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo

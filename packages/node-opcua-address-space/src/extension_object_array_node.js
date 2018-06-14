@@ -261,6 +261,7 @@ function createExtObjArrayNode(parentFolder, options) {
     assert(typeof options.indexPropertyName === "string");
 
     const addressSpace = parentFolder.addressSpace;
+    const namespace = parentFolder.namespace;
 
     const complexVariableType = addressSpace.findVariableType(options.complexVariableType);
     assert(!complexVariableType.nodeId.isEmpty());
@@ -287,7 +288,7 @@ function createExtObjArrayNode(parentFolder, options) {
         value: {dataType: DataType.ExtensionObject, value: [], arrayType: VariantArrayType.Array}
     };
 
-    const uaArrayVariableNode = addressSpace.addVariable(inner_options);
+    const uaArrayVariableNode = namespace.addVariable(inner_options);
     assert(uaArrayVariableNode instanceof UAVariable);
 
     bindExtObjArrayNode(uaArrayVariableNode, options.variableType, options.indexPropertyName);
@@ -517,7 +518,7 @@ function removeElement(uaArrayVariableNode, element) {
         assert(elementIndex >= 0 && elementIndex < _array.length);
     } else if (element instanceof BaseNode ) {
         // find element by name
-        const browseNameToFind = element.browseName.toString();
+        const browseNameToFind = element.browseName.name.toString();
         elementIndex = _array.findIndex(function (obj, i) {
             const browseName = uaArrayVariableNode.$$getElementBrowseName(obj).toString();
             return (browseName === browseNameToFind);

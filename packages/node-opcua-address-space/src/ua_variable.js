@@ -1201,7 +1201,7 @@ UAVariable.prototype._internal_set_dataValue = function (dataValue, indexRange) 
     //     console.log("xxxx UAVariable emit value_changed ??".bgRed, old_dataValue.value.toString(),dataValue.value.toString());
     // }
     if (!sameDataValue(old_dataValue, dataValue)) {
-        //xx if(this.nodeId.toString()=== "ns=411;s=Scalar_Static_Int32") {
+        //xx if(this.nodeId.toString()=== "ns=2;s=Scalar_Static_Int32") {
         //xx     console.log("UAVariable emit value_changed");
         //xx }
         self.emit("value_changed", self._dataValue, indexRange);
@@ -1453,7 +1453,7 @@ UAVariable.prototype.getUserWriteMask = function () {
 };
 
 
-UAVariable.prototype.clone = function (options, optionalfilter, extraInfo) {
+UAVariable.prototype.clone = function (options, optionalFilter, extraInfo) {
 
     const self = this;
     options = options || {};
@@ -1469,7 +1469,7 @@ UAVariable.prototype.clone = function (options, optionalfilter, extraInfo) {
         minimumSamplingInterval: self.minimumSamplingInterval,
         historizing: self.historizing
     });
-    const newVariable = self._clone(UAVariable, options, optionalfilter, extraInfo);
+    const newVariable = self._clone(UAVariable, options, optionalFilter, extraInfo);
 
     newVariable.bindVariable();
     assert(_.isFunction(newVariable._timestamped_set_func));
@@ -1555,6 +1555,8 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
         return null;
     }
 
+    // the namespace for the structure browse name elements
+    const structureNamespace = dt.nodeId.namespace;
 
     // -------------------- make sure we do not bind a variable twice ....
     if (self.$extensionObject) {
@@ -1667,8 +1669,8 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
         else {
             assert(component.length === 0);
             // create a variable (Note we may use ns=1;s=parentName/0:PropertyName)
-            property = addressSpace.addVariable({
-                browseName: field.name.toString(),
+            property = self.namespace.addVariable({
+                browseName: {namespaceIndex: structureNamespace, name: field.name.toString()},
                 dataType: field.dataType,
                 componentOf: self,
                 minimumSamplingInterval: self.minimumSamplingInterval

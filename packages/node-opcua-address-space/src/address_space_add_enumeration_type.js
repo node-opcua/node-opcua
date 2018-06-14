@@ -7,20 +7,21 @@
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
+const Namespace = require("./namespace").Namespace;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const UADataType = require(".//ua_data_type").UADataType;
+
+const EnumValueType  = require("node-opcua-data-model").EnumValueType;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
 
 exports.install = function (AddressSpace) {
 
-    const NodeClass = require("node-opcua-data-model").NodeClass;
-    const Variant = require("node-opcua-variant").Variant;
-    const DataType = require("node-opcua-variant").DataType;
-    const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-    const LocalizedText = require("node-opcua-data-model").LocalizedText;
-    const NodeId = require("node-opcua-nodeid").NodeId;
-    const UADataType = require(".//ua_data_type").UADataType;
-
-    const EnumValueType  = require("node-opcua-data-model").EnumValueType;
-    const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
     /**
      *
      * @method addEnumerationType
@@ -32,6 +33,19 @@ exports.install = function (AddressSpace) {
      * @param options.enumeration[].description {String|LocalizedText|null}
      */
     AddressSpace.prototype.addEnumerationType = function (options) {
+        return this._resolveRequestedNamespace(options).addEnumerationType(options);
+    };
+    /**
+     *
+     * @method addEnumerationType
+     * @param options
+     * @param options.browseName  {String}
+     * @param options.enumeration {Array}
+     * @param options.enumeration[].displayName {String|LocalizedText}
+     * @param options.enumeration[].value       {Number}
+     * @param options.enumeration[].description {String|LocalizedText|null}
+     */
+    Namespace.prototype.addEnumerationType = function(options){
 
         // Release 1.03 OPC Unified Architecture, Part 3 - page 34
         // Enumeration DataTypes are DataTypes that represent discrete sets of named values.
@@ -89,8 +103,9 @@ exports.install = function (AddressSpace) {
         assert(_.isString(options.browseName));
         assert(_.isArray(options.enumeration));
 
+        const addressSpace = self.__addressSpace;
         let definition;
-        const enumerationType = self.findDataType("Enumeration");
+        const enumerationType = addressSpace.findDataType("Enumeration");
         assert(enumerationType.nodeId instanceof NodeId);
         assert(enumerationType instanceof UADataType)
         const references = [
@@ -126,7 +141,7 @@ exports.install = function (AddressSpace) {
 
             const enumStrings = self.addVariable({
                 propertyOf: enumType,
-                browseName: "EnumStrings",
+                browseName: {name: "EnumStrings", namespaceIndex:0},
                 modellingRule: "Mandatory",
                 description: "",
                 dataType: "LocalizedText",
@@ -154,7 +169,7 @@ exports.install = function (AddressSpace) {
 
             const enumValues = self.addVariable({
                 propertyOf: enumType,
-                browseName: "EnumValues",
+                browseName: {name: "EnumValues", namespaceIndex:0},
                 modellingRule: "Mandatory",
                 description: null,
                 dataType: "EnumValueType",

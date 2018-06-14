@@ -18,6 +18,7 @@ const DataType = require("node-opcua-variant").DataType;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 const UAVariable = require("./ua_variable").UAVariable;
+const Namespace = require("./namespace").Namespace;
 
 // Release 1.03 12 OPC Unified Architecture, Part 9
 // Two-state state machines
@@ -152,8 +153,8 @@ UATwoStateVariable.prototype.initialize = function(options) {
 
     if (options.trueState) {
         assert(options.falseState);
-        assert(typeof(options.trueState)=="string" );
-        assert(typeof(options.falseState)=="string" );
+        assert(typeof(options.trueState)==="string" );
+        assert(typeof(options.falseState)==="string" );
         node._trueState  = options.trueState;
         node._falseState = options.falseState;
 
@@ -195,9 +196,9 @@ UATwoStateVariable.prototype.initialize = function(options) {
     if(node.effectiveTransitionTime) {
         // install "value_changed" event handler on SubState that are already defined
         const subStates = [].concat(node.getTrueSubStates(),node.getFalseSubStates());
-        subStates.forEach(function(subState) {
+        for(let subState of subStates) {
             subState.on("value_changed",_updateEffectiveTransitionTime.bind(null,node,subState));
-        });
+        }
     }
 
     // it should be possible to define a trueState and falseState LocalizedText even if the trueState or FalseState node
@@ -226,6 +227,12 @@ UATwoStateVariable.prototype.initialize = function(options) {
     }
 };
 
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const sameNodeId = require("node-opcua-nodeid").sameNodeId;
+
+const hasTrueSubState_ReferenceTypeNodeId = resolveNodeId("HasTrueSubState");
+const hasFalseSubState_ReferenceTypeNodeId = resolveNodeId("HasFalseSubState");
+
 // TODO : shall we care about overloading the remove_backward_reference method ?
 // some TrueSubState and FalseSubState relationship may be added later
 // so we need a mechanism to keep adding the "value_changed" event handle on subStates that
@@ -242,14 +249,15 @@ UATwoStateVariable.prototype._add_backward_reference = function(reference) {
     // call base method
     _base_add_backward_reference.call(self,reference);
 
-    if ( ( reference.referenceType === "HasTrueSubState" ||  reference.referenceType === "HasFalseSubState" ) && reference.isForward) {
+    if ( reference.isForward &&
+         ( sameNodeId(reference.referenceType,hasTrueSubState_ReferenceTypeNodeId) ||
+             sameNodeId(reference.referenceType,hasFalseSubState_ReferenceTypeNodeId)) ) {
 
         const addressSpace = self.addressSpace;
         // add event handle
         const subState = addressSpace.findNode(reference.nodeId);
         subState.on("value_changed",_updateEffectiveTransitionTime.bind(null,self,subState));
     }
-
 };
 
 /**
@@ -324,8 +332,14 @@ exports.install = function (AddressSpace) {
      */
     AddressSpace.prototype.addTwoStateVariable   = function (options) {
 
+        return this._resolveRequestedNamespace(options).addTwoStateVariable(options);
+
+    };
+    Namespace.prototype.addTwoStateVariable = function(options){
+
+        const namespace = this;
         assert(options.browseName," a browseName is required");
-        const addressSpace = this;
+        const addressSpace = namespace.__addressSpace;
 
         const twoStateVariableType = addressSpace.findVariableType("TwoStateVariableType");
 

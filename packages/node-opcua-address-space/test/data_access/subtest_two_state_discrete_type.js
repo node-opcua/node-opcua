@@ -15,17 +15,19 @@ module.exports = function(maintest) {
 
         it("should add a TwoStateDiscreteType variable",function() {
 
+            const namespace = addressSpace.getPrivateNamespace();
+            
             const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            const prop = addressSpace.addTwoStateDiscrete({
+            const prop = namespace.addTwoStateDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MySwitch",
                 trueState: "busy",
                 falseState: "idle",
                 value: false
             });
-            prop.browseName.toString().should.eql("MySwitch");
+            prop.browseName.toString().should.eql("1:MySwitch");
 
             prop.getPropertyByName("TrueState").readValue().value.toString()
                 .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=busy)");

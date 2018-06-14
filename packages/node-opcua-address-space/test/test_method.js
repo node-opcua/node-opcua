@@ -21,10 +21,16 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing Method -  Attribute UserExecutable & Executable on Method ", function () {
 
-    let addressSpace;
+    let addressSpace,namespace;
 
-    before(function () {
-        addressSpace = new address_space.AddressSpace();
+    before(function (done) {
+        get_mini_address_space(function(err,_addressSpace){
+            addressSpace = _addressSpace;
+            namespace = addressSpace.getPrivateNamespace();
+            namespace.index.should.eql(1);
+
+            done(err);
+        })
     });
     after(function (done) {
         if (addressSpace) {
@@ -36,9 +42,10 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
 
     it("should return Executable= false and UserExecutable=false if method is not bound ", function () {
 
-        const method = new UAMethod({
+        const obj = namespace.addObject({browseName:"object"});
+
+        const method = namespace.addMethod(obj,{
             browseName: "MyMethod1",
-            addressSpace: addressSpace,
             userExecutable: false,
             executable: true
         });
@@ -57,9 +64,10 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
     });
     it("should return Executable= true and UserExecutable=true if method is  bound ", function () {
 
-        const method = new UAMethod({
+        const obj = namespace.addObject({browseName:"object"});
+
+        const method = namespace.addMethod(obj,{
             browseName: "MyMethod2",
-            addressSpace: addressSpace,
             userExecutable: false,
             executable: true
         });

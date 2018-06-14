@@ -208,8 +208,8 @@ function Subscription(options) {
 
     Subscription.registry.register(subscription);
 
-    subscription._sessionId = options.sessionId|| NodeId.NullNodeId;
-    assert(subscription._sessionId instanceof NodeId,"expecting a sessionId NodeId");
+    subscription.sessionId = options.sessionId|| NodeId.NullNodeId;
+    assert(subscription.sessionId instanceof NodeId,"expecting a sessionId NodeId");
 
     subscription.publishEngine = options.publishEngine;
     _assert_valid_publish_engine(subscription.publishEngine);
@@ -323,7 +323,7 @@ Subscription.registry = new ObjectRegistry();
 
 Subscription.prototype.getSessionId = function () {
     const subscription = this;
-    return subscription._sessionId;
+    return subscription.sessionId;
 };
 
 Subscription.prototype.toString = function () {
@@ -331,7 +331,7 @@ Subscription.prototype.toString = function () {
     const subscription = this;
     let str = "Subscription:\n";
     str += "  subscriptionId          " + subscription.id + "\n";
-    str += "  sessionId          " + subscription.getSessionId() + "\n";
+    str += "  sessionId          " + subscription.getSessionId().toString() + "\n";
 
     str += "  publishingEnabled  " + subscription.publishingEnabled + "\n";
     str += "  maxKeepAliveCount  " + subscription.maxKeepAliveCount + "\n";
@@ -884,7 +884,7 @@ Subscription.prototype.dispose = function () {
     subscription._pending_notifications = null;
     subscription._sent_notifications = null;
 
-    subscription._sessionId = null;
+    subscription.sessionId = null;
     subscription._sequence_number_generator = null;
 
     subscription.$session = null;

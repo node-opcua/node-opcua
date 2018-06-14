@@ -274,6 +274,8 @@ module.exports = function (test) {
             function callEventGeneratorMethod(session,callback) {
 
                 const eventGeneratorObject = test.server.engine.addressSpace.rootFolder.objects.simulation.eventGeneratorObject;
+                should.exist(eventGeneratorObject);
+                console.log(eventGeneratorObject.browseName.toString());
 
                 const methodsToCall = [{
                     objectId: eventGeneratorObject.nodeId,
@@ -351,7 +353,7 @@ module.exports = function (test) {
                                 eventNotificationCount = eventNotificationCount + 1;
 
                                 // istanbul ignore next
-                                if (false) {
+                                if (true) {
                                     console.log("Changed !!!  ");
                                     eventFields.forEach(function(variant,index) {
                                         console.log(w(fields[index],15).yellow,variant.toString().cyan);

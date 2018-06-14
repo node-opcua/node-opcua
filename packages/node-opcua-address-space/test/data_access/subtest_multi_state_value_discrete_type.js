@@ -17,9 +17,11 @@ module.exports = function(maintest) {
 
     describe("MultiStateValueDiscreteType", function () {
 
-        let addressSpace;
+        let addressSpace, namespace;
         before(function() {
             addressSpace = maintest.addressSpace;
+            namespace =addressSpace.getPrivateNamespace();
+
             should(addressSpace).be.instanceof(AddressSpace);
         });
 
@@ -35,13 +37,13 @@ module.exports = function(maintest) {
             const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            const prop = addressSpace.addMultiStateValueDiscrete({
+            const prop = namespace.addMultiStateValueDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
                 value: 0xFF0000 // Red
             });
-            prop.browseName.toString().should.eql("MyMultiStateValueVariable");
+            prop.browseName.toString().should.eql("1:MyMultiStateValueVariable");
 
             prop.valueRank.should.eql(-1); //ValueRank=Scalar
 
@@ -64,7 +66,7 @@ module.exports = function(maintest) {
             const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            const prop = addressSpace.addMultiStateValueDiscrete({
+            const prop = namespace.addMultiStateValueDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MyMultiStateValueVariable",
                 enumValues: [
@@ -82,7 +84,7 @@ module.exports = function(maintest) {
             before(function() {
                 const objectsFolder = addressSpace.findNode("ObjectsFolder");
                 objectsFolder.browseName.toString().should.eql("Objects");
-                multiStateValue = addressSpace.addMultiStateValueDiscrete({
+                multiStateValue = namespace.addMultiStateValueDiscrete({
                     organizedBy: objectsFolder,
                     browseName: "MyMultiStateValueVariable",
                     enumValues: { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },
@@ -139,11 +141,12 @@ module.exports = function(maintest) {
 
         it("ZZ2 should instantiate a DataType containing a MultiStateValueDiscreteType",function(done) {
 
+            const namespace= addressSpace.getPrivateNamespace();
             // create a new DataType
-            const myObjectType = addressSpace.addObjectType({
+            const myObjectType = namespace.addObjectType({
                 browseName: "MyObjectWithMultiStateValueDiscreteType"
             });
-            const multiStateValue = addressSpace.addMultiStateValueDiscrete({
+            const multiStateValue = namespace.addMultiStateValueDiscrete({
                 componentOf: myObjectType,
                 browseName:  "Color",
                 enumValues:  { "Red": 0xFF0000,"Orange": 0xFF9933,"Green":0x00FF00,"Blue": 0x0000FF },

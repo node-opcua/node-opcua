@@ -69,7 +69,7 @@ module.exports = function (test) {
                     "Scalar_Simulation_LocalizedText"
                 ];
                 ids.forEach(function (id) {
-                    const nodeId = "ns=411;s=" + id;
+                    const nodeId = "ns=2;s=" + id;
                     const monitoredItem = subscription.monitor(
                         {nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value},
                         {samplingInterval: 10, discardOldest: true, queueSize: 1});
@@ -120,7 +120,7 @@ module.exports = function (test) {
                 let clientHandle = 1;
 
                 ids50000.forEach(function (s) {
-                    const nodeId = "ns=411;s=" + s;
+                    const nodeId = "ns=2;s=" + s;
                     const itemToMonitor = new opcua.read_service.ReadValueId({
                         attributeId: opcua.AttributeIds.Value,
                         nodeId: nodeId

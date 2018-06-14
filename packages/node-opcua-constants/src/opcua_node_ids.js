@@ -301,8 +301,8 @@
 };
  exports.ReferenceTypeIds = { 
                                                                         References:     31 , 
-                                                         NonHierarchicalReferences:     32 , 
-                                                            HierarchicalReferences:     33 , 
+                                                             NonHierarchicalReferences:     32 ,
+                                                                HierarchicalReferences:     33 ,
                                                                           HasChild:     34 , 
                                                                          Organizes:     35 , 
                                                                     HasEventSource:     36 , 

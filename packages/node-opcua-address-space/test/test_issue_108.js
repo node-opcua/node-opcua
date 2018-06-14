@@ -20,12 +20,10 @@ describe("testing add new DataType ", function () {
 
     before(function (done) {
         addressSpace = new AddressSpace();
-
         const xml_file = nodesets.standard_nodeset_file;
         fs.existsSync(xml_file).should.be.eql(true);
-
         generate_address_space(addressSpace, xml_file, function (err) {
-
+            addressSpace.registerNamespace("Private");
             done(err);
         });
 
@@ -46,12 +44,13 @@ describe("testing add new DataType ", function () {
         const baseObjectType = addressSpace.findObjectType("BaseObjectType");
         const baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
 
+        const namespace = addressSpace.getPrivateNamespace();
         // -------------------------------------------- MachineType
-        const customTypeNode = addressSpace.addObjectType({browseName: "CustomType"});
+        const customTypeNode = namespace.addObjectType({browseName: "CustomType"});
 
         const standardUnits = require("node-opcua-data-access").standardUnits;
 
-        addressSpace.addAnalogDataItem({
+        namespace.addAnalogDataItem({
 
             modellingRule: "Mandatory",
 
@@ -65,9 +64,9 @@ describe("testing add new DataType ", function () {
             dataType: "Double"
         });
 
-        customTypeNode.getComponentByName("Temperature").browseName.toString().should.eql("Temperature");
+        customTypeNode.getComponentByName("Temperature").browseName.toString().should.eql("1:Temperature");
 
-        assert(customTypeNode.temperature.browseName.toString() === "Temperature");
+        assert(customTypeNode.temperature.browseName.toString() === "1:Temperature");
         return customTypeNode;
     }
 
@@ -75,7 +74,7 @@ describe("testing add new DataType ", function () {
     it("should instantiate an object whose type defines an analog item", function (done) {
 
         const customType = createCustomeType(addressSpace);
-        customType.temperature.browseName.toString().should.eql("Temperature");
+        customType.temperature.browseName.toString().should.eql("1:Temperature");
         customType.temperature.valuePrecision.browseName.toString().should.eql("ValuePrecision");
         customType.temperature.instrumentRange.browseName.toString().should.eql("InstrumentRange");
         customType.temperature.instrumentRange.readValue().value.value.low.should.eql(-70);
@@ -87,7 +86,8 @@ describe("testing add new DataType ", function () {
             organizedBy: "RootFolder"
         });
 
-        customNode1.temperature.browseName.toString().should.eql("Temperature")
+        customNode1.browseName.toString().should.eql("1:TestNode");
+        customNode1.temperature.browseName.toString().should.eql("1:Temperature");
 
         customNode1.temperature.valuePrecision.browseName.toString().should.eql("ValuePrecision");
         customNode1.temperature.instrumentRange.browseName.toString().should.eql("InstrumentRange");
@@ -129,6 +129,8 @@ describe("testing add new DataType ", function () {
             should.exist(ftnirType);
 
             const ftnirInstance = ftnirType.instantiate({browseName: "MyFTNIR", organizedBy: deviceSet});
+
+            ftnirInstance.nodeId.namespace.should.eql(addressSpace.getPrivateNamespace().index);
 
             addressSpace.dispose();
 

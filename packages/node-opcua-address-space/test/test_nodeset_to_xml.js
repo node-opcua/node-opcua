@@ -15,10 +15,13 @@ const doDebug = false;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing nodeset to xml", function () {
-    let addressSpace;
+    let addressSpace,namespace;
     beforeEach(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
+
             addressSpace = __addressSpace__;
+
+            namespace = addressSpace.getPrivateNamespace();
             done(err);
         });
 
@@ -57,12 +60,12 @@ describe("testing nodeset to xml", function () {
 
     it("€€€ should output a custom Enum node to xml (MyEnumType) - Form1( with EnumStrings )", function () {
 
-        const myEnumType = addressSpace.addEnumerationType({
+        const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumTypeForm1",
             enumeration: ["RUNNING", "STOPPED"]
         });
 
-        myEnumType.browseName.toString().should.eql("MyEnumTypeForm1");
+        myEnumType.browseName.toString().should.eql("1:MyEnumTypeForm1");
         const str = dumpXml(myEnumType, {});
         if (doDebug) {
             console.log(str);
@@ -75,7 +78,7 @@ describe("testing nodeset to xml", function () {
     it("€€ should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", function () {
 
 
-        const myEnumType = addressSpace.addEnumerationType({
+        const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType",
             enumeration: [
                 {displayName: "RUNNING", value: 10, description: "the device is running"},
@@ -83,7 +86,7 @@ describe("testing nodeset to xml", function () {
             ]
         });
 
-        myEnumType.browseName.toString().should.eql("MyEnumType");
+        myEnumType.browseName.toString().should.eql("1:MyEnumType");
         const str = dumpXml(myEnumType, {});
         if (doDebug) {
             console.log(str);
@@ -106,9 +109,11 @@ describe("testing nodeset to xml", function () {
 
     it("should output a instance of a new ObjectType  to xml", function () {
 
+        const namespace= addressSpace.getPrivateNamespace();
+
         // TemperatureSensorType
-        const temperatureSensorType = addressSpace.addObjectType({browseName: "TemperatureSensorType"});
-        addressSpace.addVariable({
+        const temperatureSensorType = namespace.addObjectType({browseName: "TemperatureSensorType"});
+        namespace.addVariable({
             componentOf: temperatureSensorType,
             browseName: "Temperature",
             description: "the temperature value of the sensor in Celsius <�C>",
@@ -160,7 +165,8 @@ describe("testing nodeset to xml", function () {
 
     it("should output an instance of variable type to xml", function () {
 
-        const variableType = addressSpace.addVariableType({browseName: 'MyCustomVariableType'});
+        const namespace= addressSpace.getPrivateNamespace();
+        const variableType = namespace.addVariableType({browseName: 'MyCustomVariableType'});
 
         const str = dumpXml(variableType, {});
         if (doDebug) {

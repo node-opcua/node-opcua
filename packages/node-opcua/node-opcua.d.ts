@@ -948,7 +948,7 @@ export declare class ClientSubscription {
 
 export declare function coerceNodeId(nodeId: any): NodeId;
 
-export declare function makeNodeId(nodeId: any): NodeId;
+export declare function makeNodeId(nodeId: any, namespaceIndex?: number): NodeId;
 
 export declare function resolveNodeId(id: NodeId | string): NodeId;
 

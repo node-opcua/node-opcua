@@ -202,16 +202,35 @@ UAMethod.prototype.execute = function (inputArguments, context, callback) {
 
 };
 
-UAMethod.prototype.clone = function (options,optionalfilter,extraInfo) {
+
+
+UAMethod.prototype.clone = function (options,optionalFilter,extraInfo) {
+
+    const Namespace = require("./namespace").Namespace;
+
+    assert(!options.componentOf || options.componentOf,"trying to create an orphan method ?");
 
     const self = this;
     options = options || {};
     options = _.extend(_.clone(options),{
         methodDeclarationId: self.nodeId
     });
-    const clonedMethod =  self._clone(UAMethod,options, optionalfilter, extraInfo);
+    options.references = options.references||[];
+
+    const addressSpace = self.addressSpace;
+    Namespace._handle_hierarchy_parent(addressSpace,options.references,options);
+
+    const clonedMethod =  self._clone(UAMethod,options, optionalFilter, extraInfo);
     clonedMethod._asyncExecutionFunction = self._asyncExecutionFunction;
     clonedMethod._getExecutableFlag = self._getExecutableFlag;
+
+    if (options.componentOf) {
+        //Xx console.log("Options ",options.componentOf.browseName.toString());
+        const m = options.componentOf.getMethodByName(clonedMethod.browseName.name);
+        assert(m);
+    }
+
+
     return clonedMethod;
 };
 exports.UAMethod = UAMethod;

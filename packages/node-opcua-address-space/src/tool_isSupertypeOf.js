@@ -2,12 +2,18 @@
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
+const resolveNodeId= require("node-opcua-nodeid").resolveNodeId;
+const sameNodeId= require("node-opcua-nodeid").sameNodeId;
+
+const HasSubTypeNodeId = resolveNodeId("HasSubtype");
+
 function _filterSubType(reference) {
-    return (reference.referenceType === "HasSubtype" && !reference.isForward);
+    return (sameNodeId(reference.referenceType,HasSubTypeNodeId) && !reference.isForward);
 }
 
 const _slow_isSupertypeOf = function (self, Class, baseType) {
-    //xx console.log(" ",self.browseName, " versus ",baseType.browseName);
+
+    //xx console.log("YYYYXXXX ",self.browseName, " versus ",baseType.browseName);
     assert(self instanceof Class);
     assert(baseType instanceof Class, " Object must have same type");
     assert(self.addressSpace);
@@ -27,7 +33,7 @@ const _slow_isSupertypeOf = function (self, Class, baseType) {
         if (!subType) {
             throw new Error("Cannot find object with nodeId " + subTypeId.toString());
         }
-        if (subType.nodeId === baseType.nodeId) {
+        if (sameNodeId(subType.nodeId,baseType.nodeId)) {
             return true;
         } else {
             if (_slow_isSupertypeOf(subType, Class, baseType)) {

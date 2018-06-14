@@ -149,7 +149,7 @@ module.exports = function (test) {
 
         function check_semantic_change(samplingInterval, done) {
 
-            const analogDataItem = "ns=411;s=DoubleAnalogDataItem";
+            const analogDataItem = "ns=2;s=DoubleAnalogDataItem";
 
 
             perform_operation_on_raw_subscription(client, endpointUrl, function (session, subscription, callback) {

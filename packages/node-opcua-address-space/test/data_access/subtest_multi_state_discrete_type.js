@@ -31,16 +31,18 @@ module.exports = function(maintest) {
 
         it("should add a MultiStateDiscreteType variable",function() {
 
+            const namespace = addressSpace.getPrivateNamespace();
+
             const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            const prop = addressSpace.addMultiStateDiscrete({
+            const prop = namespace.addMultiStateDiscrete({
                 organizedBy: objectsFolder,
                 browseName: "MyMultiStateVariable",
                 enumStrings: [ "Red","Orange","Green"],
                 value: 1 // Orange
             });
-            prop.browseName.toString().should.eql("MyMultiStateVariable");
+            prop.browseName.toString().should.eql("1:MyMultiStateVariable");
 
             prop.valueRank.should.eql(-2);
 
@@ -57,9 +59,12 @@ module.exports = function(maintest) {
 
             let multiState;
             before(function() {
+                const namespace = addressSpace.getPrivateNamespace();
+
                 const objectsFolder = addressSpace.findNode("ObjectsFolder");
                 objectsFolder.browseName.toString().should.eql("Objects");
-                multiState = addressSpace.addMultiStateDiscrete({
+
+                multiState = namespace.addMultiStateDiscrete({
                     organizedBy: objectsFolder,
                     browseName: "MyMultiStateVariable",
                     enumStrings: [ "Red","Orange","Green"],

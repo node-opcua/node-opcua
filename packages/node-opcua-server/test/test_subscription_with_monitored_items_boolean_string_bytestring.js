@@ -22,6 +22,7 @@ const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 const NodeId = require("node-opcua-nodeid").NodeId;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
 const MonitoredItem = require("../src/monitored_item").MonitoredItem;
 
@@ -79,27 +80,27 @@ describe("Subscriptions and MonitoredItems", function () {
 
     this.timeout(Math.max(300000, this._timeout));
 
-    let addressSpace;
+    let addressSpace , namespace;
 
     let engine;
     const test = this;
 
     before(function (done) {
+
         engine = new server_engine.ServerEngine();
+
         engine.initialize({nodeset_filename: server_engine.nodeset_filename}, function () {
             addressSpace = engine.addressSpace;
-
-
+            namespace = addressSpace.getPrivateNamespace();
 
             function addVar(typeName, value) {
-                addressSpace.addVariable({
+                namespace.addVariable({
                     organizedBy: "RootFolder",
-                    nodeId: "ns=100;s=Static_" + typeName,
+                    nodeId: "s=Static_" + typeName,
                     browseName: "Static_" + typeName,
                     dataType: typeName,
                     value: {dataType: DataType[typeName], value: value}
                 });
-
             }
 
             addVar("LocalizedText", {text: "Hello"});
@@ -148,7 +149,7 @@ describe("Subscriptions and MonitoredItems", function () {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        function test_with_nodeId(nodeId, statusCode) {
+        function test_with_nodeId(nodeId) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -169,7 +170,9 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
 
-        test_with_nodeId("ns=100;s=Static_Boolean").should.eql(StatusCodes.Good);
+        const namespaceSimulationIndex = 1;
+        const nodeIdBoolean = coerceNodeId("s=Static_Boolean",namespaceSimulationIndex);
+        test_with_nodeId(nodeIdBoolean).should.eql(StatusCodes.Good);
 
         subscription.terminate();
         subscription.dispose();
@@ -208,7 +211,7 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
 
-        test_with_nodeId("ns=100;s=Static_String").should.eql(StatusCodes.Good);
+        test_with_nodeId("ns=1;s=Static_String").should.eql(StatusCodes.Good);
 
         subscription.terminate();
         subscription.dispose();
@@ -247,7 +250,7 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
 
-        test_with_nodeId("ns=100;s=Static_ByteString").should.eql(StatusCodes.Good);
+        test_with_nodeId("ns=1;s=Static_ByteString").should.eql(StatusCodes.Good);
 
         subscription.terminate();
         subscription.dispose();
@@ -287,7 +290,7 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
 
-        test_with_nodeId("ns=100;s=Static_LocalizedText").should.eql(StatusCodes.Good);
+        test_with_nodeId("ns=1;s=Static_LocalizedText").should.eql(StatusCodes.Good);
 
         subscription.terminate();
         subscription.dispose();
@@ -328,7 +331,7 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
 
-        test_with_nodeId("ns=100;s=Static_Boolean").should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_nodeId("ns=1;s=Static_Boolean").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
         subscription.dispose();
@@ -368,7 +371,7 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
 
-        test_with_nodeId("ns=100;s=Static_String").should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_nodeId("ns=1;s=Static_String").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
         subscription.dispose();
@@ -408,7 +411,7 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
 
-        test_with_nodeId("ns=100;s=Static_ByteString").should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_nodeId("ns=1;s=Static_ByteString").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
         subscription.dispose();
@@ -449,7 +452,7 @@ describe("Subscriptions and MonitoredItems", function () {
         }
 
 
-        test_with_nodeId("ns=100;s=Static_LocalizedText").should.eql(StatusCodes.BadFilterNotAllowed);
+        test_with_nodeId("ns=1;s=Static_LocalizedText").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
         subscription.dispose();

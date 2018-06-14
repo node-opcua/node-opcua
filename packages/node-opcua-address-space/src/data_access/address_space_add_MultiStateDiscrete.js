@@ -11,6 +11,7 @@ const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText
 
 const _ = require("underscore");
 
+const Namespace = require("../namespace").Namespace;
 
 const UAVariable = require("../ua_variable").UAVariable;
 /**
@@ -70,21 +71,24 @@ module.exports.install = function(AddressSpace) {
      * @return {Object|UAVariable}
      */
     AddressSpace.prototype.addMultiStateDiscrete = function(options) {
+        this._resolveRequestedNamespace(options).addMultiStateDiscrete(options);
+    };
 
+    Namespace.prototype.addMultiStateDiscrete = function(options) {
+
+        const namespace = this;
+        const addressSpace = namespace.__addressSpace;
+        assert(addressSpace instanceof AddressSpace);
         assert(options.hasOwnProperty("enumStrings"));
         assert(!options.hasOwnProperty("ValuePrecision"));
-
-        const addressSpace = this;
-        assert(addressSpace instanceof AddressSpace);
 
         const multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
         assert(multiStateDiscreteType, "expecting MultiStateDiscreteType to be defined , check nodeset xml file");
 
         // todo : if options.typeDefinition is specified, check that type is SubTypeOf MultiStateDiscreteType
-
         options.value = ( options.value === undefined) ? 0 : options.value;
 
-        const variable = addressSpace.addVariable(_.extend(options,{
+        const variable = namespace.addVariable(_.extend(options,{
             typeDefinition: multiStateDiscreteType.nodeId,
             dataType: "UInteger",
             valueRank: -2,
@@ -97,11 +101,11 @@ module.exports.install = function(AddressSpace) {
             return coerceLocalizedText(value)
         });
 
-        const enumStringsNode = addressSpace.addVariable({
+        const enumStringsNode = namespace.addVariable({
             modellingRule: options.modellingRule ? "Mandatory" : undefined,
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: "EnumStrings",
+            browseName: {name:"EnumStrings",namespaceIndex:0},
             dataType: "LocalizedText",
             accessLevel: "CurrentRead", //| CurrentWrite",
             userAccessLevel: "CurrentRead",// CurrentWrite",

@@ -33,8 +33,9 @@ module.exports = function (test) {
 
             let variable2 = 16.0;
             const addressSpace = server.engine.addressSpace;
+            const namespace = addressSpace.getPrivateNamespace();
 
-            const the_Variable = addressSpace.addVariable({
+            const the_Variable = namespace.addVariable({
                 organizes: addressSpace.rootFolder.objects,
                 nodeId: "ns=1;b=1020FFAA",
                 browseName: "MyVariable2",

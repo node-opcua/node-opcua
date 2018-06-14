@@ -20,7 +20,7 @@ module.exports = function (test) {
                 conditionClass: "ProcessConditionClassType",
                 conditionName: "MyConditionName"
             });
-            condition.browseName.toString().should.eql("AlarmCondition1");
+            condition.browseName.toString().should.eql("1:AlarmCondition1");
 
             // ConditionClassId : NodeId
             // ConditionClassName: LocalizedText

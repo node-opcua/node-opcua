@@ -138,7 +138,7 @@ module.exports = function (test) {
                     inner_done();
                 });
 
-                const nodeId = "ns=411;s=Scalar_Static_Double";
+                const nodeId = "ns=2;s=Scalar_Static_Double";
 
                 let count = 1.0;
 

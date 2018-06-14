@@ -1,6 +1,7 @@
 "use strict";
 const path = require("path");
 const fs = require("fs");
+const should = require("should");
 
 const generate_address_space = require("..").generate_address_space;
 const AddressSpace = require("..").AddressSpace;

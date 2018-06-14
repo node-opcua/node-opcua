@@ -50,9 +50,11 @@ module.exports = function (test) {
             let myCustomConditionType;
             before(function (done) {
 
+                const namespace = addressSpace.getPrivateNamespace();
+
                 const conditionType = addressSpace.findEventType("ConditionType");
                 // create a custom conditionType
-                myCustomConditionType = addressSpace.addObjectType({
+                myCustomConditionType = namespace.addObjectType({
                     subtypeOf: conditionType,
                     browseName: "MyConditionType",
                     isAbstract: false
@@ -62,19 +64,21 @@ module.exports = function (test) {
 
             it("should instantiate a custom ConditionType", function () {
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: null,
                     browseName: "MyCustomCondition"
                 });
-                condition.browseName.toString().should.eql("MyCustomCondition");
+                condition.browseName.toString().should.eql("1:MyCustomCondition");
 //xx                should.not.exist(condition.enabledState.transitionTime);
 //xx                should.not.exist(condition.enabledState.effectiveTransitionTime);
             });
 
             it("should be possible to enable and disable a condition using the enable & disable methods ( as a client would do)", function (done) {
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition2",
                     conditionSource: null,
                     organizedBy: addressSpace.rootFolder.objects
@@ -87,7 +91,7 @@ module.exports = function (test) {
 
                 const dataValue = condition.enabledState.id.readValue();
                 dataValue.value.value.should.eql(true);
-                condition.browseName.toString().should.eql("MyCustomCondition2");
+                condition.browseName.toString().should.eql("1:MyCustomCondition2");
 
                 const context = new SessionContext();
 
@@ -160,7 +164,9 @@ module.exports = function (test) {
             describe("Testing Branches ",function() {
                 let condition;
                 before(function() {
-                    condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                    const namespace = addressSpace.getPrivateNamespace();
+
+                    condition = namespace.instantiateCondition(myCustomConditionType, {
                         browseName: "MyCustomCondition2B",
                         conditionSource: null,
                         organizedBy: addressSpace.rootFolder.objects
@@ -248,8 +254,9 @@ module.exports = function (test) {
                 //   return a status of Bad_ConditionDisabled. The Event that reports the Disabled state
                 //   should report the properties as NULL or with a status of Bad_ConditionDisabled.
 
+                const namespace = addressSpace.getPrivateNamespace();
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition2",
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: source,
@@ -316,7 +323,7 @@ module.exports = function (test) {
                 
                 spyOnEvent.getCalls()[1].args[0].eventId.value.should.be.instanceof(Buffer);
                 spyOnEvent.getCalls()[1].args[0].sourceNode.value.should.be.instanceof(NodeId);
-                spyOnEvent.getCalls()[1].args[0].sourceName.value.should.eql("Motor.RPM");
+                spyOnEvent.getCalls()[1].args[0].sourceName.value.should.eql("1:Motor.RPM");
                 spyOnEvent.getCalls()[1].args[0].time.value.should.be.instanceof(Date);
                
                 // any other shall return an BadConditionDisabled status Code
@@ -355,7 +362,9 @@ module.exports = function (test) {
             
             it("should be possible to activate the EnabledState.TransitionTime optional property", function (done) {
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition4",
                     conditionSource: null,
@@ -375,7 +384,9 @@ module.exports = function (test) {
 
             it("should be possible to activate the EnabledState.EffectiveTransitionTime optional property", function (done) {
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition4",
                     conditionSource: null,
@@ -396,7 +407,9 @@ module.exports = function (test) {
 
             it("should be possible to activate the EnabledState.EffectiveDisplayName optional property", function (done) {
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition3",
                     conditionSource: null,
@@ -422,7 +435,8 @@ module.exports = function (test) {
 
             it("should be possible to set the comment of a condition using the addComment method of the condition instance", function (done) {
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: null,
                     browseName: "MyCustomCondition4"
@@ -452,8 +466,9 @@ module.exports = function (test) {
             });
 
             it("should be possible to set the comment of a condition using the addComment method of the conditionType", function (done) {
+                const namespace = addressSpace.getPrivateNamespace();
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     conditionSource: null,
                     browseName: "MyCustomCondition12"
@@ -484,8 +499,9 @@ module.exports = function (test) {
             });
 
             it("should install the conditionSource in SourceNode and SourceName", function () {
+                const namespace = addressSpace.getPrivateNamespace();
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition3",
                     conditionSource: source,
@@ -500,7 +516,8 @@ module.exports = function (test) {
             });
 
             it("initial value of lastSeverity should be zero", function () {
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition_last_severity_initial_value",
                     conditionSource: source,
@@ -514,7 +531,8 @@ module.exports = function (test) {
 
             it("setting severity should record lastSeverity", function () {
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition_last_severity_recorded",
                     conditionSource: source,
@@ -534,15 +552,24 @@ module.exports = function (test) {
 
             it("should produce eventData ",function() {
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition_last_severity_recorded",
                     conditionSource: source,
                     optionals: [
                         "EnabledState.EffectiveDisplayName",
-                        "EnabledState.TransitionTime"
+                        "EnabledState.TransitionTime",
+                        "ConditionClassId",
+                        "ConditionClassName",
+                        "ConditionSubClassId",
+                        "ConditionSubClassName"
                     ]
                 });
+
+
+                condition.conditionClassId.browseName.toString().should.eql("ConditionClassId");
+                condition.conditionClassName.browseName.toString().should.eql("ConditionClassName");
 
                 const eventData1 = condition.currentBranch()._constructEventData();
 
@@ -550,8 +577,6 @@ module.exports = function (test) {
 
                 const data= {
                     sourceNode: condition.sourceNode.readValue().value,
-                    conditionClassId: nullVariant,
-                    conditionClassName: nullVariant,
                     conditionName: nullVariant,
                     branchId: nullVariant,
                     retain: nullVariant,
@@ -586,7 +611,8 @@ module.exports = function (test) {
 
             it("should raise a new condition ", function () {
 
-                const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                const namespace = addressSpace.getPrivateNamespace();
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
                     organizedBy: addressSpace.rootFolder.objects,
                     browseName: "MyCustomCondition3",
                     conditionSource: source,
@@ -670,7 +696,8 @@ module.exports = function (test) {
 
                 it("should be possible to create several branches of a condition state", function () {
 
-                    const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                    const namespace = addressSpace.getPrivateNamespace();
+                    const condition = namespace.instantiateCondition(myCustomConditionType, {
                         organizedBy: addressSpace.rootFolder.objects,
                         browseName: "MyCustomCondition_branch",
                         conditionSource: source,
@@ -707,7 +734,8 @@ module.exports = function (test) {
 
                 it("should be possible to refresh a condition", function () {
 
-                    const condition = addressSpace.instantiateCondition(myCustomConditionType, {
+                    const namespace = addressSpace.getPrivateNamespace();
+                    const condition = namespace.instantiateCondition(myCustomConditionType, {
                         organizedBy: addressSpace.rootFolder.objects,
                         browseName: "MyCustomCondition_to_test_condition_refresh",
                         conditionSource: source

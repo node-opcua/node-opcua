@@ -57,7 +57,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                const pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+                const pumpSpeedId = "ns=1;b=0102030405060708090a0b0c0d0e0f10";
 
                 const nodesToWrite = [
                     {
@@ -85,7 +85,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                const setPointTemperatureId = "ns=4;s=SetPointTemperature";
+                const setPointTemperatureId = "ns=1;s=SetPointTemperature";
 
                 const nodesToWrite = [
                     {
@@ -113,7 +113,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                const setPointTemperatureId = "ns=4;s=SetPointTemperature";
+                const setPointTemperatureId = "ns=1;s=SetPointTemperature";
 
                 const nodesToWrite = [
                     {
@@ -145,7 +145,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                const float_Node = "ns=411;s=Scalar_Simulation_Float";
+                const float_Node = "ns=2;s=Scalar_Simulation_Float";
 
                 const nodesToWrite = [
                     {
@@ -177,7 +177,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                const asyncNodeId = "ns=4;s=AsynchronousVariable";
+                const asyncNodeId = "ns=1;s=AsynchronousVariable";
 
                 const nodesToWrite = [
                     {
@@ -276,7 +276,7 @@ module.exports = function (test) {
 
         it("VQT should write Value Quality Timestamp - on basic variable", function (done) {
 
-            const setPointTemperatureId = "ns=4;s=SetPointTemperature";
+            const setPointTemperatureId = "ns=1;s=SetPointTemperature";
             // Value, Quality, sourceTimestamp
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
@@ -328,7 +328,7 @@ module.exports = function (test) {
 
         it("VQT should write Value Quality Timestamp - on async variable that support full blown dataValue write", function (done) {
 
-            const asyncNodeId = "ns=4;s=AsynchronousFullVariable";
+            const asyncNodeId = "ns=1;s=AsynchronousFullVariable";
 
             // Value, Quality, sourceTimestamp
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {

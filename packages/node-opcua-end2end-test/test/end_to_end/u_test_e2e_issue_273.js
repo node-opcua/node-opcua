@@ -32,19 +32,19 @@ module.exports = function (test) {
     describe("Testing issue#273 ", function () {
 
         it("GDT1- should be possible to find the DataType of node - Double ",function(done) {
-            const nodeId = coerceNodeId("ns=411;s=Scalar_Simulation_Double");
+            const nodeId = coerceNodeId("ns=2;s=Scalar_Simulation_Double");
             doTest(nodeId,DataType.Double,done);
         });
         it("GDT2- should be possible to find the DataType of  node - ImageGIF",function(done) {
-            const nodeId = coerceNodeId("ns=411;s=Scalar_Simulation_ImageGIF");
+            const nodeId = coerceNodeId("ns=2;s=Scalar_Simulation_ImageGIF");
             doTest(nodeId,DataType.ByteString,done);
         });
         it("GDT3- should be possible to find the DataType of simple node - Int64",function(done) {
-            const nodeId = coerceNodeId("ns=411;s=Scalar_Simulation_Int64");
+            const nodeId = coerceNodeId("ns=2;s=Scalar_Simulation_Int64");
             doTest(nodeId,DataType.Int64,done);
         });
         it("GDT4- should be possible to find the DataType of simple - QualifiedName",function(done) {
-            const nodeId = coerceNodeId("ns=411;s=Scalar_Simulation_QualifiedName");
+            const nodeId = coerceNodeId("ns=2;s=Scalar_Simulation_QualifiedName");
             doTest(nodeId,DataType.QualifiedName,done);
         });
 

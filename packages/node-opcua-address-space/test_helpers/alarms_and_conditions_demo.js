@@ -5,7 +5,9 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
 
     addressSpace.installAlarmsAndConditionsService();
 
-    const tank =  addressSpace.addObject({
+    const namespace = addressSpace.getPrivateNamespace();
+
+    const tank =  namespace.addObject({
         browseName: "Tank",
         description: "The Object representing the Tank",
         organizedBy: addressSpace.rootFolder.objects,
@@ -13,7 +15,7 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
     });
 
 
-    const tankLevel = addressSpace.addVariable({
+    const tankLevel = namespace.addVariable({
         browseName: "TankLevel",
         description: "Fill level in percentage (0% to 100%) of the water tank",
         propertyOf: tank,
@@ -59,7 +61,7 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
     //--------------------------------------------------------------
     // Let's create a second variable with no Exclusive alarm
     //--------------------------------------------------------------
-    const tankLevel2 = addressSpace.addVariable({
+    const tankLevel2 = namespace.addVariable({
         browseName: "tankLevel2",
         description: "Fill level in percentage (0% to 100%) of the water tank",
         propertyOf: tank,

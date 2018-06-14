@@ -676,6 +676,8 @@ OPCUAClientBase.prototype.performMessageTransaction = function (request, callbac
  * @return {EndPoint}
  */
 OPCUAClientBase.prototype.findEndpointForSecurity = function (securityMode, securityPolicy) {
+    securityMode = MessageSecurityMode.get(securityMode);
+    securityPolicy = SecurityPolicy.get(securityPolicy);
     assert(this.knowsServerEndpoint, "Server end point are not known yet");
     return _.find(this._server_endpoints, function (endpoint) {
         return endpoint.securityMode === securityMode &&

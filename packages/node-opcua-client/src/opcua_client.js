@@ -917,6 +917,8 @@ OPCUAClient.prototype.withSubscription = function (endpointUrl, subscriptionPara
         }
     }, callback);
 };
+
+
 //xx OPCUAClient.prototype.withSubscription = thenify(OPCUAClient.prototype.withSubscription);
 const nodeVersion = parseInt(process.version.match(/v([0-9]*)\./)[1]);
 

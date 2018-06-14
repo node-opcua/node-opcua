@@ -14,14 +14,17 @@ const doDebug = false;
 
 describe("AddressSpace#browsePath", function () {
 
-    let addressSpace = null;
+    let addressSpace ,namespace;
 
     before(function(done) {
         get_mini_address_space(function (err, data) {
             addressSpace = data;
 
+            namespace = addressSpace.getPrivateNamespace();
+            namespace.namespaceUri.should.eql("http://MYNAMESPACE");
+
             // Add EventGeneratorObject
-            add_eventGeneratorObject(addressSpace,"ObjectsFolder");
+            add_eventGeneratorObject(namespace,"ObjectsFolder");
 
             done(err);
         });
@@ -72,7 +75,7 @@ describe("AddressSpace#browsePath", function () {
 
 
     it("should browse EventGeneratorObject",function() {
-        const browsePath = makeBrowsePath("RootFolder","/Objects/EventGeneratorObject");
+        const browsePath = makeBrowsePath("RootFolder","/Objects/1:EventGeneratorObject");
         const result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
         result.targets.length.should.eql(1);
@@ -88,7 +91,7 @@ describe("AddressSpace#browsePath", function () {
 
     it("should browse MyEventType",function() {
 
-        let browsePath = makeBrowsePath("RootFolder", "/Types/EventTypes/BaseEventType<HasSubtype>MyEventType");
+        let browsePath = makeBrowsePath("RootFolder", "/Types/EventTypes/BaseEventType<HasSubtype>1:MyEventType");
         let result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
         result.targets.length.should.eql(1);
@@ -99,13 +102,13 @@ describe("AddressSpace#browsePath", function () {
             console.log("result", result.toString(opts));
         }
 
-        const node  = addressSpace.findNode(result.targets[0].targetId).browseName.toString().should.eql("MyEventType");
+        const node  = addressSpace.findNode(result.targets[0].targetId).browseName.toString().should.eql("1:MyEventType");
 
-        browsePath = makeBrowsePath("RootFolder", "/Types/EventTypes/BaseEventType<!HasSubtype>MyEventType");
+        browsePath = makeBrowsePath("RootFolder", "/Types/EventTypes/BaseEventType<!HasSubtype>1:MyEventType");
         result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.BadNoMatch);
 
-        browsePath = makeBrowsePath("RootFolder", "/Types/EventTypes/BaseEventType<#HasSubtype>MyEventType");
+        browsePath = makeBrowsePath("RootFolder", "/Types/EventTypes/BaseEventType<#HasSubtype>1:MyEventType");
         result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
 

@@ -12,6 +12,10 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
+const makeNodeId= opcua.makeNodeId;
+const coerceNodeId= opcua.coerceNodeId;
+const AttributeIds = opcua.AttributeIds;
+
 module.exports = function (test) {
 
     describe("Testing ctt  - write a ByteString value to a node of type Byte[]", function () {
@@ -20,18 +24,34 @@ module.exports = function (test) {
             const client = new OPCUAClient();
             const endpointUrl = test.endpointUrl;
 
-            const nodeToRead = {
-                nodeId: "ns=411;s=Scalar_Static_Array_Byte",
-                attributeId: 13
-            };
+            let simulationNamespaceIndex = -1;
 
             perform_operation_on_subscription(client,endpointUrl,function(session,subscription,inner_done){
 
                 let l = 0;
                 async.series([
+
+                    function read_namespaceArray(callback){
+
+                        session.readNamespaceArray(function(err,namespaceArray){
+                            if (err) return callback(err);
+                            simulationNamespaceIndex = namespaceArray.indexOf("urn://node-opcua-simulator");
+                            console.log("simulationNamespaceIndex = ",simulationNamespaceIndex);
+                            callback();
+                        });
+                    },
                     function read_initial_value(callback) {
 
+                        const nodeToRead = {
+                            nodeId: coerceNodeId("s=Scalar_Static_Array_Byte",simulationNamespaceIndex),
+                            attributeId: AttributeIds.Value
+                        };
+
                         session.read(nodeToRead,function(err, dataValue){
+                            if (err) return callback(err);
+                            if (dataValue.statusCode !== opcua.StatusCodes.Good) {
+                                return callback(new Error("Cannot read value" + dataValue.toString()))
+                            }
                             //xx console.log(results[0].toString());
                             dataValue.value.value.length.should.be.greaterThan(2);
                             l = dataValue.value.value.length;
@@ -41,8 +61,8 @@ module.exports = function (test) {
                     function write_byteString_in_arrayOfByte(callback) {
 
                         const nodeToWrite= {
-                            nodeId:"ns=411;s=Scalar_Static_Array_Byte",
-                            attributeId: 13,
+                            nodeId: coerceNodeId("s=Scalar_Static_Array_Byte",simulationNamespaceIndex),
+                            attributeId: AttributeIds.Value,
                             value: {
                                 value: {
                                     dataType: opcua.DataType.ByteString,

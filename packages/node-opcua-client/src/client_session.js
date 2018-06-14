@@ -177,7 +177,7 @@ ClientSession.prototype.browse = function (nodesToBrowse, callback) {
     const isArray = _.isArray(nodesToBrowse);
     if (!isArray) {
         nodesToBrowse = [nodesToBrowse];
-     }
+    }
 
     nodesToBrowse = nodesToBrowse.map(coerceBrowseDescription);
 
@@ -509,7 +509,7 @@ ClientSession.prototype.write = function (nodesToWrite, callback) {
     }
 
     assert(_.isFunction(callback));
-     assert(_.isArray(nodesToWrite), "nodesToWrite must be an array");
+    assert(_.isArray(nodesToWrite), "nodesToWrite must be an array");
 
     const request = new write_service.WriteRequest({nodesToWrite: nodesToWrite});
 
@@ -1662,7 +1662,7 @@ function __findBasicDataType(session, dataTypeId, callback) {
  *        assert(dataType === opcua.DataType.DateTime);
  *     });
  *     // or
- *     nodeId = opcua.coerceNodeId("ns=411;s=Scalar_Static_ImagePNG");
+ *     nodeId = opcua.coerceNodeId("ns=2;s=Scalar_Static_ImagePNG");
  *     session.getBuildInDataType(nodeId,function(err,dataType) {
  *        assert(dataType === opcua.DataType.ByteString);
  *     });
@@ -1701,6 +1701,38 @@ ClientSession.prototype.__defineGetter__("subscriptionCount",function() {
     return self._publishEngine ? self._publishEngine.subscriptionCount : 0;
 });
 
+/**
+ *
+ * @param callback                [Function}
+ * @param callback.err            {null|Error}
+ * @param callback.namespaceArray {Array<String>}
+ */
+ClientSession.prototype.readNamespaceArray = function(callback){
+
+    const session = this;
+    session.read({
+        nodeId:   resolveNodeId("Server_NamespaceArray"),
+        attributeIds: AttributeIds.Value
+    },function(err,dataValue){
+        if (err) return callback(err);
+
+        if (dataValue.statusCode !== StatusCodes.Good) {
+            return callback(new Error("readNamespaceArray : "+ dataValue.statusCode.toString()));
+        }
+        assert(dataValue.value.value instanceof Array);
+        session._namespaceArray = dataValue.value.value;// keep a cache
+        callback(null,session._namespaceArray);
+    });
+};
+
+ClientSession.prototype.getNamespaceIndex = function(namespaceUri){
+    const session = this;
+    assert(session._namespaceArray,"please make sure that readNamespaceArray has been called");
+    return session._namespaceArray.findIndex(namespaceUri);
+};
+
+
+
 exports.ClientSession = ClientSession;
 
 
@@ -1734,3 +1766,5 @@ ClientSession.prototype.getArgumentDefinition = thenify.withCallback(ClientSessi
 ClientSession.prototype.queryFirst            = thenify.withCallback(ClientSession.prototype.queryFirst,opts);
 ClientSession.prototype.registerNodes         = thenify.withCallback(ClientSession.prototype.registerNodes,opts);
 ClientSession.prototype.unregisterNodes       = thenify.withCallback(ClientSession.prototype.unregisterNodes,opts);
+ClientSession.prototype.readNamespaceArray    = thenify.withCallback(ClientSession.prototype.readNamespaceArray,opts);
+

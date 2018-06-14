@@ -31,11 +31,12 @@ function addTestUAAnalogItem(parentNode) {
 //xx    assert(parentNode instanceof opcua.BaseNode);
 
     const addressSpace = parentNode.addressSpace;
+    const namespace = addressSpace.getPrivateNamespace();
 
     // add a UAAnalogItem
-    /* var node = */ addressSpace.addAnalogDataItem({
+    namespace.addAnalogDataItem({
         componentOf: parentNode,
-        nodeId: "ns=4;s=TemperatureAnalogItem",
+        nodeId: "s=TemperatureAnalogItem",
         browseName: "TemperatureAnalogItem",
         definition: "(tempA -25) + tempB",
         valuePrecision: 0.5,
@@ -110,21 +111,25 @@ function build_server_with_temperature_device(options, done) {
 
         const addressSpace = server.engine.addressSpace;
 
-        const myDevices = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
-        assert(myDevices.browseName.toString() === "MyDevices");
+        const namespace = addressSpace.getPrivateNamespace();
 
-        const variable0 = addressSpace.addVariable({
+        const myDevices = namespace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
+        assert(myDevices.browseName.toString() === "1:MyDevices");
+
+        // create a variable with a string namepsace
+        const variable0 = namespace.addVariable({
             componentOf: myDevices,
             browseName: "FanSpeed",
-            nodeId: "ns=2;s=FanSpeed",
+            nodeId: "s=FanSpeed",
             dataType: "Double",
             value: new Variant({dataType: DataType.Double, value: 1000.0})
         });
+        assert(variable0.nodeId.toString() === "ns=1;s=FanSpeed");
 
-        const setPointTemperatureId = "ns=4;s=SetPointTemperature";
+        const setPointTemperatureId = "s=SetPointTemperature";
         // install a Read/Write variable representing a temperature set point of a temperature controller.
-        server.temperatureVariableId = addressSpace.addVariable({
-            componentOf: myDevices,
+        server.temperatureVariableId = namespace.addVariable({
+            organizedBy: myDevices,
             browseName: "SetPointTemperature",
             nodeId: setPointTemperatureId,
             dataType: "Double",
@@ -141,9 +146,9 @@ function build_server_with_temperature_device(options, done) {
         });
 
         // install a Read-Only variable defined with a fancy Opaque nodeid
-        const pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+        const pumpSpeedId = "b=0102030405060708090a0b0c0d0e0f10";
 
-        server.pumpSpeed = addressSpace.addVariable({
+        server.pumpSpeed = namespace.addVariable({
             componentOf: myDevices,
             browseName: "PumpSpeed",
             nodeId: pumpSpeedId,
@@ -158,7 +163,7 @@ function build_server_with_temperature_device(options, done) {
                 }
             }
         });
-        assert(server.pumpSpeed.nodeId.toString() === pumpSpeedId);
+        assert(server.pumpSpeed.nodeId.toString() === "ns=1;"+pumpSpeedId);
 
         const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         debugLog("endpointUrl", endpointUrl);
@@ -173,10 +178,10 @@ function build_server_with_temperature_device(options, done) {
 
 
         // add a variable that can be written asynchronously
-        const asyncWriteNodeId = "ns=4;s=AsynchronousVariable";
+        const asyncWriteNodeId = "s=AsynchronousVariable";
         let asyncValue = 46;
 
-        server.asyncWriteNode = addressSpace.addVariable({
+        server.asyncWriteNode = namespace.addVariable({
             componentOf: myDevices,
             browseName: "AsynchronousVariable",
             nodeId: asyncWriteNodeId,
@@ -210,12 +215,12 @@ function build_server_with_temperature_device(options, done) {
 
 
         // add a variable that can be written asynchronously and that supports TimeStamps and StatusCodes
-        const asyncWriteFullNodeId = "ns=4;s=AsynchronousFullVariable";
+        const asyncWriteFullNodeId = "s=AsynchronousFullVariable";
         let asyncWriteFull_dataValue = {
             statusCode: StatusCodes.BadWaitingForInitialData
         };
 
-        server.asyncWriteNode = addressSpace.addVariable({
+        server.asyncWriteNode = namespace.addVariable({
             componentOf: myDevices,
             browseName: "AsynchronousFullVariable",
             nodeId: asyncWriteFullNodeId,
