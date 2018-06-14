@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        LastModified="2013-07-31T00:00:00Z"
+        xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd"
+>
+    <NamespaceUris>
+        <Uri>http://opcfoundation.org/UA/ADI/</Uri>
+        <Uri>http://opcfoundation.org/UA/DI/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://opcfoundation.org/UA/ADI/" Version="1.01" PublicationDate="2013-07-31T00:00:00Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.03" PublicationDate="2013-12-02T00:00:00Z" />
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.01" PublicationDate="2012-12-31T00:00:00Z" />
+        </Model>
+    </Models>
+</UANodeSet>
+
