@@ -1,4 +1,33 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+ * Copyright (c) 2005-2018 The OPC Foundation, Inc. All rights reserved.
+ *
+ * OPC Foundation MIT License 1.00
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * The complete license agreement can be found here:
+ * http://opcfoundation.org/License/MIT/1.00/
+-->
+
 <UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2012-12-31T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
   <NamespaceUris>
     <Uri>http://opcfoundation.org/UA/DI/</Uri>
@@ -145,7 +174,7 @@
     <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
     <Description>A method which belongs to the topology element.</Description>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=11510</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5003</Reference>
     </References>
   </UAMethod>
@@ -153,20 +182,38 @@
     <DisplayName>&lt;GroupIdentifier&gt;</DisplayName>
     <Description>An application specific functional group used to organize parameters and methods.</Description>
     <References>
+      <Reference ReferenceType="Organizes">ns=1;i=15001</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObject>
+  <UAMethod NodeId="ns=1;i=15001" BrowseName="1:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=6567" MethodDeclarationId="ns=1;i=6029">
+    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
+    <Description>A method which belongs to the group.</Description>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=6567</Reference>
+    </References>
+  </UAMethod>
   <UAObject NodeId="ns=1;i=6014" BrowseName="1:Identification" ParentNodeId="ns=1;i=1001">
     <DisplayName>Identification</DisplayName>
     <Description>Used to organize parameters for identification of this TopologyElement</Description>
     <References>
+      <Reference ReferenceType="Organizes">ns=1;i=15002</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObject>
+  <UAMethod NodeId="ns=1;i=15002" BrowseName="1:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=6014" MethodDeclarationId="ns=1;i=6029">
+    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
+    <Description>A method which belongs to the group.</Description>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=6014</Reference>
+    </References>
+  </UAMethod>
   <UAObject NodeId="ns=1;i=6161" BrowseName="1:Lock" ParentNodeId="ns=1;i=1001">
     <DisplayName>Lock</DisplayName>
     <Description>Used to lock the topology element.</Description>
@@ -590,11 +637,20 @@
     <DisplayName>NetworkAddress</DisplayName>
     <Description>The address of the device on this network.</Description>
     <References>
+      <Reference ReferenceType="Organizes">ns=1;i=15006</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6571</Reference>
     </References>
   </UAObject>
+  <UAMethod NodeId="ns=1;i=15006" BrowseName="1:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=6592" MethodDeclarationId="ns=1;i=6029">
+    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
+    <Description>A method which belongs to the group.</Description>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=6592</Reference>
+    </References>
+  </UAMethod>
   <UAObjectType NodeId="ns=1;i=1003" BrowseName="1:BlockType" IsAbstract="true">
     <DisplayName>BlockType</DisplayName>
     <Description>Adds the concept of Blocks needed for block-oriented FieldDevices</Description>
@@ -693,12 +749,21 @@
     <DisplayName>&lt;GroupIdentifier&gt;</DisplayName>
     <Description>An application specific functional group used to organize parameters and methods.</Description>
     <References>
+      <Reference ReferenceType="Organizes">ns=1;i=15009</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6242</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1005</Reference>
     </References>
   </UAObject>
+  <UAMethod NodeId="ns=1;i=15009" BrowseName="1:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=6027" MethodDeclarationId="ns=1;i=6029">
+    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
+    <Description>A method which belongs to the group.</Description>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=6027</Reference>
+    </References>
+  </UAMethod>
   <UAVariable NodeId="ns=1;i=6242" BrowseName="1:UIElement" ParentNodeId="ns=1;i=6027">
     <DisplayName>UIElement</DisplayName>
     <Description>A user interface element assigned to this group.</Description>
@@ -721,7 +786,7 @@
     <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
     <Description>A method which belongs to the group.</Description>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=11508</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=1005</Reference>
     </References>
   </UAMethod>
@@ -841,11 +906,20 @@
     <DisplayName>NetworkAddress</DisplayName>
     <Description>The address of the device on this network.</Description>
     <References>
+      <Reference ReferenceType="Organizes">ns=1;i=15011</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6248</Reference>
     </References>
   </UAObject>
+  <UAMethod NodeId="ns=1;i=15011" BrowseName="1:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=6292" MethodDeclarationId="ns=1;i=6029">
+    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
+    <Description>A method which belongs to the group.</Description>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=6292</Reference>
+    </References>
+  </UAMethod>
   <UAObject NodeId="ns=1;i=6294" BrowseName="1:Lock" ParentNodeId="ns=1;i=6247">
     <DisplayName>Lock</DisplayName>
     <Description>Used to lock the Network.</Description>
@@ -1082,11 +1156,20 @@
     <DisplayName>NetworkAddress</DisplayName>
     <Description>The address of the device on this network.</Description>
     <References>
+      <Reference ReferenceType="Organizes">ns=1;i=15014</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6308</Reference>
     </References>
   </UAObject>
+  <UAMethod NodeId="ns=1;i=15014" BrowseName="1:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=6354" MethodDeclarationId="ns=1;i=6029">
+    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
+    <Description>A method which belongs to the group.</Description>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=6354</Reference>
+    </References>
+  </UAMethod>
   <UAObject NodeId="ns=1;i=6499" BrowseName="1:&lt;ProfileId&gt;" SymbolicName="ProfileId" ParentNodeId="ns=1;i=6308">
     <DisplayName>&lt;ProfileId&gt;</DisplayName>
     <References>
@@ -1114,7 +1197,7 @@
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=6522</Reference>
     </References>
-    <Definition Name="FetchResultErrorDataType" BaseType="0:1:FetchResultErrorDataType">
+    <Definition Name="FetchResultErrorDataType">
       <Field Name="Status" DataType="i=6" />
       <Field Name="Diagnostics" DataType="i=25" />
     </Definition>
@@ -1124,7 +1207,7 @@
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=6522</Reference>
     </References>
-    <Definition Name="FetchResultDataDataType" BaseType="0:1:FetchResultDataDataType">
+    <Definition Name="FetchResultDataDataType">
       <Field Name="SequenceNumber" DataType="i=6" />
       <Field Name="EndOfResults" DataType="i=1" />
       <Field Name="ParameterDefs" DataType="ns=1;i=6525" ValueRank="1" />
@@ -1595,6 +1678,150 @@
       </ListOfExtensionObject>
     </Value>
   </UAVariable>
+  <UAObject NodeId="ns=1;i=6551" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+    <DisplayName>Default Binary</DisplayName>
+    <References>
+      <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=6522</Reference>
+      <Reference ReferenceType="HasDescription">ns=1;i=6555</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+    </References>
+  </UAObject>
+  <UAObject NodeId="ns=1;i=6552" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+    <DisplayName>Default Binary</DisplayName>
+    <References>
+      <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=6523</Reference>
+      <Reference ReferenceType="HasDescription">ns=1;i=6558</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+    </References>
+  </UAObject>
+  <UAObject NodeId="ns=1;i=6553" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+    <DisplayName>Default Binary</DisplayName>
+    <References>
+      <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=6524</Reference>
+      <Reference ReferenceType="HasDescription">ns=1;i=6561</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+    </References>
+  </UAObject>
+  <UAObject NodeId="ns=1;i=6554" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+    <DisplayName>Default Binary</DisplayName>
+    <References>
+      <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=6525</Reference>
+      <Reference ReferenceType="HasDescription">ns=1;i=6564</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+    </References>
+  </UAObject>
+  <UAVariable NodeId="ns=1;i=6435" BrowseName="1:Opc.Ua.Di" SymbolicName="OpcUaDi_BinarySchema" DataType="ByteString">
+    <DisplayName>Opc.Ua.Di</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty">ns=1;i=6437</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=8005</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6555</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6558</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6561</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6564</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+    </References>
+    <Value>
+      <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">PG9wYzpUeXBlRGljdGlvbmFyeQ0KICB4bWxuczpvcGM9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9y
+Zy9CaW5hcnlTY2hlbWEvIg0KICB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1M
+U2NoZW1hLWluc3RhbmNlIg0KICB4bWxuczp1YT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VB
+LyINCiAgeG1sbnM6dG5zPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvREkvIg0KICBEZWZh
+dWx0Qnl0ZU9yZGVyPSJMaXR0bGVFbmRpYW4iDQogIFRhcmdldE5hbWVzcGFjZT0iaHR0cDovL29w
+Y2ZvdW5kYXRpb24ub3JnL1VBL0RJLyINCj4NCiAgPG9wYzpJbXBvcnQgTmFtZXNwYWNlPSJodHRw
+Oi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvIiBMb2NhdGlvbj0iT3BjLlVhLkJpbmFyeVNjaGVtYS5i
+c2QiLz4NCg0KICA8b3BjOkVudW1lcmF0ZWRUeXBlIE5hbWU9IkRldmljZUhlYWx0aEVudW1lcmF0
+aW9uIiBMZW5ndGhJbkJpdHM9IjMyIj4NCiAgICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJO
+T1JNQUwiIFZhbHVlPSIwIiAvPg0KICAgIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9IkZBSUxV
+UkUiIFZhbHVlPSIxIiAvPg0KICAgIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9IkNIRUNLX0ZV
+TkNUSU9OIiBWYWx1ZT0iMiIgLz4NCiAgICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJPRkZf
+U1BFQyIgVmFsdWU9IjMiIC8+DQogICAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgTmFtZT0iTUFJTlRF
+TkFOQ0VfUkVRVUlSRUQiIFZhbHVlPSI0IiAvPg0KICA8L29wYzpFbnVtZXJhdGVkVHlwZT4NCg0K
+ICA8b3BjOlN0cnVjdHVyZWRUeXBlIE5hbWU9IkZldGNoUmVzdWx0RGF0YVR5cGUiIEJhc2VUeXBl
+PSJ1YTpFeHRlbnNpb25PYmplY3QiPg0KICA8L29wYzpTdHJ1Y3R1cmVkVHlwZT4NCg0KICA8b3Bj
+OlN0cnVjdHVyZWRUeXBlIE5hbWU9IkZldGNoUmVzdWx0RXJyb3JEYXRhVHlwZSIgQmFzZVR5cGU9
+InRuczpGZXRjaFJlc3VsdERhdGFUeXBlIj4NCiAgICA8b3BjOkZpZWxkIE5hbWU9IlN0YXR1cyIg
+VHlwZU5hbWU9Im9wYzpJbnQzMiIgLz4NCiAgICA8b3BjOkZpZWxkIE5hbWU9IkRpYWdub3N0aWNz
+IiBUeXBlTmFtZT0idWE6RGlhZ25vc3RpY0luZm8iIC8+DQogIDwvb3BjOlN0cnVjdHVyZWRUeXBl
+Pg0KDQogIDxvcGM6U3RydWN0dXJlZFR5cGUgTmFtZT0iRmV0Y2hSZXN1bHREYXRhRGF0YVR5cGUi
+IEJhc2VUeXBlPSJ0bnM6RmV0Y2hSZXN1bHREYXRhVHlwZSI+DQogICAgPG9wYzpGaWVsZCBOYW1l
+PSJTZXF1ZW5jZU51bWJlciIgVHlwZU5hbWU9Im9wYzpJbnQzMiIgLz4NCiAgICA8b3BjOkZpZWxk
+IE5hbWU9IkVuZE9mUmVzdWx0cyIgVHlwZU5hbWU9Im9wYzpCb29sZWFuIiAvPg0KICAgIDxvcGM6
+RmllbGQgTmFtZT0iTm9PZlBhcmFtZXRlckRlZnMiIFR5cGVOYW1lPSJvcGM6SW50MzIiIC8+DQog
+ICAgPG9wYzpGaWVsZCBOYW1lPSJQYXJhbWV0ZXJEZWZzIiBUeXBlTmFtZT0idG5zOlBhcmFtZXRl
+clJlc3VsdERhdGFUeXBlIiBMZW5ndGhGaWVsZD0iTm9PZlBhcmFtZXRlckRlZnMiIC8+DQogIDwv
+b3BjOlN0cnVjdHVyZWRUeXBlPg0KDQogIDxvcGM6U3RydWN0dXJlZFR5cGUgTmFtZT0iUGFyYW1l
+dGVyUmVzdWx0RGF0YVR5cGUiIEJhc2VUeXBlPSJ1YTpFeHRlbnNpb25PYmplY3QiPg0KICAgIDxv
+cGM6RmllbGQgTmFtZT0iTm9PZk5vZGVQYXRoIiBUeXBlTmFtZT0ib3BjOkludDMyIiAvPg0KICAg
+IDxvcGM6RmllbGQgTmFtZT0iTm9kZVBhdGgiIFR5cGVOYW1lPSJ1YTpRdWFsaWZpZWROYW1lIiBM
+ZW5ndGhGaWVsZD0iTm9PZk5vZGVQYXRoIiAvPg0KICAgIDxvcGM6RmllbGQgTmFtZT0iU3RhdHVz
+Q29kZSIgVHlwZU5hbWU9InVhOlN0YXR1c0NvZGUiIC8+DQogICAgPG9wYzpGaWVsZCBOYW1lPSJE
+aWFnbm9zdGljcyIgVHlwZU5hbWU9InVhOkRpYWdub3N0aWNJbmZvIiAvPg0KICA8L29wYzpTdHJ1
+Y3R1cmVkVHlwZT4NCg0KPC9vcGM6VHlwZURpY3Rpb25hcnk+</ByteString>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6437" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6435" DataType="String">
+    <DisplayName>NamespaceUri</DisplayName>
+    <Description>A URI that uniquely identifies the dictionary.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6435</Reference>
+    </References>
+    <Value>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/DI/</String>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=8005" BrowseName="Deprecated" ParentNodeId="ns=1;i=6435" DataType="Boolean">
+    <DisplayName>Deprecated</DisplayName>
+    <Description>Indicates that all of the definitions for the dictionary are available through a DataTypeDefinition Attribute.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6435</Reference>
+    </References>
+    <Value>
+      <Boolean xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">true</Boolean>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6555" BrowseName="1:FetchResultDataType" ParentNodeId="ns=1;i=6435" DataType="String">
+    <DisplayName>FetchResultDataType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
+    </References>
+    <Value>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">FetchResultDataType</String>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6558" BrowseName="1:FetchResultErrorDataType" ParentNodeId="ns=1;i=6435" DataType="String">
+    <DisplayName>FetchResultErrorDataType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
+    </References>
+    <Value>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">FetchResultErrorDataType</String>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6561" BrowseName="1:FetchResultDataDataType" ParentNodeId="ns=1;i=6435" DataType="String">
+    <DisplayName>FetchResultDataDataType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
+    </References>
+    <Value>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">FetchResultDataDataType</String>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6564" BrowseName="1:ParameterResultDataType" ParentNodeId="ns=1;i=6435" DataType="String">
+    <DisplayName>ParameterResultDataType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
+    </References>
+    <Value>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ParameterResultDataType</String>
+    </Value>
+  </UAVariable>
   <UAObject NodeId="ns=1;i=6535" BrowseName="Default XML" SymbolicName="DefaultXml">
     <DisplayName>Default XML</DisplayName>
     <References>
@@ -1631,6 +1858,7 @@
     <DisplayName>Opc.Ua.Di</DisplayName>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6425</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=8007</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6539</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6542</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6545</Reference>
@@ -1731,6 +1959,17 @@ YWJsZT0idHJ1ZSI+PC94czplbGVtZW50Pg0KDQo8L3hzOnNjaGVtYT4=</ByteString>
       <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/DI/Types.xsd</String>
     </Value>
   </UAVariable>
+  <UAVariable NodeId="ns=1;i=8007" BrowseName="Deprecated" ParentNodeId="ns=1;i=6423" DataType="Boolean">
+    <DisplayName>Deprecated</DisplayName>
+    <Description>Indicates that all of the definitions for the dictionary are available through a DataTypeDefinition Attribute.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6423</Reference>
+    </References>
+    <Value>
+      <Boolean xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">true</Boolean>
+    </Value>
+  </UAVariable>
   <UAVariable NodeId="ns=1;i=6539" BrowseName="1:FetchResultDataType" ParentNodeId="ns=1;i=6423" DataType="String">
     <DisplayName>FetchResultDataType</DisplayName>
     <References>
@@ -1771,136 +2010,32 @@ YWJsZT0idHJ1ZSI+PC94czplbGVtZW50Pg0KDQo8L3hzOnNjaGVtYT4=</ByteString>
       <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">//xs:element[@name='ParameterResultDataType']</String>
     </Value>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=6551" BrowseName="Default Binary" SymbolicName="DefaultBinary">
-    <DisplayName>Default Binary</DisplayName>
+  <UAObject NodeId="ns=1;i=8001" BrowseName="Default JSON" SymbolicName="DefaultJson">
+    <DisplayName>Default JSON</DisplayName>
     <References>
       <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=6522</Reference>
-      <Reference ReferenceType="HasDescription">ns=1;i=6555</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
     </References>
   </UAObject>
-  <UAObject NodeId="ns=1;i=6552" BrowseName="Default Binary" SymbolicName="DefaultBinary">
-    <DisplayName>Default Binary</DisplayName>
+  <UAObject NodeId="ns=1;i=8002" BrowseName="Default JSON" SymbolicName="DefaultJson">
+    <DisplayName>Default JSON</DisplayName>
     <References>
       <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=6523</Reference>
-      <Reference ReferenceType="HasDescription">ns=1;i=6558</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
     </References>
   </UAObject>
-  <UAObject NodeId="ns=1;i=6553" BrowseName="Default Binary" SymbolicName="DefaultBinary">
-    <DisplayName>Default Binary</DisplayName>
+  <UAObject NodeId="ns=1;i=8003" BrowseName="Default JSON" SymbolicName="DefaultJson">
+    <DisplayName>Default JSON</DisplayName>
     <References>
       <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=6524</Reference>
-      <Reference ReferenceType="HasDescription">ns=1;i=6561</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
     </References>
   </UAObject>
-  <UAObject NodeId="ns=1;i=6554" BrowseName="Default Binary" SymbolicName="DefaultBinary">
-    <DisplayName>Default Binary</DisplayName>
+  <UAObject NodeId="ns=1;i=8004" BrowseName="Default JSON" SymbolicName="DefaultJson">
+    <DisplayName>Default JSON</DisplayName>
     <References>
       <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=6525</Reference>
-      <Reference ReferenceType="HasDescription">ns=1;i=6564</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
     </References>
   </UAObject>
-  <UAVariable NodeId="ns=1;i=6435" BrowseName="1:Opc.Ua.Di" SymbolicName="OpcUaDi_BinarySchema" DataType="ByteString">
-    <DisplayName>Opc.Ua.Di</DisplayName>
-    <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6437</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6555</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6558</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6561</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6564</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
-    </References>
-    <Value>
-      <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">PG9wYzpUeXBlRGljdGlvbmFyeQ0KICB4bWxuczpvcGM9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9y
-Zy9CaW5hcnlTY2hlbWEvIg0KICB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1M
-U2NoZW1hLWluc3RhbmNlIg0KICB4bWxuczp1YT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VB
-LyINCiAgeG1sbnM6dG5zPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvREkvIg0KICBEZWZh
-dWx0Qnl0ZU9yZGVyPSJMaXR0bGVFbmRpYW4iDQogIFRhcmdldE5hbWVzcGFjZT0iaHR0cDovL29w
-Y2ZvdW5kYXRpb24ub3JnL1VBL0RJLyINCj4NCiAgPG9wYzpJbXBvcnQgTmFtZXNwYWNlPSJodHRw
-Oi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvIiBMb2NhdGlvbj0iT3BjLlVhLkJpbmFyeVNjaGVtYS5i
-c2QiLz4NCg0KICA8b3BjOkVudW1lcmF0ZWRUeXBlIE5hbWU9IkRldmljZUhlYWx0aEVudW1lcmF0
-aW9uIiBMZW5ndGhJbkJpdHM9IjMyIj4NCiAgICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJO
-T1JNQUwiIFZhbHVlPSIwIiAvPg0KICAgIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9IkZBSUxV
-UkUiIFZhbHVlPSIxIiAvPg0KICAgIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9IkNIRUNLX0ZV
-TkNUSU9OIiBWYWx1ZT0iMiIgLz4NCiAgICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJPRkZf
-U1BFQyIgVmFsdWU9IjMiIC8+DQogICAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgTmFtZT0iTUFJTlRF
-TkFOQ0VfUkVRVUlSRUQiIFZhbHVlPSI0IiAvPg0KICA8L29wYzpFbnVtZXJhdGVkVHlwZT4NCg0K
-ICA8b3BjOlN0cnVjdHVyZWRUeXBlIE5hbWU9IkZldGNoUmVzdWx0RGF0YVR5cGUiIEJhc2VUeXBl
-PSJ1YTpFeHRlbnNpb25PYmplY3QiPg0KICA8L29wYzpTdHJ1Y3R1cmVkVHlwZT4NCg0KICA8b3Bj
-OlN0cnVjdHVyZWRUeXBlIE5hbWU9IkZldGNoUmVzdWx0RXJyb3JEYXRhVHlwZSIgQmFzZVR5cGU9
-InRuczpGZXRjaFJlc3VsdERhdGFUeXBlIj4NCiAgICA8b3BjOkZpZWxkIE5hbWU9IlN0YXR1cyIg
-VHlwZU5hbWU9Im9wYzpJbnQzMiIgLz4NCiAgICA8b3BjOkZpZWxkIE5hbWU9IkRpYWdub3N0aWNz
-IiBUeXBlTmFtZT0idWE6RGlhZ25vc3RpY0luZm8iIC8+DQogIDwvb3BjOlN0cnVjdHVyZWRUeXBl
-Pg0KDQogIDxvcGM6U3RydWN0dXJlZFR5cGUgTmFtZT0iRmV0Y2hSZXN1bHREYXRhRGF0YVR5cGUi
-IEJhc2VUeXBlPSJ0bnM6RmV0Y2hSZXN1bHREYXRhVHlwZSI+DQogICAgPG9wYzpGaWVsZCBOYW1l
-PSJTZXF1ZW5jZU51bWJlciIgVHlwZU5hbWU9Im9wYzpJbnQzMiIgLz4NCiAgICA8b3BjOkZpZWxk
-IE5hbWU9IkVuZE9mUmVzdWx0cyIgVHlwZU5hbWU9Im9wYzpCb29sZWFuIiAvPg0KICAgIDxvcGM6
-RmllbGQgTmFtZT0iTm9PZlBhcmFtZXRlckRlZnMiIFR5cGVOYW1lPSJvcGM6SW50MzIiIC8+DQog
-ICAgPG9wYzpGaWVsZCBOYW1lPSJQYXJhbWV0ZXJEZWZzIiBUeXBlTmFtZT0idG5zOlBhcmFtZXRl
-clJlc3VsdERhdGFUeXBlIiBMZW5ndGhGaWVsZD0iTm9PZlBhcmFtZXRlckRlZnMiIC8+DQogIDwv
-b3BjOlN0cnVjdHVyZWRUeXBlPg0KDQogIDxvcGM6U3RydWN0dXJlZFR5cGUgTmFtZT0iUGFyYW1l
-dGVyUmVzdWx0RGF0YVR5cGUiIEJhc2VUeXBlPSJ1YTpFeHRlbnNpb25PYmplY3QiPg0KICAgIDxv
-cGM6RmllbGQgTmFtZT0iTm9PZk5vZGVQYXRoIiBUeXBlTmFtZT0ib3BjOkludDMyIiAvPg0KICAg
-IDxvcGM6RmllbGQgTmFtZT0iTm9kZVBhdGgiIFR5cGVOYW1lPSJ1YTpRdWFsaWZpZWROYW1lIiBM
-ZW5ndGhGaWVsZD0iTm9PZk5vZGVQYXRoIiAvPg0KICAgIDxvcGM6RmllbGQgTmFtZT0iU3RhdHVz
-Q29kZSIgVHlwZU5hbWU9InVhOlN0YXR1c0NvZGUiIC8+DQogICAgPG9wYzpGaWVsZCBOYW1lPSJE
-aWFnbm9zdGljcyIgVHlwZU5hbWU9InVhOkRpYWdub3N0aWNJbmZvIiAvPg0KICA8L29wYzpTdHJ1
-Y3R1cmVkVHlwZT4NCg0KPC9vcGM6VHlwZURpY3Rpb25hcnk+</ByteString>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6437" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6435" DataType="String">
-    <DisplayName>NamespaceUri</DisplayName>
-    <Description>A URI that uniquely identifies the dictionary.</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6435</Reference>
-    </References>
-    <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/DI/</String>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6555" BrowseName="1:FetchResultDataType" ParentNodeId="ns=1;i=6435" DataType="String">
-    <DisplayName>FetchResultDataType</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
-    </References>
-    <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">FetchResultDataType</String>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6558" BrowseName="1:FetchResultErrorDataType" ParentNodeId="ns=1;i=6435" DataType="String">
-    <DisplayName>FetchResultErrorDataType</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
-    </References>
-    <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">FetchResultErrorDataType</String>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6561" BrowseName="1:FetchResultDataDataType" ParentNodeId="ns=1;i=6435" DataType="String">
-    <DisplayName>FetchResultDataDataType</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
-    </References>
-    <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">FetchResultDataDataType</String>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6564" BrowseName="1:ParameterResultDataType" ParentNodeId="ns=1;i=6435" DataType="String">
-    <DisplayName>ParameterResultDataType</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
-    </References>
-    <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ParameterResultDataType</String>
-    </Value>
-  </UAVariable>
 </UANodeSet>
