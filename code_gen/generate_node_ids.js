@@ -1,15 +1,15 @@
 "use strict";
-var fs = require("fs");
-var path = require("path");
-var csv = require("csv");
-var sprintf = require("sprintf").sprintf;
+const fs = require("fs");
+const path = require("path");
+const csv = require("csv");
+const sprintf = require("sprintf").sprintf;
 
-var datafolder = path.join(__dirname,"1.03");
+const datafolder = path.join(__dirname,"1.03");
 
 // see OPC-UA Part 6 , A2
-var codeMap= {};
+const codeMap= {};
 
-var parser = csv.parse({delimiter: ','}, function(err, data){
+const parser = csv.parse({delimiter: ','}, function(err, data){
     convert(data);
 });
 
@@ -18,8 +18,8 @@ fs.createReadStream(path.join(datafolder,'/NodeIds.csv')).pipe(parser);
 
 function convert(data)
 {
-    var name,id,type,codeName,value,typeName;
-    var metaMap = { };
+    let name,id,type,codeName,value,typeName;
+    const metaMap = { };
 
     data.forEach(function(row) {
 
@@ -36,14 +36,14 @@ function convert(data)
 
 
     });
-    var outFile = fs.createWriteStream(path.join("../packages/node-opcua-constants/src","opcua_node_ids.js"));
+    const outFile = fs.createWriteStream(path.join("../packages/node-opcua-constants/src","opcua_node_ids.js"));
     outFile.write("// this file has been automatically generated\n");
     outFile.write("// using code_gen/generate_node_ids.js\n");
 
-    var e;
+    let e;
     if (false) {
         outFile.write(" exports.NodeIds = { \n");
-        for(name in codeMap) {
+        for(let name in codeMap) {
             if (codeMap.hasOwnProperty(name)) {
                 e = codeMap[name];
                 name = e[0];
@@ -57,15 +57,15 @@ function convert(data)
 
     }
 
-    var typeMap;
+    let typeMap;
     for(typeName in metaMap) {
         if (metaMap.hasOwnProperty(typeName)) {
             typeMap = metaMap[typeName];
             outFile.write(" exports."+ typeName + "Ids = { \n");
 
-            var names = Object.keys(typeMap);
+            const names = Object.keys(typeMap);
 
-            for(var i=0;i< names.length;i++) {
+            for(const i=0;i< names.length;i++) {
                 name = names[i];
 
                 if (typeMap.hasOwnProperty(name)) {

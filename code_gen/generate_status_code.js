@@ -2,25 +2,25 @@
  * utility to generate source file ./lib/raw_status_codes.js from  Opc.Ua.StatusCodes.csv
  *
  */
-var util = require('util');
-var xml = require("ersatz-node-expat");
-var fs = require("fs");
-var path = require("path");
-var csv = require("csv");
-var sprintf = require("sprintf").sprintf;
+const util = require('util');
+const xml = require("ersatz-node-expat");
+const fs = require("fs");
+const path = require("path");
+const csv = require("csv");
+const sprintf = require("sprintf").sprintf;
 
 
 
 // see OPC-UA Part 6 , A2
-var codeMap = {};
-var code_list = [];
+const codeMap = {};
+const code_list = [];
 
 
-var datafolder = path.join(__dirname,"1.03");
+const datafolder = path.join(__dirname,"1.03");
 
 csv().from.stream(fs.createReadStream(path.join(datafolder,'/Opc.Ua.StatusCodes.csv')).to.array(function (data) {
     data.forEach(function (e) {
-        var codeName = e[0];
+        const codeName = e[0];
         console.log(e);
         code_list.push({
             name: e[0],
@@ -34,16 +34,16 @@ csv().from.stream(fs.createReadStream(path.join(datafolder,'/Opc.Ua.StatusCodes.
     console.log("codeMap" , codeMap);
     parseStatusCodeXML();
 
-});
+}));
 
 function parseStatusCodeXML() {
 
-    var xmlFile = __dirname + "/UA_StatusCodes.xml";
+    const xmlFile = __dirname + "/UA_StatusCodes.xml";
 
-    var parser = new xml.Parser();
+    const parser = new xml.Parser();
 
-    var obj = {};
-    var outFile = fs.createWriteStream(__dirname + "/../lib/raw_status_codes.js");
+    const obj = {};
+    const outFile = fs.createWriteStream(__dirname + "/../lib/raw_status_codes.js");
 
     outFile.write("// this file has been automatically generated\n");
 
@@ -52,10 +52,10 @@ function parseStatusCodeXML() {
     outFile.write("  Good: { name:'Good', value: 0, description:'No Error' }\n");
 
 
-    var sep=",";
+    const sep=",";
 
     code_list.forEach(function(obj){
-        var s = sprintf("%1s %40s: { name: %40s , value: %6s  ,description: \"%s\"}\n",
+        const s = sprintf("%1s %40s: { name: %40s , value: %6s  ,description: \"%s\"}\n",
             sep, obj.name, "'" + obj.name + "'", "0x"+obj.value.toString(16), obj.description);
         outFile.write(s);
     });
