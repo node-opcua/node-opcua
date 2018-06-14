@@ -5,7 +5,7 @@
  * @module opcua.address_space
  */
 
-
+require("object.values");
 const util = require("util");
 const utils = require("node-opcua-utils");
 

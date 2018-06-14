@@ -38,6 +38,7 @@
   "node-opcua-utils": "^0.4.0",
   "node-opcua-variant": "^0.4.0",
   "node-opcua-xml2json": "^0.4.0",
+  "object.values": "^1.0.4",
   "set-prototype-of": "^1.0.0",
   "underscore": "^1.9.1",
   "xml-writer": "*"
