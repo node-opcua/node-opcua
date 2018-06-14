@@ -135,7 +135,7 @@ ReferenceType.prototype.getAllSubtypes = function() {
         _cache._allSubTypes = findAllSubTypes(this);
         _cache._allSubTypesVersion = ReferenceTypeCounter;
     }
-    //xx console.log("XXX getAllSubtypes of ",this.browseName.toString()," => ", Object.values(_cache._allSubTypes).map(x=>x.browseName.toString()).join(" "));
+    //xx console.log("XXX getAllSubtypes of ",this.browseName.toString()," => ", _.values(_cache._allSubTypes).map(x=>x.browseName.toString()).join(" "));
     return _cache._allSubTypes;
 };
 

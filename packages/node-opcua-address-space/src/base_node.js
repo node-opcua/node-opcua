@@ -329,7 +329,7 @@ BaseNode.prototype.findReferencesEx = function (strReference, browseDirection) {
     const references = [];
 
     function process(referenceIdx) {
-        const referenceTypes = Object.values(referenceIdx);
+        const referenceTypes = _.values(referenceIdx);
         for (let ref of referenceTypes) {
             const h = ref.referenceType.toString();
             if ( ref.isForward === isForward && keys[h] ) {
@@ -999,7 +999,7 @@ BaseNode.prototype.propagate_back_references = function () {
         return;
     }
     const addressSpace = self.addressSpace;
-    for (let reference of Object.values(_private._referenceIdx)) {
+    for (let reference of _.values(_private._referenceIdx)) {
         _propagate_ref(self, addressSpace, reference);
     }
 };
