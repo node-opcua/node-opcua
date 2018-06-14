@@ -9,7 +9,7 @@
  "author": "Etienne Rossignon",
  "license": "MIT",
  "dependencies": {
-  "underscore": "^1.9.0"
+  "underscore": "^1.9.1"
  },
  "repository": {
   "type": "git",

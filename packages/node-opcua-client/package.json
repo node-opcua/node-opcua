@@ -43,13 +43,13 @@
   "node-opcua-variant": "^0.4.0",
   "once": "^1.4.0",
   "thenify": "^3.3.0",
-  "underscore": "^1.9.0"
+  "underscore": "^1.9.1"
  },
  "devDependencies": {
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^0.4.0",
   "should": "13.2.1",
-  "sinon": "^5.0.10"
+  "sinon": "^6.0.0"
  },
  "eslintConfig": {
   "env": {
