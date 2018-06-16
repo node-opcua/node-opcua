@@ -425,7 +425,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
  *     const nodesToWrite = [
  *     {
  *          nodeId: "ns=1;s=SetPoint1",
- *          attributeIds: opcua.AttributeIds.Value,
+ *          attributeId: opcua.AttributeIds.Value,
  *          value: {
  *             statusCode: Good,
  *             value: {
@@ -436,7 +436,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
  *     },
  *     {
  *          nodeId: "ns=1;s=SetPoint2",
- *          attributeIds: opcua.AttributeIds.Value,
+ *          attributeIds opcua.AttributeIds.Value,
  *          value: {
  *             statusCode: Good,
  *             value: {
@@ -462,7 +462,7 @@ ClientSession.prototype.readHistoryValue = function (nodes, start, end, callback
  *
  *     const nodeToWrite = {
  *          nodeId: "ns=1;s=SetPoint",
- *          attributeIds: opcua.AttributeIds.Value,
+ *          attributeId: opcua.AttributeIds.Value,
  *          value: {
  *             statusCode: Good,
  *             value: {
@@ -1712,7 +1712,7 @@ ClientSession.prototype.readNamespaceArray = function(callback){
     const session = this;
     session.read({
         nodeId:   resolveNodeId("Server_NamespaceArray"),
-        attributeIds: AttributeIds.Value
+        attributeId: AttributeIds.Value
     },function(err,dataValue){
         if (err) return callback(err);
 
