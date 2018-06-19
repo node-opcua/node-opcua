@@ -701,10 +701,16 @@ OPCUAServer.prototype.shutdown = function (timeout, callback) {
 
     debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
 
+    assert(self.engine);
+    if (!self.engine.serverStatus) {
+        // server may have been shot down already  , or may have fail to start !!
+        const err = new Error("OPCUAServer#shutdown failure ! server doesn't seems to be started yet");
+        return callback(err);
+    }
     self.engine.setServerState(ServerState.Shutdown);
 
-    self.registerServerManager.stop(function () {
-        debugLog("OPCUServer unregistered from discovery server");
+    self.registerServerManager.stop(function (err) {
+        debugLog("OPCUServer unregistered from discovery server",err);
         setTimeout(function () {
             self.engine.shutdown();
 
