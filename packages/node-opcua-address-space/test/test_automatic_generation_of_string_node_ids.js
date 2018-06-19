@@ -28,7 +28,7 @@ describe("Automatic Generation of  string nodeId", function () {
         "            the nodeId of the parent node and the browse name of the child.\n"
         ,function() {
 
-            const namespace = addressSpace.getPrivateNamespace();
+            const namespace = addressSpace.getOwnNamespace();
 
             const objNode1 = namespace.addObject({
                 nodeId: "s=abcdef",
@@ -68,7 +68,7 @@ describe("Automatic Generation of  string nodeId", function () {
         const createCameraType = require("../test/fixture_camera_type").createCameraType;
         const cameraType = createCameraType(addressSpace);
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
         namespace.index.should.eql(1);
 
         const camera1 = cameraType.instantiate({
@@ -109,7 +109,7 @@ describe("Automatic Generation of  string nodeId", function () {
 
         let objectType, objectType2;
         before(function() {
-            const namespace = addressSpace.getPrivateNamespace();
+            const namespace = addressSpace.getOwnNamespace();
 
             objectType = namespace.addObjectType({
                 browseName:  "MyObjectType",

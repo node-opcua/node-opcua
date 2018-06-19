@@ -31,7 +31,7 @@ function addTestUAAnalogItem(parentNode) {
 //xx    assert(parentNode instanceof opcua.BaseNode);
 
     const addressSpace = parentNode.addressSpace;
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
 
     // add a UAAnalogItem
     namespace.addAnalogDataItem({
@@ -111,7 +111,7 @@ function build_server_with_temperature_device(options, done) {
 
         const addressSpace = server.engine.addressSpace;
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
 
         const myDevices = namespace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
         assert(myDevices.browseName.toString() === "1:MyDevices");

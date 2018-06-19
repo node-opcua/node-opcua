@@ -8,7 +8,7 @@ const QualifiedName = require("node-opcua-data-model").QualifiedName;
 
 exports.createCameraType = function createCameraType(addressSpace) {
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
 
     let cameraType = namespace.findObjectType("1:CameraType");
     if (cameraType) { return cameraType; }

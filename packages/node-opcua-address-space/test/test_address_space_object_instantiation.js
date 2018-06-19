@@ -29,7 +29,7 @@ describe("testing add new ObjectType ", function () {
 
     it("should instantiate a objectType that uses custom HasChild Property",function() {
 
-        const namespace =addressSpace.getPrivateNamespace();
+        const namespace =addressSpace.getOwnNamespace();
         // ------------ Add a new aggregate
         const weezbeChildType = namespace.addReferenceType({
             browseName: "HasWeezbe",
@@ -75,7 +75,7 @@ describe("testing add new ObjectType ", function () {
 
 
     it("should be possible to choose which optional item to instantiate in sub objects",function() {
-        const namespace =addressSpace.getPrivateNamespace();
+        const namespace =addressSpace.getOwnNamespace();
 
         function constructObjectType() {
 

@@ -66,7 +66,7 @@ describe("testing findReferenceEx",function() {
         const optionals = [].concat(r1_child.sort(),r2_child.sort());
         console.log("optionals ",topologyElementType.browseName.toString(), ": ", optionals.join(" ").yellow.bold);
 
-        const valveType = addressSpace.getPrivateNamespace().addObjectType({
+        const valveType = addressSpace.getOwnNamespace().addObjectType({
             browseName: "ValveType",
             subtypeOf: deviceType,
         });

@@ -5,7 +5,7 @@ function construct_demo_alarm_in_address_space(test,addressSpace) {
 
     addressSpace.installAlarmsAndConditionsService();
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
 
     const tank =  namespace.addObject({
         browseName: "Tank",

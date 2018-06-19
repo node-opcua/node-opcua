@@ -101,7 +101,7 @@ exports.UAExclusiveLimitAlarm = UAExclusiveLimitAlarm;
 UAExclusiveLimitAlarm.instantiate = function (namespace, type, options, data) {
 
     assert(namespace instanceof Namespace);
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
     assert(addressSpace instanceof AddressSpace);
 
     //xx assert(options.conditionOf,"must provide a conditionOf Node");

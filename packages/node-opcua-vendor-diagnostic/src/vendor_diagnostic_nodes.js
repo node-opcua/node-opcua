@@ -69,7 +69,7 @@ function install_optional_cpu_and_memory_usage_node(server) {
 
     const addressSpace = engine.addressSpace;
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
 
     const folder = addressSpace.findNode(ObjectIds.Server_VendorServerInfo);
 

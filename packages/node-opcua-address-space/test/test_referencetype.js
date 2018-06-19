@@ -599,7 +599,7 @@ describe(" improving performance of isSupertypeOf", function () {
         hasTypeDefinition.isSupertypeOf(nhr).should.eql(true);
         nhr.isSupertypeOf(hasTypeDefinition).should.eql(false);
 
-        const flowTo = addressSpace.getPrivateNamespace().addReferenceType({
+        const flowTo = addressSpace.getOwnNamespace().addReferenceType({
             browseName: "FlowTo",
             inverseName: "FlowFrom",
             isAbstract: false,

@@ -145,7 +145,7 @@ UAOffNormalAlarm.prototype._onNormalStateDataValueChange = function (dataValue) 
 UAOffNormalAlarm.instantiate = function (namespace, limitAlarmTypeId, options, data) {
 
     assert(namespace instanceof Namespace);
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
     assert(addressSpace instanceof AddressSpace);
 
     const offNormalAlarmType = addressSpace.findEventType("OffNormalAlarmType");

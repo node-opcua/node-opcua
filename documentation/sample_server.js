@@ -17,7 +17,7 @@ function post_initialize() {
     function construct_my_address_space(server) {
     
         const addressSpace = server.engine.addressSpace;
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
         
         // declare a new object
         const device = namespace.addObject({

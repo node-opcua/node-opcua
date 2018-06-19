@@ -77,7 +77,7 @@ module.exports.install = function(AddressSpace) {
     Namespace.prototype.addMultiStateDiscrete = function(options) {
 
         const namespace = this;
-        const addressSpace = namespace.__addressSpace;
+        const addressSpace = namespace.addressSpace;
         assert(addressSpace instanceof AddressSpace);
         assert(options.hasOwnProperty("enumStrings"));
         assert(!options.hasOwnProperty("ValuePrecision"));

@@ -58,7 +58,7 @@ util.inherits(UADiscreteAlarm, UAAlarmConditionBase);
 UADiscreteAlarm.instantiate = function(namespace, discreteAlarmTypeId, options, data) {
 
     assert(namespace instanceof Namespace);
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
     assert(addressSpace instanceof AddressSpace);
 
     const discreteAlarmType = addressSpace.findEventType(discreteAlarmTypeId);

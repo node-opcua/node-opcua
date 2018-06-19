@@ -53,7 +53,7 @@ const doDebug = false;
 exports.createHVACSystem = function (addressSpace) {
 
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
 
     const HVACEnabledEventType = namespace.addEventType({
         browseName: "HVACEnabledEventType"

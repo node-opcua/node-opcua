@@ -232,7 +232,7 @@ describe("testing Variable#bindVariable", function () {
 
             addressSpace.registerNamespace("Private");
 
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
             namespace.index.should.eql(1);
 
             rootFolder = addressSpace.findNode("RootFolder");
@@ -789,7 +789,7 @@ describe("testing Variable#writeValue Scalar", function () {
             namespace = addressSpace.registerNamespace("Private");
             namespace.index.should.eql(1);
 
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             rootFolder = addressSpace.findNode("RootFolder");
 
@@ -862,12 +862,12 @@ describe("testing Variable#writeValue Array", function () {
         addressSpace = new address_space.AddressSpace();
         generate_address_space(addressSpace, nodeset_filename, function () {
             addressSpace.registerNamespace("Private");
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             rootFolder = addressSpace.findNode("RootFolder");
 
 
-            variable = addressSpace.getPrivateNamespace().addVariable({
+            variable = addressSpace.getOwnNamespace().addVariable({
                 browseName: "some variable",
                 minimumSamplingInterval: 100,
                 userAccessLevel: "CurrentRead | CurrentWrite",
@@ -1194,7 +1194,7 @@ describe("testing Variable#writeValue on Integer", function () {
         generate_address_space(addressSpace, nodeset_filename, function () {
 
             addressSpace.registerNamespace("Private");
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             rootFolder = addressSpace.findNode("RootFolder");
 
@@ -1339,7 +1339,7 @@ describe("testing UAVariable ", function () {
 
             addressSpace.registerNamespace("Private");
 
-             namespace = addressSpace.getPrivateNamespace();
+             namespace = addressSpace.getOwnNamespace();
 
             if (!err) {
                 addressSpace.registerNamespace("Private");

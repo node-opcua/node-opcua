@@ -80,7 +80,7 @@ function post_initialize() {
     function construct_my_address_space(server) {
        // declare some folders
        const addressSpace = server.engine.addressSpace;
-       const namespace = addressSpace.getPrivateNamespace();
+       const namespace = addressSpace.getOwnNamespace();
        const citiesNode  = namespace.addFolder("ObjectsFolder",{ browseName: "Cities"});
        function create_CityNode(city_name) {
            // declare the city node

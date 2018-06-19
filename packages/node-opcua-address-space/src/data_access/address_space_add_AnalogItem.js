@@ -35,7 +35,7 @@ exports.install = function (AddressSpace) {
     Namespace.prototype.addDataItem = function(options) {
 
         const namespace = this;
-        const addressSpace = namespace.__addressSpace;
+        const addressSpace = namespace.addressSpace;
         assert(addressSpace instanceof AddressSpace);
         const dataType = options.dataType || "Number";
 
@@ -107,7 +107,7 @@ exports.install = function (AddressSpace) {
     Namespace.prototype.addAnalogDataItem = function (options) {
 
         const namespace = this;
-        const addressSpace = namespace.__addressSpace;
+        const addressSpace = namespace.addressSpace;
 
         assert(options.hasOwnProperty("engineeringUnitsRange"), "expecting engineeringUnitsRange");
 

@@ -94,7 +94,7 @@ module.exports.install = function (AddressSpace) {
         assert(!options.hasOwnProperty("ValuePrecision"));
 
         const namespace = this;
-        const addressSpace = namespace.__addressSpace;
+        const addressSpace = namespace.addressSpace;
 
         const multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
         assert(multiStateValueDiscreteType, "expecting MultiStateValueDiscreteType to be defined , check nodeset xml file");

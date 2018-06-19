@@ -51,7 +51,7 @@ describe("Testing Historical Data Node", function () {
 
     it("should create a 'HA Configuration' node", function () {
 
-        const node = addressSpace.getPrivateNamespace().addVariable({
+        const node = addressSpace.getOwnNamespace().addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -69,7 +69,7 @@ describe("Testing Historical Data Node", function () {
 
     it("should keep values in memory to provide historical reads", function (done) {
 
-        const node = addressSpace.getPrivateNamespace().addVariable({
+        const node = addressSpace.getOwnNamespace().addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -125,7 +125,7 @@ describe("Testing Historical Data Node", function () {
 
     it("should keep values up to options.maxOnlineValues to provide historical reads", function (done) {
 
-        const node = addressSpace.getPrivateNamespace().addVariable({
+        const node = addressSpace.getOwnNamespace().addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -259,7 +259,7 @@ describe("Testing Historical Data Node", function () {
     });
     it("should store initial dataValue when historical stuff is set", function (done) {
 
-        const node = addressSpace.getPrivateNamespace().addVariable({
+        const node = addressSpace.getOwnNamespace().addVariable({
             browseName: "MyVar42",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
@@ -320,7 +320,7 @@ describe("Testing Historical Data Node", function () {
 
         // unseting the historizing flag shall suspend value being collected
 
-        const node = addressSpace.getPrivateNamespace().addVariable({
+        const node = addressSpace.getOwnNamespace().addVariable({
             browseName: "MyVar",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo

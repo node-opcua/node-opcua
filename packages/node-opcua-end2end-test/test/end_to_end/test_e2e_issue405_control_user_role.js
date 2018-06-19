@@ -80,7 +80,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             server.userManager = userManager;
 
             const addressSpace = server.engine.addressSpace;
-            const namespace = addressSpace.getPrivateNamespace();
+            const namespace = addressSpace.getOwnNamespace();
             // create a variable that can  be read and written by admins
             // and read/nowrite by operators
             // and noRead/noWrite by guests

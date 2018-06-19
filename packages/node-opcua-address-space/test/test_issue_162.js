@@ -47,7 +47,7 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
 
         if (!myCustomObjectType) {
 
-            const namespace= addressSpace.getPrivateNamespace();
+            const namespace= addressSpace.getOwnNamespace();
 
             myCustomObjectType = namespace.addObjectType({
                 browseName: "MyCustomObjectType"

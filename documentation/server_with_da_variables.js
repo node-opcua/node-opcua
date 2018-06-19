@@ -9,7 +9,7 @@ const server = new opcua.OPCUAServer({
 function post_initialize() {
 
     const addressSpace = server.engine.addressSpace;
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
 
     const myDevice = namespace.addObject({
         organizedBy: addressSpace.rootFolder.objects,

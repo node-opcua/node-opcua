@@ -44,7 +44,7 @@ describe("testing add new DataType ", function () {
         const baseObjectType = addressSpace.findObjectType("BaseObjectType");
         const baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
         // -------------------------------------------- MachineType
         const customTypeNode = namespace.addObjectType({browseName: "CustomType"});
 
@@ -130,7 +130,7 @@ describe("testing add new DataType ", function () {
 
             const ftnirInstance = ftnirType.instantiate({browseName: "MyFTNIR", organizedBy: deviceSet});
 
-            ftnirInstance.nodeId.namespace.should.eql(addressSpace.getPrivateNamespace().index);
+            ftnirInstance.nodeId.namespace.should.eql(addressSpace.getOwnNamespace().index);
 
             addressSpace.dispose();
 

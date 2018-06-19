@@ -116,7 +116,7 @@ UAObjectType.prototype.instantiate = function (options) {
         modellingRule : options.modellingRule
     };
 
-    const namespace = self.addressSpace.getPrivateNamespace();
+    const namespace = self.addressSpace.getOwnNamespace();
 
     const instance = namespace.addObject(opts);
 

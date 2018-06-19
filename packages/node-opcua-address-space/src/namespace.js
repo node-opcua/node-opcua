@@ -44,8 +44,9 @@ function UANamespace(options) {
     assert(typeof options.namespaceUri === "string");
     assert(options.addressSpace.constructor.name === "AddressSpace");
     assert(typeof options.index === "number");
+
     self.namespaceUri = options.namespaceUri;
-    self.__addressSpace = options.addressSpace;
+    self.addressSpace = options.addressSpace;
     self.index = options.index;
     self._nodeid_index = {};
     self._internal_id_counter = 1000;
@@ -59,7 +60,7 @@ function UANamespace(options) {
 }
 
 UANamespace.prototype.getDefaultNamespace = function () {
-    return (this.index === 0) ? this : this.__addressSpace.getDefaultNamespace();
+    return (this.index === 0) ? this : this.addressSpace.getDefaultNamespace();
 };
 
 UANamespace.prototype.dispose = function () {
@@ -69,7 +70,7 @@ UANamespace.prototype.dispose = function () {
         node.dispose();
     });
     self._nodeid_index = null;
-    self.__addressSpace = null;
+    self.addressSpace = null;
 
     self._aliases = null;
 
@@ -104,7 +105,7 @@ UANamespace.prototype.findNode = function (nodeId) {
 
 
 function _adjust_options(self, options) {
-    const ns = self.__addressSpace.getNamespaceIndex(self.namespaceUri);
+    const ns = self.addressSpace.getNamespaceIndex(self.namespaceUri);
     if (!options.nodeId) {
         const id = self._getNextAvailableId();
         options.nodeId = new NodeId(NodeId.NodeIdType.NUMERIC, id, ns);
@@ -327,7 +328,7 @@ const regExp1 = /^(s|i|b|g)=/;
 UANamespace.prototype._construct_nodeId = function (options) {
 
     const self = this;
-    const addressSpace = self.__addressSpace;
+    const addressSpace = self.addressSpace;
     let nodeId = options.nodeId;
 
     if (!nodeId) {
@@ -406,7 +407,7 @@ UANamespace.prototype._createNode = function (options) {
         throw new Error(" missing constructor for NodeClass " + options.nodeClass.key);
     }
 
-    options.addressSpace = this.__addressSpace;
+    options.addressSpace = self.addressSpace;
     const node = new Constructor(options);
 
     assert(node.nodeId);
@@ -429,7 +430,7 @@ UANamespace.prototype._addVariable = function (options) {
 
     const self = this;
 
-    const addressSpace = self.__addressSpace;
+    const addressSpace = self.addressSpace;
     const baseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType").nodeId;
 
     assert(options.hasOwnProperty("browseName"), "options.browseName must be provided");
@@ -508,7 +509,7 @@ UANamespace.prototype.addVariable = function (options) {
 UANamespace.prototype._addObjectOrVariableType = function (options, topMostBaseType, nodeClass) {
 
     const self = this;
-    const addressSpace = self.__addressSpace;
+    const addressSpace = self.addressSpace;
 
     assert(typeof topMostBaseType === "string");
     assert(nodeClass === NodeClass.ObjectType || nodeClass === NodeClass.VariableType);
@@ -599,7 +600,7 @@ UANamespace.prototype.addVariableType = function (options) {
 
     // dataType
     options.dataType = options.dataType || "Int32";
-    options.dataType = self.__addressSpace._coerce_DataType(options.dataType);
+    options.dataType = self.addressSpace._coerce_DataType(options.dataType);
 
     // valueRank
     options.valueRank = utils.isNullOrUndefined(options.valueRank) ? -1 : options.valueRank;
@@ -630,7 +631,7 @@ UANamespace.prototype.addView = function (options) {
     const browseName = options.browseName;
     assert(typeof browseName === "string");
 
-    const addressSpace = self.__addressSpace;
+    const addressSpace = self.addressSpace;
     const baseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType").nodeId;
 
     // ------------------------------------------ TypeDefinition
@@ -684,7 +685,7 @@ UANamespace.prototype.addFolder = function (parentFolder, options) {
         options = {browseName: options};
     }
 
-    const addressSpace = self.__addressSpace;
+    const addressSpace = self.addressSpace;
 
     assert(!options.typeDefinition, "addFolder does not expect typeDefinition to be defined ");
     const typeDefinition = addressSpace._coerceTypeDefinition("FolderType");
@@ -708,7 +709,7 @@ UANamespace.prototype.addFolder = function (parentFolder, options) {
 UANamespace.prototype.addReferenceType = function (options) {
 
     const namespace = this;
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
 
     options.nodeClass = NodeClass.ReferenceType;
     options.references = options.references || [];
@@ -752,7 +753,7 @@ UANamespace.prototype.createDataType = function (options) {
     if (options.references.length === 0) {
         assert(options.hasOwnProperty("superType"), "must provide a superType");
 
-        options.superType = this.__addressSpace.findDataType(options.superType);
+        options.superType = this.addressSpace.findDataType(options.superType);
         assert(options.superType);
         options.references.push({
             referenceType: "HasSubtype", isForward: false, nodeId: options.superType.nodeId
@@ -868,7 +869,7 @@ function _handle_node_version(node, options) {
     if (options.nodeVersion) {
         assert(node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.Object);
 
-        const nodeVersion = node.addressSpace.getPrivateNamespace().addVariable({
+        const nodeVersion = node.addressSpace.getOwnNamespace().addVariable({
             propertyOf: node,
             browseName: "NodeVersion",
             dataType: "String"
@@ -918,7 +919,7 @@ UANamespace.prototype.createNode = function (options) {
     const self = this;
 
     let node = null;
-    const addressSpace = self.__addressSpace;
+    const addressSpace = self.addressSpace;
 
     addressSpace.modelChangeTransaction(function () {
 
@@ -982,7 +983,7 @@ UANamespace.prototype.deleteNode = function (nodeOrNodeId) {
         throw new Error("this node doesn't belong to this namespace");
     }
 
-    const addressSpace = self.__addressSpace;
+    const addressSpace = self.addressSpace;
 
     addressSpace.modelChangeTransaction(function () {
 

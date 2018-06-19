@@ -32,7 +32,7 @@ function create_analyser_device(addressSpace) {
     const analyserDeviceType = addressSpace.findObjectType("AnalyserDeviceType", adi_namespace);
     //xx console.log(analyserDeviceType.toString());
 
-    const myAnalyserDeviceType = addressSpace.getPrivateNamespace().addObjectType({
+    const myAnalyserDeviceType = addressSpace.getOwnNamespace().addObjectType({
         browseName: "MyAnalyserDeviceType",
         subtypeOf: analyserDeviceType
     });
@@ -109,7 +109,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         const di_namespace = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         const deviceType = addressSpace.findObjectType("DeviceType", di_namespace);
 
-        const myDeviceType = addressSpace.getPrivateNamespace().addObjectType({
+        const myDeviceType = addressSpace.getOwnNamespace().addObjectType({
             browseName: "MyDeviceType",
             subtypeOf: addressSpace.findObjectType("DeviceType")
         });

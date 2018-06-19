@@ -64,7 +64,7 @@ module.exports.install = function(AddressSpace) {
         assert(options.hasOwnProperty("axisScaleType"), "expecting axisScaleType");
         assert(_.isObject(options.xAxisDefinition), "expecting a xAxisDefinition");
 
-        const addressSpace = this.__addressSpace;
+        const addressSpace = this.addressSpace;
 
         const YArrayItemType = addressSpace.findVariableType("YArrayItemType");
         assert(YArrayItemType, "expecting YArrayItemType to be defined , check nodeset xml file");

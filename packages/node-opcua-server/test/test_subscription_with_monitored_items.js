@@ -114,7 +114,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
         engine.initialize({nodeset_filename: server_engine.nodeset_filename}, function () {
 
             addressSpace = engine.addressSpace;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             // build_address_space_for_conformance_testing(engine, {mass_variables: false});
 
@@ -1414,7 +1414,7 @@ describe("monitoredItem advanced", function () {
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
             addressSpace = engine.addressSpace;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
 
             const node = namespace.addVariable({

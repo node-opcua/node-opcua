@@ -26,7 +26,7 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
     before(function (done) {
         get_mini_address_space(function(err,_addressSpace){
             addressSpace = _addressSpace;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
             namespace.index.should.eql(1);
 
             done(err);

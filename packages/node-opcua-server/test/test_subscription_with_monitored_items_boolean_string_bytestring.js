@@ -91,7 +91,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
         engine.initialize({nodeset_filename: server_engine.nodeset_filename}, function () {
             addressSpace = engine.addressSpace;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             function addVar(typeName, value) {
                 namespace.addVariable({

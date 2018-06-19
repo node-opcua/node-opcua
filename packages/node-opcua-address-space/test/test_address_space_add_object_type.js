@@ -22,7 +22,7 @@ describe("testing add new ObjectType ", function () {
 
             addressSpace = __addressSpace__;
 
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
 
             done(err);
@@ -107,7 +107,7 @@ describe("testing add new ObjectType ", function () {
 
         function createSpecialTempSensorType(addressSpace) {
 
-            const namespace= addressSpace.getPrivateNamespace();
+            const namespace= addressSpace.getOwnNamespace();
 
             const temperatureSensorType = addressSpace.findObjectType("1:TemperatureSensorType");
             should.exist(temperatureSensorType);

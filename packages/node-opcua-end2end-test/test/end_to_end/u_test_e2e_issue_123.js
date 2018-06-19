@@ -26,7 +26,7 @@ module.exports = function (test) {
             const refreshRate = 100;
 
             let counter = 1;
-            const namespace = server.engine.addressSpace.getPrivateNamespace();
+            const namespace = server.engine.addressSpace.getOwnNamespace();
 
             const variableToMonitor = namespace.addVariable({
                 organizedBy: server.engine.addressSpace.rootFolder.objects,

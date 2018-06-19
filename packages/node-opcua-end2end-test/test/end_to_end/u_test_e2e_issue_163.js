@@ -33,7 +33,7 @@ module.exports = function (test) {
 
             let variable2 = 16.0;
             const addressSpace = server.engine.addressSpace;
-            const namespace = addressSpace.getPrivateNamespace();
+            const namespace = addressSpace.getOwnNamespace();
 
             const the_Variable = namespace.addVariable({
                 organizes: addressSpace.rootFolder.objects,

@@ -11,7 +11,7 @@ const server = new opcua.OPCUAServer({
 });
 function construct_address_space(server) {
   const addressSpace = server.engine.addressSpace;
-  const namespace = addressSpace.getPrivateNamespace();
+  const namespace = addressSpace.getOwnNamespace();
   const vessel = namespace.addObject({
       browseName: "Vessel",
       organizedBy: addressSpace.rootFolder.objects

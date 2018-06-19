@@ -32,7 +32,7 @@ describe("AddressSpace : Conditions ", function () {
             const FolderTypeId = addressSpace.findNode("FolderType").nodeId;
             const BaseDataVariableTypeId = addressSpace.findNode("BaseDataVariableType").nodeId;
 
-            const namespace = addressSpace.getPrivateNamespace();
+            const namespace = addressSpace.getOwnNamespace();
 
             addressSpace.installAlarmsAndConditionsService();
 

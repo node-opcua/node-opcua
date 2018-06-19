@@ -8,7 +8,7 @@ const Variant = require("node-opcua-variant").Variant;
 
 function createTemperatureSensorType(addressSpace) {
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
 
     // TemperatureSensorType
     const temperatureSensorTypeNode = namespace.addObjectType({browseName: "TemperatureSensorType"});

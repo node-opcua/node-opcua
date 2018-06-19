@@ -13,7 +13,7 @@ describe("testing Variables ", function () {
     beforeEach(function(done){
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
             done(err);
         });
     });

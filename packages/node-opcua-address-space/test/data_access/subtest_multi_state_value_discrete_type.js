@@ -20,7 +20,7 @@ module.exports = function(maintest) {
         let addressSpace, namespace;
         before(function() {
             addressSpace = maintest.addressSpace;
-            namespace =addressSpace.getPrivateNamespace();
+            namespace =addressSpace.getOwnNamespace();
 
             should(addressSpace).be.instanceof(AddressSpace);
         });
@@ -141,7 +141,7 @@ module.exports = function(maintest) {
 
         it("ZZ2 should instantiate a DataType containing a MultiStateValueDiscreteType",function(done) {
 
-            const namespace= addressSpace.getPrivateNamespace();
+            const namespace= addressSpace.getOwnNamespace();
             // create a new DataType
             const myObjectType = namespace.addObjectType({
                 browseName: "MyObjectWithMultiStateValueDiscreteType"

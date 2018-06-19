@@ -103,7 +103,7 @@ exports.install = function (AddressSpace) {
         assert(_.isString(options.browseName));
         assert(_.isArray(options.enumeration));
 
-        const addressSpace = self.__addressSpace;
+        const addressSpace = self.addressSpace;
         let definition;
         const enumerationType = addressSpace.findDataType("Enumeration");
         assert(enumerationType.nodeId instanceof NodeId);

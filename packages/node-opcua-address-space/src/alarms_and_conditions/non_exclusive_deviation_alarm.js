@@ -60,7 +60,7 @@ UANonExclusiveDeviationAlarm.instantiate = function(namespace, type,options,data
 
 
     assert(namespace instanceof Namespace);
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
     assert(addressSpace instanceof AddressSpace);
 
     const nonExclusiveDeviationAlarmType = addressSpace.findEventType("NonExclusiveDeviationAlarmType");

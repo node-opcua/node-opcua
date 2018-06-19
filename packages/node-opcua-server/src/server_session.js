@@ -83,7 +83,7 @@ function ServerSession(parent, sessionTimeout) {
     session.authenticationToken = new NodeId(NodeIdType.BYTESTRING, authenticationTokenBuf);
 
     // the sessionId
-    const ownNamespaceIndex = 1; // addressSpace.getPrivateNamespace().index;
+    const ownNamespaceIndex = 1; // addressSpace.getOwnNamespace().index;
     session.nodeId = new NodeId(NodeIdType.GUID, ec.randomGuid(), ownNamespaceIndex);
 
     assert(session.authenticationToken instanceof NodeId);
@@ -324,7 +324,7 @@ ServerSession.prototype._createSessionObjectInAddressSpace = function () {
         references.push({referenceType: "HasTypeDefinition", isForward: true, nodeId: sessionDiagnosticsObjectType});
     }
 
-    const namespace = session.addressSpace.getPrivateNamespace();
+    const namespace = session.addressSpace.getOwnNamespace();
     session.sessionObject = namespace.createNode({
         nodeId: session.nodeId,
         nodeClass: NodeClass.Object,

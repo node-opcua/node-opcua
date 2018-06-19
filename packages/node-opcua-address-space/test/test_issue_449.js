@@ -31,7 +31,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
 
     it("#449 should be possible to access this in UAVariable get/set value accessor", function (done) {
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
         let node;
         const counterVar = {
             browseName: "TEST",

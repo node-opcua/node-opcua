@@ -26,7 +26,7 @@ describe("Testing the server  engine - View related ", function () {
 
         const viewsFolder = engine.addressSpace.findNode("ViewsFolder");
 
-        const namespace = engine.addressSpace.getPrivateNamespace();
+        const namespace = engine.addressSpace.getOwnNamespace();
 
         const view = namespace.addView({
             organizedBy: viewsFolder,

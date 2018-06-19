@@ -59,7 +59,7 @@ describe("Testing Boiler System", function () {
 
     it("XX should handle StateMachine derived from ProgramStateMachine", function () {
 
-        const namespace= addressSpace.getPrivateNamespace();
+        const namespace= addressSpace.getOwnNamespace();
 
         const myProgramStateMachine = namespace.addObjectType({
             browseName: "MyProgramStateMachine",

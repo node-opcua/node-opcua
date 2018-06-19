@@ -126,7 +126,7 @@ AddressSpace.prototype.getNamespace = function (namespaceIndexOrName) {
 AddressSpace.prototype.getDefaultNamespace= function() {
     return this.getNamespace(0);
 };
-AddressSpace.prototype.getPrivateNamespace= function() {
+AddressSpace.prototype.getOwnNamespace= function() {
 
     const self = this;
     if (this._private_namespaceIndex>=self._namespaceArray.length){
@@ -149,12 +149,15 @@ AddressSpace.prototype.registerNamespace = function (namespaceUri) {
     const self = this;
 
     let index = this._namespaceArray.findIndex(ns=> ns.namespaceUri === namespaceUri);
-    if (index !== -1) { return self._namespaceArray[index]; }
+    if (index !== -1) {
+        assert(self._namespaceArray[index].addressSpace === self);
+        return self._namespaceArray[index];
+    }
 
     index= self._namespaceArray.length;
     self._namespaceArray.push(new Namespace({
         namespaceUri: namespaceUri,
-        addressSpace:self,
+        addressSpace: self,
         index: index,
         version: "undefined",
         publicationDate: new Date()
@@ -639,7 +642,7 @@ AddressSpace.prototype._build_new_NodeId = function () {
     if (this._namespaceArray.length <= 1) {
         throw new Error("Please create a private namespace");
     }
-    const privateNamespace = this.getPrivateNamespace();
+    const privateNamespace = this.getOwnNamespace();
     return privateNamespace._build_new_NodeId();
 };
 
@@ -950,11 +953,11 @@ function _increase_version_number(node) {
 AddressSpace.prototype._resolveRequestedNamespace =  function(options)
 {
     if (!options.nodeId) {
-        return this.getPrivateNamespace();
+        return this.getOwnNamespace();
     }
     if (typeof options.nodeId === "string"){
         if (options.nodeId.match(/^(i|s|g|b)=/)) {
-            options.nodeId = this.getPrivateNamespace()._construct_nodeId(options);
+            options.nodeId = this.getOwnNamespace()._construct_nodeId(options);
         }
     }
     options.nodeId = resolveNodeId(options.nodeId);
@@ -966,21 +969,21 @@ AddressSpace.prototype.addObject =function(options) {
     return this._resolveRequestedNamespace(options).addObject(options);
 };
 
-utils.setDeprecated(AddressSpace,"addObject","use addressSpace.getPrivateNamespace().addObject(..) instead");
+utils.setDeprecated(AddressSpace,"addObject","use addressSpace.getOwnNamespace().addObject(..) instead");
 AddressSpace.prototype.addVariable =function(options) {
     return this._resolveRequestedNamespace(options).addVariable(options);
 };
-utils.setDeprecated(AddressSpace,"addVariable","use addressSpace.getPrivateNamespace().addVariable(..) instead");
+utils.setDeprecated(AddressSpace,"addVariable","use addressSpace.getOwnNamespace().addVariable(..) instead");
 
 AddressSpace.prototype.addObjectType =function(options) {
     return this._resolveRequestedNamespace(options).addObjectType(options);
 };
-utils.setDeprecated(AddressSpace,"addObjectType","use addressSpace.getPrivateNamespace().addObjectType() instead");
+utils.setDeprecated(AddressSpace,"addObjectType","use addressSpace.getOwnNamespace().addObjectType() instead");
 
 AddressSpace.prototype.addVariableType =function(options) {
    return this._resolveRequestedNamespace(options).addVariableType(options);
 };
-utils.setDeprecated(AddressSpace,"addVariableType","use addressSpace.getPrivateNamespace().addVariableType() instead");
+utils.setDeprecated(AddressSpace,"addVariableType","use addressSpace.getOwnNamespace().addVariableType() instead");
 
 /**
  *
@@ -993,9 +996,9 @@ utils.setDeprecated(AddressSpace,"addVariableType","use addressSpace.getPrivateN
  * @return {BaseNode}
  */
 AddressSpace.prototype.addFolder = function (parentFolder, options) {
-    return this.getPrivateNamespace().addFolder(parentFolder, options);
+    return this.getOwnNamespace().addFolder(parentFolder, options);
 };
-utils.setDeprecated(AddressSpace,"addFolder","use addressSpace.getPrivateNamespace().addFolder(..) instead");
+utils.setDeprecated(AddressSpace,"addFolder","use addressSpace.getOwnNamespace().addFolder(..) instead");
 
 
 /**

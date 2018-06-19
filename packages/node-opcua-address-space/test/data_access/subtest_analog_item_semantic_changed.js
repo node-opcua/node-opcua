@@ -34,7 +34,7 @@ module.exports = function (maintest) {
 
             const fakeValue = 1;
 
-            analogItem = addressSpace.getPrivateNamespace().addAnalogDataItem({
+            analogItem = addressSpace.getOwnNamespace().addAnalogDataItem({
 
                 organizedBy: objectsFolder,
 

@@ -26,7 +26,7 @@ module.exports.install = function (AddressSpace) {
 
     Namespace.prototype.addTwoStateDiscrete = function (options) {
         const namespace = this;
-        const addressSpace = namespace.__addressSpace;
+        const addressSpace = namespace.addressSpace;
 
         assert(!options.hasOwnProperty("ValuePrecision"));
 

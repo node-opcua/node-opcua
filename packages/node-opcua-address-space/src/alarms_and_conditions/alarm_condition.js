@@ -710,7 +710,7 @@ exports.UAAlarmConditionBase = UAAlarmConditionBase;
 UAAlarmConditionBase.instantiate = function (namespace, alarmConditionTypeId, options, data) {
 
     assert(namespace instanceof Namespace);
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
 
     //xx assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
     assert(options.hasOwnProperty("inputNode")); // must provide a inputNode

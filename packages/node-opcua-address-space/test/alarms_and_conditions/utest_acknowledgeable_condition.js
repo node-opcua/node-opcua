@@ -41,7 +41,7 @@ module.exports = function (test) {
 
         it("should instantiate AcknowledgeableConditionType (variation 2)", function (done) {
 
-            const namespace = addressSpace.getPrivateNamespace();
+            const namespace = addressSpace.getOwnNamespace();
 
             const condition = namespace.instantiateCondition("AcknowledgeableConditionType", {
                 componentOf: source,

@@ -658,7 +658,7 @@ UAVariableType.prototype.instantiate = function (options) {
         minimumSamplingInterval: options.minimumSamplingInterval
     };
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
     const instance = namespace.addVariable(opts);
 
     //xx assert(instance.minimumSamplingInterval === options.minimumSamplingInterval);

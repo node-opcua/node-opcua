@@ -17,7 +17,7 @@ module.exports = function (test) {
             const server = test.server;
 
             const addressSpace = server.engine.addressSpace;
-            const namespace = addressSpace.getPrivateNamespace();
+            const namespace = addressSpace.getOwnNamespace();
 
             const nodeId = new opcua.NodeId(opcua.NodeIdType.STRING, "1cf5e1fa-202a-2ab8-0440-c4fc2f22f2bf",1);
             namespace.addObject({

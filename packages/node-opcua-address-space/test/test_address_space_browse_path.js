@@ -20,7 +20,7 @@ describe("AddressSpace#browsePath", function () {
         get_mini_address_space(function (err, data) {
             addressSpace = data;
 
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
             namespace.namespaceUri.should.eql("http://MYNAMESPACE");
 
             // Add EventGeneratorObject

@@ -71,7 +71,7 @@ describe("testing ServerEngine", function () {
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
             const addressSpace = engine.addressSpace;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             FolderTypeId = addressSpace.findObjectType("FolderType").nodeId;
             BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType").nodeId;
@@ -226,7 +226,7 @@ describe("testing ServerEngine", function () {
     });
 
     it("should be possible to create a new folder under the 'Root' folder", function () {
-        const namespace = engine.addressSpace.getPrivateNamespace();
+        const namespace = engine.addressSpace.getOwnNamespace();
 
         // find 'Objects' folder
         const objects = engine.addressSpace.rootFolder.objects;
@@ -243,7 +243,7 @@ describe("testing ServerEngine", function () {
     });
 
     it("should be possible to find a newly created folder by nodeId", function () {
-        const namespace = engine.addressSpace.getPrivateNamespace();
+        const namespace = engine.addressSpace.getOwnNamespace();
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder");
 
@@ -258,7 +258,7 @@ describe("testing ServerEngine", function () {
 
     it("should be possible to find a newly created folder by 'browse name'", function () {
 
-        const namespace = engine.addressSpace.getPrivateNamespace();
+        const namespace = engine.addressSpace.getOwnNamespace();
         const newFolder = namespace.addFolder("ObjectsFolder", "MySecondNewFolder");
 
         const result = engine.addressSpace.rootFolder.objects.getFolderElementByName("MySecondNewFolder");
@@ -268,7 +268,7 @@ describe("testing ServerEngine", function () {
 
     xit("should not be possible to create a object with an existing 'browse name'", function () {
 
-        const namespace = engine.addressSpace.getPrivateNamespace();
+        const namespace = engine.addressSpace.getOwnNamespace();
 
         const newFolder1 = namespace.addFolder("ObjectsFolder", "NoUniqueName");
 
@@ -283,7 +283,7 @@ describe("testing ServerEngine", function () {
     it("should be possible to create a variable in a folder", function (done) {
 
         const addressSpace = engine.addressSpace;
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder1");
 

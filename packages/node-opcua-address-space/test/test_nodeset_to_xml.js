@@ -7,9 +7,9 @@ const DataType = require("node-opcua-variant").DataType;
 const Variant = require("node-opcua-variant").Variant;
 
 const _ = require("underscore");
-
 const dumpXml = require("../src/nodeset_to_xml").dumpXml;
 const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const generateAddressSpace = require("..").generate_address_space;
 
 const doDebug = false;
 
@@ -21,7 +21,7 @@ describe("testing nodeset to xml", function () {
 
             addressSpace = __addressSpace__;
 
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
             done(err);
         });
 
@@ -71,8 +71,8 @@ describe("testing nodeset to xml", function () {
             console.log(str);
         }
         str.should.match(/RUNNING/);
-        str.should.match(/<Field Name=\"RUNNING\" Value=\"0\"\/>/);
-        str.should.match(/<Field Name=\"STOPPED\" Value=\"1\"\/>/);
+        str.should.match(/<Field Name="RUNNING" Value="0"\/>/);
+        str.should.match(/<Field Name="STOPPED" Value="1"\/>/);
 
     });
     it("€€ should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", function () {
@@ -92,8 +92,8 @@ describe("testing nodeset to xml", function () {
             console.log(str);
         }
         str.should.match(/RUNNING/);
-        str.should.match(/<Field Name=\"RUNNING\" Value=\"10\"\/>/);
-        str.should.match(/<Field Name=\"STOPPED\" Value=\"20\"\/>/);
+        str.should.match(/<Field Name="RUNNING" Value="10"\/>/);
+        str.should.match(/<Field Name="STOPPED" Value="20"\/>/);
 
     });
 
@@ -109,7 +109,7 @@ describe("testing nodeset to xml", function () {
 
     it("should output a instance of a new ObjectType  to xml", function () {
 
-        const namespace= addressSpace.getPrivateNamespace();
+        const namespace= addressSpace.getOwnNamespace();
 
         // TemperatureSensorType
         const temperatureSensorType = namespace.addObjectType({browseName: "TemperatureSensorType"});
@@ -165,7 +165,7 @@ describe("testing nodeset to xml", function () {
 
     it("should output an instance of variable type to xml", function () {
 
-        const namespace= addressSpace.getPrivateNamespace();
+        const namespace= addressSpace.getOwnNamespace();
         const variableType = namespace.addVariableType({browseName: 'MyCustomVariableType'});
 
         const str = dumpXml(variableType, {});

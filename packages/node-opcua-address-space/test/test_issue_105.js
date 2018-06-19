@@ -16,7 +16,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
     before(function (done) {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             // lets declare a custom folder Type
             const myFolderType = namespace.addObjectType({browseName: "MyFolderType", subtypeOf: "FolderType"});
@@ -41,7 +41,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
 
         //xx var folderType = addressSpace.findObjectType("FolderType");
 
-        const myFolderType = addressSpace.findObjectType("MyFolderType",addressSpace.getPrivateNamespace().index);
+        const myFolderType = addressSpace.findObjectType("MyFolderType",addressSpace.getOwnNamespace().index);
 
         // now create a folder of type MyFolderType inside the Objects Folder
         const myFolder = myFolderType.instantiate({browseName: "MyFolder", organizedBy: "ObjectsFolder"});

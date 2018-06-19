@@ -29,7 +29,7 @@ describe("ServerEngine - addMethod", function () {
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
             addressSpace = engine.addressSpace;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             FolderTypeId = addressSpace.findObjectType("FolderType").nodeId;
             BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType").nodeId;

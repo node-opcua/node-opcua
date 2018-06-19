@@ -46,7 +46,7 @@ function add_eventGeneratorObject(namespace, parentFolder) {
         const message = inputArguments[0].value || "Hello from Event Generator Object";
         const severity = inputArguments[1].value || 0;
 
-        const myEventType = namespace.__addressSpace.findEventType("MyEventType",namespace.index);
+        const myEventType = namespace.addressSpace.findEventType("MyEventType",namespace.index);
         context.object.raiseEvent(myEventType, {
             message: {
                 dataType: DataType.LocalizedText,

@@ -339,7 +339,7 @@ exports.install = function (AddressSpace) {
 
         const namespace = this;
         assert(options.browseName," a browseName is required");
-        const addressSpace = namespace.__addressSpace;
+        const addressSpace = namespace.addressSpace;
 
         const twoStateVariableType = addressSpace.findVariableType("TwoStateVariableType");
 

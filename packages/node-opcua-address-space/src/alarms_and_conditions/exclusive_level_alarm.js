@@ -22,7 +22,7 @@ exports.UAExclusiveLevelAlarm =UAExclusiveLevelAlarm;
 UAExclusiveLevelAlarm.instantiate = function(namespace,type,option,data) {
 
     assert(namespace instanceof Namespace);
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
     assert(addressSpace instanceof AddressSpace);
 
     return UAExclusiveLimitAlarm.instantiate(namespace, type, option, data);

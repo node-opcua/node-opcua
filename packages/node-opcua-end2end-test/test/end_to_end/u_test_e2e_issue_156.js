@@ -28,7 +28,7 @@ module.exports = function (test) {
 
             const refreshRate = 500;
 
-            const namespace = server.engine.addressSpace.getPrivateNamespace();
+            const namespace = server.engine.addressSpace.getOwnNamespace();
 
             let counter = 1;
             const slowVar = namespace.addVariable({

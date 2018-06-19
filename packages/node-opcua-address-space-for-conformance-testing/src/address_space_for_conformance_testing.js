@@ -143,7 +143,7 @@ function makeVariant(dataTypeName, isArray, current_value) {
 
 function _add_variable(namespace, parent, varName, dataTypeName, current_value, isArray, extra_name) {
 
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
     assert(typeof extra_name === "string");
     assert(addressSpace instanceof AddressSpace);
 
@@ -440,7 +440,7 @@ function add_simulation_variables(namespace, scalarFolder) {
     });
     install_Timer();
 
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
     addressSpace.registerShutdownTask(tearDown_Timer);
 
 }
@@ -1164,7 +1164,7 @@ function add_ObjectWithMethod(namespace, parentFolder) {
 
 function add_enumeration_variable(namespaceDemo, parentFolder) {
 
-    const addressSpace = namespaceDemo.__addressSpace;
+    const addressSpace = namespaceDemo.addressSpace;
 
     const myEnumType = namespaceDemo.addEnumerationType({
         browseName: "SimulationEnumerationType",
@@ -1193,7 +1193,7 @@ function add_enumeration_variable(namespaceDemo, parentFolder) {
 
 function add_trigger_nodes(namespace, parentFolder) {
 
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
 
     // add 2 nodes that generate an event when ever they are written to.
     function _add_trigger_node(browseName, nodeId) {
@@ -1245,7 +1245,7 @@ function add_trigger_nodes(namespace, parentFolder) {
 
 function add_sampleView(namespace) {
 
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
     namespace.addView({
         organizedBy: addressSpace.rootFolder.views,
         browseName: "SampleView",

@@ -15,7 +15,7 @@ module.exports = function(maintest) {
 
         it("should add a TwoStateDiscreteType variable",function() {
 
-            const namespace = addressSpace.getPrivateNamespace();
+            const namespace = addressSpace.getOwnNamespace();
             
             const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");

@@ -28,7 +28,7 @@ exports.install = function (AddressSpace) {
 
         const self = this;
 
-        const addressSpace = self.__addressSpace;
+        const addressSpace = self.addressSpace;
 
         assert(isNonEmptyQualifiedName(options.browseName));
 
@@ -72,7 +72,7 @@ exports.install = function (AddressSpace) {
     Namespace.prototype.addMethod = function (parentObject, options) {
         const self = this;
 
-        const addressSpace = self.__addressSpace;
+        const addressSpace = self.addressSpace;
 
         assert(_.isObject(parentObject) && parentObject instanceof BaseNode,"expecting a valid parent object");
 

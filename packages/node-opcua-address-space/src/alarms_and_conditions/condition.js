@@ -1722,7 +1722,7 @@ function _getCompositeKey(node, key) {
 UAConditionBase.instantiate = function(namespace, conditionTypeId, options, data) {
     /* eslint max-statements: ["error", 100] */
     assert(namespace instanceof Namespace);
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
 
     const conditionType = addressSpace.findEventType(conditionTypeId);
 

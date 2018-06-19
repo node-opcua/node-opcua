@@ -493,6 +493,26 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
+    const Range_parser = {
+        "Range": {
+            init: function() {
+                this.range ={};
+            },
+            parser:  {
+                "Low": {
+                    finish: function () {
+                        this.parent.range.low = parseFloat(this.text);
+                    }
+                },
+                "High": {
+                    finish: function () {
+                        this.parent.range.high = parseFloat(this.text);
+                    }
+                }
+            }
+        }
+    };
+
     const EUInformation_parser = {
         "EUInformation": {
             init: function () {
@@ -538,10 +558,16 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
 
                         switch (typeId) {
                             case "i=297":  // Argument
+                            case "ns=0;i=297":  // Argument
                                 break;
+                            case "ns=0;i=7616": // EnumValueType
                             case "i=7616": // EnumValueType
                                 break;
+                            case "ns=0;i=888": // EnumValueType
                             case "i=888":  // EUInformation
+                                break;
+                            case "ns=0;i=885":  // Range
+                            case "i=885":  // Range
                                 break;
                             default:
                                 console.warn("loadnodeset2 ( checking identifier type) : unsupported typeId in ExtensionObject " + typeId);
@@ -555,7 +581,8 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             parser: {
                 "Argument": argument_parser.Argument,
                 "EnumValueType": enumValueType_parser.EnumValueType,
-                "EUInformation": EUInformation_parser.EUInformation
+                "EUInformation": EUInformation_parser.EUInformation,
+                "Range": Range_parser.Range
             },
             finish: function () {
                 const self = this.parent;
@@ -573,8 +600,12 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                         self.extensionObject = self.parser.Body.parser.EUInformation.euInformation;
                         assert(_.isObject(self.extensionObject));
                         break;
+                    case "i=885":      // Range
+                    case "ns=0;i=885":
+                        self.extensionObject = self.parser.Body.parser.Range.range;
+                        assert(_.isObject(self.extensionObject));
+                        break;
                     default:
-
                         // to do: implement a post action to create and bind extension object
                         console.log("loadnodeset2: unsupported typeId in ExtensionObject " + self.typeId.toString());
                         break;

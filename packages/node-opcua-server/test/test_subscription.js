@@ -364,7 +364,7 @@ describe("Subscriptions", function () {
             engine = new server_engine.ServerEngine();
             engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
                 addressSpace = engine.addressSpace;
-                namespace = addressSpace.getPrivateNamespace();
+                namespace = addressSpace.getOwnNamespace();
 
                 const node = namespace.addVariable({
                     componentOf: "RootFolder",

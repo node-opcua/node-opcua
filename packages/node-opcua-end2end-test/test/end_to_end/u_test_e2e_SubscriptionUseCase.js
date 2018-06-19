@@ -1361,7 +1361,7 @@ module.exports = function (test) {
             endpointUrl = test.endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
 
-            const namespace = server.engine.addressSpace.getPrivateNamespace();
+            const namespace = server.engine.addressSpace.getOwnNamespace();
 
             const rootFolder = server.engine.addressSpace.rootFolder;
             const objectsFolder = rootFolder.objects;

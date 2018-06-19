@@ -41,7 +41,7 @@ describe("testing UADataype -  Attribute", function () {
 
     it("UADataType#readAttribute", function () {
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
 
         const dataType = namespace.createDataType({
             browseName:  "MyDataType",

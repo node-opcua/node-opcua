@@ -24,7 +24,7 @@ describe("Testing UAObject", function () {
     before(function (done) {
         get_mini_address_space(function (err, data) {
             addressSpace = data;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
             rootFolder = addressSpace.findNode("RootFolder");
             organizesReferenceType = addressSpace.findReferenceType("Organizes");
             hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition");

@@ -24,7 +24,7 @@ describe("testing address space", function () {
 
             addressSpace.getNamespaceArray().length.should.eql(2);
 
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
             namespace.index.should.eql(1);
 
             rootFolder = addressSpace.findNode("RootFolder");

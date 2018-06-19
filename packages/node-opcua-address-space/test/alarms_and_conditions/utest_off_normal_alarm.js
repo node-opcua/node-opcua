@@ -15,7 +15,7 @@ module.exports = function (test) {
         before(function () {
 
             addressSpace = test.addressSpace;
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             source = test.source;
             engine = test.engine;

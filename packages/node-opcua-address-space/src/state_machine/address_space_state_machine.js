@@ -25,13 +25,13 @@ exports.install = function (AddressSpace) {
      * @return {UAObject} {StateType|InitialStateType}
      */
     AddressSpace.prototype.addState = function (component, stateName, stateNumber, isInitialState) {
-        return this.getPrivateNamespace().addState(component, stateName, stateNumber, isInitialState);
+        return this.getOwnNamespace().addState(component, stateName, stateNumber, isInitialState);
     };
 
     Namespace.prototype.addState = function (component, stateName, stateNumber, isInitialState) {
 
         const namespace = this;
-        const addressSpace = namespace.__addressSpace;
+        const addressSpace = namespace.addressSpace;
 
         isInitialState = !!isInitialState;
 
@@ -72,13 +72,13 @@ exports.install = function (AddressSpace) {
      * @return {UAObject}  TransitionType
      */
     AddressSpace.prototype.addTransition = function (component, fromState, toState, transitionNumber) {
-        this.getPrivateNamespace().addTransition(component, fromState, toState, transitionNumber);
+        this.getOwnNamespace().addTransition(component, fromState, toState, transitionNumber);
 
     };
 
     Namespace.prototype.addTransition = function (component, fromState, toState, transitionNumber) {
         const namespace = this;
-        const addressSpace = namespace.__addressSpace;
+        const addressSpace = namespace.addressSpace;
 
         assert(component instanceof UAObjectType);
         assert(_.isString(fromState));

@@ -233,7 +233,7 @@ describe("Testing Finite State Machine", function () {
          */
 
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
 
         const myFiniteStateMachine = namespace.addObjectType({
             browseName: "MyFiniteStateMachine",

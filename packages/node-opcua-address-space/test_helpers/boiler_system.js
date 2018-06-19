@@ -79,7 +79,7 @@ function addRelation(srcNode,referenceType, targetNode) {
 exports.createBoilerType = function createBoilerType(addressSpace) {
 
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
     if (namespace.findReferenceType("FlowTo")) {
         console.warn("createBoilerType has already been called");
         return;
@@ -457,7 +457,7 @@ exports.createBoilerType = function createBoilerType(addressSpace) {
 
 exports.makeBoiler = function makeBoiler(addressSpace, options) {
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
     //xx assert( addressSpace instanceof AddressSpace);
     assert(options);
     let boilerType = addressSpace.findObjectType("BoilerType",namespace.index);

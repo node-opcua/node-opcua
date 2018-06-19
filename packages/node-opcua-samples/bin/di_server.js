@@ -107,7 +107,7 @@ server.on("post_initialize", function () {
 
     const addressSpace = server.engine.addressSpace;
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
 
     const rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");

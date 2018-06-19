@@ -95,7 +95,7 @@ describe("address_space ModelChangeEvent", function () {
         generate_address_space(addressSpace, xml_files, function (err) {
             namespace = addressSpace.registerNamespace("PRIVATENAMESPACE");
             namespace.index.should.eql(1);
-            should.exist(addressSpace.getPrivateNamespace());
+            should.exist(addressSpace.getOwnNamespace());
             done(err);
         });
     });
@@ -216,7 +216,7 @@ describe("address_space ModelChangeEvent", function () {
 
     it("addressSpace#modelChangeTransactions should compress model change events ", function () {
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
         // -------------------------------------------------------------------------------------------------------------
         // Given :  a version-able node containing a component
         // -------------------------------------------------------------------------------------------------------------

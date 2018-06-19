@@ -48,6 +48,9 @@ describe("testing NodeSet XML file loading", function () {
         generate_address_space(addressSpace, xml_file, function (err) {
 
             const namespace0 = addressSpace.getDefaultNamespace();
+
+            namespace0.addressSpace.should.eql(addressSpace);
+
             Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
             Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(3);
             Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
@@ -69,6 +72,7 @@ describe("testing NodeSet XML file loading", function () {
         generate_address_space(addressSpace, xml_file, function (err) {
 
             const namespace0 = addressSpace.getDefaultNamespace();
+            namespace0.addressSpace.should.eql(addressSpace);
 
             Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
             Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(10);
@@ -93,6 +97,7 @@ describe("testing NodeSet XML file loading", function () {
 
             const namespace0 = addressSpace.getDefaultNamespace();
             namespace0.namespaceUri.should.eql("http://opcfoundation.org/UA/");
+            namespace0.addressSpace.should.eql(addressSpace);
 
             Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
             Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(10);
@@ -102,6 +107,7 @@ describe("testing NodeSet XML file loading", function () {
 
             const namespace1 = addressSpace.getNamespace(1);
             namespace1.namespaceUri.should.eql("http://opcfoundation.org/UA/DI/");
+            namespace1.addressSpace.should.eql(addressSpace);
 
             Object.keys(namespace1._aliases).length.should.be.eql(0);
             Object.keys(namespace1._variableTypeMap).length.should.be.greaterThan(0);

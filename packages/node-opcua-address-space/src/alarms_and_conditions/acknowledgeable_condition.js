@@ -327,7 +327,7 @@ UAAcknowledgeableConditionBase.instantiate = function instantiate(namespace,cond
 
     //xx assert(options.conditionOf,"must provide a conditionOf Node");
 
-    const addressSpace = namespace.__addressSpace;
+    const addressSpace = namespace.addressSpace;
 
     const conditionNode = UAConditionBase.instantiate(namespace, conditionTypeId, options, data);
     Object.setPrototypeOf(conditionNode,UAAcknowledgeableConditionBase.prototype);

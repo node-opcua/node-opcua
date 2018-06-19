@@ -115,7 +115,7 @@ function BaseNode(options) {
     this.browseName = _get_QualifiedBrowseName(options.browseName);
 
     // re-use browseName as displayName if displayName is missing
-    options.displayName = options.displayName || options.browseName.toString();
+    options.displayName = options.displayName || options.browseName.name.toString();
 
     this._setDisplayName(options.displayName);
 
@@ -1311,12 +1311,15 @@ BaseNode.prototype.full_name = function () {
     return this.browseName.toString();
 };
 
+BaseNode.prototype.ownReferences = function () {
+    const self = this;
+    const _private = BaseNode_getPrivate(self);
+    return _.map(_private._referenceIdx);
+};
 BaseNode.prototype.allReferences = function () {
-
     const self = this;
     const _private = BaseNode_getPrivate(self);
     return [].concat(_.map(_private._referenceIdx), _.map(_private._back_referenceIdx));
-
 };
 
 
@@ -1968,7 +1971,7 @@ BaseNode.prototype._clone = function (Constructor, options, optionalFilter, extr
         Namespace._process_modelling_rule(options.references, options.modellingRule);
     }
 
-    options.nodeId = self.addressSpace.getPrivateNamespace()._construct_nodeId(options);
+    options.nodeId = self.addressSpace.getOwnNamespace()._construct_nodeId(options);
 
     assert(options.nodeId instanceof NodeId);
 

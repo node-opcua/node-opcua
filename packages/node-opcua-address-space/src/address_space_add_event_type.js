@@ -158,7 +158,7 @@ exports.install = function (AddressSpace) {
      *
      */
     AddressSpace.prototype.addEventType = function (options) {
-        console.log("AddressSpace#addEventType is deprecated. please use addressSpace.getPrivateNamespace().addEventType() instead");
+        console.log("AddressSpace#addEventType is deprecated. please use addressSpace.getOwnNamespace().addEventType() instead");
         return this._resolveRequestedNamespace(options).addEventType(options);
     };
 

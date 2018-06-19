@@ -160,7 +160,7 @@ server.on("post_initialize", function () {
     const rootFolder = addressSpace.findNode("RootFolder");
     assert(rootFolder.browseName.toString() === "Root");
 
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
 
     const myDevices = namespace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
 

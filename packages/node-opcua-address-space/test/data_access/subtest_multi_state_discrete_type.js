@@ -31,7 +31,7 @@ module.exports = function(maintest) {
 
         it("should add a MultiStateDiscreteType variable",function() {
 
-            const namespace = addressSpace.getPrivateNamespace();
+            const namespace = addressSpace.getOwnNamespace();
 
             const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
@@ -59,7 +59,7 @@ module.exports = function(maintest) {
 
             let multiState;
             before(function() {
-                const namespace = addressSpace.getPrivateNamespace();
+                const namespace = addressSpace.getOwnNamespace();
 
                 const objectsFolder = addressSpace.findNode("ObjectsFolder");
                 objectsFolder.browseName.toString().should.eql("Objects");

@@ -37,7 +37,7 @@ describe("testing UAObjectType", function () {
 
     it("should read Attribute IsAbstract on UAObjectType ", function () {
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
         const objType = namespace.addObjectType({
             browseName: "MyObject",
             isAbstract: false
@@ -52,7 +52,7 @@ describe("testing UAObjectType", function () {
     });
     it("should read Attribute IsAbstract on Abstract UAObjectType ", function () {
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
         const objType = namespace.addObjectType({
             browseName: "MyObject2",
             isAbstract: true
@@ -72,7 +72,7 @@ describe("testing UAObjectType", function () {
     it("UAObjectType#instantiate should be possible to instantiate a ObjectType (nodeid not specified)",function() {
 
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
         const objType = namespace.addObjectType({
             browseName: "MyObject3",
             subtypeOf: "BaseObjectType",
@@ -91,7 +91,7 @@ describe("testing UAObjectType", function () {
 
     it("UAObjectType#instantiate should be possible to instantiate a ObjectType and specify its nodeId)",function() {
 
-        const namespace = addressSpace.getPrivateNamespace();
+        const namespace = addressSpace.getOwnNamespace();
         const objType = namespace.addObjectType({
             browseName: "MyObject4",
             subtypeOf: "BaseObjectType",

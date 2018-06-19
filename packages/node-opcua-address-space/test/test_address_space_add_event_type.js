@@ -25,7 +25,7 @@ describe("AddressSpace : add event type ", function () {
         get_mini_address_space(function (err, __addressSpace__) {
             addressSpace = __addressSpace__;
 
-            namespace = addressSpace.getPrivateNamespace();
+            namespace = addressSpace.getOwnNamespace();
 
             const eventType = namespace.addEventType({
                 browseName: "MyCustomEvent",
@@ -87,7 +87,7 @@ describe("AddressSpace : add event type ", function () {
         });
         eventType.browseName.toString().should.eql("1:__EventTypeForTest1");
 
-        const privateNamespace = addressSpace.getPrivateNamespace();
+        const privateNamespace = addressSpace.getOwnNamespace();
 
         const reloaded = addressSpace.findEventType("__EventTypeForTest1",privateNamespace.index);
 
@@ -98,11 +98,11 @@ describe("AddressSpace : add event type ", function () {
 
     it("should retrieve EventType in several ways", function () {
 
-        const namespaceIndex= addressSpace.getPrivateNamespace().index;
+        const namespaceIndex= addressSpace.getOwnNamespace().index;
         namespaceIndex.should.eql(1);
 
         const eventType1 = addressSpace.findEventType("MyCustomEvent",namespaceIndex);
-        const eventType2 = addressSpace.getPrivateNamespace().findObjectType("MyCustomEvent");
+        const eventType2 = addressSpace.getOwnNamespace().findObjectType("MyCustomEvent");
         const eventType3 = addressSpace.findEventType("1:MyCustomEvent");
 
         eventType1.should.eql(eventType2);
@@ -112,7 +112,7 @@ describe("AddressSpace : add event type ", function () {
 
     it("added EventType should be abstract by default", function () {
 
-        const namespaceIndex= addressSpace.getPrivateNamespace().index;
+        const namespaceIndex= addressSpace.getOwnNamespace().index;
         const eventType = addressSpace.findEventType("MyCustomEvent",namespaceIndex);
         eventType.isAbstract.should.eql(true);
 
