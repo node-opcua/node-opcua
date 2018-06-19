@@ -727,7 +727,7 @@ describe("testing ServerEngine", function () {
         session.testFilterArray = [3];
         const results3 = engine.browse(browseRequest.nodesToBrowse, session);
         results3[0].references.length.should.equal(1);
-        results3[0].references[0].displayName.text.should.equal("1:filteredFolder3");
+        results3[0].references[0].displayName.text.should.equal("filteredFolder3");
 
         engine.closeSession(session.authenticationToken, true);
 
