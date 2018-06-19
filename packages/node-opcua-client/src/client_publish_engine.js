@@ -316,8 +316,14 @@ ClientSidePublishEngine.prototype.unregisterSubscription = function (subscriptio
     assert(_.isFinite(subscriptionId) && subscriptionId >0);
     const self = this;
     self.activeSubscriptionCount -= 1;
-    assert(self.subscriptionMap.hasOwnProperty(subscriptionId));
-    delete self.subscriptionMap[subscriptionId];
+    // note : it is possible that we get here while the server has already requested
+    //        a session shutdown ... in this case it is pssoble that subscriptionId is already
+    //        removed
+    if(self.subscriptionMap.hasOwnProperty(subscriptionId)) {
+        delete self.subscriptionMap[subscriptionId];
+    } else {
+        debugLog("ClientSidePublishEngine#unregisterSubscription cannot find subscription  ",subscriptionId);
+    }
 };
 
 ClientSidePublishEngine.prototype.getSubscriptionIds = function() {

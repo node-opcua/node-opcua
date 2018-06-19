@@ -333,7 +333,6 @@ function dumpReferencedNodesOld(xw,node,forward) {
 
 function dumpReferencedNodes(xw,node,forward) {
 
-    console.log(" dn ",node.browseName.toString());
 
     const addressSpace = node.addressSpace;
     if (!forward) {
