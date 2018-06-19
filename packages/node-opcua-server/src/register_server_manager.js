@@ -488,6 +488,11 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
     const server = this.server;
     const selectedEndpoint = self.selectedEndpoint;
 
+    if (!selectedEndpoint) {
+        console.log("Warning : cannot register server - no endpoint avaialble");
+        return outer_callback(new Error("Cannot registerServer"));
+    }
+
     const options = {
         securityMode: selectedEndpoint.securityMode,
         securityPolicy: SecurityPolicy.get(selectedEndpoint.securityPolicyUri),
