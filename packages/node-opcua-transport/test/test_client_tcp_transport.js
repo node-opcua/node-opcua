@@ -371,14 +371,14 @@ describe("testing ClientTCP_transport", function() {
         );
     });
 
-    it("should returns an error if url has invalid port", function(done) {
+    it("should return an error if url has invalid port", function(done) {
         transport.connect(
             "opc.tcp://localhost:XXXXX/SomeAddress",
             function(err) {
                 if (err) {
                     const regexp_1 = /EADDRNOTAVAIL|ECONNREFUSED/; // node v0.10
                     const regexp_2 = /port(" option)* should be/; // node >v0.10 < 9.000
-                    const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.000
+                    const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.00
                     const regexp_4 = /Invalid endpoint url/; // error by parseEndpointUrl()
                     const test1 = !!err.message.match(regexp_1);
                     const test2 = !!err.message.match(regexp_2);
