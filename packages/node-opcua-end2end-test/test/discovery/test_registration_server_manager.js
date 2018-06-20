@@ -245,3 +245,81 @@ describe("DS4- Discovery server", function () {
     });
 
 });
+
+describe("DS5- Discovery Server 2",function() {
+    it("Discovery Server - server shall not struggle to start if discovery server is not available",function(done){
+
+        let discoveryServerEndpointUrl = "opc.tcp://localhost:12345";
+
+        let server;
+        async.series([
+
+            // no discovery ...
+
+            function(callback){
+
+                server = new OPCUAServer({
+                    port: 1435,
+                    registerServerMethod: opcua.RegisterServerMethod.LDS,
+                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
+                });
+
+                server.registerServerManager.timeout = 100;
+
+                // when server starts
+                // it should end up registering itself to the LDS
+                server.once("serverRegistered", function () {
+                    console.log("server serverRegistered ?! this is not what we expect !");
+                });
+                server.start(function () {
+                    callback();
+                });
+            },
+            function(callback) {
+                server.shutdown(callback);
+            }
+        ],done);
+    });
+
+    it("Discovery Server - server shall not struggle to start if discovery server is not available",function(done){
+
+        let discoveryServerEndpointUrl = "opc.tcp://localhost:12345";
+
+        let server;
+        async.series([
+
+            // no discovery ...
+
+            function(callback){
+
+                server = new OPCUAServer({
+                    port: 1435,
+                    registerServerMethod: opcua.RegisterServerMethod.LDS,
+                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
+                });
+
+                server.registerServerManager.timeout = 100;
+
+                // when server starts
+                // it should end up registering itself to the LDS
+                server.once("serverRegistered", function () {
+                    console.log("server serverRegistered ?! this is not what we expect !");
+                });
+                server.start(function () {
+                    callback();
+                });
+            },
+
+
+            function(callback){
+                server.once("serverRegistrationPending", function () {
+                    //x console.log("serverRegistrationPending");
+                    setTimeout(callback,1000);
+                });
+            },
+            function(callback) {
+                server.shutdown(callback);
+            }
+        ],done);
+    });
+});

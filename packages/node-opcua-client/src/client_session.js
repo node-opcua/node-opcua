@@ -1211,6 +1211,11 @@ ClientSession.prototype.close = function (deleteSubscription, callback) {
     }
     assert(_.isFunction(callback));
     assert(_.isBoolean(deleteSubscription));
+
+    if (!this._client)  {
+        debugLog("ClientSession#close : warning, client is already closed");
+        return callback(null); // already close ?
+    }
     assert(this._client);
 
     this._terminatePublishEngine();

@@ -650,16 +650,13 @@ OPCUAServer.prototype.start = function (done) {
                 });
             }
             else {
-                callback();
+                // we start the registration process asynchronously
+                // as we want to make server immediately available
+                self.registerServerManager.start(function() {});
+
+                setImmediate(callback);
             }
         });
-    });
-
-    tasks.push(function installRegisterServer(callback) {
-        self.registerServerManager.start(function() {
-
-        });
-        setImmediate(callback);
     });
 
     async.series(tasks, done);
