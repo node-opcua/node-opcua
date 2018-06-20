@@ -3,14 +3,12 @@
  * @module opcua.transport
  */
 
-
 // system requires
 const assert = require("node-opcua-assert").assert;
 
 const net = require("net");
 const _ = require("underscore");
 const util = require("util");
-
 
 // opcua requires
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
@@ -29,7 +27,6 @@ const AcknowledgeMessage = require("../_generated_/_auto_generated_AcknowledgeMe
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-
 const readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
 
 const decodeMessage = require("./tools").decodeMessage;
@@ -42,10 +39,10 @@ function createClientSocket(endpointUrl) {
     let socket;
     switch (ep.protocol) {
         case "opc.tcp":
-            socket = net.connect({host: hostname, port: port});
+            socket = net.connect({ host: hostname, port: port });
             socket.setNoDelay(true);
             socket.setTimeout(0);
-            socket.on("timeout",function() {
+            socket.on("timeout", function() {
                 console.log("Socket has timed out");
             });
 
@@ -53,7 +50,7 @@ function createClientSocket(endpointUrl) {
         case "fake":
             socket = getFakeTransport();
             assert(ep.protocol === "fake", " Unsupported transport protocol");
-            process.nextTick(function () {
+            process.nextTick(function() {
                 socket.emit("connect");
             });
             return socket;
@@ -63,7 +60,6 @@ function createClientSocket(endpointUrl) {
         case "https":
         default:
             throw new Error("this transport protocol is currently not supported :" + ep.protocol);
-
     }
 }
 
@@ -108,7 +104,7 @@ function createClientSocket(endpointUrl) {
  *
  *
  */
-const ClientTCP_transport = function () {
+const ClientTCP_transport = function() {
     TCP_transport.call(this);
     const self = this;
     self.connected = false;
@@ -116,10 +112,9 @@ const ClientTCP_transport = function () {
 util.inherits(ClientTCP_transport, TCP_transport);
 
 ClientTCP_transport.prototype.on_socket_ended = function(err) {
-
     const self = this;
     if (self.connected) {
-        TCP_transport.prototype.on_socket_ended.call(self,err);
+        TCP_transport.prototype.on_socket_ended.call(self, err);
     }
 };
 
@@ -130,18 +125,21 @@ ClientTCP_transport.prototype.on_socket_ended = function(err) {
  * @param callback {Function} the callback function
  * @param [options={}]
  */
-ClientTCP_transport.prototype.connect = function (endpointUrl, callback, options) {
-
+ClientTCP_transport.prototype.connect = function(endpointUrl, callback, options) {
     assert(_.isFunction(callback));
 
     options = options || {};
 
     const self = this;
 
-    self.protocolVersion = (options.protocolVersion !== undefined) ? options.protocolVersion : self.protocolVersion;
+    self.protocolVersion = options.protocolVersion !== undefined ? options.protocolVersion : self.protocolVersion;
     assert(_.isFinite(self.protocolVersion));
 
-    const ep = parseEndpointUrl(endpointUrl);
+    try {
+        const ep = parseEndpointUrl(endpointUrl);
+    } catch (err) {
+        return callback(err);
+    }
 
     const hostname = require("os").hostname();
 
@@ -151,11 +149,9 @@ ClientTCP_transport.prototype.connect = function (endpointUrl, callback, options
 
     debugLog("endpointUrl =", endpointUrl, "ep", ep);
 
-
     try {
         self._socket = createClientSocket(endpointUrl);
-    }
-    catch (err) {
+    } catch (err) {
         return callback(err);
     }
     self._socket.name = "CLIENT";
@@ -168,16 +164,16 @@ ClientTCP_transport.prototype.connect = function (endpointUrl, callback, options
         callback(err);
     }
     function _on_socket_end_for_connect(err) {
-        console.log("Socket has been closed by server",err);
+        console.log("Socket has been closed by server", err);
     }
 
     function _remove_connect_listeners() {
         self._socket.removeListener("error", _on_socket_error_for_connect);
-        self._socket.removeListener("end"  , _on_socket_end_for_connect);
+        self._socket.removeListener("end", _on_socket_end_for_connect);
     }
 
     function _on_socket_error_after_connection(err) {
-        debugLog(" ClientTCP_transport Socket Error",err.message);
+        debugLog(" ClientTCP_transport Socket Error", err.message);
 
         // EPIPE : EPIPE (Broken pipe): A write on a pipe, socket, or FIFO for which there is no process to read the
         // data. Commonly encountered at the net and http layers, indicative that the remote side of the stream being
@@ -186,7 +182,6 @@ ClientTCP_transport.prototype.connect = function (endpointUrl, callback, options
         // ECONNRESET (Connection reset by peer): A connection was forcibly closed by a peer. This normally results
         // from a loss of the connection on the remote socket due to a timeout or reboot. Commonly encountered via the
         // http and net modu
-
 
         if (err.message.match(/ECONNRESET|EPIPE/)) {
             /**
@@ -198,17 +193,15 @@ ClientTCP_transport.prototype.connect = function (endpointUrl, callback, options
     }
 
     self._socket.once("error", _on_socket_error_for_connect);
-    self._socket.once("end",_on_socket_end_for_connect);
+    self._socket.once("end", _on_socket_end_for_connect);
 
-    self._socket.on("connect", function () {
-
+    self._socket.on("connect", function() {
         _remove_connect_listeners();
 
         self._perform_HEL_ACK_transaction(function(err) {
-            if(!err) {
-
+            if (!err) {
                 // install error handler to detect connection break
-                self._socket.on("error",_on_socket_error_after_connection);
+                self._socket.on("error", _on_socket_error_after_connection);
 
                 self.connected = true;
                 /**
@@ -219,16 +212,14 @@ ClientTCP_transport.prototype.connect = function (endpointUrl, callback, options
                  */
                 self.emit("connect");
             } else {
-                debugLog("_perform_HEL_ACK_transaction has failed with err=",err.message);
+                debugLog("_perform_HEL_ACK_transaction has failed with err=", err.message);
             }
             callback(err);
         });
     });
 };
 
-
-ClientTCP_transport.prototype._handle_ACK_response = function (message_chunk, callback) {
-
+ClientTCP_transport.prototype._handle_ACK_response = function(message_chunk, callback) {
     const self = this;
     const _stream = new BinaryStream(message_chunk);
     const messageHeader = readMessageHeader(_stream);
@@ -246,11 +237,10 @@ ClientTCP_transport.prototype._handle_ACK_response = function (message_chunk, ca
         responseClass = TCPErrorMessage;
         _stream.rewind();
         response = decodeMessage(_stream, responseClass);
-        
-        err =new Error("ACK: ERR received " + response.statusCode.toString() + " : " + response.reason);
-        err.statusCode =  response.statusCode;
-        callback(err);
 
+        err = new Error("ACK: ERR received " + response.statusCode.toString() + " : " + response.reason);
+        err.statusCode = response.statusCode;
+        callback(err);
     } else {
         responseClass = AcknowledgeMessage;
         _stream.rewind();
@@ -258,11 +248,9 @@ ClientTCP_transport.prototype._handle_ACK_response = function (message_chunk, ca
         self.parameters = response;
         callback(null);
     }
-
 };
 
-ClientTCP_transport.prototype._send_HELLO_request = function () {
-
+ClientTCP_transport.prototype._send_HELLO_request = function() {
     const self = this;
     assert(self._socket);
     assert(_.isFinite(self.protocolVersion));
@@ -272,21 +260,18 @@ ClientTCP_transport.prototype._send_HELLO_request = function () {
     // the server will receive it as message from the client
     const request = new HelloMessage({
         protocolVersion: self.protocolVersion,
-        receiveBufferSize:    1024 * 64 * 10,
-        sendBufferSize:       1024 * 64 * 10,// 8196 min,
-        maxMessageSize:       0, // 0 - no limits
-        maxChunkCount:        0, // 0 - no limits
+        receiveBufferSize: 1024 * 64 * 10,
+        sendBufferSize: 1024 * 64 * 10, // 8196 min,
+        maxMessageSize: 0, // 0 - no limits
+        maxChunkCount: 0, // 0 - no limits
         endpointUrl: self.endpointUrl
     });
 
     const messageChunk = packTcpMessage("HEL", request);
     self._write_chunk(messageChunk);
-
 };
 
-
-ClientTCP_transport.prototype._perform_HEL_ACK_transaction = function (callback) {
-
+ClientTCP_transport.prototype._perform_HEL_ACK_transaction = function(callback) {
     const self = this;
     assert(self._socket);
     assert(_.isFunction(callback));
@@ -294,7 +279,6 @@ ClientTCP_transport.prototype._perform_HEL_ACK_transaction = function (callback)
     let counter = 0;
 
     self._install_one_time_message_receiver(function on_ACK_response(err, data) {
-
         assert(counter === 0);
         counter += 1;
 
@@ -302,7 +286,7 @@ ClientTCP_transport.prototype._perform_HEL_ACK_transaction = function (callback)
             callback(err);
             self._socket.end();
         } else {
-            self._handle_ACK_response(data, function (inner_err) {
+            self._handle_ACK_response(data, function(inner_err) {
                 callback(inner_err);
             });
         }
@@ -310,6 +294,4 @@ ClientTCP_transport.prototype._perform_HEL_ACK_transaction = function (callback)
     self._send_HELLO_request();
 };
 
-
 exports.ClientTCP_transport = ClientTCP_transport;
-
