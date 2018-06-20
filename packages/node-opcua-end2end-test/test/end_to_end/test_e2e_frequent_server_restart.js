@@ -34,7 +34,7 @@ describe("NR1 testing frequent server restart within same process", function () 
                 console.log("Server started");
             }
             callback(err);
-        })
+        });
 
     }
     function shutdownServer(callback) {
@@ -149,7 +149,7 @@ describe("NR1 testing frequent server restart within same process", function () 
                             }
                             callback();
                         });
-                    })
+                    });
                 });
             });
         }
@@ -164,45 +164,104 @@ describe("NR1 testing frequent server restart within same process", function () 
 
     }
     function wait_a_few_seconds(callback){
-        setTimeout(callback,2000);
+        setTimeout(callback, 3000);
     }
 
-    it("should perform start/stop cycle efficiently even with many connected clients ",function(done) {
+    function wait_a_minute(callback){
+        setTimeout(callback, 61000);
+    }
+
+    it("should perform start/stop cycle efficiently even with many connected clients and server close before clients",function(done) {
 
         async.series([
 
             createServer,
+
             connectManyClient,
-
-
+            wait_a_few_seconds,
             wait_a_few_seconds,
 
-            shutdownServer,
-
-
-            createServer,
-            wait_a_few_seconds,
             shutdownServer,
 
             createServer,
             wait_a_few_seconds,
+
             shutdownServer,
 
             createServer,
             wait_a_few_seconds,
+
             shutdownServer,
 
             createServer,
             wait_a_few_seconds,
+
             shutdownServer,
-            //xx wait_a_few_seconds,
+
+            createServer,
+            wait_a_few_seconds,
+
+            shutdownServer,
 
             shutdownClients,
             wait_a_few_seconds,
         ],done);
     });
-    it("should not crash when a server that failed to start is shot down",function(done) {
 
+    it("should perform start/stop cycle efficiently even with many connected clients and clients close before server",function(done) {
+
+        async.series([
+
+          createServer,
+
+          connectManyClient,
+          wait_a_few_seconds,
+
+          shutdownServer,
+
+          createServer,
+          wait_a_few_seconds,
+          shutdownServer,
+
+          createServer,
+          wait_a_few_seconds,
+
+          shutdownClients,
+          wait_a_few_seconds,
+
+          shutdownServer,
+          wait_a_few_seconds,
+
+        ],done);
+    });
+
+    it("should perform start/stop long cycle efficiently even with many connected clients and clients close before server",function(done) {
+
+        async.series([
+
+          createServer,
+          wait_a_few_seconds,
+
+          connectManyClient,
+          wait_a_few_seconds,
+          wait_a_few_seconds,
+
+          shutdownServer,
+          wait_a_minute,
+
+          createServer,
+          wait_a_minute,
+
+          shutdownClients,
+          wait_a_few_seconds,
+
+          shutdownServer,
+          wait_a_few_seconds,
+
+        ],done);
+    });
+
+    it("should not crash when a server that failed to start is shot down",function(done) {
         let server1,server2;
 
         async.series([
@@ -234,5 +293,51 @@ describe("NR1 testing frequent server restart within same process", function () 
         ],done);
     });
 
+    it("should not crash when we start two servers and stop the second server first",function(done) {
+
+      let server1,server2;
+
+      async.series([
+
+        function create_server_1(callback){
+          server1 = new opcua.OPCUAServer({port:2004});
+          server1.start(callback);
+        },
+        function create_server_2(callback){
+            server2 = new opcua.OPCUAServer({port:2018});
+            server2.start(callback);
+        },
+        function shutdown_server_2(callback){
+            server2.shutdown(callback);
+        },
+        function shutdown_server_1(callback){
+            server1.shutdown(callback);
+        }
+      ],done);
+    });
+
+
+    it("should not crash when we start two servers and stop at the same order as we started",function(done) {
+
+      let server1,server2;
+
+      async.series([
+
+        function create_server_1(callback){
+          server1 = new opcua.OPCUAServer({port:2014});
+          server1.start(callback);
+        },
+        function create_server_2(callback){
+          server2 = new opcua.OPCUAServer({port:2016});
+          server2.start(callback);
+        },
+        function shutdown_server_1(callback){
+          server1.shutdown(callback);
+        },
+        function shutdown_server_2(callback){
+          server2.shutdown(callback);
+        }
+      ],done);
+    });
 });
 
