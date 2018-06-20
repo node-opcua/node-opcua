@@ -10,6 +10,13 @@ node_js:
   - "9"
   - "10"
 
+os:
+  - linux
+  - osx
+
+env:
+  #- SSL_LIB=openssl
+  - SSL_LIB=libressl
 
 before_script:
   - npm install -g istanbul coveralls
@@ -18,7 +25,15 @@ before_script:
   # memcpy only works with node version > 0.8 and <= 0.12, and not with io.js, at this time
   - if [[ `node --version` == v0.12 ]]; then npm i memcpy ; fi
   - if [[ `node --version` == v0.10* ]]; then npm i ursa@0.8.5 ; fi
-
+  - if [[ $TRAVIS_OS_NAME =~ ^osx$ && $SSL_LIB =~ ^openssl$ ]]; then
+      brew install openssl;
+      export PATH=/usr/local/opt/openssl/bin:$PATH;
+    fi;
+  - if [[ $TRAVIS_OS_NAME =~ ^osx$ && $SSL_LIB =~ ^libressl$ ]]; then
+      brew install libressl;
+      export PATH=/usr/local/opt/libressl/bin:$PATH;
+    fi;
+  - openssl version
 after_success:
   - make test-cov
 script:
