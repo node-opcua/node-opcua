@@ -44,8 +44,7 @@ const infinite_connectivity_strategy = {
 };
 
 
-
-const f = require("../../test_helpers/display_function_name").f.bind(null,doDebug);
+const f = require("../../test_helpers/display_function_name").f.bind(null, doDebug);
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -73,11 +72,11 @@ describe("KJH1 testing basic Client-Server communication", function () {
             endpoint_must_exist: false
         };
         client = new OPCUAClient(options);
-        client.on("connection_reestablished",function() {
+        client.on("connection_reestablished", function () {
             debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.red);
         });
         client.on("backoff", function (number, delay) {
-            debugLog("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
+            debugLog("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
         });
         client.on("start_reconnection", function () {
             debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!".bgWhite.red);
@@ -201,7 +200,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
         client.protocolVersion = 0;
 
         const unused_port = 8909;
-        const bad_endpointUrl = "opc.tcp://"+ "localhost" + ":" + unused_port;
+        const bad_endpointUrl = "opc.tcp://" + "localhost" + ":" + unused_port;
 
         async.series([
             function (callback) {
@@ -452,11 +451,11 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
         };
 
-        should.not.exist(client,"Already have a client ");
+        should.not.exist(client, "Already have a client ");
 
         client = new OPCUAClient(options);
 
-        client.on("keepalive",function() {
+        client.on("keepalive", function () {
             debugLog("keep alive");
         });
         client_has_received_close_event = 0;
@@ -473,11 +472,11 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!".bgWhite.red);
             debugLog("starting reconnection");
         });
-        client.on("backoff", function (number,delay) {
-            debugLog("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
+        client.on("backoff", function (number, delay) {
+            debugLog("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
             backoff_counter += 1;
         });
-        client.on("connection_reestablished",function() {
+        client.on("connection_reestablished", function () {
             debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.red);
         });
 
@@ -750,9 +749,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
 
     });
-    it("TR4 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server",function(done){
+    it("TR4 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", function (done) {
         async.series([
-            function(callback) {
+            function (callback) {
                 endpointUrl = "opc.tcp://localhost:11111"; // uri of an unavailable opcua server
                 callback();
             },
@@ -819,16 +818,16 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     function monitor_monotonous_counter(callback) {
 
         monitoredItem = subscription.monitor(
-          {
-              // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
-              nodeId: counterNode.nodeId,
-              attributeId: opcua.AttributeIds.Value
-          },
-          {
-              samplingInterval: 0, // 0 : event base => whenever value changes
-              discardOldest: true,
-              queueSize: 1000
-          });
+            {
+                // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
+                nodeId: counterNode.nodeId,
+                attributeId: opcua.AttributeIds.Value
+            },
+            {
+                samplingInterval: 0, // 0 : event base => whenever value changes
+                discardOldest: true,
+                queueSize: 1000
+            });
 
 
         // subscription.on("item_added",function(monitoredItem){
@@ -862,47 +861,51 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function ensure_continuous(callback) {
         // ensure we have more value than previous call
-        // ensure that series is continuous
-        if (doDebug) {
-            console.log(values_to_check.join(" "));
-        }
+        setImmediate(function () {
 
-        // let check that new values have been received
-        // when the following test fails, this probably means that the publish mecanism is not working as expected
-        values_to_check.length.should.be.greaterThan(previous_value_count + 1,
-            " expecting that new values have been received since last check : values_to_check = " + values_to_check + " != " + (previous_value_count + 1));
-
-        if (values_to_check.length > 0) {
-            const lastValue = values_to_check[values_to_check.length - 1];
-            const expectedLastValue = values_to_check[0] + values_to_check.length - 1;
-            if (lastValue > expectedLastValue) {
-                console.log(" Warning ", values_to_check.join(" "));
+            // ensure that series is continuous
+            if (doDebug) {
+                console.log(values_to_check.join(" "));
             }
-            // lastValue.should.be.belowOrEqual(exepectedLastValue);
-        }
-        previous_value_count = values_to_check.length;
-        callback();
+
+            // let check that new values have been received
+            // when the following test fails, this probably means that the publish mecanism is not working as expected
+            values_to_check.length.should.be.greaterThan(previous_value_count + 1,
+                " expecting that new values have been received since last check : values_to_check = " + values_to_check + " != " + (previous_value_count + 1));
+
+            if (values_to_check.length > 0) {
+                const lastValue = values_to_check[values_to_check.length - 1];
+                const expectedLastValue = values_to_check[0] + values_to_check.length - 1;
+                if (lastValue > expectedLastValue) {
+                    console.log(" Warning ", values_to_check.join(" "));
+                }
+                // lastValue.should.be.belowOrEqual(exepectedLastValue);
+            }
+            previous_value_count = values_to_check.length;
+            callback();
+        });
     }
 
     function break_connection(socketError, callback) {
+
         const clientSocket = client._secureChannel._transport._socket;
         clientSocket.end();
         clientSocket.destroy();
         clientSocket.emit("error", new Error(socketError));
 
-       /*
-        server.endpoints.forEach(function(endpoint){
-            endpoint.killClientSockets(function() {
-            });
-        });
-         */
+        /*
+         server.endpoints.forEach(function(endpoint){
+             endpoint.killClientSockets(function() {
+             });
+         });
+          */
 
-        callback();
+        setImmediate(callback);
     }
 
     function simulate_connection_break(breakage_duration, socketError, callback) {
 
-        debugLog("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Breaking connection for ",breakage_duration," ms");
+        debugLog("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Breaking connection for ", breakage_duration, " ms");
 
         async.series([
             suspend_demo_server,
@@ -941,9 +944,10 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         subscription._life_time_counter = subscription.lifeTimeCount - 1;
 
         subscription.once("terminated", function () {
-            callback();
+            setImmediate(callback);
         });
     }
+
     function wait_until_server_subscription_has_timed_out(callback) {
 
         const server_subscription = get_server_side_subscription();
@@ -960,7 +964,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
             f(wait_until_server_subscription_has_timed_out),
 
-            f(wait_for.bind(null, 40 *100)),
+            f(wait_for.bind(null, 40 * 100)),
 
             f(resume_demo_server)
         ], callback);
@@ -1331,7 +1335,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(ensure_continuous),
 
             // now drop connection  for 1.5 times requestedSessionTimeout seconds
-            f(simulate_connection_break.bind(null, 1.5   * requestedSessionTimeout, "EPIPE")),
+            f(simulate_connection_break.bind(null, 1.5 * requestedSessionTimeout, "EPIPE")),
             // make sure that we have received all notifications
             // (thanks to republish )
 
