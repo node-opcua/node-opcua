@@ -221,6 +221,10 @@ exports.coerceUInt32 = function coerceUInt32(value) {
     if (value === null || value === undefined) {
         return value;
     }
+    if(value.hasOwnProperty("value")) {
+        assert(value.constructor.name === "EnumItem");
+        return parseInt(value.value);
+    }
     return parseInt(value, 10);
 };
 exports.coerceInt32 = function coerceInt32(value) {
