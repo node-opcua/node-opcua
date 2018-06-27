@@ -42,7 +42,7 @@ const defaultConnectionStrategy = {
  * @class OPCUAClientBase
  * @extends EventEmitter
  * @param options
- * @param options.defaultSecureTokenLiveTime {Number} default secure token lifetime in ms
+ * @param options.defaultSecureTokenLifetime {Number} default secure token lifetime in ms
  * @param [options.securityMode=MessageSecurityMode.None] {MessageSecurityMode} the default security mode.
  * @param [options.securityPolicy =SecurityPolicy.NONE] {SecurityPolicy} the security mode.
  * @param [options.serverCertificate=null] {Certificate} the server certificate.
@@ -50,7 +50,7 @@ const defaultConnectionStrategy = {
  * @param [options.privateKeyFile="certificates/client_key_1024.pem"] {String} client private key pem file.
  * @param [options.connectionStrategy] {Object}
  * @param [options.keepSessionAlive=false]{Boolean}
- * @param [options.tokenRenewalInterval =0] {Number} if not specify or set to 0 , token  renewal will happen around 75% of the defaultSecureTokenLiveTime
+ * @param [options.tokenRenewalInterval =0] {Number} if not specify or set to 0 , token  renewal will happen around 75% of the defaultSecureTokenLifetime
  * @param [options.keepPendingSessionsOnDisconnect=false] if set to true, pending session will not be automatically closed *
  *                                                  when disconnect is called
  * @constructor
@@ -730,7 +730,7 @@ OPCUAClientBase.prototype.getEndpoints = function (options, callback) {
     options.profileUris = options.profileUris || [];
 
     const request = new GetEndpointsRequest({
-        endpointUrl: options.endpointUrl,
+        endpointUrl: options.endpointUrl || self.endpointUrl,
         localeIds: options.localeIds,
         profileUris: options.profileUris,
         requestHeader: {
