@@ -52,7 +52,8 @@ const defaultConnectionStrategy = {
  * @param [options.keepSessionAlive=false]{Boolean}
  * @param [options.tokenRenewalInterval =0] {Number} if not specify or set to 0 , token  renewal will happen around 75% of the defaultSecureTokenLifetime
  * @param [options.keepPendingSessionsOnDisconnect=false] if set to true, pending session will not be automatically closed *
- *                                                  when disconnect is called
+ *                                                        when disconnect is called
+ * @param [options.clientName=""] the client Name
  * @constructor
  */
 function OPCUAClientBase(options) {
@@ -61,6 +62,8 @@ function OPCUAClientBase(options) {
     options = options || {};
 
     EventEmitter.call(this);
+
+    this.clientName = options.clientName || "Session";
 
     options.certificateFile = options.certificateFile || path.join(__dirname, "../certificates/client_selfsigned_cert_1024.pem");
 
@@ -386,6 +389,11 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
                     debugLog("Cannot create secureChannel".yellow, (err.message ? err.message.cyan : ""));
                     self._destroy_secure_channel();
                 } else {
+                    if (!self._secureChannel) {
+                        console.log("_secureChannel has been closed during the transaction !");
+                        self._destroy_secure_channel();
+                        return _inner_callback(new Error("Secure Channel Closed"));
+                    }
                     assert(self._secureChannel !== null);
                     _install_secure_channel_event_handlers(self, secureChannel);
                 }
@@ -520,9 +528,12 @@ function _install_secure_channel_event_handlers(self, secureChannel) {
 
             setImmediate(function () {
 
+                debugLog("recreating new secure channel ");
+
                 self._recreate_secure_channel(function (err) {
 
                     debugLog("secureChannel#on(close) => _recreate_secure_channel returns ", err ? err.message : "OK");
+
                     if (err) {
                         //xx assert(!self._secureChannel);
                         self.emit("close", err);
@@ -582,6 +593,8 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
     const self = this;
 
     self.endpointUrl = endpointUrl;
+
+    debugLog("OPCUAClientBase#connect ", endpointUrl);
 
     // prevent illegal call to connect
     if (self._secureChannel !== null) {
@@ -910,8 +923,10 @@ OPCUAClientBase.prototype._removeSession = function (session) {
 OPCUAClientBase.prototype.disconnect = function (callback) {
 
     assert(_.isFunction(callback), "expecting a callback function here");
-
     const self = this;
+
+    debugLog("OPCUAClientBase#disconnect",self.endpointUrl);
+
     if (self.isReconnecting) {
         debugLog("OPCUAClientBase#disconnect called while reconnection is in progress");
         // let's abort the reconnection process

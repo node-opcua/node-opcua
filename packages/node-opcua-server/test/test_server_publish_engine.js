@@ -840,7 +840,7 @@ describe("Testing the server publish engine", function () {
         publish_server.dispose();
     });
 
-    it("LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of LifeTime timeout ", function () {
+    it("LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout ", function () {
 
         const publish_server = new ServerSidePublishEngine();
 

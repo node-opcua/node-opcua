@@ -92,9 +92,18 @@ const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 function _ask_for_subscription_republish(session, callback) {
 
+    if (session.hasBeenClosed()) {
+        debugLog("_ask_for_subscription_republish :  session is closed");
+        return callback(new Error("askForSubscriptionRepublish => canceled because session is closed"));
+    }
+
     debugLog("_ask_for_subscription_republish ".bgCyan.yellow.bold);
     //xx assert(session.getPublishEngine().nbPendingPublishRequests === 0, "at this time, publish request queue shall still be empty");
+
     session.getPublishEngine().republish(function (err) {
+        if (session.hasBeenClosed()) {
+            return callback(new Error("Cannot complete subscription republish due to session termination"));
+        }
         debugLog("_ask_for_subscription_republish done ".bgCyan.bold.green, err ? err.message : "OKs");
         // xx assert(session.getPublishEngine().nbPendingPublishRequests === 0);
         session.resumePublishEngine();
@@ -103,6 +112,10 @@ function _ask_for_subscription_republish(session, callback) {
 }
 
 function repair_client_session_by_recreating_a_new_session(client, session, callback) {
+
+    if (doDebug) {
+        debugLog(" repairing client session by_recreating a new session ",session.sessionId.toString());
+    }
 
     if (session.hasBeenClosed()) {
         debugLog("Aborting reactivation of old session because user requested session to be closed".bgWhite.red);
@@ -115,11 +128,17 @@ function repair_client_session_by_recreating_a_new_session(client, session, call
 
     async.series([
         function suspend_old_session_publish_engine(callback) {
+            if (session.hasBeenClosed()) {
+                return callback(new Error("Cannot complete subscription republish due to session termination"));
+            }
             debugLog("    => suspend old session publish engine....".bgWhite.red);
             session.getPublishEngine().suspend(true);
             callback();
         },
         function create_new_session(callback) {
+            if (session.hasBeenClosed()) {
+                return callback(new Error("Cannot complete subscription republish due to session termination"));
+            }
 
             debugLog("    => creating a new session ....".bgWhite.red);
             // create new session, based on old session,
@@ -135,6 +154,9 @@ function repair_client_session_by_recreating_a_new_session(client, session, call
         },
         function activate_new_session(callback) {
 
+            if (session.hasBeenClosed()) {
+                return callback(new Error("Cannot complete subscription republish due to session termination"));
+            }
             debugLog("    => activating a new session ....".bgWhite.red);
 
             client._activateSession(new_session, function (err) {
@@ -145,6 +167,9 @@ function repair_client_session_by_recreating_a_new_session(client, session, call
         },
         function attempt_subscription_transfer(callback) {
 
+            if (session.hasBeenClosed()) {
+                return callback(new Error("Cannot complete subscription republish due to session termination"));
+            }
             // get the old subscriptions id from the old session
             const subscriptionsIds = session.getPublishEngine().getSubscriptionIds();
 
@@ -196,6 +221,10 @@ function repair_client_session_by_recreating_a_new_session(client, session, call
 
                 async.map(subscriptions_to_recreate,function recreate_subscription(subscriptionId,next){
 
+                    if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
+                        debugLog("          => CANNOT RECREATE SUBSCRIPTION  ".red, subscriptionId);
+                        return next();
+                    }
                     const subscription = session.getPublishEngine().getSubscription(subscriptionId);
                     assert(subscription.constructor.name === "ClientSubscription");
                     debugLog("          => RECREATING SUBSCRIPTION  ".red, subscriptionId);
@@ -214,11 +243,17 @@ function repair_client_session_by_recreating_a_new_session(client, session, call
             });
         },
         function ask_for_subscription_republish(callback) {
+            if (session.hasBeenClosed()) {
+                return callback(new Error("Cannot complete subscription republish due to session termination"));
+            }
             assert(new_session.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
             //      call Republish
             return _ask_for_subscription_republish(new_session, callback);
         },
         function start_publishing_as_normal(callback) {
+            if (session.hasBeenClosed()) {
+                return callback(new Error("Cannot complete subscription republish due to session termination"));
+            }
             new_session.getPublishEngine().suspend(false);
             const listenerCountAfter = session.listenerCount();
             assert(new_session === session);
@@ -234,15 +269,15 @@ function repair_client_session(client, session, callback) {
     const self = client;
 
     if (doDebug) {
-        debugLog("TRYING TO REACTIVATE EXISTING SESSION ", session.sessionId.toString());
-        debugLog("  SubscriptionIds :", session.getPublishEngine().getSubscriptionIds());
+        debugLog("  TRYING TO REACTIVATE EXISTING SESSION ", session.sessionId.toString());
+        debugLog("     SubscriptionIds :", session.getPublishEngine().getSubscriptionIds());
     }
     self._activateSession(session, function (err) {
         //
         // Note: current limitation :
         //  - The reconnection doesn't work yet, if connection break is caused by a server that crashes and restarts.
         //
-        debugLog("ActivateSession : ", err ? err.message : " SUCCESS !!! ");
+        debugLog("    ActivateSession : ", err ? err.message : " SUCCESS !!! ");
         if (err) {
             //  activate old session has failed => let's  recreate a new Channel and transfer the subscription
             return repair_client_session_by_recreating_a_new_session(client, session, callback);

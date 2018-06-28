@@ -81,7 +81,7 @@ util.inherits(RegisterServerManager, EventEmitter);
 RegisterServerManager.prototype.dispose = function () {
     const self = this;
     self.server = null;
-    debugLog("RegisterServerManager#dispose", self.state);
+    debugLog("RegisterServerManager#dispose", self.state.toString());
     assert(self.state === RegisterServerManagerStatus.INACTIVE);
     assert(self._registrationTimerId === null, "stop has not been called");
     self.removeAllListeners();
@@ -166,16 +166,25 @@ RegisterServerManager.prototype._setState = function(status){
     //xx console.log((new Error()).stack);
     self.state = status;
 };
+
 RegisterServerManager.prototype.start = function (callback) {
+
     debugLog("RegisterServerManager#start");
     const self = this;
     if (self.state !== RegisterServerManagerStatus.INACTIVE) {
         return callback(new Error("RegisterServer process already started")); // already started
     }
+
     // perform initial registration + automatic renewal
     self._establish_initial_connection(function (err) {
-        if (err) return callback(err);
+
+        if (err) {
+            debugLog("RegisterServerManager#start => _establish_initial_connection has failed");
+            return callback(err);
+        }
+
         self._setState(RegisterServerManagerStatus.REGISTERING);
+
         self._registerServer(true, function (err) {
 
             if (self.state !== RegisterServerManagerStatus.REGISTERING) {
@@ -185,13 +194,12 @@ RegisterServerManager.prototype.start = function (callback) {
 
             if (err) {
                 debugLog("RegisterServerManager#start - registering server has failed ! please check that your server certificate is accepted by the LDS");
-                self._emitEvent("serverRegisterationFailure");
+                self._emitEvent("serverRegistrationFailure");
             } else {
                 self._emitEvent("serverRegistered");
+                self._setState(RegisterServerManagerStatus.WAITING);
+                self._trigger_next();
             }
-
-            self._setState(RegisterServerManagerStatus.WAITING);
-            self._trigger_next();
             callback();
         });
     });
@@ -210,6 +218,7 @@ RegisterServerManager.prototype._establish_initial_connection = function (outer_
 
     // Retry Strategy must be set
     let client = new OPCUAClientBase({
+        clientName: "RegistrationClient-1",
         certificateFile: self.server.certificateFile,
         privateKeyFile: self.server.privateKeyFile,
         connectionStrategy: infinite_connectivity_strategy,
@@ -225,17 +234,17 @@ RegisterServerManager.prototype._establish_initial_connection = function (outer_
 
     async.series([
 
-        function (callback) {
+        function do_initial_connection_with_discovery_server(callback) {
             client.connect(self.discoveryServerEndpointUrl, function(err){
                 if (err) {
                     debugLog("RegisterServerManager#_establish_initial_connection : initial connection to server has failed");
-                    debugLog(err);
+                   //xx debugLog(err);
                 }
                 return callback(err);
             });
         },
 
-        function (callback) {
+        function getEndpoints_on_discovery_server(callback) {
             client.getEndpoints(function (err, endpoints) {
                 if (!err) {
                     const endpoint = findSecureEndpoint(endpoints);
@@ -253,20 +262,44 @@ RegisterServerManager.prototype._establish_initial_connection = function (outer_
                 callback(err);
             });
         },
-        function (callback) {
+        function closing_discovery_server_connection(callback) {
             self._server_endpoints = client._server_endpoints;
-            client.disconnect(callback);
+            client.disconnect(function(err) {
+                client = null;
+                callback(err);
+            });
         },
-        function (callback) {
+        function wait_a_little_bit(callback) {
             setTimeout(callback, 100);
         },
     ], function (err) {
+
+        debugLog("-------------------------------",!!err);
+
         self._registration_client = null;
         if (self.state !== RegisterServerManagerStatus.INITIALIZING) {
             debugLog("RegisterServerManager#_establish_initial_connection has been interrupted");
-            return outer_callback(new Error("Initialization has been canceled"));
+            self._setState(RegisterServerManagerStatus.INACTIVE);
+            if (client) {
+                client.disconnect(function(err) {
+                    client = null;
+                    outer_callback(new Error("Initialization has been canceled"));
+                });
+            }else {
+                outer_callback(new Error("Initialization has been canceled"));
+            }
+            return;
         }
-        outer_callback(err);
+        if (err) {
+            self._setState(RegisterServerManagerStatus.INACTIVE);
+            client.disconnect(function(err1) {
+                self._registration_client = null;
+                debugLog("#######",!!err1);
+                outer_callback(err);
+            });
+        } else {
+            outer_callback();
+        }
     });
 };
 
@@ -320,6 +353,7 @@ RegisterServerManager.prototype._cancel_pending_client_if_any = function (callba
 
     const self = this;
     if (self._registration_client) {
+        debugLog("RegisterServerManager#_cancel_pending_client_if_any => wee need to disconnection _registration_client");
         self._registration_client.disconnect(function () {
             self._registration_client = null;
             self._cancel_pending_client_if_any(callback);
@@ -346,7 +380,7 @@ RegisterServerManager.prototype.stop = function (outer_callback) {
     self._cancel_pending_client_if_any(function (err) {
         debugLog("RegisterServerManager#stop :clearing timeout");
 
-        if(!self.selectedEndpoint|| self.state === RegisterServerManagerStatus.INACTIVE){
+        if(!self.selectedEndpoint || self.state === RegisterServerManagerStatus.INACTIVE){
             self.state = RegisterServerManagerStatus.INACTIVE;
             assert(self._registrationTimerId === null);
             return outer_callback();
@@ -478,11 +512,12 @@ function sendRegisterServerRequest(self,client,isOnline,callback) {
 RegisterServerManager.prototype._registerServer = function(isOnline, outer_callback)
 {
     assert(_.isFunction(outer_callback));
-    debugLog("RegisterServerManager#_registerServer isOnline:",isOnline);
     const self = this;
+
+    debugLog("RegisterServerManager#_registerServer isOnline:",isOnline,"seleectedEndpoint: ",self.selectedEndpoint.endpointUrl);
     assert(self.selectedEndpoint || "must have a selected endpoint => please call _establish_initial_connection");
     assert(self.server.serverType, " must have a valid server Type");
-    assert(self.server.discoveryServerEndpointUrl);
+    assert(self.discoveryServerEndpointUrl);
 
     // construct connection
     const server = this.server;
@@ -499,8 +534,8 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
         serverCertificate: selectedEndpoint.serverCertificate,
         certificateFile: server.certificateFile,
         privateKeyFile: server.privateKeyFile,
-        connectionStrategy: no_reconnect_connectivity_strategy
-
+        connectionStrategy: no_reconnect_connectivity_strategy,
+        clientName: "RegistrationClient-2"
     };
 
     const tmp = self._server_endpoints;

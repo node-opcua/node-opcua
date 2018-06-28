@@ -10,6 +10,9 @@ const serverStatus_State_Id = coerceNodeId(VariableIds.Server_ServerStatus_State
 const ServerState = require("node-opcua-common").ServerState;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+
 
 function ClientSessionKeepAliveManager(session) {
     const self = this;
@@ -42,8 +45,12 @@ ClientSessionKeepAliveManager.prototype.ping_server = function(callback) {
         //xx console.log("Skipping ",timeSinceLastServerContact,self.session.timeout);
         return callback();
     }
-    //xx console.log("readVariableValue ",timeSinceLastServerContact,self.session.timeout);
 
+    if (the_session.isReconnecting) {
+        debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
+        return callback();
+    }
+    debugLog("ClientSessionKeepAliveManager#ping_server ",timeSinceLastServerContact,self.session.timeout);
     // Server_ServerStatus_State
     the_session.readVariableValue(serverStatus_State_Id, function (err, dataValue) {
         if (err) {

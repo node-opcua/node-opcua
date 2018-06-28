@@ -344,6 +344,11 @@ ClientSidePublishEngine.prototype.getSubscription = function (subscriptionId) {
     assert(self.subscriptionMap.hasOwnProperty(subscriptionId));
     return self.subscriptionMap[subscriptionId];
 };
+ClientSidePublishEngine.prototype.hasSubscription = function (subscriptionId) {
+    const self = this;
+    assert(_.isFinite(subscriptionId) && subscriptionId >0);
+    return self.subscriptionMap.hasOwnProperty(subscriptionId);
+};
 
 ClientSidePublishEngine.prototype._receive_publish_response = function (response) {
 
@@ -423,6 +428,7 @@ ClientSidePublishEngine.prototype.republish = function(callback) {
         let is_done = false;
 
         function _send_republish(_b_callback) {
+            assert(_.isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber+1>=0);
             const request = new subscription_service.RepublishRequest({
                 subscriptionId: subscription.subscriptionId,
                 retransmitSequenceNumber: subscription.lastSequenceNumber+1
@@ -434,6 +440,12 @@ ClientSidePublishEngine.prototype.republish = function(callback) {
                     request.subscriptionId," retransmitSequenceNumber=",request.retransmitSequenceNumber);
             }
 
+            if (!self.session || self.session._closeEventHasBeenEmmitted) {
+                debugLog("ClientPublishEngine#_republish aborted ");
+                // has  client been disconnected in the mean time ?
+                is_done = true;
+                return _b_callback();
+            }
             self.session.republish(request,function(err,response){
                 if (!err &&  response.responseHeader.serviceResult.equals(StatusCodes.Good)) {
                     // reprocess notification message  and keep going

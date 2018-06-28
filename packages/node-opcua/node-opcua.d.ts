@@ -72,7 +72,7 @@ export declare enum SecurityPolicy {
 
 export interface OPCUAClientOptions {
     /** default secure token lifetime in ms */
-    defaultSecureTokenLiveTime?: number;
+    defaultSecureTokenLifetime?: number;
     /** the server certificate. */
     serverCertificate?: Uint8Array | null;
     connectionStrategy?: {

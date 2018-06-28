@@ -32,6 +32,7 @@ const browse_service = require("node-opcua-service-browse");
 const write_service = require("node-opcua-service-write");
 const utils = require("node-opcua-utils");
 const call_service = require("node-opcua-service-call");
+const translate_service = require("node-opcua-service-translate-browse-path");
 
 const BrowseResult = require("node-opcua-service-browse").BrowseResult;
 
@@ -814,7 +815,6 @@ ClientSession.prototype.readDeprecated = function (nodesToRead, maxAge, callback
 
 ClientSession.prototype.emitCloseEvent = function (statusCode) {
 
-
     const self = this;
     if (!self._closeEventHasBeenEmmitted) {
         debugLog("ClientSession#emitCloseEvent");
@@ -829,6 +829,7 @@ ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, o
 
     assert(_.isFunction(callback));
 
+
     const request = new SomeRequest(options);
 
     /* istanbul ignore next */
@@ -836,8 +837,19 @@ ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, o
         request.trace = new Error().stack;
     }
 
+    if (self._closeEventHasBeenEmmitted) {
+        debugLog("ClientSession#_defaultRequest => session has been closed !!", request.toString());
+        setImmediate(function() {
+            callback(new Error("ClientSession is closed !"));
+        });
+        return ;
+    }
+
     self.performMessageTransaction(request, function (err, response) {
 
+        if(self._closeEventHasBeenEmmitted) {
+            debugLog("ClientSession#_defaultRequest ... err =",err,response? response.toString() :" null");
+        }
         /* istanbul ignore next */
         if (err) {
             // let intercept interesting error message
@@ -846,10 +858,13 @@ ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, o
                 // probably due to timeout issue
                 // let's print some statistics
                 const now = new Date();
-                debugLog(" server send BadSessionClosed !".bgWhite.red);
-                debugLog(" timeout.................. ", self.timeout);
-                debugLog(" lastRequestSentTime...... ", new Date(self.lastRequestSentTime).toISOString(), now - self.lastRequestSentTime);
-                debugLog(" lastResponseReceivedTime. ", new Date(self.lastResponseReceivedTime).toISOString(), now - self.lastResponseReceivedTime);
+                if (doDebug) {
+                    debugLog(" server send BadSessionClosed !".bgWhite.red);
+                    debugLog(" request was               ".bgWhite.red,request.toString());
+                    debugLog(" timeout.................. ", self.timeout);
+                    debugLog(" lastRequestSentTime...... ", new Date(self.lastRequestSentTime).toISOString(), now - self.lastRequestSentTime);
+                    debugLog(" lastResponseReceivedTime. ", new Date(self.lastResponseReceivedTime).toISOString(), now - self.lastResponseReceivedTime);
+                }
 
                 //xxx  DO NOT TERMINATE SESSION, as we will need a publishEngine when we reconnect self._terminatePublishEngine();
                 /**
@@ -857,7 +872,6 @@ ClientSession.prototype._defaultRequest = function (SomeRequest, SomeResponse, o
                  * @event session_closed
                  */
                 self.emitCloseEvent(StatusCodes.BadSessionClosed);
-
 
             }
             return callback(err, response);
@@ -1062,22 +1076,21 @@ ClientSession.prototype.setPublishingMode = function (publishingEnabled, subscri
         assert(_.isNumber(subscriptionIds));
         subscriptionIds = [subscriptionIds];
     }
-
-    const request = new subscription_service.SetPublishingModeRequest({
+    const options = new subscription_service.SetPublishingModeRequest({
         publishingEnabled: publishingEnabled,
         subscriptionIds: subscriptionIds
     });
+    this._defaultRequest(
+        subscription_service.SetPublishingModeRequest,
+        subscription_service.SetPublishingModeResponse,
+        options,  function (err, response) {
 
-    self.performMessageTransaction(request, function (err, response) {
-
-        /* istanbul ignore next */
-        if (err) {
-            return callback(err, null);
-        }
-
-        callback(err, response.results);
-
-    });
+            /* istanbul ignore next */
+            if (err) {
+                return callback(err, null);
+            }
+            callback(err, response.results);
+        });
 };
 
 /**
@@ -1096,7 +1109,6 @@ ClientSession.prototype.translateBrowsePath = function (browsePath, callback) {
     assert(_.isFunction(callback));
     const self = this;
 
-    const translate_service = require("node-opcua-service-translate-browse-path");
 
     const isArray = _.isArray(browsePath);
     browsePath = isArray ?  browsePath :[browsePath];
@@ -1157,7 +1169,7 @@ ClientSession.prototype.performMessageTransaction = function (request, callback)
         }
 
         if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
-            err = new Error(" ServiceResult is " + response.responseHeader.serviceResult.toString());
+            err = new Error(" ServiceResult is " + response.responseHeader.serviceResult.toString() + " request was " + request.constructor.name);
             if (response && response.diagnosticInfo) {
                 err.diagnosticInfo = response.diagnosticInfo;
             }
@@ -1228,7 +1240,7 @@ ClientSession.prototype.close = function (deleteSubscription, callback) {
  * @return {Boolean}
  */
 ClientSession.prototype.hasBeenClosed = function () {
-    return utils.isNullOrUndefined(this._client) || this._closed;
+    return utils.isNullOrUndefined(this._client) || this._closed || this._closeEventHasBeenEmmitted;
 };
 
 /**
@@ -1735,6 +1747,10 @@ ClientSession.prototype.getNamespaceIndex = function(namespaceUri){
     assert(session._namespaceArray,"please make sure that readNamespaceArray has been called");
     return session._namespaceArray.findIndex(namespaceUri);
 };
+
+ClientSession.prototype.__defineGetter__("isReconnecting",function() {
+    return this._client ? this._client.isReconnecting : false;
+});
 
 
 

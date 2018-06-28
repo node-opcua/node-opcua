@@ -845,8 +845,8 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     function wait_until_next_notification(done) {
-        monitoredItem.once("changed", function () {
-            setImmediate(done);
+        monitoredItem.once("changed", function (dataValue) {
+            setTimeout(done,10);
         });
     }
 
@@ -1053,9 +1053,11 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(monitor_monotonous_counter),
 
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
 
@@ -1068,12 +1070,15 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(wait_a_little_while),
             f(wait_a_little_while),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(terminate_subscription),

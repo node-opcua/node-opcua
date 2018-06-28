@@ -73,6 +73,8 @@ function ServerSecureChannelLayer(options) {
 
     const self = this;
 
+    self.__hash = getNextChannelId();
+
     self.parent = options.parent;
 
     self.protocolVersion = 0;
@@ -84,7 +86,7 @@ function ServerSecureChannelLayer(options) {
     self.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
 
     // uninitialized securityToken
-    self.securityToken = { secureChannelId: 0, tokenId: 0 };
+    self.securityToken = { secureChannelId: self.__hash , tokenId: 0 };
 
     self.serverNonce = null; // will be created when needed
 
@@ -120,7 +122,6 @@ function ServerSecureChannelLayer(options) {
         securityHeader: self.securityHeader // for OPN
     });
 
-    self.secureChannelId = getNextChannelId();
 
     if (doPerfMonitoring) {
         self._tick0 = 0;
@@ -277,6 +278,8 @@ ServerSecureChannelLayer.prototype._add_new_security_token = function() {
         createdAt: new Date(), // now
         revisedLifeTime: self.revisedLifeTime
     });
+    self.secureChannelId = self.__hash;
+
 
     assert(!securityToken.expired);
     assert(_.isFinite(securityToken.revisedLifeTime));
@@ -869,8 +872,14 @@ ServerSecureChannelLayer.prototype.__defineGetter__("aborted", function() {
 });
 
 ServerSecureChannelLayer.prototype._abort = function() {
+
     const self = this;
+
+
+    debugLog("ServerSecureChannelLayer#_abort");
+
     if (self._abort_has_been_called) {
+        debugLog("Warning => ServerSecureChannelLayer#_abort has already been called");
         return;
     }
 
@@ -889,6 +898,7 @@ ServerSecureChannelLayer.prototype._abort = function() {
      * @event abort
      */
     self.emit("abort");
+    debugLog("ServerSecureChannelLayer emitted abort event");
 };
 
 /**
@@ -1245,7 +1255,10 @@ ServerSecureChannelLayer.prototype.__defineGetter__("hasSession", function() {
  */
 ServerSecureChannelLayer.prototype.__defineGetter__("hashKey", function() {
     const self = this;
-    return self.securityToken.secureChannelId.toString();
+    return self.__hash;
+
+    //xx assert( self.securityToken.secureChannelId !== 0,"cannot be null");
+    //xx return self.securityToken.secureChannelId.toString();
 });
 
 exports.ServerSecureChannelLayer = ServerSecureChannelLayer;

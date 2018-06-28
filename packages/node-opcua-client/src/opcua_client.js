@@ -83,7 +83,6 @@ function OPCUAClient(options) {
 
     this.applicationName = options.applicationName || "NodeOPCUA-Client";
 
-    this.clientName = options.clientName || "Session";
 
 }
 
@@ -678,6 +677,12 @@ OPCUAClient.prototype._closeSession = function (session, deleteSubscriptions, ca
     if (!self._secureChannel.isValid()) {
         return callback();
     }
+
+    if (self.isReconnecting) {
+        console.log("OPCUAClient#_closeSession called while reconnection in progress ! What shall we do");
+        return callback();
+    }
+
     session.performMessageTransaction(request, function (err, response) {
 
         if (err) {

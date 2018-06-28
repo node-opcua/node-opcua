@@ -59,6 +59,7 @@ function ClientSubscription(session, options) {
     const self = this;
     self.publish_engine = session.getPublishEngine();
 
+    self.lastSequenceNumber = -1;
 
     //// options should have
     //var allowedProperties = [

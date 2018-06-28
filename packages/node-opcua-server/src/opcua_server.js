@@ -1393,7 +1393,9 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
 
     /* istanbul ignore next */
     if (!session) {
-        console.log(" Bad Session in  _on_ActivateSessionRequest".yellow.bold, authenticationToken.value.toString("hex"));
+        // this may happen when the server has been restarted and a client tries to reconnect, thinking
+        // that the previous session may still be active
+        debugLog(" Bad Session in  _on_ActivateSessionRequest".yellow.bold, authenticationToken.value.toString("hex"));
         return rejectConnection(StatusCodes.BadSessionNotActivated);
     }
 

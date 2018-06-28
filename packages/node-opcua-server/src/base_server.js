@@ -172,6 +172,7 @@ function cleanupEndpoint(endPoint)  {
  */
 OPCUABaseServer.prototype.shutdown = function (done) {
 
+    debugLog("OPCUABaseServer#shutdown starting");
     assert(_.isFunction(done));
     const self = this;
 
@@ -183,8 +184,8 @@ OPCUABaseServer.prototype.shutdown = function (done) {
         });
     });
     async.parallel(tasks, function (err) {
-        done(err);
         debugLog("shutdown completed");
+        done(err);
     });
 };
 

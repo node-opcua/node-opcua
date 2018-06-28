@@ -270,12 +270,16 @@ OPCUAServerEndPoint.prototype._on_client_connection = function (socket) {
             objectFactory: self.objectFactory
         });
 
+        self._preregisterChannel(channel);
+
         channel.init(socket, function (err) {
+            self._unpreregisterChannel(channel);
+            debugLog("Channel#init done".yellow.bold,err);
             if (err) {
                 socket.end();
             } else {
-                self._registerChannel(channel);
                 debugLog("server receiving a client connection");
+                self._registerChannel(channel);
             }
         });
 
@@ -576,6 +580,41 @@ OPCUAServerEndPoint.prototype.endpointDescriptions = function () {
 };
 
 
+OPCUAServerEndPoint.prototype._preregisterChannel = function(channel)
+{
+    // _preregisterChannel is used to keep track of channel for which
+    // that are in early stage of the hand shaking process.
+    // e.g HEL/ACK and OpenSecureChannel may not have been received yet
+    // as they will need to be interrupted when OPCUAServerEndPoint is closed
+    const self = this;
+    assert(self._started,"OPCUAServerEndPoint must be started");
+
+    assert(!self._channels.hasOwnProperty(channel.hashKey)," channel already preregistered!");
+
+    self._channels[channel.hashKey] = channel;
+
+    channel._unpreregisterChannelEvent =function () {
+        debugLog("Channel received an abort event during the preregistration phase");
+        self._unpreregisterChannel(channel);
+        channel.dispose();
+    };
+    channel.on("abort",channel._unpreregisterChannelEvent);
+};
+OPCUAServerEndPoint.prototype._unpreregisterChannel = function(channel) {
+    const self = this;
+
+    if (!self._channels[channel.hashKey]) {
+        debugLog("Already un preregistered ?",channel.hashKey);
+        return;
+    }
+
+    delete self._channels[channel.hashKey];
+    assert(_.isFunction(channel._unpreregisterChannelEvent));
+    channel.removeListener("abort",channel._unpreregisterChannelEvent);
+    channel._unpreregisterChannelEvent = null;
+};
+
+
 /**
  * @method _registerChannel
  * @param channel
@@ -589,7 +628,7 @@ OPCUAServerEndPoint.prototype._registerChannel = function (channel) {
 
         debugLog("_registerChannel = ".red, "channel.hashKey = ", channel.hashKey);
 
-        assert(self._channels[channel.hashKey] === undefined);
+        assert(!self._channels[channel.hashKey]);
         self._channels[channel.hashKey] = channel;
 
         channel._rememberClientAddressAndPort();
@@ -620,10 +659,9 @@ OPCUAServerEndPoint.prototype._unregisterChannel = function (channel) {
 
     const self = this;
     debugLog("_un-registerChannel channel.hashKey", channel.hashKey);
-
     if (!self._channels.hasOwnProperty(channel.hashKey)) {
         return;
-    }
+   }
 
     assert(self._channels.hasOwnProperty(channel.hashKey), "channel is not registered");
 
@@ -694,7 +732,6 @@ OPCUAServerEndPoint.prototype.killClientSockets = function (callback) {
             channel.transport._socket.destroy();
             channel.transport._socket.emit("error", new Error("EPIPE"));
         }
-
     });
     callback();
 };
@@ -722,16 +759,17 @@ OPCUAServerEndPoint.prototype.restoreConnection = function (callback) {
  * @param inner_callback
  */
 function shutdown_channel(channel, inner_callback) {
-    const self = this;
-    assert(_.isFunction(inner_callback));
 
-    channel.on("close", function () {
+    const self = this;
+
+    assert(_.isFunction(inner_callback));
+    channel.once("close", function () {
         //xx console.log(" ON CLOSED !!!!");
      });
 
     channel.close(function () {
-        inner_callback();
         self._unregisterChannel(channel);
+        setImmediate(inner_callback);
     });
 }
 
@@ -743,12 +781,17 @@ function shutdown_channel(channel, inner_callback) {
 OPCUAServerEndPoint.prototype.shutdown = function (callback) {
     const self = this;
 
+    debugLog("OPCUAServerEndPoint#shutdown ");
+
     if (self._started) {
         // make sure we don't accept new connection any more ...
         self.suspendConnection(function () {
             // shutdown all opened channels ...
             const _channels = _.values(self._channels);
             async.each(_channels, shutdown_channel.bind(self), function (err) {
+                if ( !(Object.keys(self._channels).length === 0)) {
+                    console.log(" Bad !")
+                }
                 assert(Object.keys(self._channels).length === 0, "channel must have unregistered themselves");
                 callback(err);
             });

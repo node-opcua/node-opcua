@@ -1016,10 +1016,8 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
     timerId = setTimeout(function () {
         timerId = null;
         console.log(" Timeout .... waiting for response for ", requestMessage.constructor.name, requestMessage.requestHeader.toString());
-
         hasTimedOut = true;
         modified_callback(new Error("Transaction has timed out ( timeout = " + timeout + " ms)"), null);
-
         self._timedout_request_count += 1;
         /**
          * notify the observer that the response from the request has not been
@@ -1031,7 +1029,7 @@ ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgTyp
 
     }, timeout);
 
-    const transaction_data = {msgType: msgType, request: requestMessage, callback: modified_callback};
+    const transaction_data = {timerId: timerId, msgType: msgType, request: requestMessage, callback: modified_callback};
 
 //xx    self._pending_callback = callback;
 
@@ -1055,7 +1053,7 @@ ClientSecureChannelLayer.prototype._internal_perform_transaction = function (tra
     if (!self._transport) {
         setTimeout(function () {
             transaction_data.callback(new Error("Client not connected"));
-        }, 1000);
+        }, 100);
         return;
     }
     assert(self._transport, " must have a valid transport");
@@ -1276,6 +1274,32 @@ ClientSecureChannelLayer.prototype._sendSecureOpcUARequest = function (msgType, 
 
 };
 
+ClientSecureChannelLayer.prototype.getDisplayName = function() {
+    const self = this;
+    if (!self.parent) { return ""; }
+    return "" + (self.parent.applicationName ?self.parent.applicationName + " " : "" ) + self.parent.clientName;
+};
+ClientSecureChannelLayer.prototype.cancelPendingTransactions = function(callback) {
+    const self = this;
+    assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
+
+    // istanbul ignore next
+    if (doDebug) {
+        debugLog(" PENDING TRANSACTION = ",
+             self.getDisplayName(),
+             Object.keys(self._request_data)
+                 .map(k=>self._request_data[k].request.constructor.name).join(""));
+    }
+
+    for ( let key of Object.keys(self._request_data)) {
+        // kill timer id
+        const transaction = self._request_data[key];
+        if (transaction.callback) {
+            transaction.callback(new Error("Transaction has been canceled because client channel  is beeing closed"));
+        }
+    }
+    setImmediate(callback);
+};
 /**
  * Close a client SecureChannel ,by sending a CloseSecureChannelRequest to the server.
  *
@@ -1288,36 +1312,40 @@ ClientSecureChannelLayer.prototype._sendSecureOpcUARequest = function (msgType, 
  */
 ClientSecureChannelLayer.prototype.close = function (callback) {
 
-
-    // what the specs says:
-    // --------------------
-    //   The client closes the connection by sending a CloseSecureChannelRequest and closing the
-    //   socket gracefully. When the server receives this message it shall release all resources
-    //   allocated for the channel. The server does not send a CloseSecureChannel response
-    //
-    // ( Note : some servers do  send a CloseSecureChannel though !)
     const self = this;
     assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
 
-    // there is no need for the security token expiration event to trigger anymore
-    _cancel_security_token_watchdog.call(self);
+    // cancel any pending transaction
+    self.cancelPendingTransactions(function(err){
 
-    debugLog("Sending CloseSecureChannelRequest to server");
-    //xx console.log("xxxx Sending CloseSecureChannelRequest to server");
-    const request = new CloseSecureChannelRequest();
+        // what the specs says:
+        // --------------------
+        //   The client closes the connection by sending a CloseSecureChannelRequest and closing the
+        //   socket gracefully. When the server receives this message it shall release all resources
+        //   allocated for the channel. The server does not send a CloseSecureChannel response
+        //
+        // ( Note : some servers do  send a CloseSecureChannel though !)
 
-    self.__in_normal_close_operation = true;
+        // there is no need for the security token expiration event to trigger anymore
+        _cancel_security_token_watchdog.call(self);
 
-    if (!self._transport || self._transport.__disconnecting__) {
-        self.dispose();
-        return callback(new Error("Transport disconnected"));
-    }
+        debugLog("Sending CloseSecureChannelRequest to server");
+        //xx console.log("xxxx Sending CloseSecureChannelRequest to server");
+        const request = new CloseSecureChannelRequest();
 
-    self._performMessageTransaction("CLO", request, function () {
-        ///xx self._transport.disconnect(function() {
-        self.dispose();
-        callback();
-        //xxx });
+        self.__in_normal_close_operation = true;
+
+        if (!self._transport || self._transport.__disconnecting__) {
+            self.dispose();
+            return callback(new Error("Transport disconnected"));
+        }
+
+        self._performMessageTransaction("CLO", request, function () {
+            ///xx self._transport.disconnect(function() {
+            self.dispose();
+            callback();
+            //xxx });
+        });
     });
 };
 

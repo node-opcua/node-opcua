@@ -302,7 +302,7 @@ describe("ServerEngine Subscriptions service", function () {
 
     });
 
-    it("ZDZ LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of LifeTime timeout - with 2 subscriptions", function () {
+    it("ZDZ LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout - with 2 subscriptions", function () {
 
         with_fake_timer.call(this,function() {
             const test = this;

@@ -3,11 +3,10 @@
 
 
 const assert = require("node-opcua-assert").assert;
-var async = require("async");
+const async = require("async");
 const should = require("should");
 const sinon = require("sinon");
 const _ = require("underscore");
-var async = require("async");
 
 const opcua = require("node-opcua");
 
@@ -20,7 +19,6 @@ const StatusCodes = opcua.StatusCodes;
 const DataType = opcua.DataType;
 const TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 const MonitoringMode = opcua.subscription_service.MonitoringMode;
-const makeNodeId = opcua.makeNodeId;
 const VariantArrayType = opcua.VariantArrayType;
 const MonitoredItem = opcua.MonitoredItem;
 
@@ -30,7 +28,7 @@ const perform_operation_on_monitoredItem = require("../../test_helpers/perform_o
 
 const Subscription = require("node-opcua-server/src/server_subscription").Subscription;
 
-const doDebug=false;
+const doDebug=true;
 const f = require("../../test_helpers/display_function_name").f.bind(null, true);
 
 function trace_console_log() {
@@ -1415,7 +1413,7 @@ module.exports = function (test) {
         beforeEach(function (done) {
             client = new OPCUAClient({
                 keepSessionAlive: true,
-                requestedSessionTimeout: 120 * 1000, // 2 min ! make sure that session doesn't drop during test
+                requestedSessionTimeout: 240 * 1000, // 4 min ! make sure that session doesn't drop during test
             });
             done();
         });
@@ -1498,7 +1496,7 @@ module.exports = function (test) {
                 let longlifeSubscription, shortlifeSubscription;
                 async.series([
 
-                    function create_longlife_subscription(callback) {
+                    f(function create_long_life_subscription(callback) {
 
                         const subscriptionParameters = {
                             requestedPublishingInterval: 100, // short publishing interval required here
@@ -1516,9 +1514,9 @@ module.exports = function (test) {
                             longlifeSubscription = subscription;
                             callback();
                         });
-                    },
+                    }),
 
-                    f(function create_shortlife_subscription(callback) {
+                    f(function create_short_life_subscription(callback) {
 
                         const subscriptionParameters = {
                             requestedPublishingInterval: 100, // short publishing interval required here
@@ -1538,16 +1536,16 @@ module.exports = function (test) {
                         });
 
                     }),
-                    f(function wait_for_shortlife_subscripion_to_expire(callback) {
+                    f(function wait_for_short_life_subscription_to_expire(callback) {
 
                         // let's make sure that the subscription will expired
-                        const timetoWaitBeforeResendingPublishInterval = shortlifeSubscription.publishingInterval *
+                        const timeToWaitBeforeResendingPublishInterval = shortlifeSubscription.publishingInterval *
                             (shortlifeSubscription.lifetimeCount + shortlifeSubscription.maxKeepAliveCount);
 
                         if (doDebug) {
                             console.log(shortlifeSubscription.toString());
-                            console.log("timetoWaitBeforeResendingPublishInterval  :", timetoWaitBeforeResendingPublishInterval);
-                            console.log("Count To WaitBeforeResendingPublishInterval  :", timetoWaitBeforeResendingPublishInterval / shortlifeSubscription.publishingInterval);
+                            console.log("timetoWaitBeforeResendingPublishInterval  :", timeToWaitBeforeResendingPublishInterval);
+                            console.log("Count To WaitBeforeResendingPublishInterval  :", timeToWaitBeforeResendingPublishInterval / shortlifeSubscription.publishingInterval);
                         }
 
                         shortlifeSubscription.once("status_changed", function (statusCode) {
@@ -1561,10 +1559,10 @@ module.exports = function (test) {
                             }
                             repairUnpublishing(session);
 
-                        }, timetoWaitBeforeResendingPublishInterval);
+                        }, timeToWaitBeforeResendingPublishInterval);
 
                     }),
-                    f(function terminate_shortlife_subscription(callback) {
+                    f(function terminate_short_life_subscription(callback) {
 
                         const timeout = shortlifeSubscription.publishingInterval * shortlifeSubscription.maxKeepAliveCount * 2;
                         if (doDebug) {
@@ -1581,7 +1579,7 @@ module.exports = function (test) {
                         }, timeout);
 
                     }),
-                    f(function terminate_longlife_subscription(callback) {
+                    f(function terminate_long_life_subscription(callback) {
                         longlifeSubscription.terminate(function (err) {
                             callback();
                         });
@@ -2166,8 +2164,12 @@ module.exports = function (test) {
                         });
 
                         session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
+
                             if(err) { return callback(err); }
-                            console.log("response",response.toString());
+
+                            if (doDebug) {
+                                console.log("response",response.toString());
+                            }
 
                             subscriptionId = response.subscriptionId;
                             response.revisedPublishingInterval.should.eql(Subscription.minimumPublishingInterval);
