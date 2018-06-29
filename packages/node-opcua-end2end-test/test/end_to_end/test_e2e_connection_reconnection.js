@@ -790,9 +790,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
         subscription = new opcua.ClientSubscription(the_session, {
             requestedPublishingInterval: 250,
-            requestedLifetimeCount: 120,
-            requestedMaxKeepAliveCount: 150,
-            maxNotificationsPerPublish: 100,
+            requestedLifetimeCount:      12000,
+            requestedMaxKeepAliveCount:  4*60*2, // 4 x 250 ms * 60* 2 = 2 min
+            maxNotificationsPerPublish:  1000,
             publishingEnabled: true,
             priority: 6
         });

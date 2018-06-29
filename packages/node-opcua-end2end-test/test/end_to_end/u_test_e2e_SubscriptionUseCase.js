@@ -2392,8 +2392,8 @@ module.exports = function (test) {
             _.isFunction(callback).should.eql(true,"expecting a function");
             const createSubscriptionRequest = {
                 requestedPublishingInterval: publishingInterval,
-                requestedLifetimeCount: 6000,
-                requestedMaxKeepAliveCount: 100,
+                requestedLifetimeCount: 60000,
+                requestedMaxKeepAliveCount: 1000,
                 maxNotificationsPerPublish: 10,
                 publishingEnabled: true,
                 priority: 6
@@ -2586,8 +2586,8 @@ module.exports = function (test) {
                     function (callback) {
                         writeValue(nodeId, session, 7, callback);
                     },
-                    function (callback) {
-                        setTimeout(callback, 100);
+                    function wait_a_little_bit(callback) {
+                        setTimeout(callback, 1000);
                     },
                     function (callback) {
 
@@ -2746,7 +2746,7 @@ module.exports = function (test) {
 
                     function (callback) {
                         //xx console.log("--------------");
-                        // we should get notified immediately that the session has timedout
+                        // we should get notified immediately that the session has timed out
                         sendPublishRequest(session, function (err, response) {
                             response.notificationMessage.notificationData.length.should.eql(1);
                             const notificationData = response.notificationMessage.notificationData[0];
