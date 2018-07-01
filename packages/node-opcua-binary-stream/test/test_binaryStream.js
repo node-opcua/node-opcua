@@ -41,20 +41,22 @@ describe("Testing BinaryStream", function () {
         const stream = new BinaryStream(50);
 
         const arr = new Int16Array(25);
-        for (let i=0;i<25;i++) { arr[i] = 512+i; }
+        for (let i = 0; i < 25; i++) {
+            arr[i] = 512 + i;
+        }
 
-         console.log((new Uint8Array(arr.buffer)).join(" "));
-        stream.writeArrayBuffer(arr.buffer)
+        console.log((new Uint8Array(arr.buffer)).join(" "));
+        stream.writeArrayBuffer(arr.buffer);
 
         // let's verify that a copy has been made
-        // changing written array shall not affect innder buffer
+        // changing written array shall not affect inner buffer
 
-        stream._buffer[2*3].should.eql(3);
-        stream._buffer[2*3]= 33;
+        stream._buffer[2 * 3].should.eql(3);
+        stream._buffer[2 * 3] = 33;
 
         arr[3].should.not.eql(33);
-        arr[3].should.eql(512+3);
-        stream._buffer[2*3]= 3;
+        arr[3].should.eql(512 + 3);
+        stream._buffer[2 * 3] = 3;
 
         stream.rewind();
         const arr2 = new Int16Array(stream.readArrayBuffer(50).buffer);
@@ -64,13 +66,13 @@ describe("Testing BinaryStream", function () {
         arr2.length.should.eql(25);
         arr2.byteLength.should.eql(50);
 
-        arr2[3].should.eql(512+3);
+        arr2[3].should.eql(512 + 3);
 
-        stream._buffer[2*3].should.eql(3);
-        stream._buffer[2*3]= 33;
+        stream._buffer[2 * 3].should.eql(3);
+        stream._buffer[2 * 3] = 33;
         arr2[3].should.not.eql(33);
-        arr2[3].should.eql(512+3);
-        stream._buffer[2*3]= 3;
+        arr2[3].should.eql(512 + 3);
+        stream._buffer[2 * 3] = 3;
 
 
     });
@@ -194,6 +196,7 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
         reloaded[100].should.eql(100 * 0.14);
         isValidBuffer(reloaded, largeArray).should.eql(true);
     }
+
     it("should provide a working writeArrayBuffer", function () {
 
         perform(BinaryStream.prototype.writeArrayBuffer, BinaryStream.prototype.readArrayBuffer);
@@ -308,8 +311,8 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
                 binStream1.length.should.eql(largeArray.byteLength);
                 arr.should.be.instanceOf(Uint8Array);
                 arr.length.should.eql(arr.byteLength);
-                arr.length.should.eql(largeArray.byteLength,"byteLength should match");
-                (arr.length %8).should.eql(0,"must be a multiple of 8");
+                arr.length.should.eql(largeArray.byteLength, "byteLength should match");
+                (arr.length % 8).should.eql(0, "must be a multiple of 8");
 
                 isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
             })
