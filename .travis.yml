@@ -27,9 +27,14 @@ before_install:
        sudo sysctl -w net.inet.ip.portrange.first=32768;
        sudo sysctl -w net.inet.ip.portrange.hifirst=32768;
        sudo sysctl -w net.inet.tcp.msl=1000;
+       echo " setting new limits";
        sudo serverinfo --setperfmode true;
        sudo ulimit -c unlimited;
-       sudo ulimit -S -n 4096;
+       # Increase open files.
+       sudo ulimit -Sn 12000;
+       # Increase max locked memory.
+       sudo ulimit -Sl unlimited;
+       sudo ulimit -a;
     fi;
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]; then
       brew install libressl;
