@@ -21,18 +21,21 @@ matrix:
 before_install:
   # make sure we have enough ephemeral port on MacOS
   # https://superuser.com/questions/145989/does-mac-os-x-throttle-the-rate-of-socket-creation
+  # https://superuser.com/a/443168
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]; then
        sudo ulimit -a;
        sudo sysctl net.inet.ip.portrange.first net.inet.ip.portrange.hifirst net.inet.ip.portrange.last net.inet.ip.portrange.hilast;
        sudo sysctl -w net.inet.ip.portrange.first=32768;
        sudo sysctl -w net.inet.ip.portrange.hifirst=32768;
        sudo sysctl -w net.inet.tcp.msl=1000;
+       sudo sysctl kern.maxfiles;
+       sysctl kern.maxfilesperproc;
        echo " setting new limits";
+       sudo sysctl -w kern.maxfiles=20480;
+       sudo sysctl -w kern.maxfilesperproc=18000;
        sudo serverinfo --setperfmode true;
        sudo ulimit -c unlimited;
-       # Increase open files.
        sudo ulimit -Sn 12000;
-       # Increase max locked memory.
        sudo ulimit -Sl unlimited;
        sudo ulimit -a;
     fi;
