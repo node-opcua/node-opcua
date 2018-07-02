@@ -1520,9 +1520,9 @@ module.exports = function (test) {
 
                         const subscriptionParameters = {
                             requestedPublishingInterval: 100, // short publishing interval required here
-                            requestedLifetimeCount: 30, // short lifetimeCount needed here !
-                            requestedMaxKeepAliveCount: 10,
-                            maxNotificationsPerPublish: 30,
+                            requestedLifetimeCount:       30, // short lifetimeCount needed here !
+                            requestedMaxKeepAliveCount:   10,
+                            maxNotificationsPerPublish:   30,
                             publishingEnabled: true,
                             priority: 6
                         };
@@ -1548,10 +1548,6 @@ module.exports = function (test) {
                             console.log("Count To WaitBeforeResendingPublishInterval  :", timeToWaitBeforeResendingPublishInterval / shortlifeSubscription.publishingInterval);
                         }
 
-                        shortlifeSubscription.once("status_changed", function (statusCode) {
-                            statusCode.should.eql(StatusCodes.BadTimeout);
-                            callback();
-                        });
 
                         setTimeout(function () {
                             if (doDebug) {
@@ -1560,6 +1556,11 @@ module.exports = function (test) {
                             repairUnpublishing(session);
 
                         }, timeToWaitBeforeResendingPublishInterval);
+
+                        shortlifeSubscription.once("status_changed", function (statusCode) {
+                            statusCode.should.eql(StatusCodes.BadTimeout);
+                            callback();
+                        });
 
                     }),
                     f(function terminate_short_life_subscription(callback) {

@@ -350,18 +350,23 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         async.series([
 
             createServer,
+            wait_a_few_seconds,
             shutdownServer,
 
             createServer,
+            wait_a_few_seconds,
             shutdownServer,
 
             createServer,
+            wait_a_few_seconds,
             shutdownServer,
 
             createServer,
+            wait_a_few_seconds,
             shutdownServer,
 
             createServer,
+            wait_a_few_seconds,
             shutdownServer,
         ], done);
     });
