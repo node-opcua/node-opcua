@@ -205,7 +205,7 @@ function __findEndpoint(endpointUrl, params, callback) {
     const tasks = [
         function (callback) {
             client.on("backoff", function () {
-                console.log("finding Enpoint => reconnecting ");
+                console.log("finding Endpoint => reconnecting ");
             });
             client.connect(endpointUrl, function (err) {
                 if (err) {
