@@ -54,7 +54,7 @@ function implementProgramStateMachine(programStateMachine) {
         assert(programStateMachine.getComponentByName(methodName) !== null, "Component (Method) " + methodName + " should be added to parent object (checked with getComponentByName)");
         const lc_name = lowerFirstLetter(methodName);
         assert(programStateMachine[lc_name] != null, "Must have a javascript member called : " + lc_name);
-        programStateMachine[lc_name].browseName.toString().should.eql(methodName);
+        assert(programStateMachine[lc_name].browseName.toString()== methodName);
     }
 
     installMethod("Halt", "Halted");
