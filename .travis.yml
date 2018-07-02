@@ -46,9 +46,14 @@ before_install:
   - openssl version
 
 before_script:
-  - npm install -g istanbul coveralls
   - npm install -g mocha
-  - npm install -g codeclimate-test-reporter
+  - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; then
+      if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
+         npm install -g istanbul coveralls;
+         npm install -g codeclimate-test-reporter;
+      fi;
+    fi;
+
   # memcpy only works with node version > 0.8 and <= 0.12, and not with io.js, at this time
   - if [[ `node --version` == v0.12 ]]; then npm i memcpy ; fi
   - if [[ `node --version` == v0.10* ]]; then npm i ursa@0.8.5 ; fi
@@ -62,10 +67,9 @@ after_success:
     fi;
 
 script:
-  - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]
-    then
+  - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]; then;
        npm run testlerna;
-    else
+    else;
        npm test;
     fi;
 
