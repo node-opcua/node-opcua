@@ -36,7 +36,7 @@
   "node-opcua-test-fixtures": "^0.4.0",
   "node-opcua-test-helpers": "^0.4.0",
   "should": "13.2.1",
-  "sinon": "^6.0.0",
+  "sinon": "^6.0.1",
   "sprintf": "^0.1.5"
  },
  "author": "Etienne Rossignon",
