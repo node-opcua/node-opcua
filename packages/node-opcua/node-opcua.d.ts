@@ -29,16 +29,11 @@ export declare enum AttributeIds {
 // Definitions by: Etienne Rossignon
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 import { StatusCode, StatusCodes } from "./StatusCode";
-
 export { StatusCode, StatusCodes } from "./StatusCode";
 
-export interface ErrorCallback {
-    (err?: Error): void;
-}
+export type ErrorCallback = (err?: Error) => void;
+export type ResponseCallback<T> = (err?: Error | null, response?: T) => void;
 
-export interface ResponseCallback<T> {
-    (err?: Error | null, response?: T): void;
-}
 
 export declare enum MessageSecurityMode {
     /** The MessageSecurityMode is invalid */
@@ -126,22 +121,23 @@ export interface OPCUAClientOptions {
     clientName?: string;
 }
 
-export interface findServerOptions {
+export interface FindServerOptions {
     endpointUrl?: string;
     /**
      *   List of locales to use.
      */
-    localeIds?: Array<LocaleId>;
-    serverUris?: Array<string>;
+    localeIds?: LocaleId[];
+    serverUris?: string[];
 }
-export interface findServerOnNetworkOptions {
+
+export interface FindServerOnNetworkOptions {
     /**
      * Only records with an identifier greater than this number will be returned. Specify 0 to start with the first record in the cache.
      */
     startingRecordId?: number;
     /**
      * The maximum number of records to return in the response.
-     0 indicates that there is no limit.
+     * 0 indicates that there is no limit.
      */
     maxRecordsToReturn?: number;
 
@@ -152,29 +148,29 @@ export interface findServerOnNetworkOptions {
      * @property serverCapabilityFilter
      * @type {String[]}
      */
-    serverCapabilityFilter?: Array<string>
+    serverCapabilityFilter?: string[];
 }
 
-export type  LocaleId= string;
+export type  LocaleId = string;
 
-export interface getEndpointsOptions {
+export interface GetEndpointsOptions {
     endpointUrl?: string;
     /**
      *   List of locales to use.
      */
-    localeIds?: Array<LocaleId>;
+    localeIds?: LocaleId[];
     /**
      *  List of transport profiles that the returned Endpoints shall support.
      */
-    profileUris?: Array<string>;
+    profileUris?: string[];
 
 }
 
 export enum ApplicationType {
-    SERVER= 0, // The application is a Server
-    CLIENT= 1, // The application is a Client
-    CLIENTANDSERVER= 2, // The application is a Client and a Server
-    DISCOVERYSERVER= 3  // The application is a DiscoveryServer
+    SERVER = 0, // The application is a Server
+    CLIENT = 1, // The application is a Client
+    CLIENTANDSERVER = 2, // The application is a Client and a Server
+    DISCOVERYSERVER = 3  // The application is a DiscoveryServer
 }
 
 export interface ApplicationDescription {
@@ -192,7 +188,7 @@ export interface ApplicationDescription {
     // A URI that identifies the discovery profile supported by the URLs provided
     discoveryProfileUri: string;
     // A list of URLs for the discovery Endpoints provided by the application
-    discoveryUrls: Array<string>;
+    discoveryUrls: string[];
 }
 
 interface ServerOnNetwork {
@@ -216,7 +212,7 @@ interface ServerOnNetwork {
     /**
      * The set of Server capabilities supported by the Server.The set of allowed Server capabilities are defined in Part 12
      */
-    serverCapabilities: Array<string>
+    serverCapabilities: string[];
 }
 
 export declare class OPCUAClientBase {
@@ -246,7 +242,7 @@ export declare class OPCUAClientBase {
     /**
      * @method connect
      * @param {string} endpointUrl
-     * @return {Promise<void>}
+     * @returns {Promise<void>}
      */
     connect(endpointUrl: string): Promise<void>;
 
@@ -255,29 +251,31 @@ export declare class OPCUAClientBase {
 
     performMessageTransaction(request: any, callback: ResponseCallback<any>): void;
 
-    getEndpoints(): Promise<Array<EndpointDescription>>;
-    getEndpoints(options: getEndpointsOptions): Promise<Array<EndpointDescription>>;
-    getEndpoints(options: getEndpointsOptions, callback: ResponseCallback<Array<EndpointDescription>> ): void;
-    getEndpoints(callback: ResponseCallback<Array<EndpointDescription>> ): void;
+    getEndpoints(options?: GetEndpointsOptions): Promise<EndpointDescription[]>;
+    getEndpoints(options: GetEndpointsOptions, callback: ResponseCallback<EndpointDescription[]>): void;
+    getEndpoints(callback: ResponseCallback<EndpointDescription[]>): void;
 
-    findServers(options?: findServerOptions): Promise<Array<ApplicationDescription>>;
-    findServersOnNetwork(options?: findServerOnNetworkOptions): Promise<Array<ServerOnNetwork>>;
-    findServers(options?: findServerOptions, callback: ResponseCallback<Array<ApplicationDescription>>):void;
-    findServersOnNetwork(options?: findServerOnNetworkOptions, callback: ResponseCallback<Array<ServerOnNetwork>>):void
+    findServers(options?: FindServerOptions): Promise<ApplicationDescription[]>;
+    findServers(options: FindServerOptions, callback: ResponseCallback<ApplicationDescription[]>): void;
+
+    findServersOnNetwork(options?: FindServerOnNetworkOptions): Promise<ServerOnNetwork[]>;
+    findServersOnNetwork(options: FindServerOnNetworkOptions, callback: ResponseCallback<ServerOnNetwork[]>): void;
 
 
-    findEndpointForSecurity(securityMode,securityPolicy):string;
+    findEndpointForSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): string;
+
     /**
      * @method on
      * @param {string} event
-     * @param {Function} eventHandler
+     * @param {()=>void} eventHandler
      * @returns {OPCUAClientBase}
      * @chainable
      */
-    on(event: string, eventHandler: Function): OPCUAClientBase;
+    on(event: string, eventHandler: () => void): OPCUAClientBase;
 }
 
-export interface BrowseResponse {}
+export interface BrowseResponse {
+}
 
 export declare enum NodeIdType {
     BYTESTRING = 0x4,
@@ -285,13 +283,18 @@ export declare enum NodeIdType {
     NUMERIC = 0x1,
     STRING = 0x2
 }
+
 export declare class NodeId {
     identifierType: NodeIdType;
     value: any;
     namespace: number;
+
     constructor(identifierType: NodeIdType, value: any, namespace: number);
+
     isEmpty(): boolean;
+
     toJSON(): string;
+
     toString(options: { addressSpace: AddressSpace }): string;
 }
 
@@ -354,7 +357,7 @@ export interface ReferenceDescription {
 export declare class BrowseResult {
     statusCode: StatusCodes;
     continuationPoint: any;
-    references: Array<ReferenceDescription>;
+    references: ReferenceDescription[];
 }
 
 type CoercibleToBrowseDescription = string | BrowseDescription;
@@ -363,9 +366,9 @@ export interface RelativePathElement {
     /** the type of reference to follow. */
     referenceTypeId?: NodeId;
     /** if true the reverse reference is followed. */
-    isInverse?: Boolean;
+    isInverse?: boolean;
     /** if true then subtypes of the reference type are followed. */
-    includeSubtypes?: Boolean;
+    includeSubtypes?: boolean;
     /** the browse name of the target. */
     targetName?: QualifiedName;
 }
@@ -373,7 +376,7 @@ export interface RelativePathElement {
 export declare class BrowsePath {
     startingNode: NodeId;
     relativePath: {
-        elements: Array<RelativePathElement>;
+        elements: RelativePathElement[];
     };
 }
 
@@ -384,64 +387,42 @@ export interface BrowsePathTarget {
 
 export interface BrowsePathResult {
     statusCode: StatusCodes;
-    targets: Array<BrowsePathTarget>;
+    targets: BrowsePathTarget[];
 }
 
 export declare class ClientSession {
     // async with callback methods
-
+    // ------------------------------------------------------------
     browse(nodeToBrowse: CoercibleToBrowseDescription, callback: ResponseCallback<BrowseResult>): void;
-
-    browse(nodesToBrowse: Array<CoercibleToBrowseDescription>, callback: ResponseCallback<Array<BrowseResult>>): void;
+    browse(nodesToBrowse: CoercibleToBrowseDescription[], callback: ResponseCallback<BrowseResult[]>): void;
+    browse(nodeToBrowse: CoercibleToBrowseDescription): Promise<BrowseResult>;
+    browse(nodesToBrowse: CoercibleToBrowseDescription[]): Promise<BrowseResult[]>;
 
     translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
-
-    translateBrowsePath(browsesPath: Array<BrowsePath>, callback: ResponseCallback<Array<BrowsePathResult>>): void;
+    translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
+    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
+    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
 
     write(nodeToWrite: CoercibleToWriteValue, callback: ResponseCallback<StatusCodes>): void;
-
-    write(nodesToWrite: Array<CoercibleToWriteValue>, callback: ResponseCallback<Array<StatusCodes>>): void;
-
-    writeSingleNode(path: string, value: Variant, callback: Function): void;
-
-    read(nodeToRead: CoercibleToReadValueId, max_age: number, callback: ResponseCallback<DataValue>): void;
-
-    read(
-        nodesToRead: Array<CoercibleToReadValueId>,
-        max_age: number,
-        callback: ResponseCallback<Array<DataValue>>
-    ): void;
-
-    read(nodeToRead: CoercibleToReadValueId, callback: ResponseCallback<DataValue>): void;
-
-    read(nodesToRead: Array<CoercibleToReadValueId>, callback: ResponseCallback<Array<DataValue>>): void;
-
-    readVariableValue(nodeId: CoercibleToNodeId, callback: ResponseCallback<DataValue>): void;
-
-    close(callback: ErrorCallback): void;
-
-    // ------------------------------------------------------------
-    browse(nodeToBrowse: CoercibleToBrowseDescription): Promise<BrowseResult>;
-
-    browse(nodesToBrowse: Array<CoercibleToBrowseDescription>): Promise<Array<BrowseResult>>;
-
-    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
-
-    translateBrowsePath(browsePaths: Array<BrowsePath>): Promise<Array<BrowsePathResult>>;
-
-    write(nodesToWrite: Array<CoercibleToWriteValue>): Promise<Array<StatusCodes>>;
+    write(nodesToWrite: CoercibleToWriteValue[], callback: ResponseCallback<StatusCodes[]>): void;
+    write(nodesToWrite: CoercibleToWriteValue[]): Promise<StatusCodes[]>;
     write(nodeToWrite: CoercibleToWriteValue): Promise<StatusCodes>;
 
-    read(nodeToRead: CoercibleToReadValueId, max_age: number): Promise<DataValue>;
+    read(nodeToRead: CoercibleToReadValueId, maxAge: number, callback: ResponseCallback<DataValue>): void;
+    read(nodesToRead: CoercibleToReadValueId[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
+    read(nodeToRead: CoercibleToReadValueId, callback: ResponseCallback<DataValue>): void;
+    read(nodesToRead: CoercibleToReadValueId[], callback: ResponseCallback<DataValue[]>): void;
+    read(nodeToRead: CoercibleToReadValueId,   maxAge?: number): Promise<DataValue>;
+    read(nodesToRead: CoercibleToReadValueId[], maxAge?: number): Promise<DataValue[]>;
 
-    read(nodesToRead: Array<CoercibleToReadValueId>, max_age: number): Promise<Array<DataValue>>;
-
-    read(nodeToRead: CoercibleToReadValueId): Promise<DataValue>;
-
-    read(nodesToRead: Array<CoercibleToReadValueId>): Promise<Array<DataValue>>;
-
+    readVariableValue(nodeId: CoercibleToNodeId, callback: ResponseCallback<DataValue>): void;
     readVariableValue(nodeId: CoercibleToNodeId): Promise<DataValue>;
 
+
+    writeSingleNode(path: string, value: Variant, callback: () => void): void;
+
+
+    close(callback: ErrorCallback): void;
     close(): Promise<void>;
 
     // properties
@@ -456,7 +437,7 @@ export declare interface UAProxyBase {
     nodeClass: NodeClass;
     typeDefinition: string | null;
 
-    on(event: string, eventHandler: Function): UAProxyBase;
+    on(event: string, eventHandler: () => void): UAProxyBase;
 }
 
 export declare interface UAProxyVariable extends UAProxyBase {
@@ -474,7 +455,7 @@ export declare class UAProxyManager {
     stop(callback: ErrorCallback): void;
     stop(): Promise<void>;
 
-    getObject(nodeId: NodeId, callback: Function): void;
+    getObject(nodeId: NodeId, callback: (object: any) => void): void;
     getObject(nodeId: NodeId): Promise<UAProxyBase>;
 }
 
@@ -495,14 +476,13 @@ export declare class OPCUAClient extends OPCUAClientBase {
     // async with callback methods
 
     createSession(callback: ResponseCallback<ClientSession>): void;
-
     createSession(userIdentityInfo: UserIdentityInfo, callback: ResponseCallback<ClientSession>): void;
+    createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
 
-    closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err: Error | null) => void): void;
 
     withSession(
         endpointUrl: string,
-        innerFunction: (session: ClientSession, done: Function) => void,
+        innerFunction: (session: ClientSession, done: () => void) => void,
         callback: ErrorCallback
     ): void;
 
@@ -512,7 +492,7 @@ export declare class OPCUAClient extends OPCUAClientBase {
     withSubscription(
         endpointUrl: string,
         subscriptionParameters: any,
-        innerFunction: (session: ClientSession, subscription: ClientSubscription, done: Function) => void,
+        innerFunction: (session: ClientSession, subscription: ClientSubscription, done: () => void) => void,
         callback: ErrorCallback
     ): void;
 
@@ -522,17 +502,15 @@ export declare class OPCUAClient extends OPCUAClientBase {
         innerFunction: (session: ClientSession, subscription: ClientSubscription) => Promise<any>
     ): Promise<any>;
 
-    createSession(userIdentityInfo: UserIdentityInfo): Promise<ClientSession>;
-
-    createSession(): Promise<ClientSession>;
 
     closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
+    closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err: Error | null) => void): void;
 }
 
-//----------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------
 declare type ValidUserFunc = (username: string, password: string) => boolean;
 
-declare type ValidUserAsyncFunc = (username: string, password: string, callback: Function) => void;
+declare type ValidUserAsyncFunc = (username: string, password: string, callback: ErrorCallback) => void;
 
 export interface OPCUAServerOptions {
     /** the default secure token life time in ms. */
@@ -555,7 +533,7 @@ export interface OPCUAServerOptions {
     maxAllowedSessionNumber?: number;
 
     /** the nodeset.xml file(s) to load */
-    nodeset_filename?: Array<string> | string;
+    nodeset_filename?: string[] | string;
     serverInfo?: {
         /**
          * the information used in the end point description
@@ -572,16 +550,16 @@ export interface OPCUAServerOptions {
         applicationName?: LocalizedText | string;
         gatewayServerUri?: string;
         discoveryProfileUri?: string;
-        discoveryUrls?: Array<string>;
+        discoveryUrls?: string[];
     };
     /**
      * @default [SecurityPolicy.None, SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256]
      */
-    securityPolicies?: Array<SecurityPolicy>;
+    securityPolicies?: SecurityPolicy[];
     /**
      * @default [MessageSecurityMode.NONE, MessageSecurityMode.SIGN, MessageSecurityMode.SIGNANDENCRYPT]
      */
-    securityModes?: Array<MessageSecurityMode>;
+    securityModes?: MessageSecurityMode[];
     /**
      * tells if the server default endpoints should allow anonymous connection.
      * @default true
@@ -661,7 +639,8 @@ export declare interface AddReferenceOpts {
     nodeId: NodeId | string;
 }
 
-export declare class UAReference {}
+export declare class UAReference {
+}
 
 export declare class BaseNode {
     browseName: BrowseName;
@@ -669,11 +648,14 @@ export declare class BaseNode {
     addReference(options: AddReferenceOpts): UAReference;
 }
 
-export declare class UAView extends BaseNode {}
+export declare class UAView extends BaseNode {
+}
 
-export declare class UAVariable extends BaseNode {}
+export declare class UAVariable extends BaseNode {
+}
 
-export declare class UAAnalogItem extends UAVariable {}
+export declare class UAAnalogItem extends UAVariable {
+}
 
 export interface VariantOpts {
     dataType?: DataType;
@@ -710,6 +692,7 @@ export declare class DataValue {
     serverPicoseconds: number;
     statusCode: StatusCode;
 }
+
 type CoercibleToDataValue = DataValue | DataValueOpts;
 
 export declare class WriteValue {
@@ -723,11 +706,11 @@ type CoercibleToNodeId = string | NodeId;
 
 type CoercibleToWriteValue =
     | {
-          nodeId: CoercibleToNodeId;
-          attributeId: AttributeIds;
-          indexRange?: any;
-          value: CoercibleToDataValue;
-      }
+    nodeId: CoercibleToNodeId;
+    attributeId: AttributeIds;
+    indexRange?: any;
+    value: CoercibleToDataValue;
+}
     | WriteValue;
 
 export declare class DiagnosticInfo {
@@ -740,9 +723,9 @@ export declare class DiagnosticInfo {
     innerDiagnosticInfo: DiagnosticInfo;
 }
 
-export interface _AddNodeOpts {
+export interface AddNodeOptions {
     browseName: string;
-    displayName?: string | LocalizedText| LocalizedText[];
+    displayName?: string | LocalizedText | LocalizedText[];
     description?: string;
 
     organizedBy?: NodeId | BaseNode;
@@ -750,7 +733,7 @@ export interface _AddNodeOpts {
     nodeId?: string | NodeId;
 }
 
-export interface AddVariableOpts extends _AddNodeOpts {
+export interface AddVariableOpts extends AddNodeOptions {
     dataType: string | DataType;
     value?: {
         get?: () => Variant;
@@ -764,7 +747,7 @@ export enum EUEngineeringUnit {
     // to be continued
 }
 
-export interface AddAnalogDataItemOpts extends _AddNodeOpts {
+export interface AddAnalogDataItemOpts extends AddNodeOptions {
     /** @example  "(tempA -25) + tempB" */
     definition: string;
     /** @example 0.5 */
@@ -787,10 +770,9 @@ export declare class AddressSpace {
 
     addAnalogDataItem(options: AddAnalogDataItemOpts): UAAnalogItem;
 
-    addView(options: _AddNodeOpts): UAView;
+    addView(options: AddNodeOptions): UAView;
 }
 
-//xx declare type BuildInfo;
 export declare class ServerEngine {
     addressSpace: AddressSpace;
 }
@@ -804,6 +786,7 @@ export declare interface EndpointDescription {
     hostname: string;
     endpointUrl: string;
 }
+
 export declare interface OPCUAServerEndPoint {
     port: number;
     defaultSecureTokenLifetime: number;
@@ -813,7 +796,7 @@ export declare interface OPCUAServerEndPoint {
     serverInfo: any;
     maxConnections: any;
 
-    endpointDescriptions(): Array<EndpointDescription>;
+    endpointDescriptions(): EndpointDescription[];
 }
 
 export declare class OPCUAServer {
@@ -833,7 +816,7 @@ export declare class OPCUAServer {
     currentChannelCount: number;
     buildInfo: any;
 
-    endpoints: Array<OPCUAServerEndPoint>;
+    endpoints: OPCUAServerEndPoint[];
 
     secondsTillShutdown: number;
 
@@ -850,10 +833,10 @@ export declare class OPCUAServer {
     shutdown(timeout: number, callback: ErrorCallback): void;
     shutdown(timeout: number): Promise<void>;
 
-    initialize(done: Function): void;
+    initialize(done: () => void): void;
 
     // "postinitialize" , "session_closed", "create_session"
-    on(event: string, eventHandler: Function): OPCUAServer;
+    on(event: string, eventHandler: () => void): OPCUAServer;
 }
 
 export declare class ClientMonitoredItem {
@@ -863,10 +846,10 @@ export declare class ClientMonitoredItem {
     /**
      * @method on
      * @param {string} event
-     * @param {Function} eventHandler
+     * @param {() => void} eventHandler
      * @chainable
      */
-    on(event: string, eventHandler: Function): ClientMonitoredItem;
+    on(event: string, eventHandler: ()  => void): ClientMonitoredItem;
 }
 
 export interface TimestampsToReturn {
@@ -877,9 +860,9 @@ export interface TimestampsToReturn {
     Neither: 3;
 }
 
-export declare class read_service {
-    static TimestampsToReturn: TimestampsToReturn;
-}
+// export declare class read_service {
+//   static TimestampsToReturn: TimestampsToReturn;
+// }
 
 type NumericRange = string;
 
@@ -892,9 +875,9 @@ export interface ReadValueId {
 
 type CoercibleToReadValueId =
     | {
-          nodeId: string | NodeId;
-          attributeId: AttributeIds;
-      }
+    nodeId: string | NodeId;
+    attributeId: AttributeIds;
+}
     | ReadValueId;
 
 export interface ItemToMonitorRequestedParameters {
@@ -906,10 +889,10 @@ export interface ItemToMonitorRequestedParameters {
 
 type CoercibleToItemToMonitorRequestedParameters =
     | {
-          samplingInterval: number;
-          discardOldest?: boolean;
-          queueSize?: number;
-      }
+    samplingInterval: number;
+    discardOldest?: boolean;
+    queueSize?: number;
+}
     | ItemToMonitorRequestedParameters;
 
 export interface ClientSubscriptionOptions {
@@ -930,7 +913,7 @@ export declare class ClientSubscription {
         itemToMonitor: ReadValueId,
         requestedParameters: CoercibleToItemToMonitorRequestedParameters,
         timestampsToReturn?: number,
-        done?: Function
+        done?: () => void,
     ): ClientMonitoredItem;
 
     monitor(
@@ -939,7 +922,7 @@ export declare class ClientSubscription {
         timestampsToReturn?: number
     ): Promise<ClientMonitoredItem>;
 
-    on(event: string, eventHandler: Function): ClientSubscription;
+    on(event: string, eventHandler: () => void): ClientSubscription;
 
     terminate(callback: ErrorCallback): void;
 
