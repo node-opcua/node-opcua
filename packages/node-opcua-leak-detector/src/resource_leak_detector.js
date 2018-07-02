@@ -345,6 +345,10 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
             const self = this;
             resourceLeakDetector.ctx = self.test.ctx;
             resourceLeakDetector.start();
+            // make sure we start with a garbage collected situation
+            if (global.gc) {
+                global.gc(true);
+            }
         });
         beforeEach(function() {
             // make sure we start with a garbage collected situation
@@ -358,6 +362,10 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
         after(function () {
             resourceLeakDetector.stop(null);
             resourceLeakDetector.ctx = false;
+            // make sure we start with a garbage collected situation
+            if (global.gc) {
+                global.gc(true);
+            }
         });
 
     } else {
@@ -374,6 +382,10 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
         afterEach(function () {
             resourceLeakDetector.stop(trace);
             resourceLeakDetector.ctx = false;
+            // make sure we start with a garbage collected situation
+            if (global.gc) {
+                global.gc(true);
+            }
         });
 
     }

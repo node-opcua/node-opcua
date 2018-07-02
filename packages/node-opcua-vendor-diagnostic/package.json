@@ -4,7 +4,7 @@
  "description": "pure nodejs OPCUA SDK - module -vendor-diagnostic",
  "main": "index.js",
  "scripts": {
-  "test": "mocha test"
+  "test": "echo no test"
  },
  "dependencies": {
   "humanize": "0.0.9",

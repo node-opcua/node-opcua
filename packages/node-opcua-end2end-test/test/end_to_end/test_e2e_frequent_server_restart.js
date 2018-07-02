@@ -21,12 +21,15 @@ describe("NodeRed -  testing frequent server restart within same process", funct
     let g_server = null;
 
 
+    const discoveryServerPort = 1240;
+    const serverPort = 1050;
+
     let discoveryServer;
     let discoveryServerEndpointUrl;
 
     function startDiscoveryServer(callback) {
         // note : only one discovery server shall be run per machine
-        discoveryServer = new opcua.OPCUADiscoveryServer({port: 1240});
+        discoveryServer = new opcua.OPCUADiscoveryServer({port: discoveryServerPort});
         discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
         discoveryServer.start(function (err) {
             debugLog(" Discovery server listening on ", discoveryServerEndpointUrl);
@@ -47,6 +50,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
     function createServer(callback) {
 
         const server = new opcua.OPCUAServer({
+            port: serverPort,
             registerServerMethod: opcua.RegisterServerMethod.LDS,
             discoveryServerEndpointUrl: discoveryServerEndpointUrl
         });
@@ -248,6 +252,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
     xit("T0d- should cancel a client that cannot connect - on standard LocalDiscoveryServer", function (done) {
 
         let server = new opcua.OPCUAServer({
+            port: serverPort,
             registerServerMethod: opcua.RegisterServerMethod.LDS,
             discoveryServerEndpointUrl: "opc.tcp://localhost:4840", //<< standard server
         });
@@ -274,6 +279,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
 
                 debugLog("discoveryServerEndpointUrl =", discoveryServerEndpointUrl);
                 server = new opcua.OPCUAServer({
+                    port: serverPort,
                     registerServerMethod: opcua.RegisterServerMethod.LDS,
                     discoveryServerEndpointUrl: discoveryServerEndpointUrl
                 });
