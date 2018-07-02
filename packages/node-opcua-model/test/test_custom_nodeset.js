@@ -13,6 +13,8 @@ const should = require("should");
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing",function() {
 
+    this.timeout(Math.max(30000, this._timeout));
+
     it("should",function(done){
 
         function parse_xml(nodeset_files, callback) {
