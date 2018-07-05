@@ -17,7 +17,7 @@
     "postinstall": "npm run bootstrap && npm run build && npm run generate",
     "pretest": "node  ./node_modules/lerna/bin/lerna.js run pretest",
     "_old_test": "cd source && mocha test --color -R spec --recursive --timeout 200000 --bail",
-    "test": "cd packages && node --expose-gc --max-old-space-size=4096 run_all_mocha_tests.js",
+    "test": "cd packages && node --expose-gc --max-old-space-size=512 run_all_mocha_tests.js",
     "test1": "cd packages && node run_all_mocha_tests.js",
     "testlerna": "node  ./node_modules/lerna/bin/lerna.js run --concurrency 1 test",
     "eslint": "eslint packages/*/src/**.js packages/*/test/ packages/*/source/ packages/*/test_helpers/ ",
@@ -85,6 +85,7 @@
   },
   "typings": "./packages/node-opcua/node-opcua.d.ts",
   "dependencies": {
+    "@types/underscore": "^1.8.8",
     "async": "2.6.1",
     "backoff": "2.5.0",
     "better-assert": "*",
