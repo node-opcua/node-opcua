@@ -195,7 +195,10 @@ function __findEndpoint(endpointUrl, params, callback) {
 
     const options = {
         connectionStrategy: params.connectionStrategy,
-        endpoint_must_exist: false
+        endpoint_must_exist: false,
+        certificateFile: params.certificateFile,
+        privateKeyFile: params.privateKeyFile,
+		applicationName: params.applicationName
     };
 
     const client = new OPCUAClientBase(options);
@@ -622,11 +625,17 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
         // if the certificate has been certified by an Certificate Authority we have to
         // verify that the certificates in the chain are valid and not revoked.
         //
+		const cert = self.certificateFile || 'certificates/client_selfsigned_cert_1024.pem';
+		const key = self.privateKeyFile || 'certificates/client_key_1024.pem';
+		const appName = self.applicationName || 'NodeOPCUA-Client';
         const params = {
             securityMode: this.securityMode,
             securityPolicy: this.securityPolicy,
             connectionStrategy: this.connectionStrategy,
-            endpoint_must_exist: false
+            endpoint_must_exist: false,
+			certificateFile: cert, 
+            privateKeyFile: key,
+			applicationName: appName
         };
         return __findEndpoint(endpointUrl,params, function (err, result) {
             if (err) {
