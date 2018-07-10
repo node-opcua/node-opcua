@@ -14,7 +14,7 @@ module.exports = {
     perform_findServers: require("./src/tools/findservers").perform_findServers,
     perform_findServersOnNetwork: require("./src/tools/findservers").perform_findServersOnNetwork,
 
-    readHistorySeverCapabilities: require("./src/tools/read_history_server_capabilities").readHistorySeverCapabilities
+    readHistoryServerCapabilities: require("./src/tools/read_history_server_capabilities").readHistoryServerCapabilities
 
 };
 

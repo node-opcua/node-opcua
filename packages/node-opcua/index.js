@@ -118,7 +118,7 @@ module.exports.ClientSession = require("node-opcua-client").ClientSession;
 module.exports.client_utils = require("node-opcua-client/src/client_utils");
 module.exports.perform_findServers = require("node-opcua-client").perform_findServers;
 module.exports.perform_findServersOnNetwork = require("node-opcua-client").perform_findServersOnNetwork;
-module.exports.readHistorySeverCapabilities = require("node-opcua-client").readHistorySeverCapabilities;
+module.exports.readHistoryServerCapabilities = require("node-opcua-client").readHistoryServerCapabilities;
 
 module.exports.callConditionRefresh = require("node-opcua-client/src/alarms_and_conditions/client_tools").callConditionRefresh;
 

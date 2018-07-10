@@ -9,7 +9,7 @@ const NodeId = require("node-opcua-nodeid").NodeId;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 
-function readHistorySeverCapabilities(the_session,callback) {
+function readHistoryServerCapabilities(the_session,callback) {
     // display HistoryCapabilities of server
     const browsePath = makeBrowsePath(ObjectIds.ObjectsFolder,"/Server/ServerCapabilities.HistoryServerCapabilities");
 
@@ -80,4 +80,4 @@ function readHistorySeverCapabilities(the_session,callback) {
     });
 };
 
-module.exports.readHistorySeverCapabilities = readHistorySeverCapabilities;
+module.exports.readHistoryServerCapabilities = readHistoryServerCapabilities;
