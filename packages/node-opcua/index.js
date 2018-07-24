@@ -59,7 +59,7 @@ module.exports.DataTypeIds = require("node-opcua-constants").DataTypeIds;
 
 // DA
 module.exports.standardUnits = require("node-opcua-data-access").standardUnits;
-module.exports.makeEUInformatio = require("node-opcua-data-access").makeEUInformation;
+module.exports.makeEUInformation = require("node-opcua-data-access").makeEUInformation;
 module.exports.Range = require("node-opcua-data-access").Range;
 
 //
