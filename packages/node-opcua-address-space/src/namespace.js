@@ -385,8 +385,10 @@ UANamespace.prototype._createNode = function (options) {
 
 
     // browseName adjustment
-    if (typeof options.browseName === "string") {
-        assert(options.browseName.indexOf(":") === -1, "We do not support <namespace>:<browseName> form here yet");
+	if (typeof options.browseName === "string") {
+		//fix spurious assert testing with UAExpert =>  options.browseName = "urn:xxxxx:UnifiedAutomation:UaExpert"
+		for (var i = colCount = 0; i < options.browseName.length; colCount += +(":" === options.browseName[i++]));
+        assert(colCount !== 1, "We do not support <namespace>:<browseName> form here yet");
         options.browseName = new QualifiedName({name: options.browseName, namespaceIndex: self.index});
     } else if (!(options.browseName instanceof QualifiedName)) {
         options.browseName = new QualifiedName(options.browseName);

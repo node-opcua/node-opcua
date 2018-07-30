@@ -24,7 +24,7 @@ const decodeString = ec.decodeString;
 const packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
 const hexDump = require("node-opcua-debug").hexDump;
 
-//xx require("./utils").setDebugFlag(__filename,true);
+//xx require("node-opcua-debug").setDebugFlag(__filename,true);
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 

@@ -273,7 +273,7 @@ ServerSecureChannelLayer.prototype._add_new_security_token = function() {
     self.lastTokenId += 1;
 
     const securityToken = new ChannelSecurityToken({
-        secureChannelId: self.secureChannelId,
+		secureChannelId: self.__hash,
         tokenId: self.lastTokenId, // todo ?
         createdAt: new Date(), // now
         revisedLifeTime: self.revisedLifeTime
