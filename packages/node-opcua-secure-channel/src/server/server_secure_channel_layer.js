@@ -1178,6 +1178,18 @@ function _on_initial_OpenSecureChannelRequest(message, callback) {
     self.securityMode = request.securityMode;
     self.messageBuilder.securityMode = self.securityMode;
 
+    const minSecuredBufferSize = 8192; // see Part 6, chapter "OPC UA Secure Conversation"
+    if(self.securityMode !== MessageSecurityMode.NONE) {
+        if(self.transport.receiveBufferSize < minSecuredBufferSize) {
+            description = "receiveBufferSize=" + self.transport.receiveBufferSize + " is too small for secured channel, minimum is " + minSecuredBufferSize;
+            return _send_error.call(this, StatusCodes.BadCommunicationError, description, message, callback);
+        }
+        if(self.transport.sendBufferSize < minSecuredBufferSize) {
+            description = "sendBufferSize=" + self.transport.sendBufferSize + " is too small for secured channel, minimum is " + minSecuredBufferSize;
+            return _send_error.call(this, StatusCodes.BadCommunicationError, description, message, callback);
+        }
+    }
+
     const has_endpoint = self.has_endpoint_for_security_mode_and_policy(self.securityMode, securityPolicy);
 
     if (!has_endpoint) {

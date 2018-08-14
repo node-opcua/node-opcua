@@ -93,8 +93,9 @@ ServerTCP_transport.prototype._send_ACK_response = function (helloMessage) {
 
     const self = this;
 
-    self.receiveBufferSize = clamp_value(helloMessage.receiveBufferSize, 8196, 512 * 1024);
-    self.sendBufferSize    = clamp_value(helloMessage.sendBufferSize,    8196, 512 * 1024);
+    // the validation of the minimum buffersize for secured connections is done in _on_initial_OpenSecureChannelRequest()
+    self.receiveBufferSize = clamp_value(helloMessage.receiveBufferSize, 64, 512 * 1024);
+    self.sendBufferSize    = clamp_value(helloMessage.sendBufferSize,    64, 512 * 1024);
     self.maxMessageSize    = clamp_value(helloMessage.maxMessageSize,  100000, 16 * 1024 * 1024);
     self.maxChunkCount     = clamp_value(helloMessage.maxChunkCount,        0, 65535);
 
