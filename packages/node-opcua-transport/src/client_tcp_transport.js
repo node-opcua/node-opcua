@@ -301,6 +301,8 @@ ClientTCP_transport.prototype._perform_HEL_ACK_transaction = function (callback)
         if (err) {
             callback(err);
             self._socket.end();
+            self._socket.removeAllListeners();
+
         } else {
             self._handle_ACK_response(data, function (inner_err) {
                 callback(inner_err);
