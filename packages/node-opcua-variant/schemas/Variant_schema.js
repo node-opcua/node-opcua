@@ -357,11 +357,15 @@ const Variant_Schema = {
             };
             if (opts.dataType === DataType.ExtensionObject) {
                 if (opts.arrayType === VariantArrayType.Scalar) {
-                    opts.value = new opts.value.constructor(opts.value);
+                    if (opts.value && opts.value.constructor) {
+                        opts.value = new opts.value.constructor(opts.value);
+                    }
                 } else {
                     opts.value = opts.value.map(function (e) {
-                        return new e.constructor(e);
-                    })
+                        if (e && e.constructor) {
+                            return new e.constructor(e);
+                        }
+                    });
                 }
             } else if (opts.arrayType !== VariantArrayType.Scalar) {
                 opts.value = coerceVariantArray(options.dataType, options.value);

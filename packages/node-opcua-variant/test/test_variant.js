@@ -1419,6 +1419,28 @@ describe("Variant with enumeration", function() {
 
         v2.value[1].should.eql(1); // v2 should have its own copy of the array
     });
+
+    it("should create a Extension object variant as a copy of ",function() {
+
+        const variant1= new Variant({
+            dataType: DataType.ExtensionObject,
+            value: null
+        });
+        const variant2 = new Variant(variant1);
+
+    });
+    it("should create a Extension object Array  variant as a copy of ",function() {
+
+        const variant1= new Variant({
+            dataType: DataType.ExtensionObject,
+            arrayType: VariantArrayType.Array,
+            value: [ null , null]
+        });
+
+        const variant2 = new Variant(variant1);
+
+    });
+
 });
 
 const sameVariant = require("..").sameVariant;
@@ -1521,6 +1543,11 @@ describe("testing sameVariant Performance", function() {
                 dataType: DataType.Int64,
                 arrayType: VariantArrayType.Array,
                 value: [[44, 888], [43, 100]]
+            }),
+            new Variant({
+                dataType: DataType.ExtensionObject,
+                arrayType: VariantArrayType.Scalar,
+                value: null
             }),
             null
         ];
@@ -1685,3 +1712,4 @@ describe("testing variant Clone & Copy Construct", function() {
     install_test("copy construct", copy_construct);
     install_test("clone", clone);
 });
+
