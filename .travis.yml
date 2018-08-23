@@ -68,7 +68,7 @@ after_success:
 
 script:
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]];
-    then  npm run testlerna ;
+    then  npm test ;
     else  npm test;
     fi
 
