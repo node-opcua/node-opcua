@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-extension-object",
- "version": "0.4.0",
+ "version": "0.4.2",
  "description": "pure nodejs OPCUA SDK - module -extension-object",
  "main": "index.js",
  "scripts": {
@@ -8,9 +8,9 @@
  },
  "dependencies": {
   "node-opcua-assert": "^0.4.0",
-  "node-opcua-basic-types": "^0.4.0",
-  "node-opcua-factory": "^0.4.0",
-  "node-opcua-nodeid": "^0.4.0"
+  "node-opcua-basic-types": "^0.4.2",
+  "node-opcua-factory": "^0.4.2",
+  "node-opcua-nodeid": "^0.4.2"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
