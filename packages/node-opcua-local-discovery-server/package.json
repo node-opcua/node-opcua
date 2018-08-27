@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-local-discovery-server",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "pure nodejs OPCUA SDK - local-discovery-server",
   "bin": {
     "lds": "./bin/local-discovery-server.js",
@@ -15,7 +15,7 @@
     "async": "^2.6.1",
     "bonjour": "^3.5.0",
     "colors": "^1.3.0",
-    "node-opcua": "^0.4.3"
+    "node-opcua": "^0.4.4"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-query",
- "version": "0.4.2",
+ "version": "0.4.4",
  "description": "pure nodejs OPCUA SDK - module -service-query",
  "scripts": {
   "test": "mocha test",
@@ -18,7 +18,7 @@
   "node-opcua-service-browse": "^0.4.2",
   "node-opcua-service-filter": "^0.4.2",
   "node-opcua-service-secure-channel": "^0.4.2",
-  "node-opcua-service-subscription": "^0.4.2",
+  "node-opcua-service-subscription": "^0.4.4",
   "node-opcua-service-translate-browse-path": "^0.4.2",
   "underscore": "^1.9.1"
  },

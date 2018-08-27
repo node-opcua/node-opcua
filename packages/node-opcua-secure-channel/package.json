@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-secure-channel",
- "version": "0.4.2",
+ "version": "0.4.4",
  "description": "pure nodejs OPCUA SDK - module -secure-channel",
  "main": "index.js",
  "scripts": {
@@ -21,7 +21,7 @@
   "node-opcua-packet-analyzer": "^0.4.2",
   "node-opcua-service-secure-channel": "^0.4.2",
   "node-opcua-status-code": "^0.4.2",
-  "node-opcua-transport": "^0.4.2",
+  "node-opcua-transport": "^0.4.4",
   "node-opcua-utils": "^0.4.2",
   "underscore": "^1.9.1"
  },
