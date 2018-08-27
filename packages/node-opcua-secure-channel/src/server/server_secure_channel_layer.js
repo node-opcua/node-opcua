@@ -75,6 +75,8 @@ function ServerSecureChannelLayer(options) {
 
     self.__hash = getNextChannelId();
 
+    assert(self.__hash  > 0);
+
     self.parent = options.parent;
 
     self.protocolVersion = 0;
@@ -87,6 +89,7 @@ function ServerSecureChannelLayer(options) {
 
     // uninitialized securityToken
     self.securityToken = { secureChannelId: self.__hash , tokenId: 0 };
+    assert(self.securityToken.secureChannelId > 0);
 
     self.serverNonce = null; // will be created when needed
 
@@ -272,13 +275,16 @@ ServerSecureChannelLayer.prototype._add_new_security_token = function() {
     _stop_security_token_watch_dog.call(self);
     self.lastTokenId += 1;
 
+
+    self.secureChannelId = self.__hash;
+    assert(self.secureChannelId > 0);
+
     const securityToken = new ChannelSecurityToken({
         secureChannelId: self.secureChannelId,
         tokenId: self.lastTokenId, // todo ?
         createdAt: new Date(), // now
         revisedLifeTime: self.revisedLifeTime
     });
-    self.secureChannelId = self.__hash;
 
 
     assert(!securityToken.expired);
@@ -593,6 +599,8 @@ ServerSecureChannelLayer.prototype.send_response = function(msgType, response, m
 
         chunkSize: self.transport.receiveBufferSize
     };
+
+    assert(options.secureChannelId > 0);
 
     const security_options =
         msgType === "OPN" ? self._get_security_options_for_OPN() : self._get_security_options_for_MSG();

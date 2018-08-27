@@ -409,7 +409,7 @@ TCP_transport.prototype.disconnect = function (callback) {
     if (self._socket) {
         self._socket.end();
         self._socket.destroy();
-        self._socket.removeAllListeners();
+//Xx        self._socket.removeAllListeners();
         self._socket = null;
     }
 

@@ -226,7 +226,7 @@ OPCUAClient.prototype.__createSession_step2 = function (session, callback) {
         maxResponseMessageSize: 800000
     });
 
-    // a client Nonce must be provided if security mode is set
+    /* a client Nonce must be provided if security mode is set*/
     assert(self._secureChannel.securityMode === MessageSecurityMode.NONE || request.clientNonce !== null);
 
     self.performMessageTransaction(request, function (err, response) {
