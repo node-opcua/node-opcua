@@ -1,5 +1,6 @@
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
+const chalk =require("chalk");
 
 const NodeClass = require("node-opcua-data-model").NodeClass;
 const QualifiedName = require("node-opcua-data-model").QualifiedName;
@@ -358,6 +359,7 @@ UANamespace.prototype._construct_nodeId = function (options) {
     return nodeId;
 };
 
+const regExpNamespaceDotBrowseName  = /[0-9]+:(.*)/;
 /**
  * @method _createNode
  * @private
@@ -386,8 +388,24 @@ UANamespace.prototype._createNode = function (options) {
 
     // browseName adjustment
     if (typeof options.browseName === "string") {
-        assert(options.browseName.indexOf(":") === -1, "We do not support <namespace>:<browseName> form here yet");
+
+        const match = options.browseName.match(regExpNamespaceDotBrowseName);
+        if (match) {
+            const correctedName= match[1];
+            // the application is using an old scheme
+            console.log(chalk.green("Warning : since node-opcua 0.4.2 , namespace should not be prepended to the browse name anymore"));
+            console.log("   ", options.browseName, " will be replaced with " , correctedName);
+            console.log(" Please update your code");
+
+            const indexVerif = parseInt(match[0]);
+            if (indexVerif !== self.index) {
+                console.log(chalk.red.bold("Error: namespace index used at the front of the browseName " + indexVerif + " do not match the index of the current namespace ("+ self.index+ ")"));
+                console.log(" Please fix your code so that the created node is inserted in the correct namespace, please refer to the NodeOPCUA documentation");
+            }
+        }
+
         options.browseName = new QualifiedName({name: options.browseName, namespaceIndex: self.index});
+
     } else if (!(options.browseName instanceof QualifiedName)) {
         options.browseName = new QualifiedName(options.browseName);
     }
