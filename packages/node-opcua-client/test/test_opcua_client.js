@@ -13,7 +13,7 @@ describe("OPCUA Client",function() {
     });
     it("should create a ClientSecureChannerLayer", function () {
 
-        new ClientSecureChannelLayer();
+        new ClientSecureChannelLayer({});
     });
 
 });

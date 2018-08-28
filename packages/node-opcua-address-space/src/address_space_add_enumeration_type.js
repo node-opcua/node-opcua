@@ -14,9 +14,9 @@ const DataType = require("node-opcua-variant").DataType;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const LocalizedText = require("node-opcua-data-model").LocalizedText;
 const NodeId = require("node-opcua-nodeid").NodeId;
-const UADataType = require(".//ua_data_type").UADataType;
+const UADataType = require("./ua_data_type").UADataType;
 
-const EnumValueType  = require("node-opcua-data-model").EnumValueType;
+const EnumValueType  = require("node-opcua-common").EnumValueType;
 const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
 

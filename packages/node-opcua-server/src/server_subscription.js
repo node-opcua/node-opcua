@@ -14,8 +14,7 @@ const StatusChangeNotification = subscription_service.StatusChangeNotification;
 const MonitoringMode = subscription_service.MonitoringMode;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const Enum = require("node-opcua-enum");
-const assert = require("node-opcua-assert").assert;
+const Enum = require("node-opcua-enum").Enum;const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
@@ -33,7 +32,7 @@ const AggregateFilter = require("node-opcua-service-subscription").AggregateFilt
 
 const UAVariable = require("node-opcua-address-space").UAVariable;
 const validateFilter = require("./validate_filter").validateFilter;
-const is_valid_dataEncoding = require("node-opcua-data-model").is_valid_dataEncoding;
+const isValidDataEncoding = require("node-opcua-data-model").isValidDataEncoding;
 
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
@@ -55,7 +54,7 @@ const SubscriptionState = new Enum([
 exports.SubscriptionState = SubscriptionState;
 
 
-const SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
+const SessionDiagnosticsDataType = require("node-opcua-common").SessionDiagnosticsDataType;
 
 
 function _adjust_publishing_interval(publishingInterval) {
@@ -109,12 +108,13 @@ function _assert_valid_publish_engine(publishEngine) {
     assert(_.isFunction(publishEngine.on_close_subscription));
 }
 
+const SubscriptionDiagnosticsDataType = require("node-opcua-common").SubscriptionDiagnosticsDataType;
 
 function createSubscriptionDiagnostics(self) {
 
     assert(self instanceof Subscription);
 
-    self.subscriptionDiagnostics = new SubscriptionDiagnostics({});
+    self.subscriptionDiagnostics = new SubscriptionDiagnosticsDataType({});
 
     self.subscriptionDiagnostics.$subscription = self;
     // "sessionId"
@@ -208,7 +208,7 @@ function Subscription(options) {
 
     Subscription.registry.register(subscription);
 
-    subscription.sessionId = options.sessionId|| NodeId.NullNodeId;
+    subscription.sessionId = options.sessionId|| NodeId.nullNodeId;
     assert(subscription.sessionId instanceof NodeId,"expecting a sessionId NodeId");
 
     subscription.publishEngine = options.publishEngine;
@@ -638,7 +638,7 @@ Subscription.prototype._tick = function () {
 
         // notify new terminated status only when subscription has timeout.
         debugLog("adding StatusChangeNotification notification message for BadTimeout subscription = ", subscription.id);
-        subscription._addNotificationMessage([new StatusChangeNotification({statusCode: StatusCodes.BadTimeout})]);
+        subscription._addNotificationMessage([new StatusChangeNotification({ status: StatusCodes.BadTimeout})]);
 
         // kill timer and delete monitored items and transfer pending notification messages
         subscription.terminate();
@@ -1300,7 +1300,7 @@ Subscription.prototype.createMonitoredItem = function (addressSpace, timestampsT
     }
 
     // check dataEncoding
-    if (!is_valid_dataEncoding(itemToMonitor.dataEncoding)) {
+    if (!isValidDataEncoding(itemToMonitor.dataEncoding)) {
         return handle_error(StatusCodes.BadDataEncodingUnsupported);
     }
 
@@ -1662,7 +1662,7 @@ Subscription.prototype.notifyTransfer = function () {
 
     debugLog(" Subscription => Notifying Transfer                                  ".red);
 
-    const notificationData = [new StatusChangeNotification({statusCode: StatusCodes.GoodSubscriptionTransferred})];
+    const notificationData = [new StatusChangeNotification({status: StatusCodes.GoodSubscriptionTransferred})];
 
     subscription.publishEngine.send_notification_message({
         subscriptionId: subscription.id,

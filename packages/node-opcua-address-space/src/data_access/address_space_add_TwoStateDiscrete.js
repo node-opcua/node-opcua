@@ -54,7 +54,7 @@ module.exports.install = function (AddressSpace) {
         const trueStateNode = namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: {name: "TrueState", namespace: 0},
+            browseName: {name: "TrueState", namespaceIndex: 0},
             dataType: "LocalizedText",
             minimumSamplingInterval: 0,
             value: new Variant({
@@ -67,7 +67,7 @@ module.exports.install = function (AddressSpace) {
         const falseStateNode =  namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: {name: "FalseState", namespace: 0},
+            browseName: {name: "FalseState", namespaceIndex: 0},
             dataType: "LocalizedText",
             minimumSamplingInterval: 0,
             value: new Variant({

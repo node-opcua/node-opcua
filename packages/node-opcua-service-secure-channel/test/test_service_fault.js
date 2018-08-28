@@ -2,7 +2,7 @@
 const should = require("should");
 
 const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
-const packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
+const analyzePacket = require("node-opcua-packet-analyzer").analyzePacket;
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 const redirectToFile = require("node-opcua-debug").redirectToFile;
 
@@ -32,7 +32,7 @@ describe("ServiceFault", function () {
         );
         redirectToFile("ws_ServiceFault.log", function () {
 
-            packet_analyzer(ws_message);
+            analyzePacket(ws_message);
 
             const stream = new BinaryStream(ws_message);
             const id = ec.decodeExpandedNodeId(stream);

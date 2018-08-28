@@ -1,6 +1,6 @@
 "use strict";
 const should = require("should");
-const SequenceNumberGenerator = require("../src/sequence_number_generator").SequenceNumberGenerator;
+const SequenceNumberGenerator = require("..").SequenceNumberGenerator;
 
 describe("SequenceNumberGenerator", function () {
 
@@ -19,7 +19,7 @@ describe("SequenceNumberGenerator", function () {
 
         const generator = new SequenceNumberGenerator();
 
-        const max_counter_value = SequenceNumberGenerator.prototype.MAXVALUE;
+        const max_counter_value = SequenceNumberGenerator.MAXVALUE;
         generator._set(max_counter_value);
 
         generator.future().should.equal(max_counter_value);

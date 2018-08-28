@@ -1,24 +1,28 @@
 {
- "name": "node-opcua-constants",
- "version": "0.4.2",
- "description": "pure nodejs OPCUA SDK - module -constants",
- "scripts": {
-  "test": ""
- },
- "main": "index.js",
- "author": "Etienne Rossignon",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git://github.com/node-opcua/node-opcua.git"
- },
- "keywords": [
-  "OPCUA",
-  "opcua",
-  "m2m",
-  "iot",
-  "opc ua",
-  "internet of things"
- ],
- "homepage": "http://node-opcua.github.io/"
+  "name": "node-opcua-constants",
+  "version": "0.5.0",
+  "description": "pure nodejs OPCUA SDK - module -constants",
+  "scripts": {
+    "clean": "node -e \"require('rimraf').sync('dist');\"",
+    "build": "tsc",
+    "lint": "tslint -c tslint.json source/**/*.ts",
+    "test": ""
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "author": "Etienne Rossignon",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/node-opcua/node-opcua.git"
+  },
+  "keywords": [
+    "OPCUA",
+    "opcua",
+    "m2m",
+    "iot",
+    "opc ua",
+    "internet of things"
+  ],
+  "homepage": "http://node-opcua.github.io/"
 }

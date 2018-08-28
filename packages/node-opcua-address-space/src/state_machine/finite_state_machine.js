@@ -56,7 +56,7 @@ UAStateMachine.prototype._post_initialize = function() {
     const finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType");
     assert(finiteStateMachineType.browseName.toString() === "FiniteStateMachineType");
 
-    assert(self.typeDefinitionObj&&!self.subtypeOfObj);
+    assert(self.typeDefinitionObj&&!self.subtypeOfObj); 
     assert(!self.typeDefinitionObj || self.typeDefinitionObj.isSupertypeOf(finiteStateMachineType));
     // get current Status
 

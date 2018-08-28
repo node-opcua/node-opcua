@@ -1,0 +1,9 @@
+{
+  "extends": "../../tslint.json",
+  "rules": {
+    "trailing-comma": false,
+    "object-literal-sort-keys": false,
+    "max-line-length": false,
+    "no-consecutive-blank-lines": false
+  }
+}

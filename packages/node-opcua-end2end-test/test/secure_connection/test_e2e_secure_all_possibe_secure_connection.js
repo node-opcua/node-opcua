@@ -141,36 +141,45 @@ function start_server(options, callback) {
 }
 
 const start_server_with_1024bits_certificate = function (callback) {
-    const options = {};
+
+    const server_certificate_pem_file = path.join(certificate_store, "server_cert_1024.pem");
+    const server_certificate_privatekey_file = path.join(certificate_store, "server_key_1024.pem");
+
+    fs.existsSync(server_certificate_pem_file).should.eql(true);
+    fs.existsSync(server_certificate_privatekey_file).should.eql(true);
+    const options = {
+        certificateFile: server_certificate_pem_file,
+        privateKeyFile: server_certificate_privatekey_file
+    };
     start_server(options, callback);
 };
 
 const start_server_with_2048bits_certificate = function (callback) {
 
-    const server_certificate256_pem_file = path.join(certificate_store, "server_cert_2048.pem");
-    const server_certificate256_privatekey_file = path.join(certificate_store, "server_key_2048.pem");
+    const server_certificate_pem_file = path.join(certificate_store, "server_cert_2048.pem");
+    const server_certificate_privatekey_file = path.join(certificate_store, "server_key_2048.pem");
 
-    fs.existsSync(server_certificate256_pem_file).should.eql(true);
-    fs.existsSync(server_certificate256_privatekey_file).should.eql(true);
+    fs.existsSync(server_certificate_pem_file).should.eql(true);
+    fs.existsSync(server_certificate_privatekey_file).should.eql(true);
 
     const options = {
-        certificateFile: server_certificate256_pem_file,
-        privateKeyFile: server_certificate256_privatekey_file
+        certificateFile: server_certificate_pem_file,
+        privateKeyFile: server_certificate_privatekey_file
     };
     start_server(options, callback);
 };
 
 const start_server_with_4096bits_certificate = function (callback) {
 
-    const server_certificate256_pem_file = path.join(certificate_store, "server_cert_4096.pem");
-    const server_certificate256_privatekey_file = path.join(certificate_store, "server_key_4096.pem");
+    const server_certificate_pem_file = path.join(certificate_store, "server_cert_4096.pem");
+    const server_certificate_privatekey_file = path.join(certificate_store, "server_key_4096.pem");
 
-    fs.existsSync(server_certificate256_pem_file).should.eql(true);
-    fs.existsSync(server_certificate256_privatekey_file).should.eql(true);
+    fs.existsSync(server_certificate_pem_file).should.eql(true);
+    fs.existsSync(server_certificate_privatekey_file).should.eql(true);
 
     const options = {
-        certificateFile: server_certificate256_pem_file,
-        privateKeyFile: server_certificate256_privatekey_file
+        certificateFile: server_certificate_pem_file,
+        privateKeyFile: server_certificate_privatekey_file
     };
     start_server(options, callback);
 };
@@ -184,13 +193,11 @@ function stop_server(data, callback) {
 //xx start_server=start_server1;
 //xx stop_server=stop_server1;
 
-const ClientSession = opcua.ClientSession;
 const ClientSubscription = opcua.ClientSubscription;
 
 
 function keep_monitoring_some_variable(client, session, security_token_renewed_limit, done) {
 
-    should(session).be.instanceof(ClientSession);
 
     let security_token_renewed_counter = 0;
     const nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
@@ -244,15 +251,16 @@ function common_test(securityPolicy, securityMode, options, done) {
     if (global.gc) {
         global.gc(true);
     }
-    //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
-    opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting supporting");
+    console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
+
+    opcua.coerceMessageSecurityMode(securityMode).should.not.eql(opcua.MessageSecurityMode.Invalid, "expecting supporting");
 
     options = options || {};
     options = _.extend(options, {
-        securityMode: opcua.MessageSecurityMode.get(securityMode),
-        securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
-        serverCertificate: serverCertificate,
+        securityMode: opcua.coerceMessageSecurityMode(securityMode),
+        securityPolicy: opcua.coerceSecurityPolicy(securityPolicy),
+        //xx serverCertificate: serverCertificate,
         connectionStrategy: no_reconnect_connectivity_strategy,
         requestedSessionTimeout: 120 * 60 * 1000
     });
@@ -277,7 +285,7 @@ function common_test(securityPolicy, securityMode, options, done) {
     client.on("lifetime_75", function (token) {
         // check if we are late!
         //
-        const expectedExpiryTick = token.createdAt.getTime() + token.revisedLifeTime;
+        const expectedExpiryTick = token.createdAt.getTime() + token.revisedLifetime;
         const delay = (expectedExpiryTick - Date.now());
         if (delay <= 100) {
             console.log("WARNING : token renewal is happening too late !!".red, delay);
@@ -297,8 +305,8 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
 
     options = options || {};
     options = _.extend(options, {
-        securityMode: opcua.MessageSecurityMode.get(securityMode),
-        securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
+        securityMode: opcua.coerceMessageSecurityMode(securityMode),
+        securityPolicy: opcua.coerceSecurityPolicy(securityPolicy),
         serverCertificate: serverCertificate,
         defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
         tokenRenewalInterval: g_tokenRenewalInterval,
@@ -330,7 +338,7 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
 function common_test_expected_server_initiated_disconnection(securityPolicy, securityMode, done) {
 
 
-    opcua.MessageSecurityMode.get(securityMode).should.not.eql(null, "expecting a valid MessageSecurityMode");
+    opcua.coerceMessageSecurityMode(securityMode).should.not.eql(MessageSecurityMode.Invalid, "expecting a valid MessageSecurityMode");
 
     const fail_fast_connectivity_strategy = {
         maxRetry: 1,
@@ -339,8 +347,8 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
         randomisationFactor: 0
     };
     const options = {
-        securityMode: opcua.MessageSecurityMode.get(securityMode),
-        securityPolicy: opcua.SecurityPolicy.get(securityPolicy),
+        securityMode: opcua.coerceMessageSecurityMode(securityMode),
+        securityPolicy: opcua.coerceSecurityPolicy(securityPolicy),
         serverCertificate: serverCertificate,
         defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
         tokenRenewalInterval: g_tokenRenewalInterval,
@@ -395,39 +403,39 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
 function perform_collection_of_test_with_client_configuration(message, options) {
 
     it("should succeed with Basic128Rsa15  with Sign           " + message, function (done) {
-        common_test("Basic128Rsa15", "SIGN", options, done);
+        common_test("Basic128Rsa15", "Sign", options, done);
     });
 
     it("should succeed with Basic128Rsa15  with Sign           " + message, function (done) {
-        common_test("Basic128Rsa15", "SIGN", options, done);
+        common_test("Basic128Rsa15", "Sign", options, done);
     });
 
     it("should succeed with Basic128Rsa15  with SignAndEncrypt " + message, function (done) {
-        common_test("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
+        common_test("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
     it("should succeed with Basic256       with Sign           " + message, function (done) {
-        common_test("Basic256", "SIGN", options, done);
+        common_test("Basic256", "Sign", options, done);
     });
 
     it("should succeed with Basic256       with SignAndEncrypt " + message, function (done) {
-        common_test("Basic256", "SIGNANDENCRYPT", options, done);
+        common_test("Basic256", "SignAndEncrypt", options, done);
     });
 
     it("should fail    with Basic256Rsa15  with Sign           " + message, function (done) {
-        check_open_secure_channel_fails("Basic256Rsa15", "SIGN", options, done);
+        check_open_secure_channel_fails("Basic256Rsa15", "Sign", options, done);
     });
 
     it("should fail    with Basic256Rsa15  with SignAndEncrypt " + message, function (done) {
-        check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT", options, done);
+        check_open_secure_channel_fails("Basic256Rsa15", "SignAndEncrypt", options, done);
     });
 
     it("should succeed with Basic256Sha256 with Sign           " + message, function (done) {
-        common_test("Basic256Sha256", "SIGN", options, done);
+        common_test("Basic256Sha256", "Sign", options, done);
     });
 
     it("should succeed with Basic256Sha256 with SignAndEncrypt " + message, function (done) {
-        common_test("Basic256Sha256", "SIGNANDENCRYPT", options, done);
+        common_test("Basic256Sha256", "SignAndEncrypt", options, done);
     });
 
 }
@@ -461,7 +469,6 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 describe("ZZA- testing Secure Client-Server communication", function () {
 
     this.timeout(Math.max(this._timeout, 20001));
@@ -485,7 +492,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         should.exist(serverCertificate);
         server.currentChannelCount.should.equal(0);
         const options = {
-            securityMode: opcua.MessageSecurityMode.SIGN,
+            securityMode: opcua.MessageSecurityMode.Sign,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             connectionStrategy: no_reconnect_connectivity_strategy
@@ -508,7 +515,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_1024.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_1024.pem"),
 
-            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             connectionStrategy: no_reconnect_connectivity_strategy
@@ -530,7 +537,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
 
-            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
 
@@ -552,7 +559,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
 
-            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic256Sha256,
             serverCertificate: serverCertificate,
 
@@ -574,7 +581,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
 
-            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
 
@@ -608,7 +615,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
     it("QQQ5 a token shall be updated on a regular basis", function (done) {
 
         const options = {
-            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
@@ -690,7 +697,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
 
         const options = {
             keepSessionAlive: true,
-            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 2000,
@@ -753,7 +760,7 @@ describe("ZZC- testing Security Policy with a valid 1024 bit certificate on serv
 
     it("connection should fail if security mode requested by client is not supported by server", function (done) {
 
-        const securityMode = "SIGN";
+        const securityMode = "Sign";
         const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
         check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
 
@@ -783,7 +790,7 @@ describe("ZZD- testing Security Policy with a valid 2048 bit certificate on serv
 
     it("connection should fail if security mode requested by client is not supported by server", function (done) {
 
-        const securityMode = "SIGN";
+        const securityMode = "Sign";
         const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
         check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
 
@@ -811,7 +818,7 @@ describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on ser
     perform_collection_of_test_with_various_client_configuration(" (4096 bits certificate on server)");
 
     it("connection should fail if security mode requested by client is not supported by server", function (done) {
-        const securityMode = "SIGN";
+        const securityMode = "Sign";
         const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
         check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
     });
@@ -848,7 +855,7 @@ describe("ZZE- testing with various client certificates", function () {
             certificateFile: client_certificate_ok,
             privateKeyFile: client_privatekey_file
         };
-        common_test("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
+        common_test("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
     it("Server should not allow a client with a out of date certificate to connect", function (done) {
@@ -857,7 +864,7 @@ describe("ZZE- testing with various client certificates", function () {
             certificateFile: client_certificate_out_of_date,
             privateKeyFile: client_privatekey_file
         };
-        check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
+        check_open_secure_channel_fails("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
     it("Server should not allow a client to connect when the certificate is not active yet", function (done) {
@@ -866,7 +873,7 @@ describe("ZZE- testing with various client certificates", function () {
             certificateFile: client_certificate_not_active_yet,
             privateKeyFile: client_privatekey_file
         };
-        check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
+        check_open_secure_channel_fails("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
     xit("Server should not allow a client to connect with a revoked certificate", function (done) {
@@ -875,7 +882,7 @@ describe("ZZE- testing with various client certificates", function () {
             certificateFile: client_certificate_revoked,
             privateKeyFile: client_privatekey_file
         };
-        check_open_secure_channel_fails("Basic128Rsa15", "SIGNANDENCRYPT", options, done);
+        check_open_secure_channel_fails("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
 

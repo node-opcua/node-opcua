@@ -443,7 +443,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         should.not.exist(client, "expecting no client");
         const options = {
 
-            securityMode: _options.securityMode || opcua.MessageSecurityMode.NONE,
+            securityMode: _options.securityMode || opcua.MessageSecurityMode.None,
             securityPolicy: _options.securityPolicy || opcua.SecurityPolicy.None,
             keepSessionAlive: true,
             requestedSessionTimeout: _options.requestedSessionTimeout || requestedSessionTimeout,
@@ -1307,11 +1307,11 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     it("TR11-a -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - no security ", function (done) {
-        test_1({securityMode: opcua.MessageSecurityMode.NONE, securityPolicy: opcua.SecurityPolicy.Node}, done);
+        test_1({securityMode: opcua.MessageSecurityMode.None, securityPolicy: opcua.SecurityPolicy.Node}, done);
     });
     it("TR11-b -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - with secure channel (#390)", function (done) {
         test_1({
-            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic256Sha256
         }, done);
     });

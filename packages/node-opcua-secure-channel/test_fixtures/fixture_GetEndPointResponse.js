@@ -10,7 +10,7 @@ var GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
 
 var EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
 var ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
-var UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
+var UserTokenType = require("node-opcua-service-endpoints").UserTokenType;
 var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
 exports.fixture1 = (function () {
@@ -29,7 +29,7 @@ exports.makeEndPoint = function () {
             applicationUri: "OPCUA  node-js",
             productUri: "some product uri",
             applicationName: {text: "Localised application name"},
-            applicationType: ApplicationType.CLIENTANDSERVER,
+            applicationType: ApplicationType.ClientAndServer,
             gatewayServerUri: "gatewayServerUri",
             discoveryProfileUri: "discoveryProfileUri",
             discoveryUrls: [
@@ -43,13 +43,13 @@ exports.makeEndPoint = function () {
 
         serverCertificate: Buffer.alloc(256),
 
-        securityMode: MessageSecurityMode.NONE,
+        securityMode: MessageSecurityMode.None,
 
         securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
         userIdentityTokens: [
             {
                 policyId: "policyId",
-                tokenType: UserIdentityTokenType.ANONYMOUS,
+                tokenType: UserTokenType.Anonymous,
                 issuedTokenType: "issuedTokenType",
                 issuerEndpointUrl: "qdqsdq",
                 securityPolicyUri: "String"
@@ -74,7 +74,7 @@ exports.fixture2 = (function () {
     endPointResponse.endpoints.length.should.equal(1);
 
     endPointResponse.endpoints[0].server.gatewayServerUri.should.eql("gatewayServerUri");
-    endPointResponse.endpoints[0].securityMode.should.eql(MessageSecurityMode.NONE);
+    endPointResponse.endpoints[0].securityMode.should.eql(MessageSecurityMode.None);
 
 
     return endPointResponse;
@@ -93,7 +93,7 @@ exports.fixture3 = (function () {
     endPointResponse.endpoints.length.should.equal(3);
 
     endPointResponse.endpoints[0].server.gatewayServerUri.should.eql("gatewayServerUri");
-    endPointResponse.endpoints[0].securityMode.should.eql(MessageSecurityMode.NONE);
+    endPointResponse.endpoints[0].securityMode.should.eql(MessageSecurityMode.None);
 
 
     return endPointResponse;
@@ -130,7 +130,7 @@ exports.fixture4 = (function () {
     endPointResponse.endpoints.length.should.equal(20);
 
     endPointResponse.endpoints[0].server.gatewayServerUri.should.eql("gatewayServerUri");
-    endPointResponse.endpoints[0].securityMode.should.eql(MessageSecurityMode.NONE);
+    endPointResponse.endpoints[0].securityMode.should.eql(MessageSecurityMode.None);
 
 
     return endPointResponse;

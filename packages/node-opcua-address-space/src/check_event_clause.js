@@ -15,13 +15,13 @@ function checkSelectClause(parentNode, selectClause) {
     // SimpleAttributeOperand
     const addressSpace = parentNode.addressSpace;
 
-    if (selectClause.typeId.isEmpty()) {
+    if (selectClause.typeDefinitionId.isEmpty()) {
         return StatusCodes.Good;
     }
-    const eventTypeNode =  addressSpace.findEventType(selectClause.typeId);
+    const eventTypeNode =  addressSpace.findEventType(selectClause.typeDefinitionId);
 
     if (!eventTypeNode || !(eventTypeNode instanceof UAObjectType)) {
-        //xx console.log("eventTypeNode = ",selectClause.typeId.toString());
+        //xx console.log("eventTypeNode = ",selectClause.typeDefinitionId.toString());
         //xx console.log("eventTypeNode = ",eventTypeNode);
         if (eventTypeNode) { console.log(eventTypeNode.toString()); }
     }

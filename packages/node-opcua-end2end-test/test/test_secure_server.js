@@ -46,7 +46,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
                 SecurityPolicy.Basic256
             ],
             securityModes: [
-                MessageSecurityMode.SIGNANDENCRYPT
+                MessageSecurityMode.SignAndEncrypt
             ],
             disableDiscovery: false
         });
@@ -83,17 +83,19 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
             // create session
             function (callback) {
 
-                client._server_endpoints.length.should.eql(1);
+                client._serverEndpoints.length.should.eql(1);
 
                 // server has given us only its valid endpoint that the client will check before
                 // establishing a session. Let's inject a fake unsecure endpoint so we can
                 // skip the internal client test for invalid endpoint and get to the server
 
 
-                const unsecure_endpoint = new opcua.EndpointDescription(client._server_endpoints[0]);
-                unsecure_endpoint.securityMode = MessageSecurityMode.NONE;
-                unsecure_endpoint.securityPolicyUri = SecurityPolicy.None.value;
-                client._server_endpoints.push(unsecure_endpoint);
+                const unsecureEndpoint = new opcua.EndpointDescription(client._serverEndpoints[0]);
+                unsecureEndpoint.securityMode = MessageSecurityMode.None;
+                unsecureEndpoint.securityPolicyUri = SecurityPolicy.None;
+
+
+                client._serverEndpoints.push(unsecureEndpoint);
 
 
                 client.createSession(function (err, session) {
@@ -146,8 +148,8 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
                     if (!err) {
                         //xx console.log(endpoints);
                         endpoints.length.should.eql(1);
-                        endpoints[0].securityMode.should.eql(MessageSecurityMode.SIGNANDENCRYPT);
-                        endpoints[0].securityPolicyUri.should.eql(SecurityPolicy.Basic256.value);
+                        endpoints[0].securityMode.should.eql(MessageSecurityMode.SignAndEncrypt);
+                        endpoints[0].securityPolicyUri.should.eql(SecurityPolicy.Basic256);
                     }
                     callback(err);
                 });

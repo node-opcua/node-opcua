@@ -19,7 +19,7 @@ const port = 2000;
 
 const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -37,7 +37,7 @@ describe("testing the server ability to deny client session request (server with
         const serverCertificate = server.getCertificateChain();
 
         options = {
-            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic256,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 2000
@@ -221,7 +221,7 @@ describe("testing the server ability to deny client session request (server with
 
         // in this case, server certificate will be extracted from the getPoint Information
         const options = {
-            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic256,
             serverCertificate: null, // NOT KNOWN
             defaultSecureTokenLifetime: 2000

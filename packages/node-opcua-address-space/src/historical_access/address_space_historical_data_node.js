@@ -16,7 +16,7 @@ const HistoryReadResult = historizing_service.HistoryReadResult;
 const HistoryData = historizing_service.HistoryData;
 
 const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
-const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
+const makeAccessLevelFlag = require("node-opcua-data-model").makeAccessLevelFlag;
 
 const DataType = require("node-opcua-variant").DataType;
 
@@ -166,8 +166,8 @@ exports.install = function (AddressSpace) {
 
         const historicalDataConfigurationType = addressSpace.findObjectType("HistoricalDataConfigurationType");
         node.historizing = true;
-        node.accessLevel = AccessLevelFlag.get(node.accessLevel.key + " | CurrentRead | HistoryRead");
-        node.userAccessLevel = AccessLevelFlag.get(node.userAccessLevel.key + " | CurrentRead | HistoryRead");
+        node.accessLevel     = node.accessLevel  | AccessLevelFlag.CurrentRead | AccessLevelFlag.HistoryRead;
+        node.userAccessLevel = node.userAccessLevel | AccessLevelFlag.CurrentRead | AccessLevelFlag.HistoryRead;
 
         const optionals = [
             "Definition",

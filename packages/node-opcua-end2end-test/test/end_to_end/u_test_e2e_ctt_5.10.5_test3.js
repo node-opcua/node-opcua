@@ -39,8 +39,6 @@ module.exports = function (test) {
 
         function create_subscription_and_monitor_item(the_session, callback) {
 
-            assert(the_session instanceof opcua.ClientSession);
-
             subscription = new ClientSubscription(the_session, {
                 requestedPublishingInterval: 150,
                 requestedLifetimeCount: 10 * 60 * 10,

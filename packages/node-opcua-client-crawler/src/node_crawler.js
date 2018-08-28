@@ -116,7 +116,7 @@ NodeCrawler.prototype._initialize_referenceTypeId = function () {
     }
 
     //  References
-    //  +->(hasSubtype) NoHierarchicalReferences
+    //  +->(hasSubtype) NonHierarchicalReferences
     //                  +->(hasSubtype) HasTypeDefinition
     //  +->(hasSubtype) HierarchicalReferences
     //                  +->(hasSubtype) HasChild/ChildOf
@@ -270,7 +270,8 @@ NodeCrawler.prototype._resolve_deferred_readNode = function (callback) {
                         _nodeToReadEx.action(dataValue.value.value);
                     }
                 } else {
-                    _nodeToReadEx.action({name: dataValue.statusCode.key});
+                    //xx console.log("qsdqsd",dataValue.statusCode.toString());
+                    _nodeToReadEx.action({name: dataValue.statusCode.toString()});
                 }
 
             }
@@ -749,9 +750,9 @@ NodeCrawler.prototype._inner_crawl = function (nodeId, userData, end_callback) {
                 if (err) {
                     return callback(err);
                 }
-                cacheNode.nodeClass = NodeClass.get(value);
+                cacheNode.nodeClass = value;
                 setImmediate(callback);
-            });
+             });
         },
         function (callback) {
             self._defer_readNode(cacheNode.nodeId, AttributeIds.DisplayName, function (err, value) {

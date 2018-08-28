@@ -1,9 +1,9 @@
 const should = require("should");
 
-const MessageBuilder = require("../src/message_builder").MessageBuilder;
+const MessageBuilder = require("..").MessageBuilder;
 
 
-const packets = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets");
+const packets = require("node-opcua-transport/dist/test-fixtures");
 
 const redirectToFile = require("node-opcua-debug").redirectToFile;
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);

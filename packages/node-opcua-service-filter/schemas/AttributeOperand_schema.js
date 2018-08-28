@@ -1,5 +1,8 @@
 "use strict";
 require("node-opcua-service-translate-browse-path");
+require("node-opcua-nodeid");
+require("node-opcua-numeric-range");
+
 const NumericRange = require("node-opcua-numeric-range").NumericRange;
 
 const AttributeOperand_Schema = {

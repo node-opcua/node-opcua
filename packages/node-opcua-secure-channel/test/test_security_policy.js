@@ -1,14 +1,18 @@
 "use strict";
 
 const should = require("should");
+const crypto_utils = require("node-opcua-crypto");
 
-const securityPolicy_m = require("../src/security_policy");
-const SecurityPolicy = securityPolicy_m.SecurityPolicy;
-const fromURI = securityPolicy_m.fromURI;
-const toURI = securityPolicy_m.toURI;
+const crypto = require("crypto");
+
+const SecurityPolicy = require("..").SecurityPolicy;
+const fromURI = require("..").fromURI;
+const toURI = require("..").toURI;
+const computeSignature = require("..").computeSignature;
+const verifySignature = require("..").verifySignature;
+
 
 const getFixture = require("node-opcua-test-fixtures").getFixture;
-
 
 describe("Security Policy", function () {
 
@@ -47,8 +51,7 @@ describe("Security Policy", function () {
 
 });
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
-const crypto = require("crypto");
+
 describe("Security Policy computeSignature, verifySignature", function () {
 
 
@@ -56,8 +59,8 @@ describe("Security Policy computeSignature, verifySignature", function () {
     const senderCertificate = crypto_utils.readCertificate(getFixture("certs/server_cert_2048.pem"));
     const senderNonce = crypto.randomBytes(32);
 
-    const receiverPrivateKey = crypto_utils.readKey(getFixture("certs/client_key_1024.pem"));
-    const receiverCertificate = crypto_utils.readKey(getFixture("certs/client_cert_1024.pem"));
+    const receiverPrivateKey = crypto_utils.readKeyPem(getFixture("certs/client_key_1024.pem"));
+    const receiverCertificate = crypto_utils.readPrivateKey(getFixture("certs/client_cert_1024.pem"));
 
     const securityPolicy = SecurityPolicy.Basic256;
 
@@ -72,9 +75,9 @@ describe("Security Policy computeSignature, verifySignature", function () {
 
     it("should compute a Signature and verify a signature", function () {
 
-        const signatureData = securityPolicy_m.computeSignature(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);
+        const signatureData = computeSignature(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);
 
-        const bIsOk = securityPolicy_m.verifySignature(senderCertificate, senderNonce, signatureData, receiverCertificate, securityPolicy);
+        const bIsOk = verifySignature(senderCertificate, senderNonce, signatureData, receiverCertificate, securityPolicy);
 
         bIsOk.should.be.eql(true);
 
@@ -82,12 +85,12 @@ describe("Security Policy computeSignature, verifySignature", function () {
 
     it("should not verify a signature that has been tampered", function () {
 
-        const signatureData = securityPolicy_m.computeSignature(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);
+        const signatureData = computeSignature(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);
 
 
         signatureData.signature.writeUInt8((signatureData.signature.readUInt8(10) + 10) % 256, 10);
 
-        const bIsOk = securityPolicy_m.verifySignature(senderCertificate, senderNonce, signatureData, receiverCertificate, securityPolicy);
+        const bIsOk = verifySignature(senderCertificate, senderNonce, signatureData, receiverCertificate, securityPolicy);
 
         bIsOk.should.be.eql(false);
 

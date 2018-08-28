@@ -73,7 +73,7 @@ module.exports = function (test) {
 
             g_session.browse("RootFolder", function (err, browseResult) {
                 if (!err) {
-                    browseResult._schema.name.should.equal("BrowseResult");
+                    browseResult.schema.name.should.equal("BrowseResult");
                 }
                 done(err);
             });
@@ -89,7 +89,7 @@ module.exports = function (test) {
                 browseDirection: BrowseDirection.Forward
             };
             g_session.browse(nodeToBrowse, function (err, browseResult/*, diagnosticInfos*/) {
-                browseResult._schema.name.should.equal("BrowseResult");
+                browseResult.schema.name.should.equal("BrowseResult");
                 browseResult.statusCode.should.eql(StatusCodes.BadReferenceTypeIdInvalid);
                 done(err);
             });
@@ -100,7 +100,7 @@ module.exports = function (test) {
             g_session.readVariableValue(["RootFolder"], function (err, dataValues/*, diagnosticInfos*/) {
                 if (!err) {
                     dataValues.length.should.equal(1);
-                    dataValues[0]._schema.name.should.equal("DataValue");
+                    dataValues[0].schema.name.should.equal("DataValue");
                 }
                 done(err);
             });
@@ -164,7 +164,7 @@ module.exports = function (test) {
         it("T8-14a - #readVariableValue should return a appropriate status code if nodeid to read doesn't exists", function (done) {
 
             g_session.readVariableValue("ns=1;s=this_node_id_does_not_exist", function (err, dataValue) {
-                should(err).eql(null);
+                should.not.exist(err);
                 dataValue.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
                 done();
             });
@@ -172,7 +172,7 @@ module.exports = function (test) {
         it("T8-14b - #readVariableValue should return a appropriate status code if nodeid to read doesn't exists", function (done) {
 
             g_session.readVariableValue(["ns=1;s=this_node_id_does_not_exist"], function (err, dataValues) {
-                should(err).eql(null);
+                should.not.exist(err);
                 dataValues[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
                 done();
             });
@@ -262,8 +262,8 @@ module.exports = function (test) {
 
                 if (!err) {
                     dataValues.length.should.equal(1);
-                    dataValues[0]._schema.name.should.equal("DataValue");
-                    dataValues[0].value._schema.name.should.equal("Variant");
+                    dataValues[0].schema.name.should.equal("DataValue");
+                    dataValues[0].value.schema.name.should.equal("Variant");
                 }
 
                 done(err);
@@ -298,7 +298,7 @@ module.exports = function (test) {
             g_session.browse(nodesToBrowse, function (err, browseResults/*,diagnosticInfos*/) {
                 if (!err) {
                     browseResults.length.should.equal(1);
-                    browseResults[0]._schema.name.should.equal("BrowseResult");
+                    browseResults[0].schema.name.should.equal("BrowseResult");
 
                     //xx console.log(util.inspect(browseResults[0].references,{colors:true,depth:10}));
 

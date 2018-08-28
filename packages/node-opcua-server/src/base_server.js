@@ -1,4 +1,5 @@
 "use strict";
+
 /**
  * @module opcua.server
  * @type {async|exports}
@@ -14,6 +15,7 @@ const util = require("util");
 const utils = require("node-opcua-utils");
 const display_trace_from_this_projet_only = require("node-opcua-debug").display_trace_from_this_projet_only;
 const ServiceFault= require("node-opcua-service-secure-channel").ServiceFault;
+const ApplicationDescription = require("node-opcua-service-endpoints").ApplicationDescription;
 
 function constructFilename(p) {
     const path = require("path");
@@ -57,11 +59,22 @@ const default_server_info = {
 
     // A localized descriptive name for the application.
     applicationName: {text: "NodeOPCUA", locale: null},
-    applicationType: ApplicationType.SERVER,
+    applicationType: ApplicationType.Server,
     gatewayServerUri: "",
     discoveryProfileUri: "",
     discoveryUrls: []
 };
+
+function cleanupEndpoint(endPoint)  {
+    if (endPoint._on_new_channel) {
+        assert(_.isFunction(endPoint._on_new_channel));
+        endPoint.removeListener("newChannel", endPoint._on_new_channel);
+    }
+    if (endPoint._on_close_channel) {
+        assert(_.isFunction(endPoint._on_close_channel));
+        endPoint.removeListener("closeChannel", endPoint._on_close_channel);
+    }
+}
 
 /**
  * @class OPCUABaseServer
@@ -77,140 +90,124 @@ const default_server_info = {
  * @param [options.serverInfo.discoveryUrls = []]{Array<String>}
  * @constructor
  */
-function OPCUABaseServer(options) {
-
-    const self = this;
-
-    options = options || {};
-
-    EventEmitter.call(this);
-
-    self.endpoints = [];
-    self.options = options;
-
-    options.certificateFile = options.certificateFile || constructFilename("certificates/server_selfsigned_cert_2048.pem");
-    options.privateKeyFile = options.privateKeyFile || constructFilename("certificates/PKI/own/private/private_key.pem");
-
-    OPCUASecureObject.call(this, options);
-
-    this.serverInfo = _.clone(default_server_info);
-    this.serverInfo = _.extend(this.serverInfo, options.serverInfo);
-
-    self.serverInfo.applicationName = new LocalizedText(self.serverInfo.applicationName);
-
-    this.serverInfo = new endpoints_service.ApplicationDescription(this.serverInfo);
+class OPCUABaseServer extends OPCUASecureObject {
 
 
-}
-
-util.inherits(OPCUABaseServer, EventEmitter);
-OPCUABaseServer.prototype.getPrivateKey = OPCUASecureObject.prototype.getPrivateKey;
-OPCUABaseServer.prototype.getCertificate = OPCUASecureObject.prototype.getCertificate;
-OPCUABaseServer.prototype.getCertificateChain = OPCUASecureObject.prototype.getCertificateChain;
+    constructor(options) {
 
 
-/**
- * The type of server : SERVER, CLIENTANDSERVER, DISCOVERYSERVER
- * @property serverType
- * @type {ApplicationType}
- */
-OPCUABaseServer.prototype.__defineGetter__("serverType", function () {
-    return this.serverInfo.applicationType;
-});
+        options.certificateFile = options.certificateFile || constructFilename("certificates/server_selfsigned_cert_2048.pem");
+        options.privateKeyFile = options.privateKeyFile || constructFilename("certificates/PKI/own/private/private_key.pem");
+
+        super(options);
+
+        const self = this;
+        self.endpoints = [];
+        self.options = options;
+
+        this.serverInfo = _.clone(default_server_info);
+        this.serverInfo = _.extend(this.serverInfo, options.serverInfo);
+
+        self.serverInfo.applicationName = new LocalizedText(self.serverInfo.applicationName);
+
+        this.serverInfo = new endpoints_service.ApplicationDescription(this.serverInfo);
 
 
-/**
- * start all registered endPoint, in parallel, and call done when all endPoints are listening.
- * @method start
- * @async
- * @param {callback} done
- */
-OPCUABaseServer.prototype.start = function (done) {
-
-    const self = this;
-    assert(_.isFunction(done));
-    assert(_.isArray(this.endpoints));
-
-    const tasks = [];
-    this.endpoints.forEach(function (endPoint) {
-        tasks.push(function (callback) {
-
-            endPoint._on_new_channel = function (channel) {
-                self.emit("newChannel", channel);
-            };
-            endPoint.on("newChannel", endPoint._on_new_channel);
-
-            endPoint._on_close_channel = function (channel) {
-                self.emit("closeChannel", channel);
-            };
-            endPoint.on("closeChannel", endPoint._on_close_channel);
-
-            endPoint.start(callback);
-
-        });
-    });
-    async.series(tasks, done);
-};
-
-
-function cleanupEndpoint(endPoint)  {
-    if (endPoint._on_new_channel) {
-        assert(_.isFunction(endPoint._on_new_channel));
-        endPoint.removeListener("newChannel", endPoint._on_new_channel);
     }
-    if (endPoint._on_close_channel) {
-        assert(_.isFunction(endPoint._on_close_channel));
-        endPoint.removeListener("closeChannel", endPoint._on_close_channel);
+
+
+    /**
+     * The type of server : SERVER, CLIENTANDSERVER, DISCOVERYSERVER
+     * @property serverType
+     * @type {ApplicationType}
+     */
+    get serverType() {
+        return this.serverInfo.applicationType;
     }
-}
-/**
- * shutdown all server endPoints
- * @method shutdown
- * @async
- * @param  {callback} done
- * @param  {Error|null} done.err
- */
-OPCUABaseServer.prototype.shutdown = function (done) {
-
-    debugLog("OPCUABaseServer#shutdown starting");
-    assert(_.isFunction(done));
-    const self = this;
-
-    const tasks = [];
-    self.endpoints.forEach(function (endPoint) {
-        tasks.push(function (callback) {
-            cleanupEndpoint(endPoint);
-            endPoint.shutdown(callback);
-        });
-    });
-    async.parallel(tasks, function (err) {
-        debugLog("shutdown completed");
-        done(err);
-    });
-};
 
 
+    /**
+     * start all registered endPoint, in parallel, and call done when all endPoints are listening.
+     * @method start
+     * @async
+     * @param {callback} done
+     */
+    start(done) {
 
-OPCUABaseServer.prototype.simulateCrash = function(callback) {
+        const self = this;
+        assert(_.isFunction(done));
+        assert(_.isArray(this.endpoints));
 
-    assert(_.isFunction(callback));
-    const self = this;
+        const tasks = [];
+        this.endpoints.forEach(function (endPoint) {
+            tasks.push(function (callback) {
 
-    debugLog("OPCUABaseServer#simulateCrash");
+                endPoint._on_new_channel = function (channel) {
+                    self.emit("newChannel", channel);
+                };
+                endPoint.on("newChannel", endPoint._on_new_channel);
 
-    const tasks = [];
-    self.endpoints.forEach(function (endPoint) {
-        tasks.push(function (callback) {
-            console.log(" crashing endpoint ",endPoint.endpointUrl);
-            endPoint.suspendConnection(function() {
+                endPoint._on_close_channel = function (channel) {
+                    self.emit("closeChannel", channel);
+                };
+                endPoint.on("closeChannel", endPoint._on_close_channel);
+
+                endPoint.start(callback);
+
             });
-            endPoint.killClientSockets(callback);
         });
-    });
-    //xx self.engine.shutdown();
-    //xx self.shutdown(callback);
-    async.series(tasks, callback);
-};
+        async.series(tasks, done);
+    }
+
+
+    /**
+     * shutdown all server endPoints
+     * @method shutdown
+     * @async
+     * @param  {callback} done
+     * @param  {Error|null} done.err
+     */
+    shutdown(done) {
+
+        debugLog("OPCUABaseServer#shutdown starting");
+        assert(_.isFunction(done));
+        const self = this;
+
+        const tasks = [];
+        self.endpoints.forEach(function (endPoint) {
+            tasks.push(function (callback) {
+                cleanupEndpoint(endPoint);
+                endPoint.shutdown(callback);
+            });
+        });
+        async.parallel(tasks, function (err) {
+            debugLog("shutdown completed");
+            done(err);
+        });
+    }
+
+    simulateCrash(callback) {
+
+        assert(_.isFunction(callback));
+        const self = this;
+
+        debugLog("OPCUABaseServer#simulateCrash");
+
+        const tasks = [];
+        self.endpoints.forEach(function (endPoint) {
+            tasks.push(function (callback) {
+                console.log(" crashing endpoint ", endPoint.endpointUrl);
+                endPoint.suspendConnection(function () {
+                });
+                endPoint.killClientSockets(callback);
+            });
+        });
+        //xx self.engine.shutdown();
+        //xx self.shutdown(callback);
+        async.series(tasks, callback);
+    }
+
+}
 
 /**
  * construct a service Fault response
@@ -256,17 +253,17 @@ OPCUABaseServer.prototype.on_request = function (message, channel) {
     this.prepare(message, channel);
 
     const self = this;
-    debugLog("--------------------------------------------------------".green.bold, channel.secureChannelId, request._schema.name);
+    debugLog("--------------------------------------------------------".green.bold, channel.channelId, request.schema.name);
     let errMessage, response;
     self.emit("request", request, channel);
 
     try {
         // handler must be named _on_ActionRequest()
-        const handler = self["_on_" + request._schema.name];
+        const handler = self["_on_" + request.schema.name];
         if (_.isFunction(handler)) {
             handler.apply(self, arguments);
         } else {
-            errMessage = "UNSUPPORTED REQUEST !! " + request._schema.name;
+            errMessage = "UNSUPPORTED REQUEST !! " + request.schema.name;
             console.log(errMessage);
             debugLog(errMessage.red.bold);
             response = makeServiceFault(StatusCodes.BadNotImplemented, [errMessage]);
@@ -277,7 +274,7 @@ OPCUABaseServer.prototype.on_request = function (message, channel) {
 
         /* istanbul ignore if */
         if (err) {
-            errMessage = "EXCEPTION CAUGHT WHILE PROCESSING REQUEST !! " + request._schema.name;
+            errMessage = "EXCEPTION CAUGHT WHILE PROCESSING REQUEST !! " + request.schema.name;
             console.log(errMessage.red.bold);
 
             console.log(request.toString());
@@ -285,7 +282,7 @@ OPCUABaseServer.prototype.on_request = function (message, channel) {
             display_trace_from_this_projet_only(err);
 
             let additional_messages = [];
-            additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request._schema.name);
+            additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request.schema.name);
             additional_messages.push(err.message);
             if (err.stack) {
                 additional_messages = additional_messages.concat(err.stack.split("\n"));
@@ -322,7 +319,7 @@ OPCUABaseServer.prototype._on_GetEndpointsRequest = function (message, channel) 
     const server = this;
     const request = message.request;
 
-    assert(request._schema.name === "GetEndpointsRequest");
+    assert(request.schema.name === "GetEndpointsRequest");
 
     const response = new GetEndpointsResponse({});
 
@@ -389,7 +386,7 @@ OPCUABaseServer.prototype._on_FindServersRequest = function (message, channel) {
     setTimeout(function () {
 
         const request = message.request;
-        assert(request._schema.name === "FindServersRequest");
+        assert(request.schema.name === "FindServersRequest");
         assert(request instanceof FindServersRequest);
 
         let servers = server.getServers(channel);
@@ -397,13 +394,28 @@ OPCUABaseServer.prototype._on_FindServersRequest = function (message, channel) {
         // TODO /
         if (request.serverUris && request.serverUris.length > 0) {
             // A serverUri matches the applicationUri from the ApplicationDescription define
-            servers = servers.filter(function (applicationDecription) {
-                return request.serverUris.indexOf(applicationDecription.applicationUri) >= 0;
+            servers = servers.filter((applicationDescription) =>{
+                return request.serverUris.indexOf(applicationDescription.applicationUri) >= 0;
             });
         }
 
+        function adapt(server) {
+            // Xx console.log(" xxxx",server);
+            // Xx console.log(" xxx ", (new ApplicationDescription()).toString());
+            return new ApplicationDescription({
+                    applicationName: server.applicationName,
+                    applicationUri:   server.applicationUri,
+                    productUri:   server.productUri,
+                    applicationType: server.applicationType,
+                    gatewayServerUri: server.gatewayServerUri,
+                    discoveryProfileUri: server.discoveryProfileUri,
+                    discoveryUrls: server.discoveryUrls
+            });
+        }
+
+
         const response = new FindServersResponse({
-            servers: servers
+            servers:  servers.map(adapt)
         });
         channel.send_response("MSG", response, message);
 

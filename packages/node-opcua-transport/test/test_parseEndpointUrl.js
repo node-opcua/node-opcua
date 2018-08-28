@@ -1,10 +1,6 @@
-
-
-
 const should = require("should");
 
-const parseEndpointUrl = require("../src/tools").parseEndpointUrl;
-
+const parseEndpointUrl = require("..").parseEndpointUrl;
 
 describe("testing parseEndpointUrl", function () {
 

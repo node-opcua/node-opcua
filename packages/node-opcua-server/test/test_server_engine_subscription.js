@@ -351,7 +351,7 @@ describe("ServerEngine Subscriptions service", function () {
 
             //xx console.log(publishSpy.getCall(1).args[1].toString());
             publishSpy.getCall(1).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            publishSpy.getCall(1).args[1].notificationMessage.notificationData[0].statusCode.should.eql(StatusCodes.BadTimeout);
+            publishSpy.getCall(1).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.BadTimeout);
 
             publishSpy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
             publishSpy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
@@ -370,6 +370,7 @@ describe("ServerEngine Subscriptions service", function () {
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
         with_fake_timer.call(this,function() {
+
             const test = this;
 
             session = engine.createSession({sessionTimeout: 100000000});
@@ -403,7 +404,7 @@ describe("ServerEngine Subscriptions service", function () {
             publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishSpy.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(1);
             publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
-            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].statusCode.should.eql(StatusCodes.BadTimeout);
+            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.BadTimeout);
 
             publishSpy.getCall(1).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
             publishSpy.getCall(1).args[1].subscriptionId.should.eql(0xffffffff);
@@ -467,7 +468,7 @@ describe("ServerEngine Subscriptions service", function () {
             publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishSpy.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(1);
             publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
-            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].statusCode.should.eql(StatusCodes.BadTimeout);
+            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.BadTimeout);
 
             engine.closeSession(session.authenticationToken,true,"CloseSession");
             done();

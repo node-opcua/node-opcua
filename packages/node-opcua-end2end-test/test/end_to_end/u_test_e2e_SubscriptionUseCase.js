@@ -34,7 +34,7 @@ const f = require("../../test_helpers/display_function_name").f.bind(null, true)
 function trace_console_log() {
     const log1 = global.console.log;
     global.console.log = function () {
-        const t = (new Error()).stack.split("\n")[2];
+        const t = (new Error("")).stack.split("\n")[2];
         if (t.match(/opcua/)) {
             log1.call(console, t.cyan);
         }
@@ -68,7 +68,6 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                assert(session instanceof ClientSession);
 
                 const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 100,
@@ -95,7 +94,6 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-                assert(session instanceof ClientSession);
 
                 const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 100, // ms
@@ -117,7 +115,6 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-                assert(session instanceof ClientSession);
 
                 let nb_keep_alive_received = 0;
 
@@ -155,7 +152,6 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-                assert(session instanceof ClientSession);
 
                 const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 150,
@@ -192,7 +188,6 @@ module.exports = function (test) {
         it("AZA1-F should be possible to monitor several nodeId value with a single client subscription", function (done) {
             perform_operation_on_client_session(client, endpointUrl, function (session, callback) {
 
-                assert(session instanceof ClientSession);
 
                 const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 50,
@@ -266,7 +261,6 @@ module.exports = function (test) {
                 // create session
                 function (callback) {
                     client.createSession(function (err, session) {
-                        assert(session instanceof ClientSession);
                         if (!err) {
                             the_session = session;
                         }
@@ -381,7 +375,7 @@ module.exports = function (test) {
                 }, function (err, response) {
 
                     if (!expected_error) {
-                        should(err).eql(null);
+                        should.not.exist(err);
                         subscriptionIds.push(response.subscriptionId);
                     }
                     else {
@@ -1100,7 +1094,7 @@ module.exports = function (test) {
                     }]
                 });
                 session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
-                    should(err).eql(null);
+                    should.not.exist(err);
                     createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
                     createMonitoredItemsResponse.results[0].statusCode.should.eql(StatusCodes.Good);
@@ -2095,7 +2089,7 @@ module.exports = function (test) {
                     TimestampsToReturn.Both);
 
                 monitoredItem.on("err", function (err) {
-                    should(err).eql(null);
+                    should.not.exist(err);
                 });
 
                 let change_count = 0;
@@ -2754,7 +2748,7 @@ module.exports = function (test) {
                             //xx console.log(notificationData.toString());
                             //.monitoredItems[0];
                             notificationData.constructor.name.should.eql("StatusChangeNotification");
-                            notificationData.statusCode.should.eql(StatusCodes.BadTimeout);
+                            notificationData.status.should.eql(StatusCodes.BadTimeout);
                             callback(err);
                         });
 
@@ -3072,14 +3066,19 @@ module.exports = function (test) {
 
             const itemToMonitor = "ns=0;i=2254"; // temperatureVariableId;
             perform_operation_on_monitoredItem(client, endpointUrl, itemToMonitor, function (session, subscription, monitoredItem, inner_done) {
-                const setMonitoringModeRequest = {
+
+                const setMonitoringModeRequest = new opcua.subscription_service.SetMonitoringModeRequest({
                     subscriptionId: subscription.subscriptionId,
-                    monitoringMode: opcua.subscription_service.MonitoringMode.Invalid,
+                    monitoringMode: opcua.subscription_service.MonitoringMode.Reporting,
                     monitoredItemIds: [
                         monitoredItem.monitoredItemId
                     ]
-                };
+                });
+
+                setMonitoringModeRequest.monitoringMode = 42;
+
                 session.setMonitoringMode(setMonitoringModeRequest, function (err) {
+                    should.exist(err);
                     err.message.should.match(/BadMonitoringModeInvalid/);
                     inner_done();
                 });
@@ -3303,7 +3302,6 @@ module.exports = function (test) {
             function inner_test(the_test_function, done) {
 
                 perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-                    assert(session instanceof ClientSession);
                     g_session = session;
                     async.series([
 

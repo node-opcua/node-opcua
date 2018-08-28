@@ -1,0 +1,2 @@
+-r ../../node_modules/source-map-support/register
+-r ts-node/register

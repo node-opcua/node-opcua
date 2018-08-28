@@ -41,8 +41,8 @@ function post_initialize() {
     });
     
     // optionally, we can adjust userAccessLevel attribute 
-    method.outputArguments.userAccessLevel = opcua.makeAccessLevel("CurrentRead");
-    method.inputArguments.userAccessLevel = opcua.makeAccessLevel("CurrentRead");
+    method.outputArguments.userAccessLevel = opcua.makeAccessLevelFlag("CurrentRead");
+    method.inputArguments.userAccessLevel = opcua.makeAccessLevelFlag("CurrentRead");
 
     
     method.bindMethod(function(inputArguments,context,callback) {

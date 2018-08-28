@@ -22,7 +22,7 @@ const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const BaseNode = require("node-opcua-address-space").BaseNode;
 
 const sameDataValue = require("node-opcua-data-value").sameDataValue;
-const sameVariant = require("node-opcua-variant/src/variant_tools").sameVariant;
+const sameVariant = require("node-opcua-variant").sameVariant;
 const isValidVariant = require("node-opcua-variant").isValidVariant;
 
 const MonitoringMode = subscription_service.MonitoringMode;
@@ -528,7 +528,7 @@ function statusCodeHasChanged(newDataValue, oldDataValue) {
     return newDataValue.statusCode !== oldDataValue.statusCode;
 }
 
-const check_deadband = require("node-opcua-service-subscription").check_deadband;
+const checkDeadBand = require("node-opcua-service-subscription").checkDeadBand;
 
 
 function valueHasChanged(self, newDataValue, oldDataValue, deadbandType, deadbandValue) {
@@ -540,10 +540,10 @@ function valueHasChanged(self, newDataValue, oldDataValue, deadbandType, deadban
             assert(newDataValue.value instanceof Variant);
             assert(newDataValue.value instanceof Variant);
             // No Deadband calculation should be applied.
-            return check_deadband(oldDataValue.value, newDataValue.value, DeadbandType.None);
+            return checkDeadBand(oldDataValue.value, newDataValue.value, DeadbandType.None);
         case DeadbandType.Absolute:
             // AbsoluteDeadband
-            return check_deadband(oldDataValue.value, newDataValue.value, DeadbandType.Absolute, deadbandValue);
+            return checkDeadBand(oldDataValue.value, newDataValue.value, DeadbandType.Absolute, deadbandValue);
         default:
             // Percent_2    PercentDeadband (This type is specified in Part 8).
             assert(deadbandType === DeadbandType.Percent);
@@ -572,7 +572,7 @@ function valueHasChanged(self, newDataValue, oldDataValue, deadbandType, deadban
                 const rangeVariant = self.node.euRange.readValue().value;
                 const range = rangeVariant.value.high - rangeVariant.value.high;
                 assert(_.isFinite(range));
-                return check_deadband(oldDataValue.value, newDataValue.value, DeadbandType.Percent, deadbandValue, range);
+                return checkDeadBand(oldDataValue.value, newDataValue.value, DeadbandType.Percent, deadbandValue, range);
 
             }
             return true;
@@ -598,15 +598,15 @@ function apply_datachange_filter(self, newDataValue, oldDataValue) {
 
     const trigger = self.filter.trigger;
 
-    switch (trigger.value) {
-        case DataChangeTrigger.Status.value: // Status
+    switch (trigger) {
+        case DataChangeTrigger.Status: // Status
             //              Report a notification ONLY if the StatusCode associated with
             //              the value changes. See Table 166 for StatusCodes defined in
             //              this standard. Part 8 specifies additional StatusCodes that are
             //              valid in particular for device data.
             return statusCodeHasChanged(newDataValue, oldDataValue);
 
-        case DataChangeTrigger.StatusValue.value: // StatusValue
+        case DataChangeTrigger.StatusValue: // StatusValue
             //              Report a notification if either the StatusCode or the value
             //              change. The Deadband filter can be used in addition for
             //              filtering value changes.
@@ -685,7 +685,6 @@ MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest , inde
     //xx   console.log("`\n----------------------------",skipChangeTest,self.clientHandle,
     //             self.node.listenerCount("value_changed"),self.node.nodeId.toString());
     //xx   console.log("events ---- ",self.node.eventNames().join("-"));
-    //xx    console.log((new Error()).stack);
     //xx    console.log("indexRange = ",indexRange ? indexRange.toString() :"");
     //xx    console.log("self.itemToMonitor.indexRange = ",self.itemToMonitor.indexRange.toString());
 

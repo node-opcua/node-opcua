@@ -111,7 +111,6 @@ describe("Functional test : one server with many concurrent clients", function()
             function(callback) {
                 debugLog(" Creating monitored Item for client", name);
                 const session = data.session;
-                assert(session instanceof ClientSession);
 
                 const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 200,

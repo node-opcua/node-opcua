@@ -5,6 +5,7 @@ const should = require("should");
 
 const address_space = require("..");
 const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const AccessLevelFlag  = require("node-opcua-data-model").AccessLevelFlag;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Variables ", function () {
@@ -33,8 +34,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentRead | CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentRead | CurrentWrite");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
 
        });
 
@@ -49,8 +50,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentRead | CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead");
-        v.userAccessLevel.key.should.eql("CurrentRead");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
 
     });
 
@@ -65,8 +66,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentWrite");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
 
     });
 
@@ -80,8 +81,8 @@ describe("testing Variables ", function () {
             accessLevel: "CurrentRead | CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentRead | CurrentWrite");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
 
     });
 
@@ -97,8 +98,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentRead | CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead");
-        v.userAccessLevel.key.should.eql("CurrentRead");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
 
     });
 
@@ -113,8 +114,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentRead"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead");
-        v.userAccessLevel.key.should.eql("CurrentRead");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
 
     });
 
@@ -129,8 +130,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead");
-        v.userAccessLevel.key.should.eql("NONE");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        v.userAccessLevel.should.eql(AccessLevelFlag.NONE);
 
     });
 
@@ -144,8 +145,8 @@ describe("testing Variables ", function () {
             accessLevel: "CurrentRead"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead");
-        v.userAccessLevel.key.should.eql("CurrentRead");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
 
     });
 
@@ -161,8 +162,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentRead | CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentWrite");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
 
     });
 
@@ -177,8 +178,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentRead"
         });
 
-        v.accessLevel.key.should.eql("CurrentWrite");
-        v.userAccessLevel.key.should.eql("NONE");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.NONE);
 
     });
 
@@ -193,8 +194,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentWrite");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
 
     });
 
@@ -208,8 +209,8 @@ describe("testing Variables ", function () {
             accessLevel: "CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentWrite");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
 
     });
 
@@ -224,8 +225,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentRead | CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentRead | CurrentWrite");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
 
     });
 
@@ -239,8 +240,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentRead"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentRead");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
 
     });
 
@@ -254,8 +255,8 @@ describe("testing Variables ", function () {
             userAccessLevel: "CurrentWrite"
         });
 
-        v.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentWrite");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
 
     });
 
@@ -268,8 +269,8 @@ describe("testing Variables ", function () {
             arrayDimensions: [1, 2, 3]
         });
 
-        v.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
-        v.userAccessLevel.key.should.eql("CurrentRead | CurrentWrite");
+        v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
 
     });
 });

@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "target": "es6",
+    "module": "commonjs",
+    "declaration": true,
+    "sourceMap": true,
+    "sourceRoot": "./source",
+    "rootDir": "src",
+    "strict": true,
+    "listFiles": false,
+    "outDir": "dist"
+  },
+  "files": [
+    "src/index.ts",
+    "src/opcua_code_generator.ts"
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "extends": "./config/tsconfig.flexible", // also available: "./config/tsconfig.strict"
+  /// "extends": "./config/tsconfig.flexible", // also available: "./config/tsconfig.strict"
   "compilerOptions": {
     "skipLibCheck": true,
     "target": "es6",

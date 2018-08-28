@@ -3,7 +3,7 @@
 const should = require("should");
 
 const QualifiedName = require("..").QualifiedName;
-const coerceQualifiedName = require("..").coerceQualifyName;
+const coerceQualifiedName = require("..").coerceQualifiedName;
 
 describe("QualifiedName", function () {
 

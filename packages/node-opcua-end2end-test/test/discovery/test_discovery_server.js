@@ -8,11 +8,14 @@ const assert = require("node-opcua-assert").assert;
 
 const OPCUAServer = opcua.OPCUAServer;
 const OPCUAClient = opcua.OPCUAClient;
+const ApplicationType = opcua.ApplicationType;
 
 const OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
 
 const perform_findServers = opcua.perform_findServers;
-const doDebug = false;
+
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 // add the tcp/ip endpoint with no security
 
@@ -82,7 +85,7 @@ describe("DS1 - Discovery server", function () {
 
                 serverNames: [{text: "some name"}],
 
-                serverType: opcua.ApplicationType.SERVER,
+                serverType: opcua.ApplicationType.Server,
                 gatewayServerUri: null,
                 discoveryUrls: [],                 // INTENTIONALLY EMPTY
                 semaphoreFilePath: null,
@@ -91,7 +94,7 @@ describe("DS1 - Discovery server", function () {
         });
 
         function check_response(err, response) {
-            should(err).eql(null);
+            should.not.exist(err);
             //xx console.log(response.toString());
             response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadDiscoveryUrlMissing);
         }
@@ -113,7 +116,7 @@ describe("DS1 - Discovery server", function () {
 
                 serverNames: [{text: "some name"}],
 
-                serverType: opcua.ApplicationType.CLIENT, /// CLIENT HERE !!!
+                serverType: opcua.ApplicationType.Client, /// CLIENT HERE !!!
                 gatewayServerUri: null,
                 discoveryUrls: [],
                 semaphoreFilePath: null,
@@ -122,7 +125,7 @@ describe("DS1 - Discovery server", function () {
         });
 
         function check_response(err, response) {
-            should(err).eql(null);
+            should.not.exist(err);
             //xx console.log(response.toString());
             response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadInvalidArgument);
         }
@@ -145,7 +148,7 @@ describe("DS1 - Discovery server", function () {
 
                 serverNames: [],   /// <<<<< INTENTIONALLY EMPTY
 
-                serverType: opcua.ApplicationType.SERVER,
+                serverType: opcua.ApplicationType.Server,
                 gatewayServerUri: null,
                 discoveryUrls: [],
                 semaphoreFilePath: null,
@@ -154,7 +157,7 @@ describe("DS1 - Discovery server", function () {
         });
 
         function check_response(err, response) {
-            should(err).eql(null);
+            should.not.exist(err);
             //xx console.log(response.toString());
             response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadServerNameMissing);
         }
@@ -193,7 +196,7 @@ describe("DS2 - DiscoveryServer2", function () {
         async.series([
 
             function (callback) {
-                perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
+                perform_findServers(discoveryServerEndpointUrl,  (err, servers) => {
                     initialServerCount = servers.length;
                     servers[0].discoveryUrls.length.should.eql(1);
                     //xx console.log(" initialServerCount = ", initialServerCount);
@@ -210,12 +213,12 @@ describe("DS2 - DiscoveryServer2", function () {
                     discoveryServerEndpointUrl:discoveryServerEndpointUrl
 
                 });
-                server.start(function (err) {
+                server.start( (err) => {
                     if(err) { return callback(err); }
                 });
 
                 // server registration takes place in parallel and should be checked independently
-                server.on("serverRegistered",function() {
+                server.on("serverRegistered",() =>{
                     callback();
                 });
             },
@@ -226,7 +229,7 @@ describe("DS2 - DiscoveryServer2", function () {
             },
 
             function (callback) {
-                perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
+                perform_findServers(discoveryServerEndpointUrl,  (err, servers) => {
                     //xx console.log(servers[0].toString());
                     servers.length.should.eql(initialServerCount + 1);
                     servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
@@ -238,7 +241,7 @@ describe("DS2 - DiscoveryServer2", function () {
                 server.shutdown(callback);
             },
             function (callback) {
-                perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
+                perform_findServers(discoveryServerEndpointUrl,  (err, servers) => {
                     servers.length.should.eql(initialServerCount);
                     callback(err);
                 });
@@ -247,6 +250,11 @@ describe("DS2 - DiscoveryServer2", function () {
         ], done);
 
     });
+});
+
+
+process.on('uncaughtException', function (err) {
+    console.log(err);
 });
 
 describe("DS3 - Discovery server - many server", function () {
@@ -302,33 +310,50 @@ describe("DS3 - Discovery server - many server", function () {
     });
 
     beforeEach(function (done) {
+        debugLog("Starting Discovery server on port 1240");
         discoveryServer = new OPCUADiscoveryServer({port: 1240});
         discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
         discoveryServer.start(done);
     });
 
     afterEach(function (done) {
+        debugLog("Stopping Discovery server on port 1240");
         discoveryServer.shutdown(function (err) {
+            debugLog(" Discovery server on port 1240 stopped");
             done(err);
         });
     });
 
+    let registeredServerCount = 0;
+
     function start_all_servers(done) {
+        registeredServerCount = 0;
         async.parallel([
             function (callback) {
+                debugLog("Starting  server1");
                 server1.start(callback);
+                server1.once("serverRegistered",()=> { debugLog("server1 registered");  registeredServerCount+=1; } );
+
             },
             function (callback) {
+                debugLog("Starting  server2");
                 server2.start(callback);
+                server2.once("serverRegistered",()=> { debugLog("server2 registered");  registeredServerCount+=1; } );
             },
             function (callback) {
+                debugLog("Starting  server3");
                 server3.start(callback);
+                server3.once("serverRegistered",()=> { debugLog("server3 registered");  registeredServerCount+=1; } );
             },
             function (callback) {
+                debugLog("Starting  server4");
                 server4.start(callback);
+                server4.once("serverRegistered",()=> { debugLog("server4 registered");  registeredServerCount+=1; } );
             },
             function (callback) {
+                debugLog("Starting  server5");
                 server5.start(callback);
+                server5.once("serverRegistered",()=> { debugLog("server5 registered");  registeredServerCount+=1; } );
             },
 
         ], done);
@@ -356,14 +381,23 @@ describe("DS3 - Discovery server - many server", function () {
     }
 
 
+
     it("a discovery server shall be able to expose many registered servers", function (done) {
+
 
         async.series([
             function (callback) {
                 start_all_servers(callback);
             },
             function (callback){
-                setTimeout(callback,1000);
+
+                function wait_until_all_servers_registered() {
+                    if (registeredServerCount === 5) {
+                        return callback();
+                    }
+                    setTimeout(wait_until_all_servers_registered,500);
+                }
+                wait_until_all_servers_registered();
             },
             function (callback) {
                 discoveryServer.registeredServerCount.should.equal(5);
@@ -376,7 +410,7 @@ describe("DS3 - Discovery server - many server", function () {
                     ///servers.length.should.eql(4+ 1);
                     if (doDebug) {
                         for (const s of servers) {
-                            console.log(s.applicationUri, s.productUri, s.applicationType.key, s.discoveryUrls[0]);
+                            console.log(s.applicationUri, s.productUri, ApplicationType[s.applicationType], s.discoveryUrls[0]);
                         }
                     }
 

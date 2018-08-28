@@ -26,7 +26,7 @@ const userManagerAsync = {
 };
 
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server with UserName/Password identity token", function () {
@@ -71,7 +71,7 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     function perform_simple_connection(endpointUrl, connectionOption, credentials, done) {
 
-        connectionOption.securityMode = connectionOption.securityMode || opcua.MessageSecurityMode.NONE;
+        connectionOption.securityMode = connectionOption.securityMode || opcua.MessageSecurityMode.None;
         connectionOption.securityPolicy = connectionOption.securityPolicy || opcua.SecurityPolicy.None;
         let the_session;
 
@@ -158,7 +158,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         const userName = "username";
         const password = "***invalid password***";
         const options = {
-            securityMode: opcua.MessageSecurityMode.SIGN,
+            securityMode: opcua.MessageSecurityMode.Sign,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
         };
         perform_simple_connection(endpointUrl, options, {userName: userName, password: password}, function (err) {
@@ -173,7 +173,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         const userName = "username";
         const password = "p@ssw0rd";
         const options = {
-            securityMode: opcua.MessageSecurityMode.SIGN,
+            securityMode: opcua.MessageSecurityMode.Sign,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15
         };
         perform_simple_connection(endpointUrl, options, {userName: userName, password: password}, done);
@@ -184,7 +184,7 @@ describe("testing Client-Server with UserName/Password identity token", function
     it("should connect to a server using username/password authentication and valid credentials - secure connection - 256 bits ", function (done) {
 
         const options = {
-            securityMode: opcua.MessageSecurityMode.SIGN,
+            securityMode: opcua.MessageSecurityMode.Sign,
             securityPolicy: opcua.SecurityPolicy.Basic256,
         };
         const userIdentity = {
@@ -201,7 +201,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         const password = "p@ssw0rd";
         const options = {
             endpoint_must_exist: false,
-            securityMode: opcua.MessageSecurityMode.SIGN,
+            securityMode: opcua.MessageSecurityMode.Sign,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15
         };
         const endpointUrl_truncated = "opc.tcp://" + os.hostname() + ":" + port.toString();
@@ -215,7 +215,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         server.userManager = userManagerAsync;  //use asynchronous checks
 
         const options = {
-            securityMode: opcua.MessageSecurityMode.SIGN,
+            securityMode: opcua.MessageSecurityMode.Sign,
             securityPolicy: opcua.SecurityPolicy.Basic256
         };
         const userIdentity = {

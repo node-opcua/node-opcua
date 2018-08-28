@@ -21,7 +21,7 @@ const yargs = require("yargs/yargs");
 
 const argv = yargs(process.argv)
     .wrap(132)
-    //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
+    //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
 
     .demand("endpoint")
     .string("endpoint")
@@ -68,17 +68,17 @@ const argv = yargs(process.argv)
     .argv;
 
 
-const securityMode = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
+const securityMode = opcua.coerceMessageSecurityMode(argv.securityMode || "None");
 if (!securityMode) {
-    throw new Error("Invalid Security mode , should be " + opcua.MessageSecurityMode.enums.join(" "));
+    throw new Error("Invalid Security mode , should be " + opcua.MessageSecurityMode.enumItems.join(" "));
 }
 
-const securityPolicy = opcua.SecurityPolicy.get(argv.securityPolicy || "None");
+const securityPolicy = opcua.coerceSecurityPolicy(argv.securityPolicy || "None");
 if (!securityPolicy) {
-    throw new Error("Invalid securityPolicy , should be " + opcua.SecurityPolicy.enums.join(" "));
+    throw new Error("Invalid securityPolicy , should be " + opcua.SecurityPolicy.enumItems.join(" "));
 }
 
-//xx argv.securityMode   = argv.securityMode || "SIGNANDENCRYPT";
+//xx argv.securityMode   = argv.securityMode || "SignAndEncrypt";
 //xx argv.securityPolicy = argv.securityPolicy || "Basic128Rsa15";
 const timeout = parseInt(argv.timeout) * 1000 || 20000;
 
@@ -149,7 +149,7 @@ function __dumpEvent(session,fields,eventFields,_callback) {
 
                 if (!err) {
                     console.log(w(name,20),w(fields[index],15).yellow,
-                        w(variant.dataType.key,10).toString().cyan,name.cyan.bold,"(",w(variant.value,20),")");
+                        w(DataType[variant.dataType],10).toString().cyan,name.cyan.bold,"(",w(variant.value,20),")");
                 }
                 callback();
             });
@@ -157,7 +157,7 @@ function __dumpEvent(session,fields,eventFields,_callback) {
         } else {
             setImmediate(function() {
                 console.log(w("",20),w(fields[index],15).yellow,
-                    w(variant.dataType.key,10).toString().cyan,variant.value);
+                    w(DataType[variant.dataType],10).toString().cyan,variant.value);
                 callback();
             });
         }
@@ -427,7 +427,7 @@ async.series([
                     table.cell("Application Name", endpoint.server.applicationName.text);
                     table.cell("Security Mode", endpoint.securityMode.toString());
                     table.cell("securityPolicyUri", endpoint.securityPolicyUri);
-                    table.cell("Type", endpoint.server.applicationType.key);
+                    table.cell("Type", ApplicationType[endpoint.server.applicationType]);
                     table.cell("certificate", "..." /*endpoint.serverCertificate*/);
                     endpoint.server.discoveryUrls = endpoint.server.discoveryUrls || [];
                     table.cell("discoveryUrls",endpoint.server.discoveryUrls.join(" - "));
@@ -674,13 +674,13 @@ async.series([
 
     },
 
-    function _resd_historyServerCapabilities(callback) {
-
+    function _read_historyServerCapabilities(callback) {
         opcua.readHistoryServerCapabilities(the_session,function(err,historyServerCapabilities){
             console.log(historyServerCapabilities);
             callback(null);
         });
     },
+
     // create Read
     function (callback) {
 

@@ -5,7 +5,7 @@ const should = require("should");
 const NumericRange = require("..").NumericRange;
 const NumericRangeType = NumericRange.NumericRangeType;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const assert_arrays_are_equal = require("node-opcua-test-helpers/src/typedarray_helpers").assert_arrays_are_equal;
+const assert_arrays_are_equal = require("node-opcua-test-helpers/dist/typedarray_helpers").assert_arrays_are_equal;
 
 describe("Testing numerical range", function () {
 

@@ -510,7 +510,7 @@ module.exports = function (test) {
                         dataValues = test.spy_monitored_item1_changes.getCall(2).args[0];
                         //xx dump_field_values(fields,dataValues);
                         //xx The EventId field shall contain the id of the event for which the comment was added.
-                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
                         extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
                         extract_value_for_field("Comment", dataValues).value.text.toString().should.eql("SomeComment!!!");
@@ -723,9 +723,8 @@ module.exports = function (test) {
 
                     const conditionId = alarmNode.nodeId;
                     const eventId = eventId_Step0;
-                    session.acknowledgeCondition(conditionId, eventId, "Some comment", function (err, result) {
+                    session.acknowledgeCondition(conditionId, eventId, "Some comment", function (err) {
                         should.not.exist(err);
-                        result.should.eql(StatusCodes.Good);
                         callback(err);
                     });
 
@@ -735,9 +734,8 @@ module.exports = function (test) {
 
                     const conditionId = alarmNode.nodeId;
                     const eventId = eventId_Step0;
-                    session.confirmCondition(conditionId, eventId, "Some comment", function (err, result) {
+                    session.confirmCondition(conditionId, eventId, "Some comment", function (err) {
                         should.not.exist(err);
-                        result.should.eql(StatusCodes.Good);
                         callback(err);
                     });
                 }
@@ -786,7 +784,7 @@ module.exports = function (test) {
 
                         eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
                         should(eventId_Step0).be.instanceOf(Buffer);
-                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
                         //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -834,7 +832,7 @@ module.exports = function (test) {
 
                         eventId_Step2.toString("hex").should.not.eql(eventId_Step0.toString("hex"), "eventId must have changed");
 
-                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
                         //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -872,7 +870,7 @@ module.exports = function (test) {
 
                         // ns=0;i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
-                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
                         //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -912,7 +910,7 @@ module.exports = function (test) {
                         dataValues = test.spy_monitored_item1_changes.getCall(2).args[0];
                         extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
                         //xx dump_field_values(fields,dataValues);
-                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
                         //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -943,7 +941,7 @@ module.exports = function (test) {
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
                         //xx dump_field_values(fields,dataValues);
-                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
                         //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -976,7 +974,7 @@ module.exports = function (test) {
                         // event value for branch #1 -----------------------------------------------------
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValues7).value.toString().should.eql(eventTypeNodeId);
-                        extract_value_for_field("BranchId", dataValues7).value.should.not.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValues7).value.should.not.eql(opcua.NodeId.nullNodeId);
                         //xx extract_value_for_field("ConditionName", dataValues7).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues7).value.should.eql(levelNode.browseName.toString());
                         branch1_NodeId = extract_value_for_field("BranchId", dataValues7).value;
@@ -998,7 +996,7 @@ module.exports = function (test) {
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValues8).value.toString().should.eql(eventTypeNodeId);
                         //xx dump_field_values(fields,dataValues);
-                        extract_value_for_field("BranchId", dataValues8).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValues8).value.should.eql(opcua.NodeId.nullNodeId);
                         //Xxx extract_value_for_field("ConditionName", dataValues8).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues8).value.should.eql(levelNode.browseName.toString());
 
@@ -1032,7 +1030,7 @@ module.exports = function (test) {
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValues9).value.toString().should.eql(eventTypeNodeId);
                         //xx dump_field_values(fields,dataValues);
-                        extract_value_for_field("BranchId", dataValues9).value.should.eql(opcua.NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValues9).value.should.eql(opcua.NodeId.nullNodeId);
                         //xx extract_value_for_field("ConditionName", dataValues9).value.should.eql("Test2");
                         extract_value_for_field("SourceName", dataValues9).value.should.eql(levelNode.browseName.toString());
 
@@ -1067,9 +1065,8 @@ module.exports = function (test) {
                         // }).join(" "));
 
 
-                        session.acknowledgeCondition(conditionId, eventId, "Branch#1 Some comment", function (err, result) {
+                        session.acknowledgeCondition(conditionId, eventId, "Branch#1 Some comment", function (err) {
                             should.not.exist(err);
-                            result.should.eql(StatusCodes.Good);
                             callback(err);
                         });
                     },
@@ -1122,7 +1119,7 @@ module.exports = function (test) {
                         const dataValuesA = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesA).value.toString().should.eql(eventTypeNodeId);
-                        extract_value_for_field("BranchId", dataValuesA).value.should.not.eql(NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValuesA).value.should.not.eql(NodeId.nullNodeId);
                         extract_value_for_field("BranchId", dataValuesA).value.should.not.eql(branch1_NodeId);
                         branch2_NodeId = extract_value_for_field("BranchId", dataValuesA).value;
                         // update last known event of branch2_NodeId
@@ -1146,7 +1143,7 @@ module.exports = function (test) {
                         const dataValuesB = test.spy_monitored_item1_changes.getCall(1).args[0];
                         //  i=9341 => ExclusiveLimitAlarmType
                         extract_value_for_field("EventType", dataValuesB).value.toString().should.eql(eventTypeNodeId);
-                        extract_value_for_field("BranchId", dataValuesB).value.should.eql(NodeId.NullNodeId);
+                        extract_value_for_field("BranchId", dataValuesB).value.should.eql(NodeId.nullNodeId);
                         extract_value_for_field("ActiveState", dataValuesB).value.text.should.eql("Inactive");
                         extract_value_for_field("ActiveState.Id", dataValuesB).value.should.eql(false);
                         extract_value_for_field("AckedState", dataValuesB).value.text.should.eql("Acknowledged");
@@ -1166,9 +1163,8 @@ module.exports = function (test) {
                     function branch_one_is_confirmed_verify_branch_one_is_deleted(callback) {
 
                         debugLog("Confirming branchId with eventId  = ", branch1_EventId.toString("hex"));
-                        session.confirmCondition(alarmNode.nodeId, branch1_EventId, "Some Message", function (err, result) {
+                        session.confirmCondition(alarmNode.nodeId, branch1_EventId, "Some Message", function (err) {
                             should.not.exist(err);
-                            should(result).eql(StatusCodes.Good);
                             callback(err);
                         });
                     },

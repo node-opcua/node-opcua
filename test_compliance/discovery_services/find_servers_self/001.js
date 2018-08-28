@@ -82,7 +82,7 @@ exports.register_test = function (options) {
 
             options.client.findServers(function (err, servers) {
 
-                should(err).eql(null);
+                should.not.exist(err);
                 checkFindServersValidParameter(servers).should.eql(true);
                 servers.length.should.eql(1, "simple server expect 1");
                 done(err);
@@ -93,7 +93,7 @@ exports.register_test = function (options) {
 
             options.client.findServers(function (err, servers) {
 
-                should(err).eql(null);
+                should.not.exist(err);
                 checkFindServersValidParameter(servers).should.eql(true);
                 servers.length.should.eql(1, "simple server expect 1");
                 done(err);

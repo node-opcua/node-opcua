@@ -337,7 +337,7 @@ module.exports = function (test) {
 
                             const monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                                 try {
-                                    should(err).eql(null);
+                                    should.not.exist(err);
                                 } catch (err) {
                                     callback(err);
                                 }

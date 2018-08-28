@@ -19,7 +19,7 @@ function make_packet(packet_length) {
 
 const do_debug = false;
 
-function compute_fake_signature(section_to_sign) {
+function computeFakeSignature(section_to_sign) {
 
     const signature = Buffer.allocUnsafe(4);
     for (let i = 0; i < signature.length; i++) {
@@ -28,13 +28,13 @@ function compute_fake_signature(section_to_sign) {
     return signature;
 }
 
-function write_fake_header(block, isLast, total_length) {
+function writeFakeHeader(block, isLast, total_length) {
     for (let i = 0; i < this.headerSize; i++) {
         block.writeUInt8(0xAA, i);
     }
 }
 
-function write_fake_sequence_header(block) {
+function writeFakeSequenceHeader(block) {
     for (let i = 0; i < this.sequenceHeaderSize; i++) {
         block.writeUInt8(0xBB, i);
     }
@@ -217,7 +217,7 @@ describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes)\n", f
             chunkSize: 32,
 
             sequenceHeaderSize: 8,
-            writeSequenceHeaderFunc: write_fake_sequence_header
+            writeSequenceHeaderFunc: writeFakeSequenceHeader
 
         });
         chunkManager.chunkSize.should.equal(32);
@@ -246,14 +246,15 @@ describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes ,signa
     let chunkManager;
 
     beforeEach(function () {
+
         chunkManager = new ChunkManager({
             chunkSize: 32,
 
             sequenceHeaderSize: 8,
-            writeSequenceHeaderFunc: write_fake_sequence_header,
+            writeSequenceHeaderFunc: writeFakeSequenceHeader,
 
             signatureLength: 4,
-            compute_signature: compute_fake_signature
+            signBufferFunc: computeFakeSignature
 
         });
         chunkManager.chunkSize.should.equal(32);
@@ -291,20 +292,20 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 8 bytes ,ci
 
             plainBlockSize: 8,
             cipherBlockSize: 8,
-            encrypt_buffer: no_encrypt_block,
+            encryptBufferFunc: no_encrypt_block,
 
             headerSize: 4,
-            writeHeaderFunc: write_fake_header,
+            writeHeaderFunc: writeFakeHeader,
 
             sequenceHeaderSize: 2,
-            writeSequenceHeaderFunc: write_fake_sequence_header,
+            writeSequenceHeaderFunc: writeFakeSequenceHeader,
 
             signatureLength: 4,
-            compute_signature: compute_fake_signature
+            signBufferFunc: computeFakeSignature
         });
         chunkManager.chunkSize.should.equal(32);
         chunkManager.maxBodySize.should.equal(17);
-        chunkManager.compute_signature.should.equal(compute_fake_signature);
+        chunkManager.signBufferFunc.should.equal(computeFakeSignature);
 
     });
 
@@ -414,17 +415,17 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 6 bytes ,ci
             chunkSize: 64,
 
             headerSize: 8,
-            writeHeaderFunc: write_fake_header,
+            writeHeaderFunc: writeFakeHeader,
 
             sequenceHeaderSize: 8,
-            writeSequenceHeaderFunc: write_fake_sequence_header,
+            writeSequenceHeaderFunc: writeFakeSequenceHeader,
 
             plainBlockSize: 6,
             cipherBlockSize: 8,
-            encrypt_buffer: fake_encrypt_buffer,
+            encryptBufferFunc: fake_encrypt_buffer,
 
             signatureLength: 4,
-            compute_signature: compute_fake_signature
+            signBufferFunc: computeFakeSignature
         });
         chunkManager.chunkSize.should.equal(64);
         chunkManager.maxBodySize.should.equal(29);

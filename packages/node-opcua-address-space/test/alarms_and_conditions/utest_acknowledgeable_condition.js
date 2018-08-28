@@ -106,7 +106,7 @@ module.exports = function (test) {
                 componentOf: source,
                 browseName: "AlarmConditionType",
                 conditionSource: source,
-                inputNode: NodeId.NullNodeId,
+                inputNode: NodeId.nullNodeId,
                 optionals: ["SuppressedState", "ShelvingState", "ConfirmedState" ,"Confirm"]
             }, {
                 "enabledState.id": {dataType: DataType.Boolean, value: true}

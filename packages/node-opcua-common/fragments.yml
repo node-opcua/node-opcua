@@ -1,0 +1,46 @@
+#
+ApplicationInstanceCertificate:
+  reference: OPC Unified Architecture, Part 4 page 106
+  documentation: ApplicationInstanceCertificate with signature created by a Certificate Authority
+  fields:
+    version:      An identifier for the version of the Certificate encoding.
+    serialNumber:  A unique identifier for the Certificate assigned by the Issuer.
+    signatureAlgorithm:  >
+      The algorithm used to sign the Certificate.
+      The syntax of this field depends on the Certificate encoding.
+    signature: The signature created by the Issuer.
+    issuer:    A name that identifies the Issuer Certificate used to create the signature.
+    validFrom: When the Certificate becomes valid.
+    validTo:  When the Certificate expires.
+    subject: >
+      A name that identifies the application instance that the Certificate describes.
+      This field shall contain the productName and the name of the organization
+      responsible for the application instance.
+    applicationUri: >
+      The applicationUri specified in the ApplicationDescription .
+      The ApplicationDescription is described in 7.1.
+    hostnames: >
+      The name of the machine where the application instance runs.
+      A machine may have multiple names if is accessible via multiple networks.
+      The hostname may be a numeric network address or a descriptive name.
+      Server Certificates shall have at least one hostname defined.
+    publicKey: The public key associated with the Certificate .
+    keyUsage: >
+      Specifies how the Certificate key may be used.
+      ApplicationInstanceCertificates shall support Digital Signature, Non-Repudiation Key Encryption,
+      Data Encryption and Client/Server Authorization.
+      The contents of this field depend on the Certificate encoding
+
+
+#
+BuildInfo:
+  documentation: Server build Info,
+  fields:
+    productUri: A description for the ProductUri Variable.
+    manufacturerName: the name of the manufacturer
+    productName:  the product name"
+    softwareVersion: the software version
+    buildNumber: the software build number
+    buildDate: the software build date
+
+

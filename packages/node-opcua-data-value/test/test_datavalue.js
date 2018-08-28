@@ -2,14 +2,18 @@
 /* global describe,it*/
 Error.stackTraceLimit = 1000;
 
-const DataValue = require("../src/datavalue").DataValue;
 const Variant = require("node-opcua-variant").Variant;
 const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const NumericRange = require("node-opcua-numeric-range").NumericRange;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
+
+const DataValue = require("..").DataValue;
+const extractRange = require("..").extractRange;
 
 require("should");
 
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
 
 describe("DataValue", function () {
 
@@ -98,9 +102,6 @@ describe("DataValue", function () {
     });
 
 
-    const extractRange = require("../src/datavalue").extractRange;
-    const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-    const NumericRange = require("node-opcua-numeric-range").NumericRange;
 
     it("DataValue - extractRange on a Float Array", function () {
 

@@ -1,6 +1,6 @@
 "use strict";
 
-const verify_multi_chunk_message = require("../test_helpers/verify_message_chunk").verify_multi_chunk_message;
+const verify_multi_chunk_message = require("../dist/test_helpers").verify_multi_chunk_message;
 
 const redirectToFile = require("node-opcua-debug").redirectToFile;
 const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
@@ -62,20 +62,23 @@ const fixture_ws_browseResponse_with_error_and_diagnostic_info_message = makeBuf
 );
 
 
-it("should decode a real BrowseRequest", function (done) {
-    redirectToFile("ws_BrowseRequest.log", function () {
-        verify_multi_chunk_message([fixture_ws_browseRequest_message]);
-    }, done);
-});
+describe("Testing multi chunk",function () {
 
-it("should decode a real BrowseResponse", function (done) {
-    redirectToFile("ws_BrowseResponse.log", function () {
-        verify_multi_chunk_message([fixture_ws_browseResponse_message]);
-    }, done);
-});
-it("should decode a real BrowseResponse with StatusCode error and some diagnostic info", function (done) {
-    redirectToFile("ws_BrowseResponse2.log", function () {
-        verify_multi_chunk_message([fixture_ws_browseResponse_with_error_and_diagnostic_info_message]);
-    }, done);
-});
+    it("should decode a real BrowseRequest", function (done) {
+        redirectToFile("ws_BrowseRequest.log", function () {
+            verify_multi_chunk_message([fixture_ws_browseRequest_message]);
+        }, done);
+    });
 
+    it("should decode a real BrowseResponse", function (done) {
+        redirectToFile("ws_BrowseResponse.log", function () {
+            verify_multi_chunk_message([fixture_ws_browseResponse_message]);
+        }, done);
+    });
+    it("should decode a real BrowseResponse with StatusCode error and some diagnostic info", function (done) {
+        redirectToFile("ws_BrowseResponse2.log", function () {
+            verify_multi_chunk_message([fixture_ws_browseResponse_with_error_and_diagnostic_info_message]);
+        }, done);
+    });
+
+});

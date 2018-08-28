@@ -13,8 +13,8 @@ exports.fixture1 = (function () {
 
     return new OpenSecureChannelRequest({
         clientProtocolVersion: 0,
-        requestType: s.SecurityTokenRequestType.ISSUE,
-        securityMode: s.MessageSecurityMode.NONE,
+        requestType: s.SecurityTokenRequestType.Issue,
+        securityMode: s.MessageSecurityMode.None,
         clientNonce: zeroNonce,
         requestedLifetime: 300000
     });

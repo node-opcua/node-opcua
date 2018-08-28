@@ -13,7 +13,7 @@ const trace = false;
 //trace = true;
 
 function get_stack() {
-    const stack = (new Error()).stack.split("\n");
+    const stack = (new Error("Stack Trace recording")).stack.split("\n");
     return stack.slice(2, 7).join("\n");
 }
 
@@ -241,10 +241,17 @@ ResourceLeakDetector.prototype.start = function (info) {
 
         const intervalId = self.setInterval_old(func, delay);
 
+        let stack = null;
+        try {
+            stack = get_stack();
+        }
+        catch(err) {
+
+        }
         self.interval_map[key] = {
             intervalId: intervalId,
             disposed: false,
-            stack: get_stack()
+            stack: stack
         };
 
         if (trace) {
@@ -338,7 +345,7 @@ const trace_from_this_project_only = require("node-opcua-debug").trace_from_this
 
 exports.installResourceLeakDetector = function (isGlobal, func) {
 
-    const trace = trace_from_this_project_only(new Error());
+    const trace = trace_from_this_project_only();
 
     if (isGlobal) {
         before(function () {

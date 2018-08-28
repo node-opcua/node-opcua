@@ -1,6 +1,7 @@
 
 var assert = require("node-opcua-assert").assert;
 var StatusCodes = require("node-opcua").StatusCode;
+const makeAccessLevelFlag = require("node-opcua-data-model").makeAccessLevelFlag;
 
 //  Description: Write to a node whose AccessLevel does not contain write capabilities.
 
@@ -89,7 +90,7 @@ function _read_access_level(session,nodeId,attributeId,callback) {
     read_attribute(session,nodeId,attributeId,function (err,dataValue){
         var accessLevel = null;
         if (!err) {
-            accessLevel = AccessLevelFlag.get(dataValue.value.value);
+            accessLevel = makeAccessLevelFlag(dataValue.value.value);
         }
         callback(err,accessLevel);
     });
@@ -144,7 +145,7 @@ exports.register_test = function (options) {
             // read the node (actually read the 'accesslevel' and 'value' attributes (saves a 2nd read later)
             read_access_level(options.session,item,function(err,accessLevel){
 
-                if ( accessLevel.has("CurrentWrite")) {
+                if (accessLevel  & AccessLevelFlag.CurrentWrite ) {
 
                     err =new Error(" cannot perform test because node " + item.toString() + " is readonly "+
                                    "(accessLevelFlag ="  + accessLevel.toString() + "). we need something that is Writable at the global level"
@@ -158,7 +159,7 @@ exports.register_test = function (options) {
                         if (err) {return done(err); }
 
                         read_user_access_level(options.session,item,function(err,accessLevel) {
-                            if ( accessLevel.has("CurrentWrite")) {
+                            if ( accessLevel  & AccessLevelFlag.CurrentWrite) {
                                 err =new Error(" the UserAccessLevel of " +  item.toString() + " shows as " + accessLevel.toString() + ". "+
                                         "\nWe need something read only at the user level to be able to perform the test"
                                 );

@@ -133,7 +133,7 @@ describe("testing  address space namespace loading", function () {
 
         generate_address_space(addressSpace, xml_files, function (err) {
 
-            should(err).eql(null);
+            should.not.exist(err);
             addressSpace.getNamespaceArray().length.should.eql(3);
             addressSpace.getNamespaceArray()[2].namespaceUri.should.eql("http://opcfoundation.org/UA/DI/");
 

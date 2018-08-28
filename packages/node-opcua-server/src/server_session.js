@@ -195,9 +195,9 @@ ServerSession.prototype.__defineGetter__("currentPublishRequestInQueue", functio
 
 //xx ServerSession.prototype.__defineGetter__("serverDiagnostics")
 
-const ServiceCounter = require("node-opcua-common").ServiceCounter;
-const SessionDiagnostics = require("node-opcua-common").SessionDiagnostics;
-const SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
+const ServiceCounterDataType = require("node-opcua-common").ServiceCounterDataType;
+const SessionDiagnosticsDataType = require("node-opcua-common").SessionDiagnosticsDataType;
+const SubscriptionDiagnosticsDataType = require("node-opcua-common").SubscriptionDiagnosticsDataType;
 
 
 ServerSession.prototype.updateClientLastContactTime = function (currentTime) {
@@ -477,7 +477,7 @@ ServerSession.prototype._unexposeSubscriptionDiagnostics = function (subscriptio
     const session = this;
     const subscriptionDiagnosticsArray = session._getSubscriptionDiagnosticsArray();
     const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-    assert(subscriptionDiagnostics instanceof SubscriptionDiagnostics);
+    assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
         //xx console.log("GGGGGGGGGGGGGGGG => ServerSession **Unexposing** subscription diagnostics =>",subscription.id,"on session", session.nodeId.toString());
         eoan.removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
@@ -701,7 +701,7 @@ ServerSession.prototype.registerNode = function(nodeId) {
     assert(nodeId instanceof NodeId);
     const session = this;
 
-    if (nodeId.namespace === 0 && nodeId.identifierType.value === NodeIdType.NUMERIC.value) {
+    if (nodeId.namespace === 0 && nodeId.identifierType === NodeIdType.NUMERIC) {
         return nodeId;
     }
 
@@ -782,7 +782,7 @@ ServerSession.prototype._attach_channel = function(channel) {
     const session = this;
     assert(session.nonce && session.nonce instanceof Buffer);
     session.channel = channel;
-    session.secureChannelId = channel.secureChannelId;
+    session.channelId = channel.channelId;
     const key = session.authenticationToken.toString("hex");
     assert(!channel.sessionTokens.hasOwnProperty(key), "channel has already a session");
     channel.sessionTokens[key] = session;
@@ -808,7 +808,7 @@ ServerSession.prototype._detach_channel = function() {
 
     delete channel.sessionTokens[key];
     session.channel = null;
-    session.secureChannelId = null;
+    session.channelId = null;
 };
 
 exports.ServerSession = ServerSession;

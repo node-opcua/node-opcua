@@ -10,7 +10,7 @@ const StatusCodes = opcua.StatusCodes;
 const DataType = opcua.DataType;
 const AttributeIds = opcua.AttributeIds;
 const BrowseDirection = opcua.BrowseDirection;
-const client_utils = opcua.client_utils;
+const readUAAnalogItem = opcua.readUAAnalogItem;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
@@ -31,6 +31,7 @@ describe("testing AnalogItem on client side", function () {
     before(function (done) {
 
         server = build_server_with_temperature_device({port: port}, function (err) {
+            if(err) return done(err);
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done(err);
@@ -81,7 +82,7 @@ describe("testing AnalogItem on client side", function () {
 
         const nodeId = "ns=1;s=TemperatureAnalogItem";
 
-        client_utils.readUAAnalogItem(g_session, nodeId, function (err, data) {
+        readUAAnalogItem(g_session, nodeId, function (err, data) {
 
             if (err) { return done(err); }
 
@@ -98,7 +99,7 @@ describe("testing AnalogItem on client side", function () {
     });
     it("readUAAnalogItem should return an error if not doesn't exist", function (done) {
         const nodeId = "ns=4;s=invalidnode";
-        client_utils.readUAAnalogItem(g_session, nodeId, function (err, data) {
+        readUAAnalogItem(g_session, nodeId, function (err, data) {
             should.exist(err);
             done();
         });

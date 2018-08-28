@@ -61,7 +61,7 @@ describe("testing status code manipulation", function () {
 
         const statusCode2 =  StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode2.set("SemanticChanged");
-        statusCode2.value.should.eql(StatusCodes.BadNodeIdExists + 0x4000);
+        statusCode2.value.should.eql(StatusCodes.BadNodeIdExists.value + 0x4000);
         statusCode2.name.should.eql("BadNodeIdExists#SemanticChanged");
 
     });
@@ -69,7 +69,7 @@ describe("testing status code manipulation", function () {
 
         const statusCode2 =  StatusCodes.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode2.set("Overflow");
-        statusCode2.value.should.eql(StatusCodes.BadNodeIdExists + 0x80);
+        statusCode2.value.should.eql(StatusCodes.BadNodeIdExists.value + 0x80);
         statusCode2.name.should.eql("BadNodeIdExists#Overflow");
 
     });

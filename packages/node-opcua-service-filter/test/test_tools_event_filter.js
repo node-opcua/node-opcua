@@ -1,5 +1,4 @@
 "use strict";
-
 const should = require("should");
 const constructEventFilter = require("..").constructEventFilter;
 
@@ -7,7 +6,6 @@ const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
 describe("test constructEventFilter", function () {
-
 
     it("should construct a simple event filter with a single string (with namespace)", function () {
 
@@ -19,7 +17,7 @@ describe("test constructEventFilter", function () {
         ef.selectClauses[0].browsePath[0].namespaceIndex.should.eql(2);
 
         ef.selectClauses[0].attributeId.should.eql(AttributeIds.Value);
-        ef.selectClauses[0].typeId.toString().should.eql("ns=0;i=2041");
+        ef.selectClauses[0].typeDefinitionId.toString().should.eql("ns=0;i=2041");
 
     });
 
@@ -33,7 +31,7 @@ describe("test constructEventFilter", function () {
         ef.selectClauses[0].browsePath[0].namespaceIndex.should.eql(0);
 
         ef.selectClauses[0].attributeId.should.eql(AttributeIds.Value);
-        ef.selectClauses[0].typeId.toString().should.eql("ns=0;i=2041");
+        ef.selectClauses[0].typeDefinitionId.toString().should.eql("ns=0;i=2041");
 
     });
 
@@ -48,14 +46,14 @@ describe("test constructEventFilter", function () {
         ef.selectClauses[0].browsePath[0].namespaceIndex.should.eql(0);
 
         ef.selectClauses[0].attributeId.should.eql(AttributeIds.Value);
-        ef.selectClauses[0].typeId.toString().should.eql("ns=0;i=2041");
+        ef.selectClauses[0].typeDefinitionId.toString().should.eql("ns=0;i=2041");
 
         ef.selectClauses[1].browsePath.length.should.eql(1);
         ef.selectClauses[1].browsePath[0].name.should.eql("Time");
         ef.selectClauses[1].browsePath[0].namespaceIndex.should.eql(0);
 
         ef.selectClauses[1].attributeId.should.eql(AttributeIds.Value);
-        ef.selectClauses[1].typeId.toString().should.eql("ns=0;i=2041");
+        ef.selectClauses[1].typeDefinitionId.toString().should.eql("ns=0;i=2041");
 
     });
 
@@ -69,7 +67,7 @@ describe("test constructEventFilter", function () {
         ef.selectClauses[0].browsePath[0].namespaceIndex.should.eql(2);
 
         ef.selectClauses[0].attributeId.should.eql(AttributeIds.Value);
-        ef.selectClauses[0].typeId.toString().should.eql("ns=0;i=2041");
+        ef.selectClauses[0].typeDefinitionId.toString().should.eql("ns=0;i=2041");
 
     });
 
@@ -83,7 +81,7 @@ describe("test constructEventFilter", function () {
         ef.selectClauses[0].browsePath[0].namespaceIndex.should.eql(2);
 
         ef.selectClauses[0].attributeId.should.eql(AttributeIds.Value);
-        ef.selectClauses[0].typeId.toString().should.eql("ns=0;i=2041");
+        ef.selectClauses[0].typeDefinitionId.toString().should.eql("ns=0;i=2041");
 
     });
     it("should construct a simple event filter with a qualified name", function () {
@@ -96,7 +94,7 @@ describe("test constructEventFilter", function () {
         ef.selectClauses[0].browsePath[0].namespaceIndex.should.eql(2);
 
         ef.selectClauses[0].attributeId.should.eql(AttributeIds.Value);
-        ef.selectClauses[0].typeId.toString().should.eql("ns=0;i=2041");
+        ef.selectClauses[0].typeDefinitionId.toString().should.eql("ns=0;i=2041");
 
     });
 
@@ -114,7 +112,7 @@ describe("test constructEventFilter", function () {
         ef.selectClauses[0].browsePath[1].namespaceIndex.should.eql(3);
 
         ef.selectClauses[0].attributeId.should.eql(AttributeIds.Value);
-        ef.selectClauses[0].typeId.toString().should.eql("ns=0;i=2041");
+        ef.selectClauses[0].typeDefinitionId.toString().should.eql("ns=0;i=2041");
 
     });
     it("should construct a event filter with a 2 level browse path (form 2)", function () {
@@ -133,7 +131,7 @@ describe("test constructEventFilter", function () {
         ef.selectClauses[0].browsePath[1].namespaceIndex.should.eql(3);
 
         ef.selectClauses[0].attributeId.should.eql(AttributeIds.Value);
-        ef.selectClauses[0].typeId.toString().should.eql("ns=0;i=2041");
+        ef.selectClauses[0].typeDefinitionId.toString().should.eql("ns=0;i=2041");
 
     });
 
@@ -145,7 +143,7 @@ describe("test constructEventFilter", function () {
         ef.selectClauses[0].browsePath.length.should.eql(0);
 
         ef.selectClauses[0].attributeId.should.eql(AttributeIds.NodeId);
-        ef.selectClauses[0].typeId.toString().should.eql("ns=0;i=9999");
+        ef.selectClauses[0].typeDefinitionId.toString().should.eql("ns=0;i=9999");
 
     });
 });

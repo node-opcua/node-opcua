@@ -1,9 +1,9 @@
 /*global describe, it, require*/
 
-const makeExpandedNodeId = require("../src/expanded_nodeid").makeExpandedNodeId;
-const coerceExpandedNodeId = require("../src/expanded_nodeid").coerceExpandedNodeId;
-const ExpandedNodeId = require("../src/expanded_nodeid").ExpandedNodeId;
 
+const makeExpandedNodeId = require("..").makeExpandedNodeId;
+const coerceExpandedNodeId = require("..").coerceExpandedNodeId;
+const ExpandedNodeId = require("..").ExpandedNodeId;
 const makeNodeId = require("..").makeNodeId;
 const NodeIdType = require("..").NodeIdType;
 

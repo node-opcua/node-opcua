@@ -311,7 +311,7 @@ module.exports = function (test) {
                 // An event should have been raised to specify that the condition has entered a Disabled State
                 spyOnEvent.callCount.should.eql(2,"an event should have been raised to signal Disabled State");
                 //xx console.log( spyOnEvent.getCalls()[1].args[0]);
-                spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.NullNodeId);
+                spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.nullNodeId);
                 spyOnEvent.getCalls()[1].args[0].message.toString().should.eql("Variant(Scalar<StatusCode>, value: BadConditionDisabled (0x80990000))");
                 
                 // In a disabled state those value must be provided
@@ -349,7 +349,7 @@ module.exports = function (test) {
                 spyOnEvent.getCalls()[2].args[0]["enabledState.transitionTime"].value.should.be.instanceof(Date);
                 
 
-                spyOnEvent.getCalls()[2].args[0].branchId.value.should.eql(NodeId.NullNodeId);
+                spyOnEvent.getCalls()[2].args[0].branchId.value.should.eql(NodeId.nullNodeId);
                 
                 spyOnEvent.getCalls()[2].args[0].retain.toString().should.eql("Variant(Scalar<Boolean>, value: true)");
                 spyOnEvent.getCalls()[2].args[0].quality.value.should.eql(StatusCodes.Good);

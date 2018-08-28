@@ -10,7 +10,7 @@ const MessageSecurityMode = opcua.MessageSecurityMode;
 const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
@@ -27,7 +27,7 @@ describe("testing server with restricted securityModes - Given a server with a s
         const options = {
             port: port,
             securityPolicies: [SecurityPolicy.Basic128Rsa15],
-            securityModes: [MessageSecurityMode.SIGNANDENCRYPT],
+            securityModes: [MessageSecurityMode.SignAndEncrypt],
 
             // in our case we also want to disable getEndpoint Service on unsecure connection:
             disableDiscovery: true
@@ -54,7 +54,7 @@ describe("testing server with restricted securityModes - Given a server with a s
     after(function (done) {
         server.shutdown(done);
     });
-    it("should not connect with SecurityMode==NONE", function (done) {
+    it("should not connect with SecurityMode==None", function (done) {
 
         client = new OPCUAClient();
         client.connect(endpointUrl, function (err) {
@@ -65,7 +65,7 @@ describe("testing server with restricted securityModes - Given a server with a s
     it("should not connect with SecurityMode==SIGN", function (done) {
 
         client = new OPCUAClient({
-            securityMode: MessageSecurityMode.SIGN,
+            securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate
         });
@@ -76,7 +76,7 @@ describe("testing server with restricted securityModes - Given a server with a s
     });
     it("should not connect with  SecurityMode SIGNANDENCRYPT / Basic256 ", function (done) {
         client = new OPCUAClient({
-            securityMode: MessageSecurityMode.SIGN,
+            securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate
         });
@@ -87,7 +87,7 @@ describe("testing server with restricted securityModes - Given a server with a s
     });
     it("should not connect with  SecurityMode SIGNANDENCRYPT / Basic256Sha256 ", function (done) {
         client = new OPCUAClient({
-            securityMode: MessageSecurityMode.SIGN,
+            securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic256Sha256,
             serverCertificate: serverCertificate
         });
@@ -99,7 +99,7 @@ describe("testing server with restricted securityModes - Given a server with a s
     it("should connect with  SecurityMode SIGNANDENCRYPT / Basic128Rsa15 ", function (done) {
 
         client = new OPCUAClient({
-            securityMode: MessageSecurityMode.SIGNANDENCRYPT,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate
         });

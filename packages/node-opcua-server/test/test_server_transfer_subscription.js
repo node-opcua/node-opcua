@@ -71,7 +71,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         publishSpy.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(1);
         publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
-        publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].statusCode.should.eql(StatusCodes.GoodSubscriptionTransferred);
+        publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.GoodSubscriptionTransferred);
 
 
         subscription.terminate();

@@ -13,7 +13,7 @@ const hexDump = require("node-opcua-utils").hexDump;
 const MessageBuilder = require("../lib/misc/message_builder").MessageBuilder;
 const BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
 
-const packet_analyzer = require("../lib/misc/packet_analyzer").packet_analyzer;
+const analyseExtensionObject = require("../lib/misc/analyzePacket").analyseExtensionObject;
 const messageHeaderToString = require("../lib/misc/message_header").messageHeaderToString;
 
 const s = require("../lib/datamodel/structures");
@@ -54,7 +54,7 @@ TrafficAnalyser.prototype.add = function (data) {
         console.log(hexDump(full_message_body));
 
         try {
-            packet_analyzer(full_message_body);
+            analyseExtensionObject(full_message_body);
         }
         catch (err) {
             console.log("ERROR : ".red, err);

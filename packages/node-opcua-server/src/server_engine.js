@@ -48,6 +48,8 @@ const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const StatusCode = require("node-opcua-status-code").StatusCode;
 
 
+const trace_from_this_projet_only = require("node-opcua-debug").trace_from_this_projet_only;
+
 require("node-opcua-common");
 
 const address_space = require("node-opcua-address-space");
@@ -64,8 +66,8 @@ const ReferenceType = require("node-opcua-address-space").ReferenceType;
 
 
 const ServerState = require("node-opcua-common").ServerState;
-const ServerStatus = require("node-opcua-common").ServerStatus;
-const ServerDiagnosticsSummary = require("node-opcua-common").ServerDiagnosticsSummary;
+const ServerStatusDataType = require("node-opcua-common").ServerStatusDataType;
+const ServerDiagnosticsSummaryDataType = require("node-opcua-common").ServerDiagnosticsSummaryDataType;
 
 const endpoints_service = require("node-opcua-service-endpoints");
 const ApplicationDescription = endpoints_service.ApplicationDescription;
@@ -119,8 +121,8 @@ function ServerEngine(options) {
     engine.isAuditing = _.isBoolean(options.isAuditing) ? options.isAuditing : false;
 
     options.buildInfo.buildDate = options.buildInfo.buildDate || new Date();
-    // ---------------------------------------------------- ServerStatus
-    engine.serverStatus = new ServerStatus({
+    // ---------------------------------------------------- ServerStatusDataType
+    engine.serverStatus = new ServerStatusDataType({
         startTime: new Date(),
         currentTime: new Date(),
         state: ServerState.NoConfiguration,
@@ -144,7 +146,7 @@ function ServerEngine(options) {
     engine.historyServerCapabilities = new HistoryServerCapabilities(options.historyServerCapabilities);
 
     // --------------------------------------------------- serverDiagnosticsSummary extension Object
-    engine.serverDiagnosticsSummary = new ServerDiagnosticsSummary({});
+    engine.serverDiagnosticsSummary = new ServerDiagnosticsSummaryDataType();
     assert(engine.serverDiagnosticsSummary.hasOwnProperty("currentSessionCount"));
 
     // note spelling is different for serverDiagnosticsSummary.currentSubscriptionCount
@@ -1016,7 +1018,7 @@ ServerEngine.prototype._readSingleNode = function (context, nodeToRead, timestam
         return new DataValue({statusCode: StatusCodes.BadTimestampsToReturnInvalid});
     }
 
-    timestampsToReturn = (_.isObject(timestampsToReturn)) ? timestampsToReturn : TimestampsToReturn.Neither;
+    timestampsToReturn = (timestampsToReturn !== undefined) ? timestampsToReturn : TimestampsToReturn.Neither;
 
     const obj = engine.__findObject(nodeId);
 
@@ -1123,7 +1125,7 @@ ServerEngine.prototype.writeSingleNode = function (context, writeValue, callback
     const engine = this;
     assert(context instanceof SessionContext);
     assert(_.isFunction(callback));
-    assert(writeValue._schema.name === "WriteValue");
+    assert(writeValue.schema.name === "WriteValue");
     assert(writeValue.value instanceof DataValue);
 
     if (writeValue.value.value === null) {
@@ -1315,7 +1317,6 @@ function __bindVariable(self, nodeId, options) {
         assert(_.isFunction(obj.asyncRefresh));
         assert(_.isFunction(obj.refreshFunc));
     } else {
-        //xx console.log((new Error()).stack);
         console.log("Warning: cannot bind object with id ", nodeId.toString(), " please check your nodeset.xml file or add this node programmatically");
     }
 }
@@ -1344,9 +1345,8 @@ ServerEngine.prototype.__internal_bindMethod = function (nodeId, func) {
     if (methodNode && methodNode.bindMethod) {
         methodNode.bindMethod(func);
     } else {
-        //xx console.log((new Error()).stack);
         console.log("WARNING:  cannot bind a method with id ".yellow + nodeId.toString().cyan + ". please check your nodeset.xml file or add this node programmatically".yellow);
-        console.log(require("node-opcua-debug").trace_from_this_projet_only(new Error()))
+        console.log(trace_from_this_projet_only())
     }
 };
 
@@ -1406,7 +1406,7 @@ ServerEngine.prototype._getServerSubscriptionDiagnosticsArray = function () {
 
     return subscriptionDiagnosticsArray;
 };
-const SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
+const SubscriptionDiagnosticsDataType = require("node-opcua-common").SubscriptionDiagnosticsDataType;
 
 ServerEngine.prototype._exposeSubscriptionDiagnostics = function (subscription) {
 
@@ -1415,6 +1415,7 @@ ServerEngine.prototype._exposeSubscriptionDiagnostics = function (subscription) 
     const subscriptionDiagnosticsArray = engine._getServerSubscriptionDiagnosticsArray();
     const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     assert(subscriptionDiagnostics.$subscription == subscription);
+    assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
 
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
         //xx console.log("GGGGGGGGGGGGGGGG ServerEngine => Exposing subscription diagnostics =>",subscription.id);
@@ -1426,7 +1427,7 @@ ServerEngine.prototype._unexposeSubscriptionDiagnostics = function (subscription
     const engine = this;
     const subscriptionDiagnosticsArray = engine._getServerSubscriptionDiagnosticsArray();
     const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-    assert(subscriptionDiagnostics instanceof SubscriptionDiagnostics);
+    assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
 
         const node = subscriptionDiagnosticsArray[subscription.id];
@@ -1469,7 +1470,7 @@ ServerEngine.prototype._createSubscriptionOnSession = function (session,request)
         id: _get_next_subscriptionId(),
         // -------------------
         publishEngine: session.publishEngine, //
-        sessionId: NodeId.NullNodeId
+        sessionId: NodeId.nullNodeId
     });
 
     // add subscriptionDiagnostics
@@ -1774,7 +1775,7 @@ ServerEngine.prototype.transferSubscription = function (session, subscriptionId,
 ServerEngine.prototype.getSession = function (authenticationToken, activeOnly) {
 
     const engine = this;
-    if (!authenticationToken || (authenticationToken.identifierType && (authenticationToken.identifierType.value !== NodeIdType.BYTESTRING.value))) {
+    if (!authenticationToken || (authenticationToken.identifierType && (authenticationToken.identifierType !== NodeIdType.BYTESTRING))) {
         return null;     // wrong type !
     }
     const key = authenticationToken.toString();

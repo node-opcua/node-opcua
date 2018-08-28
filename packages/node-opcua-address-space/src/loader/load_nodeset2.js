@@ -17,7 +17,7 @@ const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const Argument = require("node-opcua-service-call").Argument;
 
 const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-const EnumValueType = require("node-opcua-data-model").EnumValueType;
+const EnumValueType = require("node-opcua-common").EnumValueType;
 
 const ec = require("node-opcua-basic-types");
 
@@ -54,13 +54,13 @@ function stringToUInt32Array(str) {
     return array;
 }
 
-const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
+const makeAccessLevelFlag = require("node-opcua-data-model").makeAccessLevelFlag;
 
 function convertAccessLevel(accessLevel) {
 
     accessLevel = parseInt(accessLevel || 1); // CurrentRead if not specified
 
-    return makeAccessLevel(accessLevel);
+    return makeAccessLevelFlag(accessLevel);
 
 }
 
@@ -552,11 +552,11 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                 "Identifier": {
                     finish: function () {
 
-                        const typeId = this.text.trim();
-                        //xx console.log("typeId = ",typeId);
-                        this.parent.parent.typeId = resolveNodeId(typeId);
+                        const typeDefinitionId = this.text.trim();
+                        //xx console.log("typeDefinitionId = ",typeDefinitionId);
+                        this.parent.parent.typeDefinitionId = resolveNodeId(typeDefinitionId);
 
-                        switch (typeId) {
+                        switch (typeDefinitionId) {
                             case "i=297":  // Argument
                             case "ns=0;i=297":  // Argument
                                 break;
@@ -570,7 +570,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                             case "i=885":  // Range
                                 break;
                             default:
-                                console.warn("loadnodeset2 ( checking identifier type) : unsupported typeId in ExtensionObject " + typeId);
+                                console.warn("loadnodeset2 ( checking identifier type) : unsupported typeDefinitionId in ExtensionObject " + typeDefinitionId);
                                 break;
                         }
                     }
@@ -586,7 +586,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             },
             finish: function () {
                 const self = this.parent;
-                switch (self.typeId.toString()) {
+                switch (self.typeDefinitionId.toString()) {
                     case "ns=0;i=7616": // EnumValueType
                         self.extensionObject = self.parser.Body.parser.EnumValueType.enumValueType;
                         assert(_.isObject(self.extensionObject));
@@ -607,7 +607,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                         break;
                     default:
                         // to do: implement a post action to create and bind extension object
-                        console.log("loadnodeset2: unsupported typeId in ExtensionObject " + self.typeId.toString());
+                        console.log("loadnodeset2: unsupported typeDefinitionId in ExtensionObject " + self.typeDefinitionId.toString());
                         break;
                 }
             }
@@ -617,7 +617,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
     const extensionObject_parser = {
         "ExtensionObject": {
             init: function () {
-                this.typeId = {};
+                this.typeDefinitionId = {};
                 this.extensionObject = null;
             },
             parser: _extensionObject_inner_parser
@@ -754,7 +754,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             },
             "ExtensionObject": {
                 init: function () {
-                    this.typeId = {};
+                    this.typeDefinitionId = {};
                     this.extensionObject = null;
                 },
                 parser: _extensionObject_inner_parser,

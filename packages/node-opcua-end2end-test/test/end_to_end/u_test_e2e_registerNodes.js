@@ -55,7 +55,7 @@ module.exports = function (test) {
                     ]
                 });
                 session.performMessageTransaction(request, function (err, response) {
-                    should(err).eql(null);
+                    should.not.exist(err);
                     response.registeredNodeIds.length.should.eql(1);
                     inner_done();
                 });
@@ -88,7 +88,7 @@ module.exports = function (test) {
                 });
                 session.performMessageTransaction(request, function (err, response) {
                     should.exist(response);
-                    should(err).eql(null);
+                    should.not.exist(err);
                     inner_done();
                 });
 

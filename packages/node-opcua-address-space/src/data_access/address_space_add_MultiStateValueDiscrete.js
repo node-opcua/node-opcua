@@ -9,7 +9,7 @@ const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
 
 const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-const EnumValueType  = require("node-opcua-data-model").EnumValueType;
+const EnumValueType  = require("node-opcua-common").EnumValueType;
 const Namespace = require("../namespace").Namespace;
 
 

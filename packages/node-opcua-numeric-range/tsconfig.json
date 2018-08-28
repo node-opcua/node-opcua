@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "target": "es6",
+    "module": "commonjs",
+    "declaration": true,
+    "outDir": "./dist",
+    "sourceMap": true,
+    "sourceRoot": "./source",
+    "strict": true
+  },
+  "files": [
+    "./src/index.ts",
+    "./src/numeric_range.ts"
+  ]
+}

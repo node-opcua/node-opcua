@@ -1,6 +1,7 @@
 "use strict";
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
+const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
 
 function getUserName(userIdentityToken) {
     if (userIdentityToken.policyId === "anonymous") {
@@ -64,20 +65,22 @@ SessionContext.prototype.getCurrentUserRole = function () {
 SessionContext.prototype.checkPermission = function (node, action) {
 
     assert(action === "CurrentRead" || action === "CurrentWrite");
+    const actionFlag = AccessLevelFlag[action];
+
     if (!node._permissions) {
-        return node.userAccessLevel.has(action);
+        return (node.userAccessLevel & actionFlag) === actionFlag;
     }
 
     const permission = node._permissions[action];
 
     if (!permission) {
-        return node.userAccessLevel.has(action);
+        return (node.userAccessLevel & actionFlag) === actionFlag;
     }
 
     const userRole = this.getCurrentUserRole();
 
     if (userRole === "default") {
-        return node.userAccessLevel.has(action);
+        return (node.userAccessLevel & actionFlag) === actionFlag;
     }
 
     if (permission[0] === "*") {
@@ -98,7 +101,6 @@ SessionContext.prototype.checkPermission = function (node, action) {
         }
         return false;
     }
-
 };
 
 

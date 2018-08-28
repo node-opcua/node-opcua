@@ -8,6 +8,7 @@ const path = require("path");
 const fs = require("fs");
 const nodesets = require("node-opcua-nodesets");
 const getFixture = require("node-opcua-test-fixtures").getFixture;
+const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -137,17 +138,17 @@ describe("testing NodeSet XML file loading", function () {
 
             const someVariable = addressSpace.findNode("ns=1;i=2");
             someVariable.browseName.toString().should.eql("1:SomeVariable");
-            someVariable.userAccessLevel.toString().should.eql("CurrentRead");
+            someVariable.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
 
 
             const readOnlyVar = addressSpace.findNode("ns=1;i=3");
             readOnlyVar.browseName.toString().should.eql("1:SomeReadOnlyVar");
-            readOnlyVar.userAccessLevel.toString().should.eql("CurrentRead");
+            readOnlyVar.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
 
 
             const readWriteVar = addressSpace.findNode("ns=1;i=4");
             readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
-            readWriteVar.userAccessLevel.toString().should.eql("CurrentRead | CurrentWrite");
+            readWriteVar.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
 
 
             done(err);
@@ -172,8 +173,7 @@ describe("testing NodeSet XML file loading", function () {
 
             const someStringVariable = addressSpace.findNode("ns=1;i=2");
             someStringVariable.browseName.toString().should.eql("1:SomeStringVariable");
-            someStringVariable.readValue().value.dataType.key.should.be.type('string');
-            someStringVariable.readValue().value.value.should.eql("any predefined string value");
+             someStringVariable.readValue().value.value.should.eql("any predefined string value");
 
             const someBoolVariable = addressSpace.findNode("ns=1;i=3");
             someBoolVariable.browseName.toString().should.eql("1:SomeBoolVariable");

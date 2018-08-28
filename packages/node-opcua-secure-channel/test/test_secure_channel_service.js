@@ -6,7 +6,6 @@ const async = require("async");
 const secure_channel = require("node-opcua-service-secure-channel");
 const CloseSecureChannelResponse = secure_channel.CloseSecureChannelResponse;
 
-const MessageBuilder = require("../src/message_builder").MessageBuilder;
 
 
 
@@ -17,7 +16,8 @@ const hexDump = require("node-opcua-debug").hexDump;
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 
-const MessageChunker = require("../src/message_chunker").MessageChunker;
+const MessageBuilder = require("..").MessageBuilder;
+const MessageChunker = require("..").MessageChunker;
 
 describe("SecureMessageChunkManager", function () {
 
@@ -149,7 +149,7 @@ describe("SecureMessageChunkManager", function () {
 
     });
     it("should test CloseSecureChannelResponse", function () {
-        const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+        const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
         const response = new CloseSecureChannelResponse({});
         encode_decode_round_trip_test(response);
 

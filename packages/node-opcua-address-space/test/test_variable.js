@@ -86,7 +86,7 @@ describe("testing Variables ", function () {
 
         value = v.readAttribute(context, AttributeIds.NodeClass);
         value.value.dataType.should.eql(DataType.Int32);
-        value.value.value.should.eql(NodeClass.Variable.value);
+        value.value.value.should.eql(NodeClass.Variable);
         value.statusCode.should.eql(StatusCodes.Good);
 
         addressSpace.dispose();
@@ -1407,7 +1407,9 @@ describe("testing UAVariable ", function () {
 
         const dataValue = variable_not_readable.readValue();
         dataValue.statusCode.should.eql(StatusCodes.BadNotReadable);
-        should(dataValue.value).eql(null);
+        if (dataValue.value) {
+            should(dataValue.value.dataType).eql(DataType.Null);
+        }
         should(dataValue.serverTimestamp).eql(null);
         should(dataValue.sourceTimestamp).eql(null);
     });
@@ -1420,7 +1422,9 @@ describe("testing UAVariable ", function () {
 
         variable_not_readable.readValueAsync(context, function (err, dataValue) {
             dataValue.statusCode.should.eql(StatusCodes.BadNotReadable);
-            should(dataValue.value).eql(null);
+            if (dataValue.value) {
+                should(dataValue.value.dataType).eql(DataType.Null);
+            }
             should(dataValue.serverTimestamp).eql(null);
             should(dataValue.sourceTimestamp).eql(null);
             done();
@@ -1504,7 +1508,7 @@ describe("testing UAVariable ", function () {
         let refValue = 0;
 
         function my_callback(err, value) {
-            should(err).eql(null);
+            should.not.exist(err);
             counter = counter + 1;
             if (counter === 1) {
                 refValue = value;
@@ -1534,7 +1538,7 @@ describe("testing UAVariable ", function () {
             value: {value: {dataType: DataType.String, value: "New Description"}}
         });
         variableInteger.writeAttribute(context, v, function (err, statusCode) {
-            should(err).eql(null);
+            should.not.exist(err);
             done(err);
         });
 

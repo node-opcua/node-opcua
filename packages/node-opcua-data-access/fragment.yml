@@ -1,0 +1,32 @@
+AxisInformation:
+  engineeringUnits: >
+              EngineeringUnit         Holds the information about the engineering units for a given axis.
+  euRange:         >
+              Range                   Limits of the range of the axis
+  title:            >
+              LocalizedText           User readable axis title, useful when the units are %, the Title may be “Particle size distribution"
+  axisScaleType:    >
+              AxisScaleEnumeration    LINEAR, LOG, LN, defined by AxisSteps
+  axisSteps:        >
+              Double[]                Specific value of each axis steps, may be set to “Null” if not used
+
+EngineeringUnit:
+   document: >
+       Units of measurement for  AnalogItems that represent continuously- variable physical quantities   ( e.g.,
+       length, mass , time, temperature )
+       NOTE  This standard defines Properties to inform about the unit used for the  DataItem
+       value and about  the highest and lowest value likely to be obtained in normal operation
+
+  fields:
+    namespaceUri: >
+            Identifies the organization (company, standards organization) that defines the EUInformation.
+
+    unitId: >
+            Identifier for programmatic evaluation. −1 is used if a unitId is not available.
+            The displayName of the engineering unit is typically the abbreviation of the
+            engineering unit, for example ”h” for hour or ”m/s” for meter per second." +
+    description: >
+                  Contains the full name of the engineering unit such as ”hour” or ”meter per second"
+    displayName: >
+                  The displayName of the engineering  ( for instance 'm/s' )"
+

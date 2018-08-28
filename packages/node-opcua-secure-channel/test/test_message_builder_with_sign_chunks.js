@@ -4,15 +4,15 @@ const colors = require("colors");
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const hexDump = require("node-opcua-debug").hexDump;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const crypto_utils = require("node-opcua-crypto");
 
 const make_lorem_ipsum_buffer = require("node-opcua-test-helpers").make_lorem_ipsum_buffer;
-const fake_message_chunk_factory = require("../test_helpers/fake_message_chunk_factory");
 
-const MessageBuilder = require("../src/message_builder").MessageBuilder;
-const SecurityPolicy = require("../src/security_policy").SecurityPolicy;
-const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const fake_message_chunk_factory = require("../dist/test_helpers/fake_message_chunk_factory");
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const MessageBuilder = require("..").MessageBuilder;
+const SecurityPolicy = require("..").SecurityPolicy;
 
 const getFixture = require("node-opcua-test-fixtures").getFixture;
 
@@ -22,7 +22,7 @@ const private_key_filename = getFixture("certs/server_key_1024.pem");
 
 describe("MessageBuilder with SIGN support", function () {
 
-    const lorem_ipsum_buffer = make_lorem_ipsum_buffer();
+    const someBuffer = make_lorem_ipsum_buffer();
 
     it("should not emit an error event if chunks have valid signature", function (done) {
 
@@ -30,7 +30,8 @@ describe("MessageBuilder with SIGN support", function () {
 
         const messageBuilder = new MessageBuilder(options);
         messageBuilder.privateKey = crypto_utils.read_private_rsa_key(private_key_filename);
-        messageBuilder._decode_message_body = false;
+
+        messageBuilder._decodeMessageBody = false;
 
         messageBuilder
         .on("full_message_body", function (message) {
@@ -43,8 +44,8 @@ describe("MessageBuilder with SIGN support", function () {
             done(error);
         });
 
-        fake_message_chunk_factory.iterate_on_signed_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
-            should(err).eql(null);
+        fake_message_chunk_factory.iterateOnSignedMessageChunks(someBuffer, function (err, chunk) {
+            should.not.exist(err);
             messageBuilder.feed(chunk.slice(0, 20));
             messageBuilder.feed(chunk.slice(20));
         });
@@ -56,14 +57,14 @@ describe("MessageBuilder with SIGN support", function () {
         const options = {};
 
         const messageBuilder = new MessageBuilder(options);
-        messageBuilder.setSecurity('SIGN', 'Basic128Rsa15');
+        messageBuilder.setSecurity(MessageSecurityMode.Sign, SecurityPolicy.Basic128Rsa15);
 
         messageBuilder._decode_message_body = false;
 
         messageBuilder.on("full_message_body", function (message) {
 
             debugLog(message.toString());
-            message.toString().should.eql(lorem_ipsum_buffer.toString());
+            message.toString().should.eql(someBuffer.toString());
 
             done();
         })
@@ -78,8 +79,8 @@ describe("MessageBuilder with SIGN support", function () {
             done(new Error(" we are not expecting a error event in this case" + err));
         });
 
-        fake_message_chunk_factory.iterate_on_signed_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
-            should(err).eql(null);
+        fake_message_chunk_factory.iterateOnSignedMessageChunks(someBuffer, function (err, chunk) {
+            should.not.exist(err);
             messageBuilder.feed(chunk.slice(0, 20));
             messageBuilder.feed(chunk.slice(20));
         });
@@ -107,8 +108,8 @@ describe("MessageBuilder with SIGN support", function () {
             done();
         });
 
-        fake_message_chunk_factory.iterate_on_signed_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
-            should(err).eql(null);
+        fake_message_chunk_factory.iterateOnSignedMessageChunks(someBuffer, function (err, chunk) {
+            should.not.exist(err);
 
             // alter artificially the chunk
             // this will damage the chunk signature
@@ -147,8 +148,8 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
             done(error);
         });
 
-        fake_message_chunk_factory.iterate_on_signed_and_encrypted_message_chunks(lorem_ipsum_buffer, function (err, chunk) {
-            should(err).eql(null);
+        fake_message_chunk_factory.iterateOnSignedAndEncryptedMessageChunks(lorem_ipsum_buffer, function (err, chunk) {
+            should.not.exist(err);
             //xx console.log(hexDump(chunk));
             messageBuilder.feed(chunk.slice(0, 20));
             messageBuilder.feed(chunk.slice(20));
@@ -171,7 +172,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
 
         messageBuilder.privateKey = crypto_utils.read_private_rsa_key(private_key_filename);
 
-        messageBuilder.securityMode = MessageSecurityMode.SIGNANDENCRYPT;
+        messageBuilder.securityMode = MessageSecurityMode.SignAndEncrypt;
 
         messageBuilder.pushNewToken({tokenId: 10}, fake_message_chunk_factory.derivedKeys);
 
@@ -189,8 +190,8 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
         });
 
 
-        fake_message_chunk_factory.iterate_on_symmetric_encrypted_chunk(lorem_ipsum_buffer, function (err, chunk) {
-            should(err).eql(null);
+        fake_message_chunk_factory.iterateOnSymmetricEncryptedChunk(lorem_ipsum_buffer, function (err, chunk) {
+            should.not.exist(err);
             messageBuilder.feed(chunk);
         });
     });

@@ -98,16 +98,16 @@ describe("testing Events  ", function () {
                 {
                     // This parameter restricts the operand to instances of the TypeDefinitionNode or
                     //  one of its subtypes
-                    typeId: baseEventType.nodeId,
+                    typeDefinitionId: baseEventType.nodeId,
                     browsePath: [
                         {name: "EventId"}
                     ],
                     attributeId: AttributeIds.Value,
                     indexRange: null
                 },
-                {typeId: baseEventType.nodeId,browsePath: [{name: "SourceNode"}], attributeId: AttributeIds.Value},
-                {typeId: baseEventType.nodeId,browsePath: [{name: "SourceName"}], attributeId: AttributeIds.Value},
-                {typeId: baseEventType.nodeId,browsePath: [{name: "ReceiveTime"}], attributeId: AttributeIds.Value}
+                {typeDefinitionId: baseEventType.nodeId,browsePath: [{name: "SourceNode"}], attributeId: AttributeIds.Value},
+                {typeDefinitionId: baseEventType.nodeId,browsePath: [{name: "SourceName"}], attributeId: AttributeIds.Value},
+                {typeDefinitionId: baseEventType.nodeId,browsePath: [{name: "ReceiveTime"}], attributeId: AttributeIds.Value}
             ],
             whereClause: []
         });
@@ -153,7 +153,7 @@ describe("testing Events  ", function () {
                 {
                     // This parameter restricts the operand to instances of the TypeDefinitionNode or
                     //  one of its subtypes
-                    typeId: null,
+                    typeDefinitionId: null,
                     browsePath: [
                         {name: "EventId"}
                     ],

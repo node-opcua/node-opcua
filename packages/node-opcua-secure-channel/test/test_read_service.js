@@ -1,11 +1,13 @@
-
 const should = require("should");
-const rs = require("node-opcua-service-read");
+
+const ReadRequest = require("node-opcua-service-read").ReadRequest;
+const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
+
 const redirectToFile = require("node-opcua-debug").redirectToFile;
 const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
 
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
-const verify_multi_chunk_message = require("../test_helpers/verify_message_chunk").verify_multi_chunk_message;
+const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
+const verify_multi_chunk_message = require("../dist/test_helpers").verify_multi_chunk_message;
 
 /* a real readRequest (with two nodeIds) captured with ws*/
 const fixture_ws_readRequest_message = makeBuffer(
@@ -88,20 +90,22 @@ describe("Read Service", function () {
         redirectToFile("ws_ReadResponse2.log", function () {
             verify_multi_chunk_message([fixture_ws_readResponse_message2]);
         }, done);
+
     });
 
 
     it("should encode and decode a ReadRequest ", function () {
 
-        const readRequest = new rs.ReadRequest({
-            timestampsToReturn: rs.TimestampsToReturn.Both,
+        const readRequest = new ReadRequest({
+            timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
                 {
                     nodeId: "i=2255",
-                    attributeId: 13  //<<<<<<< INVALID ID => Should Throws !!!
+                    attributeId: 13
                 }
             ]
         });
+
         encode_decode_round_trip_test(readRequest);
     });
 });

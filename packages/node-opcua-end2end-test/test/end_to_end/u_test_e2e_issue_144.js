@@ -6,7 +6,7 @@ const should = require("should");
 const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-const securityMode = opcua.MessageSecurityMode.NONE;
+const securityMode = opcua.MessageSecurityMode.None;
 const securityPolicy = opcua.SecurityPolicy.None;
 
 // Use Case:

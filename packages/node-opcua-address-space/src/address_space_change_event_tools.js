@@ -4,13 +4,17 @@
  *
  */
 
-const NodeClass = require("node-opcua-data-model").NodeClass;
-const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const ModelChangeStructureDataType = require("node-opcua-common").ModelChangeStructureDataType;
 
-const Enum = require("node-opcua-enum");
+
+
+const Enum = require("node-opcua-enum").Enum;
+
+
 const verbFlags = new Enum({
     //                         NodeAdded        0         Indicates the affected Node has been added.
     NodeAdded: 0x01,
@@ -49,14 +53,14 @@ function _handle_add_reference_change_event(node1, node2id) {
                 return null;
             }
 
-            let modelChangeTgt = new ModelChangeStructure({
+            let modelChangeTgt = new ModelChangeStructureDataType({
                 affected: node1.nodeId,
                 affectedType: _getTypeDef(node1),
                 verb: makeVerb("ReferenceAdded")
             });
             addressSpace._collectModelChange(null, modelChangeTgt);
 
-            modelChangeTgt = new ModelChangeStructure({
+            modelChangeTgt = new ModelChangeStructureDataType({
                 affected: node2.nodeId,
                 affectedType: _getTypeDef(node2),
                 verb: makeVerb("ReferenceAdded")
@@ -67,10 +71,9 @@ function _handle_add_reference_change_event(node1, node2id) {
 }
 exports._handle_add_reference_change_event = _handle_add_reference_change_event;
 
-const ModelChangeStructure = require("node-opcua-common").ModelChangeStructure;
 
 try {
-    ModelChangeStructure.prototype.toString = function(options) {
+    ModelChangeStructureDataType.prototype.toString = function(options) {
         if (!options) {
             return "";
         }
@@ -101,14 +104,14 @@ function _handle_model_change_event(node) {
                 typeDefinitionNodeId = node.typeDefinition.nodeId;
             }
 
-            const modelChange1 = new ModelChangeStructure({
+            const modelChange1 = new ModelChangeStructureDataType({
                 affected: node.nodeId,
                 affectedType: typeDefinitionNodeId,
                 verb: makeVerb("NodeAdded")
             });
             addressSpace._collectModelChange(null, modelChange1);
 
-            const modelChangeSrc = new ModelChangeStructure({
+            const modelChangeSrc = new ModelChangeStructureDataType({
                 affected: parent.nodeId,
                 affectedType: null,
                 verb: makeVerb("ReferenceAdded")
@@ -117,7 +120,7 @@ function _handle_model_change_event(node) {
 
             // bidirectional
             if (node.nodeVersion) {
-                const modelChangeTgt = new ModelChangeStructure({
+                const modelChangeTgt = new ModelChangeStructureDataType({
                     affected: node.nodeId,
                     affectedType: typeDefinitionNodeId,
                     verb: makeVerb("ReferenceAdded")
@@ -147,14 +150,14 @@ function _handle_delete_node_model_change_event(node) {
             // ...
             references.forEach(function(r) {
                 const target = addressSpace.findNode(r.nodeId);
-                const modelChangeSrc = new ModelChangeStructure({
+                const modelChangeSrc = new ModelChangeStructureDataType({
                     affected: target.nodeId,
                     affectedType: null,
                     verb: makeVerb("ReferenceDeleted")
                 });
                 addressSpace._collectModelChange(null, modelChangeSrc);
             });
-            const modelChangeSrc = new ModelChangeStructure({
+            const modelChangeSrc = new ModelChangeStructureDataType({
                 affected: node.nodeId,
                 affectedType: node.typeDefinition,
                 verb: makeVerb("NodeDeleted")

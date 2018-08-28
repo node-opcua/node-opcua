@@ -36,7 +36,7 @@ function convert(data)
 
 
     });
-    const outFile = fs.createWriteStream(path.join("../packages/node-opcua-constants/src","opcua_node_ids.js"));
+    const outFile = fs.createWriteStream(path.join("../packages/node-opcua-constants/src","opcua_node_ids.ts"));
     outFile.write("// this file has been automatically generated\n");
     outFile.write("// using code_gen/generate_node_ids.js\n");
 
@@ -61,7 +61,7 @@ function convert(data)
     for(typeName in metaMap) {
         if (metaMap.hasOwnProperty(typeName)) {
             typeMap = metaMap[typeName];
-            outFile.write(" exports."+ typeName + "Ids = { \n");
+            outFile.write(" export enum "+ typeName + "Ids { \n");
 
             const names = Object.keys(typeMap);
 
@@ -74,13 +74,13 @@ function convert(data)
                     id   = parseInt(e[1],10);
                     type = e[2];
                     if (i +1 <names.length) {
-                        outFile.write(sprintf("  %80s: %6d , \n",name,id));
+                        outFile.write(sprintf("  %80s= %6d , \n",name,id));
                     } else {
-                        outFile.write(sprintf("  %80s: %6d  \n",name,id));
+                        outFile.write(sprintf("  %80s= %6d  \n",name,id));
                     }
                 }
             }
-            outFile.write("};\n");
+            outFile.write("}\n");
         }
     }
 }

@@ -1,9 +1,5 @@
-
-
 const ObjectRegistry = require("..").ObjectRegistry;
 const should = require("should");
-require("colors");
-
 
 describe("testing ObjectRegistry",function() {
 
@@ -16,11 +12,9 @@ describe("testing ObjectRegistry",function() {
     });
     after(function() {
         ObjectRegistry.doDebug = oldValue;
-
     });
 
     it("should register and unregister an object",function(){
-
 
         const myObj = {
             name: "HelloWorld"

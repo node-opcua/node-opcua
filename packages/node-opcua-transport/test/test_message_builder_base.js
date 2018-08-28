@@ -1,13 +1,9 @@
 "use strict";
-const util = require("util");
-
-const MessageBuilderBase = require("../src/message_builder_base").MessageBuilderBase;
-const writeTCPMessageHeader = require("../src/tools").writeTCPMessageHeader;
-
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 const compare_buffers = require("node-opcua-utils").compare_buffers;
 
-
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const MessageBuilderBase = require("..").MessageBuilderBase;
+const writeTCPMessageHeader = require("..").writeTCPMessageHeader;
 
 
 function wrap_message_in_chunk(slice, isFinal) {

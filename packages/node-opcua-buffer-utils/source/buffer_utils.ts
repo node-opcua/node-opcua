@@ -1,3 +1,6 @@
+/***
+ * @module node-opcua-buffer-utils
+ */
 //
 // note: new Buffer(size)#  is deprecated since: v6.0. and is replaced with Buffer.allocUnsafe
 //       to ensure backward compatibility we have to replace
@@ -6,9 +9,10 @@
 //       Buffer.alloc and Buffer.allocUnsafe have been introduced in nodejs 5.1.0
 //  in node 0.11 new Buffer
 //
-export const createFastUninitializedBuffer : Function = Buffer.allocUnsafe ? Buffer.allocUnsafe :  function a (size: number) {
-    return new Buffer(size);
-};
+export const createFastUninitializedBuffer: Function =
+    Buffer.allocUnsafe ? Buffer.allocUnsafe :  (size: number) => {
+        return new Buffer(size);
+    };
 
 /**
  * @method makeBuffer
@@ -20,11 +24,11 @@ export const createFastUninitializedBuffer : Function = Buffer.allocUnsafe ? Buf
  * @param listOfBytes
  * @return {Buffer}
  */
-export function makeBuffer(listOfBytes : string): Buffer {
+export function makeBuffer(listOfBytes: string): Buffer {
     const l = listOfBytes.split(" ");
     const b = exports.createFastUninitializedBuffer(l.length);
     let i = 0;
-    l.forEach(function (value) {
+    l.forEach((value) => {
         b.writeUInt8(parseInt(value, 16), i);
         i += 1;
     });

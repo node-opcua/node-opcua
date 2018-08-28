@@ -152,7 +152,7 @@ module.exports = function (test) {
                             currentSubcriptionsCount.should.eql(1, "expecting one subscription ");
                             currentMonitoredItemsCount.should.eql(2);
 
-                            dataValues[2].value.value.constructor.name.should.eql("SessionDiagnostics");
+                            dataValues[2].value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
                             dataValues[2].value.value.sessionName.toString().should.eql("Session1");
 
                             debugLog("diagnostic = ", dataValues[2].value.toString());

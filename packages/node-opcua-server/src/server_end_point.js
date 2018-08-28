@@ -11,21 +11,22 @@ const assert = require("node-opcua-assert").assert;
 const async = require("async");
 const _ = require("underscore");
 const EventEmitter = require("events").EventEmitter;
+const chalk = require("chalk");
 
-const UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
+const UserTokenType = require("node-opcua-service-endpoints").UserTokenType;
 const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 const fromURI = require("node-opcua-secure-channel").fromURI;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-const ServerSecureChannelLayer = require("node-opcua-secure-channel/src/server/server_secure_channel_layer").ServerSecureChannelLayer;
+const ServerSecureChannelLayer = require("node-opcua-secure-channel").ServerSecureChannelLayer;
 const toURI = require("node-opcua-secure-channel").toURI;
 
 
 const EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
 
-const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+const split_der = require("node-opcua-crypto").split_der;
 
 /**
  * OPCUAServerEndPoint a Server EndPoint.
@@ -60,7 +61,7 @@ function OPCUAServerEndPoint(options) {
     assert(!options.hasOwnProperty("certificate"), "expecting a certificateChain instead");
     assert(options.hasOwnProperty("certificateChain"), "expecting a certificateChain");
     assert(options.hasOwnProperty("privateKey"));
-    assert(typeof(options.privateKey) === "string");
+    //xx assert(typeof(options.privateKey) === "string");
 
     options = options || {};
     options.port = options.port || 0;
@@ -132,20 +133,19 @@ OPCUAServerEndPoint.prototype._dump_statistics = function () {
 
 
 OPCUAServerEndPoint.prototype._setup_server = function () {
-    const self = this;
 
-    assert(self._server === null);
-    self._server = net.createServer(self._on_client_connection.bind(self));
+    assert(this._server === null);
+    this._server = net.createServer({ pauseOnConnect: true}, this._on_client_connection.bind(this));
 
     //xx console.log(" Server with max connections ", self.maxConnections);
-    self._server.maxConnections = self.maxConnections + 1; // plus one extra
+    this._server.maxConnections = this.maxConnections + 1; // plus one extra
 
-    self._listen_callback = null;
-    self._server.on("connection", function (socket) {
+    this._listen_callback = null;
+    this._server.on("connection",  (socket)  => {
 
         // istanbul ignore next
         if (doDebug) {
-            self._dump_statistics();
+            this._dump_statistics();
             debugLog("server connected  with : " + socket.remoteAddress + ":" + socket.remotePort);
         }
 
@@ -162,7 +162,7 @@ function dumpChannelInfo(channels) {
     function dumpChannel(channel) {
 
         console.log("------------------------------------------------------");
-        console.log("      secureChannelId = ", channel.secureChannelId);
+        console.log("            channelId = ", channel.channelId);
         console.log("             timeout  = ", channel.timeout);
         console.log("        remoteAddress = ", channel.remoteAddress);
         console.log("        remotePort    = ", channel.remotePort);
@@ -186,7 +186,7 @@ function dumpChannelInfo(channels) {
  * @param establish_connection
  * @private
  */
-function _prevent_DOS_Attack(self, establish_connection) {
+function _prevent_DDOS_Attack(self, establish_connection) {
 
     const nbConnections = self.activeChannelCount;
 
@@ -249,15 +249,16 @@ OPCUAServerEndPoint.prototype._on_client_connection = function (socket) {
     // period has elapsed. A Server application should limit the number of SecureChannels.
     // To protect against misbehaving Clients and denial of service attacks, the Server shall close the oldest
     // SecureChannel that has no Session assigned before reaching the maximum number of supported SecureChannels.
-    _prevent_DOS_Attack(self, establish_connection);
+    _prevent_DDOS_Attack(self, establish_connection);
 
     function establish_connection() {
 
         const nbConnections = Object.keys(self._channels).length;
         debugLog(" nbConnections ", nbConnections, " self._server.maxConnections", self._server.maxConnections, self.maxConnections);
         if (nbConnections >= self.maxConnections) {
-            debugLog("OPCUAServerEndPoint#_on_client_connection The maximum number of connection has been reached - Connection is refused".bgWhite.bold.cyan);
+            debugLog(chalk.bgWhite.cyan("OPCUAServerEndPoint#_on_client_connection The maximum number of connection has been reached - Connection is refused"));
             socket.end();
+            socket.destroy();
             return;
         }
 
@@ -269,6 +270,8 @@ OPCUAServerEndPoint.prototype._on_client_connection = function (socket) {
             defaultSecureTokenLifetime: self.defaultSecureTokenLifetime,
             objectFactory: self.objectFactory
         });
+
+        socket.resume();
 
         self._preregisterChannel(channel);
 
@@ -309,7 +312,7 @@ OPCUAServerEndPoint.prototype.getCertificateChain = function () {
 /**
  *
  * @method getPrivateKey
- * @return {Buffer} the privateKey
+ * @return {PrivateKey} the privateKey
  */
 OPCUAServerEndPoint.prototype.getPrivateKey = function () {
     return this._privateKey;
@@ -357,7 +360,6 @@ function _makeEndpointDescription(options) {
     assert(!options.hasOwnProperty("serverCertificate"));
     assert(options.securityMode); // s.MessageSecurityMode
     assert(options.securityPolicy);
-    assert(_.isObject(options.securityPolicy));
     assert(_.isObject(options.server));
     assert(options.hostname && (typeof options.hostname === "string"));
     assert(_.isBoolean(options.restricted));
@@ -376,36 +378,36 @@ function _makeEndpointDescription(options) {
 
         userIdentityTokens.push({
             policyId: "username_basic256",
-            tokenType: UserIdentityTokenType.USERNAME,
+            tokenType: UserTokenType.UserName,
             issuedTokenType: null,
             issuerEndpointUrl: null,
-            securityPolicyUri: SecurityPolicy.Basic256.value
+            securityPolicyUri: SecurityPolicy.Basic256
         });
 
         userIdentityTokens.push({
             policyId: "username_basic128",
-            tokenType: UserIdentityTokenType.USERNAME,
+            tokenType: UserTokenType.UserName,
             issuedTokenType: null,
             issuerEndpointUrl: null,
-            securityPolicyUri: SecurityPolicy.Basic128Rsa15.value
+            securityPolicyUri: SecurityPolicy.Basic128Rsa15
         });
 
         userIdentityTokens.push({
             policyId: "username_basic256Sha256",
-            tokenType: UserIdentityTokenType.USERNAME,
+            tokenType: UserTokenType.UserName,
             issuedTokenType: null,
             issuerEndpointUrl: null,
-            securityPolicyUri: SecurityPolicy.Basic256Sha256.value
+            securityPolicyUri: SecurityPolicy.Basic256Sha256
         });
 
     } else {
         // note:
-        //  when channel session security is not NONE,
+        //  when channel session security is not "None",
         //  userIdentityTokens can be left to null.
         //  in this case this mean that secure policy will be the same as connection security policy
         userIdentityTokens.push({
             policyId: "usernamePassword",
-            tokenType: UserIdentityTokenType.USERNAME,
+            tokenType: UserTokenType.UserName,
             issuedTokenType: null,
             issuerEndpointUrl: null,
             securityPolicyUri: null
@@ -416,7 +418,7 @@ function _makeEndpointDescription(options) {
 
         userIdentityTokens.push({
             policyId: "anonymous",
-            tokenType: UserIdentityTokenType.ANONYMOUS,
+            tokenType: UserTokenType.Anonymous,
             issuedTokenType: null,
             issuerEndpointUrl: null,
             securityPolicyUri: null
@@ -454,10 +456,8 @@ function _makeEndpointDescription(options) {
 function matching_endpoint(securityMode, securityPolicy, endpoint) {
 
     assert(endpoint instanceof EndpointDescription);
-    assert(_.isObject(securityMode));
-    assert(_.isObject(securityPolicy));
     const endpoint_securityPolicy = fromURI(endpoint.securityPolicyUri);
-    return (endpoint.securityMode.value === securityMode.value && endpoint_securityPolicy.value === securityPolicy.value);
+    return (endpoint.securityMode === securityMode && endpoint_securityPolicy === securityPolicy);
 }
 
 /**
@@ -483,15 +483,13 @@ OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, s
     options = options || {};
     options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
 
-    assert(_.isObject(securityMode));
-    assert(_.isObject(securityPolicy));
 
     //xx if (securityPolicy !== SecurityPolicy.None) {
     //xx }
-    if (securityMode === MessageSecurityMode.NONE && securityPolicy !== SecurityPolicy.None) {
+    if (securityMode === MessageSecurityMode.None && securityPolicy !== SecurityPolicy.None) {
         throw new Error(" invalid security ");
     }
-    if (securityMode !== MessageSecurityMode.NONE && securityPolicy === SecurityPolicy.None) {
+    if (securityMode !== MessageSecurityMode.None && securityPolicy === SecurityPolicy.None) {
         throw new Error(" invalid security ");
     }
     //
@@ -520,13 +518,13 @@ OPCUAServerEndPoint.prototype.addRestrictedEndpointDescription = function (optio
     const self = this;
     options = _.clone(options);
     options.restricted = true;
-    return self.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None, options);
+    return self.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
 };
 
 const defaultSecurityModes = [
-    MessageSecurityMode.NONE,
-    MessageSecurityMode.SIGN,
-    MessageSecurityMode.SIGNANDENCRYPT
+    MessageSecurityMode.None,
+    MessageSecurityMode.Sign,
+    MessageSecurityMode.SignAndEncrypt
 ];
 const defaultSecurityPolicies = [
     SecurityPolicy.Basic128Rsa15,
@@ -544,8 +542,8 @@ OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (option
     options.securityModes = options.securityModes || defaultSecurityModes;
     options.securityPolicies = options.securityPolicies || defaultSecurityPolicies;
 
-    if (options.securityModes.indexOf(MessageSecurityMode.NONE) >= 0) {
-        self.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None, options);
+    if (options.securityModes.indexOf(MessageSecurityMode.None) >= 0) {
+        self.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
     } else {
         if (!options.disableDiscovery) {
             self.addRestrictedEndpointDescription(options);
@@ -555,7 +553,7 @@ OPCUAServerEndPoint.prototype.addStandardEndpointDescriptions = function (option
 
         for (let i = 0; i < options.securityModes.length; i++) {
             const securityMode = options.securityModes[i];
-            if (securityMode === MessageSecurityMode.NONE) {
+            if (securityMode === MessageSecurityMode.None) {
                 continue;
             }
 

@@ -6,7 +6,7 @@ const yargs = require("yargs/yargs");
 
 const argv = yargs(process.argv)
     .wrap(132)
-    //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
+    //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
     .demand("endpoint")
     .string("endpoint")
     .describe("endpoint", "the end point to connect to ")
@@ -86,10 +86,10 @@ parse_opcua_server(endpointUrl, function (err) {
 
  */
 /* in Binary
-  <opc:StructuredType Name="EUInformation" BaseType="ua:ExtensionObject">
+  <opc:StructuredTypeSchemaInterface Name="EUInformation" BaseType="ua:ExtensionObject">
     <opc:Field Name="NamespaceUri" TypeName="opc:String" />
     <opc:Field Name="UnitId" TypeName="opc:Int32" />
     <opc:Field Name="DisplayName" TypeName="ua:LocalizedText" />
     <opc:Field Name="Description" TypeName="ua:LocalizedText" />
-  </opc:StructuredType>
+  </opc:StructuredTypeSchemaInterface>
  */

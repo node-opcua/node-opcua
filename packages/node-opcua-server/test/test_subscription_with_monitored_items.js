@@ -95,8 +95,8 @@ function simulate_client_adding_publish_request(publishEngine, callback) {
     publishEngine._on_PublishRequest(publishRequest, callback);
 }
 
-const describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
-describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("SM1 - Subscriptions and MonitoredItems", function () {
 
     this.timeout(Math.max(300000, this._timeout));
 
@@ -1401,7 +1401,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
     });
 });
 
-describe("monitoredItem advanced", function () {
+describe("SM2 - MonitoredItem advanced", function () {
 
     let addressSpace;
     let namespace;
@@ -1438,6 +1438,7 @@ describe("monitoredItem advanced", function () {
     });
     after(function () {
         engine.shutdown();
+        engine.dispose();
         engine = null;
     });
 
@@ -1453,11 +1454,13 @@ describe("monitoredItem advanced", function () {
         this.clock.restore();
         if (publishEngine) {
             publishEngine.shutdown();
+            publishEngine.dispose();
             publishEngine = null;
         }
     });
 
-    describe("#maxNotificationsPerPublish", function () {
+    describe("SM2A - #maxNotificationsPerPublish", function () {
+
         it("should have a proper maxNotificationsPerPublish default value", function (done) {
             const subscription = new Subscription({
                 publishEngine: publishEngine
@@ -1611,7 +1614,7 @@ describe("monitoredItem advanced", function () {
         });
     });
 
-    describe("Subscription.subscriptionDiagnostics", function () {
+    describe("SM2B - Subscription.subscriptionDiagnostics", function () {
 
 
         let subscription;

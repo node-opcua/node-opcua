@@ -66,10 +66,7 @@ function initialize_Structure(field,options) {
 }
 
 const util = require("util");
-const _defaultTypeMap = require("node-opcua-factory/src/factories_builtin_types")._defaultTypeMap;
 const ec = require("node-opcua-basic-types");
-const encodeArray = ec.encodeArray;
-const decodeArray = ec.decodeArray;
 
 global._extensionobject_construct = _extensionobject_construct;
 
@@ -109,7 +106,7 @@ exports.findBuiltInType  = require("./src/factories_builtin_types").findBuiltInT
 exports.registerBuiltInType = require("./src/factories_builtin_types").registerType;
 */
 const BaseUAObject = require("node-opcua-factory").BaseUAObject;
-const schema_helpers =  require("node-opcua-factory/src/factories_schema_helpers");
+const initialize_field =  require("node-opcua-factory").initialize_field;
 
 function initialize_array(func,options){
     options= options|| [];
@@ -197,7 +194,7 @@ function buildConstructorFromDefinition(addressSpace,dataType) {
             assert(_.isFunction(field.$$func_encode$$));
             assert(_.isFunction(field.$$func_decode$$));
             field.schema = stuff;
-            field.$$initialize$$ = schema_helpers.initialize_field.bind(null,field);
+            field.$$initialize$$ = initialize_field.bind(null,field);
         }
         if (field.valueRank === 1) {
             field.$$initialize$$  = initialize_array.bind(null,field.$$initialize$$);
@@ -216,7 +213,7 @@ function buildConstructorFromDefinition(addressSpace,dataType) {
             isArray: (field.valueRank === 1)
         };
         if (field.$$isEnum$$) {
-            data.category = "enumeration";
+            data.category = FieldCategory.enumeration;
         } else if (field.$$isStructure$$) {
             data.category = "complex";
             data.fieldTypeConstructor = field.$$Constructor$$;
@@ -226,7 +223,7 @@ function buildConstructorFromDefinition(addressSpace,dataType) {
         fields.push(data);
     }
 
-    Constructor.prototype._schema = {
+    Constructor.prototype.schema = {
         name: className,
         id: -1,
         fields: fields

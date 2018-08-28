@@ -4,19 +4,24 @@
 /**
  * @module opcua.address_space
  */
-
 require("object.values");
 const util = require("util");
-const utils = require("node-opcua-utils");
-
 const EventEmitter = require("events").EventEmitter;
+
+const utils = require("node-opcua-utils");
+const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
+const capitalizeFirstLetter = require("node-opcua-utils").capitalizeFirstLetter;
+
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
+const dumpIf = require("node-opcua-debug").dumpIf;
 
 const NodeId = require("node-opcua-nodeid").NodeId;
 const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 const sameNodeId = require("node-opcua-nodeid").sameNodeId;
 
-const coerceQualifyName = require("node-opcua-data-model").coerceQualifyName;
+const coerceQualifiedName = require("node-opcua-data-model").coerceQualifiedName;
 const QualifiedName = require("node-opcua-data-model").QualifiedName;
 const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 const AttributeNameById = require("node-opcua-data-model").AttributeNameById;
@@ -25,6 +30,7 @@ const NodeClass = require("node-opcua-data-model").NodeClass;
 const makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+
 const ReferenceDescription = require("node-opcua-service-browse").ReferenceDescription;
 
 const DataValue = require("node-opcua-data-value").DataValue;
@@ -33,22 +39,16 @@ const DataType = require("node-opcua-variant").DataType;
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-
 exports.BrowseDirection = BrowseDirection;
-
-const assert = require("node-opcua-assert").assert;
-const _ = require("underscore");
-const dumpIf = require("node-opcua-debug").dumpIf;
-let ReferenceType = null;// will be defined after baseNode is defined
-
-const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
-const capitalizeFirstLetter = require("node-opcua-utils").capitalizeFirstLetter;
-
-const doDebug = false;
 
 const SessionContext = require("./session_context").SessionContext;
 const Reference = require("./reference").Reference;
 
+
+let ReferenceType = null;// will be defined after baseNode is defined
+
+
+const doDebug = false;
 
 function defaultBrowseFilterFunc(session) {
 
@@ -56,7 +56,7 @@ function defaultBrowseFilterFunc(session) {
 }
 
 function _get_QualifiedBrowseName(browseName) {
-    return coerceQualifyName(browseName);
+    return coerceQualifiedName(browseName);
 }
 
 /**
@@ -290,16 +290,16 @@ BaseNode._getCache = function (self) {
  */
 BaseNode.prototype.findReferencesEx = function (strReference, browseDirection) {
 
-    browseDirection = browseDirection || BrowseDirection.Forward;
+    browseDirection = browseDirection  !== undefined ? browseDirection : BrowseDirection.Forward;
     assert(_is_valid_BrowseDirection(browseDirection));
     assert(browseDirection !== BrowseDirection.Both);
 
-    let referenceType= null;
+    let referenceType = null;
     if (typeof strReference === "string") {
         //xx strReference = strReference.browseName.toString();
         referenceType = this.addressSpace.findReferenceType(strReference);
         if (!referenceType) {
-            throw new Error("Cannot resolve referenceType : "+ strReference);
+            throw new Error("Cannot resolve referenceType : " + strReference);
         }
     } else {
         referenceType = strReference;
@@ -332,7 +332,7 @@ BaseNode.prototype.findReferencesEx = function (strReference, browseDirection) {
         const referenceTypes = _.values(referenceIdx);
         for (let ref of referenceTypes) {
             const h = ref.referenceType.toString();
-            if ( ref.isForward === isForward && keys[h] ) {
+            if (ref.isForward === isForward && keys[h]) {
                 assert(ref._referenceType instanceof ReferenceType);
                 assert(ref._referenceType.browseName.toString());
                 references.push(ref);
@@ -976,7 +976,7 @@ function _propagate_ref(self, addressSpace, reference) {
             _referenceType: reference._referenceType,
             isForward: !reference.isForward,
             nodeId: self.nodeId,
-            node:self
+            node: self
         }));
     } // else addressSpace may be incomplete and under construction (while loading a nodeset.xml file for instance)
 }
@@ -1230,8 +1230,8 @@ BaseNode.prototype.readAttribute = function (context, attributeId, indexRange, d
             break;
 
         case AttributeIds.NodeClass: // NodeClass
-            assert(_.isFinite(this.nodeClass.value));
-            options.value = {dataType: DataType.Int32, value: this.nodeClass.value};
+            assert(_.isFinite(this.nodeClass));
+            options.value = {dataType: DataType.Int32, value: this.nodeClass};
             break;
 
         case AttributeIds.BrowseName: // QualifiedName
@@ -1426,9 +1426,6 @@ BaseNode.prototype.browseNodeByTargetName = function (relativePathElement, isLas
     return nodeIds;
 };
 
-const check_flag = require("node-opcua-utils").check_flag;
-const rm = ResultMask;
-
 
 function _makeReferenceDescription(addressSpace, reference, resultMask) {
 
@@ -1444,24 +1441,24 @@ function _makeReferenceDescription(addressSpace, reference, resultMask) {
     if (!obj) {
         // cannot find reference node
         data = {
-            referenceTypeId: check_flag(resultMask, rm.ReferenceType) ? referenceTypeId : null,
+            referenceTypeId: (resultMask & ResultMask.ReferenceType) ? referenceTypeId : null,
             isForward: isForward,
             nodeId: reference.nodeId
         };
     } else {
         assert(reference.nodeId, obj.nodeId);
         data = {
-            referenceTypeId: check_flag(resultMask, rm.ReferenceType) ? referenceTypeId : null,
-            isForward: check_flag(resultMask, rm.IsForward) ? isForward : false,
+            referenceTypeId: (resultMask & ResultMask.ReferenceType) ? referenceTypeId : null,
+            isForward: (resultMask &ResultMask.IsForward) ? isForward : false,
             nodeId: obj.nodeId,
-            browseName: check_flag(resultMask, rm.BrowseName) ? coerceQualifyName(obj.browseName) : null,
-            displayName: check_flag(resultMask, rm.DisplayName) ? coerceLocalizedText(obj.displayName[0]) : null,
-            nodeClass: check_flag(resultMask, rm.NodeClass) ? obj.nodeClass : NodeClass.Unspecified,
-            typeDefinition: check_flag(resultMask, rm.TypeDefinition) ? obj.typeDefinition : null
+            browseName: (resultMask & ResultMask.BrowseName) ? coerceQualifiedName(obj.browseName) : null,
+            displayName: (resultMask & ResultMask.DisplayName) ? coerceLocalizedText(obj.displayName[0]) : null,
+            nodeClass: (resultMask & ResultMask.NodeClass) ? obj.nodeClass : NodeClass.Unspecified,
+            typeDefinition: (resultMask & ResultMask.TypeDefinition) ? obj.typeDefinition : null
         };
     }
     if (data.typeDefinition === null) {
-        data.typeDefinition = resolveNodeId("i=0");
+        data.typeDefinition = NodeId.nullNodeId;
     }
     const referenceDescription = new ReferenceDescription(data);
     return referenceDescription;
@@ -1470,9 +1467,7 @@ function _makeReferenceDescription(addressSpace, reference, resultMask) {
 function _constructReferenceDescription(addressSpace, references, resultMask) {
     //x assert(addressSpace instanceof AddressSpace);
     assert(_.isArray(references));
-    return references.map(function (reference) {
-        return _makeReferenceDescription(addressSpace, reference, resultMask);
-    });
+    return references.map( (reference) => _makeReferenceDescription(addressSpace, reference, resultMask));
 }
 
 function referenceTypeToString(addressSpace, referenceTypeId) {
@@ -1567,7 +1562,7 @@ function dumpBrowseDescription(node, browseDescription) {
     console.log(" nodeId : ", node.browseName.toString().cyan, "(", node.nodeId.toString(), ")");
     console.log("   referenceTypeId :", referenceTypeToString(addressSpace, browseDescription.referenceTypeId));
 
-    console.log("   browseDirection :", browseDescription.browseDirection.toString().cyan);
+    console.log("   browseDirection :", BrowseDirection[browseDescription.browseDirection].cyan);
     console.log("   includeSubType  :", browseDescription.includeSubtypes ? "true" : "false");
     console.log("   nodeClassMask   :", browseDescription.nodeClassMask);
     console.log("   resultMask      :", browseDescription.resultMask);
@@ -1615,7 +1610,7 @@ function _filter_by_referenceType(self, browseDescription, references, reference
         dumpIf(!referenceType, referenceTypeId);
         assert(referenceType instanceof ReferenceType);
 
-        references = references.filter(function (reference) {
+        references = references.filter((reference) => {
 
             const ref = _resolveReferenceType(self.addressSpace, reference);
 
@@ -1666,7 +1661,7 @@ function _filter_by_nodeclass(self, references, nodeClassMask) {
         return references;
     }
     const addressSpace = self.addressSpace;
-    return references.filter(function (reference) {
+    return references.filter( (reference) => {
 
         const obj = _resolveReferenceNode(addressSpace, reference);
 
@@ -1674,7 +1669,7 @@ function _filter_by_nodeclass(self, references, nodeClassMask) {
             return false;
         }
 
-        const nodeClassName = obj.nodeClass.key;
+        const nodeClassName = NodeClass[obj.nodeClass];
 
         const value = makeNodeClassMask(nodeClassName);
         return (value & nodeClassMask) === value;
@@ -1711,7 +1706,7 @@ function _filter_by_userFilter(self, references, session) {
 BaseNode.prototype.browseNode = function (browseDescription, session) {
 
     assert(_.isFinite(browseDescription.nodeClassMask));
-    assert(_.isObject(browseDescription.browseDirection));
+    assert(_.isFinite(browseDescription.browseDirection));
 
     const do_debug = false;
 
@@ -1723,7 +1718,7 @@ BaseNode.prototype.browseNode = function (browseDescription, session) {
     const referenceTypeId = normalize_referenceTypeId(this.addressSpace, browseDescription.referenceTypeId);
     assert(referenceTypeId instanceof NodeId);
 
-    const browseDirection = browseDescription.browseDirection || BrowseDirection.Both;
+    const browseDirection = (browseDescription.browseDirection !== undefined  ) ? browseDescription.browseDirection : BrowseDirection.Both;
 
     const addressSpace = self.addressSpace;
 
@@ -1924,6 +1919,18 @@ BaseNode.prototype._clone_children_references = function (newParent, optionalFil
     _clone_collection_new(newParent, aggregatesRef, optionalFilter, extraInfo);
 
 };
+BaseNode.prototype._clone_non_hierarchical_references = function (newParent, optionalFilter, extraInfo) {
+
+    // clone only some non hierarchical_references that we do want to clone
+    // such as
+    //   HasSubStateMachine
+    const self = this;
+    assert(newParent instanceof BaseNode);
+    // find all reference that derives from the HasSubStateMachine
+    const references = self.findReferencesEx("HasSubStateMachine", BrowseDirection.Forward);
+    _clone_collection_new(newParent, references, optionalFilter, extraInfo);
+
+};
 
 /**
  * @method _clone
@@ -1980,6 +1987,7 @@ BaseNode.prototype._clone = function (Constructor, options, optionalFilter, extr
 
     const newFilter = optionalFilter ? optionalFilter.filterFor(cloneObj) : null;
     self._clone_children_references(cloneObj, newFilter, extraInfo);
+    self._clone_non_hierarchical_references(cloneObj, newFilter, extraInfo);
 
     cloneObj.propagate_back_references();
 
@@ -2077,10 +2085,10 @@ BaseNode.prototype._toString = function (str, options) {
     }
 
     if (self.accessLevel) {
-        add(options.padding + "             accessLevel: ".yellow + " " + self.accessLevel.toString());
+        add(options.padding + "             accessLevel: ".yellow + " " + AccessLevelFlag[self.accessLevel]);
     }
     if (self.userAccessLevel) {
-        add(options.padding + "         userAccessLevel: ".yellow + " " + self.userAccessLevel.toString());
+        add(options.padding + "         userAccessLevel: ".yellow + " " + AccessLevelFlag[self.userAccessLevel]);
     }
     if (self.hasOwnProperty("valueRank")) {
         add(options.padding + "               valueRank: ".yellow + " " + self.valueRank.toString());

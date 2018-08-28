@@ -65,7 +65,7 @@ module.exports = function (test) {
 
         should.exist(first_client);
 
-        client1._server_endpoints = first_client._server_endpoints;
+        client1._serverEndpoints = first_client._serverEndpoints;
         client1.knowsServerEndpoint.should.eql(true);
 
 

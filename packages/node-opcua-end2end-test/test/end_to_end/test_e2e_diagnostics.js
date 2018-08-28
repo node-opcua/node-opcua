@@ -20,6 +20,9 @@ describe("Testing Server and Client diagnostic facilities", function () {
         // no left over in the tcp pipe that could generate an error
         port += 1;
         server = build_server_with_temperature_device({port: port}, function (err) {
+
+            if(err) return done(err);
+
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done(err);
@@ -62,9 +65,6 @@ describe("Testing Server and Client diagnostic facilities", function () {
                 server_channel.on("transaction_done", function () {
                     transaction_done_counter++;
 
-
-                    server_channel._dump_transaction_statistics();
-
                     console.log(" Server bytes read : ", server_channel.bytesRead, " bytes written : ", server_channel.bytesWritten);
                     console.log(" Client bytes read : ", client.bytesRead, " bytes written : ", client.bytesWritten);
                     console.log(" transaction count : ", client.transactionsPerformed);
@@ -76,7 +76,7 @@ describe("Testing Server and Client diagnostic facilities", function () {
                 });
 
                 session.browse("RootFolder", function (err, browseResult) {
-                    should(err).eql(null);
+                    should.not.exist(err);
                     should.exist(browseResult);
                     inner_done();
                 });

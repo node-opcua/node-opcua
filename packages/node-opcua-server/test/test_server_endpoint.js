@@ -8,7 +8,7 @@ const MessageSecurityMode = require("node-opcua-service-secure-channel").Message
 const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 const EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 const it_with_crypto = it;
 
 const default_port = 1234;
@@ -27,32 +27,32 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
         server_endpoint = null;
     });
 
-    it("should  accept  to add endpoint endMessageSecurityMode.NONE and SecurityPolicy.None", function () {
+    it("should  accept  to add endpoint endMessageSecurityMode.None and SecurityPolicy.None", function () {
         should(function () {
-            server_endpoint.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None);
+            server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None);
         }).not.throwError();
 
     });
 
-    it("should  accept  to add endpoint endMessageSecurityMode.NONE and SecurityPolicy.None twice", function () {
-        server_endpoint.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None);
+    it("should  accept  to add endpoint endMessageSecurityMode.None and SecurityPolicy.None twice", function () {
+        server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None);
         should(function () {
-            server_endpoint.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None);
+            server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None);
         }).throwError();
     });
 
 
-    it("should not accept to add endpoint with MessageSecurityMode.NONE and SecurityPolicy.Basic128", function () {
+    it("should not accept to add endpoint with MessageSecurityMode.None and SecurityPolicy.Basic128", function () {
 
         should(function () {
-            server_endpoint.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.Basic128);
+            server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.Basic128);
         }).throwError();
 
     });
-    it("should not accept  to add endpoint  MessageSecurityMode.SIGN and SecurityPolicy.None", function () {
+    it("should not accept  to add endpoint  MessageSecurityMode.Sign and SecurityPolicy.None", function () {
 
         should(function () {
-            server_endpoint.addEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.None);
+            server_endpoint.addEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.None);
         }).throwError();
 
     });
@@ -71,21 +71,21 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
     });
 
 
-    it("should find a endpoint matching MessageSecurityMode.NONE", function () {
+    it("should find a endpoint matching MessageSecurityMode.None", function () {
 
-        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None);
+        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None);
         should(endpoint_desc).be.instanceOf(EndpointDescription);
 
     });
 
     it_with_crypto("should find a endpoint matching SIGNANDENCRYPT / Basic256", function () {
 
-        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGNANDENCRYPT, SecurityPolicy.Basic256);
+        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SignAndEncrypt, SecurityPolicy.Basic256);
         should(endpoint_desc).be.instanceof(EndpointDescription);
     });
     it_with_crypto("should find a endpoint matching SIGN / Basic256", function () {
 
-        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic256);
+        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic256);
         should(endpoint_desc).be.instanceof(EndpointDescription);
     });
 });
@@ -101,7 +101,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
             privateKey: ""
         });
         server_endpoint.addStandardEndpointDescriptions({
-            securityModes: [MessageSecurityMode.SIGNANDENCRYPT],
+            securityModes: [MessageSecurityMode.SignAndEncrypt],
             disableDiscovery: true
         });
     });
@@ -110,22 +110,22 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
     });
 
 
-    it("should not find a endpoint matching MessageSecurityMode.NONE", function () {
+    it("should not find a endpoint matching MessageSecurityMode.None", function () {
 
-        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.None);
+        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None);
         should(endpoint_desc).be.eql(null);
 
     });
 
-    it_with_crypto("should not find a endpoint matching SIGN / Basic256", function () {
+    it_with_crypto("should not find a endpoint matching Sign / Basic256", function () {
 
-        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic256);
+        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic256);
         should(endpoint_desc).be.eql(null);
     });
 
-    it_with_crypto("should find a endpoint matching SIGNANDENCRYPT / Basic256", function () {
+    it_with_crypto("should find a endpoint matching SignAndEncrypt / Basic256", function () {
 
-        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGNANDENCRYPT, SecurityPolicy.Basic256);
+        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SignAndEncrypt, SecurityPolicy.Basic256);
         should(endpoint_desc).be.instanceof(EndpointDescription);
     });
 
@@ -146,29 +146,29 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
 
     it_with_crypto("should not find a endpoint matching MessageSecurityMode.SIGN and SecurityPolicy.Basic128", function () {
 
-        let endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic128);
+        let endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic128);
         should(endpoint_desc).be.eql(null);
 
-        server_endpoint.addEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic128);
-        server_endpoint.addEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic256);
+        server_endpoint.addEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic128);
+        server_endpoint.addEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic256);
 
-        endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic128);
+        endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic128);
         should(endpoint_desc).be.instanceof(EndpointDescription);
 
-        endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic256);
+        endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic256);
         should(endpoint_desc).be.instanceof(EndpointDescription);
 
     });
 
-    it("should not find a endpoint matching MessageSecurityMode.SIGN and SecurityPolicy.None", function () {
+    it("should not find a endpoint matching MessageSecurityMode.Sign and SecurityPolicy.None", function () {
 
-        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.None);
+        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.None);
         should(endpoint_desc).be.eql(null);
 
     });
-    it("should not find a endpoint matching MessageSecurityMode.SIGNANDENCRYPT and SecurityPolicy.None", function () {
+    it("should not find a endpoint matching MessageSecurityMode.SignAndEncrypt and SecurityPolicy.None", function () {
 
-        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGNANDENCRYPT, SecurityPolicy.None);
+        const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SignAndEncrypt, SecurityPolicy.None);
         should(endpoint_desc).be.eql(null);
 
     });

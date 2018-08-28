@@ -6,7 +6,7 @@ const Variant = require("node-opcua-variant").Variant;
 const DataType = require("node-opcua-variant").DataType;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-
+const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
 const SessionContext = require("../..").SessionContext;
 const context = SessionContext.defaultContext;
 
@@ -156,7 +156,7 @@ module.exports = function(maintest) {
 
             should.exist(myObjectType.getComponentByName("Color"));
 
-            myObjectType.color.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
+            myObjectType.color.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
             // add
 
 
@@ -166,7 +166,7 @@ module.exports = function(maintest) {
             });
 
             // verification
-            obj.color.accessLevel.key.should.eql("CurrentRead | CurrentWrite");
+            obj.color.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
             obj.color.valueAsText.readValue().value.value.text.should.eql("Red");
             obj.color.readValue().value.value.should.eql(0xFF0000);
 

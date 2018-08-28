@@ -96,7 +96,7 @@ UAVariableType.prototype.readAttribute = function (context, attributeId) {
             break;
         case AttributeIds.Value:
             if (this.hasOwnProperty("value") && this.value !== undefined) {
-                assert(this.value._schema.name === "Variant");
+                assert(this.value.schema.name === "Variant");
                 options.value = this.value;
                 options.statusCode = StatusCodes.Good;
             } else {
@@ -406,7 +406,7 @@ function _remove_unwanted_ref(references) {
 
 
 // todo: MEMOIZE this method
-function findNoHierarchicalReferences(originalObject) {
+function findNonHierarchicalReferences(originalObject) {
 
     const addressSpace = originalObject.addressSpace;
 
@@ -431,7 +431,7 @@ function findNoHierarchicalReferences(originalObject) {
         const child = parent.subtypeOfObj.getChildByName(originalObject.browseName);
 
         if (child) {
-            const baseRef = findNoHierarchicalReferences(child);
+            const baseRef = findNonHierarchicalReferences(child);
             //xx console.log("  ... ",originalObject.browseName.toString(), parent.browseName.toString(), references.length, baseRef.length);
             references = [].concat(references,baseRef);
         }
@@ -463,8 +463,8 @@ function reconstructNonHierarchicalReferences(extraInfo) {
         const originalObject     = value.original;
         const clonedObject       = value.cloned;
 
-        // find NoHierarchical References on original object
-        const originalNonHierarchical = findNoHierarchicalReferences(originalObject);
+        // find NonHierarchical References on original object
+        const originalNonHierarchical = findNonHierarchicalReferences(originalObject);
 
         if(originalNonHierarchical.length === 0 ){
             return;

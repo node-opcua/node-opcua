@@ -4,17 +4,14 @@
 const should = require("should");
 
 const ec = require("..");
-
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-
 const guid = require("node-opcua-guid");
-
 const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const NodeIdType = require("node-opcua-nodeid").NodeIdType;
 const NodeId = require("node-opcua-nodeid").NodeId;
 
-const makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
-const ExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").ExpandedNodeId;
+const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
+const ExpandedNodeId = require("node-opcua-nodeid").ExpandedNodeId;
 
 /**
  * @method test_encode_decode

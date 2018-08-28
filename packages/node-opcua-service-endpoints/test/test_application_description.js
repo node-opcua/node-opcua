@@ -9,7 +9,7 @@ describe("OPCUA Object creation", function () {
             applicationUri: "application:uri",
             productUri: "uri:product",
             applicationName: {text: "MyApplication"},
-            applicationType: ApplicationType.CLIENT,
+            applicationType: ApplicationType.Client,
             gatewayServerUri: undefined,
             discoveryProfileUri: undefined,
             discoveryUrls: []
@@ -17,7 +17,7 @@ describe("OPCUA Object creation", function () {
         applicationDescription.applicationUri.should.equal("application:uri");
         applicationDescription.productUri.should.equal("uri:product");
         applicationDescription.applicationName.text.should.equal("MyApplication");
-        applicationDescription.applicationType.should.equal(ApplicationType.CLIENT);
+        applicationDescription.applicationType.should.equal(ApplicationType.Client);
         applicationDescription.discoveryUrls.length.should.equal(0);
 
     });

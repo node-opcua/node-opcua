@@ -6,7 +6,7 @@ var child_process = require("child_process");
 
 function dot(graph,callback) {
 
-    var cmd = "dot -Tpdf -o_tmp.pdf" ;
+    var cmd = "dot -Tpng -o_tmp.png" ;
     var child = child_process.exec(cmd,function(err) {
     });
     child.stdin.write(graph);
@@ -47,21 +47,29 @@ fs.readdir(__dirname,{},function(err,files) {
         fs.exists(package_file,function (exists){
             if (exists) {
                 //xx console.log(package_file);
-
+                function collectDeps(map, attr) {
+                    Object.keys(map)
+                        .filter( a => a.match(/node-opcua/))
+                        .forEach(d => dependencies.push("  " +q(file)+" -> "+q(d) + " " + attr + ";"));
+                }
                 var package_ = JSON.parse(fs.readFileSync(package_file));
                 ///console.log(package_);
                 if (package_.dependencies) {
-                    Object.keys(package_.dependencies).map(d => dependencies.push("  " +q(file)+" -> "+q(d) + ";"));
+                    collectDeps(package_.dependencies,"");
                 }
                 if (package_.devDependencies) {
-                    Object.keys(package_.devDependencies).map(d => dependencies.push("  " +q(file)+" -> "+q(d) + " [color=red,penwidth=3] ;" ));
+                    collectDeps(package_.devDependencies,"[color=red,penwidth=3]");
                 }
             }
             callback();
         });
 
     },function done(err) {
-        dependencies = dependencies.filter(a=>!a.match(/^node-opcua/)).map(function(a){ return a.replace(/node-opcua-/g,""); });
+        dependencies = dependencies.filter(
+            a=>!a.match(/^node-opcua/)
+        ).map(
+            (a) => a// a.replace(/node-opcua-/g,"")
+        );
         dependencies = dependencies.sort();
 
         var content = "digraph G {\n";
@@ -71,12 +79,10 @@ fs.readdir(__dirname,{},function(err,files) {
         // now remove transitive edge
         tred(content,function(err,output){
             fs.writeFile("_tmp.dot",output,function(err){
-
             });
             dot(output,function(err){
 
             });
         });
-
     });
 });

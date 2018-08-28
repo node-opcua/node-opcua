@@ -92,7 +92,7 @@ module.exports = function (test) {
                     dataValue.value.value.should.have.ownProperty("buildInfo");
                     dataValue.value.value.should.have.ownProperty("startTime");
                     dataValue.value.value.should.have.ownProperty("shutdownReason");
-                    dataValue.value.value.constructor.name.should.eql("ServerStatus");
+                    dataValue.value.value.constructor.name.should.eql("ServerStatusDataType");
 
                     //xx console.log(dataValue.value.value.currentTime.toISOString());
                     //xx console.log("dataValue = ",dataValue.toString());

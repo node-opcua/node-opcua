@@ -3,7 +3,7 @@ const should = require("should");
 const makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
 const inlineText = require("node-opcua-debug").inlineText;
 const hexDump = require("node-opcua-utils").hexDump;
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 let buffer = makebuffer_from_trace(
     function () {

@@ -12,10 +12,12 @@ const RegisterServer2Response = discovery_service.RegisterServer2Response;
 
 const OPCUAClientBase = require("node-opcua-client").OPCUAClientBase;
 const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
+const coerceSecurityPolicy = require("node-opcua-secure-channel").coerceSecurityPolicy;
+
 const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const _enumerationMessageSecurityMode = require("node-opcua-service-secure-channel")._enumerationMessageSecurityMode;
 
-const Enum = require("node-opcua-enum");
-
+const Enum = require("node-opcua-enum").Enum;
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 const RegisterServerManagerStatus = new Enum({
@@ -25,6 +27,7 @@ const RegisterServerManagerStatus = new Enum({
     WAITING: 4,
     UNREGISTERING: 5
 });
+
 const g_DefaultRegistrationServerTimeout = 8 * 60 * 1000; // 8 minutes
 
 /**
@@ -89,21 +92,21 @@ RegisterServerManager.prototype.dispose = function () {
 
 function securityPolicyLevel(securityPolicy) {
     switch (securityPolicy) {
-        case SecurityPolicy.None.value:
+        case SecurityPolicy.None:
             return 0;
-        case SecurityPolicy.Basic128.value:
+        case SecurityPolicy.Basic128:
             return 0;
-        case SecurityPolicy.Basic128Rsa15.value:
+        case SecurityPolicy.Basic128Rsa15:
             return 0;
-        case SecurityPolicy.Basic192.value:
+        case SecurityPolicy.Basic192:
             return 1;
-        case SecurityPolicy.Basic192Rsa15.value:
+        case SecurityPolicy.Basic192Rsa15:
             return 2;
-        case SecurityPolicy.Basic256.value:
+        case SecurityPolicy.Basic256:
             return 3;
-        case SecurityPolicy.Basic256Rsa15.value:
+        case SecurityPolicy.Basic256Rsa15:
             return 3;
-        case SecurityPolicy.Basic256Sha256.value:
+        case SecurityPolicy.Basic256Sha256:
             return 3;
         default:
             return 0;
@@ -113,14 +116,14 @@ function securityPolicyLevel(securityPolicy) {
 function sortEndpointBySecurityLevel(endpoints) {
 
     endpoints.sort((a, b) => {
-        if (a.securityMode.value === b.securityMode.value) {
+        if (a.securityMode === b.securityMode) {
             if (a.securityPolicyUri === b.securityPolicyUri) {
                 return a.securityLevel < b.securityLevel;
             } else {
                 return securityPolicyLevel(a.securityPolicyUri) < securityPolicyLevel(b.securityPolicyUri);
             }
         } else {
-            return a.securityMode.value < b.securityMode.value;
+            return a.securityMode < b.securityMode;
         }
     });
     return endpoints;
@@ -134,17 +137,17 @@ function findSecureEndpoint(endpoints) {
     });
 
     let endpoint = endpoints.filter(function (e) {
-        return e.securityMode === MessageSecurityMode.SIGNANDENCRYPT;
+        return e.securityMode === MessageSecurityMode.SignAndEncrypt;
     });
 
     if (endpoint.length === 0) {
         endpoint = endpoints.filter(function (e) {
-            return e.securityMode === MessageSecurityMode.SIGN;
+            return e.securityMode === MessageSecurityMode.Sign;
         });
     }
     if (endpoint.length === 0) {
         endpoint = endpoints.filter(function (e) {
-            return e.securityMode === MessageSecurityMode.NONE;
+            return e.securityMode === MessageSecurityMode.None;
         });
     }
     endpoint = sortEndpointBySecurityLevel(endpoint);
@@ -153,9 +156,9 @@ function findSecureEndpoint(endpoints) {
 
 
 RegisterServerManager.prototype._emitEvent= function(eventName){
-    const self = this;
-    setImmediate(function() {
-        self.emit(eventName);
+
+    setImmediate(()=> {
+        this.emit(eventName);
     });
 };
 
@@ -163,7 +166,6 @@ RegisterServerManager.prototype._setState = function(status){
     const self = this;
     const previousState = self.state || "";
     debugLog("RegisterServerManager#setState : => ",status.toString()," was ",previousState.toString());
-    //xx console.log((new Error()).stack);
     self.state = status;
 };
 
@@ -263,7 +265,7 @@ RegisterServerManager.prototype._establish_initial_connection = function (outer_
             });
         },
         function closing_discovery_server_connection(callback) {
-            self._server_endpoints = client._server_endpoints;
+            self._serverEndpoints = client._serverEndpoints;
             client.disconnect(function(err) {
                 client = null;
                 callback(err);
@@ -353,7 +355,7 @@ RegisterServerManager.prototype._cancel_pending_client_if_any = function (callba
 
     const self = this;
     if (self._registration_client) {
-        debugLog("RegisterServerManager#_cancel_pending_client_if_any => wee need to disconnection _registration_client");
+        debugLog("RegisterServerManager#_cancel_pending_client_if_any => wee need to disconnect  _registration_client");
         self._registration_client.disconnect(function () {
             self._registration_client = null;
             self._cancel_pending_client_if_any(callback);
@@ -378,7 +380,7 @@ RegisterServerManager.prototype.stop = function (outer_callback) {
     }
 
     self._cancel_pending_client_if_any(function (err) {
-        debugLog("RegisterServerManager#stop :clearing timeout");
+        debugLog("RegisterServerManager#stop  _cancel_pending_client_if_any done ", self.state);
 
         if(!self.selectedEndpoint || self.state === RegisterServerManagerStatus.INACTIVE){
             self.state = RegisterServerManagerStatus.INACTIVE;
@@ -450,7 +452,7 @@ function constructRegisterServer2Request(server, isOnline) {
             semaphoreFilePath: null,
             isOnline: isOnline
         },
-        serverCapabilities: new discovery_service.MdnsDiscoveryConfiguration({
+        discoveryConfiguration: new discovery_service.MdnsDiscoveryConfiguration({
             mdnsServerName: server.serverInfo.applicationUri,
             serverCapabilities: server.capabilitiesForMDNS
         })
@@ -516,7 +518,7 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
 
     debugLog("RegisterServerManager#_registerServer isOnline:",isOnline,"seleectedEndpoint: ",self.selectedEndpoint.endpointUrl);
     assert(self.selectedEndpoint || "must have a selected endpoint => please call _establish_initial_connection");
-    assert(self.server.serverType, " must have a valid server Type");
+    assert(self.server.serverType !== undefined, " must have a valid server Type");
     assert(self.discoveryServerEndpointUrl);
 
     // construct connection
@@ -530,7 +532,7 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
 
     const options = {
         securityMode: selectedEndpoint.securityMode,
-        securityPolicy: SecurityPolicy.get(selectedEndpoint.securityPolicyUri),
+        securityPolicy: coerceSecurityPolicy(selectedEndpoint.securityPolicyUri),
         serverCertificate: selectedEndpoint.serverCertificate,
         certificateFile: server.certificateFile,
         privateKeyFile: server.privateKeyFile,
@@ -538,10 +540,10 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
         clientName: "RegistrationClient-2"
     };
 
-    const tmp = self._server_endpoints;
+    const tmp = self._serverEndpoints;
 
     let client = new OPCUAClientBase(options);
-    client._server_endpoints = tmp;
+    client._serverEndpoints = tmp;
     server._registration_client = client;
 
     const theStatus =isOnline ? RegisterServerManagerStatus.REGISTERING :RegisterServerManagerStatus.UNREGISTERING;
@@ -552,7 +554,7 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
     async.series([
         function establish_connection_with_lds(callback) {
             client.connect(selectedEndpoint.endpointUrl, function (err) {
-
+                debugLog("establish_connection_with_lds => errr = ",err);
                 if (err) {
                     debugLog("RegisterServerManager#_registerServer connection to client has failed");
                     debugLog("RegisterServerManager#_registerServer  => please check that you server certificate is trusted by the LDS");
@@ -567,7 +569,7 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
                 //
                 //         // try anonymous connection then
                 //         const options = {
-                //             securityMode: MessageSecurityMode.NONE,
+                //             securityMode: MessageSecurityMode.None,
                 //             securityPolicy: SecurityPolicy.None,
                 //             serverCertificate: selectedEndpoint.serverCertificate,
                 //             certificateFile: server.certificateFile,
@@ -576,7 +578,7 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
                 //         debugLog("RegisterServerManager#_registerServer trying with no security");
                 //
                 //         client = new OPCUAClientBase(options);
-                //         client._server_endpoints = tmp;
+                //         client._serverEndpoints = tmp;
                 //         server._registration_client = client;
                 //
                 //         client.connect(selectedEndpoint.endpointUrl, function (err) {

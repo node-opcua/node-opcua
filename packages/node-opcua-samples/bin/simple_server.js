@@ -430,9 +430,9 @@ server.on("response", function (response) {
 
     if (argv.silent) { return;}
 
-    console.log(t(response.responseHeader.timeStamp), response.responseHeader.requestHandle,
-        response._schema.name.cyan, " status = ", response.responseHeader.serviceResult.toString().cyan);
-    switch (response._schema.name) {
+    console.log(t(response.responseHeader.timestamp), response.responseHeader.requestHandle,
+        response.schema.name.cyan, " status = ", response.responseHeader.serviceResult.toString().cyan);
+    switch (response.schema.name) {
         case "xxModifySubscriptionResponse":
         case "xxCreateMonitoredItemsResponse":
         case "xxModifyMonitoredItemsResponse":
@@ -465,9 +465,9 @@ server.on("request", function (request, channel) {
 
     if (argv.silent) { return;}
 
-    console.log(t(request.requestHeader.timeStamp), request.requestHeader.requestHandle,
-        request._schema.name.yellow, " ID =", channel.secureChannelId.toString().cyan);
-    switch (request._schema.name) {
+    console.log(t(request.requestHeader.timestamp), request.requestHeader.requestHandle,
+        request.schema.name.yellow, " ID =", channel.channelId.toString().cyan);
+    switch (request.schema.name) {
         case "xxModifySubscriptionRequest":
         case "xxCreateMonitoredItemsRequest":
         case "xxModifyMonitoredItemsRequest":

@@ -387,6 +387,8 @@ describe("testing ReferenceType", function () {
           ;
     }
 
+    const adjustBrowseDescription = require("../src/address_space").adjustBrowseDescription;
+
     /**
      * find all references that have the provided referenceType or are subType of this referenceType
      * @method findReferencesEx
@@ -396,7 +398,7 @@ describe("testing ReferenceType", function () {
      */
     BaseNode.prototype.findReferencesEx_deprecated = function (strReference, browseDirection) {
 
-        browseDirection = browseDirection || BrowseDirection.Forward;
+        browseDirection = adjustBrowseDescription(browseDirection,BrowseDirection.Forward);
         _is_valid_BrowseDirection(browseDirection).should.eql(true);
 
         const addressSpace = this.addressSpace;
@@ -470,7 +472,7 @@ describe(" improving performance of isSupertypeOf", function () {
 
     const NodeClass = require("node-opcua-data-model").NodeClass;
     //  References i=31
-    //  +->(hasSubtype) NoHierarchicalReferences
+    //  +->(hasSubtype) NonHierarchicalReferences
     //                  +->(hasSubtype) HasTypeDefinition
     //  +->(hasSubtype) HierarchicalReferences
     //                  +->(hasSubtype) HasChild/ChildOf

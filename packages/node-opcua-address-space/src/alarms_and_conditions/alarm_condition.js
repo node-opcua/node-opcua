@@ -535,11 +535,11 @@ UAAlarmConditionBase.prototype._installInputNodeMonitoring = function (inputNode
     const addressSpace = this.addressSpace;
     assert(inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
 
-    if (inputNode === NodeId.NullNodeId) {
+    if (inputNode === NodeId.nullNodeId) {
 
         alarm.inputNode.setValueFromSource({
             dataType: DataType.NodeId,
-            value: NodeId.NullNodeId
+            value: NodeId.nullNodeId
         });
 
     } else {
@@ -681,7 +681,7 @@ UAAlarmConditionBase.prototype._signalNewCondition = function (stateName, isActi
 
                 // we need to create a new branch so the previous state could be acknowledged
                 const newBranch = alarm.createBranch();
-                assert(newBranch.getBranchId() !== NodeId.NullNodeId);
+                assert(newBranch.getBranchId() !== NodeId.nullNodeId);
                 // also raised a new Event for the new branch as branchId has changed
                 alarm.raiseNewBranchState(newBranch);
 

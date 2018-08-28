@@ -18,6 +18,7 @@ function makeMessage(msgType, length) {
 
     return buf;
 }
+
 function readerHeader(data) {
     const msgType = String.fromCharCode(data.readUInt8(0));
     const length = data.readUInt32LE(1);

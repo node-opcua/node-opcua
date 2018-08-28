@@ -201,7 +201,7 @@ function _registerReferenceType(self, node) {
         node.inverseName = {text: node.browseName.name};
     }
     const key = node.browseName.name;
-
+    assert(key);
     assert(node.inverseName.text);
     assert(!self._referenceTypeMap[key], " Node already declared");
     assert(!self._referenceTypeMapInv[node.inverseName], " Node already declared");
@@ -382,7 +382,7 @@ UANamespace.prototype._createNode = function (options) {
 
     const self = this;
 
-    assert(options.nodeClass && options.nodeClass.key, " options.nodeClass must be specified");
+    assert(options.nodeClass !== undefined, " options.nodeClass must be specified");
     assert(options.browseName, "options.browseName must be specified");
     //xx assert(options.browseName instanceof QualifiedName ? (options.browseName.namespaceIndex === self.index): true,"Expecting browseName to have the same namepsaceIndex as the namespace");
 
@@ -423,10 +423,10 @@ UANamespace.prototype._createNode = function (options) {
 
     //assert(options.browseName.namespaceIndex === self.index,"Expecting browseName to have the same namepsaceIndex as the namespace");
 
-    const Constructor = _constructors_map[options.nodeClass.key];
+    const Constructor = _constructors_map[NodeClass[options.nodeClass]];
 
     if (!Constructor) {
-        throw new Error(" missing constructor for NodeClass " + options.nodeClass.key);
+        throw new Error(" missing constructor for NodeClass " + NodeClass[options.nodeClass]);
     }
 
     options.addressSpace = self.addressSpace;

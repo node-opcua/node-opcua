@@ -6,13 +6,11 @@
 const assert = require("node-opcua-assert").assert;
 const util = require("util");
 const _ = require("underscore");
-const schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");
-const resolve_schema_field_types = schema_helpers.resolve_schema_field_types;
-const initialize_field = schema_helpers.initialize_field;
-const check_options_correctness_against_schema = schema_helpers.check_options_correctness_against_schema;
-const _defaultTypeMap = require("node-opcua-factory/src/factories_builtin_types")._defaultTypeMap;
-const ec = require("node-opcua-basic-types");
-const makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
+const resolve_schema_field_types = require("node-opcua-factory").resolve_schema_field_types;
+const initialize_field = require("node-opcua-factory").initialize_field;
+const check_options_correctness_against_schema = require("node-opcua-factory").check_options_correctness_against_schema;
+
+const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
 const generate_new_id = require("node-opcua-factory").generate_new_id;
 const _enumerations = require("node-opcua-factory/src/factories_enumerations")._private._enumerations;
 const schema = require("../../schemas/Variant_schema").Variant_Schema;
@@ -137,8 +135,8 @@ Variant.prototype.encode = function (stream, options) {
 Variant.prototype.decode = function (stream, options) {
     schema.decode(this, stream, options);
 };
-Variant.prototype.decode_debug = function (stream, options) {
-    schema.decode_debug(this, stream, options);
+Variant.prototype.decodeDebug = function (stream, options) {
+    schema.decodeDebug(this, stream, options);
 };
 /**
  *

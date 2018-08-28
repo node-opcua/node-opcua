@@ -2,8 +2,8 @@
 
 const should = require("should");
 
-const ClientSecureChannelLayer = require("../src/client/client_secure_channel_layer").ClientSecureChannelLayer;
-const ServerSecureChannelLayer = require("../src/server/server_secure_channel_layer").ServerSecureChannelLayer;
+const ClientSecureChannelLayer = require("..").ClientSecureChannelLayer;
+const ServerSecureChannelLayer = require("..").ServerSecureChannelLayer;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing ClientSecureChannel 1", function () {
@@ -26,7 +26,7 @@ describe("Testing ClientSecureChannel 1", function () {
         let client_has_received_close_event = 0;
 
         secureChannel.on("close", function (err) {
-            should(err).eql(null);
+            should.not.exist(err);
             client_has_received_close_event += 1;
         });
 
@@ -48,7 +48,7 @@ describe("Testing ClientSecureChannel 1", function () {
         let client_has_received_close_event = 0;
 
         secureChannel.on("close", function (err) {
-            should(err).eql(null);
+            should.not.exist(err);
             client_has_received_close_event += 1;
         });
 
@@ -78,7 +78,7 @@ function startServer(holder,callback) {
     server_socket.listen(1234);
     server_socket.on("connection", function on_connection(socket) {
 
-        const serverChannel = new ServerSecureChannelLayer();
+        const serverChannel = new ServerSecureChannelLayer({});
         holder.serverChannel = serverChannel;
         serverChannel.timeout = 10050;
         serverChannel.init(socket, function () {
@@ -109,6 +109,7 @@ describe("Testing ClientSecureChannel 2", function () {
         stopServer(this,done);
     });
 
+
     it("should establish a client secure channel ", function (done) {
 
         const secureChannel = new ClientSecureChannelLayer({});
@@ -116,11 +117,11 @@ describe("Testing ClientSecureChannel 2", function () {
         secureChannel.protocolVersion.should.equal(0);
 
         secureChannel.on_transaction_completed = function (transaction_stat) {
-            transaction_stat.dump();
+            console.log(transaction_stat);
         };
 
         secureChannel.on("close", function (err) {
-            should(err).be.eql(null, "expecting no error here, as secure channel has been closed normally");
+            should(!err).be.eql(true, "expecting no error here, as secure channel has been closed normally");
             //xx console.log("secure channel has ended", err);
             if (err) {
                 //xx console.log(" the connection was closed by an external cause such as server shutdown");
@@ -128,7 +129,7 @@ describe("Testing ClientSecureChannel 2", function () {
         });
         secureChannel.create("opc.tcp://localhost:1234/UA/Sample", function (err) {
 
-            should(err).be.eql(null, "connection expected to succeed");
+            should(!err).be.eql(true, "connection expected to succeed");
 
             secureChannel.close(function () {
                 done();
@@ -233,7 +234,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         //
         secureChannel.create(endpoint,function(err){
-            should(err).be.eql(null, "expecting NO error here");
+            should(!err).be.eql(true, "expecting NO error here");
             setTimeout(function() {
                 stopServer(test,function() {
 

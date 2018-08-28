@@ -16,15 +16,18 @@ const path = require("path");
 const fs = require("fs");
 const EUInformation = require("node-opcua-data-access").EUInformation;
 
-const AddressSpace = require("../index").AddressSpace;
+const AddressSpace = require("..").AddressSpace;
 
 // make sure all namespace 0 data type are properly loaded
-const generate_address_space = require("../index").generate_address_space;
+const generate_address_space = require("..").generate_address_space;
 
 const DataType = require("node-opcua-variant").DataType;
 const Variant = require("node-opcua-variant").Variant;
+const ServerState = require("node-opcua-common").ServerState;
+const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-const address_space = require("../index");
+const address_space = require("..");
 const UADataType = address_space.UADataType;
 const UAVariableType = address_space.UAVariableType;
 const UAObject = address_space.UAObject;
@@ -73,7 +76,7 @@ describe("testing address space namespace loading", function() {
 
         serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
         const serverStatus = addressSpace.constructExtensionObject(serverStatusDataType);
-        serverStatus.constructor.name.should.eql("ServerStatus");
+        serverStatus.constructor.name.should.eql("ServerStatusDataType");
         serverStatus.should.have.property("startTime");
         serverStatus.should.have.property("currentTime");
 
@@ -231,10 +234,31 @@ describe("testing address space namespace loading", function() {
 
         serverStatus.bindExtensionObject();
 
+
+        {
+            serverStatus
+                .readValue()
+                .value.value.state
+                .should.eql(ServerState.Running);
+
+            serverStatus.$extensionObject.state = ServerState.CommunicationFault;
+
+            serverStatus
+                .readValue()
+                .value.value.state
+                .should.eql(ServerState.CommunicationFault);
+
+
+
+            serverStatus.$extensionObject.state = ServerState.Running;
+        }
+
+
         serverStatus
             .readValue()
             .value.value.startTime.toISOString()
             .should.eql("1601-01-01T00:00:00.000Z");
+
         serverStatus.startTime
             .readValue()
             .value.value.toISOString()
@@ -246,6 +270,7 @@ describe("testing address space namespace loading", function() {
             .readValue()
             .value.value.startTime.toISOString()
             .should.eql("1800-01-01T00:00:00.000Z");
+
         serverStatus.startTime
             .readValue()
             .value.value.toISOString()
@@ -260,10 +285,12 @@ describe("testing address space namespace loading", function() {
             .readValue()
             .value.value.startTime.toISOString()
             .should.eql("2100-01-01T00:00:00.000Z");
+
         serverStatus.startTime
             .readValue()
             .value.value.toISOString()
             .should.eql("2100-01-01T00:00:00.000Z");
+
         //xx debugLog(serverStatus.readValue().value.toString());
 
         serverStatus.$extensionObject.buildInfo.productName = "productName1";
@@ -278,11 +305,12 @@ describe("testing address space namespace loading", function() {
         const StatusCodes = require("node-opcua-status-code").StatusCodes;
         const write_service = require("node-opcua-service-write");
         const WriteValue = write_service.WriteValue;
-        const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
+        const makeAccessLevelFlag = require("node-opcua-data-model").makeAccessLevelFlag;
 
         // now use WriteValue instead
         // make sure value is writable
-        const rw = makeAccessLevel("CurrentRead | CurrentWrite");
+        const rw = makeAccessLevelFlag("CurrentRead | CurrentWrite");
+        assert(rw === AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
         serverStatus.buildInfo.productName.accessLevel = rw;
         serverStatus.buildInfo.productName.userAccessLevel = rw;
 
@@ -296,7 +324,7 @@ describe("testing address space namespace loading", function() {
             [
                 function(callback) {
                     const writeValue = new WriteValue({
-                        attributeId: 13, // value
+                        attributeId: AttributeIds.Value, // value
                         value: {
                             statusCode: StatusCodes.Good,
                             value: {

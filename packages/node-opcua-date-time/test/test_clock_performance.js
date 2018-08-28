@@ -1,7 +1,7 @@
 "use strict";
 const should = require("should");
 
-const  getCurrentClock= require("../src/date_time").getCurrentClock;
+const  getCurrentClock= require("..").getCurrentClock;
 
 const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 

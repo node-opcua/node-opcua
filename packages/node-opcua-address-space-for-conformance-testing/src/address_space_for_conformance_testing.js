@@ -48,16 +48,16 @@ function getValidatorFuncForType(dataType) {
 function getRandomFuncForType(dataType) {
 
     assert(dataType);
-    dataType = dataType.key;
+    const dataTypeName = DataType[dataType];
 
-    const f = ec["random" + dataType];
+    const f = ec["random" + dataTypeName];
 
     if (f) {
         return f;
     }
 
     //xx console.log("xxxx dataType  ",dataType);
-    switch (dataType) {
+    switch (dataTypeName) {
         case "Variant":
             return function () {
                 return new Variant();
@@ -78,7 +78,7 @@ function getRandomFuncForType(dataType) {
             };
         default:
             // istanbul ignore next
-            throw new Error("Cannot find random" + dataType + "() func anywhere");
+            throw new Error("Cannot find random" + dataTypeName + "() func anywhere");
     }
 }
 
@@ -170,6 +170,8 @@ function _add_variable(namespace, parent, varName, dataTypeName, current_value, 
     return variable;
 }
 
+const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
+const coerceAccessLevelFlag =require("node-opcua-data-model").coerceAccessLevelFlag;
 
 function add_variable(namespace, parent, name, realType, default_value, extra_name) {
 
@@ -177,8 +179,8 @@ function add_variable(namespace, parent, name, realType, default_value, extra_na
     const initialValue = _.isFunction(default_value) ? default_value() : default_value;
     const variable = _add_variable(namespace, parent, name, realType, initialValue, false, extra_name);
     assert(variable.valueRank === -1);
-    assert(variable.accessLevel.key === "CurrentRead | CurrentWrite");
-    assert(variable.userAccessLevel.key === "CurrentRead | CurrentWrite");
+    assert(variable.accessLevel === AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+    assert(variable.userAccessLevel === AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     assert(variable.historizing === false);
     return variable;
 }
@@ -203,8 +205,8 @@ function add_variable_array(namespace, parent, dataTypeName, default_value, real
 
     const variable = _add_variable(namespace, parent, dataTypeName, realTypeName, current_value, true, extra_name);
 
-    assert(variable.accessLevel.key === "CurrentRead | CurrentWrite");
-    assert(variable.userAccessLevel.key === "CurrentRead | CurrentWrite");
+    assert(variable.accessLevel === AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+    assert(variable.userAccessLevel === AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     assert(variable.historizing === false);
 
 }

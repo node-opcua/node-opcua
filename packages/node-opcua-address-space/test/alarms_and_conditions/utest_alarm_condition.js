@@ -75,10 +75,10 @@ module.exports = function (test) {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmCondition3",
-                inputNode: NodeId.NullNodeId
+                inputNode: NodeId.nullNodeId
 
             });
-            alarm.inputNode.readValue().value.value.should.eql(NodeId.NullNodeId);
+            alarm.inputNode.readValue().value.value.should.eql(NodeId.nullNodeId);
 
             should.not.exist(alarm.getInputNodeNode());
             should.not.exist(alarm.getInputNodeValue());
@@ -92,7 +92,7 @@ module.exports = function (test) {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmConditionWithMaxTimeShelved",
-                inputNode: NodeId.NullNodeId,
+                inputNode: NodeId.nullNodeId,
                 maxTimeShelved:   10*1000,// 10 minutes
             });
             should.exist(alarm.maxTimeShelved);
@@ -424,7 +424,7 @@ module.exports = function (test) {
                     "ConfirmedState",
                     "Confirm"
                 ],
-                inputNode: NodeId.NullNodeId
+                inputNode: NodeId.nullNodeId
             });
 
 
@@ -483,14 +483,14 @@ module.exports = function (test) {
                     //    branchId  |  Active  | Acked | Confirmed | Retain |
                     // 0) null      |  false   | true  | true      | false  |
 
-                    should(condition.branchId.readValue().value.value).eql(NodeId.NullNodeId);
+                    should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                     should(condition.activeState.readValue().value.value.text).eql("Inactive");
                     should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
                     should(condition.confirmedState.readValue().value.value.text).eql("Confirmed");
                     should(condition.retain.readValue().value.value).eql(false);
 
 
-                    condition.currentBranch().getBranchId().should.eql(NodeId.NullNodeId);
+                    condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                     condition.currentBranch().getActiveState().should.eql(false);
                     condition.currentBranch().getAckedState().should.eql(true);
                     condition.currentBranch().getConfirmedState().should.eql(true);
@@ -504,13 +504,13 @@ module.exports = function (test) {
                     // 1) null      |  true    | false | true      | true   |
 
                     condition.activateAlarm();
-                    should(condition.branchId.readValue().value.value).eql(NodeId.NullNodeId);
+                    should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                     should(condition.activeState.readValue().value.value.text).eql("Active");
                     should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
                     should(condition.confirmedState.readValue().value.value.text).eql("Confirmed");
                     should(condition.retain.readValue().value.value).eql(true);
 
-                    condition.currentBranch().getBranchId().should.eql(NodeId.NullNodeId);
+                    condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                     condition.currentBranch().getActiveState().should.eql(true);
                     condition.currentBranch().getAckedState().should.eql(false);
                     condition.currentBranch().getConfirmedState().should.eql(true);
@@ -536,13 +536,13 @@ module.exports = function (test) {
                         callMethodResponse.statusCode.should.equal(StatusCodes.Good);
                     });
 
-                    should(condition.branchId.readValue().value.value).eql(NodeId.NullNodeId);
+                    should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                     should(condition.activeState.readValue().value.value.text).eql("Active");
                     should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
                     should(condition.confirmedState.readValue().value.value.text).eql("Unconfirmed");
                     should(condition.retain.readValue().value.value).eql(true);
 
-                    condition.currentBranch().getBranchId().should.eql(NodeId.NullNodeId);
+                    condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                     condition.currentBranch().getActiveState().should.eql(true);
                     condition.currentBranch().getAckedState().should.eql(true);
                     condition.currentBranch().getConfirmedState().should.eql(false);
@@ -565,13 +565,13 @@ module.exports = function (test) {
                     //    branchId  |  Active  | Acked | Confirmed | Retain |
                     // 1) null      |  False   | true  | false     | true   |
                     condition.desactivateAlarm();
-                    should(condition.branchId.readValue().value.value).eql(NodeId.NullNodeId);
+                    should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                     should(condition.activeState.readValue().value.value.text).eql("Inactive");
                     should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
                     should(condition.confirmedState.readValue().value.value.text).eql("Unconfirmed");
                     should(condition.retain.readValue().value.value).eql(true);
 
-                    condition.currentBranch().getBranchId().should.eql(NodeId.NullNodeId);
+                    condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                     condition.currentBranch().getActiveState().should.eql(false);
                     condition.currentBranch().getAckedState().should.eql(true);
                     condition.currentBranch().getConfirmedState().should.eql(false);
@@ -597,14 +597,14 @@ module.exports = function (test) {
                         callMethodResponse.statusCode.should.equal(StatusCodes.Good);
                     });
 
-                    should(condition.branchId.readValue().value.value).eql(NodeId.NullNodeId);
+                    should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                     should(condition.activeState.readValue().value.value.text).eql("Inactive");
                     should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
                     should(condition.confirmedState.readValue().value.value.text).eql("Confirmed");
                     should(condition.retain.readValue().value.value).eql(false);
 
 
-                    condition.currentBranch().getBranchId().should.eql(NodeId.NullNodeId);
+                    condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                     condition.currentBranch().getActiveState().should.eql(false);
                     condition.currentBranch().getAckedState().should.eql(true);
                     condition.currentBranch().getConfirmedState().should.eql(true);
@@ -625,13 +625,13 @@ module.exports = function (test) {
 
                     condition.activateAlarm();
 
-                    should(condition.branchId.readValue().value.value).eql(NodeId.NullNodeId);
+                    should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                     should(condition.activeState.readValue().value.value.text).eql("Active");
                     should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
                     should(condition.confirmedState.readValue().value.value.text).eql("Confirmed");
                     should(condition.retain.readValue().value.value).eql(true);
 
-                    condition.currentBranch().getBranchId().should.eql(NodeId.NullNodeId);
+                    condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                     condition.currentBranch().getActiveState().should.eql(true);
                     condition.currentBranch().getAckedState().should.eql(false);
                     condition.currentBranch().getConfirmedState().should.eql(true);
@@ -645,13 +645,13 @@ module.exports = function (test) {
 
                     condition.desactivateAlarm();
 
-                    should(condition.branchId.readValue().value.value).eql(NodeId.NullNodeId);
+                    should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                     should(condition.activeState.readValue().value.value.text).eql("Inactive");
                     should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
                     should(condition.confirmedState.readValue().value.value.text).eql("Confirmed");
                     should(condition.retain.readValue().value.value).eql(true);
 
-                    condition.currentBranch().getBranchId().should.eql(NodeId.NullNodeId);
+                    condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                     condition.currentBranch().getActiveState().should.eql(false);
                     condition.currentBranch().getAckedState().should.eql(false);
                     condition.currentBranch().getConfirmedState().should.eql(true);
@@ -675,12 +675,12 @@ module.exports = function (test) {
                         callMethodResponse.statusCode.should.equal(StatusCodes.Good);
                     });
 
-                    should(condition.branchId.readValue().value.value).eql(NodeId.NullNodeId);
+                    should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                     should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
                     should(condition.confirmedState.readValue().value.value.text).eql("Unconfirmed");
                     should(condition.retain.readValue().value.value).eql(true);
 
-                    condition.currentBranch().getBranchId().should.eql(NodeId.NullNodeId);
+                    condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                     condition.currentBranch().getActiveState().should.eql(false);
                     condition.currentBranch().getAckedState().should.eql(true);
                     condition.currentBranch().getConfirmedState().should.eql(false);
@@ -706,13 +706,13 @@ module.exports = function (test) {
                         callMethodResponse.statusCode.should.equal(StatusCodes.Good);
                     });
 
-                    should(condition.branchId.readValue().value.value).eql(NodeId.NullNodeId);
+                    should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                     should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
                     should(condition.confirmedState.readValue().value.value.text).eql("Confirmed");
                     should(condition.retain.readValue().value.value).eql(false);
 
 
-                    condition.currentBranch().getBranchId().should.eql(NodeId.NullNodeId);
+                    condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                     condition.currentBranch().getActiveState().should.eql(false);
                     condition.currentBranch().getAckedState().should.eql(true);
                     condition.currentBranch().getConfirmedState().should.eql(true);

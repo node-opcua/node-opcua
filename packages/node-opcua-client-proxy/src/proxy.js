@@ -16,6 +16,7 @@ const call_service = require("node-opcua-service-call");
 
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
+const coerceAccessLevelFlag =require("node-opcua-data-model").coerceAccessLevelFlag;
 const makeResultMask = require("node-opcua-data-model").makeResultMask;
 const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 const NodeClass = require("node-opcua-data-model").NodeClass;
@@ -38,6 +39,8 @@ const DataType = require("node-opcua-variant").DataType;
 
 
 const ClientSession = require("node-opcua-client").ClientSession;
+const ClientSessionImpl = require("node-opcua-client").ClientSessionImpl;
+
 const ClientSubscription = require("node-opcua-client").ClientSubscription;
 
 const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
@@ -101,8 +104,8 @@ function convertNodeIdToDataTypeAsync(session, dataTypeId, callback) {
 
         const dataTypeName = dataValue.value.value;
 
-        if (dataTypeId.namespace === 0 && DataType.get(dataTypeId.value)) {
-            dataType = DataType.get(dataTypeId.value);
+        if (dataTypeId.namespace === 0 && DataType[dataTypeId.value]) {
+            dataType = DataType[dataTypeId.value];
             return setImmediate(function(){callback(null, dataType);});
         }
 
@@ -486,7 +489,6 @@ function readUAStructure(proxyManager, obj, callback) {
 
             convertNodeIdToDataTypeAsync(session, arg.dataType, function (err, dataType) {
                 if (!err) {
-                    assert(dataType.hasOwnProperty("value"));
                     arg.dataType._dataType = dataType;
                 }
                 callback(err);
@@ -726,14 +728,14 @@ function getObject(proxyManager, nodeId, options, callback) {
         ];
         session.read(nodesToRead, 1, function (err, dataValues) {
             if (dataValues[0].statusCode === StatusCodes.Good) {
-                clientObject.dataValue = AccessLevelFlag.get(dataValues[0].value);
+                clientObject.dataValue = dataValues[0].value;
             }
             if (dataValues[1].statusCode === StatusCodes.Good) {
                 //xx console.log("AccessLevel ", results[3].value.toString())
-                clientObject.userAccessLevel = AccessLevelFlag.get(dataValues[1].value.value);
+                clientObject.userAccessLevel = coerceAccessLevelFlag(dataValues[1].value.value);
             }
             if (dataValues[2].statusCode === StatusCodes.Good) {
-                clientObject.accessLevel = AccessLevelFlag.get(dataValues[2].value.value);
+                clientObject.accessLevel = coerceAccessLevelFlag(dataValues[2].value.value);
             }
             callback(err);
         });
@@ -760,7 +762,7 @@ function getObject(proxyManager, nodeId, options, callback) {
 
                     clientObject.browseName = dataValues[0].value.value;
                     clientObject.description = (dataValues[1].value ? dataValues[1].value.value : "");
-                    clientObject.nodeClass = NodeClass.get(dataValues[2].value.value);
+                    clientObject.nodeClass = dataValues[2].value.value;
                     //xx console.log("xxx nodeClass = ",clientObject.nodeClass.toString());
 
                     if (clientObject.nodeClass === NodeClass.Variable) {
@@ -808,7 +810,7 @@ function UAProxyManager(session) {
 
     const self = this;
     self.session = session;
-    assert(session instanceof ClientSession);
+    assert(session instanceof ClientSessionImpl);
     self._map = {};
     // create a subscription
 
@@ -830,7 +832,7 @@ function UAProxyManager(session) {
  * monitoredItem.on("changed",function( dataValue) {...});
  *
  */
-ClientSession.prototype.createSubscription2 = function (createSubscriptionRequest, callback) {
+ClientSessionImpl.prototype.createSubscription2 = function (createSubscriptionRequest, callback) {
     assert(_.isFunction(callback));
     const self = this;
 

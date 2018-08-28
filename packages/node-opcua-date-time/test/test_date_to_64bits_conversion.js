@@ -5,12 +5,15 @@ const _ = require("underscore");
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
 const date_time = require("..");
-const ec = require("../src/encode_decode");
+const offsetFactor1601 = date_time.offsetFactor1601;
+const randomDateTime =date_time.randomDateTime;
+const decodeDateTime =date_time.decodeDateTime;
+const encodeDateTime =date_time.encodeDateTime;
 
-const offset_factor_1601 = date_time.offset_factor_1601;
-const offset = offset_factor_1601[0];
-const factor = offset_factor_1601[1];
+const offset = offsetFactor1601[0];
+const factor = offsetFactor1601[1];
 const Long = require("long");
+const  getCurrentClock= require("..").getCurrentClock;
 
 
 function isValidUInt32(value) {
@@ -125,7 +128,7 @@ describe("check OPCUA Date conversion version 2", function () {
         buf.readUInt8(7).should.equal(0x01);
 
         const stream = new BinaryStream(buf);
-        const date = ec.decodeDateTime(stream);
+        const date = decodeDateTime(stream);
         //xx console.log("DDD = ",date.toUTCString(), " ms=", date.getMilliseconds());
         date.toISOString().should.eql("2013-12-12T07:36:09.747Z");
     });
@@ -167,8 +170,8 @@ function bn_dateToHundredNanoSecondFrom1601_big_number(date) {
 }
 
 function bn_hundredNanoSecondFrom1601ToDate_big_number(high, low) {
-    const offset = offset_factor_1601[0];
-    const factor = offset_factor_1601[1];
+    const offset = offsetFactor1601[0];
+    const factor = offsetFactor1601[1];
     let value = new BigNumber(high).times(0x100000000).plus(low).div(factor).minus(offset);
     value = parseInt(value, 10);
     return new Date(value);
@@ -256,7 +259,7 @@ describe("Benchmarking Date conversion routines", function () {
         ];
         let i;
         for (i = 0; i < 100; i++) {
-            dates_to_check.push(ec.randomDateTime());
+            dates_to_check.push(randomDateTime());
         }
         let date, check_date, check_date_bn;
         const bs = new BinaryStream();
@@ -272,7 +275,7 @@ describe("Benchmarking Date conversion routines", function () {
 
             isValidUInt32(hl[0]).should.eql(true);
             isValidInt32(hl[1]).should.eql(true);
-            ec.encodeDateTime(date, bs);
+            encodeDateTime(date, bs);
             bs.rewind();
         }
     });
@@ -481,16 +484,15 @@ describe("understanding Javascript date", function () {
         // encode decode
         const stream = new BinaryStream(1000);
 
-        ec.encodeDateTime(date,stream);
+        encodeDateTime(date,stream);
 
         stream.rewind();
-        const dateVerif1 = ec.decodeDateTime(stream);
+        const dateVerif1 = decodeDateTime(stream);
 
         dateVerif1.getTime().should.eql(date.getTime());
 
     });
 
-    const  getCurrentClock= require("../src/date_time").getCurrentClock;
 
     it("should convert a time to 100nano and back",function() {
 

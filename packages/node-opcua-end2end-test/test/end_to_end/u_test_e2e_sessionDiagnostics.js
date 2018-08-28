@@ -151,7 +151,7 @@ module.exports = function (test) {
                             if(err) { return callback(err); }
 
                             dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
-                            dataValue.value.value.constructor.name.should.eql("SessionDiagnostics");
+                            dataValue.value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
                             dataValue.value.value.totalRequestCount.totalCount.should.be.greaterThan(8);
 
                             callback();
@@ -322,7 +322,7 @@ module.exports = function (test) {
                             if(err) { return callback(err); }
 
                             dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
-                            dataValue.value.value.constructor.name.should.eql("SessionDiagnostics");
+                            dataValue.value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
                             dataValue.value.value.totalRequestCount.totalCount.should.be.greaterThan(7);
 
                             callback();

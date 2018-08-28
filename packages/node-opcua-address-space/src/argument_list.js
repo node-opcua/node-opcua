@@ -9,6 +9,7 @@ const Variant = require("node-opcua-variant").Variant;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const DataType = require("node-opcua-variant").DataType;
 
 
 const UADataType = require("./ua_data_type").UADataType;
@@ -19,7 +20,7 @@ const Argument = require("node-opcua-service-call").Argument;
 exports.Argument = Argument;
 
 function myfindBuiltInType(dataType) {
-    return factories.findBuiltInType(dataType.key);
+    return factories.findBuiltInType(DataType[dataType]);
 }
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);

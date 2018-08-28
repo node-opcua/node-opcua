@@ -12,10 +12,10 @@ const SimpleAttributeOperand_Schema = {
 
     fields:[
 
-        // typeId
+        // typeDefinitionId
         // This parameter restricts the operand to instances of the TypeDefinitionNode or
         // one of its subtypes.
-        { name: "typeId", fieldType:"NodeId",documentation:"NodeId of a TypeDefinitionNode."},
+        { name: "typeDefinitionId", fieldType:"NodeId",documentation:"NodeId of a TypeDefinitionNode."},
 
         // browsePath
         // A relative path to a Node.

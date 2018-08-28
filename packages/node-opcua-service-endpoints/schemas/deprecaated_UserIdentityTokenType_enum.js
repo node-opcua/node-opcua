@@ -1,0 +1,24 @@
+"use strict";
+
+const factories = require("node-opcua-factory");
+
+// OPC Unified Architecture, Part 4 $7.36 page 160
+// This value is an enumeration with one of the following values:
+//  ANONYMOUS_0     No token is required.
+//  USERNAME_1      A username/password token.
+//  CERTIFICATE_2   An X509v3 certificate token.
+//  ISSUEDTOKEN_3    Any WS-Security defined token.
+//  A tokenType of ANONYMOUS indicates that the Server does not require any
+//  user identification. In this case the Client application instance Certificate is used
+//  as the user identification.
+const EnumUserTokenType_Schema = {
+    name: "EnumUserIdentityTokenType",
+    enumValues: {
+        ANONYMOUS: 0,
+        USERNAME: 1,
+        CERTIFICATE: 2,
+        ISSUEDTOKEN: 3
+    }
+};
+
+exports.UserTokenType = factories.registerEnumeration(EnumUserTokenType_Schema);

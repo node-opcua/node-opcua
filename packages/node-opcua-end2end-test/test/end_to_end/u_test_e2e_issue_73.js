@@ -15,7 +15,7 @@ const perform_operation_on_client_session = require("../../test_helpers/perform_
 
 
 
-const securityMode   = opcua.MessageSecurityMode.NONE;
+const securityMode   = opcua.MessageSecurityMode.None;
 const securityPolicy = opcua.SecurityPolicy.None;
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
@@ -77,8 +77,6 @@ module.exports = function (test) {
             client.connect = new_client_connect;
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-
-                session.should.be.instanceOf(ClientSession);
 
                 setTimeout(function () {
 

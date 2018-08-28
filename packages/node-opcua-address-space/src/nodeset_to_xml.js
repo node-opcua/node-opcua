@@ -186,7 +186,9 @@ function _dumpVariantExtensionObjectValue_Body(xw, schema, value) {
 
 }
 
-const getFactory = require("node-opcua-factory/src/factories_factories").getFactory;
+const getStructureTypeConstructor = require("node-opcua-factory").getStructureTypeConstructor;
+const getStructuredTypeSchema = require("node-opcua-factory").getStructuredTypeSchema;
+const hasStructuredType = require("node-opcua-factory").hasStructuredType;
 
 /* encode object as XML */
 function _dumpVariantExtensionObjectValue(xw, schema, value) {
@@ -196,7 +198,10 @@ function _dumpVariantExtensionObjectValue(xw, schema, value) {
         xw.startElement("TypeId");
         {
             // find HasEncoding node
-            const encodingDefaultXml = getFactory(schema.name).prototype.encodingDefaultXml;
+            const encodingDefaultXml = getStructureTypeConstructor(schema.name).encodingDefaultXml;
+            if (!encodingDefaultXml) {
+                console.log("?????");
+            }
             //xx var encodingDefaultXml = schema.encodingDefaultXml;
             xw.startElement("Identifier");
             xw.text(encodingDefaultXml.toString());
@@ -222,15 +227,14 @@ function _dumpValue(xw, node, value) {
 
     const dataTypeName = addressSpace.findNode(node.dataType).browseName.toString();
 
-    const baseDataTypeName = DataType.get(value.dataType).key;
+    const baseDataTypeName = DataType[DataType[value.dataType]];
 
-    const f = getFactory(dataTypeName);
-    if (!f) {
-        // this is not a extension object
-        // console.log("nodeset_to_xml #_dumpValue Cannot find ", dataTypeName,node.dataType.toString());
-        return;
-    }
-    const schema = f.prototype._schema;
+
+    // console.log("nodeset_to_xml #_dumpValue Cannot find ", dataTypeName,node.dataType.toString());
+    if (!hasStructuredType(dataTypeName))
+        return; // this is not a extension object
+
+    const schema = getStructuredTypeSchema(dataTypeName);
 
     //xx console.log("xxxxxxxxx schema".cyan,dataTypeName.yellow,schema);
     function encodeXml(value) {

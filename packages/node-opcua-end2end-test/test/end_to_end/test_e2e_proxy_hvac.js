@@ -230,14 +230,10 @@ describe("testing client Proxy", function () {
 
                             hvac = data;
 
-                            //xx console.log("Target temperature nodeId =",hvac.targetTemperature.nodeId.toString());
-                            //xx console.log("Inside temperature nodeId =",hvac.interiorTemperature.nodeId.toString());
-                            //xx console.log("hvac.setTargetTemperature = ",hvac.setTargetTemperature);
                             hvac.setTargetTemperature.inputArguments[0].name.should.eql("targetTemperature");
-                            hvac.setTargetTemperature.inputArguments[0].dataType.value.should.eql(DataType.Double.value);
+                            hvac.setTargetTemperature.inputArguments[0].dataType.value.should.eql(DataType.Double);
                             hvac.setTargetTemperature.inputArguments[0].valueRank.should.eql(-1);
                             hvac.setTargetTemperature.outputArguments.length.should.eql(0);
-
 
 
 //                          console.log("Interior temperature",hvac.interiorTemperature.dataValue);

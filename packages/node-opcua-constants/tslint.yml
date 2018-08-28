@@ -1,0 +1,6 @@
+---
+extends: "../../tslint.json"
+
+rules:
+  trailing-comma: false
+  object-literal-sort-keys: false

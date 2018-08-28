@@ -6,13 +6,13 @@ const path = require("path");
 const fs = require("fs");
 const existsSync = fs.existsSync;
 
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
 
 
 const AddressSpace = require("node-opcua-address-space").AddressSpace;
 const generate_address_space = require("node-opcua-address-space").generate_address_space;
 
-const makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
+const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
 const Variant = require("node-opcua-variant").Variant;
 const DataType = require("node-opcua-variant").DataType;
 
@@ -71,7 +71,7 @@ xdescribe("ComplexType read from XML NodeSET file shall be binary encode-able", 
             shutdownReason: {text: "for maintenance"}
         });
 
-        should(serverStatus._schema.name).eql("ServerStatus");
+        should(serverStatus.schema.name).eql("ServerStatusDataType");
         serverStatus.startTime.should.be.instanceOf(Date);
         serverStatus.secondsTillShutdown.should.eql(100);
     });

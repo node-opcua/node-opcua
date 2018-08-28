@@ -3,7 +3,7 @@
 const should = require("should");
 const assert = require("node-opcua-assert").assert;
 const NodeClass = require("node-opcua-data-model").NodeClass;
-const AddressSpace = require("../index").AddressSpace;
+const AddressSpace = require("..").AddressSpace;
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

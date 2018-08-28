@@ -110,6 +110,7 @@ const UnregisterNodesResponse = register_node_service.UnregisterNodesResponse;
 const TranslateBrowsePathsToNodeIdsRequest = translate_service.TranslateBrowsePathsToNodeIdsRequest;
 const TranslateBrowsePathsToNodeIdsResponse = translate_service.TranslateBrowsePathsToNodeIdsResponse;
 
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 
 
 const NodeId = require("node-opcua-nodeid").NodeId;
@@ -129,7 +130,9 @@ const OPCUAServerEndPoint = require("./server_end_point").OPCUAServerEndPoint;
 
 const OPCUABaseServer = require("./base_server").OPCUABaseServer;
 
-const exploreCertificate = require("node-opcua-crypto").crypto_explore_certificate.exploreCertificate;
+const exploreCertificate = require("node-opcua-crypto").exploreCertificate;
+const computeSignature = require("node-opcua-secure-channel").computeSignature;
+const verifySignature = require("node-opcua-secure-channel").verifySignature;
 
 
 const Factory = function Factory(engine) {
@@ -203,7 +206,7 @@ util.inherits(RegisterServerManagerMDNSONLY,EventEmitter);
 RegisterServerManagerMDNSONLY.prototype.stop = function(callback)
 {
     const self = this;
-    _stop_announcedOnMulticastSubnet.call(self);
+    _stop_announcedOnMulticastSubnet(self);
     setImmediate(function() {
         self.emit("serverUnregistered");
         setImmediate(callback);
@@ -216,7 +219,7 @@ RegisterServerManagerMDNSONLY.prototype.start = function(callback)
     assert(self.server);
     assert(self.server instanceof OPCUABaseServer);
 
-    _announcedOnMulticastSubnet.call(self,{
+    _announcedOnMulticastSubnet(self,{
         applicationUri: self.server.serverInfo.applicationUri,
         port: self.server.endpoints[0].port,
         path: "/", //<- to do
@@ -297,8 +300,7 @@ function _installRegisterServerManager(self)
     });
 }
 
-const Enum = require("node-opcua-enum");
-
+const Enum = require("node-opcua-enum").Enum;
 const RegisterServerMethod = new Enum({
     "HIDDEN":1 , // the server doesn't expose itself to the external world
     "MDNS" :2,   // the server publish itself to the mDNS Multicast network directly
@@ -325,7 +327,7 @@ const RegisterServerMethod = new Enum({
  * @param [options.serverInfo.discoveryProfileUri= null]{String}
  * @param [options.serverInfo.discoveryUrls = []]{Array<String>}
  * @param [options.securityPolicies= [SecurityPolicy.None,SecurityPolicy.Basic128Rsa15,SecurityPolicy.Basic256]]
- * @param [options.securityModes= [MessageSecurityMode.NONE,MessageSecurityMode.SIGN,MessageSecurityMode.SIGNANDENCRYPT]]
+ * @param [options.securityModes= [MessageSecurityMode.None,MessageSecurityMode.Sfgn,MessageSecurityMode.SignAndEncrypt]]
  * @param [options.disableDiscovery = false] true if Discovery Service on unsecure channel shall be disabled
  * @param [options.allowAnonymous = true] tells if the server default endpoints should allow anonymous connection.
  * @param [options.userManager = null ] a object that implements user authentication methods
@@ -346,422 +348,420 @@ const RegisterServerMethod = new Enum({
  *
  * @constructor
  */
-function OPCUAServer(options) {
+class OPCUAServer extends OPCUABaseServer {
 
-    options = options || {};
-
-    OPCUABaseServer.apply(this, arguments);
-
-    const self = this;
-
-    self.options = options;
+    constructor(options) {
 
 
-    /**
-     * @property maxAllowedSessionNumber
-     * @type {number}
-     */
-    self.maxAllowedSessionNumber = options.maxAllowedSessionNumber || default_maxAllowedSessionNumber;
-    /**
-     * @property maxConnectionsPerEndpoint
-     * @type {number}
-     */
-    self.maxConnectionsPerEndpoint = options.maxConnectionsPerEndpoint || default_maxConnectionsPerEndpoint;
+        super(options);
 
-    // build Info
-    let buildInfo = _.clone(default_build_info);
-    buildInfo = _.extend(buildInfo, options.buildInfo);
+        const self = this;
 
-    // repair product name
-    buildInfo.productUri = buildInfo.productUri || self.serverInfo.productUri;
-    self.serverInfo.productUri = self.serverInfo.productUri || buildInfo.productUri;
-    self.serverInfo.productName = self.serverInfo.productName || buildInfo.productName;
-
-    self.engine = new ServerEngine({
-        buildInfo: buildInfo,
-        serverCapabilities: options.serverCapabilities,
-        applicationUri: self.serverInfo.applicationUri,
-        isAuditing: options.isAuditing
-    });
-
-    self.nonce = self.makeServerNonce();
-
-    self.protocolVersion = 0;
-
-    const port = options.port || 26543;
-    assert(_.isFinite(port));
-    self.objectFactory = new Factory(self.engine);
-    // todo  should self.serverInfo.productUri  match self.engine.buildInfo.productUri ?
-
-    /**
-     * @property allowAnonymous
-     * @type {boolean}
-     */
-    options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
-
-    //xx console.log(" maxConnectionsPerEndpoint = ",self.maxConnectionsPerEndpoint);
-
-    // add the tcp/ip endpoint with no security
-    const endPoint = new OPCUAServerEndPoint({
-        port: port,
-        defaultSecureTokenLifetime: options.defaultSecureTokenLifetime || 600000,
-        timeout: options.timeout || 10000,
-        certificateChain: self.getCertificateChain(),
-        privateKey: self.getPrivateKey(),
-        objectFactory: self.objectFactory,
-        serverInfo: self.serverInfo,
-        maxConnections: self.maxConnectionsPerEndpoint
-    });
-
-    endPoint.addStandardEndpointDescriptions({
-        securityPolicies: options.securityPolicies,
-        securityModes: options.securityModes,
-        allowAnonymous: !!options.allowAnonymous,
-        disableDiscovery: !!options.disableDiscovery,
-        resourcePath: options.resourcePath || "",
-        hostname: options.alternateHostname
-    });
+        self.options = options;
 
 
-    self.endpoints.push(endPoint);
+        /**
+         * @property maxAllowedSessionNumber
+         * @type {number}
+         */
+        self.maxAllowedSessionNumber = options.maxAllowedSessionNumber || default_maxAllowedSessionNumber;
+        /**
+         * @property maxConnectionsPerEndpoint
+         * @type {number}
+         */
+        self.maxConnectionsPerEndpoint = options.maxConnectionsPerEndpoint || default_maxConnectionsPerEndpoint;
 
-    endPoint.on("message", function (message, channel) {
-        self.on_request(message, channel);
-    });
+        // build Info
+        let buildInfo = _.clone(default_build_info);
+        buildInfo = _.extend(buildInfo, options.buildInfo);
 
-    endPoint.on("error", function (err) {
-        console.log("OPCUAServer endpoint error", err);
+        // repair product name
+        buildInfo.productUri = buildInfo.productUri || self.serverInfo.productUri;
+        self.serverInfo.productUri = self.serverInfo.productUri || buildInfo.productUri;
+        self.serverInfo.productName = self.serverInfo.productName || buildInfo.productName;
 
-        // set serverState to ServerState.Failed;
-        self.engine.setServerState(ServerState.Failed);
-
-        self.shutdown(function () {
+        self.engine = new ServerEngine({
+            buildInfo: buildInfo,
+            serverCapabilities: options.serverCapabilities,
+            applicationUri: self.serverInfo.applicationUri,
+            isAuditing: options.isAuditing
         });
-    });
 
-    self.serverInfo.applicationType = ApplicationType.SERVER;
+        self.nonce = self.makeServerNonce();
+
+        self.protocolVersion = 0;
+
+        const port = options.port || 26543;
+        assert(_.isFinite(port));
+        self.objectFactory = new Factory(self.engine);
+        // todo  should self.serverInfo.productUri  match self.engine.buildInfo.productUri ?
+
+        /**
+         * @property allowAnonymous
+         * @type {boolean}
+         */
+        options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
+
+        //xx console.log(" maxConnectionsPerEndpoint = ",self.maxConnectionsPerEndpoint);
+
+        // add the tcp/ip endpoint with no security
+        const endPoint = new OPCUAServerEndPoint({
+            port: port,
+            defaultSecureTokenLifetime: options.defaultSecureTokenLifetime || 600000,
+            timeout: options.timeout || 10000,
+            certificateChain: self.getCertificateChain(),
+            privateKey: self.getPrivateKey(),
+            objectFactory: self.objectFactory,
+            serverInfo: self.serverInfo,
+            maxConnections: self.maxConnectionsPerEndpoint
+        });
+
+        endPoint.addStandardEndpointDescriptions({
+            securityPolicies: options.securityPolicies,
+            securityModes: options.securityModes,
+            allowAnonymous: !!options.allowAnonymous,
+            disableDiscovery: !!options.disableDiscovery,
+            resourcePath: options.resourcePath || "",
+            hostname: options.alternateHostname
+        });
 
 
-    self.userManager = options.userManager || {};
-    if (!_.isFunction(self.userManager.isValidUser)) {
-        self.userManager.isValidUser = function (/*userName,password*/) {
-            return false;
-        };
+        self.endpoints.push(endPoint);
+
+        endPoint.on("message", function (message, channel) {
+            self.on_request(message, channel);
+        });
+
+        endPoint.on("error", function (err) {
+            console.log("OPCUAServer endpoint error", err);
+
+            // set serverState to ServerState.Failed;
+            self.engine.setServerState(ServerState.Failed);
+
+            self.shutdown(function () {
+            });
+        });
+
+        self.serverInfo.applicationType = ApplicationType.Server;
+
+
+        self.userManager = options.userManager || {};
+        if (!_.isFunction(self.userManager.isValidUser)) {
+            self.userManager.isValidUser = function (/*userName,password*/) {
+                return false;
+            };
+        }
+
+        self.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://localhost:4840";
+        assert(typeof self.discoveryServerEndpointUrl === "string");
+        self.capabilitiesForMDNS = options.capabilitiesForMDNS || ["NA"];
+        self.registerServerMethod = options.registerServerMethod || RegisterServerMethod.HIDDEN;
+        _installRegisterServerManager(self);
     }
 
-    self.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://localhost:4840";
-    assert(typeof self.discoveryServerEndpointUrl === "string");
-    self.capabilitiesForMDNS = options.capabilitiesForMDNS || [ "NA" ];
-    self.registerServerMethod = options.registerServerMethod || RegisterServerMethod.HIDDEN;
-    _installRegisterServerManager(self);
-}
-util.inherits(OPCUAServer, OPCUABaseServer);
-
-const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
-OPCUAServer.registry = new ObjectRegistry();
-
-
-/**
- * total number of bytes written  by the server since startup
- * @property bytesWritten
- * @type {Number}
- */
-OPCUAServer.prototype.__defineGetter__("bytesWritten", function () {
-    return this.endpoints.reduce(function (accumulated, endpoint) {
-        return accumulated + endpoint.bytesWritten;
-    }, 0);
-});
-
-/**
- * total number of bytes read  by the server since startup
- * @property bytesRead
- * @type {Number}
- */
-OPCUAServer.prototype.__defineGetter__("bytesRead", function () {
-    return this.endpoints.reduce(function (accumulated, endpoint) {
-        return accumulated + endpoint.bytesRead;
-    }, 0);
-});
-
-/**
- * Number of transactions processed by the server since startup
- * @property transactionsCount
- * @type {Number}
- */
-OPCUAServer.prototype.__defineGetter__("transactionsCount", function () {
-    return this.endpoints.reduce(function (accumulated, endpoint) {
-        return accumulated + endpoint.transactionsCount;
-    }, 0);
-});
+    /**
+     * total number of bytes written  by the server since startup
+     * @property bytesWritten
+     * @type {Number}
+     */
+    get bytesWritten() {
+        return this.endpoints.reduce(function (accumulated, endpoint) {
+            return accumulated + endpoint.bytesWritten;
+        }, 0);
+    }
 
 
-/**
- * The server build info
- * @property buildInfo
- * @type {BuildInfo}
- */
-OPCUAServer.prototype.__defineGetter__("buildInfo", function () {
-    return this.engine.buildInfo;
-});
+    /**
+     * total number of bytes read  by the server since startup
+     * @property bytesRead
+     * @type {Number}
+     */
+    get bytesRead() {
+        return this.endpoints.reduce(function (accumulated, endpoint) {
+            return accumulated + endpoint.bytesRead;
+        }, 0);
+    }
 
-/**
- *
- * the number of connected channel on all existing end points
- * @property currentChannelCount
- * @type  {Number}
- */
-OPCUAServer.prototype.__defineGetter__("currentChannelCount", function () {
-    // TODO : move to base
-    const self = this;
-    return self.endpoints.reduce(function (currentValue, endPoint) {
-        return currentValue + endPoint.currentChannelCount;
-    }, 0);
-});
-
-
-/**
- * The number of active subscriptions from all sessions
- * @property currentSubscriptionCount
- * @type {Number}
- */
-OPCUAServer.prototype.__defineGetter__("currentSubscriptionCount", function () {
-    const self = this;
-    return self.engine.currentSubscriptionCount;
-});
-
-/**
- * @property rejectedSessionCount
- * @type {number}
- */
-OPCUAServer.prototype.__defineGetter__("rejectedSessionCount", function () {
-    return this.engine.rejectedSessionCount;
-});
-/**
- * @property rejectedSessionCount
- * @type {number}
- */
-OPCUAServer.prototype.__defineGetter__("rejectedRequestsCount", function () {
-    return this.engine.rejectedRequestsCount;
-});
-/**
- * @property sessionAbortCount
- * @type {number}
- */
-OPCUAServer.prototype.__defineGetter__("sessionAbortCount", function () {
-    return this.engine.sessionAbortCount;
-});
-/**
- * @property publishingIntervalCount
- * @type {number}
- */
-OPCUAServer.prototype.__defineGetter__("publishingIntervalCount", function () {
-    return this.engine.publishingIntervalCount;
-});
-
-/**
- * create and register a new session
- * @method createSession
- * @return {ServerSession}
- */
-OPCUAServer.prototype.createSession = function (options) {
-    const self = this;
-    return self.engine.createSession(options);
-};
-
-/**
- * the number of sessions currently active
- * @property currentSessionCount
- * @type {Number}
- */
-OPCUAServer.prototype.__defineGetter__("currentSessionCount", function () {
-    return this.engine.currentSessionCount;
-});
-
-/**
- * retrieve a session by authentication token
- * @method getSession
- *
- * @param authenticationToken
- * @param activeOnly search only within sessions that are not closed
- */
-OPCUAServer.prototype.getSession = function (authenticationToken, activeOnly) {
-    const self = this;
-    return self.engine.getSession(authenticationToken, activeOnly);
-};
-
-/**
- * true if the server has been initialized
- * @property initialized
- * @type {Boolean}
- *
- */
-OPCUAServer.prototype.__defineGetter__("initialized", function () {
-    const self = this;
-    return self.engine.addressSpace !== null;
-});
+    /**
+     * Number of transactions processed by the server since startup
+     * @property transactionsCount
+     * @type {Number}
+     */
+    get transactionsCount() {
+        return this.endpoints.reduce(function (accumulated, endpoint) {
+            return accumulated + endpoint.transactionsCount;
+        }, 0);
+    }
 
 
-/**
- * Initialize the server by installing default node set.
- *
- * @method initialize
- * @async
- *
- * This is a asynchronous function that requires a callback function.
- * The callback function typically completes the creation of custom node
- * and instruct the server to listen to its endpoints.
- *
- * @param {Function} done
- */
-OPCUAServer.prototype.initialize = function (done) {
+    /**
+     * The server build info
+     * @property buildInfo
+     * @type {BuildInfo}
+     */
+    get buildInfo() {
+        return this.engine.buildInfo;
+    }
 
-    const self = this;
-    assert(!self.initialized);// already initialized ?
-
-    OPCUAServer.registry.register(self);
-
-    self.engine.initialize(self.options, function () {
-        self.emit("post_initialize");
-        done();
-    });
-};
+    /**
+     *
+     * the number of connected channel on all existing end points
+     * @property currentChannelCount
+     * @type  {Number}
+     */
+    get currentChannelCount() {
+        // TODO : move to base
+        const self = this;
+        return self.endpoints.reduce(function (currentValue, endPoint) {
+            return currentValue + endPoint.currentChannelCount;
+        }, 0);
+    }
 
 
-/**
- * Initiate the server by starting all its endpoints
- * @method start
- * @async
- * @param done {Function}
- */
-OPCUAServer.prototype.start = function (done) {
+    /**
+     * The number of active subscriptions from all sessions
+     * @property currentSubscriptionCount
+     * @type {Number}
+     */
+    get currentSubscriptionCount() {
+        const self = this;
+        return self.engine.currentSubscriptionCount;
+    }
 
-    const self = this;
-    const tasks = [];
-    if (!self.initialized) {
+    /**
+     * @property rejectedSessionCount
+     * @type {number}
+     */
+    get rejectedSessionCount() {
+        return this.engine.rejectedSessionCount;
+    }
+
+    /**
+     * @property rejectedSessionCount
+     * @type {number}
+     */
+    get rejectedRequestsCount() {
+        return this.engine.rejectedRequestsCount;
+    }
+
+    /**
+     * @property sessionAbortCount
+     * @type {number}
+     */
+    get sessionAbortCount() {
+        return this.engine.sessionAbortCount;
+    }
+
+    /**
+     * @property publishingIntervalCount
+     * @type {number}
+     */
+    get publishingIntervalCount() {
+        return this.engine.publishingIntervalCount;
+    }
+
+    /**
+     * create and register a new session
+     * @method createSession
+     * @return {ServerSession}
+     */
+    createSession(options) {
+        const self = this;
+        return self.engine.createSession(options);
+    }
+
+    /**
+     * the number of sessions currently active
+     * @property currentSessionCount
+     * @type {Number}
+     */
+    get currentSessionCount() {
+        return this.engine.currentSessionCount;
+    }
+
+    /**
+     * retrieve a session by authentication token
+     * @method getSession
+     *
+     * @param authenticationToken
+     * @param activeOnly search only within sessions that are not closed
+     */
+    getSession(authenticationToken, activeOnly) {
+        const self = this;
+        return self.engine.getSession(authenticationToken, activeOnly);
+    };
+
+    /**
+     * true if the server has been initialized
+     * @property initialized
+     * @type {Boolean}
+     *
+     */
+    get initialized() {
+        const self = this;
+        return self.engine.addressSpace !== null;
+    }
+
+
+    /**
+     * Initialize the server by installing default node set.
+     *
+     * @method initialize
+     * @async
+     *
+     * This is a asynchronous function that requires a callback function.
+     * The callback function typically completes the creation of custom node
+     * and instruct the server to listen to its endpoints.
+     *
+     * @param {Function} done
+     */
+    initialize(done) {
+
+        const self = this;
+        assert(!self.initialized);// already initialized ?
+
+        OPCUAServer.registry.register(self);
+
+        self.engine.initialize(self.options, function () {
+            self.emit("post_initialize");
+            done();
+        });
+    }
+
+
+    /**
+     * Initiate the server by starting all its endpoints
+     * @method start
+     * @async
+     * @param done {Function}
+     */
+    start(done) {
+
+        const self = this;
+        const tasks = [];
+        if (!self.initialized) {
+            tasks.push(function (callback) {
+                self.initialize(callback);
+            });
+        }
         tasks.push(function (callback) {
-            self.initialize(callback);
+            OPCUABaseServer.prototype.start.call(self, function (err) {
+                if (err) {
+                    self.shutdown(function (/*err2*/) {
+                        callback(err);
+                    });
+                }
+                else {
+                    // we start the registration process asynchronously
+                    // as we want to make server immediately available
+                    self.registerServerManager.start(function () {
+                    });
+
+                    setImmediate(callback);
+                }
+            });
         });
+
+        async.series(tasks, done);
+
     }
-    tasks.push(function (callback) {
-        OPCUABaseServer.prototype.start.call(self, function (err) {
-            if (err) {
-                self.shutdown(function (/*err2*/) {
+
+    /**
+     * shutdown all server endpoints
+     * @method shutdown
+     * @async
+     * @param  [timeout=0] {Number} the timeout before the server is actually shutdown
+     * @param  callback      {Callback}
+     * @param  callback.err  {Error|null}
+     *
+     *
+     * @example
+     *
+     *    // shutdown immediately
+     *    server.shutdown(function(err) {
+     *    });
+     *
+     *    // shutdown within 10 seconds
+     *    server.shutdown(10000,function(err) {
+     *    });
+     */
+    shutdown(timeout, callback) {
+
+
+        if (!callback) {
+            callback = timeout;
+            timeout = 10; // 1 second
+        }
+        assert(_.isFunction(callback));
+        const self = this;
+
+        debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
+
+        assert(self.engine);
+        if (!self.engine.serverStatus) {
+            // server may have been shot down already  , or may have fail to start !!
+            const err = new Error("OPCUAServer#shutdown failure ! server doesn't seems to be started yet");
+            return callback(err);
+        }
+        self.engine.setServerState(ServerState.Shutdown);
+
+        debugLog("OPCUServer is now unregistering itself from  the discovery server " + self.buildInfo);
+        self.registerServerManager.stop(function (err) {
+            debugLog("OPCUServer unregistered from discovery server", err);
+            setTimeout(function () {
+                self.engine.shutdown();
+
+                debugLog("OPCUAServer#shutdown: started");
+                OPCUABaseServer.prototype.shutdown.call(self, function (err) {
+                    debugLog("OPCUAServer#shutdown: completed");
+
+                    self.dispose();
                     callback(err);
                 });
-            }
-            else {
-                // we start the registration process asynchronously
-                // as we want to make server immediately available
-                self.registerServerManager.start(function() {});
-
-                setImmediate(callback);
-            }
+            }, timeout);
         });
-    });
 
-    async.series(tasks, done);
+    }
 
-};
+    dispose() {
 
+        const self = this;
 
+        self.endpoints.forEach(function (endpoint) {
+            endpoint.dispose();
+        });
+        self.endpoints = [];
+
+        self.removeAllListeners();
+
+        if (self.registerServerManager) {
+            self.registerServerManager.dispose();
+            self.registerServerManager = null;
+        }
+        OPCUAServer.registry.unregister(self);
+    }
+
+    computeServerSignature(channel, clientCertificate, clientNonce) {
+        const self = this;
+        return computeSignature(clientCertificate, clientNonce, self.getPrivateKey(), channel.messageBuilder.securityPolicy);
+    }
+
+    verifyClientSignature(session, channel, clientSignature) {
+
+        const self = this;
+
+        const clientCertificate = channel.receiverCertificate;
+        const securityPolicy = channel.messageBuilder.securityPolicy;
+        const serverCertificateChain = self.getCertificateChain();
+
+        const result = verifySignature(serverCertificateChain, session.nonce, clientSignature, clientCertificate, securityPolicy);
+
+        return result;
+    }
+}
+
+OPCUAServer.registry = new ObjectRegistry();
 OPCUAServer.fallbackSessionName = "Client didn't provide a meaningful sessionName ...";
-
-
-/**
- * shutdown all server endpoints
- * @method shutdown
- * @async
- * @param  [timeout=0] {Number} the timeout before the server is actually shutdown
- * @param  callback      {Callback}
- * @param  callback.err  {Error|null}
- *
- *
- * @example
- *
- *    // shutdown immediately
- *    server.shutdown(function(err) {
- *    });
- *
- *    // shutdown within 10 seconds
- *    server.shutdown(10000,function(err) {
- *    });
- */
-OPCUAServer.prototype.shutdown = function (timeout, callback) {
-
-
-    if (!callback) {
-        callback = timeout;
-        timeout = 10; // 1 second
-    }
-    assert(_.isFunction(callback));
-    const self = this;
-
-    debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
-
-    assert(self.engine);
-    if (!self.engine.serverStatus) {
-        // server may have been shot down already  , or may have fail to start !!
-        const err = new Error("OPCUAServer#shutdown failure ! server doesn't seems to be started yet");
-        return callback(err);
-    }
-    self.engine.setServerState(ServerState.Shutdown);
-
-    self.registerServerManager.stop(function (err) {
-        debugLog("OPCUServer unregistered from discovery server",err);
-        setTimeout(function () {
-            self.engine.shutdown();
-
-            debugLog("OPCUAServer#shutdown: started");
-            OPCUABaseServer.prototype.shutdown.call(self, function (err) {
-                debugLog("OPCUAServer#shutdown: completed");
-
-                self.dispose();
-                callback(err);
-            });
-        }, timeout);
-    });
-
-};
-
-OPCUAServer.prototype.dispose = function () {
-
-    const self = this;
-
-    self.endpoints.forEach(function (endpoint) {
-        endpoint.dispose();
-    });
-    self.endpoints = [];
-
-    self.removeAllListeners();
-
-    if (self.registerServerManager) {
-        self.registerServerManager.dispose();
-        self.registerServerManager = null;
-    }
-    OPCUAServer.registry.unregister(self);
-};
-
-const computeSignature = require("node-opcua-secure-channel").computeSignature;
-const verifySignature = require("node-opcua-secure-channel").verifySignature;
-
-OPCUAServer.prototype.computeServerSignature = function (channel, clientCertificate, clientNonce) {
-    const self = this;
-    return computeSignature(clientCertificate, clientNonce, self.getPrivateKey(), channel.messageBuilder.securityPolicy);
-};
-
-
-OPCUAServer.prototype.verifyClientSignature = function (session, channel, clientSignature) {
-
-    const self = this;
-
-    const clientCertificate = channel.receiverCertificate;
-    const securityPolicy = channel.messageBuilder.securityPolicy;
-    const serverCertificateChain = self.getCertificateChain();
-
-    const result = verifySignature(serverCertificateChain, session.nonce, clientSignature, clientCertificate, securityPolicy);
-
-    return result;
-};
 
 
 const minSessionTimeout = 100; // 100 milliseconds
@@ -785,7 +785,7 @@ function channel_has_session(channel, session) {
 
 function moveSessionToChannel(session, channel) {
 
-    debugLog("moveSessionToChannel sessionId", session.sessionId, " channelId=", channel.secureChannelId);
+    debugLog("moveSessionToChannel sessionId", session.sessionId, " channelId=", channel.channelId);
     if (session.publishEngine) {
         session.publishEngine.cancelPendingPublishRequestBeforeChannelChange();
     }
@@ -793,7 +793,7 @@ function moveSessionToChannel(session, channel) {
     session._detach_channel();
     session._attach_channel(channel);
 
-    assert(session.channel.secureChannelId === channel.secureChannelId);
+    assert(session.channel.channelId === channel.channelId);
 
 }
 
@@ -903,7 +903,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
     // bytes. Profiles may increase the required length. The Server shall use this value to prove possession of
     // its application instance Certificate in the response.
     if (!request.clientNonce || request.clientNonce.length < 32) {
-        if (channel.securityMode !== MessageSecurityMode.NONE) {
+        if (channel.securityMode !== MessageSecurityMode.None) {
             console.log("SERVER with secure connection: Missing or invalid client Nonce ".red, request.clientNonce && request.clientNonce.toString("hex"));
             return rejectConnection(StatusCodes.BadNonceInvalid);
         }
@@ -913,7 +913,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
     function validate_applicationUri(applicationUri, clientCertificate) {
 
         // if session is insecure there is no need to check certificate information
-        if (channel.securityMode === MessageSecurityMode.NONE) {
+        if (channel.securityMode === MessageSecurityMode.None) {
             return true; // assume correct
         }
         if (!clientCertificate || clientCertificate.length === 0) {
@@ -1001,15 +1001,15 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
     // ( this serverNonce will only be used up to the _on_ActivateSessionRequest
     //   where a new nonce will be created)
     session.nonce = server.makeServerNonce();
-    session.secureChannelId = channel.secureChannelId;
+    session.channelId = channel.channelId;
 
     session._attach_channel(channel);
 
     const serverCertificateChain = server.getCertificateChain();
 
     const hasEncryption = true;
-    // If the securityPolicyUri is NONE and none of the UserTokenPolicies requires encryption
-    if (session.channel.securityMode === MessageSecurityMode.NONE) {
+    // If the securityPolicyUri is None and none of the UserTokenPolicies requires encryption
+    if (session.channel.securityMode === MessageSecurityMode.None) {
         // ToDo: Check that none of our unsecure endpoint has a a UserTokenPolicy that require encryption
         // and set hasEncryption = false under this condition
     }
@@ -1033,7 +1033,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
         // by the Client in the request. The Client shall verify that this Certificate is the same as
         // the one it used to create the SecureChannel.
         // The ApplicationInstanceCertificate type is defined in OpCUA 1.03 part 4 - $7.2 page 108
-        // If the securityPolicyUri is NONE and none of the UserTokenPolicies requires
+        // If the securityPolicyUri is None and none of the UserTokenPolicies requires
         // encryption, the Server shall not send an ApplicationInstanceCertificate and the Client
         // shall ignore the ApplicationInstanceCertificate.
         serverCertificate: hasEncryption ? serverCertificateChain : null,
@@ -1133,7 +1133,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
             // SecureChannelId shall uniquely identify the SecureChannel. The application shall use the same identifier in
             // all AuditEvents related to the Session Service Set (AuditCreateSessionEventType, AuditActivateSessionEventType
             // and their subtypes) and the SecureChannel Service Set (AuditChannelEventType and its subtypes
-            secureChannelId: {dataType: "String", value: session.channel.secureChannelId.toString()},
+            secureChannelId: {dataType: "String", value: session.channel.channelId.toString()},
 
             // Duration
             revisedSessionTimeout: {dataType: "Duration", value: session.sessionTimeout},
@@ -1247,19 +1247,19 @@ function findUserTokenByPolicy(endpoint_description, policyId) {
     assert(endpoint_description instanceof EndpointDescription);
     const r = _.filter(endpoint_description.userIdentityTokens, function (userIdentity) {
         // assert(userIdentity instanceof UserTokenPolicy)
-        assert(userIdentity.tokenType);
+        assert(userIdentity.tokenType !== undefined);
         return userIdentity.policyId === policyId;
     });
     return r.length === 0 ? null : r[0];
 }
 
-const UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
+const UserTokenType = require("node-opcua-service-endpoints").UserTokenType;
 
 function findUserTokenPolicy(endpoint_description, userTokenType) {
     assert(endpoint_description instanceof EndpointDescription);
     const r = _.filter(endpoint_description.userIdentityTokens, function (userIdentity) {
         // assert(userIdentity instanceof UserTokenPolicy)
-        assert(userIdentity.tokenType);
+        assert(userIdentity.tokenType !== undefined);
         return userIdentity.tokenType === userTokenType;
     });
     return r.length === 0 ? null : r[0];
@@ -1267,7 +1267,7 @@ function findUserTokenPolicy(endpoint_description, userTokenType) {
 
 function createAnonymousIdentityToken(endpoint_desc) {
     assert(endpoint_desc instanceof EndpointDescription);
-    const userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserIdentityTokenType.ANONYMOUS);
+    const userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserTokenType.Anonymous);
     if (!userTokenPolicy) {
         throw new Error("Cannot find ANONYMOUS user token policy in end point description");
     }
@@ -1419,16 +1419,18 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
 
     if (session.status === "active") {
 
-        if (session.channel.secureChannelId !== channel.secureChannelId) {
+        if (session.channel.channelId !== channel.channelId) {
 
             console.log(" Session is being transferred from channel",
-                session.channel.secureChannelId.toString().cyan,
-                " to channel ", channel.secureChannelId.toString().cyan);
+                session.channel.channelId.toString().cyan,
+                " to channel ", channel.channelId.toString().cyan);
 
             // session is being reassigned to a new Channel,
             // we shall verify that the certificate used to create the Session is the same as the current channel certificate.
             const old_channel_cert_thumbprint = thumbprint(session.channel.clientCertificate);
             const new_channel_cert_thumbprint = thumbprint(channel.clientCertificate);
+
+
             if (old_channel_cert_thumbprint !== new_channel_cert_thumbprint) {
                 return rejectConnection(StatusCodes.BadNoValidCertificates); // not sure about this code !
             }
@@ -1538,7 +1540,7 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
                     // in all AuditEvents related to the Session Service Set (AuditCreateSessionEventType,
                     // AuditActivateSessionEventType and their subtypes) and the SecureChannel Service Set
                     // (AuditChannelEventType and its subtypes).
-                    secureChannelId: {dataType: "String", value: session.channel.secureChannelId.toString()}
+                    secureChannelId: {dataType: "String", value: session.channel.channelId.toString()}
 
                 });
             }
@@ -1840,9 +1842,9 @@ OPCUAServer.prototype._on_BrowseRequest = function (message, channel) {
         const requestedMaxReferencesPerNode = request.requestedMaxReferencesPerNode;
 
         let results = [];
-        assert(request.nodesToBrowse[0]._schema.name === "BrowseDescription");
+        assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
         results = server.engine.browse(request.nodesToBrowse, session);
-        assert(results[0]._schema.name === "BrowseResult");
+        assert(results[0].schema.name === "BrowseResult");
 
         // handle continuation point and requestedMaxReferencesPerNode
         results = results.map(function (result) {
@@ -1943,7 +1945,7 @@ OPCUAServer.prototype._on_ReadRequest = function (message, channel) {
             return sendError(StatusCodes.BadNothingToDo);
         }
 
-        assert(request.nodesToRead[0]._schema.name === "ReadValueId");
+        assert(request.nodesToRead[0].schema.name === "ReadValueId");
         assert(request.timestampsToReturn);
 
         // limit size of nodesToRead array to maxNodesPerRead
@@ -1964,7 +1966,7 @@ OPCUAServer.prototype._on_ReadRequest = function (message, channel) {
 
             results = server.engine.read(context, request);
 
-            assert(results[0]._schema.name === "DataValue");
+            assert(results[0].schema.name === "DataValue");
             assert(results.length === request.nodesToRead.length);
 
             response = new ReadResponse({
@@ -2008,7 +2010,7 @@ OPCUAServer.prototype._on_HistoryReadRequest = function (message, channel) {
             return sendError(StatusCodes.BadNothingToDo);
         }
 
-        assert(request.nodesToRead[0]._schema.name === "HistoryReadValueId");
+        assert(request.nodesToRead[0].schema.name === "HistoryReadValueId");
         assert(request.timestampsToReturn);
 
         // limit size of nodesToRead array to maxNodesPerRead
@@ -2037,7 +2039,7 @@ OPCUAServer.prototype._on_HistoryReadRequest = function (message, channel) {
             assert(!err, " error not handled here , fix me"); //TODO
 
             server.engine.historyRead(context, request, function (err, results) {
-                assert(results[0]._schema.name === "HistoryReadResult");
+                assert(results[0].schema.name === "HistoryReadResult");
                 assert(results.length === request.nodesToRead.length);
 
                 response = new HistoryReadResponse({
@@ -2095,7 +2097,7 @@ OPCUAServer.prototype._on_WriteRequest = function (message, channel) {
 
         const context = new SessionContext({session, server});
 
-        assert(request.nodesToWrite[0]._schema.name === "WriteValue");
+        assert(request.nodesToWrite[0].schema.name === "WriteValue");
         server.engine.write(context, request.nodesToWrite, function (err, results) {
             assert(!err);
             assert(_.isArray(results));
@@ -2312,12 +2314,10 @@ OPCUAServer.prototype.prepare = function (message, channel) {
         return;
     }
 
-    //xx console.log("xxxx channel ",channel.secureChannelId,session.secureChannelId);
-    // --- check that provided session matches session attached to channel
-    if (channel.secureChannelId !== session.secureChannelId) {
+      // --- check that provided session matches session attached to channel
+    if (channel.channelId !== session.channelId) {
         if (!(request instanceof ActivateSessionRequest)) {
-            console.log("ERROR: channel.secureChannelId !== session.secureChannelId".red.bgWhite, channel.secureChannelId, session.secureChannelId);
-            //xx console.log("trace",(new Error()).stack);
+            console.log("ERROR: channel.channelId !== session.channelId".red.bgWhite, channel.channelId, session.channelId);
         }
         message.session_statusCode = StatusCodes.BadSecureChannelIdInvalid;
 
@@ -2526,6 +2526,11 @@ OPCUAServer.prototype._on_RepublishRequest = function (message, channel) {
 
 const SetMonitoringModeRequest = subscription_service.SetMonitoringModeRequest;
 const SetMonitoringModeResponse = subscription_service.SetMonitoringModeResponse;
+function isMonitoringModeValid(monitoringMode) {
+    assert(subscription_service.MonitoringMode.Invalid !== undefined);
+    return monitoringMode !== subscription_service.MonitoringMode.Invalid &&
+        monitoringMode  <= subscription_service.MonitoringMode.Reporting;
+}
 
 // Bad_NothingToDo
 // Bad_TooManyOperations
@@ -2549,11 +2554,12 @@ OPCUAServer.prototype._on_SetMonitoringModeRequest = function (message, channel)
         }
         const monitoringMode = request.monitoringMode;
 
-        if (monitoringMode === subscription_service.MonitoringMode.Invalid) {
+
+        if (!isMonitoringModeValid(monitoringMode)) {
             return sendError(StatusCodes.BadMonitoringModeInvalid);
         }
 
-        const results = request.monitoredItemIds.map(function (monitoredItemId) {
+        const results = request.monitoredItemIds.map((monitoredItemId) => {
 
             const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
             if (!monitoredItem) {
@@ -2581,22 +2587,22 @@ OPCUAServer.prototype._on_TranslateBrowsePathsToNodeIdsRequest = function (messa
 
     this._apply_on_SessionObject(TranslateBrowsePathsToNodeIdsResponse, message, channel, function (session, sendResponse, sendError) {
 
-        if (!request.browsePath || request.browsePath.length === 0) {
+        if (!request.browsePaths || request.browsePaths.length === 0) {
             return sendError(StatusCodes.BadNothingToDo);
         }
         if (server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds > 0) {
-            if (request.browsePath.length > server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds) {
+            if (request.browsePaths.length > server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds) {
                 return sendError(StatusCodes.BadTooManyOperations);
             }
         }
 
-        const browsePathResults = request.browsePath.map(function (browsePath) {
-            return server.engine.browsePath(browsePath);
-        });
+        const browsePathsResults = request.browsePaths.map((browsePath) => server.engine.browsePath(browsePath));
+
         const response = new TranslateBrowsePathsToNodeIdsResponse({
-            results: browsePathResults,
+            results: browsePathsResults,
             diagnosticInfos: null
         });
+
         sendResponse(response);
 
     });

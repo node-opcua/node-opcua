@@ -354,7 +354,7 @@ function dump_dataValues(nodesToRead, dataValues) {
         const dataValue = dataValues[i];
         log("           Node : ", (nodesToRead[i].nodeId.toString()).cyan.bold, nodesToRead[i].attributeId.toString());
         if (dataValue.value) {
-            log("           type : ", colorize(dataValue.value.dataType.key));
+            log("           type : ", colorize(DataType[dataValue.value.dataType]));
             log("           value: ", colorize(dataValue.value.value));
         } else {
             log("           value: <null>");
@@ -384,7 +384,7 @@ function dump_historyDataValues(nodeToRead,startDate,endDate, historyReadResult)
         return;
     }
     if (dataValues.length > 0 && dataValues[0].value) {
-        log("           type : ", colorize(dataValues[0].value.dataType.key));
+        log("           type : ", colorize(DataType[dataValues[0].value.dataType]));
     }
     for (let i = 0; i < dataValues.length; i++) {
         const dataValue = dataValues[i];

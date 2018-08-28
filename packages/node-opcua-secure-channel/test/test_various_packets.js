@@ -1,7 +1,7 @@
 const should = require("should");
 
-const MessageBuilder = require("../src/message_builder").MessageBuilder;
-const packets = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets");
+const MessageBuilder = require("..").MessageBuilder;
+const packets = require("node-opcua-transport/dist/test-fixtures");
 
 
 xdescribe("testing with problematic packet", function () {
@@ -9,7 +9,7 @@ xdescribe("testing with problematic packet", function () {
     it("should raise a message event after reassembling and decoding a message ", function (done) {
 
         const messageBuilder = new MessageBuilder();
-        messageBuilder.setSecurity("NONE", "None");
+        messageBuilder.setSecurity(MessageSecurityMode.None,SecurityPolicy.None);
 
         let full_message_body_event_received = false;
         let on_message__received = false;
@@ -17,7 +17,7 @@ xdescribe("testing with problematic packet", function () {
         messageBuilder.
         on("message", function (message) {
             on_message__received = true;
-            message._schema.name.should.equal("GetEndpointsResponse");
+            message.schema.name.should.equal("GetEndpointsResponse");
 
             on_message__received.should.equal(true);
             full_message_body_event_received.should.equal(true);
@@ -29,7 +29,7 @@ xdescribe("testing with problematic packet", function () {
 
         }).
         on("error", function (err) {
-            should(err).eql(null);
+            should.not.exist(err);
             throw new Error("should not get there");
         });
 
@@ -87,9 +87,9 @@ xdescribe("testing with problematic packet", function () {
         }
         objMessage.constructor.name.should.eql("ReadResponse");
 
-        const packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
+        const analyseExtensionObject = require("node-opcua-packet-analyzer").analyseExtensionObject;
 
-        packet_analyzer(full_message_body);
+        analyseExtensionObject(full_message_body);
 
         done();
     });

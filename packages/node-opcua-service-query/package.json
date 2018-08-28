@@ -1,29 +1,33 @@
 {
  "name": "node-opcua-service-query",
- "version": "0.4.4",
+ "version": "0.5.0",
  "description": "pure nodejs OPCUA SDK - module -service-query",
  "scripts": {
+  "build": "tsc",
   "test": "mocha test",
-  "clean": "node -e \"require('rimraf').sync('_generated_');\"",
-  "generate": "node ./generate"
+  "clean": "node -e \"require('rimraf').sync('dist');\"",
+  "__qgenerate": "node ./generate"
  },
- "main": "index.js",
+ "main": "./dist/index.js",
+ "types": "./dist/index.d.ts",
  "dependencies": {
-  "node-opcua-assert": "^0.4.0",
-  "node-opcua-basic-types": "^0.4.2",
-  "node-opcua-data-model": "^0.4.2",
-  "node-opcua-factory": "^0.4.2",
-  "node-opcua-nodeid": "^0.4.2",
-  "node-opcua-numeric-range": "^0.4.2",
-  "node-opcua-service-browse": "^0.4.2",
-  "node-opcua-service-filter": "^0.4.2",
-  "node-opcua-service-secure-channel": "^0.4.2",
-  "node-opcua-service-subscription": "^0.4.4",
-  "node-opcua-service-translate-browse-path": "^0.4.2",
+  "node-opcua-assert": "^0.5.0",
+  "node-opcua-binary-stream": "^0.5.0",
+  "node-opcua-basic-types": "^0.5.0",
+  "node-opcua-data-model": "^0.5.0",
+  "node-opcua-factory": "^0.5.0",
+  "node-opcua-nodeid": "^0.5.0",
+  "node-opcua-numeric-range": "^0.5.0",
+  "node-opcua-service-browse": "^0.5.0",
+  "node-opcua-service-filter": "^0.5.0",
+  "node-opcua-service-secure-channel": "^0.5.0",
+  "node-opcua-service-subscription": "^0.5.0",
+  "node-opcua-service-translate-browse-path": "^0.5.0",
+  "node-opcua-types": "^0.5.0",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.4.2"
+  "node-opcua-generator": "^0.5.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

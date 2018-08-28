@@ -65,9 +65,9 @@ describe("Testing Finite State Machine", function () {
 
     it("should instantiate a finite state machine", function (done) {
 
-        const stateMachineType = addressSpace.findObjectType("StateMachineType");
+            const stateMachineType = addressSpace.findObjectType("StateMachineType");
 
-        const stateMachine = stateMachineType.instantiate({browseName: "MyStateMachine"});
+            const stateMachine = stateMachineType.instantiate({browseName: "MyStateMachine"});
 
         stateMachine.getComponentByName("CurrentState").browseName.toString().should.eql("CurrentState");
 

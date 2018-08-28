@@ -4,16 +4,21 @@
  */
 "use strict";
 
+// import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
 Error.stackTraceLimit = Infinity;
 
-const sinon  = require("sinon");
+const sinon = require("sinon");
 const should = require("should");
 const async = require("async");
 const path = require("path");
 const _ = require("underscore");
-const defer=require("delayed");
+const defer = require("delayed");
 
-const doDebug = false;
+
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+
 const opcua = require("node-opcua");
 const is_valid_endpointUrl = opcua.is_valid_endpointUrl;
 const MessageSecurityMode = opcua.MessageSecurityMode;
@@ -22,7 +27,6 @@ const SecurityPolicy = opcua.SecurityPolicy;
 const OPCUAServer = require("node-opcua-server").OPCUAServer;
 const OPCUAClient = require("node-opcua-client").OPCUAClient;
 const ClientSecureChannelLayer = require("node-opcua-client").ClientSecureChannelLayer;
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 const fail_fast_connectionStrategy = {
     maxRetry: 0  // << NO RETRY !!
@@ -30,7 +34,7 @@ const fail_fast_connectionStrategy = {
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-describe("testing Server resilience to DOS attacks", function () {
+describe("testing Server resilience to DDOS attacks", function () {
 
     let server;
     let endpointUrl;
@@ -39,7 +43,7 @@ describe("testing Server resilience to DOS attacks", function () {
 
     let clients = [];
     let sessions = [];
-    let rejected_connections =0;
+    let rejected_connections = 0;
 
     let port = 2000;
 
@@ -49,15 +53,15 @@ describe("testing Server resilience to DOS attacks", function () {
 
         port += 1;
 
-        console.log(" server port = ",port);
+        console.log(" server port = ", port);
         clients = [];
-        sessions =[];
-        rejected_connections =0;
+        sessions = [];
+        rejected_connections = 0;
 
         server = new OPCUAServer({
             port: port,
             maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
-            maxAllowedSessionNumber:   maxAllowedSessionNumber
+            maxAllowedSessionNumber: maxAllowedSessionNumber
             //xx nodeset_filename: empty_nodeset_filename
         });
         // we will connect to first server end point
@@ -77,7 +81,7 @@ describe("testing Server resilience to DOS attacks", function () {
         });
     });
 
-    it("ZAA1 should be possible to create many sessions per connection",function(done){
+    it("ZAA1 should be possible to create many sessions per connection", function (done) {
 
         const client = new OPCUAClient({
             connectionStrategy: fail_fast_connectionStrategy
@@ -86,7 +90,7 @@ describe("testing Server resilience to DOS attacks", function () {
         const sessions = [];
 
         function create_session(callback) {
-            client.createSession(function(err,session){
+            client.createSession(function (err, session) {
                 if (!err) {
                     sessions.push(session);
                 }
@@ -94,10 +98,11 @@ describe("testing Server resilience to DOS attacks", function () {
             });
 
         }
+
         async.series([
 
             function (callback) {
-                client.connect(endpointUrl, function (err) {
+                client.connect(endpointUrl, (err) => {
                     callback();
                 });
             },
@@ -106,18 +111,18 @@ describe("testing Server resilience to DOS attacks", function () {
             create_session,
             create_session,
 
-            function(callback) {
-                async.eachLimit(sessions,1,function(session,callback){
+            function (callback) {
+                async.eachLimit(sessions, 1, function (session, callback) {
                     session.close(callback);
-                },callback);
+                }, callback);
             },
-            function(callback) {
+            function (callback) {
                 client.disconnect(callback);
             }
-        ],done);
+        ], done);
     });
 
-    it("ZAA2 When creating a valid/real SecureChannel, prior unused channels should be recycled.",function(done) {
+    it("ZAA2 When creating a valid/real SecureChannel, prior unused channels should be recycled.", function (done) {
 
 
         // uncomment this line to run with external server
@@ -134,86 +139,115 @@ describe("testing Server resilience to DOS attacks", function () {
 
             const tasks = [];
 
-            for(let i=0;i<nbConnections;i++) { tasks.push({index: i,endpointUrl : endpointUrl});}
+            for (let i = 0; i < nbConnections; i++) {
+                tasks.push({index: i, endpointUrl: endpointUrl});
+            }
 
-            function createChannel(data,_inner_callback) {
+            function createChannel(data, _inner_callback) {
 
 
                 _.isFunction(_inner_callback).should.eql(true);
                 const secureChannel = new ClientSecureChannelLayer({
                     defaultSecureTokenLifetime: 5000000,
-                    securityMode:               MessageSecurityMode.NONE,
-                    securityPolicy:             SecurityPolicy.None,
-                    serverCertificate:          null,
+                    securityMode: MessageSecurityMode.None,
+                    securityPolicy: SecurityPolicy.None,
+                    serverCertificate: null,
                     connectionStrategy: {
                         maxRetry: 0
                     }
                 });
                 secureChannel.create(data.endpointUrl, function (err) {
-                //xx    console.log(" err ",data.index,err);
+                    //xx    console.log(" err ",data.index,err);
                     channels.push(secureChannel);
                     _inner_callback(err);
                 });
             }
 
-            const defer=require("delayed");
-            async.eachLimit( tasks,1 , createChannel,function(err,results){
+            const defer = require("delayed");
+            async.eachLimit(tasks, 1, createChannel, (err, results) => {
                 callback(err);
             });
         }
 
         const results = [];
         let nbError = 0;
+
         function step2_close_all_channels(callback) {
 
-            async.eachLimit(channels,1,function(channel,callback) {
+            async.eachLimit(channels, 1, function (channel, callback) {
                 //xxconsole.log(" CLOSING =======================================".bgWhite.red,channel._transport.name);
-                channel.close(function(err) {
-                    if (err) {nbError ++;}
+                channel.close(function (err) {
+                    if (err) {
+                        nbError++;
+                    }
                     //xxx console.log( "closing channel....",err,channel._transport.name);
                     callback();
                 });
-            },callback);
+            }, callback);
         }
+
         function step3_verification(callback) {
             nbError.should.eql(nbExtra);
             callback();
         }
+
         async.series([
             step1_construct_many_channels,
             step2_close_all_channels,
             step3_verification
-        ],done);
+        ], done);
 
     });
 
-    function createClientAndSession(data,_inner_callback) {
+    let counter = 1;
+
+    function createClientAndSession(data, _inner_callback) {
+
 
         const client = new OPCUAClient({
             connectionStrategy: fail_fast_connectionStrategy
         });
+
+        client.name = "client" + counter;
+        counter += 1;
+
         client.connectionStrategy.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
 
-        client.on("start_reconnection", function (err) {
-            if(doDebug) { console.log("start_reconnection".bgWhite.yellow,data.index);}
+        client.on("start_reconnection", (err) => {
+            if (doDebug) {
+                debugLog("start_reconnection".bgWhite.yellow, data.index);
+            }
             throw Error("Expecting automatic reconnection to be disabled");
         });
-        client.on("backoff", function (number, delay) {
-            if(doDebug) { console.log("backoff".bgWhite.yellow,number,delay);}
+        client.on("backoff", (number, delay) => {
+            if (doDebug) {
+                debugLog("backoff".bgWhite.yellow, number, delay);
+            }
             throw Error("Expecting automatic reconnection to be disabled");
         });
 
 
         clients.push(client);
-        async.series([
 
-            function(callback) {
+
+        async.series([
+            function (callback) {
+                setTimeout(callback,10);
+            },
+
+            function (callback) {
+                if (doDebug) {
+                    debugLog("about to start client".bgWhite.yellow, client.name);
+                }
                 client.connect(endpointUrl, function (err) {
 
                     if (!err) {
+                        if (doDebug) {
+                            debugLog("client".bgWhite.yellow, client.name, " connected");
+                        }
                         client._secureChannel.connectionStrategy.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
 
-                        client.createSession(function(err,session){
+                        client.createSession(function (err, session) {
 
                             if (!err) {
                                 sessions.push(session);
@@ -222,17 +256,19 @@ describe("testing Server resilience to DOS attacks", function () {
                         });
 
                     } else {
-                        rejected_connections ++;
+                        if (doDebug) {
+                            debugLog("client ", client.name, " connection  has been rejected");
+                        }
+                        rejected_connections++;
                         // ignore err here
                         callback();
-
                     }
                 });
             }
-        ],_inner_callback);
+        ], _inner_callback);
     }
 
-    it("ZAA3 server should reject connections if all secure channels are used",function(done){
+    it("ZAA3 server should reject connections if all secure channels are used", function (done) {
 
         server.maxConnectionsPerEndpoint.should.eql(maxConnectionsPerEndpoint);
         rejected_connections.should.eql(0);
@@ -245,12 +281,12 @@ describe("testing Server resilience to DOS attacks", function () {
 
             const tasks = [];
 
-            for(let i=0;i<nbConnections;i++) {
-                tasks.push({index: i,endpointUrl : endpointUrl});
+            for (let i = 0; i < nbConnections; i++) {
+                tasks.push({index: i, endpointUrl: endpointUrl});
             }
 
-            const defer=require("delayed");
-            async.eachLimit( tasks,1 , defer.deferred(createClientAndSession),function(err,results){
+            const defer = require("delayed");
+            async.eachLimit(tasks, 1, defer.deferred(createClientAndSession), (err, results) => {
                 callback(err);
             });
         }
@@ -258,35 +294,40 @@ describe("testing Server resilience to DOS attacks", function () {
         let nbError = 0;
 
         function step2_close_all_sessions(callback) {
-            async.eachLimit(sessions,2,function(session,callback) {
+            async.eachLimit(sessions, 2, function (session, callback) {
                 // some channel have been forcibly closed by the server, closing them will cause server to generate an errpr
-                session.close(function(err) {
-                    if (err) {nbError ++;}
+                session.close(function (err) {
+                    if (err) {
+                        nbError++;
+                    }
                     callback();
                 });
-            },callback);
+            }, callback);
 
         }
+
         function step2_close_all_clients(callback) {
 
-            async.eachLimit(clients,1,function(client,callback) {
+            async.eachLimit(clients, 1, function (client, callback) {
                 // some channel have been forcibly closed by the server, closing them will cause server to generate an errpr
-                client.disconnect(function(err) {
-                    if (err) {nbError ++;}
+                client.disconnect(function (err) {
+                    if (err) {
+                        nbError++;
+                    }
                     callback();
                 });
-            },callback);
+            }, callback);
         }
 
         function step3_verification(callback) {
             try {
 
-                nbError.should.eql(0,"");
+                nbError.should.eql(0, "");
 
                 rejected_connections.should.eql(5);
                 sessions.length.should.eql(server.maxConnectionsPerEndpoint);
             }
-            catch(err) {
+            catch (err) {
                 return callback(err);
             }
             callback();
@@ -297,10 +338,10 @@ describe("testing Server resilience to DOS attacks", function () {
             step2_close_all_sessions,
             step2_close_all_clients,
             step3_verification
-        ],done);
+        ], done);
     });
 
-    it("ZAA4 Server shall not keep channel that have been disconnected abruptly",function(done) {
+    it("ZAA4 Server shall not keep channel that have been disconnected abruptly", function (done) {
 
         server.maxConnectionsPerEndpoint.should.eql(maxConnectionsPerEndpoint);
         rejected_connections.should.eql(0);
@@ -312,19 +353,26 @@ describe("testing Server resilience to DOS attacks", function () {
 
         function step1_construct_many_channels_with_session_and_abruptly_terminate_them(callback) {
 
+            debugLog("step1_construct_many_channels_with_session_and_abruptly_terminate_them");
+
             const tasks = [];
 
-            for(let i=0;i<nbConnections;i++) {
-                tasks.push({index: i,endpointUrl : endpointUrl});
+            for (let i = 0; i < nbConnections; i++) {
+                tasks.push({index: i, endpointUrl: endpointUrl});
             }
-            async.eachLimit( tasks,1 , defer.deferred(createClientAndSession),function(err,results){
+            async.eachLimit(tasks, 1, defer.deferred(createClientAndSession),  (err, results) => {
+                debugLog("step1_construct_many_channels_with_session_and_abruptly_terminate_them => done");
                 callback(err);
             });
         }
+
         function step2_abruptly_disconnect_existing_channel_from_client_side(callback) {
 
-            function terminate_client_abruptly(client,inner_callback) {
-                if (client._secureChannel){
+            debugLog("step2_abruptly_disconnect_existing_channel_from_client_side");
+
+            function terminate_client_abruptly(client, inner_callback) {
+                debugLog("terminate abruptly ", client.name);
+                if (client._secureChannel) {
                     const socket = client._secureChannel._transport._socket;
                     socket.end();
                     socket.destroy();
@@ -332,59 +380,65 @@ describe("testing Server resilience to DOS attacks", function () {
                 }
                 inner_callback();
             }
-            async.eachLimit(clients,1,terminate_client_abruptly,function(err,results) {
+
+            async.eachLimit(clients, 1, terminate_client_abruptly, (err, results) => {
+                debugLog("step2_abruptly_disconnect_existing_channel_from_client_side => done");
                 callback(err);
             });
         }
+
         async.series([
             step1_construct_many_channels_with_session_and_abruptly_terminate_them,
             step2_abruptly_disconnect_existing_channel_from_client_side,
-            function(callback) {
+            function (callback) {
                 rejected_connections.should.eql(5);
                 callback();
             },
             step1_construct_many_channels_with_session_and_abruptly_terminate_them,
-            function(callback) {
+            function (callback) {
                 rejected_connections.should.eql(10);
                 callback();
             },
             function cleanup(callback) {
-                async.eachLimit(clients,1,function(client,inner_done){ client.disconnect(inner_done);},callback);
+                async.eachLimit(clients, 1, function (client, inner_done) {
+                    client.disconnect(inner_done);
+                }, callback);
             }
-        ],done);
+        ], done);
 
     });
 
-    it("ZAA5 Server shall not keep channel that have been disconnected abruptly - version 2",function(done) {
+    it("ZAA5 Server shall not keep channel that have been disconnected abruptly - version 2", function (done) {
 
 
-        const serverEndpoint =server.endpoints[0];
+        const serverEndpoint = server.endpoints[0];
 
         const spyCloseChannel = new sinon.spy();
         const spyNewChannel = new sinon.spy();
 
-        serverEndpoint.on("closeChannel",spyCloseChannel);
-        serverEndpoint.on("newChannel",spyNewChannel);
+        serverEndpoint.on("closeChannel", spyCloseChannel);
+        serverEndpoint.on("newChannel", spyNewChannel);
 
 
         let counter = 0;
+
         function create_crashing_client(callback) {
 
-            counter ++;
+            counter++;
             console.log(" ------------------------------------------------------------ > create_a_faulty_client");
             const spawn = require("child_process").spawn;
-            const server_script  = path.join(__dirname,"../test_helpers/crashing_client");
-            const options ={};
-            const server_exec = spawn("node", [server_script,  port], options);
+            const server_script = path.join(__dirname, "../test_helpers/crashing_client");
+            const options = {};
+            const server_exec = spawn("node", [server_script, port], options);
 
-            server_exec.on("close",function(code){
-                console.log("terminated with ",code);
+            server_exec.on("close", function (code) {
+                console.log("terminated with ", code);
                 callback();
             });
             server_exec.stdout.on("data", function (data) {
                 data = data.toString();
-                data.split("\n").forEach(function(data){
-                    process.stdout.write("stdout:               "+data.yellow + "\n");
+                data.split("\n").forEach(function (data) {
+                    process.stdout.write("stdout:               " + data.yellow + "\n");
                 });
             });
         }
@@ -397,19 +451,21 @@ describe("testing Server resilience to DOS attacks", function () {
         function step1_launch_crashing_client(callback) {
             create_crashing_client(callback);
         }
+
         function verify_server_channel_count(callback) {
 
-            setTimeout(function() {
+            setTimeout(function () {
 
                 // verify that there are no channel opened on the server.
-                console.log(" currentChannelCount = ",serverEndpoint.currentChannelCount);
+                console.log(" currentChannelCount = ", serverEndpoint.currentChannelCount);
                 serverEndpoint.currentChannelCount.should.eql(0);
 
-                spyNewChannel.callCount.should.eql(counter,"expecting spyNewChannel to have been called");
-                spyCloseChannel.callCount.should.eql(counter,"expecting spyCloseChannel to have been called");
+                spyNewChannel.callCount.should.eql(counter, "expecting spyNewChannel to have been called");
+                spyCloseChannel.callCount.should.eql(counter, "expecting spyCloseChannel to have been called");
                 callback();
-            },250);
+            }, 250);
         }
+
         async.series([
             verify_server_channel_count,
             step1_launch_crashing_client,
@@ -420,7 +476,7 @@ describe("testing Server resilience to DOS attacks", function () {
             verify_server_channel_count,
             step1_launch_crashing_client,
             verify_server_channel_count
-        ],done);
+        ], done);
 
     });
 

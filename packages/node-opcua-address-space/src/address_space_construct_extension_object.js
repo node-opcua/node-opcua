@@ -50,7 +50,7 @@ exports.install = function (AddressSpace) {
      *             serverStatusDataType.should.be.instanceOf(UADataType);
      *             serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
      *             var serverStatus  = addressSpace.constructExtensionObject(serverStatusDataType);
-     *             serverStatus.constructor.name.should.eql("ServerStatus");
+     *             serverStatus.constructor.name.should.eql("ServerStatusDataType");
      */
     AddressSpace.prototype.constructExtensionObject = function(dataType,options){
 

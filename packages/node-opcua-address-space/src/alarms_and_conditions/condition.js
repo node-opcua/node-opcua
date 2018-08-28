@@ -19,7 +19,7 @@ const UAObject = require("../ua_object").UAObject;
 const BaseNode = require("../base_node").BaseNode;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const NodeClass = require("node-opcua-data-model").NodeClass;
-const TimeZone = require("node-opcua-data-model").TimeZone;
+const TimeZoneDataType = require("node-opcua-common").TimeZoneDataType;
 const UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
 const UATwoStateVariable = require("../ua_two_state_variable").UATwoStateVariable;
 
@@ -143,7 +143,7 @@ function ConditionSnapshot(condition, branchId) {
         // a nodeId/Variant map
         _record_condition_state(self, condition);
 
-        if (branchId === NodeId.NullNodeId) {
+        if (branchId === NodeId.nullNodeId) {
             _installOnChangeEventHandlers(self, condition, "");
         }
 
@@ -175,7 +175,7 @@ ConditionSnapshot.prototype._constructEventData = function() {
     const self = this;
     const addressSpace = self.condition.addressSpace;
 
-    if (self.branchId === NodeId.NullNodeId) {
+    if (self.branchId === NodeId.nullNodeId) {
         _ensure_condition_values_correctness(self, self.condition, "");
     }
 
@@ -630,9 +630,9 @@ ConditionSnapshot.prototype.setTime = function(time) {
  * @param localTime {TimeZone}
  */
 ConditionSnapshot.prototype.setLocalTime = function(localTime) {
-    assert(localTime instanceof TimeZone);
+    assert(localTime instanceof TimeZoneDataType);
     const self = this;
-    return self._set_var("localTime", DataType.ExtensionObject, new TimeZone(localTime));
+    return self._set_var("localTime", DataType.ExtensionObject, new TimeZoneDataType(localTime));
 };
 // read only !
 ConditionSnapshot.prototype.getSourceName = function() {
@@ -664,7 +664,7 @@ ConditionSnapshot.prototype.getMessage = function() {
 };
 
 ConditionSnapshot.prototype.isCurrentBranch = function() {
-    return this._get_var("branchId") === NodeId.NullNodeId;
+    return this._get_var("branchId") === NodeId.nullNodeId;
 };
 
 /**
@@ -788,7 +788,7 @@ UAConditionBase.prototype.initialize = function() {
 UAConditionBase.prototype.post_initialize = function() {
     const self = this;
     assert(!self._branch0);
-    self._branch0 = new ConditionSnapshot(self, NodeId.NullNodeId);
+    self._branch0 = new ConditionSnapshot(self, NodeId.nullNodeId);
 
     // the condition OPCUA object alway reflects the default branch states
     // so we set a mechanism that automatically keeps self in sync
@@ -849,7 +849,7 @@ UAConditionBase.prototype.createBranch = function() {
 UAConditionBase.prototype.deleteBranch = function(branch) {
     const self = this;
     const key = branch.getBranchId().toString();
-    assert(branch.getBranchId() !== NodeId.NullNodeId, "cannot delete branch zero");
+    assert(branch.getBranchId() !== NodeId.nullNodeId, "cannot delete branch zero");
     assert(self._branches.hasOwnProperty(key));
     delete self._branches[key];
     self.emit("branch_deleted", key);
@@ -873,7 +873,7 @@ function _update_sourceTimestamp(dataValue /*, indexRange*/) {
         value: dataValue.sourceTimestamp
     });
 }
-const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
+const makeAccessLevelFlag = require("node-opcua-data-model").makeAccessLevelFlag;
 
 function _install_condition_variable_type(node) {
     assert(node instanceof BaseNode);
@@ -881,11 +881,11 @@ function _install_condition_variable_type(node) {
     // However,  a change in their value is considered important and supposed to trigger
     // an Event Notification. These information elements are called ConditionVariables.
     if (node.sourceTimestamp) {
-        node.sourceTimestamp.accessLevel = makeAccessLevel("CurrentRead");
+        node.sourceTimestamp.accessLevel = makeAccessLevelFlag("CurrentRead");
     } else {
         console.warn("cannot find node.sourceTimestamp", node.browseName.toString());
     }
-    node.accessLevel = makeAccessLevel("CurrentRead");
+    node.accessLevel = makeAccessLevelFlag("CurrentRead");
 
     // from spec 1.03 : 5.3 condition variables
     // a condition VariableType has a sourceTimeStamp exposed property
@@ -1192,7 +1192,7 @@ UAConditionBase.prototype.raiseNewCondition = function(conditionInfo) {
     branch.setTime(now);
     branch.setReceiveTime(now);
     branch.setLocalTime(
-        new TimeZone({
+        new TimeZoneDataType({
             offset: 0,
             daylightSavingInOffset: false
         })
@@ -1224,7 +1224,7 @@ UAConditionBase.prototype.raiseNewBranchState = function(branch) {
     const self = this;
     self.raiseConditionEvent(branch, true);
 
-    if (branch.getBranchId() !== NodeId.NullNodeId && !branch.getRetain()) {
+    if (branch.getBranchId() !== NodeId.nullNodeId && !branch.getRetain()) {
         //xx console.log(" Deleting not longer needed branch ", branch.getBranchId().toString());
         // branch can be deleted
         self.deleteBranch(branch);
@@ -1810,7 +1810,7 @@ UAConditionBase.instantiate = function(namespace, conditionTypeId, options, data
      */
     conditionNode.branchId.setValueFromSource({
         dataType: DataType.NodeId,
-        value: NodeId.NullNodeId
+        value: NodeId.nullNodeId
     });
 
     // install 'Comment' condition variable
@@ -1987,7 +1987,7 @@ UAConditionBase.instantiate = function(namespace, conditionTypeId, options, data
      */
     const baseConditionClassType = addressSpace.findObjectType("ProcessConditionClassType");
     //assert(baseConditionClassType,"Expecting BaseConditionClassType to be in addressSpace");
-    let conditionClassId = baseConditionClassType ? baseConditionClassType.nodeId : NodeId.NullNodeId;
+    let conditionClassId = baseConditionClassType ? baseConditionClassType.nodeId : NodeId.nullNodeId;
     let conditionClassName = baseConditionClassType ? baseConditionClassType.displayName[0] : "";
     if (options.conditionClass) {
         if (_.isString(options.conditionClass)) {
@@ -2048,7 +2048,7 @@ UAConditionBase.instantiate = function(namespace, conditionTypeId, options, data
     branch0.setQuality(StatusCodes.Good);
     branch0.setSeverity(0);
     branch0.setLocalTime(
-        new TimeZone({
+        new TimeZoneDataType({
             offset: 0,
             daylightSavingInOffset: false
         })

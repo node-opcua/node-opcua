@@ -86,15 +86,15 @@ describe("Testing the server publish engine", function () {
         subscription.state.should.equal(SubscriptionState.LATE);
 
         // client sends a PublishRequest to the server
-        const fake_request1 = new subscription_service.PublishRequest({subscriptionAcknowledgements: []});
-        publish_server._on_PublishRequest(fake_request1);
+        const fakeRequest1 = new subscription_service.PublishRequest({subscriptionAcknowledgements: []});
+        publish_server._on_PublishRequest(fakeRequest1);
 
         // publish request should be consumed immediately as subscription is late.
         publish_server.pendingPublishRequestCount.should.equal(0);
         subscription.state.should.equal(SubscriptionState.KEEPALIVE);
 
-        const fake_request2 = new subscription_service.PublishRequest({subscriptionAcknowledgements: []});
-        publish_server._on_PublishRequest(fake_request2);
+        const fakeRequest2 = new subscription_service.PublishRequest({subscriptionAcknowledgements: []});
+        publish_server._on_PublishRequest(fakeRequest2);
         publish_server.pendingPublishRequestCount.should.equal(1);
 
         pulse(19);
@@ -143,8 +143,8 @@ describe("Testing the server publish engine", function () {
 
 
         // client sends a PublishRequest to the server
-        const fake_request1 = new subscription_service.PublishRequest({subscriptionAcknowledgements: []});
-        publish_server._on_PublishRequest(fake_request1);
+        const fakeRequest1 = new subscription_service.PublishRequest({subscriptionAcknowledgements: []});
+        publish_server._on_PublishRequest(fakeRequest1);
 
         this.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.equal(1); // initial still
@@ -155,13 +155,13 @@ describe("Testing the server publish engine", function () {
         // server should send a response for the first publish request with the above notification
         // in this response, there should be  one element in the availableSequenceNumbers.
         send_response_for_request_spy.callCount.should.equal(1);
-        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].subscriptionId.should.eql(1234);
         send_response_for_request_spy.getCall(0).args[1].availableSequenceNumbers.should.eql([1]);
 
         // client sends a PublishRequest to the server ( with no acknowledgement)
-        const fake_request2 = new subscription_service.PublishRequest({subscriptionAcknowledgements: []});
-        publish_server._on_PublishRequest(fake_request2);
+        const fakeRequest2 = new subscription_service.PublishRequest({subscriptionAcknowledgements: []});
+        publish_server._on_PublishRequest(fakeRequest2);
 
 
         // server has now some notification ready and send them to the client
@@ -172,7 +172,7 @@ describe("Testing the server publish engine", function () {
 
         // server should send an response for the second publish request with a notification
         send_response_for_request_spy.callCount.should.equal(2);
-        send_response_for_request_spy.getCall(1).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(1).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(1).args[1].subscriptionId.should.eql(1234);
         send_response_for_request_spy.getCall(1).args[1].availableSequenceNumbers.should.eql([1, 2]);
 
@@ -192,15 +192,15 @@ describe("Testing the server publish engine", function () {
         const send_response_for_request_spy = sinon.spy(publish_server, "send_response_for_request");
 
         // client sends a PublishRequest to the server
-        const fake_request1 = new subscription_service.PublishRequest({
+        const fakeRequest1 = new subscription_service.PublishRequest({
             subscriptionAcknowledgements: []
         });
-        publish_server._on_PublishRequest(fake_request1);
+        publish_server._on_PublishRequest(fakeRequest1);
 
         this.clock.tick(2000);
 
         send_response_for_request_spy.callCount.should.equal(1);
-        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
 
         publish_server.shutdown();
@@ -280,7 +280,7 @@ describe("Testing the server publish engine", function () {
 
         this.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.be.equal(1);
-        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         send_response_for_request_spy.getCall(0).args[1].responseHeader.requestHandle.should.eql(1);
         send_response_for_request_spy.getCall(0).args[1].results.should.eql([]);
@@ -300,7 +300,7 @@ describe("Testing the server publish engine", function () {
         //xx console.log(send_response_for_request_spy.getCall(0).args[1].responseHeader.toString());
         //xx console.log(send_response_for_request_spy.getCall(1).args[1].responseHeader.toString());
 
-        send_response_for_request_spy.getCall(1).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(1).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(1).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTooManyPublishRequests);
         send_response_for_request_spy.getCall(1).args[1].responseHeader.requestHandle.should.eql(2);
         send_response_for_request_spy.getCall(1).args[1].results.should.eql([]);
@@ -309,7 +309,7 @@ describe("Testing the server publish engine", function () {
 
         send_response_for_request_spy.callCount.should.be.equal(3);
         //xx console.log(send_response_for_request_spy.getCall(2).args[1].responseHeader.toString());
-        send_response_for_request_spy.getCall(2).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(2).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTooManyPublishRequests);
         send_response_for_request_spy.getCall(2).args[1].responseHeader.requestHandle.should.eql(3);
         send_response_for_request_spy.getCall(2).args[1].results.should.eql([]);
@@ -348,7 +348,7 @@ describe("Testing the server publish engine", function () {
         subscription.getAvailableSequenceNumbers().should.eql([1]);
 
         send_response_for_request_spy.callCount.should.equal(1);
-        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         send_response_for_request_spy.getCall(0).args[1].results.should.eql([]);
 
@@ -362,7 +362,7 @@ describe("Testing the server publish engine", function () {
         subscription.getAvailableSequenceNumbers().should.eql([1, 2]);
 
         send_response_for_request_spy.callCount.should.equal(2);
-        send_response_for_request_spy.getCall(1).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(1).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(1).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         send_response_for_request_spy.getCall(1).args[1].results.should.eql([]);
 
@@ -373,7 +373,7 @@ describe("Testing the server publish engine", function () {
         subscription.getAvailableSequenceNumbers().should.eql([1, 2, 3]);
 
         send_response_for_request_spy.callCount.should.equal(3);
-        send_response_for_request_spy.getCall(2).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(2).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         send_response_for_request_spy.getCall(2).args[1].results.should.eql([]);
 
@@ -389,7 +389,7 @@ describe("Testing the server publish engine", function () {
 
         this.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.equal(4);
-        send_response_for_request_spy.getCall(3).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(3).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         send_response_for_request_spy.getCall(3).args[1].results.should.eql([StatusCodes.Good]);
 
@@ -408,7 +408,7 @@ describe("Testing the server publish engine", function () {
         this.clock.tick(subscription.publishingInterval);
 
         send_response_for_request_spy.callCount.should.equal(5);
-        send_response_for_request_spy.getCall(4).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(4).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(4).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         send_response_for_request_spy.getCall(4).args[1].results.should.eql([StatusCodes.Good, StatusCodes.Good]);
 
@@ -456,7 +456,7 @@ describe("Testing the server publish engine", function () {
         subscription.getAvailableSequenceNumbers().should.eql([1]);
 
         send_response_for_request_spy.callCount.should.equal(1);
-        send_response_for_request_spy.getCall(0).args[1]._schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         send_response_for_request_spy.getCall(0).args[1].results.should.eql([StatusCodes.BadSequenceNumberUnknown]);
 
@@ -877,7 +877,7 @@ describe("Testing the server publish engine", function () {
         send_response_for_request_spy.firstCall.args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         send_response_for_request_spy.firstCall.args[1].subscriptionId.should.eql(1234);
         send_response_for_request_spy.firstCall.args[1].notificationMessage.notificationData.length.should.eql(1);
-        send_response_for_request_spy.firstCall.args[1].notificationMessage.notificationData[0].statusCode.should.eql(StatusCodes.BadTimeout);
+        send_response_for_request_spy.firstCall.args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.BadTimeout);
 
         subscription.state.should.eql(SubscriptionState.CLOSED);
 

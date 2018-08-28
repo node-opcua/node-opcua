@@ -25,7 +25,7 @@ function dumpEvent(addressSpace, eventFields, eventData) {
         }
         if (variant.dataType === DataType.ByteString) {
             console.log(w("", 20), w(key, 15).yellow,
-              w(variant.dataType.key, 10).toString().cyan, variant.value.toString("hex"));
+              w(DataType[variant.dataType], 10).toString().cyan, variant.value.toString("hex"));
 
         } else if (variant.dataType === DataType.NodeId) {
 
@@ -33,11 +33,11 @@ function dumpEvent(addressSpace, eventFields, eventData) {
             name = name ? name.browseName.toString() : variant.value.toString();
 
             console.log(w(name, 20), w(key, 15).yellow,
-              w(variant.dataType.key, 10).toString().cyan, name.cyan.bold, "(", w(variant.value, 20), ")");
+              w(DataType[variant.dataType], 10).toString().cyan, name.cyan.bold, "(", w(variant.value, 20), ")");
 
         } else {
             console.log(w("", 20), w(key, 15).yellow,
-              w(variant.dataType.key, 10).toString().cyan, variant.value.toString());
+              w(DataType[variant.dataType], 10).toString().cyan, variant.value.toString());
         }
     });
 }
@@ -112,7 +112,7 @@ module.exports = function (test) {
             
             spyOnEvent.callCount.should.eql(1);
             spyOnEvent.getCalls()[0].args[0].message.value.text.should.eql("Condition value is -100 and state is LowLow");
-            spyOnEvent.getCalls()[0].args[0].branchId.value.should.eql(NodeId.NullNodeId);
+            spyOnEvent.getCalls()[0].args[0].branchId.value.should.eql(NodeId.nullNodeId);
             const call0_eventId = spyOnEvent.getCalls()[0].args[0].eventId.toString();
 
             // InputNode goes a little bit low - alarm stays active - state changes to low - 1 event raised
@@ -126,7 +126,7 @@ module.exports = function (test) {
             // in this case we are reusing an existing alarm
             // Note: We need to check if in this case we need to create a branch as well
             spyOnEvent.getCalls()[1].args[0].message.value.text.should.eql("Condition value is -9 and state is Low");
-            spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.NullNodeId);
+            spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.nullNodeId);
             const call1_eventId = spyOnEvent.getCalls()[1].args[0].eventId.toString();
 
             call1_eventId.should.not.eql(call0_eventId, "Event Id must be different");
@@ -146,13 +146,13 @@ module.exports = function (test) {
             // one for the new branch created with a snapshot version of the current state, and an other one
             // with the null branch
             spyOnEvent.getCalls()[3].args[0].message.value.text.should.eql("Back to normal");
-            spyOnEvent.getCalls()[3].args[0].branchId.value.should.eql(NodeId.NullNodeId);
+            spyOnEvent.getCalls()[3].args[0].branchId.value.should.eql(NodeId.nullNodeId);
             call3_eventId.should.not.eql(call0_eventId, "Event Id must be different");
             call3_eventId.should.not.eql(call1_eventId, "Event Id must be different");
 
             // checking the created branch
             spyOnEvent.getCalls()[2].args[0].message.value.text.should.eql("Condition value is -9 and state is Low");
-            spyOnEvent.getCalls()[2].args[0].branchId.value.should.not.eql(NodeId.NullNodeId);
+            spyOnEvent.getCalls()[2].args[0].branchId.value.should.not.eql(NodeId.nullNodeId);
             call2_eventId.should.not.eql(call0_eventId, "Event Id must be different");
             call2_eventId.should.not.eql(call1_eventId, "Event Id must be different");
 
@@ -164,7 +164,7 @@ module.exports = function (test) {
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(5);
             spyOnEvent.getCalls()[4].args[0].message.value.text.should.eql("Condition value is 11 and state is High");
-            spyOnEvent.getCalls()[4].args[0].branchId.value.should.eql(NodeId.NullNodeId);
+            spyOnEvent.getCalls()[4].args[0].branchId.value.should.eql(NodeId.nullNodeId);
 
             // InputNode goes very very high  - alarm stays active - state changes to HighHigh - 1 event raised
             // --------------------------------------------------------------------------------------------------
@@ -174,7 +174,7 @@ module.exports = function (test) {
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(6);
             spyOnEvent.getCalls()[5].args[0].message.value.text.should.eql("Condition value is 200 and state is HighHigh");
-            spyOnEvent.getCalls()[5].args[0].branchId.value.should  .eql(NodeId.NullNodeId);
+            spyOnEvent.getCalls()[5].args[0].branchId.value.should  .eql(NodeId.nullNodeId);
 
             //xxdumpSpy(spyOnEvent);
 

@@ -1,7 +1,7 @@
 /* global: require, describe, it, process*/
 "use strict";
 require("colors");
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+var crypto_utils = require("node-opcua-crypto");
 var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");

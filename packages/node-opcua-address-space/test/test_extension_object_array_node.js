@@ -8,7 +8,7 @@ const Variant = require("node-opcua-variant").Variant;
 
 const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-const SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
+const SubscriptionDiagnosticsDataType = require("node-opcua-common").SubscriptionDiagnosticsDataType;
 
 const eoan = require("../src/extension_object_array_node");
 
@@ -71,7 +71,7 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
 
         elementNode.browseName.toString().should.eql("1:10");
         elementNode.subscriptionId.should.be.instanceOf(UAVariable);
-        elementNode.readValue().value.value.should.be.instanceOf(SubscriptionDiagnostics);
+        elementNode.readValue().value.value.should.be.instanceOf(SubscriptionDiagnosticsDataType);
         elementNode.readValue().value.should.be.instanceOf(Variant);
 
         // verify that object is now bond, by modifying a value of a property of the underlying data structure
@@ -230,7 +230,7 @@ describe("Extension Object Array Node (or Complex Variable)", function () {
         const SubscriptionDiagnosticsType = addressSpace.findVariableType("SubscriptionDiagnosticsType");
         should.exist(SubscriptionDiagnosticsType);
 
-        const extObj = new SubscriptionDiagnostics({
+        const extObj = new SubscriptionDiagnosticsDataType({
             subscriptionId: 1123455,
             enableCount: 7
         });

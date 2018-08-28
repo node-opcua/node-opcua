@@ -18,6 +18,16 @@ const Dequeue = require("dequeue");
 const utils = require("node-opcua-utils");
 const dumpIf = require("node-opcua-debug").dumpIf;
 
+const BrowseResult = require("node-opcua-service-browse").BrowseResult;
+
+
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
+const doDebug = false;
+
+const DataTypeIds = require("node-opcua-constants").DataTypeIds;
+const VariableTypeIds = require("node-opcua-constants").VariableTypeIds;
 
 
 
@@ -32,18 +42,6 @@ const UADataType = require("./ua_data_type").UADataType;
 const Reference = require("./reference").Reference;
 const View = require("./view").View;
 
-const BrowseResult = require("node-opcua-service-browse").BrowseResult;
-
-
-const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-
-const QualifiedName = require("node-opcua-data-model").QualifiedName;
-const doDebug = false;
-
-const DataTypeIds = require("node-opcua-constants").DataTypeIds;
-const VariableTypeIds = require("node-opcua-constants").VariableTypeIds;
-
-
 
 
 function _extract_namespace_and_browse_name_as_string(addressSpace,browseName,namespaceIndex)
@@ -51,10 +49,14 @@ function _extract_namespace_and_browse_name_as_string(addressSpace,browseName,na
     assert(!namespaceIndex || namespaceIndex >=0);
 
     let result ;
+
     if (namespaceIndex >0) {
+
         assert(typeof browseName ==="string" && "expecting a string when namespaceIndex is specified");
         result = [ addressSpace.getNamespace(namespaceIndex) , browseName];
+
     } else if (typeof browseName ==="string") {
+
         // split
         if(browseName.indexOf(":")>=0) {
             const a = browseName.split(":");
@@ -62,15 +64,17 @@ function _extract_namespace_and_browse_name_as_string(addressSpace,browseName,na
             browseName   = a.length === 2 ? a[1] : browseName;
         }
         result =  [addressSpace.getNamespace(namespaceIndex||0),browseName];
+
     } else if (browseName instanceof QualifiedName) {
+
         namespaceIndex = browseName.namespaceIndex;
         result =  [addressSpace.getNamespace(namespaceIndex),browseName.name];
-    } else if (browseName.key/* instanceof EnumItem*/) {
-        //xxnamespaceIndex = addressSpace.getDefaultNamespace();
-        result = [addressSpace.getDefaultNamespace(), browseName.key ];
+
+    } else if (typeof browseName === "number") {
+        result = [addressSpace.getDefaultNamespace(), DataType[browseName] ];
     }
     if (!result || !result[0]) {
-        throw new Error(" Cannot find namespace associated with ",browseName,namespaceIndex);
+        throw new Error(` Cannot find namespace associated with ${browseName} ${namespaceIndex}`);
     }
     return result;
 }
@@ -109,6 +113,11 @@ AddressSpace.prototype.getNamespaceUri = function (namespaceIndex) {
     return this._namespaceArray[namespaceIndex].namespaceUri;
 };
 
+/***
+ * @method getNamespace
+ * @param {string|number} namespace index or namespace uri.
+ * @return {NameSpace} the namespace
+ */
 AddressSpace.prototype.getNamespace = function (namespaceIndexOrName) {
    const self = this;
    if (typeof namespaceIndexOrName ==="number") {
@@ -123,9 +132,22 @@ AddressSpace.prototype.getNamespace = function (namespaceIndexOrName) {
     }
 };
 
+/***
+ * @method getDefaultNamespace
+ * @return  {NameSpace} the  default namespace (standard OPCUA namespace)
+ */
 AddressSpace.prototype.getDefaultNamespace= function() {
     return this.getNamespace(0);
 };
+
+
+/***
+ * @method getOwnNamespace
+ *
+ * objects instances managed by the server will be created in this namespace.
+ *
+ * @return  {NameSpace} address space own namespace
+ */
 AddressSpace.prototype.getOwnNamespace= function() {
 
     const self = this;
@@ -140,6 +162,9 @@ AddressSpace.prototype.getOwnNamespace= function() {
 const Namespace = require("./namespace").Namespace;
 
 /**
+ * @method registerNamespace
+ *
+ * register a new namespace
  *
  * @param namespaceUri {string}
  * @returns {Namespace}
@@ -165,12 +190,22 @@ AddressSpace.prototype.registerNamespace = function (namespaceUri) {
     return self._namespaceArray[index];
 };
 
+/**
+ * @method getNamespaceIndex
+ * @param {strings} namespaceUri
+ * @return {number} the namespace index of a namespace given by its namespace uri
+ *
+ */
 AddressSpace.prototype.getNamespaceIndex = function (namespaceUri) {
     assert(typeof namespaceUri === "string");
     const self = this;
     return  self._namespaceArray.findIndex(ns=> ns.namespaceUri === namespaceUri);
 };
 
+/***
+ * @method getNamespaceArray
+ * @return {Namespace[]} the namespace array
+ */
 AddressSpace.prototype.getNamespaceArray = function () {
     return this._namespaceArray;
 };
@@ -321,18 +356,18 @@ const DataType = require("node-opcua-variant").DataType;
 /**
  * @method findCorrespondingBasicDataType
  * @param dataTypeNode
- *
+ * @returns DataType
  *
  * @example
  *
  *     const dataType = addressSpace.findDataType("ns=0;i=12");
  *     addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.String);
  *
- *     const dataType = addressSpace.findDataType("ServerStatus"); // ServerStatus
+ *     const dataType = addressSpace.findDataType("ServerStatusDataType"); // ServerStatus
  *     addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.ExtensionObject);
  *
  */
-AddressSpace.prototype.findCorrespondingBasicDataType = function(dataTypeNode) {
+AddressSpace.prototype.findCorrespondingBasicDataType = function(dataTypeNode) /* DataType */ {
 
     const self =this;
     assert(dataTypeNode,"expecting a dataTypeNode");
@@ -351,15 +386,15 @@ AddressSpace.prototype.findCorrespondingBasicDataType = function(dataTypeNode) {
     assert(dataTypeNode instanceof UADataType);
 
     const id =  dataTypeNode.nodeId.value;
+    assert(_.isFinite(id));
 
     const enumerationType = self.findDataType("Enumeration");
     if (sameNodeId(enumerationType.nodeId ,dataTypeNode.nodeId)) {
         return DataType.Int32;
     }
 
-    if (dataTypeNode.nodeId.namespace === 0 && DataType.get(id)) {
-
-        return DataType.get(id);
+    if (dataTypeNode.nodeId.namespace === 0 && DataType[id]) {
+        return id;
     }
     return this.findCorrespondingBasicDataType(dataTypeNode.subtypeOfObj);
 };
@@ -464,7 +499,7 @@ AddressSpace.prototype.findReferenceType = function (refType,namespace) {
 
     // startingNode ns=0;i=31 : References
     //  References i=31
-    //  +->(hasSubtype) NoHierarchicalReferences
+    //  +->(hasSubtype) NonHierarchicalReferences
     //                  +->(hasSubtype) HasTypeDefinition
     //  +->(hasSubtype) HierarchicalReferences
     //                  +->(hasSubtype) HasChild/ChildOf
@@ -1042,6 +1077,15 @@ AddressSpace.prototype.shutdown = function() {
     self._shutdownTask = [];
 };
 
+
+function adjustBrowseDescription(browseDescription, defaultValue)
+{
+    if (browseDescription === null || browseDescription === undefined)
+        return defaultValue;
+    return browseDescription;
+}
+exports.adjustBrowseDescription = adjustBrowseDescription;
+
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 /**
  *
@@ -1057,9 +1101,8 @@ AddressSpace.prototype.browseSingleNode = function (nodeId, browseDescription, s
     const addressSpace = this;
     // create default browseDescription
     browseDescription = browseDescription || {};
-    browseDescription.browseDirection = browseDescription.browseDirection || BrowseDirection.Forward;
+    browseDescription.browseDirection = adjustBrowseDescription(browseDescription.browseDirection,BrowseDirection.Forward);
 
-    assert(browseDescription.browseDirection);
 
     //xx console.log(util.inspect(browseDescription,{colors:true,depth:5}));
     browseDescription = browseDescription || {};

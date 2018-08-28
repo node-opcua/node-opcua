@@ -2,32 +2,31 @@
 const should  =require("should");
 const browse_service = require("..");
 const redirectToFile = require("node-opcua-debug").redirectToFile;
-
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const NodeClass = browse_service.NodeClass;
+
 
 describe("Testing Browse Service",function() {
 
-    it("should create a BrowseRequest",function() {
-
+    it( "should create a BrowseRequest",function() {
         const browseRequest = new browse_service.BrowseRequest({});
-
+        browseRequest.should.have.property("requestHeader");
     });
     it("should create a BrowseResponse",function() {
-
         const browseResponse = new browse_service.BrowseResponse({});
-
+        browseResponse.should.have.property("responseHeader");
+        console.log(browseResponse.toString());
     });
 
 });
 
 describe("Browse Service", function () {
 
-    const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+    const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
 
     it("should construct a BrowseDescription", function () {
-
-        const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-
         const browseDescription = new browse_service.BrowseDescription({
             browseDirection: BrowseDirection.Both,
             referenceTypeId: makeNodeId(12),
@@ -66,7 +65,6 @@ describe("Browse Service", function () {
         date_time.bn_dateToHundredNanoSecondFrom1601(browseRequest.view.timestamp).should.eql([0, 0]);
     });
 
-
     it("should create a BrowseResponse", function () {
         const browseResponse = new browse_service.BrowseResponse({});
         encode_decode_round_trip_test(browseResponse);
@@ -76,18 +74,12 @@ describe("Browse Service", function () {
 
         redirectToFile('ReferenceDescription_to_json.log', function () {
 
-            const StatusCodes = require("node-opcua-status-code").StatusCodes;
-            const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-            const NodeClass = require("node-opcua-data-model").NodeClass;
-
-
             const ref = new browse_service.ReferenceDescription({
                 referenceTypeId: "ns=1;i=10",
                 isForward: true,
                 nodeClass: NodeClass.Variable,
                 browseName: {name: "toto"}
             });
-
 
             const json_str = JSON.stringify(ref, null, " ");
             const b = new browse_service.ReferenceDescription(JSON.parse(json_str));
@@ -100,17 +92,11 @@ describe("Browse Service", function () {
 
             b.should.eql(ref);
         });
-
     });
 
     it("should jsonify a BrowseResponse", function () {
 
-
         redirectToFile('BrowseResponse_to_json.log', function () {
-
-            const StatusCodes = require("node-opcua-status-code").StatusCodes;
-            const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-            const NodeClass = require("node-opcua-data-model").NodeClass;
 
             const ref = new browse_service.ReferenceDescription({
                 referenceTypeId: "ns=1;i=10",
@@ -140,13 +126,6 @@ describe("Browse Service", function () {
             console.log(require("util").inspect(b, {colors: true, depth: 15}));
 
             b.should.eql(object);
-
         });
-
     });
-
-
-
-
-
 });

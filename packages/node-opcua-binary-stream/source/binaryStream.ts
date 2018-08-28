@@ -1,10 +1,11 @@
 /**
- * @module opcua.miscellaneous
+ * @module node-opcua-binary-stream
  */
-import assert from "node-opcua-assert";
+import { isFinite } from "underscore";
 import "util";
-import {createFastUninitializedBuffer} from "node-opcua-buffer-utils";
-import {isFinite} from "underscore";
+
+import assert from "node-opcua-assert";
+import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
 const MAXUINT32 = 4294967295; // 2**32 -1;
 const noAssert = false;
@@ -15,6 +16,7 @@ const performCheck = false;
  * inside a buffer.
  * The BinaryStream maintains a cursor up to date as the caller
  * operates on the stream using the various read/write methods.
+ * It uses the [Little Endian](http://en.wikipedia.org/wiki/Little_endian#Little-endian)
  * It uses the [Little Endian](http://en.wikipedia.org/wiki/Little_endian#Little-endian)
  * convention.
  *
@@ -37,9 +39,17 @@ const performCheck = false;
  *
  *
  */
-class BinaryStream {
-    _buffer: Buffer;
-    length: number;
+export class BinaryStream {
+
+    /**
+     * the current position inside the buffer
+     */
+    public length: number;
+
+    /**
+     * @internal
+     */
+    public _buffer: Buffer;
 
     constructor(data: undefined | Buffer | number) {
         if (data === undefined) {
@@ -56,79 +66,73 @@ class BinaryStream {
     /**
      * set the cursor to the begining of the stream
      * @method BinaryStream.rewind
-     * @return null
      */
-    rewind() {
+    public rewind(): void {
         this.length = 0;
     }
 
     /**
      * write a single signed byte (8 bits) to the stream.
      * value must be in the range of [-127,128]
-     * @method writeInt8
-     * @param value
+     * @param value the value to write
      */
-    writeInt8(value: number): void {
-        if (performCheck) assert(this._buffer.length >= this.length + 1, "not enough space in buffer");
-        if (performCheck) assert(value >= -128 && value < 128);
+    public writeInt8(value: number): void {
+        if (performCheck) { assert(this._buffer.length >= this.length + 1, "not enough space in buffer"); }
+        if (performCheck) { assert(value >= -128 && value < 128); }
         this._buffer.writeInt8(value, this.length, noAssert);
         this.length += 1;
     }
 
     /**
      * write a single unsigned byte (8 bits) to the stream.
-     * @method writeUInt8
-     * @param value
+     * @param value  the value to write
      */
-    writeUInt8(value: number): void {
-        if (performCheck) assert(this._buffer.length >= this.length + 1, "not enough space in buffer");
-        if (performCheck) assert(value >= 0 && value < 256, " writeUInt8 : out of bound ");
+    public writeUInt8(value: number): void {
+        if (performCheck) { assert(this._buffer.length >= this.length + 1, "not enough space in buffer"); }
+        if (performCheck) { assert(value >= 0 && value < 256, " writeUInt8 : out of bound "); }
         this._buffer.writeUInt8(value, this.length, noAssert);
         this.length += 1;
     }
 
     /**
      * write a single 16 bit signed integer to the stream.
-     * @method writeInt16
-     * @param  value
+     * @param  value  the value to write
      */
-    writeInt16(value: number): void {
-        if (performCheck) assert(this._buffer.length >= this.length + 2, "not enough space in buffer");
+    public writeInt16(value: number): void {
+        if (performCheck) { assert(this._buffer.length >= this.length + 2, "not enough space in buffer"); }
         this._buffer.writeInt16LE(value, this.length, noAssert);
         this.length += 2;
     }
 
     /**
      * write a single 16 bit unsigned integer to the stream.
-     * @method writeUInt16
-     * @param  value
+     * @param  value  the value to write
      */
-    writeUInt16(value: number): void {
-        if (performCheck) assert(this._buffer.length >= this.length + 2, "not enough space in buffer");
+    public writeUInt16(value: number): void {
+        if (performCheck) { assert(this._buffer.length >= this.length + 2, "not enough space in buffer"); }
         this._buffer.writeUInt16LE(value, this.length, noAssert);
         this.length += 2;
     }
 
     /**
      * write a single 32 bit signed integer to the stream.
-     * @method writeInteger
-     * @param  value
+     * @param  value  the value to write
      */
-    writeInteger(value: number): void {
-        if (performCheck) assert(this._buffer.length >= this.length + 4, "not enough space in buffer");
+    public writeInteger(value: number): void {
+        if (performCheck) { assert(this._buffer.length >= this.length + 4, "not enough space in buffer"); }
         this._buffer.writeInt32LE(value, this.length, noAssert);
         this.length += 4;
     }
 
     /**
      * write a single 32 bit unsigned integer to the stream.
-     * @method writeUInt32
-     * @param value
+     *
+     * @param  value the value to write
      */
-    writeUInt32(value: number): void {
-        if (performCheck) assert(this._buffer.length >= this.length + 4, "not enough space in buffer");
-        if (performCheck) assert(isFinite(value));
-        if (performCheck) assert(value >= 0 && value <= MAXUINT32);
+    public writeUInt32(value: number): void {
+        if (performCheck) {assert(this._buffer.length >= this.length + 4, "not enough space in buffer"); }
+        if (performCheck) {assert(isFinite(value)); }
+        if (performCheck) {assert(value >= 0 && value <= MAXUINT32); }
         this._buffer.writeUInt32LE(value, this.length, noAssert);
         this.length += 4;
         /*
@@ -141,34 +145,31 @@ class BinaryStream {
 
     /**
      * write a single 32 bit floating number to the stream.
-     * @method writeFloat
-     * @param value
+     * @param  value  the value to write
      */
-    writeFloat(value: number): void {
-        if (performCheck) assert(this._buffer.length >= this.length + 4, "not enough space in buffer");
+    public writeFloat(value: number): void {
+        if (performCheck) { assert(this._buffer.length >= this.length + 4, "not enough space in buffer"); }
         this._buffer.writeFloatLE(value, this.length, noAssert);
         this.length += 4;
     }
 
     /**
      * write a single 64 bit floating number to the stream.
-     * @method writeDouble
-     * @param value
+     * @param  value  the value to write
      */
-    writeDouble(value: number): void {
-        if (performCheck) assert(this._buffer.length >= this.length + 8, "not enough space in buffer");
+    public writeDouble(value: number): void {
+        if (performCheck) { assert(this._buffer.length >= this.length + 8, "not enough space in buffer"); }
         this._buffer.writeDoubleLE(value, this.length, noAssert);
         this.length += 8;
     }
 
     /**
-     * @method writeArrayBuffer
-     * @param arrayBuf {ArrayBuffer}
-     * @param offset   {Number}
-     * @param length   {Number}
+     * @param arrayBuf a buffer or byte array write
+     * @param offset   the offset position (default =0)
+     * @param length   the number of byte to write
      */
-    writeArrayBuffer(arrayBuf: ArrayBuffer, offset=0, length=0): void {
-        if (performCheck) assert(arrayBuf instanceof ArrayBuffer);
+    public writeArrayBuffer(arrayBuf: ArrayBuffer, offset = 0, length = 0): void {
+        if (performCheck) { assert(arrayBuf instanceof ArrayBuffer); }
         const byteArr = new Uint8Array(arrayBuf);
         const n = (length || byteArr.length) + offset;
         for (let i = offset; i < n; i++) {
@@ -190,26 +191,23 @@ class BinaryStream {
 
     /**
      * read a single signed byte  (8 bits) from the stream.
-     * @method readByte
-     * @return {Number}
+     * @return the value read
      */
-    readByte(): number {
+    public readByte(): number {
         const retVal = this._buffer.readInt8(this.length, noAssert);
         this.length += 1;
         return retVal;
     }
 
-    readInt8(): number {
+    public readInt8(): number {
         return this.readByte();
     }
 
     /**
      * read a single unsigned byte (8 bits) from the stream.
-     * @method readUInt8
-     * @return {Number}
      */
-    readUInt8(): number {
-        if (performCheck) assert(this._buffer.length >= this.length + 1);
+    public readUInt8(): number {
+        if (performCheck) { assert(this._buffer.length >= this.length + 1); }
         const retVal = this._buffer.readUInt8(this.length, noAssert);
         this.length += 1;
         return retVal;
@@ -217,10 +215,8 @@ class BinaryStream {
 
     /**
      * read a single signed 16-bit integer from the stream.
-     * @method readInt16
-     * @return {Number}
      */
-    readInt16(): number {
+    public readInt16(): number {
         const retVal = this._buffer.readInt16LE(this.length, noAssert);
         this.length += 2;
         return retVal;
@@ -228,10 +224,8 @@ class BinaryStream {
 
     /**
      * read a single unsigned 16-bit integer from the stream.
-     * @method readUInt16
-     * @return {Number}  q
      */
-    readUInt16(): number {
+    public readUInt16(): number {
         const retVal = this._buffer.readUInt16LE(this.length, noAssert);
         this.length += 2;
         return retVal;
@@ -239,10 +233,8 @@ class BinaryStream {
 
     /**
      * read a single signed 32-bit integer from the stream.
-     * @method readInteger
-     * @return {Number}
      */
-    readInteger(): number {
+    public readInteger(): number {
         const retVal = this._buffer.readInt32LE(this.length, noAssert);
         this.length += 4;
         return retVal;
@@ -250,10 +242,8 @@ class BinaryStream {
 
     /**
      * read a single unsigned 32-bit integer from the stream.
-     * @method readUInt32
-     * @return {number} the value read from the stream
      */
-    readUInt32(): number {
+    public readUInt32(): number {
         const retVal = this._buffer.readUInt32LE(this.length, noAssert);
         this.length += 4;
         return retVal;
@@ -261,10 +251,8 @@ class BinaryStream {
 
     /**
      * read a single  32-bit floating point number from the stream.
-     * @method readFloat
-     * @return  the value read from the stream
      */
-    readFloat(): number {
+    public readFloat(): number {
         const retVal = this._buffer.readFloatLE(this.length, noAssert);
         this.length += 4;
         return retVal;
@@ -272,10 +260,8 @@ class BinaryStream {
 
     /**
      * read a single 64-bit floating point number from the stream.
-     * @method readDouble
-     * @return  the value read from the stream
      */
-    readDouble(): number {
+    public readDouble(): number {
         const retVal = this._buffer.readDoubleLE(this.length, noAssert);
         this.length += 8;
         return retVal;
@@ -285,11 +271,9 @@ class BinaryStream {
      * write a byte stream to the stream.
      * The method writes the length of the byte array into the stream as a 32 bits integer before the byte stream.
      *
-     * @method writeByteStream
-     * @param {Buffer} buf the    buffer to write.
-     *   the buffer buf.length the buffer to write
+     * @param buf the buffer to write.
      */
-    writeByteStream(buf: Buffer): void {
+    public writeByteStream(buf: Buffer): void {
         if (!buf) {
             this.writeInteger(-1);
             return;
@@ -306,14 +290,14 @@ class BinaryStream {
                 buf.length +
                 " but only " +
                 remainingBytes +
-                " left"
+                " left",
             );
         }
         buf.copy(this._buffer, this.length, 0, buf.length);
         this.length += buf.length;
     }
 
-    writeString(value: string): void {
+    public writeString(value: null|string): void {
         if (value === undefined || value === null) {
             this.writeInteger(-1);
             return;
@@ -329,7 +313,7 @@ class BinaryStream {
                 byteLength +
                 " but only " +
                 remainingBytes +
-                " left"
+                " left",
             );
         }
         if (byteLength > 0) {
@@ -348,26 +332,24 @@ class BinaryStream {
     /**
      * @method readArrayBuffer
      * @param length
-     * @returns {Uint8Array}
      */
-    readArrayBuffer(length: number): Uint8Array {
-        if (performCheck) assert(this.length + length <= this._buffer.length, "not enough bytes in buffer");
+    public readArrayBuffer(length: number): Uint8Array {
+        if (performCheck) { assert(this.length + length <= this._buffer.length, "not enough bytes in buffer"); }
         const slice = this._buffer.slice(this.length, this.length + length);
-        if (performCheck) assert(slice.length === length);
+        if (performCheck) { assert(slice.length === length); }
         const byteArr = new Uint8Array(slice);
-        if (performCheck) assert(byteArr.length === length);
+        if (performCheck) { assert(byteArr.length === length); }
         this.length += length;
         return byteArr;
     }
 
     /**
      * read a byte stream to the stream.
-     * The method reads the length of the byte array from the stream as a 32 bits integer before reading the byte stream.
+     * The method reads the length of the byte array from the stream as a 32 bits integer
+     * before reading the byte stream.
      *
-     * @method readByteStream
-     * @return {Buffer}
      */
-    readByteStream(): Buffer | null {
+    public readByteStream(): Buffer | null {
         const bufLen = this.readUInt32();
         if (bufLen === 0xffffffff) {
             return null;
@@ -383,7 +365,7 @@ class BinaryStream {
                 bufLen +
                 " but only " +
                 remainingBytes +
-                " left"
+                " left",
             );
         }
         // create a shared memory buffer ! for speed
@@ -392,7 +374,7 @@ class BinaryStream {
         return buf;
     }
 
-    readString(): string | null {
+    public readString(): string | null {
         const bufLen = this.readUInt32();
         if (bufLen === 0xffffffff) {
             return null;
@@ -408,7 +390,7 @@ class BinaryStream {
                 bufLen +
                 " but only " +
                 remainingBytes +
-                " left"
+                " left",
             );
         }
         const str = this._buffer.toString("utf-8", this.length, this.length + bufLen);
@@ -421,8 +403,9 @@ class BinaryStream {
  * @function calculateByteLength
  * calculate the size in bytes of a utf8 string
  * @param str {String}
+ * @internal
  */
-function calculateByteLength(str: string) {
+export function calculateByteLength(str: string) {
     // returns the byte length of an utf8 string
     let s = str.length;
     for (let i = str.length - 1; i >= 0; i--) {
@@ -441,87 +424,3 @@ function calculateByteLength(str: string) {
 }
 
 const zeroLengthBuffer = createFastUninitializedBuffer(0);
-exports.BinaryStream = BinaryStream;
-
-/**
- * a BinaryStreamSizeCalculator can be used to quickly evaluate the required size
- * of a buffer by performing the same sequence of write operation.
- *
- * a BinaryStreamSizeCalculator has the same writeXXX methods as the BinaryStream stream
- * object.
- *
- * @class BinaryStreamSizeCalculator
- * @extends BinaryStream
- * @constructor
- *
- */
-class BinaryStreamSizeCalculator {
-    length: number;
-
-    constructor() {
-        this.length = 0;
-    }
-
-    rewind(): void {
-        this.length = 0;
-    }
-
-    writeInt8(value: number): void {
-        this.length += 1;
-    }
-
-    writeUInt8(value: number): void {
-        this.length += 1;
-    }
-
-    writeInt16(value: number): void {
-        this.length += 2;
-    }
-
-    writeInteger(value: number): void {
-        this.length += 4;
-    }
-
-    writeUInt32(value: number): void {
-        this.length += 4;
-    }
-
-    writeUInt16(value: number): void {
-        this.length += 2;
-    }
-
-    writeFloat(value: number): void {
-        this.length += 4;
-    }
-
-    writeDouble(value: number): void {
-        this.length += 8;
-    }
-
-    writeArrayBuffer(arrayBuf: ArrayBuffer, offset: number, byteLength: number): void {
-        offset = offset || 0;
-        assert(arrayBuf instanceof ArrayBuffer);
-        this.length += byteLength || arrayBuf.byteLength;
-    }
-
-    writeByteStream(buf: Buffer): void {
-        if (!buf) {
-            this.writeUInt32(0);
-        } else {
-            this.writeUInt32(buf.length);
-            this.length += buf.length;
-        }
-    }
-
-    writeString(str: string): void {
-        if (str === undefined || str === null) {
-            this.writeUInt32(-1);
-            return;
-        }
-        const bufLength = calculateByteLength(str);
-        this.writeUInt32(bufLength);
-        this.length += bufLength;
-    }
-}
-
-exports.BinaryStreamSizeCalculator = BinaryStreamSizeCalculator;

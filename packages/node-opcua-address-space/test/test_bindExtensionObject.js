@@ -11,7 +11,7 @@ const DataValue = require("node-opcua-data-value").DataValue;
 const DataType = require("node-opcua-variant").DataType;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
-const SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
+const SessionDiagnosticsDataType = require("node-opcua-common").SessionDiagnosticsDataType;
 const ServerState = require("node-opcua-common").ServerState;
 
 const eoan = require("../src/extension_object_array_node");
@@ -39,7 +39,7 @@ describe("Extension Object binding and sub  components\n", function () {
 
     describe("bindObject\n", function () {
 
-        it("ZZ1 - should handle a Variable containing a ServiceCounter", function () {
+        it("ZZ1 - should handle a Variable containing a ServiceCounterDataType", function () {
 
             const rootFolder = addressSpace.findNode("RootFolder");
 
@@ -67,7 +67,7 @@ describe("Extension Object binding and sub  components\n", function () {
             extensionObjectVar.totalCount.readValue().statusCode.should.eql(StatusCodes.Good);
 
             const extensionObject = extensionObjectVar.bindExtensionObject();
-            extensionObject.constructor.name.should.eql("ServiceCounter");
+            extensionObject.constructor.name.should.eql("ServiceCounterDataType");
 
             // ------------------ Changing extension object value should reflects in node Value
             extensionObjectVar.readValue().value.value.totalCount.should.eql(0);
@@ -113,7 +113,7 @@ describe("Extension Object binding and sub  components\n", function () {
             extensionObjectVar.minimumSamplingInterval.should.eql(0);
 
             const extensionObject = extensionObjectVar.bindExtensionObject();
-            extensionObject.constructor.name.should.eql("ServerStatus");
+            extensionObject.constructor.name.should.eql("ServerStatusDataType");
 
             const spy_on_ServerStatus_value_changed = sinon.spy();
             const spy_on_ServerStatus_BuildInfo_value_changed = sinon.spy();
@@ -139,11 +139,11 @@ describe("Extension Object binding and sub  components\n", function () {
             // ---------------------------------------- State ( testing Enumeration )
             extensionObject.state = ServerState.Running;
             spy_on_ServerStatus_State_value_changed.callCount.should.eql(1);
-            extensionObjectVar.state.readValue().value.value.should.eql(ServerState.Running.value);
+            extensionObjectVar.state.readValue().value.value.should.eql(ServerState.Running);
 
             extensionObject.state = ServerState.Suspended;
             spy_on_ServerStatus_State_value_changed.callCount.should.eql(2);
-            extensionObjectVar.state.readValue().value.value.should.eql(ServerState.Suspended.value);
+            extensionObjectVar.state.readValue().value.value.should.eql(ServerState.Suspended);
 
         });
 
@@ -176,7 +176,7 @@ describe("Extension Object binding and sub  components\n", function () {
 
 
             const extensionObject = extensionObjectVar.bindExtensionObject();
-            extensionObject.constructor.name.should.eql("SessionDiagnostics");
+            extensionObject.constructor.name.should.eql("SessionDiagnosticsDataType");
 
             const spy_on_SessionDiagnostics_value_changed = sinon.spy();
             const spy_on_SessionDiagnostics_TotalRequestCount_value_changed = sinon.spy();
@@ -324,7 +324,7 @@ describe("Extension Object binding and sub  components\n", function () {
 
         it("ZA2- sessionDiagnostics should have a dataValue with the expected ExtensionObjectType", function () {
             const extensionObject = sessionDiagnostics.readValue().value.value;
-            extensionObject.constructor.name.should.eql("SessionDiagnostics");
+            extensionObject.constructor.name.should.eql("SessionDiagnosticsDataType");
         });
 
         it("ZA3- updateExtensionObjectPartial: it should be possible to cascade changes by acting on the whole ExtensionObject", function () {

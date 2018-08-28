@@ -83,7 +83,7 @@ module.exports = function (test) {
                                 dataValue.statusCode.should.eql(StatusCodes.Good);
                                 dataValue.value.dataType.should.eql(DataType.ExtensionObject);
                                 dataValue.value.arrayType.should.eql(VariantArrayType.Scalar);
-                                dataValue.value.value.constructor.name.should.eql("SubscriptionDiagnostics");
+                                dataValue.value.value.constructor.name.should.eql("SubscriptionDiagnosticsDataType");
 
                                 //Xx console.log(results[0]);
                                 callback();
@@ -109,8 +109,8 @@ module.exports = function (test) {
                                     "the SubscriptionDiagnosticsArray must expose at least one value");
 
                                 const lastIndex = dataValue.value.value.length -1;
-                                dataValue.value.value[0].constructor.name.should.eql("SubscriptionDiagnostics",
-                                  "the value inside the array  must be of type SubscriptionDiagnostics");
+                                dataValue.value.value[0].constructor.name.should.eql("SubscriptionDiagnosticsDataType",
+                                  "the value inside the array  must be of type SubscriptionDiagnosticsDataType");
 
                                 //xx console.log(dataValue.value.value[0]);
                                 //xx console.log(session);

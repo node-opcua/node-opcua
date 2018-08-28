@@ -4,6 +4,8 @@ const opcua = require("node-opcua");
 const should = require("should");
 const async = require("async");
 
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 const OPCUAServer = opcua.OPCUAServer;
 
@@ -219,6 +221,7 @@ describe("DS4- Discovery server", function () {
         ], done);
 
     });
+
     it("DS6 a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function(done){
        this.timeout(5000);
        async.series([
@@ -247,13 +250,15 @@ describe("DS4- Discovery server", function () {
 });
 
 describe("DS5- Discovery Server 2",function() {
-    it("Discovery Server - server shall not struggle to start if discovery server is not available",function(done){
+
+    it("DS5-1 server shall not struggle to start if discovery server is not available",function(done){
 
         let discoveryServerEndpointUrl = "opc.tcp://localhost:12345";
 
         let server;
         async.series([
 
+            // in this test, there is no discovery server available
             // no discovery ...
 
             function(callback){
@@ -261,7 +266,7 @@ describe("DS5- Discovery Server 2",function() {
                 server = new OPCUAServer({
                     port: 1435,
                     registerServerMethod: opcua.RegisterServerMethod.LDS,
-                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
+                    discoveryServerEndpointUrl: discoveryServerEndpointUrl
                 });
 
                 server.registerServerManager.timeout = 100;
@@ -281,45 +286,4 @@ describe("DS5- Discovery Server 2",function() {
         ],done);
     });
 
-    it("Discovery Server - server shall not struggle to start if discovery server is not available",function(done){
-
-        let discoveryServerEndpointUrl = "opc.tcp://localhost:12345";
-
-        let server;
-        async.series([
-
-            // no discovery ...
-
-            function(callback){
-
-                server = new OPCUAServer({
-                    port: 1435,
-                    registerServerMethod: opcua.RegisterServerMethod.LDS,
-                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
-                });
-
-                server.registerServerManager.timeout = 100;
-
-                // when server starts
-                // it should end up registering itself to the LDS
-                server.once("serverRegistered", function () {
-                    console.log("server serverRegistered ?! this is not what we expect !");
-                });
-                server.start(function () {
-                    callback();
-                });
-            },
-
-
-            function(callback){
-                server.once("serverRegistrationPending", function () {
-                    //x console.log("serverRegistrationPending");
-                    setTimeout(callback,1000);
-                });
-            },
-            function(callback) {
-                server.shutdown(callback);
-            }
-        ],done);
-    });
 });

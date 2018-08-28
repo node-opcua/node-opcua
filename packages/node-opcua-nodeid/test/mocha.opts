@@ -1,0 +1,3 @@
+--recursive
+--bail
+--require source-map-support/register

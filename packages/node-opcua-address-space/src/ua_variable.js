@@ -11,10 +11,11 @@ const utils = require("node-opcua-utils");
 const NodeClass = require("node-opcua-data-model").NodeClass;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const extractRange = require("node-opcua-data-value").extractRange;
-const is_valid_dataEncoding = require("node-opcua-data-model").is_valid_dataEncoding;
-const is_dataEncoding = require("node-opcua-data-model").is_dataEncoding;
+const isValidDataEncoding = require("node-opcua-data-model").isValidDataEncoding;
+const isDataEncoding = require("node-opcua-data-model").isDataEncoding;
 const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
-const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
+const makeAccessLevelFlag = require("node-opcua-data-model").makeAccessLevelFlag;
+const convertAccessLevelFlagToByte = require("node-opcua-data-model").convertAccessLevelFlagToByte;
 
 const NodeId = require("node-opcua-nodeid").NodeId;
 
@@ -54,17 +55,17 @@ function isGoodish(statusCode) {
 
 function adjust_accessLevel(accessLevel) {
     accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
-    accessLevel = makeAccessLevel(accessLevel);
-    assert(_.isFinite(accessLevel.value));
+    accessLevel = makeAccessLevelFlag(accessLevel);
+    assert(_.isFinite(accessLevel));
     return accessLevel;
 }
 
 function adjust_userAccessLevel(userAccessLevel, accessLevel) {
     userAccessLevel = utils.isNullOrUndefined(userAccessLevel) ? "CurrentRead | CurrentWrite" : userAccessLevel;
-    userAccessLevel = makeAccessLevel(userAccessLevel);
+    userAccessLevel = makeAccessLevelFlag(userAccessLevel);
     accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
-    accessLevel = makeAccessLevel(accessLevel);
-    return makeAccessLevel(accessLevel.value & userAccessLevel.value);
+    accessLevel = makeAccessLevelFlag(accessLevel);
+    return makeAccessLevelFlag(accessLevel & userAccessLevel);
 }
 
 function adjust_samplingInterval(minimumSamplingInterval) {
@@ -98,12 +99,12 @@ const UADataType = require("./ua_data_type").UADataType;
 function _dataType_toUADataType(addressSpace, dataType) {
 
     assert(addressSpace);
-    assert(dataType && dataType.hasOwnProperty("key"));
+    assert(dataType !== DataType.Null);
 
-    const dataTypeNode = addressSpace.findDataType(dataType.key);
+    const dataTypeNode = addressSpace.findDataType(DataType[dataType]);
     /* istanbul ignore next */
     if (!dataTypeNode) {
-        throw new Error(" Cannot find DataType " + dataType.key + " in address Space");
+        throw new Error(" Cannot find DataType " + DataType[dataType] + " in address Space");
     }
     return dataTypeNode;
 }
@@ -120,6 +121,9 @@ function _dataType_toUADataType(addressSpace, dataType) {
 function validateDataType(addressSpace, dataTypeNodeId, variantDataType, nodeId) {
 
     if (variantDataType === DataType.ExtensionObject) {
+        return true;
+    }
+    if (variantDataType === DataType.Null) {
         return true;
     }
     let builtInType, builtInUADataType;
@@ -257,9 +261,9 @@ function UAVariable(options) {
     /**
      * @property accessLevel
      * @type {number}
-     * The AccessLevel Attribute is used to indicate how the Value of a Variable can be accessed 
-     * (read/write) and if it contains current and/or historic data. The AccessLevel does not take 
-     * any user access rights into account, i.e. although the Variable is writable this may be 
+     * The AccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
+     * (read/write) and if it contains current and/or historic data. The AccessLevel does not take
+     * any user access rights into account, i.e. although the Variable is writable this may be
      * restricted to a certain user / user group. The AccessLevelType is defined in 8.57.
      */
     self.accessLevel = adjust_accessLevel(options.accessLevel);
@@ -267,7 +271,7 @@ function UAVariable(options) {
     /**
      * @property userAccessLevel
      * @type {number}
-     * The UserAccessLevel Attribute is used to indicate how the Value of a Variable can be accessed 
+     * The UserAccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
      * (read/write) and if it contains current or historic data taking user access rights into account.
      * The AccessLevelType is defined in 8.57.
      */
@@ -327,7 +331,7 @@ UAVariable.prototype.nodeClass = NodeClass.Variable;
  */
 UAVariable.prototype.isReadable = function (context) {
     assert(context instanceof SessionContext);
-    return this.accessLevel.has("CurrentRead");
+    return (this.accessLevel & AccessLevelFlag.CurrentRead) === AccessLevelFlag.CurrentRead;
 };
 
 /**
@@ -336,14 +340,15 @@ UAVariable.prototype.isReadable = function (context) {
  * @param context  {SesionContext}
  * @return {boolean}
  */
-UAVariable.prototype.isUserReadable = function (context) {
+UAVariable.prototype.isUserReadable = function (context) /*: boolean */ {
     const self = this;
     assert(context instanceof SessionContext);
     if (context.checkPermission) {
         assert(context.checkPermission instanceof Function);
         return context.checkPermission(self, "CurrentRead");
     }
-    return this.userAccessLevel.has("CurrentRead");
+    return (this.userAccessLevel & AccessLevelFlag.CurrentRead) === AccessLevelFlag.CurrentRead;
+
 };
 
 /**
@@ -354,7 +359,7 @@ UAVariable.prototype.isUserReadable = function (context) {
  */
 UAVariable.prototype.isWritable = function (context) {
     assert(context instanceof SessionContext);
-    return this.accessLevel.has("CurrentWrite");
+    return ((this.accessLevel & AccessLevelFlag.CurrentWrite) === AccessLevelFlag.CurrentWrite);
 };
 
 /**
@@ -370,7 +375,7 @@ UAVariable.prototype.isUserWritable = function (context) {
         assert(context.checkPermission instanceof Function);
         return context.checkPermission(self, "CurrentWrite");
     }
-    return this.userAccessLevel.has("CurrentWrite");
+    return ((this.userAccessLevel & AccessLevelFlag.CurrentWrite) === AccessLevelFlag.CurrentWrite);
 };
 
 
@@ -420,7 +425,7 @@ UAVariable.prototype.readValue = function (context, indexRange, dataEncoding) {
     if (!self.isUserReadable(context)) {
         return new DataValue({statusCode: StatusCodes.BadUserAccessDenied});
     }
-    if (!is_valid_dataEncoding(dataEncoding)) {
+    if (!isValidDataEncoding(dataEncoding)) {
         return new DataValue({statusCode: StatusCodes.BadDataEncodingInvalid});
     }
 
@@ -524,7 +529,7 @@ UAVariable.prototype._readArrayDimensions = function () {
 UAVariable.prototype._readAccessLevel = function (context) {
     assert(context instanceof SessionContext);
     const options = {
-        value: {dataType: DataType.Byte, value: AccessLevelFlag.toByte(this.accessLevel)},
+        value: {dataType: DataType.Byte, value: convertAccessLevelFlagToByte(this.accessLevel)},
         statusCode: StatusCodes.Good
     };
     return new DataValue(options);
@@ -533,7 +538,7 @@ UAVariable.prototype._readAccessLevel = function (context) {
 UAVariable.prototype._readUserAccessLevel = function (context) {
     assert(context instanceof SessionContext);
     const options = {
-        value: {dataType: DataType.Byte, value: AccessLevelFlag.toByte(this.userAccessLevel)},
+        value: {dataType: DataType.Byte, value: convertAccessLevelFlagToByte(this.userAccessLevel)},
         statusCode: StatusCodes.Good
     };
     return new DataValue(options);
@@ -582,7 +587,7 @@ UAVariable.prototype.readAttribute = function (context, attributeId, indexRange,
             options.statusCode = StatusCodes.BadIndexRangeNoData;
             return new DataValue(options);
         }
-        if (is_dataEncoding(dataEncoding)) {
+        if (isDataEncoding(dataEncoding)) {
             options.statusCode = StatusCodes.BadDataEncodingInvalid;
             return new DataValue(options);
         }
@@ -666,7 +671,7 @@ UAVariable.prototype.setValueFromSource = function (variant, statusCode, sourceT
 
     // istanbul ignore next
     if (variant.hasOwnProperty("value")) {
-        if (!variant.dataType) {
+        if (variant.dataType === null || variant.dataType === undefined) {
             throw new Error("Variant must provide a valid dataType" + variant.toString());
         }
     }
@@ -732,7 +737,7 @@ function adjustVariant(uaVariable, variant) {
     if (basicType === DataType.Byte && uaVariable.valueRank === 1) {
         if (variant.arrayType === VariantArrayType.Scalar && variant.dataType === DataType.ByteString) {
 
-            if ((uaVariable.dataType.value === DataType.Byte.value) && (self.dataType.namespace === 0)) { // Byte
+            if ((uaVariable.dataType.value === DataType.Byte) && (self.dataType.namespace === 0)) { // Byte
                 variant.arrayType = VariantArrayType.Array;
                 variant.dataType = DataType.Byte;
                 assert(variant.dataType === DataType.Byte);
@@ -743,7 +748,7 @@ function adjustVariant(uaVariable, variant) {
     if (basicType === DataType.ByteString && uaVariable.valueRank === -1 /* Scalar*/) {
 
         if (variant.arrayType === VariantArrayType.Array && variant.dataType === DataType.Byte) {
-            if ((self.dataType.value === DataType.ByteString.value) && (self.dataType.namespace === 0)) { // Byte
+            if ((self.dataType.value === DataType.ByteString) && (self.dataType.namespace === 0)) { // Byte
                 variant.arrayType = VariantArrayType.Scalar;
                 variant.dataType = DataType.ByteString;
                 assert(variant.dataType === DataType.ByteString);
@@ -928,7 +933,7 @@ function _default_writable_timestamped_set_func(dataValue, callback) {
 function turn_sync_to_async(f, numberOfArgs) {
     if (f.length <= numberOfArgs) {
         return function (data, callback) {
-            const r = f.call(this,data);
+            const r = f.call(this, data);
             setImmediate(function () {
                 return callback(null, r);
             });
@@ -1545,7 +1550,7 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
     }
 
     if (doDebug) {
-        console.log(" ------------------------------ binging ",self.browseName.toString(),self.nodeId.toString());
+        console.log(" ------------------------------ binding ", self.browseName.toString(), self.nodeId.toString());
     }
     assert(structure && structure.browseName.toString() === "Structure",
         "expecting DataType Structure to be in AddressSpace");
@@ -1572,7 +1577,10 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
 
     // ------------------------------------------------------------------
 
-    function prepareVariantValue(dataType, value) {
+    function prepareVariantValue(dataType/* DataType | string */, value) {
+        if (typeof dataType === "string") {
+            dataType = DataType[dataType];
+        }
         if ((dataType === DataType.Int32 || dataType === DataType.UInt32) && value && value.key) {
             value = value.value;
         }
@@ -1581,7 +1589,7 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
 
     function bindProperty(property, name, extensionObject, dataTypeNodeId) {
 
-        const dataType = DataType.get(dataTypeNodeId.value);
+        const dataTypeAsString = DataType[dataTypeNodeId];
 
         /*
         property.setValueFromSource(new Variant({
@@ -1594,7 +1602,7 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
 
         property.bindVariable({
             timestamped_get: function () {
-                const value = prepareVariantValue(dataType, self.$extensionObject[name]);
+                const value = prepareVariantValue(dataTypeNodeId, self.$extensionObject[name]);
                 property._dataValue.statusCode = StatusCodes.Good;
                 property._dataValue.value.value = value;
                 const d = new DataValue(property._dataValue);
@@ -1693,11 +1701,11 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
                 w(field.name, 35),
                 "valueRank", w(field.valueRank, 3).cyan,
                 w(x, 25).green,
-                "basicType = ", w(basicType.toString(), 20).yellow, property.nodeId.toString(),property.readValue().statusCode.toString());
+                "basicType = ", w(basicType.toString(), 20).yellow, property.nodeId.toString(), property.readValue().statusCode.toString());
         }
 
 
-        if (dataTypeNodeId.value === DataType.ExtensionObject.value) {
+        if (dataTypeNodeId === DataType.ExtensionObject) {
             assert(self.$extensionObject[camelCaseName] instanceof Object);
             self.$extensionObject[camelCaseName] = new Proxy(self.$extensionObject[camelCaseName], makeHandler(property));
             property._dataValue.value = new Variant({
@@ -1706,11 +1714,16 @@ UAVariable.prototype.bindExtensionObject = function (optionalExtensionObject) {
             });
             property.bindExtensionObject();
             property.$extensionObject = self.$extensionObject[camelCaseName];
+
         } else {
-            const dataType = DataType.get(dataTypeNodeId.value);
+
+            const dataTypeAsString = DataType[dataTypeNodeId];
+            assert(typeof dataTypeAsString === "string");
+
+            const preparedValue = prepareVariantValue(dataTypeNodeId, self.$extensionObject[camelCaseName]);
             property._dataValue.value = new Variant({
-                dataType: dataType,
-                value: prepareVariantValue(dataType, self.$extensionObject[camelCaseName])
+                dataType: dataTypeAsString,
+                value: preparedValue
             });
 
             property.camelCaseName = camelCaseName;

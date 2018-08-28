@@ -14,7 +14,7 @@ const BaseNode = require("../base_node").BaseNode;
 const part8 = require("node-opcua-data-access");
 
 const AxisInformation = part8.AxisInformation;
-const AxisScale       = part8.AxisScale;
+const AxisScaleEnumeration       = part8.AxisScaleEnumeration;
 const Range           = part8.Range;
 
 const utils = require("node-opcua-utils");
@@ -83,7 +83,7 @@ module.exports.install = function(AddressSpace) {
         });
 
         function coerceAxisScale(value) {
-            const ret = AxisScale.get(value);
+            const ret = AxisScaleEnumeration[value];
             assert(!utils.isNullOrUndefined(ret));
             return ret;
         }

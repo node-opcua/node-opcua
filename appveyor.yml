@@ -2,7 +2,7 @@
 environment:
   matrix:
   # - nodejs_version: "4" (not supported any more)
-  - nodejs_version: "6"
+  # - nodejs_version: "6" (not supported anu more => lack of util.promisify )
   - nodejs_version: "8"
   - nodejs_version: "9"
   - nodejs_version: "10"

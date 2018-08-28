@@ -143,7 +143,7 @@ module.exports = function (test) {
                         deleteSubscriptions: true
                     });
                     client1.performMessageTransaction(request, function (err, response) {
-                        should(err).eql(null);
+                        should.not.exist(err);
                         //err.message.should.match(/BadSessionIdInvalid/);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionIdInvalid);
                         callback();
@@ -193,7 +193,7 @@ module.exports = function (test) {
                         deleteSubscriptions: true
                     });
                     client1.performMessageTransaction(request, function (err, response) {
-                        should(err).eql(null);
+                        should.not.exist(err);
                         //err.message.should.match(/BadSessionIdInvalid/);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionIdInvalid);
                         callback();
@@ -259,7 +259,7 @@ module.exports = function (test) {
                     });
                     request.requestHeader.authenticationToken = session1.authenticationToken;
                     client1.performMessageTransaction(request, function (err, response) {
-                        should(err).eql(null);
+                        should.not.exist(err);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                         callback();
                     });
@@ -435,7 +435,7 @@ module.exports = function (test) {
                     client1 = new OPCUAClient({
                         certificateFile: certificateFile1,
                         privateKeyFile: privateKeyFile1,
-                        securityMode: opcua.MessageSecurityMode.SIGN,
+                        securityMode: opcua.MessageSecurityMode.Sign,
                         securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
                         serverCertificate: serverCertificate
                     });
@@ -465,13 +465,13 @@ module.exports = function (test) {
                 function (callback) {
 
                     // creating second channel with different credential
-                    //xx console.log(" creating second channel with different certificate");
+                    console.log(" creating second channel with different certificate");
                     const certificateFile2 = m("certificates/client_cert_2048.pem");
                     const privateKeyFile2 = m("certificates/client_key_2048.pem");
                     client2 = new OPCUAClient({
                         certificateFile: certificateFile2,
                         privateKeyFile: privateKeyFile2,
-                        securityMode: opcua.MessageSecurityMode.SIGN,
+                        securityMode: opcua.MessageSecurityMode.Sign,
                         securityPolicy: opcua.SecurityPolicy.Basic256,
                         serverCertificate: serverCertificate
                     });
@@ -634,7 +634,7 @@ module.exports = function (test) {
                 function (callback) {
 
                     sendPublishRequest(session1, function (err) {
-                        should(err).eql(null);
+                        should.not.exist(err);
                         collectPublishResponse.callCount.should.eql(0);
                         callback();
                     });

@@ -1,8 +1,9 @@
 "use strict";
 
-const Enum = require("..");
 const should = require("should");
 const _ = require("underscore");
+
+const Enum = require("..").Enum;
 
 describe("Test Enum", function () {
 
@@ -14,8 +15,8 @@ describe("Test Enum", function () {
         e.get("e3 | e1").value.should.equal(5);
         e.get(3).key.should.equal("e1 | e2");
         e.get(3).value.should.equal(3);
-        should(e.get(9)).equal(undefined);
-        should(e.get(0)).equal(undefined);
+        should(e.get(9)).equal(null);
+        should(e.get(0)).equal(null);
     });
 
     it("should create flaggable enum from flaggable map", function () {
@@ -26,8 +27,8 @@ describe("Test Enum", function () {
         e.get("e3 | e1").value.should.equal(5);
         e.get(3).key.should.equal("e1 | e2");
         e.get(3).value.should.equal(3);
-        should(e.get(9)).equal(undefined);
-        should(e.get(0)).equal(undefined);
+        should(e.get(9)).equal(null);
+        should(e.get(0)).equal(null);
     });
 
     it("should create non-flaggable enum from non-flaggable map", function () {
@@ -35,12 +36,12 @@ describe("Test Enum", function () {
         e.get("e1").value.should.equal(1);
         e.get("e2").value.should.equal(2);
         e.get("e3").value.should.equal(3);
-        should(e.get(5)).equal(undefined);
-        should(e.get("e0")).equal(undefined);
-        should(e.get("e3 | e1")).equal(undefined);
+        should(e.get(5)).equal(null);
+        should(e.get("e0")).equal(null);
+        should(e.get("e3 | e1")).equal(null);
         e.get(3).key.should.equal("e3");
         e.get(3).value.should.equal(3);
-        e.enums[0].key.should.equal("e1");
+        e.enumItems[0].key.should.equal("e1");
     });
 
     it("should access enum from enum item name", function () {
@@ -86,7 +87,7 @@ const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
 
 const EnumSlow = require("enum");
-const EnumFast = require("..");
+const EnumFast = require("..").Enum;
 
 describe("Benchmarking Enums", function () {
 

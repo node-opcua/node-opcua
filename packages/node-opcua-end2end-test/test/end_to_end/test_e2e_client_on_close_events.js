@@ -53,8 +53,6 @@ describe("testing Client-Server - Event", function () {
         const client = new OPCUAClient();
         client.on("close", function (err) {
 
-            //xx console.log(" client.on('close') Stack ", (new Error()).stack);
-            //xx console.log(" Error ", err);
 
             should(err).eql(null, "No error shall be transmitted when client initiates the disconnection");
             close_counter++;

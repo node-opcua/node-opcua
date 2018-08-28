@@ -47,8 +47,6 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                assert(session instanceof ClientSession);
-
                 const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 150,
                     requestedLifetimeCount: 10 * 60 * 10,
@@ -149,8 +147,6 @@ module.exports = function (test) {
             }
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-
-                assert(session instanceof ClientSession);
 
                 const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 10,

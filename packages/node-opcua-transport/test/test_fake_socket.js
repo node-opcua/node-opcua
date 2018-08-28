@@ -1,6 +1,6 @@
 
-const DirectTransport = require("../test_helpers/fake_socket").DirectTransport;
-const SocketTransport = require("../test_helpers/fake_socket").SocketTransport;
+const DirectTransport = require("../dist/test_helpers").DirectTransport;
+const SocketTransport = require("../dist/test_helpers").SocketTransport;
 
 const should = require("should");
 const assert = require("node-opcua-assert").assert;
@@ -13,11 +13,13 @@ function installTestFor(Transport) {
         let transport = null;
 
         beforeEach(function (done) {
-            transport = new Transport(function () {
+            transport = new Transport();
+            transport.initialize(() => {
                 assert(transport.client);
                 assert(transport.server);
                 done();
             });
+
         });
         afterEach(function (done) {
             transport.shutdown(done);
@@ -78,10 +80,7 @@ function installTestFor(Transport) {
                 done();
             });
             transport.server.end();
-
         });
-
-
     });
 }
 

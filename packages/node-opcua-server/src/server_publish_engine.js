@@ -441,11 +441,12 @@ ServerSidePublishEngine.prototype._process_pending_publish_response = function (
 
 ServerSidePublishEngine.prototype.send_response_for_request = function (publishData, response) {
     _assertValidPublishData(publishData);
-    assert(response.responseHeader.requestHandle !== 0);
+    // xx assert(response.responseHeader.requestHandle !== 0,"expecting a valid requestHandle");
     response.results = publishData.results;
     response.responseHeader.requestHandle = publishData.request.requestHeader.requestHandle;
     publishData.callback(publishData.request, response);
 };
+
 
 /**
  * @method add_subscription

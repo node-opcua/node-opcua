@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "target": "es6",
+    "module": "commonjs",
+    "declaration": true,
+    // "sourceRoot": "./src",
+    //xx "rootDir": "src",
+    "strict": true,
+    "listFiles": false,
+    "outDir": "dist",
+    "sourceMap": true
+  },
+  "files": [
+     "src/index.ts",
+     "test-fixtures/index.ts",
+     "test_helpers/index.ts"
+  ]
+}

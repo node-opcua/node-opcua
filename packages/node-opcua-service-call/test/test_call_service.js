@@ -1,7 +1,7 @@
 "use strict";
 require("should");
 const call_service = require("..");
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
 
 const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 const DataType = require("node-opcua-variant").DataType;

@@ -64,8 +64,8 @@ var server_options = {
         SecurityPolicy.Basic256
     ],
     securityModes: [
-        MessageSecurityMode.SIGN,
-        MessageSecurityMode.SIGNANDENCRYPT
+        MessageSecurityMode.Sign,
+        MessageSecurityMode.SignAndEncrypt
     ],
 
     certificateFile: server_certificate_file,

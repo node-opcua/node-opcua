@@ -250,9 +250,9 @@ function t(d) {
 }
 
 server.on("response", function (response) {
-    console.log(t(response.responseHeader.timeStamp),response.responseHeader.requestHandle,
-                response._schema.name.cyan," status = ",response.responseHeader.serviceResult.toString().cyan);
-    switch (response._schema.name) {
+    console.log(t(response.responseHeader.timestamp),response.responseHeader.requestHandle,
+                response.schema.name.cyan," status = ",response.responseHeader.serviceResult.toString().cyan);
+    switch (response.schema.name) {
         case "ModifySubscriptionResponse":
         case "CreateMonitoredItemsResponse":
         case "RepublishResponse":
@@ -268,9 +268,9 @@ function indent(str,nb) {
     return str.split("\n").map(function(s) { return spacer + s; }).join("\n");
 }
 server.on("request", function (request,channel) {
-    console.log(t(request.requestHeader.timeStamp),request.requestHeader.requestHandle,
-                request._schema.name.yellow, " ID =",channel.secureChannelId.toString().cyan);
-    switch (request._schema.name) {
+    console.log(t(request.requestHeader.timestamp),request.requestHeader.requestHandle,
+                request.schema.name.yellow, " ID =",channel.channelId.toString().cyan);
+    switch (request.schema.name) {
         case "ModifySubscriptionRequest":
         case "CreateMonitoredItemsRequest":
         case "RepublishRequest":

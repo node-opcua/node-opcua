@@ -4,7 +4,6 @@ var fs = require("fs");
 var packets = require("./conversationData.js_data");
 
 
-var packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
 var verify_multi_chunk_message= require("./verify_message_chunk").verify_multi_chunk_message;
 require("node-opcua-service-session");
 require("node-opcua-service-read");
