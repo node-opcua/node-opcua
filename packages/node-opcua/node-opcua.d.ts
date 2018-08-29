@@ -839,9 +839,18 @@ export declare class OPCUAServer {
     on(event: string, eventHandler: () => void): OPCUAServer;
 }
 
+export declare interface MonitoringParameters {
+    readonly clientHandle: number;
+    readonly samplingInterval: number;
+    readonly filter: any;
+    readonly queueSize: number;
+    readonly discardOldest: boolean;
+}
 export declare class ClientMonitoredItem {
     terminate(callback: ErrorCallback): void;
     terminate(): Promise<void>;
+
+    public monitoringParameters: MonitoringParameters;
 
     /**
      * @method on
@@ -849,7 +858,11 @@ export declare class ClientMonitoredItem {
      * @param {() => void} eventHandler
      * @chainable
      */
-    on(event: string, eventHandler: ()  => void): ClientMonitoredItem;
+    on(event: "changed", eventHandler: (dataValue: DataValue)  => void): this;
+    on(event: "initialized"| "terminated", eventHandler: ()  => void): this;
+    on(event: "err", eventHandler: (err: Error)  => void): this;
+
+
 }
 
 export interface TimestampsToReturn {
