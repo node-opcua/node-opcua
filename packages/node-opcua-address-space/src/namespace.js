@@ -1,3 +1,4 @@
+"use strict";
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 const chalk =require("chalk");
@@ -27,6 +28,11 @@ const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
 const doDebug = false;
+
+
+const regExp1 = /^(s|i|b|g)=/;
+const regExpNamespaceDotBrowseName  = /^[0-9]+:(.*)/;
+
 
 /**
  *
@@ -325,7 +331,6 @@ function __combineNodeId(parentNodeId, name) {
     return nodeId;
 }
 
-const regExp1 = /^(s|i|b|g)=/;
 UANamespace.prototype._construct_nodeId = function (options) {
 
     const self = this;
@@ -359,7 +364,6 @@ UANamespace.prototype._construct_nodeId = function (options) {
     return nodeId;
 };
 
-const regExpNamespaceDotBrowseName  = /[0-9]+:(.*)/;
 /**
  * @method _createNode
  * @private

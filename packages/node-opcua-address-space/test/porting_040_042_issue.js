@@ -1,7 +1,6 @@
 "use strict";
 
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
 
 const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
@@ -52,7 +51,19 @@ describe("#513 Testing issue porting from 0.4.0 0.4.2",function() {
             dataType: "Double",
             componentOf: o
         });
-        assert(node.browseName.namespaceIndex === 1);
-
+        node.browseName.namespaceIndex.should.eql(1);
     });
+
+    it("should not raise a error nor a warning when browseName contains a comma in the middle",function() {
+
+        const o = addressSpace.addObject({
+            browseName: "MyObject:With:3:Columns",
+            dataType: "Double",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+        o.browseName.namespaceIndex.should.eql(1);
+        o.browseName.toString().should.eql("1:MyObject:With:3:Columns");
+        o.browseName.name.should.eql("MyObject:With:3:Columns");
+    });
+
 });
