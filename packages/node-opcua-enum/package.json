@@ -12,7 +12,7 @@
  "devDependencies": {
   "enum": "^2.5.0",
   "node-opcua-benchmarker": "^0.4.2",
-  "should": "13.2.1",
+  "should": "13.2.3",
   "underscore": "^1.9.1"
  },
  "author": "Etienne Rossignon",

@@ -13,7 +13,7 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "should": "13.2.1"
+  "should": "13.2.3"
  },
  "repository": {
   "type": "git",

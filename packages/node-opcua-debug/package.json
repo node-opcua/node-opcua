@@ -15,7 +15,7 @@
  },
  "devDependencies": {
   "chalk": "^2.4.1",
-  "should": "13.2.1"
+  "should": "13.2.3"
  },
  "main": "dist/index.js",
  "types": "dist/index.d.ts",
