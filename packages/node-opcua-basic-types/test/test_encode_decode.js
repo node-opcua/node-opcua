@@ -34,7 +34,7 @@ function test_encode_decode(obj, encode_func, decode_func, expectedLength, verif
     binaryStream.length.should.equal(expectedLength);
 
     if (verify_buffer_func) {
-        verify_buffer_func(binaryStream._buffer);
+        verify_buffer_func(binaryStream.buffer);
     }
     binaryStream.rewind();
 
@@ -563,7 +563,7 @@ describe("DateTime", function() {
 
             const stream = new BinaryStream(10);
             ec.encodeDateTime(date1, stream);
-            //xx console.log(stream._buffer.toString("hex"));
+            //xx console.log(stream.buffer.toString("hex"));
 
             stream.rewind();
             const date2 = ec.decodeDateTime(stream);
@@ -598,7 +598,7 @@ describe("Float", function() {
         const stream = new BinaryStream(4);
         ec.encodeFloat(0.0, stream);
 
-        console.log(stream._buffer.toString("hex"));
+        console.log(stream.buffer.toString("hex"));
 
         stream.rewind();
         const value = ec.decodeFloat(stream);

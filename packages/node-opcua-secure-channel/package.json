@@ -11,7 +11,7 @@
  },
  "dependencies": {
   "@types/underscore": "^1.8.9",
-  "@types/node": "^10.9.3",
+  "@types/node": "^10.9.4",
   "backoff": "^2.5.0",
   "chalk": "^2.4.1",
   "node-opcua-assert": "^0.5.0",
@@ -46,7 +46,7 @@
   "node-opcua-test-helpers": "^0.5.0",
   "should": "13.2.3",
   "sinon": "6.1.5",
-  "sprintf": "^0.1.5",
+  "sprintf-js": "^1.1.1",
   "source-map-support": "^0.5.9"
  },
  "author": "Etienne Rossignon",
