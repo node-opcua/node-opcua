@@ -33,10 +33,8 @@ describe("NodeCrawler",function(){
         const results = [];
         const data = {
             onBrowse: function( crawler,cacheNode) {
-                // console.log(cacheNode.browseName.toString());
-
+                console.log(cacheNode.browseName.toString());
                 results.push(cacheNode.browseName.toString());
-
                 NodeCrawler.follow(crawler,cacheNode,this);
             }
         };

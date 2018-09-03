@@ -1,10 +1,10 @@
-import { assert } from "node-opcua-assert";
 import { EventEmitter } from "events";
+import { assert } from "node-opcua-assert";
 
-import { PacketAssembler, PacketInfo } from "node-opcua-packet-assembler";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { readMessageHeader, SequenceHeader } from "node-opcua-chunkmanager";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
+import { readMessageHeader, SequenceHeader } from "node-opcua-chunkmanager";
+import { PacketAssembler, PacketInfo } from "node-opcua-packet-assembler";
 import { get_clock_tick } from "node-opcua-utils";
 
 const doPerfMonitoring = false;
@@ -12,9 +12,9 @@ const doPerfMonitoring = false;
 export function readRawMessageHeader(data: Buffer): PacketInfo {
     const messageHeader = readMessageHeader(new BinaryStream(data));
     return {
+        extra: "",
         length: messageHeader.length,
         messageHeader,
-        extra: ""
     };
 }
 
@@ -29,30 +29,25 @@ export function readRawMessageHeader(data: Buffer): PacketInfo {
  */
 export class MessageBuilderBase extends EventEmitter {
 
-    readonly signatureLength: number;
-    readonly options: { signatureLength?: number };
-    readonly _packetAssembler: PacketAssembler;
+    public readonly signatureLength: number;
+    public readonly options: { signatureLength?: number };
+    public readonly _packetAssembler: PacketAssembler;
     public channelId: number;
+    public totalMessageSize: number;
+    public sequenceHeader: SequenceHeader | null;
 
     public _tick0: number;
     public _tick1: number;
 
-    private _securityDefeated: boolean;
     protected totalBodySize: number;
-    public totalMessageSize: number;
-    private _hasReceivedError: boolean;
-    private blocks: Buffer[];
     protected messageChunks: Buffer[];
     protected messageHeader: any;
+
+    private _securityDefeated: boolean;
+    private _hasReceivedError: boolean;
+    private blocks: Buffer[];
     private _expectedChannelId: number;
-    public sequenceHeader: SequenceHeader | null;
     private offsetBodyStart: number;
-
-
-    protected  _decodeMessageBody(fullMessageBody: Buffer): boolean {
-        return true;
-    }
-
 
     constructor(options?: { signatureLength?: number }) {
 
@@ -72,8 +67,8 @@ export class MessageBuilderBase extends EventEmitter {
         this.options = options;
 
         this._packetAssembler = new PacketAssembler({
+            minimumSizeInBytes: 0,
             readMessageFunc: readRawMessageHeader,
-            minimumSizeInBytes: 0
         });
 
         this._packetAssembler.on("message", (messageChunk) => this._feed_messageChunk(messageChunk));
@@ -103,17 +98,23 @@ export class MessageBuilderBase extends EventEmitter {
         this._init_new();
     }
 
-    dispose() {
+    public dispose() {
         this.removeAllListeners();
     }
 
-    private _init_new() {
-        this._securityDefeated = false;
-        this._hasReceivedError = false;
-        this.totalBodySize = 0;
-        this.totalMessageSize = 0;
-        this.blocks = [];
-        this.messageChunks = [];
+    /**
+     * Feed message builder with some data
+     * @method feed
+     * @param data
+     */
+    public feed(data: Buffer) {
+        if (!this._securityDefeated && !this._hasReceivedError) {
+            this._packetAssembler.feed(data);
+        }
+    }
+
+    protected  _decodeMessageBody(fullMessageBody: Buffer): boolean {
+        return true;
     }
 
     protected _read_headers(binaryStream: BinaryStream): boolean {
@@ -131,6 +132,26 @@ export class MessageBuilderBase extends EventEmitter {
         return true;
     }
 
+    protected _report_error(errorMessage: string): false {
+
+        this._hasReceivedError = true;
+        /**
+         * notify the observers that an error has occurred
+         * @event error
+         * @param error {Error} the error to raise
+         */
+        this.emit("error", new Error(errorMessage), this.sequenceHeader ? this.sequenceHeader.requestId : null);
+        return false;
+    }
+
+    private _init_new() {
+        this._securityDefeated = false;
+        this._hasReceivedError = false;
+        this.totalBodySize = 0;
+        this.totalMessageSize = 0;
+        this.blocks = [];
+        this.messageChunks = [];
+    }
     /**
      * append a message chunk
      * @method _append
@@ -157,7 +178,9 @@ export class MessageBuilderBase extends EventEmitter {
 
         // verify message chunk length
         if (this.messageHeader.length !== chunk.length) {
-            return this._report_error(`Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${this.messageHeader.length}`);
+            // tslint:disable:max-line-length
+            return this._report_error(
+                `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${this.messageHeader.length}`);
         }
 
         // the start of the message body block
@@ -179,17 +202,6 @@ export class MessageBuilderBase extends EventEmitter {
         this.blocks.push(clonedBuffer);
 
         return true;
-    }
-
-    /**
-     * Feed message builder with some data
-     * @method feed
-     * @param data
-     */
-    feed(data: Buffer) {
-        if (!this._securityDefeated && !this._hasReceivedError) {
-            this._packetAssembler.feed(data);
-        }
     }
 
     private _feed_messageChunk(chunk: Buffer) {
@@ -223,9 +235,7 @@ export class MessageBuilderBase extends EventEmitter {
              */
             this.emit("full_message_body", fullMessageBody);
 
-
             this._decodeMessageBody(fullMessageBody);
-
 
             // be ready for next block
             this._init_new();
@@ -237,18 +247,7 @@ export class MessageBuilderBase extends EventEmitter {
         } else if (messageHeader.isFinal === "C") {
             return this._append(chunk);
         }
-
-    }
-
-    protected _report_error(errorMessage: string): false {
-
-        this._hasReceivedError = true;
-        /**
-         * notify the observers that an error has occurred
-         * @event error
-         * @param error {Error} the error to raise
-         */
-        this.emit("error", new Error(errorMessage), this.sequenceHeader ? this.sequenceHeader.requestId : null);
         return false;
     }
+
 }
