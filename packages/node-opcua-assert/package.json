@@ -28,6 +28,5 @@
  ],
  "homepage": "http://node-opcua.github.io/",
  "devDependencies": {
-  "@types/chalk": "^2.2.0"
  }
 }

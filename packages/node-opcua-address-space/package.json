@@ -41,7 +41,7 @@
   "object.values": "^1.0.4",
   "set-prototype-of": "^1.0.0",
   "underscore": "^1.9.1",
-  "xml-writer": "*"
+  "xml-writer": "^1.7.0"
  },
  "devDependencies": {
   "date-utils": "^1.2.21",
