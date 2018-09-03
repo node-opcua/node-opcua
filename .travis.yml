@@ -59,6 +59,7 @@ before_script:
   - if [[ `node --version` == v0.10* ]]; then npm i ursa@0.8.5 ; fi
 
 install:
+  - npm install -g npm
   - npm ci
 
 # keep the npm cache around to speed up installs
