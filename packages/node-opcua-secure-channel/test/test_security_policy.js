@@ -47,7 +47,7 @@ describe("Security Policy", function () {
 
 });
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 const crypto = require("crypto");
 describe("Security Policy computeSignature, verifySignature", function () {
 
@@ -56,8 +56,8 @@ describe("Security Policy computeSignature, verifySignature", function () {
     const senderCertificate = crypto_utils.readCertificate(getFixture("certs/server_cert_2048.pem"));
     const senderNonce = crypto.randomBytes(32);
 
-    const receiverPrivateKey = crypto_utils.readKey(getFixture("certs/client_key_1024.pem"));
-    const receiverCertificate = crypto_utils.readKey(getFixture("certs/client_cert_1024.pem"));
+    const receiverPrivateKey = crypto_utils.readPrivateKeyPEM(getFixture("certs/client_key_1024.pem"));
+    const receiverCertificate = crypto_utils.readCertificate(getFixture("certs/client_cert_1024.pem"));
 
     const securityPolicy = SecurityPolicy.Basic256;
 

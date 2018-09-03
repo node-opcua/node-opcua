@@ -8,7 +8,7 @@ const assert = require("node-opcua-assert").assert;
 const util = require("util");
 const EventEmitter = require("events").EventEmitter;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 const MessageBuilder = require("../message_builder").MessageBuilder;
 const MessageChunker = require("../message_chunker").MessageChunker;
@@ -30,7 +30,7 @@ const OpenSecureChannelRequest = secure_channel_service.OpenSecureChannelRequest
 const OpenSecureChannelResponse = secure_channel_service.OpenSecureChannelResponse;
 const SecurityTokenRequestType = secure_channel_service.SecurityTokenRequestType;
 
-const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+const split_der = require("node-opcua-crypto").split_der;
 
 assert(MessageSecurityMode);
 assert(ChannelSecurityToken);
@@ -224,7 +224,7 @@ ServerSecureChannelLayer.prototype.getSignatureLength = function() {
     const self = this;
     const chain = self.getCertificateChain();
     const s = split_der(chain)[0];
-    const cert = crypto_utils.exploreCertificate(s);
+    const cert = crypto_utils.exploreCertificateInfo(s);
     return cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
 };
 
@@ -1083,7 +1083,7 @@ function _check_certificate_validity(certificate) {
 
     // Has SoftwareCertificate passed its issue date and has it not expired ?
     // check dates
-    const cert = crypto_utils.exploreCertificate(certificate);
+    const cert = crypto_utils.exploreCertificateInfo(certificate);
 
     const now = new Date();
 

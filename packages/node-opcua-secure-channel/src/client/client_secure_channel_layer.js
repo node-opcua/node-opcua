@@ -19,7 +19,7 @@ const ClientTCP_transport = require("node-opcua-transport").ClientTCP_transport;
 const hexDump = require("node-opcua-debug").hexDump;
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 const verify_message_chunk = require("node-opcua-chunkmanager").verify_message_chunk;
 const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;

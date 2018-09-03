@@ -12,7 +12,7 @@ const MessageBuilder = require("../src/message_builder").MessageBuilder;
 const SecurityPolicy = require("../src/security_policy").SecurityPolicy;
 const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 const getFixture = require("node-opcua-test-fixtures").getFixture;
 

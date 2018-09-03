@@ -8,7 +8,7 @@ const MessageSecurityMode = require("node-opcua-service-secure-channel").Message
 const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 const EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 const it_with_crypto = it;
 
 const default_port = 1234;

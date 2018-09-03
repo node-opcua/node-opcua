@@ -25,7 +25,7 @@ const toURI = require("node-opcua-secure-channel").toURI;
 
 const EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
 
-const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+const split_der = require("node-opcua-crypto").split_der;
 
 /**
  * OPCUAServerEndPoint a Server EndPoint.

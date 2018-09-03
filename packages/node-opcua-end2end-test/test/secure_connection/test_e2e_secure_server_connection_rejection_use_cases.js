@@ -19,7 +19,7 @@ const port = 2000;
 
 const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

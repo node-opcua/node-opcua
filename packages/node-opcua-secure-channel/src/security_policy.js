@@ -99,7 +99,7 @@ exports.toURI = function (value) {
 exports.SecurityPolicy = SecurityPolicy;
 
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 
 // --------------------
@@ -120,7 +120,7 @@ function asymmetricVerifyChunk(chunk, certificate) {
     assert(certificate instanceof Buffer);
     // let's get the signatureLength by checking the size
     // of the certificate's public key
-    const cert = crypto_utils.exploreCertificate(certificate);
+    const cert = crypto_utils.exploreCertificateInfo(certificate);
 
     const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
     const block_to_verify = chunk.slice(0, chunk.length - signatureLength);

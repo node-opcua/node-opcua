@@ -7,7 +7,7 @@ const SequenceNumberGenerator = require("../src/sequence_number_generator").Sequ
 const AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").AsymmetricAlgorithmSecurityHeader;
 const SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 const fs = require("fs");
 const path = require("path");
 

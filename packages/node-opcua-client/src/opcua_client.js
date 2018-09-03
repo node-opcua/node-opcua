@@ -31,7 +31,7 @@ const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 const getCryptoFactory = require("node-opcua-secure-channel").getCryptoFactory;
 const fromURI = require("node-opcua-secure-channel").fromURI;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 const UserNameIdentityToken = session_service.UserNameIdentityToken;
 
 
@@ -102,7 +102,7 @@ const makeApplicationUrn = require("node-opcua-common").makeApplicationUrn;
 OPCUAClient.prototype._getApplicationUri = function () {
 
     // get applicationURI from certificate
-    const exploreCertificate = require("node-opcua-crypto").crypto_explore_certificate.exploreCertificate;
+    const exploreCertificate = require("node-opcua-crypto").exploreCertificate;
 
     const certificate = this.getCertificate();
     let applicationUri;

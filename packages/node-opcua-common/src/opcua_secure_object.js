@@ -4,7 +4,7 @@
  */
 
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 const fs = require("fs");
 const assert = require("node-opcua-assert").assert;
 
@@ -36,7 +36,7 @@ function OPCUASecureObject(options) {
 
 }
 
-const split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+const split_der = require("node-opcua-crypto").split_der;
 
 /**
  * @method getCertificate

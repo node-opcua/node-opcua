@@ -98,7 +98,7 @@ module.exports.SecurityPolicy = require("node-opcua-secure-channel").SecurityPol
 module.exports.MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
 module.exports.utils = require("node-opcua-utils");
-module.exports.crypto_utils = require("node-opcua-crypto").crypto_utils;
+module.exports.crypto_utils = require("node-opcua-crypto");
 module.exports.hexDump = require("node-opcua-debug").hexDump;
 
 //xx module.exports.Enum                      = require("node-opcua-enum");

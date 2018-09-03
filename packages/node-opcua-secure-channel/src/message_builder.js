@@ -33,7 +33,7 @@ const SecurityPolicy = securityPolicy_m.SecurityPolicy;
 
 const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 const decodeStatusCode = require("node-opcua-status-code").decodeStatusCode;
 
@@ -183,7 +183,7 @@ MessageBuilder.prototype._decrypt_OPN = function (binaryStream) {
         }
     }
 
-    const cert = crypto_utils.exploreCertificate(this.securityHeader.senderCertificate);
+    const cert = crypto_utils.exploreCertificateInfo(this.securityHeader.senderCertificate);
     // then verify the signature
     const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
     assert(signatureLength === 128 || signatureLength === 256 || signatureLength === 384 || signatureLength === 512 );

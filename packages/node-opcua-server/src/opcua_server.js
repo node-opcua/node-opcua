@@ -129,7 +129,7 @@ const OPCUAServerEndPoint = require("./server_end_point").OPCUAServerEndPoint;
 
 const OPCUABaseServer = require("./base_server").OPCUABaseServer;
 
-const exploreCertificate = require("node-opcua-crypto").crypto_explore_certificate.exploreCertificate;
+const exploreCertificate = require("node-opcua-crypto").exploreCertificate;
 
 
 const Factory = function Factory(engine) {

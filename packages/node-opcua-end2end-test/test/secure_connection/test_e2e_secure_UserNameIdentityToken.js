@@ -26,7 +26,7 @@ const userManagerAsync = {
 };
 
 
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server with UserName/Password identity token", function () {

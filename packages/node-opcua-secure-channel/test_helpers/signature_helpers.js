@@ -1,6 +1,6 @@
 const assert = require("node-opcua-assert").assert;
 const fs = require("fs");
-const crypto_utils = require("node-opcua-crypto").crypto_utils;
+const crypto_utils = require("node-opcua-crypto");
 
 const getFixture = require("node-opcua-test-fixtures").getFixture;
 
