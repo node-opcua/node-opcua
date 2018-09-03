@@ -2,32 +2,24 @@
  * @module bode-opcua-client
  */
 import { EventEmitter } from "events";
-import { assert } from "node-opcua-assert";
-import { ErrorCallback } from "node-opcua-secure-channel";
 import * as _ from "underscore";
 
+import { assert } from "node-opcua-assert";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
-
+import { ErrorCallback } from "node-opcua-secure-channel";
 import { MonitoringMode } from "node-opcua-service-subscription";
-import { ClientMonitoredItem } from "./client_monitored_item";
+
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ClientMonitoredItemBase } from "./client_monitored_item_base";
+import { ClientMonitoredItemToolbox } from "./client_monitored_item_toolbox";
 import { ClientSubscription } from "./client_subscription";
 
+const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
+const warningLog = debugLog;
 
 /**
  * ClientMonitoredItemGroup
- * @class ClientMonitoredItemGroup
- * @extends EventEmitter
- *
- * @param subscription              {ClientSubscription}
- * @param itemsToMonitor             {Array<ReadValueId>}
- * @param itemsToMonitor.nodeId      {NodeId}
- * @param itemsToMonitor.attributeId {AttributeId}
- *
- * @param monitoringParameters      {MonitoringParameters}
- * @param timestampsToReturn        {TimestampsToReturn}
- * @constructor
- *
  * event:
  *    "initialized"
  *    "err"
@@ -66,12 +58,15 @@ export class ClientMonitoredItemGroup extends EventEmitter {
         this.monitoringMode = MonitoringMode.Reporting;
     }
 
-    toString(): string {
+    public toString(): string {
 
         let ret = "";
-        ret += "itemsToMonitor:        " + this.monitoredItems.map((a: ClientMonitoredItemBase) => a.monitoredItemId.toString()).join("\n");
-        ret += "timestampsToReturn:   " + this.timestampsToReturn.toString() + "\n";
-        ret += "monitoringMode        " + this.monitoringMode;
+        ret += "itemsToMonitor:        " +
+            this.monitoredItems.map((a: ClientMonitoredItemBase) => a.monitoredItemId.toString()).join("\n");
+        ret += "timestampsToReturn:   " +
+            this.timestampsToReturn.toString() + "\n";
+        ret += "monitoringMode        " +
+            this.monitoringMode;
         return ret;
     }
 
@@ -80,7 +75,7 @@ export class ClientMonitoredItemGroup extends EventEmitter {
      * remove the MonitoredItem from its subscription
      * @async
      */
-    terminate(done: ErrorCallback) {
+    public terminate(done: ErrorCallback) {
 
         assert(!done || _.isFunction(done));
         /**
@@ -95,13 +90,41 @@ export class ClientMonitoredItemGroup extends EventEmitter {
         });
     }
 
+    /**
+     * @method modify
+     */
+    public modify(
+        parameters: any,
+        timestampsToReturn: TimestampsToReturn,
+        callback: (err?: Error) => void
+    ) {
+        this.timestampsToReturn = timestampsToReturn || this.timestampsToReturn;
+        ClientMonitoredItemToolbox._toolbox_modify(
+            this.subscription,
+            this.monitoredItems,
+            parameters,
+            this.timestampsToReturn,
+            (err: Error | null) => {
+                callback(err ? err : undefined);
+            });
+    }
+
+    public setMonitoringMode(monitoringMode: MonitoringMode, callback: (err?: Error) => void) {
+        ClientMonitoredItemToolbox._toolbox_setMonitoringMode(
+            this.subscription,
+            this.monitoredItems,
+            monitoringMode, (err: Error | null) => {
+                callback(err ? err : undefined);
+            });
+    }
 
     /**
+     * @internal
      * @method _monitor
      * Creates the monitor item (monitoring mode = Reporting)
      * @private
      */
-    _monitor(done: ErrorCallback) {
+    public _monitor(done: ErrorCallback) {
         assert(done === undefined || _.isFunction(done));
 
         this.monitoredItems.forEach((monitoredItem, index) => {
@@ -115,45 +138,27 @@ export class ClientMonitoredItemGroup extends EventEmitter {
                  */
                 try {
                     this.emit("changed", monitoredItem, dataValue, index);
-                }
-                catch (err) {
-                    console.log(err);
+                } catch (err) {
+                    warningLog(err);
                 }
             });
         });
 
+        ClientMonitoredItemToolbox._toolbox_monitor(
+            this.subscription,
+            this.timestampsToReturn,
+            this.monitoredItems,
+            (err?: Error) => {
+                if (err) {
+                    this.emit("terminated");
+                } else {
+                    this.emit("initialized");
+                    // set the event handler
+                }
 
-        ClientMonitoredItemBase._toolbox_monitor(this.subscription, this.timestampsToReturn, this.monitoredItems, (err?: Error) => {
-            if (err) {
-                this.emit("terminated");
-            } else {
-                this.emit("initialized");
-                // set the event handler
-            }
-
-            if (done) {
-                done(err);
-            }
-        });
-    }
-
-    /**
-     * @method modify
-     */
-    modify(
-        parameters: any,
-        timestampsToReturn: TimestampsToReturn,
-        callback: (err?: Error) => void
-    ) {
-        this.timestampsToReturn = timestampsToReturn || this.timestampsToReturn;
-        ClientMonitoredItemBase._toolbox_modify(this.subscription, this.monitoredItems, parameters, this.timestampsToReturn, (err: Error | null, a?: any) => {
-            callback(err ? err : undefined);
-        });
-    }
-
-    setMonitoringMode(monitoringMode: MonitoringMode, callback: (err?: Error) => void) {
-        ClientMonitoredItemBase._toolbox_setMonitoringMode(this.subscription, this.monitoredItems, monitoringMode, (err: Error | null, a?: any) => {
-            callback(err ? err : undefined);
-        });
+                if (done) {
+                    done(err);
+                }
+            });
     }
 }

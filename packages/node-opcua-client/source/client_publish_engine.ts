@@ -1,18 +1,15 @@
 /**
  * @module bode-opcua-client
  */
-import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 import * as async from "async";
 import chalk from "chalk";
 import { EventEmitter } from "events";
-import * as util from "util";
-import * as  fs from "fs";
-import * as  path from "path";
-import { StatusCodes } from "node-opcua-status-code";
-import { PublishResponse, PublishRequest, RepublishRequest, RepublishResponse } from "node-opcua-service-subscription";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import * as _ from "underscore";
 
+import { assert } from "node-opcua-assert";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { PublishRequest, PublishResponse, RepublishRequest, RepublishResponse } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
 
 import { SubscriptionId } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
@@ -37,14 +34,15 @@ const doDebug = checkDebugFlag(__filename);
  */
 export class ClientSidePublishEngine {
 
-    private session: any;
-    private subscriptionAcknowledgements: any[];
-    private subscriptionMap: any;
+    public static publishRequestCountInPipeline = 5;
     public timeoutHint: number;
     public activeSubscriptionCount: number;
     public nbPendingPublishRequests: number;
     public nbMaxPublishRequestsAcceptedByServer: number;
     public isSuspended: boolean;
+    public session: any;
+    private subscriptionAcknowledgements: any[];
+    private readonly subscriptionMap: any;
 
     constructor(session: any) {
         assert(session instanceof Object);
@@ -69,7 +67,16 @@ export class ClientSidePublishEngine {
 
     }
 
-    suspend(suspendedState: boolean) {
+    /**
+     * the number of active subscriptions managed by this publish engine.
+     * @property subscriptionCount
+     * @type {Number}
+     */
+    get subscriptionCount() {
+        return Object.keys(this.subscriptionMap).length;
+    }
+
+    public suspend(suspendedState: boolean) {
         assert(this.isSuspended !== !!suspendedState, "invalid state");
         this.isSuspended = !!suspendedState;
         if (!this.isSuspended) {
@@ -77,11 +84,11 @@ export class ClientSidePublishEngine {
         }
     }
 
-    acknowledge_notification(subscriptionId: SubscriptionId, sequenceNumber: number) {
+    public acknowledge_notification(subscriptionId: SubscriptionId, sequenceNumber: number) {
         this.subscriptionAcknowledgements.push({subscriptionId, sequenceNumber});
     }
 
-    cleanup_acknowledgment_for_subscription(subscriptionId: SubscriptionId) {
+    public cleanup_acknowledgment_for_subscription(subscriptionId: SubscriptionId) {
         this.subscriptionAcknowledgements = this.subscriptionAcknowledgements.filter(
             (a) => a.subscriptionId !== subscriptionId);
     }
@@ -89,7 +96,7 @@ export class ClientSidePublishEngine {
     /**
      * @method send_publish_request
      */
-    send_publish_request() {
+    public send_publish_request() {
         if (this.isSuspended) {
             return;
         }
@@ -115,6 +122,112 @@ export class ClientSidePublishEngine {
             });
 
         }
+    }
+
+    public terminate() {
+        this.session = null;
+    }
+
+    public registerSubscription(subscription: any) {
+
+        debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
+
+        assert(arguments.length === 1);
+        assert(_.isFinite(subscription.subscriptionId));
+        assert(!this.subscriptionMap.hasOwnProperty(subscription.subscriptionId)); // already registered ?
+        assert(_.isFunction(subscription.onNotificationMessage));
+        assert(_.isFinite(subscription.timeoutHint));
+
+        this.activeSubscriptionCount += 1;
+        this.subscriptionMap[subscription.subscriptionId] = subscription;
+
+        this.timeoutHint = Math.max(this.timeoutHint, subscription.timeoutHint);
+        debugLog("                       setting timeoutHint = ", this.timeoutHint, subscription.timeoutHint);
+
+        this.replenish_publish_request_queue();
+    }
+
+    public replenish_publish_request_queue() {
+
+        // Spec 1.03 part 4 5.13.5 Publish
+        // [..] in high latency networks, the Client may wish to pipeline Publish requests
+        // to ensure cyclic reporting from the Server. Pipe-lining involves sending more than one Publish
+        // request for each Subscription before receiving a response. For example, if the network introduces a
+        // delay between the Client and the Server of 5 seconds and the publishing interval for a Subscription
+        // is one second, then the Client will have to issue Publish requests every second instead of waiting for
+        // a response to be received before sending the next request.
+        this.send_publish_request();
+        // send more than one publish request to server to cope with latency
+        for (let i = 0; i < ClientSidePublishEngine.publishRequestCountInPipeline - 1; i++) {
+            this.send_publish_request();
+        }
+    }
+
+    /**
+     * @method unregisterSubscription
+     *
+     * @param subscriptionId
+     */
+    public unregisterSubscription(subscriptionId: SubscriptionId) {
+
+        debugLog("ClientSidePublishEngine#unregisterSubscription ", subscriptionId);
+
+        assert(_.isFinite(subscriptionId) && subscriptionId > 0);
+        this.activeSubscriptionCount -= 1;
+        // note : it is possible that we get here while the server has already requested
+        //        a session shutdown ... in this case it is possible that subscriptionId is already
+        //        removed
+        if (this.subscriptionMap.hasOwnProperty(subscriptionId)) {
+            delete this.subscriptionMap[subscriptionId];
+        } else {
+            debugLog("ClientSidePublishEngine#unregisterSubscription cannot find subscription  ", subscriptionId);
+        }
+    }
+
+    public getSubscriptionIds(): SubscriptionId[] {
+        return Object.keys(this.subscriptionMap).map(parseInt);
+    }
+
+    /***
+     * get the client subscription from Id
+     * @method getSubscription
+     * @param subscriptionId {Number} the subscription Id
+     * @return {Subscription|null}
+     */
+    public getSubscription(subscriptionId: SubscriptionId): any {
+        assert(_.isFinite(subscriptionId) && subscriptionId > 0);
+        assert(this.subscriptionMap.hasOwnProperty(subscriptionId));
+        return this.subscriptionMap[subscriptionId];
+    }
+
+    public hasSubscription(subscriptionId: SubscriptionId): boolean {
+        assert(_.isFinite(subscriptionId) && subscriptionId > 0);
+        return this.subscriptionMap.hasOwnProperty(subscriptionId);
+    }
+
+    public republish(callback: () => void) {
+
+        // After re-establishing the connection the Client shall call Republish in a loop, starting with
+        // the next expected sequence number and incrementing the sequence number until the Server returns
+        // the status Bad_MessageNotAvailable.
+        // After receiving this status, the Client shall start sending Publish requests with the normal Publish
+        // handling.
+        // This sequence ensures that the lost NotificationMessages queued in the Server are not overwritten
+        // by newPublish responses
+        /**
+         * call Republish continuously until all Notification messages of
+         * un-acknowledged notifications are reprocessed.
+         * @private
+         */
+        const repairSubscription = (
+            subscription: ClientSubscription,
+            subscriptionId: SubscriptionId | string,
+            innerCallback: () => void) => {
+            subscriptionId = parseInt(subscriptionId as string, 10);
+            this.__repairSubscription(subscription, subscriptionId, innerCallback);
+        };
+
+        async.forEachOf(this.subscriptionMap, repairSubscription, callback);
     }
 
     private _send_publish_request() {
@@ -173,11 +286,13 @@ export class ClientSidePublishEngine {
             this.nbPendingPublishRequests -= 1;
 
             if (err) {
-                debugLog(chalk.cyan("ClientSidePublishEngine.prototype._send_publish_request callback : "), chalk.yellow(err.message));
+                debugLog(chalk.cyan("ClientSidePublishEngine.prototype._send_publish_request callback : "),
+                    chalk.yellow(err.message));
                 debugLog("'" + err.message + "'");
 
                 if (err.message.match("not connected")) {
-                    debugLog(chalk.bgWhite.red(" WARNING :  CLIENT IS NOT CONNECTED : MAY BE RECONNECTION IS IN PROGRESS"));
+                    debugLog(chalk.bgWhite.red(" WARNING :  CLIENT IS NOT CONNECTED :" +
+                        " MAY BE RECONNECTION IS IN PROGRESS"));
                     debugLog("this.activeSubscriptionCount =", this.activeSubscriptionCount);
                     // the previous publish request has ended up with an error because
                     // the connection has failed ...
@@ -190,7 +305,8 @@ export class ClientSidePublishEngine {
                     // the server tells us that there is no subscription for this session
                     // but the client have some active subscription left.
                     // This could happen if the client has missed or not received the StatusChange Notification
-                    debugLog(chalk.bgWhite.red(" WARNING :   SERVER TELLS THAT IT HAS NO SUBSCRIPTION , BUT CLIENT DISAGREE"));
+                    debugLog(chalk.bgWhite.red(" WARNING :   SERVER TELLS THAT IT HAS NO SUBSCRIPTION , " +
+                        "BUT CLIENT DISAGREE"));
                     debugLog("this.activeSubscriptionCount =", this.activeSubscriptionCount);
                     active = false;
                 }
@@ -202,7 +318,8 @@ export class ClientSidePublishEngine {
                     // and the client does not send intermediate keepAlive request to keep the connection working.
                     //
                     debugLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT THE SESSION HAS CLOSED ..."));
-                    debugLog("   the ClientSidePublishEngine shall now be disabled, as server will reject any further request");
+                    debugLog("   the ClientSidePublishEngine shall now be disabled," +
+                        " as server will reject any further request");
                     // close all active subscription....
                     active = false;
                 }
@@ -216,12 +333,15 @@ export class ClientSidePublishEngine {
                     //   let adjust the nbMaxPublishRequestsAcceptedByServer value so we never overflow the server
                     //   with extraneous publish requests in the future.
                     //
-                    this.nbMaxPublishRequestsAcceptedByServer = Math.min(this.nbPendingPublishRequests, this.nbMaxPublishRequestsAcceptedByServer);
+                    this.nbMaxPublishRequestsAcceptedByServer = Math.min(
+                        this.nbPendingPublishRequests, this.nbMaxPublishRequestsAcceptedByServer);
                     active = false;
 
-                    debugLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT TOO MANY PUBLISH REQUEST HAS BEEN SEND ..."));
+                    debugLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT TOO MANY" +
+                        " PUBLISH REQUEST HAS BEEN SEND ..."));
                     debugLog(" On our side nbPendingPublishRequests = ", this.nbPendingPublishRequests);
-                    debugLog(" => nbMaxPublishRequestsAcceptedByServer =", this.nbMaxPublishRequestsAcceptedByServer);
+                    debugLog(" => nbMaxPublishRequestsAcceptedByServer =",
+                        this.nbMaxPublishRequestsAcceptedByServer);
                 }
             } else {
                 if (doDebug) {
@@ -235,106 +355,6 @@ export class ClientSidePublishEngine {
                 this.send_publish_request();
             }
         });
-    }
-
-    terminate() {
-        this.session = null;
-    }
-
-    /**
-     * the number of active subscriptions managed by this publish engine.
-     * @property subscriptionCount
-     * @type {Number}
-     */
-    get subscriptionCount() {
-        return Object.keys(this.subscriptionMap).length;
-    }
-
-    static publishRequestCountInPipeline = 5;
-
-    /**
-     * @method registerSubscription
-     *
-     * @param subscription.subscriptionId
-     * @param subscription.timeoutHint
-     * @param subscription.onNotificationMessage {Function} callback
-     */
-    registerSubscription(subscription: any) {
-
-        debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
-
-        assert(arguments.length === 1);
-        assert(_.isFinite(subscription.subscriptionId));
-        assert(!this.subscriptionMap.hasOwnProperty(subscription.subscriptionId)); // already registered ?
-        assert(_.isFunction(subscription.onNotificationMessage));
-        assert(_.isFinite(subscription.timeoutHint));
-
-        this.activeSubscriptionCount += 1;
-        this.subscriptionMap[subscription.subscriptionId] = subscription;
-
-        this.timeoutHint = Math.max(this.timeoutHint, subscription.timeoutHint);
-        debugLog("                       setting timeoutHint = ", this.timeoutHint, subscription.timeoutHint);
-
-        this.replenish_publish_request_queue();
-    }
-
-    replenish_publish_request_queue() {
-
-        // Spec 1.03 part 4 5.13.5 Publish
-        // [..] in high latency networks, the Client may wish to pipeline Publish requests
-        // to ensure cyclic reporting from the Server. Pipelining involves sending more than one Publish
-        // request for each Subscription before receiving a response. For example, if the network introduces a
-        // delay between the Client and the Server of 5 seconds and the publishing interval for a Subscription
-        // is one second, then the Client will have to issue Publish requests every second instead of waiting for
-        // a response to be received before sending the next request.
-        this.send_publish_request();
-        // send more than one publish request to server to cope with latency
-        for (let i = 0; i < ClientSidePublishEngine.publishRequestCountInPipeline - 1; i++) {
-            this.send_publish_request();
-        }
-    }
-
-    /**
-     * @method unregisterSubscription
-     *
-     * @param subscriptionId
-     */
-    unregisterSubscription(subscriptionId: SubscriptionId) {
-
-        debugLog("ClientSidePublishEngine#unregisterSubscription ", subscriptionId);
-
-        assert(_.isFinite(subscriptionId) && subscriptionId > 0);
-        this.activeSubscriptionCount -= 1;
-        // note : it is possible that we get here while the server has already requested
-        //        a session shutdown ... in this case it is pssoble that subscriptionId is already
-        //        removed
-        if (this.subscriptionMap.hasOwnProperty(subscriptionId)) {
-            delete this.subscriptionMap[subscriptionId];
-        } else {
-            debugLog("ClientSidePublishEngine#unregisterSubscription cannot find subscription  ", subscriptionId);
-        }
-    }
-
-    getSubscriptionIds(): SubscriptionId[] {
-        return Object.keys(this.subscriptionMap).map(parseInt);
-    }
-
-
-    /***
-     * get the client subscription from Id
-     * @method getSubscription
-     * @param subscriptionId {Number} the subscription Id
-     * @return {Subscription|null}
-     */
-    getSubscription(subscriptionId: SubscriptionId): any {
-        assert(_.isFinite(subscriptionId) && subscriptionId > 0);
-        assert(this.subscriptionMap.hasOwnProperty(subscriptionId));
-        return this.subscriptionMap[subscriptionId];
-    }
-
-    hasSubscription(subscriptionId: SubscriptionId): boolean {
-        assert(_.isFinite(subscriptionId) && subscriptionId > 0);
-        return this.subscriptionMap.hasOwnProperty(subscriptionId);
     }
 
     private _receive_publish_response(response: PublishResponse) {
@@ -374,10 +394,9 @@ export class ClientSidePublishEngine {
             try {
                 // delegate notificationData to the subscription callback
                 subscription.onNotificationMessage(notificationMessage);
-            }
-            catch (err) {
+            } catch (err) {
                 if (doDebug) {
-                    console.log(err);
+                    debugLog(err);
                     debugLog("Exception in onNotificationMessage");
                 }
             }
@@ -389,18 +408,20 @@ export class ClientSidePublishEngine {
         }
     }
 
-
     private _republish(subscription: any, subscriptionId: SubscriptionId, callback: (err?: Error) => void) {
 
         assert(subscription.subscriptionId === +subscriptionId);
 
         let isDone = false;
 
-        const sendRepublishFunc =  (callback2: (err?: Error) => void) => {
-            assert(_.isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber + 1 >= 0);
+        const sendRepublishFunc = (callback2: (err?: Error) => void) => {
+
+            assert(_.isFinite(subscription.lastSequenceNumber) &&
+                subscription.lastSequenceNumber + 1 >= 0);
+
             const request = new RepublishRequest({
+                retransmitSequenceNumber: subscription.lastSequenceNumber + 1,
                 subscriptionId: subscription.subscriptionId,
-                retransmitSequenceNumber: subscription.lastSequenceNumber + 1
             });
 
             // istanbul ignore next
@@ -415,7 +436,7 @@ export class ClientSidePublishEngine {
                 isDone = true;
                 return callback2();
             }
-            this.session.republish(request,  (err: Error|null, response: RepublishResponse) => {
+            this.session.republish(request, (err: Error | null, response: RepublishResponse) => {
                 if (!err && response.responseHeader.serviceResult.equals(StatusCodes.Good)) {
                     // reprocess notification message  and keep going
                     subscription.onNotificationMessage(response.notificationMessage);
@@ -440,7 +461,11 @@ export class ClientSidePublishEngine {
         });
     }
 
-    private __repairSubscription(subscription: ClientSubscription , subscriptionId: SubscriptionId, callback: (err?: Error) => void) {
+    private __repairSubscription(
+        subscription: ClientSubscription,
+        subscriptionId: SubscriptionId,
+        callback: (err?: Error) => void
+    ) {
 
         debugLog("__repairSubscription  for SubscriptionId ", subscriptionId);
 
@@ -465,30 +490,13 @@ export class ClientSidePublishEngine {
                 // In this case, Client must recreate a subscription and recreate monitored item without altering
                 // the event handlers
                 //
-                debugLog(chalk.bgWhite.red("_republish failed because subscriptionId is not valid anymore on server side."));
+                debugLog(chalk.bgWhite.red("_republish failed " +
+                    " subscriptionId is not valid anymore on server side."));
                 return subscription.recreateSubscriptionAndMonitoredItem(callback);
             }
             callback();
 
         });
 
-    }
-
-    republish(callback: () => void) {
-
-        // After re-establishing the connection the Client shall call Republish in a loop, starting with the next expected
-        // sequence number and incrementing the sequence number until the Server returns the status Bad_MessageNotAvailable.
-        // After receiving this status, the Client shall start sending Publish requests with the normal Publish handling.
-        // This sequence ensures that the lost NotificationMessages queued in the Server are not overwritten by new
-        // Publish responses
-        /**
-         * call Republish continuously until all Notification messages of un-acknowledged notifications are reprocessed..
-         * @private
-         */
-        const repairSubscription = (subcription: ClientSubscription, subscriptionId: SubscriptionId| string, callback: () => void) => {
-            subscriptionId  = parseInt(subscriptionId as string);
-            this.__repairSubscription(subcription, subscriptionId, callback);
-        };
-        async.forEachOf(this.subscriptionMap, repairSubscription, callback);
     }
 }

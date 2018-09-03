@@ -99,7 +99,7 @@ export function encode_decode_round_trip_test(obj: any, options: any, callback_b
 
     obj.encode(stream, options);
 
-    callback_buffer(stream._buffer, obj.encodingDefaultBinary, options);
+    callback_buffer(stream.buffer, obj.encodingDefaultBinary, options);
 
     stream.rewind();
 

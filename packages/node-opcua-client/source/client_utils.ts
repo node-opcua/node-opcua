@@ -3,12 +3,10 @@ import { StatusCodes } from "node-opcua-constants";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { ReadValueId } from "node-opcua-service-read";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { Variant } from "node-opcua-variant";
 import * as _ from "underscore";
 import { ClientSession, ReadValueIdLike, ResponseCallback } from "./client_session";
-
 
 const hasPropertyRefId = resolveNodeId("HasProperty");
 
@@ -17,17 +15,17 @@ const hasPropertyRefId = resolveNodeId("HasProperty");
 function browsePathPropertyRequest(nodeId: NodeIdLike, propertyName: string): BrowsePath {
 
     return new BrowsePath({
-        startingNode: /* NodeId  */ nodeId,
         relativePath: /* RelativePath   */  {
             elements: /* RelativePathElement */ [
                 {
-                    referenceTypeId: hasPropertyRefId,
-                    isInverse: false,
                     includeSubtypes: false,
+                    isInverse: false,
+                    referenceTypeId: hasPropertyRefId,
                     targetName: {namespaceIndex: 0, name: propertyName}
                 }
             ]
-        }
+        },
+        startingNode: /* NodeId  */ nodeId,
     });
 
 }
@@ -46,7 +44,11 @@ interface AnalogDataItemSnapshot {
  * @param nodeId
  * @param callback
  */
-export function readUAAnalogItem(session: ClientSession, nodeId: NodeIdLike, callback: ResponseCallback<AnalogDataItemSnapshot>) {
+export function readUAAnalogItem(
+    session: ClientSession,
+    nodeId: NodeIdLike,
+    callback: ResponseCallback<AnalogDataItemSnapshot>
+) {
 
     assert(_.isFunction(callback));
 
@@ -59,13 +61,12 @@ export function readUAAnalogItem(session: ClientSession, nodeId: NodeIdLike, cal
     ];
 
     const analogItemData: AnalogDataItemSnapshot = {
+        definition: null,
         engineeringUnits: null,
         engineeringUnitsRange: null,
         instrumentRange: null,
         valuePrecision: null,
-        definition: null
     };
-
 
     session.translateBrowsePath(browsePath, (err: Error | null, browsePathResults?: BrowsePathResult[]) => {
 
@@ -83,8 +84,8 @@ export function readUAAnalogItem(session: ClientSession, nodeId: NodeIdLike, cal
 
                 browsePathResult.targets = browsePathResult.targets || [];
                 nodesToRead.push({
+                    attributeId: AttributeIds.Value,
                     nodeId: browsePathResult.targets[0].targetId,
-                    attributeId: AttributeIds.Value
                 });
                 actions.push((readResult: DataValue) => (analogItemData as any)[propertyName] = readResult.value.value);
             }
@@ -96,9 +97,9 @@ export function readUAAnalogItem(session: ClientSession, nodeId: NodeIdLike, cal
         processProperty(browsePathResults[3], "valuePrecision");
         processProperty(browsePathResults[4], "definition");
 
-        session.read(nodesToRead, (err: Error | null, dataValues?: DataValue[]) => {
-            if (err) {
-                return callback(err);
+        session.read(nodesToRead, (err1: Error | null, dataValues?: DataValue[]) => {
+            if (err1) {
+                return callback(err1);
             }
             if (!dataValues) {
                 return callback(new Error("Internal Error"));
@@ -108,10 +109,8 @@ export function readUAAnalogItem(session: ClientSession, nodeId: NodeIdLike, cal
                 actions[index].call(null, result);
             });
 
-            callback(err, analogItemData);
+            callback(err1, analogItemData);
 
         });
     });
 }
-
-

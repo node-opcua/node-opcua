@@ -183,7 +183,7 @@ export function analyseExtensionObject(buffer: Buffer, padding: number, offset: 
     } catch (err) {
         console.log(id);
         console.log(err);
-        console.log("Cannot read decodeExpandedNodeId  on stream " + stream._buffer.toString("hex"));
+        console.log("Cannot read decodeExpandedNodeId  on stream " + stream.buffer.toString("hex"));
     }
     _internalAnalyzePacket(buffer, stream, objMessage, padding, customOptions, offset);
 }
@@ -214,13 +214,13 @@ export function analyze_object_binary_encoding(obj: BaseUAObject) {
 
     stream.rewind();
     console.log("-------------------------------------------------");
-    if (stream._buffer.length < 256) {
-        console.log(hexDump(stream._buffer));
+    if (stream.buffer.length < 256) {
+        console.log(hexDump(stream.buffer));
         console.log("-------------------------------------------------");
     }
 
     const reloadedObject = new (obj.constructor as any)();
-    analyzePacket(stream._buffer, reloadedObject, 0);
+    analyzePacket(stream.buffer, reloadedObject, 0);
 
 }
 

@@ -164,7 +164,7 @@ export class MessageBuilderBase extends EventEmitter {
         const offsetBodyStart = binaryStream.length;
 
         // the end of the message body block
-        const offsetBodyEnd = binaryStream._buffer.length;
+        const offsetBodyEnd = binaryStream.buffer.length;
 
         this.totalBodySize += (offsetBodyEnd - offsetBodyStart);
         this.offsetBodyStart = offsetBodyStart;

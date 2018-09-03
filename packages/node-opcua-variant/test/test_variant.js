@@ -1166,7 +1166,7 @@ describe("benchmarking float Array encode/decode", function () {
         const byteArr = new Uint8Array(arr.buffer);
         const n = byteArr.length;
         for (let i = 0; i < n; i++) {
-            stream._buffer[stream.length++] = byteArr[i];
+            stream.buffer[stream.length++] = byteArr[i];
         }
     }
 
@@ -1201,7 +1201,7 @@ describe("benchmarking float Array encode/decode", function () {
         const r = [test_1, test_2, test_3, test_4, test_5, test_6].map(function (fct) {
             stream.rewind();
             fct(stream, variant.value);
-            const reference_buf = stream._buffer.slice(0, stream._buffer.length);
+            const reference_buf = stream.buffer.slice(0, stream.buffer.length);
             return reference_buf.toString("hex");
         });
         r[0].should.eql(r[1]);

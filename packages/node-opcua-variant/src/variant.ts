@@ -1,25 +1,15 @@
 /**
-* @module node-opcua-variant
+ * @module node-opcua-variant
  */
-import { assert } from "node-opcua-assert";
+
 import * as _ from "underscore";
 
-import { LocalizedText, QualifiedName } from "node-opcua-data-model";
-import { BinaryStream } from "node-opcua-binary-stream";
-import { DataType, _enumerationDataType } from "./DataType_enum";
-import { _enumerationVariantArrayType, VariantArrayType } from "./VariantArrayType_enum";
-
+import { assert } from "node-opcua-assert";
 import {
-    BaseUAObject, buildStructuredType,
-    findBuiltInType, registerSpecialVariantEncoder,
-    initialize_field, initialize_field_array, StructuredTypeSchema
-} from "node-opcua-factory";
-
-import {
+    coerceInt64, coerceUInt64,
     decodeUInt32, decodeUInt8,
-    encodeUInt32, encodeUInt8,
-    coerceInt64,
-    coerceUInt64,
+    encodeUInt32,
+    encodeUInt8,
     isValidBoolean,
     isValidByteString,
     isValidInt16,
@@ -30,12 +20,20 @@ import {
     isValidUInt16,
     isValidUInt32,
     isValidUInt64,
-    isValidUInt8
+    isValidUInt8,
 } from "node-opcua-basic-types";
+import { LocalizedText, QualifiedName } from "node-opcua-data-model";
+import {
+    BaseUAObject, buildStructuredType,
+    findBuiltInType, initialize_field,
+    initialize_field_array, registerSpecialVariantEncoder, StructuredTypeSchema,
+} from "node-opcua-factory";
 
 import * as utils from "node-opcua-utils";
 
-
+import { BinaryStream } from "node-opcua-binary-stream";
+import { DataType, _enumerationDataType } from "./DataType_enum";
+import { _enumerationVariantArrayType, VariantArrayType } from "./VariantArrayType_enum";
 
 const schemaVariant: StructuredTypeSchema = buildStructuredType({
     name: "Variant",
@@ -374,8 +372,8 @@ function constructHook(options: any): any {
         const opts = {
             arrayType: options.arrayType,
             dataType: options.dataType,
+            dimensions: options.dimensions,
             value: options.value,
-            dimensions: options.dimensions
         };
         if (opts.dataType === DataType.ExtensionObject) {
             if (opts.arrayType === VariantArrayType.Scalar) {
@@ -494,7 +492,6 @@ function get_decoder(dataType: DataType) {
 
 const displayWarning = true;
 
-
 /***
  * @private
  */
@@ -509,8 +506,8 @@ export type BufferedArray2 =
     | Uint32Array ;
 
 interface BufferedArrayConstructor {
-    new(buffer: any): any;
     BYTES_PER_ELEMENT: number;
+    new(buffer: any): any;
 }
 
 function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstructor | null, value: any) {
@@ -560,12 +557,10 @@ function coerceVariantArray(dataType: DataType, value: any) {
     const helper = _getHelper(dataType);
     if (helper) {
         return helper.coerce(value);
-    }
-    else {
+    } else {
         return convertTo(dataType, null, value);
     }
 }
-
 
 function encodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream: BinaryStream, value: any) {
 
@@ -636,18 +631,16 @@ function decodeVariantArray(dataType: DataType, stream: BinaryStream) {
     const helper = _getHelper(dataType);
     if (helper) {
         return helper.decode(stream);
-    }
-    else {
+    } else {
         return decodeGeneralArray(dataType, stream);
     }
 }
 
-
 function _declareTypeArrayHelper(dataType: DataType, typedArrayConstructor: any) {
     typedArrayHelpers[DataType[dataType]] = {
         coerce: convertTo.bind(null, dataType, typedArrayConstructor),
+        decode: decodeTypedArray.bind(null, typedArrayConstructor),
         encode: encodeTypedArray.bind(null, typedArrayConstructor),
-        decode: decodeTypedArray.bind(null, typedArrayConstructor)
     };
 }
 
@@ -660,13 +653,13 @@ _declareTypeArrayHelper(DataType.Int32, Int32Array);
 _declareTypeArrayHelper(DataType.UInt16, Uint16Array);
 _declareTypeArrayHelper(DataType.UInt32, Uint32Array);
 
-
 function _decodeVariantArrayDebug(stream: BinaryStream, decode: any, tracer: any, dataType: DataType) {
 
     let cursorBefore = stream.length;
     const length = decodeUInt32(stream);
 
-    let i, element;
+    let i;
+    let element;
     tracer.trace("start_array", "Variant", length, cursorBefore, stream.length);
 
     const n1 = Math.min(10, length);
@@ -859,7 +852,10 @@ function isValidMatrixVariant(dataType: DataType, value: any, dimensions: number
     return true;
 }
 
-export function isValidVariant(arrayType: VariantArrayType, dataType: DataType, value: any, dimensions: number[] | null): boolean {
+export function isValidVariant(
+    arrayType: VariantArrayType,
+    dataType: DataType,
+    value: any, dimensions: number[] | null): boolean {
 
     switch (arrayType) {
         case VariantArrayType.Scalar:
@@ -984,7 +980,6 @@ export function sameVariant(v1: Variant, v2: Variant): boolean {
     }
     return false;
 }
-
 
 // ---------------------------------------------------------------------------------------------------------
 registerSpecialVariantEncoder(Variant);

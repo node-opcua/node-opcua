@@ -51,12 +51,12 @@ describe("Testing BinaryStream", function () {
         // let's verify that a copy has been made
         // changing written array shall not affect inner buffer
 
-        stream._buffer[2 * 3].should.eql(3);
-        stream._buffer[2 * 3] = 33;
+        stream.buffer[2 * 3].should.eql(3);
+        stream.buffer[2 * 3] = 33;
 
         arr[3].should.not.eql(33);
         arr[3].should.eql(512 + 3);
-        stream._buffer[2 * 3] = 3;
+        stream.buffer[2 * 3] = 3;
 
         stream.rewind();
         const arr2 = new Int16Array(stream.readArrayBuffer(50).buffer);
@@ -68,11 +68,11 @@ describe("Testing BinaryStream", function () {
 
         arr2[3].should.eql(512 + 3);
 
-        stream._buffer[2 * 3].should.eql(3);
-        stream._buffer[2 * 3] = 33;
+        stream.buffer[2 * 3].should.eql(3);
+        stream.buffer[2 * 3] = 33;
         arr2[3].should.not.eql(33);
         arr2[3].should.eql(512 + 3);
-        stream._buffer[2 * 3] = 3;
+        stream.buffer[2 * 3] = 3;
 
 
     });
@@ -102,14 +102,14 @@ BinaryStream.prototype.writeArrayBuffer_old = function (arrayBuf, offset, length
     const byteArr = new Uint8Array(arrayBuf);
     const n = (length || byteArr.length) + offset;
     for (let i = offset; i < n; i++) {
-        this._buffer[this.length++] = byteArr[i];
+        this.buffer[this.length++] = byteArr[i];
     }
 };
 
 BinaryStream.prototype.readArrayBuffer_old = function (length) {
 
-    assert(this.length + length <= this._buffer.length, "not enough bytes in buffer");
-    const slice = this._buffer.slice(this.length, this.length + length);
+    assert(this.length + length <= this.buffer.length, "not enough bytes in buffer");
+    const slice = this.buffer.slice(this.length, this.length + length);
     assert(slice.length === length);
     const byteArr = new Uint8Array(slice);
     assert(byteArr.length === length);
@@ -118,22 +118,22 @@ BinaryStream.prototype.readArrayBuffer_old = function (length) {
 };
 BinaryStream.prototype.readArrayBuffer1 = function (length) {
 
-    //var result = new Uint8Array(this._buffer, this.length, length);
+    //var result = new Uint8Array(this.buffer, this.length, length);
     // returns a new Buffer that shares the same allocated memory as the given ArrayBuffer.
-    const result = Buffer.from(this._buffer.buffer, this.length, length);
+    const result = Buffer.from(this.buffer.buffer, this.length, length);
     this.length += length;
     return Buffer.from(result);
 }
 
 BinaryStream.prototype.readArrayBuffer2 = function (length) {
-    const slice = this._buffer.slice(this.length, this.length + length);
+    const slice = this.buffer.slice(this.length, this.length + length);
     this.length += length;
     return Buffer.from(slice);
 
 }
 BinaryStream.prototype.readArrayBuffer3 = function (length) {
-    //xx assert(this.length + length <= this._buffer.length, "not enough bytes in buffer");
-    const slice = this._buffer.slice(this.length, this.length + length);
+    //xx assert(this.length + length <= this.buffer.length, "not enough bytes in buffer");
+    const slice = this.buffer.slice(this.length, this.length + length);
     //xx  assert(slice.length === length);
     const byteArr = new Uint8Array(slice);
     assert(byteArr.length === length);
@@ -183,7 +183,7 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
         largeArray.byteLength.should.eql(n * 8);
 
         binStream_writeArrayBuffer.call(binStream, largeArray.buffer, 0, largeArray.byteLength);
-        //xx console.log(binStream._buffer.slice(0,100).toString("hex"));
+        //xx console.log(binStream.buffer.slice(0,100).toString("hex"));
 
         binStream.rewind();
         const arr = binStream_readArrayBuffer.call(binStream, largeArray.byteLength);

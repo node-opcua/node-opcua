@@ -6,17 +6,15 @@ import * as async from "async";
 import chalk from "chalk";
 import { EventEmitter } from "events";
 import * as  fs from "fs";
-import { assert } from "node-opcua-assert";
 import * as  path from "path";
 import * as _ from "underscore";
-import {
-    ApplicationDescription, EndpointDescription,
-    GetEndpointsRequest, GetEndpointsResponse
-} from "node-opcua-service-endpoints";
-import {
-    coerceMessageSecurityMode, MessageSecurityMode
-} from "node-opcua-service-secure-channel";
 
+import { assert } from "node-opcua-assert";
+import { LocaleId } from "node-opcua-basic-types";
+import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
+import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     ClientSecureChannelLayer,
     coerceConnectionStrategy,
@@ -29,53 +27,45 @@ import {
     SecurityPolicy,
     SecurityToken,
 } from "node-opcua-secure-channel";
-
-import { OPCUASecureObject, IOPCUASecureObjectOptions } from "node-opcua-common";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-
 import {
     FindServersOnNetworkRequest, FindServersOnNetworkRequestOptions,
     FindServersOnNetworkResponse, FindServersRequest,
     FindServersRequestOptions, FindServersResponse, ServerOnNetwork,
 } from "node-opcua-service-discovery";
-
-
-import { ObjectRegistry } from "node-opcua-object-registry";
-
-
-import { LocaleId } from "node-opcua-basic-types";
-import { Certificate , makeSHA1Thumbprint, Nonce , toPem } from "node-opcua-crypto";
-import { Request, Response } from "./common";
+import {
+    ApplicationDescription, EndpointDescription,
+    GetEndpointsRequest, GetEndpointsResponse
+} from "node-opcua-service-endpoints";
+import {
+    coerceMessageSecurityMode, MessageSecurityMode
+} from "node-opcua-service-secure-channel";
 
 import { ClientSession, ClientSessionImpl, ResponseCallback } from "./client_session";
+import { Request, Response } from "./common";
 
+import * as once from "once";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-
-const once = require("once");
-const delayed = require("delayed");
+const warningLog = debugLog;
 
 export type FindServersRequestLike = FindServersRequest | FindServersRequestOptions;
 export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequest | FindServersOnNetworkRequestOptions;
 
 const defaultConnectionStrategy: ConnectionStrategyOptions = {
-    maxRetry: 10000000, // almost infinite
     initialDelay: 1000,
     maxDelay: 20 * 1000, // 20 seconds
+    maxRetry: 10000000, // almost infinite
     randomisationFactor: 0.1
 };
 
-
-export type GetEndpointCallbackFunc = (err: Error | null, endpointDescriptions?: EndpointDescription[]) => void;
-export  type CreateSecureChannelCallbackFunc = (err: Error | null, secureChannel?: ClientSecureChannelLayer) => void;
-
+export type GetEndpointCallbackFunc = ResponseCallback<EndpointDescription[]>;
+export type CreateSecureChannelCallbackFunc = (err: Error | null, secureChannel?: ClientSecureChannelLayer) => void;
 
 // xx OPCUAClientBase.prototype.getPrivateKey = OPCUASecureObject.prototype.getPrivateKey;
 // xx OPCUAClientBase.prototype.getCertificate = OPCUASecureObject.prototype.getCertificate;
 // xx OPCUAClientBase.prototype.getCertificateChain = OPCUASecureObject.prototype.getCertificateChain;
-
 
 interface FindEndpointOptions {
     securityMode: MessageSecurityMode;
@@ -106,27 +96,27 @@ function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callba
     const allEndpoints: any = null;
     const tasks = [
 
-        (callback: ErrorCallback) => {
+        (innerCallback: ErrorCallback) => {
             client.on("backoff", () => {
-                console.log("finding Endpoint => reconnecting ");
+                debugLog("finding Endpoint => reconnecting ");
             });
             client.connect(endpointUrl, (err?: Error) => {
                 if (err) {
-                    console.log("Fail to connect to server ", endpointUrl, " to collect certificate server");
+                    debugLog("Fail to connect to server ", endpointUrl, " to collect certificate server");
                 }
-                return callback(err);
+                return innerCallback(err);
             });
         },
 
-        (callback: ErrorCallback) => {
+        (innerCallback: ErrorCallback) => {
 
             client.getEndpoints((err: Error | null, endpoints?: EndpointDescription[]) => {
 
                 if (err) {
-                    return callback(err);
+                    return innerCallback(err);
                 }
                 if (!endpoints) {
-                    return callback(new Error("Internal Error"));
+                    return innerCallback(new Error("Internal Error"));
                 }
 
                 endpoints.forEach((endpoint: EndpointDescription) => {
@@ -135,12 +125,12 @@ function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callba
                     }
                 });
 
-                callback();
+                innerCallback();
             });
         },
 
-        (callback: ErrorCallback) => {
-            client.disconnect(callback);
+        (innerCallback: ErrorCallback) => {
+            client.disconnect(innerCallback);
         }
     ];
 
@@ -157,8 +147,8 @@ function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callba
         }
 
         const result = {
+            endpoints: allEndpoints,
             selectedEndpoint: selectedEndpoints,
-            endpoints: allEndpoints
         };
         callback(null, result);
     });
@@ -200,7 +190,7 @@ export interface OPCUAClientBaseOptions {
     tokenRenewalInterval?: number;
 
     /**
-     * if set to true, pending session will not be automatically closed
+     * if set to true, pending session will not be automatically closed when disconnect is called
      */
     keepPendingSessionsOnDisconnect?: boolean;
 
@@ -218,7 +208,7 @@ export interface OPCUAClientBaseOptions {
      * the security mode
      * @default MessageSecurityMode.None
      */
-    securityMode?: MessageSecurityMode| string;
+    securityMode?: MessageSecurityMode | string;
 
     /**
      * the security policy
@@ -257,7 +247,6 @@ export interface GetEndpointsOptions {
     profileUris?: string[];
 }
 
-
 export interface OPCUAClientBasePublic {
 
     /***
@@ -265,19 +254,23 @@ export interface OPCUAClientBasePublic {
      * @param endpointUrl the endpoint of the server to connect to ( i.e "opc.tcp://machine.name:3434/name" )
      */
     connect(endpointUrl: string): Promise<void>;
+
     connect(endpointUrl: string, callback: ErrorCallback): void;
 
     /***
      * cause client to close and disconnect the communication with server
      */
     disconnect(): Promise<void>;
+
     disconnect(callback: ErrorCallback): void;
 
-
-    findEndpointForSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): EndpointDescription | undefined;
+    findEndpointForSecurity(
+        securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): EndpointDescription | undefined;
 
     getEndpoints(options?: GetEndpointsOptions): Promise<EndpointDescription[]>;
+
     getEndpoints(options: GetEndpointsOptions, callback: ResponseCallback<EndpointDescription[]>): void;
+
     getEndpoints(callback: GetEndpointCallbackFunc): void;
 
     findServers(options?: FindServersRequestLike): Promise<ApplicationDescription[]>;
@@ -298,50 +291,29 @@ export interface OPCUAClientBasePublic {
  */
 export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBasePublic {
 
+    public static registry = new ObjectRegistry(OPCUAClientBase);
     public securityMode: MessageSecurityMode;
     public securityPolicy: SecurityPolicy;
-    public serverCertificate?: Certificate ;
-
-
+    public serverCertificate?: Certificate;
     public clientName: string;
     public protocolVersion: 0;
     public defaultSecureTokenLifetime: number;
     public tokenRenewalInterval: number;
     public connectionStrategy: ConnectionStrategy;
     public keepPendingSessionsOnDisconnect: boolean;
-
     public endpointUrl: string;
     /// true if session shall periodically probe the server to keep the session alive and prevent timeout
     public keepSessionAlive: boolean;
-
     public _sessions: any;
     protected _serverEndpoints: EndpointDescription[];
     protected _secureChannel: any;
-
     // statistics...
     private _byteRead: number;
     private _byteWritten: number;
     private _transactionsPerformed: number;
     private _timedOutRequestCount: number;
 
-
-    /**
-     * @param options
-     * @param options.defaultSecureTokenLifetime {Number} default secure token lifetime in ms
-     * @param [options.securityMode=MessageSecurityMode.None] {MessageSecurityMode} the default security mode.
-     * @param [options.securityPolicy =SecurityPolicy.None] {SecurityPolicy} the security policy.
-     * @param [options.serverCertificate=null] {Certificate} the server certificate.
-     * @param [options.certificateFile="certificates/client_selfsigned_cert_1024.pem"] {String} client certificate pem file.
-     * @param [options.privateKeyFile="certificates/client_key_1024.pem"] {String} client private key pem file.
-     * @param [options.connectionStrategy] {Object}
-     * @param [options.keepSessionAlive=false]{Boolean}
-     * @param [options.tokenRenewalInterval =0] {Number} if not specify or set to 0 , token  renewal will happen around 75% of the defaultSecureTokenLifetime
-     * @param [options.keepPendingSessionsOnDisconnect=false] if set to true, pending session will not be automatically closed *
-     *                                                        when disconnect is called
-     * @param [options.clientName=""] the client Name
-     */
     constructor(options?: OPCUAClientBaseOptions) {
-
 
         options = options || {};
 
@@ -391,7 +363,6 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
          */
         this.securityPolicy = coerceSecurityPolicy(options.securityPolicy);
 
-
         /**
          * @property serverCertificate
          * @type {Certificate}
@@ -420,6 +391,21 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         this.keepPendingSessionsOnDisconnect = options.keepPendingSessionsOnDisconnect || false;
     }
 
+    /**
+     * total number of transactions performed by the client
+     * @property transactionsPerformed
+     * @type {Number}
+     */
+    public get transactionsPerformed() {
+        return this._transactionsPerformed + (this._secureChannel ? this._secureChannel.transactionsPerformed : 0);
+    }
+
+    /**
+     *
+     */
+    public get timedOutRequestCount() {
+        return this._timedOutRequestCount + (this._secureChannel ? this._secureChannel.timedOutRequestCount : 0);
+    }
 
     /**
      * is true when the client has already requested the server end points.
@@ -430,33 +416,6 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         return (this._serverEndpoints && this._serverEndpoints.length > 0);
     }
 
-    private _destroy_secure_channel() {
-
-
-        if (this._secureChannel) {
-
-            if (doDebug) {
-                debugLog(" DESTROYING SECURE CHANNEL ", this._secureChannel.isTransactionInProgress());
-            }
-            // keep accumulated statistics
-            this._byteWritten += this._secureChannel.bytesWritten;
-            this._byteRead += this._secureChannel.bytesRead;
-            this._transactionsPerformed += this._secureChannel.transactionsPerformed;
-            this._timedOutRequestCount += this._secureChannel.timedOutRequestCount;
-
-
-            this._secureChannel.dispose();
-
-            this._secureChannel.removeAllListeners();
-            this._secureChannel = null;
-
-            if (doDebug) {
-                debugLog("byteWritten  = ", this._byteWritten);
-                debugLog("byteRead     = ", this._byteRead);
-            }
-        }
-    }
-
     /**
      * @property isReconnecting
      * @type {Boolean} true if the client is trying to reconnect to the server after a connection break.
@@ -465,7 +424,34 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         return !!(this._secureChannel && this._secureChannel.isConnecting);
     }
 
-    _cancel_reconnection(callback: ErrorCallback) {
+    /**
+     * true if the connection strategy is set to automatically try to reconnect in case of failure
+     * @property reconnectOnFailure
+     * @type {Boolean}
+     */
+    get reconnectOnFailure(): boolean {
+        return this.connectionStrategy.maxRetry > 0 || this.connectionStrategy.maxRetry === -1;
+    }
+
+    /**
+     * total number of bytes read by the client
+     * @property bytesRead
+     * @type {Number}
+     */
+    get bytesRead() {
+        return this._byteRead + (this._secureChannel ? this._secureChannel.bytesRead : 0);
+    }
+
+    /**
+     * total number of bytes written by the client
+     * @property bytesWritten
+     * @type {Number}
+     */
+    public get bytesWritten() {
+        return this._byteWritten + (this._secureChannel ? this._secureChannel.bytesWritten : 0);
+    }
+
+    public _cancel_reconnection(callback: ErrorCallback) {
 
         // istanbul ignore next
         if (!this._secureChannel) {
@@ -478,12 +464,12 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         });
     }
 
-    _recreate_secure_channel(callback: ErrorCallback) {
+    public _recreate_secure_channel(callback: ErrorCallback) {
 
         debugLog("_recreate_secure_channel...");
 
         if (!this.knowsServerEndpoint) {
-            console.log("Cannot reconnect , server endpoint is unknown");
+            debugLog("Cannot reconnect , server endpoint is unknown");
             return callback(new Error("Cannot reconnect, server endpoint is unknown"));
         }
         assert(this.knowsServerEndpoint);
@@ -513,10 +499,9 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
                 } else {
                     assert(this._secureChannel, "expecting a secureChannel here ");
                     // a new channel has be created and a new connection is established
-                    debugLog(chalk.bgWhite.red("OPCUAClientBase:  RECONNECTED                                       !!!"));
+                    debugLog(chalk.bgWhite.red("OPCUAClientBase:  RECONNECTED                !!!"));
                     callback();
                 }
-
 
                 /**
                  * notify the observers that the reconnection process has been completed
@@ -529,7 +514,7 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         });
     }
 
-    _internal_create_secure_channel(callback: CreateSecureChannelCallbackFunc) {
+    public _internal_create_secure_channel(callback: CreateSecureChannelCallbackFunc) {
 
         let secureChannel: ClientSecureChannelLayer;
 
@@ -542,12 +527,12 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
             (_innerCallback: ErrorCallback) => {
 
                 secureChannel = new ClientSecureChannelLayer({
+                    connectionStrategy: this.connectionStrategy,
                     defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
+                    parent: this,
                     securityMode: this.securityMode,
                     securityPolicy: this.securityPolicy,
                     serverCertificate: this.serverCertificate,
-                    parent: this,
-                    connectionStrategy: this.connectionStrategy,
                     tokenRenewalInterval: this.tokenRenewalInterval,
                 });
 
@@ -557,11 +542,12 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
 
                 secureChannel.create(this.endpointUrl, (err?: Error) => {
                     if (err) {
-                        debugLog(chalk.yellow("Cannot create secureChannel"), (err.message ? chalk.cyan(err.message) : ""));
+                        debugLog(chalk.yellow("Cannot create secureChannel"),
+                            (err.message ? chalk.cyan(err.message) : ""));
                         this._destroy_secure_channel();
                     } else {
                         if (!this._secureChannel) {
-                            console.log("_secureChannel has been closed during the transaction !");
+                            debugLog("_secureChannel has been closed during the transaction !");
                             this._destroy_secure_channel();
                             return _innerCallback(new Error("Secure Channel Closed"));
                         }
@@ -612,22 +598,12 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
     }
 
     /**
-     * true if the connection strategy is set to automatically try to reconnect in case of failure
-     * @property reconnectOnFailure
-     * @type {Boolean}
-     */
-    get reconnectOnFailure(): boolean {
-        return this.connectionStrategy.maxRetry > 0 || this.connectionStrategy.maxRetry === -1;
-    }
-
-
-    /**
      * connect the OPC-UA client to a server end point.
      * @async
      */
-    connect(endpointUrl: string): Promise<void>;
-    connect(endpointUrl: string, callback: ErrorCallback): void;
-    connect(...args: any[]): any {
+    public connect(endpointUrl: string): Promise<void>;
+    public connect(endpointUrl: string, callback: ErrorCallback): void;
+    public connect(...args: any[]): any {
 
         const endpointUrl = args[0];
         const callback = args[1];
@@ -662,10 +638,10 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
             // verify that the certificates in the chain are valid and not revoked.
             //
             const params = {
+                connectionStrategy: this.connectionStrategy,
+                endpoint_must_exist: false,
                 securityMode: this.securityMode,
                 securityPolicy: this.securityPolicy,
-                connectionStrategy: this.connectionStrategy,
-                endpoint_must_exist: false
             };
             return __findEndpoint(endpointUrl, params, (err: Error | null, result?: FindEndpointResult) => {
                 if (err) {
@@ -684,9 +660,9 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
 
                 assert(endpoint);
 
-                _verify_serverCertificate(endpoint.serverCertificate, (err?: Error) => {
-                    if (err) {
-                        return callback(err);
+                _verify_serverCertificate(endpoint.serverCertificate, (err1?: Error) => {
+                    if (err1) {
+                        return callback(err1);
                     }
                     this.serverCertificate = endpoint.serverCertificate;
                     return this.connect(endpointUrl, callback);
@@ -698,22 +674,22 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         // [...]
 
         // make sure callback will only be call once regardless of outcome, and will be also deferred.
-        const callbackOnceDelayed = once(delayed.deferred(callback));
+        const callbackOnceDelayed: any = once((err?: Error) => setImmediate(() => callback(err)));
 
         OPCUAClientBase.registry.register(this);
 
         this._internal_create_secure_channel((err: Error | null, secureChannel?: ClientSecureChannelLayer) => {
             secureChannel;
-            callbackOnceDelayed(err);
+            callbackOnceDelayed(err!);
         });
 
     }
 
-    getClientNonce(): Nonce {
+    public getClientNonce(): Nonce {
         return this._secureChannel.clientNonce;
     }
 
-    performMessageTransaction(request: Request, callback: ResponseCallback<Response>) {
+    public performMessageTransaction(request: Request, callback: ResponseCallback<Response>) {
 
         if (!this._secureChannel) {
             // this may happen if the Server has closed the connection abruptly for some unknown reason
@@ -732,7 +708,10 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
      * return the endpoint information matching  security mode and security policy.
      * @method findEndpoint
      */
-    findEndpointForSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): EndpointDescription | undefined {
+    public findEndpointForSecurity(
+        securityMode: MessageSecurityMode,
+        securityPolicy: SecurityPolicy
+    ): EndpointDescription | undefined {
         securityMode = coerceMessageSecurityMode(securityMode);
         securityPolicy = coerceSecurityPolicy(securityPolicy);
         assert(this.knowsServerEndpoint, "Server end point are not known yet");
@@ -747,7 +726,7 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
      * return the endpoint information matching the specified url , security mode and security policy.
      * @method findEndpoint
      */
-    findEndpoint(
+    public findEndpoint(
         endpointUrl: string,
         securityMode: MessageSecurityMode,
         securityPolicy: SecurityPolicy
@@ -764,21 +743,10 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         });
     }
 
-
-    /**
-     * @method getEndpoints
-     * @async
-     *
-     * @param [options]
-     * @param [options.endpointUrl] {String} the network address that the Client used to access the Discovery Endpoint .
-     * @param [options.localeIds} {Array<LocaleId>}  List of locales to use.
-     * @param [options.profileUris} {Array<String>}  List of transport profiles that the returned Endpoints shall support.
-     *
-     */
-    public getEndpoints(options?: GetEndpointsOptions): Promise<EndpointDescription[]>;
-    public getEndpoints(options: GetEndpointsOptions, callback: ResponseCallback<EndpointDescription[]>): void;
+    public async getEndpoints(options?: GetEndpointsOptions): Promise<EndpointDescription[]>;
+    public getEndpoints(options: GetEndpointsOptions, callback: GetEndpointCallbackFunc): void;
     public getEndpoints(callback: GetEndpointCallbackFunc): void;
-    getEndpoints(...args: any[]): any {
+    public getEndpoints(...args: any[]): any {
         if (args.length === 1) {
             return this.getEndpoints({}, args[0]);
         }
@@ -813,12 +781,10 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         });
     }
 
-
-    getEndpointsRequest(options: any, callback: any) {
-        console.log("note: OPCUAClientBase#getEndpointsRequest is deprecated, use OPCUAClientBase#getEndpoints instead");
+    public getEndpointsRequest(options: any, callback: any) {
+        warningLog("note: OPCUAClientBase#getEndpointsRequest is deprecated, use OPCUAClientBase#getEndpoints instead");
         return this.getEndpoints(options, callback);
     }
-
 
     /**
      * @method findServers
@@ -826,7 +792,7 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
     public findServers(options?: FindServersRequestLike): Promise<ApplicationDescription[]>;
     public findServers(options: FindServersRequestLike, callback: ResponseCallback<ApplicationDescription[]>): void;
     public findServers(callback: ResponseCallback<ApplicationDescription[]>): void;
-    findServers(...args: any[]): any {
+    public findServers(...args: any[]): any {
 
         if (!this._secureChannel) {
             setImmediate(() => {
@@ -860,11 +826,11 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         });
     }
 
-
     public findServersOnNetwork(options?: FindServersOnNetworkRequestLike): Promise<ServerOnNetwork[]>;
     public findServersOnNetwork(callback: ResponseCallback<ServerOnNetwork[]>): void;
-    public findServersOnNetwork(options: FindServersOnNetworkRequestLike, callback: ResponseCallback<ServerOnNetwork[]>): void;
-    findServersOnNetwork(...args: any[]): any {
+    public findServersOnNetwork(
+        options: FindServersOnNetworkRequestLike, callback: ResponseCallback<ServerOnNetwork[]>): void;
+    public findServersOnNetwork(...args: any[]): any {
 
         if (args.length === 1) {
             return this.findServersOnNetwork({}, args[0]);
@@ -893,48 +859,6 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         });
     }
 
-    private _close_pending_sessions(callback: ErrorCallback) {
-
-        assert(_.isFunction(callback));
-        const sessions = _.clone(this._sessions);
-        async.map(sessions, (session: ClientSessionImpl, next: () => void) => {
-            assert(session._client === this);
-            session.close((err?: Error) => {
-                // We should not bother if we have an error here
-                // Session may fail to close , if they haven't been activate and forcefully closed by server
-                // in a attempt to preserve resources in the case of a DDOS attack for instance.
-                if (err) {
-                    const msg = session.authenticationToken ? session.authenticationToken.toString() : "";
-                    debugLog(" failing to close session " + msg);
-                }
-                next();
-            });
-
-        }, (err?: Error) => {
-
-            // istanbul ignore next
-            if (this._sessions.length > 0) {
-                debugLog(this._sessions.map((s: ClientSessionImpl) =>
-                    s.authenticationToken ? s.authenticationToken.toString() : "").join(" "));
-            }
-
-            assert(this._sessions.length === 0, " failed to disconnect exiting sessions ");
-            callback(err);
-        });
-
-    }
-
-    protected _addSession(session: ClientSessionImpl) {
-        assert(!session._client || session._client === this);
-        assert(!_.contains(this._sessions, session), "session already added");
-        session._client = this;
-        this._sessions.push(session);
-
-        if (this.keepSessionAlive) {
-            session.startKeepAliveManager();
-        }
-    }
-
     public _removeSession(session: ClientSessionImpl) {
 
         const index = this._sessions.indexOf(session);
@@ -957,7 +881,7 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
      */
     public disconnect(): Promise<void>;
     public disconnect(callback: ErrorCallback): void;
-    disconnect(...args: any[]): any {
+    public disconnect(...args: any[]): any {
 
         const callback = args[0];
 
@@ -1018,59 +942,97 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
         }
     }
 
-    /**
-     * total number of bytes read by the client
-     * @property bytesRead
-     * @type {Number}
-     */
-    get bytesRead() {
-        return this._byteRead + (this._secureChannel ? this._secureChannel.bytesRead : 0);
-    }
-
-    /**
-     * total number of bytes written by the client
-     * @property bytesWritten
-     * @type {Number}
-     */
-    get bytesWritten() {
-        return this._byteWritten + (this._secureChannel ? this._secureChannel.bytesWritten : 0);
-    }
-
-    /**
-     * total number of transactions performed by the client
-     * @property transactionsPerformed
-     * @type {Number}
-     */
-    get transactionsPerformed() {
-        return this._transactionsPerformed + (this._secureChannel ? this._secureChannel.transactionsPerformed : 0);
-    }
-
-    get timedOutRequestCount() {
-        return this._timedOutRequestCount + (this._secureChannel ? this._secureChannel.timedOutRequestCount : 0);
-    }
-
 // override me !
-    _on_connection_reestablished(callback: ErrorCallback) {
+    public _on_connection_reestablished(callback: ErrorCallback) {
         callback();
     }
 
-    toString() {
+    public toString() {
 
-        console.log("  defaultSecureTokenLifetime.... ", this.defaultSecureTokenLifetime);
-        console.log("  securityMode.................. ", this.securityMode.toString());
-        console.log("  securityPolicy................ ", this.securityPolicy.toString());
+        let str = "";
+        str += "  defaultSecureTokenLifetime.... " + this.defaultSecureTokenLifetime;
+        str += "  securityMode.................. " + this.securityMode.toString();
+        str += "  securityPolicy................ " + this.securityPolicy.toString();
         // this.serverCertificate = options.serverCertificate || null;
-        console.log("  keepSessionAlive.............. ", this.keepSessionAlive);
-        console.log("  bytesRead..................... ", this.bytesRead);
-        console.log("  bytesWritten.................. ", this.bytesWritten);
-        console.log("  transactionsPerformed......... ", this.transactionsPerformed);
-        console.log("  timedOutRequestCount.......... ", this.timedOutRequestCount);
-        console.log("  connectionStrategy.");
-        console.log("        .maxRetry............... ", this.connectionStrategy.maxRetry);
-        console.log("        .initialDelay........... ", this.connectionStrategy.initialDelay);
-        console.log("        .maxDelay............... ", this.connectionStrategy.maxDelay);
-        console.log("        .randomisationFactor.... ", this.connectionStrategy.randomisationFactor);
-        console.log("  keepSessionAlive.............. ", this.keepSessionAlive);
+        str += "  keepSessionAlive.............. " + this.keepSessionAlive;
+        str += "  bytesRead..................... " + this.bytesRead;
+        str += "  bytesWritten.................. " + this.bytesWritten;
+        str += "  transactionsPerformed......... " + this.transactionsPerformed;
+        str += "  timedOutRequestCount.......... " + this.timedOutRequestCount;
+        str += "  connectionStrategy.";
+        str += "        .maxRetry............... " + this.connectionStrategy.maxRetry;
+        str += "        .initialDelay........... " + this.connectionStrategy.initialDelay;
+        str += "        .maxDelay............... " + this.connectionStrategy.maxDelay;
+        str += "        .randomisationFactor.... " + this.connectionStrategy.randomisationFactor;
+        str += "  keepSessionAlive.............. " + this.keepSessionAlive;
+        return str;
+    }
+
+    protected _addSession(session: ClientSessionImpl) {
+        assert(!session._client || session._client === this);
+        assert(!_.contains(this._sessions, session), "session already added");
+        session._client = this;
+        this._sessions.push(session);
+
+        if (this.keepSessionAlive) {
+            session.startKeepAliveManager();
+        }
+    }
+
+    private _destroy_secure_channel() {
+
+        if (this._secureChannel) {
+
+            if (doDebug) {
+                debugLog(" DESTROYING SECURE CHANNEL ", this._secureChannel.isTransactionInProgress());
+            }
+            // keep accumulated statistics
+            this._byteWritten += this._secureChannel.bytesWritten;
+            this._byteRead += this._secureChannel.bytesRead;
+            this._transactionsPerformed += this._secureChannel.transactionsPerformed;
+            this._timedOutRequestCount += this._secureChannel.timedOutRequestCount;
+
+            this._secureChannel.dispose();
+
+            this._secureChannel.removeAllListeners();
+            this._secureChannel = null;
+
+            if (doDebug) {
+                debugLog("byteWritten  = ", this._byteWritten);
+                debugLog("byteRead     = ", this._byteRead);
+            }
+        }
+    }
+
+    private _close_pending_sessions(callback: ErrorCallback) {
+
+        assert(_.isFunction(callback));
+        const sessions = _.clone(this._sessions);
+        async.map(sessions, (session: ClientSessionImpl, next: () => void) => {
+            assert(session._client === this);
+            session.close((err?: Error) => {
+                // We should not bother if we have an error here
+                // Session may fail to close , if they haven't been activate and forcefully closed by server
+                // in a attempt to preserve resources in the case of a DDOS attack for instance.
+                if (err) {
+                    const msg = session.authenticationToken ? session.authenticationToken.toString() : "";
+                    debugLog(" failing to close session " + msg);
+                }
+                next();
+            });
+
+        }, (err?: Error) => {
+
+            // istanbul ignore next
+            if (this._sessions.length > 0) {
+                debugLog(this._sessions.map((s: ClientSessionImpl) =>
+                    s.authenticationToken ? s.authenticationToken.toString() : "").join(" "));
+            }
+
+            assert(this._sessions.length === 0, " failed to disconnect exiting sessions ");
+            callback(err);
+        });
+
     }
 
     private _install_secure_channel_event_handlers(secureChannel: ClientSecureChannelLayer) {
@@ -1115,7 +1077,8 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
 
         secureChannel.on("lifetime_75", (token: SecurityToken) => {
             // secureChannel requests a new token
-            debugLog("SecureChannel Security Token ", token.tokenId, " is about to expired , it's time to request a new token");
+            debugLog("SecureChannel Security Token ", token.tokenId,
+                " is about to expired , it's time to request a new token");
             // forward message to upper level
             this.emit("lifetime_75", token);
         });
@@ -1150,13 +1113,14 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
 
                     debugLog("recreating new secure channel ");
 
-                    this._recreate_secure_channel((err?: Error) => {
+                    this._recreate_secure_channel((err1?: Error) => {
 
-                        debugLog("secureChannel#on(close) => _recreate_secure_channel returns ", err ? err.message : "OK");
+                        debugLog("secureChannel#on(close) => _recreate_secure_channel returns ",
+                            err1 ? err1.message : "OK");
 
-                        if (err) {
+                        if (err1) {
                             // xx assert(!this._secureChannel);
-                            this.emit("close", err);
+                            this.emit("close", err1);
                             return;
                         } else {
                             /**
@@ -1168,9 +1132,9 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
                             // now delegate to upper class the
                             if (this._on_connection_reestablished) {
                                 assert(_.isFunction(this._on_connection_reestablished));
-                                this._on_connection_reestablished((err?: Error) => {
+                                this._on_connection_reestablished((err2?: Error) => {
 
-                                    if (err) {
+                                    if (err2) {
                                         debugLog("connection_reestablished has failed");
                                         this.disconnect(() => {
                                             //  callback(err);
@@ -1193,15 +1157,14 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
             this.emit("timed_out_request", request);
         });
     }
-
-    static registry = new ObjectRegistry(OPCUAClientBase);
 }
 
-
+// tslint:disable:no-var-requires
+// tslint:disable:max-line-length
 const thenify = require("thenify");
+const opts = {multiArgs: false};
 OPCUAClientBase.prototype.connect = thenify.withCallback(OPCUAClientBase.prototype.connect);
 OPCUAClientBase.prototype.disconnect = thenify.withCallback(OPCUAClientBase.prototype.disconnect);
 OPCUAClientBase.prototype.getEndpoints = thenify.withCallback(OPCUAClientBase.prototype.getEndpoints);
 OPCUAClientBase.prototype.findServers = thenify.withCallback(OPCUAClientBase.prototype.findServers);
 OPCUAClientBase.prototype.findServersOnNetwork = thenify.withCallback(OPCUAClientBase.prototype.findServersOnNetwork);
-

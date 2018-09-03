@@ -47,7 +47,7 @@ describe("SecureMessageChunkManager", function () {
                     if (messageChunk) {
                         chunk_stack.push(clone_buffer(messageChunk));
                     } else {
-                        fullBufferForVerif = clone_buffer(chunker._stream._buffer);
+                        fullBufferForVerif = clone_buffer(chunker._stream.buffer);
                         callback();
                     }
                 });

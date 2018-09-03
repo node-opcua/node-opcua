@@ -1,14 +1,11 @@
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
 const async = require("async");
-const util = require("util");
-const _ = require("underscore");
-
 const opcua = require("node-opcua");
 
 const OPCUAClient = opcua.OPCUAClient;
 
 module.exports = function(test) {
+
     describe("testing basic Client-Server communication", function() {
         let server, client, endpointUrl;
         beforeEach(function(done) {
@@ -38,6 +35,7 @@ module.exports = function(test) {
                             password: "blah"
                         };
                         client1.createSession(options, function(err, session) {
+                            should.exist(err);
                             console.log(err.message);
                             the_session = session;
                             err.message.should.match(/BadIdentityTokenInvalid/);
@@ -45,10 +43,14 @@ module.exports = function(test) {
                         });
                     },
                     function(callback) {
-                        the_session.close(function(err) {
-                            err.message.should.match(/BadSessionNotActivated/);
+                        if (the_session) {
+                            the_session.close(function(err) {
+                                err.message.should.match(/BadSessionNotActivated/);
+                                callback();
+                            });
+                        } else {
                             callback();
-                        });
+                        }
                     },
                     function(callback) {
                         client1.disconnect(callback);

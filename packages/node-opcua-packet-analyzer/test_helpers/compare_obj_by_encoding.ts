@@ -8,7 +8,7 @@ export function compare_obj_by_encoding(obj1: BaseUAObject, obj2: BaseUAObject):
     function encoded(obj: BaseUAObject) {
         const stream = new BinaryStream(obj.binaryStoreSize());
         obj.encode(stream);
-        return stream._buffer.toString("hex");
+        return stream.buffer.toString("hex");
     }
     encoded(obj1).should.eql(encoded(obj2));
     return true;

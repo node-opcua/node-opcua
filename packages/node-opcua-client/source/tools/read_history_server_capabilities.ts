@@ -13,15 +13,18 @@ import { Variant } from "node-opcua-variant";
 import { ClientSession, ReadValueIdLike } from "../client_session";
 
 export interface HistoryServerCapabilities {
-    [key: string ]: any;
+    [key: string]: any;
 }
 
 export function readHistoryServerCapabilities(
     session: ClientSession,
-    callback: (err: Error| null, capabilities?: HistoryServerCapabilities) => void) {
+    callback: (err: Error | null, capabilities?: HistoryServerCapabilities) => void) {
 
     // display HistoryCapabilities of server
-    const browsePath: BrowsePath = makeBrowsePath(ObjectIds.ObjectsFolder, "/Server/ServerCapabilities.HistoryServerCapabilities");
+    const browsePath: BrowsePath = makeBrowsePath(
+        ObjectIds.ObjectsFolder,
+        "/Server/ServerCapabilities.HistoryServerCapabilities");
+
     session.translateBrowsePath(browsePath, (err: Error | null, result?: BrowsePathResult) => {
         if (err) {
             return callback(err);
@@ -36,8 +39,6 @@ export function readHistoryServerCapabilities(
         result.targets = result.targets || [];
 
         const historyServerCapabilitiesNodeId = result.targets[0].targetId;
-
-
         // (should be ns=0;i=11192)
         assert(historyServerCapabilitiesNodeId.toString() === "ns=0;i=11192");
 
@@ -70,31 +71,30 @@ export function readHistoryServerCapabilities(
         const browsePaths = properties.map(
             (prop: string) => makeBrowsePath(historyServerCapabilitiesNodeId, "." + prop));
 
-        session.translateBrowsePath(browsePaths, (err: Error | null, results?: BrowsePathResult[]) => {
-            if (err) {
-                return callback(err);
+        session.translateBrowsePath(browsePaths, (innerErr: Error | null, results?: BrowsePathResult[]) => {
+            if (innerErr) {
+                return callback(innerErr);
             }
             if (!results) {
                 return callback(new Error("Internal Error"));
             }
 
             const nodeIds = results.map(
-                (result: BrowsePathResult) => (result.statusCode === StatusCodes.Good && result.targets) ?
-                                result.targets[0].targetId : NodeId.nullNodeId);
+                (innerResult: BrowsePathResult) =>
+                    (innerResult.statusCode === StatusCodes.Good && innerResult.targets)
+                        ? innerResult.targets[0].targetId
+                        : NodeId.nullNodeId);
 
-            const nodesToRead: ReadValueIdLike [] = nodeIds.map((nodeId: NodeId) => {
-                return {
+            const nodesToRead: ReadValueIdLike [] = nodeIds.map((nodeId: NodeId) => ({
                     attributeId: AttributeIds.Value,
-                    nodeId/*: coerceNodeId(nodeId)*/,
-                };
-            });
+                    nodeId/*: coerceNodeId(nodeId)*/}));
 
             const data: HistoryServerCapabilities = {};
 
-            session.read(nodesToRead, (err: Error | null, dataValues?: DataValue[]) => {
+            session.read(nodesToRead, (err2: Error | null, dataValues?: DataValue[]) => {
 
-                if (err) {
-                    return callback(err);
+                if (err2) {
+                    return callback(err2);
                 }
                 if (!dataValues) {
                     return callback(new Error("Internal Error"));
@@ -102,8 +102,7 @@ export function readHistoryServerCapabilities(
 
                 for (let i = 0; i < dataValues.length; i++) {
                     const propName = lowerFirstLetter(properties[i]);
-                    const value: Variant = dataValues[i].value as Variant;
-                    data[propName] =  value;
+                    data[propName] = dataValues[i].value as Variant;
                 }
                 callback(null, data);
             });

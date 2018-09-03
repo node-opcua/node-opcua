@@ -27,27 +27,26 @@ export function perform_findServers(
     let servers: ApplicationDescription[] = [];
     let endpoints: EndpointDescription[] = [];
 
-
     async.series([
-        (callback: ErrorCallback) => {
-            client.connect(discoveryServerEndpointUri, callback);
+        (innerCallback: ErrorCallback) => {
+            client.connect(discoveryServerEndpointUri, innerCallback);
         },
 
-        (callback: ErrorCallback) => {
+        (innerCallback: ErrorCallback) => {
             client.findServers((err: Error | null, _servers?: ApplicationDescription[]) => {
                 if (_servers) {
                     servers = _servers;
                 }
-                callback(err ? err : undefined);
+                innerCallback(err ? err : undefined);
             });
         },
 
-        (callback: ErrorCallback) => {
+        (innerCallback: ErrorCallback) => {
             client.getEndpoints({endpointUrl: undefined}, (err: Error | null, _endpoints?: EndpointDescription[]) => {
                 if (_endpoints) {
                     endpoints = _endpoints;
                 }
-                callback(err ? err : undefined);
+                innerCallback(err ? err : undefined);
             });
         },
 
@@ -74,9 +73,9 @@ export function perform_findServersOnNetwork(
 
     client.connect(discoveryServerEndpointUri, (err?: Error) => {
         if (!err) {
-            client.findServersOnNetwork((err, servers) => {
+            client.findServersOnNetwork((err1, servers) => {
                 client.disconnect(() => {
-                    callback(err, servers);
+                    callback(err1, servers);
                 });
             });
         } else {

@@ -106,7 +106,7 @@ export class MessageChunker {
             });
 
 
-        chunkManager.write(stream._buffer, stream._buffer.length);
+        chunkManager.write(stream.buffer, stream.buffer.length);
 
         chunkManager.end();
     }

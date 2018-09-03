@@ -1,14 +1,14 @@
 /**
  * @module bode-opcua-client
  */
-import * as async from "async";
+import chalk from "chalk";
 import { EventEmitter } from "events";
-import * as  fs from "fs";
+import * as _ from "underscore";
+
 import { assert } from "node-opcua-assert";
-import { ObjectTypeIds } from "node-opcua-constants";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { resolveNodeId } from "node-opcua-nodeid";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ReadValueId, ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import {
     CreateMonitoredItemsRequest, CreateMonitoredItemsResponse,
@@ -18,14 +18,15 @@ import {
     MonitoringMode, MonitoringParameters, MonitoringParametersOptions, SetMonitoringModeResponse
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import * as  path from "path";
-import * as _ from "underscore";
-import * as util from "util";
 
 import { ExtensionObject } from "node-opcua-extension-object";
 import { Variant } from "node-opcua-variant";
+
 import { SetMonitoringModeRequestLike } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
+
+const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 export class ClientMonitoredItemBase extends EventEmitter {
 
@@ -38,8 +39,11 @@ export class ClientMonitoredItemBase extends EventEmitter {
     public result?: MonitoredItemCreateResult;
     public filterResult?: ExtensionObject;
 
-
-    constructor(subscription: ClientSubscription, itemToMonitor: ReadValueIdOptions, monitoringParameters: MonitoringParametersOptions) {
+    constructor(
+        subscription: ClientSubscription,
+        itemToMonitor: ReadValueIdOptions,
+        monitoringParameters: MonitoringParametersOptions
+    ) {
 
         super();
 
@@ -53,7 +57,11 @@ export class ClientMonitoredItemBase extends EventEmitter {
         assert(this.monitoringParameters.clientHandle === 0xFFFFFFFF, "should not have a client handle yet");
     }
 
-
+    /**
+     * @internal
+     * @param value
+     * @private
+     */
     public _notify_value_change(value: DataValue) {
         /**
          * Notify the observers that the MonitoredItem value has changed on the server side.
@@ -62,12 +70,17 @@ export class ClientMonitoredItemBase extends EventEmitter {
          */
         try {
             this.emit("changed", value);
-        }
-        catch (err) {
-            console.log("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
-            console.log("Please verify the application using this node-opcua client");
+        } catch (err) {
+            debugLog("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
+            debugLog("Please verify the application using this node-opcua client");
         }
     }
+
+    /**
+     * @internal
+     * @param eventFields
+     * @private
+     */
     public _notify_event(eventFields: Variant[]) {
         /**
          * Notify the observers that the MonitoredItem value has changed on the server side.
@@ -76,18 +89,26 @@ export class ClientMonitoredItemBase extends EventEmitter {
          */
         try {
             this.emit("changed", eventFields);
-        }
-        catch (err) {
-            console.log("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
-            console.log("Please verify the application using this node-opcua client");
+        } catch (err) {
+            debugLog("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
+            debugLog("Please verify the application using this node-opcua client");
         }
     }
 
-    private _prepare_for_monitoring() {
+    /**
+     * @internal
+     * @private
+     */
+    public _prepare_for_monitoring() {
+
         assert(this.subscription.subscriptionId !== "pending");
-        assert(this.monitoringParameters.clientHandle === 4294967295, "should not have a client handle yet");
+        assert(this.monitoringParameters.clientHandle === 4294967295,
+            "should not have a client handle yet");
+
         this.monitoringParameters.clientHandle = this.subscription.nextClientHandle();
-        assert(this.monitoringParameters.clientHandle > 0 && this.monitoringParameters.clientHandle !== 4294967295);
+
+        assert(this.monitoringParameters.clientHandle > 0
+            && this.monitoringParameters.clientHandle !== 4294967295);
 
         // If attributeId is EventNotifier then monitoring parameters need a filter.
         // The filter must then either be DataChangeFilter, EventFilter or AggregateFilter.
@@ -120,7 +141,8 @@ export class ClientMonitoredItemBase extends EventEmitter {
             if (filter.schema.name !== "EventFilter") {
                 return {
                     error: "Mismatch between attributeId and filter in monitoring parameters : " +
-                        "Got a " + filter.schema.name + " but a EventFilter object is required when itemToMonitor.attributeId== AttributeIds.EventNotifier"
+                        "Got a " + filter.schema.name + " but a EventFilter object is required " +
+                        "when itemToMonitor.attributeId== AttributeIds.EventNotifier"
                 };
             }
 
@@ -148,7 +170,12 @@ export class ClientMonitoredItemBase extends EventEmitter {
 
     }
 
-    private _after_create(monitoredItemResult: MonitoredItemCreateResult) {
+    /**
+     * @internal
+     * @param monitoredItemResult
+     * @private
+     */
+    public _after_create(monitoredItemResult: MonitoredItemCreateResult) {
 
         this.statusCode = monitoredItemResult.statusCode;
         /* istanbul ignore else */
@@ -176,134 +203,5 @@ export class ClientMonitoredItemBase extends EventEmitter {
             this.emit("err", err.message);
             this.emit("terminated");
         }
-    }
-
-    static _toolbox_monitor(
-        subscription: ClientSubscription,
-        timestampsToReturn: TimestampsToReturn,
-        monitoredItems: ClientMonitoredItemBase[],
-        done: (err?: Error) => void
-    ) {
-        assert(_.isFunction(done));
-        const itemsToCreate = [];
-        for (let i = 0; i < monitoredItems.length; i++) {
-
-            const monitoredItem = monitoredItems[i];
-            const itemToCreate = monitoredItem._prepare_for_monitoring();
-
-            if (_.isString(itemToCreate.error)) {
-                return done(new Error(itemToCreate.error));
-            }
-            itemsToCreate.push(itemToCreate);
-        }
-
-        const createMonitorItemsRequest = new CreateMonitoredItemsRequest({
-            subscriptionId: subscription.subscriptionId,
-            timestampsToReturn,
-            itemsToCreate
-        });
-
-        assert(subscription.session);
-        subscription.session.createMonitoredItems(createMonitorItemsRequest, (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
-
-            /* istanbul ignore next */
-            if (err) {
-                // console.log("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ".red, err.message);
-                //  console.log("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ".red, err);
-                //  console.log(createMonitorItemsRequest.toString());
-            } else {
-                if (!response) {
-                    return done(new Error("Internal Error"));
-                }
-
-                response.results = response.results || [];
-
-                for (let i = 0; i < response.results.length; i++) {
-                    const monitoredItemResult = response.results[i];
-                    const monitoredItem = monitoredItems[i];
-                    monitoredItem._after_create(monitoredItemResult);
-                }
-            }
-            done(err ? err : undefined);
-        });
-
-    }
-
-    static _toolbox_modify(
-        subscription: ClientSubscription,
-        monitoredItems: ClientMonitoredItemBase[],
-        parameters: any,
-        timestampsToReturn: TimestampsToReturn,
-        callback: (err: Error | null, results?: MonitoredItemModifyResult[]) => void
-    ) {
-
-        assert(callback === undefined || _.isFunction(callback));
-
-        const itemsToModify = monitoredItems.map((monitoredItem: ClientMonitoredItemBase) => {
-            const clientHandle = monitoredItem.monitoringParameters.clientHandle;
-            return new MonitoredItemModifyRequest({
-                monitoredItemId: monitoredItem.monitoredItemId,
-                requestedParameters: _.extend(_.clone(parameters), {clientHandle})
-            });
-        });
-        const modifyMonitoredItemsRequest = new ModifyMonitoredItemsRequest({
-            subscriptionId: subscription.subscriptionId,
-            timestampsToReturn,
-            itemsToModify
-        });
-
-        subscription.session.modifyMonitoredItems(modifyMonitoredItemsRequest, (err: Error | null, response?: ModifyMonitoredItemsResponse) => {
-
-            /* istanbul ignore next */
-            if (err) {
-                return callback(err);
-            }
-            if (!response || !(response instanceof ModifyMonitoredItemsResponse)) {
-                return callback(new Error("internal error"));
-            }
-
-            response.results = response.results || [];
-
-            assert(response.results.length === monitoredItems.length);
-
-            const res = response.results[0];
-
-            /* istanbul ignore next */
-            if (response.results.length === 1 && res.statusCode !== StatusCodes.Good) {
-                return callback(new Error("Error" + res.statusCode.toString()));
-            }
-            callback(null, response.results);
-        });
-    }
-
-    static _toolbox_setMonitoringMode(
-        subscription: ClientSubscription,
-        monitoredItems: ClientMonitoredItemBase[],
-        monitoringMode: MonitoringMode,
-        callback: (err: Error | null, statusCodes?: StatusCode[]) => void
-    ) {
-
-        const monitoredItemIds = monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId);
-
-        const setMonitoringModeRequest: SetMonitoringModeRequestLike = {
-            subscriptionId: subscription.subscriptionId,
-            monitoringMode,
-            monitoredItemIds
-        };
-
-        subscription.session.setMonitoringMode(setMonitoringModeRequest, (err: Error | null, response?: SetMonitoringModeResponse) => {
-
-            if (err) {
-                return callback(err);
-            }
-            if (!response) {
-                return callback(new Error("Internal Error"));
-            }
-            monitoredItems.forEach((monitoredItem) => {
-                monitoredItem.monitoringMode = monitoringMode;
-            });
-            response.results = response.results || [];
-            callback(null, response.results);
-        });
     }
 }

@@ -76,7 +76,7 @@ describe("CallRequest on custom method", function () {
         callRequest.encode(stream, options);
 
         if (doDebug) {
-            console.log(hexDump(stream._buffer));
+            console.log(hexDump(stream.buffer));
         }
 
         // now decode

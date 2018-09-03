@@ -12,12 +12,13 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { ErrorCallback } from "node-opcua-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
-import { ClientSession, ClientSessionImpl } from "./client_session";
+import { ClientSessionImpl } from "./client_session";
 
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = debugLog;
 
 const emptyCallback = (err?: Error) => {
 };
@@ -38,16 +39,32 @@ export class ClientSessionKeepAliveManager extends EventEmitter {
         this.checkInterval = 0;
     }
 
+    public start() {
+        assert(!this.timerId);
+        assert(this.session.timeout > 100);
+
+        this.pingTimeout = this.session.timeout * 2 / 3;
+        this.checkInterval = this.pingTimeout / 3;
+        this.timerId = setInterval(() => this.ping_server(), this.checkInterval);
+    }
+
+    public stop() {
+        if (this.timerId) {
+            clearInterval(this.timerId);
+            this.timerId = undefined;
+        }
+    }
+
     /**
      * @method ping_server
-     *
+     * @internal
      * when a session is opened on a server, the client shall send request on a regular basis otherwise the server
      * session object might time out.
      * start_ping make sure that ping_server is called on a regular basis to prevent session to timeout.
      *
      * @param callback
      */
-    ping_server(callback?: ErrorCallback) {
+    private ping_server(callback?: ErrorCallback) {
 
         if (callback === undefined) {
             callback = emptyCallback;
@@ -78,7 +95,9 @@ export class ClientSessionKeepAliveManager extends EventEmitter {
 
                 if (err || !dataValue || !dataValue.value) {
                     if (err) {
-                        console.log(chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "), chalk.yellow(err.message));
+
+                        warningLog(chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "),
+                            chalk.yellow(err.message));
                     }
                     this.stop();
 
@@ -88,7 +107,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter {
                      * the keep alive read Variable value transaction
                      */
                     this.emit("failure");
-                    if (callback) callback();
+                    if (callback) { callback(); }
                     return;
 
                 }
@@ -97,7 +116,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter {
                     const newState = dataValue.value.value as ServerState;
                     // istanbul ignore next
                     if (newState !== this.lastKnownState) {
-                        console.log(" Server State = ", newState.toString());
+                        warningLog(" Server State = ", newState.toString());
                     }
                     this.lastKnownState = newState;
                 }
@@ -110,19 +129,4 @@ export class ClientSessionKeepAliveManager extends EventEmitter {
         );
     }
 
-    start() {
-        assert(!this.timerId);
-        assert(this.session.timeout > 100);
-
-        this.pingTimeout = this.session.timeout * 2 / 3;
-        this.checkInterval = this.pingTimeout / 3;
-        this.timerId = setInterval(() => this.ping_server(), this.checkInterval);
-    }
-
-    stop() {
-        if (this.timerId) {
-            clearInterval(this.timerId);
-            this.timerId = undefined;
-        }
-    }
 }

@@ -6,10 +6,12 @@ import * as async from "async";
 import chalk from "chalk";
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
+import * as _ from "underscore";
+
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { makeApplicationUrn } from "node-opcua-common";
-import { exploreCertificate, Certificate, Nonce, extractPublicKeyFromCertificateSync, toPem } from "node-opcua-crypto";
+import { Certificate, exploreCertificate, extractPublicKeyFromCertificateSync, Nonce, toPem } from "node-opcua-crypto";
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {
@@ -38,7 +40,7 @@ import {
 } from "node-opcua-service-session";
 import { StatusCodes } from "node-opcua-status-code";
 import { isNullOrUndefined } from "node-opcua-utils";
-import * as _ from "underscore";
+
 import {
     FindServersRequestLike,
     GetEndpointCallbackFunc,
@@ -53,6 +55,7 @@ import { repair_client_sessions } from "./reconnection";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const errorLog = debugLog;
 
 function validateServerNonce(serverNonce: Nonce | null): boolean {
     return (!(serverNonce && serverNonce.length < 32));
@@ -142,10 +145,10 @@ function createUserNameIdentityToken(
     // if server does not provide certificate use unencrypted password
     if (serverCertificate === null) {
         userIdentityToken = new UserNameIdentityToken({
-            userName,
-            password: Buffer.from(password as string, "utf-8"),
             encryptionAlgorithm: null,
-            policyId: userTokenPolicy.policyId
+            password: Buffer.from(password as string, "utf-8"),
+            policyId: userTokenPolicy.policyId,
+            userName,
         });
         return userIdentityToken;
     }
@@ -166,12 +169,11 @@ function createUserNameIdentityToken(
     }
 
     userIdentityToken = new UserNameIdentityToken({
-        userName,
-        password: Buffer.from(password as string, "utf-8"),
         encryptionAlgorithm: cryptoFactory.asymmetricEncryptionAlgorithm,
-        policyId: userTokenPolicy.policyId
+        password: Buffer.from(password as string, "utf-8"),
+        policyId: userTokenPolicy.policyId,
+        userName,
     });
-
 
     // now encrypt password as requested
     const lenBuf = createFastUninitializedBuffer(4);
@@ -247,9 +249,7 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
     clientName?: string;
 }
 
-
 export interface OPCUAClientPublic extends OPCUAClientBasePublic {
-
 
     connect(endpointUrl: string): Promise<void>;
 
@@ -265,29 +265,31 @@ export interface OPCUAClientPublic extends OPCUAClientBasePublic {
 
     getEndpoints(callback: GetEndpointCallbackFunc): void;
 
-
     findServers(options?: FindServersRequestLike): Promise<ApplicationDescription[]>;
 
     findServers(options: FindServersRequestLike, callback: ResponseCallback<ApplicationDescription[]>): void;
 
     findServers(callback: ResponseCallback<ApplicationDescription[]>): void;
 
-
     createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
 
-    createSession(userIdentityInfo: UserIdentityInfo, callback: (err: Error | null, session?: ClientSession) => void): void;
+    createSession(
+        userIdentityInfo: UserIdentityInfo,
+        callback: (err: Error | null, session?: ClientSession) => void): void;
 
     createSession(callback: (err: Error | null, session?: ClientSession) => void): void;
-
 
     closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
 
     closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
 
+    withSession(endpointUrl: string, inner_func: (
+        session: ClientSession,
+        done: (err?: Error) => void) => void): Promise<void>;
 
-    withSession(endpointUrl: string, inner_func: (session: ClientSession, done: (err?: Error) => void) => void): Promise<void>;
-
-    withSession(endpointUrl: string, inner_func: (session: ClientSession, done: (err?: Error) => void) => void, callback: (err?: Error) => void): void;
+    withSession(endpointUrl: string,
+                inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
+                callback: (err?: Error) => void): void;
 
 }
 
@@ -327,7 +329,9 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
         // if set to true , create Session will only accept connection from server which endpoint_url has been reported
         // by GetEndpointsRequest.
         // By default, the client is strict.
-        this.endpoint_must_exist = (isNullOrUndefined(options.endpoint_must_exist)) ? true : !!options.endpoint_must_exist;
+        this.endpoint_must_exist = (isNullOrUndefined(options.endpoint_must_exist))
+            ? true
+            : !!options.endpoint_must_exist;
 
         this.requestedSessionTimeout = options.requestedSessionTimeout || 60000; // 1 minute
 
@@ -336,407 +340,6 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
         this.___sessionName_counter = 0;
         this.userIdentityInfo = {};
         this.endpoint = undefined;
-    }
-
-    /**
-     *
-     * @private
-     */
-    _nextSessionName() {
-        if (!this.___sessionName_counter) {
-            this.___sessionName_counter = 0;
-        }
-        this.___sessionName_counter += 1;
-        return this.clientName + this.___sessionName_counter;
-    }
-
-    /**
-     *
-     * @private
-     */
-    _getApplicationUri() {
-
-        const certificate = this.getCertificate();
-        let applicationUri;
-        if (certificate) {
-            const e = exploreCertificate(certificate);
-            applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
-        } else {
-            const hostname = require("node-opcua-hostname").get_fully_qualified_domain_name();
-            applicationUri = makeApplicationUrn(hostname, this.applicationName);
-        }
-        return applicationUri;
-
-    }
-
-    /**
-     *
-     * @private
-     */
-    private __resolveEndPoint() {
-
-        this.securityPolicy = this.securityPolicy || SecurityPolicy.None;
-
-        let endpoint = this.findEndpoint(this._secureChannel.endpointUrl, this.securityMode, this.securityPolicy);
-        this.endpoint = endpoint;
-
-
-        // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
-        //   A  Client  shall verify the  HostName  specified in the  Server Certificate  is the same as the  HostName
-        //   contained in the  endpointUrl  provided in the  EndpointDescription. If there is a difference  then  the
-        //   Client  shall report the difference and may close the  SecureChannel.
-
-        if (!this.endpoint) {
-            if (this.endpoint_must_exist) {
-                debugLog("OPCUAClient#endpoint_must_exist = true and endpoint with url ", this._secureChannel.endpointUrl, " cannot be found");
-                return false;
-            } else {
-                // fallback :
-                // our strategy is to take the first server_end_point that match the security settings
-                // ( is this really OK ?)
-                // this will permit us to access a OPCUA Server using it's IP address instead of its hostname
-
-                endpoint = this.findEndpointForSecurity(this.securityMode, this.securityPolicy);
-                if (!endpoint) {
-                    return false;
-                }
-                this.endpoint = endpoint;
-            }
-        }
-        return true;
-    }
-
-    /**
-     *
-     * @private
-     */
-    private _createSession(callback: (err: Error | null, session?: ClientSessionImpl) => void) {
-
-        assert(typeof callback === "function");
-        assert(this._secureChannel);
-        if (!this.__resolveEndPoint() || !this.endpoint) {
-
-            if (this._serverEndpoints) {
-                console.log(this._serverEndpoints.map((endpoint) =>
-                    endpoint.endpointUrl + " " + endpoint.securityMode.toString() + " " + endpoint.securityPolicyUri));
-            }
-            return callback(new Error(" End point must exist " + this._secureChannel.endpointUrl));
-        }
-        this.serverUri = this.endpoint.server.applicationUri || "invalid application uri";
-        this.endpointUrl = this._secureChannel.endpointUrl;
-
-        const session = new ClientSessionImpl(this);
-        this.__createSession_step2(session, callback);
-    }
-
-    /**
-     *
-     * @private
-     */
-    __createSession_step2(session: ClientSessionImpl, callback: (err: Error | null, session?: ClientSessionImpl) => void) {
-
-
-        assert(typeof callback === "function");
-        assert(this._secureChannel);
-        assert(this.serverUri !== undefined, " must have a valid server URI");
-        assert(this.endpointUrl !== undefined, " must have a valid server endpointUrl");
-        assert(this.endpoint);
-
-
-        const applicationUri = this._getApplicationUri();
-
-        const applicationDescription: ApplicationDescriptionOptions = {
-            applicationUri,
-            productUri: "NodeOPCUA-Client",
-            applicationName: new LocalizedText({text: this.applicationName, locale: null}),
-            applicationType: ApplicationType.Client,
-            gatewayServerUri: undefined,
-            discoveryProfileUri: undefined,
-            discoveryUrls: []
-        };
-
-        // note : do not confuse CreateSessionRequest.clientNonce with OpenSecureChannelRequest.clientNonce
-        //        which are two different nonce, with different size (although they share the same name )
-        this.clientNonce = crypto.randomBytes(32);
-
-        const request = new CreateSessionRequest({
-            clientDescription: applicationDescription,
-            serverUri: this.serverUri,
-            endpointUrl: this.endpointUrl,
-            sessionName: this._nextSessionName(),
-            clientNonce: this.clientNonce,
-            clientCertificate: this.getCertificate(),
-            requestedSessionTimeout: this.requestedSessionTimeout,
-            maxResponseMessageSize: 800000
-        });
-
-        // a client Nonce must be provided if security mode is set
-        assert(this._secureChannel.securityMode === MessageSecurityMode.None || request.clientNonce !== null);
-
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-
-            if (err) {
-                return callback(err);
-            }
-
-            if (!response || !(response instanceof CreateSessionResponse)) {
-                return callback(new Error("internal error"));
-            }
-
-            if (response.responseHeader.serviceResult === StatusCodes.BadTooManySessions) {
-                return callback(new Error("Too Many Sessions : " + response.responseHeader.serviceResult.toString()));
-            }
-
-            if (response.responseHeader.serviceResult !== StatusCodes.Good) {
-                err = new Error("Error " + response.responseHeader.serviceResult.name + " " + response.responseHeader.serviceResult.description);
-                return callback(err);
-            }
-
-            // istanbul ignore next
-            if (!validateServerNonce(response.serverNonce)) {
-                return callback(new Error("invalid server Nonce"));
-            }
-
-            // todo: verify SignedSoftwareCertificates and  response.serverSignature
-
-            session = session || new ClientSessionImpl(this);
-            session.name = request.sessionName || "";
-            session.sessionId = response.sessionId;
-            session.authenticationToken = response.authenticationToken;
-            session.timeout = response.revisedSessionTimeout;
-            session.serverNonce = response.serverNonce;
-            session.serverCertificate = response.serverCertificate;
-            session.serverSignature = response.serverSignature;
-
-            debugLog("revised session timeout = ", session.timeout);
-
-            response.serverEndpoints = response.serverEndpoints || [];
-
-            if (!verifyEndpointDescriptionMatches(this, response.serverEndpoints)) {
-                console.log("Endpoint description previously retrieved with GetendpointsDescription");
-                console.log("CreateSessionResponse.serverEndpoints= ");
-                console.log(response.serverEndpoints);
-                return callback(new Error("Invalid endpoint descriptions Found"));
-            }
-            // this._serverEndpoints = response.serverEndpoints;
-            session.serverEndpoints = response.serverEndpoints;
-            callback(null, session);
-        });
-
-    }
-
-    /**
-     *
-     * @private
-     */
-    computeClientSignature(
-        channel: ClientSecureChannelLayer,
-        serverCertificate: Buffer,
-        serverNonce: Nonce | undefined
-    ) {
-        return computeSignature(
-            serverCertificate,
-            serverNonce || Buffer.alloc(0),
-            this.getPrivateKey(),
-            channel.securityPolicy
-        );
-    }
-
-    /**
-     *
-     * @private
-     */
-    createUserIdentityToken(
-        session: ClientSessionImpl,
-        userIdentityInfo: UserIdentityInfo,
-        callback: (err: Error | null, identityToken?: any | null) => void
-    ) {
-        assert(_.isFunction(callback));
-        if (null === userIdentityInfo) {
-            return callback(null, null);
-        }
-        if (isAnonymous(userIdentityInfo)) {
-            try {
-                const userIdentityToken = createAnonymousIdentityToken(session);
-                return callback(null, userIdentityToken);
-            }
-            catch (err) {
-                return callback(err);
-            }
-
-        } else if (isUserNamePassword(userIdentityInfo)) {
-
-            const userName = this.userIdentityInfo.userName || "";
-            const password = this.userIdentityInfo.password || "";
-
-            try {
-                const userIdentityToken = createUserNameIdentityToken(session, userName, password);
-                return callback(null, userIdentityToken);
-            }
-            catch (err) {
-                return callback(err);
-            }
-        } else {
-            console.log(" userIdentityInfo = ", userIdentityInfo);
-            return callback(new Error("CLIENT: Invalid userIdentityInfo"));
-        }
-    }
-
-
-    /**
-     *
-     * @private
-     */
-    public _activateSession(session: ClientSessionImpl, callback: (err: Error | null, session?: ClientSessionImpl) => void) {
-
-        // see OPCUA Part 4 - $7.35
-        assert(typeof callback === "function");
-        // istanbul ignore next
-        if (!this._secureChannel) {
-            return callback(new Error(" No secure channel"));
-        }
-
-        const serverCertificate = session.serverCertificate;
-        // If the securityPolicyUri is None and none of the UserTokenPolicies requires encryption,
-        // the Client shall ignore the ApplicationInstanceCertificate (serverCertificate)
-        assert(serverCertificate === null || serverCertificate instanceof Buffer);
-
-        const serverNonce = session.serverNonce;
-        assert(!serverNonce || serverNonce instanceof Buffer);
-
-        // make sure session is attached to this client
-        const _old_client = session._client;
-        session._client = this;
-
-        this.createUserIdentityToken(session, this.userIdentityInfo, (err: Error | null, userIdentityToken: IssuedIdentityToken) => {
-
-            if (err) {
-                session._client = _old_client;
-                return callback(err);
-            }
-
-            // TODO. fill the ActivateSessionRequest
-            // see 5.6.3.2 Parameters OPC Unified Architecture, Part 4 30 Release 1.02
-            const request = new ActivateSessionRequest({
-
-                // This is a signature generated with the private key associated with the
-                // clientCertificate. The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm
-                // specified in the SecurityPolicy for the Endpoint. The SignatureData type is defined in 7.30.
-
-                clientSignature: this.computeClientSignature(this._secureChannel, serverCertificate, serverNonce) || undefined,
-
-                // These are the SoftwareCertificates which have been issued to the Client application. The productUri contained
-                // in the SoftwareCertificates shall match the productUri in the ApplicationDescription passed by the Client in
-                // the CreateSession requests. Certificates without matching productUri should be ignored.  Servers may reject
-                // connections from Clients if they are not satisfied with the SoftwareCertificates provided by the Client.
-                // This parameter only needs to be specified in the first ActivateSession request after CreateSession.
-                // It shall always be omitted if the maxRequestMessageSize returned from the Server in the CreateSession
-                // response is less than one megabyte. The SignedSoftwareCertificate type is defined in 7.31.
-
-                clientSoftwareCertificates: [],
-
-                // List of locale ids in priority order for localized strings. The first LocaleId in the list has the highest
-                // priority. If the Server returns a localized string to the Client, the Server shall return the translation
-                // with the highest priority that it can. If it does not have a translation for any of the locales identified
-                // in this list, then it shall return the string value that it has and include the locale id with the string.
-                // See Part 3 for more detail on locale ids. If the Client fails to specify at least one locale id, the Server
-                // shall use any that it has.
-                // This parameter only needs to be specified during the first call to ActivateSession during a single
-                // application Session. If it is not specified the Server shall keep using the current localeIds for the Session.
-                localeIds: [],
-
-                // The credentials of the user associated with the Client application. The Server uses these credentials to
-                // determine whether the Client should be allowed to activate a Session and what resources the Client has access
-                // to during this Session. The UserIdentityToken is an extensible parameter type defined in 7.35.
-                // The EndpointDescription specifies what UserIdentityTokens the Server shall accept.
-                userIdentityToken,
-
-                // If the Client specified a user   identity token that supports digital signatures,
-                // then it shall create a signature and pass it as this parameter. Otherwise the parameter is omitted.
-                // The SignatureAlgorithm depends on the identity token type.
-                userTokenSignature: {
-                    algorithm: undefined,
-                    signature: undefined
-                }
-
-            });
-
-            session.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-
-                if (!err && response && response.responseHeader.serviceResult === StatusCodes.Good) {
-
-                    if (!(response instanceof ActivateSessionResponse)) {
-                        return callback(new Error("Internal Error"));
-                    }
-
-                    session.serverNonce = response.serverNonce;
-
-                    if (!validateServerNonce(session.serverNonce)) {
-                        return callback(new Error("Invalid server Nonce"));
-                    }
-                    return callback(null, session);
-
-                } else {
-                    if (!err && response) {
-                        err = new Error(response.responseHeader.serviceResult.toString());
-                    }
-                    session._client = _old_client;
-                    return callback(err);
-                }
-            });
-        });
-    }
-
-    /**
-     * transfer session to this client
-     * @method reactivateSession
-     * @param session
-     * @param callback
-     * @return {*}
-     */
-    private reactivateSession(session: ClientSession, callback: (err?: Error) => void) {
-
-        const internalSession = session as ClientSessionImpl;
-
-        assert(typeof callback === "function");
-        assert(this._secureChannel, " client must be connected first");
-
-        // istanbul ignore next
-        if (!this.__resolveEndPoint() || !this.endpoint) {
-            return callback(new Error(" End point must exist " + this._secureChannel.endpointUrl));
-        }
-
-        assert(!internalSession._client || internalSession._client.endpointUrl === this.endpointUrl, "cannot reactivateSession on a different endpoint");
-        const old_client = internalSession._client;
-
-        debugLog("OPCUAClient#reactivateSession");
-
-        this._activateSession(internalSession, (err: Error | null, newSession?: ClientSessionImpl) => {
-            if (!err) {
-
-                if (old_client !== this) {
-                    // remove session from old client:
-                    if (old_client) {
-                        old_client._removeSession(internalSession);
-                        assert(!_.contains(old_client._sessions, internalSession));
-                    }
-
-                    this._addSession(internalSession);
-                    assert(internalSession._client === this);
-                    assert(!internalSession._closed, "session should not vbe closed");
-                    assert(_.contains(this._sessions, internalSession));
-                }
-                callback();
-
-            } else {
-
-                // istanbul ignore next
-                if (doDebug) {
-                    console.log(chalk.red.bgWhite("reactivateSession has failed !"), err.message);
-                }
-                callback(err);
-            }
-        });
     }
 
     /**
@@ -766,11 +369,17 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
      *     });
      *
      */
-    async createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
-    createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
-    createSession(userIdentityInfo: UserIdentityInfo, callback: (err: Error | null, session?: ClientSession) => void): void ;
-    createSession(callback: (err: Error | null, session?: ClientSession) => void): void;
-    createSession(...args: any[]): any {
+    public async createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
+    public createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
+    public createSession(
+        userIdentityInfo: UserIdentityInfo,
+        callback: (err: Error | null, session?: ClientSession) => void): void ;
+    public createSession(callback: (err: Error | null, session?: ClientSession) => void): void;
+    /**
+     * @internal
+     * @param args
+     */
+    public createSession(...args: any[]): any {
 
         if (args.length === 1) {
             return this.createSession({}, args[0]);
@@ -793,13 +402,12 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
 
                 this._addSession(session);
 
-                this._activateSession(session, (err: Error | null, session2?: ClientSessionImpl) => {
-                    callback(err, session);
+                this._activateSession(session, (err1: Error | null, session2?: ClientSessionImpl) => {
+                    callback(err1, session2);
                 });
             }
         });
     }
-
 
     /**
      * @method changeSessionIdentity
@@ -808,57 +416,34 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
      * @param callback
      * @async
      */
-    changeSessionIdentity(
+    public async changeSessionIdentity(
+        session: ClientSession,
+        userIdentityInfo: UserIdentityInfo,
+    ): Promise<void>;
+    public changeSessionIdentity(
         session: ClientSession,
         userIdentityInfo: UserIdentityInfo,
         callback: (err?: Error) => void
-    ) {
+    ): void;
+    /**
+     * @internal
+     * @param args
+     */
+    public changeSessionIdentity(
+        ...args: any[]
+    ): any {
+
+        const session = args[0] as ClientSessionImpl;
+        const userIdentityInfo = args[1] as UserIdentityInfo;
+        const callback = args[2];
 
         assert(_.isFunction(callback));
 
         const old_userIdentity = this.userIdentityInfo;
         this.userIdentityInfo = userIdentityInfo;
 
-        this._activateSession(session as ClientSessionImpl, (err: Error | null, session?: ClientSessionImpl) => {
-            callback(err ? err : undefined);
-        });
-    }
-
-    private _closeSession(
-        session: ClientSessionImpl,
-        deleteSubscriptions: boolean,
-        callback: (err: Error | null, response?: CloseSessionResponse) => void
-    ) {
-
-        assert(_.isFunction(callback));
-        assert(_.isBoolean(deleteSubscriptions));
-
-        // istanbul ignore next
-        if (!this._secureChannel) {
-            return callback(new Error("no channel"));
-        }
-        assert(this._secureChannel);
-        if (!this._secureChannel.isValid()) {
-            return callback(new Error("invalid channel"));
-        }
-
-
-        if (this.isReconnecting) {
-            console.log("OPCUAClient#_closeSession called while reconnection in progress ! What shall we do");
-            return callback(null);
-        }
-
-        const request = new CloseSessionRequest({
-            deleteSubscriptions
-        });
-
-        session.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-
-            if (err) {
-                callback(err);
-            } else {
-                callback(err, response);
-            }
+        this._activateSession(session as ClientSessionImpl, (err1: Error | null, session1?: ClientSessionImpl) => {
+            callback(err1 ? err1 : undefined);
         });
     }
 
@@ -871,9 +456,13 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
      * @param callback {Function} - the callback
      * @param callback.err {Error|null}   - the Error if the async method has failed
      */
-    closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
-    closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
-    closeSession(...args: any []): any {
+    public closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
+    public closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
+    /**
+     * @internals
+     * @param args
+     */
+    public closeSession(...args: any []): any {
 
         const session = args[0] as ClientSessionImpl;
         const deleteSubscriptions = args[1];
@@ -900,46 +489,34 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
         });
     }
 
-
-    /**
-     *
-     * @private
-     */
-    public _on_connection_reestablished(callback: (err?: Error) => void) {
-
-        assert(_.isFunction(callback));
-
-        // call base class implementation first
-        OPCUAClientBase.prototype._on_connection_reestablished.call(this, (err?: Error) => {
-            repair_client_sessions(this, callback);
-        });
-
-    }
-
-
-    toString() {
-        OPCUAClientBase.prototype.toString.call(this);
-        console.log("  requestedSessionTimeout....... ", this.requestedSessionTimeout);
-        console.log("  endpointUrl................... ", this.endpointUrl);
-        console.log("  serverUri..................... ", this.serverUri);
+    public toString(): string {
+        let str = OPCUAClientBase.prototype.toString.call(this);
+        str += "  requestedSessionTimeout....... " + this.requestedSessionTimeout;
+        str += "  endpointUrl................... " + this.endpointUrl;
+        str += "  serverUri..................... " + this.serverUri;
+        return str;
     }
 
     /**
      * @method withSession
      */
 
-    withSession(
+    public withSession(
         endpointUrl: string,
         inner_func: (session: ClientSession, done: (err?: Error) => void) => void
     ): Promise<void>;
 
-    withSession(
+    public withSession(
         endpointUrl: string,
         inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
         callback: (err?: Error) => void
     ): void;
 
-    withSession(...args: any[]): any {
+    /**
+     * @internal
+     * @param args
+     */
+    public withSession(...args: any[]): any {
 
         const endpointUrl = args[0];
         const inner_func = args[1];
@@ -955,67 +532,66 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
         async.series([
 
             // step 1 : connect to
-            (callback: ErrorCallback) => {
+            (innerCallback: ErrorCallback) => {
                 this.connect(endpointUrl, (err?: Error) => {
                     need_disconnect = true;
                     if (err) {
-                        console.log(" cannot connect to endpoint :", endpointUrl);
+                        errorLog(" cannot connect to endpoint :", endpointUrl);
                     }
-                    callback(err);
+                    innerCallback(err);
                 });
             },
 
             // step 2 : createSession
-            (callback: ErrorCallback) => {
+            (innerCallback: ErrorCallback) => {
                 this.createSession((err: Error | null, session?: ClientSession) => {
                     if (err) {
-                        return callback(err);
+                        return innerCallback(err);
                     }
                     if (!session) {
-                        return callback(new Error("internal error"));
+                        return innerCallback(new Error("internal error"));
                     }
                     theSession = session;
-                    callback();
+                    innerCallback();
                 });
             },
 
-            (callback: ErrorCallback) => {
+            (innerCallback: ErrorCallback) => {
                 try {
                     inner_func(theSession, (err?: Error) => {
                         the_error = err;
-                        callback();
+                        innerCallback();
                     });
-                }
-                catch (err) {
-                    console.log("OPCUAClient#withClientSession", err.message);
+                } catch (err) {
+                    errorLog("OPCUAClient#withClientSession", err.message);
                     the_error = err;
-                    callback();
+                    innerCallback();
                 }
             },
 
             // close session
-            (callback: ErrorCallback) => {
+            (innerCallback: ErrorCallback) => {
                 theSession.close(/*deleteSubscriptions=*/true, (err?: Error) => {
                     if (err) {
-                        console.log("OPCUAClient#withClientSession: session closed failed ?");
+                        debugLog("OPCUAClient#withClientSession: session closed failed ?");
                     }
-                    callback();
+                    innerCallback();
                 });
             },
 
-            (callback: ErrorCallback) => {
+            (innerCallback: ErrorCallback) => {
                 this.disconnect((err?: Error) => {
                     need_disconnect = false;
                     if (err) {
-                        console.log("OPCUAClient#withClientSession: client disconnect failed ?");
+                        errorLog("OPCUAClient#withClientSession: client disconnect failed ?");
                     }
-                    callback();
+                    innerCallback();
                 });
             }
 
         ], (err1) => {
             if (need_disconnect) {
-                console.log("Disconnecting client after failure");
+                errorLog("Disconnecting client after failure");
                 this.disconnect((err2) => {
                     return callback(the_error || err1 || err2);
                 });
@@ -1025,7 +601,7 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
         });
     }
 
-    withSubscription(
+    public withSubscription(
         endpointUrl: string,
         subscriptionParameters: ClientSubscriptionOptions,
         innerFunc: (session: ClientSession, subscription: ClientSubscription, done: (err?: Error) => void) => void,
@@ -1044,36 +620,510 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
             try {
                 innerFunc(session, subscription, (err?: Error) => {
 
-                    subscription.terminate((err?: Error) => {
-                        done(err);
+                    subscription.terminate((err1?: Error) => {
+                        done(err1);
                     });
                 });
 
-            }
-            catch (err) {
-                console.log(err);
+            } catch (err) {
+                debugLog(err);
                 done(err);
             }
         }, callback);
     }
 
-
-    async withSessionAsync(endpointUrl: string, func: WithSessionFunc): Promise<void> {
+    public async withSessionAsync(endpointUrl: string, func: WithSessionFunc): Promise<void> {
         return;
     }
 
-    async withSubscriptionAsync(
+    public async withSubscriptionAsync(
         endpointUrl: string,
         parameters: any, func: WithSubscriptionFunc): Promise<void> {
         return;
     }
+
+    /**
+     * transfer session to this client
+     * @method reactivateSession
+     * @param session
+     * @param callback
+     * @return {*}
+     */
+    public reactivateSession(session: ClientSession, callback: (err?: Error) => void) {
+
+        const internalSession = session as ClientSessionImpl;
+
+        assert(typeof callback === "function");
+        assert(this._secureChannel, " client must be connected first");
+
+        // istanbul ignore next
+        if (!this.__resolveEndPoint() || !this.endpoint) {
+            return callback(new Error(" End point must exist " + this._secureChannel.endpointUrl));
+        }
+
+        assert(!internalSession._client || internalSession._client.endpointUrl === this.endpointUrl,
+            "cannot reactivateSession on a different endpoint");
+
+        const old_client = internalSession._client;
+
+        debugLog("OPCUAClient#reactivateSession");
+
+        this._activateSession(internalSession, (err: Error | null, newSession?: ClientSessionImpl) => {
+            if (!err) {
+
+                if (old_client !== this) {
+                    // remove session from old client:
+                    if (old_client) {
+                        old_client._removeSession(internalSession);
+                        assert(!_.contains(old_client._sessions, internalSession));
+                    }
+
+                    this._addSession(internalSession);
+                    assert(internalSession._client === this);
+                    assert(!internalSession._closed, "session should not vbe closed");
+                    assert(_.contains(this._sessions, internalSession));
+                }
+                callback();
+
+            } else {
+
+                // istanbul ignore next
+                if (doDebug) {
+                    debugLog(chalk.red.bgWhite("reactivateSession has failed !"), err.message);
+                }
+                callback(err);
+            }
+        });
+    }
+
+    /**
+     * @internal
+     * @private
+     */
+    public _on_connection_reestablished(callback: (err?: Error) => void) {
+
+        assert(_.isFunction(callback));
+
+        // call base class implementation first
+        OPCUAClientBase.prototype._on_connection_reestablished.call(this, (err?: Error) => {
+            repair_client_sessions(this, callback);
+        });
+
+    }
+
+    /**
+     *
+     * @internal
+     * @private
+     */
+    public __createSession_step2(
+        session: ClientSessionImpl,
+        callback: (err: Error | null, session?: ClientSessionImpl
+        ) => void) {
+
+        assert(typeof callback === "function");
+        assert(this._secureChannel);
+        assert(this.serverUri !== undefined, " must have a valid server URI");
+        assert(this.endpointUrl !== undefined, " must have a valid server endpointUrl");
+        assert(this.endpoint);
+
+        const applicationUri = this._getApplicationUri();
+
+        const applicationDescription: ApplicationDescriptionOptions = {
+            applicationName: new LocalizedText({text: this.applicationName, locale: null}),
+            applicationType: ApplicationType.Client,
+            applicationUri,
+            discoveryProfileUri: undefined,
+            discoveryUrls: [],
+            gatewayServerUri: undefined,
+            productUri: "NodeOPCUA-Client",
+        };
+
+        // note : do not confuse CreateSessionRequest.clientNonce with OpenSecureChannelRequest.clientNonce
+        //        which are two different nonce, with different size (although they share the same name )
+        this.clientNonce = crypto.randomBytes(32);
+
+        const request = new CreateSessionRequest({
+            clientCertificate: this.getCertificate(),
+            clientDescription: applicationDescription,
+            clientNonce: this.clientNonce,
+            endpointUrl: this.endpointUrl,
+            maxResponseMessageSize: 800000,
+            requestedSessionTimeout: this.requestedSessionTimeout,
+            serverUri: this.serverUri,
+            sessionName: this._nextSessionName(),
+        });
+
+        // a client Nonce must be provided if security mode is set
+        assert(this._secureChannel.securityMode === MessageSecurityMode.None || request.clientNonce !== null);
+
+        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+
+            if (err) {
+                return callback(err);
+            }
+
+            if (!response || !(response instanceof CreateSessionResponse)) {
+                return callback(new Error("internal error"));
+            }
+
+            if (response.responseHeader.serviceResult === StatusCodes.BadTooManySessions) {
+                return callback(new Error("Too Many Sessions : " + response.responseHeader.serviceResult.toString()));
+            }
+
+            if (response.responseHeader.serviceResult !== StatusCodes.Good) {
+                err = new Error("Error " + response.responseHeader.serviceResult.name
+                    + " " + response.responseHeader.serviceResult.description);
+                return callback(err);
+            }
+
+            // istanbul ignore next
+            if (!validateServerNonce(response.serverNonce)) {
+                return callback(new Error("invalid server Nonce"));
+            }
+
+            // todo: verify SignedSoftwareCertificates and  response.serverSignature
+
+            session = session || new ClientSessionImpl(this);
+            session.name = request.sessionName || "";
+            session.sessionId = response.sessionId;
+            session.authenticationToken = response.authenticationToken;
+            session.timeout = response.revisedSessionTimeout;
+            session.serverNonce = response.serverNonce;
+            session.serverCertificate = response.serverCertificate;
+            session.serverSignature = response.serverSignature;
+
+            debugLog("revised session timeout = ", session.timeout);
+
+            response.serverEndpoints = response.serverEndpoints || [];
+
+            if (!verifyEndpointDescriptionMatches(this, response.serverEndpoints)) {
+                errorLog("Endpoint description previously retrieved with GetendpointsDescription");
+                errorLog("CreateSessionResponse.serverEndpoints= ");
+                errorLog(response.serverEndpoints);
+                return callback(new Error("Invalid endpoint descriptions Found"));
+            }
+            // this._serverEndpoints = response.serverEndpoints;
+            session.serverEndpoints = response.serverEndpoints;
+            callback(null, session);
+        });
+
+    }
+
+    /**
+     * @internal
+     * @private
+     */
+    public _activateSession(
+        session: ClientSessionImpl,
+        callback: (err: Error | null, session?: ClientSessionImpl) => void
+    ) {
+
+        // see OPCUA Part 4 - $7.35
+        assert(typeof callback === "function");
+        // istanbul ignore next
+        if (!this._secureChannel) {
+            return callback(new Error(" No secure channel"));
+        }
+
+        const serverCertificate = session.serverCertificate;
+        // If the securityPolicyUri is None and none of the UserTokenPolicies requires encryption,
+        // the Client shall ignore the ApplicationInstanceCertificate (serverCertificate)
+        assert(serverCertificate === null || serverCertificate instanceof Buffer);
+
+        const serverNonce = session.serverNonce;
+        assert(!serverNonce || serverNonce instanceof Buffer);
+
+        // make sure session is attached to this client
+        const _old_client = session._client;
+        session._client = this;
+
+        this.createUserIdentityToken(
+            session,
+            this.userIdentityInfo,
+            (err: Error | null, userIdentityToken: IssuedIdentityToken) => {
+
+                if (err) {
+                    session._client = _old_client;
+                    return callback(err);
+                }
+
+                // TODO. fill the ActivateSessionRequest
+                // see 5.6.3.2 Parameters OPC Unified Architecture, Part 4 30 Release 1.02
+                const request = new ActivateSessionRequest({
+
+                    // This is a signature generated with the private key associated with the
+                    // clientCertificate. The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm
+                    // specified in the SecurityPolicy for the Endpoint. The SignatureData type is defined in 7.30.
+
+                    clientSignature: this.computeClientSignature(
+                        this._secureChannel,
+                        serverCertificate,
+                        serverNonce) || undefined,
+
+                    // These are the SoftwareCertificates which have been issued to the Client application.
+                    // The productUri contained in the SoftwareCertificates shall match the productUri in the
+                    // ApplicationDescription passed by the Client in the CreateSession requests. Certificates without
+                    // matching productUri should be ignored.  Servers may reject connections from Clients if they are
+                    // not satisfied with the SoftwareCertificates provided by the Client.
+                    // This parameter only needs to be specified in the first ActivateSession request
+                    // after CreateSession.
+                    // It shall always be omitted if the maxRequestMessageSize returned from the Server in the
+                    // CreateSession response is less than one megabyte.
+                    // The SignedSoftwareCertificate type is defined in 7.31.
+
+                    clientSoftwareCertificates: [],
+
+                    // List of locale ids in priority order for localized strings. The first LocaleId in the list
+                    // has the highest priority. If the Server returns a localized string to the Client, the Server
+                    // shall return the translation with the highest priority that it can. If it does not have a
+                    // translation for any of the locales identified in this list, then it shall return the string
+                    // value that it has and include the locale id with the string.
+                    // See Part 3 for more detail on locale ids. If the Client fails to specify at least one locale id,
+                    // the Server shall use any that it has.
+                    // This parameter only needs to be specified during the first call to ActivateSession during
+                    // a single application Session. If it is not specified the Server shall keep using the current
+                    // localeIds for the Session.
+                    localeIds: [],
+
+                    // The credentials of the user associated with the Client application. The Server uses these
+                    // credentials to determine whether the Client should be allowed to activate a Session and what
+                    // resources the Client has access to during this Session. The UserIdentityToken is an extensible
+                    // parameter type defined in 7.35.
+                    // The EndpointDescription specifies what UserIdentityTokens the Server shall accept.
+                    userIdentityToken,
+
+                    // If the Client specified a user   identity token that supports digital signatures,
+                    // then it shall create a signature and pass it as this parameter. Otherwise the parameter
+                    // is omitted.
+                    // The SignatureAlgorithm depends on the identity token type.
+                    userTokenSignature: {
+                        algorithm: undefined,
+                        signature: undefined
+                    }
+
+                });
+
+                session.performMessageTransaction(request, (err1: Error | null, response?: Response) => {
+
+                    if (!err1 && response && response.responseHeader.serviceResult === StatusCodes.Good) {
+
+                        if (!(response instanceof ActivateSessionResponse)) {
+                            return callback(new Error("Internal Error"));
+                        }
+
+                        session.serverNonce = response.serverNonce;
+
+                        if (!validateServerNonce(session.serverNonce)) {
+                            return callback(new Error("Invalid server Nonce"));
+                        }
+                        return callback(null, session);
+
+                    } else {
+                        if (!err1 && response) {
+                            err1 = new Error(response.responseHeader.serviceResult.toString());
+                        }
+                        session._client = _old_client;
+                        return callback(err1);
+                    }
+                });
+            });
+    }
+
+    /**
+     *
+     * @private
+     */
+    private _nextSessionName() {
+        if (!this.___sessionName_counter) {
+            this.___sessionName_counter = 0;
+        }
+        this.___sessionName_counter += 1;
+        return this.clientName + this.___sessionName_counter;
+    }
+
+    /**
+     *
+     * @private
+     */
+    private _getApplicationUri() {
+
+        const certificate = this.getCertificate();
+        let applicationUri;
+        if (certificate) {
+            const e = exploreCertificate(certificate);
+            applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
+        } else {
+            const hostname = require("node-opcua-hostname").get_fully_qualified_domain_name();
+            applicationUri = makeApplicationUrn(hostname, this.applicationName);
+        }
+        return applicationUri;
+
+    }
+
+    /**
+     *
+     * @private
+     */
+    private __resolveEndPoint() {
+
+        this.securityPolicy = this.securityPolicy || SecurityPolicy.None;
+
+        let endpoint = this.findEndpoint(this._secureChannel.endpointUrl, this.securityMode, this.securityPolicy);
+        this.endpoint = endpoint;
+
+        // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
+        //   A  Client  shall verify the  HostName  specified in the  Server Certificate  is the same as the  HostName
+        //   contained in the  endpointUrl  provided in the  EndpointDescription. If there is a difference  then  the
+        //   Client  shall report the difference and may close the  SecureChannel.
+
+        if (!this.endpoint) {
+            if (this.endpoint_must_exist) {
+
+                debugLog("OPCUAClient#endpoint_must_exist = true and endpoint with url ",
+                    this._secureChannel.endpointUrl, " cannot be found");
+
+                return false;
+            } else {
+                // fallback :
+                // our strategy is to take the first server_end_point that match the security settings
+                // ( is this really OK ?)
+                // this will permit us to access a OPCUA Server using it's IP address instead of its hostname
+
+                endpoint = this.findEndpointForSecurity(this.securityMode, this.securityPolicy);
+                if (!endpoint) {
+                    return false;
+                }
+                this.endpoint = endpoint;
+            }
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @private
+     */
+    private _createSession(callback: (err: Error | null, session?: ClientSessionImpl) => void) {
+
+        assert(typeof callback === "function");
+        assert(this._secureChannel);
+        if (!this.__resolveEndPoint() || !this.endpoint) {
+
+            if (this._serverEndpoints) {
+                debugLog(this._serverEndpoints.map((endpoint) =>
+                    endpoint.endpointUrl + " " + endpoint.securityMode.toString() + " " + endpoint.securityPolicyUri));
+            }
+            return callback(new Error(" End point must exist " + this._secureChannel.endpointUrl));
+        }
+        this.serverUri = this.endpoint.server.applicationUri || "invalid application uri";
+        this.endpointUrl = this._secureChannel.endpointUrl;
+
+        const session = new ClientSessionImpl(this);
+        this.__createSession_step2(session, callback);
+    }
+
+    /**
+     *
+     * @private
+     */
+    private computeClientSignature(
+        channel: ClientSecureChannelLayer,
+        serverCertificate: Buffer,
+        serverNonce: Nonce | undefined
+    ) {
+        return computeSignature(
+            serverCertificate,
+            serverNonce || Buffer.alloc(0),
+            this.getPrivateKey(),
+            channel.securityPolicy
+        );
+    }
+
+    private _closeSession(
+        session: ClientSessionImpl,
+        deleteSubscriptions: boolean,
+        callback: (err: Error | null, response?: CloseSessionResponse) => void
+    ) {
+
+        assert(_.isFunction(callback));
+        assert(_.isBoolean(deleteSubscriptions));
+
+        // istanbul ignore next
+        if (!this._secureChannel) {
+            return callback(new Error("no channel"));
+        }
+        assert(this._secureChannel);
+        if (!this._secureChannel.isValid()) {
+            return callback(new Error("invalid channel"));
+        }
+
+        if (this.isReconnecting) {
+            errorLog("OPCUAClient#_closeSession called while reconnection in progress ! What shall we do");
+            return callback(null);
+        }
+
+        const request = new CloseSessionRequest({
+            deleteSubscriptions
+        });
+
+        session.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+
+            if (err) {
+                callback(err);
+            } else {
+                callback(err, response);
+            }
+        });
+    }
+
+    /**
+     *
+     * @private
+     */
+    private createUserIdentityToken(
+        session: ClientSessionImpl,
+        userIdentityInfo: UserIdentityInfo,
+        callback: (err: Error | null, identityToken?: any | null) => void
+    ) {
+        assert(_.isFunction(callback));
+        if (null === userIdentityInfo) {
+            return callback(null, null);
+        }
+        if (isAnonymous(userIdentityInfo)) {
+            try {
+                const userIdentityToken = createAnonymousIdentityToken(session);
+                return callback(null, userIdentityToken);
+            } catch (err) {
+                return callback(err);
+            }
+
+        } else if (isUserNamePassword(userIdentityInfo)) {
+
+            const userName = this.userIdentityInfo.userName || "";
+            const password = this.userIdentityInfo.password || "";
+
+            try {
+                const userIdentityToken = createUserNameIdentityToken(session, userName, password);
+                return callback(null, userIdentityToken);
+            } catch (err) {
+                return callback(err);
+            }
+        } else {
+            debugLog(" userIdentityInfo = ", userIdentityInfo);
+            return callback(new Error("CLIENT: Invalid userIdentityInfo"));
+        }
+    }
+
 }
 
 export type WithSessionFunc = (session: ClientSession) => Promise<void>;
 export type WithSubscriptionFunc = (session: ClientSession, subscription: ClientSubscription) => Promise<void>;
 
-
+// tslint:disable:no-var-requires
+// tslint:disable:max-line-length
 const thenify = require("thenify");
+const opts = {multiArgs: false};
 /**
  * @method connect
  * @param endpointUrl {string}
@@ -1127,12 +1177,10 @@ OPCUAClient.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClient.p
  */
 OPCUAClient.prototype.closeSession = thenify.withCallback(OPCUAClient.prototype.closeSession);
 
-
 // OPCUAClient.prototype.withSubscription = thenify(OPCUAClient.prototype.withSubscription);
 const m = process.version.match(/v([0-9]*)\./);
-const nodeVersion = m ? parseInt(m[1]) : 0;
+const nodeVersion = m ? parseInt(m[1], 10) : 0;
 
 if (nodeVersion >= 8) {
 // xx     require("./opcua_client_es2017_extensions");
 }
-

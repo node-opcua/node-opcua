@@ -42,7 +42,7 @@ xdescribe("testing package_analyser", function () {
         obj.encode(stream);
 
         stream.rewind();
-        analyseExtensionObject(stream._buffer);
+        analyseExtensionObject(stream.buffer);
     });
 });
 
