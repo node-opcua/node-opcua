@@ -60,6 +60,7 @@ before_script:
 
 install:
   - npm install -g npm
+  - npm install typescript -g
   - npm ci
 
 # keep the npm cache around to speed up installs
