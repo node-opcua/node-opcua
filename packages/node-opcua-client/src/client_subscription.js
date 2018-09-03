@@ -621,9 +621,17 @@ ClientSubscription.prototype._remove = function (monitoredItem) {
     const self = this;
     const clientHandle = monitoredItem.monitoringParameters.clientHandle;
     assert(clientHandle);
-    assert(self.monitoredItems.hasOwnProperty(clientHandle));
-    monitoredItem.removeAllListeners();
-    delete self.monitoredItems[clientHandle];
+
+    var deleteMonitoredItem = function(){
+        monitoredItem.removeAllListeners();
+        delete self.monitoredItems[clientHandle];
+    };
+
+    if(self.monitoredItems.hasOwnProperty(clientHandle)){
+        deleteMonitoredItem();
+    } else {
+        monitoredItem.on("initialized", deleteMonitoredItem);
+    }
 };
 
 ClientSubscription.prototype._delete_monitored_items = function (monitoredItems, callback) {
