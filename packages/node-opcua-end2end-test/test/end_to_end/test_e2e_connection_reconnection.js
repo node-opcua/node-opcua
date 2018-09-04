@@ -817,6 +817,13 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function monitor_monotonous_counter(callback) {
 
+
+        if (monitoredItem)  {
+            console.log(" warning = already monitoring");
+            monitoredItem.removeAllListeners();
+            monitoredItem = null;
+            // return callback(new Error("Already monitoring"));
+        }
         monitoredItem = subscription.monitor(
             {
                 // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
@@ -831,7 +838,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
 
         // subscription.on("item_added",function(monitoredItem){
-        monitoredItem.on("initialized", function () {
+        monitoredItem.once("initialized", function () {
             //xx console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
             callback();
         });
@@ -846,11 +853,18 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function wait_until_next_notification(done) {
         monitoredItem.once("changed", function (dataValue) {
-            setTimeout(done,10);
+            setTimeout(done,1);
         });
     }
 
     let previous_value_count = 0;
+
+    afterEach(function() {
+        if (monitoredItem)  {
+            monitoredItem.removeAllListeners();
+            monitoredItem = null;
+        }
+    });
 
     function reset_continuous(callback) {
         //xx console.log(" resetting value to check");
@@ -861,7 +875,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function ensure_continuous(callback) {
         // ensure we have more value than previous call
-        setImmediate(function () {
+        wait_until_next_notification(function () {
 
             // ensure that series is continuous
             if (doDebug) {
