@@ -22,6 +22,7 @@ init:
 
 # Install scripts. (runs after repo cloning)
 install:
+  - npm install npm -g
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version $env:platform
   # install modules (using appveyor-retry to prevent EPERM bug)
