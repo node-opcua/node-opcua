@@ -1277,12 +1277,16 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(create_subscription),
             f(monitor_monotonous_counter),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
 
@@ -1293,8 +1297,10 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
             f(wait_a_little_while),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(terminate_subscription),
@@ -1330,13 +1336,13 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             // now drop connection  for 1.5 times requestedSessionTimeout seconds
@@ -1344,10 +1350,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             // make sure that we have received all notifications
             // (thanks to republish )
 
-            f(wait_a_little_while),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(terminate_subscription),
