@@ -115,7 +115,7 @@ function BaseNode(options) {
     this.browseName = _get_QualifiedBrowseName(options.browseName);
 
     // re-use browseName as displayName if displayName is missing
-    options.displayName = options.displayName || options.browseName.name.toString();
+    options.displayName = options.displayName || this.browseName.name;
 
     this._setDisplayName(options.displayName);
 
