@@ -24,7 +24,7 @@
   "node-opcua-basic-types": "^0.5.0",
   "node-opcua-common": "^0.5.0",
   "node-opcua-constants": "^0.5.0",
-  "node-opcua-crypto": "0.0.21",
+  "node-opcua-crypto": "0.0.22",
   "node-opcua-data-model": "^0.5.0",
   "node-opcua-data-value": "^0.5.0",
   "node-opcua-debug": "^0.5.0",
@@ -58,7 +58,7 @@
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^0.5.0",
   "should": "13.2.3",
-  "sinon": "6.1.5"
+  "sinon": "6.2.0"
  },
  "eslintConfig": {
   "env": {

@@ -19,7 +19,7 @@
   "@types/underscore": "^1.8.9",
   "chalk": "^2.4.1",
   "should": "13.2.3",
-  "sinon": "6.1.5"
+  "sinon": "6.2.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
