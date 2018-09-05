@@ -1,4 +1,6 @@
-
+/***
+ * @module node-opcua-guid
+ */
 const regexGUID = /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}/;
 
 /**
@@ -7,9 +9,8 @@ const regexGUID = /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-
  * when X is a hexadecimal digit
  *
  * @method isValidGuid
- *
- * @param guid {String}
- * @return {Boolean} return true if the string is a valid GUID.
+ * @param guid - the GUID to test for validaty
+ * @return  - true if the string is a valid GUID.
  */
 export function isValidGuid(guid: string): boolean {
     return regexGUID.test(guid);
@@ -20,4 +21,3 @@ export function isValidGuid(guid: string): boolean {
 export const emptyGuid = "00000000-0000-0000-0000-000000000000";
 
 export type Guid = string;
-

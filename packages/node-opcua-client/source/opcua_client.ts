@@ -283,9 +283,11 @@ export interface OPCUAClientPublic extends OPCUAClientBasePublic {
 
     closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
 
-    withSession(endpointUrl: string, inner_func: (
-        session: ClientSession,
-        done: (err?: Error) => void) => void): Promise<void>;
+    withSessionAsync<T>(
+        endpointUrl: string,
+        inner_func: (session: ClientSession) => Promise<T>
+    ): Promise<T>;
+
 
     withSession(endpointUrl: string,
                 inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
@@ -501,10 +503,10 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
      * @method withSession
      */
 
-    public withSession(
+    public withSession<T>(
         endpointUrl: string,
-        inner_func: (session: ClientSession, done: (err?: Error) => void) => void
-    ): Promise<void>;
+        inner_func: (session: ClientSession) => Promise<T>
+    ): Promise<T>;
 
     public withSession(
         endpointUrl: string,
@@ -632,14 +634,61 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
         }, callback);
     }
 
-    public async withSessionAsync(endpointUrl: string, func: WithSessionFunc): Promise<void> {
-        return;
-    }
+    public async withSessionAsync(endpointUrl: string, func: WithSessionFuncP<any>): Promise<any> {
+        assert(_.isFunction(func));
+        assert(func.length === 1, "expecting a single argument in func");
 
+        try {
+            await this.connect(endpointUrl);
+            const session = await this.createSession({});
+
+            let result;
+            try {
+                result = await func(session);
+            } catch (err) {
+                errorLog(err);
+            }
+            await session.close();
+            await this.disconnect();
+            return result;
+        } catch (err) {
+            throw err;
+        }
+    }
     public async withSubscriptionAsync(
         endpointUrl: string,
-        parameters: any, func: WithSubscriptionFunc): Promise<void> {
-        return;
+        parameters: any, func: WithSubscriptionFuncP<any>
+    ): Promise<any> {
+
+        await this.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+
+            assert(session, " session must exist");
+            const subscription = new ClientSubscription(session as ClientSessionImpl, parameters);
+
+            subscription.on("started", () => {
+                // console.log("started subscription :", subscription.subscriptionId);
+                // console.log(" revised parameters ");
+                // console.log("  revised maxKeepAliveCount  ", subscription.maxKeepAliveCount,"
+                // ( requested ", parameters.requestedMaxKeepAliveCount + ")");
+                // console.log("  revised lifetimeCount      ", subscription.lifetimeCount, " (
+                // requested ", parametersequestedLifetimeCount + ")");
+                // console.log("  revised publishingInterval ", subscription.publishingInterval, "
+                // ( requested ", arameters.requestedPublishingInterval + ")");
+                // console.log("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);
+            }).on("internal_error", (err: Error) => {
+                debugLog(" received internal error", err.message);
+            }).on("keepalive", () => {
+
+            }).on("terminated", (err?: Error) => {
+                // console.log(" terminated");
+            });
+
+            const result = await func(session, subscription);
+
+            await subscription.terminate();
+
+            return result;
+        });
     }
 
     /**
@@ -1118,7 +1167,9 @@ export class OPCUAClient extends OPCUAClientBase implements OPCUAClientPublic {
 }
 
 export type WithSessionFunc = (session: ClientSession) => Promise<void>;
+export type WithSessionFuncP<T> = (session: ClientSession) => Promise<T>;
 export type WithSubscriptionFunc = (session: ClientSession, subscription: ClientSubscription) => Promise<void>;
+export type WithSubscriptionFuncP<T> = (session: ClientSession, subscription: ClientSubscription) => Promise<T>;
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length

@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "generate": "ts-node src/generate && tsc",
+    "generate": "ts-node source/generate && tsc",
     "build": "npm run generate",
     "test": "mocha -r ts-node/register test/**/*.ts",
     "clean": "node -e \"require('rimraf').sync('dist');\""

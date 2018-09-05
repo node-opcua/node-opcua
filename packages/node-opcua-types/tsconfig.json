@@ -5,14 +5,14 @@
     "module": "commonjs",
     "declaration": true,
     // "sourceRoot": "./src",
-    "rootDir": "src",
+    "rootDir": "source",
     "strict": true,
     "listFiles": false,
     "outDir": "dist",
     "sourceMap": true
   },
   "files": [
-    "src/generate.ts",
-    "src/index.ts"
+    "source/generate.ts",
+    "source/index.ts"
   ]
 }

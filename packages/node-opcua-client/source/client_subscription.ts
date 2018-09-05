@@ -470,6 +470,9 @@ export class ClientSubscription extends EventEmitter {
                     timestampsToReturn: TimestampsToReturn.Both, // this.timestampsToReturn,
                 });
 
+                if (!this.session) {
+                    return innerCallback(new Error("no session"));
+                }
                 this.session.createMonitoredItems(
                     createMonitorItemsRequest,
                     (err: Error | null, response?: CreateMonitoredItemsResponse) => {
