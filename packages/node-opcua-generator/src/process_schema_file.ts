@@ -1,11 +1,12 @@
-//
-import * as fs from "fs";
+// tslint:disable:no-console
+// tslint:disable:object-literal-sort-keys
 
-const Xml2Json = require("node-opcua-xml2json").Xml2Json;
 import chalk from "chalk";
-import { StructuredTypeField, StructuredTypeSchema, StructuredTypeOptions } from "node-opcua-factory";
+import * as fs from "fs";
+import { StructuredTypeField, StructuredTypeOptions, StructuredTypeSchema } from "node-opcua-factory";
 import { EnumeratedType, EnumeratedValue } from "./process_schema_file";
 
+const Xml2Json = require("node-opcua-xml2json").Xml2Json;
 const doDebug = false;
 
 function w(s: string, l: number): string {
@@ -26,29 +27,29 @@ const predefinedType: any = {
     "opc:Int16": 1,
     "opc:Int32": 1,
     "opc:Int64": 1,
+    "opc:SByte": 1,
+    "opc:String": 1,
     "opc:UInt16": 1,
     "opc:UInt32": 1,
     "opc:UInt64": 1,
-    "opc:String": 1,
-    "opc:SByte": 1,
 
-    "ua:StatusCode": 1,
-    "ua:NodeId": 1,
-    "ua:DiagnosticInfo": 1,
-    "ua:ExtensionObject": 1,
-    "ua:Variant": 1,
-    "ua:NodeIdType": 1,
-    "ua:TwoByteNodeId": 1,
-    "ua:FourByteNodeId": 1,
-    "ua:NumericNodeId": 1,
-    "ua:StringNodeId": 1,
     "ua:ByteStringNodeId": 1,
-    "ua:GuidNodeId": 1,
-    "ua:ExpandedNodeId": 1,
-    "ua:XmlElement": 1,
-    "ua:QualifiedName": 1,
-    "ua:LocalizedText": 1,
     "ua:DataValue": 1,
+    "ua:DiagnosticInfo": 1,
+    "ua:ExpandedNodeId": 1,
+    "ua:ExtensionObject": 1,
+    "ua:FourByteNodeId": 1,
+    "ua:GuidNodeId": 1,
+    "ua:LocalizedText": 1,
+    "ua:NodeId": 1,
+    "ua:NodeIdType": 1,
+    "ua:NumericNodeId": 1,
+    "ua:QualifiedName": 1,
+    "ua:StatusCode": 1,
+    "ua:StringNodeId": 1,
+    "ua:TwoByteNodeId": 1,
+    "ua:Variant": 1,
+    "ua:XmlElement": 1,
 };
 
 const found: any = {};
@@ -102,25 +103,26 @@ const state0: any = {
                         console.log("Import NameSpace = ", self.attrs.Namespace, " Location", self.attrs.Location);
                     }
                 },
+
                 EnumeratedType: {
                     init: function () {
-
 
                         const self = this as any;
 
                         if (doDebug) {
-                            console.log(chalk.cyan("EnumeratedType Name="), w(self.attrs.Name, 40), "LengthInBits=", self.attrs.LengthInBits);
+                            console.log(chalk.cyan("EnumeratedType Name="),
+                                w(self.attrs.Name, 40), "LengthInBits=", self.attrs.LengthInBits);
                         }
 
                         self.enumeratedType = {
+                            enumeratedValues: [] as EnumeratedValue[],
+                            lengthInBits: parseInt(self.attrs.LengthInBits, 10),
                             name: self.attrs.Name,
-                            lengthInBits: parseInt(self.attrs.LengthInBits),
-                            enumeratedValues: [] as EnumeratedValue[]
                         };
                     },
                     parser: {
                         Documentation: {
-                            finish: function() {
+                            finish: function () {
                                 const self = this as any;
                                 self.parent.enumeratedType.documentation = self.text;
                             }
@@ -129,11 +131,12 @@ const state0: any = {
                             finish: function () {
                                 const self = this as any;
                                 if (doDebug) {
-                                    console.log(" EnumeratedValue Name=", w(self.attrs.Name, 40), " Value=", self.attrs.Value);
+                                    console.log(" EnumeratedValue Name=",
+                                        w(self.attrs.Name, 40), " Value=", self.attrs.Value);
                                 }
                                 self.parent.enumeratedType.enumeratedValues.push({
                                     name: self.attrs.Name,
-                                    value: parseInt(self.attrs.Value)
+                                    value: parseInt(self.attrs.Value, 10)
                                 });
                             }
                         }
@@ -147,7 +150,8 @@ const state0: any = {
                     init: function () {
                         const self = this as any;
                         if (doDebug) {
-                            console.log(chalk.cyan("StructureType Name="), self.attrs.Name.green, " BaseType=", self.attrs.BaseType);
+                            console.log(chalk.cyan("StructureType Name="),
+                                self.attrs.Name.green, " BaseType=", self.attrs.BaseType);
                         }
                         const baseType = self.attrs.BaseType;
 
@@ -167,6 +171,10 @@ const state0: any = {
                             finish: function () {
                                 const self = this as any;
 
+                                if (self.attrs.SourceType) {
+                                    // ignore  this field, This is a repeatition of the base type field with same name
+                                   return;
+                                }
                                 if (doDebug) {
                                     console.log(
                                         chalk.yellow(" field Name="), w(self.attrs.Name, 40),
@@ -184,10 +192,10 @@ const state0: any = {
                                     return;
                                 }
 
-
                                 if (self.attrs.LengthField) {
                                     field.isArray = true;
-                                    self.parent.structuredType.fields[self.parent.structuredType.fields.length - 1] = field;
+                                    const n = self.parent.structuredType.fields.length - 1;
+                                    self.parent.structuredType.fields[n] = field;
                                 } else {
                                     self.parent.structuredType.fields.push(field);
                                 }
@@ -204,7 +212,10 @@ const state0: any = {
     }
 };
 
-export function parseBinaryXSD(xmlString: string, callback: (err: Error | null, typeDictionary: TypeDictionary) => void) {
+export function parseBinaryXSD(
+    xmlString: string,
+    callback: (err: Error | null, typeDictionary: TypeDictionary
+    ) => void) {
 
     const typeDictionary: TypeDictionary = {
         structuredTypes: {},
