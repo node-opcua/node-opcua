@@ -13,7 +13,6 @@
   "node-opcua-assert": "^0.5.0",
   "node-opcua-basic-types": "^0.5.0",
   "node-opcua-binary-stream": "^0.5.0",
-  "node-opcua-debug": "^0.5.0",
   "node-opcua-enum": "^0.5.0",
   "node-opcua-guid": "^0.5.0",
   "node-opcua-nodeid": "^0.5.0",

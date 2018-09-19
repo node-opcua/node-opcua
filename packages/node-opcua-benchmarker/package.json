@@ -8,8 +8,6 @@
   "build": "tsc",
   "clean": "node -e \"require('rimraf').sync('dist');\"",
   "lint": "tslint source/**/*.ts"
-
-
  },
  "dependencies": {
   "async": "^2.6.1",

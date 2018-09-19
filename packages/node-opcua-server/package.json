@@ -20,7 +20,7 @@
   "node-opcua-client": "^0.5.0",
   "node-opcua-common": "^0.5.0",
   "node-opcua-constants": "^0.5.0",
-  "node-opcua-crypto": "0.0.22",
+  "node-opcua-crypto": "^0.0.22",
   "node-opcua-data-model": "^0.5.0",
   "node-opcua-data-value": "^0.5.0",
   "node-opcua-date-time": "^0.5.0",
@@ -32,7 +32,7 @@
   "node-opcua-nodesets": "^0.5.0",
   "node-opcua-numeric-range": "^0.5.0",
   "node-opcua-object-registry": "^0.5.0",
-  "node-opcua-pki": "0.0.31",
+  "node-opcua-pki": "^1.0.0-beta.2",
   "node-opcua-secure-channel": "^0.5.0",
   "node-opcua-service-browse": "^0.5.0",
   "node-opcua-service-call": "^0.5.0",
@@ -60,7 +60,7 @@
   "node-opcua-test-helpers": "^0.5.0",
   "node-opcua-transport": "^0.5.0",
   "should": "13.2.3",
-  "sinon": "6.2.0"
+  "sinon": "6.3.4"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

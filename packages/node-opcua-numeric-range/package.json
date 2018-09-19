@@ -13,9 +13,9 @@
  "dependencies": {
   "node-opcua-assert": "^0.5.0",
   "node-opcua-basic-types": "^0.5.0",
+  "node-opcua-binary-stream": "^0.5.0",
   "node-opcua-enum": "^0.5.0",
   "node-opcua-factory": "^0.5.0",
-  "node-opcua-binary-stream": "^0.5.0",
   "node-opcua-status-code": "^0.5.0",
   "underscore": "^1.9.1"
  },

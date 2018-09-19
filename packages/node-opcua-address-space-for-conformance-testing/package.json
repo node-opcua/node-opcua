@@ -1,10 +1,10 @@
 {
- "name": "node-opcua-address-space-for-conformance-testing",
- "version": "0.5.0",
- "description": "pure nodejs OPCUA SDK - module -address-space-for-conformance-testing",
- "main": "index.js",
+	"name": "node-opcua-address-space-for-conformance-testing",
+	"version": "0.5.0",
+	"description": "pure nodejs OPCUA SDK - module -address-space-for-conformance-testing",
+	"main": "index.js",
  "scripts": {},
- "dependencies": {
+	"dependencies": {
   "node-opcua-address-space": "^0.5.0",
   "node-opcua-assert": "^0.5.0",
   "node-opcua-basic-types": "^0.5.0",
@@ -15,21 +15,21 @@
   "node-opcua-nodeid": "^0.5.0",
   "node-opcua-status-code": "^0.5.0",
   "node-opcua-variant": "^0.5.0",
-  "underscore": "^1.9.1"
- },
- "author": "Etienne Rossignon",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git://github.com/node-opcua/node-opcua.git"
- },
- "keywords": [
-  "OPCUA",
-  "opcua",
-  "m2m",
-  "iot",
-  "opc ua",
-  "internet of things"
- ],
- "homepage": "http://node-opcua.github.io/"
+		"underscore": "^1.9.1"
+	},
+	"author": "Etienne Rossignon",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/node-opcua/node-opcua.git"
+	},
+	"keywords": [
+		"OPCUA",
+		"opcua",
+		"m2m",
+		"iot",
+		"opc ua",
+		"internet of things"
+	],
+	"homepage": "http://node-opcua.github.io/"
 }

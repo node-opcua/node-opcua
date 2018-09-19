@@ -22,11 +22,13 @@ init:
 
 # Install scripts. (runs after repo cloning)
 install:
-  - npm install npm -g
-  - npm install typescript -g
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version $env:platform
   # install modules (using appveyor-retry to prevent EPERM bug)
+  - npm install -g npm
+  - npm install -g typescript
+  - set path=C:\Users\appveyor\AppData\Roaming\npm\;%path%
+  - tsc --version
   - appveyor-retry npm install
 
 # Post-install test scripts.

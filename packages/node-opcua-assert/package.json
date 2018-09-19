@@ -9,11 +9,10 @@
   "test": "echo nothing to do",
   "clean": "node -e \"require('rimraf').sync('dist');\"",
   "lint": "tslint source/**/*.ts"
-
  },
  "dependencies": {
   "better-assert": "1.0.2",
-   "chalk": "^2.4.1"
+  "chalk": "^2.4.1"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
@@ -31,6 +30,5 @@
  ],
  "homepage": "http://node-opcua.github.io/",
  "devDependencies": {
-  "@types/chalk": "^2.2.0"
  }
 }

@@ -8,7 +8,7 @@
   "test": "mocha --recursive test"
  },
  "dependencies": {
-  "node-opcua-pki": "0.0.31"
+  "node-opcua-pki": "^1.0.0-beta.2"
  },
  "devDependencies": {
   "async": "^2.6.1",
@@ -25,7 +25,7 @@
   "node-opcua-client-proxy": "^0.5.0",
   "node-opcua-common": "^0.5.0",
   "node-opcua-constants": "^0.5.0",
-  "node-opcua-crypto": "0.0.22",
+  "node-opcua-crypto": "^0.0.22",
   "node-opcua-debug": "^0.5.0",
   "node-opcua-extension-object": "^0.5.0",
   "node-opcua-factory": "^0.5.0",
@@ -41,9 +41,9 @@
   "node-opcua-service-secure-channel": "^0.5.0",
   "node-opcua-variant": "^0.5.0",
   "should": "13.2.3",
-  "sinon": "6.2.0",
+  "sinon": "6.3.4",
   "underscore": "^1.9.1",
-  "yargs": "^12.0.1"
+  "yargs": "^12.0.2"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
