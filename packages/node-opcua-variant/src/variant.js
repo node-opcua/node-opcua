@@ -39,6 +39,5 @@ Variant.prototype.clone = function () {
 };
 
 
-
 const factory = require("node-opcua-factory");
 factory.registerSpecialVariantEncoder(Variant);

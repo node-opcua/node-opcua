@@ -400,7 +400,7 @@ function _JSONify(schema, options) {
         const t = _defaultTypeMap[field.fieldType];
 
         if (field.isArray) {
-            options[field.name] = f.map(value => jsonify(t,f,field,value));
+            options[field.name] = f.map(value => jsonify(t,value,field,value));
         } else {
             options[field.name] = jsonify(t,f,field,f);
         }

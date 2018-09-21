@@ -389,6 +389,17 @@ const Variant_Schema = {
             options.dataType = t;
         }
 
+        // array type could be a string
+        if (typeof options.arrayType === "string") {
+
+            const at  = VariantArrayType[options.arrayType];
+            // istanbul ignore next
+            if (utils.isNullOrUndefined(at)) {
+                throw new Error("ArrayType: invalid " + options.arrayType);
+            }
+            options.arrayType = at;
+        }
+
         if (!options.arrayType && _.isArray(options.value)) {
             // when using UInt64 ou Int64 arrayType must be specified , as automatic detection cannot be made
             if(!(options.dataType !== DataType.UInt64 && options.dataType !== DataType.Int64 )) {
