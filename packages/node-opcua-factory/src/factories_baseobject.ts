@@ -13,6 +13,7 @@ import { getBuildInType } from "./factories_builtin_types";
 import { EnumerationDefinition, FieldCategory, StructuredTypeField } from "./types";
 import { StructuredTypeSchema, get_base_schema } from "./factories_structuredTypeSchema";
 import { ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
+import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 
 const util = require("util");
 
@@ -245,10 +246,22 @@ function _JSONify(self: BaseUAObject, schema: StructuredTypeSchema, options: any
             continue;
         }
 
+        if (hasEnumeration(field.fieldType)) {
+            const enumeration = getEnumeration(field.fieldType);
+            assert(enumeration !== null);
+            if (field.isArray) {
+                options[field.name] = f.map((value: any) => enumeration.enumValues[value.toString()]);
+            } else {
+                options[field.name] = enumeration.enumValues[f.toString()];
+            }
+
+            continue;
+
+        }
         const t = getBuildInType(field.fieldType);
 
         if (field.isArray) {
-            options[field.name] = f.map((value: any) => json_ify(t, f, field, value));
+            options[field.name] = f.map((value: any) => json_ify(t, value, field, value));
         } else {
             options[field.name] = json_ify(t, f, field, f);
         }

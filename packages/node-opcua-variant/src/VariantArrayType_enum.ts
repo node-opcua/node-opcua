@@ -1,8 +1,8 @@
 /**
-* @module node-opcua-variant
+ * @module node-opcua-variant
  */
-import { registerEnumeration } from "node-opcua-factory";
 import { Enum } from "node-opcua-enum";
+import { registerEnumeration } from "node-opcua-factory";
 
 export enum VariantArrayType {
     Scalar= 0x00,
@@ -11,8 +11,8 @@ export enum VariantArrayType {
 }
 
 const schemaVariantArrayType = {
+    enumValues: VariantArrayType,
     name: "VariantArrayType",
-    enumValues: VariantArrayType
 };
 
 /***
