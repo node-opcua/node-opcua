@@ -13,7 +13,7 @@
   "node-opcua-basic-types": "^0.4.2",
   "node-opcua-binary-stream": "^0.4.2",
   "node-opcua-chunkmanager": "^0.4.2",
-  "node-opcua-crypto": "0.0.21",
+  "node-opcua-crypto": "0.0.22",
   "node-opcua-debug": "^0.4.2",
   "node-opcua-enum": "^0.4.2",
   "node-opcua-factory": "^0.4.2",
@@ -36,7 +36,7 @@
   "node-opcua-test-fixtures": "^0.4.2",
   "node-opcua-test-helpers": "^0.4.2",
   "should": "13.2.3",
-  "sinon": "^6.1.5",
+  "sinon": "^6.3.4",
   "sprintf": "^0.1.5"
  },
  "author": "Etienne Rossignon",

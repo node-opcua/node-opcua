@@ -57,7 +57,7 @@
   "node-opcua-packet-analyzer": "^0.4.2",
   "node-opcua-test-fixtures": "^0.4.2",
   "should": "13.2.3",
-  "sinon": "^6.1.5"
+  "sinon": "^6.3.4"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

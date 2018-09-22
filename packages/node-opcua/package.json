@@ -19,7 +19,7 @@
         "node-opcua-client-proxy": "^0.4.4",
         "node-opcua-common": "^0.4.2",
         "node-opcua-constants": "^0.4.2",
-        "node-opcua-crypto": "0.0.21",
+        "node-opcua-crypto": "0.0.22",
         "node-opcua-data-access": "^0.4.2",
         "node-opcua-data-model": "^0.4.2",
         "node-opcua-data-value": "^0.4.2",
