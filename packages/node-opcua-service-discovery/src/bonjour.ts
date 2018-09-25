@@ -1,3 +1,4 @@
+// tslint:disable:no-console
 import { assert } from "node-opcua-assert";
 import * as   _ from "underscore";
 
@@ -5,7 +6,6 @@ const bonjour = require("bonjour");
 
 let gBonjour: any = null;
 let gBonjourRefCount = 0;
-
 
 export function acquireBonjour() {
     if (gBonjourRefCount === 0) {
@@ -26,6 +26,38 @@ export function releaseBonjour() {
     }
 }
 
+export function _announceServerOnMulticastSubnet(
+    bonjour: any,
+    options: { port: number, path: string, applicationUri: string, capabilities: string[] }
+) {
+
+    const port = options.port;
+    assert(_.isNumber(port));
+    assert(bonjour, "bonjour must have been initialized?");
+
+    assert(typeof options.path === "string");
+    assert(typeof options.applicationUri === "string");
+    assert(_.isArray(options.capabilities));
+
+    const params = {
+        name: options.applicationUri,
+        port,
+        protocol: "tcp",
+        txt: {
+            caps: options.capabilities.join(","),
+            path: options.path ,
+        },
+        type: "opcua-tcp",
+    };
+    const _bonjourPublish = bonjour.publish(params);
+    _bonjourPublish.on("error", (err: Error) => {
+        console.log(" bonjour ERROR received ! ", err.message);
+        console.log(" params = ", params);
+    });
+    _bonjourPublish.start();
+    return _bonjourPublish;
+}
+
 //
 /**
  *
@@ -36,31 +68,16 @@ export function releaseBonjour() {
  * @param options.capabilities {string[]}
  * @private
  */
-export function _announcedOnMulticastSubnet(self: any, options: { port: number, path: string, applicationUri: string, capabilities: string[] }) {
+
+export function _announcedOnMulticastSubnet(
+    self: any,
+    options: { port: number, path: string, applicationUri: string, capabilities: string[] }
+) {
 
     assert(self, "must be call with call(this,options)");
-
-    const port = options.port;
-    assert(_.isNumber(port));
-    assert(typeof options.path === "string");
-    assert(typeof options.applicationUri === "string");
-    assert(!self.bonjour, "already called ?");
-    assert(_.isArray(options.capabilities));
-
+    assert(!self.bonjour,"already called ?");
     self.bonjour = acquireBonjour();
-
-    const params = {
-        name: options.applicationUri,
-        type: "opcua-tcp",
-        protocol: "tcp",
-        port,
-        txt: {
-            path: options.path,
-            caps: options.capabilities.join(",")
-        }
-    };
-    self._bonjourPublish = self.bonjour.publish(params);
-    self._bonjourPublish.start();
+    self._bonjourPublish = _announceServerOnMulticastSubnet(self.bonjour,options);
 }
 
 export function _stop_announcedOnMulticastSubnet(self: any): void {

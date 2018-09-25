@@ -27,5 +27,6 @@ export {
     acquireBonjour,
     releaseBonjour,
     _stop_announcedOnMulticastSubnet,
-    _announcedOnMulticastSubnet
+    _announcedOnMulticastSubnet,
+    _announceServerOnMulticastSubnet
 }from "./bonjour";

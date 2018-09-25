@@ -452,10 +452,12 @@ function constructRegisterServer2Request(server, isOnline) {
             semaphoreFilePath: null,
             isOnline: isOnline
         },
-        discoveryConfiguration: new discovery_service.MdnsDiscoveryConfiguration({
-            mdnsServerName: server.serverInfo.applicationUri,
-            serverCapabilities: server.capabilitiesForMDNS
-        })
+        discoveryConfiguration: [
+            new discovery_service.MdnsDiscoveryConfiguration({
+                mdnsServerName: server.serverInfo.applicationUri,
+                serverCapabilities: server.capabilitiesForMDNS
+            })
+        ]
     });
 
     return request;

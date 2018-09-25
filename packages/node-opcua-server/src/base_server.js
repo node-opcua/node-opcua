@@ -394,8 +394,8 @@ OPCUABaseServer.prototype._on_FindServersRequest = function (message, channel) {
         // TODO /
         if (request.serverUris && request.serverUris.length > 0) {
             // A serverUri matches the applicationUri from the ApplicationDescription define
-            servers = servers.filter((applicationDescription) =>{
-                return request.serverUris.indexOf(applicationDescription.applicationUri) >= 0;
+            servers = servers.filter(function (server) {
+                return request.serverUris.indexOf(server.applicationUri) >= 0;
             });
         }
 
