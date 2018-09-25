@@ -1,3 +1,4 @@
+"use strict";
 const assert = require("node-opcua-assert").assert;
 const DataType = require("node-opcua-variant").DataType;
 const Variant = require("node-opcua-variant").Variant;
@@ -5,7 +6,7 @@ const Variant = require("node-opcua-variant").Variant;
 const add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
 
 const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-const address_space = require("../address_space");
+
 
 module.exports.install = function (AddressSpace) {
 
@@ -54,7 +55,7 @@ module.exports.install = function (AddressSpace) {
         const trueStateNode = namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: {name: "TrueState", namespace: 0},
+            browseName: {name: "TrueState", namespaceIndex: 0},
             dataType: "LocalizedText",
             minimumSamplingInterval: 0,
             value: new Variant({
@@ -67,7 +68,7 @@ module.exports.install = function (AddressSpace) {
         const falseStateNode =  namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: {name: "FalseState", namespace: 0},
+            browseName: {name: "FalseState", namespaceIndex: 0},
             dataType: "LocalizedText",
             minimumSamplingInterval: 0,
             value: new Variant({
