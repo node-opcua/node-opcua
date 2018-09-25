@@ -137,16 +137,35 @@ function check_options_correctness_against_schema(obj, schema, options) {
     const invalid_options_fields = _.difference(current_fields, possible_fields);
 
     /* istanbul ignore next */
-    if (invalid_options_fields.length > 0) {
+    if (invalid_options_fields.length > 0)   {
         console.log("expected schema", schema.name);
         console.log("schema", schema);
         console.log("possible_fields", possible_fields);
-        display_trace_from_this_projet_only();
         console.log("invalid_options_fields= ", invalid_options_fields);
+        display_trace_from_this_projet_only();
     }
     if (invalid_options_fields.length !== 0) {
         throw new Error(" invalid field found in option :" + JSON.stringify(invalid_options_fields));
     }
+
+    // check that fields that are supposed to be array are either null or array
+    for(const field of schema.fields) {
+        if (field.isArray) {
+            const a = options[field.name];
+            if (a === undefined ||a === null ) {
+                continue;
+            }
+            if(!(a instanceof Array)) {
+                console.log("expected schema", schema.name);
+                console.log("schema", schema);
+                console.log("field ", field.name, " is supposed to be an array");
+                throw new Error(" Invalid array in field " + field.name);
+            }
+
+        }
+    }
+
+
     return true;
 
 }
