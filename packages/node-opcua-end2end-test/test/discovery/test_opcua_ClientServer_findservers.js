@@ -10,7 +10,7 @@ const build_server_with_temperature_device = require("../../test_helpers/build_s
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-describe("testing OPCUA-Service Discovery Endpoint", function () {
+describe("DS5- testing OPCUA-Service Discovery Endpoint", function () {
 
 
     let server, client, temperatureVariableId, endpointUrl;

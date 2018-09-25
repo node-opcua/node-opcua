@@ -1,4 +1,4 @@
-
+"use strict";
 let g_bonjour = null;
 let g_bonjour_refCount = 0;
 const Bonjour = require("bonjour");
@@ -27,6 +27,36 @@ function releaseBonjour() {
 exports.acquireBonjour = acquireBonjour;
 exports.releaseBonjour = releaseBonjour;
 
+
+function _announceServerOnMulticastSubnet(bonjour, options) {
+
+    const port = options.port;
+    assert(_.isNumber(port));
+    assert(bonjour, "bonjour must have been initialized?");
+
+    assert(typeof options.path === "string");
+    assert(typeof options.applicationUri === "string");
+    assert(_.isArray(options.capabilities));
+
+    const params = {
+        name: options.applicationUri,
+        type: "opcua-tcp",
+        protocol: "tcp",
+        port: port,
+        txt: {
+            path: options.path ,
+            caps: options.capabilities.join(",")
+        }
+    };
+    const _bonjourPublish = bonjour.publish(params);
+    _bonjourPublish.on("error",function(err){
+
+        console.log(" bonjour ERROR received ! ",err.message);
+        console.log(" params = ",params);
+    });
+    _bonjourPublish.start();
+    return _bonjourPublish;
+}
 //
 /**
  *
@@ -40,29 +70,10 @@ exports.releaseBonjour = releaseBonjour;
 function _announcedOnMulticastSubnet(options) {
 
     assert(this,"must be call with call(this,options)");
-
     const self = this;
-    const port = options.port;
-    assert(_.isNumber(port));
-    assert(typeof options.path === "string");
-    assert(typeof options.applicationUri === "string");
     assert(!self.bonjour,"already called ?");
-    assert(_.isArray(options.capabilities));
-
     self.bonjour = acquireBonjour();
-
-    const params = {
-        name: options.applicationUri,
-        type: "opcua-tcp",
-        protocol: "tcp",
-        port: port,
-        txt: {
-            path: options.path ,
-            caps: options.capabilities.join(",")
-        }
-    };
-    self._bonjourPublish = self.bonjour.publish(params);
-    self._bonjourPublish.start();
+    self._bonjourPublish = _announceServerOnMulticastSubnet(self.bonjour,options);
 }
 
 function _stop_announcedOnMulticastSubnet()
@@ -77,5 +88,7 @@ function _stop_announcedOnMulticastSubnet()
     }
 }
 
+
 exports._stop_announcedOnMulticastSubnet = _stop_announcedOnMulticastSubnet;
 exports._announcedOnMulticastSubnet = _announcedOnMulticastSubnet;
+exports._announceServerOnMulticastSubnet = _announceServerOnMulticastSubnet;

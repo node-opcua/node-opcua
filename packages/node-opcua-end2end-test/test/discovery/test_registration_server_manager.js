@@ -16,7 +16,7 @@ function f(func,callback) {
     func(callback);
 }
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("DS4- Discovery server", function () {
+describe("DS6- Discovery server", function () {
 
     this.timeout(20000);
     let discoveryServer, discoveryServerEndpointUrl;
@@ -30,8 +30,6 @@ describe("DS4- Discovery server", function () {
     function stop_discovery_server(callback) {
         discoveryServer.shutdown(callback);
     }
-
-
 
     before(function () {
         OPCUAServer.registry.count().should.eql(0);
@@ -133,7 +131,7 @@ describe("DS4- Discovery server", function () {
 
     });
 
-    it("a server shall register try itself even if discovery server is not available", function (done) {
+    it("a server shall try to register itself even if discovery server is not available", function (done) {
         async.series([
 
             // given a server that starts before the LDS
@@ -219,7 +217,7 @@ describe("DS4- Discovery server", function () {
         ], done);
 
     });
-    it("DS6 a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function(done){
+    it("a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function(done){
        this.timeout(5000);
        async.series([
 
@@ -246,7 +244,7 @@ describe("DS4- Discovery server", function () {
 
 });
 
-describe("DS5- Discovery Server 2",function() {
+describe("DS7- Discovery Server 2",function() {
     it("Discovery Server - server shall not struggle to start if discovery server is not available",function(done){
 
         let discoveryServerEndpointUrl = "opc.tcp://localhost:12345";

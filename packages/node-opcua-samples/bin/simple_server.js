@@ -35,14 +35,20 @@ const argv = yargs(process.argv)
     .default("silent",false)
     .describe("silent","no trace")
 
-    .alias("a", "alternateHostname")
-    .alias("p", "port")
-    .alias("m", "maxAllowedSessionNumber")
 
     .number("keySize")
     .describe("keySize","certificate keySize [1024|2048|3072|4096]")
     .default("keySize",2048)
     .alias("k","keySize")
+
+    .string("applicationName")
+    .describe("applicationName","the application name")
+    .default("applicationName","NodeOPCUA-Server")
+
+    .alias("a", "alternateHostname")
+    .alias("m", "maxAllowedSessionNumber")
+    .alias("n","applicationName")
+    .alias("p", "port")
 
     .help(true)
     .argv;
@@ -80,16 +86,13 @@ const userManager = {
 
 const keySize = argv.keySize;
 
-
-//const server_certificate_file            = constructFilename("certificates/server_cert_"+ keySize +".pem");
 const server_certificate_file              = constructFilename("certificates/server_selfsigned_cert_"+ keySize +".pem");
-//const server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_"+ keySize +".pem");
-//const server_certificate_file            = constructFilename("certificates/server_cert_"+ keySize +"_outofdate.pem");
 const server_certificate_privatekey_file   = constructFilename("certificates/server_key_"+ keySize +".pem");
 
 
 console.log(" server certificate : ", server_certificate_file);
 
+const productUri= argv.applicationName || "NodeOPCUA-Server";
 const server_options = {
 
     certificateFile: server_certificate_file,
@@ -107,8 +110,8 @@ const server_options = {
     ],
 
     serverInfo: {
-        applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-Server"),
-        productUri: "NodeOPCUA-Server",
+        applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), productUri),
+        productUri: productUri,
         applicationName: {text: "NodeOPCUA" ,locale:"en"},
         gatewayServerUri: null,
         discoveryProfileUri: null,
@@ -132,8 +135,8 @@ const server_options = {
     
     isAuditing: false,
 
-    //registerServerMethod: opcua.RegisterServerMethod.HIDDEN,
-    //registerServerMethod: opcua.RegisterServerMethod.MDNS,
+    //xx registerServerMethod: opcua.RegisterServerMethod.HIDDEN,
+    //xx registerServerMethod: opcua.RegisterServerMethod.MDNS,
     registerServerMethod: opcua.RegisterServerMethod.LDS,
 
 };

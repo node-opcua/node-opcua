@@ -12,7 +12,16 @@ const OPCUAClient = opcua.OPCUAClient;
 const OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
 
 const perform_findServers = opcua.perform_findServers;
+const perform_findServersOnNetwork = opcua.perform_findServersOnNetwork;
+
 const doDebug = false;
+
+function debugLog() {
+    if (doDebug) {
+        console.log.apply(null,arguments);
+    }
+}
+
 
 // add the tcp/ip endpoint with no security
 
@@ -92,7 +101,7 @@ describe("DS1 - Discovery server", function () {
 
         function check_response(err, response) {
             should(err).eql(null);
-            //xx console.log(response.toString());
+            //xx debugLog(response.toString());
             response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadDiscoveryUrlMissing);
         }
 
@@ -123,7 +132,7 @@ describe("DS1 - Discovery server", function () {
 
         function check_response(err, response) {
             should(err).eql(null);
-            //xx console.log(response.toString());
+            //xx debugLog(response.toString());
             response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadInvalidArgument);
         }
 
@@ -155,7 +164,7 @@ describe("DS1 - Discovery server", function () {
 
         function check_response(err, response) {
             should(err).eql(null);
-            //xx console.log(response.toString());
+            //xx debugLog(response.toString());
             response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadServerNameMissing);
         }
         send_registered_server_request(discovery_server_endpointUrl, request, check_response, done);
@@ -196,8 +205,8 @@ describe("DS2 - DiscoveryServer2", function () {
                 perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
                     initialServerCount = servers.length;
                     servers[0].discoveryUrls.length.should.eql(1);
-                    //xx console.log(" initialServerCount = ", initialServerCount);
-                    //xx console.log("servers[0].discoveryUrls", servers[0].discoveryUrls.join("\n"));
+                    //xx debugLog(" initialServerCount = ", initialServerCount);
+                    //xx debugLog("servers[0].discoveryUrls", servers[0].discoveryUrls.join("\n"));
                     callback(err);
                 });
             },
@@ -227,7 +236,7 @@ describe("DS2 - DiscoveryServer2", function () {
 
             function (callback) {
                 perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
-                    //xx console.log(servers[0].toString());
+                    //xx debugLog(servers[0].toString());
                     servers.length.should.eql(initialServerCount + 1);
                     servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
                     callback(err);
@@ -356,29 +365,49 @@ describe("DS3 - Discovery server - many server", function () {
     }
 
 
-    it("a discovery server shall be able to expose many registered servers", function (done) {
+    it("DS3-1 a discovery server shall be able to expose many registered servers", function (done) {
 
         async.series([
             function (callback) {
                 start_all_servers(callback);
             },
             function (callback){
-                setTimeout(callback,1000);
+                setTimeout(callback,500);
             },
             function (callback) {
                 discoveryServer.registeredServerCount.should.equal(5);
                 callback();
             },
 
+            function wait_a_little_bit_to_let_bonjour_propagate_data(callback) {
+                setTimeout(callback,2000);
+            },
+
             function query_discovery_server_for_available_servers(callback) {
+
                 perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
-                    //xxconsole.log(servers[0].toString());
-                    ///servers.length.should.eql(4+ 1);
                     if (doDebug) {
                         for (const s of servers) {
-                            console.log(s.applicationUri, s.productUri, s.applicationType.key, s.discoveryUrls[0]);
+                            debugLog(s.applicationUri, s.productUri, s.applicationType.key, s.discoveryUrls[0]);
                         }
                     }
+                    servers.length.should.eql(6); // 5 server + 1 discovery server
+
+                    // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
+                    callback(err);
+                });
+
+                },
+
+
+            function query_discovery_server_for_available_servers_on_network(callback) {
+                perform_findServersOnNetwork(discoveryServerEndpointUrl, function (err, servers) {
+                    if (doDebug) {
+                        for (const s of servers) {
+                            debugLog(s.toString());
+                        }
+                    }
+                    servers.length.should.eql(6); // 5 server + 1 discovery server
 
                     // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
                     callback(err);
@@ -387,8 +416,9 @@ describe("DS3 - Discovery server - many server", function () {
             function (callback) {
                 stop_all_servers(callback);
             }
-        ], done)
+        ], done);
     });
+
 });
 
 

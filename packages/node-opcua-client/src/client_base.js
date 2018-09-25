@@ -820,6 +820,7 @@ OPCUAClientBase.prototype.findServers = function (options, callback) {
     });
 };
 
+
 OPCUAClientBase.prototype.findServersOnNetwork = function (options, callback) {
 
     const self = this;
@@ -836,12 +837,7 @@ OPCUAClientBase.prototype.findServersOnNetwork = function (options, callback) {
         options = {};
     }
 
-    const request = new FindServersOnNetworkRequest({
-        endpointUrl: options.endpointUrl || this.endpointUrl,
-        localeIds: options.localeIds || [],
-        serverUris: options.serverUris || []
-    });
-
+    const request = new FindServersOnNetworkRequest(options);
 
     self.performMessageTransaction(request, function (err, response) {
         if (err) {

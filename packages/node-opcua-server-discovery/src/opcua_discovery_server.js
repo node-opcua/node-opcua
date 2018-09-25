@@ -4,6 +4,7 @@ const _ = require("underscore");
 const assert = require("node-opcua-assert").assert;
 const path = require("path");
 const fs = require("fs");
+const url = require("url");
 
 const OPCUABaseServer = require("node-opcua-server").OPCUABaseServer;
 const OPCUAServerEndPoint = require("node-opcua-server").OPCUAServerEndPoint;
@@ -28,6 +29,7 @@ const doDebug = false;
 
 const _announcedOnMulticastSubnet = require("node-opcua-service-discovery")._announcedOnMulticastSubnet;
 const _stop_announcedOnMulticastSubnet = require("node-opcua-service-discovery")._stop_announcedOnMulticastSubnet;
+const _announceServerOnMulticastSubnet = require("node-opcua-service-discovery")._announceServerOnMulticastSubnet;
 
 
 function constructFilename(p) {
@@ -122,7 +124,7 @@ OPCUADiscoveryServer.prototype.shutdown = function (done) {
         self.mDnsResponder.dispose();
         self.mDnsResponder = null;
     }
-    OPCUABaseServer.prototype.shutdown.apply(self, arguments);
+    OPCUABaseServer.prototype.shutdown.call(this, done);
 };
 
 /*== private
@@ -178,32 +180,52 @@ function __internalRegisterServer(RegisterServerXResponse, self, server, discove
 
         // prepare serverInfo which will be used by FindServers
         const serverInfo = {
-
             applicationUri: server.serverUri,
             productUri: server.productUri,
             applicationType: server.serverType,
-            serverNames: server.serverNames,
             applicationName: server.serverNames[0],  // which one shall we use ?
             gatewayServerUri: server.gatewayServerUri,
             // XXX ?????? serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri;
             discoveryUrls: server.discoveryUrls,
-            semaphoreFilePath: server.semaphoreFilePath
+
         };
-        self.registered_servers[key].serverInfo = serverInfo;
+        //xx server.semaphoreFilePath = server.semaphoreFilePath;
+        //xx server.serverNames = server.serverNames;
+        server.serverInfo = serverInfo;
+        server.discoveryConfiguration = discoveryConfiguration;
+
+
+        if (discoveryConfiguration) {
+
+            const endpointUrl = serverInfo.discoveryUrls[0];
+            const parsedUrl = url.parse(endpointUrl);
+
+            const options ={
+                applicationUri: serverInfo.applicationUri,
+                port: parseInt(parsedUrl.port,10),
+                path: parsedUrl.pathname || "/",
+                capabilities: server.discoveryConfiguration.serverCapabilities || [ "DA" ]
+            };
+            // let's announce the server on the  mutlicast DNS
+            server.bonjourEntry = _announceServerOnMulticastSubnet(self.bonjour, options);
+        }
 
     } else {
         if (key in self.registered_servers) {
+            const server  = self.registered_servers[key];
             debugLog("unregistering server : ".cyan, server.serverUri.yellow);
+            if (server.bonjourEntry) {
+                server.bonjourEntry.stop();
+                server.bonjourEntry = null;
+            }
             delete self.registered_servers[key];
         }
+
     }
 
     const response = new RegisterServerXResponse({});
-    if (discoveryConfiguration) {
-        // use mutlicast DNS stuff
-        response.configurationResults = null;
+    response.configurationResults = null;
 
-    }
     return response;
 }
 
@@ -256,7 +278,9 @@ function MDNSResponser() {
         const serverName = service.name;
 
         service.txt.caps = service.txt.caps || "";
-        let serverCapabilities = service.txt.caps.split(",").map(x => x.toUpperCase()).sort().join(" ");
+        let serverCapabilities = service.txt.caps.split(",").map(x => x.toUpperCase()).sort();
+
+        assert(serverCapabilities instanceof Array);
 
         const path = service.txt.path || "";
         const discoveryUrl = "opc.tcp://" + service.host + ":" + service.port + path;
@@ -284,6 +308,7 @@ function MDNSResponser() {
     }
 
     self.responser.on("up", function (service) {
+        // xx console.log("xxx responder up ",service);
         addService(service);
     });
 
@@ -292,11 +317,13 @@ function MDNSResponser() {
     });
 
 }
-MDNSResponser.prototype.dispose = function() {
+
+MDNSResponser.prototype.dispose = function () {
     const self = this;
     self.bonjour = null;
     discovery_service.releaseBonjour();
 };
+
 OPCUADiscoveryServer.prototype._on_RegisterServer2Request = function (message, channel) {
 
     const self = this;
@@ -323,18 +350,6 @@ OPCUADiscoveryServer.prototype.__defineGetter__("registeredServerCount", functio
     return Object.keys(this.registered_servers).length;
 });
 
-//OPCUADiscoveryServer.prototype.getDiscoveryUrls = function(channel) {
-//
-//    const self = this;
-//    assert(channel);
-//
-//    var discoveryUrls = OPCUABaseServer.prototype.getDiscoveryUrls.call(this,channel);
-//    // add registered server Urls
-//    _.forEach(self.registered_servers,function(registered_server){
-//        discoveryUrls = discoveryUrls.concat(registered_server.discoveryUrls);
-//    });
-//    return discoveryUrls;
-//};
 
 OPCUADiscoveryServer.prototype.getServers = function (channel) {
     const self = this;
@@ -370,7 +385,7 @@ OPCUADiscoveryServer.prototype._on_FindServersOnNetworkRequest = function (messa
     const self = this;
     const request = message.request;
 
-    assert(request._schema.name === "FindServerOnNetworkRequest");
+    assert(request._schema.name === "FindServersOnNetworkRequest");
     assert(request instanceof FindServersOnNetworkRequest);
 
     function sendError(statusCode) {
@@ -400,7 +415,10 @@ OPCUADiscoveryServer.prototype._on_FindServersOnNetworkRequest = function (messa
     const servers = [];
 
     function hasCapabilities(serverCapabilities, serverCapabilityFilter) {
-        return serverCapabilities.match(serverCapabilityFilter);
+        if (serverCapabilityFilter.length === 0 ) {
+            return true; // filter is empty => no filtering should take place
+        }
+        return serverCapabilities.join(" ").match(serverCapabilityFilter);
     }
 
     const serverCapabilityFilter = request.serverCapabilityFilter.map(x => x.toUpperCase()).sort().join(" ");

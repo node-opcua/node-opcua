@@ -51,3 +51,4 @@ exports.acquireBonjour = require("./src/bonjour").acquireBonjour;
 exports.releaseBonjour = require("./src/bonjour").releaseBonjour;
 exports._stop_announcedOnMulticastSubnet = require("./src/bonjour")._stop_announcedOnMulticastSubnet;
 exports._announcedOnMulticastSubnet = require("./src/bonjour")._announcedOnMulticastSubnet;
+exports._announceServerOnMulticastSubnet = require("./src/bonjour")._announceServerOnMulticastSubnet;
