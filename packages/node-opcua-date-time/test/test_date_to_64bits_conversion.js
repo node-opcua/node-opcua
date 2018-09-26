@@ -159,7 +159,6 @@ const BigNumber = require("bignumber.js");
 function bn_dateToHundredNanoSecondFrom1601_big_number(date) {
     assert(date instanceof Date);
     const t = date.getTime(); // number of milliseconds since 1/1/70
-
     const bn_value = new BigNumber(t).plus(offset).times(factor);
     const high = bn_value.div(0x100000000);
     const low = bn_value.mod(0x100000000);
@@ -181,10 +180,34 @@ describe("Benchmarking Date conversion routines", function () {
 
     it("should check that slow and fast method produce same result", function () {
 
-        const date = new Date(2014, 0, 1);
-        const hundred_nano1 = bn_dateToHundredNanoSecondFrom1601_big_number(date);
-        const hundred_nano2 = date_time.bn_dateToHundredNanoSecondFrom1601(date);
-        hundred_nano1.should.eql(hundred_nano2);
+
+        for (let h=0; h< 24; h++) {
+
+            let date = new Date(2014, 0, 1, h, 0, 0);
+
+            const hundred_nano1 = bn_dateToHundredNanoSecondFrom1601_big_number(date);
+            const hundred_nano2 = date_time.bn_dateToHundredNanoSecondFrom1601(date);
+
+            // note: hundred_nano1 cannot be compared to hundred_nano2 for equality as
+            //       conversion use different number sizes
+            //       however we can test that conversion is idempotent in all cases.
+
+            const verif1 = bn_hundredNanoSecondFrom1601ToDate_big_number(hundred_nano1[0],hundred_nano1[1]);
+            const hundred_nano1Verif = bn_dateToHundredNanoSecondFrom1601_big_number(verif1);
+
+            const verif2 = date_time.bn_hundredNanoSecondFrom1601ToDate(hundred_nano2[0],hundred_nano2[1]);
+            const hundred_nano2Verif = date_time.bn_dateToHundredNanoSecondFrom1601(verif2);
+
+            //console.log(hundred_nano1,hundred_nano2,hundred_nano2Verif, verif2.toISOString());
+
+            hundred_nano1Verif.should.eql(hundred_nano1);
+            hundred_nano2Verif.should.eql(hundred_nano2);
+
+            verif1.toISOString().should.eql(date.toISOString());
+            verif2.toISOString().should.eql(date.toISOString());
+
+        }
+
     });
 
     it("should ensure that fast method (bn_dateToHundredNanoSecondFrom1601) is faster than slow method", function (done) {
