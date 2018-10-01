@@ -60,13 +60,14 @@ export class ClientMonitoredItemGroup extends EventEmitter {
 
     public toString(): string {
 
-        let ret = "";
-        ret += "itemsToMonitor:        " +
-            this.monitoredItems.map((a: ClientMonitoredItemBase) => a.monitoredItemId.toString()).join("\n");
+        let ret = "ClientMonitoredItemGroup : \n"; 
+        ret += "itemsToMonitor:       = [\n " + 
+            this.monitoredItems.map((monitoredItem: ClientMonitoredItemBase) => 
+                monitoredItem.itemToMonitor.toString()).join("\n")
+         + "\n];\n";
         ret += "timestampsToReturn:   " +
             this.timestampsToReturn.toString() + "\n";
-        ret += "monitoringMode        " +
-            this.monitoringMode;
+        ret += "monitoringMode        " + MonitoringMode[this.monitoringMode];
         return ret;
     }
 
