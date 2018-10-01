@@ -18,7 +18,7 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const AttributeIds = opcua.AttributeIds;
 const resolveNodeId = opcua.resolveNodeId;
-const doDebug = false;
+const doDebug = true;
 
 
 module.exports = function (test) {
@@ -83,8 +83,7 @@ module.exports = function (test) {
             }, done);
 
         });
-
-        it("should create a ClientMonitoredItemGroup ", function (done) {
+        it("AA12 should create a ClientMonitoredItemGroup ", function (done) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
@@ -125,7 +124,7 @@ module.exports = function (test) {
 
             }, done);
         });
-        it("AA22 should create a ClientMonitoredItemGroup and get notified when one monitored item out of many is changing", function (done) {
+        it("AA13 should create a ClientMonitoredItemGroup and get notified when one monitored item out of many is changing", function (done) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
@@ -175,6 +174,86 @@ module.exports = function (test) {
 
             }, done);
         });
+        it("AA14 should create a ClientMonitoredItemGroup ", function (done) {
 
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+                const itemsToMonitor = [
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    },
+
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    }
+                ];
+                const options = {
+                    samplingInterval: 10,
+                    discardOldest: true,
+                    queueSize: 1
+                };
+
+                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+
+// subscription.on("item_added",function(monitoredItem){
+                monitoredItemGroup.on("initialized", function () {
+                    if (doDebug) {
+                        console.log(" Initialized !");
+                    }
+                    console.log(monitoredItemGroup.toString());
+                    monitoredItemGroup.monitoredItems.length.should.eql(2);
+
+                    monitoredItemGroup.terminate(function () {
+                        if (doDebug) {
+                            console.log(" terminated !");
+                        }
+                        callback();
+                    });
+                });
+
+            }, done);
+        });
+        it("AA15 should call toString function of ClientMonitoredItemGroup ", function (done) {
+
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+                const itemsToMonitor = [
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    },
+
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    }
+                ];
+                const options = {
+                    samplingInterval: 10,
+                    discardOldest: true,
+                    queueSize: 1
+                };
+
+                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+
+                monitoredItemGroup.on("initialized", function () {
+                    if (doDebug) {
+                        console.log(" Initialized !");
+                    }
+
+                    console.log("monitoredItemGroup = ",monitoredItemGroup.toString());
+
+                    monitoredItemGroup.terminate(function () {
+                        if (doDebug) {
+                            console.log(" terminated !");
+                        }
+                        callback();
+                    });
+                });
+
+            }, done);
+        });
     });
 };

@@ -59,13 +59,13 @@ util.inherits(ClientMonitoredItemGroup, EventEmitter);
 ClientMonitoredItemGroup.prototype.toString = function () {
 
     const self = this;
-    let ret = "";
-    ret += "itemsToMonitor:        " + self.monitoredItems.map(function (a) {
-          return a.nodeId.toString()
-      }).join("\n");
+    let ret = "ClientMonitoredItemGroup : \n";
+    ret += "itemsToMonitor:       = [\n " + self.monitoredItems.map(function (monitoredItem) {
+        return monitoredItem.itemToMonitor.toString();
+    }).join("\n") + "\n];\n";
 
     ret += "timestampsToReturn:   " + self.timestampsToReturn.toString() + "\n";
-    ret += "monitoringMode        " + self.monitoringMode;
+    ret += "monitoringMode        " + subscription_service.MonitoringMode[self.monitoringMode];
     return ret;
 };
 
