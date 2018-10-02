@@ -72,13 +72,19 @@ ClientSession.prototype.getPublishEngine = function () {
 
 function coerceBrowseDescription(data) {
     if (typeof data === "string" || data instanceof NodeId) {
-        return coerceBrowseDescription({
+      var tmp = coerceBrowseDescription({
             nodeId: data,
+                //includeSubtypes: false,
             includeSubtypes: true,
-            browseDirection: BrowseDirection.Both,
+                //browseDirection: BrowseDirection.Both,
+                browseDirection: BrowseDirection.Forward,
             nodeClassMask: 0,
+                //resultMask: 255
             resultMask: 63
         });
+
+            tmp.referenceTypeId.value = 33;
+            return tmp;
     } else {
         data.nodeId = resolveNodeId(data.nodeId);
         data.referenceTypeId = data.referenceTypeId ? resolveNodeId(data.referenceTypeId) : null;
