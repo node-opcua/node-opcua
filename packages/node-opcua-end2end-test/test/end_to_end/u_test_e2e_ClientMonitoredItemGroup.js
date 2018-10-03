@@ -255,5 +255,51 @@ module.exports = function (test) {
 
             }, done);
         });
+        it("AA16 should create a clientMonitoredItemGroup with invalid node #534",function (done) {
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+                const itemsToMonitor = [
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    },
+
+                    {
+                        nodeId: resolveNodeId("ns=0;i=88"), // invalid RootFolder in Object
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        nodeId: resolveNodeId("ns=0;i=11492"), // invalid GetMonitoredItem is Method
+                        attributeId: AttributeIds.Value
+                    },
+
+                ];
+                const options = {
+                    samplingInterval: 10,
+                    discardOldest: true,
+                    queueSize: 1
+                };
+
+                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+
+                // subscription.on("item_added",function(monitoredItem){
+                monitoredItemGroup.on("initialized", function () {
+                    if (doDebug) {
+                        console.log(" Initialized !");
+                    }
+
+                    monitoredItemGroup.monitoredItems.length.should.eql(3);
+
+                    monitoredItemGroup.terminate(function () {
+                        if (doDebug) {
+                            console.log(" terminated !");
+                        }
+                        callback();
+                    });
+                });
+
+            }, done);
+
+        });
     });
 };

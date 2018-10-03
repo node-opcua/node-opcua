@@ -620,7 +620,11 @@ ClientSubscription.prototype.isActive = function () {
 ClientSubscription.prototype._remove = function (monitoredItem) {
     const self = this;
     const clientHandle = monitoredItem.monitoringParameters.clientHandle;
-    assert(clientHandle);
+    assert(clientHandle > 0);
+
+    if (!self.monitoredItems.hasOwnProperty(clientHandle)) {
+        return; // may be monitoredItem failed to be created  ....
+    }
     assert(self.monitoredItems.hasOwnProperty(clientHandle));
     monitoredItem.removeAllListeners();
     delete self.monitoredItems[clientHandle];
@@ -644,7 +648,6 @@ ClientSubscription.prototype._delete_monitored_items = function (monitoredItems,
             return monitoredItem.monitoredItemId;
         })
     }, function (err) {
-
 
         callback(err);
     });

@@ -28,7 +28,6 @@ const StatusCodes = require("node-opcua-status-code").StatusCodes;
  * @constructor
  */
 function ClientSidePublishEngine(session) {
-    assert(session instanceof Object);
 
     this.session = session;
 
