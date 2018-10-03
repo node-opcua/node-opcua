@@ -258,6 +258,7 @@ describe("DS2 - DiscoveryServer2", function () {
     });
 });
 
+
 describe("DS3 - Discovery server - many server", function () {
 
     this.timeout(200000);
@@ -311,33 +312,50 @@ describe("DS3 - Discovery server - many server", function () {
     });
 
     beforeEach(function (done) {
+        debugLog("Starting Discovery server on port 1240");
         discoveryServer = new OPCUADiscoveryServer({port: 1240});
         discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
         discoveryServer.start(done);
     });
 
     afterEach(function (done) {
+        debugLog("Stopping Discovery server on port 1240");
         discoveryServer.shutdown(function (err) {
+            debugLog(" Discovery server on port 1240 stopped");
             done(err);
         });
     });
 
+    let registeredServerCount = 0;
+
     function start_all_servers(done) {
+        registeredServerCount = 0;
         async.parallel([
             function (callback) {
+                debugLog("Starting  server1");
                 server1.start(callback);
+                server1.once("serverRegistered",()=> { debugLog("server1 registered");  registeredServerCount+=1; } );
+
             },
             function (callback) {
+                debugLog("Starting  server2");
                 server2.start(callback);
+                server2.once("serverRegistered",()=> { debugLog("server2 registered");  registeredServerCount+=1; } );
             },
             function (callback) {
+                debugLog("Starting  server3");
                 server3.start(callback);
+                server3.once("serverRegistered",()=> { debugLog("server3 registered");  registeredServerCount+=1; } );
             },
             function (callback) {
+                debugLog("Starting  server4");
                 server4.start(callback);
+                server4.once("serverRegistered",()=> { debugLog("server4 registered");  registeredServerCount+=1; } );
             },
             function (callback) {
+                debugLog("Starting  server5");
                 server5.start(callback);
+                server5.once("serverRegistered",()=> { debugLog("server5 registered");  registeredServerCount+=1; } );
             },
 
         ], done);
@@ -365,14 +383,23 @@ describe("DS3 - Discovery server - many server", function () {
     }
 
 
+
     it("DS3-1 a discovery server shall be able to expose many registered servers", function (done) {
+
 
         async.series([
             function (callback) {
                 start_all_servers(callback);
             },
             function (callback){
-                setTimeout(callback,500);
+
+                function wait_until_all_servers_registered() {
+                    if (registeredServerCount === 5) {
+                        return callback();
+                    }
+                    setTimeout(wait_until_all_servers_registered,500);
+                }
+                wait_until_all_servers_registered();
             },
             function (callback) {
                 discoveryServer.registeredServerCount.should.equal(5);
@@ -397,7 +424,7 @@ describe("DS3 - Discovery server - many server", function () {
                     callback(err);
                 });
 
-                },
+            },
 
 
             function query_discovery_server_for_available_servers_on_network(callback) {
