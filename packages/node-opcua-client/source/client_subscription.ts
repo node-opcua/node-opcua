@@ -789,7 +789,10 @@ export class ClientSubscription extends EventEmitter {
 
     private _remove(monitoredItem: ClientMonitoredItemBase) {
         const clientHandle = monitoredItem.monitoringParameters.clientHandle;
-        assert(clientHandle !== 0);
+        assert(clientHandle > 0);
+        if (!this.monitoredItems.hasOwnProperty(clientHandle)) {
+            return; // may be monitoredItem failed to be created  ....
+        }
         assert(this.monitoredItems.hasOwnProperty(clientHandle));
         monitoredItem.removeAllListeners();
         delete this.monitoredItems[clientHandle];

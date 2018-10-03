@@ -45,8 +45,7 @@ export class ClientSidePublishEngine {
     private readonly subscriptionMap: any;
 
     constructor(session: any) {
-        assert(session instanceof Object);
-
+    
         this.session = session;
 
         this.subscriptionAcknowledgements = [];
