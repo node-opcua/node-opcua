@@ -50,7 +50,7 @@ export interface StructuredTypeField {
     fieldTypeConstructor?: ConstructorFunc;
     subType?: string;
     defaultValue?: any;
-    validate?: (value: any) => void;
+    validate?: (value: any) => boolean;
     decode?: (stream: BinaryStream) => any;
 }
 
