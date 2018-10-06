@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "target": "es6",
+    "module": "commonjs",
+    "declaration": true,
+    "sourceMap": true,
+    "rootDir": "source",
+    "strict": true,
+    "listFiles": false,
+    "outDir": "dist"
+  },
+  "files": [
+    "source/index.ts"
+  ],
+  "typeRoots": [
+    "node_modules/@types"
+  ],
+}
