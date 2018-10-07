@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-assert",
- "version": "0.4.0",
+ "version": "0.4.6",
  "description": "pure nodejs OPCUA SDK - module -assert",
  "main": "dist/index.js",
  "types": "dist/index.d.ts",
@@ -26,7 +26,5 @@
   "opc ua",
   "internet of things"
  ],
- "homepage": "http://node-opcua.github.io/",
- "devDependencies": {
- }
+ "homepage": "http://node-opcua.github.io/"
 }
