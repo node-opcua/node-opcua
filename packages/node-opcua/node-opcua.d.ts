@@ -355,7 +355,7 @@ export interface ReferenceDescription {
 }
 
 export declare class BrowseResult {
-    statusCode: StatusCodes;
+    statusCode: StatusCode;
     continuationPoint: any;
     references: ReferenceDescription[];
 }
@@ -386,8 +386,21 @@ export interface BrowsePathTarget {
 }
 
 export interface BrowsePathResult {
-    statusCode: StatusCodes;
+    statusCode: StatusCode;
     targets: BrowsePathTarget[];
+}
+
+export interface CallMethodRequest {
+    objectId : NodeId;
+    methodId : NodeId;
+    inputArguments : Variant[];
+}
+
+export interface CallMethodResult {
+    statusCode?: StatusCode;
+    inputArgumentResults?: StatusCode[];
+    inputArgumentDiagnosticInfos?: DiagnosticInfo[];
+    outputArguments?: Variant[];
 }
 
 export declare class ClientSession {
@@ -403,10 +416,10 @@ export declare class ClientSession {
     translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
     translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
 
-    write(nodeToWrite: CoercibleToWriteValue, callback: ResponseCallback<StatusCodes>): void;
-    write(nodesToWrite: CoercibleToWriteValue[], callback: ResponseCallback<StatusCodes[]>): void;
-    write(nodesToWrite: CoercibleToWriteValue[]): Promise<StatusCodes[]>;
-    write(nodeToWrite: CoercibleToWriteValue): Promise<StatusCodes>;
+    write(nodeToWrite: CoercibleToWriteValue, callback: ResponseCallback<StatusCode>): void;
+    write(nodesToWrite: CoercibleToWriteValue[], callback: ResponseCallback<StatusCode[]>): void;
+    write(nodesToWrite: CoercibleToWriteValue[]): Promise<StatusCode[]>;
+    write(nodeToWrite: CoercibleToWriteValue): Promise<StatusCode>;
 
     read(nodeToRead: CoercibleToReadValueId, maxAge: number, callback: ResponseCallback<DataValue>): void;
     read(nodesToRead: CoercibleToReadValueId[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
@@ -424,6 +437,11 @@ export declare class ClientSession {
 
     close(callback: ErrorCallback): void;
     close(): Promise<void>;
+
+    call(methodToCall : CallMethodRequest, callback: ResponseCallback<CallMethodResult>): void;
+    call(methodToCall : CallMethodRequest) : Promise<CallMethodResult>;
+    call(methodsToCall : CallMethodRequest[], callback: ResponseCallback<CallMethodResult[]>): void;
+    call(methodsToCall : CallMethodRequest[]) : Promise<CallMethodResult[]>;
 
     // properties
     /** the session Id */
