@@ -103,7 +103,7 @@ async.series([
            discardOldest: true,
            queueSize: 10
        },
-       opcua.read_service.TimestampsToReturn.Both
+       opcua.TimestampsToReturn.Both
        );
        console.log("-------------------------------------");
        

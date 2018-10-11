@@ -83,7 +83,7 @@ test_files.filter(function (file) {
 mocha.timeout(200000);
 mocha.bail(true);
 
-mocha.filter
+
 // Run the tests.
 mocha.run(function (failures) {
 

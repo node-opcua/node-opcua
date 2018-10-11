@@ -1,32 +1,33 @@
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
-import { DataType, VariantArrayType, Variant, sameVariant, VariantOptions } from "node-opcua-variant";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { BinaryStream } from "node-opcua-binary-stream";
 import { DateWithPicoseconds, getCurrentClock } from "node-opcua-date-time";
 import {
     BaseUAObject,
-    check_options_correctness_against_schema, initialize_field,
+    buildStructuredType, check_options_correctness_against_schema,
+    initialize_field,
     parameters,
-    buildStructuredType,
     registerSpecialVariantEncoder,
     StructuredTypeSchema
 } from "node-opcua-factory";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, sameVariant, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
+import * as _ from "underscore";
 import { DataValueEncodingByte } from "./DataValueEncodingByte_enum";
 import { TimestampsToReturn } from "./TimestampsToReturn_enum";
 
 import {
     DateTime,
-    UInt16,
-    encodeUInt8, decodeUInt8,
-    encodeUInt16, decodeUInt16,
-    encodeStatusCode, decodeStatusCode,
-    encodeHighAccuracyDateTime, decodeHighAccuracyDateTime,
+    decodeHighAccuracyDateTime,
+    decodeStatusCode, decodeUInt16,
+    decodeUInt8, encodeHighAccuracyDateTime,
+    encodeStatusCode, encodeUInt16,
+    encodeUInt8, UInt16,
 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
 
 type NumericalRange = any;
 
+// tslint:disable:no-bitwise
 function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte {
     let encodingMask = 0;
     if (dataValue.value && dataValue.value.dataType !== DataType.Null) {
@@ -206,8 +207,8 @@ function isValidDataValue(self: DataValue): boolean {
 
 // OPC-UA part 4 -  $7.7
 const schemaDataValue: StructuredTypeSchema = buildStructuredType({
-    name: "DataValue",
     baseType: "BaseUAObject",
+    name: "DataValue",
     fields: [
         {name: "value", fieldType: "Variant", defaultValue: null},
         {name: "statusCode", fieldType: "StatusCode", defaultValue: StatusCodes.Good},
@@ -228,12 +229,22 @@ export interface DataValueOptions {
 }
 
 export class DataValue extends BaseUAObject {
-    value: Variant;
-    statusCode: StatusCode;
-    sourceTimestamp: DateTime;
-    sourcePicoseconds: UInt16;
-    serverTimestamp: DateTime;
-    serverPicoseconds: UInt16;
+
+    public static possibleFields: string[] = [
+        "value",
+        "statusCode",
+        "sourceTimestamp",
+        "sourcePicoseconds",
+        "serverTimestamp",
+        "serverPicoseconds"
+    ];
+    public static schema = schemaDataValue;
+    public value: Variant;
+    public statusCode: StatusCode;
+    public sourceTimestamp: DateTime;
+    public sourcePicoseconds: UInt16;
+    public serverTimestamp: DateTime;
+    public serverPicoseconds: UInt16;
 
     /**
      *
@@ -304,23 +315,23 @@ export class DataValue extends BaseUAObject {
         this.serverPicoseconds = initialize_field(schema.fields[5], options.serverPicoseconds);
     }
 
-    encode(stream: BinaryStream): void {
+    public encode(stream: BinaryStream): void {
         encodeDataValue(this, stream);
     }
 
-    decode(stream: BinaryStream): void {
+    public decode(stream: BinaryStream): void {
         decodeDataValueInternal(this, stream);
     }
 
-    decodeDebug(stream: BinaryStream, options: any): void {
+    public decodeDebug(stream: BinaryStream, options: any): void {
         decodeDebugDataValue(this, stream, options);
     }
 
-    isValid(): boolean {
+    public isValid(): boolean {
         return isValidDataValue(this);
     }
 
-    toString(): string {
+    public toString(): string {
 
         function toMicroNanoPico(picoseconds: number): string {
             return ""
@@ -348,26 +359,16 @@ export class DataValue extends BaseUAObject {
         return str;
     }
 
-    clone() {
+    public clone() {
         return new DataValue({
-            serverTimestamp: this.serverTimestamp,
-            sourceTimestamp: this.sourceTimestamp,
             serverPicoseconds: this.serverPicoseconds,
+            serverTimestamp: this.serverTimestamp,
             sourcePicoseconds: this.sourcePicoseconds,
+            sourceTimestamp: this.sourceTimestamp,
             statusCode: this.statusCode,
             value: this.value ? this.value.clone() : undefined
         });
     }
-
-    static possibleFields: string[] = [
-        "value",
-        "statusCode",
-        "sourceTimestamp",
-        "sourcePicoseconds",
-        "serverTimestamp",
-        "serverPicoseconds"
-    ];
-    static schema = schemaDataValue;
 }
 
 DataValue.prototype.schema = DataValue.schema;
@@ -378,7 +379,6 @@ export type DataValueLike = DataValueOptions | DataValue;
 function w(n: number): string {
     return ("0000" + n).substr(-3);
 }
-
 
 function _partial_clone(dataValue: DataValue): DataValue {
     const cloneDataValue = new DataValue();
@@ -508,7 +508,6 @@ function canRange(dataValue: DataValue): boolean {
         ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.ByteString)) ||
         ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.String)));
 }
-
 
 /**
  * return a deep copy of the dataValue by applying indexRange if necessary on  Array/Matrix

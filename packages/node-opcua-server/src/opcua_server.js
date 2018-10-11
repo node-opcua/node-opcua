@@ -1,5 +1,5 @@
 "use strict";
-/*global: require Buffer*/
+
 /**
  * @module opcua.server
  */
@@ -2876,3 +2876,7 @@ OPCUAServer.prototype.__defineGetter__("isAuditing", function () {
 exports.OPCUAServerEndPoint = OPCUAServerEndPoint;
 exports.OPCUAServer = OPCUAServer;
 exports.RegisterServerMethod = RegisterServerMethod;
+
+const thenify = require("thenify");
+const opts = {multiArgs: false};
+OPCUAServer.prototype.shutdown = thenify.withCallback(OPCUAServer.prototype.shutdown, opts);

@@ -127,7 +127,7 @@ module.exports = function (test) {
 
             function verify_republish(session,index, callback) {
                 // index  => used to identify sequenceNumbers to retransmit
-                const request = new opcua.subscription_service.RepublishRequest({
+                const request = new opcua.RepublishRequest({
                     subscriptionId: subscription.subscriptionId,
                     retransmitSequenceNumber: sequenceNumbers[index]
                 });

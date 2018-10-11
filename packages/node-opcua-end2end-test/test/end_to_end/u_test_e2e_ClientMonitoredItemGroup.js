@@ -18,7 +18,7 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const AttributeIds = opcua.AttributeIds;
 const resolveNodeId = opcua.resolveNodeId;
-const doDebug = true;
+const doDebug = false;
 
 
 module.exports = function (test) {

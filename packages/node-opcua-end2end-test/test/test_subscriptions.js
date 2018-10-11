@@ -5,10 +5,9 @@ const async = require("async");
 
 const build_client_server_session = require("../test_helpers/build_client_server_session").build_client_server_session;
 
-const VariableIds = require("node-opcua").VariableIds;
-const subscription_service = require("node-opcua").subscription_service;
-const read_service = require("node-opcua").read_service;
-const makeNodeId = require("node-opcua").makeNodeId;
+const opcua = require("node-opcua");
+const VariableIds =  opcua.VariableIds;
+const makeNodeId = opcua.makeNodeId;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing basic Client Server dealing with subscription at low level", function () {
@@ -40,7 +39,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
         let subscriptionId = null;
 
         // CreateSubscriptionRequest
-        const request = new subscription_service.CreateSubscriptionRequest({
+        const request = new opcua.CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
             requestedLifetimeCount: 100 * 60 * 10,
             requestedMaxKeepAliveCount: 20,
@@ -54,13 +53,13 @@ describe("testing basic Client Server dealing with subscription at low level", f
             if (err) {
                 return done(err);
             }
-            response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
+            response.should.be.instanceof(opcua.CreateSubscriptionResponse);
             subscriptionId = response.subscriptionId;
 
             //xx console.log(response.toString());
 
             setImmediate(function () {
-                const request = new subscription_service.DeleteSubscriptionsRequest({
+                const request = new opcua.DeleteSubscriptionsRequest({
                     subscriptionIds: [ subscriptionId ]
                 });
                 g_session.deleteSubscriptions(request, function (err, result) {
@@ -75,7 +74,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
         let subscriptionId = null;
         // CreateSubscriptionRequest
-        const request = new subscription_service.CreateSubscriptionRequest({
+        const request = new opcua.CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
             requestedLifetimeCount: 100 * 60 * 10,
             requestedMaxKeepAliveCount: 20,
@@ -87,20 +86,20 @@ describe("testing basic Client Server dealing with subscription at low level", f
             if (err) {
                 return done(err);
             }
-            response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
+            response.should.be.instanceof(opcua.CreateSubscriptionResponse);
             subscriptionId = response.subscriptionId;
 
 
             // CreateMonitoredItemsRequest
-            const request = new subscription_service.CreateMonitoredItemsRequest({
+            const request = new opcua.CreateMonitoredItemsRequest({
                 subscriptionId: subscriptionId,
-                timestampsToReturn: read_service.TimestampsToReturn.Both,
+                timestampsToReturn: opcua.TimestampsToReturn.Both,
                 itemsToCreate: [
                     {
                         itemToMonitor: {
                             nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
                         },
-                        monitoringMode: subscription_service.MonitoringMode.Sampling,
+                        monitoringMode: opcua.MonitoringMode.Sampling,
                         requestedParameters: {
                             clientHandle: 26,
                             samplingInterval: 100,
@@ -113,7 +112,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
             });
             g_session.createMonitoredItems(request, function (err, response) {
                 if (!err) {
-                    response.should.be.instanceof(subscription_service.CreateMonitoredItemsResponse);
+                    response.should.be.instanceof(opcua.CreateMonitoredItemsResponse);
                 }
                 done(err);
             });
@@ -128,7 +127,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
             function (callback) {
 
                 // CreateSubscriptionRequest
-                const request = new subscription_service.CreateSubscriptionRequest({
+                const request = new opcua.CreateSubscriptionRequest({
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 100 * 60 * 10,
                     requestedMaxKeepAliveCount: 20,
@@ -147,14 +146,14 @@ describe("testing basic Client Server dealing with subscription at low level", f
             function (callback) {
 
                 // publish request now requires a subscriptions
-                const request = new subscription_service.PublishRequest({
+                const request = new opcua.PublishRequest({
                     subscriptionAcknowledgements: []
                 });
 
                 g_session.publish(request, function (err, response) {
 
                     if (!err) {
-                        response.should.be.instanceof(subscription_service.PublishResponse);
+                        response.should.be.instanceof(opcua.PublishResponse);
 
                         response.should.have.ownProperty("subscriptionId");          // IntegerId
                         response.should.have.ownProperty("availableSequenceNumbers");// Array,Counter,
@@ -167,7 +166,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
                 });
             },
             function(callback) {
-                const request = new subscription_service.DeleteSubscriptionsRequest({
+                const request = new opcua.DeleteSubscriptionsRequest({
                     subscriptionIds: [ subscriptionId ]
                 });
                 g_session.deleteSubscriptions(request, function (err, result) {
@@ -181,7 +180,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
     it("server should handle DeleteMonitoredItems  request", function (done) {
 
-        const request = new subscription_service.DeleteMonitoredItemsRequest({});
+        const request = new opcua.DeleteMonitoredItemsRequest({});
         g_session.deleteMonitoredItems(request, function (err, response) {
             err.message.should.match(/BadSubscriptionIdInvalid/);
             done();
@@ -201,12 +200,12 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
     it("server should handle DeleteSubscriptionsRequest", function (done) {
 
-        const request = new subscription_service.DeleteSubscriptionsRequest({
+        const request = new opcua.DeleteSubscriptionsRequest({
             subscriptionIds: [1, 2]
         });
         g_session.deleteSubscriptions(request, function (err, response) {
             if (!err) {
-                response.should.be.instanceOf(subscription_service.DeleteSubscriptionsResponse);
+                response.should.be.instanceOf(opcua.DeleteSubscriptionsResponse);
             }
             done(err);
         });

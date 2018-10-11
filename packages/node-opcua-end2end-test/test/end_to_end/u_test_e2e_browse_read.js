@@ -108,10 +108,10 @@ module.exports = function (test) {
 
         it("T8-11 - #ReadRequest : server should return BadNothingToDo when nodesToRead is empty", function (done) {
 
-            const request = new opcua.read_service.ReadRequest({
+            const request = new opcua.ReadRequest({
                 nodesToRead: [], //<< EMPTY
                 maxAge: 0,
-                timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
+                timestampsToReturn: opcua.TimestampsToReturn.Both
             });
 
             g_session.performMessageTransaction(request, function (err /*, response */) {
@@ -124,12 +124,12 @@ module.exports = function (test) {
 
         it("T8-12 - #ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid", function (done) {
 
-            const request = new opcua.read_service.ReadRequest({
+            const request = new opcua.ReadRequest({
                 nodesToRead: [
                     {nodeId: opcua.coerceNodeId("ns=0;i=2456")}
                 ],
                 maxAge: 0,
-                timestampsToReturn: opcua.read_service.TimestampsToReturn.Invalid
+                timestampsToReturn: opcua.TimestampsToReturn.Invalid
             });
 
             g_session.performMessageTransaction(request, function (err/*, response*/) {
@@ -196,9 +196,9 @@ module.exports = function (test) {
         it("T8-15b - #read :should return BadNothingToDo if nodesToRead is empty", function (done) {
 
             // CTT : Attribute ERR-011.js
-            const readRequest = new opcua.read_service.ReadRequest({
+            const readRequest = new opcua.ReadRequest({
                 maxAge: 0,
-                timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
+                timestampsToReturn: opcua.TimestampsToReturn.Both,
                 nodesToRead: []
             });
 
@@ -217,9 +217,9 @@ module.exports = function (test) {
         it("T8-15c - #read :should return BadNothingToDo if nodesToRead is null", function (done) {
 
             // CTT : Attribute ERR-011.js
-            const readRequest = new opcua.read_service.ReadRequest({
+            const readRequest = new opcua.ReadRequest({
                 maxAge: 0,
-                timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
+                timestampsToReturn: opcua.TimestampsToReturn.Both,
                 nodesToRead: null
             });
 

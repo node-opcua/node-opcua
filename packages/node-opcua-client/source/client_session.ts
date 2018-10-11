@@ -89,6 +89,7 @@ import { DataType, Variant, VariantLike, VariantOptions } from "node-opcua-varia
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSessionKeepAliveManager } from "./client_session_keepalive_manager";
 import { Request, Response } from "./common";
+import { ClientSubscription } from "./client_subscription";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
@@ -346,6 +347,19 @@ export interface ClientSession {
     queryFirst(
         queryFirstRequest: QueryFirstRequestLike,
         callback: ResponseCallback<QueryFirstResponse>
+    ): void;
+
+    call(
+        methodToCall: CallMethodRequestLike,
+        callback: (err: Error | null, result?: CallMethodResult) => void): void;
+
+    call(
+        methodsToCall: CallMethodRequestLike[],
+        callback: (err: Error | null, results?: CallMethodResult[]) => void): void;
+
+    createSubscription2(
+        createSubscriptionRequest: CreateSubscriptionRequest,
+        callback: (err: Error | null, subscription?: ClientSubscription) => void
     ): void;
 
 }
@@ -1168,6 +1182,31 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(new Error("Internal Error"));
             }
             callback(null, response);
+        });
+    }
+    /**
+     * @method createSubscription2
+     * @param createSubscriptionRequest
+     * @param callback
+     *
+     *
+     * subscription.on("error',    function(err){ ... });
+     * subscription.on("terminate',function(err){ ... });
+     * var monitoredItem = subscription.monitor(itemToMonitor,monitoringParameters,requestedParameters,callback);
+     * monitoredItem.on("changed",function( dataValue) {...});
+     *
+     */
+    public createSubscription2(
+        createSubscriptionRequest: CreateSubscriptionRequestOptions,
+        callback: (err: Error|null, subscription?: ClientSubscription) => void
+    ) {
+
+        const subscription = new ClientSubscription(this, createSubscriptionRequest);
+        subscription.on("error", () => {
+
+        });
+        subscription.on("started", () => {
+            callback(null, subscription);
         });
     }
 
@@ -2114,6 +2153,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         callback: (err?: Error) => void
     ): void {
     }
+
 
     private _defaultRequest(requestClass: any, responseClass: any, options: any, callback: any) {
 

@@ -111,12 +111,12 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const request = new opcua.read_service.ReadRequest({
+                const request = new opcua.ReadRequest({
                     nodesToRead: [{
                         nodeId: node.nodeId,
                         attributeId: 13
                     }],
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither
+                    timestampsToReturn: opcua.TimestampsToReturn.Neither
                 });
 
                 // let specify a very short timeout hint ...

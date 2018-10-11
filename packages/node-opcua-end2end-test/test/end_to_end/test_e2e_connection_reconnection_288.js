@@ -144,7 +144,7 @@ function start_active_client(callback) {
                 };
                 const item ={nodeId:nodeId, attributeId: opcua.AttributeIds.Value};
 
-                monitoredItem = the_subscription.monitor(item,requestedParameters,opcua.read_service.TimestampsToReturn.Both,function(err){
+                monitoredItem = the_subscription.monitor(item,requestedParameters,opcua.TimestampsToReturn.Both,function(err){
                     console.log("err",err);
                 });
                 monitoredItem.on("err",function(errMessage) {

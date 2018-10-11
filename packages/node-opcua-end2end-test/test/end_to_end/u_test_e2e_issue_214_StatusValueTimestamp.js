@@ -65,9 +65,9 @@ module.exports = function(test) {
                         inner_done();
                     }, 2000);
 
-                    const filter = new opcua.subscription_service.DataChangeFilter({
-                        trigger: opcua.subscription_service.DataChangeTrigger.StatusValueTimestamp,
-                        deadbandType: opcua.subscription_service.DeadbandType.Absolute,
+                    const filter = new opcua.DataChangeFilter({
+                        trigger: opcua.DataChangeTrigger.StatusValueTimestamp,
+                        deadbandType: opcua.DeadbandType.Absolute,
                         deadbandValue: 1.0
                     });
 
@@ -85,7 +85,7 @@ module.exports = function(test) {
                     const monitoredItem = the_subscription.monitor(
                         itemToMonitor,
                         options,
-                        opcua.read_service.TimestampsToReturn.Both,
+                        opcua.TimestampsToReturn.Both,
                         function(err) {
                             debugLog(" ERR =", err);
                         }

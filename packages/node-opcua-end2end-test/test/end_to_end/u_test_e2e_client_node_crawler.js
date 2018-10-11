@@ -12,7 +12,6 @@ const OPCUAClient = opcua.OPCUAClient;
 const StatusCodes = opcua.StatusCodes;
 const Variant = opcua.Variant;
 const DataType = opcua.DataType;
-const browse_service = opcua.browse_service;
 const NodeCrawler = opcua.NodeCrawler;
 
 

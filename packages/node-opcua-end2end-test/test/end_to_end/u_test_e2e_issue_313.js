@@ -35,7 +35,7 @@ module.exports = function (test) {
                       attributeId: opcua.AttributeIds.Value
                   },
                   {samplingInterval: 50, discardOldest: true, queueSize: 1},
-                  opcua.read_service.TimestampsToReturn.Both,
+                  opcua.TimestampsToReturn.Both,
                   function (err) {
                       should.not.exist(err);
                       console.log("err", err ? err.message :"<no error>");

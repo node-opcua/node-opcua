@@ -19,13 +19,13 @@ describe("testing server dropping session after timeout if no activity has been 
 
     const nodeId = opcua.resolveNodeId("ns=0;i=2258");
 
-    const readRequest = new opcua.read_service.ReadRequest({
+    const readRequest = new opcua.ReadRequest({
         maxAge: 0,
-        timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
+        timestampsToReturn: opcua.TimestampsToReturn.Both,
         nodesToRead: [
             {
                 nodeId: nodeId,
-                attributeId: opcua.read_service.AttributeIds.Value
+                attributeId: opcua.AttributeIds.Value
             }
         ]
     });

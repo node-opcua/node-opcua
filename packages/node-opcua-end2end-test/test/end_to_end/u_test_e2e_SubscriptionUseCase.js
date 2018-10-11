@@ -17,8 +17,8 @@ const AttributeIds = opcua.AttributeIds;
 const resolveNodeId = opcua.resolveNodeId;
 const StatusCodes = opcua.StatusCodes;
 const DataType = opcua.DataType;
-const TimestampsToReturn = opcua.read_service.TimestampsToReturn;
-const MonitoringMode = opcua.subscription_service.MonitoringMode;
+const TimestampsToReturn = opcua.TimestampsToReturn;
+const MonitoringMode = opcua.MonitoringMode;
 const VariantArrayType = opcua.VariantArrayType;
 const MonitoredItem = opcua.MonitoredItem;
 
@@ -796,7 +796,7 @@ module.exports = function (test) {
                             discardOldest: true,
                             queueSize: 1
                         },
-                        opcua.read_service.TimestampsToReturn.Both
+                        opcua.TimestampsToReturn.Both
                     );
 
                     monitoredItem.on("err", function (statusMessage) {
@@ -885,7 +885,7 @@ module.exports = function (test) {
                             discardOldest: true,
                             queueSize: 1
                         },
-                        opcua.read_service.TimestampsToReturn.Both
+                        opcua.TimestampsToReturn.Both
                     );
 
                     monitoredItem.on("err", function (statusMessage) {
@@ -996,15 +996,15 @@ module.exports = function (test) {
                         discardOldest: true,
                         queueSize: 1
                     },
-                    opcua.read_service.TimestampsToReturn.Both
-                    //xx opcua.subscription_service.MonitoringMode.Disabled
+                    opcua.TimestampsToReturn.Both
+                    //xx opcua.MonitoringMode.Disabled
                 );
-                monitoredItem.monitoringMode = opcua.subscription_service.MonitoringMode.Reporting;
+                monitoredItem.monitoringMode = opcua.MonitoringMode.Reporting;
                 monitoredItem.on("changed", monitoredItemOnChangedSpy);
 
                 monitoredItem.on("initialized", function () {
 
-                    monitoredItem.setMonitoringMode(opcua.subscription_service.MonitoringMode.Disabled, function () {
+                    monitoredItem.setMonitoringMode(opcua.MonitoringMode.Disabled, function () {
 
                         setTimeout(function () {
                             ///xx console.log(monitoredItemOnChangedSpy.callCount);
@@ -1016,9 +1016,9 @@ module.exports = function (test) {
                 });
 
 
-                // var createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                // var createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
                 //     subscriptionId: subscription.subscriptionId,
-                //     timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                //     timestampsToReturn: opcua.TimestampsToReturn.Neither,
                 //     itemsToCreate: [
                 //         {
                 //             monitoringMode: MonitoringMode.Disabled,
@@ -1052,9 +1052,9 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                const createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: opcua.TimestampsToReturn.Neither,
                     itemsToCreate: []
                 });
                 session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
@@ -1073,7 +1073,7 @@ module.exports = function (test) {
                 const VariableIds = opcua.VariableIds;
                 const nodeId = opcua.makeNodeId(VariableIds.Server_ServerArray);
                 const samplingInterval = 1000;
-                const itemToMonitor = new opcua.read_service.ReadValueId({
+                const itemToMonitor = new opcua.ReadValueId({
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value,
                     indexRange: "1:2,3:4"
@@ -1084,9 +1084,9 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                const createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: opcua.TimestampsToReturn.Neither,
                     itemsToCreate: [{
                         itemToMonitor: itemToMonitor,
                         requestedParameters: parameters,
@@ -1109,9 +1109,9 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                const modifyMonitoredItemsRequest = new opcua.subscription_service.ModifyMonitoredItemsRequest({
+                const modifyMonitoredItemsRequest = new opcua.ModifyMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: opcua.TimestampsToReturn.Neither,
                     itemsToModify: []
                 });
                 session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err, modifyMonitoredItemsResponse) {
@@ -1127,7 +1127,7 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                const deleteMonitoredItemsRequest = new opcua.subscription_service.DeleteMonitoredItemsRequest({
+                const deleteMonitoredItemsRequest = new opcua.DeleteMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
                     monitoredItemIds: []
                 });
@@ -1296,7 +1296,7 @@ module.exports = function (test) {
                             attributeId: 13,
                             nodeId: nodeId
                         };
-                        const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                        const createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
 
                             subscriptionId: subscriptionId,
                             timestampsToReturn: TimestampsToReturn.Both,
@@ -1787,7 +1787,7 @@ module.exports = function (test) {
 
                 const modifyMonitoredItemsRequest = {
                     subscriptionId: 999,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: opcua.TimestampsToReturn.Neither,
                     itemsToModify: [{}]
                 };
 
@@ -1800,7 +1800,7 @@ module.exports = function (test) {
 
         it("AZA3-I #ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
 
-            const TimestampsToReturn = opcua.read_service.TimestampsToReturn;
+            const TimestampsToReturn = opcua.TimestampsToReturn;
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -1828,8 +1828,8 @@ module.exports = function (test) {
 
         it("AZA3-J #ModifyMonitoredItemRequest : server should send BadMonitoredItemIdInvalid  if client send a wrong monitored item id", function (done) {
 
-            const TimestampsToReturn = opcua.read_service.TimestampsToReturn;
-            const MonitoredItemModifyRequest = opcua.subscription_service.MonitoredItemModifyRequest;
+            const TimestampsToReturn = opcua.TimestampsToReturn;
+            const MonitoredItemModifyRequest = opcua.MonitoredItemModifyRequest;
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -2149,7 +2149,7 @@ module.exports = function (test) {
 
                     function (callback) {
 
-                        const createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+                        const createSubscriptionRequest = new opcua.CreateSubscriptionRequest({
                             requestedPublishingInterval: too_small_PublishingInterval,
                             requestedLifetimeCount: 60,
                             requestedMaxKeepAliveCount: 10,
@@ -2195,7 +2195,7 @@ module.exports = function (test) {
             server_node.minimumSamplingInterval = forcedMinimumInterval;
 
 
-            const itemToMonitor = new opcua.read_service.ReadValueId({
+            const itemToMonitor = new opcua.ReadValueId({
                 nodeId: nodeId,
                 attributeId: AttributeIds.Value
             });
@@ -2226,7 +2226,7 @@ module.exports = function (test) {
                     function (callback) {
 
 
-                        const createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+                        const createSubscriptionRequest = new opcua.CreateSubscriptionRequest({
                             requestedPublishingInterval: requestedPublishingInterval,
                             requestedLifetimeCount: 60,
                             requestedMaxKeepAliveCount: 10,
@@ -2249,7 +2249,7 @@ module.exports = function (test) {
                             discardOldest: false,
                             queueSize: 1
                         };
-                        const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                        const createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
 
                             subscriptionId: subscriptionId,
                             timestampsToReturn: TimestampsToReturn.Both,
@@ -2370,7 +2370,7 @@ module.exports = function (test) {
 
         function createSubscription2(session, createSubscriptionRequest, callback) {
 
-            createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest(createSubscriptionRequest);
+            createSubscriptionRequest = new opcua.CreateSubscriptionRequest(createSubscriptionRequest);
 
             _.isFunction(callback).should.eql(true,"expecting a function");
 
@@ -2405,7 +2405,7 @@ module.exports = function (test) {
             //xx parameters.samplingInterval.should.eql(0);
 
 
-            const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+            const createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
 
                 subscriptionId: subscriptionId,
                 timestampsToReturn: TimestampsToReturn.Both,
@@ -2436,7 +2436,7 @@ module.exports = function (test) {
 
             const nodeId = nodeIdVariant;
 
-            const itemToMonitor = new opcua.read_service.ReadValueId({
+            const itemToMonitor = new opcua.ReadValueId({
                 nodeId: nodeId,
                 attributeId: AttributeIds.Value
             });
@@ -2536,7 +2536,7 @@ module.exports = function (test) {
         function _test_with_queue_size_of_two(parameters, expected_values, expected_statusCodes, done) {
 
             const nodeId = nodeIdVariant;
-            const itemToMonitor = new opcua.read_service.ReadValueId({
+            const itemToMonitor = new opcua.ReadValueId({
                 nodeId: nodeId,
                 attributeId: AttributeIds.Value
             });
@@ -2658,7 +2658,7 @@ module.exports = function (test) {
 
             const nodeId = nodeIdVariant;
 
-            const itemToMonitor = new opcua.read_service.ReadValueId({
+            const itemToMonitor = new opcua.ReadValueId({
                 nodeId: nodeId,
                 attributeId: AttributeIds.Description
             });
@@ -2703,7 +2703,7 @@ module.exports = function (test) {
                     discardOldest: true,
                     queueSize: 2
                 };
-                const itemToMonitor = new opcua.read_service.ReadValueId({
+                const itemToMonitor = new opcua.ReadValueId({
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 });
@@ -2715,7 +2715,7 @@ module.exports = function (test) {
 
                     function (callback) {
                         const publishingInterval = 100;
-                        const createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+                        const createSubscriptionRequest = new opcua.CreateSubscriptionRequest({
                             requestedPublishingInterval: publishingInterval,
                             requestedLifetimeCount: 30,
                             requestedMaxKeepAliveCount: 10,
@@ -2773,7 +2773,7 @@ module.exports = function (test) {
                         queueSize: 2
                     };
 
-                    const itemToMonitor = new opcua.read_service.ReadValueId({
+                    const itemToMonitor = new opcua.ReadValueId({
                         nodeId: nodeId,
                         attributeId: AttributeIds.Value,
                         indexRange: "4:10"
@@ -2854,7 +2854,7 @@ module.exports = function (test) {
                         queueSize: 2
                     };
 
-                    const itemToMonitor = new opcua.read_service.ReadValueId({
+                    const itemToMonitor = new opcua.ReadValueId({
                         nodeId: nodeId,
                         attributeId: AttributeIds.Value,
                         indexRange: "2:4"
@@ -3067,9 +3067,9 @@ module.exports = function (test) {
             const itemToMonitor = "ns=0;i=2254"; // temperatureVariableId;
             perform_operation_on_monitoredItem(client, endpointUrl, itemToMonitor, function (session, subscription, monitoredItem, inner_done) {
 
-                const setMonitoringModeRequest = new opcua.subscription_service.SetMonitoringModeRequest({
+                const setMonitoringModeRequest = new opcua.SetMonitoringModeRequest({
                     subscriptionId: subscription.subscriptionId,
-                    monitoringMode: opcua.subscription_service.MonitoringMode.Reporting,
+                    monitoringMode: opcua.MonitoringMode.Reporting,
                     monitoredItemIds: [
                         monitoredItem.monitoredItemId
                     ]
@@ -3091,7 +3091,7 @@ module.exports = function (test) {
             perform_operation_on_monitoredItem(client, endpointUrl, itemToMonitor, function (session, subscription, monitoredItem, inner_done) {
                 const setMonitoringModeRequest = {
                     subscriptionId: subscription.subscriptionId,
-                    monitoringMode: opcua.subscription_service.MonitoringMode.Sampling,
+                    monitoringMode: opcua.MonitoringMode.Sampling,
                     monitoredItemIds: [
                         monitoredItem.monitoredItemId + 9999
                     ]
@@ -3111,7 +3111,7 @@ module.exports = function (test) {
 
                 const setMonitoringModeRequest = {
                     subscriptionId: subscription.subscriptionId,
-                    monitoringMode: opcua.subscription_service.MonitoringMode.Sampling,
+                    monitoringMode: opcua.MonitoringMode.Sampling,
                     monitoredItemIds: [
                         monitoredItem.monitoredItemId
                     ]
@@ -3151,7 +3151,7 @@ module.exports = function (test) {
             function step2(session, subscription, callback) {
                 const setMonitoringModeRequest = {
                     subscriptionId: subscription.subscriptionId,
-                    monitoringMode: opcua.subscription_service.MonitoringMode.Sampling,
+                    monitoringMode: opcua.MonitoringMode.Sampling,
                     monitoredItemIds: [
                         monitoredItem.monitoredItemId
                     ]
@@ -3284,8 +3284,6 @@ module.exports = function (test) {
             const INVALID_SUBSCRIPTION = 1234;
             const INVALID_RETRANSMIT_SEQNUM = 1234;
 
-            const subscription_service = opcua.subscription_service;
-            const read_service = opcua.read_service;
             let g_session;
             let client, fanSpeed;
             before(function (done) {
@@ -3307,7 +3305,7 @@ module.exports = function (test) {
 
                         function (callback) {
                             // CreateSubscriptionRequest
-                            const request = new subscription_service.CreateSubscriptionRequest({
+                            const request = new opcua.CreateSubscriptionRequest({
                                 requestedPublishingInterval: 100,
                                 requestedLifetimeCount: 1000,
                                 requestedMaxKeepAliveCount: 1000,
@@ -3327,16 +3325,16 @@ module.exports = function (test) {
 
                         function (callback) {
                             // CreateMonitoredItemsRequest
-                            const request = new subscription_service.CreateMonitoredItemsRequest({
+                            const request = new opcua.CreateMonitoredItemsRequest({
                                 subscriptionId: VALID_SUBSCRIPTION,
-                                timestampsToReturn: read_service.TimestampsToReturn.Both,
+                                timestampsToReturn: opcua.TimestampsToReturn.Both,
                                 itemsToCreate: [
                                     {
                                         itemToMonitor: {
                                             nodeId: fanSpeed.nodeId
                                             // nodeId: opcua.makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
                                         },
-                                        monitoringMode: subscription_service.MonitoringMode.Reporting,
+                                        monitoringMode: opcua.MonitoringMode.Reporting,
                                         requestedParameters: {
                                             clientHandle: 26,
                                             samplingInterval: 10,
@@ -3350,7 +3348,7 @@ module.exports = function (test) {
 
                             g_session.createMonitoredItems(request, function (err, response) {
 
-                                response.should.be.instanceof(subscription_service.CreateMonitoredItemsResponse);
+                                response.should.be.instanceof(opcua.CreateMonitoredItemsResponse);
                                 response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                                 response.results.length.should.eql(1);
                                 response.results[0].statusCode.should.eql(StatusCodes.Good);
@@ -3371,11 +3369,11 @@ module.exports = function (test) {
                         function (callback) {
 
                             // publish request now requires a subscriptions
-                            const request = new subscription_service.PublishRequest({
+                            const request = new opcua.PublishRequest({
                                 subscriptionAcknowledgements: []
                             });
                             g_session.publish(request, function (err, response) {
-                                assert(response instanceof subscription_service.PublishResponse);
+                                assert(response instanceof opcua.PublishResponse);
                                 assert(response.availableSequenceNumbers.length > 0);
                                 VALID_RETRANSMIT_SEQNUM = response.availableSequenceNumbers[0];
                                 VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
@@ -3396,13 +3394,13 @@ module.exports = function (test) {
             it("server should handle Republish request (BadMessageNotAvailable) ", function (done) {
 
                 inner_test(function (done) {
-                    const request = new subscription_service.RepublishRequest({
+                    const request = new opcua.RepublishRequest({
                         subscriptionId: VALID_SUBSCRIPTION,
                         retransmitSequenceNumber: INVALID_RETRANSMIT_SEQNUM
                     });
                     g_session.republish(request, function (err, response) {
                         should.exist(err);
-                        response.should.be.instanceof(subscription_service.RepublishResponse);
+                        response.should.be.instanceof(opcua.RepublishResponse);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadMessageNotAvailable);
                         done();
                     });
@@ -3416,13 +3414,13 @@ module.exports = function (test) {
 
                     VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
 
-                    const request = new subscription_service.RepublishRequest({
+                    const request = new opcua.RepublishRequest({
                         subscriptionId: INVALID_SUBSCRIPTION,
                         retransmitSequenceNumber: VALID_RETRANSMIT_SEQNUM
                     });
                     g_session.republish(request, function (err, response) {
                         should.exist(err);
-                        response.should.be.instanceof(subscription_service.RepublishResponse);
+                        response.should.be.instanceof(opcua.RepublishResponse);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadSubscriptionIdInvalid);
                         done();
                     });
@@ -3435,13 +3433,13 @@ module.exports = function (test) {
 
                     VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
 
-                    const request = new subscription_service.RepublishRequest({
+                    const request = new opcua.RepublishRequest({
                         subscriptionId: VALID_SUBSCRIPTION,
                         retransmitSequenceNumber: VALID_RETRANSMIT_SEQNUM
                     });
 
                     g_session.republish(request, function (err, response) {
-                        response.should.be.instanceof(subscription_service.RepublishResponse);
+                        response.should.be.instanceof(opcua.RepublishResponse);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                         done(err);
                     });

@@ -154,10 +154,11 @@ function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callba
     });
 }
 
+
 /**
  * check if certificate is trusted or untrusted
  */
-function _verify_serverCertificate(serverCertificate: Buffer, callback: ErrorCallback) {
+function _verify_serverCertificate(serverCertificate: Certificate, callback: ErrorCallback) {
 
     const pkiFolder = process.cwd() + "/pki";
 
@@ -390,6 +391,7 @@ export class OPCUAClientBase extends OPCUASecureObject implements OPCUAClientBas
          */
         this.keepPendingSessionsOnDisconnect = options.keepPendingSessionsOnDisconnect || false;
     }
+
 
     /**
      * total number of transactions performed by the client

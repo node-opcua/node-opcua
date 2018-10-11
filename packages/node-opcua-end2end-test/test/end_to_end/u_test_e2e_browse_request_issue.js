@@ -59,7 +59,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    const browseRequest1 = new opcua.browse_service.BrowseRequest({
+                    const browseRequest1 = new opcua.BrowseRequest({
                         view: null,
                         requestedMaxReferencesPerNode: 0,
                         nodesToBrowse: [nodeToBrowse]

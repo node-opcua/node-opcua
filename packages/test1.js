@@ -40,7 +40,7 @@ async function cycle() {
         queueSize:        1000
     };
 
-    const monitoredItem = subscription.monitor(itemToMinitor,monitoringParameters,opcua.read_service.TimestampsToReturn.Both);
+    const monitoredItem = subscription.monitor(itemToMinitor,monitoringParameters,opcua.TimestampsToReturn.Both);
     monitoredItem.on("changed",function(dataValue) {
         //console.log("D = s",dataValue.toString())
     });

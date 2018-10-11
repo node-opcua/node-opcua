@@ -76,9 +76,9 @@ export function iterateOnSignedAndEncryptedMessageChunks(buffer: Buffer, callbac
     };
 
     const securityHeader = new AsymmetricAlgorithmSecurityHeader({
+        receiverCertificateThumbprint,
         securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15",
         senderCertificate,
-        receiverCertificateThumbprint
     });
 
     const msgChunkManager = new SecureMessageChunkManager("OPN", options, securityHeader, sequenceNumberGenerator);

@@ -65,3 +65,4 @@ test_fixtures/
 *.heapsnapshot
 *.log
 *.stackdump
+node-opcua-aggregates

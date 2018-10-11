@@ -14,7 +14,7 @@ const AttributeIds = opcua.AttributeIds;
 const resolveNodeId = opcua.resolveNodeId;
 const StatusCodes = opcua.StatusCodes;
 const DataType = opcua.DataType;
-const TimestampsToReturn = opcua.read_service.TimestampsToReturn;
+const TimestampsToReturn = opcua.TimestampsToReturn;
 const NodeId = opcua.NodeId;
 
 const conditionTypeId = opcua.resolveNodeId("ConditionType");

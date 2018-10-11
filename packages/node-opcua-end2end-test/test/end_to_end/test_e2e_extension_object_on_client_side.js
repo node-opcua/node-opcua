@@ -59,7 +59,7 @@ describe("testing extension object with client residing on a different process t
                 function (callback) {
 
                     const nodesToRead = [
-                        new opcua.read_service.ReadValueId({nodeId: nodeId, attributeId: AttributeIds.Value})
+                        new opcua.ReadValueId({nodeId: nodeId, attributeId: AttributeIds.Value})
                     ];
 
                     session.read(nodesToRead, function (err, dataValues) {

@@ -32,6 +32,9 @@ describe("testing client Proxy", function () {
 
         server = build_server_with_temperature_device({port: port}, function (err) {
 
+            if (err) {
+                return done(err);
+            }
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
 
@@ -239,10 +242,10 @@ describe("testing client Proxy", function () {
 //                          console.log("Interior temperature",hvac.interiorTemperature.dataValue);
 
                             hvac.interiorTemperature.on("value_changed",function(value){
-                              //  console.log("  EVENT: interiorTemperature has changed to ".yellow,value.value.toString());
+                               console.log("  EVENT: interiorTemperature has changed to ".yellow,value.value.toString());
                             });
                             hvac.targetTemperature.on("value_changed",function(value){
-                                //xx console.log("  EVENT: targetTemperature has changed to ".cyan,value.value.toString());
+                                console.log("  EVENT: targetTemperature has changed to ".cyan,value.value.toString());
                             });
 
 
@@ -254,7 +257,7 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     hvac.interiorTemperature.readValue(function (err, value) {
-                        //xx console.log(" reading Interior temperature, got = ...", value.toString());
+                        console.log(" reading Interior temperature, got = ...", value.toString());
                         callback(err);
                     });
                 },

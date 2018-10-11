@@ -57,7 +57,7 @@ module.exports = function (test) {
                                 samplingInterval: 1000,
                                 discardOldest: true,
                                 queueSize: 100
-                            },opcua.read_service.TimestampsToReturn.Both,function(err) {
+                            },opcua.TimestampsToReturn.Both,function(err) {
                                 callback(err);
                             });
                     }
@@ -205,7 +205,7 @@ module.exports = function (test) {
                             samplingInterval: 1000,
                             discardOldest: true,
                             queueSize: 100
-                        },opcua.read_service.TimestampsToReturn.Both,function(err) {
+                        },opcua.TimestampsToReturn.Both,function(err) {
                             callback(err);
                         });
                 },

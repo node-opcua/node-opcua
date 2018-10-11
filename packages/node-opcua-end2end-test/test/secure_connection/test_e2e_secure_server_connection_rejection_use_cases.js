@@ -200,7 +200,7 @@ describe("testing the server ability to deny client session request (server with
 
             function (callback) {
 
-                const createSessionRequest = new opcua.session_service.CreateSessionRequest({
+                const createSessionRequest = new opcua.CreateSessionRequest({
                     requestHeader: {},
                     clientNonce: Buffer.alloc(31)
                 });

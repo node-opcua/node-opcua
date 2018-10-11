@@ -10,8 +10,8 @@ const OPCUAClient = opcua.OPCUAClient;
 const AttributeIds = opcua.AttributeIds;
 const resolveNodeId = opcua.resolveNodeId;
 const StatusCodes = opcua.StatusCodes;
-const MonitoringMode = opcua.subscription_service.MonitoringMode;
-const TimestampsToReturn = opcua.read_service.TimestampsToReturn;
+const MonitoringMode = opcua.MonitoringMode;
+const TimestampsToReturn = opcua.TimestampsToReturn;
 const constructEventFilter = opcua.constructEventFilter;
 
 const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
@@ -36,7 +36,7 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                const itemToMonitor = new opcua.read_service.ReadValueId({
+                const itemToMonitor = new opcua.ReadValueId({
                     nodeId: resolveNodeId("Server_ServerStatus"),
                     attributeId: AttributeIds.Value // << we set Value here
                 });
@@ -48,10 +48,10 @@ module.exports = function (test) {
                     filter: filter   // we use an invalid EventFilter here !=> server should complain
                 };
 
-                const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                const createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
 
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: opcua.TimestampsToReturn.Neither,
                     itemsToCreate: [{
                         itemToMonitor: itemToMonitor,
                         requestedParameters: parameters,
@@ -95,7 +95,7 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                const itemToMonitor = new opcua.read_service.ReadValueId({
+                const itemToMonitor = new opcua.ReadValueId({
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.EventNotifier
                 });
@@ -107,9 +107,9 @@ module.exports = function (test) {
                     filter: null
                 };
 
-                const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                const createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: opcua.TimestampsToReturn.Neither,
                     itemsToCreate: [{
                         itemToMonitor: itemToMonitor,
                         requestedParameters: parameters,
@@ -154,7 +154,7 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                const itemToMonitor = new opcua.read_service.ReadValueId({
+                const itemToMonitor = new opcua.ReadValueId({
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.EventNotifier
                 });
@@ -166,9 +166,9 @@ module.exports = function (test) {
                     filter: eventFilter
                 };
 
-                const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                const createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: opcua.TimestampsToReturn.Neither,
                     itemsToCreate: [{
                         itemToMonitor: itemToMonitor,
                         requestedParameters: parameters,
@@ -190,7 +190,7 @@ module.exports = function (test) {
 
 
                         const filterResult = createMonitoredItemsResponse.results[0].filterResult;
-                        filterResult.should.be.instanceof(opcua.subscription_service.EventFilterResult);
+                        filterResult.should.be.instanceof(opcua.EventFilterResult);
 
                         // verify selectClauseResults count
                         eventFilter.selectClauses.length.should.eql(3);
@@ -200,7 +200,7 @@ module.exports = function (test) {
                         filterResult.selectClauseResults[2].should.eql(StatusCodes.Good);
 
                         // verify whereClauseResult
-                        const ContentFilterResult = opcua.subscription_service.ContentFilterResult;
+                        const ContentFilterResult = opcua.ContentFilterResult;
                         filterResult.whereClauseResult.should.be.instanceof(ContentFilterResult);
 
                     }
@@ -230,7 +230,7 @@ module.exports = function (test) {
                     discardOldest: true,
                     queueSize: 1,
 
-                    filter: new opcua.subscription_service.DataChangeFilter({}) // FILTER !
+                    filter: new opcua.DataChangeFilter({}) // FILTER !
                 };
                 const monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                     should.exist(err);
@@ -255,7 +255,7 @@ module.exports = function (test) {
                     discardOldest: true,
                     queueSize: 1,
 
-                    filter: new opcua.subscription_service.DataChangeFilter({}) // intentionally wrong :not an EventFilter
+                    filter: new opcua.DataChangeFilter({}) // intentionally wrong :not an EventFilter
 
                 };
                 const monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {

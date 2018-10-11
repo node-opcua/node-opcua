@@ -52,70 +52,40 @@ export {
     BrowseDirection,
 } from "node-opcua-data-model";
 
-export {
-    makeApplicationUrn
-} from "node-opcua-common";
+export * from "node-opcua-common";
 
 // basic_types
 export * from "node-opcua-basic-types";
 
-
-
 // DA
-export { standardUnits }from "node-opcua-data-access";
-module.exports.standardUnits = require("node-opcua-data-access").standardUnits;
-module.exports.makeEUInformation = require("node-opcua-data-access").makeEUInformation;
-module.exports.Range = require("node-opcua-data-access").Range;
-
-//
-module.exports.get_fully_qualified_domain_name = require("node-opcua-hostname").get_fully_qualified_domain_name;
+export { standardUnits, makeEUInformation, Range } from "node-opcua-data-access";
+export * from "node-opcua-hostname";
 
 // services
-module.exports.browse_service = require("node-opcua-service-browse");
-module.exports.read_service = require("node-opcua-service-read");
-module.exports.write_service = require("node-opcua-service-write");
-module.exports.call_service = require("node-opcua-service-call");
+export * from "node-opcua-service-browse";
+export * from "node-opcua-service-read";
+export * from "node-opcua-service-write";
+export * from "node-opcua-service-call";
+export * from "node-opcua-service-session";
+export * from "node-opcua-service-register-node";
+export * from "node-opcua-service-endpoints";
+export * from "node-opcua-service-subscription";
+export * from "node-opcua-service-history";
+export * from "node-opcua-service-discovery";
+export * from "node-opcua-service-secure-channel";
+export * from "node-opcua-service-translate-browse-path";
+export * from "node-opcua-service-query";
+export * from "node-opcua-service-node-management";
 
-module.exports.session_service = require("node-opcua-service-session");
-module.exports.AnonymousIdentityToken = module.exports.session_service.AnonymousIdentityToken;
-module.exports.UserNameIdentityToken = module.exports.session_service.UserNameIdentityToken;
-
-module.exports.register_node_service = require("node-opcua-service-register-node");
-
-module.exports.get_endpoints_service = require("node-opcua-service-endpoints");
-module.exports.EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
-module.exports.ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
-
-module.exports.subscription_service = require("node-opcua-service-subscription");
-module.exports.historizing_service = require("node-opcua-service-history");
-module.exports.discovery_service = require("node-opcua-service-discovery");
-module.exports.secure_channel_service = require("node-opcua-service-secure-channel");
-
-module.exports.translate_browse_paths_to_node_ids_service = require("node-opcua-service-translate-browse-path");
-
-module.exports.BrowsePath = require("node-opcua-service-translate-browse-path").BrowsePath;
-module.exports.makeRelativePath = require("node-opcua-service-translate-browse-path").makeRelativePath;
-module.exports.makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
-
-module.exports.query_service = require("node-opcua-service-query");
-module.exports.node_managment_service = require("node-opcua-service-node-management");
-
-module.exports.ServerState = require("node-opcua-common").ServerState;
-module.exports.ServiceCounterDataType = require("node-opcua-common").ServiceCounterDataType;
-
-module.exports.SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
-module.exports.coerceSecurityPolicy = require("node-opcua-secure-channel").coerceSecurityPolicy;
-
-module.exports.MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
-module.exports.coerceMessageSecurityMode = require("node-opcua-service-secure-channel").coerceMessageSecurityMode;
+export * from "node-opcua-secure-channel";
 
 module.exports.utils = require("node-opcua-utils");
 module.exports.crypto_utils = require("node-opcua-crypto");
 module.exports.hexDump = require("node-opcua-debug").hexDump;
 
-// ----------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------
 // client services
-// ----------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------
 module.exports.OPCUAClient = require("node-opcua-client").OPCUAClient;
 module.exports.OPCUAClientBase = require("node-opcua-client").OPCUAClientBase;
 
@@ -134,10 +104,9 @@ module.exports.readUAAnalogItem = require("node-opcua-client").readUAAnalogItem;
 
 module.exports.parseEndpointUrl = require("node-opcua-transport").parseEndpointUrl;
 
-
-// ----------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 // Server services
-// ----------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 module.exports.OPCUAServer = require("node-opcua-server").OPCUAServer;
 module.exports.RegisterServerMethod = require("node-opcua-server").RegisterServerMethod;
 

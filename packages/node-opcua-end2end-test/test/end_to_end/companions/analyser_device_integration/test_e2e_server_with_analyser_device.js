@@ -271,7 +271,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
 
-        const bd = new opcua.browse_service.BrowseDescription({
+        const bd = new opcua.BrowseDescription({
             nodeId: stateMachineType.nodeId,
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: makeRefId("HasComponent"),

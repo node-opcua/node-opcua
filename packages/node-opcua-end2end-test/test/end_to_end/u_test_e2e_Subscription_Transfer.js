@@ -325,7 +325,7 @@ module.exports = function (test) {
             const client = new OPCUAClient();
             let the_session2;
 
-            const itemToMonitor = new opcua.read_service.ReadValueId({
+            const itemToMonitor = new opcua.ReadValueId({
                 nodeId: "ns=2;s=Scalar_Static_Double",
                 attributeId: opcua.AttributeIds.Value
             });
@@ -349,7 +349,7 @@ module.exports = function (test) {
 
                     // Create Subscription on session1
                     function (callback) {
-                        const request = new opcua.subscription_service.CreateSubscriptionRequest({
+                        const request = new opcua.CreateSubscriptionRequest({
                             requestedPublishingInterval: 100,
                             requestedLifetimeCount: 1000,
                             requestedMaxKeepAliveCount: 30,
@@ -369,13 +369,13 @@ module.exports = function (test) {
                     // Create MonitoredItem on session1 with many publish request in queue
                     function (callback) {
                         // CreateMonitoredItemsRequest
-                        const request = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                        const request = new opcua.CreateMonitoredItemsRequest({
                             subscriptionId: subscriptionId,
-                            timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
+                            timestampsToReturn: opcua.TimestampsToReturn.Both,
                             itemsToCreate: [
                                 {
                                     itemToMonitor: itemToMonitor,
-                                    monitoringMode: opcua.subscription_service.MonitoringMode.Reporting,
+                                    monitoringMode: opcua.MonitoringMode.Reporting,
                                     requestedParameters: parameters
                                 }
                             ]
@@ -383,7 +383,7 @@ module.exports = function (test) {
 
                         session.createMonitoredItems(request, function (err, response) {
 
-                            response.should.be.instanceof(opcua.subscription_service.CreateMonitoredItemsResponse);
+                            response.should.be.instanceof(opcua.CreateMonitoredItemsResponse);
                             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                             response.results.length.should.eql(1);
                             response.results[0].statusCode.should.eql(StatusCodes.Good);

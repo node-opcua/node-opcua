@@ -155,7 +155,7 @@ module.exports = function (test) {
                         samplingInterval: 500, // slow rate  (slower than publishing rate)
                         discardOldest: true,
                         queueSize: 10
-                    }, opcua.read_service.TimestampsToReturn.Both);
+                    }, opcua.TimestampsToReturn.Both);
 
 
                 let change_count = 0;

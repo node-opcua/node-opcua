@@ -61,7 +61,7 @@ describe("DS1 - Discovery server", function () {
                 client.performMessageTransaction(registerServerRequest, function (err, response) {
                     if (!err) {
                         // RegisterServerResponse
-                        assert(response instanceof opcua.discovery_service.RegisterServerResponse);
+                        assert(response instanceof opcua.RegisterServerResponse);
                     }
                     externalFunc(err, response);
                     callback();
@@ -75,7 +75,7 @@ describe("DS1 - Discovery server", function () {
 
     it("should fail to register server if discovery url is not specified (Bad_DiscoveryUrlMissing)", function (done) {
 
-        const request = new opcua.discovery_service.RegisterServerRequest({
+        const request = new opcua.RegisterServerRequest({
             server: {
 
                 // The globally unique identifier for the Server instance. The serverUri matches
@@ -106,7 +106,7 @@ describe("DS1 - Discovery server", function () {
     });
 
     it("should fail to register server to the discover server if server type is Client (BadInvalidArgument)", function (done) {
-        const request = new opcua.discovery_service.RegisterServerRequest({
+        const request = new opcua.RegisterServerRequest({
             server: {
 
                 // The globally unique identifier for the Server instance. The serverUri matches
@@ -138,7 +138,7 @@ describe("DS1 - Discovery server", function () {
 
     it("should fail to register server to the discover server if server name array is empty (BadServerNameMissing)", function (done) {
 
-        const request = new opcua.discovery_service.RegisterServerRequest({
+        const request = new opcua.RegisterServerRequest({
             server: {
 
                 // The globally unique identifier for the Server instance. The serverUri matches

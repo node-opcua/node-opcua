@@ -217,7 +217,7 @@ module.exports = function (test) {
         it("should return BadNothingToDo if writeRequest is null", function (done) {
             perform_operation_on_client_session(client, test.endpointUrl, function (session, done) {
 
-                const request = new opcua.write_service.WriteRequest({nodesToWrite: []});
+                const request = new opcua.WriteRequest({nodesToWrite: []});
                 request.nodesToWrite = null;
                 session.performMessageTransaction(request, function (err, response) {
                     err.message.should.match(/BadNothingToDo/);
@@ -260,7 +260,7 @@ module.exports = function (test) {
 
 
 
-                const request = new opcua.write_service.WriteRequest({nodesToWrite: nodesToWrite});
+                const request = new opcua.WriteRequest({nodesToWrite: nodesToWrite});
                 session.performMessageTransaction(request, function (err, response) {
                     err.message.should.match(/BadTooManyOperations/);
 

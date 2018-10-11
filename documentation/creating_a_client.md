@@ -222,9 +222,9 @@ OPC-UA allows for subscriptions to it's objects instead of polling for changes. 
 
 the_subscription=new opcua.ClientSubscription(the_session, {
     requestedPublishingInterval: 1000,
-    requestedLifetimeCount: 10,
-    requestedMaxKeepAliveCount: 2,
-    maxNotificationsPerPublish: 10,
+    requestedLifetimeCount:     100,
+    requestedMaxKeepAliveCount: 10,
+    maxNotificationsPerPublish: 100,
     publishingEnabled: true,
     priority: 10
 });
@@ -251,7 +251,7 @@ const monitoredItem  = the_subscription.monitor({
         discardOldest: true,
         queueSize: 10
     },
-    opcua.read_service.TimestampsToReturn.Both
+    opcua.TimestampsToReturn.Both
 );
 console.log("-------------------------------------");
 

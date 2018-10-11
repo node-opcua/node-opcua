@@ -142,7 +142,7 @@ module.exports = function (test) {
                         queueSize: 10,
                         filter: eventFilter
                     };
-                    auditing_monitoredItem = auditing_subscription.monitor(itemToMonitor, requestedParameters, opcua.read_service.TimestampsToReturn.Both, function (err) {
+                    auditing_monitoredItem = auditing_subscription.monitor(itemToMonitor, requestedParameters, opcua.TimestampsToReturn.Both, function (err) {
                         callback(err);
                     });
                     auditing_monitoredItem.on("changed", function (eventFields) {

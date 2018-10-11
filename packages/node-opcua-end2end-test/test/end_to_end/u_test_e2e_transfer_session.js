@@ -11,7 +11,7 @@ const OPCUAClient = opcua.OPCUAClient;
 const StatusCodes = opcua.StatusCodes;
 
 function sendPublishRequest(session, callback) {
-    const publishRequest = new opcua.subscription_service.PublishRequest({});
+    const publishRequest = new opcua.PublishRequest({});
     session.performMessageTransaction(publishRequest, function (err, response) {
         callback(err, response);
     });
@@ -19,7 +19,7 @@ function sendPublishRequest(session, callback) {
 
 function createSubscription(session, callback) {
     const publishingInterval = 1000;
-    const createSubscriptionRequest = new opcua.subscription_service.CreateSubscriptionRequest({
+    const createSubscriptionRequest = new opcua.CreateSubscriptionRequest({
         requestedPublishingInterval: publishingInterval,
         requestedLifetimeCount: 60,
         requestedMaxKeepAliveCount: 10,
@@ -139,7 +139,7 @@ module.exports = function (test) {
                     client1.connect(test.endpointUrl, callback);
                 },
                 function (callback) {
-                    const request = new opcua.session_service.CloseSessionRequest({
+                    const request = new opcua.CloseSessionRequest({
                         deleteSubscriptions: true
                     });
                     client1.performMessageTransaction(request, function (err, response) {
@@ -189,7 +189,7 @@ module.exports = function (test) {
 
                 // second call to close session should raise an error
                 function (callback) {
-                    const request = new opcua.session_service.CloseSessionRequest({
+                    const request = new opcua.CloseSessionRequest({
                         deleteSubscriptions: true
                     });
                     client1.performMessageTransaction(request, function (err, response) {
@@ -252,10 +252,10 @@ module.exports = function (test) {
                 // let verify that it is now possible to send a request on client1's session
                 function (callback) {
                     // coerce nodeIds
-                    const request = new opcua.read_service.ReadRequest({
+                    const request = new opcua.ReadRequest({
                         nodesToRead: [{nodeId: "i=2255", attributeId: 13}],
                         maxAge: 0,
-                        timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
+                        timestampsToReturn: opcua.TimestampsToReturn.Both
                     });
                     request.requestHeader.authenticationToken = session1.authenticationToken;
                     client1.performMessageTransaction(request, function (err, response) {
@@ -282,10 +282,10 @@ module.exports = function (test) {
                 // server shall refuse any requests on channel1
                 function (callback) {
                     // coerce nodeIds
-                    const request = new opcua.read_service.ReadRequest({
+                    const request = new opcua.ReadRequest({
                         nodesToRead: [{nodeId: "i=2255", attributeId: 13}],
                         maxAge: 0,
-                        timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
+                        timestampsToReturn: opcua.TimestampsToReturn.Both
                     });
                     request.requestHeader.authenticationToken = session1.authenticationToken;
                     client1.performMessageTransaction(request, function (err, response) {
@@ -298,10 +298,10 @@ module.exports = function (test) {
                 // but server shall access request on new channel
                 function (callback) {
                     // coerce nodeIds
-                    const request = new opcua.read_service.ReadRequest({
+                    const request = new opcua.ReadRequest({
                         nodesToRead: [{nodeId: "i=2255", attributeId: 13}],
                         maxAge: 0,
-                        timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
+                        timestampsToReturn: opcua.TimestampsToReturn.Both
                     });
                     request.requestHeader.authenticationToken = session1.authenticationToken;
                     client2.performMessageTransaction(request, function (err, response) {

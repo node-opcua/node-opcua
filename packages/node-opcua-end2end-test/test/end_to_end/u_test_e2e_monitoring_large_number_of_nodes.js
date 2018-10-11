@@ -119,15 +119,15 @@ module.exports = function (test) {
 
                 ids50000.forEach(function (s) {
                     const nodeId = "ns=2;s=" + s;
-                    const itemToMonitor = new opcua.read_service.ReadValueId({
+                    const itemToMonitor = new opcua.ReadValueId({
                         attributeId: opcua.AttributeIds.Value,
                         nodeId: nodeId
                     });
-                    const monitoringMode = opcua.subscription_service.MonitoringMode.Reporting;
+                    const monitoringMode = opcua.MonitoringMode.Reporting;
 
                     clientHandle++;
 
-                    const monitoringParameters = new opcua.subscription_service.MonitoringParameters({
+                    const monitoringParameters = new opcua.MonitoringParameters({
                         clientHandle: clientHandle,
                         samplingInterval: 100,
                         filter: null,
@@ -165,10 +165,10 @@ module.exports = function (test) {
                 subscription.once("started", function (subscriptionId) {
 
 
-                        const timestampsToReturn = opcua.read_service.TimestampsToReturn.Neither;
+                        const timestampsToReturn = opcua.TimestampsToReturn.Neither;
 
                         const itemsToCreate = make5000Items();
-                        const createMonitorItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
+                        const createMonitorItemsRequest = new opcua.CreateMonitoredItemsRequest({
                             subscriptionId: subscription.subscriptionId,
                             timestampsToReturn: timestampsToReturn,
                             itemsToCreate: itemsToCreate

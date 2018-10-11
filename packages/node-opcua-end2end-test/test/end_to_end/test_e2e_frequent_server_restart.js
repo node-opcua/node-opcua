@@ -141,7 +141,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
                             discardOldest: true,
                             queueSize: 10
                         },
-                        opcua.read_service.TimestampsToReturn.Both
+                        opcua.TimestampsToReturn.Both
                     );
                     client.monitoredItem.on("changed", function (dataValue) {
                         if (doDebug) {
