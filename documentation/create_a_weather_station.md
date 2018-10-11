@@ -287,7 +287,7 @@ _"making a round robin read"
 const opcua = require("node-opcua");
 
 const server = new opcua.OPCUAServer({
-   port: 4334 // the port of the listening socket of the server
+   port: 4334 // the port of the listening socket of the servery
 });
 
 server.buildInfo.productName = "WeatherStation";
