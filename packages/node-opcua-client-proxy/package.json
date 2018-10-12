@@ -3,6 +3,9 @@
  "version": "0.5.0",
  "description": "pure nodejs OPCUA SDK - module -client-proxy",
  "scripts": {
+  "clean": "node -e \"require('rimraf').sync('dist');\"",
+  "build": "tsc",
+  "lint": "tslint source/**/*.ts",
   "test": "mocha test"
  },
  "main": "./dist/index.js",
