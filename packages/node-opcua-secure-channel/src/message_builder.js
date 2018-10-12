@@ -363,9 +363,10 @@ MessageBuilder.prototype._read_headers = function (binaryStream) {
         binaryStream.length = 8;
         const errorCode = decodeStatusCode(binaryStream);
         const message = decodeString(binaryStream);
-
-        console.log(" ERROR RECEIVED FROM SENDER".red.bold, errorCode.toString().cyan, message);
-        console.log(hexDump(binaryStream._buffer));
+        if (doDebug) {
+            console.log(" ERROR RECEIVED FROM SENDER".red.bold, errorCode.toString().cyan, message);
+            console.log(hexDump(binaryStream._buffer));    
+        }
         return true;
 
     } else {

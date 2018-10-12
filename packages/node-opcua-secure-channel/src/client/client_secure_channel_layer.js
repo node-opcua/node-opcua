@@ -222,11 +222,16 @@ function ClientSecureChannelLayer(options) {
             //
             debugLog("request id = ", requestId, err);
             let request_data = self._request_data[requestId];
-            console.log(" message was ");
-            console.log(request_data);
+
+            if (doDebug) {
+                console.log(" message was ");
+                console.log(request_data);    
+            }
             if (!request_data) {
                 request_data = self._request_data[requestId + 1];
-                console.log(" message was 2:", request_data ? request_data.request.toString() : "<null>");
+                if (doDebug) {
+                    console.log(" message was 2:", request_data ? request_data.request.toString() : "<null>");
+                }
             }
             // xx console.log(request_data.request.toString());
         });
