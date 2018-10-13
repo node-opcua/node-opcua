@@ -376,13 +376,16 @@ describe("testing ClientTCP_transport", function () {
 
         transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function (err) {
             if (err) {
+		console.log(err);
                 const regexp_1 = /EADDRNOTAVAIL|ECONNREFUSED/; // node v0.10
                 const regexp_2 = /port(" option)* should be/; // node >v0.10 < 9.000
-                const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.000
+                const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.00
+                const regexp_4 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received NaN./; // node > 10.20
                 const test1 = !!err.message.match(regexp_1);
                 const test2 = !!err.message.match(regexp_2);
                 const test3 = !!err.message.match(regexp_3);
-                (test1 || test2 || test3).should.eql(true, "expecting one of those error message");
+                const test4 = !!err.message.match(regexp_4);
+                (test1 || test2 || test3 || test4).should.eql(true, "expecting one of those error message. got: " + err.message);
                 done();
             } else {
                 done(new Error("Should have raised a connection error"));
