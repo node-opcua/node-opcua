@@ -33,6 +33,9 @@ please provide the *STEPS TO REPRODUCE* and if possible a *MINIMAL DEMO* of the 
 **Please tell us about your environment:**
 <!-- Operating system, opcua server or client type, package manager,  equipment , vendor info -->
 
+  * ( ) my request is related to node-opcua acting as a  OPCUA CLIENT 
+  * ( )  my request is related to node-opcua acting as a OPCUA SERVER 
+
 
   * ( ) I have installed node-opcua from source ( using git clone)
   * ( ) I have installed node-opcua as a package ( using npm install )
@@ -58,7 +61,8 @@ please provide the *STEPS TO REPRODUCE* and if possible a *MINIMAL DEMO* of the 
      - link : https://
      
     
-* **node-opcua version:** ``
+* **node-opcua version:**  :
+<!-- provide the semver version numero of node-opca -->
 <!-- Check which is the hash of the last commit from node-opcua that you have locally -->
 
 * **Node:** 
