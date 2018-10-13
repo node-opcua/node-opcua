@@ -1,4 +1,4 @@
-const assert = require("node-opcua-assert").assert;
+    const assert = require("node-opcua-assert").assert;
 const async = require("async");
 const EventEmitter = require("events").EventEmitter;
 const util = require("util");
@@ -560,6 +560,7 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
                 if (err) {
                     debugLog("RegisterServerManager#_registerServer connection to client has failed");
                     debugLog("RegisterServerManager#_registerServer  => please check that you server certificate is trusted by the LDS");
+                    console.log("RegisterServer to the LDS  has failed during secure connection  => please check that you server certificate is trusted by the LDS. err: "+ err.message);
                     //xx debugLog(options);
                     client.disconnect(function () {
                         debugLog("RegisterServerManager#_registerServer client disconnected");

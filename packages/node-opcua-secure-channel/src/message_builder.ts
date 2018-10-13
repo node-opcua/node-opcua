@@ -136,8 +136,8 @@ export class MessageBuilder extends MessageBuilderBase {
         this._tokenStack = this._tokenStack || [];
         assert(this._tokenStack.length === 0 || this._tokenStack[0].securityToken.tokenId !== securityToken.tokenId);
         this._tokenStack.push({
+            derivedKeys,
             securityToken,
-            derivedKeys
         });
     }
 
@@ -159,8 +159,10 @@ export class MessageBuilder extends MessageBuilderBase {
             const errorCode = decodeStatusCode(binaryStream);
             const message = decodeString(binaryStream);
 
-            console.log(chalk.red.bold(" ERROR RECEIVED FROM SENDER"), chalk.cyan(errorCode.toString()), message);
-            console.log(hexDump(binaryStream.buffer));
+            if (doDebug) {
+                debugLog(chalk.red.bold(" ERROR RECEIVED FROM SENDER"), chalk.cyan(errorCode.toString()), message);
+                debugLog(hexDump(binaryStream.buffer));
+            }
             return true;
 
         } else {
@@ -248,8 +250,10 @@ export class MessageBuilder extends MessageBuilderBase {
                     // this code catches a uncaught exception somewhere in one of the event handler
                     // this indicates a bug in the code that uses this class
                     // please check the stack trace to find the problem
+                    if (doDebug) {
+                        debugLog(err);
+                    }
                     console.log(chalk.red("MessageBuilder : ERROR DETECTED IN event handler"));
-                    console.log(err);
                     console.log(err.stack);
                 }
             } else {

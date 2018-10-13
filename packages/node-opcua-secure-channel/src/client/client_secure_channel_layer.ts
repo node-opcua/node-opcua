@@ -350,12 +350,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 debugLog("request id = ", requestId, err);
                 let requestData = this._requests[requestId];
 
-                console.log(" message was ");
-                console.log(requestData);
+                if (doDebug) {
+                    debugLog(" message was ");
+                    debugLog(requestData);
+                }
 
                 if (!requestData) {
                     requestData = this._requests[requestId + 1];
-                    console.log(" message was 2:", requestData ? requestData.request.toString() : "<null>");
+                    debugLog(" message was 2:", requestData ? requestData.request.toString() : "<null>");
                 }
                 // xx console.log(request_data.request.toString());
             });
