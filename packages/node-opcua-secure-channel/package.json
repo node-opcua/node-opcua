@@ -6,7 +6,7 @@
  "types": "./dist/source/index.d.ts",
  "scripts": {
   "build": "tsc",
-  "test": "mocha test",
+  "test": "mocha test/*.js test/*.ts",
   "clean": "node -e \"require('rimraf').sync('dist');\""
  },
  "dependencies": {
