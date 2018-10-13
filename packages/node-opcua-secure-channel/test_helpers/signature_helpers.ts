@@ -2,7 +2,7 @@ import { assert } from "node-opcua-assert";
 import * as  fs from "fs";
 import * as should from "should";
 import { SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { SecureMessageChunkManager, SequenceNumberGenerator, SecureMessageChunkManagerOptions } from "../src";
+import { SecureMessageChunkManager, SequenceNumberGenerator, SecureMessageChunkManagerOptions } from "../source";
 import { makeMessageChunkSignature ,verifyChunkSignature } from "node-opcua-crypto";
 
 const getFixture = require("node-opcua-test-fixtures").getFixture;

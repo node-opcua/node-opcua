@@ -6,7 +6,7 @@
     "declaration": true,
     "sourceMap": true,
     "sourceRoot": "./source",
-    "rootDir": "src",
+    "rootDir": "source",
     "strict": true,
     "listFiles": false,
     "outDir": "dist"

@@ -12,7 +12,7 @@
     "sourceMap": true
   },
   "files": [
-     "src/index.ts",
+     "source/index.ts",
      "test-fixtures/index.ts",
      "test_helpers/index.ts"
   ]

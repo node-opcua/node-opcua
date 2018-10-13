@@ -10,7 +10,7 @@
         "noImplicitReturns": true,
         "sourceRoot": "./source",
         "importHelpers": true,
-        "listFiles": true,
+        "listFiles": false,
         "traceResolution": false
     },
     "compileOnSave": false

@@ -5,7 +5,7 @@ import * as  net from "net";
 
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import { setFakeTransport } from "../src";
+import { setFakeTransport } from "../source";
 
 
 export class HalfComChannel extends EventEmitter {

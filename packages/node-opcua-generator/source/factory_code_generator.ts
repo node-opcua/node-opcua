@@ -747,7 +747,7 @@ export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFi
             );
         } else {
             write(
-                `import { ${field.fieldType} } from "../src/imports";`
+                `import { ${field.fieldType} } from "../source/imports";`
             );
         }
     }

@@ -12,7 +12,7 @@ import {
     DerivedKeys
 } from "node-opcua-crypto";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { SecureMessageChunkManager, SequenceNumberGenerator } from "../src";
+import { SecureMessageChunkManager, SequenceNumberGenerator } from "../source";
 
 const getFixture = require("node-opcua-test-fixtures").getFixture;
 

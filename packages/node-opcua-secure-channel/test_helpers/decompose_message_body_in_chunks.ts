@@ -1,5 +1,5 @@
 import {  assert } from "node-opcua-assert";
-import { SequenceNumberGenerator, SecureMessageChunkManager } from "../src";
+import { SequenceNumberGenerator, SecureMessageChunkManager } from "../source";
 
 /**
  * @method decompose_message_body_in_chunks

@@ -1,5 +1,5 @@
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
-import { MessageBuilder, messageHeaderToString, MessageSecurityMode, SecurityPolicy } from "../src/index";
+import { MessageBuilder, messageHeaderToString, MessageSecurityMode, SecurityPolicy } from "../source/index";
 
 /**
  *

@@ -4,16 +4,16 @@
     "target": "es6",
     "module": "commonjs",
     "declaration": true,
-   // "sourceRoot": "./src",
-    "rootDir": "src",
+   // "sourceRoot": "./source",
+    "rootDir": "source",
     "strict": true,
     "listFiles": false,
     "outDir": "dist",
     "sourceMap": true
   },
   "files": [
-    "src/index.ts",
-    "src/opcua_code_generator.ts",
-    "src/generate_extension_object_code.ts"
+    "source/index.ts",
+    "source/opcua_code_generator.ts",
+    "source/generate_extension_object_code.ts"
   ]
 }

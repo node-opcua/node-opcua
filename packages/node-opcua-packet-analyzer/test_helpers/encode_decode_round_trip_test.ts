@@ -7,7 +7,7 @@ import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import chalk from "chalk";
 import * as should from "should";
 
-import { analyzePacket, analyze_object_binary_encoding } from "../src";
+import { analyzePacket, analyze_object_binary_encoding } from "../source";
 
 
 function dump_block_in_debug_mode(buffer: Buffer, id: any, options: any) {

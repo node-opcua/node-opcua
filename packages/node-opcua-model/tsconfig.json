@@ -6,13 +6,13 @@
     "declaration": true,
     "sourceMap": true,
     "sourceRoot": "./source",
-    "rootDir": "src",
+    "rootDir": "./source",
     "strict": true,
     "listFiles": false,
     "outDir": "dist"
   },
   "files": [
-    "src/index.ts",
-    "src/opcua_code_generator.ts"
+    "source/index.ts",
+    "source/opcua_code_generator.ts"
   ]
 }

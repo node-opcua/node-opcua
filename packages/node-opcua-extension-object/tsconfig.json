@@ -11,6 +11,6 @@
     "noImplicitReturns": true,
   },
   "files": [
-    "src/index.ts"
+    "source/index.ts"
   ]
 }

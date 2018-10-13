@@ -8,7 +8,7 @@ import {
     SecurityPolicy,
     ServerSecureChannelLayer,
     ServerSecureChannelParent
-} from "../src";
+} from "../source";
 import { Socket } from "net";
 import * as async from "async";
 import * as path from "path";

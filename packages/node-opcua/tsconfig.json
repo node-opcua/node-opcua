@@ -5,12 +5,12 @@
     "module": "commonjs",
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "src",
+    "rootDir": "source",
     "strict": true,
     "listFiles": false,
     "outDir": "dist"
   },
   "files": [
-    "src/index.ts"
+    "source/index.ts"
   ]
 }

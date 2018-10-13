@@ -4,7 +4,7 @@
     "skipLibCheck": true,
     "target": "es6",
     "outDir": "build/main",
-    "rootDir": "src",
+    "rootDir": "source",
     "moduleResolution": "node",
     "module": "commonjs",
     "declaration": true,
@@ -25,7 +25,6 @@
     }
   },
   "include": [
-    "packages/node-opcua-binary-stream/tsource"
   ],
   "exclude": [
     "node_modules/**"

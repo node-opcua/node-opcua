@@ -10,7 +10,7 @@
     "strict": true
   },
   "files": [
-    "./src/index.ts",
-    "./src/numeric_range.ts"
+    "./source/index.ts",
+    "./source/numeric_range.ts"
   ]
 }
