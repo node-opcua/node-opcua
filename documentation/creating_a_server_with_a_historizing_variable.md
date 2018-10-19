@@ -66,7 +66,7 @@ const vesselPressure = namespace.addAnalogDataItem({
         low:  0,
         high: 10.0
     },
-    engineeringUnits: opcua.standarUnits.bar,
+    engineeringUnits: opcua.standardUnits.bar,
     componentOf: vessel
 });
 ```
