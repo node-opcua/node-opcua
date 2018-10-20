@@ -12,7 +12,7 @@
  "types": "./dist/index.d.ts",
  "dependencies": {
   "@types/mocha": "^5.2.5",
-  "@types/node": "^10.11.7",
+  "@types/node": "^10.12.0",
   "node-opcua-assert": "^0.5.0",
   "node-opcua-basic-types": "^0.5.0",
   "node-opcua-crypto": "^0.0.22",

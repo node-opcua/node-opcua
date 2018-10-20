@@ -10,7 +10,7 @@
   "clean": "node -e \"require('rimraf').sync('dist');\""
  },
  "dependencies": {
-  "@types/node": "^10.11.7",
+  "@types/node": "^10.12.0",
   "@types/underscore": "^1.8.9",
   "backoff": "^2.5.0",
   "chalk": "^2.4.1",
@@ -45,7 +45,7 @@
   "node-opcua-test-fixtures": "^0.5.0",
   "node-opcua-test-helpers": "^0.5.0",
   "should": "13.2.3",
-  "sinon": "^6.3.5",
+  "sinon": "^7.0.0",
   "source-map-support": "^0.5.9",
   "sprintf-js": "^1.1.1"
  },
