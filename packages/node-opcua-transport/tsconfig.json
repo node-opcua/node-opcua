@@ -4,8 +4,6 @@
     "target": "es6",
     "module": "commonjs",
     "declaration": true,
-    // "sourceRoot": "./src",
-    //xx "rootDir": "src",
     "strict": true,
     "listFiles": false,
     "outDir": "dist",

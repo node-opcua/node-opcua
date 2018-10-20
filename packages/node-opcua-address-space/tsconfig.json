@@ -5,7 +5,6 @@
     "module": "commonjs",
     "declaration": true,
     "sourceMap": true,
-    "sourceRoot": "./source",
     "rootDir": "source",
     "strict": true,
     "listFiles": false,

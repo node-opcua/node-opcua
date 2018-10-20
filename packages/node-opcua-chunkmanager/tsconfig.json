@@ -9,6 +9,5 @@
     "strict": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "sourceRoot": "./source"
   }
 }

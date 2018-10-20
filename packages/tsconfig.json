@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "outDir": "./dist",
         "skipLibCheck": true,
         "target": "es6",
         "module": "commonjs",
@@ -8,7 +9,6 @@
         "strict": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
-        "sourceRoot": "./source",
         "importHelpers": true,
         "listFiles": false,
         "traceResolution": false
