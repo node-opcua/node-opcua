@@ -21,7 +21,7 @@ const yargs = require("yargs/yargs");
 
 const argv = yargs(process.argv)
     .wrap(132)
-    //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
+    //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (NONE|SIGNANDENCRYPT|SIGN)] [--securityPolicy (None|Basic256Sha256|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
 
     .demand("endpoint")
     .string("endpoint")

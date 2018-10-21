@@ -41,14 +41,6 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
         }).throwError();
     });
 
-
-    it("should not accept to add endpoint with MessageSecurityMode.NONE and SecurityPolicy.Basic128", function () {
-
-        should(function () {
-            server_endpoint.addEndpointDescription(MessageSecurityMode.NONE, SecurityPolicy.Basic128);
-        }).throwError();
-
-    });
     it("should not accept  to add endpoint  MessageSecurityMode.SIGN and SecurityPolicy.None", function () {
 
         should(function () {
@@ -141,23 +133,6 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
     });
     afterEach(function () {
         server_endpoint = null;
-    });
-
-
-    it_with_crypto("should not find a endpoint matching MessageSecurityMode.SIGN and SecurityPolicy.Basic128", function () {
-
-        let endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic128);
-        should(endpoint_desc).be.eql(null);
-
-        server_endpoint.addEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic128);
-        server_endpoint.addEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic256);
-
-        endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic128);
-        should(endpoint_desc).be.instanceof(EndpointDescription);
-
-        endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SIGN, SecurityPolicy.Basic256);
-        should(endpoint_desc).be.instanceof(EndpointDescription);
-
     });
 
     it("should not find a endpoint matching MessageSecurityMode.SIGN and SecurityPolicy.None", function () {

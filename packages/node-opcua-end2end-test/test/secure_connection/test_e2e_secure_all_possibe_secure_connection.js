@@ -414,14 +414,6 @@ function perform_collection_of_test_with_client_configuration(message, options) 
         common_test("Basic256", "SIGNANDENCRYPT", options, done);
     });
 
-    it("should fail    with Basic256Rsa15  with Sign           " + message, function (done) {
-        check_open_secure_channel_fails("Basic256Rsa15", "SIGN", options, done);
-    });
-
-    it("should fail    with Basic256Rsa15  with SignAndEncrypt " + message, function (done) {
-        check_open_secure_channel_fails("Basic256Rsa15", "SIGNANDENCRYPT", options, done);
-    });
-
     it("should succeed with Basic256Sha256 with Sign           " + message, function (done) {
         common_test("Basic256Sha256", "SIGN", options, done);
     });
@@ -750,14 +742,6 @@ describe("ZZC- testing Security Policy with a valid 1024 bit certificate on serv
     });
 
     perform_collection_of_test_with_various_client_configuration(" (1024 bits certificate on server)");
-
-    it("connection should fail if security mode requested by client is not supported by server", function (done) {
-
-        const securityMode = "SIGN";
-        const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
-        check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
-
-    });
 });
 
 describe("ZZD- testing Security Policy with a valid 2048 bit certificate on server", function () {
@@ -780,14 +764,6 @@ describe("ZZD- testing Security Policy with a valid 2048 bit certificate on serv
 
 
     perform_collection_of_test_with_various_client_configuration(" (2048 bits certificate on server)");
-
-    it("connection should fail if security mode requested by client is not supported by server", function (done) {
-
-        const securityMode = "SIGN";
-        const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
-        check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
-
-    });
 });
 
 describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on server", function () {
@@ -809,12 +785,6 @@ describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on ser
     });
 
     perform_collection_of_test_with_various_client_configuration(" (4096 bits certificate on server)");
-
-    it("connection should fail if security mode requested by client is not supported by server", function (done) {
-        const securityMode = "SIGN";
-        const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
-        check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
-    });
 });
 
 describe("ZZE- testing with various client certificates", function () {

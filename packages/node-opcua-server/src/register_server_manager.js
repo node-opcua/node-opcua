@@ -91,18 +91,10 @@ function securityPolicyLevel(securityPolicy) {
     switch (securityPolicy) {
         case SecurityPolicy.None.value:
             return 0;
-        case SecurityPolicy.Basic128.value:
-            return 0;
         case SecurityPolicy.Basic128Rsa15.value:
             return 0;
-        case SecurityPolicy.Basic192.value:
-            return 1;
-        case SecurityPolicy.Basic192Rsa15.value:
-            return 2;
         case SecurityPolicy.Basic256.value:
-            return 3;
-        case SecurityPolicy.Basic256Rsa15.value:
-            return 3;
+            return 0;
         case SecurityPolicy.Basic256Sha256.value:
             return 3;
         default:

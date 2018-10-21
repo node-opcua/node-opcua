@@ -17,8 +17,8 @@ describe("Security Policy", function () {
         let enumValue = fromURI("http://opcfoundation.org/UA/SecurityPolicy#None");
         enumValue.should.equal(SecurityPolicy.None);
 
-        enumValue = fromURI("http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15");
-        enumValue.should.equal(SecurityPolicy.Basic256Rsa15);
+        enumValue = fromURI("http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
+        enumValue.should.equal(SecurityPolicy.Basic256Sha256);
     });
 
     it("should return SecurityPolicy.Invalid if not supported", function () {
@@ -28,12 +28,12 @@ describe("Security Policy", function () {
 
     });
     it("should turn a Security Policy Enum value into an URI", function () {
-        const uriValue = toURI(SecurityPolicy.Basic256Rsa15);
-        uriValue.should.equal("http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15");
+        const uriValue = toURI(SecurityPolicy.Basic256Sha256);
+        uriValue.should.equal("http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
     });
     it("should turn a Security Policy short string to an URI", function () {
-        const uriValue = toURI("Basic256Rsa15");
-        uriValue.should.equal("http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15");
+        const uriValue = toURI("Basic256Sha256");
+        uriValue.should.equal("http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
     });
     it("should thrown an exception when turning an invalid SecurityPolicy into an uri", function () {
 

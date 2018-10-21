@@ -531,7 +531,6 @@ const defaultSecurityModes = [
 const defaultSecurityPolicies = [
     SecurityPolicy.Basic128Rsa15,
     SecurityPolicy.Basic256,
-//xx UNUSED!!    SecurityPolicy.Basic256Rsa15,
     SecurityPolicy.Basic256Sha256
 ];
 
