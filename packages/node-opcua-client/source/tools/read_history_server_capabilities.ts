@@ -6,11 +6,13 @@ import { ObjectIds } from "node-opcua-constants";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
+import { ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { Variant } from "node-opcua-variant";
-import { ClientSession, ReadValueIdLike } from "../client_session";
+
+import { ClientSession } from "../client_session";
 
 export interface HistoryServerCapabilities {
     [key: string]: any;
@@ -85,7 +87,7 @@ export function readHistoryServerCapabilities(
                         ? innerResult.targets[0].targetId
                         : NodeId.nullNodeId);
 
-            const nodesToRead: ReadValueIdLike [] = nodeIds.map((nodeId: NodeId) => ({
+            const nodesToRead: ReadValueIdOptions [] = nodeIds.map((nodeId: NodeId) => ({
                     attributeId: AttributeIds.Value,
                     nodeId/*: coerceNodeId(nodeId)*/}));
 

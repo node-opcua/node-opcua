@@ -13,7 +13,7 @@ module.exports = function (test) {
 
         const options ={};
         beforeEach(function (done) {
-            client = new OPCUAClient(options);
+            client = OPCUAClient.create(options);
             endpointUrl = test.endpointUrl;
             done();
         });

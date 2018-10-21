@@ -1,12 +1,14 @@
+import * as _ from "underscore";
+
 import { assert } from "node-opcua-assert";
 import { StatusCodes } from "node-opcua-constants";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { Variant } from "node-opcua-variant";
-import * as _ from "underscore";
-import { ClientSession, ReadValueIdLike, ResponseCallback } from "./client_session";
+import { ClientSession,  ResponseCallback } from "./client_session";
 
 const hasPropertyRefId = resolveNodeId("HasProperty");
 
@@ -76,7 +78,7 @@ export function readUAAnalogItem(
         browsePathResults = browsePathResults || [];
 
         const actions: any[] = [];
-        const nodesToRead: ReadValueIdLike[] = [];
+        const nodesToRead: ReadValueIdOptions[] = [];
 
         function processProperty(browsePathResult: BrowsePathResult, propertyName: string) {
 

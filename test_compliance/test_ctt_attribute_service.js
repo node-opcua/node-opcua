@@ -27,7 +27,7 @@ describe("COMPLIANCE TESTING", function () {
             options.endpointUrl = options.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             options.temperatureVariableId = options.server.temperatureVariableId;
 
-            options.client = new opcua.OPCUAClient({});
+            options.client = opcua.OPCUAClient.create({});
 
             done(err);
         });

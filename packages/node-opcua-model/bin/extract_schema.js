@@ -41,7 +41,7 @@ function parse_opcua_server(endpoint, callback) {
         }
     };
 
-    const client = new opcua.OPCUAClient(options);
+    const client = opcua.OPCUAClient.create(options);
     client.withSession(endpointUrl, function (session, callback) {
         parse_opcua_common(session, callback);
     }, function (err) {

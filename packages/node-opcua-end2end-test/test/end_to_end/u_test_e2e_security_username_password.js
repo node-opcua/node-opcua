@@ -9,7 +9,7 @@ module.exports = function(test) {
     describe("testing basic Client-Server communication", function() {
         let server, client, endpointUrl;
         beforeEach(function(done) {
-            client = new OPCUAClient();
+            client = OPCUAClient.create();
             server = test.server;
             endpointUrl = test.endpointUrl;
             done();
@@ -24,7 +24,7 @@ module.exports = function(test) {
             async.series(
                 [
                     function(callback) {
-                        client1 = new OPCUAClient();
+                        client1 = OPCUAClient.create();
                         client1.connect(endpointUrl, callback);
                     },
 

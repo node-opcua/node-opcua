@@ -20,7 +20,7 @@ module.exports = function (test) {
 
         it("#223 - calling a method with one input argument", function (done) {
 
-            const client1 = new OPCUAClient();
+            const client1 = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
             let the_session;
             let objectWithMethodsNodeId;

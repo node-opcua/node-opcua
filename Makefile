@@ -19,7 +19,8 @@ LP_WIN= "..\\node_modules\\.bin\\literate-programming.cmd"
 
 examples:
 	( cd documentation ; $(LP) creating_a_server.md )
-	( cd documentation ; $(LP) creating_a_client.md )
+	( cd documentation ; $(LP) creating_a_client_typescript.md )
+	( cd documentation ; $(LP) creating_a_client_callback.md )
 	( cd documentation ; $(LP) create_a_weather_station.md )
 	( cd documentation ; $(LP) server_with_da_variables.md )
 	( cd documentation ; $(LP) server_with_method.md )

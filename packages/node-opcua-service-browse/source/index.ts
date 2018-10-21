@@ -1,12 +1,13 @@
 // ----------------------------------------------------------------------------------------------------------------------
 import {
-    ReferenceDescription,
-    BrowseResult, BrowseDescription,
-    BrowseRequest, BrowseResponse,
+    BrowseDescription,
     BrowseNextRequest, BrowseNextResponse,
-    ViewDescription, NodeClass
+    BrowseRequest, BrowseResponse,
+    BrowseResult,
+    ReferenceDescription, ViewDescription
 } from "node-opcua-types";
 
+import { NodeClass } from "node-opcua-data-model";
 
 export { BrowseDirection } from "node-opcua-data-model";
 
@@ -15,20 +16,17 @@ export {
     BrowseResult, BrowseDescription, BrowseDescriptionOptions,
     BrowseRequestOptions,
     BrowseNextRequest, BrowseNextResponse, BrowseNextRequestOptions,
-    ViewDescription, NodeClass,
+    ViewDescription,
     BrowseRequest, BrowseResponse
 } from "node-opcua-types";
 
-
 BrowseResult.schema.fields[1].defaultValue =  null;
-
-
 
 BrowseDescription.schema.fields[0].documentation = "The id of the node to browse.";
 BrowseDescription.schema.fields[1].documentation = "The direction of the references to return.";
 BrowseDescription.schema.fields[2].documentation = "The type of references to return." +
-    "Specifies the NodeId of the ReferenceType to follow. Only instances of this ReferenceType or its subtype are returned." +
-    "If not specified then all ReferenceTypes are returned and includeSubtypes is ignored.";
+    "Specifies the NodeId of the ReferenceType to follow. Only instances of this ReferenceType or" +
+    " its subtype are returned. If not specified then all ReferenceTypes are returned and includeSubtypes is ignored.";
 BrowseDescription.schema.fields[3].documentation = "Includes subtypes of the reference type.";
 // mask :
 //  bit
@@ -40,7 +38,8 @@ BrowseDescription.schema.fields[3].documentation = "Includes subtypes of the ref
 //   5   ReferenceType
 //   6   DataType
 //   7   View
-BrowseDescription.schema.fields[4].documentation = "A mask indicating which node classes to return. 0 means return all nodes.";
+BrowseDescription.schema.fields[4].documentation =
+    "A mask indicating which node classes to return. 0 means return all nodes.";
 // mask : (see ResultMask)
 //  bit
 //   0   ReferenceType
@@ -49,8 +48,8 @@ BrowseDescription.schema.fields[4].documentation = "A mask indicating which node
 //   3   BrowseName
 //   4   DisplayName
 //   5   TypeDefinition
-BrowseDescription.schema.fields[5].documentation = "A mask indicating which fields in the ReferenceDescription should be returned in the results.";
-
+BrowseDescription.schema.fields[5].documentation =
+    "A mask indicating which fields in the ReferenceDescription should be returned in the results.";
 
 BrowseNextRequest.schema.fields[0].documentation = "A standard header included in all requests sent to a server.";
 /*
@@ -65,7 +64,8 @@ BrowseNextRequest.schema.fields[0].documentation = "A standard header included i
  * Server. If the Client does not want to get the next set of browse information,
  * BrowseNext shall be called with this parameter set to TRUE.
  */
-BrowseNextRequest.schema.fields[1].documentation = "If TRUE the continuation points are released and no results are returned.";
+BrowseNextRequest.schema.fields[1].documentation =
+    "If TRUE the continuation points are released and no results are returned.";
 /*
  * A list of Server-defined opaque values that represent continuation points. The value for a continuation point
  * was returned to the Client in a previous Browse or BrowseNext response. These values are used to identify the
@@ -94,16 +94,15 @@ BrowseRequest.schema.fields[1].documentation = "The view to browse.";
 BrowseRequest.schema.fields[2].documentation = "The maximum number of references to return in the response.";
 BrowseRequest.schema.fields[3].documentation = "The list of nodes to browse.";
 
-
 BrowseResponse.schema.documentation = "Browse the references for one or more nodes from the server address space.";
 BrowseResponse.schema.fields[0].documentation = "A standard header included in all responses returned by servers.";
 BrowseResponse.schema.fields[1].documentation = "The results for the browse operations.";
 BrowseResponse.schema.fields[2].documentation = "The diagnostics associated with the results.";
 
-
 BrowseResult.schema.documentation = "The result of a browse operation.";
 BrowseResult.schema.fields[0].documentation = "A code indicating any error during the operation.";
-BrowseResult.schema.fields[1].documentation = "A value that indicates the operation is incomplete and can be continued by calling BrowseNext.";
+BrowseResult.schema.fields[1].documentation =
+    "A value that indicates the operation is incomplete and can be continued by calling BrowseNext.";
 
 BrowseResult.schema.fields[2].documentation = "A list of references that meet the criteria specified in the request.";
 
@@ -130,5 +129,3 @@ ViewDescription.schema.fields[1].documentation =   "Browses the view at or befor
 // The ViewVersion Property is defined in Part 3. If timestamp is set this parameter
 // shall be 0. The current view is used if timestamp is null and viewVersion is 0.
 ViewDescription.schema.fields[2].documentation =  "Browses a specific version of the view .";
-
-

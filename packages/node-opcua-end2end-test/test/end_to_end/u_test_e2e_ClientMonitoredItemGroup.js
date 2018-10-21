@@ -28,7 +28,7 @@ module.exports = function (test) {
         let server, client, endpointUrl;
 
         beforeEach(function (done) {
-            client = new OPCUAClient();
+            client = OPCUAClient.create();
             server = test.server;
             endpointUrl = test.endpointUrl;
             done();
@@ -54,7 +54,7 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItem = subscription.monitor(itemToMonitor, options);
+                const monitoredItem = opcua.ClientMonitoredItem.create(subscription, itemToMonitor, options);
 
                 let count = 0;
                 monitoredItem.on("changed", function (dataValue) {
@@ -104,7 +104,7 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+                const monitoredItemGroup =  opcua.ClientMonitoredItemGroup.create(subscription,itemsToMonitor, options);
 
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItemGroup.on("initialized", function () {
@@ -145,7 +145,7 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
 
                 let count = 0;
                 monitoredItemGroup.on("changed", function (item, dataValue, index) {
@@ -195,7 +195,7 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription,itemsToMonitor, options);
 
 // subscription.on("item_added",function(monitoredItem){
                 monitoredItemGroup.on("initialized", function () {
@@ -236,7 +236,7 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription,itemsToMonitor, options);
 
                 monitoredItemGroup.on("initialized", function () {
                     if (doDebug) {
@@ -280,7 +280,7 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItemGroup = subscription.monitorItems(itemsToMonitor, options);
+                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription,itemsToMonitor, options);
 
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItemGroup.on("initialized", function () {

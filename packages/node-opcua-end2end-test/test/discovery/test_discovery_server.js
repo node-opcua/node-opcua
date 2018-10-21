@@ -51,7 +51,7 @@ describe("DS1 - Discovery server", function () {
     function send_registered_server_request(discovery_server_endpointUrl, registerServerRequest, externalFunc, done) {
 
 
-        const client = new OPCUAClient({});
+        const client = OPCUAClient.create({});
         async.series([
             function (callback) {
                 client.connect(discovery_server_endpointUrl, callback);
@@ -434,7 +434,7 @@ describe("DS3 - Discovery server - many server", function () {
                             debugLog(s.toString());
                         }
                     }
-                    servers.length.should.eql(6); // 5 server + 1 discovery server
+                    servers.length.should.eql(6, "may be you have a LDS running on your system. please make sure to shut it down before running the tests"); // 5 server + 1 discovery server
 
                     // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
                     callback(err);

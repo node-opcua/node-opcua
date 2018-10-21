@@ -8,7 +8,7 @@ describe("OPCUA Client",function() {
 
     it("it should create a client", function () {
 
-        const client = new OPCUAClient({});
+        const client = OPCUAClient.create({});
 
     });
     it("should create a ClientSecureChannerLayer", function () {

@@ -50,7 +50,7 @@ describe("testing Client-Server - Event", function () {
 
         let close_counter = 0;
 
-        const client = new OPCUAClient();
+        const client = OPCUAClient.create();
         client.on("close", function (err) {
 
 
@@ -96,7 +96,7 @@ describe("testing Client-Server - Event", function () {
                 randomisationFactor: 0
             }
         };
-        const client = new OPCUAClient(options);
+        const client = OPCUAClient.create(options);
 
 
         const _client_received_close_event = sinon.spy();
@@ -149,7 +149,7 @@ describe("testing Client-Server - Event", function () {
                 randomisationFactor: 0
             }
         };
-        const client = new OPCUAClient(options);
+        const client = OPCUAClient.create(options);
 
 
         const _client_received_close_event = sinon.spy();

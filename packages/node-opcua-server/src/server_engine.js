@@ -264,11 +264,10 @@ ServerEngine.prototype.shutdown = function () {
         return session.authenticationToken;
     });
 
-    // delete and close any orphan subscription
+    // delete and close any orphan subscriptions
     if (engine._orphanPublishEngine) {
         engine._orphanPublishEngine.shutdown();
     }
-
 
     //xx console.log("xxxxxxxxx ServerEngine.shutdown must terminate "+ tokens.length," sessions");
 

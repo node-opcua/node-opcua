@@ -18,7 +18,7 @@ module.exports = function (test) {
 
             const endpointUrl = test.endpointUrl;
 
-            const client1 = new OPCUAClient({
+            const client1 = OPCUAClient.create({
                 connectionStrategy: {
                     maxRetry:1
                 }
@@ -84,7 +84,7 @@ module.exports = function (test) {
         function create_unactivated_session(callback) {
 
             const endpointUrl = test.endpointUrl;
-            const client1 = new OPCUAClient( {
+            const client1 = OPCUAClient.create( {
                 connectionStrategy:fail_fast_connectionStrategy
             });
             let session;

@@ -17,8 +17,10 @@ import { BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-b
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { ClientSessionImpl, ResponseCallback } from "../client_session";
+import { CallMethodRequestLike, ResponseCallback } from "../client_session";
 import { ClientSubscription } from "../client_subscription";
+import { ClientSessionImpl } from "../private/client_session_impl";
+import { ClientSubscriptionImpl } from "../private/client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -26,10 +28,12 @@ const errorLog = debugLog;
 
 export function callConditionRefresh(
     subscription: ClientSubscription,
-    callback: (err?: Error) => void,
+    callback: ErrorCallback
 ) {
 
-    const theSession = subscription.publishEngine.session;
+    const subscriptionI = subscription as ClientSubscriptionImpl;
+    const theSession = subscriptionI.publishEngine.session!;
+
     const subscriptionId = subscription.subscriptionId;
 
     assert(_.isFinite(subscriptionId), "May be subscription is not yet initialized");
@@ -38,15 +42,15 @@ export function callConditionRefresh(
     const conditionTypeNodeId = resolveNodeId("ConditionType");
 
     let conditionRefreshId = resolveNodeId("ConditionType_ConditionRefresh");
-
+    
     async.series([
-
         // find conditionRefreshId
-        (innerCallback: ErrorCallback) => {
+        (innerCallback: ErrorCallback ) => {
 
             const browsePath = makeBrowsePath(conditionTypeNodeId, ".ConditionRefresh");
-            theSession.translateBrowsePath(browsePath, (err: Error | null, result: BrowsePathResult) => {
+            theSession.translateBrowsePath(browsePath, (err: Error | null, result?: BrowsePathResult) => {
                 if (!err) {
+                    result = result!;
                     // istanbul ignore else
                     if (result.targets && result.targets.length > 0) {
                         conditionRefreshId = result.targets[0].targetId;
@@ -62,7 +66,7 @@ export function callConditionRefresh(
 
         (innerCallback: ErrorCallback) => {
 
-            const methodToCall = {
+            const methodToCall: CallMethodRequestLike = {
                 inputArguments: [
                     new Variant({dataType: DataType.UInt32, value: subscriptionId})
                 ],
@@ -70,10 +74,12 @@ export function callConditionRefresh(
                 objectId: conditionTypeNodeId,
             };
 
-            theSession.call(methodToCall, (err: Error | null, result: CallMethodResult) => {
+            theSession.call(methodToCall, (err: Error | null, result?: CallMethodResult) => {
                 if (err) {
                     return innerCallback(err);
                 }
+                result = result!;
+
                 // istanbul ignore next
                 if (result.statusCode !== StatusCodes.Good) {
                     return innerCallback(new Error("Error " + result.statusCode.toString()));
@@ -82,7 +88,9 @@ export function callConditionRefresh(
             });
         },
 
-    ], callback);
+    ], (err) => { 
+        callback(err!);
+    });
 }
 
 ClientSessionImpl.prototype.disableCondition = () => {
@@ -112,11 +120,11 @@ ClientSessionImpl.prototype.enableCondition = () => {
  * @param eventId
  * @param comment
  */
-ClientSessionImpl.prototype.addCommentCondition = function (
+ClientSessionImpl.prototype.addCommentCondition = function(
     conditionId: NodeIdLike,
     eventId: Buffer,
     comment: LocalizedTextLike,
-    callback: ErrorCallback,
+    callback: ErrorCallback
 ) {
     this._callMethodCondition("AddComment", conditionId, eventId, comment, callback);
 };
@@ -127,7 +135,7 @@ ClientSessionImpl.prototype.addCommentCondition = function (
  * @param methodName
  * @param callback
  */
-ClientSessionImpl.prototype.findMethodId = function (
+ClientSessionImpl.prototype.findMethodId = function(
     nodeId: NodeIdLike,
     methodName: string,
     callback: ResponseCallback<NodeId>,
@@ -159,9 +167,9 @@ ClientSessionImpl.prototype.findMethodId = function (
 
 };
 
-ClientSessionImpl.prototype._callMethodCondition = function (
+ClientSessionImpl.prototype._callMethodCondition = function(
     methodName: string,
-    conditionId: NodeId,
+    conditionId: NodeIdLike,
     eventId: Buffer,
     comment: LocalizedTextLike, callback: (err?: Error) => void
 ) {
@@ -209,7 +217,7 @@ ClientSessionImpl.prototype._callMethodCondition = function (
                 innerCallback();
             });
         }
-    ], (err?: Error) => {
+    ], (err) => {
         if (err) {
             return callback(err);
         }
@@ -232,7 +240,7 @@ ClientSessionImpl.prototype._callMethodCondition = function (
  * @param comment
  * @param callback
  */
-ClientSessionImpl.prototype.confirmCondition = function (
+ClientSessionImpl.prototype.confirmCondition = function(
     conditionId: NodeId,
     eventId: Buffer,
     comment: LocalizedTextLike,
@@ -273,7 +281,7 @@ ClientSessionImpl.prototype.confirmCondition = function (
  * @param comment
  * @param callback
  */
-ClientSessionImpl.prototype.acknowledgeCondition = function (
+ClientSessionImpl.prototype.acknowledgeCondition = function(
     conditionId: NodeId,
     eventId: Buffer,
     comment: LocalizedTextLike,

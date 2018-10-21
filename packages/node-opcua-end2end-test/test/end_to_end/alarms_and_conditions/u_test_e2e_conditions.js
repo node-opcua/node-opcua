@@ -51,7 +51,7 @@ module.exports = function (test) {
 
             construct_demo_alarm_in_address_space(test, addressSpace);
 
-            client = new OPCUAClient({});
+            client = OPCUAClient.create({});
             done();
         });
         afterEach(function (done) {
@@ -141,9 +141,12 @@ module.exports = function (test) {
                 filter: eventFilter
             };
 
-            test.monitoredItem1 = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
+            test.monitoredItem1 = opcua.ClientMonitoredItem.create(subscription, readValue, requestedParameters, TimestampsToReturn.Both);
+
+            test.monitoredItem1.on("initialized", function (err) {
                 setTimeout(callback, 100);
             });
+
             // let's install the spy on the 'changed' event
             test.monitoredItem1.on("changed", test.spy_monitored_item1_changes);
         }

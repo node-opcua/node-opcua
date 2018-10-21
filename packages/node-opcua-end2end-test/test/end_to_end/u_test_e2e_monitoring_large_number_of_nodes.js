@@ -20,7 +20,7 @@ module.exports = function (test) {
         let client, endpointUrl;
 
         beforeEach(function (done) {
-            client = new OPCUAClient();
+            client = OPCUAClient.create();
             endpointUrl = test.endpointUrl;
             done();
         });
@@ -47,7 +47,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 150,
                     requestedLifetimeCount: 10 * 60 * 10,
                     requestedMaxKeepAliveCount: 10,
@@ -68,9 +68,11 @@ module.exports = function (test) {
                 ];
                 ids.forEach(function (id) {
                     const nodeId = "ns=2;s=" + id;
-                    const monitoredItem = subscription.monitor(
+
+                    const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
                         {nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value},
                         {samplingInterval: 10, discardOldest: true, queueSize: 1});
+
                     monitoredItem.on("changed", make_callback(nodeId));
                 });
 
@@ -148,7 +150,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 10,
                     requestedLifetimeCount:      10 * 60 * 10,
                     requestedMaxKeepAliveCount:            3,

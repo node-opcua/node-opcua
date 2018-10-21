@@ -395,7 +395,7 @@ async.series([
             }
         };
 
-        client = new opcua.OPCUAClient(options);
+        client = opcua.OPCUAClient.create(options);
 
         console.log(" connecting to ", endpointUrl.cyan.bold);
         console.log("    strategy", client.connectionStrategy);
@@ -491,7 +491,7 @@ async.series([
         };
         console.log("Options = ", options.securityMode.toString(), options.securityPolicy.toString());
 
-        client = new opcua.OPCUAClient(options);
+        client = opcua.OPCUAClient.create(options);
 
         console.log(" reconnecting to ", endpointUrl.cyan.bold);
         client.connect(endpointUrl, callback);
@@ -714,7 +714,7 @@ async.series([
             priority: 10
         };
 
-        the_subscription = new opcua.ClientSubscription(the_session, parameters);
+        the_subscription = opcua.ClientSubscription.create(the_session, parameters);
 
         function getTick() {
             return Date.now();

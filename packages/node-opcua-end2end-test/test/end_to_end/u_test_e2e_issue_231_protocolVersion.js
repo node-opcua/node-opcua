@@ -17,7 +17,7 @@ module.exports = function (test) {
 
         it("#231-A ", function (done) {
 
-            const client1 = new OPCUAClient();
+            const client1 = OPCUAClient.create();
 
             client1.protocolVersion.should.eql(0);
             client1.protocolVersion = 0x1000;
@@ -40,7 +40,7 @@ module.exports = function (test) {
         });
         it("#231-B BadProtocolVersionUnsupported", function (done) {
 
-            const client1 = new OPCUAClient();
+            const client1 = OPCUAClient.create();
 
             client1.protocolVersion.should.eql(0);
 

@@ -82,7 +82,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
     });
 
     beforeEach(function (done) {
-        client = new OPCUAClient({});
+        client = OPCUAClient.create({});
         done();
     });
 

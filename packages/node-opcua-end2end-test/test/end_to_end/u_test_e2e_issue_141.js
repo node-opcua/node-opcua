@@ -27,7 +27,7 @@ module.exports = function (test) {
         let server, client, endpointUrl;
 
         beforeEach(function (done) {
-            client = new OPCUAClient(options);
+            client = OPCUAClient.create(options);
             endpointUrl = test.endpointUrl;
             server = test.server;
             done();
@@ -47,7 +47,7 @@ module.exports = function (test) {
             let keepaliveCounter = 0;
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                the_subscription = new opcua.ClientSubscription(session, {
+                the_subscription = opcua.ClientSubscription.create(session, {
                     requestedPublishingInterval: 6000,
                     requestedMaxKeepAliveCount: 2,
                     requestedLifetimeCount: 12,

@@ -39,7 +39,7 @@ module.exports = function (test) {
 
         function create_subscription_and_monitor_item(the_session, callback) {
 
-            subscription = new ClientSubscription(the_session, {
+            subscription = ClientSubscription.create(the_session, {
                 requestedPublishingInterval: 150,
                 requestedLifetimeCount: 10 * 60 * 10,
                 requestedMaxKeepAliveCount: 10,
@@ -55,7 +55,7 @@ module.exports = function (test) {
             subscription.once("started", function () {
 
                 // monitor 1
-                monitoredItem1 = subscription.monitor(
+                monitoredItem1 = opcua.ClientMonitoredItem.create(subscription,
                   {nodeId: nodeId, attributeId: opcua.AttributeIds.Value},
                   {
                       samplingInterval: 100,
@@ -117,7 +117,7 @@ module.exports = function (test) {
 
         it("verifying that RepublishRequest service is working as expected", function (done) {
 
-            const client = new OPCUAClient({
+            const client = OPCUAClient.create({
 
             });
             const endpointUrl = test.endpointUrl;

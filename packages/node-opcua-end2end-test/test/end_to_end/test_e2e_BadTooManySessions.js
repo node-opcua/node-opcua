@@ -32,8 +32,8 @@ describe("testing the server ability to deny client session request (server with
             maxAllowedSessionNumber: 1
         });
 
-        client1 = new OPCUAClient();
-        client2 = new OPCUAClient();
+        client1 = OPCUAClient.create();
+        client2 = OPCUAClient.create();
 
         server.start(function () {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;

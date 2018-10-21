@@ -107,7 +107,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
             if (doDebug) {
                 debugLog(" creating client");
             }
-            let client = new opcua.OPCUAClient();
+            let client = opcua.OPCUAClient.create();
             client.connect(endpointUrl, function (err) {
                 if (err) return callback(err);
                 client.createSession(function (err, session) {
@@ -115,7 +115,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
                     client.session = session;
                     clients.push(client);
 
-                    client.subscription = new opcua.ClientSubscription(session, {
+                    client.subscription = opcua.ClientSubscription.create(session, {
                         requestedPublishingInterval: 1000,
                         requestedLifetimeCount: 100,
                         requestedMaxKeepAliveCount: 20,
@@ -132,7 +132,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
                     }).on("terminated", function () {
                     });
 
-                    client.monitoredItem = client.subscription.monitor({
+                    client.monitoredItem = opcua.ClientMonitoredItem.create(client.subscription,{
                             nodeId: opcua.resolveNodeId("ns=0;i=2258"),
                             attributeId: opcua.AttributeIds.Value
                         },
@@ -233,7 +233,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
 
     it("T0c- should cancel a client that is attempting a connection on an existing server", function (done) {
 
-        let client = new opcua.OPCUAClient();
+        let client = opcua.OPCUAClient.create();
         const endpoint = discoveryServerEndpointUrl;
         async.series([
             function create_client_do_not_wait(callback) {

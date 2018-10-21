@@ -48,7 +48,7 @@ function start_active_client(callback) {
 
     const endpointUrl = server_data.endpointUrl;
 
-    client = new opcua.OPCUAClient({
+    client = opcua.OPCUAClient.create({
         endpoint_must_exist: false,
         keepSessionAlive: true,
         requestedSessionTimeout: 60000,
@@ -104,7 +104,7 @@ function start_active_client(callback) {
                     priority: 10
                 };
 
-                the_subscription = new opcua.ClientSubscription(the_session, parameters);
+                the_subscription = opcua.ClientSubscription.create(the_session, parameters);
 
                 the_subscription.on("started", function () {
 
@@ -144,9 +144,7 @@ function start_active_client(callback) {
                 };
                 const item ={nodeId:nodeId, attributeId: opcua.AttributeIds.Value};
 
-                monitoredItem = the_subscription.monitor(item,requestedParameters,opcua.TimestampsToReturn.Both,function(err){
-                    console.log("err",err);
-                });
+                monitoredItem = opcua.ClientMonitoredItem.create( the_subscription, item,requestedParameters,opcua.TimestampsToReturn.Both);
                 monitoredItem.on("err",function(errMessage) {
                     callback(new Error(errMessage));
                  });
@@ -172,8 +170,8 @@ function start_active_client(callback) {
 
                         console.log(" Session OK ? ", the_session.isChannelValid(),
                             "session will expired in ", the_session.evaluateRemainingLifetime() / 1000, " seconds",
-                            "subscripiton will expirer in ".red, the_subscription.evaluateRemainingLifetime() / 1000, " seconds",
-                            "subscripiton?".red, the_session.subscriptionCount);
+                            "subscription will expire in ".red, the_subscription.evaluateRemainingLifetime() / 1000, " seconds",
+                            "subscription?".red, the_session.subscriptionCount);
                     }
                     if (!the_session.isChannelValid() && false) {
                         //xx console.log(the_session.toString());

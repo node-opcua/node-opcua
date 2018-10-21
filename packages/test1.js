@@ -11,12 +11,12 @@ const endpointUrl = "opc.tcp://localhost:26544";
 async function cycle() {
     //xx await heapdump.writeSnapshot();
 
-    let client = new opcua.OPCUAClient({endpoint_must_exist:false});
+    let client = opcua.OPCUAClient.create({endpoint_must_exist:false});
     await client.connect(endpointUrl);
 
     let session = await client.createSession();
 
-    let subscription = new opcua.ClientSubscription(session,{
+    let subscription = opcua.ClientSubscription.create(session,{
         requestedPublishingInterval: 100,
         requestedLifetimeCount: 10000,
         requestedMaxKeepAliveCount: 200,
@@ -40,7 +40,10 @@ async function cycle() {
         queueSize:        1000
     };
 
-    const monitoredItem = subscription.monitor(itemToMinitor,monitoringParameters,opcua.TimestampsToReturn.Both);
+    const monitoredItem = opcua.ClientMonitoredItem.create(
+        subscription,
+        itemToMinitor,monitoringParameters,opcua.TimestampsToReturn.Both);
+
     monitoredItem.on("changed",function(dataValue) {
         //console.log("D = s",dataValue.toString())
     });

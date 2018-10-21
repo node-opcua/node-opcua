@@ -34,7 +34,7 @@ module.exports = function (test) {
 
 
         beforeEach(function (done) {
-            client = new OPCUAClient({});
+            client = OPCUAClient.create({});
             endpointUrl = test.endpointUrl;
             done();
         });

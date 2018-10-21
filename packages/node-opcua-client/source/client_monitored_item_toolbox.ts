@@ -7,15 +7,18 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {
     CreateMonitoredItemsRequest, CreateMonitoredItemsResponse,
     ModifyMonitoredItemsRequest, ModifyMonitoredItemsResponse,
-    MonitoredItemCreateResult, MonitoredItemModifyRequest,
+    MonitoredItemModifyRequest,
     MonitoredItemModifyResult,
-    MonitoringMode, MonitoringParameters, MonitoringParametersOptions, SetMonitoringModeResponse
+    MonitoringMode, SetMonitoringModeResponse
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { ClientMonitoredItemBase } from "./client_monitored_item_base";
 import { SetMonitoringModeRequestLike } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
+import { Callback, ErrorCallback } from "./common";
+import { ClientMonitoredItemBaseImpl } from "./private/client_monitored_item_base_impl";
+import { ClientSessionImpl } from "./private/client_session_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -29,12 +32,14 @@ export class ClientMonitoredItemToolbox {
         subscription: ClientSubscription,
         timestampsToReturn: TimestampsToReturn,
         monitoredItems: ClientMonitoredItemBase[],
-        done: (err?: Error) => void
+        done: ErrorCallback
     ) {
         assert(_.isFunction(done));
         const itemsToCreate = [];
         for (const monitoredItem of monitoredItems) {
-            const itemToCreate = monitoredItem._prepare_for_monitoring();
+
+            const monitoredItemI = monitoredItem as ClientMonitoredItemBaseImpl;
+            const itemToCreate = monitoredItemI._prepare_for_monitoring();
             if (_.isString(itemToCreate.error)) {
                 return done(new Error(itemToCreate.error));
             }
@@ -47,8 +52,10 @@ export class ClientMonitoredItemToolbox {
             timestampsToReturn,
         });
 
-        assert(subscription.session);
-        subscription.session.createMonitoredItems(
+        const session = subscription.session as ClientSessionImpl;
+        assert(session,
+            "expecting a valid session attached to the subscription ");
+        session.createMonitoredItems(
             createMonitorItemsRequest,
             (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
 
@@ -64,7 +71,7 @@ export class ClientMonitoredItemToolbox {
 
                     for (let i = 0; i < response.results.length; i++) {
                         const monitoredItemResult = response.results[i];
-                        const monitoredItem = monitoredItems[i];
+                        const monitoredItem = monitoredItems[i] as ClientMonitoredItemBaseImpl;
                         monitoredItem._after_create(monitoredItemResult);
                     }
                 }
@@ -78,7 +85,7 @@ export class ClientMonitoredItemToolbox {
         monitoredItems: ClientMonitoredItemBase[],
         parameters: any,
         timestampsToReturn: TimestampsToReturn,
-        callback: (err: Error | null, results?: MonitoredItemModifyResult[]) => void
+        callback: Callback<MonitoredItemModifyResult[]>
     ) {
 
         assert(callback === undefined || _.isFunction(callback));
@@ -96,7 +103,11 @@ export class ClientMonitoredItemToolbox {
             timestampsToReturn,
         });
 
-        subscription.session.modifyMonitoredItems(
+        const session = subscription.session as ClientSessionImpl;
+        assert(session,
+            "expecting a valid session attached to the subscription ");
+
+        session.modifyMonitoredItems(
             modifyMonitoredItemsRequest,
             (err: Error | null, response?: ModifyMonitoredItemsResponse) => {
 
@@ -126,7 +137,7 @@ export class ClientMonitoredItemToolbox {
         subscription: ClientSubscription,
         monitoredItems: ClientMonitoredItemBase[],
         monitoringMode: MonitoringMode,
-        callback: (err: Error | null, statusCodes?: StatusCode[]) => void
+        callback: Callback<StatusCode[]>
     ) {
 
         const monitoredItemIds = monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId);
@@ -137,22 +148,22 @@ export class ClientMonitoredItemToolbox {
             subscriptionId: subscription.subscriptionId,
         };
 
-        subscription.session.setMonitoringMode(
+        const session = subscription.session as ClientSessionImpl;
+        assert(session,
+            "expecting a valid session attached to the subscription ");
+
+        session.setMonitoringMode(
             setMonitoringModeRequest,
             (err: Error | null, response?: SetMonitoringModeResponse) => {
-
                 if (err) {
                     return callback(err);
-                }
-                if (!response) {
-                    return callback(new Error("Internal Error"));
                 }
                 monitoredItems.forEach((monitoredItem) => {
                     monitoredItem.monitoringMode = monitoringMode;
                 });
+                response = response!;
                 response.results = response.results || [];
                 callback(null, response.results);
             });
     }
-
 }

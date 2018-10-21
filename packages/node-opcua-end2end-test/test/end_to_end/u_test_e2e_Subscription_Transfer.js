@@ -33,7 +33,7 @@ module.exports = function (test) {
 
         function create_subscription_and_close_session(callback) {
 
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             let the_subscriptionId;
 
             let the_session;
@@ -57,7 +57,7 @@ module.exports = function (test) {
                 },
 
                 function (callback) {
-                    subscription = new ClientSubscription(the_session, {
+                    subscription = ClientSubscription.create(the_session, {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 10 * 60,
                         requestedMaxKeepAliveCount: 5,
@@ -102,7 +102,7 @@ module.exports = function (test) {
                     callback();
                 },
                 function (callback) {
-                    const client2 = new OPCUAClient();
+                    const client2 = OPCUAClient.create();
                     perform_operation_on_client_session(client2, endpointUrl, function (session, done) {
 
                         session.transferSubscriptions({
@@ -130,7 +130,7 @@ module.exports = function (test) {
 
         it("TSS-2 should transfer a subscription from a live session to an other", function (done) {
 
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
 
             let the_subscriptionId;
 
@@ -157,7 +157,7 @@ module.exports = function (test) {
 
                 function (callback) {
 
-                    subscription = new ClientSubscription(the_session1, {
+                    subscription = ClientSubscription.create(the_session1, {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 10 * 60,
                         requestedMaxKeepAliveCount: 5,
@@ -251,7 +251,7 @@ module.exports = function (test) {
         });
 
         it("TSS-3 should send a StatusChangeNotification to the old session with GoodSubscriptionTransferred", function (done) {
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const spy_status_changed = new sinon.spy();
             let the_session2;
             const spy_keepalive = new sinon.spy();
@@ -322,7 +322,7 @@ module.exports = function (test) {
 
         it("TSS-4 should resend initialValue on monitored Item", function (done) {
 
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             let the_session2;
 
             const itemToMonitor = new opcua.ReadValueId({

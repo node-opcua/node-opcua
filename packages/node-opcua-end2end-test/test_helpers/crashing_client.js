@@ -26,7 +26,7 @@ var options = {
     }
 };
 
-var client = new opcua.OPCUAClient(options);
+var client = opcua.OPCUAClient.create(options);
 
 var the_session;
 

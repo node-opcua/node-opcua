@@ -69,7 +69,6 @@ export const schemaDiagnosticInfo: StructuredTypeSchema = buildStructuredType({
     ]
 });
 
-
 export class DiagnosticInfo extends BaseUAObject {
 
     symbolicId: Int32;

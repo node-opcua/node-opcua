@@ -18,7 +18,7 @@ const doDebug = false;
  */
 function create_a_pending_session(endpointUrl, callback) {
     let the_session = null;
-    const client1 = new OPCUAClient({
+    const client1 = OPCUAClient.create({
         requestedSessionTimeout: sessionLiveTime,
         keepPendingSessionsOnDisconnect: true,
     });
@@ -55,7 +55,7 @@ function create_a_pending_session(endpointUrl, callback) {
 }
 
 function reactivate_existing_session(endpointUrl, session, callback) {
-    const client1 = new OPCUAClient({});
+    const client1 = OPCUAClient.create({});
     let the_session;
     async.series([
         function (callback) {
@@ -116,7 +116,7 @@ module.exports = function (test) {
 
             const endpointUrl = test.endpointUrl;
             let the_session;
-            const client1 = new OPCUAClient({});
+            const client1 = OPCUAClient.create({});
 
             async.series([
 

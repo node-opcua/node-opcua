@@ -21,7 +21,7 @@ module.exports = function (test) {
     describe("Testing ctt  - write a ByteString value to a node of type Byte[]", function () {
 
         it("should write a ByteString value into a node  of type Byte[]",function(done) {
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             let simulationNamespaceIndex = -1;

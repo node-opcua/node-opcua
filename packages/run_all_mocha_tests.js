@@ -35,7 +35,7 @@ function collect_files(test_folder) {
         if (fs.lstatSync(f).isDirectory()) {
             collect_files(f);
         } else {
-            if (file.match(/^test_.*/)) {
+            if (file.match(/^test_.*.js/)) {
                 //xx if (!file.match("test_e2e_connection_reconnection.js")) {
                 //xx     return;
                 //xx }
@@ -60,7 +60,6 @@ fs.readdirSync(__dirname).forEach(function (file) {
 test_files = test_files.sort();
 // Add each .js file to the mocha instance
 test_files.filter(function (file) {
-
     // Only keep the .js files
     return file.substr(-3) === ".js";
 

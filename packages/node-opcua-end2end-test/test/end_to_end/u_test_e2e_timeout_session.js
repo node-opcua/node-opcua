@@ -20,7 +20,7 @@ module.exports = function (test) {
             // Given that the client open a session.
             // Given that the client does nothing
 
-            const client1 = new OPCUAClient({
+            const client1 = OPCUAClient.create({
                 keepSessionAlive: false
             });
 
@@ -75,7 +75,7 @@ module.exports = function (test) {
 
         it("A open session will not time out on server side if the client has keepSessionAlive = true", function (done) {
 
-            const client1 = new OPCUAClient({
+            const client1 = OPCUAClient.create({
                 keepSessionAlive: true
             });
 
@@ -131,7 +131,7 @@ module.exports = function (test) {
 
             let timerId;
 
-            const client1 = new OPCUAClient({
+            const client1 = OPCUAClient.create({
                 keepSessionAlive: true
             });
 

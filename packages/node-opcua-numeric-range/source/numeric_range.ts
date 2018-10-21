@@ -517,6 +517,7 @@ export class NumericRange implements NumericalRange1 {
         // console.log(" NR1 = ", nr1.toEncodeableString());
         // console.log(" NR2 = ", nr2.toEncodeableString());
         assert(false, "NumericalRange#overlap : case not implemented yet "); // TODO
+        return false;
     }
 
     encode(stream: BinaryStream) {

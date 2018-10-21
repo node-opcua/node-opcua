@@ -69,7 +69,7 @@ setInterval(function() {
 const opcua = require("node-opcua");
 
 const server = new opcua.OPCUAServer({
-   port: 4334 // the port of the listening socket of the server
+   port: 4334 // the port of the listening socket of the servery
 });
 
 server.buildInfo.productName = "WeatherStation";
@@ -80,7 +80,7 @@ function post_initialize() {
     function construct_my_address_space(server) {
        // declare some folders
        const addressSpace = server.engine.addressSpace;
-       const namespace = addressSpace.getOwnNamespace();
+       const namespace = addressSpace.getPrivateNamespace();
        const citiesNode  = namespace.addFolder("ObjectsFolder",{ browseName: "Cities"});
        function create_CityNode(city_name) {
            // declare the city node
@@ -97,7 +97,7 @@ function post_initialize() {
                dataType: "Double",
                value: {  get: function () { return extract_value(city_name,"humidity"); } }
            });
-           namespace.addVariable({
+           server.engine.addressSpace.addVariable({
                componentOf: cityNode,
                browseName: "Pressure",
                dataType: "Double",

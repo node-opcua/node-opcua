@@ -35,7 +35,7 @@ describe("testing Server resilience to unsupported request", function () {
         debugLog("endpointUrl", endpointUrl);
         opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
-        client = new OPCUAClient();
+        client = OPCUAClient.create();
 
         server.start(function () {
             setImmediate(function () {
@@ -98,7 +98,7 @@ describe("testing Server resilience with bad internet connection", function () {
     it("server should discard session from abruptly disconnected client after the timeout has expired", function (done) {
 
         // ask for a very short session timeout
-        client = new OPCUAClient({requestedSessionTimeout: 200});
+        client = OPCUAClient.create({requestedSessionTimeout: 200});
 
         let the_session;
 

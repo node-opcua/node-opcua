@@ -63,3 +63,6 @@ export type Response =
     HistoryReadResponse | RegisterNodesResponse | UnregisterNodesResponse |
     QueryFirstResponse | QueryNextResponse
     ;
+
+export type ErrorCallback = (err?: Error) => void;
+export type Callback<T> = (err: Error|null, returnValue?: T) => void;

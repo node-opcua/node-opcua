@@ -2,7 +2,7 @@
 var opcua = require("node-opcua");
 var async = require("async");
 
-var client = new opcua.OPCUAClient();
+var client = opcua.OPCUAClient.create();
 var endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
 
 
@@ -73,7 +73,7 @@ async.series([
     // step 5: install a subscription and install a monitored item for 10 seconds
     function(callback) {
        
-       the_subscription=new opcua.ClientSubscription(the_session,{
+       the_subscription=opcua.ClientSubscription.create(the_session,{
            requestedPublishingInterval: 1000,
            requestedLifetimeCount: 10,
            requestedMaxKeepAliveCount: 2,
@@ -94,7 +94,7 @@ async.series([
        },10000);
        
        // install monitored item
-       var monitoredItem  = the_subscription.monitor({
+       var monitoredItem  = opcua.ClientMonitoredItem.create(the_subscription, {
            nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
            attributeId: opcua.AttributeIds.Value
        },

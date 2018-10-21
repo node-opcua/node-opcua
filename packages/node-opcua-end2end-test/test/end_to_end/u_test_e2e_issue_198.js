@@ -21,7 +21,7 @@ module.exports = function (test) {
             if (!server) { return done(); }
 
 
-            const client1 = new OPCUAClient();
+            const client1 = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             // Hijack internal method _nextSessionName to return null !

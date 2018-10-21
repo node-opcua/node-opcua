@@ -10,8 +10,9 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ErrorCallback } from "node-opcua-secure-channel";
 import { TransferSubscriptionsRequest, TransferSubscriptionsResponse } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import { ClientSession, ClientSessionImpl } from "./client_session";
-import { OPCUAClient } from "./opcua_client";
+import { ClientSessionImpl } from "./private/client_session_impl";
+import { OPCUAClientImpl } from "./private/opcua_client_impl";
+import { SubscriptionId } from "./client_session";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -126,7 +127,7 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
 }
 
 function repair_client_session_by_recreating_a_new_session(
-    client: OPCUAClient,
+    client: OPCUAClientImpl,
     session: ClientSessionImpl,
     callback: (err?: Error) => void) {
 
@@ -249,14 +250,14 @@ function repair_client_session_by_recreating_a_new_session(
                     }
                     debugLog("  new session subscriptionCount = ", newSession.getPublishEngine().subscriptionCount);
 
-                    async.map(subscriptionsToRecreate, (subscriptionId, next) => {
+                    async.map(subscriptionsToRecreate, (subscriptionId: SubscriptionId, next: ErrorCallback) => {
 
                             if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
                                 debugLog(chalk.red("          => CANNOT RECREATE SUBSCRIPTION  "), subscriptionId);
                                 return next();
                             }
                             const subscription = session.getPublishEngine().getSubscription(subscriptionId);
-                            assert(subscription.constructor.name === "ClientSubscription");
+                            assert(subscription.constructor.name === "ClientSubscriptionImpl");
                             debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
                             assert(subscription.session === newSession, "must have the session");
 
@@ -271,12 +272,10 @@ function repair_client_session_by_recreating_a_new_session(
                                 next();
                             });
 
+                        },(err) => {
+                            innerCallback(err!);
                         }
-                        ,
-                        innerCallback
-                    )
-                    ;
-
+                    );
                 });
         },
 
@@ -299,11 +298,13 @@ function repair_client_session_by_recreating_a_new_session(
             debugLog("listenerCountBefore =", listenerCountBefore, "listenerCountAfter = ", listenerCountAfter);
             innerCallback();
         }
-    ], callback);
+    ], (err)=> { 
+        callback(err!); 
+    });
 }
 
 export function repair_client_session(
-    client: OPCUAClient,
+    client: OPCUAClientImpl,
     session: ClientSessionImpl,
     callback: (err?: Error) => void
 ): void {
@@ -330,7 +331,7 @@ export function repair_client_session(
     });
 }
 
-export function repair_client_sessions(client: OPCUAClient, callback: (err?: Error) => void): void {
+export function repair_client_sessions(client: OPCUAClientImpl, callback: (err?: Error) => void): void {
 
     const self = client;
     debugLog(chalk.red.bgWhite(" Starting sessions reactivation"));
@@ -338,7 +339,7 @@ export function repair_client_sessions(client: OPCUAClient, callback: (err?: Err
     const sessions = self._sessions;
     async.map(sessions, (session: ClientSessionImpl, next: (err?: Error) => void) => {
         repair_client_session(client, session, next);
-    }, (err?: Error) => {
-        return callback(err);
+    }, (err) => {
+        return callback(err!);
     });
 }

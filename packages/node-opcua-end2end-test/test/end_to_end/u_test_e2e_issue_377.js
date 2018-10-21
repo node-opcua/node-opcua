@@ -36,7 +36,7 @@ module.exports = function (test) {
                 return done();
             }
 
-            const client = new opcua.OPCUAClient({});
+            const client = opcua.OPCUAClient.create({});
 
             perform_operation_on_client_session(client, test.endpointUrl, function (session, callback) {
 

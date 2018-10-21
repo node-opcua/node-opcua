@@ -14,14 +14,15 @@ module.exports = function (test) {
 
             const endpointUrl = test.endpointUrl;
 
-            const client = new opcua.OPCUAClient({});
+            const client = opcua.OPCUAClient.create({});
 
             const currentSessionCountNodeId = opcua.resolveNodeId(opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount);
             const cumulatedSessionCountNodeId = opcua.resolveNodeId((opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CumulatedSessionCount));
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
-                const currentSessionCountMonitoredItem = subscription.monitor(
+                const currentSessionCountMonitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
                     {nodeId: currentSessionCountNodeId, attributeId: opcua.AttributeIds.Value},
                     {
                         samplingInterval: 0, // reports immediately
@@ -29,7 +30,8 @@ module.exports = function (test) {
                         queueSize: 10
                     });
 
-                const cumulatedSessionCountMonitoredItem = subscription.monitor(
+                const cumulatedSessionCountMonitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
                     {nodeId: cumulatedSessionCountNodeId, attributeId: opcua.AttributeIds.Value},
                     {
                         samplingInterval: 0, // reports immediately
@@ -63,7 +65,7 @@ module.exports = function (test) {
 
                         let data1, data2;
                         function connect_and_create_session(callback) {
-                            const client = new OPCUAClient({});
+                            const client = OPCUAClient.create({});
                             client.connect(endpointUrl, function (err) {
                                 if (err) {
                                     return callback(err);

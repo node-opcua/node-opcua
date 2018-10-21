@@ -15,7 +15,7 @@ module.exports = function (test) {
             if (!server) {
                 return done();
             }
-            const client = new opcua.OPCUAClient({});
+            const client = opcua.OPCUAClient.create({});
             perform_operation_on_client_session(client, test.endpointUrl, function (session, callback) {
                 client.getEndpoints({},function(err,serverEndpoints){
                     //xx console.log(serverEndpoints[0].toString());

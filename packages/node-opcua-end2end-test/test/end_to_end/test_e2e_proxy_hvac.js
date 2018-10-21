@@ -45,7 +45,7 @@ describe("testing client Proxy", function () {
     });
 
     beforeEach(function (done) {
-        client = new OPCUAClient();
+        client = OPCUAClient.create();
         done();
     });
 

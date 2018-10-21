@@ -239,7 +239,7 @@ export interface ClientSecureChannelLayerOptions {
  * @param [options.securityMode=MessageSecurityMode.None]
  * @param [options.securityPolicy=SecurityPolicy.None]
  * @param [options.serverCertificate=null] the serverCertificate (required if securityMode!=None)
- * @param options.parent {OPCUAClientBase} parent
+ * @param options.parent {ClientBaseImpl} parent
  * @param [options.factory] an factory that provides a method createObjectId(id) for the message builder
  * @param [options.transportTimeout = ClientSecureChannelLayer.defaultTransportTimeout = 10 seconds] the transport timeout interval in ms
  * @param [options.connectionStrategy] {Object}

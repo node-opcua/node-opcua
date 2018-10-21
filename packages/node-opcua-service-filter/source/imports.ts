@@ -1,6 +1,7 @@
 export  {
 
     FilterOperator,
+
     AttributeOperand,
     ElementOperand,
     FilterOperand,
@@ -11,6 +12,18 @@ export  {
 
     ContentFilterElement,
     ContentFilter,
-    EventFilter
+    EventFilter,
+
+    AttributeOperandOptions,
+    ElementOperandOptions,
+    FilterOperandOptions,
+    LiteralOperandOptions,
+    SimpleAttributeOperandOptions,
+
+    MonitoringFilterOptions,
+
+    ContentFilterElementOptions,
+    ContentFilterOptions,
+    EventFilterOptions
 
 } from "node-opcua-types";

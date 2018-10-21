@@ -24,13 +24,13 @@ module.exports = function (test) {
                 return done();
             }
 
-            const client = new opcua.OPCUAClient();
+            const client = opcua.OPCUAClient.create();
 
             perform_operation_on_subscription(client,test.endpointUrl,function(session,subscription,callback) {
 
                redirectToFile("issue_355", function (callback) {
 
-                    const monitoredItem = subscription.monitor(
+                    const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
                       {nodeId: "ns=1;s=FanSpeed", attributeId: opcua.AttributeIds.Value},
                       {
                           samplingInterval: 10, // sampling twice as fast as variable refresh rate

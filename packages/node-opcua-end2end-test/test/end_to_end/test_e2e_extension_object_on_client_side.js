@@ -45,7 +45,7 @@ describe("testing extension object with client residing on a different process t
     const os = require("os");
     it("should read the MyStructureDataType definition", function (done) {
 
-        const client = new OPCUAClient({
+        const client = OPCUAClient.create({
             endpoint_must_exist: false
         });
         const endpointUrl = "opc.tcp://localhost:23232";

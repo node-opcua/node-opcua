@@ -12,7 +12,7 @@ module.exports = function (test) {
         it("should detect badly formed nodeId on the client level and raise an exception",function(done) {
 
 
-            const client = new OPCUAClient({});
+            const client = OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {

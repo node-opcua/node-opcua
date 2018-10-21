@@ -65,7 +65,7 @@ describe("testing monitoring Executable flags on methods", function () {
     });
 
     beforeEach(function (done) {
-        client = new OPCUAClient();
+        client = OPCUAClient.create();
         done();
     });
 

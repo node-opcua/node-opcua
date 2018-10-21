@@ -12,7 +12,7 @@ const perform_operation_on_client_session = require("../../test_helpers/perform_
 module.exports = function (test) {
 
     function doTest(nodeId,expectedDataType,done) {
-        const client = new OPCUAClient();
+        const client = OPCUAClient.create();
         const endpointUrl = test.endpointUrl;
 
         perform_operation_on_client_session(client, endpointUrl,function(session,inner_done){
@@ -50,7 +50,7 @@ module.exports = function (test) {
 
         it("GDT5- should fail  to find the DataType on a Object ( Server Object for instance)",function(done) {
             const nodeId = coerceNodeId("ns=0;i=2253"); // Server Object
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             perform_operation_on_client_session(client, endpointUrl,function(session,inner_done){

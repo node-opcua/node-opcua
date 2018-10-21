@@ -5,7 +5,7 @@ import * as _ from "underscore";
 import * as util from "util";
 
 import { assert } from "node-opcua-assert";
-import { BrowseDescriptionLike, ReadValueIdLike, ResponseCallback } from "node-opcua-client/dist";
+import { BrowseDescriptionLike, ReadValueIdOptions, ResponseCallback } from "node-opcua-client/dist";
 import { ReferenceTypeIds, VariableIds } from "node-opcua-constants";
 import {
     AttributeIds,
@@ -234,7 +234,7 @@ interface NodeCrawlerEvents {
 }
 
 export interface NodeCrawlerClientSession {
-    read(nodesToRead: ReadValueIdLike[], callback: ResponseCallback<DataValue[]>): void;
+    read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
 
     browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
 
@@ -332,7 +332,6 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         this.browseCounter = 0;
         this.transactionCounter = 0;
     }
-    
     public dispose() {
         assert(this.pendingReadTasks.length === 0);
         assert(this.pendingBrowseTasks.length === 0);

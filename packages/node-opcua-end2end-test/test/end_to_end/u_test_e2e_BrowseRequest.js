@@ -27,7 +27,7 @@ module.exports = function (test) {
 
             endpointUrl = test.endpointUrl;
 
-            client = new OPCUAClient();
+            client = OPCUAClient.create();
             client.connect(endpointUrl, function (err) {
                 if (err) {
                     done(err);

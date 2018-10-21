@@ -2,6 +2,7 @@
 /**
  * @module opcua.server
  */
+const chalk = require("chalk");
 
 const Subscription = require("./server_subscription").Subscription;
 const SubscriptionState = require("./server_subscription").SubscriptionState;
@@ -488,8 +489,13 @@ ServerSidePublishEngine.prototype.detach_subscription = function (subscription) 
  */
 ServerSidePublishEngine.prototype.shutdown = function () {
 
-
     const self = this;
+
+    if (self.subscriptionCount !== 0) {
+        debugLog(chalk.red("Shutting down pending subscription"));
+        self.subscriptions.map((subscription)=> subscription.shutdown() );
+    }
+
     assert(self.subscriptionCount === 0, "subscription shall be removed first before you can shutdown a publish engine");
 
     debugLog("ServerSidePublishEngine#shutdown");
@@ -501,7 +507,7 @@ ServerSidePublishEngine.prototype.shutdown = function () {
     self._publish_response_queue = [];
 
     // purge self._closed_subscriptions
-    self._closed_subscriptions.map(function(subscription){ subscription.dispose();});
+    self._closed_subscriptions.map((subscription) => subscription.dispose() );
     self._closed_subscriptions = [];
 
 };

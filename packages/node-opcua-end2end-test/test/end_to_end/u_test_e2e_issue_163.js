@@ -59,7 +59,7 @@ module.exports = function (test) {
             });
 
 
-            const client1 = new OPCUAClient();
+            const client1 = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             let the_session;
@@ -84,7 +84,7 @@ module.exports = function (test) {
 
                 function (callback) {
 
-                    const subscription = new ClientSubscription(the_session, {
+                    const subscription = ClientSubscription.create(the_session, {
                         requestedPublishingInterval: 150,
                         requestedLifetimeCount: 10 * 60 * 10,
                         requestedMaxKeepAliveCount: 10,
@@ -100,7 +100,7 @@ module.exports = function (test) {
                         //xx console.log("publishingInterval", subscription.publishingInterval);
                     });
 
-                    const monitoredItem = subscription.monitor(
+                    const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
                         {nodeId: the_Variable.nodeId, attributeId: AttributeIds.Value},
                         {
                             samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate

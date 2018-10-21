@@ -39,7 +39,7 @@ describe("Testing ChannelSecurityToken lifetime", function () {
         debugLog("endpointUrl", endpointUrl);
         opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
-        client = new OPCUAClient({
+        client = OPCUAClient.create({
             defaultSecureTokenLifetime: 100  // very short live time !
         });
         server.start(function () {

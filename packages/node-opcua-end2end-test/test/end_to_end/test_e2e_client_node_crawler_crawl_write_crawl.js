@@ -47,7 +47,7 @@ describe("NodeCrawler after write",function(){
     });
 
     beforeEach(function(done){
-        client = new OPCUAClient({
+        client = OPCUAClient.create({
             requestedSessionTimeout: 60*1000*4 // 4 minutes
         });
         done();

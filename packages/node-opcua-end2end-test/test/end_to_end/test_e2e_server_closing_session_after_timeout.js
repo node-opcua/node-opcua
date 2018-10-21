@@ -70,7 +70,7 @@ describe("testing server dropping session after timeout if no activity has been 
 
     it("should not be able to read a node if no session has been opened ", function (done) {
 
-        const client = new OPCUAClient(options);
+        const client = OPCUAClient.create(options);
 
         async.series([
             // given that client1 is connected, and have a session
@@ -95,7 +95,7 @@ describe("testing server dropping session after timeout if no activity has been 
 
     it("should denied service call with BadSessionClosed on a timed out session", function (done) {
 
-        const client = new OPCUAClient(options);
+        const client = OPCUAClient.create(options);
 
         let l_session = null;
         async.series([

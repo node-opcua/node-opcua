@@ -26,27 +26,30 @@ module.exports = function (test) {
         it("Should not crash when monitoring the same invalid nodeId for the second time ", function (done) {
 
             const nodeId = coerceNodeId("ns=4;s=TestVerzeichnis.TestKnotn"); // Server Object
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             function add_monitored_item(subscription, callback) {
-                const monitoredItem = subscription.monitor({
+
+                const monitoredItem = opcua.ClientMonitoredItem.create(subscription, {
                       nodeId: nodeId,
                       attributeId: opcua.AttributeIds.Value
                   },
                   {samplingInterval: 50, discardOldest: true, queueSize: 1},
-                  opcua.TimestampsToReturn.Both,
-                  function (err) {
-                      should.not.exist(err);
-                      console.log("err", err ? err.message :"<no error>");
-                      setTimeout(callback,1000);
-                  });
+                  opcua.TimestampsToReturn.Both);
+
+                monitoredItem.on("initialized",function() {
+                    callback(new Error("should not receive initialized event"));
+
+                });
+
                 monitoredItem.on("changed",function(dataValue){
                     // should not get here !
                     console.log("value = ",dataValue.toString());
                 });
                 monitoredItem.on("err",function(errMessage){
                     console.log("err = ",errMessage);
+                    callback();
                 });
             }
 

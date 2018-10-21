@@ -12,7 +12,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { ErrorCallback } from "node-opcua-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
-import { ClientSessionImpl } from "./client_session";
+import { ClientSessionImpl } from "./private/client_session_impl";
 
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 
@@ -23,13 +23,17 @@ const warningLog = debugLog;
 const emptyCallback = (err?: Error) => {
 };
 
-export class ClientSessionKeepAliveManager extends EventEmitter {
+export interface ClientSessionKeepAliveManagerEvents {
+    on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): ClientSessionKeepAliveManager;
+}
+export class ClientSessionKeepAliveManager extends EventEmitter implements ClientSessionKeepAliveManagerEvents {
 
     private session: ClientSessionImpl;
     private timerId?: NodeJS.Timer;
     private pingTimeout: number;
-    private lastKnownState?: any;
+    private lastKnownState?: ServerState;
     private checkInterval: number;
+
 
     constructor(session: ClientSessionImpl) {
         super();

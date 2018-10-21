@@ -223,7 +223,7 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
 
         }
     });
-    var subscription = new ClientSubscription(session, {
+    const subscription = ClientSubscription.create(session, {
         requestedPublishingInterval: 250,
         requestedLifetimeCount: 100,
         requestedMaxKeepAliveCount: 3,
@@ -232,7 +232,7 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
         priority: 6
     });
 
-    var the_error = null;
+    let the_error = null;
     subscription.on("started", function () {
         debugLog("xxx    starting monitoring ");
     });
@@ -252,7 +252,7 @@ function common_test(securityPolicy, securityMode, options, done) {
         global.gc(true);
     }
 
-    console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
+   //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
     opcua.coerceMessageSecurityMode(securityMode).should.not.eql(opcua.MessageSecurityMode.Invalid, "expecting supporting");
 
@@ -272,7 +272,7 @@ function common_test(securityPolicy, securityMode, options, done) {
     //xx console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
 
     let token_change = 0;
-    const client = new OPCUAClient(options);
+    const client = OPCUAClient.create(options);
 
     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -313,7 +313,7 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
         connectionStrategy: no_reconnect_connectivity_strategy
 
     });
-    const client = new OPCUAClient(options);
+    const client = OPCUAClient.create(options);
 
     client.on("backoff", function (number, delay) {
         debugLog(" backoff attempt#", number, " retry in ", delay);
@@ -357,7 +357,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
     };
 
     let token_change = 0;
-    const client = new OPCUAClient(options);
+    const client = OPCUAClient.create(options);
 
     const after_reconnection_spy = new sinon.spy();
     const start_reconnection_spy = new sinon.spy();
@@ -498,7 +498,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = new OPCUAClient(options);
+        client = OPCUAClient.create(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             inner_done();
@@ -521,7 +521,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = new OPCUAClient(options);
+        client = OPCUAClient.create(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             inner_done();
         }, done);
@@ -544,7 +544,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = new OPCUAClient(options);
+        client = OPCUAClient.create(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             inner_done();
         }, done);
@@ -566,7 +566,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = new OPCUAClient(options);
+        client = OPCUAClient.create(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             inner_done();
         }, done);
@@ -588,7 +588,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = new OPCUAClient(options);
+        client = OPCUAClient.create(options);
 
         const old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
         ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
@@ -624,7 +624,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         };
 
         let token_change = 0;
-        client = new OPCUAClient(options);
+        client = OPCUAClient.create(options);
 
         client.on("lifetime_75", function (token) {
             //xx  console.log("received lifetime_75", JSON.stringify(token));
@@ -706,7 +706,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         };
 
         let token_change = 0;
-        const client = new OPCUAClient(options);
+        const client = OPCUAClient.create(options);
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
             client.once("close", function (err) {
                 token_change.should.be.eql(0);

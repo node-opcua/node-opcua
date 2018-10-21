@@ -28,7 +28,7 @@ const perform_operation_on_monitoredItem = require("../../test_helpers/perform_o
 
 const Subscription = require("node-opcua-server/src/server_subscription").Subscription;
 
-const doDebug=true;
+const doDebug = true;
 const f = require("../../test_helpers/display_function_name").f.bind(null, true);
 
 function trace_console_log() {
@@ -52,7 +52,7 @@ module.exports = function (test) {
         let server, client, endpointUrl;
 
         beforeEach(function (done) {
-            client = new OPCUAClient({});
+            client = OPCUAClient.create({});
             server = test.server;
             endpointUrl = test.endpointUrl;
             done();
@@ -69,7 +69,7 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 6000,
                     requestedMaxKeepAliveCount: 100,
@@ -95,7 +95,7 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 100, // ms
                     requestedLifetimeCount: 6000,
                     requestedMaxKeepAliveCount: 100,
@@ -118,7 +118,7 @@ module.exports = function (test) {
 
                 let nb_keep_alive_received = 0;
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 6000,
                     requestedMaxKeepAliveCount: 100,
@@ -153,7 +153,7 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 150,
                     requestedLifetimeCount: 6000,
                     requestedMaxKeepAliveCount: 100,
@@ -166,14 +166,16 @@ module.exports = function (test) {
 
                 });
 
-                const monitoredItem = subscription.monitor({
-                    nodeId: resolveNodeId("ns=0;i=2258"),
-                    attributeId: AttributeIds.Value
-                }, {
-                    samplingInterval: 50,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    }, {
+                        samplingInterval: 50,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItem.on("initialized", function () {
@@ -189,7 +191,7 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, callback) {
 
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 50,
                     requestedLifetimeCount: 6000,
                     requestedMaxKeepAliveCount: 100,
@@ -200,14 +202,16 @@ module.exports = function (test) {
 
 
                 let currentTime_changes = 0;
-                const monitoredItemCurrentTime = subscription.monitor({
-                    nodeId: resolveNodeId("ns=0;i=2258"),
-                    attributeId: AttributeIds.Value
-                }, {
-                    samplingInterval: 20,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                const monitoredItemCurrentTime = opcua.ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    }, {
+                        samplingInterval: 20,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItemCurrentTime.on("changed", function (dataValue) {
@@ -217,14 +221,17 @@ module.exports = function (test) {
                 });
 
                 const pumpSpeedId = "ns=1;b=0102030405060708090a0b0c0d0e0f10";
-                const monitoredItemPumpSpeed = subscription.monitor({
-                    nodeId: resolveNodeId(pumpSpeedId),
-                    attributeId: AttributeIds.Value
-                }, {
-                    samplingInterval: 20,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                const monitoredItemPumpSpeed = opcua.ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId(pumpSpeedId),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 20,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
                 let pumpSpeed_changes = 0;
                 monitoredItemPumpSpeed.on("changed", function (dataValue) {
@@ -271,7 +278,7 @@ module.exports = function (test) {
                 // create subscription
                 function (callback) {
 
-                    const subscription = new ClientSubscription(the_session, {
+                    const subscription = ClientSubscription.create(the_session, {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 6000,
                         requestedMaxKeepAliveCount: 100,
@@ -281,16 +288,16 @@ module.exports = function (test) {
                     });
                     subscription.on("started", function () {
 
-                        const monitoredItem = subscription.monitor({
-                            nodeId: resolveNodeId("ns=0;i=2258"),
-                            attributeId: 13
-                        }, {
-                            samplingInterval: 100,
-                            discardOldest: true,
-                            queueSize: 1
-                        });
-
-                        callback();
+                        const monitoredItem = opcua.ClientMonitoredItem.create(
+                            subscription, {
+                                nodeId: resolveNodeId("ns=0;i=2258"),
+                                attributeId: 13
+                            }, {
+                                samplingInterval: 100,
+                                discardOldest: true,
+                                queueSize: 1
+                            });
+                        monitoredItem.on("initialized", callback);
 
                     });
 
@@ -324,7 +331,7 @@ module.exports = function (test) {
             server = test.server;
             //xx server.restart(function() {
 
-            client = new OPCUAClient();
+            client = OPCUAClient.create();
             endpointUrl = test.endpointUrl;
             done();
             //xx });
@@ -565,14 +572,15 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                const monitoredItem = subscription.monitor({
-                    nodeId: resolveNodeId("ns=0;i=2258"),
-                    attributeId: AttributeIds.Value
-                }, {
-                    samplingInterval: 10,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription, {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    }, {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
                 // subscription.on("item_added",function(monitoredItem){
                 monitoredItem.on("initialized", function () {
@@ -598,7 +606,7 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItem = subscription.monitor(itemToMonitor, parameters);
+                const monitoredItem = opcua.ClientMonitoredItem.create(subscription, itemToMonitor, parameters);
 
                 monitoredItem.on("err", function (statusMessage) {
                     console.log(" ERR event received");
@@ -620,14 +628,15 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                const monitoredItem = subscription.monitor({
-                    nodeId: resolveNodeId("ns=0;i=2258"),
-                    attributeId: AttributeIds.INVALID
-                }, {
-                    samplingInterval: 10,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription, {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.INVALID
+                    }, {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
                 monitoredItem.on("err", function (statusMessage) {
 
@@ -651,15 +660,16 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                const monitoredItem = subscription.monitor({
-                    nodeId: resolveNodeId("ns=0;i=2258"),
-                    attributeId: AttributeIds.Value,
-                    indexRange: "5:3" // << INTENTIONAL : Invalid Range
-                }, {
-                    samplingInterval: 10,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription, {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value,
+                        indexRange: "5:3" // << INTENTIONAL : Invalid Range
+                    }, {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
                 monitoredItem.on("err", function (statusMessage) {
                     statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
@@ -686,15 +696,17 @@ module.exports = function (test) {
 
                 const nodeId = "ns=2;s=Scalar_Static_Array_Boolean";
 
-                const monitoredItem = subscription.monitor({
-                    nodeId: nodeId,
-                    attributeId: AttributeIds.Value,
-                    indexRange: "0:1,0:1" // << INTENTIONAL : 2D RANGE
-                }, {
-                    samplingInterval: 10,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.Value,
+                        indexRange: "0:1,0:1" // << INTENTIONAL : 2D RANGE
+                    }, {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
                 monitoredItem.on("err", function (statusMessage) {
                     //xx console.log("Monitored Item error",statusMessage);
@@ -787,7 +799,8 @@ module.exports = function (test) {
                 }
 
                 function create_monitored_item(callback) {
-                    const monitoredItem = subscription.monitor({
+                    const monitoredItem = opcua.ClientMonitoredItem.create(
+                        subscription, {
                             nodeId: nodeId,
                             attributeId: AttributeIds.Value,
                             indexRange: "2:9"
@@ -876,7 +889,9 @@ module.exports = function (test) {
 
                 function create_monitored_item(callback) {
 
-                    const monitoredItem = subscription.monitor({
+                    const monitoredItem = opcua.ClientMonitoredItem.create(
+                        subscription,
+                        {
                             nodeId: nodeId,
                             attributeId: AttributeIds.Value,
                             indexRange: "2:4"
@@ -984,7 +999,8 @@ module.exports = function (test) {
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
                 // create a disabled monitored Item
-                const monitoredItem = subscription.monitor(
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
                     /* itemToMonitor:*/
                     {
                         nodeId: nodeId,
@@ -1144,14 +1160,16 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_callback) {
 
-                const monitoredItem = subscription.monitor({
-                    nodeId: resolveNodeId("ns=0;i=2258"),
-                    attributeId: AttributeIds.Value
-                }, {
-                    samplingInterval: 100,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    }, {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
                 monitoredItem.on("initialized", function () {
                     //xx console.log("Initialized");
@@ -1177,7 +1195,9 @@ module.exports = function (test) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                const monitoredItem = subscription.monitor({
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
+                    {
                         nodeId: resolveNodeId("ns=0;i=2258"),
                         attributeId: AttributeIds.Value
                     }, {
@@ -1209,11 +1229,13 @@ module.exports = function (test) {
             }, done);
         });
 
-        it("AZA2-S A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        it("AZA2-SA A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
 
-                const monitoredItem = subscription.monitor({
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
+                    {
                         nodeId: resolveNodeId("ns=0;i=2258"),
                         attributeId: 13
                     }, {
@@ -1221,17 +1243,41 @@ module.exports = function (test) {
                         discardOldest: true,
                         queueSize: 1
                     },
+                    TimestampsToReturn.Invalid // <= A invalid  TimestampsToReturn
 
+                );
+                monitoredItem.on("initialized", function () {
+                    callback(new Error("Should not get there"));
+                });
+                monitoredItem.on("err", function () {
+                    callback();
+                });
 
+            }, done);
+        });
+
+        it("AZA2-SB A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+                subscription.monitor(
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: 13
+                    }, {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
                     TimestampsToReturn.Invalid, // <= A invalid  TimestampsToReturn
-
-                    function (err) {
-
-                        should(err).be.instanceOf(Error);
-                        callback(!err);
+                    function (err, monitoredItem) {
+                        if (!err) {
+                            callback(new Error("Should not get there"));
+                        } else {
+                            callback();
+                        }
                     }
                 );
-
 
             }, done);
         });
@@ -1284,7 +1330,7 @@ module.exports = function (test) {
 
 
                         const namespaceIndex = 2;
-                        const nodeId = "s="+"Scalar_Static_Int16";
+                        const nodeId = "s=" + "Scalar_Static_Int16";
 
                         const node = server.engine.addressSpace.findNode(nodeId);
                         const parameters = {
@@ -1405,7 +1451,7 @@ module.exports = function (test) {
         });
 
         beforeEach(function (done) {
-            client = new OPCUAClient({
+            client = OPCUAClient.create({
                 keepSessionAlive: true,
                 requestedSessionTimeout: 240 * 1000, // 4 min ! make sure that session doesn't drop during test
             });
@@ -1425,7 +1471,7 @@ module.exports = function (test) {
          */
         function my_CreateSubscription(session, subscriptionParameters, callback) {
 
-            const subscription = new ClientSubscription(session, subscriptionParameters);
+            const subscription = ClientSubscription.create(session, subscriptionParameters);
 
             subscription.once("started", function () {
                 callback(null, subscription);
@@ -1514,9 +1560,9 @@ module.exports = function (test) {
 
                         const subscriptionParameters = {
                             requestedPublishingInterval: 100, // short publishing interval required here
-                            requestedLifetimeCount:       30, // short lifetimeCount needed here !
-                            requestedMaxKeepAliveCount:   10,
-                            maxNotificationsPerPublish:   30,
+                            requestedLifetimeCount: 30, // short lifetimeCount needed here !
+                            requestedMaxKeepAliveCount: 10,
+                            maxNotificationsPerPublish: 30,
                             publishingEnabled: true,
                             priority: 6
                         };
@@ -1589,7 +1635,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 6000,
                     requestedMaxKeepAliveCount: 100,
@@ -1651,7 +1697,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const parameters= {
+                const parameters = {
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 6000,
                     requestedMaxKeepAliveCount: 100,
@@ -1660,7 +1706,7 @@ module.exports = function (test) {
                     priority: 6
                 };
 
-                const subscription = new ClientSubscription(session, parameters);
+                const subscription = ClientSubscription.create(session, parameters);
 
 
                 subscription.on("terminated", function () {
@@ -1675,7 +1721,7 @@ module.exports = function (test) {
                     discardOldest: true,
                     queueSize: 1
                 };
-                const monitoredItem = subscription.monitor(itemToMonitor, monitoringParameters);
+                const monitoredItem = opcua.ClientMonitoredItem.create(subscription, itemToMonitor, monitoringParameters);
 
                 let change_count = 0;
                 monitoredItem.on("changed", function (dataValue) {
@@ -1740,7 +1786,7 @@ module.exports = function (test) {
         it("AZA3-G A client should be able to create a subscription that have  publishingEnable=false", function (done) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 6000,
                     requestedMaxKeepAliveCount: 100,
@@ -1752,14 +1798,16 @@ module.exports = function (test) {
 
                 subscription.on("terminated", function () {
                 });
-                const monitoredItem = subscription.monitor({
-                    nodeId: resolveNodeId("ns=0;i=2258"),
-                    attributeId: AttributeIds.Value
-                }, {
-                    samplingInterval: 10,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    }, {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
 
                 let change_count = 0;
@@ -1804,7 +1852,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 6000,
                     requestedMaxKeepAliveCount: 100,
@@ -1833,7 +1881,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 200,
                     requestedLifetimeCount: 60000,
                     requestedMaxKeepAliveCount: 1000,
@@ -2062,7 +2110,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 10,
                     requestedLifetimeCount: 60000,
                     requestedMaxKeepAliveCount: 1000,
@@ -2081,7 +2129,8 @@ module.exports = function (test) {
                     attributeId: AttributeIds.DisplayName
                 };
 
-                const monitoredItem = subscription.monitor(readValue, {
+                const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
+                    readValue, {
                         samplingInterval: 10,
                         discardOldest: true,
                         queueSize: 1
@@ -2160,10 +2209,12 @@ module.exports = function (test) {
 
                         session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
 
-                            if(err) { return callback(err); }
+                            if (err) {
+                                return callback(err);
+                            }
 
                             if (doDebug) {
-                                console.log("response",response.toString());
+                                console.log("response", response.toString());
                             }
 
                             subscriptionId = response.subscriptionId;
@@ -2372,7 +2423,7 @@ module.exports = function (test) {
 
             createSubscriptionRequest = new opcua.CreateSubscriptionRequest(createSubscriptionRequest);
 
-            _.isFunction(callback).should.eql(true,"expecting a function");
+            _.isFunction(callback).should.eql(true, "expecting a function");
 
             session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
                 response.subscriptionId.should.be.greaterThan(0);
@@ -2384,7 +2435,7 @@ module.exports = function (test) {
         const publishingInterval = 40;
 
         function createSubscription(session, callback) {
-            _.isFunction(callback).should.eql(true,"expecting a function");
+            _.isFunction(callback).should.eql(true, "expecting a function");
             const createSubscriptionRequest = {
                 requestedPublishingInterval: publishingInterval,
                 requestedLifetimeCount: 60000,
@@ -2996,7 +3047,7 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 10,
                     requestedLifetimeCount: 60000,
                     requestedMaxKeepAliveCount: 1000,
@@ -3134,14 +3185,15 @@ module.exports = function (test) {
 
             function step1(session, subscription, callback) {
 
-                monitoredItem = subscription.monitor({
-                    nodeId: resolveNodeId("ns=0;i=2254"),
-                    attributeId: AttributeIds.Value
-                }, {
-                    samplingInterval: 100,
-                    discardOldest: true,
-                    queueSize: 1
-                });
+                monitoredItem = opcua.ClientMonitoredItem.create(subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2254"),
+                        attributeId: AttributeIds.Value
+                    }, {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 1
+                    });
 
                 monitoredItem.on("initialized", function () {
                     callback();
@@ -3181,7 +3233,7 @@ module.exports = function (test) {
                     async.series([
 
                         function (callback) {
-                            subscription = new ClientSubscription(session, {
+                            subscription = ClientSubscription.create(session, {
                                 requestedPublishingInterval: publishingInterval,
                                 requestedLifetimeCount: 60,
                                 requestedMaxKeepAliveCount: 10, // 10 requested here !
@@ -3290,7 +3342,7 @@ module.exports = function (test) {
 
                 VALID_RETRANSMIT_SEQNUM = 0;
 
-                client = new OPCUAClient();
+                client = OPCUAClient.create();
                 fanSpeed = server.engine.addressSpace.findNode("ns=1;s=FanSpeed");
                 should.exist(fanSpeed);
                 //xxx console.log(fanSpeed.toString());

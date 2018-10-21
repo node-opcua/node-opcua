@@ -8,7 +8,8 @@
   "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
   "test": "mocha test/*.js",
   "build": "tsc",
-  "lint": "tslint source/**/*.ts"
+  "lint": "tslint source/**/*.ts",
+  "doc": "typedoc --options typedoc.js"
  },
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",

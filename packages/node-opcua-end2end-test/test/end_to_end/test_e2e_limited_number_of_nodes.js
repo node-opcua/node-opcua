@@ -63,7 +63,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
                 }
             }
         });
-        client = new OPCUAClient();
+        client = OPCUAClient.create();
         server.start(function () {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             done();

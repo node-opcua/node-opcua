@@ -47,7 +47,7 @@ describe("Testing a simple server from Server side", function () {
             const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
             const options = {};
-            const client = new OPCUAClient(options);
+            const client = OPCUAClient.create(options);
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 server.getChannels().length.should.equal(1);
                 //xx console.log("xxxxx nb Channels ",server.getChannels().length);

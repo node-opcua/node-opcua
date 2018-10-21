@@ -1,10 +1,11 @@
+// to lauch in the doumentation folder
 import { Application } from "typedoc";
 
 // @ts-ignore
 const app = new Application({
     experimentalDecorators: true,
     logger: "console",
-    mode: "modules",
+    mode:   "modules",
     module: "commonjs",
     target: "es2015",
 });

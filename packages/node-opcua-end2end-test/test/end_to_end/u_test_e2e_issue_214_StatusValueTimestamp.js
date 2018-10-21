@@ -39,7 +39,7 @@ module.exports = function(test) {
 
             let nbChanges = 0;
 
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             perform_operation_on_subscription(
@@ -82,14 +82,11 @@ module.exports = function(test) {
                         filter: filter
                     };
                     // install monitored item
-                    const monitoredItem = the_subscription.monitor(
+                    const monitoredItem = opcua.ClientMonitoredItem.create(
+                        the_subscription,
                         itemToMonitor,
                         options,
-                        opcua.TimestampsToReturn.Both,
-                        function(err) {
-                            debugLog(" ERR =", err);
-                        }
-                    );
+                        opcua.TimestampsToReturn.Both);
 
                     monitoredItem.on("initialized", function() {
                         debugLog("monitoredItem initialized");

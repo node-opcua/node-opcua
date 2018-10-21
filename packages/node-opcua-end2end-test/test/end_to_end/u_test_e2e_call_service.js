@@ -30,7 +30,7 @@ module.exports = function (test) {
         let client, endpointUrl;
 
         beforeEach(function (done) {
-            client = new OPCUAClient({
+            client = OPCUAClient.create({
                 requestedSessionTimeout: 600 *1000 // use long session time out
             });
             endpointUrl = test.endpointUrl;
@@ -506,7 +506,7 @@ module.exports = function (test) {
 
                     const subscriptionId = subscription.subscriptionId;
 
-                    const monitoredItem = subscription.monitor(
+                    const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
                         {nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value},
                         {samplingInterval: 10, discardOldest: true, queueSize: 1});
 

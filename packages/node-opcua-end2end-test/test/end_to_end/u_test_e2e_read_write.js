@@ -19,7 +19,7 @@ module.exports = function (test) {
         let client, endpointUrl;
 
         beforeEach(function (done) {
-            client = new OPCUAClient();
+            client = OPCUAClient.create();
             endpointUrl = test.endpointUrl;
             done();
         });

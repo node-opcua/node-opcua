@@ -32,7 +32,7 @@ module.exports = function (test) {
                             requestedLifetimeCount:      60,
                             requestedMaxKeepAliveCount:  10
                         };
-                        the_subscription = new opcua.ClientSubscription(the_session, parameters);
+                        the_subscription = opcua.ClientSubscription.create(the_session, parameters);
                         the_subscription.on("started",function() {
                             callback();
                         }).on("internal_error", function (err) {
@@ -48,7 +48,7 @@ module.exports = function (test) {
                     function (callback) {
 
                         const nodeIdToMonitor = "ns=0;i=2257"; // Server_ServerStatus_StartTime
-                        the_monitoredItem = the_subscription.monitor(
+                        the_monitoredItem = opcua.ClientMonitoredItem.create(the_subscription,
                             {
                                 nodeId: nodeIdToMonitor,
                                 attributeId:  opcua.AttributeIds.Value
@@ -57,9 +57,11 @@ module.exports = function (test) {
                                 samplingInterval: 1000,
                                 discardOldest: true,
                                 queueSize: 100
-                            },opcua.TimestampsToReturn.Both,function(err) {
-                                callback(err);
-                            });
+                            },opcua.TimestampsToReturn.Both);
+
+                        the_monitoredItem.on("initialized",() => {
+                            callback();
+                        });
                     }
                 ],done);
             }
@@ -76,7 +78,7 @@ module.exports = function (test) {
 
             if (!server) { return done(); }
 
-            const client1 = new OPCUAClient({
+            const client1 = OPCUAClient.create({
                 requestedSessionTimeout: 10000,
                 keepSessionAlive: false
             });
@@ -144,7 +146,7 @@ module.exports = function (test) {
 
             if (!server) { return done(); }
 
-            const client1 = new OPCUAClient({
+            const client1 = OPCUAClient.create({
                 requestedSessionTimeout: 2500, // very short session timeout ....
                 keepSessionAlive: false
             });
@@ -179,7 +181,7 @@ module.exports = function (test) {
                         requestedLifetimeCount:      100000,  // very long subscription lifetime
                         requestedMaxKeepAliveCount:  1000
                     };
-                    the_subscription = new opcua.ClientSubscription(the_session, parameters);
+                    the_subscription = opcua.ClientSubscription.create(the_session, parameters);
                     the_subscription.on("started",function() {
                         subscriptionId =the_subscription.subscriptionId;
                         callback();
@@ -196,7 +198,7 @@ module.exports = function (test) {
                 function (callback) {
 
                     const nodeIdToMonitor = "ns=0;i=2257"; // Server_ServerStatus_StartTime
-                    the_monitoredItem = the_subscription.monitor(
+                    the_monitoredItem = opcua.ClientMonitoredItem.create(the_subscription,
                         {
                             nodeId: nodeIdToMonitor,
                             attributeId:  opcua.AttributeIds.Value
@@ -205,9 +207,10 @@ module.exports = function (test) {
                             samplingInterval: 1000,
                             discardOldest: true,
                             queueSize: 100
-                        },opcua.TimestampsToReturn.Both,function(err) {
-                            callback(err);
-                        });
+                        },opcua.TimestampsToReturn.Both);
+                    the_monitoredItem.on("initialized", () => {
+                            callback();
+                    });
                 },
 
                 // now wait for the session to expire
@@ -260,11 +263,7 @@ module.exports = function (test) {
                     callback();
                 }
 
-
             ], done);
-
         });
-
     });
-
 };

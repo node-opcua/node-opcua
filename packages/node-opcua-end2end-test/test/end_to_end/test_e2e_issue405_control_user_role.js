@@ -113,7 +113,7 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("Operator user should be able to read but not to write V1 node value", function (done) {
 
-        const client = new OPCUAClient({});
+        const client = OPCUAClient.create({});
 
         function read(session, callback) {
             const nodeToRead = {

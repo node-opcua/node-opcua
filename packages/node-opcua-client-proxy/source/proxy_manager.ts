@@ -4,8 +4,7 @@ import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
 import {
-    AttributeIds,
-    ClientSessionImpl,
+    AttributeIds, ClientMonitoredItemBase,
     ClientSubscription, coerceAccessLevelFlag,
     coerceNodeId, NodeClass,
     NodeId,
@@ -18,10 +17,11 @@ import { StatusCodes } from "node-opcua-status-code";
 
 import { ErrorCallback } from "./common";
 import { readUAStructure } from "./object_explorer";
+import { makeRefId } from "./proxy";
 import { ProxyBaseNode } from "./proxy_base_node";
 import { ProxyObject } from "./proxy_object";
 import { UAStateMachineType } from "./state_machine_proxy";
-import { makeRefId } from "./proxy";
+import { ClientSessionImpl } from "node-opcua-client/dist/private/client_session_impl";
 
 function getObject(
     proxyManager: UAProxyManager,
@@ -145,7 +145,7 @@ function getObject(
         }
 
         //
-    ], (err?: Error) => {
+    ], (err) => {
 
         // istanbul ignore next
         if (err) {
@@ -266,17 +266,21 @@ export class UAProxyManager {
         };
         const requestedParameters = TimestampsToReturn.Both;
 
-        const monitoredItem = this.subscription.monitor(
-            itemToMonitor, monitoringParameters, requestedParameters, (err?: Error | null) => {
+        this.subscription.monitor(
+            itemToMonitor, monitoringParameters, requestedParameters,
+
+            (err: Error | null, monitoredItem?: ClientMonitoredItemBase) => {
+
+                Object.defineProperty(proxyObject, "__monitoredItem", {value: monitoredItem, enumerable: false});
+
+                proxyObject.__monitoredItem.on("changed", (dataValue: DataValue) => {
+                    proxyObject.dataValue = dataValue;
+                    proxyObject.emit("value_changed", dataValue);
+                });
                 callback(err!);
             });
 
-        Object.defineProperty(proxyObject, "__monitoredItem", {value: monitoredItem, enumerable: false});
 
-        proxyObject.__monitoredItem.on("changed", (dataValue: DataValue) => {
-            proxyObject.dataValue = dataValue;
-            proxyObject.emit("value_changed", dataValue);
-        });
 
     }
 
@@ -306,17 +310,21 @@ export class UAProxyManager {
         };
         const requestedParameters = TimestampsToReturn.Neither;
 
-        const monitoredItem = this.subscription.monitor(
-            itemToMonitor, monitoringParameters, requestedParameters, (err?: Error | null) => {
+        this.subscription.monitor(
+            itemToMonitor, monitoringParameters, requestedParameters,
+            (err: Error | null, monitoredItem?: ClientMonitoredItemBase) => {
+
+                Object.defineProperty(
+                    proxyObject,
+                    "__monitoredItem_execution_flag",
+                    {value: monitoredItem, enumerable: false});
+
+                proxyObject.__monitoredItem_execution_flag.on("changed", (dataValue: DataValue) => {
+                    proxyObject.executableFlag = dataValue.value.value;
+                });
+
                 callback(err!);
             });
-
-        Object.defineProperty(proxyObject, "__monitoredItem_execution_flag", {value: monitoredItem, enumerable: false});
-
-        proxyObject.__monitoredItem_execution_flag.on("changed", (dataValue: DataValue) => {
-            proxyObject.executableFlag = dataValue.value.value;
-        });
-
     }
 
     public getStateMachineType(

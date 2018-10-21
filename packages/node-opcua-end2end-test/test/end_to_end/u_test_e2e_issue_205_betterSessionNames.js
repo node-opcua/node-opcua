@@ -18,7 +18,7 @@ module.exports = function (test) {
 
         it("Default client sessionName ",function(done) {
 
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             async.series([
@@ -40,7 +40,7 @@ module.exports = function (test) {
 
         it("should be possible to set the clientName to get more expressive  sessionName ",function(done) {
 
-            const client = new OPCUAClient({ clientName: "ABCDEF-"});
+            const client = OPCUAClient.create({ clientName: "ABCDEF-"});
 
             const endpointUrl = test.endpointUrl;
             async.series([

@@ -19,7 +19,7 @@ module.exports = function (test) {
     describe("end-to-end testing of a write operation between a client and a server (session#write)", function () {
 
         beforeEach(function (done) {
-            client = new OPCUAClient();
+            client = OPCUAClient.create();
             done();
         });
         afterEach(function (done) {

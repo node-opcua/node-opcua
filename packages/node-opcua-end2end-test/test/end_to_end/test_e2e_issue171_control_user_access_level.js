@@ -107,7 +107,7 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     it("Anonymous user should not be able to read or to write V1 node value", function (done) {
 
-        const client = new OPCUAClient();
+        const client = OPCUAClient.create();
 
         function read(session, callback) {
             const nodeToRead = {

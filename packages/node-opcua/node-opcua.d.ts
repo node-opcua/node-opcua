@@ -20,19 +20,18 @@ import {
     ClientSession,
     ClientSubscription,
     MonitoringParameters,
-    OPCUAClient,
-    OPCUAClientBase,
     OPCUAClientBaseOptions,
     OPCUAClientOptions
 } from "node-opcua-client";
 
 export {
     ClientMonitoredItem,
+    ClientMonitoredItemGroup,
     ClientSession,
     ClientSubscription,
     MonitoringParameters,
     OPCUAClient,
-    OPCUAClientBase,
+    ClientBase,
     OPCUAClientBaseOptions,
     OPCUAClientOptions,
 }from "node-opcua-client";
@@ -61,8 +60,8 @@ import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-
 export { UInt32 } from "node-opcua-basic-types";
 import { UInt32 } from "node-opcua-basic-types";
 
-export { ReadValueId, ReadValueIdLike } from "node-opcua-service-read";
-import { ReadValueId, ReadValueIdLike } from "node-opcua-service-read";
+export { ReadValueId, ReadValueIdOptions } from "node-opcua-service-read";
+import { ReadValueId, ReadValueIdOptions } from "node-opcua-service-read";
 
 export {
     BrowseResponse,
@@ -79,35 +78,9 @@ import {
 import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
 
 // ---------------------------------------------------------------------------------------------------------------------
-
-export declare interface UAProxyBase {
-    nodeId: NodeId;
-    browseName: QualifiedName;
-    description: LocalizedText;
-    nodeClass: NodeClass;
-    typeDefinition: string | null;
-
-    on(event: string, eventHandler: () => void): UAProxyBase;
-}
-
-export declare interface UAProxyVariable extends UAProxyBase {
-    dataValue: DataValue;
-    userAccessLevel: any;
-    accessLevel: any;
-}
-
-export declare class UAProxyManager {
-    constructor(session: ClientSession);
-
-    public start(callback: ErrorCallback): void;
-    public start(): Promise<void>;
-
-    public stop(callback: ErrorCallback): void;
-    public stop(): Promise<void>;
-
-    public getObject(nodeId: NodeId, callback: (object: any) => void): void;
-    public getObject(nodeId: NodeId): Promise<UAProxyBase>;
-}
+export {
+    UAProxyBase, UAProxyVariable, UAProxyManager
+} from "node-opcua-client-proxy";
 
 export interface UserIdentityInfo {
     userName: string;
@@ -213,7 +186,7 @@ export declare class UAVariable extends BaseNode {
 export declare class UAAnalogItem extends UAVariable {
 }
 
-export { DiagnosticInfo } from "node-opcua-common";
+export { DiagnosticInfo } from "node-opcua-data-model";
 
 export declare class WriteValue {
     public nodeId: NodeId;

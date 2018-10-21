@@ -75,7 +75,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         connectionOption.securityPolicy = connectionOption.securityPolicy || opcua.SecurityPolicy.None;
         let the_session;
 
-        client = new OPCUAClient(connectionOption);
+        client = OPCUAClient.create(connectionOption);
 
         async.series([
 

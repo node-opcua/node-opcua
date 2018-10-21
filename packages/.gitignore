@@ -1,0 +1,6 @@
+*/source/**/*.js
+*/source/**/*.js.map
+*/source/**/*.d.ts
+*.d.ts
+*.js.map
+

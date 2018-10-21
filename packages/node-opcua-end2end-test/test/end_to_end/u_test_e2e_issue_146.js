@@ -22,7 +22,7 @@ module.exports = function (test) {
 
         it("should reopen a Anonymous Session with UserName password ",function(done) {
 
-            const client1 = new OPCUAClient();
+            const client1 = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             let the_session;

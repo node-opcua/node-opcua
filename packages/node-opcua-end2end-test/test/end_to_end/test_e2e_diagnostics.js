@@ -30,7 +30,7 @@ describe("Testing Server and Client diagnostic facilities", function () {
     });
 
     beforeEach(function (done) {
-        client = new OPCUAClient({});
+        client = OPCUAClient.create({});
         done();
     });
 

@@ -83,7 +83,7 @@ describe("testing Server resilience to DDOS attacks", function () {
 
     it("ZAA1 should be possible to create many sessions per connection", function (done) {
 
-        const client = new OPCUAClient({
+        const client = OPCUAClient.create({
             connectionStrategy: fail_fast_connectionStrategy
         });
 
@@ -204,7 +204,7 @@ describe("testing Server resilience to DDOS attacks", function () {
     function createClientAndSession(data, _inner_callback) {
 
 
-        const client = new OPCUAClient({
+        const client = OPCUAClient.create({
             connectionStrategy: fail_fast_connectionStrategy
         });
 

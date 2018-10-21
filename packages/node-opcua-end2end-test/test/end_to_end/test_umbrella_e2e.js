@@ -104,7 +104,7 @@ describe("testing Client - Umbrella ", function () {
     function dumpStatistics(endpointUrl, done) {
         const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-        const client = new OPCUAClient();
+        const client = OPCUAClient.create();
         var endpointUrl = test.endpointUrl;
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {

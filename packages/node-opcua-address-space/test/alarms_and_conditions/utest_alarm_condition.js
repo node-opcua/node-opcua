@@ -19,6 +19,7 @@ const Variant = require("node-opcua-variant").Variant;
 
 const ConditionSnapshot =  require("../..").ConditionSnapshot;
 const SessionContext = require("../..").SessionContext;
+if(!SessionContext) throw new Error("where is SessionContext");
 
 const doDebug = true;
 

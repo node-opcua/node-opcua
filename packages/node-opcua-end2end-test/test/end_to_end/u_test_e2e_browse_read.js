@@ -41,7 +41,7 @@ module.exports = function (test) {
         beforeEach(function (done) {
              endpointUrl = test.endpointUrl;
             temperatureVariableId = test.server.temperatureVariableId;
-            client = new opcua.OPCUAClient(options);
+            client = opcua.OPCUAClient.create(options);
 
             client.connect(endpointUrl, function (err) {
                 if (err) {

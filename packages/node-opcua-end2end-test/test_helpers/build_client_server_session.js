@@ -56,7 +56,7 @@ function build_client_server_session(options,done) {
     opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
 
-    client = new OPCUAClient({});
+    client = OPCUAClient.create({});
 
     function start(done) {
         server.start(function () {

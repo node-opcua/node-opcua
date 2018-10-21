@@ -2,13 +2,11 @@
  * @module bode-opcua-client
  */
 import * as async from "async";
-import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import { ErrorCallback } from "node-opcua-secure-channel";
 import { ServerOnNetwork } from "node-opcua-service-discovery";
 import { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
-import { OPCUAClientBase } from "../client_base";
+import { ClientBaseImpl } from "../private/client_base_impl";
 
 /**
  * extract the server endpoints exposed by a discovery server
@@ -22,7 +20,7 @@ export function perform_findServers(
     callback: (err: Error | null, servers: any, endpoint: any) => void
 ) {
 
-    const client = new OPCUAClientBase({});
+    const client = new ClientBaseImpl({});
 
     let servers: ApplicationDescription[] = [];
     let endpoints: EndpointDescription[] = [];
@@ -50,7 +48,7 @@ export function perform_findServers(
             });
         },
 
-    ], (err?: Error) => {
+    ], (err) => {
         client.disconnect(() => {
             callback(err ? err : null, servers, endpoints);
         });
@@ -69,7 +67,7 @@ export function perform_findServersOnNetwork(
     callback: (err: Error | null, servers?: ServerOnNetwork[]) => void
 ) {
 
-    const client = new OPCUAClientBase({});
+    const client = new ClientBaseImpl({});
 
     client.connect(discoveryServerEndpointUri, (err?: Error) => {
         if (!err) {

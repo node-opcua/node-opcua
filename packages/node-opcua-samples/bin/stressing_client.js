@@ -8,7 +8,7 @@ async function main()  {
 
     while(true) {
 
-        const client = new opcua.OPCUAClient({endpoint_must_exist: false});
+        const client = opcua.OPCUAClient.create({endpoint_must_exist: false});
         client.on("backoff",(a,b)=>console.log("    backoff",a,b));
 
         try {

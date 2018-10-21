@@ -53,6 +53,7 @@ describe("Testing secure client and server connection", () => {
 
         const parentS: ServerSecureChannelParent = {
 
+            // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function() {
 
                 const chain = this.getCertificateChain();
@@ -86,6 +87,7 @@ describe("Testing secure client and server connection", () => {
 
         const parentC: ClientSecureChannelParent = {
 
+            // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function() {
                 const chain = this.getCertificateChain();
                 const firstCertificateInChain = split_der(chain)[0];
@@ -158,7 +160,7 @@ describe("Testing secure client and server connection", () => {
                 serverSChannel.dispose();
                 callback();
             }
-        ], done);
+        ], (err) => done(err!));
 
     }
 

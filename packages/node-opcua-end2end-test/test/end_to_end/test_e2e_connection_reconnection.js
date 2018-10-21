@@ -8,6 +8,8 @@ const opcua = require("node-opcua");
 
 const OPCUAClient = opcua.OPCUAClient;
 const StatusCodes = opcua.StatusCodes;
+const ClientMonitoredItem = opcua.ClientMonitoredItem;
+
 const Variant = opcua.Variant;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
@@ -71,7 +73,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
             connectionStrategy: fail_fast_connectivity_strategy,
             endpoint_must_exist: false
         };
-        client = new OPCUAClient(options);
+        client = OPCUAClient.create(options);
         client.on("connection_reestablished", function () {
             debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.red);
         });
@@ -453,7 +455,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
         should.not.exist(client, "Already have a client ");
 
-        client = new OPCUAClient(options);
+        client = OPCUAClient.create(options);
 
         client.on("keepalive", function () {
             debugLog("keep alive");
@@ -788,7 +790,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function create_subscription(callback) {
 
-        subscription = new opcua.ClientSubscription(the_session, {
+        subscription = opcua.ClientSubscription.create(the_session, {
             requestedPublishingInterval: 250,
             requestedLifetimeCount:      12000,
             requestedMaxKeepAliveCount:  4*60*2, // 4 x 250 ms * 60* 2 = 2 min
@@ -824,7 +826,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             monitoredItem = null;
             // return callback(new Error("Already monitoring"));
         }
-        monitoredItem = subscription.monitor(
+
+        monitoredItem = ClientMonitoredItem.create(
+            subscription,
             {
                 // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
                 nodeId: counterNode.nodeId,
@@ -836,8 +840,6 @@ describe("KJH2 testing ability for client to reconnect when server close connect
                 queueSize: 1000
             });
 
-
-        // subscription.on("item_added",function(monitoredItem){
         monitoredItem.once("initialized", function () {
             //xx console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
             callback();
@@ -1130,7 +1132,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         let client_has_received_start_reconnection_event;
 
         const options = {connectionStrategy: infinite_connectivity_strategy};
-        client = new OPCUAClient(options);
+        client = OPCUAClient.create(options);
 
         client.on("close", function (err) {
             if (err) {

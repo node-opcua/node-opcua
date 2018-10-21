@@ -97,7 +97,7 @@ module.exports = function (test) {
                 connectionStrategy: connectivity_strategy,
                 requestedSessionTimeout: 100000
             };
-            client = new opcua.OPCUAClient(options);
+            client = opcua.OPCUAClient.create(options);
             const endpointUrl = test.endpointUrl;
             client.on("send_request",function(req) {
                 if(doDebug) { console.log(req.constructor.name); }

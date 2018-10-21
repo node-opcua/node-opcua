@@ -47,7 +47,7 @@ module.exports = function (test) {
         };
 
 
-        const client1 = new OPCUAClient(options);
+        const client1 = OPCUAClient.create(options);
         const endpointUrl = test.endpointUrl;
 
         client1.on("send_request",function(req) {
@@ -137,7 +137,7 @@ module.exports = function (test) {
     describe("AZAZ Testing " + MAXCONNECTIONS + " clients", function () {
 
         before(function(done){
-            first_client= new opcua.OPCUAClient();
+            first_client= opcua.OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
             first_client.connect(endpointUrl, done);
 

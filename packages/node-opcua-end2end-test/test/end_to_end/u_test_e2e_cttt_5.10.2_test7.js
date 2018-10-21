@@ -19,7 +19,7 @@ module.exports = function (test) {
 
 
         function performTestWithValue(maxValue,done) {
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
             perform_operation_on_subscription(client,endpointUrl,function(session,subscription,inner_done){
 

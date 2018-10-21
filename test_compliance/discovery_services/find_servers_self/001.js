@@ -54,7 +54,7 @@ function describe_on_client(title,options,functor) {
 
         var client = null;
         beforeEach(function(done){
-            client = new opcua.OPCUAClient();
+            client = opcua.OPCUAClient.create();
 
             client.connect(options.endpointUrl,function(err){
 

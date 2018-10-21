@@ -65,7 +65,7 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
         async.series([
 
             function (callback) {
-                subscription = new ClientSubscription(session, {
+                subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount:     6000,
                     requestedMaxKeepAliveCount:  100,
@@ -171,11 +171,11 @@ function perform_operation_on_monitoredItem(client, endpointUrl, monitoredItemId
     }
     perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
-        var monitoredItem;
+        let monitoredItem;
         async.series([
             function (callback) {
 
-                monitoredItem = subscription.monitor(itemToMonitor, {
+                monitoredItem = opcua.ClientMonitoredItem.create(subscription, itemToMonitor, {
                     samplingInterval: 1000,
                     discardOldest: true,
                     queueSize: 1

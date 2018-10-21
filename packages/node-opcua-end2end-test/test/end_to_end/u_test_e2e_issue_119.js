@@ -27,7 +27,7 @@ module.exports = function (test) {
         let client, endpointUrl;
 
         beforeEach(function (done) {
-            client = new OPCUAClient({
+            client = OPCUAClient.create({
                 keepSessionAlive:true,
                 requestedSessionTimeout: 120*1000
             });
@@ -45,7 +45,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 150,
                     requestedLifetimeCount:      6000,// make sure subscription will not timeout
                     requestedMaxKeepAliveCount:  1000,// make sure we won't received spurious KeepAlive PublishResponse
@@ -60,7 +60,7 @@ module.exports = function (test) {
 
                 const nodeId = makeNodeId(VariableIds.Server_ServerStatus_BuildInfo_ProductName); // "ns=0;i=2261";
 
-                const monitoredItem = subscription.monitor(
+                const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
                     {nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value},
                     {samplingInterval: 10, discardOldest: true, queueSize: 1});
 
@@ -121,7 +121,7 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 250,
                     requestedLifetimeCount: 10 * 60 * 10,
                     requestedMaxKeepAliveCount: 10,
@@ -149,7 +149,7 @@ module.exports = function (test) {
                 }, 20); // high rate !!!
 
 
-                const monitoredItem = subscription.monitor(
+                const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
                     {nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value},
                     {
                         samplingInterval: 500, // slow rate  (slower than publishing rate)

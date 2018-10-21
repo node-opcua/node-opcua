@@ -62,7 +62,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
     it("it should not be possible to create a session on a secure server using a unsecure channel", function (done) {
 
         // ask for a very short session timeout
-        client = new OPCUAClient({requestedSessionTimeout: 200});
+        client = OPCUAClient.create({requestedSessionTimeout: 200});
 
         let the_session;
 
@@ -123,7 +123,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
     it("it should be possible to get endpoint of a secure channel using a unsecure channel", function (done) {
 
         // ask for a very short session timeout
-        client = new OPCUAClient({requestedSessionTimeout: 200});
+        client = OPCUAClient.create({requestedSessionTimeout: 200});
 
         let the_session;
 

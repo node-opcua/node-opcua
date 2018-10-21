@@ -9,8 +9,8 @@ const OPCUAClient = opcua.OPCUAClient;
 const sinon = require("sinon");
 
 module.exports = function (test) {
-    
-    describe("ZZZB Testing AuditSessionEventType",function() {
+
+    describe("ZZZB Testing AuditSessionEventType", function () {
 
         // Auditing for session Set
 
@@ -58,22 +58,25 @@ module.exports = function (test) {
         let isAuditing = false;
 
         let events_received = [];
+
         function resetEventLog() {
             events_received = [];
         }
-        const fields = ["EventType",  "SourceName", "EventId", "ReceiveTime", "Severity", "Message" , "SessionId"];
-        function w(str,l) {
-            return (str+ Array(30).join(" ")).substr(0,l);
+
+        const fields = ["EventType", "SourceName", "EventId", "ReceiveTime", "Severity", "Message", "SessionId"];
+
+        function w(str, l) {
+            return (str + Array(30).join(" ")).substr(0, l);
         }
 
         function recordEvent(eventFields) {
 
             const e = {};
-            eventFields.forEach(function(eventField,index) {
+            eventFields.forEach(function (eventField, index) {
                 e[fields[index]] = eventField;
             });
 
-            Object.keys(e).forEach(function(key)  {
+            Object.keys(e).forEach(function (key) {
                 const value = e[key];
                 //xx console.log(w(key,20).yellow,value.toString());
                 //,w(eventField.dataType.toString(),15).cyan,eventField.value.toString());
@@ -82,9 +85,12 @@ module.exports = function (test) {
 
             events_received.push(e);
         }
+
         let previous_isAuditing;
 
-        beforeEach(function() {resetEventLog();});
+        beforeEach(function () {
+            resetEventLog();
+        });
 
         before(function (done) {
 
@@ -95,12 +101,12 @@ module.exports = function (test) {
                 previous_isAuditing = test.server.engine.isAuditing;
                 test.server.engine.isAuditing = true;
 
-                test.nb_backgroundsession+=1;
+                test.nb_backgroundsession += 1;
             }
 
             const endpointUrl = test.endpointUrl;
 
-            auditing_client = new OPCUAClient({keepSessionAlive: true});
+            auditing_client = OPCUAClient.create({keepSessionAlive: true});
 
             async.series([
                 function (callback) {
@@ -114,7 +120,7 @@ module.exports = function (test) {
                 },
                 // create event subscriptions
                 function (callback) {
-                    auditing_subscription = new opcua.ClientSubscription(auditing_session, {
+                    auditing_subscription = opcua.ClientSubscription.create(auditing_session, {
                         requestedPublishingInterval: 50,
                         requestedLifetimeCount: 10 * 60,
                         requestedMaxKeepAliveCount: 5,
@@ -142,12 +148,18 @@ module.exports = function (test) {
                         queueSize: 10,
                         filter: eventFilter
                     };
-                    auditing_monitoredItem = auditing_subscription.monitor(itemToMonitor, requestedParameters, opcua.TimestampsToReturn.Both, function (err) {
-                        callback(err);
-                    });
-                    auditing_monitoredItem.on("changed", function (eventFields) {
-                        recordEvent(eventFields);
-                    });
+                    auditing_subscription.monitor(
+                        itemToMonitor,
+                        requestedParameters,
+                        opcua.TimestampsToReturn.Both,
+                        function (err, _auditing_monitoredItem) {
+                            auditing_monitoredItem = _auditing_monitoredItem;
+                            auditing_monitoredItem.on("changed", function (eventFields) {
+                                recordEvent(eventFields);
+                            });
+                            callback(err);
+                        });
+
                 },
                 // attempt to set auditing flag
                 function (callback) {
@@ -164,19 +176,19 @@ module.exports = function (test) {
                             }
                         }
                     ];
-                    auditing_session.write(nodesToWrite,function(err,results){
+                    auditing_session.write(nodesToWrite, function (err, results) {
                         //xx console.log(results);
                         //xx results[0].should.eql(opcua.StatusCodes.Good);
                         callback();
                     });
                 },
                 // read auditing Flag
-                function(callback){
+                function (callback) {
                     const nodeToRead = {
                         nodeId: opcua.VariableIds.Server_Auditing,
                         attributeId: opcua.AttributeIds.Value
                     };
-                    auditing_session.read(nodeToRead,function(err, dataValue){
+                    auditing_session.read(nodeToRead, function (err, dataValue) {
                         //xx console.log(" Auditing = ",dataValues[0].toString());
                         isAuditing = dataValue.value.value;
                         callback();
@@ -188,8 +200,8 @@ module.exports = function (test) {
 
             // restore server as we found it.
             if (test.server) {
-                test.server.engine.isAuditing =previous_isAuditing ;
-                test.nb_backgroundsession-=1;
+                test.server.engine.isAuditing = previous_isAuditing;
+                test.nb_backgroundsession -= 1;
             }
             should.exist(auditing_client);
             should.exist(auditing_session);
@@ -216,7 +228,7 @@ module.exports = function (test) {
 
         it("EdgeCase Session Timeout: server should raise a Session/CreateSession, Session/ActivateSession , Session/Timeout", function (done) {
 
-            const client1 = new OPCUAClient({
+            const client1 = OPCUAClient.create({
                 keepSessionAlive: false
             });
 
@@ -256,13 +268,15 @@ module.exports = function (test) {
                         callback(null);
                     });
                 },
-                function(callback)  {
+                function (callback) {
                     client1.disconnect(function (err) {
                         callback(err);
                     });
                 }
                 // wait for event to propagate on subscriptions
-                ,function(callback) { setTimeout(callback,200); }
+                , function (callback) {
+                    setTimeout(callback, 200);
+                }
 
             ], function final(err) {
 
@@ -305,7 +319,7 @@ module.exports = function (test) {
         });
         it("NominalCase: server should raise a Session/CreateSession, Session/ActivateSession , Session/CloseSession", function (done) {
 
-            const client1 = new OPCUAClient({
+            const client1 = OPCUAClient.create({
                 keepSessionAlive: true
             });
 
@@ -342,13 +356,15 @@ module.exports = function (test) {
                         callback(err);
                     });
                 },
-                function(callback)  {
+                function (callback) {
                     client1.disconnect(function (err) {
                         callback(err);
                     });
                 }
                 // wait for event to propagate on subscriptions
-                ,function(callback) { setTimeout(callback,1000); }
+                , function (callback) {
+                    setTimeout(callback, 1000);
+                }
 
             ], function final(err) {
 

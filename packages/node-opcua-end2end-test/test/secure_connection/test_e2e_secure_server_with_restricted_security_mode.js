@@ -56,7 +56,7 @@ describe("testing server with restricted securityModes - Given a server with a s
     });
     it("should not connect with SecurityMode==None", function (done) {
 
-        client = new OPCUAClient();
+        client = OPCUAClient.create();
         client.connect(endpointUrl, function (err) {
             should(err).not.be.eql(null);
             client.disconnect(done);
@@ -64,7 +64,7 @@ describe("testing server with restricted securityModes - Given a server with a s
     });
     it("should not connect with SecurityMode==SIGN", function (done) {
 
-        client = new OPCUAClient({
+        client = OPCUAClient.create({
             securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate
@@ -75,7 +75,7 @@ describe("testing server with restricted securityModes - Given a server with a s
         });
     });
     it("should not connect with  SecurityMode SIGNANDENCRYPT / Basic256 ", function (done) {
-        client = new OPCUAClient({
+        client = OPCUAClient.create({
             securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate
@@ -86,7 +86,7 @@ describe("testing server with restricted securityModes - Given a server with a s
         });
     });
     it("should not connect with  SecurityMode SIGNANDENCRYPT / Basic256Sha256 ", function (done) {
-        client = new OPCUAClient({
+        client = OPCUAClient.create({
             securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic256Sha256,
             serverCertificate: serverCertificate
@@ -98,7 +98,7 @@ describe("testing server with restricted securityModes - Given a server with a s
     });
     it("should connect with  SecurityMode SIGNANDENCRYPT / Basic128Rsa15 ", function (done) {
 
-        client = new OPCUAClient({
+        client = OPCUAClient.create({
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate

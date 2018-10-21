@@ -22,7 +22,7 @@ module.exports = function (test) {
         let client;
 
         beforeEach(function (done) {
-            client = new OPCUAClient();
+            client = OPCUAClient.create();
             done();
         });
         afterEach(function (done) {
@@ -232,7 +232,7 @@ module.exports = function (test) {
 
                     filter: new opcua.DataChangeFilter({}) // FILTER !
                 };
-                const monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
+                subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                     should.exist(err);
                     err.message.should.match(/no filter expected/);
                     //xx console.log(err.message);
@@ -258,7 +258,7 @@ module.exports = function (test) {
                     filter: new opcua.DataChangeFilter({}) // intentionally wrong :not an EventFilter
 
                 };
-                const monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
+                subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                     should.exist(err);
                     err.message.should.match(/Got a DataChangeFilter but a EventFilter/);
                     console.log(err.message);
@@ -307,15 +307,14 @@ module.exports = function (test) {
                     async.series([
 
                         function (callback) {
-                            const monitoredItem2 = subscription.monitor({
+                            const monitoredItem2 = opcua.ClientMonitoredItem.create(subscription, {
                                 nodeId: resolveNodeId(opcua.VariableIds.Server_ServerStatus_CurrentTime),
                                 attributeId: AttributeIds.Value
                             },{
                                 samplingInterval: 1000,
                                 queueSize: 100,
-                            },TimestampsToReturn.Both, function(){
+                            },TimestampsToReturn.Both);
 
-                            });
                             monitoredItem2.on("changed", function(dataValue){
                                 //xxx console.log(" Server Time is ",dataValue.toString())
                             });
@@ -335,13 +334,10 @@ module.exports = function (test) {
                                 filter: eventFilter
                             };
 
-                            const monitoredItem = subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
-                                try {
-                                    should.not.exist(err);
-                                } catch (err) {
-                                    callback(err);
-                                }
+                            const monitoredItem = opcua.ClientMonitoredItem.create(
+                                subscription, readValue, requestedParameters, TimestampsToReturn.Both);
 
+                            monitoredItem.on("initialized",function(){
                                 callback();
                             });
 

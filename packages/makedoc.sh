@@ -1,0 +1,2 @@
+#!/bin/sh
+typedoc   --includeDeclarations  --out out1 --module commonjs node-opcua/source node-opcua-common/source node-opcua-client/source node-opcua-variant/source node-opcua-basic-types/source node-opcua-common/source node-opcua-constants/source node-opcua-data-value/source node-opcua-date-time/source node-opcua-guid/source node-opcua-numeric-range/source node-opcua-types/source

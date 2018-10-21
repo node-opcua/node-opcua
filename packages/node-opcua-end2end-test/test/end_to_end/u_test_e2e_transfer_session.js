@@ -44,7 +44,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    client1 = new OPCUAClient({});
+                    client1 = OPCUAClient.create({});
                     client1.connect(test.endpointUrl, callback);
                 },
 
@@ -94,7 +94,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    client1 = new OPCUAClient();
+                    client1 = OPCUAClient.create();
                     client1.connect(test.endpointUrl, callback);
                 },
                 // create a session using client1
@@ -135,7 +135,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    client1 = new OPCUAClient({});
+                    client1 = OPCUAClient.create({});
                     client1.connect(test.endpointUrl, callback);
                 },
                 function (callback) {
@@ -166,7 +166,7 @@ module.exports = function (test) {
             async.series([
 
                 function (callback) {
-                    client1 = new OPCUAClient();
+                    client1 = OPCUAClient.create();
                     client1.connect(test.endpointUrl, callback);
                 },
                 // create a session using client1
@@ -229,7 +229,7 @@ module.exports = function (test) {
 
                 // create a first channel (client1)
                 function (callback) {
-                    client1 = new OPCUAClient();
+                    client1 = OPCUAClient.create();
                     client1.connect(test.endpointUrl, callback);
                 },
                 // create a session using client1
@@ -267,7 +267,7 @@ module.exports = function (test) {
 
                 // create a second channel (client2)
                 function (callback) {
-                    client2 = new OPCUAClient();
+                    client2 = OPCUAClient.create();
                     client2.connect(test.endpointUrl, callback);
                 },
 
@@ -343,7 +343,7 @@ module.exports = function (test) {
                 function (callback) {
                     initialChannelCount = test.server.getChannels().length;
                     test.server.getChannels().length.should.equal(initialChannelCount);
-                    client1 = new OPCUAClient();
+                    client1 = OPCUAClient.create();
                     client1.connect(test.endpointUrl, callback);
                 },
 
@@ -361,7 +361,7 @@ module.exports = function (test) {
                 },
                 // create a second channel (client2)
                 function (callback) {
-                    client2 = new OPCUAClient();
+                    client2 = OPCUAClient.create();
                     client2.connect(test.endpointUrl, callback);
                 },
 
@@ -432,7 +432,7 @@ module.exports = function (test) {
                     //xx console.log(" creating initial channel with some certificate");
                     const certificateFile1 = m("certificates/client_cert_1024.pem");
                     const privateKeyFile1 = m("certificates/client_key_1024.pem");
-                    client1 = new OPCUAClient({
+                    client1 = OPCUAClient.create({
                         certificateFile: certificateFile1,
                         privateKeyFile: privateKeyFile1,
                         securityMode: opcua.MessageSecurityMode.Sign,
@@ -468,7 +468,7 @@ module.exports = function (test) {
                     console.log(" creating second channel with different certificate");
                     const certificateFile2 = m("certificates/client_cert_2048.pem");
                     const privateKeyFile2 = m("certificates/client_key_2048.pem");
-                    client2 = new OPCUAClient({
+                    client2 = OPCUAClient.create({
                         certificateFile: certificateFile2,
                         privateKeyFile: privateKeyFile2,
                         securityMode: opcua.MessageSecurityMode.Sign,
@@ -529,7 +529,7 @@ module.exports = function (test) {
                 // given a established session with a subscription and some publish request
 
                 function (callback) {
-                    client1 = new OPCUAClient();
+                    client1 = OPCUAClient.create();
                     client1.connect(test.endpointUrl, callback);
                 },
                 // create a session using client1
@@ -546,7 +546,7 @@ module.exports = function (test) {
                 // when the session is transferred to a different channel
                 // create a second channel (client2)
                 function (callback) {
-                    client2 = new OPCUAClient();
+                    client2 = OPCUAClient.create();
                     client2.connect(test.endpointUrl, callback);
                 },
                 function (callback) {
@@ -596,7 +596,7 @@ module.exports = function (test) {
                 // given a established session with a subscription and some publish request
 
                 function (callback) {
-                    client1 = new OPCUAClient();
+                    client1 = OPCUAClient.create();
                     client1.connect(test.endpointUrl, callback);
                 },
                 // create a session using client1
@@ -625,7 +625,7 @@ module.exports = function (test) {
                 // when the session is transferred to a different channel
                 // create a second channel (client2)
                 function (callback) {
-                    client2 = new OPCUAClient();
+                    client2 = OPCUAClient.create();
                     client2.connect(test.endpointUrl, callback);
                     collectPublishResponse.callCount.should.eql(0);
                 },

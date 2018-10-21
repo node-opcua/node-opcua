@@ -25,7 +25,7 @@ describe("DS5- testing OPCUA-Service Discovery Endpoint", function () {
     });
 
     beforeEach(function (done) {
-        client = new OPCUAClient();
+        client = OPCUAClient.create();
         done();
     });
 

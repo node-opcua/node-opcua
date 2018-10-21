@@ -39,7 +39,7 @@ describe("testing AnalogItem on client side", function () {
     });
 
     beforeEach(function (done) {
-        client = new OPCUAClient();
+        client = OPCUAClient.create();
         async.series([
             function (callback) {
                 client.connect(endpointUrl, callback);

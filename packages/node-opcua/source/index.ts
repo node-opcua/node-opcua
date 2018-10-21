@@ -79,6 +79,7 @@ export * from "node-opcua-service-node-management";
 
 export * from "node-opcua-secure-channel";
 
+
 module.exports.utils = require("node-opcua-utils");
 module.exports.crypto_utils = require("node-opcua-crypto");
 module.exports.hexDump = require("node-opcua-debug").hexDump;
@@ -86,12 +87,12 @@ module.exports.hexDump = require("node-opcua-debug").hexDump;
 // ----------------------------------------------------------------------------------------------------------
 // client services
 // ----------------------------------------------------------------------------------------------------------
-module.exports.OPCUAClient = require("node-opcua-client").OPCUAClient;
-module.exports.OPCUAClientBase = require("node-opcua-client").OPCUAClientBase;
+export * from "node-opcua-client";
+// xx module.exports.OPCUAClientImpl = require("node-opcua-client").OPCUAClientImpl;
+// xx module.exports.ClientBaseImpl = require("node-opcua-client").ClientBaseImpl;
 
 module.exports.NodeCrawler = require("node-opcua-client-crawler").NodeCrawler;
-module.exports.ClientSubscription = require("node-opcua-client").ClientSubscription;
-
+// xx module.exports.ClientSubscription = require("node-opcua-client").ClientSubscription;
 // module.exports.ClientSession = require("node-opcua-client").ClientSession;
 // Xx module.exports.client_utils = require("node-opcua-client/src");
 

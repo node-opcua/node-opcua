@@ -11,8 +11,10 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { PublishRequest, PublishResponse, RepublishRequest, RepublishResponse } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
 
-import { SubscriptionId } from "./client_session";
-import { ClientSubscription } from "./client_subscription";
+import { ClientSession, SubscriptionId } from "../client_session";
+import { ClientSubscription } from "../client_subscription";
+import { ClientSessionImpl } from "../private/client_session_impl";
+import { ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -40,15 +42,13 @@ export class ClientSidePublishEngine {
     public nbPendingPublishRequests: number;
     public nbMaxPublishRequestsAcceptedByServer: number;
     public isSuspended: boolean;
-    public session: any;
+    public session: ClientSession | null;
     private subscriptionAcknowledgements: any[];
     private readonly subscriptionMap: any;
 
-    constructor(session: any) {
-
+    constructor(session: ClientSession) {
 
         this.session = session;
-
         this.subscriptionAcknowledgements = [];
         this.subscriptionMap = {};
 
@@ -64,6 +64,8 @@ export class ClientSidePublishEngine {
         this.nbMaxPublishRequestsAcceptedByServer = 1000;
 
         this.isSuspended = false;
+
+        assert(this.session, "Session must exist");
 
     }
 
@@ -104,8 +106,8 @@ export class ClientSidePublishEngine {
         if (this.nbPendingPublishRequests >= this.nbMaxPublishRequestsAcceptedByServer) {
             return;
         }
-
-        if (this.session && !this.session.isChannelValid()) {
+        const session = this.session as ClientSessionImpl;
+        if (session && !session.isChannelValid()) {
             // wait for channel  to be valid
             setTimeout(() => {
                 if (this.subscriptionCount) {
@@ -281,7 +283,8 @@ export class ClientSidePublishEngine {
 
         let active = true;
 
-        this.session.publish(publishRequest, (err: Error | null, response: PublishResponse) => {
+        const session = this.session! as ClientSessionImpl;
+        session.publish(publishRequest, (err: Error | null, response?: PublishResponse) => {
 
             this.nbPendingPublishRequests -= 1;
 
@@ -347,7 +350,7 @@ export class ClientSidePublishEngine {
                 if (doDebug) {
                     debugLog(chalk.cyan("ClientSidePublishEngine.prototype._send_publish_request callback "));
                 }
-                this._receive_publish_response(response);
+                this._receive_publish_response(response!);
             }
 
             // feed the server with a new publish Request to the server
@@ -413,6 +416,7 @@ export class ClientSidePublishEngine {
         assert(subscription.subscriptionId === +subscriptionId);
 
         let isDone = false;
+        const session = this.session as ClientSessionImpl;
 
         const sendRepublishFunc = (callback2: (err?: Error) => void) => {
 
@@ -430,19 +434,19 @@ export class ClientSidePublishEngine {
                     request.subscriptionId, " retransmitSequenceNumber=", request.retransmitSequenceNumber);
             }
 
-            if (!this.session || this.session._closeEventHasBeenEmitted) {
+            if (!session || session!._closeEventHasBeenEmitted) {
                 debugLog("ClientPublishEngine#_republish aborted ");
                 // has  client been disconnected in the mean time ?
                 isDone = true;
                 return callback2();
             }
-            this.session.republish(request, (err: Error | null, response: RepublishResponse) => {
-                if (!err && response.responseHeader.serviceResult.equals(StatusCodes.Good)) {
+            session.republish(request, (err: Error | null, response?: RepublishResponse) => {
+                if (!err && response!.responseHeader.serviceResult.equals(StatusCodes.Good)) {
                     // reprocess notification message  and keep going
-                    subscription.onNotificationMessage(response.notificationMessage);
+                    subscription.onNotificationMessage(response!.notificationMessage);
                 } else {
                     if (!err) {
-                        err = new Error(response.responseHeader.serviceResult.toString());
+                        err = new Error(response!.responseHeader.serviceResult.toString());
                     }
                     debugLog(" _send_republish ends with ", err.message);
                     isDone = true;
@@ -453,10 +457,10 @@ export class ClientSidePublishEngine {
 
         setImmediate(() => {
             assert(_.isFunction(callback));
-            async.whilst(() => !isDone, sendRepublishFunc, (err?: Error) => {
+            async.whilst(() => !isDone, sendRepublishFunc, (err) => {
                 debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
                 debugLog(" _republish ends with ", err ? err.message : "null");
-                callback(err);
+                callback(err!);
             });
         });
     }
@@ -492,7 +496,9 @@ export class ClientSidePublishEngine {
                 //
                 debugLog(chalk.bgWhite.red("_republish failed " +
                     " subscriptionId is not valid anymore on server side."));
-                return subscription.recreateSubscriptionAndMonitoredItem(callback);
+
+                const subscriptionI = subscription as ClientSubscriptionImpl;
+                return subscriptionI.recreateSubscriptionAndMonitoredItem(callback);
             }
             callback();
 

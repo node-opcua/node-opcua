@@ -36,7 +36,7 @@ module.exports = function(test) {
                 return done();
             }
 
-            const client1 = new OPCUAClient();
+            const client1 = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             async.series(

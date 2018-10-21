@@ -70,9 +70,10 @@ function convertNodeIdToDataTypeAsync(
 
         // istanbul ignore next
         if (err) {
-            return setImmediate(() => {
+             setImmediate(() => {
                 callback(err);
             });
+             return;
         }
 
         dataValue = dataValue!;
@@ -81,18 +82,20 @@ function convertNodeIdToDataTypeAsync(
         // istanbul ignore next
         if (dataValue.statusCode !== StatusCodes.Good) {
             dataType = DataType.Null;
-            return setImmediate(() => {
+            setImmediate(() => {
                 callback(null, dataType);
             });
+            return;
         }
 
         const dataTypeName = dataValue.value.value;
 
         if (dataTypeId.namespace === 0 && DataType[dataTypeId.value]) {
             dataType = (DataType as any)[dataTypeId.value] as DataType;
-            return setImmediate(() => {
+            setImmediate(() => {
                 callback(null, dataType);
             });
+            return;
         }
 
         /// example => Duration (i=290) => Double (i=11)
@@ -258,12 +261,12 @@ function add_method(
 
                 async.series([
                     (callback: ErrorCallback) => {
-                        async.each(obj[name].inputArguments, extractDataType, callback);
+                        async.each(obj[name].inputArguments, extractDataType, (err) => callback(err!));
                     },
                     (callback: ErrorCallback) => {
-                        async.each(obj[name].outputArguments, extractDataType, callback);
+                        async.each(obj[name].outputArguments, extractDataType, (err) => callback(err!));
                     }
-                ], callback);
+                ], (err) => callback(err!));
             });
         },
 
@@ -272,7 +275,7 @@ function add_method(
                 callback();
             });
         }
-    ], outerCallback);
+    ], (err) => outerCallback(err!) );
 
 }
 
@@ -532,20 +535,20 @@ export function readUAStructure(
             (callback: ErrorCallback) => {
                 async.map(browseResults![0].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        add_component(proxyManager, obj, reference, callback), callback);
+                        add_component(proxyManager, obj, reference, callback), (err) => callback(err!) );
             },
 
             (callback: ErrorCallback) => {
                 async.map(browseResults![1].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        add_property(proxyManager, obj, reference, callback), callback);
+                        add_property(proxyManager, obj, reference, callback), (err) => callback(err!) );
             },
 
             // now enrich our object with nice callable async methods
             (callback: ErrorCallback) => {
                 async.map(browseResults![2].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        add_method(proxyManager, obj, reference, callback), callback);
+                        add_method(proxyManager, obj, reference, callback), (err) => callback(err!) );
             },
 
             // now set typeDefinition
@@ -579,9 +582,9 @@ export function readUAStructure(
             (callback: ErrorCallback) => {
                 async.map(browseResults![6].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        addFolderElement(proxyManager, obj, reference, callback), callback);
+                        addFolderElement(proxyManager, obj, reference, callback), (err) => callback(err!) );
             }
 
-        ], callback);
+        ], (err) => callback(err!));
     });
 }

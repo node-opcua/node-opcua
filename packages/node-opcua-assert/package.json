@@ -29,6 +29,5 @@
   "internet of things"
  ],
  "homepage": "http://node-opcua.github.io/",
- "devDependencies": {
- }
+ "devDependencies": {}
 }

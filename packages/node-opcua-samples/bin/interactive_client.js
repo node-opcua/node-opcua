@@ -24,7 +24,7 @@ console.log(" Version ", opcua.version);
 
 const sessionTimeout = 2 * 60 * 1000; // 2 minutes
 
-const client = new opcua.OPCUAClient({
+const client = opcua.OPCUAClient.create({
     requestedSessionTimeout: sessionTimeout,
     keepSessionAlive: true
 });

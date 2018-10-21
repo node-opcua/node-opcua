@@ -27,7 +27,7 @@ module.exports = function (test) {
 
         it("SubscriptionDiagnostics-1 : server should expose SubscriptionDiagnosticsArray", function (done) {
 
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             // Given a connected client and a subscription
@@ -149,7 +149,7 @@ module.exports = function (test) {
         }
         it("SubscriptionDiagnostics-2 : server should remove SubscriptionDiagnostics from SubscriptionDiagnosticsArray when subscription is terminated", function (done) {
 
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             let subscriptionDiagnosticArrayLengthBefore = 0;
@@ -174,7 +174,7 @@ module.exports = function (test) {
                     },
                     // when a subscription is created
                     function(callback) {
-                        subscription = new ClientSubscription(session, {
+                        subscription = ClientSubscription.create(session, {
                             requestedPublishingInterval: 100,
                             requestedLifetimeCount: 10 * 60,
                             requestedMaxKeepAliveCount: 5,
@@ -218,7 +218,7 @@ module.exports = function (test) {
             }, done);
         });
         it("SubscriptionDiagnostics-3 : server should remove SubscriptionDiagnostics from SubscriptionDiagnosticsArray when subscription has timedout", function (done) {
-            const client = new OPCUAClient();
+            const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
             let subscriptionDiagnosticArrayLengthBefore = 0;

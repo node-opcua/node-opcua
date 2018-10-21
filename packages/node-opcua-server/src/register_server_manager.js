@@ -219,7 +219,7 @@ RegisterServerManager.prototype._establish_initial_connection = function (outer_
     self.selectedEndpoint = null;
 
     // Retry Strategy must be set
-    let client = new OPCUAClientBase({
+    let client = OPCUAClientBase.create({
         clientName: "RegistrationClient-1",
         certificateFile: self.server.certificateFile,
         privateKeyFile: self.server.privateKeyFile,
@@ -544,7 +544,7 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
 
     const tmp = self._serverEndpoints;
 
-    let client = new OPCUAClientBase(options);
+    let client = OPCUAClientBase.create(options);
     client._serverEndpoints = tmp;
     server._registration_client = client;
 
@@ -580,7 +580,7 @@ RegisterServerManager.prototype._registerServer = function(isOnline, outer_callb
                 //         };
                 //         debugLog("RegisterServerManager#_registerServer trying with no security");
                 //
-                //         client = new OPCUAClientBase(options);
+                //         client = OPCUAClientBase.create(options);
                 //         client._serverEndpoints = tmp;
                 //         server._registration_client = client;
                 //

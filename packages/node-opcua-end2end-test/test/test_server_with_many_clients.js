@@ -70,7 +70,7 @@ describe("Functional test : one server with many concurrent clients", function()
     }
 
     function construct_client_scenario(data) {
-        const client = new OPCUAClient({
+        const client = OPCUAClient.create({
             serverCertificate: serverCertificateChain,
             requestedSessionTimeout: 120 * 1000
         });
@@ -112,7 +112,7 @@ describe("Functional test : one server with many concurrent clients", function()
                 debugLog(" Creating monitored Item for client", name);
                 const session = data.session;
 
-                const subscription = new ClientSubscription(session, {
+                const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 200,
                     requestedLifetimeCount: 10 * 60 * 10,
                     requestedMaxKeepAliveCount: 10,
@@ -134,7 +134,8 @@ describe("Functional test : one server with many concurrent clients", function()
                     debugLog("subscription terminated".red.bold, name);
                 });
 
-                const monitoredItem = subscription.monitor(
+                const monitoredItem = opcua.ClientMonitoredItem.create(
+                    subscription,
                     {
                         nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
                         attributeId: AttributeIds.Value
