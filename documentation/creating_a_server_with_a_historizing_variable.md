@@ -66,14 +66,14 @@ const vesselPressure = namespace.addAnalogDataItem({
         low:  0,
         high: 10.0
     },
-    engineeringUnits: opcua.standarUnits.bar,
+    engineeringUnits: opcua.standardUnits.bar,
     componentOf: vessel
 });
 ```
 
 ### adding historical configuration
 
-We now declare the vesselPressure variable to be a Historical datanode.
+We now declare the vesselPressure variable to be a Historical data node.
 
 ``` javascript
 addressSpace.installHistoricalDataNode(vesselPressure);
@@ -104,7 +104,7 @@ setInterval(function() {
 
 It is now time to launch your favorite OPCUA Client to check the results.
 
-The Vessel exposing the historising VesselPressure variable and its HA Configuration object:
+The Vessel exposing the historizing VesselPressure variable and its HA Configuration object:
 
 ![](images/image1.png)
 
