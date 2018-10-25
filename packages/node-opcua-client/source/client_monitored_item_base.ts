@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client
+ */
 import { EventEmitter } from "events";
 
 import { ExtensionObject } from "node-opcua-extension-object";

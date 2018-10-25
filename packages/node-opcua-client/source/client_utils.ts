@@ -1,3 +1,7 @@
+/**
+ * @module node-opcua-client
+ */
+
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";

@@ -1,6 +1,7 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client
  */
+
 // tslint:disable:no-empty
 import chalk from "chalk";
 import { EventEmitter } from "events";

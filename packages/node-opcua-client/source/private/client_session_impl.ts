@@ -1,5 +1,5 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client-private
  */
 import chalk from "chalk";
 import { EventEmitter } from "events";

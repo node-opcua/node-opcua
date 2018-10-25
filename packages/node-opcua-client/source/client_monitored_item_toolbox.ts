@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client
+ */
 import chalk from "chalk";
 import * as _ from "underscore";
 

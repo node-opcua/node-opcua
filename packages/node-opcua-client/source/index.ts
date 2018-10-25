@@ -1,6 +1,7 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client
  */
+
 export * from "./client_base";
 export * from "./opcua_client";
 export * from "./client_session";

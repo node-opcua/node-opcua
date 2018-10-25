@@ -1,6 +1,7 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client
  */
+
 // tslint:disable:variable-name
 import { EventEmitter } from "events";
 import { Certificate, exploreCertificate, extractPublicKeyFromCertificateSync, Nonce, toPem } from "node-opcua-crypto";

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-binary-stream
+ */
 import assert from "node-opcua-assert";
 import { calculateByteLength } from "./binaryStream";
 

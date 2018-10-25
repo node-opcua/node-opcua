@@ -1,5 +1,5 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client-private
  */
 import { EventEmitter } from "events";
 

@@ -1,6 +1,7 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client
  */
+
 import { BrowseRequest, BrowseResponse } from "node-opcua-service-browse";
 import { CallRequest, CallResponse } from "node-opcua-service-call";
 import {

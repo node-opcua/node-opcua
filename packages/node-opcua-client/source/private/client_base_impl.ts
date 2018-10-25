@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-private
+ */
 // tslint:disable:no-unused-expression
 import * as async from "async";
 import chalk from "chalk";

@@ -1,5 +1,5 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client-private
  */
 // tslint:disable:variable-name
 import * as async from "async";

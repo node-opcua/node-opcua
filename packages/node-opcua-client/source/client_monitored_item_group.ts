@@ -1,6 +1,7 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client
  */
+
 import { EventEmitter } from "events";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 

@@ -1,6 +1,7 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client
  */
+
 import { EventEmitter } from "events";
 
 import { UInt8 } from "node-opcua-basic-types";

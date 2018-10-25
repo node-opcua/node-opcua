@@ -1,5 +1,5 @@
 /**
- * @module node-opcua-client
+ * @module node-opcua-client-private
  */
 // tslint:disable:unified-signatures
 import { EventEmitter } from "events";

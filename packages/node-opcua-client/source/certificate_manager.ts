@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client
+ */
 import * as fs from "fs";
 import * as path from "path";
 import { callbackify, promisify } from "util";

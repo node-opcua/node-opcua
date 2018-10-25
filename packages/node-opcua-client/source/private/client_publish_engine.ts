@@ -1,5 +1,5 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client-private
  */
 import * as async from "async";
 import chalk from "chalk";
