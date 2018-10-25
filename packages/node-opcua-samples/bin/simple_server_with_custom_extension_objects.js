@@ -21,7 +21,7 @@ function constructFilename(filename) {
 
 const OPCUAServer = opcua.OPCUAServer;
 
-const standard_nodeset_file = opcua.standard_nodeset_file;
+const standard_nodeset_file = opcua.nodesets.standard;
 
 const rootFolder = path.join(__dirname,"../");
 

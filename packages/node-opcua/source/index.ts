@@ -1,38 +1,43 @@
 import chalk from "chalk";
 
+// tslint:disable:max-line-length
+// tslint:disable:no-var-requires
+// tslint:disable:no-console
 const semver = require("semver");
 const version = require("../package").engines.node;
 if (!semver.satisfies(process.version, version)) {
-    console.log(
-        chalk.cyan(`warning node-opcua: Required nodejs version ${version} not satisfied with current nodejs version ${
-            process.version
-            }.`));
+  console.log(
+    chalk.cyan(`warning node-opcua: Required nodejs version ${version} not satisfied with current nodejs version ${
+      process.version
+      }.`));
 }
 
+export * from "node-opcua-common";
+
 export {
-    NodeId,
-    resolveNodeId,
-    makeNodeId,
-    coerceNodeId,
-    sameNodeId,
-    NodeIdType,
-    ExpandedNodeId,
-    makeExpandedNodeId,
-    coerceExpandedNodeId
+  NodeId,
+  resolveNodeId,
+  makeNodeId,
+  coerceNodeId,
+  sameNodeId,
+  NodeIdType,
+  ExpandedNodeId,
+  makeExpandedNodeId,
+  coerceExpandedNodeId
 } from "node-opcua-nodeid";
 
 export {
-    StatusCode
+  StatusCode
 } from "node-opcua-status-code";
 export {
-    StatusCodes,
-    VariableTypeIds,
-    VariableIds,
-    MethodIds,
-    ObjectIds,
-    ObjectTypeIds,
-    ReferenceTypeIds,
-    DataTypeIds,
+  StatusCodes,
+  VariableTypeIds,
+  VariableIds,
+  MethodIds,
+  ObjectIds,
+  ObjectTypeIds,
+  ReferenceTypeIds,
+  DataTypeIds
 } from "node-opcua-constants";
 
 export { DataType, Variant, VariantArrayType, buildVariantArray } from "node-opcua-variant";
@@ -40,19 +45,17 @@ export { DataValue, sameDataValue } from "node-opcua-data-value";
 export { NumericRange } from "node-opcua-numeric-range";
 
 export {
-    AccessLevelFlag,
-    makeAccessLevelFlag,
-    LocalizedText,
-    coerceLocalizedText,
-    QualifiedName,
-    coerceQualifiedName,
-    NodeClass,
-    NodeClassMask,
-    AttributeIds,
-    BrowseDirection,
+  AccessLevelFlag,
+  makeAccessLevelFlag,
+  LocalizedText,
+  coerceLocalizedText,
+  QualifiedName,
+  coerceQualifiedName,
+  NodeClass,
+  NodeClassMask,
+  AttributeIds,
+  BrowseDirection
 } from "node-opcua-data-model";
-
-export * from "node-opcua-common";
 
 // basic_types
 export * from "node-opcua-basic-types";
@@ -79,9 +82,24 @@ export * from "node-opcua-service-node-management";
 
 export * from "node-opcua-secure-channel";
 
+// -----------------------------------------------------------------------------
+// Nodeset stuff
+// -----------------------------------------------------------------------------
+export { nodesets } from "node-opcua-nodesets";
+
+/*
+module.exports.constructNodesetFilename = module.exports.nodesets.constructNodesetFilename;
+module.exports.standard_nodeset_file = module.exports.nodesets.standard_nodeset_file;
+module.exports.di_nodeset_filename = module.exports.nodesets.di_nodeset_filename;
+module.exports.adi_nodeset_filename = module.exports.nodesets.adi_nodeset_filename;
+*/
+
+// an incomplete but sufficient nodeset file used during testing
+module.exports.mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
+module.exports.empty_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").empty_nodeset_filename;
 
 module.exports.utils = require("node-opcua-utils");
-module.exports.crypto_utils = require("node-opcua-crypto");
+// xx module.exports.crypto_utils = require("node-opcua-crypto");
 module.exports.hexDump = require("node-opcua-debug").hexDump;
 
 // ----------------------------------------------------------------------------------------------------------
@@ -129,18 +147,6 @@ module.exports.UADataType = require("node-opcua-address-space").UADataType;
 module.exports.getAddressSpaceFixture = require("node-opcua-address-space/test_helpers/get_address_space_fixture").getAddressSpaceFixture;
 module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
 
-
-
-module.exports.nodesets = require("node-opcua-nodesets");
-module.exports.constructNodesetFilename = module.exports.nodesets.constructNodesetFilename;
-module.exports.standard_nodeset_file = module.exports.nodesets.standard_nodeset_file;
-module.exports.di_nodeset_filename = module.exports.nodesets.di_nodeset_filename;
-module.exports.adi_nodeset_filename = module.exports.nodesets.adi_nodeset_filename;
-
-// an incomplete but sufficient nodeset file used during testing
-module.exports.mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
-module.exports.empty_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").empty_nodeset_filename;
-
 module.exports.is_valid_endpointUrl = require("node-opcua-transport").is_valid_endpointUrl;
 
 // filtering tools
@@ -149,7 +155,7 @@ module.exports.constructEventFilter = require("node-opcua-service-filter").const
 
 const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
 module.exports.build_address_space_for_conformance_testing =
-    address_space_for_conformance_testing.build_address_space_for_conformance_testing;
+  address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 module.exports.install_optional_cpu_and_memory_usage_node = require("node-opcua-vendor-diagnostic").install_optional_cpu_and_memory_usage_node;
 module.exports.construct_demo_alarm_in_address_space = require("node-opcua-address-space/test_helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;

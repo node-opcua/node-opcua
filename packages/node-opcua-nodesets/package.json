@@ -1,9 +1,11 @@
 {
  "name": "node-opcua-nodesets",
- "main": "index.js",
+ "main": "./dist/index.js",
+ "types": "./dist/index.d.ts",
  "version": "0.5.0",
  "description": "pure nodejs OPCUA SDK - module -nodesets",
  "scripts": {
+  "build": "tsc",
   "test": "echo no test"
  },
  "author": "Etienne Rossignon",

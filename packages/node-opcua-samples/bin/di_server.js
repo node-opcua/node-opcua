@@ -30,7 +30,7 @@ const Variant = opcua.Variant;
 const DataType = opcua.DataType;
 
 const makeApplicationUrn = opcua.makeApplicationUrn;
-const standard_nodeset_file = opcua.standard_nodeset_file;
+const standard_nodeset_file = opcua.nodesets.standard_nodeset_file;
 const get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
 
 const port = parseInt(argv.port) || 26543;

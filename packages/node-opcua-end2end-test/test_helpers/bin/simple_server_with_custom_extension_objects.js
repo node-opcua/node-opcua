@@ -20,7 +20,7 @@ function constructFilename(pathname) {
 }
 
 const OPCUAServer = opcua.OPCUAServer;
-const standard_nodeset_file = opcua.standard_nodeset_file;
+const standard_nodeset_file = opcua.nodesets.standard_nodeset_file;
 
 
 const port = parseInt(argv.port) || 26555;

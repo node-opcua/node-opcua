@@ -9,7 +9,7 @@ function constructFilename(filename) {
 const server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_2048.pem");
 const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
 
-const nodeset_filenames = [ opcua.standard_nodeset_file ];
+const nodeset_filenames = [ opcua.nodesets.standard_nodeset_file ];
 
 const server = new opcua.OPCUAServer({
     certificateFile: server_certificate_file,

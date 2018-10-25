@@ -6,7 +6,7 @@ const server = new opcua.OPCUAServer({
     port: 26543, // the port of the listening socket of the server
     resourcePath: "UA/MyLittleServer", // this path will be added to the endpoint resource name
     nodeset_filename: [
-        opcua.standard_nodeset_file,
+        opcua.nodesets.standard_nodeset_file,
     ]
 });
 function construct_address_space(server) {
