@@ -240,6 +240,13 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
+    on(event: "connection_lost", eventHandler: () => void): OPCUAClientBase;
+
+    /**
+     * this event is raised when a broken connection with the remote Server has been reestablished
+     * @param event
+     * @param eventHandler
+     */
     on(event: "connection_reestablished", eventHandler: () => void): OPCUAClientBase;
 
     /**

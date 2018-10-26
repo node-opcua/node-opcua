@@ -979,6 +979,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
             } else {
 
+                this.emit("connection_lost");
+
                 setImmediate(() => {
 
                     debugLog("recreating new secure channel ");

@@ -664,7 +664,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      *
      * @method write
      * @param nodeToWrite {WriteValue}  - the value to write
-     * @param {Function} callback -   the callback function
+     * @param callback -   the callback function
      * @param callback.err {object|null} the error if write has failed or null if OK
      * @param callback.statusCode {StatusCodes} - the status code of the write
      * @async
