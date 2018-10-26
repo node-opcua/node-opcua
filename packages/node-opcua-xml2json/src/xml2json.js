@@ -240,7 +240,7 @@ Xml2Json.prototype._prepareParser = function (callback) {
     });
     parser.on("text", function (text) {
         text = text.trim();
-        if (text.length ==0) return;
+        if (text.length === 0) return;
         //xx console.log("txt",text);
         self.current_state._on_text(text);
     });
@@ -280,7 +280,11 @@ Xml2Json.prototype.parse = function (xmlFile, callback) {
 
         // slightly faster but require more memory ..
         fs.readFile(xmlFile,function(err, data){
-            if (!err) {
+            if (err) {
+                return callback(err);
+            }
+            try {
+
                 if (data[0] === 0xEF && data[1] === 0xBB && data[2] === 0xBF) {
                     data = data.slice(3);
                 }
@@ -290,8 +294,8 @@ Xml2Json.prototype.parse = function (xmlFile, callback) {
                 //xx console.log(data.substr(data.length -1000,1000).cyan);
                 parser.write(data);
                 parser.end();
-            } else {
-                callback(err);
+            } catch(err) {
+               return callback(err);
             }
         });
     } else {

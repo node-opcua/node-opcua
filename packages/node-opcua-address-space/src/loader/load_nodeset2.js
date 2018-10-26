@@ -695,7 +695,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                     this.parent.parent.obj.value = {
                         dataType: DataType.Float,
                         value: parseFloat(this.text)
-                    }
+                    };
                 }
             },
             "Double": {
@@ -703,7 +703,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                     this.parent.parent.obj.value = {
                         dataType: DataType.Double,
                         value: parseFloat(this.text)
-                    }
+                    };
                 }
             },
             "ListOfLocalizedText": {

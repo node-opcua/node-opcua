@@ -132,10 +132,14 @@ UAVariableType.prototype.isSupertypeOf = tools.construct_isSupertypeOf(UAVariabl
 
 /**
  * @class MandatoryChildOrRequestedOptionalFilter
+ *
  * return true if node is a mandatory child or a requested optional
+ *
+ * @constructor
+ * @private
+ *
  * @param instance
  * @param optionalsMap
- * @return {Boolean}
  */
 function MandatoryChildOrRequestedOptionalFilter(instance, optionalsMap) {
     const self = this;
@@ -145,7 +149,6 @@ function MandatoryChildOrRequestedOptionalFilter(instance, optionalsMap) {
     self.optionalsMap= optionalsMap;
     self.instance = instance;
     self.references = instance.allReferences();
-
 }
 
 /**
@@ -192,19 +195,24 @@ MandatoryChildOrRequestedOptionalFilter.prototype.shouldKeep = function(node)
     }
 };
 
-MandatoryChildOrRequestedOptionalFilter.prototype.filterFor = function(childinstance)
+/**
+ *
+ * @param childInstance
+ * @returns {MandatoryChildOrRequestedOptionalFilter}
+ */
+MandatoryChildOrRequestedOptionalFilter.prototype.filterFor = function(childInstance)
 {
     // construct
     const self = this;
 
-    const browseName =childinstance.browseName.name;
+    const browseName =childInstance.browseName.name;
 
     let map = {};
 
     if (browseName in self.optionalsMap) {
         map = self.optionalsMap[browseName];
     }
-    const newFilter=  new MandatoryChildOrRequestedOptionalFilter(childinstance,map);
+    const newFilter=  new MandatoryChildOrRequestedOptionalFilter(childInstance,map);
     return newFilter;
 };
 
