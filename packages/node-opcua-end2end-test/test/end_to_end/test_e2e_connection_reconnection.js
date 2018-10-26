@@ -837,6 +837,13 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function monitor_monotonous_counter(callback) {
 
+        if (monitoredItem)  {
+            console.log(" warning = already monitoring");
+            monitoredItem.removeAllListeners();
+            monitoredItem = null;
+            // return callback(new Error("Already monitoring"));
+        }
+
         monitoredItem = subscription.monitor(
             {
                 // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
@@ -866,11 +873,19 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function wait_until_next_notification(done) {
         monitoredItem.once("changed", function (dataValue) {
-            setTimeout(done,10);
+            setTimeout(done,1);
         });
     }
 
     let previous_value_count = 0;
+
+
+    afterEach(function() {
+        if (monitoredItem)  {
+            monitoredItem.removeAllListeners();
+            monitoredItem = null;
+        }
+    });
 
     function reset_continuous(callback) {
         //xx console.log(" resetting value to check");
@@ -881,7 +896,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function ensure_continuous(callback) {
         // ensure we have more value than previous call
-        setImmediate(function () {
+        wait_until_next_notification(function () {
 
             // ensure that series is continuous
             if (doDebug) {
@@ -1297,12 +1312,16 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(create_subscription),
             f(monitor_monotonous_counter),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
 
@@ -1313,8 +1332,10 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
             f(wait_a_little_while),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(terminate_subscription),
@@ -1350,13 +1371,13 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             // now drop connection  for 1.5 times requestedSessionTimeout seconds
@@ -1364,10 +1385,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             // make sure that we have received all notifications
             // (thanks to republish )
 
-            f(wait_a_little_while),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
-            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(terminate_subscription),
