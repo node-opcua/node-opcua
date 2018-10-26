@@ -24,7 +24,7 @@
   "node-opcua-client": "^0.4.6",
   "node-opcua-client-proxy": "^0.4.6",
   "node-opcua-common": "^0.4.6",
-  "node-opcua-crypto": "0.0.22",
+  "node-opcua-crypto": "^1.0.0",
   "node-opcua-debug": "^0.4.6",
   "node-opcua-extension-object": "^0.4.6",
   "node-opcua-factory": "^0.4.6",
@@ -40,7 +40,7 @@
   "node-opcua-service-secure-channel": "^0.4.6",
   "node-opcua-variant": "^0.4.6",
   "should": "13.2.3",
-  "sinon": "^6.3.4",
+  "sinon": "^7.1.0",
   "underscore": "^1.9.1",
   "yargs": "^12.0.2"
  },

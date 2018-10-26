@@ -27,7 +27,7 @@
   "node-opcua-debug": "^0.4.2",
   "node-opcua-generator": "^0.4.6",
   "should": "13.2.3",
-  "sinon": "^6.3.4"
+  "sinon": "^7.1.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
