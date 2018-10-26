@@ -320,6 +320,120 @@ module.exports = function (test) {
 
         });
 
+        it("AZA1-H should terminate any pending subscription when the client is disconnected twice", function (done) {
+
+            let the_session;
+
+            async.series([
+
+                // connect
+                function (callback) {
+                    client.connect(endpointUrl, callback);
+                },
+
+                // create session
+                function (callback) {
+                    client.createSession(function (err, session) {
+                        assert(session instanceof ClientSession);
+                        if (!err) {
+                            the_session = session;
+                        }
+                        callback(err);
+                    });
+                },
+
+                // create subscription
+                function (callback) {
+
+                    const subscription = new ClientSubscription(the_session, {
+                        requestedPublishingInterval: 100,
+                        requestedLifetimeCount: 6000,
+                        requestedMaxKeepAliveCount: 100,
+                        maxNotificationsPerPublish: 5,
+                        publishingEnabled: true,
+                        priority: 6
+                    });
+                    subscription.on("started", function () {
+
+                        // monitor some
+                        const monitoredItem = subscription.monitor({
+                            nodeId: resolveNodeId("ns=0;i=2258"),
+                            attributeId: 13
+                        }, {
+                            samplingInterval: 100,
+                            discardOldest: true,
+                            queueSize: 1
+                        });
+
+                        callback();
+
+                    });
+
+                },
+
+                // wait a little bit and disconnect client
+                function (callback) {
+                    setTimeout(function () {
+                        client.disconnect(callback);
+                    }, 600);
+                },
+
+                // connect again
+                function (callback) {
+                    client.connect(endpointUrl, callback);
+                },
+
+                // create session again
+                function (callback) {
+                    client.createSession(function (err, session) {
+                        assert(session instanceof ClientSession);
+                        if (!err) {
+                            the_session = session;
+                        }
+                        callback(err);
+                    });
+                },
+
+                // create subscription again
+                function (callback) {
+
+                    const subscription = new ClientSubscription(the_session, {
+                        requestedPublishingInterval: 100,
+                        requestedLifetimeCount: 6000,
+                        requestedMaxKeepAliveCount: 100,
+                        maxNotificationsPerPublish: 5,
+                        publishingEnabled: true,
+                        priority: 6
+                    });
+                    subscription.on("started", function () {
+
+                        // monitor some again
+                        const monitoredItem = subscription.monitor({
+                            nodeId: resolveNodeId("ns=0;i=2258"),
+                            attributeId: 13
+                        }, {
+                            samplingInterval: 100,
+                            discardOldest: true,
+                            queueSize: 1
+                        });
+
+                        callback();
+
+                    });
+
+                },
+
+                // now disconnect the client, without closing the subscription first
+                function (callback) {
+                    setTimeout(function () {
+                        client.disconnect(callback);
+                    }, 400);
+                }
+            ], function (err) {
+                done(err);
+            });
+        });
+
     });
 
     describe("AZA2- testing server and subscription", function () {
@@ -3451,4 +3565,8 @@ module.exports = function (test) {
             });
         });
     });
+
+
+
+
 };

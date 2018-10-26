@@ -73,13 +73,13 @@ describe("KJH1 testing basic Client-Server communication", function () {
         };
         client = new OPCUAClient(options);
         client.on("connection_reestablished", function () {
-            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.red);
+            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.black);
         });
         client.on("backoff", function (number, delay) {
             debugLog("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
         });
         client.on("start_reconnection", function () {
-            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!".bgWhite.red);
+            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!".bgWhite.black);
         });
         done();
     });
@@ -355,6 +355,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
         server = build_server_with_temperature_device({port: port}, function (err) {
 
+            if (err) {
+                console.log(err.message);
+            }
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
 
@@ -423,6 +426,8 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     let client = null;
     let client_has_received_close_event;
     let client_has_received_start_reconnection_event;
+    let client_has_received_connection_reestablished_event = 0 ;
+    let client_has_received_connection_lost_event = 0;
 
     let backoff_counter = 0;
     let requestedSessionTimeout = 30000;
@@ -460,6 +465,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         });
         client_has_received_close_event = 0;
         client_has_received_start_reconnection_event = 0;
+        client_has_received_connection_reestablished_event = 0 ;
+        client_has_received_connection_lost_event = 0;
+
         client.on("close", function (err) {
             if (err) {
                 //xx console.log("err=", err.message);
@@ -476,8 +484,14 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             debugLog("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
             backoff_counter += 1;
         });
+
         client.on("connection_reestablished", function () {
-            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.red);
+            client_has_received_connection_reestablished_event += 1;
+            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.black);
+        });
+        client.on("connection_lost", function() {
+            client_has_received_connection_lost_event += 1;
+            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION LOST !!!!!!!!!!!!!!!!!!!".bgWhite.black);
         });
 
         client.connect(endpointUrl, function (err) {
@@ -544,7 +558,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         done();
     }
 
-    function verify_that_client_is_trying_to_reconnect(done) {
+    function verify_that_client_is_trying_to_connect(done) {
 
         // wait a little bit and check that client has started the reconnection process
         setTimeout(function () {
@@ -555,6 +569,11 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             }
             done();
         }, 10);
+    }
+
+    function verify_that_client_is_trying_to_reconnect(done) {
+        client_has_received_connection_lost_event.should.be.above(0);
+        verify_that_client_is_trying_to_connect(done);
     }
 
     function verify_that_client_is_NOT_trying_to_reconnect(done) {
@@ -749,6 +768,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
 
     });
+
     it("TR4 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", function (done) {
         async.series([
             function (callback) {
@@ -758,7 +778,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             // use robust connectionStrategy
             f(create_client_and_create_a_connection_to_server.bind(null, {doNotWaitForConnection: true}, robust_connectivity_strategy)),
             f(wait_a_little_while),
-            f(verify_that_client_is_trying_to_reconnect),
+            f(verify_that_client_is_trying_to_connect),
             f(wait_a_little_while),
             f(disconnect_client),
             f(wait_a_little_while),
@@ -1360,6 +1380,26 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             }
             done(err);
         });
+
+    });
+
+
+    it("TR13 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function(done) {
+
+        async.series([
+            f(start_demo_server),
+            f(reset_continuous),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, fail_fast_connectivity_strategy)),
+            f(wait_for.bind(null, 200)),
+            f(shutdown_server),
+            f(verify_that_client_is_trying_to_reconnect),
+            f(start_demo_server),
+            f(wait_for_reconnection_to_be_completed),
+            f(wait_a_little_while),
+            f(disconnect_client),
+            f(shutdown_server),
+        ],done);
+
 
     });
 });

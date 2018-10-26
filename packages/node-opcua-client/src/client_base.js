@@ -526,6 +526,8 @@ function _install_secure_channel_event_handlers(self, secureChannel) {
 
         } else {
 
+            self.emit("connection_lost");
+
             setImmediate(function () {
 
                 debugLog("recreating new secure channel ");
