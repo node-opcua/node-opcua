@@ -1404,13 +1404,13 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     });
 
 
-    it("TR13 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function(done) {
+    xit("TR13 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function(done) {
 
         async.series([
             f(start_demo_server),
             f(reset_continuous),
-            f(create_client_and_create_a_connection_to_server.bind(null, {}, fail_fast_connectivity_strategy)),
-            f(wait_for.bind(null, 200)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
+            f(wait_for.bind(null, 2000)),
             f(shutdown_server),
             f(verify_that_client_is_trying_to_reconnect),
             f(start_demo_server),
