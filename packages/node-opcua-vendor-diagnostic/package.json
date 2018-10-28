@@ -1,18 +1,18 @@
 {
 	"name": "node-opcua-vendor-diagnostic",
-	"version": "0.5.0",
+	"version": "2.0.0-alpha.0",
 	"description": "pure nodejs OPCUA SDK - module -vendor-diagnostic",
 	"main": "index.js",
- "scripts": {
-  "test": "echo no test"
- },
+	"scripts": {
+		"test": "echo no test"
+	},
 	"dependencies": {
-  "humanize": "0.0.9",
-  "node-opcua-assert": "^0.5.0",
-  "node-opcua-constants": "^0.5.0",
-  "node-opcua-server": "^0.5.0",
-  "node-opcua-status-code": "^0.5.0",
-  "node-opcua-variant": "^0.5.0"
+		"humanize": "0.0.9",
+		"node-opcua-assert": "^2.0.0-alpha.0",
+		"node-opcua-constants": "^2.0.0-alpha.0",
+		"node-opcua-server": "^2.0.0-alpha.0",
+		"node-opcua-status-code": "^2.0.0-alpha.0",
+		"node-opcua-variant": "^2.0.0-alpha.0"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",

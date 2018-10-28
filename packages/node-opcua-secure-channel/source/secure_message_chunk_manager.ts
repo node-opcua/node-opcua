@@ -66,7 +66,7 @@ export class SecureMessageChunkManager extends EventEmitter {
         assert(_.isObject(this.securityHeader));
 
         // the maximum size of a message chunk:
-        // Note: OPCUA requires that chunkSize is at least 8196
+        // Note: OPCUA requires that chunkSize is at least 8192
         this.chunkSize = options.chunkSize || 1024 * 128;
 
         this.msgType = msgType;
