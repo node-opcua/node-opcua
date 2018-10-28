@@ -89,12 +89,17 @@ function clamp_value(value, min_val, max_val) {
     return value;
 }
 
+const minimumBufferSize = 8192;
+
 ServerTCP_transport.prototype._send_ACK_response = function (helloMessage) {
 
     const self = this;
 
-    self.receiveBufferSize = clamp_value(helloMessage.receiveBufferSize, 8196, 512 * 1024);
-    self.sendBufferSize    = clamp_value(helloMessage.sendBufferSize,    8196, 512 * 1024);
+    assert(helloMessage.receiveBufferSize >= minimumBufferSize);
+    assert(helloMessage.sendBufferSize    >= minimumBufferSize);
+
+    self.receiveBufferSize = clamp_value(helloMessage.receiveBufferSize, 8192, 512 * 1024);
+    self.sendBufferSize    = clamp_value(helloMessage.sendBufferSize,    8192, 512 * 1024);
     self.maxMessageSize    = clamp_value(helloMessage.maxMessageSize,  100000, 16 * 1024 * 1024);
     self.maxChunkCount     = clamp_value(helloMessage.maxChunkCount,        0, 65535);
 
@@ -176,17 +181,27 @@ ServerTCP_transport.prototype._on_HEL_message = function (data, callback) {
         if (helloMessage.protocolVersion === 0xDEADBEEF || helloMessage.protocolVersion < self.protocolVersion) {
             // Note: 0xDEADBEEF is our special version number to simulate BadProtocolVersionUnsupported in tests
             // invalid protocol version requested by client
-            self._abortWithError(StatusCodes.BadProtocolVersionUnsupported, "Protocol Version Error" + self.protocolVersion, callback);
-        } else {
-
-            // the helloMessage shall only be received once.
-            self._helloreceived = true;
-
-            self._send_ACK_response(helloMessage);
-
-            callback(null); // no Error
+            return self._abortWithError(StatusCodes.BadProtocolVersionUnsupported, "Protocol Version Error" + self.protocolVersion, callback);
 
         }
+
+        // OPCUA Spec 1.04 part 6 - page 45
+        // UASC is designed to operate with different TransportProtocols that may have limited buffer
+        // sizes. For this reason, OPC UA Secure Conversation will break OPC UA Messages into several
+        // pieces (called ‘MessageChunks’) that are smaller than the buffer size allowed by the
+        // TransportProtocol. UASC requires a TransportProtocol buffer size that is at least 8 192 bytes
+        if (helloMessage.receiveBufferSize < minimumBufferSize || helloMessage.sendBufferSize < minimumBufferSize) {
+            return self._abortWithError(StatusCodes.BadConnectionRejected,
+                "Buffer size too small (should be at least " + minimumBufferSize , callback);
+
+        }
+        // the helloMessage shall only be received once.
+        self._helloreceived = true;
+
+        self._send_ACK_response(helloMessage);
+
+        callback(null); // no Error
+
 
     } else {
         // invalid packet , expecting HEL

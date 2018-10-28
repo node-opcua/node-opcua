@@ -205,4 +205,66 @@ describe("testing ServerTCP_transport", function () {
         fake_socket.client.write(openChannelRequest);
 
     });
+
+    it("WXWX1 (issue#504)  server transport accept bufferSize greater than 8192 byes", function (done) {
+
+        const transport = new ServerTCP_transport();
+
+        transport.init(fake_socket.server, function (err) {});
+        const helloMessage = new HelloMessage({
+            protocolVersion:      0,
+            receiveBufferSize: 8192,
+            sendBufferSize:    8192,
+            maxMessageSize:       0,
+            maxChunkCount:        0,
+            endpointUrl: "some string"
+        });
+
+        fake_socket.client.on("data", function (data) {
+            const stream = new BinaryStream(data);
+            const messageHeader = readMessageHeader(stream);
+            messageHeader.msgType.should.not.equal("ERR");
+            stream.rewind();
+            const response = decodeMessage(stream, AcknowledgeMessage);
+            response._schema.name.should.equal("AcknowledgeMessage");
+            //xx response._schema.name.should.equal("TCPErrorMessage");
+            //xx response.statusCode.name.should.eql("BadProtocolVersionUnsupported");
+            done();
+        });
+
+        fake_socket.client.write(packTcpMessage("HEL", helloMessage));
+
+
+    });
+
+    it("WXWX2 (issue#504) server transport should not accept bufferSize lower than 8192 byes", function (done) {
+
+        const transport = new ServerTCP_transport();
+
+        transport.init(fake_socket.server, function (err) {});
+        const helloMessage = new HelloMessage({
+            protocolVersion:      0,
+            receiveBufferSize:  512,
+            sendBufferSize:     512,
+            maxMessageSize:       0,
+            maxChunkCount:        0,
+            endpointUrl: "some string"
+        });
+
+        fake_socket.client.on("data", function (data) {
+            const stream = new BinaryStream(data);
+            const messageHeader = readMessageHeader(stream);
+            messageHeader.msgType.should.equal("ERR");
+            stream.rewind();
+            const response = decodeMessage(stream, AcknowledgeMessage);
+            //xx response._schema.name.should.equal("AcknowledgeMessage");
+            response._schema.name.should.equal("TCPErrorMessage");
+            response.statusCode.name.should.eql("BadConnectionRejected");
+            done();
+        });
+
+        fake_socket.client.write(packTcpMessage("HEL", helloMessage));
+
+
+    });
 });
