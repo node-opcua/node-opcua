@@ -11,7 +11,7 @@
  "dependencies": {
   "node-opcua-assert": "^0.4.6",
   "node-opcua-basic-types": "^0.4.6",
-  "node-opcua-crypto": "^1.0.0",
+  "node-opcua-crypto": "^1.0.1",
   "node-opcua-data-model": "^0.4.6",
   "node-opcua-factory": "^0.4.6",
   "node-opcua-nodeid": "^0.4.6",

@@ -37,7 +37,7 @@ const performCheck = false;
  *
  *
  */
-class BinaryStream {
+export class BinaryStream {
     _buffer: Buffer;
     length: number;
 
@@ -441,7 +441,6 @@ function calculateByteLength(str: string) {
 }
 
 const zeroLengthBuffer = createFastUninitializedBuffer(0);
-exports.BinaryStream = BinaryStream;
 
 /**
  * a BinaryStreamSizeCalculator can be used to quickly evaluate the required size
@@ -455,7 +454,7 @@ exports.BinaryStream = BinaryStream;
  * @constructor
  *
  */
-class BinaryStreamSizeCalculator {
+export class BinaryStreamSizeCalculator {
     length: number;
 
     constructor() {
@@ -524,4 +523,3 @@ class BinaryStreamSizeCalculator {
     }
 }
 
-exports.BinaryStreamSizeCalculator = BinaryStreamSizeCalculator;
