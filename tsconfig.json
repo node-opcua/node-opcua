@@ -3,6 +3,7 @@
     "skipLibCheck": true,
     "target": "es6",
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": true,
     "sourceMap": true,
     "rootDir": "source",
