@@ -9,12 +9,12 @@
   "test": "mocha test"
  },
  "dependencies": {
-  "@types/underscore": "^1.8.9",
   "long": "^4.0.0",
   "node-opcua-assert": "^2.0.0-alpha.0",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
+  "@types/underscore": "^1.8.9",
   "bignumber.js": "^7.2.1",
   "node-opcua-benchmarker": "^2.0.0-alpha.0",
   "node-opcua-binary-stream": "^2.0.0-alpha.0",

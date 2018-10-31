@@ -11,8 +11,6 @@
   "lint": "tslint source/**/*.ts"
  },
  "dependencies": {
-  "@types/node": "^10.12.0",
-  "@types/underscore": "^1.8.9",
   "chalk": "^2.4.1",
   "node-opcua-assert": "^2.0.0-alpha.0",
   "node-opcua-basic-types": "^2.0.0-alpha.0",
@@ -23,6 +21,8 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
+  "@types/node": "^10.12.0",
+  "@types/underscore": "^1.8.9",
   "node-opcua-debug": "^2.0.0-alpha.0",
   "should": "13.2.3",
   "source-map-support": "^0.5.9"

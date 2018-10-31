@@ -9,7 +9,6 @@
   "test": "mocha test"
  },
  "dependencies": {
-  "@types/prettier": "^1.13.2",
   "chalk": "^2.4.1",
   "node-opcua-assert": "^2.0.0-alpha.0",
   "node-opcua-basic-types": "^2.0.0-alpha.0",
@@ -29,6 +28,7 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
+  "@types/prettier": "^1.13.2",
   "node-opcua-binary-stream": "^2.0.0-alpha.0",
   "node-opcua-extension-object": "^2.0.0-alpha.0",
   "node-opcua-packet-analyzer": "^2.0.0-alpha.0",
