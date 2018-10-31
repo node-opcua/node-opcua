@@ -1,11 +1,7 @@
 {
+  "extends" : "../tsconfig.json",
   "compilerOptions": {
-    "skipLibCheck": true,
-    "target": "es6",
-    "module": "commonjs",
-    "declaration": true,
-    "outDir": "./dist",
-    "sourceMap": true,
-    "strict": true
-  }
+    "rootDir": "source",
+    "outDir": "dist"
+  },
 }

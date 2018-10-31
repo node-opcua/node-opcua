@@ -1,16 +1,12 @@
 {
-  "compilerOptions": {
-    "skipLibCheck": true,
-    "target": "es6",
-    "module": "commonjs",
-    "declaration": true,
-    "outDir": "./dist",
-    "sourceMap": true,
-    "strict": true
-  },
+  "extends" : "../tsconfig.json",
   "include": [
     "./source/index.ts"
   ],
+  "compilerOptions": {
+    "rootDir": "source",
+    "outDir": "dist"
+  },
   "exclude": [
     "node_modules",
     "_generated_",

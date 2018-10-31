@@ -1,18 +1,13 @@
 {
     "compilerOptions": {
-        "outDir": "./dist",
         "skipLibCheck": true,
+        "moduleResolution": "node",
         "target": "es6",
         "module": "commonjs",
         "declaration": true,
         "sourceMap": true,
         "strict": true,
-        "noImplicitAny": true,
-        "noImplicitReturns": true,
-        "importHelpers": true,
         "listFiles": false,
-        "traceResolution": false
-    },
-    "compileOnSave": false
-
+        "outDir": "dist"
+    }
 }
