@@ -1169,6 +1169,16 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     this._tick1 = get_clock_tick();
                 }
 
+                if (this.securityToken && channelId !==  this.securityToken.channelId) {
+                       // response = new ServiceFault({responseHeader: {serviceResult: certificate_status}});
+                    return this.send_error_and_abort(
+                      StatusCodes.BadCommunicationError,
+                      "Invalid Channel Id specified",
+                      message, () => {
+
+                    });
+                }
+
                 /**
                  * notify the observer that a OPCUA message has been received.
                  * It is up to one observer to call send_response or send_error_and_abort to complete

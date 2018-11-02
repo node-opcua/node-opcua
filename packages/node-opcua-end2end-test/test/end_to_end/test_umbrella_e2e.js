@@ -250,4 +250,6 @@ describe("testing Client - Umbrella ", function () {
     require("./alarms_and_conditions/u_test_e2e_conditions")(test);
     require("./u_test_e2e_sessionDiagnostics")(test);
     require("./u_test_e2e_issue_activate_an_expired_session")(test);
+    require("./u_test_e2e_server_behavior_on_wrong_channel_id")(test);
+
 });
