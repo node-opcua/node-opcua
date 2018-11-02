@@ -272,7 +272,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _timedout_request_count: number;
     private _securityTokenTimeoutId: NodeJS.Timer | null;
     private readonly transportTimeout: number;
-    private readonly channelId: number;
+    private channelId: number;
     private readonly connectionStrategy: any;
     private last_transaction_stats: any | ClientTransactionStatistics;
     private derivedKeys: DerivedKeys1 | null;
@@ -633,6 +633,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
                 assert(response instanceof OpenSecureChannelResponse);
                 const openSecureChannelResponse = response as OpenSecureChannelResponse;
+
+                // record channelId for future transactions
+                this.channelId = openSecureChannelResponse.securityToken.channelId;
 
                 // todo : verify that server certificate is  valid
                 // A self-signed application instance certificate does not need to be verified with a CA.
