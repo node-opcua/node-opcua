@@ -1,13 +1,15 @@
-import chalk from "chalk";
-
 // tslint:disable:max-line-length
 // tslint:disable:no-var-requires
 // tslint:disable:no-console
+// tslint:disable:variable-name
+
+import chalk from "chalk";
+
 const semver = require("semver");
-const version = require("../package").engines.node;
-if (!semver.satisfies(process.version, version)) {
+const minimumNodeVersionRequired = "8.0.0"; // minimum
+if (!semver.satisfies(process.version, minimumNodeVersionRequired)) {
   console.log(
-    chalk.cyan(`warning node-opcua: Required nodejs version ${version} not satisfied with current nodejs version ${
+        chalk.cyan(`warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${
       process.version
       }.`));
 }
@@ -79,6 +81,7 @@ export * from "node-opcua-service-secure-channel";
 export * from "node-opcua-service-translate-browse-path";
 export * from "node-opcua-service-query";
 export * from "node-opcua-service-node-management";
+export { DiagnosticInfo } from "node-opcua-data-model";
 
 export * from "node-opcua-secure-channel";
 
@@ -86,17 +89,9 @@ export * from "node-opcua-secure-channel";
 // Nodeset stuff
 // -----------------------------------------------------------------------------
 export { nodesets } from "node-opcua-nodesets";
-
-/*
-module.exports.constructNodesetFilename = module.exports.nodesets.constructNodesetFilename;
-module.exports.standard_nodeset_file = module.exports.nodesets.standard_nodeset_file;
-module.exports.di_nodeset_filename = module.exports.nodesets.di_nodeset_filename;
-module.exports.adi_nodeset_filename = module.exports.nodesets.adi_nodeset_filename;
-*/
-
 // an incomplete but sufficient nodeset file used during testing
-module.exports.mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
-module.exports.empty_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").empty_nodeset_filename;
+export const empty_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").empty_nodeset_filename;
+export const mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
 
 module.exports.utils = require("node-opcua-utils");
 // xx module.exports.crypto_utils = require("node-opcua-crypto");
@@ -106,13 +101,16 @@ module.exports.hexDump = require("node-opcua-debug").hexDump;
 // client services
 // ----------------------------------------------------------------------------------------------------------
 export * from "node-opcua-client";
-// xx module.exports.OPCUAClientImpl = require("node-opcua-client").OPCUAClientImpl;
-// xx module.exports.ClientBaseImpl = require("node-opcua-client").ClientBaseImpl;
+export * from "node-opcua-client-proxy";
+export * from "node-opcua-client-crawler";
+export { parseEndpointUrl, is_valid_endpointUrl } from "node-opcua-transport";
 
-module.exports.NodeCrawler = require("node-opcua-client-crawler").NodeCrawler;
-// xx module.exports.ClientSubscription = require("node-opcua-client").ClientSubscription;
-// module.exports.ClientSession = require("node-opcua-client").ClientSession;
-// Xx module.exports.client_utils = require("node-opcua-client/src");
+// ----------------------------------------------------------------------------------------------------------
+// server management
+// ----------------------------------------------------------------------------------------------------------
+export * from "./server-stuff";
+// filtering tools
+export * from "node-opcua-service-filter";
 
 module.exports.perform_findServers = require("node-opcua-client").perform_findServers;
 module.exports.perform_findServersOnNetwork = require("node-opcua-client").perform_findServersOnNetwork;
@@ -123,9 +121,6 @@ module.exports.readUAAnalogItem = require("node-opcua-client").readUAAnalogItem;
 
 module.exports.parseEndpointUrl = require("node-opcua-transport").parseEndpointUrl;
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Server services
-// ---------------------------------------------------------------------------------------------------------------------
 module.exports.OPCUAServer = require("node-opcua-server").OPCUAServer;
 module.exports.RegisterServerMethod = require("node-opcua-server").RegisterServerMethod;
 
@@ -138,22 +133,20 @@ module.exports.MonitoredItem = require("node-opcua-server").MonitoredItem;
 module.exports.generate_address_space = require("node-opcua-address-space").generate_address_space;
 module.exports.AddressSpace = require("node-opcua-address-space").AddressSpace;
 module.exports.SessionContext = require("node-opcua-address-space").SessionContext;
+module.exports.checkSelectClause = require("node-opcua-address-space").checkSelectClause;
+
 // basic opcua NodeClass
-module.exports.UAObject = require("node-opcua-address-space").UAObject;
-module.exports.UAMethod = require("node-opcua-address-space").UAMethod;
-module.exports.UAVariable = require("node-opcua-address-space").UAVariable;
-module.exports.UADataType = require("node-opcua-address-space").UADataType;
 
 module.exports.getAddressSpaceFixture = require("node-opcua-address-space/test_helpers/get_address_space_fixture").getAddressSpaceFixture;
+
 module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
-
-module.exports.is_valid_endpointUrl = require("node-opcua-transport").is_valid_endpointUrl;
-
 // filtering tools
 module.exports.checkSelectClause = require("node-opcua-address-space").checkSelectClause;
 module.exports.constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
 
+
 const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
+
 module.exports.build_address_space_for_conformance_testing =
   address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
@@ -162,5 +155,3 @@ module.exports.construct_demo_alarm_in_address_space = require("node-opcua-addre
 
 module.exports.createBoilerType = require("node-opcua-address-space/test_helpers/boiler_system").createBoilerType;
 module.exports.makeBoiler = require("node-opcua-address-space/test_helpers/boiler_system").makeBoiler;
-
-module.exports.UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;

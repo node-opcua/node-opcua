@@ -3,8 +3,7 @@
     "version": "2.0.0-alpha.0",
     "description": "pure nodejs OPCUA SDK - module ",
     "main": "./dist/index.js",
-    "types": "./dist/index.d.td",
-    "typings": "./node-opcua.d.ts",
+    "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc"
     },
