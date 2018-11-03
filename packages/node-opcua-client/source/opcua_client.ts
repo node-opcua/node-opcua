@@ -26,6 +26,7 @@ import {
     UserTokenType
 } from "node-opcua-service-endpoints";
 import { MessageSecurityMode } from "node-opcua-service-secure-channel";
+import { X509IdentityTokenOptions } from "node-opcua-types";
 import {
     FindServersRequestLike,
     GetEndpointsOptions,
@@ -38,10 +39,22 @@ import { ClientSession, ResponseCallback } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
 
-export interface UserIdentityInfo {
-    userName?: string;
-    password?: string;
+export interface UserIdentityInfoUserName {
+    type: UserTokenType.UserName;
+    userName: string;
+    password: string;
 }
+
+export interface UserIdentityInfoX509 extends X509IdentityTokenOptions {
+    type: UserTokenType.Certificate;
+    certificateData: ByteString;
+    privateKey: PrivateKeyPEM;
+}
+export interface AnonymousIdentity {
+    type: UserTokenType.Anonymous;
+}
+
+export type UserIdentityInfo = AnonymousIdentity | UserIdentityInfoX509 | UserIdentityInfoUserName;
 
 export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
 

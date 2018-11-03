@@ -548,6 +548,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * @param nodes   the read value id
      * @param start   the starttime in UTC format
      * @param end     the endtime in UTC format
+     * @param callback
      */
     public readHistoryValue(
         nodes: ReadValueIdLike[],

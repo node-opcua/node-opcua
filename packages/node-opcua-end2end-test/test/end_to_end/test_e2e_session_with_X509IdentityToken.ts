@@ -1,12 +1,15 @@
+// tslint:disable:no-var-requires
 import * as fs from "fs";
 import * as path from "path";
 
 import {
-    nodesets,
+    empty_nodeset_filename,
     OPCUAClient,
     OPCUAServer,
-    UserIdentityCertificateInfo
 } from "node-opcua";
+import {
+    UserIdentityInfoX509
+} from "node-opcua-client";
 
 const should = require("should");
 import * as  crypto_utils from "node-opcua-crypto";
@@ -16,12 +19,12 @@ const port = 5000;
 
 let server: OPCUAServer;
 let endpointUrl: string;
-
+// openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout example.pem -outform der -out example.der -subj "/CN=example.com" -days 3650
 async function startServer(): Promise<OPCUAServer> {
 
     server = new OPCUAServer({
         maxAllowedSessionNumber: 10,
-        nodeset_filename: nodesets.empty_nodeset_filename,
+        nodeset_filename: empty_nodeset_filename,
         port,
     });
     await server.start();
@@ -34,9 +37,6 @@ async function endServer() {
         await server.shutdown(1);
     }
 }
-
-// xx const perform_operation_on_client_session =
-// require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Session with user certificate", () => {
@@ -57,10 +57,10 @@ describe("Testing Session with user certificate", () => {
 
         await client.connect(endpointUrl);
 
-        const userIdentity: UserIdentityCertificateInfo = {
-            clientCertificate, clientPrivateKey
-        };
-        const session = await client.createSession(userIdentity);
+        // const userIdentity: UserIdentityCertificateInfo = {
+        //    clientCertificate, clientPrivateKey
+        // };
+        const session = await client.createSession();
 
         await session.close();
 
