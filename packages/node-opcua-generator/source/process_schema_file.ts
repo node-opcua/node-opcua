@@ -228,4 +228,3 @@ export function parseBinaryXSD(
         callback(err, typeDictionary);
     });
 }
-

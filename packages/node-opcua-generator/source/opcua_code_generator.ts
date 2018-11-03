@@ -1,5 +1,4 @@
 import { generateTypeScriptCodeFromSchema } from "./generator";
-import * as path from "path";
 
 console.log(process.argv);
 
@@ -11,4 +10,3 @@ async function main() {
 main()
     .then()
     .catch();
-
