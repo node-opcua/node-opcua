@@ -1,69 +1,62 @@
 // tslint:disable:variable-name
 // tslint:disable:object-literal-shorthand
-
-import { randomBytes } from "crypto";
-import * as  _ from "underscore";
-import * as  util from "util";
-import { EventEmitter } from "events";
+// tslint:disable:no-console
+// tslint:disable:no-var-requires
+// tslint:disable:max-line-length
 import chalk from "chalk";
-
+import { randomBytes } from "crypto";
+import { EventEmitter } from "events";
+import * as  _ from "underscore";
 
 import {
     Certificate,
+    convertPEMtoDER,
+    extractPublicKeyFromCertificate,
+    makeSHA1Thumbprint,
+    Nonce,
     PrivateKey,
-    PublicKeyPEM,
     PrivateKeyPEM,
     PublicKey,
-    Nonce,
-    rsa_length,
-    makeSHA1Thumbprint,
-    extractPublicKeyFromCertificate,
-    convertPEMtoDER
+    PublicKeyPEM,
+    rsa_length
 } from "node-opcua-crypto";
 
 import { assert } from "node-opcua-assert";
 
-
-import { get_clock_tick, isNullOrUndefined } from "node-opcua-utils";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { get_clock_tick } from "node-opcua-utils";
 
-
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
-import { ClientTCP_transport } from "node-opcua-transport";
-import { hexDump, make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { verify_message_chunk, readMessageHeader } from "node-opcua-chunkmanager";
+import { readMessageHeader, verify_message_chunk } from "node-opcua-chunkmanager";
+import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
 import {
-    MessageSecurityMode,
-    ResponseHeader,
-    RequestHeader,
-    coerceMessageSecurityMode
+    coerceMessageSecurityMode,
+    MessageSecurityMode
 } from "node-opcua-service-secure-channel";
+import { StatusCodes } from "node-opcua-status-code";
+import { ClientTCP_transport } from "node-opcua-transport";
 
-
-import { MessageBuilder, SecurityToken } from "../message_builder";
-import { messageHeaderToString } from "../message_header_to_string";
-import { ChunkMessageOptions, MessageChunker } from "../message_chunker";
 import {
-    SecurityPolicy,
-    getCryptoFactory,
+    BaseUAObject
+} from "node-opcua-factory";
+import { MessageBuilder, SecurityToken } from "../message_builder";
+import { ChunkMessageOptions, MessageChunker } from "../message_chunker";
+import { messageHeaderToString } from "../message_header_to_string";
+import {
+    coerceSecurityPolicy,
     computeDerivedKeys,
     DerivedKeys1,
-    toURI,
-    getOptionsForSymmetricSignAndEncrypt, coerceSecurityPolicy
+    getCryptoFactory,
+    getOptionsForSymmetricSignAndEncrypt,
+    SecurityPolicy, toURI
 } from "../security_policy";
 import {
-    OpenSecureChannelRequest,
-    CloseSecureChannelRequest,
-    OpenSecureChannelResponse,
     AsymmetricAlgorithmSecurityHeader,
-    ServiceFault,
+    CloseSecureChannelRequest,
+    OpenSecureChannelRequest,
+    OpenSecureChannelResponse,
     SecurityTokenRequestType,
+    ServiceFault,
 } from "../services";
-import {
-    BaseUAObject,
-    TypeSchemaBase
-} from "node-opcua-factory";
-
 
 // import * as backoff from "backoff";
 const backoff = require("backoff");
@@ -75,8 +68,7 @@ const doTraceMessage = process.env.DEBUG && (process.env.DEBUG.indexOf("TRACE"))
 const doTraceStatistics = process.env.DEBUG && (process.env.DEBUG.indexOf("STATS")) >= 0;
 const doPerfMonitoring = false;
 
-import { Request, Response, ErrorCallback, ICertificateKeyPairProvider } from "../common";
-
+import { ErrorCallback, ICertificateKeyPairProvider, Request, Response } from "../common";
 
 const minTransactionTimeout = 30 * 1000;    // 30 sec
 const defaultTransactionTimeout = 60 * 1000; // 1 minute
@@ -109,7 +101,6 @@ interface RequestData {
     chunk_count: number;
 }
 
-
 function process_request_callback(requestData: RequestData, err?: Error | null, response?: Response) {
 
     assert(_.isFunction(requestData.callback));
@@ -128,7 +119,6 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
         response = undefined;
     }
 
-
     const theCallbackFunction = requestData.callback;
     if (!theCallbackFunction) {
         throw new Error("Internal error");
@@ -141,9 +131,6 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
     theCallbackFunction(err, (!err && response !== null) ? response : undefined);
 
 }
-
-
-let g_channelId = 0;
 
 interface ClientTransactionStatistics {
     dump: () => void;
@@ -203,16 +190,16 @@ export function coerceConnectionStrategy(options: ConnectionStrategyOptions | nu
     const randomisationFactor = (options.randomisationFactor === undefined) ? 0 : options.randomisationFactor;
 
     return {
-        maxRetry, initialDelay, maxDelay, randomisationFactor
+        initialDelay, maxDelay, maxRetry,  randomisationFactor
     };
 }
 
 export interface ClientSecureChannelParent  extends ICertificateKeyPairProvider {
+    applicationName?: string;
+    clientName?: string;
     getCertificate(): Certificate ;
     getCertificateChain(): Certificate;
     getPrivateKey(): PrivateKeyPEM;
-    applicationName?: string;
-    clientName?: string;
 }
 
 export interface ClientSecureChannelLayerOptions {
@@ -234,8 +221,8 @@ export interface ClientSecureChannelLayerOptions {
  * @uses MessageChunker
  * @uses MessageBuilder
  * @param options
- * @param {Number} [options.defaultSecureTokenLifetime=30000 = 30 seconds]
- * @param {Number} [options.tokenRenewalInterval =0]  if 0, security token renewal will happen at 75% of defaultSecureTokenLifetime
+ * @param [options.defaultSecureTokenLifetime=30000 = 30 seconds]
+ * @param [options.tokenRenewalInterval =0]  if 0, security token renewal will happen at 75% of defaultSecureTokenLifetime
  * @param [options.securityMode=MessageSecurityMode.None]
  * @param [options.securityPolicy=SecurityPolicy.None]
  * @param [options.serverCertificate=null] the serverCertificate (required if securityMode!=None)
@@ -249,6 +236,36 @@ export interface ClientSecureChannelLayerOptions {
  * @constructor
  */
 export class ClientSecureChannelLayer extends EventEmitter {
+
+    /**
+     * true if the secure channel is trying to establish the connection with the server. In this case, the client
+     * may be in the middle of the b ackoff connection process.
+     *
+     * @property isConnecting
+     * @type {Boolean}
+     *
+     */
+    public get isConnecting() {
+        return (!!this.__call);
+    }
+
+    get bytesRead() {
+        return this._transport ? this._transport.bytesRead : 0;
+    }
+
+    get bytesWritten() {
+        return this._transport ? this._transport.bytesWritten : 0;
+    }
+
+    get transactionsPerformed() {
+        return this._lastRequestId;
+    }
+
+    get timedOutRequestCount() {
+        return this._timedout_request_count;
+    }
+
+    public static defaultTransportTimeout = 60 * 1000; // 1 minute
 
     public protocolVersion: number;
     public readonly securityMode: MessageSecurityMode;
@@ -284,7 +301,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private receiverCertificate: Certificate | null;
     private securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     private lastError?: Error;
-
 
     constructor(options: ClientSecureChannelLayerOptions) {
         super();
@@ -322,18 +338,18 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.securityPolicy = coerceSecurityPolicy(options.securityPolicy);
 
-
         this.serverCertificate = options.serverCertificate ? options.serverCertificate : null;
 
-
         if (this.securityMode !== MessageSecurityMode.None) {
-            assert(this.serverCertificate as any instanceof Buffer, "Expecting a valid certificate when security mode is not None");
-            assert(this.securityPolicy !== SecurityPolicy.None, "Security Policy None is not a valid choice");
+            assert(this.serverCertificate as any instanceof Buffer,
+              "Expecting a valid certificate when security mode is not None");
+            assert(this.securityPolicy !== SecurityPolicy.None,
+              "Security Policy None is not a valid choice");
         }
 
         this.messageBuilder = new MessageBuilder({
+            privateKey: this.getPrivateKey() || undefined,
             securityMode: this.securityMode,
-            privateKey: this.getPrivateKey() || undefined
         });
         this._requests = {};
 
@@ -370,22 +386,232 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.transportTimeout = options.transportTimeout || ClientSecureChannelLayer.defaultTransportTimeout;
 
-        this.channelId = g_channelId;
-        g_channelId += 1;
+        this.channelId = 0;
 
         this.connectionStrategy = coerceConnectionStrategy(options.connectionStrategy);
 
-
     }
 
-    static defaultTransportTimeout = 10 * 1000; // 1 minute
-
-    getPrivateKey(): PrivateKeyPEM | null {
+    public getPrivateKey(): PrivateKeyPEM | null {
         return this.parent ? this.parent.getPrivateKey() : null;
     }
 
-    getCertificateChain(): Certificate | null {
+    public getCertificateChain(): Certificate | null {
         return this.parent ? this.parent.getCertificateChain() : null;
+    }
+
+    public isTransactionInProgress(): boolean {
+        return Object.keys(this._requests).length > 0;
+    }
+
+    /**
+     * establish a secure channel with the provided server end point.
+     *
+     * @method create
+     * @async
+     * @param endpointUrl
+     * @param callback the async callback function
+     *
+     *
+     * @example
+     *
+     *    ```javascript
+     *
+     *    var secureChannel  = new ClientSecureChannelLayer({});
+     *
+     *    secureChannel.on("end", function(err) {
+     *         console.log("secure channel has ended",err);
+     *         if(err) {
+     *            console.log(" the connection was closed by an external cause such as server shutdown");
+     *        }
+     *    });
+     *    secureChannel.create("opc.tcp://localhost:1234/UA/Sample", (err) => {
+     *         if(err) {
+     *              console.log(" cannot establish secure channel" , err);
+     *         } else {
+     *              console.log("secure channel has been established");
+     *         }
+     *    });
+     *
+     *    ```
+     */
+    public create(endpointUrl: string, callback: ErrorCallback) {
+
+        assert(_.isFunction(callback));
+
+        if (this.securityMode !== MessageSecurityMode.None) {
+
+            if (!this.serverCertificate) {
+                return callback(new Error("ClientSecureChannelLayer#create : expecting a  server certificate when securityMode is not None"));
+            }
+
+            // take the opportunity of this async method to perform some async pre-processing
+            if (!this.receiverPublicKey) {
+
+                extractPublicKeyFromCertificate(this.serverCertificate, (err: Error | null, publicKey?: PublicKeyPEM) => {
+                    /* istanbul ignore next */
+                    if (err) {
+                        return callback(err);
+                    }
+                    if (!publicKey) {
+                        throw new Error("Internal Error");
+                    }
+                    this.receiverPublicKey = publicKey;
+
+                    this.create(endpointUrl, callback);
+                });
+                return;
+            }
+        }
+
+        this.endpointUrl = endpointUrl;
+
+        const transport = new ClientTCP_transport();
+        transport.timeout = this.transportTimeout;
+
+        this._establish_connection(
+            transport,
+            endpointUrl,
+            (err?: Error) => {
+
+                if (err) {
+                    debugLog(chalk.red("cannot connect to server"));
+                    transport.dispose();
+                    return callback(err);
+                }
+
+                this._on_connection(transport, callback);
+
+            }
+        );
+
+    }
+
+    public dispose() {
+        this._cancel_security_token_watchdog();
+        if (this.__call) {
+            this.__call.abort();
+        }
+    }
+
+    public abortConnection(callback: ErrorCallback) {
+        assert(_.isFunction(callback));
+        if (this.__call) {
+            this.__call.once("abort", () => setTimeout(callback, 20));
+            this.__call._cancelBackoff = true;
+            this.__call.abort();
+        } else {
+            callback();
+        }
+    }
+
+    /**
+     * perform a OPC-UA message transaction, asynchronously.
+     * During a transaction, the client sends a request to the server. The provided callback will be invoked
+     * at a later stage with the reply from the server, or the error.
+     *
+     * preconditions:
+     *   - the channel must be opened
+     *
+     * @example
+     *
+     *    ```javascript
+     *    let secure_channel ; // get a  ClientSecureChannelLayer somehow
+     *
+     *    const request = new BrowseRequest({...});
+     *    secure_channel.performMessageTransaction(request, (err,response) => {
+     *       if (err) {
+     *         // an error has occurred
+     *       } else {
+     *          assert(response instanceof BrowseResponse);
+     *         // do something with response.
+     *       }
+     *    });
+     *    ```
+     *
+     */
+    public performMessageTransaction(request: Request, callback: PerformTransactionCallback) {
+        assert(_.isFunction(callback));
+        this._performMessageTransaction("MSG", request, callback);
+    }
+
+    public isValid(): boolean {
+        return this._transport !== null && this._transport.isValid();
+    }
+
+    public isOpened() {
+        return this.isValid() && this._isOpened;
+    }
+
+    public getDisplayName() {
+        if (!this.parent) {
+            return "";
+        }
+        return "" + (this.parent.applicationName ? this.parent.applicationName + " " : "") + this.parent.clientName;
+    }
+
+    public cancelPendingTransactions(callback: ErrorCallback) {
+        assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
+
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog(" PENDING TRANSACTION = ",
+                this.getDisplayName(),
+                Object.keys(this._requests)
+                    .map((k) => this._requests[k].request.constructor.name).join(""));
+        }
+
+        for (const key of Object.keys(this._requests)) {
+            // kill timer id
+            const transaction = this._requests[key];
+            if (transaction.callback) {
+                transaction.callback(new Error("Transaction has been canceled because client channel  is being closed"));
+            }
+        }
+        setImmediate(callback);
+    }
+
+    /**
+     * Close a client SecureChannel ,by sending a CloseSecureChannelRequest to the server.
+     *
+     *
+     * After this call, the connection is closed and no further transaction can be made.
+     *
+     * @method close
+     * @async
+     * @param callback
+     */
+    public close(callback: ErrorCallback) {
+
+        assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
+
+        // cancel any pending transaction
+        this.cancelPendingTransactions((/* err?: Error */) => {
+            // what the specs says:
+            // --------------------
+            //   The client closes the connection by sending a CloseSecureChannelRequest and closing the
+            //   socket gracefully. When the server receives this message it shall release all resources
+            //   allocated for the channel. The server does not send a CloseSecureChannel response
+            //
+            // ( Note : some servers do  send a CloseSecureChannel though !)
+
+            // there is no need for the security token expiration event to trigger anymore
+            this._cancel_security_token_watchdog();
+
+            debugLog("Sending CloseSecureChannelRequest to server");
+            const request = new CloseSecureChannelRequest({});
+
+            this.__in_normal_close_operation = true;
+
+            if (!this._transport || this._transport.__disconnecting__) {
+                this.dispose();
+                return callback(new Error("Transport disconnected"));
+            }
+            this._performMessageTransaction("CLO", request, () => {
+                this.dispose();
+                callback();
+            });
+        });
     }
 
     private on_transaction_completed(transactionStatistics: ClientTransactionStatistics) {
@@ -428,7 +654,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         requestData.response = response;
 
-
         if (doPerfMonitoring) {
             // record tick2 : after response message has been received, before message processing
             requestData._tick2 = this.messageBuilder._tick1;
@@ -463,15 +688,15 @@ export class ClientSecureChannelLayer extends EventEmitter {
         //                                                             |---------------------------| process.resp
         //                                                                                  |---------------|
         this.last_transaction_stats = {
+            bytesRead: requestData.bytesRead,
+            bytesWritten: requestData.bytesWritten_after - requestData.bytesWritten_before,
+            lap_processing_response: requestData._tick4 - requestData._tick3,
+            lap_receiving_response: requestData._tick3 - requestData._tick2,
+            lap_sending_request: requestData._tick1 - requestData._tick0,
+            lap_transaction: requestData._tick4 - requestData._tick0,
+            lap_waiting_response: requestData._tick2 - requestData._tick1,
             request: requestData.request,
             response: requestData.response,
-            bytesWritten: requestData.bytesWritten_after - requestData.bytesWritten_before,
-            bytesRead: requestData.bytesRead,
-            lap_sending_request: requestData._tick1 - requestData._tick0,
-            lap_waiting_response: requestData._tick2 - requestData._tick1,
-            lap_receiving_response: requestData._tick3 - requestData._tick2,
-            lap_processing_response: requestData._tick4 - requestData._tick3,
-            lap_transaction: requestData._tick4 - requestData._tick0
         };
 
         if (doTraceStatistics) {
@@ -479,14 +704,12 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
     }
 
-    isTransactionInProgress(): boolean {
-        return Object.keys(this._requests).length > 0;
-    }
-
     private _cancel_pending_transactions(err?: Error) {
 
         if (doDebug && this._requests) {
-            debugLog("_cancel_pending_transactions  ", Object.keys(this._requests), this._transport ? this._transport.name : "no transport");
+            debugLog("_cancel_pending_transactions  ",
+              Object.keys(this._requests),
+              this._transport ? this._transport.name : "no transport");
         }
 
         assert(err === null || err === undefined || _.isObject(err), "expecting valid error");
@@ -495,7 +718,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
             Object.keys(this._requests).forEach((key: string) => {
                 const requestData = this._requests[key];
-                debugLog("xxxx Cancelling pending transaction ", requestData.key, requestData.msgType, requestData.request.schema.name);
+                debugLog("Cancelling pending transaction ",
+                  requestData.key, requestData.msgType,
+                  requestData.request.schema.name);
                 process_request_callback(requestData, err);
             });
         }
@@ -517,7 +742,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
          * A Error object is provided if the disconnection has been initiated by an external cause.
          *
          * @event close
-         * @param error {Error}
+         * @param err
          */
         this.emit("close", err);
         this._cancel_pending_transactions(err);
@@ -526,9 +751,12 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     private _on_security_token_about_to_expire() {
 
-        if (!this.securityToken) return;
+        if (!this.securityToken) {
+            return;
+        }
 
-        debugLog(" client: Security Token ", this.securityToken.tokenId, " is about to expired, let's raise lifetime_75 event ");
+        debugLog(" client: Security Token ", this.securityToken.tokenId,
+          " is about to expired, let's raise lifetime_75 event ");
 
         /**
          * notify the observer that the secure channel has now reach 75% of its allowed live time and
@@ -552,7 +780,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     private _install_security_token_watchdog() {
 
-        if (!this.securityToken) return;
+        if (!this.securityToken) { return; }
 
         // install timer event to raise a 'lifetime_75' when security token is about to expired
         // so that client can request for a new security token
@@ -565,7 +793,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
         timeout = Math.min(timeout, lifeTime * 75 / 100);
 
         if (doDebug) {
-            debugLog(chalk.red.bold(" time until next security token renal = "), timeout, "( lifefime = ", lifeTime + ")");
+            debugLog(chalk.red.bold(" time until next security token renal = "),
+              timeout, "( lifetime = ", lifeTime + ")");
         }
 
         assert(this._securityTokenTimeoutId === null);
@@ -613,25 +842,23 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         // OpenSecureChannel
         const msg = new OpenSecureChannelRequest({
+            clientNonce: this.clientNonce, //
             clientProtocolVersion: this.protocolVersion,
-            requestType: requestType,
-            securityMode: this.securityMode,
             requestHeader: {
                 auditEntryId: null
             },
-            clientNonce: this.clientNonce, //
-            requestedLifetime: this.defaultSecureTokenLifetime
+            requestType: requestType,
+            requestedLifetime: this.defaultSecureTokenLifetime,
+            securityMode: this.securityMode,
         });
 
         this._performMessageTransaction(msgType, msg, (err?: Error | null, response?: Response) => {
-
 
             if (response && response.responseHeader && response.responseHeader.serviceResult !== StatusCodes.Good) {
                 err = new Error(response.responseHeader.serviceResult.toString());
             }
             if (!err && response) {
 
-                assert(response instanceof OpenSecureChannelResponse);
                 const openSecureChannelResponse = response as OpenSecureChannelResponse;
 
                 // record channelId for future transactions
@@ -641,13 +868,12 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 // A self-signed application instance certificate does not need to be verified with a CA.
                 // todo : verify that Certificate URI matches the ApplicationURI of the server
 
-
                 this.securityToken = openSecureChannelResponse.securityToken;
-                assert(this.securityToken.tokenId > 0 || msgType === "OPN", "_sendSecureOpcUARequest: invalid token Id ");
+                assert(this.securityToken.tokenId > 0 || msgType === "OPN",
+                  "_sendSecureOpcUARequest: invalid token Id ");
                 assert(openSecureChannelResponse.hasOwnProperty("serverNonce"));
 
                 this.serverNonce = openSecureChannelResponse.serverNonce;
-
 
                 if (this.securityMode !== MessageSecurityMode.None) {
                     // verify that server nonce if provided is at least 32 bytes long
@@ -664,7 +890,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
                         return callback(new Error(" Invalid server nonce length"));
                     }
                 }
-
 
                 const cryptoFactory = this.messageBuilder.cryptoFactory;
                 if (cryptoFactory) {
@@ -696,12 +921,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
             /**
              * notify the observers that ClientSecureChannelLayer has received a message chunk
              * @event receive_chunk
-             * @param message_chunk {Buffer}
+             * @param message_chunk
              */
             this.emit("receive_chunk", messageChunk);
             this._on_receive_message_chunk(messageChunk);
         });
-
 
         this._transport.on("close", (err: Error) => this._on_transport_closed(err));
 
@@ -722,7 +946,12 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     }
 
-    private _backoff_completion(err: Error | undefined, lastError: Error | undefined, transport: ClientTCP_transport, callback: ErrorCallback) {
+    private _backoff_completion(
+      err: Error | undefined,
+      lastError: Error | undefined,
+      transport: ClientTCP_transport,
+      callback: ErrorCallback
+    ) {
 
         if (this.__call) {
             // console log =
@@ -794,15 +1023,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.lastError = undefined;
 
-
         if (this.connectionStrategy.maxRetry <= 0) {
             debugLog(" No backoff required -> call the _connect function directly");
             this.__call = 0;
             return this._connect(transport, endpointUrl, callback);
         }
 
-        const connectFunc = (callback: ErrorCallback) => {
-            return this._connect(transport, endpointUrl, callback);
+        const connectFunc = (callback2: ErrorCallback) => {
+            return this._connect(transport, endpointUrl, callback2);
         };
         const completionFunc = (err?: Error) => {
             return this._backoff_completion(err, this.lastError, transport, callback);
@@ -841,121 +1069,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.__call.setStrategy(new backoff.ExponentialStrategy(this.connectionStrategy));
         this.__call.start();
-    }
-
-    /**
-     * establish a secure channel with the provided server end point.
-     *
-     * @method create
-     * @async
-     * @param endpointUrl {String}
-     * @param callback {Function}  the async callback function
-     * @param callback.err {Error|null}
-     *
-     *
-     * @example
-     *
-     *    ```javascript
-     *
-     *    var secureChannel  = new ClientSecureChannelLayer({});
-     *
-     *    secureChannel.on("end", function(err) {
-     *         console.log("secure channel has ended",err);
-     *         if(err) {
-     *            console.log(" the connection was closed by an external cause such as server shutdown");
-     *        }
-     *    });
-     *    secureChannel.create("opc.tcp://localhost:1234/UA/Sample", (err) => {
-     *         if(err) {
-     *              console.log(" cannot establish secure channel" , err);
-     *         } else {
-     *              console.log("secure channel has been established");
-     *         }
-     *    });
-     *
-     *    ```
-     */
-    create(endpointUrl: string, callback: ErrorCallback) {
-
-        assert(_.isFunction(callback));
-
-        if (this.securityMode !== MessageSecurityMode.None) {
-
-            if (!this.serverCertificate) {
-                return callback(new Error("ClientSecureChannelLayer#create : expecting a  server certificate when securityMode is not None"));
-            }
-
-            // take the opportunity of this async method to perform some async pre-processing
-            if (!this.receiverPublicKey) {
-
-                extractPublicKeyFromCertificate(this.serverCertificate, (err: Error | null, publicKey?: PublicKeyPEM) => {
-                    /* istanbul ignore next */
-                    if (err) {
-                        return callback(err);
-                    }
-                    if (!publicKey) {
-                        throw new Error("Internal Error");
-                    }
-                    this.receiverPublicKey = publicKey;
-
-                    this.create(endpointUrl, callback);
-                });
-                return;
-            }
-            assert(typeof this.receiverPublicKey === "string");
-        }
-
-        this.endpointUrl = endpointUrl;
-
-        const transport = new ClientTCP_transport();
-        transport.timeout = this.transportTimeout;
-
-        this._establish_connection(
-            transport,
-            endpointUrl,
-            (err?: Error) => {
-
-                if (err) {
-                    debugLog(chalk.red("cannot connect to server"));
-                    transport.dispose();
-                    return callback(err);
-                }
-
-                this._on_connection(transport, callback);
-
-            }
-        );
-
-    }
-
-    /**
-     * true if the secure channel is trying to establish the connection with the server. In this case, the client
-     * may be in the middle of the b ackoff connection process.
-     *
-     * @property isConnecting
-     * @type {Boolean}
-     *
-     */
-    get isConnecting() {
-        return (!!this.__call);
-    }
-
-    dispose() {
-        this._cancel_security_token_watchdog();
-        if (this.__call) {
-            this.__call.abort();
-        }
-    }
-
-    abortConnection(callback: ErrorCallback) {
-        assert(_.isFunction(callback));
-        if (this.__call) {
-            this.__call.once("abort", () => setTimeout(callback, 20));
-            this.__call._cancelBackoff = true;
-            this.__call.abort();
-        } else {
-            callback();
-        }
     }
 
     private _renew_security_token() {
@@ -1010,45 +1123,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     /**
-     * perform a OPC-UA message transaction, asynchronously.
-     * During a transaction, the client sends a request to the server. The provided callback will be invoked
-     * at a later stage with the reply from the server, or the error.
-     *
-     * preconditions:
-     *   - the channel must be opened
-     *
-     * @example
-     *
-     *    ```javascript
-     *    let secure_channel ; // get a  ClientSecureChannelLayer somehow
-     *
-     *    const request = new BrowseRequest({...});
-     *    secure_channel.performMessageTransaction(request, (err,response) => {
-     *       if (err) {
-     *         // an error has occurred
-     *       } else {
-     *          assert(response instanceof BrowseResponse);
-     *         // do something with response.
-     *       }
-     *    });
-     *    ```
-     *
-     */
-    performMessageTransaction(request: Request, callback: PerformTransactionCallback) {
-        assert(_.isFunction(callback));
-        this._performMessageTransaction("MSG", request, callback);
-    }
-
-
-    isValid(): boolean {
-        return this._transport !== null && this._transport.isValid();
-    }
-
-    isOpened() {
-        return this.isValid() && this._isOpened;
-    }
-
-    /**
      * internal version of _performMessageTransaction.
      *
      * @method _performMessageTransaction
@@ -1072,7 +1146,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (!this.isValid()) {
             return callback(new Error("ClientSecureChannelLayer => Socket is closed !"));
         }
-
 
         let localCallback: PerformTransactionCallback | null = callback;
 
@@ -1112,16 +1185,13 @@ export class ClientSecureChannelLayer extends EventEmitter {
             }
             assert(!err || (err instanceof Error));
 
-
             // invoke user callback if it has not been intercepted first ( by a abrupt disconnection for instance )
             try {
                 localCallback.call(this, err, response);
-            }
-            catch (err) {
+            } catch (err) {
                 console.log("ERROR !!! , please check here !!!! callback may be called twice !! ", err);
                 callback(err);
-            }
-            finally {
+            } finally {
                 localCallback = null;
             }
         };
@@ -1143,22 +1213,21 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }, timeout);
 
         const transaction_data = {
-            timerId: timerId,
+            callback: modified_callback,
             msgType: msgType,
             request: request,
-            callback: modified_callback
+            timerId: timerId,
         };
 
         this._internal_perform_transaction(transaction_data);
     }
-
 
     /**
      *
      * @param transactionData
      * @param transactionData.msgType
      * @param transactionData.request
-     * @param transactionData.callback {Function}
+     * @param transactionData.callback
      * @private
      */
 
@@ -1177,9 +1246,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         const msgType = transactionData.msgType;
         const request = transactionData.request;
 
-
         assert(msgType.length === 3);
-        assert(request instanceof BaseUAObject);
 
         // get a new requestId
         const requestId = this.makeRequestId();
@@ -1191,19 +1258,21 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         const requestData: RequestData = {
 
-            request: request,
-            msgType: msgType,
             callback: transactionData.callback,
+            msgType: msgType,
+            request: request,
 
-            bytesWritten_before: this.bytesWritten,
+            bytesRead: 0,
             bytesWritten_after: 0,
+            bytesWritten_before: this.bytesWritten,
+
             _tick0: 0,
             _tick1: 0,
             _tick2: 0,
             _tick3: 0,
             _tick4: 0,
-            bytesRead: 0,
             key: "",
+
             chunk_count: 0,
         };
 
@@ -1272,9 +1341,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 // get the thumbprint of the client certificate
                 const thumbprint = this.receiverCertificate ? makeSHA1Thumbprint(this.receiverCertificate) : null;
                 securityHeader = new AsymmetricAlgorithmSecurityHeader({
+                    receiverCertificateThumbprint: thumbprint,       // thumbprint of the public key used to encrypt the message
                     securityPolicyUri: toURI(this.securityPolicy),
                     senderCertificate: this.getCertificateChain(),  // certificate of the private key used to sign the message
-                    receiverCertificateThumbprint: thumbprint       // thumbprint of the public key used to encrypt the message
                 });
 
                 break;
@@ -1296,13 +1365,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         const senderPrivateKey = this.getPrivateKey();
 
-        if (!senderPrivateKey || !(typeof senderPrivateKey === "string")) {
+        if (!senderPrivateKey) {
             throw new Error("invalid senderPrivateKey");
         }
-
-
-        assert(typeof this.receiverPublicKey === "string");
-
 
         const cryptoFactory = getCryptoFactory(this.securityPolicy);
 
@@ -1330,7 +1395,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
         options.plainBlockSize = keyLength - cryptoFactory.blockPaddingSize;
         options.cipherBlockSize = keyLength;
 
-
         const receiverPublicKey = this.receiverPublicKey;
         options.encryptBufferFunc = (chunk: Buffer): Buffer => {
             return cryptoFactory.asymmetricEncrypt(chunk, receiverPublicKey);
@@ -1357,15 +1421,18 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         const tokenId = this.securityToken ? this.securityToken.tokenId : 0;
 
+        // assert(this.channelId !== 0 , "channel Id cannot be null");
+
         const options: ChunkMessageOptions = {
-            requestId,
             channelId: this.channelId,
-            tokenId,
             chunkSize: 0,
-            signatureLength: 0,
-            sequenceHeaderSize: 0,
+            requestId,
+            tokenId,
+
+            cipherBlockSize: 0,
             plainBlockSize: 0,
-            cipherBlockSize: 0
+            sequenceHeaderSize: 0,
+            signatureLength: 0,
         };
 
         // use chunk size that has been negotiated by the transport layer
@@ -1384,7 +1451,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
             debugLog(request.toString());
         }
 
-
         const security_options = (msgType === "OPN") ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
         _.extend(options, security_options);
 
@@ -1398,93 +1464,5 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this.messageChunker.chunkSecureMessage(msgType, options, request as BaseUAObject, (chunk: Buffer | null) =>
             this._send_chunk(requestId, chunk));
 
-    }
-
-    getDisplayName() {
-        if (!this.parent) {
-            return "";
-        }
-        return "" + (this.parent.applicationName ? this.parent.applicationName + " " : "") + this.parent.clientName;
-    }
-
-    public cancelPendingTransactions(callback: ErrorCallback) {
-        assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
-
-        // istanbul ignore next
-        if (doDebug) {
-            debugLog(" PENDING TRANSACTION = ",
-                this.getDisplayName(),
-                Object.keys(this._requests)
-                    .map(k => this._requests[k].request.constructor.name).join(""));
-        }
-
-        for (const key of Object.keys(this._requests)) {
-            // kill timer id
-            const transaction = this._requests[key];
-            if (transaction.callback) {
-                transaction.callback(new Error("Transaction has been canceled because client channel  is being closed"));
-            }
-        }
-        setImmediate(callback);
-    }
-
-    /**
-     * Close a client SecureChannel ,by sending a CloseSecureChannelRequest to the server.
-     *
-     *
-     * After this call, the connection is closed and no further transaction can be made.
-     *
-     * @method close
-     * @async
-     * @param callback {Function}
-     */
-    close(callback: ErrorCallback) {
-
-        assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
-
-        // cancel any pending transaction
-        this.cancelPendingTransactions((err?: Error) => {
-
-            // what the specs says:
-            // --------------------
-            //   The client closes the connection by sending a CloseSecureChannelRequest and closing the
-            //   socket gracefully. When the server receives this message it shall release all resources
-            //   allocated for the channel. The server does not send a CloseSecureChannel response
-            //
-            // ( Note : some servers do  send a CloseSecureChannel though !)
-
-            // there is no need for the security token expiration event to trigger anymore
-            this._cancel_security_token_watchdog();
-
-            debugLog("Sending CloseSecureChannelRequest to server");
-            const request = new CloseSecureChannelRequest({});
-
-            this.__in_normal_close_operation = true;
-
-            if (!this._transport || this._transport.__disconnecting__) {
-                this.dispose();
-                return callback(new Error("Transport disconnected"));
-            }
-            this._performMessageTransaction("CLO", request, () => {
-                this.dispose();
-                callback();
-            });
-        });
-    }
-
-    get bytesRead() {
-        return this._transport ? this._transport.bytesRead : 0;
-    }
-
-    get bytesWritten() {
-        return this._transport ? this._transport.bytesWritten : 0;
-    }
-
-    get transactionsPerformed() {
-        return this._lastRequestId;
-    }
-
-    get timedOutRequestCount() {
-        return this._timedout_request_count;
     }
 }

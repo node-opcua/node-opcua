@@ -1,4 +1,3 @@
-import { assert } from "node-opcua-assert";
 
 /**
  * SequenceNumberGenerator manages a monotonically increasing sequence number.
@@ -17,6 +16,14 @@ import { assert } from "node-opcua-assert";
  */
 export class SequenceNumberGenerator {
 
+    // spec Part 3 says:
+    // The same sequence number shall not be reused on a Subscription until over
+    // four billion NotificationMessages have been sent.
+    // At a continuous rate of one thousand NotificationMessages per second on a given Subscription, it would
+    // take roughly fifty days for the same sequence number to be reused. This allows Clients to safely treat
+    // sequence numbers as unique.
+    public static MAXVALUE = 4294966271;
+
     private _counter: number;
 
     constructor() {
@@ -24,7 +31,7 @@ export class SequenceNumberGenerator {
         this._set(1);
     }
 
-    next(): number {
+    public next(): number {
         const current = this._counter;
         this._counter += 1;
         if (this._counter > SequenceNumberGenerator.MAXVALUE) {
@@ -33,19 +40,12 @@ export class SequenceNumberGenerator {
         return current;
     }
 
-    future() {
+    public future() {
         return this._counter;
     }
 
-    _set(value: number) {
+    private _set(value: number) {
         this._counter = value;
     }
 
-    // spec Part 3 says:
-    // The same sequence number shall not be reused on a Subscription until over
-    // four billion NotificationMessages have been sent.
-    // At a continuous rate of one thousand NotificationMessages per second on a given Subscription, it would
-    // take roughly fifty days for the same sequence number to be reused. This allows Clients to safely treat
-    // sequence numbers as unique.
-    static MAXVALUE = 4294966271;
 }

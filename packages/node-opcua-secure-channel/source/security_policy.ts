@@ -1,36 +1,40 @@
-// @tslint:disable:object-literal-short-hand
-// @tslint:disable:variable-name
+// tslint:disable:object-literal-short-hand
+// tslint:disable:variable-name
+// tslint:disable:max-line-length
 
-import { Enum } from "node-opcua-enum";
 import { assert } from "node-opcua-assert";
+import { Enum } from "node-opcua-enum";
 import * as  _ from "underscore";
 
-import { SignatureData, MessageSecurityMode } from "node-opcua-service-secure-channel";
+import { MessageSecurityMode, SignatureData } from "node-opcua-service-secure-channel";
 
 import {
-    rsa_length,
-    computeDerivedKeys as computeDerivedKeys_ext,
-    PublicKeyPEM,
-    PrivateKeyPEM,
     Certificate,
-    Signature,
-    publicEncrypt_long,
-    privateDecrypt_long,
-    exploreCertificate,
-    verifyMessageChunkSignature,
-    toPem,
-    makeMessageChunkSignature,
-    RSA_PKCS1_PADDING,
-    RSA_PKCS1_OAEP_PADDING,
-    makeMessageChunkSignatureWithDerivedKeys,
-    encryptBufferWithDerivedKeys,
+    computeDerivedKeys as computeDerivedKeys_ext,
     DerivedKeys,
+    encryptBufferWithDerivedKeys,
+    exploreCertificate,
     exploreCertificateInfo,
+    makeMessageChunkSignature,
+    makeMessageChunkSignatureWithDerivedKeys,
     Nonce,
+    privateDecrypt_long,
+    PrivateKeyPEM,
+    publicEncrypt_long,
+    PublicKeyPEM,
+    rsa_length,
+    RSA_PKCS1_OAEP_PADDING,
+    RSA_PKCS1_PADDING,
+    Signature,
+    toPem,
+    verifyMessageChunkSignature,
 
 } from "node-opcua-crypto";
 import { SecureMessageChunkManagerOptions } from "./secure_message_chunk_manager";
 
+function errorLog(...args: any[]) {
+
+}
 /**
  *
  * OPCUA Spec Release 1.02  page 15    OPC Unified Architecture, Part 7
@@ -101,7 +105,6 @@ export enum SecurityPolicy {
     PubSub_Aes256_CTR = "http://opcfoundation.org/UA/SecurityPolicy#PubSub_Aes256_CTR"
 }
 
-
 export function fromURI(uri: string | null): SecurityPolicy {
     // istanbul ignore next
     if (typeof uri !== "string") {
@@ -149,11 +152,10 @@ export function coerceSecurityPolicy(value?: any): SecurityPolicy {
         value === SecurityPolicy.Basic256Sha256 ||
         value === SecurityPolicy.None
     )) {
-        console.log("invalid security policy ", value, SecurityPolicy);
+        errorLog("coerceSecurityPolicy: invalid security policy ", value, SecurityPolicy);
     }
     return value as SecurityPolicy;
 }
-
 
 // --------------------
 function RSAPKCS1V15_Decrypt(buffer: Buffer, privateKey: PrivateKeyPEM): Buffer {
@@ -184,9 +186,9 @@ function RSAPKCS1V15SHA1_Verify(buffer: Buffer, signature: Signature, certificat
     assert(certificate instanceof Buffer);
     assert(signature instanceof Buffer);
     const options = {
-        signatureLength: 0,
         algorithm: "RSA-SHA1",
-        publicKey: toPem(certificate, "CERTIFICATE")
+        publicKey: toPem(certificate, "CERTIFICATE"),
+        signatureLength: 0,
     };
     return verifyMessageChunkSignature(buffer, signature, options);
 }
@@ -203,17 +205,13 @@ function RSAPKCS1OAEPSHA256_Verify(buffer: Buffer, signature: Signature, certifi
     return verifyMessageChunkSignature(buffer, signature, options);
 }
 
-
 function RSAPKCS1V15SHA1_Sign(buffer: Buffer, privateKey: PrivateKeyPEM): Buffer {
 
     assert(!((privateKey as any) instanceof Buffer), "privateKey should not be a Buffer but a PEM");
-// xx    if (privateKey instanceof Buffer) {
-// xx        privateKey = toPem(privateKey, "RSA PRIVATE KEY");
-// xx    }
     const params = {
-        signatureLength: rsa_length(privateKey),
         algorithm: "RSA-SHA1",
-        privateKey
+        privateKey,
+        signatureLength: rsa_length(privateKey),
     };
     return makeMessageChunkSignature(buffer, params);
 }
@@ -224,9 +222,9 @@ function RSAPKCS1V15SHA256_Sign(buffer: Buffer, privateKey: PrivateKeyPEM): Buff
 // xx        privateKey = toPem(privateKey, "RSA PRIVATE KEY");
 // xx   }
     const params = {
-        signatureLength: rsa_length(privateKey),
         algorithm: "RSA-SHA256",
-        privateKey
+        privateKey,
+        signatureLength: rsa_length(privateKey),
     };
     return makeMessageChunkSignature(buffer, params);
 }
@@ -243,7 +241,6 @@ function RSAOAEP_Encrypt(buffer: Buffer, publicKey: PublicKeyPEM): Buffer {
     const keyLength = rsa_length(publicKey);
     return publicEncrypt_long(buffer, publicKey, keyLength, 42, RSA_PKCS1_OAEP_PADDING);
 }
-
 
 // export interface DerivedKeys {
 //     signatureLength: number;
@@ -263,20 +260,19 @@ export function computeDerivedKeys(self: CryptoFactory, serverNonce: Nonce, clie
 
     // calculate derived keys
 
-
     if (clientNonce && serverNonce) {
         const options = {
-            signingKeyLength: self.derivedSignatureKeyLength,
-            encryptingKeyLength: self.derivedEncryptionKeyLength,
-            encryptingBlockSize: self.encryptingBlockSize,
-            signatureLength: self.signatureLength,
             algorithm: self.symmetricEncryptionAlgorithm,
-            sha1or256: self.sha1or256
+            encryptingBlockSize: self.encryptingBlockSize,
+            encryptingKeyLength: self.derivedEncryptionKeyLength,
+            sha1or256: self.sha1or256,
+            signatureLength: self.signatureLength,
+            signingKeyLength: self.derivedSignatureKeyLength,
         };
         return {
+            algorithm: null,
             derivedClientKeys: computeDerivedKeys_ext(serverNonce, clientNonce, options),
             derivedServerKeys: computeDerivedKeys_ext(clientNonce, serverNonce, options),
-            algorithm: null
         };
     } else {
         return {derivedClientKeys: null, derivedServerKeys: null, algorithm: null};
@@ -308,25 +304,30 @@ export interface CryptoFactory {
 }
 
 const factoryBasic128Rsa15: CryptoFactory = {
-    securityPolicy: SecurityPolicy.Basic128Rsa15,
-    symmetricKeyLength: 16,
     derivedEncryptionKeyLength: 16,
     derivedSignatureKeyLength: 16,
     encryptingBlockSize: 16,
+    securityPolicy: SecurityPolicy.Basic128Rsa15,
     signatureLength: 20,
+    symmetricKeyLength: 16,
 
-    minimumAsymmetricKeyLength: 128,
     maximumAsymmetricKeyLength: 512,
+    minimumAsymmetricKeyLength: 128,
 
     /* asymmetric signature algorithm */
     asymmetricVerifyChunk,
+
     asymmetricSign: RSAPKCS1V15SHA1_Sign,
+
     asymmetricVerify: RSAPKCS1V15SHA1_Verify,
+
     asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
 
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSAPKCS1V15_Encrypt,
+
     asymmetricDecrypt: RSAPKCS1V15_Decrypt,
+
     asymmetricEncryptionAlgorithm: "http://www.w3.org/2001/04/xmlenc#rsa-1_5",
 
     blockPaddingSize: 11,
@@ -338,60 +339,71 @@ const factoryBasic128Rsa15: CryptoFactory = {
 };
 
 const _Basic256: CryptoFactory = {
-    securityPolicy: SecurityPolicy.Basic256,
-    symmetricKeyLength: 32,
     derivedEncryptionKeyLength: 32,
     derivedSignatureKeyLength: 24,
     encryptingBlockSize: 16,
+    securityPolicy: SecurityPolicy.Basic256,
     signatureLength: 20,
+    symmetricKeyLength: 32,
 
-    minimumAsymmetricKeyLength: 128,
     maximumAsymmetricKeyLength: 512,
+    minimumAsymmetricKeyLength: 128,
 
     asymmetricVerifyChunk,
+
     asymmetricSign: RSAPKCS1OAEPSHA1_Sign,
+
     asymmetricVerify: RSAPKCS1OAEPSHA1_Verify,
+
     asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
 
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSAOAEP_Encrypt,
+
     asymmetricDecrypt: RSAOAEP_Decrypt,
+
     asymmetricEncryptionAlgorithm: "http://www.w3.org/2001/04/xmlenc#rsa-oaep",
 
     blockPaddingSize: 42,
 
     // "aes-256-cbc"
     symmetricEncryptionAlgorithm: "aes-256-cbc",
+
     sha1or256: "SHA1",
 };
-
 
 const _Basic256Sha256: CryptoFactory = {
     securityPolicy: SecurityPolicy.Basic256Sha256,
 
-    symmetricKeyLength: 32,
     derivedEncryptionKeyLength: 32,
     derivedSignatureKeyLength: 32,
     encryptingBlockSize: 16,
     signatureLength: 32,
+    symmetricKeyLength: 32,
 
-    minimumAsymmetricKeyLength: 2048,
     maximumAsymmetricKeyLength: 4096,
+    minimumAsymmetricKeyLength: 2048,
 
     asymmetricVerifyChunk,
+
     asymmetricSign: RSAPKCS1V15SHA256_Sign,
+
     asymmetricVerify: RSAPKCS1OAEPSHA256_Verify,
+
     asymmetricSignatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
 
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSAOAEP_Encrypt,
+
     asymmetricDecrypt: RSAOAEP_Decrypt,
+
     asymmetricEncryptionAlgorithm: "http://www.w3.org/2001/04/xmlenc#rsa-oaep",
 
     blockPaddingSize: 42,
 
     // "aes-256-cbc"
     symmetricEncryptionAlgorithm: "aes-256-cbc",
+
     sha1or256: "SHA256"
 };
 
@@ -415,15 +427,15 @@ export function computeSignature(
     senderCertificate: Buffer | null,
     senderNonce: Nonce | null,
     receiverPrivateKey: PrivateKeyPEM | null,
-    securityPolicy: SecurityPolicy): SignatureData | null {
+    securityPolicy: SecurityPolicy): SignatureData | undefined {
 
     if (!senderNonce || !senderCertificate || !receiverPrivateKey) {
-        return null;
+        return undefined;
     }
 
     const cryptoFactory = getCryptoFactory(securityPolicy);
     if (!cryptoFactory) {
-        return null;
+        return undefined;
     }
     // This parameter is calculated by appending the clientNonce to the clientCertificate
     const buffer = Buffer.concat([senderCertificate, senderNonce]);
@@ -432,16 +444,16 @@ export function computeSignature(
     const signature = cryptoFactory.asymmetricSign(buffer, receiverPrivateKey);
 
     return new SignatureData({
-        // This is a signature generated with the private key associated with a Certificate
-        signature,
         // A string containing the URI of the algorithm.
         // The URI string values are defined as part of the security profiles specified in Part 7.
         // (The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm specified in the
         // SecurityPolicy for the Endpoint)
-        algorithm: cryptoFactory.asymmetricSignatureAlgorithm // "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+        // for instance "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+        algorithm: cryptoFactory.asymmetricSignatureAlgorithm,
+        // This is a signature generated with the private key associated with a Certificate
+        signature,
     });
 }
-
 
 export function verifySignature(
     receiverCertificate: Buffer,
@@ -469,19 +481,23 @@ export function verifySignature(
     return cryptoFactory.asymmetricVerify(buffer, signature.signature, senderCertificate);
 }
 
-export function getOptionsForSymmetricSignAndEncrypt(securityMode: MessageSecurityMode, derivedKeys: DerivedKeys): SecureMessageChunkManagerOptions {
+export function getOptionsForSymmetricSignAndEncrypt(
+  securityMode: MessageSecurityMode,
+  derivedKeys: DerivedKeys
+): SecureMessageChunkManagerOptions {
+
     assert(derivedKeys.hasOwnProperty("signatureLength"));
     assert(securityMode !== MessageSecurityMode.None && securityMode !== MessageSecurityMode.Invalid);
 
     let options = {
+        signBufferFunc: (chunk: Buffer) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys),
         signatureLength: derivedKeys.signatureLength,
-        signBufferFunc: (chunk: Buffer) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys)
     };
     if (securityMode === MessageSecurityMode.SignAndEncrypt) {
         options = _.extend(options, {
-            plainBlockSize: derivedKeys.encryptingBlockSize,
             cipherBlockSize: derivedKeys.encryptingBlockSize,
-            encryptBufferFunc: (chunk: Buffer) => encryptBufferWithDerivedKeys(chunk, derivedKeys)
+            encryptBufferFunc: (chunk: Buffer) => encryptBufferWithDerivedKeys(chunk, derivedKeys),
+            plainBlockSize: derivedKeys.encryptingBlockSize,
         });
     }
     return options as SecureMessageChunkManagerOptions;

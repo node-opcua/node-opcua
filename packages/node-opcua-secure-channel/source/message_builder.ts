@@ -1,3 +1,7 @@
+// tslint:disable:variable-name
+// tslint:disable:no-console
+// tslint:disable:max-line-length
+
 import chalk from "chalk";
 import * as _ from "underscore";
 
@@ -26,7 +30,6 @@ import {
 } from "node-opcua-service-secure-channel";
 import { decodeStatusCode } from "node-opcua-status-code";
 import { MessageBuilderBase } from "node-opcua-transport";
-// tslint:disable:variable-name
 
 import { SequenceHeader } from "node-opcua-chunkmanager";
 import { chooseSecurityHeader, SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
@@ -339,7 +342,8 @@ export class MessageBuilder extends MessageBuilderBase {
         // We shall decrypt it with the receiver private key.
         const buf = binaryStream.buffer.slice(binaryStream.length);
 
-        if (asymmetricAlgorithmSecurityHeader.receiverCertificateThumbprint) { // this mean that the message has been encrypted ....
+        if (asymmetricAlgorithmSecurityHeader.receiverCertificateThumbprint) {
+            // this mean that the message has been encrypted ....
 
             assert(this.privateKey !== invalidPrivateKey, "expecting a valid private key");
 
@@ -363,7 +367,10 @@ export class MessageBuilder extends MessageBuilderBase {
         const cert = exploreCertificateInfo(asymmetricAlgorithmSecurityHeader.senderCertificate);
         // then verify the signature
         const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
-        assert(signatureLength === 128 || signatureLength === 256 || signatureLength === 384 || signatureLength === 512);
+        assert(signatureLength === 128 ||
+                signatureLength === 256 ||
+          signatureLength === 384 ||
+          signatureLength === 512);
 
         const chunk = binaryStream.buffer;
 

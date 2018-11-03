@@ -1,25 +1,21 @@
-"use strict";
-import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
+// tslint:disable:max-line-length
 import { EventEmitter } from "events";
+import { assert } from "node-opcua-assert";
+import { UInt16 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
+import {
+    ChunkManager,
+    EncryptBufferFunc,
+    IChunkManagerOptions,
+    SequenceHeader,
+    SignBufferFunc
+} from "node-opcua-chunkmanager";
 import {
     AsymmetricAlgorithmSecurityHeader,
     SymmetricAlgorithmSecurityHeader,
 } from "node-opcua-service-secure-channel";
-import { UInt16 } from "node-opcua-basic-types";
-import {
-    ChunkManager,
-    IChunkManagerOptions,
-    SequenceHeader,
-    SignBufferFunc,
-    EncryptBufferFunc
-} from "node-opcua-chunkmanager";
+import * as _ from "underscore";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
-
-
-// xx import { ByteString, UAString } from "../../node-opcua-basic-types/dist";
-// xx import { computeSignature } from "./security_policy";
 
 export type SecurityHeader = AsymmetricAlgorithmSecurityHeader | SymmetricAlgorithmSecurityHeader;
 
@@ -50,7 +46,7 @@ export class SecureMessageChunkManager extends EventEmitter {
     private readonly msgType: string;
     private readonly channelId: number;
     private readonly sequenceNumberGenerator: SequenceNumberGenerator;
-    private securityHeader: SecurityHeader;
+    private readonly securityHeader: SecurityHeader;
     private sequenceHeader: SequenceHeader;
     private readonly headerSize: number;
     private readonly chunkManager: ChunkManager;
@@ -78,7 +74,6 @@ export class SecureMessageChunkManager extends EventEmitter {
         const requestId = options.requestId;
 
         this.sequenceNumberGenerator = sequenceNumberGenerator;
-
 
         assert(requestId > 0, "expecting a valid request ID");
 
@@ -108,13 +103,13 @@ export class SecureMessageChunkManager extends EventEmitter {
             },
 
             // ---------------------------------------- Signing stuff
-            signatureLength: options.signatureLength,
             signBufferFunc: options.signBufferFunc,
+            signatureLength: options.signatureLength,
 
             // ---------------------------------------- Encrypting stuff
-            plainBlockSize: options.plainBlockSize,
             cipherBlockSize: options.cipherBlockSize,
-            encryptBufferFunc: options.encryptBufferFunc
+            encryptBufferFunc: options.encryptBufferFunc,
+            plainBlockSize: options.plainBlockSize,
         };
 
         this.chunkManager = new ChunkManager(params);
@@ -127,7 +122,7 @@ export class SecureMessageChunkManager extends EventEmitter {
         });
     }
 
-    write_header(finalC: string, buffer: Buffer, length: number): void {
+    public write_header(finalC: string, buffer: Buffer, length: number): void {
         assert(buffer.length > 12);
         assert(finalC.length === 1);
         assert(buffer instanceof Buffer);
@@ -157,7 +152,7 @@ export class SecureMessageChunkManager extends EventEmitter {
         assert(stream.length === this.headerSize);
     }
 
-    writeSequenceHeader(buffer: Buffer) {
+    public writeSequenceHeader(buffer: Buffer) {
         const stream = new BinaryStream(buffer);
         // write Sequence Header -----------------
         this.sequenceHeader.sequenceNumber = this.sequenceNumberGenerator.next();
@@ -165,17 +160,17 @@ export class SecureMessageChunkManager extends EventEmitter {
         assert(stream.length === 8);
     }
 
-    write(buffer: Buffer, length?: number) {
+    public write(buffer: Buffer, length?: number) {
         length = length || buffer.length;
         this.chunkManager.write(buffer, length);
     }
 
-    abort() {
+    public abort() {
         this.aborted = true;
         this.end();
     }
 
-    end() {
+    public end() {
         this.chunkManager.end();
         this.emit("finished");
     }
