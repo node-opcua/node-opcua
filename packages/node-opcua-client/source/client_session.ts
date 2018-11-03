@@ -17,6 +17,7 @@ import {
 import {
     CallMethodRequest, CallMethodRequestOptions, CallMethodResult} from "node-opcua-service-call";
 import { EndpointDescription } from "node-opcua-service-endpoints";
+import { HistoryReadResult } from "node-opcua-service-history";
 import {
     QueryFirstRequest, QueryFirstRequestOptions, QueryFirstResponse} from "node-opcua-service-query";
 import {
@@ -45,7 +46,6 @@ import {
 import { StatusCode } from "node-opcua-status-code";
 import { Variant} from "node-opcua-variant";
 import { ClientSubscription } from "./client_subscription";
-import { HistoryReadResult } from "node-opcua-service-history";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 

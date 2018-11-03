@@ -47,6 +47,7 @@
   "node-opcua-service-translate-browse-path": "^2.0.0-alpha.0",
   "node-opcua-service-write": "^2.0.0-alpha.0",
   "node-opcua-status-code": "^2.0.0-alpha.0",
+  "node-opcua-types": "^2.0.0-alpha.0",
   "node-opcua-utils": "^2.0.0-alpha.0",
   "node-opcua-variant": "^2.0.0-alpha.0",
   "once": "^1.4.0",

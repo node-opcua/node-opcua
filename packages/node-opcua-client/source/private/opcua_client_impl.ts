@@ -46,21 +46,39 @@ import {
     AnonymousIdentityToken,
     CloseSessionRequest, CloseSessionResponse,
     CreateSessionRequest,
-    CreateSessionResponse, IssuedIdentityToken,
+    CreateSessionResponse,
+    IssuedIdentityToken,
     UserNameIdentityToken,
+    X509IdentityToken,
 } from "node-opcua-service-session";
 import { StatusCodes } from "node-opcua-status-code";
 import { isNullOrUndefined } from "node-opcua-utils";
 
-import { ClientBaseImpl} from "./client_base_impl";
+import { ClientBaseImpl } from "./client_base_impl";
 
+import { UAString } from "node-opcua-basic-types";
+import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { ClientSession } from "../client_session";
 import { ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
-import {  Response } from "../common";
-import { OPCUAClient, OPCUAClientOptions, WithSessionFuncP, WithSubscriptionFuncP } from "../opcua_client";
+import { Response } from "../common";
+import {
+    AnonymousIdentity,
+    OPCUAClient,
+    OPCUAClientOptions,
+    UserIdentityInfo,
+    UserIdentityInfoUserName,
+    UserIdentityInfoX509,
+    WithSessionFuncP,
+    WithSubscriptionFuncP
+} from "../opcua_client";
 import { repair_client_sessions } from "../reconnection";
 import { ClientSessionImpl } from "./client_session_impl";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
+
+interface TokenAndSignature {
+    userIdentityToken: UserIdentityToken | null;
+    userTokenSignature: SignatureDataOptions;
+}
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -92,19 +110,6 @@ function verifyEndpointDescriptionMatches(
     return true;
 }
 
-export interface UserIdentityInfo {
-    userName?: string;
-    password?: string;
-}
-
-function isAnonymous(userIdentityInfo: UserIdentityInfo | null): boolean {
-    return !userIdentityInfo || (!userIdentityInfo.userName && !userIdentityInfo.password);
-}
-
-function isUserNamePassword(userIdentityInfo: UserIdentityInfo): boolean {
-    return (userIdentityInfo.userName !== undefined) && (userIdentityInfo.password !== undefined);
-}
-
 function findUserTokenPolicy(endpointDescription: EndpointDescription, userTokenType: UserTokenType) {
     endpointDescription.userIdentityTokens = endpointDescription.userIdentityTokens || [];
     const r = _.filter(endpointDescription.userIdentityTokens, (userIdentity: UserTokenPolicy) =>
@@ -123,6 +128,91 @@ function createAnonymousIdentityToken(session: ClientSessionImpl): AnonymousIden
     return new AnonymousIdentityToken({policyId: userTokenPolicy.policyId});
 }
 
+interface X509TokenAndSignature {
+    userIdentityToken: X509IdentityToken;
+    userTokenSignature: SignatureDataOptions;
+}
+
+/**
+ *
+ * @param session
+ * @param certificate - the user certificate
+ * @param privateKey  - the private key associated with the user certificate
+ */
+function createX509IdentityToken(
+    session: ClientSessionImpl,
+    certificate: Certificate,
+    privateKey: PrivateKeyPEM
+): X509TokenAndSignature {
+
+    const endpoint = session.endpoint;
+    assert(endpoint instanceof EndpointDescription);
+    const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.Certificate);
+    // istanbul ignore next
+    if (!userTokenPolicy) {
+        throw new Error("Cannot find Certificate (X509) user token policy in end point description");
+    }
+    let securityPolicy = fromURI(userTokenPolicy.securityPolicyUri);
+
+    // if the security policy is not specified we use the session security policy
+    if (securityPolicy === SecurityPolicy.Invalid) {
+        securityPolicy = session._client._secureChannel.securityPolicy;
+    }
+    const userIdentityToken = new X509IdentityToken({
+        certificateData: certificate,
+        policyId: userTokenPolicy.policyId,
+    });
+
+    const serverCertificate: Certificate = session.serverCertificate;
+
+    const serverNonce: Nonce = session.serverNonce || Buffer.alloc(0);
+    assert(serverNonce instanceof Buffer);
+
+    // see Release 1.02 155 OPC Unified Architecture, Part 4
+    const cryptoFactory = getCryptoFactory(securityPolicy);
+
+    // istanbul ignore next
+    if (!cryptoFactory) {
+        throw new Error(" Unsupported security Policy");
+    }
+    /**
+     * OPCUA Spec 1.04 - part 4
+     * page 28:
+     * 5.6.3.1
+     * ...
+     * If the token is an X509IdentityToken then the proof is a signature generated with private key
+     * associated with the Certificate. The data to sign is created by appending the last serverNonce to
+     * the serverCertificate specified in the CreateSession response. If a token includes a secret then it
+     * should be encrypted using the public key from the serverCertificate.
+     *
+     * page 155:
+     * Token Encryption and Proof of Possession
+     * 7.36.2.1 Overview
+     * The Client shall always prove possession of a UserIdentityToken when it passes it to the Server.
+     * Some tokens include a secret such as a password which the Server will accept as proof. In order
+     * to protect these secrets the Token may be encrypted before it is passed to the Server. Other types
+     * of tokens allow the Client to create a signature with the secret associated with the Token. In these
+     * cases, the Client proves possession of a UserIdentityToken by creating a signature with the secret
+     * and passing it to the Server
+     *
+     * page 159:
+     * 7.36.5 X509IdentityTokens
+     * The X509IdentityToken is used to pass an X.509 v3 Certificate which is issued by the user.
+     * This token shall always be accompanied by a Signature in the userTokenSignature parameter of
+     * ActivateSession if required by the SecurityPolicy. The Server should specify a SecurityPolicy for
+     * the UserTokenPolicy if the SecureChannel has a SecurityPolicy of None.
+     */
+
+    // now create the proof of possession, by creating a signature
+    // The data to sign is created by appending the last serverNonce to the serverCertificate
+
+    // The signature generated with private key associated with the User Certificate
+    const userTokenSignature: SignatureDataOptions = computeSignature(
+        serverCertificate, serverNonce, privateKey, securityPolicy)!;
+
+    return {userIdentityToken, userTokenSignature};
+}
+
 function createUserNameIdentityToken(
     session: ClientSessionImpl,
     userName: string | null,
@@ -135,6 +225,15 @@ function createUserNameIdentityToken(
     const endpoint = session.endpoint;
     assert(endpoint instanceof EndpointDescription);
 
+    /**
+     * OPC Unified Architecture 1.0.4:  Part 4 155
+     * Each UserIdentityToken allowed by an Endpoint shall have a UserTokenPolicy specified in the
+     * EndpointDescription. The UserTokenPolicy specifies what SecurityPolicy to use when encrypting
+     * or signing. If this SecurityPolicy is omitted then the Client uses the SecurityPolicy in the
+     * EndpointDescription. If the matching SecurityPolicy is set to None then no encryption or signature
+     * is required.
+     *
+     */
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.UserName);
 
     // istanbul ignore next
@@ -149,17 +248,17 @@ function createUserNameIdentityToken(
         securityPolicy = session._client._secureChannel.securityPolicy;
     }
 
-    let userIdentityToken;
+    let identityToken;
     let serverCertificate: Buffer | string = session.serverCertificate;
     // if server does not provide certificate use unencrypted password
     if (serverCertificate === null) {
-        userIdentityToken = new UserNameIdentityToken({
+        identityToken = new UserNameIdentityToken({
             encryptionAlgorithm: null,
             password: Buffer.from(password as string, "utf-8"),
             policyId: userTokenPolicy.policyId,
             userName,
         });
-        return userIdentityToken;
+        return identityToken;
     }
 
     assert(serverCertificate instanceof Buffer);
@@ -177,7 +276,7 @@ function createUserNameIdentityToken(
         throw new Error(" Unsupported security Policy");
     }
 
-    userIdentityToken = new UserNameIdentityToken({
+    identityToken = new UserNameIdentityToken({
         encryptionAlgorithm: cryptoFactory.asymmetricEncryptionAlgorithm,
         password: Buffer.from(password as string, "utf-8"),
         policyId: userTokenPolicy.policyId,
@@ -186,11 +285,11 @@ function createUserNameIdentityToken(
 
     // now encrypt password as requested
     const lenBuf = createFastUninitializedBuffer(4);
-    lenBuf.writeUInt32LE(userIdentityToken.password.length + serverNonce.length, 0);
-    const block = Buffer.concat([lenBuf, userIdentityToken.password, serverNonce]);
-    userIdentityToken.password = cryptoFactory.asymmetricEncrypt(block, publicKey);
+    lenBuf.writeUInt32LE(identityToken.password.length + serverNonce.length, 0);
+    const block = Buffer.concat([lenBuf, identityToken.password, serverNonce]);
+    identityToken.password = cryptoFactory.asymmetricEncrypt(block, publicKey);
 
-    return userIdentityToken;
+    return identityToken;
 }
 
 /***
@@ -243,7 +342,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         this.applicationName = options.applicationName || "NodeOPCUA-Client";
 
         this.___sessionName_counter = 0;
-        this.userIdentityInfo = {};
+        this.userIdentityInfo = {type: UserTokenType.Anonymous};
         this.endpoint = undefined;
     }
 
@@ -279,7 +378,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     public createSession(...args: any[]): any {
 
         if (args.length === 1) {
-            return this.createSession({}, args[0]);
+            return this.createSession({type: UserTokenType.Anonymous}, args[0]);
         }
         const userIdentityInfo = args[0];
         const callback = args[1];
@@ -540,7 +639,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         try {
             await this.connect(endpointUrl);
-            const session = await this.createSession({});
+            const session = await this.createSession({type: UserTokenType.Anonymous});
 
             let result;
             try {
@@ -792,13 +891,16 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         this.createUserIdentityToken(
             session,
             this.userIdentityInfo,
-            (err: Error | null, userIdentityToken: IssuedIdentityToken) => {
+            (err: Error | null, data?: TokenAndSignature | null) => {
 
                 if (err) {
                     session._client = _old_client;
                     return callback(err);
                 }
 
+                data = data!;
+                const userIdentityToken: UserIdentityToken = data.userIdentityToken!;
+                const userTokenSignature: SignatureDataOptions = data.userTokenSignature!;
                 // TODO. fill the ActivateSessionRequest
                 // see 5.6.3.2 Parameters OPC Unified Architecture, Part 4 30 Release 1.02
                 const request = new ActivateSessionRequest({
@@ -848,10 +950,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     // then it shall create a signature and pass it as this parameter. Otherwise the parameter
                     // is omitted.
                     // The SignatureAlgorithm depends on the identity token type.
-                    userTokenSignature: {
-                        algorithm: undefined,
-                        signature: undefined
-                    }
+                    userTokenSignature
 
                 });
 
@@ -1035,35 +1134,79 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     private createUserIdentityToken(
         session: ClientSessionImpl,
         userIdentityInfo: UserIdentityInfo,
-        callback: (err: Error | null, identityToken?: any | null) => void
+        callback: (err: Error | null, data?: TokenAndSignature) => void
     ) {
+
+        function coerceUserIdentityInfo(identityInfo: any): UserIdentityInfo {
+
+            if(!identityInfo) {
+                return { type: UserTokenType.Anonymous};
+            }
+            if (identityInfo.hasOwnProperty("type")) {
+                return identityInfo as UserIdentityInfo;
+            }
+            if (identityInfo.hasOwnProperty("userName")) {
+                identityInfo.type = UserTokenType.UserName;
+                return identityInfo as UserIdentityInfoUserName;
+            }
+            if (identityInfo.hasOwnProperty("certificateData")) {
+                identityInfo.type = UserTokenType.Certificate;
+                return identityInfo as UserIdentityInfoX509;
+            }
+            identityInfo.type = UserTokenType.Anonymous;
+            return identityInfo as AnonymousIdentity;
+        }
+
+        userIdentityInfo = coerceUserIdentityInfo(userIdentityInfo);
+
         assert(_.isFunction(callback));
         if (null === userIdentityInfo) {
-            return callback(null, null);
+
+            return callback(null, {
+                userIdentityToken: null,
+                userTokenSignature: {},
+            });
         }
-        if (isAnonymous(userIdentityInfo)) {
-            try {
-                const userIdentityToken = createAnonymousIdentityToken(session);
-                return callback(null, userIdentityToken);
-            } catch (err) {
-                return callback(err);
+
+        let userIdentityToken: UserIdentityToken;
+
+        let userTokenSignature: SignatureDataOptions = {
+            algorithm: undefined,
+            signature: undefined
+        };
+
+        try {
+            switch (userIdentityInfo.type) {
+
+                case UserTokenType.Anonymous:
+                    userIdentityToken = createAnonymousIdentityToken(session);
+                    break;
+
+                case UserTokenType.UserName:
+                    const userName = userIdentityInfo.userName || "";
+                    const password = userIdentityInfo.password || "";
+                    userIdentityToken = createUserNameIdentityToken(session, userName, password);
+                    break;
+
+                case UserTokenType.Certificate:
+                    const certificate = userIdentityInfo.certificateData;
+                    const privateKey = userIdentityInfo.privateKey;
+
+                    ({
+                        userIdentityToken,
+                        userTokenSignature
+                    } = createX509IdentityToken(session, certificate, privateKey));
+
+                    break;
+
+                default:
+                    debugLog(" userIdentityInfo = ", userIdentityInfo);
+                    return callback(new Error("CLIENT: Invalid userIdentityInfo"));
             }
-
-        } else if (isUserNamePassword(userIdentityInfo)) {
-
-            const userName = this.userIdentityInfo.userName || "";
-            const password = this.userIdentityInfo.password || "";
-
-            try {
-                const userIdentityToken = createUserNameIdentityToken(session, userName, password);
-                return callback(null, userIdentityToken);
-            } catch (err) {
-                return callback(err);
-            }
-        } else {
-            debugLog(" userIdentityInfo = ", userIdentityInfo);
-            return callback(new Error("CLIENT: Invalid userIdentityInfo"));
+        } catch (err) {
+            return callback(err);
         }
+        return callback(null, {userIdentityToken, userTokenSignature});
     }
 }
 
