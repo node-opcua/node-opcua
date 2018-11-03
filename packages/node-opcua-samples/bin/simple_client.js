@@ -14,6 +14,8 @@ const opcua = require("node-opcua");
 const VariableIds = opcua.VariableIds;
 const BrowseDirection = opcua.BrowseDirection;
 const crypto_utils = opcua.crypto_utils;
+const ApplicationType = opcua.ApplicationType;
+const ClientMonitoredItem = opcua.ClientMonitoredItem;
 
 
 //node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
@@ -730,7 +732,6 @@ async.series([
             console.log("  revised maxKeepAliveCount  ", the_subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
             console.log("  revised lifetimeCount      ", the_subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
             console.log("  revised publishingInterval ", the_subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
-            console.log("  suggested timeout hint     ", the_subscription.publish_engine.timeoutHint);
 
             callback();
 
@@ -770,7 +771,8 @@ async.series([
         // ---------------------------------------------------------------
         //  monitor a variable node value
         // ---------------------------------------------------------------
-        const monitoredItem = the_subscription.monitor(
+        const monitoredItem = ClientMonitoredItem.create(
+            the_subscription,
             {
                 nodeId: monitored_node,
                 attributeId: AttributeIds.Value
@@ -848,7 +850,8 @@ async.series([
 
         const eventFilter = opcua.constructEventFilter(fields,[opcua.resolveNodeId("ConditionType")]);
 
-        const event_monitoringItem = the_subscription.monitor(
+        const event_monitoringItem = ClientMonitoredItem.create(
+            the_subscription,
             {
                 nodeId:      serverObjectId,
                 attributeId: AttributeIds.EventNotifier
