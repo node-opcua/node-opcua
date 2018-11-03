@@ -42,7 +42,7 @@ export function callConditionRefresh(
     const conditionTypeNodeId = resolveNodeId("ConditionType");
 
     let conditionRefreshId = resolveNodeId("ConditionType_ConditionRefresh");
-    
+
     async.series([
         // find conditionRefreshId
         (innerCallback: ErrorCallback ) => {
@@ -88,7 +88,7 @@ export function callConditionRefresh(
             });
         },
 
-    ], (err) => { 
+    ], (err) => {
         callback(err!);
     });
 }
@@ -252,7 +252,7 @@ ClientSessionImpl.prototype.confirmCondition = function(
 };
 
 /**
- * @class ClientSession
+ * @class ClientSessionImpl
  * @method acknowledgeCondition
  *
  * from Spec 1.03 Part 9 : page 27

@@ -47,8 +47,8 @@ import { ClientSession } from "../client_session";
 import { ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
 import {  Response } from "../common";
 import { OPCUAClient, OPCUAClientOptions, WithSessionFuncP, WithSubscriptionFuncP } from "../opcua_client";
-import { ClientSessionImpl } from "../private/client_session_impl";
 import { repair_client_sessions } from "../reconnection";
+import { ClientSessionImpl } from "./client_session_impl";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
@@ -205,12 +205,12 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         return new OPCUAClientImpl(options);
     }
 
+    public  endpoint?: EndpointDescription;
     private endpoint_must_exist: boolean;
     private requestedSessionTimeout: number;
     private applicationName: string;
     private ___sessionName_counter: number;
     private userIdentityInfo: UserIdentityInfo;
-    private endpoint?: EndpointDescription;
     private serverUri?: string;
     private clientNonce?: Nonce;
 
@@ -479,7 +479,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         ], (err1) => {
             if (err1) {
-                console.log("err",err1);
+                console.log("err", err1);
             }
             if (need_disconnect) {
                 errorLog("Disconnecting client after failure");
@@ -1012,7 +1012,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             if (err) {
                 callback(err);
             } else {
-                callback(err, response);
+                callback(err, response as CloseSessionResponse);
             }
         });
     }

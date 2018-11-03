@@ -17,12 +17,12 @@ import {
     EndpointDescription,
     UserTokenType
 } from "node-opcua-service-endpoints";
-import { MessageSecurityMode} from "node-opcua-service-secure-channel";
+import { MessageSecurityMode } from "node-opcua-service-secure-channel";
 import {
     FindServersRequestLike,
-    GetEndpointCallbackFunc,
     GetEndpointsOptions,
-    OPCUAClientBaseOptions, OPCUAClientBase
+    OPCUAClientBase,
+    OPCUAClientBaseOptions
 } from "./client_base";
 
 import { ClientSession, ResponseCallback } from "./client_session";
@@ -113,7 +113,7 @@ export interface OPCUAClient extends OPCUAClientBase {
 
     getEndpoints(options: GetEndpointsOptions, callback: ResponseCallback<EndpointDescription[]>): void;
 
-    getEndpoints(callback: GetEndpointCallbackFunc): void;
+    getEndpoints(callback: ResponseCallback<EndpointDescription[]>): void;
 
     findServers(options?: FindServersRequestLike): Promise<ApplicationDescription[]>;
 
@@ -124,20 +124,20 @@ export interface OPCUAClient extends OPCUAClientBase {
     createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
 
     createSession(
-        userIdentityInfo: UserIdentityInfo,
-        callback: (err: Error | null, session?: ClientSession) => void): void;
+      userIdentityInfo: UserIdentityInfo,
+      callback: (err: Error | null, session?: ClientSession) => void): void;
 
     createSession(callback: (err: Error | null, session?: ClientSession) => void): void;
 
     changeSessionIdentity(
-        session: ClientSession,
-        userIdentityInfo: UserIdentityInfo,
+      session: ClientSession,
+      userIdentityInfo: UserIdentityInfo
     ): Promise<void>;
 
     changeSessionIdentity(
-        session: ClientSession,
-        userIdentityInfo: UserIdentityInfo,
-        callback: (err?: Error) => void
+      session: ClientSession,
+      userIdentityInfo: UserIdentityInfo,
+      callback: (err?: Error) => void
     ): void;
 
     closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
@@ -145,8 +145,8 @@ export interface OPCUAClient extends OPCUAClientBase {
     closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
 
     withSessionAsync<T>(
-        endpointUrl: string,
-        inner_func: (session: ClientSession) => Promise<T>
+      endpointUrl: string,
+      inner_func: (session: ClientSession) => Promise<T>
     ): Promise<T>;
 
     withSession(endpointUrl: string,
@@ -160,7 +160,7 @@ export type WithSubscriptionFunc = (session: ClientSession, subscription: Client
 export type WithSubscriptionFuncP<T> = (session: ClientSession, subscription: ClientSubscription) => Promise<T>;
 
 export class OPCUAClient {
-    public static  create(options: OPCUAClientOptions): OPCUAClient {
+    public static create(options: OPCUAClientOptions): OPCUAClient {
         return new OPCUAClientImpl(options);
     }
 }

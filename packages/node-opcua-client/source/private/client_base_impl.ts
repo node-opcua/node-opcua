@@ -44,7 +44,7 @@ import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common"
 import {
     CreateSecureChannelCallbackFunc, FindEndpointCallback,
     FindEndpointOptions,
-    FindEndpointResult, FindServersOnNetworkRequestLike, FindServersRequestLike, GetEndpointCallbackFunc,
+    FindEndpointResult, FindServersOnNetworkRequestLike, FindServersRequestLike,
     GetEndpointsOptions,
     OPCUAClientBase,
     OPCUAClientBaseOptions
@@ -621,14 +621,14 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     }
 
     public async getEndpoints(options?: GetEndpointsOptions): Promise<EndpointDescription[]>;
-    public getEndpoints(options: GetEndpointsOptions, callback: GetEndpointCallbackFunc): void;
-    public getEndpoints(callback: GetEndpointCallbackFunc): void;
+    public getEndpoints(options: GetEndpointsOptions, callback: ResponseCallback<EndpointDescription[]>): void;
+    public getEndpoints(callback: ResponseCallback<EndpointDescription[]>): void;
     public getEndpoints(...args: any[]): any {
         if (args.length === 1) {
             return this.getEndpoints({}, args[0]);
         }
-        const options = args[0];
-        const callback = args[1];
+        const options = args[0] as GetEndpointsOptions;
+        const callback = args[1] as ResponseCallback<EndpointDescription[]>;
         assert(_.isFunction(callback));
 
         options.localeIds = options.localeIds || [];

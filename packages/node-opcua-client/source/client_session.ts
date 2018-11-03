@@ -4,7 +4,7 @@
 
 import { EventEmitter } from "events";
 
-import { UInt8 } from "node-opcua-basic-types";
+import { DateTime, UInt8 } from "node-opcua-basic-types";
 import { ServerState } from "node-opcua-common";
 import { Certificate, Nonce } from "node-opcua-crypto";
 
@@ -45,6 +45,7 @@ import {
 import { StatusCode } from "node-opcua-status-code";
 import { Variant} from "node-opcua-variant";
 import { ClientSubscription } from "./client_subscription";
+import { HistoryReadResult } from "node-opcua-service-history";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
@@ -221,7 +222,8 @@ export interface ClientSession {
 
     write(nodeToWrite: WriteValueLike): Promise<StatusCode>;
 
-    writeSingleNode(path: string, value: Variant, callback: () => void): void;
+    writeSingleNode(nodeToWrite: NodeIdLike, value: Variant): Promise<StatusCode>;
+    writeSingleNode(nodeToWrite: NodeIdLike, value: Variant, callback: ResponseCallback<StatusCode>): void;
 
 }
 // subscription services
@@ -238,4 +240,30 @@ export interface ClientSession {
     getMonitoredItems(
         subscriptionId: SubscriptionId,
         callback: (err: Error | null, result?: MonitoredItemData) => void): void;
+}
+// history services
+export interface ClientSession {
+
+    readHistoryValue(
+      nodes: ReadValueIdLike[],
+      start: DateTime,
+      end: DateTime,
+      callback: (err: Error | null, results?: HistoryReadResult[]) => void): void;
+    readHistoryValue(
+      nodes: ReadValueIdLike[],
+      start: DateTime,
+      end: DateTime
+    ): Promise<HistoryReadResult[]>;
+
+    readHistoryValue(
+      node: ReadValueIdLike,
+      start: DateTime,
+      end: DateTime,
+      callback: (err: Error | null, results?: HistoryReadResult) => void): void;
+    readHistoryValue(
+      nodes: ReadValueIdLike,
+      start: DateTime,
+      end: DateTime
+    ): Promise<HistoryReadResult>;
+
 }

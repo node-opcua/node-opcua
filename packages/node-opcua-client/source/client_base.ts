@@ -8,10 +8,11 @@ import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     ClientSecureChannelLayer,
+    ConnectionStrategy,
     ConnectionStrategyOptions,
     ErrorCallback,
     SecurityPolicy,
-    SecurityToken,
+    SecurityToken
 } from "node-opcua-secure-channel";
 import {
     FindServersOnNetworkRequest, FindServersOnNetworkRequestOptions,
@@ -31,7 +32,6 @@ import { Request, Response } from "./common";
 
 export type FindServersRequestLike = FindServersRequest | FindServersRequestOptions;
 export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequest | FindServersOnNetworkRequestOptions;
-export type GetEndpointCallbackFunc = ResponseCallback<EndpointDescription[]>;
 export type CreateSecureChannelCallbackFunc = (err: Error | null, secureChannel?: ClientSecureChannelLayer) => void;
 
 export interface FindEndpointOptions {
@@ -139,7 +139,7 @@ export interface OPCUAClientBase {
 
     getEndpoints(options: GetEndpointsOptions, callback: ResponseCallback<EndpointDescription[]>): void;
 
-    getEndpoints(callback: GetEndpointCallbackFunc): void;
+    getEndpoints(callback: ResponseCallback<EndpointDescription[]>): void;
 
     findServers(options?: FindServersRequestLike): Promise<ApplicationDescription[]>;
 
@@ -260,7 +260,26 @@ export interface OPCUAClientBase extends EventEmitter {
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 
 }
+export interface OPCUAClientBase {
+    readonly endpoint?: EndpointDescription;
+    readonly isReconnecting: boolean;
+    readonly knowsServerEndpoint: boolean;
+    readonly reconnectOnFailure: boolean;
+    readonly bytesRead: number;
+    readonly bytesWritten: number;
 
+    readonly securityMode: MessageSecurityMode;
+    readonly securityPolicy: SecurityPolicy;
+    readonly serverCertificate?: Certificate;
+    readonly clientName: string;
+    readonly protocolVersion: 0;
+    readonly defaultSecureTokenLifetime: number;
+    readonly tokenRenewalInterval: number;
+    readonly connectionStrategy: ConnectionStrategy;
+    readonly keepPendingSessionsOnDisconnect: boolean;
+    readonly endpointUrl: string;
+    readonly keepSessionAlive: boolean;
+}
 export class OPCUAClientBase {
 
     public static registry = new ObjectRegistry(OPCUAClientBase);

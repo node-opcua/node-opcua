@@ -88,8 +88,9 @@ import { DataType, Variant, VariantLike, VariantOptions } from "node-opcua-varia
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
 import { ClientSubscription } from "../client_subscription";
 import { Request, Response } from "../common";
-import { ClientSidePublishEngine } from "../private/client_publish_engine";
+import { ClientSidePublishEngine } from "./client_publish_engine";
 
+import { OPCUAClientBase } from "../client_base";
 import {
     ArgumentDefinition,
     BrowseDescriptionLike, CallMethodRequestLike,
@@ -106,6 +107,7 @@ import {
     WriteValueLike
 } from "../client_session";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
+import { OPCUAClientImpl } from "./opcua_client_impl";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
@@ -313,7 +315,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
             this._publishEngine = new ClientSidePublishEngine(this);
         }
-        return this._publishEngine;
+        return this._publishEngine!;
     }
 
     /**
@@ -552,12 +554,22 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult[]) => void): void;
+    public async readHistoryValue(
+      nodes: ReadValueIdLike[],
+      start: DateTime,
+      end: DateTime
+    ): Promise<HistoryReadResult[]>;
 
     public readHistoryValue(
         node: ReadValueIdLike,
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult) => void): void;
+    public async readHistoryValue(
+      nodes: ReadValueIdLike,
+      start: DateTime,
+      end: DateTime
+    ): Promise<HistoryReadResult>;
 
     public readHistoryValue(...args: any[]): any {
 
