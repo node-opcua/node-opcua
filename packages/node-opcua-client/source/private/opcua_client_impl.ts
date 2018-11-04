@@ -2,6 +2,9 @@
  * @module node-opcua-client-private
  */
 // tslint:disable:variable-name
+// tslint:disable:no-console
+// tslint:disable:no-empty
+
 import * as async from "async";
 import chalk from "chalk";
 import * as crypto from "crypto";
@@ -11,7 +14,15 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { makeApplicationUrn } from "node-opcua-common";
-import { Certificate, exploreCertificate, extractPublicKeyFromCertificateSync, Nonce, toPem } from "node-opcua-crypto";
+import {
+    Certificate,
+    exploreCertificate,
+    extractPublicKeyFromCertificateSync,
+    Nonce,
+    PrivateKey,
+    PrivateKeyPEM,
+    toPem
+} from "node-opcua-crypto";
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {

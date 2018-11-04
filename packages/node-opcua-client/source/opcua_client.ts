@@ -4,7 +4,15 @@
 
 // tslint:disable:variable-name
 import { EventEmitter } from "events";
-import { Certificate, exploreCertificate, extractPublicKeyFromCertificateSync, Nonce, toPem } from "node-opcua-crypto";
+import {
+    Certificate,
+    exploreCertificate,
+    extractPublicKeyFromCertificateSync,
+    Nonce,
+    PrivateKey,
+    PrivateKeyPEM,
+    toPem
+} from "node-opcua-crypto";
 import {
     ConnectionStrategyOptions,
     ErrorCallback,
@@ -25,6 +33,7 @@ import {
     OPCUAClientBaseOptions
 } from "./client_base";
 
+import { ByteString } from "node-opcua-basic-types";
 import { ClientSession, ResponseCallback } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
