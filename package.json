@@ -76,9 +76,6 @@
 		"nyc": "^13.1.0",
 		"prettier": "^1.14.3",
 		"request": "^2.88.0",
-		"rollup": "^0.66.6",
-		"rollup-plugin-babel": "^4.0.3",
-		"rollup-plugin-node-resolve": "^3.4.0",
 		"should": "13.2.3",
 		"sinon": "^7.0.0",
 		"tmp": "0.0.33",
@@ -89,9 +86,7 @@
 		"typedoc-plugin-internal-external": "^1.0.10",
 		"typescript": "^3.1.2",
 		"webpack": "^4.23.0",
-		"webpack-node-externals": "^1.7.2",
-		"yuidoc-bootstrap-theme": "*",
-		"yuidocjs": "^0.10.2"
+		"webpack-node-externals": "^1.7.2"
 	},
 	"typings": "./packages/node-opcua/node-opcua.d.ts",
 	"dependencies": {

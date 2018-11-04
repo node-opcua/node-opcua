@@ -1,5 +1,6 @@
 sudo: false
 language: node_js
+
 node_js:
   # dropping support for node 0.10 - "0.10"
   # dropping support for node 0.12 - "0.12"
@@ -65,8 +66,9 @@ install:
 
 # keep the npm cache around to speed up installs
 cache:
-    directories:
-    - "$HOME/.npm"
+  npm: true
+  directories:
+    - "certificates"
 
 after_success:
   # only run code coverage on linux and latest nodejs version
@@ -91,7 +93,7 @@ addons:
 notifications:
   webhooks:
     urls:
-      - https://webhooks.gitter.im/e/4d51130aaea652dbc8f1
+      https://webhooks.gitter.im/e/4d51130aaea652dbc8f1
     on_success: always  # options: [always|never|change] default: always
     on_failure: always  # options: [always|never|change] default: always
     on_start: true     # default: false
