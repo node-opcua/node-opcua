@@ -1,4 +1,4 @@
-// to lauch in the doumentation folder
+// to launch in the documentation folder
 import { Application } from "typedoc";
 
 // @ts-ignore
@@ -15,7 +15,7 @@ const nodeopcuaModules = [
     "client",
     "basic-types",
     "binary-stream",
-    "types",
+   // "types",
 ];
 
 const sources = nodeopcuaModules.map((a: string) =>
