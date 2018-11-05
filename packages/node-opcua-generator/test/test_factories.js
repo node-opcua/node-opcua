@@ -13,55 +13,57 @@ const ec = require("node-opcua-basic-types");
 const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
 require("../../node-opcua-data-model");
 
-const ShapeType = factories.registerEnumeration({
-    name: "EnumShapeType",
-    enumValues: {
-        CIRCLE: 1,
-        SQUARE: 2,
-        RECTANGLE: 3,
-        HEXAGON: 6
-    }
-});
 
-const Color = factories.registerEnumeration({
-    name: "EnumColor",
-    enumValues: {
-        RED: 100,
-        BLUE: 200,
-        GREEN: 300
-    }
-});
-
-exports.Shape_Schema = {
-    id: factories.next_available_id(),
-    name: "Shape",
-    fields: [
-        {
-            name: "name", fieldType: "String", defaultValue: function () {
-            return "my shape";
+function initialize() {
+    const ShapeType = factories.registerEnumeration({
+        name: "EnumShapeType",
+        enumValues: {
+            CIRCLE: 1,
+            SQUARE: 2,
+            RECTANGLE: 3,
+            HEXAGON: 6
         }
-        },
-        {name: "shapeType", fieldType: "EnumShapeType"},
-        {name: "color", fieldType: "EnumColor", defaultValue: Color.GREEN},
-        {
-            name: "inner_color", fieldType: "EnumColor", defaultValue: function () {
-            return Color.BLUE;
+    });
+
+    const Color = factories.registerEnumeration({
+        name: "EnumColor",
+        enumValues: {
+            RED: 100,
+            BLUE: 200,
+            GREEN: 300
         }
-        }
-    ]
-};
+    });
 
-const path = require("path");
-const temporary_folder = path.join(__dirname,"..","_test_generated");
+    exports.Shape_Schema = {
+        id: factories.next_available_id(),
+        name: "Shape",
+        fields: [
+            {
+                name: "name", fieldType: "String", defaultValue: function () {
+                    return "my shape";
+                }
+            },
+            { name: "shapeType", fieldType: "EnumShapeType" },
+            { name: "color", fieldType: "EnumColor", defaultValue: Color.GREEN },
+            {
+                name: "inner_color", fieldType: "EnumColor", defaultValue: function () {
+                    return Color.BLUE;
+                }
+            }
+        ]
+    };
 
-const Shape = generator.registerObject(exports.Shape_Schema, temporary_folder);
+    const path = require("path");
+    const temporary_folder = path.join(__dirname, "..", "_test_generated");
 
-factories.registerBasicType({
-    name: "MyInteger",
-    subType: "UInt16",
-    defaultValue: 0
-});
+    const Shape = generator.registerObject(exports.Shape_Schema, temporary_folder);
 
+    factories.registerBasicType({
+        name: "MyInteger",
+        subType: "UInt16",
+        defaultValue: 0
+    });
+}
 xdescribe("Factories: testing object factory", function () {
 
     it("should handle subtype properly", function () {
@@ -223,8 +225,6 @@ xdescribe("Factories: testing binaryStoreSize", function () {
     });
 });
 
-
-
 xdescribe("Testing that objects created by factory can be persisted as JSON string", function () {
 
 
@@ -350,6 +350,7 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
         generator.unregisterObject(exports.FakeQualifiedName_Schema, temporary_folder);
     });
 });
+
 xdescribe("factories testing advanced cases", function () {
 
     it("should set a field to null when default value is specifically null and no value has been provided", function () {
@@ -430,7 +431,6 @@ xdescribe("factories testing advanced cases", function () {
 });
 
 xdescribe("BaseUAObject#clone ",function() {
-
 
     it("should clone a Shape",function() {
         const shape = new Shape({name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE});

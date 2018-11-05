@@ -8,7 +8,9 @@ const _ = require("underscore");
 const path = require("path");
 const tmpfolder  = path.join(__dirname,"../_test_generated");
 
-const ObjWithIntegerId = generator.registerObject(path.join(__dirname,"./schemas")+"|ObjWithIntegerId", tmpfolder);
+function initialize() {
+    const ObjWithIntegerId = generator.registerObject(path.join(__dirname,"./schemas")+"|ObjWithIntegerId", tmpfolder);
+}
 
 
 xdescribe("Testing IntegerId", function () {

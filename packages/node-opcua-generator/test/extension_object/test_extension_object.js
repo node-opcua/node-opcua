@@ -17,29 +17,32 @@ const ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
 
 xdescribe("ExtensionObject", function () {
 
-    exports.MetaShapeForUnitTest_Schema = {
-        name: "MetaShapeForUnitTest",
-        id: factories.next_available_id(),
-        fields: [
-            {name: "name", fieldType: "String"},
-            {name: "shape", fieldType: "ExtensionObject"},
-            {name: "comment", fieldType: "String"}
-        ]
-    };
+    function initiliaze() {
 
-    const MetaShape = generator.registerObject(exports.MetaShapeForUnitTest_Schema, temporary_folder);
+        exports.MetaShapeForUnitTest_Schema = {
+            name: "MetaShapeForUnitTest",
+            id: factories.next_available_id(),
+            fields: [
+                { name: "name", fieldType: "String" },
+                { name: "shape", fieldType: "ExtensionObject" },
+                { name: "comment", fieldType: "String" }
+            ]
+        };
 
-    const Potato_Schema_Id = 0xF00001;
-    exports.Potato_Schema = {
-        name: "Potato",
-        id: Potato_Schema_Id,
-        fields: [
-            {name: "length", fieldType: "Double"},
-            {name: "radius", fieldType: "Double"}
+        const MetaShape = generator.registerObject(exports.MetaShapeForUnitTest_Schema, temporary_folder);
 
-        ]
-    };
-    const Potato = generator.registerObject(exports.Potato_Schema, temporary_folder);
+        const Potato_Schema_Id = 0xF00001;
+        exports.Potato_Schema = {
+            name: "Potato",
+            id: Potato_Schema_Id,
+            fields: [
+                { name: "length", fieldType: "Double" },
+                { name: "radius", fieldType: "Double" }
+
+            ]
+        };
+        const Potato = generator.registerObject(exports.Potato_Schema, temporary_folder);
+    }
 
     it("should encode an object with an embedded ExtensionObject set to null ", function () {
 

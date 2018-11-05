@@ -13,57 +13,60 @@ const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/t
 const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
 const compare_obj_by_encoding = require("node-opcua-packet-analyzer/dist/test_helpers").compare_obj_by_encoding;
 
-const Person_Schema = {
-    id: factories.next_available_id(),
-    name: "Person",
-    fields: [
-        {name: "lastName", fieldType: "UAString"},
-        {name: "address", fieldType: "UAString"},
-        {name: "age", fieldType: "Int32", defaultValue: 25}
-    ]
-};
-exports.Person_Schema = Person_Schema;
-const Role_Schema = {
-    id: factories.next_available_id(),
-    name: "Role",
-    fields: [
-        {name: "title", fieldType: "UAString"},
-        {name: "description", fieldType: "UAString"}
-    ]
-};
-exports.Role_Schema = Role_Schema;
 
-const Employee_Schema = {
-    id: factories.next_available_id(),
-    name: "Employee",
-    baseType: "Person",
-    fields: [
-        {name: "role", fieldType: "Role"},
-        {name: "service", fieldType: "UAString"},
-        {name: "salary", fieldType: "Double", defaultValue: 1000.00}
-    ]
-};
-exports.Employee_Schema = Employee_Schema;
+function initiliaze() {
 
-const Company_Schema = {
-    id: factories.next_available_id(),
-    name: "Company",
-    fields: [
-        {name: "name", fieldType: "String"},
-        {name: "employees", isArray: true, fieldType: "Employee"},
-        {name: "company_values", isArray: true, fieldType: "String"}
-    ]
-};
-exports.Company_Schema = Company_Schema;
+    const Person_Schema = {
+        id: factories.next_available_id(),
+        name: "Person",
+        fields: [
+            { name: "lastName", fieldType: "UAString" },
+            { name: "address", fieldType: "UAString" },
+            { name: "age", fieldType: "Int32", defaultValue: 25 }
+        ]
+    };
+    exports.Person_Schema = Person_Schema;
+    const Role_Schema = {
+        id: factories.next_available_id(),
+        name: "Role",
+        fields: [
+            { name: "title", fieldType: "UAString" },
+            { name: "description", fieldType: "UAString" }
+        ]
+    };
+    exports.Role_Schema = Role_Schema;
 
-const path = require("path");
-const temporary_folder = path.join(__dirname,"..","_test_generated");
+    const Employee_Schema = {
+        id: factories.next_available_id(),
+        name: "Employee",
+        baseType: "Person",
+        fields: [
+            { name: "role", fieldType: "Role" },
+            { name: "service", fieldType: "UAString" },
+            { name: "salary", fieldType: "Double", defaultValue: 1000.00 }
+        ]
+    };
+    exports.Employee_Schema = Employee_Schema;
 
-const Person = generator.registerObject(Person_Schema, temporary_folder);
-const Role = generator.registerObject(Role_Schema, temporary_folder);
-const Employee = generator.registerObject(Employee_Schema, temporary_folder);
-const Company = generator.registerObject(Company_Schema, temporary_folder);
+    const Company_Schema = {
+        id: factories.next_available_id(),
+        name: "Company",
+        fields: [
+            { name: "name", fieldType: "String" },
+            { name: "employees", isArray: true, fieldType: "Employee" },
+            { name: "company_values", isArray: true, fieldType: "String" }
+        ]
+    };
+    exports.Company_Schema = Company_Schema;
 
+    const path = require("path");
+    const temporary_folder = path.join(__dirname, "..", "_test_generated");
+
+    const Person = generator.registerObject(Person_Schema, temporary_folder);
+    const Role = generator.registerObject(Role_Schema, temporary_folder);
+    const Employee = generator.registerObject(Employee_Schema, temporary_folder);
+    const Company = generator.registerObject(Company_Schema, temporary_folder);
+}
 
 xdescribe("Factories: construction", function () {
 
