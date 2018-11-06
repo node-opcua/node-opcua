@@ -13,6 +13,8 @@ const _ = require("underscore");
 const ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCode = require("node-opcua-status-code").StatusCode;
+
 const SessionContext = require("node-opcua-address-space").SessionContext;
 const fromURI = require("node-opcua-secure-channel").fromURI;
 const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
@@ -1151,6 +1153,7 @@ OPCUAServer.prototype._on_CreateSessionRequest = function (message, channel) {
 
 const UserNameIdentityToken = session_service.UserNameIdentityToken;
 const AnonymousIdentityToken = session_service.AnonymousIdentityToken;
+const X509IdentityToken = session_service.X509IdentityToken;
 
 const getCryptoFactory = require("node-opcua-secure-channel").getCryptoFactory;
 
@@ -1166,7 +1169,13 @@ function adjustSecurityPolicy(channel, userTokenPolicy_securityPolicyUri) {
     return securityPolicy;
 }
 
-OPCUAServer.prototype.isValidUserNameIdentityToken = function (channel, session, userTokenPolicy, userIdentityToken) {
+OPCUAServer.prototype.isValidUserNameIdentityToken = function (
+    channel,
+    session,
+    userTokenPolicy,
+    userIdentityToken,
+    userTokenSignature
+) {
 
     const self = this;
 
@@ -1176,21 +1185,73 @@ OPCUAServer.prototype.isValidUserNameIdentityToken = function (channel, session,
 
     const cryptoFactory = getCryptoFactory(securityPolicy);
     if (!cryptoFactory) {
-        throw new Error(" Unsupported security Policy");
+        return StatusCodes.BadSecurityPolicyRejected;
     }
 
     if (userIdentityToken.encryptionAlgorithm !== cryptoFactory.asymmetricEncryptionAlgorithm) {
         console.log("invalid encryptionAlgorithm");
         console.log("userTokenPolicy", userTokenPolicy.toString());
         console.log("userTokenPolicy", userIdentityToken.toString());
-        return false;
+        return StatusCodes.BadIdentityTokenInvalid;
     }
     const userName = userIdentityToken.userName;
     const password = userIdentityToken.password;
     if (!userName || !password) {
-        return false;
+        return StatusCodes.BadIdentityTokenInvalid;
     }
-    return true;
+    return StatusCodes.Good;
+};
+
+
+OPCUAServer.prototype.isValidX509IdentityToken = function (
+    channel,
+    session,
+    userTokenPolicy,
+    userIdentityToken,
+    userTokenSignature
+) {
+
+    assert(userIdentityToken instanceof X509IdentityToken);
+
+    const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
+
+    const cryptoFactory = getCryptoFactory(securityPolicy);
+    if (!cryptoFactory) {
+        return StatusCodes.BadSecurityPolicyRejected;
+    }
+
+    if (!userTokenSignature || !userTokenSignature.signature) {
+        return StatusCodes.BadUserSignatureInvalid;
+    }
+
+
+    if (userIdentityToken.policyId !== userTokenPolicy.policyId) {
+        console.log("invalid encryptionAlgorithm");
+        console.log("userTokenPolicy", userTokenPolicy.toString());
+        console.log("userTokenPolicy", userIdentityToken.toString());
+        return StatusCodes.BadSecurityPolicyRejected;
+    }
+    const certificate = userIdentityToken.certificateData/* as Certificate*/;
+    const nonce = session.nonce;
+    assert(certificate instanceof Buffer, "expecting certificate to be a Buffer");
+    assert(nonce instanceof Buffer, "expecting nonce to be a Buffer");
+    assert(userTokenSignature.signature instanceof Buffer, "expecting userTokenSignature to be a Buffer");
+
+    // verify proof of possession by checking certificate signature & server nonce correctness
+    if (!verifySignature(certificate, nonce, userTokenSignature,certificate, securityPolicy)){
+        return StatusCodes.BadUserSignatureInvalid;
+    }
+
+    // verify if certificate is Valid
+    // todo:
+
+    // verify if certificate is truster or rejected
+    // todo:
+
+    // store untrusted certificate to rejected folder
+    // todo:
+
+    return StatusCodes.Good;
 };
 
 /**
@@ -1272,7 +1333,12 @@ function createAnonymousIdentityToken(endpoint_desc) {
 }
 
 
-OPCUAServer.prototype.isValidUserIdentityToken = function (channel, session, userIdentityToken) {
+OPCUAServer.prototype.isValidUserIdentityToken = function (
+    channel,
+    session,
+    userIdentityToken,
+    userTokenSignature
+)/* : StatusCode */ {
 
     const self = this;
     assert(userIdentityToken);
@@ -1283,13 +1349,16 @@ OPCUAServer.prototype.isValidUserIdentityToken = function (channel, session, use
     const userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId);
     if (!userTokenPolicy) {
         // cannot find token with this policyId
-        return false;
+        return StatusCodes.BadIdentityTokenInvalid;
     }
     //
     if (userIdentityToken instanceof UserNameIdentityToken) {
-        return self.isValidUserNameIdentityToken(channel, session, userTokenPolicy, userIdentityToken);
+        return self.isValidUserNameIdentityToken(channel, session, userTokenPolicy, userIdentityToken, userTokenSignature);
     }
-    return true;
+    if (userIdentityToken instanceof X509IdentityToken) {
+        return self.isValidX509IdentityToken(channel, session, userTokenPolicy, userIdentityToken, userTokenSignature);
+    }
+    return StatusCodes.Good;
 };
 
 
@@ -1459,8 +1528,10 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
     request.userIdentityToken = request.userIdentityToken || createAnonymousIdentityToken(channel.endpoint);
 
     // check request.userIdentityToken is correct ( expected type and correctly formed)
-    if (!server.isValidUserIdentityToken(channel, session, request.userIdentityToken)) {
-        return rejectConnection(StatusCodes.BadIdentityTokenInvalid);
+    const statusCode = server.isValidUserIdentityToken(channel, session, request.userIdentityToken, request.userTokenSignature);
+    if (statusCode !== StatusCodes.Good) {
+        assert(statusCode && statusCode instanceof StatusCode,"expecting statusCode");
+        return rejectConnection(statusCode);
     }
     session.userIdentityToken = request.userIdentityToken;
 

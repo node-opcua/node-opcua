@@ -163,8 +163,6 @@ function createX509IdentityToken(
         policyId: userTokenPolicy.policyId,
     });
 
-    const serverCertificate: Certificate = session.serverCertificate;
-
     const serverNonce: Nonce = session.serverNonce || Buffer.alloc(0);
     assert(serverNonce instanceof Buffer);
 
@@ -208,7 +206,7 @@ function createX509IdentityToken(
 
     // The signature generated with private key associated with the User Certificate
     const userTokenSignature: SignatureDataOptions = computeSignature(
-        serverCertificate, serverNonce, privateKey, securityPolicy)!;
+        certificate, serverNonce, privateKey, securityPolicy)!;
 
     return {userIdentityToken, userTokenSignature};
 }
@@ -1139,7 +1137,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         function coerceUserIdentityInfo(identityInfo: any): UserIdentityInfo {
 
-            if(!identityInfo) {
+            if (!identityInfo) {
                 return { type: UserTokenType.Anonymous};
             }
             if (identityInfo.hasOwnProperty("type")) {
