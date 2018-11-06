@@ -821,21 +821,21 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public toString(): string {
 
         let str = "";
-        str += "  defaultSecureTokenLifetime.... " + this.defaultSecureTokenLifetime;
-        str += "  securityMode.................. " + this.securityMode.toString();
-        str += "  securityPolicy................ " + this.securityPolicy.toString();
-        // this.serverCertificate = options.serverCertificate || null;
-        str += "  keepSessionAlive.............. " + this.keepSessionAlive;
-        str += "  bytesRead..................... " + this.bytesRead;
-        str += "  bytesWritten.................. " + this.bytesWritten;
-        str += "  transactionsPerformed......... " + this.transactionsPerformed;
-        str += "  timedOutRequestCount.......... " + this.timedOutRequestCount;
-        str += "  connectionStrategy.";
-        str += "        .maxRetry............... " + this.connectionStrategy.maxRetry;
-        str += "        .initialDelay........... " + this.connectionStrategy.initialDelay;
-        str += "        .maxDelay............... " + this.connectionStrategy.maxDelay;
-        str += "        .randomisationFactor.... " + this.connectionStrategy.randomisationFactor;
-        str += "  keepSessionAlive.............. " + this.keepSessionAlive;
+        str += "  defaultSecureTokenLifetime.... " + this.defaultSecureTokenLifetime + "\n";
+        str += "  securityMode.................. " + this.securityMode.toString() + "\n";
+        str += "  securityPolicy................ " + this.securityPolicy.toString() + "\n";
+        // this.serverCertificate = options.serverCertificate || null + "\n";
+        str += "  keepSessionAlive.............. " + this.keepSessionAlive + "\n";
+        str += "  bytesRead..................... " + this.bytesRead + "\n";
+        str += "  bytesWritten.................. " + this.bytesWritten + "\n";
+        str += "  transactionsPerformed......... " + this.transactionsPerformed + "\n";
+        str += "  timedOutRequestCount.......... " + this.timedOutRequestCount + "\n";
+        str += "  connectionStrategy." + "\n";
+        str += "        .maxRetry............... " + this.connectionStrategy.maxRetry + "\n";
+        str += "        .initialDelay........... " + this.connectionStrategy.initialDelay + "\n";
+        str += "        .maxDelay............... " + this.connectionStrategy.maxDelay + "\n";
+        str += "        .randomisationFactor.... " + this.connectionStrategy.randomisationFactor + "\n";
+        str += "  keepSessionAlive.............. " + this.keepSessionAlive + "\n";
         return str;
     }
 
