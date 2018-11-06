@@ -438,10 +438,10 @@ export function computeSignature(
         return undefined;
     }
     // This parameter is calculated by appending the clientNonce to the clientCertificate
-    const buffer = Buffer.concat([senderCertificate, senderNonce]);
+    const dataToSign = Buffer.concat([senderCertificate, senderNonce]);
 
     // ... and signing the resulting sequence of bytes.
-    const signature = cryptoFactory.asymmetricSign(buffer, receiverPrivateKey);
+    const signature = cryptoFactory.asymmetricSign(dataToSign, receiverPrivateKey);
 
     return new SignatureData({
         // A string containing the URI of the algorithm.
@@ -476,9 +476,8 @@ export function verifySignature(
 
     assert(signature.signature instanceof Buffer);
     // This parameter is calculated by appending the clientNonce to the clientCertificate
-    const buffer = Buffer.concat([receiverCertificate, receiverNonce]);
-
-    return cryptoFactory.asymmetricVerify(buffer, signature.signature, senderCertificate);
+    const dataToVerify = Buffer.concat([receiverCertificate, receiverNonce]);
+    return cryptoFactory.asymmetricVerify(dataToVerify, signature.signature, senderCertificate);
 }
 
 export function getOptionsForSymmetricSignAndEncrypt(

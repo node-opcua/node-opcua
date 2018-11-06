@@ -5,12 +5,13 @@
  "scripts": {
   "pretest": "node test_helpers/create_certificates.js demo --dev -s",
   "clean": "node -e \"require('rimraf').sync('certificates');\"",
-  "test": "mocha --recursive test"
+  "test": "mocha --recursive test && mocha -r test/end2end/*.ts"
  },
  "dependencies": {
   "node-opcua-pki": "^1.0.0-beta.2"
  },
  "devDependencies": {
+  "@types/mocha": "^5.2.5",
   "async": "^2.6.1",
   "colors": "^1.3.2",
   "delayed": "^1.0.1",

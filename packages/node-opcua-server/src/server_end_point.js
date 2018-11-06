@@ -400,6 +400,14 @@ function _makeEndpointDescription(options) {
             securityPolicyUri: SecurityPolicy.Basic256Sha256
         });
 
+        userIdentityTokens.push({
+            policyId: "certificate_basic256Sha256",
+            tokenType: UserTokenType.Certificate,
+            issuedTokenType: null,
+            issuerEndpointUrl: null,
+            securityPolicyUri: SecurityPolicy.Basic256Sha256
+        });
+
     } else {
         // note:
         //  when channel session security is not "None",

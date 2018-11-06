@@ -1,4 +1,5 @@
 // tslint:disable:no-var-requires
+const mocha = require("mocha");
 import * as fs from "fs";
 import * as path from "path";
 
@@ -13,13 +14,15 @@ import {
 
 const should = require("should");
 import * as  crypto_utils from "node-opcua-crypto";
-import {Certificate, PrivateKey} from "node-opcua-crypto";
+import {Certificate, PrivateKey, PrivateKeyPEM} from "node-opcua-crypto";
+import { UserTokenType } from "node-opcua-types";
 
 const port = 5000;
 
 let server: OPCUAServer;
 let endpointUrl: string;
-// openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout example.pem -outform der -out example.der -subj "/CN=example.com" -days 3650
+// openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout example.pem \
+//        -outform der -out example.der -subj "/CN=example.com" -days 3650
 async function startServer(): Promise<OPCUAServer> {
 
     server = new OPCUAServer({
@@ -46,21 +49,23 @@ describe("Testing Session with user certificate", () => {
 
     it("should create a session with client certificates", async () => {
 
-        const certificateFolder = path.join(__dirname, "../../node_opcua_samples/certificates");
+        const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
         const clientCertificateFilename = path.join(certificateFolder, "client_cert_2048.pem");
         const clientCertificate: Certificate = crypto_utils.readCertificate(clientCertificateFilename);
 
         const clientPrivateKeyFilename = path.join(certificateFolder, "client_key_2048.pem");
-        const clientPrivateKey: PrivateKey = crypto_utils.readPrivateKey(clientPrivateKeyFilename);
+        const privateKey: PrivateKeyPEM = crypto_utils.readPrivateKeyPEM(clientPrivateKeyFilename);
 
         const client = OPCUAClient.create({});
 
         await client.connect(endpointUrl);
 
-        // const userIdentity: UserIdentityCertificateInfo = {
-        //    clientCertificate, clientPrivateKey
-        // };
-        const session = await client.createSession();
+        const userIdentity: UserIdentityInfoX509 = {
+            certificateData: clientCertificate,
+            privateKey,
+            type: UserTokenType.Certificate,
+        };
+        const session = await client.createSession(userIdentity);
 
         await session.close();
 
