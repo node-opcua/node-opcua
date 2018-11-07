@@ -1,14 +1,15 @@
 /**
- * @module node-opcua-client
+ * @module node-opcua-certificate-manager
  */
 import * as fs from "fs";
 import * as path from "path";
 import { callbackify, promisify } from "util";
 
 import { StatusCodes } from "node-opcua-constants";
-import { Certificate, makeSHA1Thumbprint, toPem, readCertificate } from "node-opcua-crypto";
-import { ErrorCallback } from "node-opcua-secure-channel";
+import { Certificate, makeSHA1Thumbprint, readCertificate, toPem } from "node-opcua-crypto";
 import { StatusCode } from "node-opcua-status-code";
+
+type ErrorCallback = (err?: Error) => void;
 
 interface ICertificateManager {
     isCertificateTrusted(serverCertificate: Certificate, callback: ErrorCallback): void;

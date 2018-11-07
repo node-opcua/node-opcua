@@ -17,6 +17,7 @@
   "node-opcua-address-space": "^2.0.0-alpha.0",
   "node-opcua-assert": "^2.0.0-alpha.0",
   "node-opcua-basic-types": "^2.0.0-alpha.0",
+  "node-opcua-certificate-manager": "^2.0.0-alpha.0",
   "node-opcua-client": "^2.0.0-alpha.0",
   "node-opcua-common": "^2.0.0-alpha.0",
   "node-opcua-constants": "^2.0.0-alpha.0",
