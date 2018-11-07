@@ -144,7 +144,7 @@ function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
 //  - page 95  6.1.3 Determining if a Certificate is Trusted
 // -  page 100 6.2.3 Validating a Software Certificate
 //
-function _check_certificate_validity(certificate: Buffer) {
+export function checkCertificateValidity(certificate: Certificate): StatusCode {
     // Is the  signature on the SoftwareCertificate valid .?
     if (!certificate) {
         // missing certificate
@@ -159,16 +159,15 @@ function _check_certificate_validity(certificate: Buffer) {
 
     if (cert.notBefore.getTime() > now.getTime()) {
         // certificate is not active yet
-        console.log(
-          chalk.red(" Sender certificate is invalid : certificate is not active yet !") +
-          "  not before date =" +
-          cert.notBefore
+        console.log(chalk.red(" Sender certificate is invalid : certificate is not active yet !") +
+            "  not before date =" + cert.notBefore
         );
         return StatusCodes.BadCertificateTimeInvalid;
     }
     if (cert.notAfter.getTime() <= now.getTime()) {
         // certificate is obsolete
-        console.log(chalk.red(" Sender certificate is invalid : certificate has expired !") + " not after date =" + cert.notAfter);
+        console.log(chalk.red(" Sender certificate is invalid : certificate has expired !") +
+            " not after date =" + cert.notAfter);
         return StatusCodes.BadCertificateTimeInvalid;
     }
 
@@ -1114,7 +1113,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
 
         if (this.clientCertificate) {
-            const certificate_status = _check_certificate_validity(this.clientCertificate);
+            const certificate_status = checkCertificateValidity(this.clientCertificate);
             if (StatusCodes.Good !== certificate_status) {
                 description = "Sender Certificate Error";
                 console.log(chalk.cyan(description), chalk.bgRed.yellow(certificate_status.toString()));
