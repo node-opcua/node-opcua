@@ -1,15 +1,15 @@
 // tslint:disable:no-console
 
-import "mocha";
 import * as fs from "fs";
+import "mocha";
 import { StatusCodes } from "node-opcua-status-code";
+import * as os from "os";
 import * as path from "path";
 import rimraf = require("rimraf");
 import * as should from "should";
 import { promisify } from "util";
-import * as os from "os";
 
-const _should = should; // make sure shuld is not removed during tscript compilation
+const _should = should; // make sure should is not removed during tscript compilation
 
 import {
     Certificate,
