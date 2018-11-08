@@ -110,7 +110,7 @@ xdescribe("Factories: testing object factory", function () {
         s.value.should.equal(0);
         s.statusCode.value.should.equal(0);
         s.statusCode.should.eql(StatusCodes.Good);
-        // should.eql(StatusCode.Good);
+        // should.eql(StatusCodes.Good);
         generator.unregisterObject(exports.MyStruct2_Schema, temporary_folder);
 
     });

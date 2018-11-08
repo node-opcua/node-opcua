@@ -3,7 +3,7 @@
  "version": "2.0.0-alpha.0",
  "description": "pure nodejs OPCUA SDK - module -common",
  "scripts": {
-  "test": "mocha -r ts-node/register test/**/*.ts",
+  "test-typescript": "mocha -r ts-node/register test/**/*.ts",
   "clean": "node -e \"require('rimraf').sync('dist');\"",
   "build": "tsc",
   "lint": "tslint source/**/*.ts"

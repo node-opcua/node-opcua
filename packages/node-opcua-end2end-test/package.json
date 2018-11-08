@@ -5,7 +5,8 @@
  "scripts": {
   "pretest": "node test_helpers/create_certificates.js demo --dev -s",
   "clean": "node -e \"require('rimraf').sync('certificates');\"",
-  "test": "mocha --recursive test && mocha -r test/end2end/*.ts"
+  "test": "mocha --recursive test && npm run test-typescript",
+  "test-typescript": "mocha --recursive test/end_to_end/*.ts"
  },
  "dependencies": {
   "node-opcua-pki": "^1.0.0-beta.2"
