@@ -49,6 +49,7 @@ const split_der = require("node-opcua-crypto").split_der;
  * @param [options.serverInfo.discoveryProfileUri]      {String|null}
  * @param [options.serverInfo.discoveryUrls]            {String[]}
  * @param options.objectFactory
+ * @param [options.certificateManager]
  * @constructor
  *
  * note:
@@ -61,7 +62,8 @@ function OPCUAServerEndPoint(options) {
     assert(!options.hasOwnProperty("certificate"), "expecting a certificateChain instead");
     assert(options.hasOwnProperty("certificateChain"), "expecting a certificateChain");
     assert(options.hasOwnProperty("privateKey"));
-    //xx assert(typeof(options.privateKey) === "string");
+
+    self.certificateManager = options.certificateManager;
 
     options = options || {};
     options.port = options.port || 0;

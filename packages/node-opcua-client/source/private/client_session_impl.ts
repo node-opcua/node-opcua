@@ -820,7 +820,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      *
      *    ``` javascript
      *    session.readAllAttributes("ns=2;s=Furnace_1.Temperature",function(err,data) {
-     *       if(data.statusCode === StatusCode.Good) {
+     *       if(data.statusCode === StatusCodes.Good) {
      *          console.log(" nodeId      = ",data.nodeId.toString());
      *          console.log(" browseName  = ",data.browseName.toString());
      *          console.log(" description = ",data.description.toString());

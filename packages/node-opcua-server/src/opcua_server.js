@@ -8,6 +8,7 @@ const assert = require("node-opcua-assert").assert;
 const async = require("async");
 const util = require("util");
 const fs = require("fs");
+const path = require("path");
 const _ = require("underscore");
 
 const ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
@@ -134,6 +135,7 @@ const computeSignature = require("node-opcua-secure-channel").computeSignature;
 const verifySignature = require("node-opcua-secure-channel").verifySignature;
 const checkCertificateValidity = require("node-opcua-secure-channel").checkCertificateValidity;
 
+const CertificateManager = require("node-opcua-certificate-manager").CertificateManager;
 
 const Factory = function Factory(engine) {
     assert(_.isObject(engine));
@@ -175,16 +177,15 @@ const EventEmitter = require("events").EventEmitter;
 function RegisterServerManagerHidden(options) {
 
 }
-util.inherits(RegisterServerManagerHidden,EventEmitter);
-RegisterServerManagerHidden.prototype.stop = function(callback)
-{
+
+util.inherits(RegisterServerManagerHidden, EventEmitter);
+RegisterServerManagerHidden.prototype.stop = function (callback) {
     setImmediate(callback);
 };
-RegisterServerManagerHidden.prototype.start = function(callback)
-{
+RegisterServerManagerHidden.prototype.start = function (callback) {
     setImmediate(callback);
 };
-RegisterServerManagerHidden.prototype.dispose = function(){
+RegisterServerManagerHidden.prototype.dispose = function () {
 };
 
 const _announcedOnMulticastSubnet = require("node-opcua-service-discovery")._announcedOnMulticastSubnet;
@@ -202,44 +203,43 @@ function RegisterServerManagerMDNSONLY(options) {
     assert(self.server instanceof OPCUABaseServer);
     self.bonjour = null;
 }
-util.inherits(RegisterServerManagerMDNSONLY,EventEmitter);
-RegisterServerManagerMDNSONLY.prototype.stop = function(callback)
-{
+
+util.inherits(RegisterServerManagerMDNSONLY, EventEmitter);
+RegisterServerManagerMDNSONLY.prototype.stop = function (callback) {
     const self = this;
     _stop_announcedOnMulticastSubnet(self);
-    setImmediate(function() {
+    setImmediate(function () {
         self.emit("serverUnregistered");
         setImmediate(callback);
     });
 };
 
-RegisterServerManagerMDNSONLY.prototype.start = function(callback)
-{
+RegisterServerManagerMDNSONLY.prototype.start = function (callback) {
     const self = this;
     assert(self.server);
     assert(self.server instanceof OPCUABaseServer);
 
-    _announcedOnMulticastSubnet(self,{
+    _announcedOnMulticastSubnet(self, {
         applicationUri: self.server.serverInfo.applicationUri,
         port: self.server.endpoints[0].port,
         path: "/", //<- to do
         capabilities: self.server.capabilitiesForMDNS
     });
-    setImmediate(function() {
+    setImmediate(function () {
         self.emit("serverRegistered");
         setImmediate(callback);
     });
 };
-RegisterServerManagerMDNSONLY.prototype.dispose = function(){
+RegisterServerManagerMDNSONLY.prototype.dispose = function () {
     this.server = null;
 };
-function _installRegisterServerManager(self)
-{
+
+function _installRegisterServerManager(self) {
     assert(self instanceof OPCUAServer);
     assert(!self.registerServerManager);
     assert(self.registerServerMethod);
 
-    switch(self.registerServerMethod) {
+    switch (self.registerServerMethod) {
         case RegisterServerMethod.HIDDEN:
             self.registerServerManager = new RegisterServerManagerHidden({
                 server: self,
@@ -302,9 +302,9 @@ function _installRegisterServerManager(self)
 
 const Enum = require("node-opcua-enum").Enum;
 const RegisterServerMethod = new Enum({
-    "HIDDEN":1 , // the server doesn't expose itself to the external world
-    "MDNS" :2,   // the server publish itself to the mDNS Multicast network directly
-    "LDS":3 // the server registers itself to the LDS or LDS-ME (Local Discovery Server)
+    "HIDDEN": 1, // the server doesn't expose itself to the external world
+    "MDNS": 2,   // the server publish itself to the mDNS Multicast network directly
+    "LDS": 3 // the server registers itself to the LDS or LDS-ME (Local Discovery Server)
 });
 
 /**
@@ -346,6 +346,8 @@ const RegisterServerMethod = new Enum({
  * @param [options.capabilitiesForMDNS = ["NA"] ] {Array<String>} supported server capabilities for the Mutlicast (mDNS)
  *                                          (any of node-opcua-discovery.serverCapabilities)
  *
+ * @param [options.userCertificateManager]
+ * @param [options.serverCertificateManager]
  * @constructor
  */
 class OPCUAServer extends OPCUABaseServer {
@@ -457,6 +459,12 @@ class OPCUAServer extends OPCUABaseServer {
         self.capabilitiesForMDNS = options.capabilitiesForMDNS || ["NA"];
         self.registerServerMethod = options.registerServerMethod || RegisterServerMethod.HIDDEN;
         _installRegisterServerManager(self);
+
+        if (!options.userCertificateManager) {
+            options.userCertificateManager = new CertificateManager({name: "UserPKI"});
+        }
+        self.userCertificateManager = options.userCertificateManager;
+
     }
 
     /**
@@ -1209,20 +1217,22 @@ OPCUAServer.prototype.isValidX509IdentityToken = function (
     session,
     userTokenPolicy,
     userIdentityToken,
-    userTokenSignature
+    userTokenSignature,
+    callback
 ) {
 
     assert(userIdentityToken instanceof X509IdentityToken);
+    assert(callback instanceof Function);
 
     const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
 
     const cryptoFactory = getCryptoFactory(securityPolicy);
     if (!cryptoFactory) {
-        return StatusCodes.BadSecurityPolicyRejected;
+        return callback(null, StatusCodes.BadSecurityPolicyRejected);
     }
 
     if (!userTokenSignature || !userTokenSignature.signature) {
-        return StatusCodes.BadUserSignatureInvalid;
+        return callback(null, StatusCodes.BadUserSignatureInvalid);
     }
 
 
@@ -1230,7 +1240,7 @@ OPCUAServer.prototype.isValidX509IdentityToken = function (
         console.log("invalid encryptionAlgorithm");
         console.log("userTokenPolicy", userTokenPolicy.toString());
         console.log("userTokenPolicy", userIdentityToken.toString());
-        return StatusCodes.BadSecurityPolicyRejected;
+        return callback(null, StatusCodes.BadSecurityPolicyRejected);
     }
     const certificate = userIdentityToken.certificateData/* as Certificate*/;
     const nonce = session.nonce;
@@ -1239,27 +1249,28 @@ OPCUAServer.prototype.isValidX509IdentityToken = function (
     assert(userTokenSignature.signature instanceof Buffer, "expecting userTokenSignature to be a Buffer");
 
     // verify proof of possession by checking certificate signature & server nonce correctness
-    if (!verifySignature(certificate, nonce, userTokenSignature,certificate, securityPolicy)){
-        return StatusCodes.BadUserSignatureInvalid;
+    if (!verifySignature(certificate, nonce, userTokenSignature, certificate, securityPolicy)) {
+        return callback(null, StatusCodes.BadUserSignatureInvalid);
     }
 
     // verify if certificate is Valid
-    // todo:
-    // verify if the certificate is revoked
-    // todo: StatusCode.BadCertificateRevoked
-    const certificateStatus = checkCertificateValidity(certificate);
+    this.userCertificateManager.checkCertificate(certificate, (err, certificateStatus) => {
+        if (err) {
+            return callback(err);
+        }
+        if (StatusCodes.Good !== certificateStatus) {
+            assert(certificateStatus instanceof StatusCode);
+            return callback(null, certificateStatus);
+        }
 
-    if (StatusCodes.Good !== certificateStatus) {
-        return certificateStatus;
-    }
+        // verify if certificate is truster or rejected
+        // todo: StatusCode.BadCertificateUntrusted
 
-    // verify if certificate is truster or rejected
-    // todo: StatusCode.BadCertificateUntrusted
+        // store untrusted certificate to rejected folder
+        // todo:
+        return callback(null, StatusCodes.Good);
+    });
 
-    // store untrusted certificate to rejected folder
-    // todo:
-
-    return StatusCodes.Good;
 };
 
 /**
@@ -1345,8 +1356,11 @@ OPCUAServer.prototype.isValidUserIdentityToken = function (
     channel,
     session,
     userIdentityToken,
-    userTokenSignature
+    userTokenSignature,
+    callback /* err, statusCode*/
 )/* : StatusCode */ {
+
+    assert(callback instanceof Function);
 
     const self = this;
     assert(userIdentityToken);
@@ -1357,16 +1371,20 @@ OPCUAServer.prototype.isValidUserIdentityToken = function (
     const userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId);
     if (!userTokenPolicy) {
         // cannot find token with this policyId
-        return StatusCodes.BadIdentityTokenInvalid;
+        return callback(null, StatusCodes.BadIdentityTokenInvalid);
     }
     //
     if (userIdentityToken instanceof UserNameIdentityToken) {
-        return self.isValidUserNameIdentityToken(channel, session, userTokenPolicy, userIdentityToken, userTokenSignature);
+        const statusCode = self.isValidUserNameIdentityToken(
+            channel, session, userTokenPolicy, userIdentityToken, userTokenSignature);
+        return callback(null, statusCode)
     }
     if (userIdentityToken instanceof X509IdentityToken) {
-        return self.isValidX509IdentityToken(channel, session, userTokenPolicy, userIdentityToken, userTokenSignature);
+        return self.isValidX509IdentityToken(
+            channel, session, userTokenPolicy, userIdentityToken, userTokenSignature, callback);
     }
-    return StatusCodes.Good;
+
+    return callback(null, StatusCodes.Good);
 };
 
 
@@ -1536,92 +1554,99 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
     request.userIdentityToken = request.userIdentityToken || createAnonymousIdentityToken(channel.endpoint);
 
     // check request.userIdentityToken is correct ( expected type and correctly formed)
-    const statusCode = server.isValidUserIdentityToken(channel, session, request.userIdentityToken, request.userTokenSignature);
-    if (statusCode !== StatusCodes.Good) {
-        assert(statusCode && statusCode instanceof StatusCode,"expecting statusCode");
-        return rejectConnection(statusCode);
-    }
-    session.userIdentityToken = request.userIdentityToken;
+    server.isValidUserIdentityToken(
+        channel, session, request.userIdentityToken, request.userTokenSignature, (err, statusCode) => {
 
-    // check if user access is granted
-    server.isUserAuthorized(channel, session, request.userIdentityToken, function (err, authorized) {
-
-        if (err) {
-            return rejectConnection(StatusCodes.BadInternalError);
-        }
-
-        if (!authorized) {
-            return rejectConnection(StatusCodes.BadUserAccessDenied);
-        } else {
-            // extract : OPC UA part 4 - 5.6.3
-            // Once used, a serverNonce cannot be used again. For that reason, the Server returns a new
-            // serverNonce each time the ActivateSession Service is called.
-            session.nonce = server.makeServerNonce();
-
-            session.status = "active";
-
-            response = new ActivateSessionResponse({serverNonce: session.nonce});
-            channel.send_response("MSG", response, message);
-
-            const userIdentityTokenPasswordRemoved = function (userIdentityToken) {
-                const a = userIdentityToken;
-                // to do remove password
-                return a;
-            };
-
-            // send OPCUA Event Notification
-            // see part 5 : 6.4.3 AuditEventType
-            //              6.4.7 AuditSessionEventType
-            //              6.4.10 AuditActivateSessionEventType
-            const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-            assert(session.nodeId); // sessionId
-            //xx assert(session.channel.clientCertificate instanceof Buffer);
-            assert(session.sessionTimeout > 0);
-
-            if (server.isAuditing) {
-                server.raiseEvent("AuditActivateSessionEventType", {
-
-                    /* part 5 -  6.4.3 AuditEventType */
-                    actionTimeStamp: {dataType: "DateTime", value: new Date()},
-                    status: {dataType: "Boolean", value: true},
-
-                    serverId: {dataType: "String", value: ""},
-
-                    // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
-                    clientAuditEntryId: {dataType: "String", value: ""},
-
-                    // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
-                    // obtained from the UserIdentityToken passed in the ActivateSession call.
-                    clientUserId: {dataType: "String", value: "cc"},
-
-                    sourceName: {dataType: "String", value: "Session/ActivateSession"},
-
-                    /* part 5 - 6.4.7 AuditSessionEventType */
-                    sessionId: {dataType: "NodeId", value: session.nodeId},
-
-                    /* part 5 - 6.4.10 AuditActivateSessionEventType */
-                    clientSoftwareCertificates: {
-                        dataType: "ExtensionObject" /* SignedSoftwareCertificate */,
-                        arrayType: VariantArrayType.Array,
-                        value: []
-                    },
-                    // UserIdentityToken reflects the userIdentityToken parameter of the ActivateSession Service call.
-                    // For Username/Password tokens the password should NOT be included.
-                    userIdentityToken: {
-                        dataType: "ExtensionObject" /*  UserIdentityToken */,
-                        value: userIdentityTokenPasswordRemoved(session.userIdentityToken)
-                    },
-
-                    // SecureChannelId shall uniquely identify the SecureChannel. The application shall use the same identifier
-                    // in all AuditEvents related to the Session Service Set (AuditCreateSessionEventType,
-                    // AuditActivateSessionEventType and their subtypes) and the SecureChannel Service Set
-                    // (AuditChannelEventType and its subtypes).
-                    secureChannelId: {dataType: "String", value: session.channel.channelId.toString()}
-
-                });
+            if (statusCode !== StatusCodes.Good) {
+                if (!(statusCode && statusCode instanceof StatusCode)) {
+                const a=23;
+                }
+                assert(statusCode && statusCode instanceof StatusCode, "expecting statusCode");
+                return rejectConnection(statusCode);
             }
-        }
-    });
+            session.userIdentityToken = request.userIdentityToken;
+
+            // check if user access is granted
+            server.isUserAuthorized(channel, session, request.userIdentityToken, function (err, authorized) {
+
+                if (err) {
+                    return rejectConnection(StatusCodes.BadInternalError);
+                }
+
+                if (!authorized) {
+                    return rejectConnection(StatusCodes.BadUserAccessDenied);
+                } else {
+                    // extract : OPC UA part 4 - 5.6.3
+                    // Once used, a serverNonce cannot be used again. For that reason, the Server returns a new
+                    // serverNonce each time the ActivateSession Service is called.
+                    session.nonce = server.makeServerNonce();
+
+                    session.status = "active";
+
+                    response = new ActivateSessionResponse({serverNonce: session.nonce});
+                    channel.send_response("MSG", response, message);
+
+                    const userIdentityTokenPasswordRemoved = function (userIdentityToken) {
+                        const a = userIdentityToken;
+                        // to do remove password
+                        return a;
+                    };
+
+                    // send OPCUA Event Notification
+                    // see part 5 : 6.4.3 AuditEventType
+                    //              6.4.7 AuditSessionEventType
+                    //              6.4.10 AuditActivateSessionEventType
+                    const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+                    assert(session.nodeId); // sessionId
+                    //xx assert(session.channel.clientCertificate instanceof Buffer);
+                    assert(session.sessionTimeout > 0);
+
+                    if (server.isAuditing) {
+                        server.raiseEvent("AuditActivateSessionEventType", {
+
+                            /* part 5 -  6.4.3 AuditEventType */
+                            actionTimeStamp: {dataType: "DateTime", value: new Date()},
+                            status: {dataType: "Boolean", value: true},
+
+                            serverId: {dataType: "String", value: ""},
+
+                            // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
+                            clientAuditEntryId: {dataType: "String", value: ""},
+
+                            // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
+                            // obtained from the UserIdentityToken passed in the ActivateSession call.
+                            clientUserId: {dataType: "String", value: "cc"},
+
+                            sourceName: {dataType: "String", value: "Session/ActivateSession"},
+
+                            /* part 5 - 6.4.7 AuditSessionEventType */
+                            sessionId: {dataType: "NodeId", value: session.nodeId},
+
+                            /* part 5 - 6.4.10 AuditActivateSessionEventType */
+                            clientSoftwareCertificates: {
+                                dataType: "ExtensionObject" /* SignedSoftwareCertificate */,
+                                arrayType: VariantArrayType.Array,
+                                value: []
+                            },
+                            // UserIdentityToken reflects the userIdentityToken parameter of the ActivateSession Service call.
+                            // For Username/Password tokens the password should NOT be included.
+                            userIdentityToken: {
+                                dataType: "ExtensionObject" /*  UserIdentityToken */,
+                                value: userIdentityTokenPasswordRemoved(session.userIdentityToken)
+                            },
+
+                            // SecureChannelId shall uniquely identify the SecureChannel. The application shall use the same identifier
+                            // in all AuditEvents related to the Session Service Set (AuditCreateSessionEventType,
+                            // AuditActivateSessionEventType and their subtypes) and the SecureChannel Service Set
+                            // (AuditChannelEventType and its subtypes).
+                            secureChannelId: {dataType: "String", value: session.channel.channelId.toString()}
+
+                        });
+                    }
+                }
+            });
+
+        });
 
 };
 
@@ -2378,7 +2403,7 @@ OPCUAServer.prototype.prepare = function (message, channel) {
         return;
     }
 
-      // --- check that provided session matches session attached to channel
+    // --- check that provided session matches session attached to channel
     if (channel.channelId !== session.channelId) {
         if (!(request instanceof ActivateSessionRequest)) {
             console.log("ERROR: channel.channelId !== session.channelId".red.bgWhite, channel.channelId, session.channelId);
@@ -2590,10 +2615,11 @@ OPCUAServer.prototype._on_RepublishRequest = function (message, channel) {
 
 const SetMonitoringModeRequest = subscription_service.SetMonitoringModeRequest;
 const SetMonitoringModeResponse = subscription_service.SetMonitoringModeResponse;
+
 function isMonitoringModeValid(monitoringMode) {
     assert(subscription_service.MonitoringMode.Invalid !== undefined);
     return monitoringMode !== subscription_service.MonitoringMode.Invalid &&
-        monitoringMode  <= subscription_service.MonitoringMode.Reporting;
+        monitoringMode <= subscription_service.MonitoringMode.Reporting;
 }
 
 // Bad_NothingToDo
@@ -2924,12 +2950,12 @@ function _registerServer(discoveryServerEndpointUrl, isOnline, outer_callback) {
 
 OPCUAServer.prototype.registerServer = function (discoveryServerEndpointUrl, callback) {
     assert(!"registerServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
-    _registerServer.call(this,discoveryServerEndpointUrl, true, callback);
+    _registerServer.call(this, discoveryServerEndpointUrl, true, callback);
 };
 
 OPCUAServer.prototype.unregisterServer = function (discoveryServerEndpointUrl, callback) {
     assert(!"unregisterServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
-    _registerServer.call(this,discoveryServerEndpointUrl, false, callback);
+    _registerServer.call(this, discoveryServerEndpointUrl, false, callback);
 };
 
 

@@ -15,7 +15,7 @@ import {
     Certificate,
     readCertificate,
 } from "node-opcua-crypto";
-import { CertificateManager } from "../source/certificate_manager";
+import { CertificateManager } from "../source";
 
 describe("Testing OPCUA Client Certificate Manager", () => {
 
@@ -40,6 +40,8 @@ describe("Testing OPCUA Client Certificate Manager", () => {
         });
         certificate1 = await readCertificate(certificate1File);
         console.log(certificate1.toString("base64"));
+
+        console.log("certificateMgr.trusted", certificateMgr.pkiTrustedFolder);
     });
 
     afterEach(async () => {
@@ -56,6 +58,12 @@ describe("Testing OPCUA Client Certificate Manager", () => {
     it("should handled an trusted certificate", async () => {
         await certificateMgr.trustCertificate(certificate1);
         const statusCode = await certificateMgr.isCertificateTrusted(certificate1);
+        statusCode.should.eql(StatusCodes.Good);
+    });
+
+    it("should handled an trusted certificate 2 - and check its validity", async () => {
+        await certificateMgr.trustCertificate(certificate1);
+        const statusCode = await certificateMgr.checkCertificate(certificate1);
         statusCode.should.eql(StatusCodes.Good);
     });
 

@@ -827,7 +827,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
             // istanbul ignore next
             if (!validateServerNonce(response.serverNonce)) {
-                return callback(new Error("invalid server Nonce"));
+                return callback(new Error("Invalid server Nonce"));
             }
 
             // todo: verify SignedSoftwareCertificates and  response.serverSignature

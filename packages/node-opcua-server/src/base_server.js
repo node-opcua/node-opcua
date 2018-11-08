@@ -9,6 +9,7 @@ const async = require("async");
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
 const EventEmitter = require("events").EventEmitter;
+const path = require("path");
 
 const util = require("util");
 
@@ -16,6 +17,7 @@ const utils = require("node-opcua-utils");
 const display_trace_from_this_projet_only = require("node-opcua-debug").display_trace_from_this_projet_only;
 const ServiceFault= require("node-opcua-service-secure-channel").ServiceFault;
 const ApplicationDescription = require("node-opcua-service-endpoints").ApplicationDescription;
+const CertificateManager = require("node-opcua-certificate-manager").CertificateManager;
 
 function constructFilename(p) {
     const path = require("path");
@@ -88,6 +90,7 @@ function cleanupEndpoint(endPoint)  {
  * @param [options.serverInfo.gatewayServerUri = null]{String}
  * @param [options.serverInfo.discoveryProfileUri= null]{String}
  * @param [options.serverInfo.discoveryUrls = []]{Array<String>}
+ * @param [options.serverCertificateManager]
  * @constructor
  */
 class OPCUABaseServer extends OPCUASecureObject {
@@ -112,6 +115,9 @@ class OPCUABaseServer extends OPCUASecureObject {
 
         this.serverInfo = new endpoints_service.ApplicationDescription(this.serverInfo);
 
+        self.serverCertificateManager = options.serverCertificateManager || new CertificateManager({
+            name: "certificates"
+        });
 
     }
 

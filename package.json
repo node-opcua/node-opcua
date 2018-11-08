@@ -86,6 +86,8 @@
 	"dependencies": {
 		"@babel/core": "^7.1.2",
 		"@types/async": "^2.0.50",
+		"@types/env-paths": "^1.0.2",
+		"@types/long": "^4.0.0",
 		"@types/node": "^10.12.0",
 		"@types/once": "^1.4.0",
 		"@types/rimraf": "^2.0.2",
@@ -94,6 +96,7 @@
 		"backoff": "^2.5.0",
 		"better-assert": "1.0.2",
 		"bomstrip": "0.1.4",
+		"bonjour": "^3.5.0",
 		"byline": "5.0.0",
 		"callbackify": "^1.1.0",
 		"chalk": "^2.4.1",
@@ -102,14 +105,16 @@
 		"deassertify": "^0.1.2",
 		"dequeue": "^1.0.5",
 		"easy-table": "^1.1.1",
+		"env-paths": "^2.0.0",
 		"eslint": "^5.6.1",
 		"exit": "^0.1.2",
 		"fqdn": "0.0.3",
 		"hexy": "^0.2.11",
 		"humanize": "0.0.9",
 		"lerna": "^3.4.3",
+		"long": "^4.0.0",
 		"ltx": "^2.8.0",
-		"mocha-clean": "^1.0.0",
+        "mocha-clean": "^1.0.0",
 		"mocha-typescript": "^1.1.17",
 		"node-jsrsasign": "0.0.7",
 		"node-opcua-crypto": "^1.0.0",
@@ -123,10 +128,9 @@
 		"thenify": "^3.3.0",
 		"treeify": "^1.1.0",
 		"underscore": "^1.9.1",
-		"xml-writer": "^1.7.0",
-		"yargs": "^12.0.2",
-		"bonjour": "^3.5.0",
 		"vorpal": "^1.12.0",
-		"vorpal-repl": "^1.1.8"
+		"vorpal-repl": "^1.1.8",
+		"xml-writer": "^1.7.0",
+		"yargs": "^12.0.2"
 	}
 }

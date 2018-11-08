@@ -7,6 +7,7 @@
   "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_1024.pem",
   "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
   "test": "mocha test/*.ts",
+  "test-typescript": "npx mocha test/*.ts",
   "build": "tsc",
   "lint": "tslint source/**/*.ts",
   "doc": "typedoc --options typedoc.js"
@@ -14,9 +15,12 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
+  "@types/mkdirp": "^0.5.2",
   "async": "^2.6.1",
   "chalk": "^2.4.1",
   "delayed": "^1.0.1",
+  "env-paths": "^2.0.0",
+  "mkdirp": "^0.5.1",
   "node-opcua-assert": "^2.0.0-alpha.0",
   "node-opcua-basic-types": "^2.0.0-alpha.0",
   "node-opcua-buffer-utils": "^2.0.0-alpha.0",
@@ -32,6 +36,7 @@
  },
  "devDependencies": {
   "@types/async": "^2.0.50",
+  "@types/env-paths": "^1.0.2",
   "@types/underscore": "^1.8.9",
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^2.0.0-alpha.0",
