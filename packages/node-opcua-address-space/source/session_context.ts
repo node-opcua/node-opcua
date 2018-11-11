@@ -4,9 +4,19 @@ import { assert } from "node-opcua-assert";
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
 import { BaseNode, ISessionContext } from "./address_space_ts";
 
-type UserIdentityToken = any;
+import { AnonymousIdentityToken,  X509IdentityToken} from "node-opcua-types";
+
+type UserIdentityToken = any | AnonymousIdentityToken | X509IdentityToken;
 
 function getUserName(userIdentityToken: UserIdentityToken) {
+    if (userIdentityToken instanceof AnonymousIdentityToken) {
+        return "anonymous";
+    }
+    if (userIdentityToken instanceof X509IdentityToken) {
+        // return public key as base64 string
+        userIdentityToken.certificateData;
+
+    }
     if (userIdentityToken.policyId === "anonymous") {
         return "anonymous";
     }
