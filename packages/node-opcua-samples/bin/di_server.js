@@ -65,8 +65,8 @@ const server_options ={
 
     nodeset_filename: [
         standard_nodeset_file,
-        opcua.di_nodeset_filename,
-        opcua.adi_nodeset_filename
+        opcua.nodesets.di_nodeset_filename,
+        opcua.nodesets.adi_nodeset_filename
     ],
 
     serverInfo: {
