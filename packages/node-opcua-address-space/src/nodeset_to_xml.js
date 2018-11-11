@@ -687,15 +687,15 @@ function writeAliases(xw, aliases) {
 
     xw.startElement("Aliases");
 
-    const keys =Object.keys(aliases).sort();
-
-    for(let key of keys) {
-        xw.startElement("Alias");
-        xw.writeAttribute("Alias", key);
-        xw.text(aliases[key].toString().replace(/ns=0;/,""));
-        xw.endElement();
+    if (aliases) {
+        const keys =Object.keys(aliases).sort();
+        for(let key of keys) {
+            xw.startElement("Alias");
+            xw.writeAttribute("Alias", key);
+            xw.text(aliases[key].toString().replace(/ns=0;/,""));
+            xw.endElement();
+        }
     }
-
     xw.endElement();
 }
 

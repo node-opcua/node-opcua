@@ -159,7 +159,7 @@ exports.install = function (AddressSpace) {
 
 
         node.lastDate = new Date(1600, 0, 1);
-        node._timeline = new Dequeue();
+        node._timeline = new Dequeue(); // is is ordered here ??????
         node._maxOnlineValues = options.maxOnlineValues || 1000;
 
 

@@ -28,6 +28,12 @@ declare type ValidUserFunc = (username: string, password: string) => boolean;
 
 declare type ValidUserAsyncFunc = (username: string, password: string, callback: ErrorCallback) => void;
 
+export declare function generate_address_space(
+  addressSpace: AddressSpace,
+  xmlFiles: string[]| string,
+  callback: ErrorCallback
+): void;
+
 export interface OPCUAServerOptions {
     /** the default secure token life time in ms. */
     defaultSecureTokenLifetime?: number;
@@ -102,14 +108,18 @@ export interface OPCUAServerOptions {
 export declare interface AddReferenceOpts {
     referenceType: string | NodeId;
     nodeId: NodeId | string;
+    isForward: boolean;
 }
 
 export declare class UAReference {
 }
 
 export declare class BaseNode {
-    public browseName: QualifiedName;
 
+    public browseName: QualifiedName;
+    public description: LocalizedText;
+    public nodeClass: NodeClass;
+    public nodeId: NodeId;
     public addReference(options: AddReferenceOpts): UAReference;
 }
 
@@ -130,6 +140,16 @@ export declare class UAMethod extends BaseNode {
 }
 
 export declare class UADataType extends BaseNode {
+
+}
+export declare class UAObjectType extends BaseNode {
+
+}
+export declare class UAVariableType extends BaseNode {
+
+}
+
+export declare class UAReferenceType extends BaseNode {
 
 }
 
@@ -173,14 +193,68 @@ export interface AddAnalogDataItemOpts extends AddNodeOptions {
     engineeringUnits: EUEngineeringUnit;
 }
 
+export type AddVariableOptions = any;
+export type AddObjectOptions = any;
+export type AddObjectTypeOptions = any;
+export type AddVariableTypeOptions = any;
+export type AddReferenceTypeOptions = any;
+export type CreateDataTypeOptions = any;
+export type CreateNodeOptions = any;
+
+
+export declare interface Namespace {
+    namespaceUri: string;
+    addressSpace: AddressSpace;
+    index: number;
+
+    findObjectType(objectType: string): UAObjectType;
+    findVariableType(variableType: string): UAVariableType;
+    findDataType(dataType: string): UADataType;
+    findReferenceType(referenceType: string): UAReferenceType;
+    findReferenceTypeFromInverseName(referenceType: string): UAReferenceType;
+
+    addAlias(aliasName: string, nodeId: NodeId): void;
+
+    addVariable(options: AddVariableOptions): UAVariable;
+    addObject(options: AddObjectOptions): UAObject;
+
+    addObjectType(options: AddObjectTypeOptions): UAObjectType;
+    addVariableType(options: AddVariableTypeOptions): UAVariableType;
+    addView(options: any): UAView;
+
+    addFolder(parentFolder: UAObject, options: any): UAObject;
+
+    addReferenceType(options: AddReferenceTypeOptions): UAReferenceType;
+
+    createDataType(options: CreateDataTypeOptions): UADataType;
+
+    createNode(options: CreateNodeOptions): BaseNode;
+
+    deleteNode(node: NodeId| BaseNode): void;
+
+///
+    toNodeset2XML(): string;
+
+}
 export declare class AddressSpace {
-    public find(node: NodeId | string): BaseNode;
+
+    public findNode(node: NodeId | string): BaseNode;
+    public findMethod(nodeId: NodeId | string): UAMethod;
 
     public addVariable(options: AddVariableOpts): UAVariable;
 
     public addAnalogDataItem(options: AddAnalogDataItemOpts): UAAnalogItem;
 
     public addView(options: AddNodeOptions): UAView;
+
+    public getDefaultNamespace(): Namespace;
+    public getOwnNameSpace(): Namespace;
+    public getNamespace(indexOrName: number | string): Namespace;
+    public registerNamespace(namespaceUri: string): Namespace;
+    public getNamespaceIndex(namespaceUri: string): number;
+    public getNamespaceUri(namespaceIndex: number): string;
+    public getNamespaceArray(): Namespace[];
+
 }
 
 export declare class ServerEngine {

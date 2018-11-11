@@ -61,3 +61,4 @@ module.exports = {
 
     PseudoSession : require("./pseudo_session").PseudoSession
 };
+require("../src/nodeset_to_xml");

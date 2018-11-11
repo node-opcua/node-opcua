@@ -2106,6 +2106,9 @@ BaseNode.prototype._toString = function (str, options) {
 
 
     function dump_reference(follow, reference) {
+        if (!reference) {
+            return;
+        }
         //xx if (!reference.isForward) {
         //xx     return;
         //xx }

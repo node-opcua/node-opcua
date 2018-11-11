@@ -783,6 +783,9 @@ AddressSpace.prototype._coerceType = function (baseType,topMostBaseType,nodeClas
     if (!baseTypeNode) {
         throw new Error("Cannot find ObjectType or VariableType for " + baseType.toString());
     }
+    if (!baseTypeNode.isSupertypeOf) {
+        throw new Error("Cannot find ObjectType or VariableType for " + baseType.toString());
+    }
 
     assert(baseTypeNode);
     assert(baseTypeNode.isSupertypeOf(topMostBaseTypeNode));

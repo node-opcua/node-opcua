@@ -33,7 +33,7 @@ describe("NodeCrawler",function(){
         const results = [];
         const data = {
             onBrowse: function( crawler,cacheNode) {
-                console.log(cacheNode.browseName.toString());
+                //xx console.log(cacheNode.browseName.toString());
                 results.push(cacheNode.browseName.toString());
                 NodeCrawler.follow(crawler,cacheNode,this);
             }
@@ -41,17 +41,22 @@ describe("NodeCrawler",function(){
         const nodeId = makeNodeId(ObjectIds.Server_ServerCapabilities); // server
         crawler.crawl(nodeId,data,function(err){
             //console.log(results.join(" "));
-            results.join(" ").should.eql(
-                "ServerCapabilities OperationLimits LocaleIdArray OperationLimitsType " +
-                "MaxNodesPerRead MaxNodesPerHistoryReadData MaxNodesPerHistoryReadEvents " +
-                "MaxNodesPerWrite MaxNodesPerHistoryUpdateData MaxNodesPerHistoryUpdateEvents " +
-                "MaxNodesPerMethodCall MaxNodesPerBrowse MaxNodesPerRegisterNodes " +
-                "MaxNodesPerTranslateBrowsePathsToNodeIds MaxNodesPerNodeManagement MaxMonitoredItemsPerCall " +
-                "PropertyType MaxNodesPerRead MaxNodesPerHistoryReadData MaxNodesPerHistoryReadEvents " +
-                "MaxNodesPerWrite MaxNodesPerHistoryUpdateData MaxNodesPerHistoryUpdateEvents MaxNodesPerMethodCall " +
-                "MaxNodesPerBrowse MaxNodesPerRegisterNodes MaxNodesPerTranslateBrowsePathsToNodeIds " +
-                "MaxNodesPerNodeManagement MaxMonitoredItemsPerCall " +
-                "Optional HasModellingRule ModellingRuleType NamingRule NamingRule Mandatory NamingRule");
+            results.sort().join(" ").should.eql(
+              "LocaleIdArray Mandatory MaxMonitoredItemsPerCall " +
+              "MaxMonitoredItemsPerCall MaxNodesPerBrowse MaxNodesPerBrowse " +
+              "MaxNodesPerHistoryReadData MaxNodesPerHistoryReadData " +
+              "MaxNodesPerHistoryReadEvents MaxNodesPerHistoryReadEvents " +
+              "MaxNodesPerHistoryUpdateData MaxNodesPerHistoryUpdateData " +
+              "MaxNodesPerHistoryUpdateEvents MaxNodesPerHistoryUpdateEvents " +
+              "MaxNodesPerMethodCall MaxNodesPerMethodCall " +
+              "MaxNodesPerNodeManagement MaxNodesPerNodeManagement " +
+              "MaxNodesPerRead MaxNodesPerRead MaxNodesPerRegisterNodes " +
+              "MaxNodesPerRegisterNodes " +
+              "MaxNodesPerTranslateBrowsePathsToNodeIds " +
+              "MaxNodesPerTranslateBrowsePathsToNodeIds MaxNodesPerWrite " +
+              "MaxNodesPerWrite ModellingRuleType NamingRule NamingRule " +
+              "NamingRule OperationLimits OperationLimitsType Optional " +
+              "PropertyType ServerCapabilities");
             done(err);
         });
 

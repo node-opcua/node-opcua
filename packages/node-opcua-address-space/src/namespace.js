@@ -539,7 +539,9 @@ UANamespace.prototype._addObjectOrVariableType = function (options, topMostBaseT
     assert(!options.nodeClass);
     assert(options.browseName);
     assert(typeof options.browseName === "string");
-
+    if (options.hasOwnProperty("references")) {
+        throw new Error("options.references should not be provided, use options.subtypeOf instead");
+    }
     const references = [];
 
     function process_subtypeOf_options(self, options, references) {
@@ -555,6 +557,7 @@ UANamespace.prototype._addObjectOrVariableType = function (options, topMostBaseT
 
         assert(subtypeOfNodeId);
         references.push({referenceType: "HasSubtype", isForward: false, nodeId: subtypeOfNodeId});
+
     }
 
     process_subtypeOf_options(self, options, references);
