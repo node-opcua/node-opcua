@@ -633,13 +633,19 @@ UAMethod.prototype.dumpXML = function (xw) {
 
 function resolveDataTypeName(addressSpace,dataType) {
 
+    let dataTypeNode = null;
     // istanbul ignore next
     if (_.isString(dataType)) {
-        return addressSpace.findDataType(dataType);
+        dataTypeNode =  addressSpace.findDataType(dataType);
+    } else {
+        assert(dataType instanceof NodeId);
+        const o = addressSpace.findNode(dataType.toString());
+        dataTypeNode =  o ? o.browseName: null;
     }
-    assert(dataType instanceof NodeId);
-    const o = addressSpace.findNode(dataType.toString());
-    return o ? o.browseName: null;
+    if (!dataTypeNode) {
+        throw new Error("Cannot find dataTypeName ", dataType);
+    }
+    return dataTypeNode;
 }
 
 function buildUpAliases(node,xw,options) {

@@ -30,7 +30,8 @@ module.exports = function (test) {
                 setpointNodeNode.setValueFromSource({dataType: "Double", value: 0});
                 variableWithAlarm.setValueFromSource({dataType: "Double", value: 0});
 
-                alarm = addressSpace.instantiateExclusiveDeviationAlarm({
+                const namespace = addressSpace.getOwnNameSpace();
+                alarm = namespace.instantiateExclusiveDeviationAlarm({
                     browseName: "MyExclusiveDeviationAlarm",
                     conditionSource: source,
                     inputNode: variableWithAlarm,

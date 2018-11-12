@@ -1,0 +1,40 @@
+{
+ "name": "node-opcua-pseudo-session",
+ "version": "2.0.0-alpha.0",
+ "description": "pure nodejs OPCUA SDK - module -client-proxy",
+ "scripts": {
+  "clean": "node -e \"require('rimraf').sync('dist');\"",
+  "build": "tsc",
+  "lint": "tslint source/**/*.ts",
+  "test": "mocha test"
+ },
+ "main": "./dist/index.js",
+ "types": "./dist/index.d.ts",
+ "dependencies": {
+  "async": "^2.6.1",
+  "node-opcua-service-browse": "^2.0.0-alpha.0",
+  "node-opcua-service-read": "^2.0.0-alpha.0",
+  "node-opcua-status-code": "^2.0.0-alpha.0",
+  "node-opcua-utils": "^2.0.0-alpha.0",
+  "node-opcua-variant": "^2.0.0-alpha.0",
+  "node-opcua-data-value": "^2.0.0-alpha.0",
+  "node-opcua-nodeid": "^2.0.0-alpha.0",
+  "node-opcua-status-code": "^2.0.0-alpha.0",
+  "underscore": "^1.9.1"
+ },
+ "author": "Etienne Rossignon",
+ "license": "MIT",
+ "repository": {
+  "type": "git",
+  "url": "git://github.com/node-opcua/node-opcua.git"
+ },
+ "keywords": [
+  "OPCUA",
+  "opcua",
+  "m2m",
+  "iot",
+  "opc ua",
+  "internet of things"
+ ],
+ "homepage": "http://node-opcua.github.io/"
+}

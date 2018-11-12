@@ -3,10 +3,12 @@
  "version": "2.0.0-alpha.0",
  "description": "pure nodejs OPCUA SDK - module -address-space",
  "main": "./src/index_current.js",
+ "types": "./dist/index.d.ts",
  "engines": {
   "node": ">=6.10"
  },
  "scripts": {
+  "build": "tsc",
   "test": "mocha test",
   "clean": "node -e \"require('rimraf').sync('_generated_');\""
  },
@@ -27,6 +29,7 @@
   "node-opcua-nodeid": "^2.0.0-alpha.0",
   "node-opcua-numeric-range": "^2.0.0-alpha.0",
   "node-opcua-object-registry": "^2.0.0-alpha.0",
+  "node-opcua-pseudo-session": "^2.0.0-alpha.0",
   "node-opcua-service-browse": "^2.0.0-alpha.0",
   "node-opcua-service-call": "^2.0.0-alpha.0",
   "node-opcua-service-filter": "^2.0.0-alpha.0",

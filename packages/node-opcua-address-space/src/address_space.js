@@ -596,7 +596,8 @@ AddressSpace.prototype.normalizeReferenceType = function (params) {
         _nodeId = resolveNodeId(_nodeId);
         // istanbul ignore next
         if (!(_nodeId instanceof NodeId) || _nodeId.isEmpty()) {
-            throw new Error(" Invalid reference nodeId " + _nodeId.toString() + " " + JSON.stringify(reference,null));
+            console.log("xx =>",JSON.stringify(params,null));
+            throw new Error(" Invalid reference nodeId " + _nodeId.toString());
         }
         params.nodeId = _nodeId;
     }

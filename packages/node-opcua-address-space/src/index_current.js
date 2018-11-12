@@ -59,6 +59,6 @@ module.exports = {
 
     generate_address_space: require("./loader/load_nodeset2").generate_address_space,
 
-    PseudoSession : require("./pseudo_session").PseudoSession
+    PseudoSession : require("../dist").PseudoSession
 };
 require("../src/nodeset_to_xml");

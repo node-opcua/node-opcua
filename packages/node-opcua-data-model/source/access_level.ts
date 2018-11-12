@@ -1,9 +1,9 @@
 /**
  * @module opcua.datamodel
  */
+import { BinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
 import * as utils from "node-opcua-utils";
-import { BinaryStream } from "node-opcua-binary-stream";
 
 export enum AccessLevelFlag {
     CurrentRead = 0x01,    // bit 0 : Indicate if the current value is readable (0 means not readable, 1 means readable).
@@ -26,7 +26,7 @@ export function makeAccessLevelFlag(str: string | number | null): AccessLevelFla
 
     if (typeof str === "number") {
         const value = str as number;
-        if (value === 0) return AccessLevelFlag.NONE;
+        if (value === 0) { return AccessLevelFlag.NONE; }
         return value as AccessLevelFlag;
     }
 
@@ -66,4 +66,4 @@ registerBasicType({
     coerce: (value: any): AccessLevelFlag => makeAccessLevelFlag(value),
     random: randomAccessLevel
 });
-
+
