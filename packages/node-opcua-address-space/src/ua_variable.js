@@ -126,12 +126,13 @@ function validateDataType(addressSpace, dataTypeNodeId, variantDataType, nodeId)
     if (variantDataType === DataType.Null) {
         return true;
     }
+
     let builtInType, builtInUADataType;
 
     const destUADataType = addressSpace.findNode(dataTypeNodeId);
     assert(destUADataType instanceof UADataType);
 
-    if (destUADataType.isAbstract) {
+    if (destUADataType.isAbstract || destUADataType.nodeId.namespace !== 0 ) {
         builtInUADataType = destUADataType;
     } else {
         builtInType = findBuiltInType(destUADataType.browseName).name;
@@ -139,6 +140,10 @@ function validateDataType(addressSpace, dataTypeNodeId, variantDataType, nodeId)
     }
     assert(builtInUADataType instanceof UADataType);
 
+    const enumerationUADataType = addressSpace.findDataType("Enumeration");
+    if (destUADataType.isSupertypeOf(enumerationUADataType)) {
+        return true;
+    }
 
     // The value supplied for the attribute is not of the same type as the  value.
     const variantUADataType = _dataType_toUADataType(addressSpace, variantDataType);

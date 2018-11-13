@@ -3,11 +3,13 @@
 
 const should = require("should");
 const _ = require("underscore");
-
+const StatusCodes = require("node-opcua-status-code");
 
 const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 const DataType = require("node-opcua-variant").DataType;
+const DataValue = require("node-opcua-data-value").DataValue;
+
 const BrowseDescription = require("node-opcua-service-browse").BrowseDescription;
 const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
@@ -61,7 +63,7 @@ describe("AddressSpace : testing add enumeration type", function () {
 
         // now instantiate a variable that have this type.
         const e = namespace.addVariable({
-            propertyOf: addressSpace.rootFolder.objects.server.venderServerInfos,
+            propertyOf: addressSpace.rootFolder.objects.server.venderServerInfo,
             dataType: myEnumType,
             browseName: "RunningState",
 
@@ -139,13 +141,13 @@ describe("AddressSpace : testing add enumeration type", function () {
         });
 
         names.filter(function (x) {
-            return x === "1:MyEnumType2";
-        }).length.should.eql(1, "MyEnumType2 should be find in enum");
+            return x === "1:MyEnumType3";
+        }).length.should.eql(1, "MyEnumType3 should be find in enum");
 
 
         // now instantiate a variable that have this type.
         const e = namespace.addVariable({
-            propertyOf: addressSpace.rootFolder.objects.server.venderServerInfos,
+            propertyOf: addressSpace.rootFolder.objects.server.venderServerInfo,
             dataType: myEnumType,
             browseName: "RunningState",
 
@@ -194,5 +196,36 @@ describe("AddressSpace : testing add enumeration type", function () {
 
     });
 
+    it("should add a writable new Enumeration type into an address space  #552 ", function (done) {
+
+        const myEnumType = namespace.addEnumerationType({
+            browseName: "MyEnumType4",
+            enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"]
+        });
+
+        // now instantiate a variable that have this type.
+        const e = namespace.addVariable({
+            propertyOf: addressSpace.rootFolder.objects.server.venderServerInfo,
+            dataType: myEnumType,
+            browseName: "RunningState",
+        });
+        e.bindVariable({
+            get: ()  => e._dataValue.value,
+            set: (variant) => e.writeEnumValue(variant.value)
+        });
+
+        // simulate a write
+        e.writeValue(null,
+          new DataValue({
+              value: {
+                  dataType: DataType.UInt32,
+                  value: 2
+              }
+          }), function(err, statusCode) {
+
+              should(statusCode).eql(StatusCodes.Good);
+              done(err);
+          });
+    });
 
 });

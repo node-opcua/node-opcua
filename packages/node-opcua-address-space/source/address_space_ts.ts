@@ -15,7 +15,7 @@ import {
 import { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
-import { DataType, Variant } from "node-opcua-variant";
+import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 export declare interface AddReferenceOpts {
     referenceType: string | NodeId;
@@ -58,6 +58,7 @@ export declare class UAView extends BaseNode {
 }
 
 export declare class UAVariable extends BaseNode {
+    public setValueFromSource(value: VariantLike): void;
 }
 
 export declare class UAAnalogItem extends UAVariable {
@@ -191,7 +192,7 @@ export declare class AddressSpace {
 
     public getDefaultNamespace(): Namespace;
 
-    public getOwnNameSpace(): Namespace;
+    public getOwnNamespace(): Namespace;
 
     public getNamespace(indexOrName: number | string): Namespace;
 
