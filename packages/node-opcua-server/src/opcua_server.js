@@ -1587,8 +1587,9 @@ OPCUAServer.prototype._on_ActivateSessionRequest = function (message, channel) {
                     channel.send_response("MSG", response, message);
 
                     const userIdentityTokenPasswordRemoved = function (userIdentityToken) {
-                        const a = userIdentityToken;
-                        // to do remove password
+                        const a = userIdentityToken.clone();
+                        // remove password
+                        a.password = "*************";
                         return a;
                     };
 
