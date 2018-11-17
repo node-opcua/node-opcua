@@ -21,10 +21,7 @@ const MessageSecurityMode = require("node-opcua-service-secure-channel").Message
 
 const utils = require("node-opcua-utils");
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
-const forceGarbageCollectionOnSessionClose = false;
-
 const ServerEngine = require("./server_engine").ServerEngine;
-
 
 const browse_service = require("node-opcua-service-browse");
 const read_service = require("node-opcua-service-read");
@@ -1784,18 +1781,6 @@ OPCUAServer.prototype._on_CloseSessionRequest = function (message, channel) {
     response = new CloseSessionResponse({});
     sendResponse(response);
 
-
-    if (forceGarbageCollectionOnSessionClose) {
-        if (global.gc) {
-            global.gc(true);
-            try {
-                require("heapdump").writeSnapshot();
-            }
-            catch (err) {
-                /* */
-            }
-        }
-    }
 };
 
 // browse services
