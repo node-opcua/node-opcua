@@ -1,6 +1,8 @@
 require("colors");
 const semver = require("semver");
-const version = require("./package").engines.node;
+const _package = require("./package.json");
+const version = _package.engines ? _package.engines.node : "8.0.0";
+
 if (!semver.satisfies(process.version, version)) {
     console.log(
         `warning node-opcua: Required nodejs version ${version} not satisfied with current nodejs version ${

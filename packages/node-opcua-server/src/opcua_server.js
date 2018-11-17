@@ -1782,18 +1782,6 @@ OPCUAServer.prototype._on_CloseSessionRequest = function (message, channel) {
     response = new CloseSessionResponse({});
     sendResponse(response);
 
-
-    if (forceGarbageCollectionOnSessionClose) {
-        if (global.gc) {
-            global.gc(true);
-            try {
-                require("heapdump").writeSnapshot();
-            }
-            catch (err) {
-                /* */
-            }
-        }
-    }
 };
 
 // browse services
