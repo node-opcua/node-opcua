@@ -62,7 +62,7 @@ module.exports = function (test) {
         });
         it("should instantiate AcknowledgeableConditionType (variation 3)", function (done) {
 
-            const condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
+            const condition = addressSpace.getOwnNamespace().instantiateCondition("AcknowledgeableConditionType", {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AcknowledgeableCondition2"
@@ -83,7 +83,7 @@ module.exports = function (test) {
         it("should instantiate AcknowledgeableConditionType with ConfirmedState", function (done) {
 
 
-            const condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
+            const condition = addressSpace.getOwnNamespace().instantiateCondition("AcknowledgeableConditionType", {
                 componentOf: source,
                 browseName: "AcknowledgeableCondition5",
                 conditionSource: source,
@@ -102,7 +102,7 @@ module.exports = function (test) {
 
         it("should instantiate AlarmConditionType with ConfirmedState and ShelvedState", function (done) {
 
-            const condition = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const condition = addressSpace.getOwnNamespace().instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 browseName: "AlarmConditionType",
                 conditionSource: source,
@@ -156,7 +156,7 @@ module.exports = function (test) {
 
         it("should instantiate AcknowledgeableConditionType **Without** ConfirmedState", function (done) {
 
-            const condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
+            const condition = addressSpace.getOwnNamespace().instantiateCondition("AcknowledgeableConditionType", {
                 componentOf: source,
                 browseName: "AcknowledgeableConditionTypeWithoutConfirmedState",
                 conditionSource: source,

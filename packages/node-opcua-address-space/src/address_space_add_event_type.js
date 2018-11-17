@@ -337,16 +337,16 @@ exports.install = function (AddressSpace) {
 
                 // add a property , but with a null variant
                 eventData.setValue(lowerName,node,{ dataType: DataType.Null});
-                //xx  eventData[lowerName] =  _coerceVariant({ dataType: DataType.Null});
 
-                if (node.modellingRule === "Mandatory") {
-                    console.log("ERROR : AddressSpace#constructEventData(eventType,options) cannot find property ".red
-                        + self.browseName.toString()+ " => "+ lowerName.cyan );
-                } else {
-                    console.log("Warning : AddressSpace#constructEventData(eventType,options) cannot find property ".yellow
-                        + self.browseName.toString()+ " => "+ lowerName.cyan );
+                if (doDebug) {
+                    if (node.modellingRule === "Mandatory") {
+                        console.log("ERROR : AddressSpace#constructEventData(eventType,options) cannot find property ".red
+                          + self.browseName.toString() + " => " + lowerName.cyan);
+                    } else {
+                        console.log("Warning : AddressSpace#constructEventData(eventType,options) cannot find property ".yellow
+                          + self.browseName.toString() + " => " + lowerName.cyan);
+                    }
                 }
-                //xx data[lowerName] = node.readValue().value;
             }
 
         }

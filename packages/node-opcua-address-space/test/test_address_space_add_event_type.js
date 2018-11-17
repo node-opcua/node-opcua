@@ -189,7 +189,7 @@ describe("AddressSpace : add event type ", function () {
 
         let counter =0;
         bench.add("test", function () {
-            const condition = addressSpace.instantiateCondition(eventType, {
+            const condition = addressSpace.getOwnNamespace().instantiateCondition(eventType, {
                 browseName: "MyCondition" + counter,
                 sourceName: {dataType: "String", value: "HelloWorld"},
                 conditionSource: null,

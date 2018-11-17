@@ -30,7 +30,7 @@ module.exports = function (test) {
                 variableWithAlarm.setValueFromSource({dataType: "Double", value: 0});
 
 
-                alarm = addressSpace.instantiateNonExclusiveDeviationAlarm({
+                alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveDeviationAlarm({
                     browseName: "MyNonExclusiveDeviationAlarm",
                     conditionSource: source,
                     inputNode: variableWithAlarm,

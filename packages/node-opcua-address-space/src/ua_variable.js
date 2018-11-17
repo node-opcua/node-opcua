@@ -1448,8 +1448,10 @@ UAVariable.prototype.readValueAsync = function (context, callback) {
     }
     catch (err) {
         // istanbul ignore next
-        console.log("func readValueAsync has failed ".red);
-        console.log(" stack", err.stack);
+        if (doDebug) {
+            debugLog("func readValueAsync has failed ".red);
+            debugLog(" stack", err.stack);
+        }
         satisfy_callbacks(err);
     }
 };

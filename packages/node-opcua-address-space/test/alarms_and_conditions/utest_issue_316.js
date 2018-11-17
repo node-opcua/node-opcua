@@ -12,7 +12,7 @@ module.exports = function (test) {
         });
         it("CC1 - should be possible to set the ConditionName and ConditionClassName of an alarm",function() {
 
-            const condition = addressSpace.instantiateCondition("AlarmConditionType",{
+            const condition = addressSpace.getOwnNamespace().instantiateCondition("AlarmConditionType", {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmCondition1",

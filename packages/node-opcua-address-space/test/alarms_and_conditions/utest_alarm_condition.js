@@ -53,7 +53,7 @@ module.exports = function (test) {
 
         it("should instantiate AlarmConditionType (variation 2)", function () {
 
-            const alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmCondition2",
@@ -72,7 +72,7 @@ module.exports = function (test) {
         });
         it("should be possible to instantiate a Alarm with a inputNode as Null NodeId (ns=0;i=0)", function () {
 
-            const alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmCondition3",
@@ -89,7 +89,7 @@ module.exports = function (test) {
 
         it("should be possible to instantiate a Alarm with 'maxTimeShelved' ", function () {
 
-            const alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmConditionWithMaxTimeShelved",
@@ -107,7 +107,7 @@ module.exports = function (test) {
 
             let alarm;
             before(function () {
-                alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+                alarm = addressSpace.getOwnNamespace().instantiateAlarmCondition("AlarmConditionType", {
                     componentOf: source,
                     browseName: "AlarmCondition3",
                     conditionSource: source,
@@ -417,7 +417,7 @@ module.exports = function (test) {
 
             // case of a Alarm Condition with a (optional) ConfirmedState
 
-            const condition = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const condition = addressSpace.getOwnNamespace().instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 browseName: "AcknowledgeableCondition4",
                 conditionSource: source,

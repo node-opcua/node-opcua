@@ -68,12 +68,12 @@ module.exports = function (test) {
         });
 
         function setVariableValue(value) {
-            variableWithAlarm.setValueFromSource({dataType: "Double", value: value});
+            variableWithAlarm.setValueFromSource({ dataType: "Double", value: value });
         }
 
         it("should instantiate a ExclusiveLimitAlarm", function () {
-            /* eslint max-statements: ["error", 60] */    
-            const alarm = addressSpace.instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
+            /* eslint max-statements: ["error", 60] */
+            const alarm = addressSpace.getOwnNamespace().instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
                 browseName: "MyExclusiveAlarm",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -109,7 +109,7 @@ module.exports = function (test) {
             alarm.limitState.getCurrentState().should.eql("LowLow");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
-            
+
             spyOnEvent.callCount.should.eql(1);
             spyOnEvent.getCalls()[0].args[0].message.value.text.should.eql("Condition value is -100 and state is LowLow");
             spyOnEvent.getCalls()[0].args[0].branchId.value.should.eql(NodeId.nullNodeId);
@@ -174,7 +174,7 @@ module.exports = function (test) {
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(6);
             spyOnEvent.getCalls()[5].args[0].message.value.text.should.eql("Condition value is 200 and state is HighHigh");
-            spyOnEvent.getCalls()[5].args[0].branchId.value.should  .eql(NodeId.nullNodeId);
+            spyOnEvent.getCalls()[5].args[0].branchId.value.should.eql(NodeId.nullNodeId);
 
             //xxdumpSpy(spyOnEvent);
 
@@ -190,7 +190,7 @@ module.exports = function (test) {
 
             setVariableValue(0);
 
-            const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -200,10 +200,10 @@ module.exports = function (test) {
                 highHighLimit: 100.0
             });
             alarm.constructor.name.should.eql("UANonExclusiveLimitAlarm");
-            
+
             alarm.inputNode.readValue().value.value.should.eql(variableWithAlarm.nodeId);
             alarm.getInputNodeNode().should.eql(variableWithAlarm);
-            
+
             alarm.getLowLowLimit().should.eql(-10);
             alarm.getLowLimit().should.eql(-1.0);
             alarm.getHighLimit().should.eql(10);
@@ -261,7 +261,7 @@ module.exports = function (test) {
 
             setVariableValue(0);
 
-            const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarmDisabledTest",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -319,14 +319,14 @@ module.exports = function (test) {
             // there should be two events here because the alarm reraised the pending branches ...
 
             //xx console.log(spyOnEvent.getCall(4).args[0]);
-            spyOnEvent.getCall(4).args[0].message.value.text.should.eql("Condition value is -100 and state is {\"highHigh\":false,\"high\":false,\"low\":true,\"lowLow\":true}")
+            spyOnEvent.getCall(4).args[0].message.value.text.should.eql("Condition value is -100 and state is {\"highHigh\":false,\"high\":false,\"low\":true,\"lowLow\":true}");
 
             setVariableValue(0);
             // a new event should be raised because back to normal, a new branch has also be created
             spyOnEvent.callCount.should.eql(8);
 
             // the branch
-            spyOnEvent.getCall(6).args[0].message.value.text.should.eql("Condition value is -100 and state is {\"highHigh\":false,\"high\":false,\"low\":true,\"lowLow\":true}")
+            spyOnEvent.getCall(6).args[0].message.value.text.should.eql("Condition value is -100 and state is {\"highHigh\":false,\"high\":false,\"low\":true,\"lowLow\":true}");
             spyOnEvent.getCall(7).args[0].message.value.text.should.eql("Back to normal");
 
             source.removeListener("on", spyOnEvent);
@@ -337,11 +337,11 @@ module.exports = function (test) {
 
         });
 
-        it("should be possible to automatically trigger the new status event when limit values are updated",function() {
-            
+        it("should be possible to automatically trigger the new status event when limit values are updated", function () {
+
             setVariableValue(0);
-            
-            const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+
+            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm2",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -352,7 +352,6 @@ module.exports = function (test) {
             });
 
 
-            
             setVariableValue(6);
 
             alarm.activeState.getValue().should.eql(false);
@@ -363,7 +362,7 @@ module.exports = function (test) {
 
             const spyOnEvent = sinon.spy();
             alarm.on("event", spyOnEvent);
-     
+
 
             // Now revisit limits
             alarm.setHighHighLimit(10);
@@ -375,7 +374,7 @@ module.exports = function (test) {
             alarm.highState.getValue().should.eql(true);
             alarm.highHighState.getValue().should.eql(false);
 
-            spyOnEvent.callCount.should.eql(1,"one event should have been triggered automatically");
+            spyOnEvent.callCount.should.eql(1, "one event should have been triggered automatically");
 
             alarm.setHighHighLimit(2);
             alarm.setHighLimit(1);
@@ -394,7 +393,7 @@ module.exports = function (test) {
         it("should not raise an event twice if the value changes without changing the state", function () {
 
             setVariableValue(0);
-            const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm3",
                 conditionSource: source,
                 inputNode: variableWithAlarm,
@@ -428,13 +427,13 @@ module.exports = function (test) {
             // when a alarm object os removed from the address space.
         });
 
-        describe("Testing alarms with enabledState false",function() {
+        describe("Testing alarms with enabledState false", function () {
 
-            it("should not raise alarm if the alarm is not enabled",function() {
+            it("should not raise alarm if the alarm is not enabled", function () {
 
                 setVariableValue(0);
-                
-                const alarm = addressSpace.instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
+
+                const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                     browseName: "MyNonExclusiveAlarm3",
                     conditionSource: source,
                     inputNode: variableWithAlarm,
@@ -443,12 +442,12 @@ module.exports = function (test) {
                     highLimit: 10.0,
                     highHighLimit: 100.0
                 });
-                
-            
-            });
-            it("it should retain state and fire an event reflecting the actual state when alarms is set back to enabled=true",function(){
 
-            });          
+
+            });
+            it("it should retain state and fire an event reflecting the actual state when alarms is set back to enabled=true", function () {
+
+            });
         });
     });
 

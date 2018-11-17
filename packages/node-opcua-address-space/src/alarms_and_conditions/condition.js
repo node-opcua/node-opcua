@@ -264,7 +264,7 @@ ConditionSnapshot.prototype._get_var = function(varName, dataType) {
     const self = this;
 
     if (!self.condition.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
-        console.log("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
+        //xx console.log("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
         return disabledVar;
     }
 
