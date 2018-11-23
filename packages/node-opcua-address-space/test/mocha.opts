@@ -1,5 +1,5 @@
 --recursive
 --bail
 --require ../../node_modules/source-map-support/register
+--require ../../node_modules/ts-node/register
 --timeout 20000
-
