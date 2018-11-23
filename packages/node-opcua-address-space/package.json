@@ -19,6 +19,7 @@
   "node-opcua-basic-types": "^2.0.0-alpha.0",
   "node-opcua-common": "^2.0.0-alpha.0",
   "node-opcua-constants": "^2.0.0-alpha.0",
+   "node-opcua-crypto": "^1.0.0",
   "node-opcua-data-access": "^2.0.0-alpha.0",
   "node-opcua-data-model": "^2.0.0-alpha.0",
   "node-opcua-data-value": "^2.0.0-alpha.0",
@@ -50,6 +51,8 @@
  "devDependencies": {
   "date-utils": "^1.2.21",
   "humanize": "0.0.9",
+  "@types/mocha": "^5.2.5",
+  "source-map-support": "^0.5.9",
   "node-opcua-benchmarker": "^2.0.0-alpha.0",
   "node-opcua-binary-stream": "^2.0.0-alpha.0",
   "node-opcua-buffer-utils": "^2.0.0-alpha.0",

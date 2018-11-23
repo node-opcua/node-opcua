@@ -94,7 +94,7 @@ function BaseNode(options) {
     const self = this;
     const _private = BaseNode_initPrivate(self);
 
-    assert(this.nodeClass);
+    assert(this.nodeClass, "must specify a nodeClass");
     assert(options.addressSpace); // expecting an address space
     assert(options.browseName instanceof QualifiedName, "Expecting a valid QualifiedName");
     assert(options.nodeId instanceof NodeId, "Expecting a valid NodeId");

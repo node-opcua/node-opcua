@@ -1,27 +1,31 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import { CertificateInternals , exploreCertificate} from "node-opcua-crypto";
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
+import { AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
+
 import { BaseNode, ISessionContext } from "./address_space_ts";
 
-import { AnonymousIdentityToken,  X509IdentityToken} from "node-opcua-types";
-
-type UserIdentityToken = any | AnonymousIdentityToken | X509IdentityToken;
+type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
 function getUserName(userIdentityToken: UserIdentityToken) {
     if (userIdentityToken instanceof AnonymousIdentityToken) {
         return "anonymous";
     }
     if (userIdentityToken instanceof X509IdentityToken) {
-        // return public key as base64 string
-        userIdentityToken.certificateData;
-
+        const certInfo: CertificateInternals = exploreCertificate(userIdentityToken.certificateData);
+        const userName = certInfo.tbsCertificate.subject.commonName;
+        return userName;
     }
-    if (userIdentityToken.policyId === "anonymous") {
-        return "anonymous";
+    if (userIdentityToken instanceof UserNameIdentityToken) {
+        if (userIdentityToken.policyId === "anonymous") {
+            return "anonymous";
+        }
+        assert(userIdentityToken.hasOwnProperty("userName"));
+        return userIdentityToken.userName;
     }
-    assert(userIdentityToken.hasOwnProperty("userName"));
-    return userIdentityToken.userName;
+    throw new Error("Invalid user identity token");
 }
 
 export interface SessionContextOptions {
@@ -29,6 +33,7 @@ export interface SessionContextOptions {
     object?: any;
     server?: any;
 }
+
 /**
  * @class SessionContext
  * @param options
@@ -58,10 +63,15 @@ export class SessionContext implements ISessionContext {
      */
     public getCurrentUserRole(): string {
 
-        assert(this.session != null, "expecting a session");
-        assert(this.server != null, "expecting a server");
+        if (!this.session) {
+            return "default";
+        }
 
+        assert(this.session != null, "expecting a session");
         const userIdentityToken = this.session.userIdentityToken;
+        if (!userIdentityToken) {
+            throw new Error("sesion object must provide a userIdentityToken");
+        }
 
         const username = getUserName(userIdentityToken);
 
@@ -71,6 +81,8 @@ export class SessionContext implements ISessionContext {
         if (!this.server || !this.server.userManager) {
             return "default";
         }
+
+        assert(this.server != null, "expecting a server");
 
         if (!_.isFunction(this.server.userManager.getUserRole)) {
             return "default";
