@@ -410,6 +410,39 @@ function _makeEndpointDescription(options) {
             securityPolicyUri: SecurityPolicy.Basic256Sha256
         });
 
+        // X509
+        userIdentityTokens.push({
+            policyId: "certificate_basic256",
+            tokenType: UserTokenType.UserName,
+            issuedTokenType: null,
+            issuerEndpointUrl: null,
+            securityPolicyUri: SecurityPolicy.Basic256
+        });
+
+        userIdentityTokens.push({
+            policyId: "certificate_basic128",
+            tokenType: UserTokenType.UserName,
+            issuedTokenType: null,
+            issuerEndpointUrl: null,
+            securityPolicyUri: SecurityPolicy.Basic128Rsa15
+        });
+
+        userIdentityTokens.push({
+            policyId: "certificate_basic256Sha256",
+            tokenType: UserTokenType.UserName,
+            issuedTokenType: null,
+            issuerEndpointUrl: null,
+            securityPolicyUri: SecurityPolicy.Basic256Sha256
+        });
+
+        userIdentityTokens.push({
+            policyId: "certificate_basic256Sha256",
+            tokenType: UserTokenType.Certificate,
+            issuedTokenType: null,
+            issuerEndpointUrl: null,
+            securityPolicyUri: SecurityPolicy.Basic256Sha256
+        });
+
     } else {
         // note:
         //  when channel session security is not "None",
@@ -422,6 +455,15 @@ function _makeEndpointDescription(options) {
             issuerEndpointUrl: null,
             securityPolicyUri: null
         });
+
+        userIdentityTokens.push({
+            policyId: "certificateX509",
+            tokenType: UserTokenType.Certificate,
+            issuedTokenType: null,
+            issuerEndpointUrl: null,
+            securityPolicyUri: null
+        });
+
     }
 
     if (options.allowAnonymous) {

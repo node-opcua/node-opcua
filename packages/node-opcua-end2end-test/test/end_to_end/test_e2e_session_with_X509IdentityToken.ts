@@ -68,9 +68,9 @@ describe("Testing Session with user certificate", () => {
         await client.connect(endpointUrl);
 
         // make sure all certificates are "trusted"
-        server.userCertificateManager.trustCertificate(clientCertificate);
-        server.userCertificateManager.trustCertificate(invalidClientCertificate);
-        server.userCertificateManager.trustCertificate(notActiveClientCertificate);
+        await server.userCertificateManager.trustCertificate(clientCertificate);
+        await server.userCertificateManager.trustCertificate(invalidClientCertificate);
+        await server.userCertificateManager.trustCertificate(notActiveClientCertificate);
 
     });
 
@@ -162,8 +162,4 @@ describe("Testing Session with user certificate", () => {
         }
         should(exceptionCaught).not.be.null();
     });
-
-
-
-
 });
