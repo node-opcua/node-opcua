@@ -114,7 +114,7 @@
 		"lerna": "^3.4.3",
 		"long": "^4.0.0",
 		"ltx": "^2.8.0",
-        "mocha-clean": "^1.0.0",
+      "mocha-clean": "^1.0.0",
 		"mocha-typescript": "^1.1.17",
 		"node-jsrsasign": "0.0.7",
 		"node-opcua-crypto": "^1.0.0",
