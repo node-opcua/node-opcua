@@ -29,7 +29,7 @@
   "delayed": "^1.0.1",
   "node-opcua-assert": "^2.0.0-alpha.0",
   "should": "13.2.3",
-  "sinon": "6.3.4",
+  "sinon": "^7.0.0",
   "underscore": "^1.9.1",
   "yargs": "^12.0.2"
  },

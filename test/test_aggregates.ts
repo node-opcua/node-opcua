@@ -1,6 +1,6 @@
 import { DataValue } from "node-opcua-data-value";
+import { getInterpolatedData } from "../source";
 import { addAggregateSupport, getAggregateConfiguration } from "../source/aggregates";
-import { getInterpolatedData } from "../source/interpolate";
 
 import {
     createHistorian1,
@@ -371,7 +371,7 @@ describe("Aggregates - Function ", ()  => {
                 dataValues = dataValues!;
 
                 // Timestamp Value StatusCode Notes
-                //12:00:00.000 10 Good, Calculated, Partial
+                // 12:00:00.000 10 Good, Calculated, Partial
                 getInfo(dataValues[0]).should.eql("12:00:00.000Z 10 Good#HistorianCalculated|HistorianPartial");
                 // 12:00:16.000 30 Good, Calculated
                 getInfo(dataValues[1]).should.eql("12:00:16.000Z 30 Good#HistorianCalculated");
