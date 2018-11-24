@@ -651,7 +651,6 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
             this._add_crawl_task(childCacheNode, userData);
         } else {
-            console.log(" Already Exist", childCacheNode.browseName.toString());
             if (userData.setExtraReference) {
                 const task: TaskExtraReference = {
                     func: _setExtraReference,
