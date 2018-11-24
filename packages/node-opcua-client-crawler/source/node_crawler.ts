@@ -3,6 +3,7 @@ import chalk from "chalk";
 import { EventEmitter } from "events";
 import * as _ from "underscore";
 
+import { UAReferenceType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { BrowseDescriptionLike, ReadValueIdOptions, ResponseCallback } from "node-opcua-client/dist";
 import { ReferenceTypeIds, VariableIds } from "node-opcua-constants";
@@ -18,7 +19,7 @@ import {
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { BrowseDescription, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
@@ -44,7 +45,7 @@ function make_node_attribute_key(nodeId: NodeId, attributeId: AttributeIds): str
  * @private
  * @return {*}
  */
-function _fetch_elements(arr: any[], maxNode: number) {
+function _fetch_elements<T>(arr: T[], maxNode: number): T[] {
     assert(_.isArray(arr));
     assert(arr.length > 0);
     const highLimit = (maxNode <= 0) ? arr.length : maxNode;
@@ -285,7 +286,6 @@ function remove_cycle(
 export interface UserData {
     onBrowse: (crawler: NodeCrawler, cacheNode: CacheNode, userData: UserData) => void;
     setExtraReference?: (parentNode: CacheNode, reference: any, childCacheNode: CacheNode, userData: UserData) => void;
-
 }
 
 interface NodeCrawlerEvents {
@@ -296,7 +296,6 @@ export interface NodeCrawlerClientSession {
     read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
 
     browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
-
 }
 
 interface TaskBrowseNode {
@@ -316,6 +315,16 @@ interface TaskReadNode {
     action: ReadNodeAction;
 }
 
+function getReferenceTypeId(referenceType: undefined | string | NodeId | UAReferenceType): NodeId | null {
+    if (!referenceType) {
+        return null;
+    }
+    if (referenceType.toString() === "i=45" || referenceType === "HasSubtype") {
+        return NodeId.resolveNodeId("i=45");
+    }
+    return NodeId.nullNodeId;
+}
+
 // tslint:disable:max-classes-per-file
 /**
  * @class NodeCrawler
@@ -327,10 +336,19 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     public static follow(
       crawler: NodeCrawler,
       cacheNode: CacheNode,
-      userData: UserData
+      userData: UserData,
+      referenceType?: string | UAReferenceType
     ) {
+        const referenceTypeNodeId = getReferenceTypeId(referenceType);
+
         for (const reference of cacheNode.references) {
-            crawler.followReference(cacheNode, reference, userData);
+            if (!referenceTypeNodeId) {
+                crawler.followReference(cacheNode, reference, userData);
+            } else {
+                if (NodeId.sameNodeId(referenceTypeNodeId, reference.referenceTypeId)) {
+                    crawler.followReference(cacheNode, reference, userData);
+                }
+            }
         }
     }
 
@@ -349,6 +367,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     private readonly _objMap: any;
     private _crawled: any;
     private _visitedNode: any;
+    private _prePopulatedSet = new WeakSet();
 
     constructor(session: NodeCrawlerClientSession) {
 
@@ -411,6 +430,12 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         this.pendingReadTasks.length = 0;
         this.pendingBrowseTasks.length = 0;
 
+    }
+
+    public toString(): string {
+        return "" + `reads:       ${this.readCounter}\n` +
+          `browses:     ${this.browseCounter}  \n` +
+          `transaction: ${this.transactionCounter}  \n`;
     }
 
     public crawl(nodeId: NodeIdLike, userData: UserData): Promise<void>;
@@ -588,7 +613,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             param: {
                 cacheNode,
                 userData
-            },
+            }
         };
         this._push_task("_crawl task", task);
 
@@ -605,6 +630,10 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         const crawler = this;
 
         let referenceTypeIdCacheNode = crawler._getCacheNode(reference.referenceTypeId);
+        if (this._prePopulatedSet.has(referenceTypeIdCacheNode)) {
+            this._prePopulatedSet.delete(referenceTypeIdCacheNode);
+            this._add_crawl_task(referenceTypeIdCacheNode, userData);
+        }
         if (!referenceTypeIdCacheNode) {
             referenceTypeIdCacheNode = crawler._createCacheNode(reference.referenceTypeId);
             this._add_crawl_task(referenceTypeIdCacheNode, userData);
@@ -622,9 +651,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
             this._add_crawl_task(childCacheNode, userData);
         } else {
-
+            console.log(" Already Exist", childCacheNode.browseName.toString());
             if (userData.setExtraReference) {
-
                 const task: TaskExtraReference = {
                     func: _setExtraReference,
                     param: {
@@ -807,9 +835,9 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         debugLog("_resolve_deferred_readNode = ", this.pendingReadTasks.length);
 
-        const selectedPendingReadTasks = _fetch_elements(this.pendingReadTasks, this.maxNodesPerRead);
+        const selectedPendingReadTasks: TaskReadNode[] = _fetch_elements(this.pendingReadTasks, this.maxNodesPerRead);
 
-        const nodesToRead = selectedPendingReadTasks.map((e) => e.nodeToRead);
+        const nodesToRead = selectedPendingReadTasks.map((e: TaskReadNode) => e.nodeToRead);
 
         this.readCounter += nodesToRead.length;
         this.transactionCounter++;
@@ -846,9 +874,9 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         debugLog("_resolve_deferred_browseNode = ", this.pendingBrowseTasks.length);
 
-        const objectsToBrowse = _fetch_elements(this.pendingBrowseTasks, this.maxNodesPerBrowse);
+        const objectsToBrowse: TaskBrowseNode[] = _fetch_elements(this.pendingBrowseTasks, this.maxNodesPerBrowse);
 
-        const nodesToBrowse = objectsToBrowse.map((e: any) => {
+        const nodesToBrowse = objectsToBrowse.map((e: TaskBrowseNode) => {
 
             assert(e.hasOwnProperty("referenceTypeId"));
 
@@ -979,6 +1007,9 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             assert(nodeId);
             const cacheNode = this._createCacheNode(nodeId);
             cacheNode.browseName = new QualifiedName({ name: browseName });
+            cacheNode.nodeClass = NodeClass.ReferenceType;
+            this._prePopulatedSet.add(cacheNode);
+
         };
 
         //  References
@@ -993,13 +1024,13 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         //                                 +->(hasSubtype) HasSubtype/HasSupertype
         //                  +->(hasSubtype) Organizes/OrganizedBy
         //                  +->(hasSubtype) HasEventSource/EventSourceOf
-        if (true) {
+        appendPrepopulatedReference("HasSubtype");
+        if (false) {
             appendPrepopulatedReference("HasTypeDefinition");
             appendPrepopulatedReference("HasChild");
             appendPrepopulatedReference("HasProperty");
             appendPrepopulatedReference("HasComponent");
             appendPrepopulatedReference("HasHistoricalConfiguration");
-            appendPrepopulatedReference("HasSubtype");
             appendPrepopulatedReference("Organizes");
             appendPrepopulatedReference("HasEventSource");
             appendPrepopulatedReference("HasModellingRule");
@@ -1344,13 +1375,13 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                   }
                   const cache = cacheNode as CacheNodeVariable;
                   this._defer_readNode(cacheNode.nodeId, AttributeIds.UserAccessLevel,
-                    (err: Error|null, value?: number) => {
-                      if (err) {
-                          return callback(err);
-                      }
-                      cache.userAccessLevel = value!;
-                      callback();
-                  });
+                    (err: Error | null, value?: number) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        cache.userAccessLevel = value!;
+                        callback();
+                    });
               },
               taskA_referenceType_inverseName: (callback: ErrorCallback) => {
                   if (cacheNode.nodeClass !== NodeClass.ReferenceType) {
@@ -1358,13 +1389,13 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                   }
                   const cache = cacheNode as CacheNodeReferenceType;
                   this._defer_readNode(cacheNode.nodeId, AttributeIds.InverseName,
-                    (err: Error|null, value?: LocalizedText) => {
-                      if (err) {
-                          return callback(err);
-                      }
-                      cache.inverseName = value!;
-                      callback();
-                  });
+                    (err: Error | null, value?: LocalizedText) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        cache.inverseName = value!;
+                        callback();
+                    });
               },
               taskB_isAbstract: (callback: ErrorCallback) => {
                   if (cacheNode.nodeClass !== NodeClass.ReferenceType) {
@@ -1372,13 +1403,13 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                   }
                   const cache = cacheNode as CacheNodeWithAbstractField;
                   this._defer_readNode(cacheNode.nodeId, AttributeIds.IsAbstract,
-                    (err: Error|null, value?: boolean) => {
-                      if (err) {
-                          return callback(err);
-                      }
-                      cache.isAbstract = value!;
-                      callback();
-                  });
+                    (err: Error | null, value?: boolean) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        cache.isAbstract = value!;
+                        callback();
+                    });
               },
               taskC_dataTypeDefinition: (callback: ErrorCallback) => {
                   if (cacheNode.nodeClass !== NodeClass.DataType) {

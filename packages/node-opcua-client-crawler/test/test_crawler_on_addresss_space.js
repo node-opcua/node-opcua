@@ -42,6 +42,8 @@ describe("NodeCrawler",function(){
         crawler.crawl(nodeId,data,function(err){
             //console.log(results.join(" "));
             results.sort().join(" ").should.eql(
+              "HasComponent HasModellingRule HasOrderedComponent HasProperty" +
+              " HasSubtype HasTypeDefinition " +
               "LocaleIdArray Mandatory MaxMonitoredItemsPerCall " +
               "MaxMonitoredItemsPerCall MaxNodesPerBrowse MaxNodesPerBrowse " +
               "MaxNodesPerHistoryReadData MaxNodesPerHistoryReadData " +

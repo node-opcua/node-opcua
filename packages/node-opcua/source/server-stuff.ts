@@ -5,11 +5,7 @@
 // tslint:disable:max-classes-per-file
 
 import { ServerState } from "node-opcua-common";
-import { AttributeIds } from "node-opcua-data-model";
-import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
-import { DataValue , TimestampsToReturn} from "node-opcua-data-value";
-import { coerceNodeId, makeNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
-import { NumericRange } from "node-opcua-numeric-range";
+import { LocalizedText } from "node-opcua-data-model";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import {
     BrowseDescription,
@@ -17,11 +13,7 @@ import {
     BrowseResponse
 } from "node-opcua-service-browse";
 import { ApplicationDescription, ApplicationType, EndpointDescription } from "node-opcua-service-endpoints";
-import { ReadValueId, ReadValueIdOptions } from "node-opcua-service-read";
-import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-transport";
-import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
 
 // ----------------------------------------------------------------------------------------------------------------
 declare type ValidUserFunc = (username: string, password: string) => boolean;

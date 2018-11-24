@@ -44,7 +44,9 @@ export class PseudoSession implements IBasicSession {
 
     public browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
     public browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
-    public browse(nodesToBrowse: any, callback: ResponseCallback<any>): void {
+    public browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
+    public browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
+    public browse(nodesToBrowse: any, callback?: ResponseCallback<any>): any {
 
         const isArray = _.isArray(nodesToBrowse);
         if (!isArray) {
@@ -58,12 +60,14 @@ export class PseudoSession implements IBasicSession {
             const r = this.addressSpace.browseSingleNode(nodeId, browseDescription);
             results.push(r);
         });
-        callback(null, isArray ? results : results[0]);
+        callback!(null, isArray ? results : results[0]);
     }
 
     public read(nodeToRead: ReadValueIdLike, callback: ResponseCallback<DataValue>): void;
     public read(nodesToRead: ReadValueIdLike[], callback: ResponseCallback<DataValue[]>): void;
-    public read(nodesToRead: any, callback: ResponseCallback<any>): void {
+    public read(nodeToRead: ReadValueIdLike): Promise<DataValue>;
+    public read(nodesToRead: ReadValueIdLike[]): Promise<DataValue[]>;
+    public read(nodesToRead: any, callback?: ResponseCallback<any>): any {
 
         const isArray = _.isArray(nodesToRead);
         if (!isArray) {
@@ -89,6 +93,12 @@ export class PseudoSession implements IBasicSession {
             return dataValue;
         });
 
-        callback(null, isArray ? dataValues : dataValues[0]);
+        callback!(null, isArray ? dataValues : dataValues[0]);
     }
 }
+
+// tslint:disable:no-var-requires
+// tslint:disable:max-line-length
+const thenify = require("thenify");
+PseudoSession.prototype.read = thenify.withCallback(PseudoSession.prototype.read);
+PseudoSession.prototype.browse = thenify.withCallback(PseudoSession.prototype.browse);
