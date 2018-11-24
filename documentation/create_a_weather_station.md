@@ -319,7 +319,7 @@ The server address space will be made of a ```Cities``` folder containing one fo
 ```javascript
 // declare some folders
 const addressSpace = server.engine.addressSpace;
-const namespace = addressSpace.getPrivateNamespace();
+const namespace = addressSpace.getOwnNamespace();
 const citiesNode  = namespace.addFolder("ObjectsFolder",{ browseName: "Cities"});
 function create_CityNode(city_name) {
     // declare the city node
