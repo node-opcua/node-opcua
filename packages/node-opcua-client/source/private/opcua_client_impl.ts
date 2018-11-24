@@ -1202,6 +1202,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     return callback(new Error("CLIENT: Invalid userIdentityInfo"));
             }
         } catch (err) {
+            if (typeof err === "string") {
+                return callback(new Error("Create identity token failed " + userIdentityInfo.type + " " + err));
+            }
             return callback(err);
         }
         return callback(null, {userIdentityToken, userTokenSignature});

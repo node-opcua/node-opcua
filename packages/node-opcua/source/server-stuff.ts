@@ -1,32 +1,20 @@
-// Type definitions for node-opua
-// Project: https://github.com/node-opcua/node-opcua
-// Definitions by: Etienne Rossignon
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-// tslint:disable:max-classes-per-file
-
 import { ServerState } from "node-opcua-common";
-import { LocalizedText } from "node-opcua-data-model";
+import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
-import {
-    BrowseDescription,
-    BrowseDirection,
-    BrowseResponse
-} from "node-opcua-service-browse";
-import { ApplicationDescription, ApplicationType, EndpointDescription } from "node-opcua-service-endpoints";
+import { EndpointDescription } from "node-opcua-service-endpoints";
 import { ErrorCallback } from "node-opcua-transport";
-
-// ----------------------------------------------------------------------------------------------------------------
 declare type ValidUserFunc = (username: string, password: string) => boolean;
-
 declare type ValidUserAsyncFunc = (username: string, password: string, callback: ErrorCallback) => void;
 
 export declare function generate_address_space(
-  addressSpace: AddressSpace,
-  xmlFiles: string[]| string,
-  callback: ErrorCallback
+    addressSpace: AddressSpace, xmlFiles: string[] | string, callback: ErrorCallback
 ): void;
 
 export interface OPCUAServerOptions {
+
+    certificateFile?: string;
+    privateKeyFile?: string;
+
     /** the default secure token life time in ms. */
     defaultSecureTokenLifetime?: number;
     /**
@@ -45,7 +33,6 @@ export interface OPCUAServerOptions {
      * @default 10
      */
     maxAllowedSessionNumber?: number;
-
     /** the nodeset.xml file(s) to load */
     nodeset_filename?: string[] | string;
     serverInfo?: {
@@ -61,9 +48,9 @@ export interface OPCUAServerOptions {
         /**
          * @default "applicationName"
          */
-        applicationName?: LocalizedText | string;
-        gatewayServerUri?: string;
-        discoveryProfileUri?: string;
+        applicationName?: LocalizedTextLike | string;
+        gatewayServerUri?: string | null;
+        discoveryProfileUri?: string  | null;
         discoveryUrls?: string[];
     };
     /**
@@ -100,13 +87,13 @@ export interface OPCUAServerOptions {
 import {
     AddressSpace
 } from "node-opcua-address-space";
+import { CertificateManager } from "node-opcua-certificate-manager";
 
 export * from "node-opcua-address-space";
 
 export declare class ServerEngine {
     public addressSpace: AddressSpace;
 }
-
 export declare interface OPCUAServerEndPoint {
     port: number;
     defaultSecureTokenLifetime: number;
@@ -115,10 +102,15 @@ export declare interface OPCUAServerEndPoint {
     privateKey: any;
     serverInfo: any;
     maxConnections: any;
-
     endpointDescriptions(): EndpointDescription[];
 }
 
+export interface Session {
+    clientDescription: any;
+    sessionName: string;
+    sessionTimeout?: number;
+    sessionId: any;
+}
 export * from "node-opcua-certificate-manager";
 import { CertificateManager } from "node-opcua-certificate-manager";
 
@@ -132,50 +124,34 @@ export declare class OPCUAServer {
     public sessionAbortCount: number;
     public publishingIntervalCount: number;
     public sessionTimeoutCount: number;
-
-
     public userCertificateManager: CertificateManager;
-    public certificateManager: CertificateManager;
-
     /**
      * the number of connected channel on all existing end points
      */
     public currentChannelCount: number;
     public buildInfo: any;
-
     public endpoints: OPCUAServerEndPoint[];
-
     public secondsTillShutdown: number;
-
     public serverName: string;
     public serverNameUrn: string;
-
     public engine: ServerEngine;
     constructor(options?: OPCUAServerOptions);
-
     public setServerState(serverState: ServerState): void;
-
     public start(callback: ErrorCallback): void;
     public start(): Promise<void>;
-
     public shutdown(timeout: number, callback: ErrorCallback): void;
     public shutdown(timeout: number): Promise<void>;
-
     public initialize(done: () => void): void;
 
-    // "postinitialize" , "session_closed", "create_session"
-    public on(event: string, eventHandler: () => void): OPCUAServer;
-}
+    public on(event: string, eventHandler: () => void): this;
+    public on(event: "create_session", eventHandler: (session: Session) => void): this;
+    public on(event: "session_closed", eventHandler: (session: Session, reason: string) => void): this;
 
-// tslint:disable:no-empty-interface
+
+}
 export interface ServerSession {
-
 }
-// server subscription
 export interface Subscription {
-
 }
-// server subscription
 export interface MonitoredItem {
-
 }
