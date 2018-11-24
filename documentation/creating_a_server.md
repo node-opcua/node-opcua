@@ -117,7 +117,7 @@ The ```addressSpace``` is used to customize the objet model that our server will
 function construct_my_address_space(server) {
 
     const addressSpace = server.engine.addressSpace;
-    const namespace = addressSpace.getPrivateNamespace();
+    const namespace = addressSpace.getOwnNamespace();
     
     // declare a new object
     _"add a new object into the objects folder"

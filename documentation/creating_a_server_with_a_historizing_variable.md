@@ -22,7 +22,7 @@ const server = new opcua.OPCUAServer({
 });
 function construct_address_space(server) {
   const addressSpace = server.engine.addressSpace;
-  const namespace = addresSpace.getPrivateNamespace();
+  const namespace = addresSpace.getOwnNamespace();
   _"create the vessel object"
   _"create historizing variable"
   _"adding historical configuration"
