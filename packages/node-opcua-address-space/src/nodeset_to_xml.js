@@ -25,9 +25,9 @@ const assert = require("node-opcua-assert").assert;
 
 const Namespace = require("../src/namespace").Namespace;
 
-Namespace.prototype.getStandardsNodeIds = function(){
+Namespace.prototype.getStandardsNodeIds = function () {
 
-    const standardNodeIds= {};
+    const standardNodeIds = {};
     standardNodeIds.referenceTypeIds = {};
     standardNodeIds.objectTypeIds = {};
 
@@ -42,10 +42,10 @@ Namespace.prototype.getStandardsNodeIds = function(){
 };
 
 
-
 function _hash(node) {
     return (node.nodeId.toString());
 }
+
 function _dumpDisplayName(xw, node) {
     xw.startElement("DisplayName").text(node.displayName[0].text).endElement();
 }
@@ -58,23 +58,26 @@ function _dumpDescription(xw, node) {
     }
 }
 
-function translateNodeId(xw,nodeId) {
+function translateNodeId(xw, nodeId) {
     assert(nodeId instanceof NodeId);
     const n = xw.translationTable[nodeId.namespace];
-    const translatedNode = new NodeId(nodeId.identifierType,nodeId.value,n);
+    const translatedNode = new NodeId(nodeId.identifierType, nodeId.value, n);
     return translatedNode;
 }
-function n(xw,nodeId) {
-    return translateNodeId(xw,nodeId).toString().replace("ns=0;","");
+
+function n(xw, nodeId) {
+    return translateNodeId(xw, nodeId).toString().replace("ns=0;", "");
 }
-function translateBrowseName(xw,browseName) {
+
+function translateBrowseName(xw, browseName) {
     assert(browseName instanceof QualifiedName);
     const n = xw.translationTable[browseName.namespaceIndex];
-    const translatedBrowseName = new QualifiedName({namespaceIndex: n,name: browseName.name });
+    const translatedBrowseName = new QualifiedName({ namespaceIndex: n, name: browseName.name });
     return translatedBrowseName;
 }
-function b(xw,nodeId) {
-    return translateBrowseName(xw,nodeId).toString().replace("ns=0;","");
+
+function b(xw, nodeId) {
+    return translateBrowseName(xw, nodeId).toString().replace("ns=0;", "");
 }
 
 const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
@@ -87,7 +90,7 @@ function _dumpReferences(xw, node) {
 
     const aggregateReferenceType = addressSpace.findReferenceType("Aggregates");
     const hasChildReferenceType = addressSpace.findReferenceType("HasChild");
-    const hasSubtypeReferenceType= addressSpace.findReferenceType("HasSubtype");
+    const hasSubtypeReferenceType = addressSpace.findReferenceType("HasSubtype");
     const hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition");
     const nonHierarchicalReferencesType = addressSpace.findReferenceType("NonHierarchicalReferences");
     const organizesReferencesType = addressSpace.findReferenceType("Organizes");
@@ -115,22 +118,23 @@ function _dumpReferences(xw, node) {
             return true;
         return false;
     }
+
     const references = _.map(node.allReferences()).filter(referenceToKeep);
 
     for (let reference of references) {
 
-        if (reference._referenceType.browseName.toString() === "HasSubtype" &&reference.isForward)
+        if (reference._referenceType.browseName.toString() === "HasSubtype" && reference.isForward)
             continue;
 
         // only output inverse Reference
         xw.startElement("Reference");
 
-        xw.writeAttribute("ReferenceType", b(xw,reference._referenceType.browseName));
+        xw.writeAttribute("ReferenceType", b(xw, reference._referenceType.browseName));
 
         if (!reference.isForward) {
-           xw.writeAttribute("IsForward", reference.isForward ? "true" : "false");
+            xw.writeAttribute("IsForward", reference.isForward ? "true" : "false");
         }
-        xw.text(n(xw,reference.nodeId));
+        xw.text(n(xw, reference.nodeId));
 
         xw.endElement();
     }
@@ -225,7 +229,11 @@ function _dumpValue(xw, node, value) {
 
     assert(value instanceof Variant);
 
-    const dataTypeName = addressSpace.findNode(node.dataType).browseName.toString();
+    const dataTypeNode = addressSpace.findNode(node.dataType);
+    if (!dataTypeNode) {
+        return;
+    }
+    const dataTypeName = dataTypeNode.browseName.toString();
 
     const baseDataTypeName = DataType[DataType[value.dataType]];
 
@@ -280,12 +288,12 @@ function _dumpValue(xw, node, value) {
 
 function _dumpArrayDimensions(xw, node) {
     if (node.arrayDimension) {
-        xw.writeAttribute("ArrayDimensions", node.arrayDimensions.join(','));
+        xw.writeAttribute("ArrayDimensions", node.arrayDimensions.join(","));
     }
 }
 
 
-function visitUANode(node, options,forward) {
+function visitUANode(node, options, forward) {
 
     assert(_.isBoolean(forward));
 
@@ -310,7 +318,7 @@ function visitUANode(node, options,forward) {
 
             const o = addressSpace.findNode(k);
             if (o) {
-                visitUANode(o, options,forward);
+                visitUANode(o, options, forward);
             }
         }
     }
@@ -320,22 +328,22 @@ function visitUANode(node, options,forward) {
     return node;
 }
 
-function dumpReferencedNodesOld(xw,node,forward) {
+function dumpReferencedNodesOld(xw, node, forward) {
 
     assert(_.isBoolean(forward));
 
-    xw.visitedNode[_hash(node)]=1;
+    xw.visitedNode[_hash(node)] = 1;
 
     const nodesToVisit = {};
-    visitUANode(node, nodesToVisit,forward);
+    visitUANode(node, nodesToVisit, forward);
 
-    for(let el of nodesToVisit.elements) {
+    for (let el of nodesToVisit.elements) {
         if (!xw.visitedNode[_hash(el)])
             el.dumpXML(xw);
     }
 }
 
-function dumpReferencedNodes(xw,node,forward) {
+function dumpReferencedNodes(xw, node, forward) {
 
 
     const addressSpace = node.addressSpace;
@@ -345,11 +353,11 @@ function dumpReferencedNodes(xw,node,forward) {
         {
             const r = node.findReferencesEx("HasTypeDefinition");
             if (r && r.length) {
-                assert(r.length ===1);
-                const typeDefinitionObj = Reference._resolveReferenceNode(addressSpace,r[0]);
+                assert(r.length === 1);
+                const typeDefinitionObj = Reference._resolveReferenceNode(addressSpace, r[0]);
                 assert(typeDefinitionObj instanceof BaseNode);
 
-                if (typeDefinitionObj.nodeId.namespace === node.nodeId.namespace)  {
+                if (typeDefinitionObj.nodeId.namespace === node.nodeId.namespace) {
                     // only output node if it is on the same namespace
                     if (!xw.visitedNode[_hash(typeDefinitionObj)])
                         typeDefinitionObj.dumpXML(xw);
@@ -359,10 +367,10 @@ function dumpReferencedNodes(xw,node,forward) {
 
         //
         {
-            const r = node.findReferencesEx("HasSubtype",BrowseDirection.Inverse);
+            const r = node.findReferencesEx("HasSubtype", BrowseDirection.Inverse);
             if (r && r.length) {
-                const subTypeOf = Reference._resolveReferenceNode(addressSpace,r[0]);
-                assert(r.length ===1);
+                const subTypeOf = Reference._resolveReferenceNode(addressSpace, r[0]);
+                assert(r.length === 1);
                 if (subTypeOf.nodeId.namespace === node.nodeId.namespace) {
                     // only output node if it is on the same namespace
                     if (!xw.visitedNode[_hash(subTypeOf)])
@@ -371,9 +379,9 @@ function dumpReferencedNodes(xw,node,forward) {
             }
         }
     } else {
-        const r = node.findReferencesEx("Aggregates",BrowseDirection.Forward);
-        for(let reference of r) {
-            const nodeChild = Reference._resolveReferenceNode(addressSpace,reference);
+        const r = node.findReferencesEx("Aggregates", BrowseDirection.Forward);
+        for (let reference of r) {
+            const nodeChild = Reference._resolveReferenceNode(addressSpace, reference);
             assert(nodeChild instanceof BaseNode);
             if (nodeChild.nodeId.namespace === node.nodeId.namespace) {
                 if (!xw.visitedNode[_hash(nodeChild)])
@@ -383,27 +391,27 @@ function dumpReferencedNodes(xw,node,forward) {
     }
 }
 
-function dumpCommonAttributes(xw,node) {
+function dumpCommonAttributes(xw, node) {
 
-    xw.writeAttribute("NodeId", n(xw,node.nodeId));
-    xw.writeAttribute("BrowseName", b(xw,node.browseName));
+    xw.writeAttribute("NodeId", n(xw, node.nodeId));
+    xw.writeAttribute("BrowseName", b(xw, node.browseName));
 
     if (node.hasOwnProperty("symbolicName")) {
         xw.writeAttribute("SymbolicName", node.symbolicName);
     }
     if (node.hasOwnProperty("isAbstract")) {
-        if(node.isAbstract) {
+        if (node.isAbstract) {
             xw.writeAttribute("IsAbstract", node.isAbstract ? "true" : "false");
         }
     }
 
 }
+
 function dumpCommonElements(xw, node) {
     _dumpDisplayName(xw, node);
     _dumpDescription(xw, node);
     _dumpReferences(xw, node);
 }
-
 
 
 function _dumpUADataTypeDefinition(xw, node) {
@@ -443,8 +451,8 @@ function _dumpUADataTypeDefinition(xw, node) {
 
 function dumpUADataType(xw, node) {
     xw.startElement("UADataType");
-    xw.writeAttribute("NodeId", n(xw,node.nodeId));
-    xw.writeAttribute("BrowseName", b(xw,node.browseName));
+    xw.writeAttribute("NodeId", n(xw, node.nodeId));
+    xw.writeAttribute("BrowseName", b(xw, node.browseName));
 
     if (node.isAbstract) {
         xw.writeAttribute("IsAbstract", node.isAbstract ? "true" : "false");
@@ -472,32 +480,30 @@ function dumpUAVariable(xw, node) {
     xw.startElement("UAVariable");
     {
         // attributes
-        dumpCommonAttributes(xw,node);
+        dumpCommonAttributes(xw, node);
 
         if (node.valueRank !== -1) {
             xw.writeAttribute("ValueRank", node.valueRank);
         }
 
         const dataTypeNode = addressSpace.findNode(node.dataType);
-        if (!dataTypeNode) {
-            throw new Error(" cannot find datatype " + node.dataType);
+        if (dataTypeNode) {
+            // verify that data Type is in alias
+            const dataTypeName = dataTypeNode.browseName.toString();
+            xw.writeAttribute("DataType", dataTypeName);
         }
-
-        // verify that data Type is in alias
-        const dataTypeName = dataTypeNode.browseName.toString();
-        xw.writeAttribute("DataType", dataTypeName);
-
     }
     {
         // sub elements
-        dumpCommonElements(xw,node);
+        dumpCommonElements(xw, node);
         _dumpArrayDimensions(xw, node);
         _dumpValue(xw, node, node._dataValue.value);
     }
     xw.endElement();
 
-    dumpAggregates(xw,node);
+    dumpAggregates(xw, node);
 }
+
 UAVariable.prototype.dumpXML = function (xw) {
     dumpUAVariable(xw, this);
 };
@@ -516,7 +522,7 @@ function dumpUAVariableType(xw, node) {
 
     {
         // attributes
-        dumpCommonAttributes(xw,node);
+        dumpCommonAttributes(xw, node);
 
         if (node.valueRank !== -1) {
             xw.writeAttribute("ValueRank", node.valueRank);
@@ -540,7 +546,7 @@ function dumpUAVariableType(xw, node) {
 
     xw.endElement();
 
-    dumpAggregates(xw,node);
+    dumpAggregates(xw, node);
 }
 
 UAVariableType.prototype.dumpXML = function (xw) {
@@ -550,14 +556,14 @@ UAVariableType.prototype.dumpXML = function (xw) {
 
 function dumpUAObject(xw, node) {
 
-    xw.writeComment("Object - " + b(xw,node.browseName) + " {{{{ ");
+    xw.writeComment("Object - " + b(xw, node.browseName) + " {{{{ ");
 
-    xw.visitedNode = xw.visitedNode ||{};
+    xw.visitedNode = xw.visitedNode || {};
     assert(!xw.visitedNode[_hash(node)]);
     xw.visitedNode[_hash(node)] = 1;
 
     // dump SubTypeOf and HasTypeDefinition
-    dumpReferencedNodes(xw,node,false);
+    dumpReferencedNodes(xw, node, false);
 
     xw.startElement("UAObject");
     dumpCommonAttributes(xw, node);
@@ -566,45 +572,46 @@ function dumpUAObject(xw, node) {
 
     // dump aggregates nodes ( Properties / components )
 
-    dumpAggregates(xw,node);
+    dumpAggregates(xw, node);
 
-    xw.writeComment("Object - " + b(xw,node.browseName) + " }}}} ");
+    xw.writeComment("Object - " + b(xw, node.browseName) + " }}}} ");
 }
 
 UAObject.prototype.dumpXML = function (xw) {
     dumpUAObject(xw, this);
 };
 
-function dumpAggregates(xw,node) {
+function dumpAggregates(xw, node) {
 
     //Xx xw.writeComment("Aggregates {{ ");
-    const aggregates = node.getAggregates().sort(x=>x.browseName.name.toString());
-    for(let aa of aggregates) {
+    const aggregates = node.getAggregates().sort(x => x.browseName.name.toString());
+    for (let aa of aggregates) {
         if (!xw.visitedNode[_hash(aa)]) {
             aa.dumpXML(xw);
         }
     }
     //Xx xw.writeComment("Aggregates }} ");
 }
+
 function dumpUAObjectType(xw, node) {
 
     assert(node instanceof UAObjectType);
-    xw.writeComment("ObjectType - " + b(xw,node.browseName) + " {{{{ ");
-    xw.visitedNode = xw.visitedNode ||{};
+    xw.writeComment("ObjectType - " + b(xw, node.browseName) + " {{{{ ");
+    xw.visitedNode = xw.visitedNode || {};
     assert(!xw.visitedNode[_hash(node)]);
     xw.visitedNode[_hash(node)] = 1;
 
     // dump SubTypeOf and HasTypeDefinition
-    dumpReferencedNodes(xw,node,false);
+    dumpReferencedNodes(xw, node, false);
 
     xw.startElement("UAObjectType");
     dumpCommonAttributes(xw, node);
     dumpCommonElements(xw, node);
     xw.endElement();
 
-    dumpAggregates(xw,node);
-    
-    xw.writeComment("ObjectType - " + b(xw,node.browseName) + " }}}}");
+    dumpAggregates(xw, node);
+
+    xw.writeComment("ObjectType - " + b(xw, node.browseName) + " }}}}");
 }
 
 UAObjectType.prototype.dumpXML = function (xw) {
@@ -613,17 +620,17 @@ UAObjectType.prototype.dumpXML = function (xw) {
 
 function dumpUAMethod(xw, node) {
 
-    xw.visitedNode = xw.visitedNode ||{};
+    xw.visitedNode = xw.visitedNode || {};
     assert(!xw.visitedNode[_hash(node)]);
     xw.visitedNode[_hash(node)] = 1;
 
-    dumpReferencedNodes(xw,node,false);
+    dumpReferencedNodes(xw, node, false);
 
     xw.startElement("UAMethod");
     dumpCommonAttributes(xw, node);
     xw.endElement();
 
-    dumpAggregates(xw,node,true);
+    dumpAggregates(xw, node, true);
 }
 
 UAMethod.prototype.dumpXML = function (xw) {
@@ -631,24 +638,24 @@ UAMethod.prototype.dumpXML = function (xw) {
 };
 
 
-function resolveDataTypeName(addressSpace,dataType) {
+function resolveDataTypeName(addressSpace, dataType) {
 
     let dataTypeNode = null;
     // istanbul ignore next
     if (_.isString(dataType)) {
-        dataTypeNode =  addressSpace.findDataType(dataType);
+        dataTypeNode = addressSpace.findDataType(dataType);
     } else {
         assert(dataType instanceof NodeId);
         const o = addressSpace.findNode(dataType.toString());
-        dataTypeNode =  o ? o.browseName: null;
+        dataTypeNode = o ? o.browseName : null;
     }
     if (!dataTypeNode) {
-        throw new Error("Cannot find dataTypeName ", dataType);
+        throw new Error("Cannot find dataTypeName " + dataType);
     }
     return dataTypeNode;
 }
 
-function buildUpAliases(node,xw,options) {
+function buildUpAliases(node, xw, options) {
 
     const addressSpace = node.addressSpace;
 
@@ -662,11 +669,11 @@ function buildUpAliases(node,xw,options) {
     }
     options.aliases_visited[k] = 1;
 
-    
+
     // put datatype into aliases list
-    if (node.dataType && node.dataType.namespace === 0) {
+    if (node.dataType && node.dataType.namespace === 0 && node.dataType.value !== 0) {
         // name
-        const dataTypeName = b(xw,resolveDataTypeName(addressSpace,node.dataType));
+        const dataTypeName = b(xw, resolveDataTypeName(addressSpace, node.dataType));
         if (dataTypeName) {
             if (!options.aliases[dataTypeName]) {
                 options.aliases[dataTypeName] = node.dataType;
@@ -676,15 +683,16 @@ function buildUpAliases(node,xw,options) {
 
     function collectReferenceNameInAlias(reference) {
         // reference.referenceType
-        const key = b(xw,reference._referenceType.browseName);
+        const key = b(xw, reference._referenceType.browseName);
         if (!options.aliases.key) {
             if (reference.referenceType.namespace === 0) {
-                options.aliases[key] = reference.referenceType.toString().replace("ns=0;","");
+                options.aliases[key] = reference.referenceType.toString().replace("ns=0;", "");
             } else {
-                options.aliases[key] = n(xw,reference.referenceType);
+                options.aliases[key] = n(xw, reference.referenceType);
             }
         }
-      }
+    }
+
     _.forEach(node.allReferences(), collectReferenceNameInAlias);
 
 }
@@ -694,11 +702,11 @@ function writeAliases(xw, aliases) {
     xw.startElement("Aliases");
 
     if (aliases) {
-        const keys =Object.keys(aliases).sort();
-        for(let key of keys) {
+        const keys = Object.keys(aliases).sort();
+        for (let key of keys) {
             xw.startElement("Alias");
             xw.writeAttribute("Alias", key);
-            xw.text(aliases[key].toString().replace(/ns=0;/,""));
+            xw.text(aliases[key].toString().replace(/ns=0;/, ""));
             xw.endElement();
         }
     }
@@ -719,7 +727,7 @@ function constructNamespaceDependency(namespace) {
     dependency.push(addressSpace.getDefaultNamespace());
     depMap.add(dependency[0].index);
 
-    if (namespace!==addressSpace.getDefaultNamespace()) {
+    if (namespace !== addressSpace.getDefaultNamespace()) {
         dependency.push(namespace);
         depMap.add(namespace.index);
     }
@@ -729,12 +737,12 @@ function constructNamespaceDependency(namespace) {
         const references = node.ownReferences();
         for (let reference of references) {
             // check referenceId
-            const namespaceIndex= reference._referenceType.nodeId.namespace;
+            const namespaceIndex = reference._referenceType.nodeId.namespace;
             if (!depMap.has(namespaceIndex)) {
                 depMap.add(namespaceIndex);
                 dependency.push(addressSpace.getNamespace(namespaceIndex));
             }
-            const namespaceIndex2= reference.nodeId.namespace;
+            const namespaceIndex2 = reference.nodeId.namespace;
             if (!depMap.has(namespaceIndex2)) {
                 depMap.add(namespaceIndex2);
                 dependency.push(addressSpace.getNamespace(namespaceIndex2));
@@ -743,25 +751,25 @@ function constructNamespaceDependency(namespace) {
     }
     return dependency;
 }
+
 function constructNamespaceTranslationTable(dependency) {
 
-    const translationTable ={
-    };
-    for (let i =0;i< dependency.length; i++ ) {
+    const translationTable = {};
+    for (let i = 0; i < dependency.length; i++) {
         translationTable[dependency[i].index] = i;
     }
     return translationTable;
 }
 
-function dumpReferenceType(xw,referenceType){
+function dumpReferenceType(xw, referenceType) {
 
     xw.startElement("UAReferenceType");
 
     dumpCommonAttributes(xw, referenceType);
 
-    dumpCommonElements(xw,referenceType);
+    dumpCommonElements(xw, referenceType);
 
-    if(referenceType.inverseName /* LocalizedText*/) {
+    if (referenceType.inverseName /* LocalizedText*/) {
         //console.log("referenceType.inverseName)",referenceType.inverseName);
         xw.startElement("InverseName");
         xw.text(referenceType.inverseName.text);
@@ -771,12 +779,12 @@ function dumpReferenceType(xw,referenceType){
     xw.endElement();
 }
 
-const sortByBrowseName = function(x,y){
+const sortByBrowseName = function (x, y) {
     const a = x.browseName.toString();
     const b = y.browseName.toString();
-    if (a>b) {
+    if (a > b) {
         return -1;
-    } else if (a<b) {
+    } else if (a < b) {
         return 1;
     }
     return 0;
@@ -786,22 +794,22 @@ function dumpXml(node, options) {
 
     const addressSpace = node.addressSpace;
 
-    const namespace =node.namespace;
+    const namespace = node.namespace;
 
     // make a first visit so that we determine which node to output and in which order
     const nodesToVisit = {};
 
-    const dependency= constructNamespaceDependency(namespace);
+    const dependency = constructNamespaceDependency(namespace);
     const translationTable = constructNamespaceTranslationTable(dependency);
 
     const xw = new XMLWriter(true);
     xw.translationTable = translationTable;
 
 
-    visitUANode(node, nodesToVisit,false);
+    visitUANode(node, nodesToVisit, false);
 
 
-    xw.startDocument({encoding: "utf-8"});
+    xw.startDocument({ encoding: "utf-8" });
     xw.startElement("UANodeSet");
     xw.writeAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema-instance");
     xw.writeAttribute("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
@@ -809,10 +817,10 @@ function dumpXml(node, options) {
     xw.writeAttribute("LastModified", (new Date()).toISOString());
     xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2011/03/UANodeSet.xsd");
 
-    buildUpAliases(node,xw, nodesToVisit);
+    buildUpAliases(node, xw, nodesToVisit);
     writeAliases(xw, nodesToVisit.aliases);
 
-    for(let el of nodesToVisit.elements) {
+    for (let el of nodesToVisit.elements) {
         el.dumpXML(xw);
     }
 
@@ -825,33 +833,31 @@ function dumpXml(node, options) {
 exports.dumpXml = dumpXml;
 
 
-Namespace.prototype.toNodeset2XML = function() {
+Namespace.prototype.toNodeset2XML = function () {
 
     const namespace = this;
 
-    const dependency= constructNamespaceDependency(namespace);
+    const dependency = constructNamespaceDependency(namespace);
     const translationTable = constructNamespaceTranslationTable(dependency);
 
     const xw = new XMLWriter(true);
     xw.translationTable = translationTable;
 
 
-
-
-    xw.startDocument({encoding: "utf-8",version: "1.0"});
+    xw.startDocument({ encoding: "utf-8", version: "1.0" });
     xw.startElement("UANodeSet");
 
-    xw.writeAttribute("xmlns:xsi",  "http://www.w3.org/2001/XMLSchema-instance");
-    xw.writeAttribute("xmlns:uax",  "http://opcfoundation.org/UA/2008/02/Types.xsd");
-    xw.writeAttribute("xmlns",      "http://opcfoundation.org/UA/2011/03/UANodeSet.xsd");
+    xw.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+    xw.writeAttribute("xmlns:uax", "http://opcfoundation.org/UA/2008/02/Types.xsd");
+    xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2011/03/UANodeSet.xsd");
     //xx xw.writeAttribute("Version", "1.02");
     //xx xw.writeAttribute("LastModified", (new Date()).toISOString());
 
     // ------------- Namespace Uris
     xw.startElement("NamespaceUris");
 
-   //xx const namespaceArray = namespace.addressSpace.getNamespaceArray();
-    for (let i=0;i<dependency.length;i++) {
+    //xx const namespaceArray = namespace.addressSpace.getNamespaceArray();
+    for (let i = 0; i < dependency.length; i++) {
         xw.startElement("Uri");
         xw.text(dependency[i].namespaceUri);
         xw.endElement();
@@ -865,7 +871,7 @@ Namespace.prototype.toNodeset2XML = function() {
 
     const s = {};
     for (const node of _.values(namespace._nodeid_index)) {
-        buildUpAliases(node,xw, s);
+        buildUpAliases(node, xw, s);
     }
     writeAliases(xw, s.aliases);
 
@@ -874,14 +880,14 @@ Namespace.prototype.toNodeset2XML = function() {
     // -------------- writeReferences
     xw.writeComment("ReferenceTypes");
     const referenceTypes = _.values(namespace._referenceTypeMap).sort(sortByBrowseName);
-    for(let referenceType of referenceTypes) {
-        dumpReferenceType(xw,referenceType);
+    for (let referenceType of referenceTypes) {
+        dumpReferenceType(xw, referenceType);
     }
     // -------------- ObjectTypes
     xw.writeComment("ObjectTypes");
     const objectTypes = _.values(namespace._objectTypeMap).sort(sortByBrowseName);
     //xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
-    for(let objectType of objectTypes) {
+    for (let objectType of objectTypes) {
         if (!xw.visitedNode[_hash(objectType)])
             objectType.dumpXML(xw);
     }
@@ -890,16 +896,16 @@ Namespace.prototype.toNodeset2XML = function() {
     xw.writeComment("VariableTypes");
     const variableTypes = _.values(namespace._variableTypeMap).sort(sortByBrowseName);
     //xx xw.writeComment("ObjectTypes "+ variableTypes.map(x=>x.browseName.name.toString()).join(" "));
-    for(let variableType of variableTypes) {
+    for (let variableType of variableTypes) {
         if (!xw.visitedNode[_hash(variableType)])
             variableType.dumpXML(xw);
     }
 
     // -------------- Any thing else
     xw.writeComment("Other Nodes");
-    const nodes =  _.values(namespace._node_index).sort(sortByBrowseName);
+    const nodes = _.values(namespace._node_index).sort(sortByBrowseName);
     //xx xw.writeComment(" "+ nodes.map(x=>x.browseName.name.toString()).join(" "));
-    for(let node of nodes) {
+    for (let node of nodes) {
         if (!xw.visitedNode[_hash(node)])
             node.dumpXML(xw);
     }
