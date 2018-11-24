@@ -30,10 +30,10 @@ function getNamespacePart(str: string): string {
 
 function writeEnumeratedType(enumeratedType: EnumeratedType) {
 
-  // makde sure tehre is a Invalid key in the enum => else insert one
+  // make sure there is a Invalid key in the enum => else insert one
   const hasInvalid = enumeratedType.enumeratedValues.findIndex((a) => a.name === "Invalid") !== -1;
   if (!hasInvalid) {
-    console.log("Add ing Invalid Enum entry on ", enumeratedType.name);
+    console.log("Adding Invalid Enum entry on ", enumeratedType.name);
     enumeratedType.enumeratedValues.push({ name: "Invalid", value: 0xFFFFFFFF });
   }
 
@@ -51,7 +51,7 @@ function writeEnumeratedType(enumeratedType: EnumeratedType) {
   const minEnumValue = Math.min.apply(null, arrayValues);
   const maxEnumValue = Math.max.apply(null, arrayValues);
 
-  console.log(" isFala", arrayValues.join(" "), " - ", isFlaggable, minEnumValue, maxEnumValue);
+  // xx console.log(" isFala", arrayValues.join(" "), " - ", isFlaggable, minEnumValue, maxEnumValue);
 
   write("");
   write("");
@@ -196,11 +196,11 @@ export async function generate(
               break;
             case "opc":
               if (fieldTypeName === "UAString") {
-                console.log(" ", field.name);
+                // xx console.log(" ", field.name);
               }
               if (fieldTypeName === "UAString" && field.name === "IndexRange") {
                 field.fieldType = "NumericRange";
-                console.log(" NumericRange detected here !");
+                // xx console.log(" NumericRange detected here !");
               } else {
                 field.fieldType = fieldTypeName;
               }

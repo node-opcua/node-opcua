@@ -6,6 +6,9 @@ import { ErrorCallback } from "node-opcua-transport";
 declare type ValidUserFunc = (username: string, password: string) => boolean;
 declare type ValidUserAsyncFunc = (username: string, password: string, callback: ErrorCallback) => void;
 
+import { CertificateManager } from "node-opcua-certificate-manager";
+export * from "node-opcua-certificate-manager";
+
 export declare function generate_address_space(
     addressSpace: AddressSpace, xmlFiles: string[] | string, callback: ErrorCallback
 ): void;
@@ -87,8 +90,6 @@ export interface OPCUAServerOptions {
 import {
     AddressSpace
 } from "node-opcua-address-space";
-import { CertificateManager } from "node-opcua-certificate-manager";
-
 export * from "node-opcua-address-space";
 
 export declare class ServerEngine {
@@ -111,8 +112,6 @@ export interface Session {
     sessionTimeout?: number;
     sessionId: any;
 }
-export * from "node-opcua-certificate-manager";
-import { CertificateManager } from "node-opcua-certificate-manager";
 
 export declare class OPCUAServer {
 
