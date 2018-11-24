@@ -11,7 +11,8 @@
  "author": "Etienne Rossignon",
  "license": "MIT",
  "dependencies": {
-  "underscore": "^1.9.1"
+   "underscore": "^1.9.1",
+   "should": "13.2.3"
  },
  "repository": {
   "type": "git",
