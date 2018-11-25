@@ -5,7 +5,7 @@ const redirectToFile = require("node-opcua-debug").redirectToFile;
 const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const NodeClass = browse_service.NodeClass;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
 
 describe("Testing Browse Service",function() {
