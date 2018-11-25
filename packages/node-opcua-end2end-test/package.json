@@ -2,6 +2,7 @@
  "name": "node-opcua-end2end-test",
   "version": "2.0.0-alpha.1",
  "description": "pure nodejs OPCUA SDK - module -end2end-test",
+  "private": true,
  "scripts": {
   "pretest": "node test_helpers/create_certificates.js demo --dev -s",
   "clean": "node -e \"require('rimraf').sync('certificates');\"",
