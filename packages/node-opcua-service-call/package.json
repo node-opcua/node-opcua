@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-call",
-  "version": "2.0.0-alpha.1",
+ "version": "2.0.0-alpha.2",
  "description": "pure nodejs OPCUA SDK - module -service-call",
  "scripts": {
   "test": "mocha test",
@@ -10,20 +10,20 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
-   "node-opcua-assert": "^2.0.0-alpha.1",
-   "node-opcua-basic-types": "^2.0.0-alpha.1",
-   "node-opcua-binary-stream": "^2.0.0-alpha.1",
-   "node-opcua-factory": "^2.0.0-alpha.1",
-   "node-opcua-nodeid": "^2.0.0-alpha.1",
-   "node-opcua-service-secure-channel": "^2.0.0-alpha.1",
-   "node-opcua-types": "^2.0.0-alpha.1",
-   "node-opcua-variant": "^2.0.0-alpha.1",
+  "node-opcua-assert": "^2.0.0-alpha.2",
+  "node-opcua-basic-types": "^2.0.0-alpha.2",
+  "node-opcua-binary-stream": "^2.0.0-alpha.2",
+  "node-opcua-factory": "^2.0.0-alpha.2",
+  "node-opcua-nodeid": "^2.0.0-alpha.2",
+  "node-opcua-service-secure-channel": "^2.0.0-alpha.2",
+  "node-opcua-types": "^2.0.0-alpha.2",
+  "node-opcua-variant": "^2.0.0-alpha.2",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-   "node-opcua-generator": "^2.0.0-alpha.1",
-   "node-opcua-packet-analyzer": "^2.0.0-alpha.1",
-   "node-opcua-status-code": "^2.0.0-alpha.1",
+  "node-opcua-generator": "^2.0.0-alpha.2",
+  "node-opcua-packet-analyzer": "^2.0.0-alpha.2",
+  "node-opcua-status-code": "^2.0.0-alpha.2",
   "should": "13.2.3"
  },
  "author": "Etienne Rossignon",
