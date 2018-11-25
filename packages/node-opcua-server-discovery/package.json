@@ -13,7 +13,7 @@
 		"node-opcua-common": "^2.0.0-alpha.6",
 		"node-opcua-debug": "^2.0.0-alpha.6",
 		"node-opcua-hostname": "^2.0.0-alpha.6",
-		"node-opcua-pki": "^1.0.0-beta.2",
+      "node-opcua-pki": "^1.0.1",
 		"node-opcua-server": "^2.0.0-alpha.6",
 		"node-opcua-service-discovery": "^2.0.0-alpha.6",
 		"node-opcua-service-endpoints": "^2.0.0-alpha.6",

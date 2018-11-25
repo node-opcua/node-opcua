@@ -8,7 +8,7 @@
  },
  "dependencies": {
   "bomstrip": "0.1.4",
-  "ltx": "^2.8.0",
+   "ltx": "^2.8.1",
   "node-opcua-assert": "^2.0.0-alpha.6",
   "underscore": "^1.9.1"
  },

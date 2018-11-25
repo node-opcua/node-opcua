@@ -19,7 +19,7 @@
   "node-opcua-basic-types": "^2.0.0-alpha.6",
   "node-opcua-common": "^2.0.0-alpha.6",
   "node-opcua-constants": "^2.0.0-alpha.6",
-  "node-opcua-crypto": "^1.0.0",
+   "node-opcua-crypto": "^1.0.1",
   "node-opcua-data-access": "^2.0.0-alpha.6",
   "node-opcua-data-model": "^2.0.0-alpha.6",
   "node-opcua-data-value": "^2.0.0-alpha.6",
@@ -63,7 +63,7 @@
   "node-opcua-packet-analyzer": "^2.0.0-alpha.6",
   "node-opcua-test-fixtures": "^2.0.0-alpha.6",
   "should": "13.2.3",
-  "sinon": "^7.0.0",
+   "sinon": "^7.1.1",
   "source-map-support": "^0.5.9"
  },
  "author": "Etienne Rossignon",
