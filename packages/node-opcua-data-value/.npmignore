@@ -1,0 +1,13 @@
+out/
+out1/
+out2/
+documentation/
+test/
+test_to_fix/
+test_fixtures/
+test_helpers/
+certificates/
+.vscode/
+_test_generated/
+schemas/
+

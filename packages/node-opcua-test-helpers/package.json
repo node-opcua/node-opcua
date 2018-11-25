@@ -4,6 +4,7 @@
  "description": "pure nodejs OPCUA SDK - module -test-helpers",
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
+ "private": true,
  "scripts": {
   "build": "tsc",
   "test": "echo no test"
