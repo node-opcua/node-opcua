@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": ".",
+    "rootDir": ".",
+    "mapRoot": "./dist"
+  },
+  "files": [
+    "./source/index.ts"
+  ],
+  "typeRoots": [
+    "node_modules/@types"
+  ]
+}
