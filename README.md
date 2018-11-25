@@ -112,8 +112,8 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 |                            |FindServers()           |  :white_check_mark:       |
 |                            |GetEndpoints()          |  :white_check_mark:       |
 |                            |RegisterServer()        |  :white_check_mark:       |
-|                            |RegisterServer2()        |  :white_check_mark:       |
-|                            |FindServersOnNetwork()        |  :white_check_mark:       |
+|                            |RegisterServer2()       |  :white_check_mark:       |
+|                            |FindServersOnNetwork()  |  :white_check_mark:       |
 | Secure Channel Service Set |                        |         |
 |                            |OpenSecureChannel()     |  :white_check_mark:       |
 |                            |CloseSecureChannel()    |  :white_check_mark:       |
@@ -173,7 +173,7 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 | **Authentication**                     | **Status**               | **Comment**        |
 | Anonymous                              |:white_check_mark:        |                    |
 | User Name Password                     |:white_check_mark:        |                    |
-| X509 Certificate                       |:new_moon:                |                    |
+| X509 Certificate                       |:white_check_mark:        | in version 2.0.x (sponsored)  |
 | __**client facets**__                  |                          |                    |
 | Base Client Behaviour                  |:white_check_mark:       | |
 | AddressSpace Lookup                    |:white_check_mark:       | |
@@ -187,7 +187,7 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 | Advanced Type                          |:white_check_mark:       | |
 | Programming                            |:new_moon:               | |
 | Auditing                               |:first_quarter_moon:               | |
-| Redundancy                             |:new_moon:               | |
+| Redundancy                             |:new_moon:               |Sponsors wanted |
 | __**server profiles**__                |                         | |
 | Core Server                            | :white_check_mark:      | |
 | Data Access Server                     | :white_check_mark:      | |
@@ -197,14 +197,15 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 | Standard DataChange Subscription Server| :white_check_mark:                         | |
 | Standard Event Subscription Server     | :white_check_mark:                         | |
 | Standard UA Server                     | :white_check_mark:                         | |
-| Redundancy Transparent Server          | :new_moon:              | |
-| Redundancy Visible Server              | :new_moon:              | |
-| Node Management Server                 | :new_moon:              | |
+| Redundancy Transparent Server          | :new_moon:              |Sponsors wanted |
+| Redundancy Visible Server              | :new_moon:              |Sponsors wanted |
+| Node Management Server                 | :new_moon:              |Sponsors wanted |
 | Auditing Server                        | :first_quarter_moon:   | |
-| Complex Type Server                    | :first_quarter_moon:                        | |
-| Session Diagnostics                    |  :white_check_mark:                         | |
-| Subscription Diagnostics               |  :white_check_mark:                         | |
-| Alarms & Conditions                    |  :white_check_mark:                         | |
+| Complex Type Server                    | :first_quarter_moon:                        |Sponsors wanted |
+| Session Diagnostics                    |  :white_check_mark:                         | (sponsored)|
+| Subscription Diagnostics               |  :white_check_mark:                         | (sponsored)|
+| Alarms & Conditions                    |  :white_check_mark:                         | (sponsored)|
+| Pub & Sub                              |  :new_moon:                         |Sponsors wanted |
 
 
 
