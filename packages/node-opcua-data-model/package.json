@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-data-model",
- "version": "2.0.0-alpha.2",
+ "version": "2.0.0-alpha.3",
  "description": "pure nodejs OPCUA SDK - module -data-model",
  "scripts": {
   "build": "tsc",
@@ -10,19 +10,19 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
-  "node-opcua-assert": "^2.0.0-alpha.2",
-  "node-opcua-basic-types": "^2.0.0-alpha.2",
-  "node-opcua-binary-stream": "^2.0.0-alpha.2",
-  "node-opcua-enum": "^2.0.0-alpha.2",
-  "node-opcua-factory": "^2.0.0-alpha.2",
-  "node-opcua-nodeid": "^2.0.0-alpha.2",
-  "node-opcua-status-code": "^2.0.0-alpha.2",
-  "node-opcua-utils": "^2.0.0-alpha.2",
+  "node-opcua-assert": "^2.0.0-alpha.3",
+  "node-opcua-basic-types": "^2.0.0-alpha.3",
+  "node-opcua-binary-stream": "^2.0.0-alpha.3",
+  "node-opcua-enum": "^2.0.0-alpha.3",
+  "node-opcua-factory": "^2.0.0-alpha.3",
+  "node-opcua-nodeid": "^2.0.0-alpha.3",
+  "node-opcua-status-code": "^2.0.0-alpha.3",
+  "node-opcua-utils": "^2.0.0-alpha.3",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-generator": "^2.0.0-alpha.2",
-  "node-opcua-packet-analyzer": "^2.0.0-alpha.2",
+  "node-opcua-generator": "^2.0.0-alpha.3",
+  "node-opcua-packet-analyzer": "^2.0.0-alpha.3",
   "should": "13.2.3",
   "source-map-support": "^0.5.9"
  },
