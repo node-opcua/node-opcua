@@ -1,23 +1,23 @@
 {
  "name": "node-opcua-convert-nodeset-to-javascript",
- "version": "2.0.0-alpha.4",
+ "version": "2.0.0-alpha.5",
  "description": "pure nodejs OPCUA SDK - module -convert-nodeset-to-javascript",
  "scripts": {
   "test": "mocha test"
  },
  "main": "index.js",
  "dependencies": {
-  "node-opcua-address-space": "^2.0.0-alpha.4",
-  "node-opcua-assert": "^2.0.0-alpha.4",
-  "node-opcua-data-model": "^2.0.0-alpha.4",
-  "node-opcua-factory": "^2.0.0-alpha.4",
-  "node-opcua-nodeid": "^2.0.0-alpha.4",
-  "node-opcua-utils": "^2.0.0-alpha.4",
+  "node-opcua-address-space": "^2.0.0-alpha.5",
+  "node-opcua-assert": "^2.0.0-alpha.5",
+  "node-opcua-data-model": "^2.0.0-alpha.5",
+  "node-opcua-factory": "^2.0.0-alpha.5",
+  "node-opcua-nodeid": "^2.0.0-alpha.5",
+  "node-opcua-utils": "^2.0.0-alpha.5",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-packet-analyzer": "^2.0.0-alpha.4",
-  "node-opcua-variant": "^2.0.0-alpha.4",
+  "node-opcua-packet-analyzer": "^2.0.0-alpha.5",
+  "node-opcua-variant": "^2.0.0-alpha.5",
   "should": "13.2.3"
  },
  "author": "Etienne Rossignon",
