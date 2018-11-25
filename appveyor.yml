@@ -39,7 +39,7 @@ test_script:
   # run tests
   - npm test
   # run typescript in packages that have some
-  - lerna run test-typescript
+  - node  ./node_modules/lerna/cli.js run test-typescript
 
 # Don't actually build.
 build: off
