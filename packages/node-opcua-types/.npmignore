@@ -6,7 +6,6 @@ test/
 test_to_fix/
 test_fixtures/
 test-fixtures/
-test_helpers/
 certificates/
 .vscode/
 _test_generated/

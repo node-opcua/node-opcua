@@ -5,7 +5,6 @@ documentation/
 test/
 test_to_fix/
 test_fixtures/
-test_helpers/
 certificates/
 .vscode/
 

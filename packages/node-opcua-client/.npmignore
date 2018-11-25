@@ -4,7 +4,6 @@ out2/
 documentation/
 test/
 test_to_fix/
-test_helpers/
 certificates/
 .vscode/
 
