@@ -432,7 +432,7 @@ export declare class ClientSession {
     readVariableValue(nodeId: CoercibleToNodeId): Promise<DataValue>;
 
 
-    writeSingleNode(path: string, value: Variant, callback: () => void): void;
+    writeSingleNode(path: string, value: Variant, callback: ResponseCallback<StatusCode>): void;
 
 
     close(callback: ErrorCallback): void;
