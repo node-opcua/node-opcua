@@ -564,6 +564,7 @@ UANamespace.prototype._addObjectOrVariableType = function (options, topMostBaseT
 
     const objectType = this._createNode({
         browseName: options.browseName,
+        displayName:   options.displayName || options.browseName,
         nodeClass: nodeClass,
         isAbstract: !!options.isAbstract,
         eventNotifier: +options.eventNotifier,
@@ -587,6 +588,7 @@ UANamespace.prototype._addObjectOrVariableType = function (options, topMostBaseT
  * @method addObjectType
  * @param options
  * @param options.browseName {String} the object type name
+ * @param [options.displayName] {String|LocalizedText} the display name
  * @param [options.subtypeOf="BaseObjectType"] {String|NodeId|BaseNode} the base class
  * @param [options.nodeId] {String|NodeId} an optional nodeId for this objectType, if not provided a new nodeId will be created
  * @param [options.isAbstract = false] {Boolean}
@@ -608,10 +610,10 @@ UANamespace.prototype.addObjectType = function (options) {
  * @method addVariableType
  * @param options
  * @param options.browseName {String} the object type name
+ * @param [options.displayName] {String|LocalizedText} the display name
  * @param [options.subtypeOf="BaseVariableType"] {String|NodeId|BaseNode} the base class
  * @param [options.nodeId] {String|NodeId} an optional nodeId for this objectType, if not provided a new nodeId will be created
  * @param [options.isAbstract = false] {Boolean}
- * @param [options.eventNotifier = 0] {Integer}
  * @param options.dataType {String|NodeId} the variable DataType
  * @param [options.valueRank = -1]
  * @param [options.arrayDimensions = null] { Array<Int>>

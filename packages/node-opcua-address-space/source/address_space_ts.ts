@@ -3,9 +3,9 @@
 import {
     AccessLevelFlag,
     AttributeIds,
-    LocalizedText,
+    LocalizedText, LocalizedTextLike,
     NodeClass,
-    QualifiedName
+    QualifiedName, QualifiedNameLike
 } from "node-opcua-data-model";
 import {
     BrowseDescription,
@@ -128,10 +128,32 @@ export enum EUEngineeringUnit {
     // to be continued
 }
 
+export interface AddBaseNodeOptions {
+    nodeId?: NodeIdLike ;
+    browseName: QualifiedNameLike;
+    displayName: LocalizedTextLike | LocalizedTextLike[];
+}
+
+export interface AddVariableTypeOptions extends AddBaseNodeOptions {
+    isAbstract?: boolean;
+    subtypeOf: string | UAVariableType;
+    postInstantiateFunc?: (node: UAVariableType) => void;
+
+    dataType?: string | NodeIdLike;
+    valueRank?: number;
+    arrayDimensions?: number[];
+
+}
+
+export interface AddObjectTypeOptions extends AddBaseNodeOptions {
+    isAbstract?: boolean;
+    subtypeOf: string | UAObjectType;
+    eventNotifier?: number;
+    postInstantiateFunc?: (node: UAObjectType) => void;
+}
+
 export type AddVariableOptions = any;
 export type AddObjectOptions = any;
-export type AddObjectTypeOptions = any;
-export type AddVariableTypeOptions = any;
 export type AddReferenceTypeOptions = any;
 export type CreateDataTypeOptions = any;
 export type CreateNodeOptions = any;
