@@ -14,9 +14,10 @@ const DataValue =  require("node-opcua-data-value").DataValue;
 const Variant = require("node-opcua-variant").Variant;
 const DataType = require("node-opcua-variant").DataType;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const coerceQualifiedName = require("node-opcua-data-model").coerceQualifiedName;
+
 const Namespace = require("./namespace").Namespace;
 const BaseNode = require("./base_node").BaseNode;
-
 
 exports.install = function (AddressSpace) {
 
@@ -39,11 +40,13 @@ exports.install = function (AddressSpace) {
 
         Namespace._process_modelling_rule(references, options.modellingRule);
 
+
         const method = self._createNode({
             nodeClass: NodeClass.Method,
             nodeId: options.nodeId,
             isAbstract: false,
             browseName: options.browseName,
+            displayName: options.displayName,
             description: options.description || "",
             eventNotifier: +options.eventNotifier,
             references: references

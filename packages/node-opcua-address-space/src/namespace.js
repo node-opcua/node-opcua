@@ -375,6 +375,9 @@ UANamespace.prototype._construct_nodeId = function (options) {
  *    the browseName can be either a string : "Hello"
  *                                 a string with a namespace : "1:Hello"
  *                                 a QualifiedName : new QualifiedName({name:"Hello", namespaceIndex:1});
+ * @param [options.displayName] {String|LocalizedText} the node display name
+ * @param [options.description] {String|LocalizedText} the node description
+ *
  * @return {BaseNode}
  * @private
  */
@@ -385,7 +388,6 @@ UANamespace.prototype._createNode = function (options) {
     assert(options.nodeClass && options.nodeClass.key, " options.nodeClass must be specified");
     assert(options.browseName, "options.browseName must be specified");
     //xx assert(options.browseName instanceof QualifiedName ? (options.browseName.namespaceIndex === self.index): true,"Expecting browseName to have the same namepsaceIndex as the namespace");
-
 
     options.description = coerceLocalizedText(options.description);
 
@@ -415,6 +417,11 @@ UANamespace.prototype._createNode = function (options) {
     }
     assert(options.browseName instanceof QualifiedName, "Expecting options.browseName to be instanceof  QualifiedName ");
 
+    // ------------- set display name
+    if (!options.displayName) {
+        assert(typeof(options.browseName.name) === "string" );
+        options.displayName= options.browseName.name;
+    }
 
     //--- nodeId adjustment
     options.nodeId = self._construct_nodeId(options);
@@ -561,7 +568,7 @@ UANamespace.prototype._addObjectOrVariableType = function (options, topMostBaseT
 
     const objectType = this._createNode({
         browseName: options.browseName,
-        displayName:   options.displayName || options.browseName,
+        displayName:   options.displayName,
         nodeClass: nodeClass,
         isAbstract: !!options.isAbstract,
         eventNotifier: +options.eventNotifier,
