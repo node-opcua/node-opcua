@@ -6,7 +6,7 @@ const mini_nodeset_filename = require("../test_helpers/get_mini_address_space").
 const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing display name in ObjectType and VariableType #469",function() {
+describe("Testing display name in ObjectType and VariableType & Method #469 #466", function () {
 
     let addressSpace ;
     let namespace;
@@ -32,7 +32,6 @@ describe("Testing display name in ObjectType and VariableType #469",function() {
 
 
     it("should be possible to provide a DisplayName when declaring a VariableType - Form 1",function() {
-
 
         const variableType = namespace.addVariableType({
             browseName: "MyVariableType1",
@@ -114,5 +113,37 @@ describe("Testing display name in ObjectType and VariableType #469",function() {
 
     });
 
+    it("should be possible to provide a DisplayName when declaring a Method - form 0", function () {
+
+        const obj = namespace.addObject({
+            browseName: { name: "BrowseName" }
+        });
+
+        const method = namespace.addMethod(obj, {
+            browseName: { name: "Bark", namespaceIndex: 1 },
+            inputArguments: [],
+            outputArguments: []
+        });
+        method.displayName.should.be.instanceOf(Array);
+        method.displayName[0].toString().should.eql("locale=null text=Bark");
+
+    });
+
+    it("should be possible to provide a DisplayName when declaring a Method - form 1", function () {
+
+        const obj = namespace.addObject({
+            browseName: "BrowseName"
+        });
+
+        const method = namespace.addMethod(obj, {
+            browseName: "Bark",
+            displayName: { locale: "fr", text: "Aboyer" },
+            inputArguments: [],
+            outputArguments: []
+        });
+        method.displayName.should.be.instanceOf(Array);
+        method.displayName[0].toString().should.eql("locale=fr text=Aboyer");
+
+    });
 });
 
