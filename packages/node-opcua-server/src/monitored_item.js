@@ -32,6 +32,8 @@ const TimestampsToReturn = read_service.TimestampsToReturn;
 const EventFilter = require("node-opcua-service-filter").EventFilter;
 const apply_timestamps = require("node-opcua-data-value").apply_timestamps;
 
+const UAVariable = require("node-opcua-address-space").UAVariable;
+
 const defaultItemToMonitor = {indexRange: null, attributeId: read_service.AttributeIds.Value};
 
 const SessionContext = require("node-opcua-address-space").SessionContext;
@@ -403,7 +405,11 @@ MonitoredItem.prototype._set_parameters = function (monitoredParameters) {
     // exception-based model. The fastest supported sampling interval may be equal to 0, which indicates
     // that the data item is exception-based rather than being sampled at some period. An exception-based
     // model means that the underlying system does not require sampling and reports data changes.
-    self.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval,self.node ?  self.node.minimumSamplingInterval : 0 );
+    if (self.node && self.node instanceof UAVariable) {
+        self.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval, self.node ? self.node.minimumSamplingInterval : 0);
+    } else {
+        self.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval, 0);
+    }
     self.discardOldest = monitoredParameters.discardOldest;
     self.queueSize = _adjust_queue_size(monitoredParameters.queueSize);
 };
