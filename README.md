@@ -9,7 +9,7 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 [![Build Status](https://travis-ci.org/node-opcua/node-opcua.png?branch=master)](https://travis-ci.org/node-opcua/node-opcua)
 [![Build status](https://ci.appveyor.com/api/projects/status/8sgtm3n15aii98oc/branch/master?svg=true)](https://ci.appveyor.com/project/erossignon/node-opcua/branch/master)
 [![HitCount](http://hits.dwyl.io/node-opcua/node-opcua.svg)](http://hits.dwyl.io/node-opcua/node-opcua)
-[![NSP Status](https://nodesecurity.io/orgs/node-opcua/projects/cb2eff26-fb17-4d6b-ab89-7fafafdc88bc/badge)](https://nodesecurity.io/orgs/node-opcua/projects/cb2eff26-fb17-4d6b-ab89-7fafafdc88bc)
+<!-- [![NSP Status](https://nodesecurity.io/orgs/node-opcua/projects/cb2eff26-fb17-4d6b-ab89-7fafafdc88bc/badge)](https://nodesecurity.io/orgs/node-opcua/projects/cb2eff26-fb17-4d6b-ab89-7fafafdc88bc) -->
 <!-- [![Dependency Status](https://gemnasium.com/node-opcua/node-opcua.png)](https://gemnasium.com/node-opcua/node-opcua) -->
 [![Coverage Status](https://coveralls.io/repos/node-opcua/node-opcua/badge.png)](https://coveralls.io/r/node-opcua/node-opcua)
 [![Code Climate](https://codeclimate.com/github/node-opcua/node-opcua.png)](https://codeclimate.com/github/node-opcua/node-opcua)
