@@ -176,6 +176,25 @@ describe("testing nodeset to xml", function () {
         }
         str.should.match(/UAVariableType/g);
     });
+
+    it("should output a ReferenceType to xml", function () {
+
+        const namespace = addressSpace.getOwnNamespace();
+        const referenceType = namespace.addReferenceType({
+            browseName: "HasStuff",
+            inverseName: "StuffOf"
+        });
+
+        const str = dumpXml(referenceType, {});
+        if (doDebug) {
+            console.log(str);
+        }
+        str.should.match(/UAReferenceType/g);
+        str.should.match(/StuffOf/g);
+        str.should.match(/HasStuff/g);
+
+    });
+
 });
 
 

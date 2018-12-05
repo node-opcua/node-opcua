@@ -12,6 +12,7 @@ const UAObjectType = require("./ua_object_type").UAObjectType;
 const UAMethod = require("./ua_method").UAMethod;
 const UAVariableType = require("./ua_variable_type").UAVariableType;
 const Reference = require("..").Reference;
+const ReferenceType = require("./referenceType").ReferenceType;
 
 
 const NodeId = require("node-opcua-nodeid").NodeId;
@@ -145,7 +146,7 @@ function _dumpReferences(xw, node) {
 
 // istanbul ignore next
 BaseNode.prototype.dumpXML = function (xmlWriter) {
-    console.error(" This ", this.nodeClass);
+    console.error(" This ", NodeClass[this.nodeClass]);
     assert(false, "BaseNode#dumpXML NOT IMPLEMENTED !");
     assert(xmlWriter);
 };
@@ -466,12 +467,15 @@ UADataType.prototype.dumpXML = function (xw) {
     dumpUADataType(xw, this);
 };
 
-
-function dumpUAVariable(xw, node) {
-
+function _markAsVisited(xw, node) {
     xw.visitedNode = xw.visitedNode || {};
     assert(!xw.visitedNode[_hash(node)]);
     xw.visitedNode[_hash(node)] = 1;
+}
+
+function dumpUAVariable(xw, node) {
+
+    _markAsVisited(xw, node);
 
     dumpReferencedNodes(xw, node, false);
 
@@ -507,6 +511,12 @@ function dumpUAVariable(xw, node) {
 UAVariable.prototype.dumpXML = function (xw) {
     dumpUAVariable(xw, this);
 };
+
+ReferenceType.prototype.dumpXML = function (xw) {
+    dumpReferenceType(xw, this);
+};
+
+
 
 function dumpUAVariableType(xw, node) {
 
@@ -763,6 +773,8 @@ function constructNamespaceTranslationTable(dependency) {
 
 function dumpReferenceType(xw, referenceType) {
 
+    _markAsVisited(xw, referenceType);
+
     xw.startElement("UAReferenceType");
 
     dumpCommonAttributes(xw, referenceType);
@@ -903,7 +915,7 @@ Namespace.prototype.toNodeset2XML = function () {
 
     // -------------- Any thing else
     xw.writeComment("Other Nodes");
-    const nodes = _.values(namespace._node_index).sort(sortByBrowseName);
+    const nodes = _.values(namespace._nodeid_index).sort(sortByBrowseName);
     //xx xw.writeComment(" "+ nodes.map(x=>x.browseName.name.toString()).join(" "));
     for (let node of nodes) {
         if (!xw.visitedNode[_hash(node)])
