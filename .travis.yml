@@ -37,8 +37,8 @@ before_install:
        sudo sysctl -w kern.maxfilesperproc=20000;
        sudo serverinfo --setperfmode true;
        sudo ulimit -c unlimited;
-       sudo ulimit -S n 1024;
-       sudo ulimit -Sl unlimited;
+    sudo ulimit -n unlimited;
+    sudo ulimit -l unlimited;
        sudo ulimit -a;
     fi;
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]; then
