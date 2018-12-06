@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-address-space",
- "version": "0.5.0",
+ "version": "0.5.3",
  "description": "pure nodejs OPCUA SDK - module -address-space",
  "main": "index.js",
  "engines": {
