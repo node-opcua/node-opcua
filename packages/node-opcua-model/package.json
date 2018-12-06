@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-model",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "pure nodejs OPCUA SDK - module - model",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   "author": "Etienne Rossignon",
   "license": "MIT",
   "dependencies": {
-    "node-opcua-address-space": "^0.5.3",
+    "node-opcua-address-space": "^0.5.4",
     "node-opcua-assert": "^0.5.0",
     "node-opcua-basic-types": "^0.5.0",
     "node-opcua-client": "^0.5.0",
