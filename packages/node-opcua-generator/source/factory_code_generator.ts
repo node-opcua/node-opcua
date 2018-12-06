@@ -683,13 +683,14 @@ export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFi
 
     const f = new LineFile();
 
-    function write(...args: any[]) {
-        f.write.apply(f, arguments);
+    function write(...args: string[]) {
+        f.write.apply(f, args);
     }
 
     // Xx resolve_schema_field_types(schema, generatedObjectSchema);
 
-    const complexTypes = schema.fields.filter((field: FieldType) => field.category === FieldCategory.complex && field.fieldType !== schema.name);
+    const complexTypes = schema.fields.filter(
+      (field: FieldType) => field.category === FieldCategory.complex && field.fieldType !== schema.name);
 
     const folderForSourceFile = path.dirname(generatedTypescriptFilename);
 
@@ -776,8 +777,8 @@ export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFi
 
     f.saveFormat(generatedTypescriptFilename, (code) => {
         const options: prettier.Options = {
-            printWidth: 120,
             parser: "typescript",
+            printWidth: 120,
             insertPragma: true,
             bracketSpacing: true
         };

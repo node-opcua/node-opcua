@@ -52,6 +52,8 @@ export declare class BaseNode {
       indexRange?: NumericRange,
       dataEncoding?: any
     ): DataValue;
+
+    [key: string]: any;
 }
 
 export declare class UAView extends BaseNode {
@@ -111,6 +113,8 @@ export interface AddNodeOptions {
 
     organizedBy?: NodeId | BaseNode;
     componentOf?: NodeId | BaseNode;
+    propertyOf?: NodeId | BaseNode;
+
     nodeId?: string | NodeId;
 }
 
@@ -142,6 +146,8 @@ export interface AddVariableTypeOptions extends AddBaseNodeOptions {
     dataType?: string | NodeIdLike;
     valueRank?: number;
     arrayDimensions?: number[];
+
+    dataValue?: DataValue;
 
 }
 
@@ -200,7 +206,39 @@ export declare interface Namespace {
 
 }
 
+// tslint:disable:no-empty-interface
+export interface Folder extends UAObject {
+}
+export interface TypesFolder extends Folder {
+    dataTypes: Folder;
+    eventTypes: Folder;
+    objectTypes: Folder;
+    referenceTypes: Folder;
+    variableTypes: Folder;
+}
+
+export interface Server extends UAObject {
+    auditing: UAVariable;
+    currentTimeZone: UAVariable;
+    estimatedReturnTime: UAVariable;
+    namespaceArray: UAVariable;
+    namespaces: UAObject;
+    serverCapabilities: UAObject;
+    serverConfiguration: UAObject;
+}
+export interface ObjectsFolder extends Folder {
+    server: Server;
+
+}
+export interface RootFolder extends Folder {
+    objects: ObjectsFolder;
+    types: Folder;
+    views: Folder;
+}
+
 export declare class AddressSpace {
+
+    public rootFolder: RootFolder;
 
     public findNode(node: NodeIdLike): BaseNode;
 
@@ -230,5 +268,6 @@ export declare class AddressSpace {
       nodeId: NodeIdLike,
       browseDescription: BrowseDescription
     ): BrowseResult;
+
 
 }

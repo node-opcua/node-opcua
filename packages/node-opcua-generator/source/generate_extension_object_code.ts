@@ -14,7 +14,7 @@ const parseBinaryXSD2 = promisify(parseBinaryXSD);
 const f = new LineFile();
 
 function write(...args: string[]) {
-  f.write.apply(f, arguments);
+  f.write.apply(f, args);
 }
 
 function removeNamespacePart(str: string): string {
@@ -256,6 +256,9 @@ import {
     UAString, UInt16, UInt32,
     UInt64, UInt8,
 } from "node-opcua-basic-types";
+
+import { Enum, EnumItem } from "node-opcua-enum";
+
 import { BinaryStream } from "node-opcua-binary-stream";
 import {
     _enumerationBrowseDirection, BrowseDirection, decodeBrowseDirection, decodeDiagnosticInfo,

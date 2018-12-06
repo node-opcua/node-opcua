@@ -394,7 +394,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             }
 
             setImmediate(() => {
-                task.func.call(this, task, () => {
+                (task.func as any).call(this, task, () => {
                     this.resolve_deferred_browseNode();
                     this.resolve_deferred_readNode();
                     callback();
@@ -1159,7 +1159,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     private _resolve_deferred(
       comment: string,
       collection: any[],
-      method: (a: any, callback: Callback) => void
+      method: (callback: Callback) => void
     ) {
 
         debugLog("_resolve_deferred ", comment, collection.length);

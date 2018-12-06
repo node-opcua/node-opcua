@@ -1,12 +1,12 @@
-import { EventEmitter } from "events";
-import * as _ from "underscore";
-import { Socket } from "net";
 import { default as chalk } from "chalk";
+import { EventEmitter } from "events";
+import { Socket } from "net";
+import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
-import { PacketAssembler } from "node-opcua-packet-assembler";
 import * as  debug from "node-opcua-debug";
+import { PacketAssembler } from "node-opcua-packet-assembler";
 
 import { readRawMessageHeader } from "./message_builder_base";
 import { writeTCPMessageHeader } from "./tools";
@@ -94,7 +94,7 @@ export class TCP_transport extends EventEmitter {
         this._onSocketEndedHasBeenCalled = false;
     }
 
-    dispose() {
+    public dispose() {
         assert(!this._timerId);
         if (this._socket) {
             this._socket.destroy();
@@ -117,7 +117,7 @@ export class TCP_transport extends EventEmitter {
      *  - only one chunk can be created at a time.
      *  - a created chunk should be committed using the ```write``` method before an other one is created.
      */
-    createChunk(msgType: string, chunkType: string, length: number): Buffer {
+    public createChunk(msgType: string, chunkType: string, length: number): Buffer {
 
         assert(msgType === "MSG");
         assert(this._pendingBuffer === undefined, "createChunk has already been called ( use write first)");
@@ -131,14 +131,6 @@ export class TCP_transport extends EventEmitter {
         return buffer;
     }
 
-    protected _write_chunk(messageChunk: Buffer) {
-        if (this._socket !== null) {
-            this.bytesWritten += messageChunk.length;
-            this.chunkWrittenCount++;
-            this._socket.write(messageChunk);
-        }
-    }
-
     /**
      * write the message_chunk on the socket.
      * @method write
@@ -149,9 +141,10 @@ export class TCP_transport extends EventEmitter {
      *  - once a message chunk has been written, it is possible to call ```createChunk``` again.
      *
      */
-    write(messageChunk: Buffer) {
+    public write(messageChunk: Buffer) {
 
-        assert((this._pendingBuffer === undefined) || this._pendingBuffer === messageChunk, " write should be used with buffer created by createChunk");
+        assert((this._pendingBuffer === undefined)
+          || this._pendingBuffer === messageChunk, " write should be used with buffer created by createChunk");
 
         const header = readRawMessageHeader(messageChunk);
         assert(header.length === messageChunk.length);
@@ -160,6 +153,128 @@ export class TCP_transport extends EventEmitter {
         this._pendingBuffer = undefined;
     }
 
+    /**
+     * disconnect the TCP layer and close the underlying socket.
+     * The ```"close"``` event will be emitted to the observers with err=null.
+     *
+     * @method disconnect
+     * @async
+     * @param callback
+     */
+    public disconnect(callback: ErrorCallback): void {
+
+        assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
+
+        if (this._disconnecting) {
+            callback();
+            return;
+        }
+
+        assert(!this._disconnecting, "TCP Transport has already been disconnected");
+        this._disconnecting = true;
+
+        // xx assert(!this._theCallback,
+        //              "disconnect shall not be called while the 'one time message receiver' is in operation");
+        this._cleanup_timers();
+
+        if (this._socket) {
+            this._socket.end();
+            this._socket.destroy();
+            // xx this._socket.removeAllListeners();
+            this._socket = null;
+        }
+        setImmediate(() => {
+            this.on_socket_ended(null);
+            callback();
+        });
+    }
+
+    public isValid(): boolean {
+        return this._socket !== null && !this._socket.destroyed && !this._disconnecting;
+    }
+
+    protected _write_chunk(messageChunk: Buffer) {
+        if (this._socket !== null) {
+            this.bytesWritten += messageChunk.length;
+            this.chunkWrittenCount++;
+            this._socket.write(messageChunk);
+        }
+    }
+
+    protected on_socket_ended(err: Error | null) {
+
+        assert(!this._onSocketEndedHasBeenCalled);
+        this._onSocketEndedHasBeenCalled = true; // we don't want to send close event twice ...
+        /**
+         * notify the observers that the transport layer has been disconnected.
+         * @event close
+         * @param err the Error object or null
+         */
+        this.emit("close", err || null);
+    }
+
+    /**
+     * @method _install_socket
+     * @param socket {Socket}
+     * @protected
+     */
+    protected _install_socket(socket: Socket) {
+
+        assert(socket);
+        this._socket = socket;
+        if (doDebug) { debugLog("_install_socket ", this.name); }
+
+        // install packet assembler ...
+        this.packetAssembler = new PacketAssembler({
+            readMessageFunc: readRawMessageHeader,
+
+            minimumSizeInBytes: this.headerSize
+        });
+
+        if (!this.packetAssembler) { throw new Error("Internal Error"); }
+        this.packetAssembler.on("message", (messageChunk: Buffer) => this._on_message_received(messageChunk));
+
+        this._socket
+            .on("data", (data: Buffer) => this._on_socket_data(data))
+            .on("close", (hadError) => this._on_socket_close(hadError))
+            .on("end", (err: Error) => this._on_socket_end(err))
+            .on("error", (err: Error) => this._on_socket_error(err));
+
+        const doDestroyOnTimeout = false;
+        if (doDestroyOnTimeout) {
+            // set socket timeout
+            debugLog("setting _socket.setTimeout to ", this.timeout);
+            this._socket.setTimeout(this.timeout, () => {
+                console.log(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
+                if (this._socket) {
+                    this._socket.destroy();
+                    // 08/2008 shall we do this ?
+                    this._socket.removeAllListeners();
+                    this._socket = null;
+                }
+            });
+        }
+    }
+
+    /**
+     * @method _install_one_time_message_receiver
+     *
+     * install a one time message receiver callback
+     *
+     * Rules:
+     * * TCP_transport will not emit the ```message``` event, while the "one time message receiver" is in operation.
+     * * the TCP_transport will wait for the next complete message chunk and call the provided callback func
+     *   ```callback(null,messageChunk);```
+     * * if a messageChunk is not received within ```TCP_transport.timeout``` or if the underlying socket reports an error,
+     *    the callback function will be called with an Error.
+     *
+     */
+    protected _install_one_time_message_receiver(callback: CallbackWithData) {
+        assert(!this._theCallback, "callback already set");
+        assert(_.isFunction(callback));
+        this._theCallback = callback;
+        this._start_one_time_message_receiver();
+    }
 
     private _fulfill_pending_promises(err: Error | null, data?: Buffer): boolean {
 
@@ -235,21 +350,8 @@ export class TCP_transport extends EventEmitter {
         this.emit("socket_closed", err || null);
     }
 
-    protected on_socket_ended(err: Error | null) {
-
-        assert(!this._onSocketEndedHasBeenCalled);
-        this._onSocketEndedHasBeenCalled = true; // we don't want to send close event twice ...
-        /**
-         * notify the observers that the transport layer has been disconnected.
-         * @event close
-         * @param err the Error object or null
-         */
-        this.emit("close", err || null);
-    }
-
-
     private _on_socket_data(data: Buffer): void {
-        if (!this.packetAssembler) throw new Error("internal Error");
+        if (!this.packetAssembler) { throw new Error("internal Error"); }
         this.bytesRead += data.length;
         if (data.length > 0) {
             this.packetAssembler.feed(data);
@@ -307,107 +409,5 @@ export class TCP_transport extends EventEmitter {
             debugLog(chalk.red(" SOCKET ERROR : "), chalk.yellow(err.message), this.name);
         }
         // node The "close" event will be called directly following this event.
-    }
-
-    /**
-     * @method _install_socket
-     * @param socket {Socket}
-     * @protected
-     */
-    protected _install_socket(socket: Socket) {
-
-        assert(socket);
-        this._socket = socket;
-        if (doDebug) debugLog("_install_socket ", this.name);
-
-        // install packet assembler ...
-        this.packetAssembler = new PacketAssembler({
-            readMessageFunc: readRawMessageHeader,
-            minimumSizeInBytes: this.headerSize
-        });
-
-        if (!this.packetAssembler) throw new Error("Internal Error");
-        this.packetAssembler.on("message", (messageChunk: Buffer) => this._on_message_received(messageChunk));
-
-        this._socket
-            .on("data", (data: Buffer) => this._on_socket_data(data))
-            .on("close", (hadError) => this._on_socket_close(hadError))
-            .on("end", (err: Error) => this._on_socket_end(err))
-            .on("error", (err: Error) => this._on_socket_error(err));
-
-        const doDestroyOnTimeout = false;
-        if (doDestroyOnTimeout) {
-            // set socket timeout
-            debugLog("setting _socket.setTimeout to ", this.timeout);
-            this._socket.setTimeout(this.timeout, () => {
-                console.log(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
-                if (this._socket) {
-                    this._socket.destroy();
-                    // 08/2008 shall we do this ?
-                    this._socket.removeAllListeners();
-                    this._socket = null;
-                }
-            });
-        }
-    }
-
-
-    /**
-     * @method _install_one_time_message_receiver
-     *
-     * install a one time message receiver callback
-     *
-     * Rules:
-     * * TCP_transport will not emit the ```message``` event, while the "one time message receiver" is in operation.
-     * * the TCP_transport will wait for the next complete message chunk and call the provided callback func
-     *   ```callback(null,messageChunk);```
-     * * if a messageChunk is not received within ```TCP_transport.timeout``` or if the underlying socket reports an error,
-     *    the callback function will be called with an Error.
-     *
-     */
-    protected _install_one_time_message_receiver(callback: CallbackWithData) {
-        assert(!this._theCallback, "callback already set");
-        assert(_.isFunction(callback));
-        this._theCallback = callback;
-        this._start_one_time_message_receiver();
-    }
-
-    /**
-     * disconnect the TCP layer and close the underlying socket.
-     * The ```"close"``` event will be emitted to the observers with err=null.
-     *
-     * @method disconnect
-     * @async
-     * @param callback
-     */
-    disconnect(callback: ErrorCallback): void {
-
-        assert(_.isFunction(callback), "expecting a callback function, but got " + callback);
-
-        if (this._disconnecting) {
-            callback();
-            return;
-        }
-
-        assert(!this._disconnecting, "TCP Transport has already been disconnected");
-        this._disconnecting = true;
-
-        // xx assert(!this._theCallback, "disconnect shall not be called while the 'one time message receiver' is in operation");
-        this._cleanup_timers();
-
-        if (this._socket) {
-            this._socket.end();
-            this._socket.destroy();
-            // xx this._socket.removeAllListeners();
-            this._socket = null;
-        }
-        setImmediate(() => {
-            this.on_socket_ended(null);
-            callback();
-        });
-    }
-
-    public isValid(): boolean {
-        return this._socket !== null && !this._socket.destroyed && !this._disconnecting;
     }
 }

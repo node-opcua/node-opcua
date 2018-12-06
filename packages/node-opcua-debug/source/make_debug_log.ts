@@ -1,6 +1,7 @@
+// tslint:disable:no-console
 import chalk from "chalk";
-const path = require("path");
-const _ = require("underscore");
+import * as path from "path";
+import * as _ from "underscore";
 import { format } from "util";
 
 const debugFlags: { [id: string]: boolean } = {};
@@ -14,10 +15,10 @@ export function setDebugFlag(scriptFullpath: string, flag: boolean) {
     if (process.env.DEBUG) {
         const decoratedFilename = chalk.yellow(w(filename, 30));
         console.log(
-            " Setting debug for ",
-            decoratedFilename,
-            " to ",
-            (flag ? chalk.cyan : chalk.red)(flag.toString())
+          " Setting debug for ",
+          decoratedFilename,
+          " to ",
+          (flag ? chalk.cyan : chalk.red)(flag.toString())
         );
     }
     debugFlags[filename] = flag;
@@ -35,7 +36,7 @@ export function checkDebugFlag(scriptFullpath: string): boolean {
 
 function file_line(filename: string, callerLine: number): string {
     const d = (new Date()).toISOString().substr(11);
-    return chalk.bgWhite.cyan(w(d,14)+":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
+    return chalk.bgWhite.cyan(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
 }
 
 /**
@@ -56,27 +57,27 @@ export function make_debugLog(scripFullpath: string): (...arg: any[]) => void {
             const stack: string = new Error("").stack || "";
             // caller line number
             const l: string[] = stack.split("\n")[2].split(":");
-            const callerLine: number = parseInt(l[l.length - 2]);
+            const callerLine: number = parseInt(l[l.length - 2], 10);
             let a1: string[] = [file_line(filename, callerLine)];
 
             const a2: string[] = _.values(arguments);
 
-            const output = format.apply(null,a2);
+            const output = format.apply(null, a2 as [string, ...string[]]);
 
-            let i =0;
-            for(const line of output.split("\n")) {
-                const args: string[] = ([] as string[]).concat(a1,[line]);
-                console.log.apply(console, args);
-                a1= [w(' ...                                                            ', 51)];
-                i = i+1;
-                if (i>20) {
-                    console.log.apply(console, a1.concat([" .... TRUNCATED ....."]));
+            let i = 0;
+            for (const line of output.split("\n")) {
+                const args: string[] = ([] as string[]).concat(a1, [line]);
+                console.log.apply(console, args as [string, ...string[]]);
+                a1 = [w(" ...                                                            ", 51)];
+                i = i + 1;
+                if (i > 20) {
+                    const a3 = a1.concat([" .... TRUNCATED ....."]);
+                    console.log.apply(console, a3 as [string, ...string[]]);
                     break;
                 }
             }
-
         }
     }
+
     return debugLogFunc;
 }
-

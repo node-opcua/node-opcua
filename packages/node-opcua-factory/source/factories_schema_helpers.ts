@@ -2,16 +2,14 @@
  * @module opcua.miscellaneous
  */
 import assert from "node-opcua-assert";
+import { make_debugLog } from "node-opcua-debug";
 import * as  _ from "underscore";
 import { FieldCategory, FieldType, StructuredTypeField } from "./types";
-
-
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = make_debugLog(__filename);
 
 export const parameters = {
     debugSchemaHelper: !!process.env.DEBUG_CLASS
 };
-
 
 /**
  * ensure correctness of a schema object.
@@ -25,8 +23,6 @@ export function check_schema_correctness(schema: any) {
     assert(schema.fields instanceof Array, " expecting schema to provide a set of fields " + schema.name);
     assert(schema.baseType === undefined || (typeof schema.baseType === "string"));
 }
-
-
 
 // function __field_category(field: FieldInterfaceOptions, extra?: any): FieldCategory {
 //
@@ -58,11 +54,12 @@ export function check_schema_correctness(schema: any) {
 //         }
 //         // istanbul ignore next
 //         else {
-//             console.log(chalk.red("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ERROR !", field.name));
+//             console.log(chalk.red("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ERROR !", field.name));
 //             dump();
 //             console.log("-------------------------------------------------------------");
 //             console.log(Object.keys(require.cache).sort().join(" "));
-//             throw new Error("Invalid field type : " + fieldType + " =( " + JSON.stringify(field) + ") is not a default type nor a registered complex struct");
+//             throw new Error("Invalid field type : " + fieldType + " =( " +
+//             JSON.stringify(field) + ") is not a default type nor a registered complex struct");
 //         }
 //     }
 //     return field2.category;
@@ -108,7 +105,7 @@ export function initialize_field(field: StructuredTypeField, value: any) {
         if (field.fieldTypeConstructor) {
             return new field.fieldTypeConstructor(value);
         } else {
-            console.log("xxxx => missing constructor for field type", field.fieldType);
+            debugLog("xxxx => missing constructor for field type", field.fieldType);
         }
     }
     const defaultValue = _t.computer_default_value(field.defaultValue);
@@ -133,7 +130,8 @@ export function initialize_field_array(field: FieldType, valueArray: any) {
 
     const _t = field.schema;
 
-    let value, i;
+    let value;
+    let i;
     assert(_.isObject(field));
     assert(field.isArray);
 
@@ -158,5 +156,3 @@ export function initialize_field_array(field: FieldType, valueArray: any) {
     }
     return arr;
 }
-
-

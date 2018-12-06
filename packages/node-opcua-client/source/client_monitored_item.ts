@@ -5,10 +5,10 @@ import { EventEmitter } from "events";
 
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { ErrorCallback } from "node-opcua-secure-channel";
-import { StatusCode } from "node-opcua-status-code";
 import { ReadValueIdOptions } from "node-opcua-service-read";
+import { StatusCode } from "node-opcua-status-code";
 
-import { MonitoringMode, MonitoringParametersOptions } from "../../node-opcua-types/dist";
+import { MonitoringMode, MonitoringParametersOptions } from "node-opcua-types";
 import { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./client_monitored_item_base";
 import { ClientSubscription } from "./client_subscription";
 
@@ -35,4 +35,3 @@ export class ClientMonitoredItem {
     }
 
 }
-

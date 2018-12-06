@@ -5,15 +5,14 @@ import assert from "node-opcua-assert";
 import * as  _ from "underscore";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { EnumerationDefinition, TypeSchemaBase, TypeSchemaConstructorOptions } from "./types";
 import { Enum, EnumItem } from "node-opcua-enum";
+import { EnumerationDefinition, TypeSchemaBase, TypeSchemaConstructorOptions } from "./types";
 
 const _enumerations: Map<string, EnumerationDefinition> = new Map<string, EnumerationDefinition>();
 
 function _encode_enumeration(value: EnumItem, stream: BinaryStream): void {
     stream.writeInteger(value.value);
 }
-
 
 export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptions {
 
@@ -26,10 +25,9 @@ export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptio
     decode?: (stream: BinaryStream) => EnumItem;
 }
 
-
 export class EnumerationDefinitionSchema extends TypeSchemaBase implements EnumerationDefinition {
-    enumValues: any;
-    typedEnum: Enum;
+    public enumValues: any;
+    public typedEnum: Enum;
     // xx encode: (value: EnumItem, stream: BinaryStream) => void;
     // xx decode: (stream: BinaryStream) => EnumItem;
 
@@ -53,7 +51,6 @@ export class EnumerationDefinitionSchema extends TypeSchemaBase implements Enume
             }
             return e;
         };
-
 
         this.typedEnum = options.typedEnum;
         this.defaultValue = this.typedEnum.getDefaultValue().value;

@@ -1,21 +1,20 @@
+// tslint:disable:no-shadowed-variable
 /**
  * @module opcua.address_space.types
  */
+import chalk from "chalk";
 import assert from "node-opcua-assert";
-import * as  _ from "underscore";
-import { BinaryStreamSizeCalculator, BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
 import * as utils from "node-opcua-utils";
-import chalk from "chalk";
+import * as  _ from "underscore";
 
-import { getStructureTypeConstructor, callConstructor } from "./factories_factories";
-import { getBuildInType } from "./factories_builtin_types";
-import { EnumerationDefinition, FieldCategory, StructuredTypeField } from "./types";
-import { StructuredTypeSchema, get_base_schema } from "./factories_structuredTypeSchema";
 import { ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
+import { getBuildInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";
-
-const util = require("util");
+import { callConstructor, getStructureTypeConstructor } from "./factories_factories";
+import { get_base_schema, StructuredTypeSchema } from "./factories_structuredTypeSchema";
+import { EnumerationDefinition, FieldCategory, StructuredTypeField } from "./types";
 
 function r(str: string, length = 30) {
     return (str + "                                ").substr(0, length);
@@ -67,10 +66,9 @@ function applyOnAllSchemaFields(self: any, schema: StructuredTypeSchema, data: a
     }
 }
 
-const _nbElements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH) : 10;
+const _nbElements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH, 10 ) : 10;
 
 function _arrayEllipsis(value: any[] | null) {
-
 
     if (!value) {
         return "null []";
@@ -110,7 +108,6 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
     const fieldNameF = chalk.yellow(r(padding + fieldName, 30));
     const fieldTypeF = chalk.cyan(("/* " + r(fieldType, 10) + (field.isArray ? "[]" : "  ") + " */"));
 
-
     // compact version of very usual objects
     if (fieldType === "QualifiedName" && !field.isArray && value) {
 
@@ -125,7 +122,6 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
         data.lines.push(str);
         return;
     }
-
 
     function _dump_simple_value(self: any, field: StructuredTypeField, data: any, value: any, fieldType: string) {
 
@@ -148,7 +144,8 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
                 } else if (typeof value === "object" && value !== null && value !== undefined) {
                     value = value.toString.apply(value, args);
                 }
-                str = fieldNameF + " " + fieldTypeF + ": " + ((value === null || value === undefined) ? chalk.blue("null") : value.toString());
+                str = fieldNameF + " " + fieldTypeF + ": "
+                        + ((value === null || value === undefined) ? chalk.blue("null") : value.toString());
             }
             data.lines.push(str);
         }
@@ -275,14 +272,13 @@ export interface DecodeDebugOptions {
 
 /* tslint:disable:no-empty*/
 
-
 /**
  * @class BaseUAObject
  * @constructor
  */
 export class BaseUAObject {
 
-    schema: any;
+    public schema: any;
 
     constructor() {
 
@@ -294,7 +290,7 @@ export class BaseUAObject {
      * @method encode
      * @param stream {BinaryStream}
      */
-    encode(stream: BinaryStream): void {
+    public encode(stream: BinaryStream): void {
     }
 
     /**
@@ -303,7 +299,7 @@ export class BaseUAObject {
      * @method decode
      * @param stream {BinaryStream}
      */
-    decode(stream: BinaryStream): void {
+    public decode(stream: BinaryStream): void {
     }
 
     /**
@@ -311,7 +307,7 @@ export class BaseUAObject {
      * @method binaryStoreSize
      * @return number
      */
-    binaryStoreSize(): number {
+    public binaryStoreSize(): number {
         const stream = new BinaryStreamSizeCalculator();
         this.encode(stream as BinaryStream);
         return stream.length;
@@ -321,16 +317,16 @@ export class BaseUAObject {
      * @method toString
      * @return {String}
      */
-    toString(): string {
+    public toString(): string {
 
         if (this.schema && this.schema.hasOwnProperty("toString")) {
             return this.schema.toString.apply(this, arguments);
         } else {
             if (!this.explore) {
-                console.log(util.inspect(this));
-                return Object.prototype.toString.apply(this, arguments);
+                // xx console.log(util.inspect(this));
+                return Object.prototype.toString.apply(this, arguments as any);
             }
-            return this.explore.apply(this, arguments);
+            return this.explore.apply(this, arguments as any);
         }
     }
 
@@ -340,7 +336,7 @@ export class BaseUAObject {
      * @method isValid
      * @return boolean
      */
-    isValid(): boolean {
+    public isValid(): boolean {
         assert(this.schema);
         if (this.schema.isValid) {
             return this.schema.isValid(this);
@@ -353,7 +349,7 @@ export class BaseUAObject {
      * @method decodeDebug
      *
      */
-    decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {
+    public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {
 
         const tracer = options.tracer;
         const schema = this.schema;
@@ -397,12 +393,11 @@ export class BaseUAObject {
         tracer.trace("end", schema.name, stream.length, stream.length);
     }
 
-
-    explore(): string {
+    public explore(): string {
 
         const data: { padding: string, lines: string[] } = {
+            lines: [],
             padding: " ",
-            lines: []
         };
 
         data.lines.push("{" + chalk.cyan(" /*" + this.schema.name + "*/"));
@@ -411,8 +406,7 @@ export class BaseUAObject {
         return data.lines.join("\n");
     }
 
-
-    toJSON(): any {
+    public toJSON(): any {
 
         assert(this.schema);
         if (this.schema.toJSON) {
@@ -426,7 +420,7 @@ export class BaseUAObject {
         }
     }
 
-    clone(/*options,optionalFilter,extraInfo*/): any {
+    public clone(/*options,optionalFilter,extraInfo*/): any {
 
         const self: any = this as any;
 
@@ -451,21 +445,22 @@ export class BaseUAObject {
         return new self.constructor(params);
     }
 }
+// tslint:disable:max-classes-per-file
 export class ExtensionObject extends BaseUAObject {
-    static encodingDefaultBinary: ExpandedNodeId;
-    static encodingDefaultXml: ExpandedNodeId;
+    public static encodingDefaultBinary: ExpandedNodeId;
+    public static encodingDefaultXml: ExpandedNodeId;
     constructor(options: any) {
         super();
     }
 }
-
 
 function _visitSchemaChain(
     self: BaseUAObject,
     schema: StructuredTypeSchema,
     options: any,
     func: (self: BaseUAObject, schema: StructuredTypeSchema, options: any) => void,
-    extraData: any) {
+    extraData: any
+) {
     assert(_.isFunction(func));
 
     // apply also construct to baseType schema first
@@ -473,5 +468,5 @@ function _visitSchemaChain(
     if (baseSchema) {
         _visitSchemaChain(self, baseSchema, options, func, extraData);
     }
-    func.call(null, self, schema, options, extraData);
+    func.call(null, self, schema, options);
 }

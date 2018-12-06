@@ -60,6 +60,9 @@ export class SessionContext implements ISessionContext {
     /**
      * getCurrentUserRole
      *
+     * guest   => anonymous user (unauthenticated)
+     * default => default authenticated user
+     *
      */
     public getCurrentUserRole(): string {
 
@@ -70,7 +73,7 @@ export class SessionContext implements ISessionContext {
         assert(this.session != null, "expecting a session");
         const userIdentityToken = this.session.userIdentityToken;
         if (!userIdentityToken) {
-            throw new Error("sesion object must provide a userIdentityToken");
+            throw new Error("session object must provide a userIdentityToken");
         }
 
         const username = getUserName(userIdentityToken);
@@ -96,13 +99,13 @@ export class SessionContext implements ISessionContext {
      * @param action
      * @return {Boolean}
      */
-    public checkPermission(node: BaseNode, action: string) {
+    public checkPermission(node: BaseNode, action: string): boolean {
 
         // tslint:disable:no-bitwise
         const lNode = node as any;
 
         assert(action === "CurrentRead" || action === "CurrentWrite");
-        const actionFlag = makeAccessLevelFlag(action);
+        const actionFlag: number = makeAccessLevelFlag(action);
 
         if (!lNode._permissions) {
             return (lNode.userAccessLevel & actionFlag) === actionFlag;

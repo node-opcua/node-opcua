@@ -15,13 +15,13 @@ import { NodeIdLike } from "node-opcua-nodeid";
 import { CreateSubscriptionRequestOptions } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
 
+import { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl";
 import { ErrorCallback } from "./common";
 import { readUAStructure } from "./object_explorer";
 import { makeRefId } from "./proxy";
 import { ProxyBaseNode } from "./proxy_base_node";
 import { ProxyObject } from "./proxy_object";
 import { UAStateMachineType } from "./state_machine_proxy";
-import { ClientSessionImpl } from "node-opcua-client/dist/private/client_session_impl";
 
 function getObject(
     proxyManager: UAProxyManager,

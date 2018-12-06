@@ -3,19 +3,24 @@
  * @class Factory
  * @static
  */
+// tslint:disable:no-console
 
-
-import assert from "node-opcua-assert";
-import * as  _ from "underscore";
-import { ExpandedNodeId } from "node-opcua-nodeid";
 import chalk from "chalk";
+import assert from "node-opcua-assert";
+import { ExpandedNodeId } from "node-opcua-nodeid";
+import * as  _ from "underscore";
 
-import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
 import { BaseUAObject } from "./factories_baseobject";
+import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
 
 const constructorMap: any = {};
 
-export type ConstructorFunc = new (...args: any[]) => BaseUAObject;
+interface BaseUAObjectConstructable {
+    new(options?: any): BaseUAObject;
+}
+export type ConstructorFunc = BaseUAObjectConstructable;
+// new (...args: any[]) => BaseUAObjectConstructable;
+
 export interface ConstructorFuncWithSchema  extends ConstructorFunc {
     schema: StructuredTypeSchema;
     encodingDefaultBinary: ExpandedNodeId;
@@ -27,8 +32,7 @@ const _globalStructuredTypeConstructors: { [ key: string ]: ConstructorFuncWithS
 export function getStructureTypeConstructor(typeName: string): ConstructorFunc {
     return _globalStructuredTypeConstructors[typeName];
 }
-export function hasStructuredType(typeName: string) : boolean
-{
+export function hasStructuredType(typeName: string): boolean {
      return !!_globalStructuredTypeConstructors[typeName];
 }
 export function getStructuredTypeSchema(typeName: string): StructuredTypeSchema {
@@ -44,7 +48,6 @@ export function registerFactory(typeName: string, constructor: ConstructorFuncWi
     _globalStructuredTypeConstructors[typeName] = constructor;
 }
 
-
 /* istanbul ignore next */
 export function dump(): void {
     console.log(" dumping registered factories");
@@ -54,10 +57,9 @@ export function dump(): void {
 
 export function callConstructor(constructor: ConstructorFunc): BaseUAObject {
     assert(_.isFunction(constructor));
-    const constructorFunc = constructor.bind.apply(constructor, arguments);
+    const constructorFunc: any = constructor.bind.apply(constructor, arguments as any);
     return new constructorFunc();
 }
-
 
 export function getConstructor(expandedId: ExpandedNodeId): ConstructorFunc | null {
 
@@ -67,7 +69,6 @@ export function getConstructor(expandedId: ExpandedNodeId): ConstructorFunc | nu
     }
     return constructorMap[expandedId.value];
 }
-
 
 export function hasConstructor(expandedId: ExpandedNodeId) {
     if (!expandedId) {
@@ -97,9 +98,9 @@ export function registerClassDefinition(className: string, classConstructor: Con
 
     /* istanbul ignore next */
     if (expandedNodeId.value in constructorMap) {
-        throw new Error(" Class " + className + " with ID " + expandedNodeId + "  already in constructorMap for  " + constructorMap[expandedNodeId.value].name);
+        throw new Error(" Class " + className + " with ID " + expandedNodeId +
+          "  already in constructorMap for  " + constructorMap[expandedNodeId.value].name);
     }
     constructorMap[expandedNodeId.value] = classConstructor;
 }
-
 
