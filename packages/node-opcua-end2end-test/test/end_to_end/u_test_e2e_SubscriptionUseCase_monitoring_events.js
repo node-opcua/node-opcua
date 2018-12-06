@@ -13,6 +13,7 @@ const StatusCodes = opcua.StatusCodes;
 const MonitoringMode = opcua.subscription_service.MonitoringMode;
 const TimestampsToReturn = opcua.read_service.TimestampsToReturn;
 const constructEventFilter = opcua.constructEventFilter;
+const ClientMonitoredItem = opcua.ClientMonitoredItem;
 
 const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
@@ -51,7 +52,7 @@ module.exports = function (test) {
                 const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
 
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: TimestampsToReturn.Neither,
                     itemsToCreate: [{
                         itemToMonitor: itemToMonitor,
                         requestedParameters: parameters,
@@ -108,7 +109,7 @@ module.exports = function (test) {
 
                 const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: TimestampsToReturn.Neither,
                     itemsToCreate: [{
                         itemToMonitor: itemToMonitor,
                         requestedParameters: parameters,
@@ -166,7 +167,7 @@ module.exports = function (test) {
 
                 const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.read_service.TimestampsToReturn.Neither,
+                    timestampsToReturn: TimestampsToReturn.Neither,
                     itemsToCreate: [{
                         itemToMonitor: itemToMonitor,
                         requestedParameters: parameters,
@@ -239,9 +240,9 @@ module.exports = function (test) {
                     filter: eventFilter
                 };
 
-                const createMonitoredItemsRequest = new opcua.CreateMonitoredItemsRequest({
+                const createMonitoredItemsRequest = new opcua.subscription_service.CreateMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
-                    timestampsToReturn: opcua.TimestampsToReturn.Neither,
+                    timestampsToReturn: TimestampsToReturn.Neither,
                     itemsToCreate: [{
                         itemToMonitor: itemToMonitor,
                         requestedParameters: parameters,
@@ -272,11 +273,11 @@ module.exports = function (test) {
                     },
                     function modify_monitored_item(callback) {
                         // now publish and check that monitored item returns EventNotification
-                        const modifyMonitoredItemsRequest = new opcua.ModifyMonitoredItemsRequest({
+                        const modifyMonitoredItemsRequest = new opcua.subscription_service.ModifyMonitoredItemsRequest({
                             subscriptionId: subscription.subscriptionId,
-                            timestampsToReturn: opcua.TimestampsToReturn.Neither,
+                            timestampsToReturn: TimestampsToReturn.Neither,
                             itemsToModify: [
-                                new opcua.MonitoredItemModifyRequest({
+                                new opcua.subscription_service.MonitoredItemModifyRequest({
                                     monitoredItemId: monitoredItemId,
                                     requestedParameters: {
                                         samplingInterval: 1000
@@ -416,8 +417,8 @@ module.exports = function (test) {
                                 filter: eventFilter
                             };
 
-                            const monitoredItem = opcua.ClientMonitoredItem.create(
-                              subscription, readValue, requestedParameters, TimestampsToReturn.Both);
+                            const monitoredItem = subscription.monitor(
+                                readValue, requestedParameters, TimestampsToReturn.Both);
 
                             monitoredItem.on("initialized", function () {
                                 callback();
