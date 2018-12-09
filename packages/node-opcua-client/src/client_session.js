@@ -72,19 +72,14 @@ ClientSession.prototype.getPublishEngine = function () {
 
 function coerceBrowseDescription(data) {
     if (typeof data === "string" || data instanceof NodeId) {
-      var tmp = coerceBrowseDescription({
+        return coerceBrowseDescription({
             nodeId: data,
-                //includeSubtypes: false,
             includeSubtypes: true,
-                //browseDirection: BrowseDirection.Both,
-                browseDirection: BrowseDirection.Forward,
+            browseDirection: BrowseDirection.Forward,
             nodeClassMask: 0,
-                //resultMask: 255
-            resultMask: 63
+            resultMask: 63,
+            referenceTypeId: "HierarchicalReferences"
         });
-
-            tmp.referenceTypeId.value = 33;
-            return tmp;
     } else {
         data.nodeId = resolveNodeId(data.nodeId);
         data.referenceTypeId = data.referenceTypeId ? resolveNodeId(data.referenceTypeId) : null;
