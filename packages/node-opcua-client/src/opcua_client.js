@@ -9,7 +9,7 @@ const _ = require("underscore");
 const assert = require("node-opcua-assert").assert;
 const crypto = require("crypto");
 const async = require("async");
-
+const chalk = require("chalk");
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
@@ -98,6 +98,7 @@ OPCUAClient.prototype._nextSessionName = function () {
 };
 
 const makeApplicationUrn = require("node-opcua-common").makeApplicationUrn;
+const hostname = require("node-opcua-hostname").get_fully_qualified_domain_name();
 
 OPCUAClient.prototype._getApplicationUri = function () {
 
@@ -108,9 +109,13 @@ OPCUAClient.prototype._getApplicationUri = function () {
     let applicationUri;
     if (certificate) {
         const e = exploreCertificate(certificate);
-        applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
+        if (!e.tbsCertificate.extensions  || !e.tbsCertificate.extensions.subjectAltName) {
+            console.log(chalk.red(" Warning: client certificate is invalid : subjectAltName is missing"));
+            applicationUri = makeApplicationUrn(hostname, this.applicationName);
+        } else {
+            applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
+        }
     } else {
-        const hostname = require("node-opcua-hostname").get_fully_qualified_domain_name();
         applicationUri = makeApplicationUrn(hostname, this.applicationName);
     }
     return applicationUri;
