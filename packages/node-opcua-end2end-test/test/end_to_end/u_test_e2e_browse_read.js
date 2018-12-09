@@ -68,18 +68,28 @@ module.exports = function (test) {
             });
 
         });
-
+        
         it("T8-1 - should browse RootFolder", function (done) {
 
             g_session.browse("RootFolder", function (err, browseResult) {
                 if (!err) {
                     browseResult._schema.name.should.equal("BrowseResult");
                 }
+
+                // xx console.log(browseResult.toString());//.length.should.eql(4);
+
+                browseResult.statusCode.should.eql(StatusCodes.Good);
+                browseResult.references.length.should.eql(3);
+                browseResult.references[0].browseName.toString().should.eql("Objects");
+                browseResult.references[1].browseName.toString().should.eql("Types");
+                browseResult.references[2].browseName.toString().should.eql("Views");
+
+
                 done(err);
             });
 
         });
-
+        
         it("T8-2 - browse should return BadReferenceTypeIdInvalid if referenceTypeId is invalid", function (done) {
 
             const bad_referenceid_node = "ns=3;i=3500";
