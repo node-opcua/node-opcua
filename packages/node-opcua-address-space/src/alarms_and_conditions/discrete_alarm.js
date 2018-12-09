@@ -40,13 +40,14 @@ const UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
  */
 
 /**
- * @class UADiscreteAlarm
+ * Discrete Alarm Type.
  *
  * The DiscreteAlarmType is used to classify Types into Alarm Conditions where the input for the
  * Alarm may take on only a certain number of possible values (e.g. true/false,
  * running/stopped/terminating).
  *
- *  @extends UAAlarmConditionBase
+ * @class UADiscreteAlarm
+ * @extends UAAlarmConditionBase
  * @constructor
  *
  *

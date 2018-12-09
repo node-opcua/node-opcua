@@ -3,7 +3,7 @@
 /**
  * @module xml2json
 
- * node -> see if https://github.com/isaacs/sax-js could be used instead
+ * @note see if https://github.com/isaacs/sax-js could be used instead
  */
 
 

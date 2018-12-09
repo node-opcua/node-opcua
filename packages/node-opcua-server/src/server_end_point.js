@@ -29,9 +29,9 @@ const split_der = require("node-opcua-crypto").split_der;
 
 /**
  * OPCUAServerEndPoint a Server EndPoint.
- * @class OPCUAServerEndPoint
- *
  * A sever end point is listening to one port
+ *
+ * @class OPCUAServerEndPoint
  *
  * @param options {Object}
  * @param options.port                                  {Number} the tcp port

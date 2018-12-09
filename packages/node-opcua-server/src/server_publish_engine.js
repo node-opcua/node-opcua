@@ -33,11 +33,12 @@ function traceLog() {
 }
 
 /***
+ * a Publish Engine for a given session
+ *
  * @class ServerSidePublishEngine
- *  a Publish Engine for a given session
+ * @constructor
  * @param options {Object}
  * @param [options.maxPublishRequestInQueue= 100] {Integer}
- * @constructor
  */
 function ServerSidePublishEngine(options) {
 

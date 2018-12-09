@@ -131,10 +131,10 @@ UAVariableType.prototype.isSupertypeOf = tools.construct_isSupertypeOf(UAVariabl
 
 
 /**
- * @class MandatoryChildOrRequestedOptionalFilter
  *
  * return true if node is a mandatory child or a requested optional
  *
+ * @class MandatoryChildOrRequestedOptionalFilter
  * @constructor
  * @private
  *
