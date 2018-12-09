@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-node-management",
- "version": "2.0.0-alpha.6",
+ "version": "2.0.0-alpha.7",
  "description": "pure nodejs OPCUA SDK - module -service-node-management",
  "scripts": {
   "build": "tsc",
@@ -11,19 +11,19 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
-  "node-opcua-assert": "^2.0.0-alpha.6",
-  "node-opcua-basic-types": "^2.0.0-alpha.6",
-  "node-opcua-binary-stream": "^2.0.0-alpha.6",
-  "node-opcua-data-model": "^2.0.0-alpha.6",
-  "node-opcua-extension-object": "^2.0.0-alpha.6",
-  "node-opcua-factory": "^2.0.0-alpha.6",
-  "node-opcua-nodeid": "^2.0.0-alpha.6",
-  "node-opcua-service-secure-channel": "^2.0.0-alpha.6",
-  "node-opcua-types": "^2.0.0-alpha.6",
+  "node-opcua-assert": "^2.0.0-alpha.7",
+  "node-opcua-basic-types": "^2.0.0-alpha.7",
+  "node-opcua-binary-stream": "^2.0.0-alpha.7",
+  "node-opcua-data-model": "^2.0.0-alpha.7",
+  "node-opcua-extension-object": "^2.0.0-alpha.7",
+  "node-opcua-factory": "^2.0.0-alpha.7",
+  "node-opcua-nodeid": "^2.0.0-alpha.7",
+  "node-opcua-service-secure-channel": "^2.0.0-alpha.7",
+  "node-opcua-types": "^2.0.0-alpha.7",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-generator": "^2.0.0-alpha.6"
+  "node-opcua-generator": "^2.0.0-alpha.7"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

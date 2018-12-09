@@ -2,7 +2,7 @@
  "name": "node-opcua-nodesets",
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
- "version": "2.0.0-alpha.6",
+ "version": "2.0.0-alpha.7",
  "description": "pure nodejs OPCUA SDK - module -nodesets",
  "scripts": {
   "build": "tsc",

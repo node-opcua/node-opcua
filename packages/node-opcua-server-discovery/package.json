@@ -1,6 +1,6 @@
 {
 	"name": "node-opcua-server-discovery",
-	"version": "2.0.0-alpha.6",
+	"version": "2.0.0-alpha.7",
 	"description": "pure nodejs OPCUA SDK - module -server-discovery",
 	"scripts": {
 		"postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
@@ -9,15 +9,15 @@
 	"main": "index.js",
 	"dependencies": {
 		"bonjour": "^3.5.0",
-		"node-opcua-assert": "^2.0.0-alpha.6",
-		"node-opcua-common": "^2.0.0-alpha.6",
-		"node-opcua-debug": "^2.0.0-alpha.6",
-		"node-opcua-hostname": "^2.0.0-alpha.6",
-      "node-opcua-pki": "^1.0.1",
-		"node-opcua-server": "^2.0.0-alpha.6",
-		"node-opcua-service-discovery": "^2.0.0-alpha.6",
-		"node-opcua-service-endpoints": "^2.0.0-alpha.6",
-		"node-opcua-status-code": "^2.0.0-alpha.6",
+		"node-opcua-assert": "^2.0.0-alpha.7",
+		"node-opcua-common": "^2.0.0-alpha.7",
+		"node-opcua-debug": "^2.0.0-alpha.7",
+		"node-opcua-hostname": "^2.0.0-alpha.7",
+		"node-opcua-pki": "^1.0.1",
+		"node-opcua-server": "^2.0.0-alpha.7",
+		"node-opcua-service-discovery": "^2.0.0-alpha.7",
+		"node-opcua-service-endpoints": "^2.0.0-alpha.7",
+		"node-opcua-status-code": "^2.0.0-alpha.7",
 		"underscore": "^1.9.1"
 	},
 	"author": "Etienne Rossignon",

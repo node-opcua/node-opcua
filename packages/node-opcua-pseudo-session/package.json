@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-pseudo-session",
- "version": "2.0.0-alpha.6",
+ "version": "2.0.0-alpha.7",
  "description": "pure nodejs OPCUA SDK - module -client-proxy",
  "scripts": {
   "clean": "node -e \"require('rimraf').sync('dist');\"",
@@ -12,13 +12,13 @@
  "types": "./dist/index.d.ts",
  "dependencies": {
   "async": "^2.6.1",
-  "node-opcua-data-value": "^2.0.0-alpha.6",
-  "node-opcua-nodeid": "^2.0.0-alpha.6",
-  "node-opcua-service-browse": "^2.0.0-alpha.6",
-  "node-opcua-service-read": "^2.0.0-alpha.6",
-  "node-opcua-status-code": "^2.0.0-alpha.6",
-  "node-opcua-utils": "^2.0.0-alpha.6",
-  "node-opcua-variant": "^2.0.0-alpha.6",
+  "node-opcua-data-value": "^2.0.0-alpha.7",
+  "node-opcua-nodeid": "^2.0.0-alpha.7",
+  "node-opcua-service-browse": "^2.0.0-alpha.7",
+  "node-opcua-service-read": "^2.0.0-alpha.7",
+  "node-opcua-status-code": "^2.0.0-alpha.7",
+  "node-opcua-utils": "^2.0.0-alpha.7",
+  "node-opcua-variant": "^2.0.0-alpha.7",
   "underscore": "^1.9.1"
  },
  "author": "Etienne Rossignon",
