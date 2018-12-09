@@ -108,6 +108,20 @@ export interface BrowseResponse {
     }
 }
 
+export declare interface ReferenceDescription{
+    referenceTypeId: NodeId;
+    isForward: UABoolean;
+    nodeId: ExpandedNodeId;
+    browseName: QualifiedName;
+    displayName: LocalizedText;
+    nodeClass: NodeClass;
+    typeDefinition: ExpandedNodeId;
+}
+export declare interface BrowseResult {
+    statusCode: StatusCode;
+    continuationPoint: ByteString;
+    references: ReferenceDescription[] | null;
+}
 export interface NodeId {
 
 }
@@ -154,10 +168,10 @@ type CoercibleToBrowseDescription = string | BrowseDescription;
 export declare interface ClientSession {
 
     browse(nodeToBrowse: CoercibleToBrowseDescription,
-        callback: ResponseCallback<Array<BrowseResponse>>): void;
+        callback: ResponseCallback<BrowseResult>): void;
 
     browse(nodeToBrowse: Array<CoercibleToBrowseDescription>,
-        callback: ResponseCallback<Array<BrowseResponse>>): void;
+        callback: ResponseCallback<Array<BrowseResult>>): void;
 
     writeSingleNode(path: string, value: Variant, callback: Function): void;
 
