@@ -1,4 +1,4 @@
-var ContentFilterResult_Schema = {
+const ContentFilterResult_Schema = {
     name: "ContentFilterResult",
     fields: [
         { name: "elementResults", isArray: true, fieldType: "ContentFilterElementResult" },

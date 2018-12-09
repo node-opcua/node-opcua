@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var HelloMessage_Schema = {
+const HelloMessage_Schema = {
     name: "HelloMessage",
     id: factories.next_available_id(),
     fields: [

@@ -1,4 +1,4 @@
-var CancelResponse_Schema =  {
+const CancelResponse_Schema =  {
     documentation: "Closes a session with the server.",
     name: "CancelResponse",
     fields: [

@@ -1,6 +1,6 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
 // OPCUA Spec 1.02 Part 4 page 5.12.1.3 Monitoring Mode:
 // The monitoring mode parameter is used to enable and disable the sampling of a MonitoredItem, and also to provide
@@ -11,7 +11,7 @@ var factories = require("node-opcua-factory");
 // or it is created in the enabled state, the Server shall report the first sample as soon as possible and the time
 // of this sample becomes the starting point for the next sampling interval.
 
-var MonitoringMode_Schema = {
+const MonitoringMode_Schema = {
     name: "MonitoringMode",
     enumValues: {
         /*

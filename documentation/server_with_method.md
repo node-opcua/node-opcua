@@ -68,6 +68,10 @@ var method = addressSpace.addMethod(myDevice,{
          valueRank: 1
     }]
 });
+
+// optionally, we can adjust userAccessLevel attribute 
+method.outputArguments.userAccessLevel = opcua.makeAccessLevel("CurrentRead");
+method.inputArguments.userAccessLevel = opcua.makeAccessLevel("CurrentRead");
 ```
 
 

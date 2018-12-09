@@ -1,1 +1,1 @@
-var service = require("..");
+const service = require("..");

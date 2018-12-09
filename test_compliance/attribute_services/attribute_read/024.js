@@ -20,7 +20,7 @@ function read_allvalues(session,nodeId,callback) {
         indexRange: null,
         dataEncoding: null
     });
-    session.read(nodesToRead, function (err, unused, dataValues) {
+    session.read(nodesToRead, function (err, dataValues) {
         // inspect(dataValues);
         // expected_value = dataValues[0].value.value[indexToFind];
         callback(err,dataValues);
@@ -40,7 +40,7 @@ function read_range_value(session,nodeId,indexToFind,callback) {
         indexRange: new NumericRange(indexToFind),
         dataEncoding: null
     });
-    session.read(nodesToRead, function (err, unused, dataValues) {
+    session.read(nodesToRead, function (err, dataValues) {
         callback(err,dataValues);
     });
 }
@@ -54,7 +54,7 @@ function test_24_on_node(session,nodeId,callback) {
                 callback(new Error("Expecting one value in dataValues"));
                 return;
             }
-            if (dataValues[0].statusCode !== StatusCodes.Good) {
+            if (dataValues[0].statusCode.isNot(StatusCodes.Good)) {
                 callback(new Error("dataValues[0] : Expecting status code Good  got " + dataValues[0].statusCode.toString() + " instead while reading " + nodeId.toString() ));
                 return;
             }

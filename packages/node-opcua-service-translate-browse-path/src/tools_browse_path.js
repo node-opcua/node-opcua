@@ -6,11 +6,11 @@
  * @static
  */
 
-var BrowsePath = require("../_generated_/_auto_generated_BrowsePath").BrowsePath;
+const BrowsePath = require("../_generated_/_auto_generated_BrowsePath").BrowsePath;
 
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
-var hierarchicalReferencesId = makeNodeId(ReferenceTypeIds.HierarchicalReferences);
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
+const hierarchicalReferencesId = makeNodeId(ReferenceTypeIds.HierarchicalReferences);
 
 
 exports.stringToQualifiedName = require("node-opcua-data-model").stringToQualifiedName;
@@ -25,7 +25,7 @@ function constructBrowsePathFromQualifiedName(startingNode, browsePath) {
 
     browsePath = browsePath || [];
     
-    var elements = browsePath.map(function (targetName) {
+    const elements = browsePath.map(function (targetName) {
         return {
             referenceTypeId: hierarchicalReferencesId,
             isInverse: false,

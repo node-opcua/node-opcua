@@ -1,19 +1,19 @@
 "use strict";
 Error.stackTraceLimit = Infinity;
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
 require("colors");
 
-var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 ObjectRegistry.doDebug = true;
-var trace = false;
+const trace = false;
 
 //trace = true;
 
 function get_stack() {
-    var stack = (new Error()).stack.split("\n");
+    const stack = (new Error()).stack.split("\n");
     return stack.slice(2, 7).join("\n");
 }
 
@@ -21,7 +21,7 @@ const monitor_intervals = false;
 
 
 function ResourceLeakDetector() {
-    var self = this;
+    const self = this;
 
     self.setIntervalCallCount = 0;
     self.clearIntervalCallCount = 0;
@@ -36,14 +36,15 @@ function ResourceLeakDetector() {
 }
 
 /**
- *
+ * @method verify_registry_counts
+ * @private
  * @param info
  * @return {boolean}
  */
 ResourceLeakDetector.prototype.verify_registry_counts = function (info) {
-    var errorMessages = [];
+    const errorMessages = [];
 
-    var self = this;
+    const self = this;
 
     if (self.clearIntervalCallCount !== self.setIntervalCallCount) {
         errorMessages.push(" setInterval doesn't match number of clearInterval calls : \n      " +
@@ -61,10 +62,10 @@ ResourceLeakDetector.prototype.verify_registry_counts = function (info) {
           self.setTimeoutCallPendingCount);
     }
 
-    var monitoredResource = ObjectRegistry.registries;
+    const monitoredResource = ObjectRegistry.registries;
 
-    for (var i = 0; i < monitoredResource.length; i++) {
-        var res = monitoredResource[i];
+    for (let i = 0; i < monitoredResource.length; i++) {
+        const res = monitoredResource[i];
         if (res.count() !== 0) {
             errorMessages.push(" some Resource have not been properly terminated: " + res.toString());
         }
@@ -80,7 +81,7 @@ ResourceLeakDetector.prototype.verify_registry_counts = function (info) {
 
         console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setInterval/clearInterval");
         _.forEach(self.interval_map, function (value, key) {
-            if (!value.disposed) {
+            if (value && !value.disposed) {
                 console.log("key =", key, "value.disposed = ", value.disposed);
                 console.log(value.stack);//.split("\n"));
             }
@@ -107,7 +108,7 @@ ResourceLeakDetector.prototype.start = function (info) {
 
     global.ResourceLeakDetectorStarted = true;
 
-    var self = ResourceLeakDetector.singleton;
+    const self = ResourceLeakDetector.singleton;
     if (trace) {
         console.log(" starting resourceLeakDetector");
     }
@@ -152,11 +153,11 @@ ResourceLeakDetector.prototype.start = function (info) {
             // increase overall timeout counter;
             self.setTimeoutCallCount += 1;
 
-            var key = self.setTimeoutCallCount;
+            const key = self.setTimeoutCallCount;
 
-            var timeoutId = self.setTimeout_old(function () {
+            const timeoutId = self.setTimeout_old(function () {
 
-                if (self.timeout_map[key].isCleared) {
+                if (!self.timeout_map[key] || self.timeout_map[key].isCleared) {
                     // throw new Error("Invalid timeoutId, timer has already been cleared - " + key);
                     console.log("WARNING : setTimeout:  Invalid timeoutId, timer has already been cleared - " + key);
                     return;
@@ -205,21 +206,22 @@ ResourceLeakDetector.prototype.start = function (info) {
                 throw new Error("clearTimeout: Invalid timeoutId " + timeoutId + " time out has already been honored");
             }
 
-            self.timeout_map[timeoutId].isCleared = true;
-            self.timeout_map[timeoutId].disposed = true;
+            const data = self.timeout_map[timeoutId];
+            self.timeout_map[timeoutId] = null;
+
+            data.isCleared = true;
+            data.disposed = true;
 
             self.setTimeoutCallPendingCount -= 1;
 
             // increase overall timeout counter;
             self.clearTimeoutCallCount += 1;
 
-            //xx console.log(" xxx                          xxxxxxxxx = >clearTimeout".yellow, timeoutId, self.setTimeoutCallPendingCount);
-            //xx console.log(new Error().stack);
+            // call original clearTimeout
+            const retValue = self.clearTimeout_old(data.timeoutId);
 
-            var ret = self.timeout_map[timeoutId];
-            //xx self.timeout_map[timeoutId] = null;
             //xx delete self.timeout_map[timeoutId];
-            return self.clearTimeout_old(ret.timeoutId);
+            return retValue;
         };
 
     }
@@ -235,9 +237,9 @@ ResourceLeakDetector.prototype.start = function (info) {
         // increase number of pending timers
         self.setIntervalCallCount += 1;
 
-        var key = self.setIntervalCallCount;
+        const key = self.setIntervalCallCount;
 
-        var intervalId = self.setInterval_old(func, delay);
+        const intervalId = self.setInterval_old(func, delay);
 
         self.interval_map[key] = {
             intervalId: intervalId,
@@ -262,13 +264,18 @@ ResourceLeakDetector.prototype.start = function (info) {
         if (trace) {
             console.log("clearInterval " + intervalId, get_stack().green);
         }
-        var key = intervalId;
+        const key = intervalId;
         assert(self.interval_map.hasOwnProperty(key));
-        intervalId = self.interval_map[key].intervalId;
 
-        self.interval_map[key].disposed = true;
+        const data = self.interval_map[key];
 
-        return self.clearInterval_old(intervalId);
+        self.interval_map[key] = null;
+        delete self.interval_map[key];
+
+        data.disposed = true;
+        const retValue =  self.clearInterval_old(data.intervalId);
+
+        return retValue;
     };
 
 };
@@ -278,9 +285,12 @@ ResourceLeakDetector.prototype.check = function () {
 };
 
 ResourceLeakDetector.prototype.stop = function (info) {
+    if(!global.ResourceLeakDetectorStarted) {
+        return;
+    }
     global.ResourceLeakDetectorStarted =false;
 
-    var self = ResourceLeakDetector.singleton;
+    const self = ResourceLeakDetector.singleton;
     if (trace) {
         console.log(" stop resourceLeakDetector");
     }
@@ -298,23 +308,53 @@ ResourceLeakDetector.prototype.stop = function (info) {
     global.clearTimeout = self.clearTimeout_old;
     self.clearTimeout_old = null;
 
-    return self.verify_registry_counts(info);
+
+    const results=  self.verify_registry_counts(info);
+
+    self.interval_map = {};
+    self.timeout_map = {};
+
+
+    // call garbage collector
+    if (_.isFunction(global.gc)) {
+        global.gc(true);
+    }
+
+    const doHeapdump =false;
+    if (doHeapdump) {
+        const heapdump = require('heapdump');
+        heapdump.writeSnapshot(function(err, filename) {
+            console.log('dump written to', filename);
+        });
+    }
+
+    return results;
 };
 
 ResourceLeakDetector.singleton = new ResourceLeakDetector();
-var resourceLeakDetector = ResourceLeakDetector.singleton;
+const resourceLeakDetector = ResourceLeakDetector.singleton;
 
-var trace_from_this_project_only = require("node-opcua-debug").trace_from_this_projet_only;
+const trace_from_this_project_only = require("node-opcua-debug").trace_from_this_projet_only;
 
 exports.installResourceLeakDetector = function (isGlobal, func) {
 
-    var trace = trace_from_this_project_only(new Error());
+    const trace = trace_from_this_project_only(new Error());
 
     if (isGlobal) {
         before(function () {
-            var self = this;
+            const self = this;
             resourceLeakDetector.ctx = self.test.ctx;
             resourceLeakDetector.start();
+            // make sure we start with a garbage collected situation
+            if (global.gc) {
+                global.gc(true);
+            }
+        });
+        beforeEach(function() {
+            // make sure we start with a garbage collected situation
+            if (global.gc) {
+                global.gc(true);
+            }
         });
         if (func) {
             func.call(this);
@@ -322,26 +362,39 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
         after(function () {
             resourceLeakDetector.stop(null);
             resourceLeakDetector.ctx = false;
+            // make sure we start with a garbage collected situation
+            if (global.gc) {
+                global.gc(true);
+            }
         });
 
     } else {
         beforeEach(function () {
-            var self = this;
+
+            if (global.gc) {
+                global.gc(true);
+            }
+
+            const self = this;
             resourceLeakDetector.ctx = self.test.ctx;
             resourceLeakDetector.start();
         });
         afterEach(function () {
             resourceLeakDetector.stop(trace);
             resourceLeakDetector.ctx = false;
+            // make sure we start with a garbage collected situation
+            if (global.gc) {
+                global.gc(true);
+            }
         });
 
     }
 };
 
-var global_describe = describe;
+const global_describe = describe;
 assert(_.isFunction(global_describe)," expecting mocha to be defined");
 
-var g_indescribeWithLeakDetector = false;
+let g_indescribeWithLeakDetector = false;
 exports.describeWithLeakDetector = function (message, func) {
     if (g_indescribeWithLeakDetector) {
         return global_describe(message,func);

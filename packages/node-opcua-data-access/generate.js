@@ -1,4 +1,4 @@
-var generator = require("node-opcua-generator");
+const generator = require("node-opcua-generator");
 //generator.registerObject("ComplexNumber");
 //generator.registerObject("DoubleComplexNumber");
 generator.registerObject("Range");

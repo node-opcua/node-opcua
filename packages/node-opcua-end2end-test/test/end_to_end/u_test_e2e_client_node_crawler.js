@@ -1,41 +1,41 @@
 
 
-var should = require("should");
-var assert = require("node-opcua-assert");
-var async = require("async");
-var _ = require("underscore");
-var util = require("util");
+const should = require("should");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const _ = require("underscore");
+const util = require("util");
 
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var browse_service = opcua.browse_service;
-var NodeCrawler = opcua.NodeCrawler;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
+const StatusCodes = opcua.StatusCodes;
+const Variant = opcua.Variant;
+const DataType = opcua.DataType;
+const browse_service = opcua.browse_service;
+const NodeCrawler = opcua.NodeCrawler;
 
 
-var redirectToFile = require("node-opcua-debug").redirectToFile;
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const redirectToFile = require("node-opcua-debug").redirectToFile;
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 function xredirectToFile(file, fun, callback) {
     fun(callback);
 }
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var nodeToCrawl = opcua.makeNodeId(opcua.ObjectIds.Server);
+const nodeToCrawl = opcua.makeNodeId(opcua.ObjectIds.Server);
 
 module.exports = function (test) {
 
     describe("NodeCrawler", function () {
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
 
         beforeEach(function (done) {
-            client = new OPCUAClient();
+            client = new OPCUAClient({});
             endpointUrl = test.endpointUrl;
             done();
         });
@@ -72,13 +72,13 @@ module.exports = function (test) {
 
                 perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
-                    var crawler = new NodeCrawler(session);
+                    const crawler = new NodeCrawler(session);
 
-                    var data = {};
+                    const data = {};
                     crawler.on("browsed", function (nodeElement, data) {
 
                         //xx console.log("nodeElement ".yellow, nodeElement.browseName.toString(), nodeElement.nodeId.displayText());
-                        var objectIndex = {
+                        const objectIndex = {
                             findNode: function (nodeId) {
                                 return null;
                             }
@@ -112,24 +112,24 @@ module.exports = function (test) {
             perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
                 // crawler 1 has no limit in the number of node inside Browse or Read request
-                var crawler1 = new NodeCrawler(session);
+                const crawler1 = new NodeCrawler(session);
                 assert(crawler1.maxNodesPerRead === 0);
                 assert(crawler1.maxNodesPerBrowse === 0);
 
                 // crawler 2 has a limit of 3 nodes inside Browse or Read request
-                var crawler2 = new NodeCrawler(session);
+                const crawler2 = new NodeCrawler(session);
                 crawler2.maxNodesPerRead = 3;
                 crawler2.maxNodesPerBrowse = 3;
 
-                var browsed_node1 = 0;
-                var browsed_node2 = 0;
+                let browsed_node1 = 0;
+                let browsed_node2 = 0;
                 crawler1.on("browsed", function (nodeElement, data) {
                     browsed_node1++;
                 });
                 crawler2.on("browsed", function (nodeElement, data) {
                     browsed_node2++;
                 });
-                var data1 = {onBrowse: NodeCrawler.follow};
+                const data1 = {onBrowse: NodeCrawler.follow};
 
                 crawler1.crawl(nodeToCrawl, data1, function (err) {
                     if (err) {
@@ -138,7 +138,7 @@ module.exports = function (test) {
                     browsed_node1.should.be.greaterThan(10, "expecting more than 10 nodes being browsed");
                     browsed_node2.should.equal(0);
 
-                    var data2 = {onBrowse: NodeCrawler.follow};
+                    const data2 = {onBrowse: NodeCrawler.follow};
                     crawler2.crawl(nodeToCrawl, data2, function (err) {
                         if (err) {
                             return done(err);
@@ -158,9 +158,9 @@ module.exports = function (test) {
 
                 assert(_.isFunction(done));
 
-                var crawler = new NodeCrawler(session);
+                const crawler = new NodeCrawler(session);
 
-                var nodeId = "RootFolder";
+                const nodeId = "RootFolder";
                 crawler.read(nodeId, function (err, obj) {
 
                     if (!err) {
@@ -187,11 +187,11 @@ module.exports = function (test) {
 
                 assert(_.isFunction(done));
 
-                var crawler = new NodeCrawler(session);
+                const crawler = new NodeCrawler(session);
 
-                var nodeId = "RootFolder";
+                const nodeId = "RootFolder";
 
-                var startTime = Date.now();
+                const startTime = Date.now();
 
                 crawler.read(nodeId, function (err, obj) {
 
@@ -199,13 +199,13 @@ module.exports = function (test) {
                         return done(err);
                     }
 
-                    var intermediateTime1 = Date.now();
-                    var duration1 = intermediateTime1 - startTime;
+                    const intermediateTime1 = Date.now();
+                    const duration1 = intermediateTime1 - startTime;
 
 
                     crawler.read(nodeId, function (err, obj) {
-                        var intermediateTime2 = Date.now();
-                        var duration2 = intermediateTime2 - intermediateTime1;
+                        const intermediateTime2 = Date.now();
+                        const duration2 = intermediateTime2 - intermediateTime1;
 
                         duration1.should.be.greaterThan(duration2);
 
@@ -218,20 +218,20 @@ module.exports = function (test) {
 
         it("CRAWL5- should display a tree", function (done) {
 
-            var redirectToFile = require("node-opcua-debug").redirectToFile;
+            const redirectToFile = require("node-opcua-debug").redirectToFile;
 
             redirectToFile("crawler_display_tree.log", function (inner_callback) {
 
-                var treeify = require('treeify');
+                const treeify = require('treeify');
 
                 perform_operation_on_client_session(client, endpointUrl, function (the_session, callback) {
 
-                    var crawler = new NodeCrawler(the_session);
+                    const crawler = new NodeCrawler(the_session);
 
                     crawler.on("browsed", function (element) {
                     });
 
-                    var nodeId = "ObjectsFolder";
+                    const nodeId = "ObjectsFolder";
                     console.log("now crawling object folder ...please wait...");
                     crawler.read(nodeId, function (err, obj) {
                         if (!err) {

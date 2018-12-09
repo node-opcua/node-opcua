@@ -1,21 +1,21 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const Long = require("long");
 
-var offset_factor_1601 = (function () {
+const offset_factor_1601 = (function () {
 
-    var utc1600 = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
-    var t1600 = utc1600.getTime();
+    const utc1600 = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
+    const t1600 = utc1600.getTime();
 
-    var utc1600_plus_one_day = new Date(Date.UTC(1601, 0, 2, 0, 0, 0));
-    var t1600_1d = utc1600_plus_one_day.getTime();
+    const utc1600_plus_one_day = new Date(Date.UTC(1601, 0, 2, 0, 0, 0));
+    const t1600_1d = utc1600_plus_one_day.getTime();
 
-    var factor = (24 * 60 * 60 * 1000) * 10000 / (t1600_1d - t1600);
+    const factor = (24 * 60 * 60 * 1000) * 10000 / (t1600_1d - t1600);
 
-    var utc1970 = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
-    var t1970 = utc1970.getTime();
+    const utc1970 = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
+    const t1970 = utc1970.getTime();
 
-    var offsetToGregorianCalendarZero = -t1600 + t1970;
+    const offsetToGregorianCalendarZero = -t1600 + t1970;
 
     assert(factor === 10000);
     assert(offsetToGregorianCalendarZero === 11644473600000);
@@ -25,16 +25,11 @@ var offset_factor_1601 = (function () {
 
 exports.offset_factor_1601 = offset_factor_1601;
 
-var offset = offset_factor_1601[0];
-var factor = offset_factor_1601[1];
+const offset = offset_factor_1601[0];
+const factor = offset_factor_1601[1];
 
-var F = 0x100000000;
-var A = factor / F;
-var B = offset * A;
-var oh = Math.floor(offset / F);
-var ol = offset % F;
-var fl = factor % F;
-var F_div_factor = ( F / factor);
+const offsetLong = Long.fromNumber(offset,true);
+const factorLong = Long.fromNumber(factor,true);
 
 // Extracted from OpcUA Spec v1.02 : part 6:
 //
@@ -70,7 +65,16 @@ var F_div_factor = ( F / factor);
 // A decoder shall truncate the value if a decoder encounters a DateTime value with a resolution that is
 // greater than the resolution supported on the DevelopmentPlatform.
 //
-function bn_dateToHundredNanoSecondFrom1601_fast(date) {
+/**
+ *
+ * @param date {Date}
+ * @param picoseconds {Number} : represent the portion of the date that cannot be managed by the javascript Date object
+ *
+ * @returns {[high,low]}
+ */
+function bn_dateToHundredNanoSecondFrom1601_fast(date, picoseconds) {
+
+
     assert(date instanceof Date);
     if (date.high_low) {
         return date.high_low;
@@ -79,74 +83,55 @@ function bn_dateToHundredNanoSecondFrom1601_fast(date) {
     // note : The value returned by the getTime method is the number
     //        of milliseconds since 1 January 1970 00:00:00 UTC.
     //
-    var t = date.getTime(); // number of milliseconds since since 1 January 1970 00:00:00 UTC.
+    const t = date.getTime(); // number of milliseconds since since 1 January 1970 00:00:00 UTC.
+    const excess_100nano_second = (picoseconds !== undefined) ? Math.floor(picoseconds / 100000) : 0;
 
-    //Note:
-    // The number of 100-nano since 1 Jan 1601 is given by the formula :
-    //
     //           value_64 = (t + offset ) * factor;
-    //
-    // However this number is too large and shall be converted to a 64 bits integer
-    //
-    // Let say that value_64 = (value_h * 0xFFFFFFFF ) + value_l, where value_h and value_l are two 32bits integers.
-    //
-    //  Let say F = 0x100000000
-    //  (value_h * F ) + value_l =  (t+ offset)*factor;
-    //
-    //  value_h =  (t+ offset)*factor // F;
-    //  value_l =  (t+ offset)*factor %  F;
-    //
-    //  value_h =  floor(t * factor / F + offset*factor / F)
-    //             floor(t * A                    + B)
-    //
-    //  value_l = ((t % F + offset % F) * (factor % F) )% F
-    //  value_l = ((t % F + ol        ) * fl           )% F
+    const tL = Long.fromNumber(t,false);
+    const a = tL.add(offsetLong).multiply(factorLong).add(excess_100nano_second);
 
-    var value_h = Math.floor(t * A + B);
-    var value_l = ( ( t % F + ol ) * fl ) % F;
-    value_l = ( value_l + F ) % F;
-    var high_low = [value_h, value_l];
-    Object.defineProperty(date, "high_low", {
-        get: function () {
-            return high_low;
-        }, enumerable: false
-    });
-    return high_low;
+    date.high_low = [a.getHighBits(),a.getLowBits()];
+    date.picoseconds = excess_100nano_second * 10000 +  picoseconds;
+    return date.high_low;
 }
 
 exports.bn_dateToHundredNanoSecondFrom1601 = bn_dateToHundredNanoSecondFrom1601_fast;
 
-function bn_hundredNanoSecondFrom1601ToDate_fast(high, low) {
-    //xx assert(_.isFinite(high), _.isFinite(low));
+exports.bn_dateToHundredNanoSecondFrom1601Excess = function bn_dateToHundredNanoSecondFrom1601Excess(data,picoseconds)
+{
+    // 100 nano seconds = 100 x 1000 picoseconds
+    return  (picoseconds !== undefined) ? picoseconds % 100000 :0 ;
 
-    //   (h * F + l)/f    - o=
-    //    h / f * F + l/f - o=
-    //
-    //    h   = ((h div f)* f + h % f)
-    //    h/f =     (h div f)   + (h % f) /f
-    //    h/f * F = (h div f)*F + (h % f) * F/f
-    //    o = oh * F + ol
-    var value1 = (Math.floor(high / factor) - oh ) * F + Math.floor(( high % factor ) * F_div_factor + low / factor) - ol;
-    var date = new Date(value1);
+};
+
+function bn_hundredNanoSecondFrom1601ToDate_fast(high, low , picoseconds) {
+    assert(low !== undefined);
+    //           value_64 / factor  - offset = t
+    const l= new Long(low,high,/*unsigned*/true);
+    const value1 = l.div(factor).toNumber()-offset;
+    const date = new Date(value1);
     // enrich the date
-    Object.defineProperty(date, "high_low", {
-        get: function () {
-            return [high, low];
-        }, enumerable: false
-    });
+    const excess_100nano_in_pico = l.mod(10000).mul(100000).toNumber();
+    date.high_low = [high,low];
+    // picosecond will contains un-decoded 100 nanoseconds => 10 x 100 nanoseconds = 1 microsecond
+    date.picoseconds = excess_100nano_in_pico + ((picoseconds !=null )? picoseconds : 0);
     return date;
 }
 
 exports.bn_hundredNanoSecondFrom1601ToDate = bn_hundredNanoSecondFrom1601ToDate_fast;
 
 
-var last_now_date = null;
-var last_picoseconds = 0;
-
-function getCurrentClock() {
-    var now =new Date();
-    if (last_now_date  && now.getTime() === last_now_date.getTime()) {
-        last_picoseconds = last_picoseconds+1;
+let last_now_date = null;
+let last_picoseconds = 0;
+let small_tick_picosecond = 1000 * 100; // 100 nano second in picoseconds
+/**
+ *
+ * @return {{timestamp: *, picoseconds: number}}
+ */
+function getCurrentClockWithJavascriptDate() {
+    const now = new Date();
+    if (last_now_date && now.getTime() === last_now_date.getTime()) {
+        last_picoseconds += small_tick_picosecond; // add "100 nano" second which is hte resolution of OPCUA DateTime
     } else {
         last_picoseconds = 0;
         last_now_date = now;
@@ -157,7 +142,33 @@ function getCurrentClock() {
     };
 }
 
-function coerceClock(timestamp,picoseconds) {
+const origin  = process.hrtime();
+const refTime = Date.now();
+const g_clock = {
+    tick: [0,0],
+    timestamp: new Date(),
+    picoseconds: 0
+};
+
+// make sure we get a pointer to the actual process.hrtime, just in case it get overridden by some library (such as sinon)
+const hrtime = process.hrtime;
+
+function getCurrentClockWithProcessHRTime() {
+    g_clock.tick = hrtime(origin); // [seconds, nanoseconds]
+    const milliseconds = g_clock.tick[0] * 1000 + Math.floor(g_clock.tick[1] / 1000000) + refTime;
+    const picoseconds = (g_clock.tick[1] % 1000000) * 1000;
+    // display drift in seconds :
+    //    console.log(g_clock.tick[0] - Math.floor((Date.now()-refTime) / 1000));
+
+    g_clock.timestamp =new Date(milliseconds);
+    g_clock.picoseconds= picoseconds;
+    return g_clock;
+}
+
+const getCurrentClock = ( process.hrtime && true) ? getCurrentClockWithProcessHRTime: getCurrentClockWithJavascriptDate;
+
+
+function coerceClock(timestamp, picoseconds) {
     if (timestamp) {
         return {
             timestamp: timestamp,

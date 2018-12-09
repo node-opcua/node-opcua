@@ -1,34 +1,35 @@
 "use strict";
-var async = require("async");
-var should = require("should");
+const async = require("async");
+const should = require("should");
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var standardUnits = require("node-opcua-data-access").standardUnits;
+const standardUnits = require("node-opcua-data-access").standardUnits;
 
-var SessionContext = require("../..").SessionContext;
-var context = SessionContext.defaultContext;
+const SessionContext = require("../..").SessionContext;
+const context = SessionContext.defaultContext;
 
-var AddressSpace = require("../../").AddressSpace;
+const AddressSpace = require("../../").AddressSpace;
 
 module.exports = function (maintest) {
 
     describe("PercentDeadband", function () {
 
-        var addressSpace;
+        let addressSpace,namespace;
         before(function() {
             addressSpace = maintest.addressSpace;
+            namespace = addressSpace.getOwnNamespace();
             should(addressSpace).be.instanceof(AddressSpace);
         });
 
         it("should provide a mechanism to operate PercentDeadband ", function (done) {
 
-            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
 
-            var analogItem = addressSpace.addAnalogDataItem({
+            const analogItem = namespace.addAnalogDataItem({
                 organizedBy: objectsFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",
@@ -41,7 +42,7 @@ module.exports = function (maintest) {
             });
 
 
-            var dataValue = new DataValue({value: new Variant({dataType: DataType.Double, value: -1000.0})});
+            const dataValue = new DataValue({value: new Variant({dataType: DataType.Double, value: -1000.0})});
 
             async.series([
                 function (callback) {

@@ -1,12 +1,19 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
+
+const resolveNodeId= require("node-opcua-nodeid").resolveNodeId;
+const sameNodeId= require("node-opcua-nodeid").sameNodeId;
+
+const HasSubTypeNodeId = resolveNodeId("HasSubtype");
 
 function _filterSubType(reference) {
-    return (reference.referenceType === "HasSubtype" && !reference.isForward);
+    return (sameNodeId(reference.referenceType,HasSubTypeNodeId) && !reference.isForward);
 }
-var _slow_isSupertypeOf = function (self, Class, baseType) {
-    //xx console.log(" ",self.browseName, " versus ",baseType.browseName);
+
+const _slow_isSupertypeOf = function (self, Class, baseType) {
+
+    //xx console.log("YYYYXXXX ",self.browseName, " versus ",baseType.browseName);
     assert(self instanceof Class);
     assert(baseType instanceof Class, " Object must have same type");
     assert(self.addressSpace);
@@ -14,17 +21,19 @@ var _slow_isSupertypeOf = function (self, Class, baseType) {
     if (self.nodeId === baseType.nodeId) {
         return true;
     }
-    var subTypes = _.filter(self._referenceIdx,_filterSubType);
+    const references = self.allReferences();
+
+    const subTypes = _.filter(references,_filterSubType);
     assert(subTypes.length <= 1 && " should have zero or one subtype no more");
 
-    for (var i = 0; i < subTypes.length; i++) {
-        var subTypeId = subTypes[i].nodeId;
-        var subType = self.addressSpace.findNode(subTypeId);
+    for (let i = 0; i < subTypes.length; i++) {
+        const subTypeId = subTypes[i].nodeId;
+        const subType = self.addressSpace.findNode(subTypeId);
         // istanbul ignore next
         if (!subType) {
             throw new Error("Cannot find object with nodeId " + subTypeId.toString());
         }
-        if (subType.nodeId === baseType.nodeId) {
+        if (sameNodeId(subType.nodeId,baseType.nodeId)) {
             return true;
         } else {
             if (_slow_isSupertypeOf(subType, Class, baseType)) {
@@ -49,8 +58,8 @@ function wrap_memoize(func, hasher) {
         if (!this.__cache) {
             this.__cache = {};
         }
-        var hash = hasher.call(this, param);
-        var cache_value = this.__cache[hash];
+        const hash = hasher.call(this, param);
+        let cache_value = this.__cache[hash];
         if (cache_value === undefined) {
             cache_value = func.call(this, param); //custom function
             this.__cache[hash] = cache_value;

@@ -3,42 +3,49 @@
  * @module opcua.server
  */
 
-var Subscription = require("./subscription").Subscription;
-var SubscriptionState = require("./subscription").SubscriptionState;
+const Subscription = require("./server_subscription").Subscription;
+const SubscriptionState = require("./server_subscription").SubscriptionState;
 
-var subscription_service = require("node-opcua-service-subscription");
-var NotificationMessage = subscription_service.NotificationMessage;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const subscription_service = require("node-opcua-service-subscription");
+const NotificationMessage = subscription_service.NotificationMessage;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
 
-var EventEmitter = require("events").EventEmitter;
-var util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const util = require("util");
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var colors = require("colors");
+const colors = require("colors");
+
 function traceLog() {
-    if(!doDebug) {return;}
-    var a = _.map(arguments);
+    if (!doDebug) {
+        return;
+    }
+    const a = _.map(arguments);
     // console.log(a);
     a.unshift(" TRACE ".yellow);
     console.log.apply(this, a);
 }
+
 /***
  * @class ServerSidePublishEngine
+ *  a Publish Engine for a given session
  * @param options {Object}
  * @param [options.maxPublishRequestInQueue= 100] {Integer}
  * @constructor
  */
 function ServerSidePublishEngine(options) {
 
-    var self = this;
-
     options = options || {};
+
+    const self = this;
+
+    ServerSidePublishEngine.registry.register(self);
 
     // a queue of pending publish request send by the client
     // waiting to be used by the server to send notification
@@ -46,6 +53,13 @@ function ServerSidePublishEngine(options) {
     self._publish_response_queue = [];// /* PublishResponse */
 
     self._subscriptions = {};
+
+    // _closed_subscriptions contains a collection of Subscription that
+    // have  expired but that still need to send some pending notification
+    // to the client.
+    // Once publish requests will be received from the  client
+    // the notifications of those subscriptions will be processed so that
+    // they can be properly disposed.
     self._closed_subscriptions = [];
 
     self.maxPublishRequestInQueue = options.maxPublishRequestInQueue || 100;
@@ -53,16 +67,42 @@ function ServerSidePublishEngine(options) {
     self.isSessionClosed = false;
 
 }
+
 util.inherits(ServerSidePublishEngine, EventEmitter);
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+ServerSidePublishEngine.registry = new ObjectRegistry();
+
+
+ServerSidePublishEngine.prototype.dispose = function () {
+
+    debugLog("ServerSidePublishEngine#dispose");
+    const self = this;
+
+    // force deletion of publish response not sent
+    self._publish_response_queue = [];
+
+    assert(self._publish_response_queue.length === 0, "self._publish_response_queue !=0");
+    self._publish_response_queue = null;
+
+    assert(Object.keys(self._subscriptions).length === 0, "self._subscriptions count!=0");
+    self._subscriptions = {};
+
+    assert(self._closed_subscriptions.length === 0, "self._closed_subscriptions count!=0");
+    self._closed_subscriptions = null;
+
+    ServerSidePublishEngine.registry.unregister(self);
+
+};
+
 
 ServerSidePublishEngine.prototype.process_subscriptionAcknowledgements = function (subscriptionAcknowledgements) {
     // process acknowledgements
-    var self = this;
+    const self = this;
     subscriptionAcknowledgements = subscriptionAcknowledgements || [];
 
-    var results = subscriptionAcknowledgements.map(function (subscriptionAcknowledgement) {
+    const results = subscriptionAcknowledgements.map(function (subscriptionAcknowledgement) {
 
-        var subscription = self.getSubscriptionById(subscriptionAcknowledgement.subscriptionId);
+        const subscription = self.getSubscriptionById(subscriptionAcknowledgement.subscriptionId);
         if (!subscription) {
             return StatusCodes.BadSubscriptionIdInvalid;
         }
@@ -82,33 +122,37 @@ ServerSidePublishEngine.prototype.__defineGetter__("subscriptions", function () 
 
 ServerSidePublishEngine.prototype._feed_late_subscription = function () {
 
-    var self = this;
+    const self = this;
     if (!self.pendingPublishRequestCount) {
         return;
     }
-    var starving_subscription  = self.findSubscriptionWaitingForFirstPublish() || self.findLateSubscriptionSortedByPriority();
+    const starving_subscription = self.findSubscriptionWaitingForFirstPublish() || self.findLateSubscriptionSortedByPriority();
 
     if (starving_subscription) {
-        debugLog("feeding most late subscription subscriptionId  = ".bgWhite.red,starving_subscription.id);
+        debugLog("feeding most late subscription subscriptionId  = ".bgWhite.red, starving_subscription.id);
         starving_subscription.process_subscription();
     }
 };
 
 ServerSidePublishEngine.prototype._feed_closed_subscription = function () {
 
-    var self = this;
+    const self = this;
     if (!self.pendingPublishRequestCount) {
         return false;
     }
 
     debugLog("ServerSidePublishEngine#_feed_closed_subscription");
-    var closed_subscription = self._closed_subscriptions.shift();
+    const closed_subscription = self._closed_subscriptions.shift();
     if (closed_subscription) {
 
         traceLog("_feed_closed_subscription for closed_subscription ", closed_subscription.id);
 
         if (closed_subscription.hasPendingNotifications) {
             closed_subscription._publish_pending_notifications();
+
+            // now closed_subscription can be disposed
+            closed_subscription.dispose();
+
             return true;
         }
     }
@@ -121,8 +165,8 @@ function _assertValidPublishData(publishData) {
     assert(_.isFunction(publishData.callback));
 }
 
-ServerSidePublishEngine.prototype.send_error_for_request = function(publishData,statusCode) {
-    var self = this;
+ServerSidePublishEngine.prototype.send_error_for_request = function (publishData, statusCode) {
+    const self = this;
     _assertValidPublishData(publishData);
     self.send_response_for_request(publishData, new subscription_service.PublishResponse({
         responseHeader: {serviceResult: statusCode}
@@ -131,11 +175,11 @@ ServerSidePublishEngine.prototype.send_error_for_request = function(publishData,
 
 ServerSidePublishEngine.prototype._cancelPendingPublishRequest = function (statusCode) {
 
-    var self = this;
+    const self = this;
     debugLog("Cancelling pending PublishRequest with statusCode  ".red, statusCode.toString(), " length =", self._publish_request_queue.length);
 
     self._publish_request_queue.forEach(function (publishData) {
-        self.send_error_for_request(publishData,statusCode);
+        self.send_error_for_request(publishData, statusCode);
     });
     self._publish_request_queue = [];
 
@@ -146,14 +190,14 @@ ServerSidePublishEngine.prototype.cancelPendingPublishRequestBeforeChannelChange
 };
 
 ServerSidePublishEngine.prototype.cancelPendingPublishRequest = function () {
-    var self = this;
+    const self = this;
     assert(self.subscriptionCount === 0);
     this._cancelPendingPublishRequest(StatusCodes.BadNoSubscription);
 };
 
 ServerSidePublishEngine.prototype.onSessionClose = function () {
 
-    var self = this;
+    const self = this;
     self.isSessionClosed = true;
     self._cancelPendingPublishRequest(StatusCodes.BadSessionClosed);
 
@@ -164,26 +208,26 @@ function dummy_function() {
 
 function prepare_timeout_info(request) {
     // record received time
-    request.received_time = (new Date()).getTime();
+    request.received_time = Date.now();
     assert(request.requestHeader.timeoutHint >= 0);
     request.timeout_time = (request.requestHeader.timeoutHint > 0) ? request.received_time + request.requestHeader.timeoutHint : 0;
 }
 
 
-ServerSidePublishEngine.prototype._handle_too_many_requests = function() {
+ServerSidePublishEngine.prototype._handle_too_many_requests = function () {
 
-    var self = this;
+    const self = this;
 
     if (self.pendingPublishRequestCount > self.maxPublishRequestInQueue) {
 
         traceLog("server has received too many PublishRequest", self.pendingPublishRequestCount, "/", self.maxPublishRequestInQueue);
-        assert(self.pendingPublishRequestCount === (self.maxPublishRequestInQueue+1));
+        assert(self.pendingPublishRequestCount === (self.maxPublishRequestInQueue + 1));
         // When a Server receives a new Publish request that exceeds its limit it shall de-queue the oldest Publish
         // request and return a response with the result set to Bad_TooManyPublishRequests.
 
         // dequeue oldest request
-        var publishData = self._publish_request_queue.shift();
-        self.send_error_for_request(publishData,StatusCodes.BadTooManyPublishRequests);
+        const publishData = self._publish_request_queue.shift();
+        self.send_error_for_request(publishData, StatusCodes.BadTooManyPublishRequests);
     }
 
 };
@@ -191,7 +235,7 @@ ServerSidePublishEngine.prototype._handle_too_many_requests = function() {
 
 ServerSidePublishEngine.prototype._on_PublishRequest = function (request, callback) {
 
-    var self = this;
+    const self = this;
     //xx console.log("#_on_PublishRequest self._publish_request_queue.length before ",self._publish_request_queue.length);
 
     callback = callback || dummy_function;
@@ -199,8 +243,8 @@ ServerSidePublishEngine.prototype._on_PublishRequest = function (request, callba
 
     assert(_.isFunction(callback));
 
-    var subscriptionAckResults = self.process_subscriptionAcknowledgements(request.subscriptionAcknowledgements);
-    var publishData = {request: request, results: subscriptionAckResults,callback: callback};
+    const subscriptionAckResults = self.process_subscriptionAcknowledgements(request.subscriptionAcknowledgements);
+    const publishData = {request: request, results: subscriptionAckResults, callback: callback};
 
     if (self._process_pending_publish_response(publishData)) {
         console.log(" PENDING RESPONSE HAS BEEN PROCESSED !");
@@ -210,24 +254,24 @@ ServerSidePublishEngine.prototype._on_PublishRequest = function (request, callba
     if (self.isSessionClosed) {
 
         traceLog("server has received a PublishRequest but session is Closed");
-        self.send_error_for_request(publishData,StatusCodes.BadSessionClosed);
+        self.send_error_for_request(publishData, StatusCodes.BadSessionClosed);
 
     } else if (self.subscriptionCount === 0) {
 
         if (self._closed_subscriptions.length > 0 && self._closed_subscriptions[0].hasPendingNotifications) {
 
-            var verif = self._publish_request_queue.length;
+            const verif = self._publish_request_queue.length;
             // add the publish request to the queue for later processing
             self._publish_request_queue.push(publishData);
 
-            var processed = self._feed_closed_subscription();
-            assert(verif===self._publish_request_queue.length);
+            const processed = self._feed_closed_subscription();
+            assert(verif === self._publish_request_queue.length);
             assert(processed);
             return;
         }
 //Xx        assert(self._publish_request_queue.length===0);
         traceLog("server has received a PublishRequest but has no subscription opened");
-        self.send_error_for_request(publishData,StatusCodes.BadNoSubscription);
+        self.send_error_for_request(publishData, StatusCodes.BadNoSubscription);
 
     } else {
 
@@ -236,7 +280,7 @@ ServerSidePublishEngine.prototype._on_PublishRequest = function (request, callba
         // add the publish request to the queue for later processing
         self._publish_request_queue.push(publishData);
 
-        debugLog("Adding a PublishRequest to the queue ".bgWhite.red,self._publish_request_queue.length);
+        debugLog("Adding a PublishRequest to the queue ".bgWhite.red, self._publish_request_queue.length);
 
         self._feed_late_subscription();
 
@@ -262,9 +306,9 @@ ServerSidePublishEngine.prototype.send_keep_alive_response = function (subscript
     //  Each keep-alive Message is a response to a Publish request in which the  notification Message
     //  parameter does not contain any Notifications and that contains the sequence number of the next
     //  Notification Message that is to be sent.
-    var self = this;
+    const self = this;
 
-    var subscription = self.getSubscriptionById(subscriptionId);
+    const subscription = self.getSubscriptionById(subscriptionId);
     /* istanbul ignore next */
     if (!subscription) {
         traceLog("send_keep_alive_response  => invalid subscriptionId = ", subscriptionId);
@@ -275,13 +319,13 @@ ServerSidePublishEngine.prototype.send_keep_alive_response = function (subscript
         return false;
     }
 
-    var sequenceNumber = future_sequence_number;
+    const sequenceNumber = future_sequence_number;
     self.send_notification_message({
         subscriptionId: subscriptionId,
         sequenceNumber: sequenceNumber,
         notificationData: [],
         moreNotifications: false
-    },false);
+    }, false);
 
     return true;
 };
@@ -293,17 +337,17 @@ ServerSidePublishEngine.prototype._on_tick = function () {
 
 ServerSidePublishEngine.prototype._cancelTimeoutRequests = function () {
 
-    var self = this;
+    const self = this;
 
     if (self._publish_request_queue.length === 0) {
         return;
     }
 
-    var current_time = (new Date()).getTime(); // ms
+    const current_time = (new Date()).getTime(); // ms
 
     function timeout_filter(data) {
-        var request = data.request;
-        var results = data.results;
+        const request = data.request;
+        const results = data.results;
         if (!request.timeout_time) {
             // no limits
             return false;
@@ -312,14 +356,14 @@ ServerSidePublishEngine.prototype._cancelTimeoutRequests = function () {
     }
 
     // filter out timeout requests
-    var partition = _.partition(self._publish_request_queue, timeout_filter);
+    const partition = _.partition(self._publish_request_queue, timeout_filter);
 
     self._publish_request_queue = partition[1]; // still valid
 
-    var invalid_published_request = partition[0];
+    const invalid_published_request = partition[0];
     invalid_published_request.forEach(function (publishData) {
         console.log(" CANCELING TIMEOUT PUBLISH REQUEST ".cyan);
-        var response = new subscription_service.PublishResponse({
+        const response = new subscription_service.PublishResponse({
             responseHeader: {serviceResult: StatusCodes.BadTimeout}
         });
         self.send_response_for_request(publishData, response);
@@ -338,9 +382,9 @@ ServerSidePublishEngine.prototype._cancelTimeoutRequests = function () {
  * @param force                          {Boolean} push response in queue until next publish Request is received
  * @private
  */
-ServerSidePublishEngine.prototype.send_notification_message = function (param,force) {
+ServerSidePublishEngine.prototype.send_notification_message = function (param, force) {
 
-    var self = this;
+    const self = this;
     assert(self.pendingPublishRequestCount > 0 || force);
 
     assert(!param.hasOwnProperty("availableSequenceNumbers"));
@@ -349,17 +393,17 @@ ServerSidePublishEngine.prototype.send_notification_message = function (param,fo
     assert(param.hasOwnProperty("notificationData"));
     assert(param.hasOwnProperty("moreNotifications"));
 
-    var subscription =  self.getSubscriptionById(param.subscriptionId);
+    const subscription = self.getSubscriptionById(param.subscriptionId);
 
 
-    var subscriptionId = param.subscriptionId;
-    var sequenceNumber = param.sequenceNumber;
-    var notificationData = param.notificationData;
-    var moreNotifications = param.moreNotifications;
+    const subscriptionId = param.subscriptionId;
+    const sequenceNumber = param.sequenceNumber;
+    const notificationData = param.notificationData;
+    const moreNotifications = param.moreNotifications;
 
-    var availableSequenceNumbers = subscription ? subscription.getAvailableSequenceNumbers() : [];
+    const availableSequenceNumbers = subscription ? subscription.getAvailableSequenceNumbers() : [];
 
-    var response = new subscription_service.PublishResponse({
+    const response = new subscription_service.PublishResponse({
         subscriptionId: subscriptionId,
         availableSequenceNumbers: availableSequenceNumbers,
         moreNotifications: moreNotifications,
@@ -371,39 +415,35 @@ ServerSidePublishEngine.prototype.send_notification_message = function (param,fo
     });
 
     if (self.pendingPublishRequestCount === 0) {
-        console.log(" ---------------------------------------------------- PUSHING PUBLISH RESPONSE FOR LATE ANWSER !".bgRed.cyan);
+        console.log(" ---------------------------------------------------- PUSHING PUBLISH RESPONSE FOR LATE ANWSER !".bgRed.white.bold);
         self._publish_response_queue.push(response);
     } else {
-        var publishData = self._publish_request_queue.shift();
+        const publishData = self._publish_request_queue.shift();
         self.send_response_for_request(publishData, response);
     }
 
 };
 
-ServerSidePublishEngine.prototype._process_pending_publish_response = function(publishData) {
+ServerSidePublishEngine.prototype._process_pending_publish_response = function (publishData) {
 
     _assertValidPublishData(publishData);
-    var self = this;
+    const self = this;
     if (self._publish_response_queue.length === 0) {
         // no pending response to send
         return false;
     }
     assert(self._publish_request_queue.length === 0);
-    var response = self._publish_response_queue.shift();
+    const response = self._publish_response_queue.shift();
 
     self.send_response_for_request(publishData, response);
     return true;
 };
 
-
 ServerSidePublishEngine.prototype.send_response_for_request = function (publishData, response) {
-
     _assertValidPublishData(publishData);
     assert(response.responseHeader.requestHandle !== 0);
-
     response.results = publishData.results;
     response.responseHeader.requestHandle = publishData.request.requestHeader.requestHandle;
-
     publishData.callback(publishData.request, response);
 };
 
@@ -413,7 +453,7 @@ ServerSidePublishEngine.prototype.send_response_for_request = function (publishD
  */
 ServerSidePublishEngine.prototype.add_subscription = function (subscription) {
 
-    var self = this;
+    const self = this;
 
     assert(subscription instanceof Subscription);
     assert(_.isFinite(subscription.id));
@@ -421,14 +461,14 @@ ServerSidePublishEngine.prototype.add_subscription = function (subscription) {
     assert(subscription.publishEngine === self);
     assert(!self._subscriptions[subscription.id]);
 
-    debugLog(" adding subscription with Id:", subscription.id);
+    debugLog("ServerSidePublishEngine#add_subscription -  adding subscription with Id:", subscription.id);
     self._subscriptions[subscription.id] = subscription;
 
     return subscription;
 };
 
 ServerSidePublishEngine.prototype.detach_subscription = function (subscription) {
-    var self = this;
+    const self = this;
     assert(subscription instanceof Subscription);
     assert(_.isFinite(subscription.id));
     assert(subscription.publishEngine === self);
@@ -437,7 +477,7 @@ ServerSidePublishEngine.prototype.detach_subscription = function (subscription) 
     delete self._subscriptions[subscription.id];
     subscription.publishEngine = null;
 
-    debugLog(" detaching subscription with Id:", subscription.id);
+    debugLog("ServerSidePublishEngine#detach_subscription detaching subscription with Id:", subscription.id);
     return subscription;
 };
 
@@ -447,8 +487,11 @@ ServerSidePublishEngine.prototype.detach_subscription = function (subscription) 
  */
 ServerSidePublishEngine.prototype.shutdown = function () {
 
-    var self = this;
+
+    const self = this;
     assert(self.subscriptionCount === 0, "subscription shall be removed first before you can shutdown a publish engine");
+
+    debugLog("ServerSidePublishEngine#shutdown");
 
     // purge _publish_request_queue
     self._publish_request_queue = [];
@@ -456,6 +499,8 @@ ServerSidePublishEngine.prototype.shutdown = function () {
     // purge _publish_response_queue
     self._publish_response_queue = [];
 
+    // purge self._closed_subscriptions
+    self._closed_subscriptions.map(function(subscription){ subscription.dispose();});
     self._closed_subscriptions = [];
 
 };
@@ -482,29 +527,38 @@ ServerSidePublishEngine.prototype.__defineGetter__("pendingClosedSubscriptionCou
     return this._closed_subscriptions.length;
 });
 
-ServerSidePublishEngine.prototype.__defineGetter__("currentMonitoredItemsCount", function () {
+ServerSidePublishEngine.prototype.__defineGetter__("currentMonitoredItemCount", function () {
 
-    var result =  _.reduce(this._subscriptions,function(cumul,subscription) {
+    const result = _.reduce(this._subscriptions, function (cumul, subscription) {
         return cumul + subscription.monitoredItemCount;
-    },0);
+    }, 0);
     assert(_.isFinite(result));
     return result;
 });
 
-ServerSidePublishEngine.prototype.on_close_subscription = function(subscription) {
-    var self = this;
-    debugLog("ServerSidePublishEngine#on_close_subscription",subscription.id);
+ServerSidePublishEngine.prototype.on_close_subscription = function (subscription) {
+    const self = this;
+    debugLog("ServerSidePublishEngine#on_close_subscription", subscription.id);
     assert(self._subscriptions.hasOwnProperty(subscription.id));
+    assert(subscription.publishEngine === self,"subscription must belong to this ServerSidePublishEngine");
 
     if (subscription.hasPendingNotifications) {
+
+        debugLog("ServerSidePublishEngine#on_close_subscription storing subscription", subscription.id," to _closed_subscriptions because it has pending notification");
         self._closed_subscriptions.push(subscription);
+    } else {
+        debugLog("ServerSidePublishEngine#on_close_subscription disposing subscription", subscription.id);
+
+        //subscription is no longer needed
+        subscription.dispose();
     }
 
     delete self._subscriptions[subscription.id];
 
     if (self.subscriptionCount === 0) {
-        while(self._feed_closed_subscription()) {}
-
+        while (self._feed_closed_subscription()) {
+            /* keep looping */
+        }
         self.cancelPendingPublishRequest();
     }
 };
@@ -519,9 +573,9 @@ ServerSidePublishEngine.prototype.getSubscriptionById = function (subscriptionId
     return this._subscriptions[subscriptionId];
 };
 
-ServerSidePublishEngine.prototype.findSubscriptionWaitingForFirstPublish = function(){
+ServerSidePublishEngine.prototype.findSubscriptionWaitingForFirstPublish = function () {
     // find all subscriptions that are late and sort them by urgency
-    var subscriptions_waiting_for_first_reply = _.filter(this._subscriptions, function (subscription) {
+    let subscriptions_waiting_for_first_reply = _.filter(this._subscriptions, function (subscription) {
         return !subscription.messageSent && subscription.state === SubscriptionState.LATE;
     });
 
@@ -533,7 +587,7 @@ ServerSidePublishEngine.prototype.findSubscriptionWaitingForFirstPublish = funct
     return null;
 };
 
-function compare_subscriptions(s1,s2) {
+function compare_subscriptions(s1, s2) {
 
     if (s1.priority === s2.priority) {
 
@@ -542,67 +596,102 @@ function compare_subscriptions(s1,s2) {
     return s1.priority > s2.priority;
 }
 
-ServerSidePublishEngine.prototype.findLateSubscriptions= function () {
+ServerSidePublishEngine.prototype.findLateSubscriptions = function () {
     return _.filter(this._subscriptions, function (subscription) {
-        return subscription.state === SubscriptionState.LATE  && subscription.publishingEnabled;//&& subscription.hasMonitoredItemNotifications;
+        return subscription.state === SubscriptionState.LATE && subscription.publishingEnabled;//&& subscription.hasMonitoredItemNotifications;
     });
 };
 
-ServerSidePublishEngine.prototype.__defineGetter__("hasLateSubscriptions",function(){
+ServerSidePublishEngine.prototype.__defineGetter__("hasLateSubscriptions", function () {
     return this.findLateSubscriptions().length > 0;
 });
 
-ServerSidePublishEngine.prototype.findLateSubscriptionSortedByPriority= function () {
+ServerSidePublishEngine.prototype.findLateSubscriptionSortedByPriority = function () {
 
-    var late_subscriptions = this.findLateSubscriptions();
-    if (late_subscriptions.length ===0 ) {
+    const late_subscriptions = this.findLateSubscriptions();
+    if (late_subscriptions.length === 0) {
         return null;
     }
     late_subscriptions.sort(compare_subscriptions);
 
     // istanbul ignore next
-    if (false) {
-        console.log(late_subscriptions.map(function(s){
+    if (doDebug) {
+        debugLog(late_subscriptions.map(function (s) {
             return "[ id = " + s.id +
                 " prio=" + s.priority +
                 " t=" + s.timeToExpiration +
-                    " ka=" + s.timeToKeepAlive +
-                " m?=" + s.hasMonitoredItemNotifications + "]";}).join(" \n"));
+                " ka=" + s.timeToKeepAlive +
+                " m?=" + s.hasMonitoredItemNotifications + "]";
+        }).join(" \n"));
     }
-    return late_subscriptions[late_subscriptions.length-1];
+    return late_subscriptions[late_subscriptions.length - 1];
 };
 
 ServerSidePublishEngine.prototype.findLateSubscriptionsSortedByAge = function () {
 
-    var late_subscriptions = this.findLateSubscriptions();
+    let late_subscriptions = this.findLateSubscriptions();
     late_subscriptions = _(late_subscriptions).sortBy("timeToExpiration");
 
     return late_subscriptions;
 };
 
-ServerSidePublishEngine.transferSubscription = function(subscription,destPublishEngine,sendInitialValues) {
+/**
+ * @method transferSubscription
+ *
+ * @param subscription
+ * @param destPublishEngine
+ * @param sendInitialValues {boolean} true if initial values should be sent
+ * @return {void}
+ * @private
+ */
+ServerSidePublishEngine.transferSubscription= function (subscription, destPublishEngine, sendInitialValues) {
 
-    var self = this;
-    var srcPublishEngine = subscription.publishEngine;
+    const srcPublishEngine = subscription.publishEngine;
 
-    console.log("ServerSidePublishEngine.transferSubscription  =<".bgWhite.red ,self.pendingPublishRequestCount );
+    assert(!destPublishEngine.getSubscriptionById(subscription.id));
+    assert(srcPublishEngine.getSubscriptionById(subscription.id));
+
+
+    debugLog("ServerSidePublishEngine.transferSubscription live subscriptionId =".cyan, subscription.subscriptionId);
+
     subscription.notifyTransfer();
-
     destPublishEngine.add_subscription(srcPublishEngine.detach_subscription(subscription));
     subscription.resetLifeTimeCounter();
     if (sendInitialValues) {
         subscription.resendInitialValues();
     }
+
+    assert(destPublishEngine.getSubscriptionById(subscription.id));
+    assert(!srcPublishEngine.getSubscriptionById(subscription   .id));
+
+
 };
 
-ServerSidePublishEngine.transferSubscriptions = function(srcPublishEngine,destPublishEngine) {
+/**
+ * @method transferSubscriptionsToOrphan
+ * @param srcPublishEngine {ServerSidePublishEngine}
+ * @param destPublishEngine {ServerSidePublishEngine}
+ * @return void
+ * @private
+ * @static
+ */
+ServerSidePublishEngine.transferSubscriptionsToOrphan = function (srcPublishEngine, destPublishEngine) {
 
-    var tmp = srcPublishEngine._subscriptions;
-    _.forEach(tmp,function(subscription){
+    debugLog("ServerSidePublishEngine#transferSubscriptionsToOrphan! start transferring long live subscriptions to orphan".yellow);
+    const tmp = srcPublishEngine._subscriptions;
+    _.forEach(tmp, function (subscription) {
         assert(subscription.publishEngine === srcPublishEngine);
-        ServerSidePublishEngine.transferSubscription(subscription,destPublishEngine,false);
+
+        if (subscription.$session) {
+            subscription.$session._unexposeSubscriptionDiagnostics(subscription);
+        } else {
+            console.warn("Warning:  subscription",subscription.id," has no session attached!!!");
+        }
+
+        ServerSidePublishEngine.transferSubscription(subscription, destPublishEngine, false);
     });
     assert(srcPublishEngine.subscriptionCount === 0);
+    debugLog("ServerSidePublishEngine#transferSubscriptionsToOrphan! end transferring long lived subscriptions to orphan".yellow);
 };
 
 exports.ServerSidePublishEngine = ServerSidePublishEngine;

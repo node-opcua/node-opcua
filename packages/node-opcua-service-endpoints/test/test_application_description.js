@@ -1,11 +1,11 @@
-var ApplicationDescription = require("..").ApplicationDescription;
-var ApplicationType = require("..").ApplicationType;
+const ApplicationDescription = require("..").ApplicationDescription;
+const ApplicationType = require("..").ApplicationType;
 
 describe("OPCUA Object creation", function () {
 
     it("should create a complex type with embedded type", function () {
 
-        var applicationDescription = new ApplicationDescription({
+        const applicationDescription = new ApplicationDescription({
             applicationUri: "application:uri",
             productUri: "uri:product",
             applicationName: {text: "MyApplication"},

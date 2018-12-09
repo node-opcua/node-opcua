@@ -1,76 +1,76 @@
 "use strict";
 
-var should = require("should");
-var assert = require("node-opcua-assert");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var ClientSession = opcua.ClientSession;
+const ClientSession = opcua.ClientSession;
 
-var ClientSubscription = opcua.ClientSubscription;
+const ClientSubscription = opcua.ClientSubscription;
 
-var OPCUAClient = opcua.OPCUAClient;
-var AttributeIds = opcua.AttributeIds;
-var makeNodeId = opcua.makeNodeId;
-var VariableIds = opcua.VariableIds;
+const OPCUAClient = opcua.OPCUAClient;
+const AttributeIds = opcua.AttributeIds;
+const makeNodeId = opcua.makeNodeId;
+const VariableIds = opcua.VariableIds;
 
 //xx opcua.utils.setDebugFlag(__filename,true);
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var port = 2000;
-var maxConnectionsPerEndpoint = 100;
-var maxAllowedSessionNumber   =  50;
+const port = 2000;
+const maxConnectionsPerEndpoint = 100;
+const maxAllowedSessionNumber = 50;
 
-var build_server_with_temperature_device = require("../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const build_server_with_temperature_device = require("../test_helpers/build_server_with_temperature_device")
+    .build_server_with_temperature_device;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Functional test : one server with many concurrent clients", function () {
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("Functional test : one server with many concurrent clients", function() {
+    let server, temperatureVariableId, endpointUrl;
 
-    var server, temperatureVariableId, endpointUrl;
+    this.timeout(Math.max(20000, this._timeout));
 
-    this.timeout(Math.max(20000,this._timeout));
-
-    var serverCertificateChain = null;
-    before(function (done) {
-
-        server = build_server_with_temperature_device({
-            port: port,
-            maxAllowedSessionNumber:  maxAllowedSessionNumber,
-            maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
-
-        }, function (err) {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            temperatureVariableId = server.temperatureVariableId;
-            serverCertificateChain = server.getCertificateChain();
-            done(err);
-        });
+    let serverCertificateChain = null;
+    before(function(done) {
+        server = build_server_with_temperature_device(
+            {
+                port: port,
+                maxAllowedSessionNumber: maxAllowedSessionNumber,
+                maxConnectionsPerEndpoint: maxConnectionsPerEndpoint
+            },
+            function(err) {
+                endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+                temperatureVariableId = server.temperatureVariableId;
+                serverCertificateChain = server.getCertificateChain();
+                done(err);
+            }
+        );
     });
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         done();
     });
 
-    afterEach(function (done) {
+    afterEach(function(done) {
         done();
     });
 
-    after(function (done) {
-        server.shutdown(function () {
+    after(function(done) {
+        server.shutdown(function() {
             done();
         });
     });
 
-    var expectedSubscriptionCount = 0;
+    const expectedSubscriptionCount = 0;
 
     function wait_randomly(callback) {
-       setTimeout(callback, Math.ceil(100+Math.random() * 1500));
+        setTimeout(callback, Math.ceil(100 + Math.random() * 1500));
     }
 
     function construct_client_scenario(data) {
-
-        var client = new OPCUAClient({
+        const client = new OPCUAClient({
             serverCertificate: serverCertificateChain,
             requestedSessionTimeout: 120 * 1000
         });
@@ -78,17 +78,16 @@ describe("Functional test : one server with many concurrent clients", function (
         data.client = client;
         data.nb_received_changed_event = 0;
 
-        var name = data.name;
+        const name = data.name;
 
         debugLog(" configuring ", data.name);
 
-        var tasks = [
-
+        const tasks = [
             wait_randomly,
 
             // connect the client
-            function (callback) {
-                client.connect(endpointUrl, function (err) {
+            function(callback) {
+                client.connect(endpointUrl, function(err) {
                     debugLog(" Connecting client ", name);
                     callback(err);
                 });
@@ -96,8 +95,8 @@ describe("Functional test : one server with many concurrent clients", function (
             wait_randomly,
 
             // create the session
-            function (callback) {
-                client.createSession(function (err, session) {
+            function(callback) {
+                client.createSession(function(err, session) {
                     debugLog(" session created for ", name);
                     data.session = session;
                     debugLog(" Error =".yellow.bold, err);
@@ -109,48 +108,52 @@ describe("Functional test : one server with many concurrent clients", function (
             wait_randomly,
 
             // create a monitor item
-            function (callback) {
-
+            function(callback) {
                 debugLog(" Creating monitored Item for client", name);
-                var session = data.session;
+                const session = data.session;
                 assert(session instanceof ClientSession);
 
-                var subscription = new ClientSubscription(session, {
+                const subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 200,
-                    requestedLifetimeCount:      10 * 60 * 10,
-                    requestedMaxKeepAliveCount:  10,
-                    maxNotificationsPerPublish:  200,
+                    requestedLifetimeCount: 10 * 60 * 10,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 200,
                     publishingEnabled: true,
                     priority: 6
                 });
 
-                subscription.on("started", function () {
-                    debugLog("subscription started".yellow.bold, name.cyan, expectedSubscriptionCount, server.currentSubscriptionCount);
+                subscription.on("started", function() {
+                    debugLog(
+                        "subscription started".yellow.bold,
+                        name.cyan,
+                        expectedSubscriptionCount,
+                        server.currentSubscriptionCount
+                    );
                 });
 
-                subscription.on("terminated", function () {
+                subscription.on("terminated", function() {
                     debugLog("subscription terminated".red.bold, name);
                 });
 
-                var monitoredItem = subscription.monitor(
+                const monitoredItem = subscription.monitor(
                     {
                         nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
                         attributeId: AttributeIds.Value
                     },
-                    {samplingInterval: 50, discardOldest: true, queueSize: 1});
-
+                    { samplingInterval: 50, discardOldest: true, queueSize: 1 }
+                );
 
                 // subscription.on("item_added",function(monitoredItem){
-                monitoredItem.on("initialized", function () {
+                monitoredItem.on("initialized", function() {
                     //xx console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
                 });
 
-                var counter = 0;
-                monitoredItem.on("changed", function (dataValue) {
+                let counter = 0;
+                monitoredItem.on("changed", function(dataValue) {
                     debugLog(" client ", name, " received value change ", dataValue.value.value);
                     data.nb_received_changed_event += 1;
-                    counter ++;
-                    if(counter === 2) {
+                    counter++;
+                    if (counter === 2) {
                         callback();
                     }
                 });
@@ -160,8 +163,8 @@ describe("Functional test : one server with many concurrent clients", function (
             wait_randomly,
 
             // closing  session
-            function (callback) {
-                data.session.close(function (err) {
+            function(callback) {
+                data.session.close(function(err) {
                     debugLog(" closing session for  ", name);
                     callback(err);
                 });
@@ -170,8 +173,8 @@ describe("Functional test : one server with many concurrent clients", function (
             wait_randomly,
 
             // disconnect the client
-            function (callback) {
-                client.disconnect(function (err) {
+            function(callback) {
+                client.disconnect(function(err) {
                     debugLog(" client ", name, " disconnected");
                     callback(err);
                 });
@@ -180,40 +183,44 @@ describe("Functional test : one server with many concurrent clients", function (
         return tasks;
     }
 
+    it(
+        "it should allow " + maxAllowedSessionNumber + " clients to connect and concurrently monitor some nodeId",
+        function(done) {
+            const nb_clients = server.maxAllowedSessionNumber;
 
-    it("it should allow " + maxAllowedSessionNumber + " clients to connect and concurrently monitor some nodeId", function (done) {
+            const clients = [];
 
+            for (let i = 0; i < nb_clients; i++) {
+                const data = {};
+                data.name = "client " + i;
+                data.tasks = construct_client_scenario(data);
+                clients.push(data);
+            }
 
-        var nb_clients = server.maxAllowedSessionNumber;
+            async.map(
+                clients,
+                function(data, callback) {
+                    async.series(data.tasks, function(err) {
+                        callback(err, data.nb_received_changed_event);
+                    });
+                },
+                function(err, results) {
+                    results.forEach(function(nb_received_changed_event, index, array) {
+                        nb_received_changed_event.should.be.greaterThan(
+                            1,
+                            "client " +
+                                index +
+                                " has received " +
+                                nb_received_changed_event +
+                                " events ( expecting at least 2)"
+                        );
+                    });
 
-
-        var clients = [];
-
-        for (var i = 0; i < nb_clients; i++) {
-            var data = {};
-            data.name = "client " + i;
-            data.tasks = construct_client_scenario(data);
-            clients.push(data);
+                    // also check that server has properly closed all subscriptions
+                    server.currentSubscriptionCount.should.eql(0);
+                    done(err);
+                }
+            );
         }
-
-        async.map(clients, function (data, callback) {
-
-            async.series(data.tasks, function (err) {
-                callback(err, data.nb_received_changed_event);
-            });
-
-        }, function (err, results) {
-
-            results.forEach(function (nb_received_changed_event, index, array) {
-                nb_received_changed_event.should.be.greaterThan(1,
-                    'client ' + index + ' has received ' + nb_received_changed_event + ' events ( expecting at least 2)');
-            });
-
-            // also check that server has properly closed all subscriptions
-            server.currentSubscriptionCount.should.eql(0);
-            done(err);
-        });
-    });
-
+    );
 });
-

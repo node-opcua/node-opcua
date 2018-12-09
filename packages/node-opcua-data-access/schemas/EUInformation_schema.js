@@ -5,8 +5,8 @@
 // lowest value likely to be obtained in normal operation
 require("node-opcua-data-model");
 
-var defaultUri = "http://www.opcfoundation.org/UA/units/un/cefact";
-var EUInformation_Schema = {
+const defaultUri = "http://www.opcfoundation.org/UA/units/un/cefact";
+const EUInformation_Schema = {
     name: "EUInformation",
     fields: [
         {

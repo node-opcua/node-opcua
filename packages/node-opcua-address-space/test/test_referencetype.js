@@ -3,29 +3,29 @@
 require("should");
 
 
-var address_space = require("..");
-var AddressSpace = address_space.AddressSpace;
-var nodeid = require("node-opcua-nodeid");
-var NodeId = require("node-opcua-nodeid").NodeId;
+const address_space = require("..");
+const AddressSpace = address_space.AddressSpace;
+const nodeid = require("node-opcua-nodeid");
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-
-
-var _ = require("underscore");
-var redirectToFile = require("node-opcua-debug").redirectToFile;
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
 
-var context = require("..").SessionContext.defaultContext;
-var BaseNode = require("..").BaseNode;
+const _ = require("underscore");
+const redirectToFile = require("node-opcua-debug").redirectToFile;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
+const context = require("..").SessionContext.defaultContext;
+const BaseNode = require("..").BaseNode;
+
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ReferenceType", function () {
-    var addressSpace;
-    var rootFolder;
+    let addressSpace;
+    let rootFolder;
     before(function (done) {
         get_mini_address_space(function (err, data) {
 
@@ -53,7 +53,7 @@ describe("testing ReferenceType", function () {
 
     it("should find 'HierarchicalReferences'", function () {
 
-        var hr = addressSpace.findReferenceType("HierarchicalReferences");
+        const hr = addressSpace.findReferenceType("HierarchicalReferences");
         hr.browseName.toString().should.equal("HierarchicalReferences");
         hr.nodeId.toString().should.eql(nodeid.makeNodeId(33).toString());
 
@@ -61,8 +61,8 @@ describe("testing ReferenceType", function () {
 
     it("HierarchicalReferences should have an Abstract attribute set to true ", function () {
 
-        var hr = addressSpace.findReferenceType("HierarchicalReferences");
-        var v = hr.readAttribute(context, AttributeIds.IsAbstract);
+        const hr = addressSpace.findReferenceType("HierarchicalReferences");
+        const v = hr.readAttribute(context, AttributeIds.IsAbstract);
         v.statusCode.should.eql(StatusCodes.Good);
         v.value.dataType.should.eql(DataType.Boolean);
         v.value.value.should.eql(true);
@@ -71,23 +71,23 @@ describe("testing ReferenceType", function () {
 
     it("Organizes should have an Abstract attribute set to true ", function () {
 
-        var hr = addressSpace.findReferenceType("Organizes");
-        var v = hr.readAttribute(context, AttributeIds.IsAbstract);
+        const hr = addressSpace.findReferenceType("Organizes");
+        const v = hr.readAttribute(context, AttributeIds.IsAbstract);
         v.statusCode.should.eql(StatusCodes.Good);
         v.value.dataType.should.eql(DataType.Boolean);
         v.value.value.should.eql(false);
     });
 
     it("should find 'Organizes'", function () {
-        var organizes_refId = addressSpace.findReferenceType("Organizes");
+        const organizes_refId = addressSpace.findReferenceType("Organizes");
         organizes_refId.browseName.toString().should.equal("Organizes");
         organizes_refId.nodeId.toString().should.eql(nodeid.makeNodeId(35).toString());
     });
 
     it("'Organizes' should be a super type of 'HierarchicalReferences'", function () {
 
-        var hr = addressSpace.findReferenceType("HierarchicalReferences");
-        var organizes_refId = addressSpace.findReferenceType("Organizes");
+        const hr = addressSpace.findReferenceType("HierarchicalReferences");
+        const organizes_refId = addressSpace.findReferenceType("Organizes");
 
         organizes_refId.isSupertypeOf(hr).should.eql(true);
         hr.isSupertypeOf(organizes_refId).should.eql(false);
@@ -96,8 +96,8 @@ describe("testing ReferenceType", function () {
 
     it("'HasTypeDefinition' should *not* be a super-type of 'HierarchicalReferences'", function () {
 
-        var hr = addressSpace.findReferenceType("HierarchicalReferences");
-        var hasTypeDefinition_refId = addressSpace.findReferenceType("HasTypeDefinition");
+        const hr = addressSpace.findReferenceType("HierarchicalReferences");
+        const hasTypeDefinition_refId = addressSpace.findReferenceType("HasTypeDefinition");
 
         hasTypeDefinition_refId.isSupertypeOf(hr).should.eql(false);
         hr.isSupertypeOf(hasTypeDefinition_refId).should.eql(false);
@@ -106,8 +106,8 @@ describe("testing ReferenceType", function () {
 
     it("'HasTypeDefinition' should  be a super-type of 'NonHierarchicalReferences'", function () {
 
-        var nhr = addressSpace.findReferenceType("NonHierarchicalReferences");
-        var hasTypeDefinition_refId = addressSpace.findReferenceType("HasTypeDefinition");
+        const nhr = addressSpace.findReferenceType("NonHierarchicalReferences");
+        const hasTypeDefinition_refId = addressSpace.findReferenceType("HasTypeDefinition");
 
         hasTypeDefinition_refId.isSupertypeOf(nhr).should.eql(true);
         nhr.isSupertypeOf(hasTypeDefinition_refId).should.eql(false);
@@ -117,7 +117,7 @@ describe("testing ReferenceType", function () {
 
     it("should return 4 refs for browseNode on RootFolder ,  referenceTypeId=null,!includeSubtypes  ", function () {
 
-        var references = rootFolder.browseNode({
+        const references = rootFolder.browseNode({
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: null,
             includeSubtypes: false,
@@ -126,16 +126,16 @@ describe("testing ReferenceType", function () {
         });
         references.length.should.be.greaterThan(2);
 
-        var names = references.map(function (ref) {
+        const names = references.map(function (ref) {
             return addressSpace.findNode(ref.nodeId).browseName.toString();
         });
-        var expectedNames = ["FolderType", "Objects", "Types", "Views"];
+        const expectedNames = ["FolderType", "Objects", "Types", "Views"];
         _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
 
     it("should return 1 refs for browseNode on RootFolder ,  NonHierarchicalReferences, includeSubtypes  ", function () {
 
-        var references = rootFolder.browseNode({
+        const references = rootFolder.browseNode({
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: "NonHierarchicalReferences",
             includeSubtypes: true,
@@ -147,7 +147,7 @@ describe("testing ReferenceType", function () {
 
     it("should return 3 refs for browseNode on RootFolder , Organizes ,!includeSubtypes  ", function () {
 
-        var references = rootFolder.browseNode({
+        const references = rootFolder.browseNode({
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: "Organizes",
             includeSubtypes: false,
@@ -156,23 +156,23 @@ describe("testing ReferenceType", function () {
         });
         references.length.should.be.greaterThan(2);
 
-        var names = references.map(function (ref) {
+        const names = references.map(function (ref) {
             return addressSpace.findNode(ref.nodeId).browseName.toString();
         });
-        var expectedNames = ["Objects", "Types", "Views"];
+        const expectedNames = ["Objects", "Types", "Views"];
         _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
 
     it("should return 0 refs for browseNode on RootFolder , HierarchicalReferences ,!includeSubtypes  ", function () {
 
-        var references = rootFolder.browseNode({
+        const references = rootFolder.browseNode({
             browseDirection: BrowseDirection.Both,
             referenceTypeId: "HierarchicalReferences",
             includeSubtypes: false,
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3F
         });
-        var browseNames = references.map(function (r) {
+        const browseNames = references.map(function (r) {
             return r.browseName.name;
         });
         browseNames.length.should.be.equal(0);
@@ -183,10 +183,10 @@ describe("testing ReferenceType", function () {
 
     it("should return 3 refs for browseNode on RootFolder , HierarchicalReferences , includeSubtypes  ", function () {
 
-        var serverStatus = rootFolder.objects.server.serverStatus;
+        const serverStatus = rootFolder.objects.server.serverStatus;
         serverStatus.browseName.toString().should.equal("ServerStatus");
 
-        var references = rootFolder.browseNode({
+        const references = rootFolder.browseNode({
             browseDirection: BrowseDirection.Both,
             referenceTypeId: "HierarchicalReferences",
             includeSubtypes: true,
@@ -198,24 +198,24 @@ describe("testing ReferenceType", function () {
 
     it("should return 6 refs for browseNode on ServerStatus (BrowseDirection.Forward)", function () {
 
-        var serverStatus = rootFolder.objects.server.serverStatus;
+        const serverStatus = rootFolder.objects.server.serverStatus;
         serverStatus.browseName.toString().should.equal("ServerStatus");
 
-        var references = serverStatus.browseNode({
+        const references = serverStatus.browseNode({
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: "HierarchicalReferences",
             includeSubtypes: true,
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3F
         });
-        var browseNames = references.map(function (r) {
+        const browseNames = references.map(function (r) {
             return r.browseName.name;
         });
         //xx console.log("              " + browseNames.join(" , "));
 
         references.length.should.equal(6);
 
-        var expectedBrowseNames = ['StartTime', 'CurrentTime', 'State', 'BuildInfo', 'SecondsTillShutdown', 'ShutdownReason'];
+        const expectedBrowseNames = ['StartTime', 'CurrentTime', 'State', 'BuildInfo', 'SecondsTillShutdown', 'ShutdownReason'];
 
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
@@ -223,11 +223,11 @@ describe("testing ReferenceType", function () {
 
     it("ServerStatus parent shall be Server", function (done) {
 
-        var server = rootFolder.objects.server;
+        const server = rootFolder.objects.server;
         server.browseName.toString().should.equal("Server");
         server.nodeId.toString().should.equal("ns=0;i=2253");
 
-        var serverStatus = server.serverStatus;
+        const serverStatus = server.serverStatus;
         serverStatus.browseName.toString().should.equal("ServerStatus");
         serverStatus.nodeId.toString().should.equal("ns=0;i=2256");
 
@@ -238,9 +238,9 @@ describe("testing ReferenceType", function () {
 
     it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)", function (done) {
 
-        var serverStatus = rootFolder.objects.server.serverStatus;
+        const serverStatus = rootFolder.objects.server.serverStatus;
 
-        var references = serverStatus.browseNode({
+        const references = serverStatus.browseNode({
             browseDirection: BrowseDirection.Inverse,
             referenceTypeId: "HierarchicalReferences",
             includeSubtypes: true,
@@ -248,18 +248,18 @@ describe("testing ReferenceType", function () {
             resultMask: 0x3F
         });
 
-        var browseNames = references.map(function (r) {
+        const browseNames = references.map(function (r) {
             return r.browseName.name;
         });
         console.log("             browseNames :  " + browseNames.join(" , "));
 
         //xx references.length.should.equal(7);
-        var expectedBrowseNames = ['Server'];
+        const expectedBrowseNames = ['Server'];
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
         redirectToFile("ReferenceDescription1.log", function () {
             _.isArray(references).should.eql(true);
-            var dump = require("../src/base_node").dumpReferenceDescriptions;
+            const dump = require("../src/base_node").dumpReferenceDescriptions;
             dump(addressSpace, references);
         }, done);
     });
@@ -267,9 +267,9 @@ describe("testing ReferenceType", function () {
 
     it("should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)", function (done) {
 
-        var serverStatus = rootFolder.objects.server.serverStatus;
+        const serverStatus = rootFolder.objects.server.serverStatus;
 
-        var references = serverStatus.browseNode({
+        const references = serverStatus.browseNode({
             browseDirection: BrowseDirection.Both,
             referenceTypeId: "HierarchicalReferences",
             includeSubtypes: true,
@@ -277,18 +277,18 @@ describe("testing ReferenceType", function () {
             resultMask: 0x3F
         });
 
-        var browseNames = references.map(function (r) {
+        const browseNames = references.map(function (r) {
             return r.browseName.name;
         });
 
         //xx console.log("              " + browseNames.join(" , "));
 
-        var expectedBrowseNames = ['StartTime', 'CurrentTime', 'State', 'BuildInfo', 'SecondsTillShutdown', 'ShutdownReason', 'Server'];
+        const expectedBrowseNames = ['StartTime', 'CurrentTime', 'State', 'BuildInfo', 'SecondsTillShutdown', 'ShutdownReason', 'Server'];
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
         redirectToFile("ReferenceDescription2.log", function () {
             _.isArray(references).should.eql(true);
-            var dump = require("../src/base_node").dumpReferenceDescriptions;
+            const dump = require("../src/base_node").dumpReferenceDescriptions;
             dump(addressSpace, references);
         }, done);
 
@@ -296,9 +296,9 @@ describe("testing ReferenceType", function () {
 
     it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)", function () {
 
-        var serverStatus = rootFolder.objects.server.serverStatus;
+        const serverStatus = rootFolder.objects.server.serverStatus;
 
-        var references = serverStatus.browseNode({
+        const references = serverStatus.browseNode({
             browseDirection: BrowseDirection.Inverse,
             referenceTypeId: "HierarchicalReferences",
             includeSubtypes: true,
@@ -307,23 +307,23 @@ describe("testing ReferenceType", function () {
         });
 
         references.length.should.equal(1);
-        var browseNames = references.map(function (r) {
+        const browseNames = references.map(function (r) {
             return r.browseName.name;
         });
-        var expectedBrowseNames = ['Server'];
+        const expectedBrowseNames = ['Server'];
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
     });
 
     it("should return 1 refs for browseNode on Server (BrowseDirection.Forward) and NodeClass set to Method", function () {
 
-        var makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
-        var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-        var mask = makeNodeClassMask("Method");
+        const makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
+        const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+        const mask = makeNodeClassMask("Method");
 
-        var server = rootFolder.objects.server;
+        const server = rootFolder.objects.server;
         server.browseName.toString().should.equal("Server");
 
-        var references = server.browseNode({
+        const references = server.browseNode({
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: "HierarchicalReferences",
             includeSubtypes: true,
@@ -331,25 +331,25 @@ describe("testing ReferenceType", function () {
             resultMask: 0x3F
         });
 
-        var browseNames = references.map(function (r) {
+        const browseNames = references.map(function (r) {
             return r.browseName.name;
         });
 
         references.length.should.equal(1);
 
-        var expectedBrowseNames = ['GetMonitoredItems'];
+        const expectedBrowseNames = ['GetMonitoredItems'];
         _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
 
     });
 
     it("ReferenceType should have a toString (HierarchicalReferences)", function () {
-        var hr = addressSpace.findReferenceType("HierarchicalReferences");
+        const hr = addressSpace.findReferenceType("HierarchicalReferences");
 
         hr.toString().should.eql("A  HierarchicalReferences/HierarchicalReferences ns=0;i=33");
     });
 
     it("ReferenceType should have a toString (Organizes)", function () {
-        var hr = addressSpace.findReferenceType("Organizes");
+        const hr = addressSpace.findReferenceType("Organizes");
 
         hr.toString().should.eql("   Organizes/OrganizedBy ns=0;i=35");
     });
@@ -360,16 +360,16 @@ describe("testing ReferenceType", function () {
     it("ReferenceType#getAllSubtypes should extract all possible referenceType ", function () {
 
 
-        var hr = addressSpace.findReferenceType("HierarchicalReferences");
-        var derivedTypes = hr.getAllSubtypes();
+        const hr = addressSpace.findReferenceType("HierarchicalReferences");
+        let derivedTypes = hr.getAllSubtypes();
 
-        var s = derivedTypes.map(function (r) {
+        let s = derivedTypes.map(function (r) {
             return r.browseName.toString();
         }).join(" ");
         s.should.eql("HierarchicalReferences HasChild Aggregates HasProperty HasComponent HasOrderedComponent HasHistoricalConfiguration HasSubtype Organizes HasEventSource HasNotifier");
         //xx console.log(s);
 
-        var aggregates = addressSpace.findReferenceType("Aggregates");
+        const aggregates = addressSpace.findReferenceType("Aggregates");
         derivedTypes = aggregates.getAllSubtypes();
         s = derivedTypes.map(function (r) {
             return r.browseName.toString();
@@ -399,9 +399,9 @@ describe("testing ReferenceType", function () {
         browseDirection = browseDirection || BrowseDirection.Forward;
         _is_valid_BrowseDirection(browseDirection).should.eql(true);
 
-        var addressSpace = this.addressSpace;
+        const addressSpace = this.addressSpace;
 
-        var referenceType = addressSpace.findReferenceType(strReference);
+        const referenceType = addressSpace.findReferenceType(strReference);
         if (!referenceType) {
             // note: when loading nodeset2.xml files, reference type may not exit yet
             // throw new Error("expecting valid reference name " + strReference);
@@ -409,7 +409,7 @@ describe("testing ReferenceType", function () {
         }
         referenceType.nodeId.should.be.instanceOf(NodeId);
 
-        var browseResults = this.browseNode({
+        const browseResults = this.browseNode({
             browseDirection: browseDirection,
             referenceTypeId: referenceType.nodeId,
             includeSubtypes: true,
@@ -421,13 +421,13 @@ describe("testing ReferenceType", function () {
 
     it("BaseNode#findReferencesEx should be fast ", function (done) {
 
-        var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
+        const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
         this.timeout(Math.max(this._timeout, 100000));
 
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
 
-        var server = addressSpace.findNode("i=63");//rootFolder.objects.server;
+        const server = addressSpace.findNode("i=63");//rootFolder.objects.server;
 
         //xx console.log("referenceTypes",referenceTypes.map(function(e){return e.browseName;}));
         bench.add("findReferencesEx slow", function () {
@@ -468,7 +468,7 @@ describe("testing ReferenceType", function () {
 describe(" improving performance of isSupertypeOf", function () {
 
 
-    var NodeClass = require("node-opcua-data-model").NodeClass;
+    const NodeClass = require("node-opcua-data-model").NodeClass;
     //  References i=31
     //  +->(hasSubtype) NoHierarchicalReferences
     //                  +->(hasSubtype) HasTypeDefinition
@@ -481,13 +481,13 @@ describe(" improving performance of isSupertypeOf", function () {
     //                                 +->(hasSubtype) HasSubtype/HasSupertype
     //                  +->(hasSubtype) Organizes/OrganizedBy
     //                  +->(hasSubtype) HasEventSource/EventSourceOf
-    var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
+    const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
-    var referenceTypeNames = Object.keys(require("node-opcua-constants").ReferenceTypeIds);
+    const referenceTypeNames = Object.keys(require("node-opcua-constants").ReferenceTypeIds);
 
-    var referenceTypes = [];
+    let referenceTypes = [];
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         get_mini_address_space(function (err, data) {
 
@@ -520,10 +520,10 @@ describe(" improving performance of isSupertypeOf", function () {
     it("should ensure that optimized version of isSupertypeOf produce same result as brute force version", function (done) {
 
         referenceTypes.forEach(function (referenceType) {
-            var flags1 = referenceTypes.map(function (refType) {
+            const flags1 = referenceTypes.map(function (refType) {
                 return referenceType.isSupertypeOf(refType);
             });
-            var flags2 = referenceTypes.map(function (refType) {
+            const flags2 = referenceTypes.map(function (refType) {
                 return referenceType._slow_isSupertypeOf(refType);
             });
 
@@ -539,7 +539,7 @@ describe(" improving performance of isSupertypeOf", function () {
 
         this.timeout(Math.max(this._timeout, 100000));
 
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
 
         //xx console.log("referenceTypes",referenceTypes.map(function(e){return e.browseName;}));
         bench.add("isSupertypeOf slow", function () {
@@ -587,19 +587,19 @@ describe(" improving performance of isSupertypeOf", function () {
             }).join(",");
         }
 
-        var nhr = addressSpace.findReferenceType("NonHierarchicalReferences");
+        const nhr = addressSpace.findReferenceType("NonHierarchicalReferences");
         nhr.browseName.toString().should.eql("NonHierarchicalReferences");
 
         //xx console.log(allSubTypes(nhr));
 
         allSubTypes(nhr).indexOf("NonHierarchicalReferences").should.be.aboveOrEqual(0);
 
-        var hasTypeDefinition = addressSpace.findReferenceType("HasTypeDefinition");
+        const hasTypeDefinition = addressSpace.findReferenceType("HasTypeDefinition");
 
         hasTypeDefinition.isSupertypeOf(nhr).should.eql(true);
         nhr.isSupertypeOf(hasTypeDefinition).should.eql(false);
 
-        var flowTo = addressSpace.addReferenceType({
+        const flowTo = addressSpace.getOwnNamespace().addReferenceType({
             browseName: "FlowTo",
             inverseName: "FlowFrom",
             isAbstract: false,

@@ -1,13 +1,16 @@
 {
  "name": "node-opcua-assert",
- "version": "0.1.0-4",
+ "version": "0.5.0",
  "description": "pure nodejs OPCUA SDK - module -assert",
- "main": "index.js",
+ "main": "dist/index.js",
+ "types": "dist/index.d.ts",
  "scripts": {
+  "build": "tsc",
   "test": "echo nothing to do"
  },
  "dependencies": {
-  "better-assert": "^1.0.2"
+  "better-assert": "^1.0.2",
+  "chalk": "^2.4.1"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

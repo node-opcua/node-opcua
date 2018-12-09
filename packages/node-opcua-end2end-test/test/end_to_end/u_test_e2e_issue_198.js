@@ -1,9 +1,9 @@
 /*global describe, it, require*/
 "use strict";
-var async = require("async");
-var should = require("should");
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const async = require("async");
+const should = require("should");
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
 
 module.exports = function (test) {
@@ -16,13 +16,13 @@ module.exports = function (test) {
 
         it("#198 Server should handle client createSession without complaining if client's provided sessionName is null or undefined", function (done) {
 
-            var server = test.server;
-            var the_session;
+            const server = test.server;
+            let the_session;
             if (!server) { return done(); }
 
 
-            var client1 = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client1 = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
             // Hijack internal method _nextSessionName to return null !
             client1._nextSessionName = function() {

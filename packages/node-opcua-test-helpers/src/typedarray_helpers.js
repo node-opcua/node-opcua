@@ -1,15 +1,15 @@
-var _ = require("underscore");
+const _ = require("underscore");
 
 function __isEqual(a,b) {
    if (!a && !b) { return true; }
    return a.toString() === b.toString();
 }
 function _is_equal(arr1, arr2) {
-
     if (arr1.length !== arr2.length) {
         return false;
     }
-    var i, n = arr1.length;
+    let i;
+    const n = arr1.length;
     for (i = 0; i < n; i++) {
         //if (!_.isEqual(arr1[i], arr2[i])) {
 	if (!__isEqual(arr1[i],arr2[i])) {
@@ -22,8 +22,9 @@ function _is_equal(arr1, arr2) {
     return true;
 }
 function dump_array(arr) {
-    var a = [];
-    var i, n = arr.length;
+    const a = [];
+    let i;
+    const n = arr.length;
     for (i = 0; i < n; i++) {
         a.push(arr[i]);
     }

@@ -1,11 +1,12 @@
 "use strict";
 
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
+const Namespace = require("../namespace").Namespace;
 
-var DataType = require("node-opcua-variant").DataType;
+const DataType = require("node-opcua-variant").DataType;
 
 /**
  * @module opcua.address_space
@@ -13,7 +14,7 @@ var DataType = require("node-opcua-variant").DataType;
 
 exports.install = function (AddressSpace) {
 
-    var UAObjectType = require("./../ua_object_type").UAObjectType;
+    const UAObjectType = require("./../ua_object_type").UAObjectType;
     /**
      * @class AddressSpace
      * @method addState
@@ -21,11 +22,16 @@ exports.install = function (AddressSpace) {
      * @param stateName   {string}
      * @param stateNumber {number}
      * @param isInitialState {boolean}
-     * @returns {UAObject} {StateType|InitialStateType}
+     * @return {UAObject} {StateType|InitialStateType}
      */
     AddressSpace.prototype.addState = function (component, stateName, stateNumber, isInitialState) {
+        return this.getOwnNamespace().addState(component, stateName, stateNumber, isInitialState);
+    };
 
-        var addressSpace = this;
+    Namespace.prototype.addState = function (component, stateName, stateNumber, isInitialState) {
+
+        const namespace = this;
+        const addressSpace = namespace.addressSpace;
 
         isInitialState = !!isInitialState;
 
@@ -33,10 +39,10 @@ exports.install = function (AddressSpace) {
         assert(_.isString(stateName));
         assert(_.isBoolean(isInitialState));
 
-        var initialStateType = addressSpace.findObjectType("InitialStateType");
-        var stateType = addressSpace.findObjectType("StateType");
+        const initialStateType = addressSpace.findObjectType("InitialStateType");
+        const stateType = addressSpace.findObjectType("StateType");
 
-        var state;
+        let state;
         if (isInitialState) {
             state = initialStateType.instantiate({
                 browseName: stateName,
@@ -66,15 +72,20 @@ exports.install = function (AddressSpace) {
      * @return {UAObject}  TransitionType
      */
     AddressSpace.prototype.addTransition = function (component, fromState, toState, transitionNumber) {
+        this.getOwnNamespace().addTransition(component, fromState, toState, transitionNumber);
 
-        var addressSpace = this;
+    };
+
+    Namespace.prototype.addTransition = function (component, fromState, toState, transitionNumber) {
+        const namespace = this;
+        const addressSpace = namespace.addressSpace;
 
         assert(component instanceof UAObjectType);
         assert(_.isString(fromState));
         assert(_.isString(toState));
         assert(_.isFinite(transitionNumber));
 
-        var fromStateNode = component.getComponentByName(fromState);
+        const fromStateNode = component.getComponentByName(fromState, component.nodeId.namespace);
 
         // istanbul ignore next
         if (!fromStateNode) {
@@ -82,7 +93,7 @@ exports.install = function (AddressSpace) {
         }
         assert(fromStateNode.browseName.name.toString() === fromState);
 
-        var toStateNode = component.getComponentByName(toState);
+        const toStateNode = component.getComponentByName(toState);
 
         // istanbul ignore next
         if (!toStateNode) {
@@ -90,9 +101,9 @@ exports.install = function (AddressSpace) {
         }
         assert(toStateNode && toStateNode.browseName.name.toString() === toState);
 
-        var transitionType = addressSpace.findObjectType("TransitionType");
+        const transitionType = addressSpace.findObjectType("TransitionType");
 
-        var transition = transitionType.instantiate({
+        const transition = transitionType.instantiate({
             browseName: fromState + "To" + toState + "Transition",
             componentOf: component
         });

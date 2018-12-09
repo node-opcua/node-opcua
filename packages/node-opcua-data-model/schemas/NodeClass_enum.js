@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var EnumNodeClass_Schema = {
+const EnumNodeClass_Schema = {
     name: "NodeClass",
     documentation: "A mask specifying the class of the node.",
     enumValues: {

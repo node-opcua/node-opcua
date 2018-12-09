@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var BrowseNextResponse_Schema = {
+const BrowseNextResponse_Schema = {
     name: "BrowseNextResponse",
     documentation: "Browse the references for one or more nodes from the server address space.",
     fields: [

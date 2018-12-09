@@ -2,7 +2,7 @@
 require("node-opcua-numeric-range");
 require("node-opcua-data-value");
 
-var WriteValue_Schema = {
+const WriteValue_Schema = {
     name: "WriteValue",
     fields: [
         { name: "nodeId" ,       fieldType: "NodeId"},

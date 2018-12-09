@@ -1,18 +1,18 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var DeadbandType = require("../schemas/DeadbandType_enum").DeadbandType;
-var DataType = require("node-opcua-variant").DataType;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const DeadbandType = require("../schemas/DeadbandType_enum").DeadbandType;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
 function _differenceScalar(value1,value2,dataType,absoluteDeadband) {
 
-    var diff;
+    let diff;
     if (dataType === DataType.UInt64 || dataType === DataType.Int64) {
 
-        var h1 = value1[0]; // high
-        var h2 = value2[0];
+        const h1 = value1[0]; // high
+        const h2 = value2[0];
         if (h1 !== h2 ) {
             diff = (h1 - h2) * 4294967295;
             if (Math.abs(diff) > absoluteDeadband) {
@@ -43,8 +43,8 @@ function difference(v1,v2,absoluteDeadband) {
             return true;
         }
 
-        var n = v1.value.length;
-        var i =0;
+        const n = v1.value.length;
+        let i =0;
         for (i=0;i<n;i++) {
             if (_differenceScalar(v1.value[i],v2.value[i],v1.dataType,absoluteDeadband)) {
                 return true;
@@ -60,7 +60,7 @@ function difference(v1,v2,absoluteDeadband) {
 }
 
 /**
- * detect true
+ * @method check_deadband
  * @param variant1 {Variant}
  * @param variant2 {Variant}
  * @param deadbandType  {DeadbandType}

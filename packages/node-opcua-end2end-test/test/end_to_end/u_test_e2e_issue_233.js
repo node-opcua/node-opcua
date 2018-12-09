@@ -3,18 +3,18 @@
 
 //xx var sinon = require("sinon");
 //xx var async = require("async");
-var should = require("should");
-var opcua = require("node-opcua");
-var _ = require("underscore");
+const should = require("should");
+const opcua = require("node-opcua");
+const _ = require("underscore");
 
-var OPCUAClient = opcua.OPCUAClient;
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const OPCUAClient = opcua.OPCUAClient;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 // create a function that call the callback with an error if
 function create_time_bomb_function(timeout,callback) {
 
-    var time_bomb_func = function(err) {
+    const time_bomb_func = function(err) {
         if (timeoutId){
             clearTimeout(timeoutId);
             timeoutId=0;
@@ -38,32 +38,32 @@ module.exports = function (test) {
         console.log(" timeout =",this._timeout);
 
         // let's reduce the minimumSamplingInterval of ServerStatus to a small value, to speed up the test
-        var oldMinimumSamplingInterval = 0;
+        let oldMinimumSamplingInterval = 0;
         before(function() {
             if (test.server) {
-                var node = test.server.engine.addressSpace.findNode("i=2256");
+                const node = test.server.engine.addressSpace.findNode("i=2256");
                 oldMinimumSamplingInterval = node.minimumSamplingInterval;
                 node.minimumSamplingInterval = 10;
             }
         });
         after(function() {
             if (test.server) {
-                var node = test.server.engine.addressSpace.findNode("i=2256");
+                const node = test.server.engine.addressSpace.findNode("i=2256");
                 node.minimumSamplingInterval  = oldMinimumSamplingInterval;
             }
         });
 
 
-        it("a subscription should report monitored item notification for ServerStatus", function (done) {
+        it("KK1 a subscription should report monitored item notification for ServerStatus", function (done) {
 
 
-            var client = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
 
-                var monitoredItem = subscription.monitor({
+                const monitoredItem = subscription.monitor({
                     nodeId: opcua.resolveNodeId("ns=0;i=2256"), // ServerStatus Extension Object
                     attributeId: opcua.AttributeIds.Value
                 },{
@@ -80,13 +80,13 @@ module.exports = function (test) {
                     monitoredItem.monitoringParameters.samplingInterval.should.equal(100);
                 });
 
-                var timeout = 5000;
-                var time_bomb_inner_done = create_time_bomb_function(timeout,inner_done);
+                const timeout = 5000;
+                const time_bomb_inner_done = create_time_bomb_function(timeout,inner_done);
 
                 // time_bomb_inner_done => will terminate by calling inner_done with an error unless
                 // it has been called within the timeout interval.
 
-                var counter = 0;
+                let counter = 0;
                 monitoredItem.on("changed", function (dataValue) {
 
                     dataValue.value.value.should.have.ownProperty("buildInfo");
@@ -94,7 +94,7 @@ module.exports = function (test) {
                     dataValue.value.value.should.have.ownProperty("shutdownReason");
                     dataValue.value.value.constructor.name.should.eql("ServerStatus");
 
-                    console.log(dataValue.value.value.currentTime.toISOString());
+                    //xx console.log(dataValue.value.value.currentTime.toISOString());
                     //xx console.log("dataValue = ",dataValue.toString());
                     counter +=1;
                     if (counter>3) {
@@ -110,7 +110,3 @@ module.exports = function (test) {
 
     });
 };
-
-
-
-

@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var AddReferencesRequest_Schema = {
+const AddReferencesRequest_Schema = {
     name:"AddReferencesRequest",
     fields: [
         { name: "requestHeader",   fieldType: "RequestHeader",     documentation:"A standard header included in all requests sent to a server." },

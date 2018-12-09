@@ -6,7 +6,7 @@
  <opc:Field Name="DiagnosticInfos" TypeName="ua:DiagnosticInfo" LengthField="NoOfDiagnosticInfos" />
  </opc:StructuredType>
  */
-var SetMonitoringModeResponse_Schema = {
+const SetMonitoringModeResponse_Schema = {
     name: "SetMonitoringModeResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

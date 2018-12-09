@@ -1,17 +1,17 @@
 /*global describe, it, require*/
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var VariantArrayType = opcua.VariantArrayType;
-var DataType         = opcua.DataType;
-var StatusCodes = opcua.StatusCodes;
+const OPCUAClient = opcua.OPCUAClient;
+const VariantArrayType = opcua.VariantArrayType;
+const DataType         = opcua.DataType;
+const StatusCodes = opcua.StatusCodes;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
 module.exports = function (test) {
@@ -20,11 +20,11 @@ module.exports = function (test) {
 
         it("#223 - calling a method with one input argument", function (done) {
 
-            var client1 = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
-            var the_session;
-            var objectWithMethodsNodeId;
-            var methodIONodeId;
+            const client1 = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
+            let the_session;
+            let objectWithMethodsNodeId;
+            let methodIONodeId;
 
             async.series([
 
@@ -48,7 +48,7 @@ module.exports = function (test) {
 
                 function (callback) {
 
-                    var path  = opcua.makeBrowsePath("RootFolder","/Objects/Simulation/ObjectWithMethods");
+                    const path  = opcua.makeBrowsePath("RootFolder","/Objects/2:Simulation/2:ObjectWithMethods");
                     the_session.translateBrowsePath(path,function(err,results){
                         if (!err) {
                             if (results.targets.length > 0){
@@ -65,7 +65,7 @@ module.exports = function (test) {
 
 
                 function (callback) {
-                    var path  = opcua.makeBrowsePath(objectWithMethodsNodeId,".MethodIO");
+                    const path  = opcua.makeBrowsePath(objectWithMethodsNodeId,".2:MethodIO");
                     the_session.translateBrowsePath(path,function(err,results) {
                         if (!err) {
                             if (results.targets.length > 0){
@@ -85,7 +85,7 @@ module.exports = function (test) {
 
                 function (callback) {
 
-                    var methodsToCall = [];
+                    const methodsToCall = [];
                     methodsToCall.push({
                         objectId: objectWithMethodsNodeId,
                         methodId: methodIONodeId,

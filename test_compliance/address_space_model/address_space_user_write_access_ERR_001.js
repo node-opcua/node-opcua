@@ -1,5 +1,5 @@
 
-var assert = require("node-opcua-assert");
+var assert = require("node-opcua-assert").assert;
 var StatusCodes = require("node-opcua").StatusCode;
 
 //  Description: Write to a node whose AccessLevel does not contain write capabilities.
@@ -14,7 +14,7 @@ var StatusCodes = require("node-opcua").StatusCode;
 //        indexRange: null,
 //        dataEncoding: null
 //    });
-//    session.read(nodesToRead, function (err, unused, dataValues) {
+//    session.read(nodesToRead, function (err, dataValues) {
 //        // inspect(dataValues);
 //        // expected_value = dataValues[0].value.value[indexToFind];
 //        callback(err,dataValues);
@@ -27,7 +27,7 @@ function check_expecting_no_error_and_one_datavalue_with_statusGood(err,dataValu
         if (dataValues.length !== 1) {
             err = new Error(" Expecting 1 value in dataValues but got " + dataValues.length + " instead " + extra_message);
         } else {
-            if (dataValues[0].statusCode !== StatusCodes.Good) {
+            if (dataValues[0].statusCode.isNot(StatusCodes.Good)) {
                 err = new Error(" Expecting statusCode to be Good but  " + dataValues[0].statusCode.toString() + " instead "+ extra_message);
             }
         }
@@ -60,9 +60,9 @@ function read_attribute(session,nodeId,attributeId,callback) {
         indexRange: null,
         dataEncoding: null
     });
-    session.read(nodesToRead, function (err, unused, dataValues) {
+    session.read(nodesToRead, function (err, dataValues) {
 
-        check_expecting_no_error_and_one_datavalue_with_statusGood(err,dataValues," while reading " + nodeId.toString(),function(err,dataValues){
+        check_expecting_no_error_and_one_datavalue_with_statusGood(err, dataValues," while reading " + nodeId.toString(),function(err,dataValues){
 
             callback(err,dataValues[0]);
         });

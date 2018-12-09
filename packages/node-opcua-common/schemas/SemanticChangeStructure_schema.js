@@ -1,4 +1,4 @@
-var SemanticChangeStructure_Schema = {
+const SemanticChangeStructure_Schema = {
     id: "ns=0;i=899",
     name: "SemanticChangeStructure",
     fields: [

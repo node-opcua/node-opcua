@@ -1,18 +1,18 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var UAVariable = require("../ua_variable").UAVariable;
-var SessionContext = require("../session_context").SessionContext;
+const assert = require("node-opcua-assert").assert;
+const UAVariable = require("../ua_variable").UAVariable;
+const SessionContext = require("../session_context").SessionContext;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var historizing_service = require("node-opcua-service-history");
-var HistoryReadResult = historizing_service.HistoryReadResult;
+const historizing_service = require("node-opcua-service-history");
+const HistoryReadResult = historizing_service.HistoryReadResult;
 
 /**
  * @method historyRead
  * @param context {SessionContext}
  * @param historyReadDetails {HistoryReadDetails}
- * @param indexRange {NumericRange || null}
+ * @param indexRange {NumericRange |null}
  * @param dataEncoding {String}
  * @param continuationPoint {ByteString}
  * @param callback {Function}

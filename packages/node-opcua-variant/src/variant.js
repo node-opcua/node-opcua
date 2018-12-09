@@ -2,13 +2,13 @@
 /**
  * @module opcua.datamodel
  */
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
-var QualifiedName = require("node-opcua-data-model").QualifiedName;
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
-var DiagnosticInfo = require("node-opcua-data-model").DiagnosticInfo;
-var DataType = exports.DataType = require("../schemas/DataType_enum").DataType;
-var VariantArrayType = exports.VariantArrayType = require("../schemas/VariantArrayType_enum").VariantArrayType;
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
+const DiagnosticInfo = require("node-opcua-data-model").DiagnosticInfo;
+const DataType = exports.DataType = require("../schemas/DataType_enum").DataType;
+const VariantArrayType = exports.VariantArrayType = require("../schemas/VariantArrayType_enum").VariantArrayType;
 
 
 
@@ -17,16 +17,27 @@ var VariantArrayType = exports.VariantArrayType = require("../schemas/VariantArr
  * @class Variant
  *
  */
-var Variant = exports.Variant = require("../_generated_/_auto_generated_Variant").Variant;
+const Variant = exports.Variant = require("../_generated_/_auto_generated_Variant").Variant;
 exports.isValidVariant = require("../schemas/Variant_schema").isValidVariant;
+Variant.isValidVariant = exports.isValidVariant;
 
 function _coerceVariant(variantLike) {
-    var value =  (variantLike instanceof Variant) ? variantLike : new Variant(variantLike);
+    const value =  (variantLike instanceof Variant) ? variantLike : new Variant(variantLike);
     assert(value instanceof Variant);
     return value;
 }
 Variant.coerce = _coerceVariant;
 
+/**
+ * @method clone
+ *   deep clone a variant
+ *
+ * @return {exports.Variant}
+ */
+Variant.prototype.clone = function () {
+    return new this.constructor(this);
+};
 
-var factory = require("node-opcua-factory");
+
+const factory = require("node-opcua-factory");
 factory.registerSpecialVariantEncoder(Variant);

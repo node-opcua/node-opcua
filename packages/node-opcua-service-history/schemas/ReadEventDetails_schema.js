@@ -1,6 +1,6 @@
 require("node-opcua-service-filter");
 // <   BaseType="ua:">
-var ReadEventDetails_Schema = {
+const ReadEventDetails_Schema = {
     name: "ReadEventDetails",
     baseType: "HistoryReadDetails",
     fields: [

@@ -1,18 +1,21 @@
 
-var assert = require("node-opcua-assert");
-var EventEmitter = require("events").EventEmitter;
-var util = require("util");
+const assert = require("node-opcua-assert").assert;
+const EventEmitter = require("events").EventEmitter;
+const util = require("util");
 
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-var VariableIds = require("node-opcua-constants").VariableIds;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const VariableIds = require("node-opcua-constants").VariableIds;
 
-var serverStatus_State_Id = coerceNodeId(VariableIds.Server_ServerStatus_State);
-var ServerState = require("node-opcua-common").ServerState;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const serverStatus_State_Id = coerceNodeId(VariableIds.Server_ServerStatus_State);
+const ServerState = require("node-opcua-common").ServerState;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 
 function ClientSessionKeepAliveManager(session) {
-    var self = this;
+    const self = this;
     self.session = session;
     self.timerId = 0;
 }
@@ -27,25 +30,29 @@ util.inherits(ClientSessionKeepAliveManager, EventEmitter);
  * @param callback
  */
 ClientSessionKeepAliveManager.prototype.ping_server = function(callback) {
-    var self = this;
+    const self = this;
     callback = callback || function () { };
-    var the_session = this.session;
+    const the_session = this.session;
     if (!the_session) {
         return callback();
     }
 
-    var now = Date.now();
+    const now = Date.now();
 
-    var timeSinceLastServerContact = now - the_session.lastResponseReceivedTime;
+    const timeSinceLastServerContact = now - the_session.lastResponseReceivedTime;
     if (timeSinceLastServerContact < self.pingTimeout) {
         // no need to send a ping yet
         //xx console.log("Skipping ",timeSinceLastServerContact,self.session.timeout);
         return callback();
     }
-    //xx console.log("readVariableValue ",timeSinceLastServerContact,self.session.timeout);
 
-    var nodes = [serverStatus_State_Id]; // Server_ServerStatus_State
-    the_session.readVariableValue(nodes, function (err, dataValues) {
+    if (the_session.isReconnecting) {
+        debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
+        return callback();
+    }
+    debugLog("ClientSessionKeepAliveManager#ping_server ",timeSinceLastServerContact,self.session.timeout);
+    // Server_ServerStatus_State
+    the_session.readVariableValue(serverStatus_State_Id, function (err, dataValue) {
         if (err) {
             console.log(" warning : ClientSessionKeepAliveManager#ping_server ".cyan, err.message.yellow);
             self.stop();
@@ -58,11 +65,11 @@ ClientSessionKeepAliveManager.prototype.ping_server = function(callback) {
             self.emit("failure");
 
         } else {
-            if (dataValues[0].statusCode === StatusCodes.Good) {
-                var newState = ServerState.get(dataValues[0].value.value);
+            if (dataValue.statusCode === StatusCodes.Good) {
+                const newState = ServerState.get(dataValue.value.value);
                 //istanbul ignore next
                 if (newState !== self.lastKnownState) {
-                    // console.log(" Server State = ", newState.toString());
+                    console.log(" Server State = ", newState.toString());
                 }
                 self.lastKnownState = newState;
             }
@@ -75,7 +82,7 @@ ClientSessionKeepAliveManager.prototype.ping_server = function(callback) {
 
 
 ClientSessionKeepAliveManager.prototype.start = function() {
-    var self = this;
+    const self = this;
     assert(!self.timerId);
     assert(self.session.timeout > 100);
 
@@ -85,7 +92,7 @@ ClientSessionKeepAliveManager.prototype.start = function() {
 };
 
 ClientSessionKeepAliveManager.prototype.stop = function() {
-    var self = this;
+    const self = this;
     if (self.timerId) {
         clearInterval(self.timerId);
         self.timerId = 0;

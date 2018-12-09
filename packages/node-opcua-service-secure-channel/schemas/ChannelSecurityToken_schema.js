@@ -1,5 +1,5 @@
 // OPC Unified Architecture, Part 6  page 36
-var ChannelSecurityToken_Schema = {
+const ChannelSecurityToken_Schema = {
     name: "ChannelSecurityToken",
     fields: [
         { name: "secureChannelId", fieldType: "UInt32"                     },

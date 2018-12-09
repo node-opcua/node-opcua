@@ -1,5 +1,5 @@
 
-var UserIdentityTokenType =require("./UserIdentityTokenType_enum").UserIdentityTokenType;
+const UserIdentityTokenType =require("./UserIdentityTokenType_enum").UserIdentityTokenType;
 
 /*
  Release 1.02 38 OPC Unified Architecture, Part 7
@@ -16,7 +16,7 @@ var UserIdentityTokenType =require("./UserIdentityTokenType_enum").UserIdentityT
 */
 
 // OPC Unified Architecture, Part 4 $7.36 page 160
-var UserTokenPolicy_Schema = {
+const UserTokenPolicy_Schema = {
     name: "UserTokenPolicy",
     fields: [
         // An identifier for the UserTokenPolicy assigned by the Server.

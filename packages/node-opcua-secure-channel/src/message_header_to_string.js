@@ -1,15 +1,15 @@
 /**
  * @module opcua.miscellaneous
  */
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var hexDump = require("node-opcua-debug").hexDump;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const hexDump = require("node-opcua-debug").hexDump;
 
-var readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
+const readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
 
-var chooseSecurityHeader = require("./secure_message_chunk_manager").chooseSecurityHeader;
-var SequenceHeader = require("node-opcua-service-secure-channel").SequenceHeader;
+const chooseSecurityHeader = require("./secure_message_chunk_manager").chooseSecurityHeader;
+const SequenceHeader = require("node-opcua-service-secure-channel").SequenceHeader;
 
 /**
  * convert the messageChunk header to a string
@@ -19,24 +19,24 @@ var SequenceHeader = require("node-opcua-service-secure-channel").SequenceHeader
  */
 function messageHeaderToString(messageChunk) {
 
-    var stream = new BinaryStream(messageChunk);
+    const stream = new BinaryStream(messageChunk);
 
-    var messageHeader = readMessageHeader(stream);
+    const messageHeader = readMessageHeader(stream);
     if (messageHeader.msgType === "ERR" || messageHeader.msgType === "HEL") {
         return messageHeader.msgType + " " + messageHeader.isFinal + " length   = " + messageHeader.length;
     }
 
 
-    var securityHeader = chooseSecurityHeader(messageHeader.msgType);
+    const securityHeader = chooseSecurityHeader(messageHeader.msgType);
 
-    var sequenceHeader = new SequenceHeader();
+    const sequenceHeader = new SequenceHeader();
     assert(stream.length === 8);
 
-    var secureChannelId = stream.readUInt32();
+    const secureChannelId = stream.readUInt32();
     securityHeader.decode(stream);
     sequenceHeader.decode(stream);
 
-    var slice = messageChunk.slice(0, stream.length);
+    const slice = messageChunk.slice(0, stream.length);
 
 
     return messageHeader.msgType + " " +

@@ -3,22 +3,22 @@
 /**
  * @module opcua.address_space
  */
-var assert = require("node-opcua-assert");
-var util = require("util");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const util = require("util");
+const _ = require("underscore");
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var dumpIf = require("node-opcua-debug").dumpIf;
+const dumpIf = require("node-opcua-debug").dumpIf;
 
-var BaseNode = require("./base_node").BaseNode;
-var SessionContext = require("./session_context").SessionContext;
+const BaseNode = require("./base_node").BaseNode;
+const SessionContext = require("./session_context").SessionContext;
 
 /**
  * @class View
@@ -44,7 +44,7 @@ View.prototype.readAttribute = function (context, attributeId) {
 
     assert(context instanceof SessionContext);
 
-    var options = {};
+    const options = {};
 
     switch (attributeId) {
         case AttributeIds.EventNotifier:

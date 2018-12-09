@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var ErrorMessage_Schema = {
+const ErrorMessage_Schema = {
     name: "ErrorMessage",
     id: factories.next_available_id(),
     fields: [

@@ -1,5 +1,5 @@
 
-var ContentFilterElementResult_Schema = {
+const ContentFilterElementResult_Schema = {
     name: "ContentFilterElementResult",
     //baseType: "MonitoringFilter",
     fields: [

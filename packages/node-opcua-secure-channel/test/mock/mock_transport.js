@@ -1,27 +1,27 @@
 "use strict";
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
 
-var hexDump = require("node-opcua-debug").hexDump;
+const hexDump = require("node-opcua-debug").hexDump;
 
-var DirectTransport = require("node-opcua-transport/test_helpers/fake_socket").DirectTransport;
+const DirectTransport = require("node-opcua-transport/test_helpers/fake_socket").DirectTransport;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
+const packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
 
-var display_trace_from_this_projet_only = require("node-opcua-debug").display_trace_from_this_projet_only;
+const display_trace_from_this_projet_only = require("node-opcua-debug").display_trace_from_this_projet_only;
 
 
-var CloseSecureChannelResponse = require("node-opcua-service-secure-channel").CloseSecureChannelResponse;
-var OpenSecureChannelResponse = require("node-opcua-service-secure-channel").OpenSecureChannelResponse;
-var CreateSessionResponse = require("node-opcua-service-session").CreateSessionResponse;
-var ActivateSessionResponse = require("node-opcua-service-session").ActivateSessionResponse;
+const CloseSecureChannelResponse = require("node-opcua-service-secure-channel").CloseSecureChannelResponse;
+const OpenSecureChannelResponse = require("node-opcua-service-secure-channel").OpenSecureChannelResponse;
+const CreateSessionResponse = require("node-opcua-service-session").CreateSessionResponse;
+const ActivateSessionResponse = require("node-opcua-service-session").ActivateSessionResponse;
 
-var AcknowledgeMessage = require("node-opcua-transport").AcknowledgeMessage;
-var GetEndpointsResponse = require("node-opcua-service-endpoints").GetEndpointsResponse;
+const AcknowledgeMessage = require("node-opcua-transport").AcknowledgeMessage;
+const GetEndpointsResponse = require("node-opcua-service-endpoints").GetEndpointsResponse;
 
-var fake_AcknowledgeMessage = new AcknowledgeMessage({
+const fake_AcknowledgeMessage = new AcknowledgeMessage({
     protocolVersion: 0,
     receiveBufferSize: 8192,
     sendBufferSize: 8192,
@@ -29,10 +29,10 @@ var fake_AcknowledgeMessage = new AcknowledgeMessage({
     maxChunkCount: 600000
 });
 
-var fake_CloseSecureChannelResponse = new CloseSecureChannelResponse({});
+const fake_CloseSecureChannelResponse = new CloseSecureChannelResponse({});
 
 
-var fake_OpenSecureChannelResponse = new OpenSecureChannelResponse({
+const fake_OpenSecureChannelResponse = new OpenSecureChannelResponse({
     serverProtocolVersion: 0,
     securityToken: {
         secureChannelId: 23,
@@ -40,10 +40,10 @@ var fake_OpenSecureChannelResponse = new OpenSecureChannelResponse({
         createdAt: new Date(), // now
         revisedLifeTime: 30000
     },
-    serverNonce: new Buffer("qwerty")
+    serverNonce: Buffer.from("qwerty")
 });
 
-var fake_GetEndpointsResponse = new GetEndpointsResponse({
+const fake_GetEndpointsResponse = new GetEndpointsResponse({
     endpoints: [
         {
             endpointUrl: "fake://localhost:2033/SomeAddress"
@@ -51,8 +51,8 @@ var fake_GetEndpointsResponse = new GetEndpointsResponse({
     ]
 });
 
-var fake_CreateSessionResponse = new CreateSessionResponse();
-var fake_ActivateSessionResponse = new ActivateSessionResponse();
+const fake_CreateSessionResponse = new CreateSessionResponse();
+const fake_ActivateSessionResponse = new ActivateSessionResponse();
 
 
 function MockTransport(promised_replies, done) {
@@ -61,10 +61,10 @@ function MockTransport(promised_replies, done) {
     this._counter = 0;
     this.fake_socket =  new DirectTransport();
 
-    var self = this;
+    const self = this;
     this.fake_socket.server.on("data", function (data) {
 
-        var reply = self._replies[self._counter];
+        let reply = self._replies[self._counter];
         self._counter++;
         if (reply) {
 
@@ -79,7 +79,7 @@ function MockTransport(promised_replies, done) {
             debugLog("\nFAKE SERVER RECEIVED");
             debugLog(hexDump(data).blue);
 
-            var replies = [];
+            let replies = [];
             if (reply instanceof Buffer) {
                 replies.push(reply);
             } else {
@@ -93,7 +93,7 @@ function MockTransport(promised_replies, done) {
             });
 
         } else {
-            var msg = " MockTransport has no more packets to send to client to emulate server responses.... ";
+            const msg = " MockTransport has no more packets to send to client to emulate server responses.... ";
             console.log(msg.red.bold);
             console.log(hexDump(data).blue.bold);
 

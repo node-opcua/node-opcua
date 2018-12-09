@@ -26,33 +26,42 @@
  </UADataType>
  */
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
 
-var factories = require("node-opcua-factory");
-var NodeId = require("node-opcua-nodeid").NodeId;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-
-var DataType = require("node-opcua-variant").DataType;
+const factories = require("node-opcua-factory");
+const NodeId = require("node-opcua-nodeid").NodeId;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const resolveNodeId =  require("node-opcua-nodeid").resolveNodeId;
+const DataType = require("node-opcua-variant").DataType;
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
-var Argument_Schema = {
+const Argument_Schema = {
     name: "Argument",
     documentation: "An argument for a method.",
     construct_hook: function(options) {
 
-        var dataType = options.dataType;
+        let dataType = options.dataType;
         if (dataType) {
             if (typeof dataType === "string") {
-                dataType = makeNodeId(dataType.value, 0);
-                //dataType = coerceNodeId(DataType[dataType].value);
+                dataType = resolveNodeId(dataType);
+            } else if ( dataType instanceof NodeId ) {
+                // nothing
             } else {
-                dataType = coerceNodeId(dataType.value);
+                assert(dataType.hasOwnProperty("value"));
+                dataType = coerceNodeId(dataType.value,dataType.namespace);
             }
            options.dataType = dataType;
         }
+
+        // fix missing ArrayDimension (The value is an array with one dimension.)
+        if (!options.valueRank === 1 || !options.arrayDimensions) {
+            options.arrayDimensions = [0];
+        }
+
         return options;
+
     },
     fields: [
         {name: "name", fieldType: "String", documentation: "The name of the argument."},

@@ -1,5 +1,6 @@
 "use strict";
-/**
+
+/*
  * class Node {
  *     { browseName: "string", nodeId: NodeId}
  * }
@@ -39,7 +40,7 @@ function dumpStateMachineToPlantUML(stateMachineType) {
     }
 
     function t(transition) {
-        var name = n(transition);
+        let name = n(transition);
         name = name.replace(":","");
         name = name.replace("To","\\nTo\\n");
         name = name.replace("Transition","\\nTransition");

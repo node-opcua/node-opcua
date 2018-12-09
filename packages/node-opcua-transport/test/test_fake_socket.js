@@ -1,16 +1,16 @@
 
-var DirectTransport = require("../test_helpers/fake_socket").DirectTransport;
-var SocketTransport = require("../test_helpers/fake_socket").SocketTransport;
+const DirectTransport = require("../test_helpers/fake_socket").DirectTransport;
+const SocketTransport = require("../test_helpers/fake_socket").SocketTransport;
 
-var should = require("should");
-var assert = require("node-opcua-assert");
+const should = require("should");
+const assert = require("node-opcua-assert").assert;
 
 
 function installTestFor(Transport) {
 
     describe("Testing behavior of  " + Transport.name + "  to emulate client/server communication in tests", function () {
 
-        var transport = null;
+        let transport = null;
 
         beforeEach(function (done) {
             transport = new Transport(function () {

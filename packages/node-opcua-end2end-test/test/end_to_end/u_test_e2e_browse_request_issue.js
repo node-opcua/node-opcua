@@ -1,23 +1,23 @@
 /* global describe, beforeEach, afterEach , it */
 "use strict";
-var should = require("should");
-var async = require("async");
+const should = require("should");
+const async = require("async");
 
-var opcua = require("node-opcua");
-var resolveNodeId = opcua.resolveNodeId;
+const opcua = require("node-opcua");
+const resolveNodeId = opcua.resolveNodeId;
 
-var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
+const OPCUAClient = opcua.OPCUAClient;
+const StatusCodes = opcua.StatusCodes;
 
-var BrowseDirection = opcua.BrowseDirection;
+const BrowseDirection = opcua.BrowseDirection;
 
 module.exports = function (test) {
 
     describe("QSD Test Browse Request", function () {
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
-        var g_session = null;
+        let g_session = null;
         beforeEach(function (done) {
 
             endpointUrl = test.endpointUrl;
@@ -46,7 +46,7 @@ module.exports = function (test) {
 
         it("T6 - #BrowseNext response ", function (done) {
 
-            var nodeToBrowse = {
+            const nodeToBrowse = {
                 nodeId: resolveNodeId("i=29"),
                 referenceTypeId: null,
                 includeSubtypes: false,
@@ -55,11 +55,11 @@ module.exports = function (test) {
                 nodeClassMask: 255
             };
 
-            var allReferences;
+            let allReferences;
             async.series([
 
                 function (callback) {
-                    var browseRequest1 = new opcua.browse_service.BrowseRequest({
+                    const browseRequest1 = new opcua.browse_service.BrowseRequest({
                         view: null,
                         requestedMaxReferencesPerNode: 0,
                         nodesToBrowse: [nodeToBrowse]

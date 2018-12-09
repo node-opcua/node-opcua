@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var EnumSecurityTokenRequestType_Schema = {
+const EnumSecurityTokenRequestType_Schema = {
     name: "SecurityTokenRequestType",
     enumValues: {
         ISSUE: 0, //  creates a new SecurityToken for a new ClientSecureChannelLayer

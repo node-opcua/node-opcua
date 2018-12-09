@@ -4,46 +4,46 @@
  */
 
 
-var async = require("async");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
+const async = require("async");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
 
 
-var read_service = require("node-opcua-service-read");
-var call_service = require("node-opcua-service-call");
+const read_service = require("node-opcua-service-read");
+const call_service = require("node-opcua-service-call");
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
-var makeResultMask = require("node-opcua-data-model").makeResultMask;
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
+const makeResultMask = require("node-opcua-data-model").makeResultMask;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
 
-var ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
-var ObjectTypeIds = require("node-opcua-constants").ObjectTypeIds;
+const ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
+const ObjectTypeIds = require("node-opcua-constants").ObjectTypeIds;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
+const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
 
-var Variant = require("node-opcua-variant").Variant;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-var DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const DataType = require("node-opcua-variant").DataType;
 
 
-var ClientSession = require("node-opcua-client").ClientSession;
-var ClientSubscription = require("node-opcua-client").ClientSubscription;
+const ClientSession = require("node-opcua-client").ClientSession;
+const ClientSubscription = require("node-opcua-client").ClientSubscription;
 
-var resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
+const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
 
 function makeRefId(referenceTypeName) {
-    var nodeId = makeNodeId(ReferenceTypeIds[referenceTypeName] || ObjectTypeIds[referenceTypeName]);
+    const nodeId = makeNodeId(ReferenceTypeIds[referenceTypeName] || ObjectTypeIds[referenceTypeName]);
 
     // istanbul ignore next
     if (nodeId.isEmpty()) {
@@ -51,6 +51,7 @@ function makeRefId(referenceTypeName) {
     }
     return nodeId;
 }
+
 exports.makeRefId = makeRefId;
 
 /**
@@ -78,37 +79,36 @@ exports.makeRefId = makeRefId;
  */
 function convertNodeIdToDataTypeAsync(session, dataTypeId, callback) {
 
-    var nodesToRead = [{
+    const nodeToRead = {
         nodeId: dataTypeId,
         attributeId: AttributeIds.BrowseName
-    }];
+    };
 
-    session.read(nodesToRead, function (err, unused, dataValues) {
+    session.read(nodeToRead, function (err, dataValue) {
 
         // istanbul ignore next
         if (err) {
-            return callback(err);
+            return setImmediate(function(){callback(err);});
         }
 
-        var dataValue = dataValues[0];
-
+        let dataType;
         // istanbul ignore next
         if (dataValue.statusCode !== StatusCodes.Good) {
-            console.log("convertNodeIdToDataTypeAsync: Cannot read browse name for nodeID ".red + dataTypeId.toString());
-            var dataType = DataType.Null;
-            return callback(null, dataType);
+            //Xx console.log("convertNodeIdToDataTypeAsync: Cannot read browse name for nodeID ".red + dataTypeId.toString());
+            dataType = DataType.Null;
+            return setImmediate(function(){callback(null, dataType);});
         }
 
-        var dataTypeName = dataValue.value.value;
+        const dataTypeName = dataValue.value.value;
 
         if (dataTypeId.namespace === 0 && DataType.get(dataTypeId.value)) {
-            var dataType = DataType.get(dataTypeId.value);
-            return callback(null, dataType);
+            dataType = DataType.get(dataTypeId.value);
+            return setImmediate(function(){callback(null, dataType);});
         }
 
         /// example => Duration (i=290) => Double (i=11)
         // read subTypeOf
-        var nodesToBrowse = [{
+        const nodeToBrowse = {
             // BrowseDescription
             referenceTypeId: makeRefId("HasSubtype"),
             //xx nodeClassMask: makeNodeClassMask("ObjectType"),
@@ -116,19 +116,19 @@ function convertNodeIdToDataTypeAsync(session, dataTypeId, callback) {
             browseDirection: BrowseDirection.Inverse,
             nodeId: dataTypeId,
             resultMask: resultMask
-        }];
-        session.browse(nodesToBrowse, function (err, results) {
+        };
+        session.browse(nodeToBrowse, function (err, browseResult) {
             // istanbul ignore next
             if (err) {
                 return callback(err);
             }
 
-            var references = results[0].references;
+            const references = browseResult.references;
 
             if (!references || references.length !== 1) {
                 return callback(new Error("cannot find SuperType of " + dataTypeName.toString()));
             }
-            var nodeId = references[0].nodeId;
+            const nodeId = references[0].nodeId;
             return convertNodeIdToDataTypeAsync(session, nodeId, callback);
         });
     });
@@ -140,7 +140,7 @@ function convertNodeIdToDataType(dataTypeId) {
 
 function ProxyBaseNode(proxyManager, nodeId) {
 
-    var self = this;
+    const self = this;
     /**
      * the object nodeId
      * @property nodeId
@@ -214,29 +214,28 @@ util.inherits(ProxyBaseNode, EventEmitter);
  */
 ProxyBaseNode.prototype.readValue = function (callback) {
 
-    var self = this;
+    const self = this;
     assert(self.proxyManager);
 
-    var session = self.proxyManager.session;
+    const session = self.proxyManager.session;
     assert(session);
 
-    var nodeToRead = {
+    const nodeToRead = {
         nodeId: self.nodeId,
         attributeId: AttributeIds.Value
     };
-    self.proxyManager.session.read([nodeToRead], function (err, unused, results) {
+    self.proxyManager.session.read(nodeToRead, function (err, dataValue) {
 
         // istanbul ignore next
         if (err) {
             return callback(err);
         }
-
-        var result = results[0];
-        var data = result.value;
+        const data = dataValue.value;
         callback(null, data);
 
     });
 };
+
 
 /**
  * set the Value of the Variable, by using a WriteRequest
@@ -246,28 +245,24 @@ ProxyBaseNode.prototype.readValue = function (callback) {
  * @param callback.err {Error|null}
  */
 ProxyBaseNode.prototype.writeValue = function (dataValue, callback) {
-    var self = this;
+    const self = this;
     assert(self.proxyManager);
 
-    var session = self.proxyManager.session;
+    const session = self.proxyManager.session;
     assert(session);
 
-    var nodeToWrite = {
+    const nodeToWrite = {
         nodeId: self.nodeId,
         attributeId: AttributeIds.Value,
         value: dataValue
     };
-    self.proxyManager.session.write([nodeToWrite], function (err, results) {
-
+    self.proxyManager.session.write(nodeToWrite, function (err, statusCode) {
         // istanbul ignore next
         if (err) {
             return callback(err);
         }
-
-        var result = results[0];
-        /// console.log("xxxx r=",results.toString());
-        if (result !== StatusCodes.Good) {
-            callback(new Error(result.toString()));
+        if (statusCode !== StatusCodes.Good) {
+            callback(new Error(statusCode.toString()));
         } else {
             callback(null);
         }
@@ -276,8 +271,8 @@ ProxyBaseNode.prototype.writeValue = function (dataValue, callback) {
 
 ProxyBaseNode.prototype.toString = function () {
 
-    var str = [];
-    var self = this;
+    const str = [];
+    const self = this;
     str.push(" ProxyObject ");
     str.push("   browseName     : " + self.browseName.toString());
     str.push("   typeDefinition : " + self.typeDefinition.toString());
@@ -290,12 +285,13 @@ ProxyBaseNode.prototype.toString = function () {
 function ProxyVariable(session, nodeId) {
     ProxyBaseNode.apply(this, arguments);
 }
+
 util.inherits(ProxyVariable, ProxyBaseNode);
 
-var ProxyObject = ProxyVariable;
+const ProxyObject = ProxyVariable;
 
 function ObjectExplorer(options) {
-    var self = this;
+    const self = this;
     self.proxyManager = options.proxyManager;
     self.name = options.name;
     self.nodeId = options.nodeId;
@@ -304,7 +300,7 @@ function ObjectExplorer(options) {
 
 ObjectExplorer.prototype.$resolve = function (callback) {
 
-    var self = this;
+    const self = this;
 
     self.proxyManager.getObject(self.nodeId, function (err, childObj) {
 
@@ -322,13 +318,13 @@ ObjectExplorer.prototype.$resolve = function (callback) {
 
 function readUAStructure(proxyManager, obj, callback) {
 
-    var session = proxyManager.session;
+    const session = proxyManager.session;
 
     //   0   Object
     //   1   Variable
     //   2   Method
-    var nodeId = obj.nodeId;
-    var nodesToBrowse = [
+    const nodeId = obj.nodeId;
+    const nodesToBrowse = [
 
         // Components (except Methods)
         {
@@ -402,33 +398,34 @@ function readUAStructure(proxyManager, obj, callback) {
 
 
     /**
+     * @method add_method
      * construct a callable method
      *
      * @param obj
      * @param reference
      * @param callback
+     * @private
      */
     function add_method(obj, reference, callback) {
 
-        var name = lowerFirstLetter(reference.browseName.name);
+        const name = lowerFirstLetter(reference.browseName.name);
 
         obj[name] = function functionCaller(inputArgs, callback) {
 
             assert(_.isFunction(callback));
             // convert input arguments into Variants
-            var inputArgsDef = obj[name].inputArguments;
+            const inputArgsDef = obj[name].inputArguments || [];
 
+            const inputArguments = inputArgsDef.map(function (arg) {
 
-            var inputArguments = inputArgsDef.map(function (arg) {
+                const dataType = convertNodeIdToDataType(arg.dataType);
 
-                var dataType = convertNodeIdToDataType(arg.dataType);
-
-                var arrayType = ( arg.valueRank === 1) ? VariantArrayType.Array : VariantArrayType.Scalar;
+                const arrayType = (arg.valueRank === 1) ? VariantArrayType.Array : VariantArrayType.Scalar;
 
                 //xx console.log("xxx ",arg.toString());
-                var propName = lowerFirstLetter(arg.name);
+                const propName = lowerFirstLetter(arg.name);
 
-                var value = inputArgs[propName];
+                const value = inputArgs[propName];
                 if (value === undefined) {
                     throw new Error("expecting input argument " + propName);
                 }
@@ -441,7 +438,7 @@ function readUAStructure(proxyManager, obj, callback) {
                 return new Variant({arrayType: arrayType, dataType: dataType, value: value});
             });
 
-            var methodToCall = new call_service.CallMethodRequest({
+            const methodToCall = new call_service.CallMethodRequest({
                 objectId: obj.nodeId,
                 methodId: reference.nodeId,
                 inputArguments: inputArguments
@@ -449,29 +446,29 @@ function readUAStructure(proxyManager, obj, callback) {
 
             //xx console.log(" calling ",methodToCall.toString());
 
-            var methodsToCall = [methodToCall];
-
-            session.call(methodsToCall, function (err, result /*, diagInfo */) {
-
+            session.call(methodToCall, function (err, callResult) {
 
                 // istanbul ignore next
                 if (err) {
                     return callback(err);
                 }
-
-                if (result[0].statusCode !== StatusCodes.Good) {
-                    return callback(new Error("Error " + result[0].statusCode.toString()));
+                if (callResult.statusCode !== StatusCodes.Good) {
+                    return callback(new Error("Error " + callResult.statusCode.toString()));
                 }
-                assert(result[0].outputArguments.length === obj[name].outputArguments.length);
-                var outputArgs = {};
+                callResult.outputArguments = callResult.outputArguments || [];
 
-                var outputArgsDef = obj[name].outputArguments;
+                obj[name].outputArguments =  obj[name].outputArguments || [];
 
-                _.zip(outputArgsDef, result[0].outputArguments).forEach(function (pair) {
-                    var arg = pair[0];
-                    var variant = pair[1];
+                assert(callResult.outputArguments.length === obj[name].outputArguments.length);
+                const outputArgs = {};
 
-                    var propName = lowerFirstLetter(arg.name);
+                const outputArgsDef = obj[name].outputArguments;
+
+                _.zip(outputArgsDef, callResult.outputArguments).forEach(function (pair) {
+                    const arg = pair[0];
+                    const variant = pair[1];
+
+                    const propName = lowerFirstLetter(arg.name);
                     outputArgs[propName] = variant.value;
 
                 });
@@ -483,8 +480,8 @@ function readUAStructure(proxyManager, obj, callback) {
 
         function extractDataType(arg, callback) {
 
-            if (arg.dataType._dataType) {
-                return callback(); // already converted
+            if (arg.dataType && arg.dataType._dataType) {
+                return setImmediate(callback); // already converted
             }
 
             convertNodeIdToDataTypeAsync(session, arg.dataType, function (err, dataType) {
@@ -496,28 +493,7 @@ function readUAStructure(proxyManager, obj, callback) {
             });
         }
 
-
-        session.getArgumentDefinition(reference.nodeId, function (err, inputArguments, outputArguments) {
-
-            // istanbul ignore next
-            if (err) {
-                return callback(err);
-            }
-
-            obj[name].inputArguments = inputArguments;
-            obj[name].outputArguments = outputArguments;
-
-            async.series([
-                function (callback) {
-                    async.each(obj[name].inputArguments, extractDataType, callback);
-                },
-                function (callback) {
-                    async.each(obj[name].outputArguments, extractDataType, callback);
-                }
-            ], callback)
-        });
-
-        var methodObj = {
+        const methodObj = {
             nodeId: reference.nodeId,
             executableFlag: false,
             browseName: name,
@@ -525,21 +501,47 @@ function readUAStructure(proxyManager, obj, callback) {
         };
         obj.$methods[name] = methodObj;
 
-        proxyManager._monitor_execution_flag(methodObj, function () {
+        async.parallel([
+            function(callback) {
+                session.getArgumentDefinition(reference.nodeId, function (err, args) {
+                    // istanbul ignore next
+                    if (err) {
+                        return setImmediate(function() { callback(err); });
+                    }
+                    const inputArguments  = args.inputArguments;
+                    const outputArguments = args.outputArguments;
 
-        });
+                    obj[name].inputArguments = inputArguments;
+                    obj[name].outputArguments = outputArguments;
+
+                    async.series([
+                        function (callback) {
+                            async.each(obj[name].inputArguments, extractDataType, callback);
+                        },
+                        function (callback) {
+                            async.each(obj[name].outputArguments, extractDataType, callback);
+                        }
+                    ], callback)
+                });
+            },
+            function(callback) {
+                proxyManager._monitor_execution_flag(methodObj, function () {
+                    callback();
+                });
+            }
+        ],callback);
 
     }
 
     function add_component(obj, reference, callback) {
 
-        var name = lowerFirstLetter(reference.browseName.name || "");
+        const name = lowerFirstLetter(reference.browseName.name || "");
 
         proxyManager.getObject(reference.nodeId, function (err, childObj) {
 
             // istanbul ignore else
             if (!err) {
-                var childObj = new ObjectExplorer({
+                childObj = new ObjectExplorer({
                     proxyManager: proxyManager,
                     nodeId: reference.nodeId,
                     name: name,
@@ -557,9 +559,9 @@ function readUAStructure(proxyManager, obj, callback) {
 
     function addFolderElement(obj, reference, callback) {
 
-        var name = lowerFirstLetter(reference.browseName.name || "");
+        const name = lowerFirstLetter(reference.browseName.name || "");
 
-        var childObj = new ObjectExplorer({
+        const childObj = new ObjectExplorer({
             proxyManager: proxyManager,
             nodeId: reference.nodeId,
             name: name,
@@ -572,25 +574,24 @@ function readUAStructure(proxyManager, obj, callback) {
 
     function add_property(obj, reference, callback) {
 
-        var name = lowerFirstLetter(reference.browseName.name || "");
+        const name = lowerFirstLetter(reference.browseName.name || "");
 
         obj[name] = new ProxyVariable(proxyManager, reference.nodeId, reference);
         obj.$properties[name] = obj[name];
 
-        callback(null);
+        setImmediate(callback);
     }
 
     function add_typeDefinition(obj, references, callback) {
-
         references = references || [];
         if (references.length !== 1) {
-            console.log(" cannot find type definition", references.length);
-            return callback();
+            //xx console.log(" cannot find type definition", references.length);
+            return setImmediate(callback);
         }
-        var reference = references[0];
+        const reference = references[0];
         assert(!obj.typeDefinition, "type definition can only be set once");
         obj.typeDefinition = reference.browseName.name || "";
-        callback();
+        setImmediate(callback);
     }
 
     function addFromState(obj, reference, callback) {
@@ -608,7 +609,7 @@ function readUAStructure(proxyManager, obj, callback) {
     }
 
 
-    session.browse(nodesToBrowse, function (err, results) {
+    session.browse(nodesToBrowse, function (err, browseResults) {
         function t(references) {
             return references.map(function (r) {
                 return r.browseName.name + " " + r.nodeId.toString();
@@ -623,30 +624,30 @@ function readUAStructure(proxyManager, obj, callback) {
         //xx console.log("Components", t(results[0].references));
         //xx console.log("Properties", t(results[1].references));
         //xx console.log("Methods", t(results[2].references));
-        async.series([
+        async.parallel([
 
             function (callback) {
-                async.map(results[0].references, add_component.bind(null, obj), callback);
+                async.map(browseResults[0].references, add_component.bind(null, obj), callback);
             },
 
             function (callback) {
-                async.map(results[1].references, add_property.bind(null, obj), callback);
+                async.map(browseResults[1].references, add_property.bind(null, obj), callback);
             },
 
             // now enrich our object with nice callable async methods
             function (callback) {
-                async.map(results[2].references, add_method.bind(null, obj), callback);
+                async.map(browseResults[2].references, add_method.bind(null, obj), callback);
             },
 
             // now set typeDefinition
             function (callback) {
-                add_typeDefinition.bind(null, obj)(results[3].references, callback);
+                add_typeDefinition.bind(null, obj)(browseResults[3].references, callback);
             },
 
             //
             function (callback) { // FromState
                 // fromState
-                var reference = results[4].references ? results[4].references[0] : null;
+                const reference = browseResults[4].references ? browseResults[4].references[0] : null;
                 // fromState
                 if (reference) {
                     return addFromState(obj, reference, callback);
@@ -654,7 +655,7 @@ function readUAStructure(proxyManager, obj, callback) {
                 callback();
             },
             function (callback) { // ToState
-                var reference = results[5].references ? results[5].references[0] : null;
+                const reference = browseResults[5].references ? browseResults[5].references[0] : null;
                 // fromState
                 if (reference) {
                     return addToState(obj, reference, callback);
@@ -662,7 +663,7 @@ function readUAStructure(proxyManager, obj, callback) {
                 callback();
             },
             function (callback) { // Organizes
-                async.map(results[6].references, addFolderElement.bind(null, obj), callback);
+                async.map(browseResults[6].references, addFolderElement.bind(null, obj), callback);
             }
 
         ], callback);
@@ -671,6 +672,7 @@ function readUAStructure(proxyManager, obj, callback) {
 }
 
 /**
+ * @method getObject
  *
  * @param proxyManager
  * @param nodeId
@@ -682,15 +684,17 @@ function readUAStructure(proxyManager, obj, callback) {
  */
 function getObject(proxyManager, nodeId, options, callback) {
 
-    var session = proxyManager.session;
+    const session = proxyManager.session;
 
     nodeId = coerceNodeId(nodeId);
 
     if (nodeId.isEmpty()) {
-        return callback(new Error(" Invalid empty node in getObject"));
+        return setImmediate(function() {
+            callback(new Error(" Invalid empty node in getObject"));
+        });
     }
 
-    var nodesToRead = [
+    const nodesToRead = [
         {
             nodeId: nodeId,
             attributeId: AttributeIds.BrowseName
@@ -706,7 +710,7 @@ function getObject(proxyManager, nodeId, options, callback) {
     ];
 
     function read_accessLevels(clientObject, callback) {
-        var nodesToRead = [
+        const nodesToRead = [
             {
                 nodeId: nodeId,
                 attributeId: AttributeIds.Value
@@ -720,33 +724,33 @@ function getObject(proxyManager, nodeId, options, callback) {
                 attributeId: AttributeIds.AccessLevel
             }
         ];
-        session.read(nodesToRead, 1, function (err, node2reads, results) {
-            if (results[0].statusCode === StatusCodes.Good) {
-                clientObject.dataValue = AccessLevelFlag.get(results[0].value);
+        session.read(nodesToRead, 1, function (err, dataValues) {
+            if (dataValues[0].statusCode === StatusCodes.Good) {
+                clientObject.dataValue = AccessLevelFlag.get(dataValues[0].value);
             }
-            if (results[1].statusCode === StatusCodes.Good) {
+            if (dataValues[1].statusCode === StatusCodes.Good) {
                 //xx console.log("AccessLevel ", results[3].value.toString())
-                clientObject.userAccessLevel = AccessLevelFlag.get(results[1].value.value);
+                clientObject.userAccessLevel = AccessLevelFlag.get(dataValues[1].value.value);
             }
-            if (results[2].statusCode === StatusCodes.Good) {
-                clientObject.accessLevel = AccessLevelFlag.get(results[2].value.value);
+            if (dataValues[2].statusCode === StatusCodes.Good) {
+                clientObject.accessLevel = AccessLevelFlag.get(dataValues[2].value.value);
             }
             callback(err);
         });
     }
 
-    var clientObject;
+    let clientObject;
 
     async.series([
 
         function (callback) {
             // readAttributes like browseName and references
-            session.read(nodesToRead, 1, function (err, node2reads, results) {
+            session.read(nodesToRead, 1, function (err, dataValues) {
 
                 if (!err) {
 
-                    if (results[0].statusCode === StatusCodes.BadNodeIdUnknown) {
-                        console.log(" INVALID NODE ", nodeId.toString());
+                    if (dataValues[0].statusCode === StatusCodes.BadNodeIdUnknown) {
+                        //xx console.log(" INVALID NODE ", nodeId.toString());
                         return callback(new Error("Invalid Node " + nodeId.toString()));
                     }
 
@@ -754,9 +758,9 @@ function getObject(proxyManager, nodeId, options, callback) {
 
                     ///x console.log("xxxx ,s",results.map(function(a){ return a.toString();}));
 
-                    clientObject.browseName = results[0].value.value;
-                    clientObject.description = (results[1].value ? results[1].value.value : "");
-                    clientObject.nodeClass = NodeClass.get(results[2].value.value);
+                    clientObject.browseName = dataValues[0].value.value;
+                    clientObject.description = (dataValues[1].value ? dataValues[1].value.value : "");
+                    clientObject.nodeClass = NodeClass.get(dataValues[2].value.value);
                     //xx console.log("xxx nodeClass = ",clientObject.nodeClass.toString());
 
                     if (clientObject.nodeClass === NodeClass.Variable) {
@@ -795,16 +799,14 @@ function getObject(proxyManager, nodeId, options, callback) {
 }
 
 
-
-
 /**
- *
+ * @class UAProxyManager
  * @param session
  * @constructor
  */
 function UAProxyManager(session) {
 
-    var self = this;
+    const self = this;
     self.session = session;
     assert(session instanceof ClientSession);
     self._map = {};
@@ -814,7 +816,8 @@ function UAProxyManager(session) {
 
 
 /**
- *
+ * @class ClientSession
+ * @method createSubscription2
  * @param createSubscriptionRequest
  * @param callback
  * @param callback.err
@@ -829,9 +832,9 @@ function UAProxyManager(session) {
  */
 ClientSession.prototype.createSubscription2 = function (createSubscriptionRequest, callback) {
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
 
-    var subscription = new ClientSubscription(self, createSubscriptionRequest);
+    const subscription = new ClientSubscription(self, createSubscriptionRequest);
     subscription.on("error", function (err) {
 
     });
@@ -840,13 +843,19 @@ ClientSession.prototype.createSubscription2 = function (createSubscriptionReques
     });
 };
 
+/**
+ * @class UAProxyManager
+ * @method start
+ * @param callback
+ * @async
+ */
 UAProxyManager.prototype.start = function (callback) {
-    var self = this;
+    const self = this;
 
-    var createSubscriptionRequest = {
+    const createSubscriptionRequest = {
         requestedPublishingInterval: 100,
-        requestedLifetimeCount:     6000,
-        requestedMaxKeepAliveCount:  100,
+        requestedLifetimeCount: 6000,
+        requestedMaxKeepAliveCount: 100,
         maxNotificationsPerPublish: 1000,
         publishingEnabled: true,
         priority: 10
@@ -861,13 +870,15 @@ UAProxyManager.prototype.start = function (callback) {
     });
 };
 
+/**
+ * @method stop
+ * @param callback
+ * @async
+ */
 UAProxyManager.prototype.stop = function (callback) {
-    var self = this;
+    const self = this;
     if (self.subscription) {
-        self.subscription.terminate();
-        self.subscription.once("terminated", function () {
-            // todo
-            // console.log("xxxx UAProxyManager subscription terminated");
+        self.subscription.terminate(function() {
             self.subscription = null;
             callback();
         });
@@ -877,15 +888,22 @@ UAProxyManager.prototype.stop = function (callback) {
     }
 };
 
-UAProxyManager.prototype.getObject = function (nodeId, callback, options) {
+/**
+ * @method getObject
+ * @param nodeId
+ * @param callback
+ * @async
+ */
+UAProxyManager.prototype.getObject = function (nodeId, callback) {
 
-    var self = this;
+    let options = {};
+    const self = this;
 
     setImmediate(function () {
         options = options || {};
         options.depth = options.depth || 1;
 
-        var key = nodeId.toString();
+        const key = nodeId.toString();
 
         if (self._map.hasOwnProperty(key)) {
             return callback(null, self._map[key]);
@@ -907,25 +925,25 @@ UAProxyManager.prototype._monitor_value = function (proxyObject, callback) {
     assert(_.isFunction(callback));
     //xx if (proxyObject.nodeId.toString() !== "ns=0;i=2257") { return;}
 
-    var self = this;
+    const self = this;
 
     if (!self.subscription) {
         // some server do not provide subscription support, do not treat this as an error.
         return callback(null); // new Error("No subscription"));
     }
 
-    var itemToMonitor = { // ReadValueId
+    const itemToMonitor = { // ReadValueId
         nodeId: proxyObject.nodeId,
         attributeId: AttributeIds.Value
     };
-    var monitoringParameters = { // MonitoringParameters
+    const monitoringParameters = { // MonitoringParameters
         samplingInterval: 0, /* event-based */
         discardOldest: true,
         queueSize: 10
     };
-    var requestedParameters = read_service.TimestampsToReturn.Both;
+    const requestedParameters = read_service.TimestampsToReturn.Both;
 
-    var monitoredItem = self.subscription.monitor(itemToMonitor, monitoringParameters, requestedParameters, callback);
+    const monitoredItem = self.subscription.monitor(itemToMonitor, monitoringParameters, requestedParameters, callback);
 
     // console.log("xxxxxx installing monitored Item",monitoredItem.itemToMonitor.nodeId.toString(),monitoredItem.itemToMonitor.attributeId);
     //xx proxyObject.monitoredItem = monitoredItem;
@@ -934,7 +952,7 @@ UAProxyManager.prototype._monitor_value = function (proxyObject, callback) {
     proxyObject.__monitoredItem.on("changed", function (dataValue) {
         proxyObject.dataValue = dataValue;
         proxyObject.emit("value_changed", dataValue);
-        // console.log("xxx Value Changed ".red,proxyObject.nodeId.toString() , proxyObject.browseName,proxyObject.dataValue.toString());
+        //xx console.log("xxx Value Changed ".red,proxyObject.nodeId.toString() , proxyObject.browseName,proxyObject.dataValue.toString());
     });
 
 };
@@ -945,26 +963,26 @@ UAProxyManager.prototype._monitor_execution_flag = function (proxyObject, callba
     assert(_.isFunction(callback));
     assert(proxyObject.nodeId instanceof NodeId);
 
-    var self = this;
+    const self = this;
 
     if (!self.subscription) {
         // some server do not provide subscription support, do not treat this as an error.
         return callback(null); // new Error("No subscription"));
     }
 
-    var itemToMonitor = { // ReadValueId
+    const itemToMonitor = { // ReadValueId
         nodeId: proxyObject.nodeId,
         attributeId: AttributeIds.Executable
     };
 
-    var monitoringParameters = { // MonitoringParameters
+    const monitoringParameters = { // MonitoringParameters
         samplingInterval: 0, /* event-based */
         discardOldest: true,
         queueSize: 10
     };
-    var requestedParameters = read_service.TimestampsToReturn.None;
+    const requestedParameters = read_service.TimestampsToReturn.None;
 
-    var monitoredItem = self.subscription.monitor(itemToMonitor, monitoringParameters, requestedParameters, callback);
+    const monitoredItem = self.subscription.monitor(itemToMonitor, monitoringParameters, requestedParameters, callback);
 
     Object.defineProperty(proxyObject, "__monitoredItem_execution_flag", {value: monitoredItem, enumerable: false});
 
@@ -976,3 +994,11 @@ UAProxyManager.prototype._monitor_execution_flag = function (proxyObject, callba
 };
 
 exports.UAProxyManager = UAProxyManager;
+
+const thenify = require("thenify");
+UAProxyManager.prototype.start = thenify.withCallback(UAProxyManager.prototype.start);
+UAProxyManager.prototype.stop = thenify.withCallback(UAProxyManager.prototype.stop);
+
+UAProxyManager.prototype.getObject = thenify.withCallback(UAProxyManager.prototype.getObject);
+ProxyBaseNode.prototype.readValue  = thenify.withCallback(ProxyBaseNode.prototype.readValue);
+ProxyBaseNode.prototype.writeValue = thenify.withCallback(ProxyBaseNode.prototype.writeValue);

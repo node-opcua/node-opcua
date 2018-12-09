@@ -1,24 +1,24 @@
 "use strict";
-var should = require("should");
-var fs = require("fs");
+const should = require("should");
+const fs = require("fs");
 
-var OPCUAServer = require("../src/opcua_server").OPCUAServer;
+const OPCUAServer = require("../src/opcua_server").OPCUAServer;
 
 
-var NodeId = require("node-opcua-nodeid").NodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var mini_nodeset_filename =require("../src/server_engine").mini_nodeset_filename;
+const mini_nodeset_filename =require("../src/server_engine").mini_nodeset_filename;
 fs.existsSync(mini_nodeset_filename).should.eql(true);
 
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServer", function () {
 
 
-    var server;
+    let server;
 
     beforeEach(function (done) {
-        var options = {
+        const options = {
             port: 2000,
             nodeset_filename: [mini_nodeset_filename]
         };
@@ -47,7 +47,7 @@ describe("OPCUAServer", function () {
 
         // let make sure that no session exists
         // (session and subscriptions )
-        var session = server.createSession();
+        let session = server.createSession();
 
         server.engine.currentSessionCount.should.equal(1);
         server.engine.cumulatedSessionCount.should.equal(1);
@@ -70,7 +70,7 @@ describe("OPCUAServer", function () {
 
         // let make sure that no session exists
         // (session and subscriptions )
-        var session = server.createSession();
+        const session = server.createSession();
 
         session.sessionName = "SessionNameGivenByClient";
         // activate session
@@ -80,13 +80,13 @@ describe("OPCUAServer", function () {
 
         //xx session.nodeId.identifierType.should.eql(NodeId.NodeIdType.GUID);
 
-        var sessionNode = server.engine.addressSpace.findNode(session.nodeId);
+        const sessionNode = server.engine.addressSpace.findNode(session.nodeId);
 
         should(!!sessionNode).eql(true," a session node must be found");
 
         sessionNode.nodeId.should.eql(session.nodeId);
 
-        sessionNode.browseName.toString().should.eql("SessionNameGivenByClient");
+        sessionNode.browseName.toString().should.eql("1:SessionNameGivenByClient");
         done();
 
     });
@@ -95,12 +95,12 @@ describe("OPCUAServer", function () {
 describe("OPCUAServer-2",function() {
 
 
-    var server ;
+    let server;
     before(function() {
 
         fs.existsSync(mini_nodeset_filename).should.eql(true);
 
-        var options = {
+        const options = {
             port: 2000,
             nodeset_filename: [mini_nodeset_filename]
         };

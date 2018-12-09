@@ -1,13 +1,13 @@
 /*global xit,it,describe,before,after,beforeEach,afterEach,require*/
 "use strict";
 
-var assert = require("node-opcua-assert");
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 module.exports = function (test) {
@@ -16,15 +16,15 @@ module.exports = function (test) {
 
         it("AKQ server shall return BadSessionNotActivated if client attempts to close an unactivated session",function(done){
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
-            var client1 = new OPCUAClient({
+            const client1 = new OPCUAClient({
                 connectionStrategy: {
                     maxRetry:1
                 }
             });
 
-            var session =null;
+            let session =null;
             async.series([
                 function (callback) {
                     //xx console.log("xxxxx connecting to server ...");
@@ -61,33 +61,33 @@ module.exports = function (test) {
 
     it("QQQQ a server shall close any unactivated sessions before reaching the maximum number of session",function(done) {
 
-        var MAX_SESSIONS = 3;
-        var oldMaxAllowedSessionNumber;
+        const MAX_SESSIONS = 3;
+        let oldMaxAllowedSessionNumber;
         if (test.server) {
             oldMaxAllowedSessionNumber = test.server.maxAllowedSessionNumber;
             test.server.maxAllowedSessionNumber = MAX_SESSIONS;
         }
 
-        var OPCUAClient = opcua.OPCUAClient;
+        const OPCUAClient = opcua.OPCUAClient;
 
         // From OPCUA V1.03 Part 4 5.6.2 CreateSession
         // A Server application should limit the number of Sessions. To protect against misbehaving Clients and denial
         // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
         // maximum number of supported Sessions
 
-        var fail_fast_connectionStrategy = {
+        const fail_fast_connectionStrategy = {
             maxRetry: 0  // << NO RETRY !!
         };
-        var clients = [];
+        const clients = [];
 
-        var sessions =[];
+        const sessions =[];
         function create_unactivated_session(callback) {
 
-            var endpointUrl = test.endpointUrl;
-            var client1 = new OPCUAClient( {
+            const endpointUrl = test.endpointUrl;
+            const client1 = new OPCUAClient( {
                 connectionStrategy:fail_fast_connectionStrategy
             });
-            var session ;
+            let session;
             //xx console.log("xxxxx connecting to server ...");
             async.series([
                 function(callback) {

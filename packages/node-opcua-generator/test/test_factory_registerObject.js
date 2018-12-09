@@ -1,19 +1,19 @@
 "use strict";
-var should = require("should");
-var _ = require("underscore");
+const should = require("should");
+const _ = require("underscore");
 
-var generator = require("../src/generator");
-var factories = require("node-opcua-factory");
+const generator = require("../src/generator");
+const factories = require("node-opcua-factory");
 
-var redirectToFile = require("node-opcua-debug").redirectToFile;
-var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
+const redirectToFile = require("node-opcua-debug").redirectToFile;
+const makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
 
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
-var analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
-var compare_obj_by_encoding = require("node-opcua-packet-analyzer/test_helpers/compare_obj_by_encoding").compare_obj_by_encoding;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
+const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
+const compare_obj_by_encoding = require("node-opcua-packet-analyzer/test_helpers/compare_obj_by_encoding").compare_obj_by_encoding;
 
-var Person_Schema = {
+const Person_Schema = {
     id: factories.next_available_id(),
     name: "Person",
     fields: [
@@ -23,7 +23,7 @@ var Person_Schema = {
     ]
 };
 exports.Person_Schema = Person_Schema;
-var Role_Schema = {
+const Role_Schema = {
     id: factories.next_available_id(),
     name: "Role",
     fields: [
@@ -33,7 +33,7 @@ var Role_Schema = {
 };
 exports.Role_Schema = Role_Schema;
 
-var Employee_Schema = {
+const Employee_Schema = {
     id: factories.next_available_id(),
     name: "Employee",
     baseType: "Person",
@@ -45,7 +45,7 @@ var Employee_Schema = {
 };
 exports.Employee_Schema = Employee_Schema;
 
-var Company_Schema = {
+const Company_Schema = {
     id: factories.next_available_id(),
     name: "Company",
     fields: [
@@ -56,13 +56,13 @@ var Company_Schema = {
 };
 exports.Company_Schema = Company_Schema;
 
-var path = require("path");
-var temporary_folder = path.join(__dirname,"..","_test_generated");
+const path = require("path");
+const temporary_folder = path.join(__dirname,"..","_test_generated");
 
-var Person = generator.registerObject(Person_Schema, temporary_folder);
-var Role = generator.registerObject(Role_Schema, temporary_folder);
-var Employee = generator.registerObject(Employee_Schema, temporary_folder);
-var Company = generator.registerObject(Company_Schema, temporary_folder);
+const Person = generator.registerObject(Person_Schema, temporary_folder);
+const Role = generator.registerObject(Role_Schema, temporary_folder);
+const Employee = generator.registerObject(Employee_Schema, temporary_folder);
+const Company = generator.registerObject(Company_Schema, temporary_folder);
 
 
 describe("Factories: construction", function () {
@@ -78,7 +78,7 @@ describe("Factories: construction", function () {
 describe("testing Factory",function(){
     it("should construct a new object from a simple Class Description", function () {
 
-        var person = new Person();
+        const person = new Person();
 
         person.should.have.property("lastName");
         person.should.have.property("address");
@@ -91,7 +91,7 @@ describe("testing Factory",function(){
 
     it("should construct a new object with options from a simple Class Description", function () {
 
-        var person = new Person({lastName: "Joe"});
+        const person = new Person({lastName: "Joe"});
 
         person.lastName.should.equal("Joe");
         person.address.should.equal("");
@@ -100,7 +100,7 @@ describe("testing Factory",function(){
 
     it("should construct a new object from a complex Class Description", function () {
 
-        var employee = new Employee({
+        const employee = new Employee({
             lastName: "John",
             service: "R&D",
             role: {title: "developer", description: "create the awesome"}
@@ -133,11 +133,11 @@ describe("testing Factory",function(){
 
     it("should encode and decode a simple object created from the Factory", function () {
 
-        var person = new Person({lastName: "Joe"});
+        const person = new Person({lastName: "Joe"});
         person.age = 50;
         person.address = "Paris";
 
-        var person_reloaded = encode_decode_round_trip_test(person);
+        const person_reloaded = encode_decode_round_trip_test(person);
 
         person.lastName.should.equal(person_reloaded.lastName);
         person.age.should.equal(person_reloaded.age);
@@ -147,7 +147,7 @@ describe("testing Factory",function(){
 
     it("should encode and decode a composite object created from the Factory", function () {
 
-        var employee = new Employee({lastName: "John", service: "R&D"});
+        const employee = new Employee({lastName: "John", service: "R&D"});
         encode_decode_round_trip_test(employee);
 
     });
@@ -155,11 +155,11 @@ describe("testing Factory",function(){
     it("should encode and decode a composite object containing an array", function () {
 
 
-        var company = new Company({name: "ACME"});
+        const company = new Company({name: "ACME"});
         company.employees.length.should.equal(0);
 
 
-        var employee = new Employee({lastName: "John", service: "R&D"});
+        const employee = new Employee({lastName: "John", service: "R&D"});
 
         company.employees.push(employee);
         company.employees.push(new Employee({lastName: "Peter", service: "R&D"}));
@@ -172,7 +172,7 @@ describe("testing Factory",function(){
 
     it("should create an Object with a containing an array of JSON object passed in the initializer", function () {
 
-        var company = new Company({
+        const company = new Company({
             name: "ACME",
             employees: [
                 {lastName: "John", age: 25, service: "R&D", role: {title: "manager", description: ""}},
@@ -189,7 +189,7 @@ describe("testing Factory",function(){
 
     it("should create an Object with a containing an array of string passed in the initializer", function () {
 
-        var company = new Company({
+        const company = new Company({
             name: "ACME",
             company_values: [
                 "A commitment to sustainability and to acting in an environmentally friendly way",
@@ -211,16 +211,16 @@ describe("Factories: testing encodingDefaultBinary and constructObject", functio
 
     it("a factory object should have a encodingDefaultBinary", function () {
 
-        var company = new Company({name: "ACME"});
+        const company = new Company({name: "ACME"});
         company.encodingDefaultBinary.should.eql(makeExpandedNodeId(Company_Schema.id));
 
     });
 
     it("should create a object from a encodingDefaultBinaryId", function () {
 
-        var getObjectClassName = require("node-opcua-utils").getObjectClassName;
+        const getObjectClassName = require("node-opcua-utils").getObjectClassName;
 
-        var obj = factories.constructObject(makeExpandedNodeId(Company_Schema.id));
+        const obj = factories.constructObject(makeExpandedNodeId(Company_Schema.id));
 
         should(obj).have.property("_schema");
         obj._schema.name.should.equal("Company");
@@ -243,9 +243,9 @@ describe("Factories: testing encodingDefaultBinary and constructObject", functio
         };
         generator.unregisterObject(exports.FakeBlob_Schema, temporary_folder);
 
-        var Blob = generator.registerObject(exports.FakeBlob_Schema, temporary_folder);
+        const Blob = generator.registerObject(exports.FakeBlob_Schema, temporary_folder);
 
-        var blob = new Blob({buffer0: new Buffer(0), buffer1: new Buffer(1024)});
+        const blob = new Blob({buffer0: Buffer.alloc(0), buffer1: Buffer.alloc(1024)});
 
         encode_decode_round_trip_test(blob);
 
@@ -258,12 +258,12 @@ describe("Factories: testing encodingDefaultBinary and constructObject", functio
     it("should pretty print an object ", function () {
 
         redirectToFile("pretty_print.log", function () {
-            var company = new Company({name: "ACME"});
-            var employee = new Employee({lastName: "John", service: "R&D"});
+            const company = new Company({name: "ACME"});
+            const employee = new Employee({lastName: "John", service: "R&D"});
             company.employees.push(employee);
             company.employees.push(new Employee({lastName: "Peter", service: "R&D"}));
 
-            var str = company.explore();
+            const str = company.explore();
 
             console.log(str);
 
@@ -273,20 +273,20 @@ describe("Factories: testing encodingDefaultBinary and constructObject", functio
 
     it("should help JSON.stringify", function () {
 
-        var someArray = [new Person({})];
+        const someArray = [new Person({})];
 
-        var str = JSON.stringify({stuff: someArray}, null, " ");
+        const str = JSON.stringify({stuff: someArray}, null, " ");
         //xx console.log("xxxx str =",str);
 
     });
 
     it("should clone an object ", function () {
-        var company = new Company({name: "ACME"});
-        var employee = new Employee({lastName: "John", service: "R&D"});
+        const company = new Company({name: "ACME"});
+        const employee = new Employee({lastName: "John", service: "R&D"});
         company.employees.push(employee);
         company.employees.push(new Employee({lastName: "Peter", service: "R&D"}));
 
-        var company_copy = company.clone();
+        const company_copy = company.clone();
 
         company_copy.constructor.name.should.eql("Company");
         company_copy.name.should.eql("ACME");
@@ -306,14 +306,14 @@ describe("PacketAnalyzer", function () {
 
     it("should analyse a encoded object", function (done) {
 
-        var company = new Company({
+        const company = new Company({
             name: "ACME",
             employees: [
                 {lastName: "John", age: 25, service: "R&D"},
                 {lastName: "Peter", age: 56, service: "R&D"}
             ]
         });
-        var stream = new BinaryStream(company.binaryStoreSize());
+        const stream = new BinaryStream(company.binaryStoreSize());
         company.encode(stream);
 
         redirectToFile("analyze_object_binary_encoding", function () {

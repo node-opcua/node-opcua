@@ -2,7 +2,7 @@
 require("node-opcua-service-secure-channel");
 require("node-opcua-service-endpoints");
 
-var CreateSessionRequest_Schema = {
+const CreateSessionRequest_Schema = {
     documentation: "Creates a new session with the server.",
     name: "CreateSessionRequest",
     fields: [

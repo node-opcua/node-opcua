@@ -1,6 +1,6 @@
 "use strict";
 var should = require("should");
-var assert = require("node-opcua-assert");
+var assert = require("node-opcua-assert").assert;
 
 
 var endpoints_service = require("node-opcua-service-endpoints");
@@ -41,7 +41,7 @@ exports.makeEndPoint = function () {
             ]
         },
 
-        serverCertificate: new Buffer(256),
+        serverCertificate: Buffer.alloc(256),
 
         securityMode: MessageSecurityMode.NONE,
 

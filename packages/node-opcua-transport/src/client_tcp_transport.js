@@ -5,55 +5,64 @@
 
 
 // system requires
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
-var net = require("net");
-var _ = require("underscore");
-var util = require("util");
+const net = require("net");
+const _ = require("underscore");
+const util = require("util");
 
 
 // opcua requires
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
 // this modules
-var TCP_transport = require("./tcp_transport").TCP_transport;
+const TCP_transport = require("./tcp_transport").TCP_transport;
 
-var getFakeTransport = require("./tcp_transport").getFakeTransport;
+const getFakeTransport = require("./tcp_transport").getFakeTransport;
 
-var packTcpMessage = require("./tools").packTcpMessage;
-var parseEndpointUrl = require("./tools").parseEndpointUrl;
+const packTcpMessage = require("./tools").packTcpMessage;
+const parseEndpointUrl = require("./tools").parseEndpointUrl;
 
-var HelloMessage = require("../_generated_/_auto_generated_HelloMessage").HelloMessage;
-var TCPErrorMessage = require("../_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
-var AcknowledgeMessage = require("../_generated_/_auto_generated_AcknowledgeMessage").AcknowledgeMessage;
+const HelloMessage = require("../_generated_/_auto_generated_HelloMessage").HelloMessage;
+const TCPErrorMessage = require("../_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
+const AcknowledgeMessage = require("../_generated_/_auto_generated_AcknowledgeMessage").AcknowledgeMessage;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 
-var readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
+const readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
 
-var decodeMessage = require("./tools").decodeMessage;
+const decodeMessage = require("./tools").decodeMessage;
 
-function createClientSocket(endpoint_url) {
+function createClientSocket(endpointUrl) {
     // create a socket based on Url
-    var ep = parseEndpointUrl(endpoint_url);
-    var port = ep.port;
-    var hostname = ep.hostname;
+    const ep = parseEndpointUrl(endpointUrl);
+    const port = ep.port;
+    const hostname = ep.hostname;
+    let socket;
     switch (ep.protocol) {
         case "opc.tcp":
-            return net.connect({host: hostname, port: port});
+            socket = net.connect({host: hostname, port: port});
+            socket.setNoDelay(true);
+            socket.setTimeout(0);
+            socket.on("timeout",function() {
+                console.log("Socket has timed out");
+            });
+
+            return socket;
         case "fake":
-            var fakeSocket = getFakeTransport();
+            socket = getFakeTransport();
             assert(ep.protocol === "fake", " Unsupported transport protocol");
             process.nextTick(function () {
-                fakeSocket.emit("connect");
+                socket.emit("connect");
             });
-            return fakeSocket;
+            return socket;
+
+        case "websocket":
         case "http":
         case "https":
         default:
             throw new Error("this transport protocol is currently not supported :" + ep.protocol);
-            return null;
 
     }
 }
@@ -99,16 +108,16 @@ function createClientSocket(endpoint_url) {
  *
  *
  */
-var ClientTCP_transport = function () {
+const ClientTCP_transport = function () {
     TCP_transport.call(this);
-    var self = this;
+    const self = this;
     self.connected = false;
 };
 util.inherits(ClientTCP_transport, TCP_transport);
 
 ClientTCP_transport.prototype.on_socket_ended = function(err) {
 
-    var self = this;
+    const self = this;
     if (self.connected) {
         TCP_transport.prototype.on_socket_ended.call(self,err);
     }
@@ -117,34 +126,34 @@ ClientTCP_transport.prototype.on_socket_ended = function(err) {
 /**
  * @method connect
  * @async
- * @param endpoint_url {String}
+ * @param endpointUrl {String}
  * @param callback {Function} the callback function
  * @param [options={}]
  */
-ClientTCP_transport.prototype.connect = function (endpoint_url, callback, options) {
+ClientTCP_transport.prototype.connect = function (endpointUrl, callback, options) {
 
     assert(_.isFunction(callback));
 
     options = options || {};
 
-    var self = this;
+    const self = this;
 
     self.protocolVersion = (options.protocolVersion !== undefined) ? options.protocolVersion : self.protocolVersion;
     assert(_.isFinite(self.protocolVersion));
 
-    var ep = parseEndpointUrl(endpoint_url);
+    const ep = parseEndpointUrl(endpointUrl);
 
-    var hostname = require("os").hostname();
+    const hostname = require("os").hostname();
 
-    self.endpoint_url = endpoint_url;
+    self.endpointUrl = endpointUrl;
 
     self.serverUri = "urn:" + hostname + ":Sample";
 
-    debugLog("endpoint_url =", endpoint_url, "ep", ep);
+    debugLog("endpointUrl =", endpointUrl, "ep", ep);
 
 
     try {
-        self._socket = createClientSocket(endpoint_url);
+        self._socket = createClientSocket(endpointUrl);
     }
     catch (err) {
         return callback(err);
@@ -220,10 +229,10 @@ ClientTCP_transport.prototype.connect = function (endpoint_url, callback, option
 
 ClientTCP_transport.prototype._handle_ACK_response = function (message_chunk, callback) {
 
-    var self = this;
-    var _stream = new BinaryStream(message_chunk);
-    var messageHeader = readMessageHeader(_stream);
-    var err;
+    const self = this;
+    const _stream = new BinaryStream(message_chunk);
+    const messageHeader = readMessageHeader(_stream);
+    let err;
 
     if (messageHeader.isFinal !== "F") {
         err = new Error(" invalid ACK message");
@@ -231,14 +240,14 @@ ClientTCP_transport.prototype._handle_ACK_response = function (message_chunk, ca
         return;
     }
 
-    var responseClass, response;
+    let responseClass, response;
 
     if (messageHeader.msgType === "ERR") {
         responseClass = TCPErrorMessage;
         _stream.rewind();
         response = decodeMessage(_stream, responseClass);
         
-        var err =new Error("ACK: ERR received " + response.statusCode.toString() + " : " + response.reason);
+        err =new Error("ACK: ERR received " + response.statusCode.toString() + " : " + response.reason);
         err.statusCode =  response.statusCode;
         callback(err);
 
@@ -254,23 +263,23 @@ ClientTCP_transport.prototype._handle_ACK_response = function (message_chunk, ca
 
 ClientTCP_transport.prototype._send_HELLO_request = function () {
 
-    var self = this;
+    const self = this;
     assert(self._socket);
     assert(_.isFinite(self.protocolVersion));
-    assert(self.endpoint_url.length > 0, " expecting a valid endpoint url");
+    assert(self.endpointUrl.length > 0, " expecting a valid endpoint url");
 
     // Write a message to the socket as soon as the client is connected,
     // the server will receive it as message from the client
-    var request = new HelloMessage({
+    const request = new HelloMessage({
         protocolVersion: self.protocolVersion,
         receiveBufferSize:    1024 * 64 * 10,
-        sendBufferSize:       1024 * 64 * 10,// 8196 min,
+        sendBufferSize:       1024 * 64 * 10,// 8192 min,
         maxMessageSize:       0, // 0 - no limits
         maxChunkCount:        0, // 0 - no limits
-        endpointUrl: self.endpoint_url
+        endpointUrl: self.endpointUrl
     });
 
-    var messageChunk = packTcpMessage("HEL", request);
+    const messageChunk = packTcpMessage("HEL", request);
     self._write_chunk(messageChunk);
 
 };
@@ -278,11 +287,11 @@ ClientTCP_transport.prototype._send_HELLO_request = function () {
 
 ClientTCP_transport.prototype._perform_HEL_ACK_transaction = function (callback) {
 
-    var self = this;
+    const self = this;
     assert(self._socket);
     assert(_.isFunction(callback));
 
-    var counter = 0;
+    let counter = 0;
 
     self._install_one_time_message_receiver(function on_ACK_response(err, data) {
 
@@ -292,6 +301,8 @@ ClientTCP_transport.prototype._perform_HEL_ACK_transaction = function (callback)
         if (err) {
             callback(err);
             self._socket.end();
+           //Xx self._socket.removeAllListeners();
+
         } else {
             self._handle_ACK_response(data, function (inner_err) {
                 callback(inner_err);

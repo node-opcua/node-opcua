@@ -1,5 +1,5 @@
 
-var CancelRequest_Schema =  {
+const CancelRequest_Schema =  {
     documentation: "Cancels an outstanding request.",
     name: "CancelRequest",
     fields: [

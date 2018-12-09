@@ -1,8 +1,8 @@
 
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var ObjWithAccessLevel_Schema = {
+const ObjWithAccessLevel_Schema = {
 
     id: factories.next_available_id(),
     name: "ObjWithAccessLevel",

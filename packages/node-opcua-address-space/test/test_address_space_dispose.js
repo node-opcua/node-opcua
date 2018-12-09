@@ -1,17 +1,17 @@
 "use strict";
-var path = require("path");
-var should = require("should");
-var fs = require("fs");
-var AddressSpace = require("..").AddressSpace;
-var generate_address_space = require("..").generate_address_space;
+const path = require("path");
+const should = require("should");
+const fs = require("fs");
+const AddressSpace = require("..").AddressSpace;
+const generate_address_space = require("..").generate_address_space;
 
-var async = require("async");
+const async = require("async");
 
 
 function dumpMemoryUse() {
     if (process.memoryUsage) {
-        var m = process.memoryUsage()
-        var h = require("humanize");
+        const m = process.memoryUsage();
+        const h = require("humanize");
         console.log(" memoryUsage = ",
             " rss =", h.filesize(m.rss),
             " heapTotal =",h.filesize(m.heapTotal),
@@ -32,14 +32,17 @@ function callGarbageCollector(){
 describe("Testing AddressSpace memory Leaks",function(){
 
 
-    var xml_file = path.join(__dirname,"../test_helpers/test_fixtures/mini.Node.Set2.xml");
+    const xml_file = path.join(__dirname,"../test_helpers/test_fixtures/mini.Node.Set2.xml");
     fs.existsSync(xml_file).should.be.eql(true,"cannot find mini node set");
 
     it("It should dispose an address_space",function(done) {
 
-        var addressSpace = new AddressSpace();
+        let addressSpace = new AddressSpace();
 
         generate_address_space(addressSpace, xml_file, function (err) {
+
+
+
             addressSpace.dispose();
             addressSpace = null;
             done(err);
@@ -51,7 +54,7 @@ describe("Testing AddressSpace memory Leaks",function(){
 
         function f(callback) {
 
-            var addressSpace = new AddressSpace();
+            let addressSpace = new AddressSpace();
             generate_address_space(addressSpace, xml_file, function (err) {
                 addressSpace.dispose();
                 addressSpace = null;
@@ -59,7 +62,7 @@ describe("Testing AddressSpace memory Leaks",function(){
             });
         }
 
-        var memBefore;
+        let memBefore;
         function snapshot(callback) {
             callGarbageCollector();
             dumpMemoryUse();
@@ -69,7 +72,7 @@ describe("Testing AddressSpace memory Leaks",function(){
         function compare(callback) {
             callGarbageCollector();
             dumpMemoryUse();
-            var memAfter = process.memoryUsage();
+            const memAfter = process.memoryUsage();
             memAfter.heapUsed.should.be.lessThan(Math.ceil(memBefore.heapUsed*3.0));
             callback();
         }

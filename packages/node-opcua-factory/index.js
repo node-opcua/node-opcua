@@ -20,3 +20,4 @@ exports.hasConstructor = require("./src/factories_factories").hasConstructor;
 exports.getConstructor = require("./src/factories_factories").getConstructor;
 exports.constructObject = require("./src/factories_factories").constructObject;
 
+exports.BaseUAObject = require("./src/factories_baseobject").BaseUAObject;

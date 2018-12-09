@@ -1,4 +1,4 @@
-var ReadRawModifiedDetails_Schema = {
+const ReadRawModifiedDetails_Schema = {
     name: "ReadRawModifiedDetails",
     baseType: "HistoryReadDetails",
     fields: [

@@ -1,7 +1,7 @@
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var DataType_Schema = {
+const DataType_Schema = {
     name:"DataType",
     enumValues: {
         Null:              0,

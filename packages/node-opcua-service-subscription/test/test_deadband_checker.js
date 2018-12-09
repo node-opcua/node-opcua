@@ -1,26 +1,26 @@
 /*global describe, it, require*/
 
 
-var should = require("should");
+const should = require("should");
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
 
-var DeadbandType = require("..").DeadbandType;
-var check_deadband = require("..").check_deadband;
+const DeadbandType = require("..").DeadbandType;
+const check_deadband = require("..").check_deadband;
 
 
 describe("test DeadBand Checker",function() {
 
 
 
-    var vInt32_1000 = new Variant({ dataType: DataType.Int32,  value: 1000 });
-    var vInt32_1010 = new Variant({ dataType: DataType.Int32,  value: 1010 });
+    const vInt32_1000 = new Variant({ dataType: DataType.Int32,  value: 1000 });
+    const vInt32_1010 = new Variant({ dataType: DataType.Int32,  value: 1010 });
 
-    var vInt32_1000_Array = new Variant({ arrayType: VariantArrayType.Array, dataType: DataType.Int32,  value: [ 1000 , 1000 ] });
-    var vInt32_1010_Array = new Variant({ arrayType: VariantArrayType.Array, dataType: DataType.Int32,  value: [ 1010 ,  982 ] });
+    const vInt32_1000_Array = new Variant({ arrayType: VariantArrayType.Array, dataType: DataType.Int32,  value: [ 1000 , 1000 ] });
+    const vInt32_1010_Array = new Variant({ arrayType: VariantArrayType.Array, dataType: DataType.Int32,  value: [ 1010 ,  982 ] });
 
 
 
@@ -53,12 +53,12 @@ describe("test DeadBand Checker",function() {
     });
 
 
-    var vInt64_1000 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [0, 1000] });
-    var vInt64_1010 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [0, 1010] });
+    const vInt64_1000 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [0, 1000] });
+    const vInt64_1010 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [0, 1010] });
 
-    console.log("vInt64_1000",vInt64_1000.toString());
-    var vInt64_L1000 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [1, 1000] });
-    var vInt64_L1010 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [1, 1010] });
+    //xx console.log("vInt64_1000",vInt64_1000.toString());
+    const vInt64_L1000 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [1, 1000] });
+    const vInt64_L1010 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64,  value: [1, 1010] });
 
     it("Scalar - DeadbandType.None - should detect difference between two Int64 scalar",function() {
 

@@ -1,9 +1,14 @@
-
+/**
+ * @module opcua.address_space
+ *
+ * @type {{AddressSpace: AddressSpace, SessionContext: SessionContext, BaseNode: BaseNode, UAObject: UAObject, UAVariable: UAVariable, UAObjectType: UAObjectType, UAVariableType: UAVariableType, UAMethod: UAMethod, Reference: Reference, ReferenceType: ReferenceType, UADataType: UADataType, UAStateMachine: UAStateMachine, ConditionInfo: ConditionInfo, ConditionSnapshot: ConditionSnapshot, UAConditionBase: UAConditionBase, UAAcknowledgeableConditionBase: UAAcknowledgeableConditionBase, UALimitAlarm: UALimitAlarm, UANonExclusiveLimitAlarm: UANonExclusiveLimitAlarm, UAExclusiveLimitAlarm: UAExclusiveLimitAlarm, UADiscreteAlarm: UADiscreteAlarm, checkSelectClauses: checkSelectClauses, checkSelectClause: checkSelectClause, getMethodDeclaration_ArgumentList: getMethodDeclaration_ArgumentList, Argument: Argument, binaryStoreSize_ArgumentList: binaryStoreSize_ArgumentList, build_retrieveInputArgumentsDefinition: build_retrieveInputArgumentsDefinition, verifyArguments_ArgumentList: verifyArguments_ArgumentList, bindExtObjArrayNode: bindExtObjArrayNode, addElement: addElement, removeElement: removeElement, EventData: EventData, View: View, generate_address_space: generate_address_space}}
+ */
 
 
 module.exports = {
 
     AddressSpace: require("./src/address_space").AddressSpace,
+    Namespace: require("./src/namespace").Namespace,
 
     SessionContext: require("./src/session_context").SessionContext,
 
@@ -46,10 +51,13 @@ module.exports = {
     bindExtObjArrayNode: require("./src/extension_object_array_node").bindExtObjArrayNode,
     addElement: require("./src/extension_object_array_node").addElement,
     removeElement: require("./src/extension_object_array_node").removeElement,
+    createExtObjArrayNode: require("./src/extension_object_array_node").createExtObjArrayNode,
+
     EventData: require("./src/address_space_add_event_type").EventData,
 
     View: require("./src/view").View,
 
-    generate_address_space: require("./src/loader/load_nodeset2").generate_address_space
+    generate_address_space: require("./src/loader/load_nodeset2").generate_address_space,
 
+    PseudoSession : require("./src/pseudo_session").PseudoSession
 };

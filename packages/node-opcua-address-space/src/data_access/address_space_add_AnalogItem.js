@@ -4,17 +4,18 @@
 // HasProperty  Variable  EngineeringUnits  EUInformation  PropertyType  Optional
 
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var EUInformation = require("node-opcua-data-access").EUInformation;
-var Range = require("node-opcua-data-access").Range;
+const EUInformation = require("node-opcua-data-access").EUInformation;
+const Range = require("node-opcua-data-access").Range;
 
-var add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
+const add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
+const Namespace = require("../namespace").Namespace;
 
 
 exports.install = function (AddressSpace) {
@@ -31,15 +32,16 @@ exports.install = function (AddressSpace) {
      * @param options.componentOf
      * @return {UAVariable}
      */
-    AddressSpace.prototype.addDataItem = function(options) {
+    Namespace.prototype.addDataItem = function(options) {
 
-        var addressSpace = this;
+        const namespace = this;
+        const addressSpace = namespace.addressSpace;
         assert(addressSpace instanceof AddressSpace);
-        var dataType = options.dataType || "Number";
+        const dataType = options.dataType || "Number";
 
-        var dataItemType = addressSpace.findVariableType("DataItemType");
+        const dataItemType = addressSpace.findVariableType("DataItemType");
 
-        var variable = addressSpace.addVariable(_.extend(options, {
+        const variable = namespace.addVariable(_.extend(options, {
             typeDefinition: dataItemType.nodeId,
             dataType:       dataType
         }));
@@ -64,7 +66,7 @@ exports.install = function (AddressSpace) {
      * @example:
      *
      *
-     *   addressSpace.add_analog_dataItem({
+     *   namespace.add_analog_dataItem({
      *      componentOf: parentObject,
      *      browseName: "TemperatureSensor",
      *
@@ -99,27 +101,32 @@ exports.install = function (AddressSpace) {
      * @return {UAVariable}
      */
     AddressSpace.prototype.addAnalogDataItem = function (options) {
+        return this._resolveRequestedNamespace(options).addAnalogDataItem(options);
+    };
 
-        var addressSpace = this;
+    Namespace.prototype.addAnalogDataItem = function (options) {
+
+        const namespace = this;
+        const addressSpace = namespace.addressSpace;
 
         assert(options.hasOwnProperty("engineeringUnitsRange"), "expecting engineeringUnitsRange");
 
-        var dataType = options.dataType || "Number";
+        const dataType = options.dataType || "Number";
 
-        var analogItemType = addressSpace.findVariableType("AnalogItemType");
+        const analogItemType = addressSpace.findVariableType("AnalogItemType");
         assert(analogItemType, "expecting AnalogItemType to be defined , check nodeset xml file");
 
 
-        var clone_options = _.clone(options);
+        let clone_options = _.clone(options);
 
         clone_options = _.extend(clone_options, {
             typeDefinition: analogItemType.nodeId,
             dataType:       dataType
         });
-        var variable = addressSpace.addVariable(clone_options);
+        const variable = namespace.addVariable(clone_options);
 
 
-        //var variable = addressSpace.addVariable({
+        //var variable = namespace.addVariable({
         //    componentOf:     options.componentOf,
         //    organizedBy:     options.organizedBy,
         //    browseName:      options.browseName,
@@ -147,10 +154,10 @@ exports.install = function (AddressSpace) {
         // prepared to handle this.
         //     Example:    EURange ::= {-200.0,1400.0}
 
-        var euRange = addressSpace.addVariable({
+        const euRange = namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: "EURange",
+            browseName: {name:"EURange",namespaceIndex:0},
             dataType: "Range",
             minimumSamplingInterval: 0,
             value: new Variant({
@@ -160,15 +167,15 @@ exports.install = function (AddressSpace) {
         });
 
 
-        var handler = variable.handle_semantic_changed.bind(variable);
+        const handler = variable.handle_semantic_changed.bind(variable);
         euRange.on("value_changed",handler);
 
         if (options.hasOwnProperty("instrumentRange")) {
 
-            var instrumentRange =addressSpace.addVariable({
+            const instrumentRange =namespace.addVariable({
                 propertyOf: variable,
                 typeDefinition: "PropertyType",
-                browseName: "InstrumentRange",
+                browseName: {name:"InstrumentRange",namespaceIndex:0},
                 dataType: "Range",
                 minimumSamplingInterval: 0,
                 accessLevel: "CurrentRead | CurrentWrite",
@@ -184,16 +191,16 @@ exports.install = function (AddressSpace) {
 
         if (options.hasOwnProperty("engineeringUnits")) {
 
-            var engineeringUnits = new EUInformation(options.engineeringUnits);
+            const engineeringUnits = new EUInformation(options.engineeringUnits);
             assert(engineeringUnits instanceof EUInformation, "expecting engineering units");
 
             // EngineeringUnits  specifies the units for the   DataItem‟s value (e.g., DEGC, hertz, seconds).   The
             // EUInformation   type is specified in   5.6.3.
 
-            var eu = addressSpace.addVariable({
+            const eu = namespace.addVariable({
                 propertyOf: variable,
                 typeDefinition: "PropertyType",
-                browseName: "EngineeringUnits",
+                browseName: {name:"EngineeringUnits",namespaceIndex:0},
                 dataType: "EUInformation",
                 minimumSamplingInterval: 0,
                 accessLevel: "CurrentRead",

@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var RegisterNodesResponse_Schema = {
+const RegisterNodesResponse_Schema = {
     documentation:" A standard header included in all responses returned by servers.",
     name: "RegisterNodesResponse",
     fields: [

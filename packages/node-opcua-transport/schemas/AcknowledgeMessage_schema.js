@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var AcknowledgeMessage_Schema = {
+const AcknowledgeMessage_Schema = {
     name: "AcknowledgeMessage",
     id: factories.next_available_id(),
     fields: [

@@ -1,18 +1,18 @@
 "use strict";
-var DataType = require("node-opcua-variant").DataType;
+const DataType = require("node-opcua-variant").DataType;
 
 module.exports = function (test) {
 
     describe("Alarm&Condition ConditionClassName and ConditionName ", function () {
 
-        var addressSpace,source;
+        let addressSpace, source;
         before(function() {
             addressSpace = test.addressSpace;
             source = test.source;
         });
         it("CC1 - should be possible to set the ConditionName and ConditionClassName of an alarm",function() {
 
-            var condition = addressSpace.instantiateCondition("AlarmConditionType",{
+            const condition = addressSpace.instantiateCondition("AlarmConditionType",{
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmCondition1",
@@ -20,7 +20,7 @@ module.exports = function (test) {
                 conditionClass: "ProcessConditionClassType",
                 conditionName: "MyConditionName"
             });
-            condition.browseName.toString().should.eql("AlarmCondition1");
+            condition.browseName.toString().should.eql("1:AlarmCondition1");
 
             // ConditionClassId : NodeId
             // ConditionClassName: LocalizedText
@@ -43,7 +43,7 @@ module.exports = function (test) {
             // to specify all individual ConditionClassType NodeIds. The OfType operator cannot be applied.
             // BaseConditionClassType is used as class whenever a Condition cannot be assigned to a
             // more concrete class.
-            var processConditionClassType = addressSpace.findObjectType("ProcessConditionClassType");
+            const processConditionClassType = addressSpace.findObjectType("ProcessConditionClassType");
             condition.conditionClassId.readValue().value.dataType.should.equal(DataType.NodeId);
             condition.conditionClassId.readValue().value.value.toString().should.equal(processConditionClassType.nodeId.toString());
 

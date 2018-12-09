@@ -1,33 +1,33 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
-var _ = require("underscore");
-var async = require("async");
-var sinon = require("sinon");
+const should = require("should");
+const _ = require("underscore");
+const async = require("async");
+const sinon = require("sinon");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
 
 
-var ConditionSnapshot =  require("../..").ConditionSnapshot;
-var SessionContext = require("../..").SessionContext;
+const ConditionSnapshot =  require("../..").ConditionSnapshot;
+const SessionContext = require("../..").SessionContext;
 
-var doDebug = false;
+const doDebug = true;
 
 
 module.exports = function (test) {
 
     describe("AlarmConditionType", function () {
 
-        var addressSpace, source, engine, variableWithAlarm;
+        let addressSpace, source, engine, variableWithAlarm;
         before(function () {
             addressSpace = test.addressSpace;
             source = test.source;
@@ -38,13 +38,13 @@ module.exports = function (test) {
 
         it("should instantiate an AlarmConditionType", function () {
 
-            var alarmConditionType = addressSpace.findEventType("AlarmConditionType");
-            var alarm = alarmConditionType.instantiate({
+            const alarmConditionType = addressSpace.findEventType("AlarmConditionType");
+            const alarm = alarmConditionType.instantiate({
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmCondition1"
             });
-            alarm.browseName.toString().should.eql("AlarmCondition1");
+            alarm.browseName.toString().should.eql("1:AlarmCondition1");
 
             should.not.exist(alarm.maxTimedShelved);
             should.not.exist(alarm.confirmedState);
@@ -52,7 +52,7 @@ module.exports = function (test) {
 
         it("should instantiate AlarmConditionType (variation 2)", function () {
 
-            var alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmCondition2",
@@ -64,14 +64,14 @@ module.exports = function (test) {
             should.not.exist(alarm.confirmedState);
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             alarm.enabledState.getTrueSubStates().length.should.eql(2);
-            alarm.browseName.toString().should.eql("AlarmCondition2");
+            alarm.browseName.toString().should.eql("1:AlarmCondition2");
 
             alarm.inputNode.readValue().value.value.should.eql(variableWithAlarm.nodeId,"Input node must have been resolved properly");
 
         });
         it("should be possible to instantiate a Alarm with a inputNode as Null NodeId (ns=0;i=0)", function () {
 
-            var alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmCondition3",
@@ -88,7 +88,7 @@ module.exports = function (test) {
 
         it("should be possible to instantiate a Alarm with 'maxTimeShelved' ", function () {
 
-            var alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AlarmConditionWithMaxTimeShelved",
@@ -104,7 +104,7 @@ module.exports = function (test) {
 
         describe("should instantiate AlarmConditionType with ConfirmedState", function (done) {
 
-            var alarm;
+            let alarm;
             before(function () {
                 alarm = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
                     componentOf: source,
@@ -198,40 +198,24 @@ module.exports = function (test) {
 
                 //xx alarm.shelvingState.maxTimeShelved.setValueFromSource({dataType: "Double",value: 100 });
 
-                // simulate a call tro timeshelved
+                // simulate a call to timeshelved
 
-                var timeShelvedDuration = 500; // 0.5 seconds
-                var shelvingTime = new Variant({dataType: DataType.Double, value: timeShelvedDuration });
+                const timeShelvedDuration = 1500; // 0.5 seconds
+                const shelvingTime = new Variant({dataType: DataType.Double, value: timeShelvedDuration });
 
-                var context = new SessionContext();
+                const context = new SessionContext();
 
-                var values =[];
+                const values =[];
+                let _timer;
                 async.series([
-                    function(callback) {
+
+                    function calling_timedShelve(callback) {
+
                         alarm.shelvingState.timedShelve.execute([shelvingTime], context, function (err, callMethodResponse) {
                             callback(err);
                         });
                     },
                     function(callback) {
-
-                        alarm.shelvingState.getCurrentState().should.eql("TimedShelved");
-
-                        var previous =  600.0;
-
-
-                        var _timer = setInterval(function() {
-
-                            var variant =alarm.shelvingState.unshelveTime.readValue().value;
-                            variant.dataType.should.eql(DataType.Double);
-
-                            should( variant.value <timeShelvedDuration).eql(true);
-                            should( variant.value >=0).eql(true);
-                            should( variant.value < previous).eql(true);
-
-                            values.push(variant.value);
-                            previous = variant.value ;
-
-                        },100);
 
                         alarm.shelvingState.currentState.once("value_changed",function( newValue){
 
@@ -242,16 +226,36 @@ module.exports = function (test) {
                             if(doDebug) {
                                 console.log("                     unshelveTime value history = ",values);
                             }
-
-                            clearInterval(_timer);
-                            _timer = null;
-
                             callback();
                         });
 
+
+                        alarm.shelvingState.getCurrentState().should.eql("TimedShelved");
+
+                        let previous =  timeShelvedDuration + 1;
+
+
+                        _timer = setInterval(function() {
+
+                            const variant =alarm.shelvingState.unshelveTime.readValue().value;
+                            variant.dataType.should.eql(DataType.Double);
+
+
+                            should( variant.value <timeShelvedDuration).eql(true);
+                            should( variant.value >=0 ).eql(true, " unshelveTime must be greeater than 0");
+                            should( variant.value < previous).eql(true);
+
+                            values.push(variant.value);
+                            previous = variant.value ;
+
+                        },400);
+
+
                     },
                     function(callback) {
-                        callback();
+                        clearInterval(_timer);
+                        _timer = null;
+                        setImmediate(callback);
                     }
                 ],done);
             });
@@ -287,7 +291,7 @@ module.exports = function (test) {
                     alarm.suppressedState.setValue(false);
                 });
 
-                var context = new SessionContext();
+                const context = new SessionContext();
 
                 it("unshelving an already unshelved alarm should return BadConditionNotShelved", function (done) {
                     alarm.shelvingState.getCurrentState().should.eql("Unshelved");
@@ -319,7 +323,7 @@ module.exports = function (test) {
                 });
                 it("timed-shelving an already timed-shelved alarm should return BadConditionAlreadyShelved", function (done) {
 
-                    var shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
+                    const shelvingTime = new Variant({dataType: DataType.Double, value: 20*1000}); // Duration  20 seconds
 
                     alarm.shelvingState.setState("TimedShelved");
                     alarm.shelvingState.getCurrentState().should.eql("TimedShelved");
@@ -332,7 +336,7 @@ module.exports = function (test) {
                 });
                 it("timed-shelving an already oneshot-shelved alarm should return BadConditionAlreadyShelved", function (done) {
 
-                    var shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
+                    const shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
                     alarm.shelvingState.setState("OneShotShelved");
                     alarm.shelvingState.getCurrentState().should.eql("OneShotShelved");
 
@@ -346,7 +350,7 @@ module.exports = function (test) {
 
                     alarm.setMaxTimeShelved(100);
 
-                    var shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
+                    const shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
                     alarm.shelvingState.getCurrentState().should.eql("Unshelved");
                     alarm.shelvingState.timedShelve.execute([shelvingTime], context, function (err, callMethodResponse) {
                         alarm.shelvingState.getCurrentState().should.eql("TimedShelved");
@@ -357,9 +361,9 @@ module.exports = function (test) {
                 });
                 it("timed-shelving an unshelved alarm should return ShelvingTimeOutOfRange when ShelvingTime is out of range", function (done) {
 
-                    alarm.setMaxTimeShelved(5);
+                    alarm.setMaxTimeShelved(5*1000);
 
-                    var shelvingTime = new Variant({dataType: DataType.Double, value: 10}); // Duration (ms)
+                    const shelvingTime = new Variant({dataType: DataType.Double, value: 10*1000}); // Duration (ms)
                     alarm.shelvingState.getCurrentState().should.eql("Unshelved");
 
                     alarm.shelvingState.timedShelve.execute([shelvingTime], context, function (err, callMethodResponse) {
@@ -402,7 +406,7 @@ module.exports = function (test) {
 
 
     describe("AlarmConditionType: Server maintains current state only", function () {
-        var addressSpace,source,engine;
+        let addressSpace, source, engine;
         before(function() {
             addressSpace = test.addressSpace; source = test.source;engine = test.engine;
         });
@@ -412,7 +416,7 @@ module.exports = function (test) {
 
             // case of a Alarm Condition with a (optional) ConfirmedState
 
-            var condition = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const condition = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 browseName: "AcknowledgeableCondition4",
                 conditionSource: source,
@@ -441,9 +445,9 @@ module.exports = function (test) {
             condition.ackedState.isTrueSubStateOf.should.eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(3);
             condition.enabledState.getFalseSubStates().length.should.eql(0);
-            condition.browseName.toString().should.eql("AcknowledgeableCondition4");
+            condition.browseName.toString().should.eql("1:AcknowledgeableCondition4");
 
-            var branch = condition.currentBranch();
+            const branch = condition.currentBranch();
 
             // preliminary state
             branch.setActiveState(false);
@@ -466,10 +470,10 @@ module.exports = function (test) {
 
             condition._findBranchForEventId(null).should.eql(branch);
 
-            var acknowledged_spy = new sinon.spy();
+            const acknowledged_spy = new sinon.spy();
             condition.on("acknowledged",acknowledged_spy);
 
-            var confirmed_spy = new sinon.spy();
+            const confirmed_spy = new sinon.spy();
             condition.on("confirmed",confirmed_spy);
 
 
@@ -521,8 +525,8 @@ module.exports = function (test) {
                     // 1) null      |  true    | true  | false      | true   |
 
 
-                    var context = new SessionContext({object: condition});
-                    var param = [
+                    const context = new SessionContext({object: condition});
+                    const param = [
                         // the eventId
                         {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},
                         //
@@ -581,9 +585,9 @@ module.exports = function (test) {
                     //    null      |  False   | true  | true      | false   |
 
 
-                    var context = new SessionContext({object: condition});
+                    const context = new SessionContext({object: condition});
 
-                    var param = [
+                    const param = [
                         // the eventId
                         {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},
                         //
@@ -660,8 +664,8 @@ module.exports = function (test) {
                     //    null      |  false   | true  | false     | true   |
 
 
-                    var context = new SessionContext({object: condition});
-                    var param = [
+                    const context = new SessionContext({object: condition});
+                    const param = [
                         // the eventId
                         {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},
                         //
@@ -691,8 +695,8 @@ module.exports = function (test) {
                     //    null      |  false   | true  | true      | false   |
 
 
-                    var context = new SessionContext({object: condition});
-                    var param = [
+                    const context = new SessionContext({object: condition});
+                    const param = [
                         // the eventId
                         {dataType: DataType.ByteString, value: condition.eventId.readValue().value.value},
                         //

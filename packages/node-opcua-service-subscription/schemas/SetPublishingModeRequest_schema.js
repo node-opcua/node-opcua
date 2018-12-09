@@ -1,5 +1,5 @@
 
-var SetPublishingModeRequest_Schema = {
+const SetPublishingModeRequest_Schema = {
     name: "SetPublishingModeRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"  },

@@ -1,4 +1,4 @@
-var IssuedIdentityToken_Schema = {
+const IssuedIdentityToken_Schema = {
     name:"IssuedIdentityToken",
     documentation: "A token representing a user identified by a WS-Security XML token.",
     fields: [

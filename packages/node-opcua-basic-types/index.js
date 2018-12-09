@@ -1,13 +1,13 @@
 "use strict";
-var boolean = require("./src/boolean");
-var integers = require("./src/integers");
-var floats = require("./src/floats");
-var string = require("./src/string");
-var date_time = require("./src/date_time");
-var byte_string = require("./src/byte_string");
-var node_id = require("./src/nodeid");
-var status_code= require("./src/status_code");
-var guid = require("./src/guid");
+const boolean = require("./src/boolean");
+const integers = require("./src/integers");
+const floats = require("./src/floats");
+const string = require("./src/string");
+const date_time = require("./src/date_time");
+const byte_string = require("./src/byte_string");
+const node_id = require("./src/nodeid");
+const status_code= require("./src/status_code");
+const guid = require("./src/guid");
 
 module.exports = {
 
@@ -78,6 +78,9 @@ module.exports = {
 
     encodeDateTime: date_time.encodeDateTime,
     decodeDateTime: date_time.decodeDateTime,
+    encodeHighAccuracyDateTime: date_time.encodeHighAccuracyDateTime,
+    decodeHighAccuracyDateTime: date_time.decodeHighAccuracyDateTime,
+
     coerceDateTime: date_time.coerceDateTime,
 
     encodeNodeId: node_id.encodeNodeId,

@@ -177,7 +177,7 @@ module.exports = {
     DataChangeFilter: require("./_generated_/_auto_generated_DataChangeFilter").DataChangeFilter,
 
     /**
-     *
+     * @class AggregateFilter
      */
     AggregateFilter: require("./_generated_/_auto_generated_AggregateFilter").AggregateFilter,
 
@@ -191,8 +191,9 @@ module.exports = {
      */
     SetTriggeringResponse: require("./_generated_/_auto_generated_SetTriggeringResponse").SetTriggeringResponse,
 
-
-
+    /**
+     * @class TransferResult
+     */
     TransferResult: require("./_generated_/_auto_generated_TransferResult").TransferResult,
 
     /**
@@ -204,7 +205,6 @@ module.exports = {
      * @class TransferSubscriptionsResponse
      */
     TransferSubscriptionsResponse: require("./_generated_/_auto_generated_TransferSubscriptionsResponse").TransferSubscriptionsResponse,
-
 
 
     check_deadband: require("./src/deadband_checker").check_deadband,

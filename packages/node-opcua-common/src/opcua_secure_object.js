@@ -4,9 +4,9 @@
  */
 
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
-var fs = require("fs");
-var assert = require("node-opcua-assert");
+const crypto_utils = require("node-opcua-crypto");
+const fs = require("fs");
+const assert = require("node-opcua-assert").assert;
 
 function _load_certificate(certificate_file) {
     return crypto_utils.readCertificate(certificate_file);
@@ -36,7 +36,7 @@ function OPCUASecureObject(options) {
 
 }
 
-var split_der = require("node-opcua-crypto").crypto_explore_certificate.split_der;
+const split_der = require("node-opcua-crypto").split_der;
 
 /**
  * @method getCertificate
@@ -45,7 +45,7 @@ var split_der = require("node-opcua-crypto").crypto_explore_certificate.split_de
 OPCUASecureObject.prototype.getCertificate = function () {
 
     if (!this._certificate) {
-        var certChain    = this.getCertificateChain();
+        const certChain    = this.getCertificateChain();
         this._certificate  = split_der(certChain)[0];
     }
     return this._certificate;

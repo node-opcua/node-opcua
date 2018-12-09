@@ -1,4 +1,4 @@
-var MonitoringParameters_Schema = {
+const MonitoringParameters_Schema = {
     name: "MonitoringParameters",
     fields: [
         /*

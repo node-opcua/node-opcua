@@ -4,12 +4,12 @@
  * @module opcua.datamodel
  */
 
-var util = require("util");
+const util = require("util");
 
-var NodeId = require("./nodeid").NodeId;
-var NodeIdType = require("./nodeid").NodeIdType;
+const NodeId = require("./nodeid").NodeId;
+const NodeIdType = require("./nodeid").NodeIdType;
 
-var _ = require("underscore");
+const _ = require("underscore");
 /**
  * An ExpandedNodeId extends the NodeId structure.
  *
@@ -59,7 +59,7 @@ exports.ExpandedNodeId = ExpandedNodeId;
  */
 ExpandedNodeId.prototype.toString = function () {
 
-    var str = NodeId.prototype.toString.call(this);
+    let str = NodeId.prototype.toString.call(this);
     if (this.namespaceUri) {
         str += ";namespaceUri:" + this.namespaceUri;
     }
@@ -80,9 +80,9 @@ ExpandedNodeId.prototype.toJSON = function () {
 };
 
 
-var coerceNodeId = require("./nodeid").coerceNodeId;
+const coerceNodeId = require("./nodeid").coerceNodeId;
 function coerceExpandedNodeId(value) {
-    var n = coerceNodeId(value);
+    const n = coerceNodeId(value);
     return new ExpandedNodeId(n.identifierType, n.value, n.namespace, /*namespaceUri*/null, /*serverIndex*/0)
 
 }
@@ -95,12 +95,12 @@ exports.coerceExpandedNodeId = coerceExpandedNodeId;
  * @return {ExpandedNodeId}
  */
 exports.makeExpandedNodeId = function makeExpandedNodeId(value, namespace) {
-
     if (value === undefined && namespace === undefined) {
         return new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0, null, 0);
     }
-    var serverIndex = 0, n;
-    var namespaceUri = null;
+    const serverIndex = 0;
+    let n;
+    const namespaceUri = null;
 
     if (value instanceof ExpandedNodeId) {
         // construct from a ExpandedNodeId => copy
@@ -113,7 +113,7 @@ exports.makeExpandedNodeId = function makeExpandedNodeId(value, namespace) {
         return new ExpandedNodeId(n.identifierType, n.value, n.namespace, namespaceUri, serverIndex);
     }
 
-    var valueInt = parseInt(value, 10);
+    const valueInt = parseInt(value, 10);
     if (!_.isFinite(valueInt)) {
         throw new Error(" cannot makeExpandedNodeId out of " + value);
     }

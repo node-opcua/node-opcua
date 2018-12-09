@@ -1,11 +1,11 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
 // OPC UA Secure Conversation Message Header : Part 6 page 36
 
 //Asymmetric algorithms are used to secure the OpenSecureChannel messages.
-var AsymmetricAlgorithmSecurityHeader_Schema = {
+const AsymmetricAlgorithmSecurityHeader_Schema = {
     name: "AsymmetricAlgorithmSecurityHeader",
     id: factories.next_available_id(),
     fields: [

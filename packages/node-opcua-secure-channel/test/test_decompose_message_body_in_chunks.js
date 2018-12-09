@@ -1,9 +1,9 @@
 "use strict";
 
-var should = require("should");
-var assert = require("node-opcua-assert");
-var SequenceNumberGenerator = require("../src/sequence_number_generator").SequenceNumberGenerator;
-var SecureMessageChunkManager = require("../src/secure_message_chunk_manager").SecureMessageChunkManager;
+const should = require("should");
+const assert = require("node-opcua-assert").assert;
+const SequenceNumberGenerator = require("../src/sequence_number_generator").SequenceNumberGenerator;
+const SecureMessageChunkManager = require("../src/secure_message_chunk_manager").SecureMessageChunkManager;
 
 /**
  * @method decompose_message_body_in_chunks
@@ -22,15 +22,15 @@ function decompose_message_body_in_chunks(message_body, msgType, chunkSize) {
     assert(msgType.length === 3, " invalid msgType " + msgType);
     assert(message_body instanceof Buffer && message_body.length > 0, " invalid buffer");
 
-    var sequenceNumberGenerator = new SequenceNumberGenerator();
+    const sequenceNumberGenerator = new SequenceNumberGenerator();
 
-    var options = {
+    const options = {
         secureChannelId: 10,
         requestId: 36
     };
 
-    var msgChunkManager = new SecureMessageChunkManager(msgType, options, null, sequenceNumberGenerator);
-    var chunks = [];
+    const msgChunkManager = new SecureMessageChunkManager(msgType, options, null, sequenceNumberGenerator);
+    const chunks = [];
     msgChunkManager.on("chunk", function (chunk) {
         if (chunk) {
             assert(chunk.length > 0);
@@ -46,9 +46,9 @@ function decompose_message_body_in_chunks(message_body, msgType, chunkSize) {
 describe("decompose message body in chunks", function () {
 
     it("should decompose a message body in at least one chunk ", function () {
-        var message_body = new Buffer("At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis");
+        const message_body = Buffer.from("At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis");
 
-        var chunks = decompose_message_body_in_chunks(message_body, "MSG", 128);
+        const chunks = decompose_message_body_in_chunks(message_body, "MSG", 128);
         chunks.length.should.be.greaterThan(0);
 
     });

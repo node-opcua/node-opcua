@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var DeadbandType_Schema = {
+const DeadbandType_Schema = {
     name:"DeadbandType",
     enumValues: {
         None:       0x00,

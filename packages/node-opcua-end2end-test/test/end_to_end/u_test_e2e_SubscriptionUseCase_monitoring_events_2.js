@@ -1,17 +1,17 @@
 /*global xit,it,describe,before,after,beforeEach,afterEach,require*/
 "use strict";
 
-var should = require("should");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
 module.exports = function (test) {
     xdescribe("OPCUA Event - test2 ", function () {
-        var client, endpointUrl;
+        let client, endpointUrl;
 
-        var options ={};
+        const options ={};
         beforeEach(function (done) {
             client = new OPCUAClient(options);
             endpointUrl = test.endpointUrl;

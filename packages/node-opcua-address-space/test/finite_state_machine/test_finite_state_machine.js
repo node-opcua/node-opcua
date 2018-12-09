@@ -1,27 +1,29 @@
 "use strict";
-var path = require("path");
-var should = require("should");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
+const path = require("path");
+const should = require("should");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
-var UAStateMachine = require("../..").UAStateMachine;
+const UAStateMachine = require("../..").UAStateMachine;
 
-var AddressSpace = require("../..").AddressSpace;
-var generate_address_space = require("../..").generate_address_space;
+const AddressSpace = require("../..").AddressSpace;
+const generate_address_space = require("../..").generate_address_space;
 
-var doDebug = false;
+const doDebug = false;
 
 // make sure extra error checking is made on object constructions
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Finite State Machine", function () {
 
-    var addressSpace;
+    let addressSpace;
 
     before(function (done) {
 
         addressSpace = new AddressSpace();
-        var xml_files = [
+        addressSpace.registerNamespace("MyPrivateNamespace");
+        
+        const xml_files = [
             // opcua.mini_nodeset_filename,
             path.join(__dirname, "../../test_helpers/test_fixtures/fixture_simple_statemachine_nodeset2.xml")
         ];
@@ -39,7 +41,7 @@ describe("Testing Finite State Machine", function () {
 
     it("finite state machine should have expected mandatory and optional fields", function (done) {
 
-        var stateMachineType = addressSpace.findObjectType("StateMachineType");
+        const stateMachineType = addressSpace.findObjectType("StateMachineType");
 
         stateMachineType.currentState.modellingRule.should.eql("Mandatory");
         stateMachineType.currentState.id.modellingRule.should.eql("Mandatory");
@@ -63,9 +65,9 @@ describe("Testing Finite State Machine", function () {
 
     it("should instantiate a finite state machine", function (done) {
 
-        var stateMachineType = addressSpace.findObjectType("StateMachineType");
+        const stateMachineType = addressSpace.findObjectType("StateMachineType");
 
-        var stateMachine = stateMachineType.instantiate({browseName: "MyStateMachine"});
+        const stateMachine = stateMachineType.instantiate({browseName: "MyStateMachine"});
 
         stateMachine.getComponentByName("CurrentState").browseName.toString().should.eql("CurrentState");
 
@@ -79,9 +81,9 @@ describe("Testing Finite State Machine", function () {
 
     it("should instantiate a finite state machine with lastTransition", function (done) {
 
-        var stateMachineType = addressSpace.findObjectType("StateMachineType");
+        const stateMachineType = addressSpace.findObjectType("StateMachineType");
 
-        var stateMachine = stateMachineType.instantiate({
+        const stateMachine = stateMachineType.instantiate({
             browseName: "MyStateMachine",
             optionals: ["LastTransition"]
         });
@@ -97,9 +99,9 @@ describe("Testing Finite State Machine", function () {
 
     it("should bind a finite state machine state variable", function (done) {
 
-        var stateMachineType = addressSpace.findObjectType("StateMachineType");
+        const stateMachineType = addressSpace.findObjectType("StateMachineType");
 
-        var stateMachine = stateMachineType.instantiate({
+        const stateMachine = stateMachineType.instantiate({
             browseName: "MyStateMachine2",
             optionals: ["LastTransition"]
         });
@@ -124,7 +126,7 @@ describe("Testing Finite State Machine", function () {
 
     it("should explore FiniteStateMachineType", function (done) {
 
-        var finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType");
+        const finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType");
 
         finiteStateMachineType.currentState.modellingRule.should.eql("Mandatory");
         finiteStateMachineType.currentState.id.modellingRule.should.eql("Mandatory");
@@ -145,12 +147,12 @@ describe("Testing Finite State Machine", function () {
 
 
     it("should handle a FiniteStateMachine Type defined in a nodeset.xml file", function () {
-        var exclusiveLimitStateMachineType = addressSpace.findObjectType("ExclusiveLimitStateMachineType");
+        const exclusiveLimitStateMachineType = addressSpace.findObjectType("ExclusiveLimitStateMachineType");
         exclusiveLimitStateMachineType.browseName.toString().should.eql("ExclusiveLimitStateMachineType");
 
         // instantiate a state machine
 
-        var myStateMachine = exclusiveLimitStateMachineType.instantiate({
+        const myStateMachine = exclusiveLimitStateMachineType.instantiate({
             browseName: "MyStateMachine"
         });
         if (doDebug) {
@@ -159,9 +161,9 @@ describe("Testing Finite State Machine", function () {
         UAStateMachine.promote(myStateMachine);
 
         // get the states
-        var a = myStateMachine.getStates().map(function (e) {
+        const a = myStateMachine.getStates().map(function (e) {
 
-            var stateNumber = e.stateNumber.readValue().value.value;
+            const stateNumber = e.stateNumber.readValue().value.value;
             return e.browseName.toString() + ( (stateNumber !== null ) ? (" ( " + stateNumber + " )") : "" );
         });
 
@@ -170,8 +172,8 @@ describe("Testing Finite State Machine", function () {
         }
 
         // get the transitions
-        var t = myStateMachine.getTransitions().map(function (e) {
-            var transitionNumber = e.transitionNumber.readValue().value.value;
+        const t = myStateMachine.getTransitions().map(function (e) {
+            const transitionNumber = e.transitionNumber.readValue().value.value;
             return e.browseName.toString() + ( (transitionNumber !== null ) ? (" ( " + transitionNumber + " )") : "" );
 
         });
@@ -194,13 +196,13 @@ describe("Testing Finite State Machine", function () {
         myStateMachine.setState(myStateMachine.getStates()[3]);
 
 
-        var lowlowState = myStateMachine.getStateByName("LowLow");
+        const lowlowState = myStateMachine.getStateByName("LowLow");
         lowlowState.browseName.toString().should.eql("LowLow");
 
-        var lowState = myStateMachine.getStateByName("Low");
+        const lowState = myStateMachine.getStateByName("Low");
         lowState.browseName.toString().should.eql("Low");
 
-        var lowToLowLowTransition = myStateMachine.findTransitionNode(lowState, lowlowState);
+        const lowToLowLowTransition = myStateMachine.findTransitionNode(lowState, lowlowState);
 
         lowToLowLowTransition.browseName.toString().should.eql("LowToLowLow");
 
@@ -231,14 +233,16 @@ describe("Testing Finite State Machine", function () {
          */
 
 
-        var myFiniteStateMachine = addressSpace.addObjectType({
+        const namespace = addressSpace.getOwnNamespace();
+
+        const myFiniteStateMachine = namespace.addObjectType({
             browseName: "MyFiniteStateMachine",
             subtypeOf: "FiniteStateMachineType"
         });
 
 
         // The AnalyserDevice is in its power-up sequence and cannot perform any other task.
-        addressSpace.addState(myFiniteStateMachine, "Powerup", 100, true);
+        namespace.addState(myFiniteStateMachine, "Powerup", 100, true);
 
         // The AnalyserDevice is in the Operating mode.
         // The ADI Client uses this mode for normal operation: configuration, control and data collection.
@@ -246,7 +250,7 @@ describe("Testing Finite State Machine", function () {
         // Parameter values published in the address space values are expected to be valid.
         // When entering this state, all AnalyserChannels of this AnalyserDevice automatically leave the SlaveMode
         // state and enter their Operating state.
-        addressSpace.addState(myFiniteStateMachine, "Operating", 200);
+        namespace.addState(myFiniteStateMachine, "Operating", 200);
 
         // The AnalyserDevice is in the Local mode. This mode is normally used to perform local physical maintenance
         // on the analyser.
@@ -258,7 +262,7 @@ describe("Testing Finite State Machine", function () {
         // In this mode, no commands are accepted from the ADI interface and no guarantee is given on the
         // values in the address space.
 
-        addressSpace.addState(myFiniteStateMachine, "Local", 300);
+        namespace.addState(myFiniteStateMachine, "Local", 300);
 
         // The AnalyserDevice is in the Maintenance mode. This mode is used to perform remote maintenance on the
         // analyser like firmware upgrade.
@@ -268,22 +272,22 @@ describe("Testing Finite State Machine", function () {
         // the AnalyserChannelStateMachine.
         // In this mode, no commands are accepted from the ADI interface for the AnalyserChannels and no guarantee
         // is given on the values in the address space.
-        addressSpace.addState(myFiniteStateMachine, "Maintenance", 400);
+        namespace.addState(myFiniteStateMachine, "Maintenance", 400);
 
         // The AnalyserDevice is in its power-down sequence and cannot perform any other task.
-        addressSpace.addState(myFiniteStateMachine, "Shutdown", 500);
+        namespace.addState(myFiniteStateMachine, "Shutdown", 500);
 
 
-        addressSpace.addTransition(myFiniteStateMachine, "Powerup", "Operating", 1);
-        addressSpace.addTransition(myFiniteStateMachine, "Operating", "Local", 2);
-        addressSpace.addTransition(myFiniteStateMachine, "Operating", "Maintenance", 3);
-        addressSpace.addTransition(myFiniteStateMachine, "Local", "Operating", 4);
-        addressSpace.addTransition(myFiniteStateMachine, "Local", "Maintenance", 5);
-        addressSpace.addTransition(myFiniteStateMachine, "Maintenance", "Operating", 6);
-        addressSpace.addTransition(myFiniteStateMachine, "Maintenance", "Local", 7);
-        addressSpace.addTransition(myFiniteStateMachine, "Operating", "Shutdown", 8);
-        addressSpace.addTransition(myFiniteStateMachine, "Local", "Shutdown", 9);
-        addressSpace.addTransition(myFiniteStateMachine, "Maintenance", "Shutdown", 10);
+        namespace.addTransition(myFiniteStateMachine, "Powerup", "Operating", 1);
+        namespace.addTransition(myFiniteStateMachine, "Operating", "Local", 2);
+        namespace.addTransition(myFiniteStateMachine, "Operating", "Maintenance", 3);
+        namespace.addTransition(myFiniteStateMachine, "Local", "Operating", 4);
+        namespace.addTransition(myFiniteStateMachine, "Local", "Maintenance", 5);
+        namespace.addTransition(myFiniteStateMachine, "Maintenance", "Operating", 6);
+        namespace.addTransition(myFiniteStateMachine, "Maintenance", "Local", 7);
+        namespace.addTransition(myFiniteStateMachine, "Operating", "Shutdown", 8);
+        namespace.addTransition(myFiniteStateMachine, "Local", "Shutdown", 9);
+        namespace.addTransition(myFiniteStateMachine, "Maintenance", "Shutdown", 10);
 
 
     });

@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var BrowseNextRequest_Schema = {
+const BrowseNextRequest_Schema = {
     name: "BrowseNextRequest",
     documentation: "Continues one or more browse operations.",
     fields: [

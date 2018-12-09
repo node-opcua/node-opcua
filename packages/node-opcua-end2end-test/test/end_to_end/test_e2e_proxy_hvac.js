@@ -1,35 +1,37 @@
 "use strict";
-var createHVACSystem = require("../../test_helpers/hvac_system").createHVACSystem;
+const createHVACSystem = require("../../test_helpers/hvac_system").createHVACSystem;
 
 
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
 
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var DataType = opcua.DataType;
+const DataType = opcua.DataType;
 
-var UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
+const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy", function () {
 
     this.timeout(Math.max(600000,this._timeout));
 
-    var server, client, temperatureVariableId, endpointUrl;
+    let server, client, temperatureVariableId, endpointUrl;
 
-    var HVAC_on_server = null;
+    let HVAC_on_server = null;
 
-    var port = 2000;
+    let port = 2000;
     before(function (done) {
         port += 1;
+
         server = build_server_with_temperature_device({port: port}, function (err) {
+
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
 
@@ -56,14 +58,14 @@ describe("testing client Proxy", function () {
 
     it("client should expose a nice little handy javascript object that proxies the HVAC UAObject", function (done) {
 
-        var proxyManager;
+        let proxyManager;
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager= new UAProxyManager(session);
-            var hvacNodeId = HVAC_on_server;
+            const hvacNodeId = HVAC_on_server;
 
 
-            var hvac;
+            let hvac;
             async.series([
                 function (callback) {
                     proxyManager.start(callback);
@@ -80,7 +82,7 @@ describe("testing client Proxy", function () {
 
                             hvac.interiorTemperature.readValue(function(err,value){
                                 console.log(" Interior temperature updated ...",value.toString());
-				                callback(err);
+                                callback(err);
                             });
 
                             return;
@@ -100,15 +102,15 @@ describe("testing client Proxy", function () {
 
     it("client should expose a nice little handy javascript object that proxies the server UAObject", function (done) {
 
-        var proxyManager ;
+        let proxyManager;
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager= new UAProxyManager(session);
 
-            var serverNodeId = opcua.coerceNodeId("i=2253");
+            const serverNodeId = opcua.coerceNodeId("i=2253");
 
-            var serverObject = null;
-            var subscriptionId =-1;
+            let serverObject = null;
+            let subscriptionId =-1;
 
             async.series([
 
@@ -117,9 +119,9 @@ describe("testing client Proxy", function () {
 
                     session.createSubscription({
                         requestedPublishingInterval: 100, // Duration
-                        requestedLifetimeCount: 10,    // Counter
-                        requestedMaxKeepAliveCount: 10, // Counter
-                        maxNotificationsPerPublish: 10, // Counter
+                        requestedLifetimeCount:     1000, // Counter
+                        requestedMaxKeepAliveCount:   10, // Counter
+                        maxNotificationsPerPublish:   10, // Counter
                         publishingEnabled: true, // Boolean
                         priority: 14 // Byte
                     }, function (err, response) {
@@ -149,29 +151,29 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     serverObject.serverStatus.currentTime.readValue(function(err,dataValue){
-                        console.log("currentTime = ",dataValue.toString());
-                        callback();
+                        //xx console.log("currentTime = ",dataValue.toString());
+                        callback(err);
                     });
                 },
                 function (callback) {
 
                     serverObject.serverArray.readValue(function(err,dataValue){
-                        console.log("ServerArray = ",dataValue.toString());
-                        callback();
+                        //xx console.log("ServerArray = ",dataValue.toString());
+                        callback(err);
                     });
                 },
                 function (callback) {
 
                     serverObject.serverStatus.readValue(function(err,dataValue){
-                        console.log("serverStatus = ",dataValue.toString());
-                        callback();
+                        //xx console.log("serverStatus = ",dataValue.toString());
+                        callback(err);
                     });
                 },
                 function (callback) {
 
                     serverObject.serverStatus.buildInfo.readValue(function(err,dataValue){
-                        console.log("serverStatus = ",dataValue.toString());
-                        callback();
+                        //xx console.log("serverStatus = ",dataValue.toString());
+                        callback(err);
                     });
                 },
 
@@ -182,42 +184,40 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     serverObject.serverStatus.currentTime.readValue(function(err,dataValue){
-                        console.log("currentTime = ",dataValue.toString());
-                        callback();
+                        //xx console.log("currentTime = ",dataValue.toString());
+                        callback(err);
                     });
                 },
 
                 function (callback) {
 
                     // now call getMonitoredItems
-                    console.log(" SubscriptionID= ", subscriptionId);
+                    //xx console.log(" SubscriptionID= ", subscriptionId);
 
                     serverObject.getMonitoredItems({subscriptionId: subscriptionId }, function (err, outputArgs) {
-                        console.log("err = ", err);
+                        //xx console.log("err = ", err);
                         if (!err && outputArgs){
-                            console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
-                            console.log("outputArgs.serverHandles = ", outputArgs.serverHandles);
+                            //xx console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
+                            //xx console.log("outputArgs.serverHandles = ", outputArgs.serverHandles);
                         }
                         callback(err);
                     });
-
                 }
             ], inner_done);
-
         }, done);
     });
 
     it("AA one can subscribe to proxy object property change", function (done) {
 
         this.timeout(Math.max(20000,this._timeout));
-        var proxyManager;
+        let proxyManager;
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager= new UAProxyManager(session);
-            var hvacNodeId = HVAC_on_server;
+            const hvacNodeId = HVAC_on_server;
 
 
-            var hvac;
+            let hvac;
             async.series([
                 function (callback) {
                     proxyManager.start(callback);
@@ -230,8 +230,8 @@ describe("testing client Proxy", function () {
 
                             hvac = data;
 
-                            console.log("Target temperature nodeId =",hvac.targetTemperature.nodeId.toString());
-                            console.log("Inside temperature nodeId =",hvac.interiorTemperature.nodeId.toString());
+                            //xx console.log("Target temperature nodeId =",hvac.targetTemperature.nodeId.toString());
+                            //xx console.log("Inside temperature nodeId =",hvac.interiorTemperature.nodeId.toString());
                             //xx console.log("hvac.setTargetTemperature = ",hvac.setTargetTemperature);
                             hvac.setTargetTemperature.inputArguments[0].name.should.eql("targetTemperature");
                             hvac.setTargetTemperature.inputArguments[0].dataType.value.should.eql(DataType.Double.value);
@@ -246,7 +246,7 @@ describe("testing client Proxy", function () {
                               //  console.log("  EVENT: interiorTemperature has changed to ".yellow,value.value.toString());
                             });
                             hvac.targetTemperature.on("value_changed",function(value){
-                                console.log("  EVENT: targetTemperature has changed to ".cyan,value.value.toString());
+                                //xx console.log("  EVENT: targetTemperature has changed to ".cyan,value.value.toString());
                             });
 
 
@@ -258,14 +258,14 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     hvac.interiorTemperature.readValue(function (err, value) {
-                        console.log(" reading Interior temperature, got = ...", value.toString());
-                        callback();
+                        //xx console.log(" reading Interior temperature, got = ...", value.toString());
+                        callback(err);
                     });
                 },
 
                 function (callback) {
 
-                    console.log(" Access Level = ",hvac.interiorTemperature.accessLevel);
+                    //xx console.log(" Access Level = ",hvac.interiorTemperature.accessLevel);
 
                     // it should not be possible to set the interiorTemperature => ReadOnly from the outside
                     hvac.interiorTemperature.writeValue({
@@ -304,7 +304,7 @@ describe("testing client Proxy", function () {
                 },
                 function(callback) {
                     hvac.setTargetTemperature({targetTemperature: 37},function(err,results){
-                        console.log("result",results);
+                        //xx console.log("result",results);
                         callback();
                     });
 
@@ -325,7 +325,7 @@ describe("testing client Proxy", function () {
                     setTimeout(callback,2000);
                 },
                 function (callback) {
-                    console.log("stopping proxy")
+                    //xx console.log("stopping proxy");
                     proxyManager.stop(callback);
                 }
 
@@ -337,17 +337,17 @@ describe("testing client Proxy", function () {
 
     it("ZZ1 should expose a SubscriptionDiagnostics in Server.ServerDiagnostics.SubscriptionDiagnosticsArray", function(done) {
 
-        var proxyManager;
-        //xx endpointUrl = "opc.tcp://localhost:48010";
+        let proxyManager;
+
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             proxyManager = new UAProxyManager(session);
 
-            var makeNodeId = opcua.makeNodeId;
+            const makeNodeId = opcua.makeNodeId;
 
-            var subscriptionDiagnosticsArray =null;
+            let subscriptionDiagnosticsArray =null;
 
-            var subscriptionId =null;
+            let subscriptionId =null;
 
             async.series([
                 function (callback) {
@@ -377,10 +377,10 @@ describe("testing client Proxy", function () {
                 function (callback) {
 
                     session.createSubscription({
-                        requestedPublishingInterval: 100, // Duration
-                        requestedLifetimeCount: 10,    // Counter
-                        requestedMaxKeepAliveCount: 10, // Counter
-                        maxNotificationsPerPublish: 10, // Counter
+                        requestedPublishingInterval:  100, // Duration
+                        requestedLifetimeCount:      6000, // Counter
+                        requestedMaxKeepAliveCount:  1000, // Counter
+                        maxNotificationsPerPublish:    10, // Counter
                         publishingEnabled: true, // Boolean
                         priority: 14 // Byte
                     }, function (err, response) {

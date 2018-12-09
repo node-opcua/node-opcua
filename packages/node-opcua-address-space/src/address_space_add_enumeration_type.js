@@ -4,24 +4,24 @@
  * @class AddressSpace
  */
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
+const Namespace = require("./namespace").Namespace;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const UADataType = require(".//ua_data_type").UADataType;
+
+const EnumValueType  = require("node-opcua-data-model").EnumValueType;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
 
 exports.install = function (AddressSpace) {
 
-    var NodeClass = require("node-opcua-data-model").NodeClass;
-    //var DataValue =  require("node-opcua-data-value").DataValue;
-    var Variant = require("node-opcua-variant").Variant;
-    var DataType = require("node-opcua-variant").DataType;
-    var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-    var LocalizedText = require("node-opcua-data-model").LocalizedText;
-    var NodeId = require("node-opcua-nodeid").NodeId;
-    var UADataType = require(".//ua_data_type").UADataType;
-
-    var EnumValueType  = require("node-opcua-data-model").EnumValueType;
-    var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
     /**
      *
      * @method addEnumerationType
@@ -33,6 +33,19 @@ exports.install = function (AddressSpace) {
      * @param options.enumeration[].description {String|LocalizedText|null}
      */
     AddressSpace.prototype.addEnumerationType = function (options) {
+        return this._resolveRequestedNamespace(options).addEnumerationType(options);
+    };
+    /**
+     *
+     * @method addEnumerationType
+     * @param options
+     * @param options.browseName  {String}
+     * @param options.enumeration {Array}
+     * @param options.enumeration[].displayName {String|LocalizedText}
+     * @param options.enumeration[].value       {Number}
+     * @param options.enumeration[].description {String|LocalizedText|null}
+     */
+    Namespace.prototype.addEnumerationType = function(options){
 
         // Release 1.03 OPC Unified Architecture, Part 3 - page 34
         // Enumeration DataTypes are DataTypes that represent discrete sets of named values.
@@ -85,19 +98,20 @@ exports.install = function (AddressSpace) {
         // When it is used to define the string representation of an Enumeration DataType, the value range
         // is limited to Int32, because the Enumeration DataType is a subtype of Int32. Part 8 specifies
         // other usages where the actual value might be between 8 and 64 Bit.
-        var self = this;
+        const self = this;
 
         assert(_.isString(options.browseName));
         assert(_.isArray(options.enumeration));
 
-        var definition;
-        var enumerationType = self.findDataType("Enumeration");
+        const addressSpace = self.addressSpace;
+        let definition;
+        const enumerationType = addressSpace.findDataType("Enumeration");
         assert(enumerationType.nodeId instanceof NodeId);
         assert(enumerationType instanceof UADataType)
-        var references = [
+        const references = [
             {referenceType: "HasSubtype", isForward: false, nodeId: enumerationType.nodeId}
         ];
-        var opts = {
+        const opts = {
             browseName: options.browseName,
             references: references,
             nodeClass: NodeClass.DataType,
@@ -107,7 +121,7 @@ exports.install = function (AddressSpace) {
             definition: definition
         };
 
-        var enumType = self._createNode(opts);
+        const enumType = self._createNode(opts);
 
         enumType.propagate_back_references();
 
@@ -118,16 +132,16 @@ exports.install = function (AddressSpace) {
                 return coerceLocalizedText(str);
             });
 
-            var value = new Variant({
+            let value = new Variant({
                 dataType: DataType.LocalizedText,
                 arrayType: VariantArrayType.Array,
                 value: definition
             });
 
 
-            var enumStrings = self.addVariable({
+            const enumStrings = self.addVariable({
                 propertyOf: enumType,
-                browseName: "EnumStrings",
+                browseName: {name: "EnumStrings", namespaceIndex:0},
                 modellingRule: "Mandatory",
                 description: "",
                 dataType: "LocalizedText",
@@ -147,15 +161,15 @@ exports.install = function (AddressSpace) {
                 });
             });
 
-            var value = new Variant({
+            let value = new Variant({
                 dataType: DataType.ExtensionObject,
                 arrayType: VariantArrayType.Array,
                 value: definition
             });
 
-            var enumValues = self.addVariable({
+            const enumValues = self.addVariable({
                 propertyOf: enumType,
-                browseName: "EnumValues",
+                browseName: {name: "EnumValues", namespaceIndex:0},
                 modellingRule: "Mandatory",
                 description: null,
                 dataType: "EnumValueType",

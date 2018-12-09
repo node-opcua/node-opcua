@@ -1,4 +1,4 @@
-var generator = require("node-opcua-generator");
+const generator = require("node-opcua-generator");
 require("node-opcua-basic-types");
 
 generator.registerObject("LocalizedText");

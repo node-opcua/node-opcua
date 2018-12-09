@@ -1,8 +1,8 @@
-var MonitoringMode = require("./MonitoringMode_enum").MonitoringMode;
+const MonitoringMode = require("./MonitoringMode_enum").MonitoringMode;
 
 require("node-opcua-service-read"); // for ReadValueId
 
-var MonitoredItemCreateRequest_Schema = {
+const MonitoredItemCreateRequest_Schema = {
     name: "MonitoredItemCreateRequest",
     fields: [
         { name: "itemToMonitor", fieldType: "ReadValueId" },

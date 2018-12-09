@@ -1,5 +1,5 @@
 
-var NotificationMessage_Schema = {
+const NotificationMessage_Schema = {
     name: "NotificationMessage",
     fields: [
         { name: "sequenceNumber", fieldType: "Counter" },

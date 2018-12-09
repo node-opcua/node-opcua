@@ -1,12 +1,12 @@
 "use strict";
-var util = require("util");
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const util = require("util");
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
 
-var read_service = require("node-opcua-service-read");
+const read_service = require("node-opcua-service-read");
 
-var ClientMonitoredItemBase = require("./client_monitored_item_base").ClientMonitoredItemBase;
-var TimestampsToReturn = read_service.TimestampsToReturn;
+const ClientMonitoredItemBase = require("./client_monitored_item_base").ClientMonitoredItemBase;
+const TimestampsToReturn = read_service.TimestampsToReturn;
 
 /**
  * ClientMonitoredItem
@@ -46,8 +46,8 @@ util.inherits(ClientMonitoredItem, ClientMonitoredItemBase);
 
 ClientMonitoredItem.prototype.toString = function() {
 
-    var self = this;
-    var ret = "";
+    const self = this;
+    let ret = "";
     ret+="itemToMonitor:        " + self.itemToMonitor.toString() + "\n";
     ret+="monitoringParameters: " + self.monitoringParameters.toString() + "\n";
     ret+="timestampsToReturn:   " + self.timestampsToReturn.toString() + "\n";
@@ -64,8 +64,8 @@ ClientMonitoredItem.prototype.toString = function() {
  */
 ClientMonitoredItem.prototype.terminate = function (done) {
 
-    assert(!done || _.isFunction(done));
-    var self = this;
+    assert(_.isFunction(done));
+    const self = this;
     /**
      * Notify the observer that this monitored item has been terminated.
      * @event terminated
@@ -87,7 +87,7 @@ ClientMonitoredItem.prototype.terminate = function (done) {
  */
 ClientMonitoredItem.prototype._monitor = function (done) {
     assert(done === undefined || _.isFunction(done));
-    var self = this;
+    const self = this;
     ClientMonitoredItemBase._toolbox_monitor(self.subscription, self.timestampsToReturn, [self], function (err) {
         if (err) {
             self.emit("err", err.message);
@@ -108,7 +108,7 @@ ClientMonitoredItem.prototype._monitor = function (done) {
  * @param callback {Function}
  */
 ClientMonitoredItem.prototype.modify = function (parameters, timestampsToReturn, callback) {
-    var self = this;
+    const self = this;
     if (_.isFunction(timestampsToReturn)) {
         callback = timestampsToReturn;
         timestampsToReturn = null;
@@ -124,7 +124,7 @@ ClientMonitoredItem.prototype.modify = function (parameters, timestampsToReturn,
 };
 
 ClientMonitoredItem.prototype.setMonitoringMode = function (monitoringMode, callback) {
-    var self = this;
+    const self = this;
     ClientMonitoredItemBase._toolbox_setMonitoringMode(self.subscription, [self], monitoringMode, callback);
 };
 

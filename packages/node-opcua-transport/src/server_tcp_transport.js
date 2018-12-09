@@ -4,32 +4,32 @@
  */
 
 // system requires
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var util = require("util");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
+const util = require("util");
 
 // opcua requires
-var StatusCode = require("node-opcua-status-code").StatusCode;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const StatusCode = require("node-opcua-status-code").StatusCode;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
 
-var verify_message_chunk = require("node-opcua-chunkmanager").verify_message_chunk;
+const verify_message_chunk = require("node-opcua-chunkmanager").verify_message_chunk;
 
-var TCPErrorMessage = require("../_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
-var HelloMessage = require("../_generated_/_auto_generated_HelloMessage").HelloMessage;
-var AcknowledgeMessage = require("../_generated_/_auto_generated_AcknowledgeMessage").AcknowledgeMessage;
+const TCPErrorMessage = require("../_generated_/_auto_generated_TCPErrorMessage").TCPErrorMessage;
+const HelloMessage = require("../_generated_/_auto_generated_HelloMessage").HelloMessage;
+const AcknowledgeMessage = require("../_generated_/_auto_generated_AcknowledgeMessage").AcknowledgeMessage;
 
-var packTcpMessage = require("./tools").packTcpMessage;
-var decodeMessage = require("./tools").decodeMessage;
+const packTcpMessage = require("./tools").packTcpMessage;
+const decodeMessage = require("./tools").decodeMessage;
 
 
-var debug = require("node-opcua-debug");
-var hexDump = debug.hexDump;
-var debugLog = debug.make_debugLog(__filename);
-var doDebug = debug.checkDebugFlag(__filename);
+const debug = require("node-opcua-debug");
+const hexDump = debug.hexDump;
+const debugLog = debug.make_debugLog(__filename);
+const doDebug = debug.checkDebugFlag(__filename);
 
-var TCP_transport = require("./tcp_transport").TCP_transport;
+const TCP_transport = require("./tcp_transport").TCP_transport;
 
 /**
  * @class ServerTCP_transport
@@ -37,7 +37,7 @@ var TCP_transport = require("./tcp_transport").TCP_transport;
  * @constructor
  *
  */
-var ServerTCP_transport = function () {
+const ServerTCP_transport = function () {
     TCP_transport.call(this);
 };
 util.inherits(ServerTCP_transport, TCP_transport);
@@ -49,7 +49,7 @@ ServerTCP_transport.prototype._abortWithError = function (statusCode, extraError
     assert(statusCode instanceof StatusCode);
     assert(_.isFunction(callback), "expecting a callback");
 
-    var self = this;
+    const self = this;
 
     /* istanbul ignore else */
     if (!self.__aborted) {
@@ -59,8 +59,8 @@ ServerTCP_transport.prototype._abortWithError = function (statusCode, extraError
 
         debugLog(" Server aborting because ".red + statusCode.name.cyan);
         debugLog(" extraErrorDescription   ".red + extraErrorDescription.cyan);
-        var errorResponse = new TCPErrorMessage({statusCode: statusCode, reason: statusCode.description});
-        var messageChunk = packTcpMessage("ERR", errorResponse);
+        const errorResponse = new TCPErrorMessage({statusCode: statusCode, reason: statusCode.description});
+        const messageChunk = packTcpMessage("ERR", errorResponse);
 
         self.write(messageChunk);
         self.disconnect(function () {
@@ -70,7 +70,6 @@ ServerTCP_transport.prototype._abortWithError = function (statusCode, extraError
         });
 
     } else {
-        console.log("xxx ignoring ", statusCode.name);
         callback(new Error(statusCode.name));
     }
 };
@@ -90,16 +89,21 @@ function clamp_value(value, min_val, max_val) {
     return value;
 }
 
+const minimumBufferSize = 8192;
+
 ServerTCP_transport.prototype._send_ACK_response = function (helloMessage) {
 
-    var self = this;
+    const self = this;
 
-    self.receiveBufferSize = clamp_value(helloMessage.receiveBufferSize, 8196, 512 * 1024);
-    self.sendBufferSize    = clamp_value(helloMessage.sendBufferSize,    8196, 512 * 1024);
+    assert(helloMessage.receiveBufferSize >= minimumBufferSize);
+    assert(helloMessage.sendBufferSize    >= minimumBufferSize);
+
+    self.receiveBufferSize = clamp_value(helloMessage.receiveBufferSize, 8192, 512 * 1024);
+    self.sendBufferSize    = clamp_value(helloMessage.sendBufferSize,    8192, 512 * 1024);
     self.maxMessageSize    = clamp_value(helloMessage.maxMessageSize,  100000, 16 * 1024 * 1024);
     self.maxChunkCount     = clamp_value(helloMessage.maxChunkCount,        0, 65535);
 
-    var acknowledgeMessage = new AcknowledgeMessage({
+    const acknowledgeMessage = new AcknowledgeMessage({
         protocolVersion:   self.protocolVersion,
         receiveBufferSize: self.receiveBufferSize,
         sendBufferSize:    self.sendBufferSize,
@@ -115,7 +119,7 @@ ServerTCP_transport.prototype._send_ACK_response = function (helloMessage) {
     //xx console.log("xxx maxChunkCount     = ",acknowledgeMessage.maxChunkCount     , helloMessage.maxChunkCount);
 
 
-    var messageChunk = packTcpMessage("ACK", acknowledgeMessage);
+    const messageChunk = packTcpMessage("ACK", acknowledgeMessage);
 
     /* istanbul ignore next*/
     if (doDebug) {
@@ -132,7 +136,7 @@ ServerTCP_transport.prototype._send_ACK_response = function (helloMessage) {
 
 ServerTCP_transport.prototype._install_HEL_message_receiver = function (callback) {
 
-    var self = this;
+    const self = this;
 
     self._install_one_time_message_receiver(function (err, data) {
         if (err) {
@@ -148,13 +152,13 @@ ServerTCP_transport.prototype._install_HEL_message_receiver = function (callback
 
 ServerTCP_transport.prototype._on_HEL_message = function (data, callback) {
 
-    var self = this;
+    const self = this;
 
     assert(data instanceof Buffer);
     assert(!self._helloreceived);
 
-    var stream = new BinaryStream(data);
-    var msgType = data.slice(0, 3).toString("ascii");
+    const stream = new BinaryStream(data);
+    const msgType = data.slice(0, 3).toString("ascii");
 
     /* istanbul ignore next*/
     if (doDebug) {
@@ -166,32 +170,42 @@ ServerTCP_transport.prototype._on_HEL_message = function (data, callback) {
 
         assert(data.length >= 24);
 
-        var helloMessage = decodeMessage(stream, HelloMessage);
+        const helloMessage = decodeMessage(stream, HelloMessage);
         assert(_.isFinite(self.protocolVersion));
 
         // OPCUA Spec 1.03 part 6 - page 41
         // The Server shall always accept versions greater than what it supports.
         if (helloMessage.protocolVersion !== self.protocolVersion) {
-            console.log("warning ! client sent helloMessage.protocolVersion = 0x"+helloMessage.protocolVersion.toString(16)," whereas server protocolVersion is 0x"+self.protocolVersion.toString(16));
+            debugLog("warning ! client sent helloMessage.protocolVersion = 0x"+helloMessage.protocolVersion.toString(16)," whereas server protocolVersion is 0x"+self.protocolVersion.toString(16));
         }
         if (helloMessage.protocolVersion === 0xDEADBEEF || helloMessage.protocolVersion < self.protocolVersion) {
             // Note: 0xDEADBEEF is our special version number to simulate BadProtocolVersionUnsupported in tests
             // invalid protocol version requested by client
-            self._abortWithError(StatusCodes.BadProtocolVersionUnsupported, "Protocol Version Error" + self.protocolVersion, callback);
-        } else {
-
-            // the helloMessage shall only be received once.
-            self._helloreceived = true;
-
-            self._send_ACK_response(helloMessage);
-
-            callback(null); // no Error
+            return self._abortWithError(StatusCodes.BadProtocolVersionUnsupported, "Protocol Version Error" + self.protocolVersion, callback);
 
         }
 
+        // OPCUA Spec 1.04 part 6 - page 45
+        // UASC is designed to operate with different TransportProtocols that may have limited buffer
+        // sizes. For this reason, OPC UA Secure Conversation will break OPC UA Messages into several
+        // pieces (called ‘MessageChunks’) that are smaller than the buffer size allowed by the
+        // TransportProtocol. UASC requires a TransportProtocol buffer size that is at least 8 192 bytes
+        if (helloMessage.receiveBufferSize < minimumBufferSize || helloMessage.sendBufferSize < minimumBufferSize) {
+            return self._abortWithError(StatusCodes.BadConnectionRejected,
+                "Buffer size too small (should be at least " + minimumBufferSize , callback);
+
+        }
+        // the helloMessage shall only be received once.
+        self._helloreceived = true;
+
+        self._send_ACK_response(helloMessage);
+
+        callback(null); // no Error
+
+
     } else {
         // invalid packet , expecting HEL
-        console.log("BadCommunicationError ".red, "Expecting 'HEL' message to initiate communication");
+        debugLog("BadCommunicationError ".red, "Expecting 'HEL' message to initiate communication");
         self._abortWithError(StatusCodes.BadCommunicationError, "Expecting 'HEL' message to initiate communication", callback);
     }
 
@@ -213,7 +227,7 @@ ServerTCP_transport.prototype._on_HEL_message = function (data, callback) {
  * @method init
  * @param socket {Socket}
  * @param callback {Function}
- * @param callback.err {Error||null} err = null if init succeeded
+ * @param callback.err {Error|null} err = null if init succeeded
  *
  */
 ServerTCP_transport.prototype.init = function (socket, callback) {
@@ -221,7 +235,7 @@ ServerTCP_transport.prototype.init = function (socket, callback) {
     assert(!this.socket, "init already called!");
     assert(_.isFunction(callback), "expecting a valid callback ");
 
-    var self = this;
+    const self = this;
 
     self._install_socket(socket);
 

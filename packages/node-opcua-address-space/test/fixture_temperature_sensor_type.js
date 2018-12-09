@@ -1,17 +1,19 @@
 "use strict";
 
 require("..");
-var should = require("should");
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
+const should = require("should");
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
 
 
 function createTemperatureSensorType(addressSpace) {
 
-    // TemperatureSensorType
-    var temperatureSensorTypeNode = addressSpace.addObjectType({browseName: "TemperatureSensorType"});
+    const namespace = addressSpace.getOwnNamespace();
 
-    addressSpace.addVariable({
+    // TemperatureSensorType
+    const temperatureSensorTypeNode = namespace.addObjectType({browseName: "TemperatureSensorType"});
+
+    namespace.addVariable({
         componentOf:    temperatureSensorTypeNode,
         browseName:     "Temperature",
         description:    "the temperature value of the sensor in Celsius <°C>",

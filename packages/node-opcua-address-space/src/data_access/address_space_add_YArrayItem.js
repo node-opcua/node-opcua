@@ -1,27 +1,27 @@
 "use strict";
 /*jslint bitwise: true */
 
-var _ = require("underscore");
-var DataValue =  require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var BaseNode = require("../base_node").BaseNode;
+const _ = require("underscore");
+const DataValue =  require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const BaseNode = require("../base_node").BaseNode;
 
 
-var part8 = require("node-opcua-data-access");
+const part8 = require("node-opcua-data-access");
 
-var AxisInformation = part8.AxisInformation;
-var AxisScale       = part8.AxisScale;
-var Range           = part8.Range;
+const AxisInformation = part8.AxisInformation;
+const AxisScale       = part8.AxisScale;
+const Range           = part8.Range;
 
-var utils = require("node-opcua-utils");
-var assert = require("node-opcua-assert");
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-
+const utils = require("node-opcua-utils");
+const assert = require("node-opcua-assert").assert;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const Namespace = require("../namespace").Namespace;
 
 module.exports.install = function(AddressSpace) {
     /**
@@ -54,23 +54,28 @@ module.exports.install = function(AddressSpace) {
      * @param options.value
      */
     AddressSpace.prototype.addYArrayItem = function (options) {
+        return this._resolveRequestedNamespace(options).addYArrayItem(options);
+    };
+    utils.setDeprecated(AddressSpace,"addYArrayItem","");
+
+    Namespace.prototype.addYArrayItem = function(options) {
 
         assert(options.hasOwnProperty("engineeringUnitsRange"), "expecting engineeringUnitsRange");
         assert(options.hasOwnProperty("axisScaleType"), "expecting axisScaleType");
         assert(_.isObject(options.xAxisDefinition), "expecting a xAxisDefinition");
 
-        var addressSpace = this;
+        const addressSpace = this.addressSpace;
 
-        var YArrayItemType = addressSpace.findVariableType("YArrayItemType");
+        const YArrayItemType = addressSpace.findVariableType("YArrayItemType");
         assert(YArrayItemType, "expecting YArrayItemType to be defined , check nodeset xml file");
 
-        var dataType = options.dataType || "Float";
+        const dataType = options.dataType || "Float";
 
-        var optionals = [];
+        const optionals = [];
         if (options.hasOwnProperty("instrumentRange")) {
             optionals.push("InstrumentRange");
         }
-        var variable = YArrayItemType.instantiate({
+        const variable = YArrayItemType.instantiate({
             componentOf: options.componentOf,
             browseName: options.browseName,
             dataType: dataType,
@@ -78,7 +83,7 @@ module.exports.install = function(AddressSpace) {
         });
 
         function coerceAxisScale(value) {
-            var ret = AxisScale.get(value);
+            const ret = AxisScale.get(value);
             assert(!utils.isNullOrUndefined(ret));
             return ret;
         }

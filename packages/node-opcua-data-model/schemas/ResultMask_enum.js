@@ -1,12 +1,12 @@
-var BrowseDescriptionResultMask = {
+const BrowseDescriptionResultMask = {
 
 };
 
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var ResultMask_Schema = {
+const ResultMask_Schema = {
     name: "ResultMask",
     enumValues: {
         ReferenceType: 0x01,

@@ -1,6 +1,6 @@
 
 
-var SubscriptionAcknowledgement_Schema = {
+const SubscriptionAcknowledgement_Schema = {
     name: "SubscriptionAcknowledgement",
     fields: [
         { name: "subscriptionId", fieldType: "IntegerId" },

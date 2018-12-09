@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 // OPC Unified Architecture, Part 4 Release 1.02 page 115
-var FilterOperator_Schema = {
+const FilterOperator_Schema = {
 
     name: "FilterOperator",
     enumValues: {

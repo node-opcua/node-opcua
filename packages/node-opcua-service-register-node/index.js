@@ -1,3 +1,7 @@
+"use strict";
+/**
+ * @module services.register_node
+ */
 module.exports = {
 
     RegisterNodesRequest: require("./_generated_/_auto_generated_RegisterNodesRequest").RegisterNodesRequest,

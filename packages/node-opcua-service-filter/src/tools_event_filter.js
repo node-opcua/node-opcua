@@ -1,30 +1,30 @@
 "use strict";
 /**
- * @module opcua.helpers
+ * @module service.filter.tools
  */
 
 
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
-var SimpleAttributeOperand = require("../_generated_/_auto_generated_SimpleAttributeOperand").SimpleAttributeOperand;
-var EventFilter = require("../_generated_/_auto_generated_EventFilter").EventFilter;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
+const SimpleAttributeOperand = require("../_generated_/_auto_generated_SimpleAttributeOperand").SimpleAttributeOperand;
+const EventFilter = require("../_generated_/_auto_generated_EventFilter").EventFilter;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
 
 
 
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var _ = require("underscore");
-var ObjectTypeIds = require("node-opcua-constants").ObjectTypeIds;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var stringToQualifiedName = require("node-opcua-data-model").stringToQualifiedName;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const _ = require("underscore");
+const ObjectTypeIds = require("node-opcua-constants").ObjectTypeIds;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const stringToQualifiedName = require("node-opcua-data-model").stringToQualifiedName;
 
-var Variant = require("node-opcua-variant").Variant;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var sameNodeId = require("node-opcua-nodeid").sameNodeId;
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const Variant = require("node-opcua-variant").Variant;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const sameNodeId = require("node-opcua-nodeid").sameNodeId;
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 /**
  * helper to construct event filters:
@@ -76,7 +76,7 @@ function constructEventFilter(arrayOfNames,conditionTypes) {
 
 
     // construct browse paths array
-    var browsePaths = arrayOfNames.map(function (s) {
+    const browsePaths = arrayOfNames.map(function (s) {
         return _.isArray(s) ? s : [s];
     });
 
@@ -88,7 +88,7 @@ function constructEventFilter(arrayOfNames,conditionTypes) {
     // The SimpleAttributeOperand structure allows the Client to specify any Attribute, however, the Server is only
     // required to support the Value Attribute for Variable Nodes and the NodeId Attribute for Object Nodes.
     // That said, profiles defined in Part 7 may make support for additional Attributes mandatory.
-    var selectClauses = browsePaths.map(function (browsePath) {
+    let selectClauses = browsePaths.map(function (browsePath) {
         return new SimpleAttributeOperand({
             typeId: makeNodeId(ObjectTypeIds.BaseEventType), // i=2041
             browsePath: browsePath,
@@ -98,7 +98,7 @@ function constructEventFilter(arrayOfNames,conditionTypes) {
     });
 
     if (conditionTypes) {
-        var extraSelectClauses = conditionTypes.map(function(nodeId) {
+        const extraSelectClauses = conditionTypes.map(function(nodeId) {
             return new SimpleAttributeOperand({
                 typeId: nodeId, // conditionType for instance
                 browsePath: null,
@@ -110,7 +110,7 @@ function constructEventFilter(arrayOfNames,conditionTypes) {
     }
 
 
-    var filter = new EventFilter({
+    const filter = new EventFilter({
 
         selectClauses: selectClauses,
 
@@ -146,31 +146,38 @@ exports.constructEventFilter = constructEventFilter;
 
 
 /**
- *
- * @param referenceBaseName
+ * @class SimpleAttributeOperand
+ * @method toPath
+ * @return {String}
  *
  * @example:
- *
- *  // returns all children elements with a reference type that derives from "Aggregates"
- *  // (i.e HasProperty, HasComponent, HasOrderedComponent)
- *  var nodes = obj.getChildren("Aggregates");
  *
  *
  */
 
 SimpleAttributeOperand.prototype.toPath = function() {
-    var self = this;
+    const self = this;
     return self.browsePath.map(function (a) {
         return a.name;
     }).join("/");
 };
 
+/**
+ * @class SimpleAttributeOperand
+ * @method toShortString
+ * @return {String}
+ *
+ * @example:
+ *
+ *
+ */
+
 SimpleAttributeOperand.prototype.toShortString = function(addressSpace) {
 
-    var self = this;
-    var str ="";
+    const self = this;
+    let str ="";
     if (addressSpace) {
-        var n = addressSpace.findNode( self.typeId);
+        const n = addressSpace.findNode( self.typeId);
         str += n.BrowseName.toString()
     }
     str +=  "[" + self.typeId.toString() +"]"+self.toPath();
@@ -186,8 +193,10 @@ function assert_valid_event_data(eventData) {
 
 
 /**
+ *
+ * @method extractEventField
  * extract a eventField from a event node, matching the given selectClause
- * @param eventNode
+ * @param eventData
  * @param selectClause
  */
 function extractEventField(eventData, selectClause) {
@@ -195,10 +204,17 @@ function extractEventField(eventData, selectClause) {
     assert_valid_event_data(eventData);
     assert(selectClause instanceof SimpleAttributeOperand);
 
+    selectClause.browsePath = selectClause.browsePath || [];
+
     if (selectClause.browsePath.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
+
+        // "ns=0;i=2782" => ConditionType
+        // "ns=0;i=2041" => BaseEventType
         if (selectClause.typeId.toString() !== "ns=0;i=2782") {
             // not ConditionType
-            throw new Error("this case is not handled yet");
+            console.warn("this case is not handled yet : selectClause.typeId = " + selectClause.typeId.toString());
+            const eventSource = eventData.$eventDataSource;
+            return new Variant({dataType: DataType.NodeId, value: eventSource.nodeId});
         }
         const conditionTypeNodeId = resolveNodeId("ConditionType");
         assert(sameNodeId(selectClause.typeId,conditionTypeNodeId));
@@ -207,7 +223,7 @@ function extractEventField(eventData, selectClause) {
         const eventSourceTypeDefinition = eventSource.typeDefinitionObj;
         if (!eventSourceTypeDefinition) {
             // eventSource is a EventType class
-            return new Variant()
+            return new Variant();
         }
         const addressSpace = eventSource.addressSpace;
         const conditionType = addressSpace.findObjectType(conditionTypeNodeId);
@@ -221,10 +237,10 @@ function extractEventField(eventData, selectClause) {
     }
 
 
-    var handle = eventData.resolveSelectClause(selectClause);
+    const handle = eventData.resolveSelectClause(selectClause);
 
     if (handle !== null) {
-        var value = eventData.readValue(handle,selectClause);
+        const value = eventData.readValue(handle,selectClause);
         assert(value instanceof Variant);
         return value;
 
@@ -237,12 +253,11 @@ function extractEventField(eventData, selectClause) {
         // return new Variant({dataType: DataType.StatusCode, value: browsePathResult.statusCode});
         return new Variant();
     }
-    //xx var innerNode =
 }
 
 /**
+ * @method extractEventFields
  * extract a array of eventFields from a event node, matching the selectClauses
- * @param eventTypeNode
  * @param selectClauses
  * @param eventData : a pseudo Node that provides a browse Method and a readValue(nodeId)
  */

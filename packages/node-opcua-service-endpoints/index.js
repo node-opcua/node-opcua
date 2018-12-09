@@ -1,3 +1,7 @@
+"use strict";
+/**
+ * @module services.endpoints
+ */
 module.exports = {
 
     ApplicationType: require("./schemas/ApplicationType_enum").ApplicationType,

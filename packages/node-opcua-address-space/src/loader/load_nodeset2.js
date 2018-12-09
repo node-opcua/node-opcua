@@ -1,51 +1,60 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var async = require("async");
-var fs = require("fs");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
+const async = require("async");
+const fs = require("fs");
 
 
-var Xml2Json = require("node-opcua-xml2json").Xml2Json;
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const Xml2Json = require("node-opcua-xml2json").Xml2Json;
+const ReaderState = require("node-opcua-xml2json").ReaderState;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
-var DataType = require("node-opcua-variant").DataType;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-var Argument = require("node-opcua-service-call").Argument;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-var EnumValueType = require("node-opcua-data-model").EnumValueType;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const Argument = require("node-opcua-service-call").Argument;
 
-var ec = require("node-opcua-basic-types");
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const EnumValueType = require("node-opcua-data-model").EnumValueType;
 
-var AddressSpace = require("../address_space").AddressSpace;
+const ec = require("node-opcua-basic-types");
 
-var EUInformation = require("node-opcua-data-access").EUInformation;
+const AddressSpace = require("../address_space").AddressSpace;
+
+const EUInformation = require("node-opcua-data-access").EUInformation;
+const stringToQualifiedName = require("node-opcua-data-model").stringToQualifiedName;
+
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+
+function __make_back_references(namespace) {
+
+    _.forEach(namespace._nodeid_index, function (node) {
+        node.propagate_back_references();
+    });
+    _.forEach(namespace._nodeid_index, function (node) {
+        node.install_extra_properties();
+    });
+}
 
 /**
  * @method make_back_references
  * @param addressSpace  {AddressSpace}
  */
 function make_back_references(addressSpace) {
-
     addressSpace.suspendBackReference = false;
-
-    _.forEach(addressSpace._nodeid_index, function (node) {
-        node.propagate_back_references();
-    });
-    _.forEach(addressSpace._nodeid_index, function (node) {
-        node.install_extra_properties();
-    });
+    addressSpace._namespaceArray.map(namespace => __make_back_references(namespace))
 }
 
 function stringToUInt32Array(str) {
-    var array = str ? str.split(",").map(function (value) {
+    const array = str ? str.split(",").map(function (value) {
         return parseInt(value);
     }) : null;
     return array;
 }
 
-var makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
+const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
 
 function convertAccessLevel(accessLevel) {
 
@@ -66,32 +75,72 @@ function convertAccessLevel(accessLevel) {
  */
 function generate_address_space(addressSpace, xmlFiles, callback) {
 
-    function add_alias(alias_name, nodeId) {
-        nodeId = resolveNodeId(nodeId);
-        addressSpace.add_alias(alias_name, nodeId);
+    let alias_map ={};
+
+    /**
+     *
+     * @param alias_name {string}
+     * @param nodeId
+     */
+    function addAlias(alias_name, nodeIdinXmlContext) {
+        assert(typeof nodeIdinXmlContext === "string");
+        const nodeId = _translateNodeId(nodeIdinXmlContext);
+        assert(nodeId instanceof NodeId);
+        alias_map[alias_name] = nodeId;
+        addressSpace.getNamespace(nodeId.namespace).addAlias(alias_name,nodeId);
     }
 
-    var namespace_uri_translation = {};
-    var namespaceCounter = 0;
+    let namespace_uri_translation = {};
+    let namespaceCounter = 0;
+    let found_namespace_in_uri = {};
+
 
     function _reset_namespace_translation() {
+        debugLog("_reset_namespace_translation");
         namespace_uri_translation = {};
+        found_namespace_in_uri = {};
         namespaceCounter = 0;
+        _register_namespace_uri("http://opcfoundation.org/UA/");
+        alias_map = {};
     }
 
     function _translateNamespaceIndex(innerIndex) {
-        var namespaceIndex = namespace_uri_translation[innerIndex];
+         const namespaceIndex = namespace_uri_translation[innerIndex];
         if (namespaceIndex === undefined) {
             throw new Error("_translateNamespaceIndex! Cannot find namespace definition for index " + innerIndex);
         }
         return namespaceIndex;
     }
+    function _internal_addReferenceType(params) {
+        assert(params.nodeId instanceof NodeId); // already translated
+        addressSpace.getNamespace(params.nodeId.namespace).addReferenceType(params,false);
+    }
+    function _internal_createNode(params) {
+        assert(params.nodeId instanceof NodeId); // already translated
+        addressSpace.getNamespace(params.nodeId.namespace)._createNode(params);
+    }
 
     function _register_namespace_uri(namespace_uri) {
-        var index_in_xml = namespaceCounter + 1;
-        namespaceCounter += 1;
-        var index = addressSpace.registerNamespace(namespace_uri);
-        namespace_uri_translation[index_in_xml] = index;
+
+        if (found_namespace_in_uri[namespace_uri])
+            return found_namespace_in_uri[namespace_uri];
+
+        const namespace = addressSpace.registerNamespace(namespace_uri);
+        found_namespace_in_uri[namespace_uri] = namespace;
+
+        const index_in_xml =namespaceCounter; namespaceCounter++;
+        namespace_uri_translation[index_in_xml] = namespace.index;
+
+        debugLog(" _register_namespace_uri = ",namespace_uri,"index in Xml=",index_in_xml," index in addressSpace",namespace.index);
+        return namespace;
+    }
+
+
+    function _register_namespace_uri_model(model) {
+        const namespace  = _register_namespace_uri(model.modelUri);
+        namespace.version = model.version;
+        namespace.publicationDate = model.publicationDate;
+        return namespace;
     }
 
     /*=
@@ -101,54 +150,59 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
      * @param nodeId {String|null}
      * @return {NodeId}
      *
-     * @example:
+     * @example
      *    convertToNodeId("String") => resolve alias
      *    convertToNodeId("i=58")   => resolve to nodeId in namespace 0
      *    convertToNodeId("ns=1;i=100") => convert namespace from xml namespace table to corresponding namespace in addressapce
      */
-    var reg = /ns=([0-9]+);(.*)/;
-
+    const reg = /ns=([0-9]+);(.*)/;
     function _translateNodeId(nodeId) {
+
         assert(typeof nodeId === "string");
-        var m = nodeId.match(reg);
+        if (alias_map[nodeId]) {
+            return alias_map[nodeId];
+        }
+
+        const m = nodeId.match(reg);
         if (m) {
-            var namespaceIndex = _translateNamespaceIndex(parseInt(m[1]));
+            const namespaceIndex = _translateNamespaceIndex(parseInt(m[1]));
             nodeId = "ns=" + namespaceIndex + ";" + m[2];
         }
-        return nodeId;
+        return resolveNodeId(nodeId);
     }
 
     function _translateReferenceType(refType) {
-        return _translateNodeId(refType).toString();
+        return _translateNodeId(refType);
     }
 
     function convertToNodeId(nodeId) {
+        // treat alias
         if (!nodeId) {
             return null;
         }
         nodeId = _translateNodeId(nodeId);
+
         return addressSpace.resolveNodeId(nodeId);
     }
 
     function convertQualifiedName(qualifiedName) {
-        var stringToQualifiedName = require("node-opcua-data-model").stringToQualifiedName;
-        var qn = stringToQualifiedName(qualifiedName);
-        if (qn.namespaceIndex > 0) {
-            qn.namespaceIndex = _translateNamespaceIndex(qn.namespaceIndex);
-        }
+        const qn = stringToQualifiedName(qualifiedName);
+        //Xx if (qn.namespaceIndex > 0) {
+        qn.namespaceIndex = _translateNamespaceIndex(qn.namespaceIndex);
+        //Xx }
         return qn;
     }
 
     assert(addressSpace instanceof AddressSpace);
     assert(_.isFunction(callback)); // expecting a callback
 
-    var state_Alias = {
+    const state_Alias = {
         finish: function () {
-            add_alias(this.attrs.Alias, _translateNodeId(this.text));
+            addAlias(this.attrs.Alias, this.text);
         }
     };
 
-    var references_parser = {
+    const references_parser = {
         init: function () {
             this.parent.obj.references = [];
             this.array = this.parent.obj.references;
@@ -171,7 +225,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
     //      [<Description>text</Description>]
     //   <Field>
     //</Definition>
-    var definition_parser = {
+    const definition_parser = {
         init: function (name, attrs) {
             this.parent.obj.definition = [];
             this.parent.obj.definition_name = attrs.Name;
@@ -203,7 +257,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var state_UAObject = {
+    const state_UAObject = {
         init: function (name, attrs) {
             this.obj = {};
             this.obj.nodeClass = NodeClass.Object;
@@ -215,8 +269,8 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
 
         },
         finish: function () {
-            //xx console.log("xxxx add object ".red,this.obj.nodeId.toString().yellow , this.obj.browseName);
-            addressSpace._createNode(this.obj);
+            //xx debugLog("xxxx add object ".red,this.obj.nodeId.toString().yellow , this.obj.browseName);
+            _internal_createNode(this.obj);
         },
         parser: {
             "DisplayName": {
@@ -234,7 +288,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var state_UAObjectType = {
+    const state_UAObjectType = {
         init: function (name, attrs) {
             this.obj = {};
             this.obj.nodeClass = NodeClass.ObjectType;
@@ -244,7 +298,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.eventNotifier = ec.coerceByte(attrs.EventNotifier) || 0;
         },
         finish: function () {
-            addressSpace._createNode(this.obj);
+            _internal_createNode(this.obj);
         },
         parser: {
             "DisplayName": {
@@ -262,7 +316,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var state_UAReferenceType = {
+    const state_UAReferenceType = {
         init: function (name, attrs) {
             this.obj = {};
             this.obj.nodeClass = NodeClass.ReferenceType;
@@ -271,7 +325,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
         },
         finish: function () {
-            addressSpace.addReferenceType(this.obj, false);
+            _internal_addReferenceType(this.obj, false);
         },
         parser: {
             "DisplayName": {
@@ -293,7 +347,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var state_UADataType = {
+    const state_UADataType = {
         init: function (name, attrs) {
             this.obj = {};
             this.obj.nodeClass = NodeClass.DataType;
@@ -304,7 +358,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.description = "";
         },
         finish: function () {
-            addressSpace._createNode(this.obj);
+            _internal_createNode(this.obj);
             assert(addressSpace.findNode(this.obj.nodeId));
         },
         parser: {
@@ -323,7 +377,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var localizedText_parser = {
+    const localizedText_parser = {
         "LocalizedText": {
             init: function () {
                 this.localizedText = {};
@@ -343,7 +397,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var enumValueType_parser = {
+    const enumValueType_parser = {
         "EnumValueType": {
             init: function () {
                 this.enumValueType = {
@@ -375,7 +429,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var argument_parser = {
+    const argument_parser = {
         "Argument": {
             init: function () {
                 this.argument = {};
@@ -439,7 +493,27 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var EUInformation_parser = {
+    const Range_parser = {
+        "Range": {
+            init: function() {
+                this.range ={};
+            },
+            parser:  {
+                "Low": {
+                    finish: function () {
+                        this.parent.range.low = parseFloat(this.text);
+                    }
+                },
+                "High": {
+                    finish: function () {
+                        this.parent.range.high = parseFloat(this.text);
+                    }
+                }
+            }
+        }
+    };
+
+    const EUInformation_parser = {
         "EUInformation": {
             init: function () {
                 this.euInformation = {};
@@ -472,24 +546,31 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var _extensionObject_inner_parser = {
+    const _extensionObject_inner_parser = {
         "TypeId": {
             parser: {
                 "Identifier": {
                     finish: function () {
 
-                        var typeId = this.text.trim();
+                        const typeId = this.text.trim();
+                        //xx console.log("typeId = ",typeId);
                         this.parent.parent.typeId = resolveNodeId(typeId);
 
                         switch (typeId) {
                             case "i=297":  // Argument
+                            case "ns=0;i=297":  // Argument
                                 break;
+                            case "ns=0;i=7616": // EnumValueType
                             case "i=7616": // EnumValueType
                                 break;
+                            case "ns=0;i=888": // EnumValueType
                             case "i=888":  // EUInformation
                                 break;
+                            case "ns=0;i=885":  // Range
+                            case "i=885":  // Range
+                                break;
                             default:
-                                console.warn("xxxx::: unsupported typeId in ExtensionObject " + typeId);
+                                console.warn("loadnodeset2 ( checking identifier type) : unsupported typeId in ExtensionObject " + typeId);
                                 break;
                         }
                     }
@@ -500,10 +581,11 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             parser: {
                 "Argument": argument_parser.Argument,
                 "EnumValueType": enumValueType_parser.EnumValueType,
-                "EUInformation": EUInformation_parser.EUInformation
+                "EUInformation": EUInformation_parser.EUInformation,
+                "Range": Range_parser.Range
             },
             finish: function () {
-                var self = this.parent;
+                const self = this.parent;
                 switch (self.typeId.toString()) {
                     case "ns=0;i=7616": // EnumValueType
                         self.extensionObject = self.parser.Body.parser.EnumValueType.enumValueType;
@@ -518,15 +600,21 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                         self.extensionObject = self.parser.Body.parser.EUInformation.euInformation;
                         assert(_.isObject(self.extensionObject));
                         break;
+                    case "i=885":      // Range
+                    case "ns=0;i=885":
+                        self.extensionObject = self.parser.Body.parser.Range.range;
+                        assert(_.isObject(self.extensionObject));
+                        break;
                     default:
-                        console.log("Xxxxxx unsupported typeId in ExtensionObject " + self.typeId);
+                        // to do: implement a post action to create and bind extension object
+                        console.log("loadnodeset2: unsupported typeId in ExtensionObject " + self.typeId.toString());
                         break;
                 }
             }
         }
     };
 
-    var extensionObject_parser = {
+    const extensionObject_parser = {
         "ExtensionObject": {
             init: function () {
                 this.typeId = {};
@@ -537,7 +625,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
     };
 
     function BasicType_parser(dataType, parseFunc) {
-        var parser = {};
+        const parser = {};
         parser[dataType] = {
             init: function () {
                 this.value = 0;
@@ -570,7 +658,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         };
     }
 
-    var state_Variant = {
+    const state_Variant = {
         parser: {
             "String": {
                 finish: function () {
@@ -593,12 +681,28 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                     this.value = null;
                 },
                 finish: function () {
-                    var base64text = this.text;
-                    var byteString = Buffer.from(base64text, "base64");
+                    const base64text = this.text;
+                    const byteString = Buffer.from(base64text, "base64");
                     this.parent.parent.obj.value = {
                         dataType: DataType.ByteString,
                         arrayType: VariantArrayType.Scalar,
                         value: byteString
+                    };
+                }
+            },
+            "Float": {
+                finish: function () {
+                    this.parent.parent.obj.value = {
+                        dataType: DataType.Float,
+                        value: parseFloat(this.text)
+                    };
+                }
+            },
+            "Double": {
+                finish: function () {
+                    this.parent.parent.obj.value = {
+                        dataType: DataType.Double,
+                        value: parseFloat(this.text)
                     };
                 }
             },
@@ -664,7 +768,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var state_UAVariable = {
+    const state_UAVariable = {
         init: function (name, attrs) {
             this.obj = {};
 
@@ -687,7 +791,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.userAccessLevel = convertAccessLevel(attrs.UserAccessLevel);
         },
         finish: function () {
-            addressSpace._createNode(this.obj);
+            _internal_createNode(this.obj);
         },
         parser: {
             "DisplayName": {
@@ -705,7 +809,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var state_UAVariableType = {
+    const state_UAVariableType = {
         init: function (name, attrs) {
             this.obj = {};
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
@@ -725,7 +829,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         },
         finish: function () {
             try {
-                addressSpace._createNode(this.obj);
+                _internal_createNode(this.obj);
             }
             catch (err) {
                 this.obj.addressSpace = null;
@@ -749,7 +853,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var state_UAMethod = {
+    const state_UAMethod = {
         init: function (name, attrs) {
             this.obj = {};
             this.obj.nodeClass = NodeClass.Method;
@@ -762,7 +866,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
 
         },
         finish: function () {
-            addressSpace._createNode(this.obj);
+            _internal_createNode(this.obj);
         },
         parser: {
             "DisplayName": {
@@ -774,17 +878,58 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         }
     };
 
-    var state_0 = {
+    const state_ModelTableEntry =  new ReaderState({ // ModelTableEntry
+
+        init: function() {
+            this._requiredModels = [];
+        },
         parser: {
+          //xx  "RequiredModel":  null
+        },
+        finish: function () {
+
+            const modelUri = this.attrs.ModelUri; // //"http://opcfoundation.org/UA/"
+            const version = this.attrs.Version;   // 1.04
+            const publicationDate = this.attrs.PublicationDate; //"2018-05-15T00:00:00Z" "
+            // optional,
+            const symbolicName = this.attrs.SymbolicName;
+            const accessRestrictions = this.attrs.AccessRestrictions;
+
+            const namespace = _register_namespace_uri_model({
+                modelUri: modelUri,
+                version: version,
+                publicationDate: publicationDate,
+                symbolicName: symbolicName,
+                requiredModels: this._requiredModels,
+                accessRestrictions: accessRestrictions,
+            });
+            this._requiredModels.push(namespace);
+        }
+    });
+    // state_ModelTableEntry.parser["RequiredModel"] = state_ModelTableEntry;
+
+    const state_0 = {
+        parser: {
+
             "NamespaceUris": {
                 init: function () {
                 },
                 parser: {
                     "Uri": {
                         finish: function () {
-                            _register_namespace_uri(this.text);
+                             _register_namespace_uri(this.text);
                         }
                     }
+                }
+            },
+            "Models": { // ModelTable
+                init: function () {
+                },
+                parser: {
+                    "Model": state_ModelTableEntry
+                },
+                finish() {
+
                 }
             },
             "Aliases": {parser: {"Alias": state_Alias}},
@@ -801,7 +946,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
     if (!_.isArray(xmlFiles)) {
         xmlFiles = [xmlFiles];
     }
-    var parser = new Xml2Json(state_0);
+    const parser = new Xml2Json(state_0);
 
     addressSpace.suspendBackReference = true;
 
@@ -809,6 +954,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
         if (!fs.existsSync(xmlFile)) {
             throw new Error("generate_address_space : cannot file nodeset2 xml file at " + xmlFile);
         }
+        debugLog(" parsing ",xmlFile);
         _reset_namespace_translation();
         parser.parse(xmlFile, callback);
     }, function () {

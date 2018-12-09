@@ -1,23 +1,24 @@
 "use strict";
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const assert = require("node-opcua-assert").assert;
 
-function add_eventGeneratorObject(addressSpace, parentFolder) {
+function add_eventGeneratorObject(namespace, parentFolder) {
 
-
-    var myEvtType = addressSpace.addEventType({
+    const myEvtType = namespace.addEventType({
         browseName: "MyEventType",
         subtypeOf: "BaseEventType" // should be implicit
     });
 
-    var myObject = addressSpace.addObject({
+
+    const myObject = namespace.addObject({
         organizedBy: parentFolder,
         browseName: "EventGeneratorObject"
     });
 
     myObject.addReference({referenceType: "AlwaysGeneratesEvent", nodeId: myEvtType});
 
-    var method = addressSpace.addMethod(myObject, {
+    const method = namespace.addMethod(myObject, {
         browseName: "EventGeneratorMethod",
         inputArguments: [
             {
@@ -42,10 +43,11 @@ function add_eventGeneratorObject(addressSpace, parentFolder) {
 
         //xx console.log("inputArguments ", inputArguments[0].toString());
 
-        var message = inputArguments[0].value || "Hello from Event Generator Object";
-        var severity = inputArguments[1].value || 0;
+        const message = inputArguments[0].value || "Hello from Event Generator Object";
+        const severity = inputArguments[1].value || 0;
 
-        context.object.raiseEvent("MyEventType", {
+        const myEventType = namespace.addressSpace.findEventType("MyEventType",namespace.index);
+        context.object.raiseEvent(myEventType, {
             message: {
                 dataType: DataType.LocalizedText,
                 value: {text: message}
@@ -57,7 +59,7 @@ function add_eventGeneratorObject(addressSpace, parentFolder) {
 
         });
         // console.log(require("util").inspect(context).toString());
-        var callMethodResult = {
+        const callMethodResult = {
             statusCode: StatusCodes.Good,
             outputArguments: []
         };

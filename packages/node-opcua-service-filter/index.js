@@ -1,3 +1,7 @@
+"use strict";
+/**
+ * @module services.filter
+ */
 module.exports = {
 
     FilterOperator: require("./schemas/FilterOperator_enum").FilterOperator,

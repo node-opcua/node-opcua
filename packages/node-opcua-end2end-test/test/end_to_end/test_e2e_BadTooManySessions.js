@@ -1,29 +1,29 @@
 "use strict";
 
-var should = require("should");
-var assert = require("node-opcua-assert");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAServer = opcua.OPCUAServer;
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAServer = opcua.OPCUAServer;
+const OPCUAClient = opcua.OPCUAClient;
 
-var port = 2000;
+const port = 2000;
 
-var empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)", function () {
 
 
     this.timeout(Math.max(300000, this._timeout));
 
-    var server, client1, client2;
+    let server, client1, client2;
 
-    var endpointUrl;
+    let endpointUrl;
     before(function (done) {
         opcua.OPCUAClientBase.registry.count().should.eql(0);
         server = new OPCUAServer({

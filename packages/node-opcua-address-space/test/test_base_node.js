@@ -1,28 +1,30 @@
 "use strict";
 
 
-var async = require("async");
-var path = require("path");
-var should = require("should");
-var _ = require("underscore");
+const async = require("async");
+const path = require("path");
+const should = require("should");
+const _ = require("underscore");
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
-var sinon = require("sinon");
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const sinon = require("sinon");
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Testing UAObject", function () {
 
-    var addressSpace, rootFolder;
-    var organizesReferenceType;
-    var hasTypeDefinitionReferenceType;
-    var baseObjectType;
+    let addressSpace,namespace, rootFolder;
+    let organizesReferenceType;
+    let hasTypeDefinitionReferenceType;
+    let baseObjectType;
 
     before(function (done) {
         get_mini_address_space(function (err, data) {
             addressSpace = data;
+            namespace = addressSpace.getOwnNamespace();
             rootFolder = addressSpace.findNode("RootFolder");
             organizesReferenceType = addressSpace.findReferenceType("Organizes");
             hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition");
@@ -45,26 +47,26 @@ describe("Testing UAObject", function () {
     it("AddressSpace#addObject should create a 'hasTypeDefinition' reference on node", function () {
 
 
-        var nbReferencesBefore = baseObjectType.findReferencesEx("HasTypeDefinition", BrowseDirection.Inverse).length;
+        const nbReferencesBefore = baseObjectType.findReferencesEx("HasTypeDefinition", BrowseDirection.Inverse).length;
 
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node1",
             typeDefinition: "BaseObjectType"
         });
 
         //xx node1.findReferencesEx("References", BrowseDirection.Forward).forEach(dump);
 
-        var forwardReferences = node1.findReferencesEx("References", BrowseDirection.Forward);
+        const forwardReferences = node1.findReferencesEx("References", BrowseDirection.Forward);
         forwardReferences.length.should.eql(1);
 
-        forwardReferences[0].referenceType.should.eql("HasTypeDefinition");
+        forwardReferences[0].referenceType.should.eql(resolveNodeId("HasTypeDefinition"));
         forwardReferences[0].isForward.should.eql(true);
         forwardReferences[0].nodeId.should.eql(baseObjectType.nodeId);
 
-        var inverseReferences = node1.findReferencesEx("References", BrowseDirection.Inverse);
+        const inverseReferences = node1.findReferencesEx("References", BrowseDirection.Inverse);
         inverseReferences.length.should.eql(0);
 
-        var nbReferencesAfter = baseObjectType.findReferencesEx("HasTypeDefinition", BrowseDirection.Inverse).length;
+        const nbReferencesAfter = baseObjectType.findReferencesEx("HasTypeDefinition", BrowseDirection.Inverse).length;
         //xx console.log("",nbReferencesBefore,nbReferencesAfter);
 
         nbReferencesAfter.should.eql(nbReferencesBefore,
@@ -75,11 +77,11 @@ describe("Testing UAObject", function () {
 
     function _test_with_custom_referenceType(referenceType) {
 
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node1"
         });
 
-        var nodeDest = addressSpace.addObject({
+        const nodeDest = namespace.addObject({
             browseName: "nodeDest"
         });
 
@@ -89,8 +91,8 @@ describe("Testing UAObject", function () {
             nodeId: nodeDest.nodeId
         });
 
-        var forwardReferences1 = node1.findReferencesEx("References", BrowseDirection.Forward);
-        var inverseReferences1 = node1.findReferencesEx("References", BrowseDirection.Inverse);
+        const forwardReferences1 = node1.findReferencesEx("References", BrowseDirection.Forward);
+        const inverseReferences1 = node1.findReferencesEx("References", BrowseDirection.Inverse);
 
         forwardReferences1.length.should.eql(2);
         inverseReferences1.length.should.eql(0);
@@ -105,18 +107,18 @@ describe("Testing UAObject", function () {
     });
 
     it("BaseNode#addReference - referenceType as nodeId String", function () {
-        var referenceType = addressSpace.findReferenceType("Organizes");
+        const referenceType = addressSpace.findReferenceType("Organizes");
         _test_with_custom_referenceType(referenceType.nodeId.toString());
     });
 
     it("BaseNode#addReference - referenceType as NodeId", function () {
-        var referenceType = addressSpace.findReferenceType("Organizes");
+        const referenceType = addressSpace.findReferenceType("Organizes");
         _test_with_custom_referenceType(referenceType.nodeId);
     });
 
     it("BaseNode#addReference - nodeId as NodeId", function () {
-        var node1 = addressSpace.addObject({browseName: "Node1"});
-        var nodeDest = addressSpace.addObject({browseName: "nodeDest"});
+        const node1 = namespace.addObject({browseName: "Node1"});
+        const nodeDest = namespace.addObject({browseName: "nodeDest"});
 
         node1.addReference({
             referenceType: "Organizes",
@@ -125,8 +127,8 @@ describe("Testing UAObject", function () {
         node1.getFolderElementByName("nodeDest").browseName.should.eql(nodeDest.browseName);
     });
     it("BaseNode#addReference - nodeId as Node", function () {
-        var node1 = addressSpace.addObject({browseName: "Node1"});
-        var nodeDest = addressSpace.addObject({browseName: "nodeDest"});
+        const node1 = namespace.addObject({browseName: "Node1"});
+        const nodeDest = namespace.addObject({browseName: "nodeDest"});
 
         node1.addReference({
             referenceType: "Organizes",
@@ -135,8 +137,8 @@ describe("Testing UAObject", function () {
         node1.getFolderElementByName("nodeDest").browseName.should.eql(nodeDest.browseName);
     });
     it("BaseNode#addReference - nodeId as String", function () {
-        var node1 = addressSpace.addObject({browseName: "Node1"});
-        var nodeDest = addressSpace.addObject({browseName: "nodeDest"});
+        const node1 = namespace.addObject({browseName: "Node1"});
+        const nodeDest = namespace.addObject({browseName: "nodeDest"});
 
         node1.addReference({
             referenceType: "Organizes",
@@ -147,11 +149,11 @@ describe("Testing UAObject", function () {
 
     it("BaseNode#addReference with invalid referenceType should raise an exception", function () {
 
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node1"
         });
 
-        var nodeDest = addressSpace.addObject({
+        const nodeDest = namespace.addObject({
             browseName: "nodeDest"
         });
 
@@ -166,12 +168,12 @@ describe("Testing UAObject", function () {
 
     it("BaseNode#addReference - four equivalent cases", function () {
 
-        var view = addressSpace.addObject({browseName: "View"});
-        var node1 = addressSpace.addObject({browseName: "Node1"});
-        var node2 = addressSpace.addObject({browseName: "Node2"});
-        var node3 = addressSpace.addObject({browseName: "Node3"});
-        var node4 = addressSpace.addObject({browseName: "Node4"});
-        var node5 = addressSpace.addObject({browseName: "Node5"});
+        const view = namespace.addObject({browseName: "View"});
+        const node1 = namespace.addObject({browseName: "Node1"});
+        const node2 = namespace.addObject({browseName: "Node2"});
+        const node3 = namespace.addObject({browseName: "Node3"});
+        const node4 = namespace.addObject({browseName: "Node4"});
+        const node5 = namespace.addObject({browseName: "Node5"});
 
 
         // the following addReference usages produce the same relationship
@@ -193,11 +195,11 @@ describe("Testing UAObject", function () {
     it("BaseNode#addReference - 2 nodes - should properly update backward references on referenced nodes", function () {
 
 
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node1"
         });
 
-        var nodeDest = addressSpace.addObject({
+        const nodeDest = namespace.addObject({
             browseName: "nodeDest"
         });
 
@@ -207,16 +209,16 @@ describe("Testing UAObject", function () {
             nodeId: nodeDest.nodeId
         });
 
-        var forwardReferences1 = node1.findReferencesEx("References", BrowseDirection.Forward);
-        var inverseReferences1 = node1.findReferencesEx("References", BrowseDirection.Inverse);
+        const forwardReferences1 = node1.findReferencesEx("References", BrowseDirection.Forward);
+        const inverseReferences1 = node1.findReferencesEx("References", BrowseDirection.Inverse);
 
         forwardReferences1.length.should.eql(2);
         inverseReferences1.length.should.eql(0);
         forwardReferences1[1].nodeId.toString().should.eql(nodeDest.nodeId.toString());
 
 
-        var forwardReferencesDest = nodeDest.findReferencesEx("References", BrowseDirection.Forward);
-        var inverseReferencesDest = nodeDest.findReferencesEx("References", BrowseDirection.Inverse);
+        const forwardReferencesDest = nodeDest.findReferencesEx("References", BrowseDirection.Forward);
+        const inverseReferencesDest = nodeDest.findReferencesEx("References", BrowseDirection.Inverse);
 
         forwardReferencesDest.length.should.eql(1);
         inverseReferencesDest.length.should.eql(1);
@@ -226,15 +228,15 @@ describe("Testing UAObject", function () {
 
     it("BaseNode#addReference - 3 nodes - should properly update backward references on referenced nodes", function () {
 
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node1"
         });
 
-        var node2 = addressSpace.addObject({
+        const node2 = namespace.addObject({
             browseName: "Node2"
         });
 
-        var nodeDest = addressSpace.addObject({
+        const nodeDest = namespace.addObject({
             browseName: "NodeDest"
         });
 
@@ -250,22 +252,22 @@ describe("Testing UAObject", function () {
             nodeId: nodeDest.nodeId
         });
 
-        var forwardReferences1 = node1.findReferencesEx("References", BrowseDirection.Forward);
-        var inverseReferences1 = node1.findReferencesEx("References", BrowseDirection.Inverse);
+        const forwardReferences1 = node1.findReferencesEx("References", BrowseDirection.Forward);
+        const inverseReferences1 = node1.findReferencesEx("References", BrowseDirection.Inverse);
 
         forwardReferences1.length.should.eql(2);
         inverseReferences1.length.should.eql(0);
         forwardReferences1[1].nodeId.toString().should.eql(nodeDest.nodeId.toString());
 
-        var forwardReferences2 = node1.findReferencesEx("References", BrowseDirection.Forward);
-        var inverseReferences2 = node1.findReferencesEx("References", BrowseDirection.Inverse);
+        const forwardReferences2 = node1.findReferencesEx("References", BrowseDirection.Forward);
+        const inverseReferences2 = node1.findReferencesEx("References", BrowseDirection.Inverse);
 
         forwardReferences2.length.should.eql(2);
         inverseReferences2.length.should.eql(0);
         forwardReferences2[1].nodeId.toString().should.eql(nodeDest.nodeId.toString());
 
-        var forwardReferencesDest = nodeDest.findReferencesEx("References", BrowseDirection.Forward);
-        var inverseReferencesDest = nodeDest.findReferencesEx("References", BrowseDirection.Inverse);
+        const forwardReferencesDest = nodeDest.findReferencesEx("References", BrowseDirection.Forward);
+        const inverseReferencesDest = nodeDest.findReferencesEx("References", BrowseDirection.Inverse);
 
         forwardReferencesDest.length.should.eql(1);
         inverseReferencesDest.length.should.eql(2);
@@ -276,11 +278,11 @@ describe("Testing UAObject", function () {
 
     it("BaseNode#addReference should throw if the same reference is added twice", function () {
 
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node1"
         });
 
-        var node2 = addressSpace.addObject({
+        const node2 = namespace.addObject({
             browseName: "Node2"
         });
 
@@ -303,7 +305,7 @@ describe("Testing UAObject", function () {
 
     it("BaseNode#addReference internal cache must be invalidated", function () {
 
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node1"
         });
 
@@ -311,7 +313,7 @@ describe("Testing UAObject", function () {
         // let call a method that caches results
         node1.getComponents().length.should.eql(0);
 
-        var node2 = addressSpace.addObject({
+        const node2 = namespace.addObject({
             browseName: "Node2"
         });
 
@@ -335,17 +337,17 @@ describe("Testing UAObject", function () {
         node1.getComponents().length.should.eql(1);
         node2.getComponents().length.should.eql(0);
 
-        node1.node2.browseName.toString().should.eql("Node2");
+        node1.node2.browseName.toString().should.eql("1:Node2");
     });
     it("BaseNode#addReference (Inverse) internal cache must be invalidated", function () {
 
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node1"
         });
 
         node1.getComponents().length.should.eql(0);
 
-        var node2 = addressSpace.addObject({
+        const node2 = namespace.addObject({
             browseName: "Node2"
         });
         node2.getComponents().length.should.eql(0);
@@ -360,12 +362,12 @@ describe("Testing UAObject", function () {
         node1.getComponents().length.should.eql(1);
         node2.getComponents().length.should.eql(0);
 
-        node1.node2.browseName.toString().should.eql("Node2");
+        node1.node2.browseName.toString().should.eql("1:Node2");
 
     });
 
     it("BaseNode#namespaceIndex", function () {
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node1"
         });
         node1.namespaceIndex.should.eql(1);
@@ -375,7 +377,7 @@ describe("Testing UAObject", function () {
 
     it("BaseNode#namespaceUri", function () {
 
-        var node1 = addressSpace.addObject({
+        const node1 = namespace.addObject({
             browseName: "Node2"
         });
         node1.namespaceUri.should.eql("http://MYNAMESPACE");
@@ -385,18 +387,18 @@ describe("Testing UAObject", function () {
 
     it("AddressSpace#parent should provide a parent property to access parent node", function () {
 
-        var parentNode = addressSpace.addObject({
+        const parentNode = namespace.addObject({
             browseName: "ParentNode"
         });
 
-        var child1 = addressSpace.addObject({componentOf: parentNode, browseName: "Child1"});
+        const child1 = namespace.addObject({componentOf: parentNode, browseName: "Child1"});
         child1.parent.should.eql(parentNode);
 
-        var child2 = addressSpace.addObject({propertyOf: parentNode, browseName: "Child2"});
+        const child2 = namespace.addObject({propertyOf: parentNode, browseName: "Child2"});
         child2.parent.should.eql(parentNode);
 
 
-        var child3 = addressSpace.addObject({organizedBy: parentNode, browseName: "Child3"});
+        const child3 = namespace.addObject({organizedBy: parentNode, browseName: "Child3"});
         should(child3.parent).eql(undefined, "OrganizedBy is not a Parent/Child relation");
 
     });

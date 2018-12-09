@@ -1,9 +1,9 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
 // see Part 3 $8.3 and Part 6 $5.2.213
-var QualifiedName_Schema = {
+const QualifiedName_Schema = {
     name: "QualifiedName",
     id: factories.next_available_id(),
     fields: [

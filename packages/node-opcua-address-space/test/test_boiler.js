@@ -1,21 +1,21 @@
 "use strict";
 /* global describe,it,before*/
+const should = require("should");
+const async = require("async");
+const generateAddressSpace = require("..").generate_address_space;
+const AddressSpace = require("..").AddressSpace;
 
-var async = require("async");
-var generateAddressSpace = require("..").generate_address_space;
-var AddressSpace = require("..").AddressSpace;
+const UAStateMachine = require("..").UAStateMachine;
+const context = require("..").SessionContext.defaultContext;
 
-var UAStateMachine = require("..").UAStateMachine;
-var context = require("..").SessionContext.defaultContext;
-
-var createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
-var makeBoiler = require("../test_helpers/boiler_system").makeBoiler;
+const createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
+const makeBoiler = require("../test_helpers/boiler_system").makeBoiler;
 
 
-var doDebug = false;
-var nodesets = require("node-opcua-nodesets");
+const doDebug = false;
+const nodesets = require("node-opcua-nodesets");
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Boiler System", function () {
 
     function getBrowseName(x) {
@@ -23,12 +23,14 @@ describe("Testing Boiler System", function () {
     }
 
 
-    var nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard_nodeset_file;
 
-    var addressSpace = null;
+    let addressSpace,namespace;
     before(function (done) {
         addressSpace = new AddressSpace();
         generateAddressSpace(addressSpace, nodesetFilename, function () {
+            namespace = addressSpace.registerNamespace("PRIVATE");
+            namespace.index.should.eql(1);
             done();
         });
     });
@@ -36,19 +38,20 @@ describe("Testing Boiler System", function () {
         if (addressSpace) {
             addressSpace.dispose();
             addressSpace = null;
+            namespace = null;
         }
         done();
     });
 
     it("XX should handle StateMachine derived from ProgramStateMachine", function () {
 
-        var programStateMachine = addressSpace.findObjectType("ProgramStateMachineType");
+        const programStateMachine = addressSpace.findObjectType("ProgramStateMachineType");
 
-        var psm = programStateMachine.instantiate({browseName: "MyStateMachine#2"});
+        const psm = programStateMachine.instantiate({browseName: "MyStateMachine#2"});
 
         UAStateMachine.promote(psm);
 
-        psm.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);
+        psm.getStates().map(getBrowseName).sort().should.eql(['Halted', 'Ready', 'Running', 'Suspended' ]);
 
 
     });
@@ -56,15 +59,17 @@ describe("Testing Boiler System", function () {
 
     it("XX should handle StateMachine derived from ProgramStateMachine", function () {
 
-        var myProgramStateMachine = addressSpace.addObjectType({
+        const namespace= addressSpace.getOwnNamespace();
+
+        const myProgramStateMachine = namespace.addObjectType({
             browseName: "MyProgramStateMachine",
             subtypeOf: "ProgramStateMachineType"
         });
 
-        var psm = myProgramStateMachine.instantiate({browseName: "MyStateMachine#2"});
+        const psm = myProgramStateMachine.instantiate({browseName: "MyStateMachine#2"});
         UAStateMachine.promote(psm);
 
-        psm.getStates().map(getBrowseName).should.eql(['Ready', 'Running', 'Suspended', 'Halted']);
+        psm.getStates().map(getBrowseName).sort().should.eql([ 'Halted', 'Ready', 'Running', 'Suspended']);
 
         psm.getTransitions().map(getBrowseName).should.eql([
             "HaltedToReady",
@@ -83,18 +88,18 @@ describe("Testing Boiler System", function () {
     it("should create a boiler system", function (done) {
 
 
-        var boilerType = createBoilerType(addressSpace);
+        const boilerType = createBoilerType(addressSpace);
         boilerType.getNotifiers().length.should.eql(3);
         boilerType.getEventSources().length.should.eql(1);
 
-        var boiler = makeBoiler(addressSpace, {
+        const boiler = makeBoiler(addressSpace, {
             browseName: "Boiler#1"
         });
 
-        boiler.pipeX001.browseName.toString().should.eql("PipeX001");
-        boiler.pipeX002.browseName.toString().should.eql("PipeX002");
-        boiler.drumX001.browseName.toString().should.eql("DrumX001");
-        boiler.simulation.browseName.toString().should.eql("Simulation");
+        boiler.pipeX001.browseName.toString().should.eql("1:PipeX001");
+        boiler.pipeX002.browseName.toString().should.eql("1:PipeX002");
+        boiler.drumX001.browseName.toString().should.eql("1:DrumX001");
+        boiler.simulation.browseName.toString().should.eql("1:Simulation");
 
         //xx boiler.pipeX001.displayName.text.toString().should.eql("Pipe1001");
 
@@ -107,16 +112,16 @@ describe("Testing Boiler System", function () {
         boiler.getEventSources().length.should.eql(1);
 
         boiler.getNotifiers().map(function (x) {
-            return x.browseName.toString()
+            return x.browseName.name.toString()
         }).join(" ").should.eql("PipeX001 DrumX001 PipeX002");
         //xx boiler.pipeX001.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
         //xx boiler.pipeX001.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
 
 
-        var haltMethod = boiler.simulation.getMethodByName("Halt");
-        var resetMethod = boiler.simulation.getMethodByName("Reset");
-        var startMethod = boiler.simulation.getMethodByName("Start");
-        var suspendMethod = boiler.simulation.getMethodByName("Suspend");
+        const haltMethod = boiler.simulation.getMethodByName("Halt");
+        const resetMethod = boiler.simulation.getMethodByName("Reset");
+        const startMethod = boiler.simulation.getMethodByName("Start");
+        const suspendMethod = boiler.simulation.getMethodByName("Suspend");
 
         async.series([
 

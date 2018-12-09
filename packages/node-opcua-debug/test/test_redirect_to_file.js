@@ -1,9 +1,9 @@
 "use strcit";
 require("should");
-var fs = require("fs");
+const fs = require("fs");
 
-var redirectToFile = require("..").redirectToFile;
-var getTempFilename = require("../").getTempFilename;
+const redirectToFile = require("..").redirectToFile;
+const getTempFilename = require("../").getTempFilename;
 
 
 describe("testing redirectToFile", function () {
@@ -30,8 +30,8 @@ describe("testing redirectToFile", function () {
 
         }, function () {
 
-            var filename = getTempFilename("redirectToFile_sync.log");
-            var txt = fs.readFileSync(filename, "ascii");
+            const filename = getTempFilename("redirectToFile_sync.log");
+            const txt = fs.readFileSync(filename, "ascii");
             txt.should.eql("Hello World\n");
 
         });
@@ -46,15 +46,15 @@ describe("testing redirectToFile", function () {
         });
     }
 
-    it("should redirectToFile with a async function", function (done) {
+    it("should redirectToFile with a asynchronous function", function (done) {
 
 
         redirectToFile("redirectToFile_async.log", function (inner_done) {
             async_function(inner_done);
         }, function () {
 
-            var filename = getTempFilename("redirectToFile_async.log");
-            var txt = fs.readFileSync(filename, "ascii");
+            const filename = getTempFilename("redirectToFile_async.log");
+            const txt = fs.readFileSync(filename, "ascii");
             txt.should.eql("Hello World !!!\n");
             done();
         });

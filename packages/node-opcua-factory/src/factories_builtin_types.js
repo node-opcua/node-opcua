@@ -4,14 +4,14 @@
  */
 
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var util = require("util");
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const util = require("util");
 
 
-var ec = require("node-opcua-basic-types");
-var sc = require("node-opcua-status-code");
-var emptyGuid = require("node-opcua-guid").emptyGuid;
+const ec = require("node-opcua-basic-types");
+const sc = require("node-opcua-status-code");
+const emptyGuid = require("node-opcua-guid").emptyGuid;
 
 
 
@@ -25,10 +25,10 @@ exports.minDate = new Date(Date.UTC(1601, 0, 1, 0, 0));
 //   Enumeration
 
 
-var defaultXmlElement = "";
+const defaultXmlElement = "";
 
 // Built-In Type
-var _defaultType = [
+const _defaultType = [
     // Built-in DataTypes ( see OPCUA Part III v1.02 - $5.8.2 )
     {
         name: "Null", encode: function () {
@@ -91,7 +91,7 @@ var _defaultType = [
         name: "ByteString", encode: ec.encodeByteString, decode: ec.decodeByteString,
 
         defaultValue: function () {
-            return new Buffer(0);
+            return Buffer.alloc(0);
         },
 
         coerce: ec.coerceByteString,
@@ -163,7 +163,7 @@ var _defaultType = [
  */
 function TypeSchema(options) {
 
-    for (var prop in options) {
+    for (const prop in options) {
         if (options.hasOwnProperty(prop)) {
             this[prop] = options[prop];
         }
@@ -202,14 +202,14 @@ exports.unregisterType = function (typeName) {
  */
 exports.findSimpleType = function findSimpleType(name) {
     assert(name in _defaultTypeMap);
-    var typeschema = _defaultTypeMap[name];
+    const typeschema = _defaultTypeMap[name];
     assert(typeschema instanceof TypeSchema);
     return typeschema;
 };
 
 
 // populate the default type map
-var _defaultTypeMap = {};
+const _defaultTypeMap = {};
 _defaultType.forEach(registerType);
 exports._defaultTypeMap = _defaultTypeMap;
 
@@ -226,7 +226,7 @@ function findBuiltInType(datatypeName) {
         datatypeName = datatypeName.toString();
     }
     assert(typeof datatypeName === 'string', "findBuiltInType : expecting a string " + datatypeName);
-    var t = _defaultTypeMap[datatypeName];
+    const t = _defaultTypeMap[datatypeName];
     if (!t) {
         throw new Error("datatype " + datatypeName + " must be registered");
     }
@@ -242,10 +242,10 @@ exports.findBuiltInType = findBuiltInType;
  * @method  computer_default_value
  * @param defaultValue {*} the default value
  * @return {*}
- */
+*/
 TypeSchema.prototype.computer_default_value = function (defaultValue) {
 
-    var _t = this;
+    const _t = this;
     // defaultValue === undefined means use standard default value specified by type
     // defaultValue === null      means 'null' can be a default value
     if (defaultValue === undefined) {
@@ -271,7 +271,7 @@ TypeSchema.prototype.computer_default_value = function (defaultValue) {
 TypeSchema.prototype.initialize_value = function (value, defaultValue) {
 
     assert(this instanceof TypeSchema);
-    var _t = this;
+    const _t = this;
 
     if (value === undefined) {
         return defaultValue;

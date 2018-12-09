@@ -1,44 +1,44 @@
 /* eslint no-process-exit: 0 */
 "use strict";
-var argv = require("yargs")
+const argv = require("yargs")
     .usage("Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block")
     .argv;
-var net = require("net");
+const net = require("net");
 
 
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var hexDump = require("node-opcua-utils").hexDump;
-var MessageBuilder = require("../lib/misc/message_builder").MessageBuilder;
-var BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
+const hexDump = require("node-opcua-utils").hexDump;
+const MessageBuilder = require("../lib/misc/message_builder").MessageBuilder;
+const BinaryStream = require("../lib/misc/binaryStream").BinaryStream;
 
-var packet_analyzer = require("../lib/misc/packet_analyzer").packet_analyzer;
-var messageHeaderToString = require("../lib/misc/message_header").messageHeaderToString;
+const packet_analyzer = require("../lib/misc/packet_analyzer").packet_analyzer;
+const messageHeaderToString = require("../lib/misc/message_header").messageHeaderToString;
 
-var s = require("../lib/datamodel/structures");
+const s = require("../lib/datamodel/structures");
 
 require("colors");
 
-var remote_port = parseInt(argv.port, 10) || 4841;
-var hostname = argv.hostname || "localhost";
+const remote_port = parseInt(argv.port, 10) || 4841;
+const hostname = argv.hostname || "localhost";
 
-var my_port = parseInt(argv.portServer, 10) || remote_port + 1;
+const my_port = parseInt(argv.portServer, 10) || remote_port + 1;
 
 
-var TrafficAnalyser = function (id) {
+const TrafficAnalyser = function (id) {
     this.id = id;
 };
 
 
 TrafficAnalyser.prototype.add = function (data) {
 
-    var stream = new BinaryStream(data);
+    const stream = new BinaryStream(data);
     if (argv.block) {
         console.log(hexDump(data));
         return;
     }
-    var messageHeader = opcua.readMessageHeader(stream);
+    const messageHeader = opcua.readMessageHeader(stream);
 
     if (messageHeader.msgType === "ERR") {
 
@@ -48,7 +48,7 @@ TrafficAnalyser.prototype.add = function (data) {
         console.log(hexDump(data));
     }
 
-    var messageBuild = new MessageBuilder();
+    const messageBuild = new MessageBuilder();
     messageBuild.on("full_message_body", function (full_message_body) {
 
         console.log(hexDump(full_message_body));
@@ -99,11 +99,11 @@ TrafficAnalyser.prototype.add = function (data) {
 require("net").createServer(function (socket) {
 
     console.log("connected");
-    var ta_client = new TrafficAnalyser(1);
+    const ta_client = new TrafficAnalyser(1);
 
-    var ta_server = new TrafficAnalyser(2);
+    const ta_server = new TrafficAnalyser(2);
 
-    var proxy_client = new net.Socket();
+    const proxy_client = new net.Socket();
     proxy_client.connect(remote_port, hostname);
 
     proxy_client.on("data", function (data) {
@@ -112,7 +112,6 @@ require("net").createServer(function (socket) {
         try {
             socket.write(data);
         } catch (err) {
-            /**/
         }
     });
 

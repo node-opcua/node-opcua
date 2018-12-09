@@ -1,7 +1,7 @@
 require("node-opcua-service-secure-channel");
 
 
-var UnregisterNodesRequest_Schema = {
+const UnregisterNodesRequest_Schema = {
     documentation:"Registers Nodes",
     name: "UnregisterNodesRequest",
     fields: [

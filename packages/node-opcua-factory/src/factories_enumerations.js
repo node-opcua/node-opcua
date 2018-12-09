@@ -4,14 +4,14 @@
  */
 
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var Enum = require("node-opcua-enum");
+const Enum = require("node-opcua-enum");
 
-var _enumerations = {};
+const _enumerations = {};
 
-var TypeSchema = require("../src/factories_builtin_types").TypeSchema;
+const TypeSchema = require("../src/factories_builtin_types").TypeSchema;
 
 function _encode_enumeration(member, stream) {
     stream.writeInteger(member.value);
@@ -33,9 +33,9 @@ function registerEnumeration(schema) {
     assert(schema.hasOwnProperty("name"));
     assert(schema.hasOwnProperty("enumValues"));
 
-    var name = schema.name;
+    const name = schema.name;
     // create a new Enum
-    var typedEnum = new Enum(schema.enumValues);
+    const typedEnum = new Enum(schema.enumValues);
     if (_enumerations.hasOwnProperty(name)) {
         throw new Error("factories.registerEnumeration : Enumeration " + schema.name + " has been already inserted");
     }
@@ -45,8 +45,8 @@ function registerEnumeration(schema) {
     assert(!schema.decode || _.isFunction(schema.decode));
     schema.encode = schema.encode || _encode_enumeration;
     schema.decode = schema.decode || function _decode_enumeration(stream) {
-           var value = stream.readInteger();
-            var e = typedEnum.get(value);
+           const value = stream.readInteger();
+            const e = typedEnum.get(value);
             // istanbul ignore next
             if( !e) {
                 throw new Error("cannot  coerce value=" + value + " to "+ typedEnum.constructor.name);
@@ -58,7 +58,7 @@ function registerEnumeration(schema) {
 
     schema.defaultValue = typedEnum.enums[0];
 
-    var typeSchema = new TypeSchema(schema);
+    const typeSchema = new TypeSchema(schema);
     _enumerations[name] = typeSchema;
 
     return typedEnum;

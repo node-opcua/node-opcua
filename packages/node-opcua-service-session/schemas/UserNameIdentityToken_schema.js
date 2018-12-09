@@ -1,5 +1,5 @@
 
-var UserNameIdentityToken_Schema = {
+const UserNameIdentityToken_Schema = {
     name:"UserNameIdentityToken",
     documentation: "A token representing a user identified by a user name and password",
     fields: [

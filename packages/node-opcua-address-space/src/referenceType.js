@@ -4,21 +4,22 @@
  * @module opcua.address_space
  */
 
-var assert = require("node-opcua-assert");
-var util = require("util");
+const assert = require("node-opcua-assert").assert;
+const util = require("util");
 
-var BaseNode = require("./base_node").BaseNode;
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var DataValue =  require("node-opcua-data-value").DataValue;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const BaseNode = require("./base_node").BaseNode;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var SessionContext = require("./session_context").SessionContext;
+const SessionContext = require("./session_context").SessionContext;
 
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
 
-var ReferenceTypeCounter=0;
+let ReferenceTypeCounter=0;
+
 
 /**
  * @class ReferenceType
@@ -28,13 +29,13 @@ var ReferenceTypeCounter=0;
  */
 function ReferenceType(options) {
     BaseNode.apply(this, arguments);
-    this.isAbstract = (options.isAbstract === null) ? false : options.isAbstract;
-    this.symmetric = (options.symmetric === null) ? false : options.symmetric;
-    this.inverseName = coerceLocalizedText(options.inverseName);
 
+    this.isAbstract = util.isNullOrUndefined(options.isAbstract) ? false : !!options.isAbstract;
+    this.symmetric = util.isNullOrUndefined(options.symmetric) ? false : !!options.symmetric;
+    this.inverseName = coerceLocalizedText(options.inverseName);
     ReferenceTypeCounter +=1;
-    
 }
+
 util.inherits(ReferenceType, BaseNode);
 ReferenceType.prototype.nodeClass = NodeClass.ReferenceType;
 
@@ -50,14 +51,14 @@ ReferenceType.prototype.readAttribute = function (context, attributeId, indexRan
 
     assert(context instanceof SessionContext);
 
-    var options = {};
+    const options = {};
     switch (attributeId) {
         case AttributeIds.IsAbstract:
-            options.value = {dataType: DataType.Boolean, value: this.isAbstract ? true : false};
+            options.value = {dataType: DataType.Boolean, value: !!this.isAbstract};
             options.statusCode = StatusCodes.Good;
             break;
         case AttributeIds.Symmetric:
-            options.value = {dataType: DataType.Boolean, value: this.symmetric ? true : false};
+            options.value = {dataType: DataType.Boolean, value: !!this.symmetric};
             options.statusCode = StatusCodes.Good;
             break;
         case AttributeIds.InverseName: // LocalizedText
@@ -69,10 +70,9 @@ ReferenceType.prototype.readAttribute = function (context, attributeId, indexRan
     }
     return new DataValue(options);
 };
-exports.ReferenceType = ReferenceType;
 
 
-var tools = require("./tool_isSupertypeOf");
+const tools = require("./tool_isSupertypeOf");
 /**
  * returns true if self is  a super type of baseType
  * @method isSupertypeOf
@@ -89,7 +89,7 @@ ReferenceType.prototype.isSupertypeOf = tools.construct_isSupertypeOf(ReferenceT
 ReferenceType.prototype._slow_isSupertypeOf = tools.construct_slow_isSupertypeOf(ReferenceType);
 
 ReferenceType.prototype.toString = function () {
-    var str = "";
+    let str = "";
     str += this.isAbstract ? "A" : " ";
     str += this.symmetric ? "S" : " ";
     str += " " + this.browseName.toString() + "/" + this.inverseName.text + " ";
@@ -100,17 +100,18 @@ ReferenceType.prototype.toString = function () {
 
 function findAllSubTypes(referenceType) {
 
-    var addressSpace = referenceType.addressSpace;
-    var possibleReferenceTypes = [];
+    const addressSpace = referenceType.addressSpace;
+    const possibleReferenceTypes = [];
 
+    const hasSubtypeReferenceType = addressSpace.findReferenceType("HasSubtype");
     function _findAllSubType(referenceType) {
         possibleReferenceTypes.push(referenceType);
         assert(referenceType.nodeClass === NodeClass.ReferenceType);
-        var references = referenceType.findReferences("HasSubtype", true);
-        references.forEach(function (_r) {
-            var subType = addressSpace.findNode(_r.nodeId);
+        const references = referenceType.findReferences(hasSubtypeReferenceType, true);
+        for(let _r of references) {
+            const subType = addressSpace.findNode(_r.nodeId);
             _findAllSubType(subType);
-        });
+        }
     }
     _findAllSubType(referenceType);
 
@@ -124,42 +125,57 @@ function findAllSubTypes(referenceType) {
  */
 ReferenceType.prototype.getAllSubtypes = function() {
 
-    if (!this._cache._allSubTypesVersion || this._cache._allSubTypesVersion < ReferenceTypeCounter) {
+    const _cache = BaseNode._getCache(this);
 
-        this._cache._allSubTypes = null;
+    if (!_cache._allSubTypesVersion || _cache._allSubTypesVersion < ReferenceTypeCounter) {
+
+        _cache._allSubTypes = null;
     }
-    if (!this._cache._allSubTypes) {
-        this._cache._allSubTypes = findAllSubTypes(this);
-        this._cache._allSubTypesVersion = ReferenceTypeCounter;
+    if (!_cache._allSubTypes) {
+        _cache._allSubTypes = findAllSubTypes(this);
+        _cache._allSubTypesVersion = ReferenceTypeCounter;
     }
-    return this._cache._allSubTypes;
+    //xx console.log("XXX getAllSubtypes of ",this.browseName.toString()," => ", _.values(_cache._allSubTypes).map(x=>x.browseName.toString()).join(" "));
+    return _cache._allSubTypes;
 };
+
+
 function _get_idx(referenceType)  {
 
-    var possibleReferenceTypes = referenceType.getAllSubtypes();
+    const possibleReferenceTypes = referenceType.getAllSubtypes();
     // create a index of reference type with browseName as key for faster search
-    var keys = {};
+    const keys = {};
     possibleReferenceTypes.forEach(function(refType){
-        keys[refType.browseName.toString()]= refType;
+        keys[refType.nodeId.toString()]= refType;
     });
 
     return keys;
 }
+
+/**
+ * getSubtypeIndex
+ * @returns {null|*}
+ * @private
+ */
 ReferenceType.prototype.getSubtypeIndex = function() {
-    if (this._cache._subtype_idxVersion < ReferenceTypeCounter) {
-        this._cache._subtype_idx = null;
+    const _cache = BaseNode._getCache(this);
+    if (_cache._subtype_idxVersion < ReferenceTypeCounter) {
+        // the cache need to be invalidated
+        _cache._subtype_idx = null;
     } else {
     }
-    if (!this._cache._subtype_idx) {
-        this._cache._subtype_idx = _get_idx(this);
-        this._cache._subtype_idxVersion = ReferenceTypeCounter;
+    if (!_cache._subtype_idx) {
+        _cache._subtype_idx = _get_idx(this);
+        _cache._subtype_idxVersion = ReferenceTypeCounter;
     }
-    return this._cache._subtype_idx;
-
+    return _cache._subtype_idx;
 };
 
 ReferenceType.prototype.is = function(referenceTypeString) {
-    return this.getSubtypeIndex().hasOwnProperty(referenceTypeString);
+    assert(typeof referenceTypeString === "string");
+    const referenceType = this.addressSpace.findReferenceType(referenceTypeString);
+    assert(referenceType&& referenceType instanceof ReferenceType);
+    this.getSubtypeIndex().hasOwnProperty(referenceType.referenceType.toString());
 };
 
 ReferenceType.prototype.install_extra_properties = function () {

@@ -1,10 +1,10 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
 // Symmetric algorithms are used to secure all messages other than the OpenSecureChannel messages
 // OPC UA Secure Conversation Message Header Release 1.02 Part 6 page 39
-var SymmetricAlgorithmSecurityHeader_Schema= {
+const SymmetricAlgorithmSecurityHeader_Schema= {
     name: "SymmetricAlgorithmSecurityHeader",
     id: factories.next_available_id(),
     fields: [

@@ -1,50 +1,42 @@
 "use strict";
 /* global require, process, __filename, it, before, beforeEach, after, afterEach */
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
+const os = require("os");
+const opcua = require("node-opcua");
 
-var opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
+const StatusCodes = opcua.StatusCodes;
+const Variant = opcua.Variant;
 
-var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
-var makeNodeId = opcua.makeNodeId;
-var ReferenceTypeIds = opcua.ReferenceTypeIds;
-var VariableIds = opcua.VariableIds;
-var VariantArrayType = opcua.VariantArrayType;
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);
 
-var BrowseDirection = opcua.BrowseDirection;
+const port = 2000;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
-var port = 2000;
-
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-
-var fail_fast_connectivity_strategy = {
+const fail_fast_connectivity_strategy = {
     maxRetry: 1,
     initialDelay: 10,
     maxDelay: 20,
     randomisationFactor: 0
 };
-var robust_connectivity_strategy = {
+const robust_connectivity_strategy = {
     maxRetry: 100,
     initialDelay: 10,
     maxDelay: 200,
     randomisationFactor: 0
 };
-var custom_connectivity_strategy = {
+const custom_connectivity_strategy = {
     maxRetry: 100,
     initialDelay: 80,
     maxDelay: 100,
     randomisationFactor: 0
 };
 
-var infinite_connectivity_strategy = {
+const infinite_connectivity_strategy = {
     maxRetry: 1000000,
     initialDelay: 10,
     maxDelay: 200,
@@ -52,30 +44,13 @@ var infinite_connectivity_strategy = {
 };
 
 
-var step_count = 0;
+const f = require("../../test_helpers/display_function_name").f.bind(null, doDebug);
 
-function f(func) {
 
-    return function (callback) {
-        if (doDebug) {
-            console.log("FUNC=>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold);
-        }
-        func(function (err) {
-            if (doDebug) {
-                console.log("END =>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
-            }
-            step_count++;
-            setImmediate(function() {
-                callback(err);
-            });
-        });
-    };
-}
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("KJH1 testing basic Client-Server communication", function () {
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing basic Client-Server communication", function () {
-
-    var server, client, temperatureVariableId, endpointUrl;
+    let server, client, temperatureVariableId, endpointUrl;
 
 
     this.timeout(Math.max(20000, this._timeout));
@@ -92,20 +67,32 @@ describe("testing basic Client-Server communication", function () {
     beforeEach(function (done) {
 
         // use fail fast connectionStrategy
-        var options = {connectionStrategy: fail_fast_connectivity_strategy};
+        const options = {
+            connectionStrategy: fail_fast_connectivity_strategy,
+            endpoint_must_exist: false
+        };
         client = new OPCUAClient(options);
+        client.on("connection_reestablished", function () {
+            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.black);
+        });
+        client.on("backoff", function (number, delay) {
+            debugLog("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
+        });
+        client.on("start_reconnection", function () {
+            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!".bgWhite.black);
+        });
         done();
     });
 
     afterEach(function (done) {
-        client.disconnect(function(err) {
+        client.disconnect(function (err) {
             client = null;
             done(err);
         });
     });
 
     after(function (done) {
-        should.not.exist(client,"client still running");
+        should.not.exist(client, "client still running");
         server.shutdown(function (err) {
             done(err);
         });
@@ -162,7 +149,7 @@ describe("testing basic Client-Server communication", function () {
 
         server.currentChannelCount.should.equal(0);
 
-        var g_session;
+        let g_session;
         async.series([
             function (callback) {
                 debugLog(" connect");
@@ -212,8 +199,8 @@ describe("testing basic Client-Server communication", function () {
 
         client.protocolVersion = 0;
 
-        var unused_port = 8909;
-        var bad_endpointUrl = "opc.tcp://localhost:" + unused_port;
+        const unused_port = 8909;
+        const bad_endpointUrl = "opc.tcp://" + "localhost" + ":" + unused_port;
 
         async.series([
             function (callback) {
@@ -325,7 +312,6 @@ describe("testing basic Client-Server communication", function () {
         ], done);
 
     });
-
     it("T7 - calling connect on the client twice shall return a error the second time", function (done) {
         server.currentChannelCount.should.equal(0);
 
@@ -350,309 +336,18 @@ describe("testing basic Client-Server communication", function () {
         ], done);
     });
 
-    describe("Browse-Read-Write Services", function () {
-
-        var g_session = null;
-
-        beforeEach(function (done) {
-            client.connect(endpointUrl, function (err) {
-                if (err) {
-                    done(err);
-                }
-                else {
-                    client.createSession(function (err, session) {
-                        g_session = session;
-                        done(err);
-                    });
-                }
-            });
-
-        });
-
-        afterEach(function (done) {
-            g_session.close(function () {
-
-                client.disconnect(done);
-            });
-        });
-
-        it("T8-1 - should browse RootFolder", function (done) {
-
-            g_session.browse("RootFolder", function (err, browseResults) {
-                if (!err) {
-                    browseResults.length.should.equal(1);
-                    browseResults[0]._schema.name.should.equal("BrowseResult");
-                }
-                done(err);
-            });
-
-        });
-
-        it("T8-2 - browse should return BadReferenceTypeIdInvalid if referenceTypeId is invalid", function (done) {
-
-            var bad_referenceid_node = "ns=3;i=3500";
-            var browseDesc = {
-                nodeId: "ObjectsFolder",
-                referenceTypeId: bad_referenceid_node,
-                browseDirection: BrowseDirection.Forward
-            };
-            g_session.browse(browseDesc, function (err, browseResults/*, diagnosticInfos*/) {
-                browseResults.length.should.equal(1);
-                browseResults[0]._schema.name.should.equal("BrowseResult");
-                browseResults[0].statusCode.should.eql(StatusCodes.BadReferenceTypeIdInvalid);
-                done(err);
-            });
-        });
-
-        it("T8-3 - should read a Variable", function (done) {
-
-            g_session.readVariableValue(["RootFolder"], function (err, dataValues/*, diagnosticInfos*/) {
-                if (!err) {
-                    dataValues.length.should.equal(1);
-                    dataValues[0]._schema.name.should.equal("DataValue");
-                }
-                done(err);
-            });
-        });
-
-        it("T8-11 - #ReadRequest : server should return BadNothingToDo when nodesToRead is empty", function (done) {
-
-            var request = new opcua.read_service.ReadRequest({
-                nodesToRead: [], //<< EMPTY
-                maxAge: 0,
-                timestampsToReturn: opcua.read_service.TimestampsToReturn.Both
-            });
-
-            g_session.performMessageTransaction(request, function (err /*, response */) {
-                //
-                err.message.should.match(/BadNothingToDo/);
-                done();
-            });
-
-        });
-
-        it("T8-12 - #ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid", function (done) {
-
-            var request = new opcua.read_service.ReadRequest({
-                nodesToRead: [
-                    {nodeId: opcua.coerceNodeId("ns=0;i=2456")}
-                ],
-                maxAge: 0,
-                timestampsToReturn: opcua.read_service.TimestampsToReturn.Invalid
-            });
-
-            g_session.performMessageTransaction(request, function (err/*, response*/) {
-                //
-                err.message.should.match(/BadTimestampsToReturnInvalid/);
-                done();
-            });
-
-        });
-
-        it("T8-13 - should readAllAttributes", function (done) {
-
-            g_session.readAllAttributes("RootFolder", function (err, nodesToRead, dataValues/*, diagnosticInfos*/) {
-                nodesToRead.length.should.equal(dataValues.length);
-                done(err);
-            });
-        });
-
-        it("T8-14 - #readVariableValue should return a appropriate status code if nodeid to read doesn't exists", function (done) {
-
-            g_session.readVariableValue(["ns=1;s=this_node_id_does_not_exist"], function (err, dataValues/*, diagnosticInfos*/) {
-                should(err).eql(null);
-                dataValues[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
-                done();
-            });
-        });
-
-        it("T8-15 - #read should return BadNothingToDo when reading an empty nodeToRead array", function (done) {
-
-            var nodesToRead = [];
-
-            g_session.read(nodesToRead, function (err, unused /*, dataValues, diagnosticInfos*/) {
-                if (err) {
-                    var response = unused;
-                    //dataValues.length.should.be(1);
-                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
-                    done();
-                } else {
-                    done(new Error("Expecting an error here"));
-                }
-            });
-        });
-
-        it("T8-15b - #read :should return BadNothingToDo if nodesToRead is empty", function (done) {
-
-            // CTT : Attribute ERR-011.js
-            var readRequest = new opcua.read_service.ReadRequest({
-                maxAge: 0,
-                timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
-                nodesToRead: []
-            });
-
-            g_session.performMessageTransaction(readRequest, function (err/*, response*/) {
-                if (err) {
-                    err.message.should.match(/BadNothingToDo/);
-                    done();
-                } else {
-                    done(new Error("expecting BadNothingToDo"));
-                }
-
-            });
-
-        });
-
-        it("T8-15c - #read :should return BadNothingToDo if nodesToRead is null", function (done) {
-
-            // CTT : Attribute ERR-011.js
-            var readRequest = new opcua.read_service.ReadRequest({
-                maxAge: 0,
-                timestampsToReturn: opcua.read_service.TimestampsToReturn.Both,
-                nodesToRead: null
-            });
-
-            // make sure nodesToRead is really null !
-            readRequest.nodesToRead = null;
-
-            g_session.performMessageTransaction(readRequest, function (err/*, response*/) {
-                if (err) {
-                    err.message.should.match(/BadNothingToDo/);
-                    done();
-                } else {
-                    done(new Error("expecting BadNothingToDo"));
-                }
-
-            });
-
-        });
-
-        it("T8-16 - #read should return BadMaxAgeInvalid when Negative MaxAge parameter is specified", function (done) {
-
-            var nodesToRead = [
-                {
-                    nodeId: "RootFolder",
-                    attributeId: 13
-                }
-            ];
-            g_session.read(nodesToRead, -20000, function (err, unused/*, dataValues, diagnosticInfos*/) {
-                if (err) {
-                    var response = unused;
-                    //dataValues.length.should.be(1);
-                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadMaxAgeInvalid);
-                    done();
-                } else {
-                    done(new Error("Expecting an error here"));
-                }
-            });
-        });
-
-        it("T8-17 - #readVariableValue - should read the TemperatureTarget value", function (done) {
-
-            g_session.readVariableValue([temperatureVariableId.nodeId], function (err, dataValues/*, diagnosticInfos*/) {
-
-                if (!err) {
-                    dataValues.length.should.equal(1);
-                    dataValues[0]._schema.name.should.equal("DataValue");
-                    dataValues[0].value._schema.name.should.equal("Variant");
-                }
-
-                done(err);
-
-            });
-        });
-
-        it("T8-20 - #writeSingleNode -  should write the TemperatureTarget value", function (done) {
-
-            // write a single value
-            g_session.writeSingleNode(
-              temperatureVariableId.nodeId,
-              {dataType: DataType.Double, value: 37.5},
-              function (err, statusCode/*,diagnosticInfo*/) {
-                  if (!err) {
-                      statusCode.should.eql(StatusCodes.Good);
-                  }
-                  done(err);
-              });
-        });
-
-        it("T9-1 - Server should expose a 'Server' object in the 'Objects' folder", function (done) {
-
-            var Organizes = makeNodeId(ReferenceTypeIds.Organizes); // "ns=0;i=35";
-            var browseDesc = {
-                nodeId: "ObjectsFolder",
-                referenceTypeId: Organizes,
-                browseDirection: BrowseDirection.Forward,
-                resultMask: 0x3F
-            };
-
-            g_session.browse(browseDesc, function (err, browseResults/*,diagnosticInfos*/) {
-                if (!err) {
-                    browseResults.length.should.equal(1);
-                    browseResults[0]._schema.name.should.equal("BrowseResult");
-
-                    //xx console.log(util.inspect(browseResults[0].references,{colors:true,depth:10}));
-
-                    var foundNode = _.filter(browseResults[0].references, function (result) {
-                        return result.browseName.name === "Server";
-                    });
-                    foundNode.length.should.equal(1);
-                    foundNode[0].browseName.name.should.equal("Server");
-                    foundNode[0].nodeId.toString().should.equal("ns=0;i=2253");
-                }
-                done(err);
-            });
-        });
-
-        it("T9-2 - Server should expose 'Server_NamespaceArray' variable ", function (done) {
-
-            var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
-            g_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue/*, diagnosticsInfo*/) {
-                if (err) {
-                    return done(err);
-                }
-                dataValue.should.be.instanceOf(DataValue);
-                dataValue.statusCode.should.eql(StatusCodes.Good);
-                dataValue.value.dataType.should.eql(DataType.String);
-                dataValue.value.arrayType.should.eql(VariantArrayType.Array);
-
-                // first namespace must be standard OPC namespace
-                dataValue.value.value[0].should.eql("http://opcfoundation.org/UA/");
-
-                done(err);
-            });
-
-        });
-
-        it("T9-3 - ServerStatus object shall be accessible as a ExtensionObject", function (done) {
-
-            var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerStatus); // ns=0;i=2255
-            g_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue/*, diagnosticsInfo*/) {
-                if (err) {
-                    return done(err);
-                }
-                dataValue.should.be.instanceOf(DataValue);
-                dataValue.statusCode.should.eql(StatusCodes.Good);
-                dataValue.value.dataType.should.eql(DataType.ExtensionObject);
-
-                done(err);
-            });
-
-        });
-
-    });
 });
 
-describe("testing ability for client to reconnect when server close connection", function () {
+describe("KJH2 testing ability for client to reconnect when server close connection", function () {
 
     this.timeout(Math.max(60000, this._timeout));
 
-    var server = null;
-    var endpointUrl = null;
-    var temperatureVariableId = null;
+    let server = null;
+    let endpointUrl = null;
+    let temperatureVariableId = null;
 
-    var counterNode = null;
-    var timerId;
+    let counterNode = null;
+    let timerId;
     // -----------------------------------------------------------------------------------------------------------------
     // Common Steps
     // -----------------------------------------------------------------------------------------------------------------
@@ -660,13 +355,18 @@ describe("testing ability for client to reconnect when server close connection",
 
         server = build_server_with_temperature_device({port: port}, function (err) {
 
+            if (err) {
+                console.log(err.message);
+            }
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
 
-            if (!err) {
-                var c = 0;
+            const namespace = server.engine.addressSpace.getOwnNamespace();
 
-                counterNode = server.engine.addressSpace.addVariable({
+            if (!err) {
+                let c = 0;
+
+                counterNode = namespace.addVariable({
                     browseName: "Counter",
                     organizedBy: server.engine.addressSpace.rootFolder.objects,
                     dataType: "UInt32",
@@ -722,33 +422,52 @@ describe("testing ability for client to reconnect when server close connection",
     function wait_a_little_while(done) {
         wait_for(800, done);
     }
-    var client = null;
-    var client_has_received_close_event;
-    var client_has_received_start_reconnection_event;
 
-    var backoff_counter = 0;
-    var requestedSessionTimeout = 10000;
+    let client = null;
+    let client_has_received_close_event;
+    let client_has_received_start_reconnection_event;
+    let client_has_received_connection_reestablished_event = 0 ;
+    let client_has_received_connection_lost_event = 0;
+
+    let backoff_counter = 0;
+    let requestedSessionTimeout = 30000;
 
     beforeEach(function () {
-        requestedSessionTimeout = 10000;
+        requestedSessionTimeout = 30000;
     });
-    afterEach(function(){
-        should.not.exist(client,"client must have been disposed");
+    afterEach(function (done) {
+        should.not.exist(client, "client must have been disposed");
+        done();
     });
-    function create_client_and_create_a_connection_to_server(connectionStrategy, done) {
+
+    function create_client_and_create_a_connection_to_server(_options, connectionStrategy, done) {
+
 
         done.should.be.instanceOf(Function);
 
-        should.not.exist(client,"expecting no client");
-        var options = {
+        should.not.exist(client, "expecting no client");
+        const options = {
+
+            securityMode: _options.securityMode || opcua.MessageSecurityMode.NONE,
+            securityPolicy: _options.securityPolicy || opcua.SecurityPolicy.None,
             keepSessionAlive: true,
-            requestedSessionTimeout: requestedSessionTimeout,
-            connectionStrategy: connectionStrategy
+            requestedSessionTimeout: _options.requestedSessionTimeout || requestedSessionTimeout,
+            connectionStrategy: connectionStrategy,
+
         };
+
+        should.not.exist(client, "Already have a client ");
+
         client = new OPCUAClient(options);
 
+        client.on("keepalive", function () {
+            debugLog("keep alive");
+        });
         client_has_received_close_event = 0;
         client_has_received_start_reconnection_event = 0;
+        client_has_received_connection_reestablished_event = 0 ;
+        client_has_received_connection_lost_event = 0;
+
         client.on("close", function (err) {
             if (err) {
                 //xx console.log("err=", err.message);
@@ -758,14 +477,31 @@ describe("testing ability for client to reconnect when server close connection",
 
         client.on("start_reconnection", function () {
             client_has_received_start_reconnection_event += 1;
+            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!".bgWhite.red);
             debugLog("starting reconnection");
         });
-        client.on("backoff", function (/*number,delay*/) {
+        client.on("backoff", function (number, delay) {
+            debugLog("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
             backoff_counter += 1;
         });
-        client.connect(endpointUrl, function (err) {
-            done(err);
+
+        client.on("connection_reestablished", function () {
+            client_has_received_connection_reestablished_event += 1;
+            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.black);
         });
+        client.on("connection_lost", function() {
+            client_has_received_connection_lost_event += 1;
+            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION LOST !!!!!!!!!!!!!!!!!!!".bgWhite.black);
+        });
+
+        client.connect(endpointUrl, function (err) {
+            if (!_options.doNotWaitForConnection) {
+                done(err);
+            }
+        });
+        if (_options.doNotWaitForConnection) {
+            done();
+        }
     }
 
     function disconnect_client(done) {
@@ -790,8 +526,8 @@ describe("testing ability for client to reconnect when server close connection",
 
     function verify_that_client_fails_to_connect(connectivity_strategy, done) {
 
-        create_client_and_create_a_connection_to_server(connectivity_strategy, function (err) {
-            disconnect_client(function() {
+        create_client_and_create_a_connection_to_server({}, connectivity_strategy, function (err) {
+            disconnect_client(function () {
                 done(err ? null : new Error("Expecting an error here"));
             });
         });
@@ -822,7 +558,7 @@ describe("testing ability for client to reconnect when server close connection",
         done();
     }
 
-    function verify_that_client_is_trying_to_reconnect(done) {
+    function verify_that_client_is_trying_to_connect(done) {
 
         // wait a little bit and check that client has started the reconnection process
         setTimeout(function () {
@@ -835,8 +571,15 @@ describe("testing ability for client to reconnect when server close connection",
         }, 10);
     }
 
+    function verify_that_client_is_trying_to_reconnect(done) {
+        client_has_received_connection_lost_event.should.be.above(0);
+        verify_that_client_is_trying_to_connect(done);
+    }
+
     function verify_that_client_is_NOT_trying_to_reconnect(done) {
-        if (!client) { return done();}
+        if (!client) {
+            return done();
+        }
         setImmediate(function () {
             try {
                 client.isReconnecting.should.eql(false, "verify_that_client_is_NOT_trying_to_reconnect");
@@ -891,7 +634,7 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
             f(start_demo_server),
             // use fail fast connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, fail_fast_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, fail_fast_connectivity_strategy)),
             f(shutdown_server),
             //f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
@@ -930,7 +673,7 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
             f(start_demo_server),
             // use robust  connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
             f(shutdown_server),
             f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
@@ -957,7 +700,7 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
             f(start_demo_server),
             // use robust  connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
 
             f(shutdown_server),
             f(wait_a_little_while),
@@ -1008,7 +751,7 @@ describe("testing ability for client to reconnect when server close connection",
         async.series([
             f(start_demo_server),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
             f(shutdown_server),
             f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
@@ -1026,7 +769,30 @@ describe("testing ability for client to reconnect when server close connection",
 
     });
 
-    var the_session = null;
+    it("TR4 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", function (done) {
+        async.series([
+            function (callback) {
+                endpointUrl = "opc.tcp://localhost:11111"; // uri of an unavailable opcua server
+                callback();
+            },
+            // use robust connectionStrategy
+            f(create_client_and_create_a_connection_to_server.bind(null, {doNotWaitForConnection: true}, robust_connectivity_strategy)),
+            f(wait_a_little_while),
+            f(verify_that_client_is_trying_to_connect),
+            f(wait_a_little_while),
+            f(disconnect_client),
+            f(wait_a_little_while),
+            f(verify_that_client_is_NOT_trying_to_reconnect),
+            f(wait_a_little_while),
+            f(verify_that_client_is_NOT_trying_to_reconnect)
+        ], function (err) {
+            done(err);
+        });
+
+    });
+
+
+    let the_session = null;
 
     function client_create_and_activate_session(callback) {
         client.createSession(function (err, session) {
@@ -1038,15 +804,15 @@ describe("testing ability for client to reconnect when server close connection",
         });
     }
 
-    var subscription = null;
+    let subscription = null;
 
     function create_subscription(callback) {
 
         subscription = new opcua.ClientSubscription(the_session, {
-            requestedPublishingInterval: 500,
-            requestedLifetimeCount: 120,
-            requestedMaxKeepAliveCount: 150,
-            maxNotificationsPerPublish: 100,
+            requestedPublishingInterval: 250,
+            requestedLifetimeCount:      12000,
+            requestedMaxKeepAliveCount:  4*60*2, // 4 x 250 ms * 60* 2 = 2 min
+            maxNotificationsPerPublish:  1000,
             publishingEnabled: true,
             priority: 6
         });
@@ -1060,28 +826,35 @@ describe("testing ability for client to reconnect when server close connection",
         //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
         subscription.on("terminated", function () {
             //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
-            callback();
         });
-        subscription.terminate();
+        subscription.terminate(callback);
 
     }
 
-    var values_to_check = [];
+    let values_to_check = [];
 
-    var monitoredItem = null;
+    let monitoredItem = null;
+
     function monitor_monotonous_counter(callback) {
 
+        if (monitoredItem)  {
+            console.log(" warning = already monitoring");
+            monitoredItem.removeAllListeners();
+            monitoredItem = null;
+            // return callback(new Error("Already monitoring"));
+        }
+
         monitoredItem = subscription.monitor(
-          {
-              // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
-              nodeId: counterNode.nodeId,
-              attributeId: opcua.AttributeIds.Value
-          },
-          {
-              samplingInterval: 0, // 0 : event base => whenever value changes
-              discardOldest: true,
-              queueSize: 1000
-          });
+            {
+                // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
+                nodeId: counterNode.nodeId,
+                attributeId: opcua.AttributeIds.Value
+            },
+            {
+                samplingInterval: 0, // 0 : event base => whenever value changes
+                discardOldest: true,
+                queueSize: 1000
+            });
 
 
         // subscription.on("item_added",function(monitoredItem){
@@ -1091,16 +864,28 @@ describe("testing ability for client to reconnect when server close connection",
         });
 
         monitoredItem.on("changed", function (dataValue) {
-            //xx console.log(" client ", " received value change ", dataValue.value.toString());
+            if (doDebug) {
+                console.log(" client ", " received value change ", dataValue.value.toString());
+            }
             values_to_check.push(dataValue.value.value);
         });
     }
 
     function wait_until_next_notification(done) {
-        monitoredItem.once("changed",function() { setImmediate(done); });
+        monitoredItem.once("changed", function (dataValue) {
+            setTimeout(done,1);
+        });
     }
 
-    var previous_value_count = 0;
+    let previous_value_count = 0;
+
+
+    afterEach(function() {
+        if (monitoredItem)  {
+            monitoredItem.removeAllListeners();
+            monitoredItem = null;
+        }
+    });
 
     function reset_continuous(callback) {
         //xx console.log(" resetting value to check");
@@ -1111,28 +896,51 @@ describe("testing ability for client to reconnect when server close connection",
 
     function ensure_continuous(callback) {
         // ensure we have more value than previous call
-        // ensure that series is continuous
-        if (doDebug) {
-            //xx console.log(values_to_check.join(" "));
-        }
+        wait_until_next_notification(function () {
 
-        values_to_check.length.should.be.greaterThan(previous_value_count + 1, " expecting new values : values_to_check = " + values_to_check + " != " + (previous_value_count+1));
-        if (values_to_check.length > 0) {
-            values_to_check[values_to_check.length - 1].should.eql(values_to_check[0] + values_to_check.length - 1);
-        }
-        previous_value_count = values_to_check.length;
-        callback();
+            // ensure that series is continuous
+            if (doDebug) {
+                console.log(values_to_check.join(" "));
+            }
+
+            // let check that new values have been received
+            // when the following test fails, this probably means that the publish mecanism is not working as expected
+            values_to_check.length.should.be.greaterThan(previous_value_count + 1,
+                " expecting that new values have been received since last check : values_to_check = " + values_to_check + " != " + (previous_value_count + 1));
+
+            if (values_to_check.length > 0) {
+                const lastValue = values_to_check[values_to_check.length - 1];
+                const expectedLastValue = values_to_check[0] + values_to_check.length - 1;
+                if (lastValue > expectedLastValue) {
+                    console.log(" Warning ", values_to_check.join(" "));
+                }
+                // lastValue.should.be.belowOrEqual(exepectedLastValue);
+            }
+            previous_value_count = values_to_check.length;
+            callback();
+        });
     }
 
     function break_connection(socketError, callback) {
-        var socket = client._secureChannel._transport._socket;
-        socket.end();
-        socket.destroy();
-        socket.emit("error", new Error(socketError));
-        callback();
+
+        const clientSocket = client._secureChannel._transport._socket;
+        clientSocket.end();
+        clientSocket.destroy();
+        clientSocket.emit("error", new Error(socketError));
+
+        /*
+         server.endpoints.forEach(function(endpoint){
+             endpoint.killClientSockets(function() {
+             });
+         });
+          */
+
+        setImmediate(callback);
     }
 
     function simulate_connection_break(breakage_duration, socketError, callback) {
+
+        debugLog("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Breaking connection for ", breakage_duration, " ms");
 
         async.series([
             suspend_demo_server,
@@ -1147,52 +955,53 @@ describe("testing ability for client to reconnect when server close connection",
     }
 
     function get_server_side_subscription() {
-        //xx var channels = server.endpoints[0]._channels;
-        //xx console.log("channels keys = ", Object.keys(channels).join(" "));
+        const channels = server.endpoints[0]._channels;
+        debugLog("channels keys = ", Object.keys(channels).join(" "));
 
         //xxx var channelKey = Object.keys(channels)[0];
         //xx var channel = channels[channelKey];
         //xx assert(Object.keys(server.engine._sessions).length === 1);
 
-        var sessionKey = Object.keys(server.engine._sessions)[0];
-        var session = server.engine._sessions[sessionKey];
+        const sessionKey = Object.keys(server.engine._sessions)[0];
+        const session = server.engine._sessions[sessionKey];
 
-        var subscriptionKeys = Object.keys(session.publishEngine._subscriptions);
-        //xx assert(subscriptionKeys.length === 1);
+        const subscriptionKeys = Object.keys(session.publishEngine._subscriptions);
+        subscriptionKeys.length.should.eql(1);
         return session.publishEngine._subscriptions[subscriptionKeys[0]];
     }
 
 
+    // let make sure it will timeout almost immediately
+    function accelerate_subscription_timeout(subscription, callback) {
+        debugLog("accelerate_subscription_timeout",
+            subscription.id,
+            " =>  _life_time_counter = ", subscription._life_time_counter, subscription.lifeTimeCount);
+        subscription._life_time_counter = subscription.lifeTimeCount - 1;
+
+        subscription.once("terminated", function () {
+            setImmediate(callback);
+        });
+    }
+
     function wait_until_server_subscription_has_timed_out(callback) {
 
-        var server_subscription = get_server_side_subscription();
-
+        const server_subscription = get_server_side_subscription();
         // let's cheat a little bit => we don't really want to wait until subscriptions times out
-        // let make sure it will timeout almost immediataly
-        function accelerate_subscription_timeout(subscription, callback) {
-            //xx console.log("accelerate_subscription_timeout", subscription.id, " =>  _life_time_counter = ", subscription._life_time_counter, subscription.lifeTimeCount);
-            subscription._life_time_counter = subscription.lifeTimeCount - 1;
-
-            subscription.once("terminated", function () {
-                callback();
-            });
-        }
-
         accelerate_subscription_timeout(server_subscription, callback);
     }
 
     function simulate_very_long_connection_break_until_subscription_times_out(socketError, callback) {
 
         async.series([
-            suspend_demo_server,
+            f(suspend_demo_server),
 
-            break_connection.bind(null, socketError),
+            f(break_connection.bind(null, socketError)),
 
-            wait_until_server_subscription_has_timed_out,
+            f(wait_until_server_subscription_has_timed_out),
 
-            wait_for.bind(null, 200),
+            f(wait_for.bind(null, 40 * 100)),
 
-            resume_demo_server
+            f(resume_demo_server)
         ], callback);
         // in this case, the server drops all Subscriptions due to max lifetime count exhausted.
     }
@@ -1202,7 +1011,7 @@ describe("testing ability for client to reconnect when server close connection",
 
         async.series([
             f(start_demo_server),
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
             f(disconnect_client),
 
             f(suspend_demo_server),
@@ -1213,7 +1022,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(resume_demo_server),
 
             // verify that client can connect again
-            f(create_client_and_create_a_connection_to_server.bind(null, robust_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
             f(disconnect_client),
 
             f(shutdown_server)
@@ -1229,7 +1038,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(start_demo_server),
             f(reset_continuous),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, custom_connectivity_strategy)),
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
@@ -1243,7 +1052,7 @@ describe("testing ability for client to reconnect when server close connection",
             f(ensure_continuous),
 
             // now drop connection  for 1.5 seconds
-            f(simulate_connection_break.bind(null, 1500, "ECONNRESET")),
+            f(simulate_connection_break.bind(null, 5000, "ECONNRESET")),
             // make sure that we have received all notifications
             // (thanks to republish )
 
@@ -1254,7 +1063,6 @@ describe("testing ability for client to reconnect when server close connection",
             f(ensure_continuous),
 
             f(terminate_subscription),
-
             f(disconnect_client),
             f(shutdown_server)
         ], function (err) {
@@ -1274,15 +1082,17 @@ describe("testing ability for client to reconnect when server close connection",
             f(start_demo_server),
             f(reset_continuous),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, custom_connectivity_strategy)),
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
 
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
 
@@ -1295,12 +1105,15 @@ describe("testing ability for client to reconnect when server close connection",
             f(wait_a_little_while),
             f(wait_a_little_while),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(terminate_subscription),
@@ -1333,11 +1146,11 @@ describe("testing ability for client to reconnect when server close connection",
         // Given a client that has a infinite connection retry strategy,
         //   And that client#connect is call to connect to an non-existent server.
         //
-        var client = null;
-        var client_has_received_close_event = 0;
-        var client_has_received_start_reconnection_event;
+        let client = null;
+        let client_has_received_close_event = 0;
+        let client_has_received_start_reconnection_event;
 
-        var options = {connectionStrategy: infinite_connectivity_strategy};
+        const options = {connectionStrategy: infinite_connectivity_strategy};
         client = new OPCUAClient(options);
 
         client.on("close", function (err) {
@@ -1351,7 +1164,7 @@ describe("testing ability for client to reconnect when server close connection",
             client_has_received_start_reconnection_event += 1;
         });
 
-        var backoff_event_counter = 0;
+        let backoff_event_counter = 0;
         client.on("backoff", function () {
             backoff_event_counter += 1;
         });
@@ -1362,8 +1175,8 @@ describe("testing ability for client to reconnect when server close connection",
         // because the endpointUrl doesn't exist,  and the the infinite_connectivity_strategy
         // the client with indefinitely try to connect, causing the callback function
         // passed to the client#connect method not to be called.
-        var connect_done = false;
-        var connect_err = null;
+        let connect_done = false;
+        let connect_err = null;
         client.connect(endpointUrl, function (err) {
 
             connect_err = err;
@@ -1371,7 +1184,7 @@ describe("testing ability for client to reconnect when server close connection",
             connect_done = true;
         });
 
-        var count_ref = 0;
+        let count_ref = 0;
 
         async.series([
 
@@ -1437,7 +1250,7 @@ describe("testing ability for client to reconnect when server close connection",
 
             f(start_demo_server),
 
-            f(create_client_and_create_a_connection_to_server.bind(null, infinite_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, infinite_connectivity_strategy)),
             f(wait_a_little_while),
             f(shutdown_server),
             f(reset_backoff_counter),
@@ -1468,7 +1281,7 @@ describe("testing ability for client to reconnect when server close connection",
 
             f(start_demo_server),
 
-            f(create_client_and_create_a_connection_to_server.bind(null, infinite_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, infinite_connectivity_strategy)),
             f(wait_a_little_while),
             f(shutdown_server),
             f(wait_a_little_while),
@@ -1487,32 +1300,42 @@ describe("testing ability for client to reconnect when server close connection",
         ], done);
     });
 
-    it("TR11 -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down", function (done) {
+
+    function test_1(options, done) {
+
         async.series([
             f(start_demo_server),
             f(reset_continuous),
             // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
+            f(create_client_and_create_a_connection_to_server.bind(null, options, custom_connectivity_strategy)),
             f(client_create_and_activate_session),
             f(create_subscription),
             f(monitor_monotonous_counter),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
+            f(wait_a_little_while),
 
             // now drop connection  for 1.5 seconds
-            f(simulate_connection_break.bind(null, 1500, "EPIPE")),
+            f(simulate_connection_break.bind(null, 5000, "EPIPE")),
             // make sure that we have received all notifications
             // (thanks to republish )
 
             f(wait_a_little_while),
+            f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
             f(wait_a_little_while),
+            f(wait_until_next_notification),
             f(ensure_continuous),
 
             f(terminate_subscription),
@@ -1520,53 +1343,83 @@ describe("testing ability for client to reconnect when server close connection",
             f(disconnect_client),
             f(shutdown_server)
         ], function (err) {
+            done(err);
+        });
+    }
+
+    it("TR11-a -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - no security ", function (done) {
+        test_1({securityMode: opcua.MessageSecurityMode.NONE, securityPolicy: opcua.SecurityPolicy.Node}, done);
+    });
+    it("TR11-b -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - with secure channel (#390)", function (done) {
+        test_1({
+            securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
+            securityPolicy: opcua.SecurityPolicy.Basic256Sha256
+        }, done);
+    });
+
+    it("TR12 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function (done) {
+
+        const requestedSessionTimeout = 5000;
+
+        async.series([
+            f(start_demo_server),
+            f(reset_continuous),
+            // use robust connectionStrategy
+            f(create_client_and_create_a_connection_to_server.bind(null, {
+                requestedSessionTimeout: requestedSessionTimeout
+            }, custom_connectivity_strategy)),
+            f(client_create_and_activate_session),
+            f(create_subscription),
+            f(monitor_monotonous_counter),
+            f(wait_until_next_notification),
+            f(ensure_continuous),
+            f(wait_until_next_notification),
+            f(ensure_continuous),
+            f(wait_until_next_notification),
+            f(ensure_continuous),
+            f(wait_until_next_notification),
+            f(ensure_continuous),
+
+            // now drop connection  for 1.5 times requestedSessionTimeout seconds
+            f(simulate_connection_break.bind(null, 1.5 * requestedSessionTimeout, "EPIPE")),
+            // make sure that we have received all notifications
+            // (thanks to republish )
+
+            f(wait_until_next_notification),
+            f(ensure_continuous),
+            f(wait_until_next_notification),
+            f(ensure_continuous),
+
+            f(terminate_subscription),
+
+            f(disconnect_client),
+            f(shutdown_server)
+        ], function (err) {
+            if (!err && server) {
+                server.engine.currentSessionCount.should.eql(0);
+            }
             done(err);
         });
 
     });
 
-    it("TR12 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function (done) {
 
-        requestedSessionTimeout = 1000;
+    xit("TR13 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function(done) {
 
         async.series([
             f(start_demo_server),
             f(reset_continuous),
-            // use robust connectionStrategy
-            f(create_client_and_create_a_connection_to_server.bind(null, custom_connectivity_strategy)),
-            f(client_create_and_activate_session),
-            f(create_subscription),
-            f(monitor_monotonous_counter),
+            f(create_client_and_create_a_connection_to_server.bind(null, {}, robust_connectivity_strategy)),
+            f(wait_for.bind(null, 2000)),
+            f(shutdown_server),
+            f(verify_that_client_is_trying_to_reconnect),
+            f(start_demo_server),
+            f(wait_for_reconnection_to_be_completed),
             f(wait_a_little_while),
-            f(ensure_continuous),
-            f(wait_a_little_while),
-            f(ensure_continuous),
-            f(wait_a_little_while),
-            f(ensure_continuous),
-            f(wait_a_little_while),
-            f(ensure_continuous),
-
-            // now drop connection  for 3 times requestedSessionTimeout seconds
-            f(simulate_connection_break.bind(null, 3 * requestedSessionTimeout, "EPIPE")),
-            // make sure that we have received all notifications
-            // (thanks to republish )
-
-            f(wait_a_little_while),
-            f(wait_a_little_while),
-            f(ensure_continuous),
-            f(wait_a_little_while),
-            f(ensure_continuous),
-
-            f(terminate_subscription),
-
             f(disconnect_client),
-            f(shutdown_server)
-        ], function (err) {
-            if (server) {
-                server.engine.currentSessionCount.should.eql(0);
-            }
-            done(err);
-        });
+            f(shutdown_server),
+        ],done);
+
 
     });
 });

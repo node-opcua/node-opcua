@@ -1,4 +1,4 @@
-var TransferSubscriptionsResponse_Schema = {
+const TransferSubscriptionsResponse_Schema = {
     name: "TransferSubscriptionsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

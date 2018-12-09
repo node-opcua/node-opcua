@@ -1,5 +1,5 @@
 "use strict";
-var service = require("..");
+const service = require("..");
 describe("RegisterNode Service",function() {
 
     it("should create a RegisterNodesRequest",function() {

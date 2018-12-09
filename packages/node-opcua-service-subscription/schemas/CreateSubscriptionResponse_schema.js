@@ -1,5 +1,5 @@
 require("node-opcua-service-secure-channel");
-var CreateSubscriptionResponse_Schema = {
+const CreateSubscriptionResponse_Schema = {
     name: "CreateSubscriptionResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

@@ -1,13 +1,13 @@
 /*global xit,describe,beforeEach,afterEach,require*/
 "use strict";
 
-var should = require("should");
+const should = require("should");
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var securityMode = opcua.MessageSecurityMode.NONE;
-var securityPolicy = opcua.SecurityPolicy.None;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const securityMode = opcua.MessageSecurityMode.NONE;
+const securityPolicy = opcua.SecurityPolicy.None;
 
 // Use Case:
 //
@@ -32,13 +32,13 @@ module.exports = function (test) {
 
     describe("Testing bug #144 - Server with Client & active subscription, connection broken , reconnection => No data Lost", function () {
 
-        var options = {
+        const options = {
             securityMode: securityMode,
             securityPolicy: securityPolicy,
             serverCertificate: null
         };
 
-        var server, client, endpointUrl;
+        let server, client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient(options);
@@ -54,11 +54,11 @@ module.exports = function (test) {
 
         xit("#144-A should 1",function(done){
 
-            var timerId;
+            let timerId;
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                var the_subscription = new opcua.ClientSubscription(session, {
+                const the_subscription = new opcua.ClientSubscription(session, {
                     requestedPublishingInterval: 200,
                     requestedMaxKeepAliveCount:  50,
                     requestedLifetimeCount:      120,
@@ -67,8 +67,8 @@ module.exports = function (test) {
                     priority: 10
                 });
 
-                var timeout = 10000;
-                var keepaliveCounter = 0;
+                const timeout = 10000;
+                let keepaliveCounter = 0;
                 // subscribe to currentTime
 
 
@@ -91,14 +91,14 @@ module.exports = function (test) {
                 });
 
 
-                var nodeId = opcua.makeNodeId(opcua.VariableIds.Server_ServerStatus_CurrentTime); // "ns=0;i=2261";
+                const nodeId = opcua.makeNodeId(opcua.VariableIds.Server_ServerStatus_CurrentTime); // "ns=0;i=2261";
 
-                var monitoredItem = the_subscription.monitor(
+                const monitoredItem = the_subscription.monitor(
                     {nodeId: opcua.resolveNodeId(nodeId), attributeId: opcua.AttributeIds.Value},
                     {samplingInterval: 10, discardOldest: true, queueSize: 1});
 
 
-                var change_count = 0;
+                let change_count = 0;
                 monitoredItem.on("changed", function (dataValue) {
                     should.exist(dataValue);
                     change_count += 1;
@@ -112,7 +112,7 @@ module.exports = function (test) {
 
                     function simulate_connection_lost(client) {
 
-                        var socket = client._secureChannel._transport._socket;
+                        const socket = client._secureChannel._transport._socket;
                         socket.end();
                         socket.emit("error", new Error("ECONNRESET"));
                     }

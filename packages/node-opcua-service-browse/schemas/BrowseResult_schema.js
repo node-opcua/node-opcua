@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var BrowseResult_Schema = {
+const BrowseResult_Schema = {
     name: "BrowseResult",
     id: factories.next_available_id(),
     documentation: "The result of a browse operation.",

@@ -1,39 +1,39 @@
 "use strict";
-var async = require("async");
-var _ = require("underscore");
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var assert = require("node-opcua-assert");
+const async = require("async");
+const _ = require("underscore");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const assert = require("node-opcua-assert").assert;
 
 
-var AttributeIds        = require("node-opcua-data-model").AttributeIds;
-var BrowseDirection     = require("node-opcua-data-model").BrowseDirection;
-var QualifiedName       = require("node-opcua-data-model").QualifiedName;
-var LocalizedText       = require("node-opcua-data-model").LocalizedText;
-var NodeClass           = require("node-opcua-data-model").NodeClass;
+const AttributeIds        = require("node-opcua-data-model").AttributeIds;
+const BrowseDirection     = require("node-opcua-data-model").BrowseDirection;
+const QualifiedName       = require("node-opcua-data-model").QualifiedName;
+const LocalizedText       = require("node-opcua-data-model").LocalizedText;
+const NodeClass           = require("node-opcua-data-model").NodeClass;
 
-var BrowseDescription   = require("node-opcua-service-browse").BrowseDescription;
+const BrowseDescription   = require("node-opcua-service-browse").BrowseDescription;
 
-var resolveNodeId       = require("node-opcua-nodeid").resolveNodeId;
-var NodeId              = require("node-opcua-nodeid").NodeId;
-var sameNodeId          = require("node-opcua-nodeid").sameNodeId;
-var makeNodeId          = require("node-opcua-nodeid").makeNodeId;
-var StatusCodes         = require("node-opcua-status-code").StatusCodes;
+const resolveNodeId       = require("node-opcua-nodeid").resolveNodeId;
+const NodeId              = require("node-opcua-nodeid").NodeId;
+const sameNodeId          = require("node-opcua-nodeid").sameNodeId;
+const makeNodeId          = require("node-opcua-nodeid").makeNodeId;
+const StatusCodes         = require("node-opcua-status-code").StatusCodes;
 
-var browse_service     = require("node-opcua-service-browse");
+const browse_service     = require("node-opcua-service-browse");
 
-var lowerFirstLetter    = require("node-opcua-utils").lowerFirstLetter;
+const lowerFirstLetter    = require("node-opcua-utils").lowerFirstLetter;
 
-var VariableIds = require("node-opcua-constants").VariableIds;
+const VariableIds = require("node-opcua-constants").VariableIds;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 //
 // some server do not expose the ReferenceType Node in their address space
 // ReferenceType are defined by the OPCUA standard and can be prepopulated in the crawler.
 // Pre-populating the ReferenceType node in the crawler will also reduce the network traffic.
 //
-var ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
+const ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
 
 /*=
  *
@@ -45,8 +45,8 @@ var ReferenceTypeIds = require("node-opcua-constants").ReferenceTypeIds;
 function _fetch_elements(arr, maxNode) {
     assert(_.isArray(arr));
     assert(arr.length > 0);
-    var high_limit = ( maxNode <= 0) ? arr.length : maxNode;
-    var tmp = arr.splice(0, high_limit);
+    const high_limit = ( maxNode <= 0) ? arr.length : maxNode;
+    const tmp = arr.splice(0, high_limit);
     assert(tmp.length > 0);
     return tmp;
 }
@@ -58,9 +58,12 @@ function _fetch_elements(arr, maxNode) {
  */
 function NodeCrawler(session) {
 
-    var self = this;
+    const self = this;
 
     self.session = session;
+    // verify that session object provides the expected methods (browse/read)
+    assert(_.isFunction(session.browse));
+    assert(_.isFunction(session.read));
 
     self.browseNameMap = {};
     self._nodesToReadEx = [];
@@ -102,13 +105,13 @@ util.inherits(NodeCrawler, EventEmitter);
 
 NodeCrawler.prototype._initialize_referenceTypeId = function () {
 
-    var self = this;
+    const self = this;
 
     function append_prepopulated_reference(browseName) {
 
-        var nodeId = makeNodeId(ReferenceTypeIds[browseName], 0);
+        const nodeId = makeNodeId(ReferenceTypeIds[browseName], 0);
         assert(nodeId);
-        var cacheNode = self._createCacheNode(nodeId);
+        const cacheNode = self._createCacheNode(nodeId);
         cacheNode.browseName = new QualifiedName({name: browseName});
     }
 
@@ -137,24 +140,24 @@ NodeCrawler.prototype._initialize_referenceTypeId = function () {
 
 NodeCrawler.prototype._readOperationalLimits = function (callback) {
 
-    var self = this;
-    var n1 = makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead);
-    var n2 = makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse);
-    var nodesToRead = [
+    const self = this;
+    const n1 = makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead);
+    const n2 = makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse);
+    const nodesToRead = [
         {nodeId: n1, attributeId: AttributeIds.Value},
         {nodeId: n2, attributeId: AttributeIds.Value}
     ];
     self.transactionCounter++;
-    self.session.read(nodesToRead, function (err, nodeIds, results) {
+    self.session.read(nodesToRead, function (err, dataValues) {
         if (!err) {
-            if (results[0].statusCode === StatusCodes.Good) {
-                self.maxNodesPerRead = results[0].value.value;
+            if (dataValues[0].statusCode.equals(StatusCodes.Good)) {
+                self.maxNodesPerRead = dataValues[0].value.value;
             }
             // ensure we have a sensible maxNodesPerRead value in case the server doesn't specify one
             self.maxNodesPerRead = self.maxNodesPerRead || 500;
 
-            if (results[1].statusCode === StatusCodes.Good) {
-                self.maxNodesPerBrowse = results[1].value.value;
+            if (dataValues[1].statusCode.equals(StatusCodes.Good)) {
+                self.maxNodesPerBrowse = dataValues[1].value.value;
             }
             // ensure we have a sensible maxNodesPerBrowse value in case the server doesn't specify one
             self.maxNodesPerBrowse = self.maxNodesPerBrowse || 500;
@@ -165,25 +168,25 @@ NodeCrawler.prototype._readOperationalLimits = function (callback) {
 };
 
 function make_node_attribute_key(nodeId, attributeId) {
-    var key = nodeId.toString() + "_" + attributeId.toString();
+    const key = nodeId.toString() + "_" + attributeId.toString();
     return key;
 }
 
 NodeCrawler.prototype.set_cache_NodeAttribute = function (nodeId, attributeId, value) {
-    var self = this;
-    var key = make_node_attribute_key(nodeId, attributeId);
+    const self = this;
+    const key = make_node_attribute_key(nodeId, attributeId);
     self.browseNameMap[key] = value;
 };
 
 NodeCrawler.prototype.has_cache_NodeAttribute = function (nodeId, attributeId) {
-    var self = this;
-    var key = make_node_attribute_key(nodeId, attributeId);
+    const self = this;
+    const key = make_node_attribute_key(nodeId, attributeId);
     return self.browseNameMap.hasOwnProperty(key);
 };
 
 NodeCrawler.prototype.get_cache_NodeAttribute = function (nodeId, attributeId) {
-    var self = this;
-    var key = make_node_attribute_key(nodeId, attributeId);
+    const self = this;
+    const key = make_node_attribute_key(nodeId, attributeId);
     return self.browseNameMap[key];
 };
 
@@ -202,12 +205,12 @@ NodeCrawler.prototype.get_cache_NodeAttribute = function (nodeId, attributeId) {
 
 
 NodeCrawler.prototype._defer_readNode = function (nodeId, attributeId, callback) {
-    var self = this;
+    const self = this;
 
     nodeId = resolveNodeId(nodeId);
     assert(nodeId instanceof NodeId);
 
-    var key = make_node_attribute_key(nodeId, attributeId);
+    const key = make_node_attribute_key(nodeId, attributeId);
 
     if (self.has_cache_NodeAttribute(nodeId, attributeId)) {
         callback(null, self.get_cache_NodeAttribute(nodeId, attributeId));
@@ -234,32 +237,32 @@ NodeCrawler.prototype._defer_readNode = function (nodeId, attributeId, callback)
  */
 NodeCrawler.prototype._resolve_deferred_readNode = function (callback) {
 
-    var self = this;
+    const self = this;
     if (self._nodesToReadEx.length === 0) {
         // nothing to read
         callback();
         return;
     }
 
-    var _nodesToReadEx = _fetch_elements(self._nodesToReadEx, self.maxNodesPerRead);
+    const _nodesToReadEx = _fetch_elements(self._nodesToReadEx, self.maxNodesPerRead);
 
-    var nodesToRead = _nodesToReadEx.map(function (e) {
+    const nodesToRead = _nodesToReadEx.map(function (e) {
         return e.nodeToRead;
     });
 
     self.readCounter += nodesToRead.length;
     self.transactionCounter++;
 
-    self.session.read(nodesToRead, function (err, nodesToRead, results /*, diagnostics*/) {
+    self.session.read(nodesToRead, function (err, dataValues /*, diagnostics*/) {
 
         if (!err) {
 
-            _.zip(_nodesToReadEx, results).forEach(function (pair) {
-                var _nodeToReadEx = pair[0];
+            for (const pair of _.zip(_nodesToReadEx, dataValues)) {
+                const _nodeToReadEx = pair[0];
 
-                var dataValue = pair[1];
+                const dataValue = pair[1];
                 assert(dataValue.hasOwnProperty("statusCode"));
-                if (dataValue.statusCode === StatusCodes.Good) {
+                if (dataValue.statusCode.equals(StatusCodes.Good)) {
                     if (dataValue.value === null) {
                         _nodeToReadEx.action(null);
                     }
@@ -270,14 +273,14 @@ NodeCrawler.prototype._resolve_deferred_readNode = function (callback) {
                     _nodeToReadEx.action({name: dataValue.statusCode.key});
                 }
 
-            });
+            }
         }
         callback(err);
     });
 };
 
 NodeCrawler.prototype._resolve_deferred = function (comment, collection, method) {
-    var self = this;
+    const self = this;
 
     if (collection.length > 0) {
         self._push_task("adding operation " + comment, {
@@ -310,7 +313,7 @@ function CacheNode(nodeId) {
      */
     this.browseName = pendingBrowseName;
     /**
-     * property references
+     * @property references
      * @type ReferenceDescription[]
      */
     this.references = [];
@@ -320,7 +323,7 @@ function w(s, l) {
     return (s + "                                                                ").substr(0, l);
 }
 CacheNode.prototype.toString = function () {
-    var str = w(this.nodeId.toString(), 20);
+    let str = w(this.nodeId.toString(), 20);
     str += " " + w(this.browseName.toString(), 30);
     str += " typeDef : " + w((this.typeDefinition ? this.typeDefinition.toString() : ""), 30);
     str += " nodeClass : " + w((this.nodeClass ? this.nodeClass.toString() : ""), 12);
@@ -328,16 +331,16 @@ CacheNode.prototype.toString = function () {
 };
 
 NodeCrawler.prototype._getCacheNode = function (nodeId) {
-    var self = this;
-    var key = resolveNodeId(nodeId).toString();
-    var cacheNode = self._objectCache[key];
+    const self = this;
+    const key = resolveNodeId(nodeId).toString();
+    const cacheNode = self._objectCache[key];
     return cacheNode;
 };
 
 NodeCrawler.prototype._createCacheNode = function (nodeId) {
-    var self = this;
-    var key = resolveNodeId(nodeId).toString();
-    var cacheNode = self._objectCache[key];
+    const self = this;
+    const key = resolveNodeId(nodeId).toString();
+    let cacheNode = self._objectCache[key];
     if (cacheNode) {
         throw new Error("NodeCrawler#_createCacheNode : cache node should not exist already : " + nodeId.toString());
     }
@@ -362,7 +365,7 @@ NodeCrawler.prototype._createCacheNode = function (nodeId) {
  *
  */
 NodeCrawler.prototype._defer_browse_node = function (cacheNode, referenceTypeId, actionOnBrowse) {
-    var self = this;
+    const self = this;
     self._objectToBrowse.push({
         cacheNode: cacheNode,
         nodeId: cacheNode.nodeId,
@@ -376,18 +379,15 @@ NodeCrawler.prototype._defer_browse_node = function (cacheNode, referenceTypeId,
     });
 };
 
-var referencesId = resolveNodeId("References");
-var hierarchicalReferencesId = resolveNodeId("HierarchicalReferences");
-var hasTypeDefinitionId = resolveNodeId("HasTypeDefinition");
+const referencesId = resolveNodeId("References");
+const hierarchicalReferencesId = resolveNodeId("HierarchicalReferences");
+const hasTypeDefinitionId = resolveNodeId("HasTypeDefinition");
 
 
 function dedup_reference(references) {
-    var results = [];
-    var dedup = {};
-    for (var i = 0; i < references.length; i++) {
-
-        const reference = references[i];
-
+    const results = [];
+    const dedup = {};
+    for (const reference of  references) {
         const key = reference.referenceTypeId.toString() + reference.nodeId.toString();
         if (dedup[key]) {
             console.log(" Warning => Duplicated reference found  !!!! please contact the server vendor");
@@ -400,18 +400,18 @@ function dedup_reference(references) {
     return results;
 }
 /**
- *
+ * @method _process_single_browseResult
  * @param _objectToBrowse
  * @param browseResult {BrowseResult}
  * @private
  */
 NodeCrawler.prototype._process_single_browseResult = function (_objectToBrowse, browseResult) {
 
-    var self = this;
+    const self = this;
 
     assert(browseResult.continuationPoint === null, "NodeCrawler doesn't support continuation point yet");
 
-    var cacheNode = _objectToBrowse.cacheNode;
+    const cacheNode = _objectToBrowse.cacheNode;
 
     // note : some OPCUA may expose duplicated reference, they need to be filtered out
     // dedup reference
@@ -514,35 +514,35 @@ NodeCrawler.prototype._process_single_browseResult = function (_objectToBrowse, 
 
 NodeCrawler.prototype._process_browse_response = function (task, callback) {
     /* jshint validthis: true */
-    var self = this;
-    var objectsToBrowse = task.param.objectsToBrowse;
-    var browseResults = task.param.browseResults;
-    _.zip(objectsToBrowse, browseResults).forEach(function (pair) {
-        var objectToBrowse = pair[0];
-        var browseResult = pair[1];
+    const self = this;
+    const objectsToBrowse = task.param.objectsToBrowse;
+    const browseResults = task.param.browseResults;
+    for (const pair of _.zip(objectsToBrowse, browseResults)) {
+        const objectToBrowse = pair[0];
+        const browseResult = pair[1];
         assert(browseResult instanceof browse_service.BrowseResult);
         self._process_single_browseResult(objectToBrowse, browseResult);
-    });
+    }
     setImmediate(callback);
 };
 
-var makeResultMask = require("node-opcua-data-model").makeResultMask;
+const makeResultMask = require("node-opcua-data-model").makeResultMask;
 
 //                         "ReferenceType | IsForward | BrowseName | NodeClass | DisplayName | TypeDefinition"
-var resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | DisplayName | NodeClass | TypeDefinition");
+const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | DisplayName | NodeClass | TypeDefinition");
 
 NodeCrawler.prototype._resolve_deferred_browseNode = function (callback) {
 
-    var self = this;
+    const self = this;
 
     if (self._objectToBrowse.length === 0) {
         callback();
         return;
     }
 
-    var objectsToBrowse = _fetch_elements(self._objectToBrowse, self.maxNodesPerBrowse);
+    const objectsToBrowse = _fetch_elements(self._objectToBrowse, self.maxNodesPerBrowse);
 
-    var nodesToBrowse = objectsToBrowse.map(function (e) {
+    const nodesToBrowse = objectsToBrowse.map(function (e) {
         assert(e.hasOwnProperty("referenceTypeId"));
         return new BrowseDescription({
             browseDirection: BrowseDirection.Forward,
@@ -577,13 +577,14 @@ NodeCrawler.prototype._resolve_deferred_browseNode = function (callback) {
 };
 
 /**
+ * @method _unshift_task
  * add a task on top of the queue (high priority)
  * @param name {string}
  * @param task
  * @private
  */
 NodeCrawler.prototype._unshift_task = function (name, task) {
-    var self = this;
+    const self = this;
     assert(_.isFunction(task.func));
     task.comment = "S:" + name;
     assert(task.func.length === 2);
@@ -591,13 +592,14 @@ NodeCrawler.prototype._unshift_task = function (name, task) {
 };
 
 /**
+ * @method _push_task
  * add a task at the bottom of the queue (low priority)
  * @param name {string}
  * @param task
  * @private
  */
 NodeCrawler.prototype._push_task = function (name, task) {
-    var self = this;
+    const self = this;
     assert(_.isFunction(task.func));
     task.comment = "P:" + name;
     assert(task.func.length === 2);
@@ -606,33 +608,32 @@ NodeCrawler.prototype._push_task = function (name, task) {
 
 
 NodeCrawler.follow = function (crawler, cacheNode, userData) {
-    for (var i = 0; i < cacheNode.references.length; i++) {
-        var reference = cacheNode.references[i];
+    for (const reference of cacheNode.references) {
         crawler.followReference(cacheNode, reference, userData);
     }
 };
 /***
- *
+ * @method _emit_on_crawled
  * @param cacheNode
  * @param userData
  * @param [userData.onBrowsed=null] {Function}
  * @private
  */
 NodeCrawler.prototype._emit_on_crawled = function (cacheNode, userData) {
-    var self = this;
+    const self = this;
     self.emit("browsed", cacheNode, userData);
 };
 
 
 NodeCrawler.prototype._crawl_task = function (task, callback) {
 
-    var self = this;
+    const self = this;
 
-    var cacheNode = task.params.cacheNode;
-    var nodeId = task.params.cacheNode.nodeId;
+    const cacheNode = task.params.cacheNode;
+    let nodeId = task.params.cacheNode.nodeId;
 
     nodeId = resolveNodeId(nodeId);
-    var key = nodeId.toString();
+    const key = nodeId.toString();
 
     if (self._visited_node.hasOwnProperty(key)) {
         console.log("skipping already visited", key);
@@ -644,9 +645,9 @@ NodeCrawler.prototype._crawl_task = function (task, callback) {
 
     function browse_node_action(err, cacheNode) {
         if (!err) {
-            for (var i = 0; i < cacheNode.references.length; i++) {
+            for (let i = 0; i < cacheNode.references.length; i++) {
 
-                var reference = cacheNode.references[i];
+                const reference = cacheNode.references[i];
                 // those ones come for free
                 if (!self.has_cache_NodeAttribute(reference.nodeId, AttributeIds.BrowseName)) {
                     self.set_cache_NodeAttribute(reference.nodeId, AttributeIds.BrowseName, reference.browseName);
@@ -659,7 +660,7 @@ NodeCrawler.prototype._crawl_task = function (task, callback) {
                 }
             }
             self._emit_on_crawled(cacheNode, task.params.userData);
-            var userData = task.params.userData;
+            const userData = task.params.userData;
             if (userData.onBrowse) {
                 userData.onBrowse(self, cacheNode, userData);
             }
@@ -673,13 +674,13 @@ NodeCrawler.prototype._crawl_task = function (task, callback) {
 
 NodeCrawler.prototype._add_crawl_task = function (cacheNode, userData) {
     /* jshint validthis: true */
-    var self = this;
+    const self = this;
     assert(cacheNode instanceof CacheNode);
     assert(userData);
     assert(_.isObject(self));
     assert(_.isObject(self._crawled));
 
-    var key = cacheNode.nodeId.toString();
+    const key = cacheNode.nodeId.toString();
     if (self._crawled.hasOwnProperty(key)) {
         return;
     }
@@ -696,7 +697,7 @@ NodeCrawler.prototype._add_crawl_task = function (cacheNode, userData) {
 
 NodeCrawler.prototype._inner_crawl = function (nodeId, userData, end_callback) {
 
-    var self = this;
+    const self = this;
     assert(_.isObject(userData));
     assert(_.isFunction(end_callback));
     assert(!self._visited_node);
@@ -704,7 +705,7 @@ NodeCrawler.prototype._inner_crawl = function (nodeId, userData, end_callback) {
     self._visited_node = {};
     self._crawled = {};
 
-    var _has_ended = false;
+    let _has_ended = false;
     self.q.drain = function () {
 
         if (!_has_ended) {
@@ -720,7 +721,7 @@ NodeCrawler.prototype._inner_crawl = function (nodeId, userData, end_callback) {
     };
 
 
-    var cacheNode = self._getCacheNode(nodeId);
+    let cacheNode = self._getCacheNode(nodeId);
     if (!cacheNode) {
         cacheNode = self._createCacheNode(nodeId);
     }
@@ -783,7 +784,7 @@ NodeCrawler.prototype._inner_crawl = function (nodeId, userData, end_callback) {
  */
 NodeCrawler.prototype.crawl = function (nodeId, userData, end_callback) {
     assert(_.isFunction(end_callback));
-    var self = this;
+    const self = this;
     self._readOperationalLimits(function (err) {
 
         if (err) {
@@ -804,15 +805,15 @@ NodeCrawler.prototype.followReference = function (parentNode, reference, userDat
 
     assert(reference instanceof browse_service.ReferenceDescription);
 
-    var crawler = this;
+    const crawler = this;
 
-    var childCacheNodeRef = crawler._getCacheNode(reference.referenceTypeId);
+    let childCacheNodeRef = crawler._getCacheNode(reference.referenceTypeId);
     if (!childCacheNodeRef) {
         childCacheNodeRef = crawler._createCacheNode(reference.referenceTypeId);
         crawler._add_crawl_task(childCacheNodeRef, userData);
     }
 
-    var childCacheNode = crawler._getCacheNode(reference.nodeId);
+    let childCacheNode = crawler._getCacheNode(reference.nodeId);
     if (!childCacheNode) {
         childCacheNode = crawler._createCacheNode(reference.nodeId);
         childCacheNode.browseName = reference.browseName;
@@ -840,7 +841,7 @@ NodeCrawler.prototype.followReference = function (parentNode, reference, userDat
 };
 
 NodeCrawler.prototype.dispose = function () {
-    var self = this;
+    const self = this;
     self.session = null;
     self.browseNameMap = null;
     self._nodesToReadEx = null;
@@ -854,7 +855,7 @@ NodeCrawler.prototype.dispose = function () {
 
 NodeCrawler.prototype.read = function (nodeId, callback) {
 
-    var self = this;
+    const self = this;
 
     try {
         nodeId = resolveNodeId(nodeId);
@@ -865,15 +866,15 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
     function remove_cycle(object, callback) {
 
 
-        var visitedNodeIds = {};
+        const visitedNodeIds = {};
 
         function hasBeenVisited(e) {
-            var key = e.nodeId.toString();
+            const key = e.nodeId.toString();
             return visitedNodeIds[key];
         }
 
         function setVisited(e) {
-            var key = e.nodeId.toString();
+            const key = e.nodeId.toString();
             return visitedNodeIds[key] = e;
         }
 
@@ -882,8 +883,8 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
                 return;
             }
             assert(_.isArray(arr));
-            for (var index = 0; index < arr.length; index++) {
-                var e = arr[index];
+            for (let index = 0; index < arr.length; index++) {
+                const e = arr[index];
                 if (hasBeenVisited(e)) {
                     return;
                 } else {
@@ -909,7 +910,7 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
 
         assert(_.isFunction(final_callback));
 
-        var queue = async.queue(function (task, callback) {
+        const queue = async.queue(function (task, callback) {
 
             setImmediate(function () {
                 assert(_.isFunction(task.func));
@@ -917,7 +918,7 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
             });
         }, 1);
 
-        var key = object.nodeId.toString();
+        const key = object.nodeId.toString();
 
         function add_for_reconstruction(object, extra_func) {
             assert(_.isFunction(extra_func));
@@ -940,7 +941,7 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
             assert(object);
             assert(object.nodeId);
 
-            var key = object.nodeId.toString();
+            const key = object.nodeId.toString();
 
             if (objMap.hasOwnProperty(key)) {
                 return callback(null, objMap[key]);
@@ -959,7 +960,7 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
              *    ]
              * }
              */
-            var obj = {
+            const obj = {
                 browseName: object.browseName.name,
                 nodeId: object.nodeId.toString()
             };
@@ -982,7 +983,7 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
             }
             objMap[key] = obj;
 
-            var referenceMap = obj;
+            const referenceMap = obj;
 
             object.references = object.references || [];
 
@@ -990,15 +991,15 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
             object.references.map(function (ref) {
 
                 assert(ref);
-                var ref_index = ref.referenceTypeId.toString();
+                const ref_index = ref.referenceTypeId.toString();
 
-                var referenceType = self._objectCache[ref_index];
+                const referenceType = self._objectCache[ref_index];
 
                 if (!referenceType) {
                     console.log(("Unknown reference type " + ref_index).red.bold);
                     console.log(util.inspect(object, {colorize: true, depth: 10}));
                 }
-                var reference = self._objectCache[ref.nodeId.toString()];
+                const reference = self._objectCache[ref.nodeId.toString()];
                 if (!reference) {
                     console.log(ref.nodeId.toString(), "bn=", ref.browseName.toString(), "class =", ref.nodeClass.toString(), ref.typeDefinition.toString());
                     console.log("#_reconstruct_manageable_object: Cannot find reference", ref.nodeId.toString(), "in cache");
@@ -1006,7 +1007,7 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
                 // Extract nodeClass so it can be appended
                 reference.nodeClass = ref.$nodeClass;
 
-                var refName = lowerFirstLetter(referenceType.browseName.name);
+                const refName = lowerFirstLetter(referenceType.browseName.name);
 
                 if (refName === "hasTypeDefinition") {
                     obj.typeDefinition = reference.browseName.name;
@@ -1029,20 +1030,20 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
         });
 
         queue.drain = function () {
-            var object = self._objMap[key];
+            const object = self._objMap[key];
             remove_cycle(object, callback);
         };
     }
 
-    var key = nodeId.toString();
+    const key = nodeId.toString();
 
     // check if object has already been crawled
     if (self._objMap.hasOwnProperty(key)) {
-        var object = self._objMap[key];
+        const object = self._objMap[key];
         return callback(null, object);
     }
 
-    var userData = {
+    const userData = {
         onBrowse: NodeCrawler.follow
     };
 
@@ -1051,7 +1052,7 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
 
         if (self._objectCache.hasOwnProperty(key)) {
 
-            var cacheNode = self._objectCache[key];
+            const cacheNode = self._objectCache[key];
             assert(cacheNode.browseName.name !== "pending");
 
             simplify_object(self._objMap, cacheNode, callback);

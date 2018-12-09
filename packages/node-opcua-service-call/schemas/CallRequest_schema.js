@@ -1,6 +1,6 @@
 
 
-var CallRequest_Schema = {
+const CallRequest_Schema = {
     name: "CallRequest",
     documentation: "This Service is used to call (invoke) a list of Methods.",
     fields: [

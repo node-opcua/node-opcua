@@ -1,5 +1,5 @@
 "use strict";
-var Read_service = require("..");
+const Read_service = require("..");
 
 describe("Read Service",function() {
 

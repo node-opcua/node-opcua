@@ -5,13 +5,11 @@
 // authenticate and encrypt Messages sent across the network. The ClientSecureChannelLayer Services allow
 // the Client and Server to securely negotiate the keys to use.
 
-var _ = require("underscore");
+const _ = require("underscore");
 
-var factories = require("node-opcua-factory");
-
-var AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").AsymmetricAlgorithmSecurityHeader;
-var SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
-var SequenceHeader = require("node-opcua-service-secure-channel").SequenceHeader;
+const AsymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").AsymmetricAlgorithmSecurityHeader;
+const SymmetricAlgorithmSecurityHeader = require("node-opcua-service-secure-channel").SymmetricAlgorithmSecurityHeader;
+const SequenceHeader = require("node-opcua-service-secure-channel").SequenceHeader;
 
 exports.AsymmetricAlgorithmSecurityHeader = AsymmetricAlgorithmSecurityHeader;
 exports.SymmetricAlgorithmSecurityHeader = SymmetricAlgorithmSecurityHeader;

@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var EventFieldList_Schema = {
+const EventFieldList_Schema = {
     id: factories.next_available_id(),
     name: "EventFieldList",
     fields: [

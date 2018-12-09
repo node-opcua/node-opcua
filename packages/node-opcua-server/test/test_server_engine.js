@@ -1,64 +1,64 @@
 /* jslint */
 /*global require,describe, it, before, after */
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var assert = require("node-opcua-assert");
-var util = require("util");
+const assert = require("node-opcua-assert").assert;
+const util = require("util");
 
-var server_engine = require("../src/server_engine");
-var ServerEngine = server_engine.ServerEngine;
+const server_engine = require("../src/server_engine");
+const ServerEngine = server_engine.ServerEngine;
 
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var NodeClass = require("node-opcua-data-model").NodeClass;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
-var browse_service = require("node-opcua-service-browse");
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const browse_service = require("node-opcua-service-browse");
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
-var read_service = require("node-opcua-service-read");
-var TimestampsToReturn = read_service.TimestampsToReturn;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const read_service = require("node-opcua-service-read");
+const TimestampsToReturn = read_service.TimestampsToReturn;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").makeExpandedNodeId;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var DataType = require("node-opcua-variant").DataType;
-var DataValue =  require("node-opcua-data-value").DataValue;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const DataType = require("node-opcua-variant").DataType;
+const DataValue = require("node-opcua-data-value").DataValue;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
-var VariableIds = require("node-opcua-constants").VariableIds;
-var ObjectIds = require("node-opcua-constants").ObjectIds;
-var Variant = require("node-opcua-variant").Variant;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const VariableIds = require("node-opcua-constants").VariableIds;
+const ObjectIds = require("node-opcua-constants").ObjectIds;
+const Variant = require("node-opcua-variant").Variant;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
-var historizing_service = require("node-opcua-service-history");
-var HistoryReadRequest = historizing_service.HistoryReadRequest;
-var HistoryReadDetails = historizing_service.HistoryReadDetails;
-var HistoryReadResult = historizing_service.HistoryReadResult;
-var HistoryData = historizing_service.HistoryData;
+const historizing_service = require("node-opcua-service-history");
+const HistoryReadRequest = historizing_service.HistoryReadRequest;
+const HistoryReadDetails = historizing_service.HistoryReadDetails;
+const HistoryReadResult = historizing_service.HistoryReadResult;
+const HistoryData = historizing_service.HistoryData;
 
-var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
+const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 
-var assert_arrays_are_equal = require("node-opcua-test-helpers").assert_arrays_are_equal;
+const assert_arrays_are_equal = require("node-opcua-test-helpers").assert_arrays_are_equal;
 
-var QualifiedName = require("node-opcua-data-model").QualifiedName;
-var UAObject = require("node-opcua-address-space").UAObject;
-var Reference = require("node-opcua-address-space").Reference;
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
+const UAObject = require("node-opcua-address-space").UAObject;
+const Reference = require("node-opcua-address-space").Reference;
 
-var SessionContext = require("node-opcua-address-space").SessionContext;
-var context = SessionContext.defaultContext;
+const SessionContext = require("node-opcua-address-space").SessionContext;
+const context = SessionContext.defaultContext;
 
 function resolveExpandedNodeId(nodeId) {
     return makeExpandedNodeId(resolveNodeId(nodeId));
 }
 
-var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
-describeWithLeakDetector("testing ServerEngine", function () {
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("testing ServerEngine", function () {
 
-    var engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
+    let engine,namespace, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
-    var defaultBuildInfo = {
+    const defaultBuildInfo = {
         productName: "NODEOPCUA-SERVER",
         softwareVersion: "1.0",
         manufacturerName: "<Manufacturer>",
@@ -70,76 +70,79 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
 
-            FolderTypeId = engine.addressSpace.findObjectType("FolderType").nodeId;
-            BaseDataVariableTypeId = engine.addressSpace.findVariableType("BaseDataVariableType").nodeId;
-            ref_Organizes_Id = engine.addressSpace.findReferenceType("Organizes").nodeId;
+            const addressSpace = engine.addressSpace;
+            namespace = addressSpace.getOwnNamespace();
+
+            FolderTypeId = addressSpace.findObjectType("FolderType").nodeId;
+            BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType").nodeId;
+            ref_Organizes_Id = addressSpace.findReferenceType("Organizes").nodeId;
             ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
 
             // add a variable as a Array of Double with some values
-            var testArray = [];
-            for (var i = 0; i < 10; i++) {
+            const testArray = [];
+            for (let i = 0; i < 10; i++) {
                 testArray.push(i * 1.0);
             }
 
-            engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "TestArray",
-                  nodeId: "ns=1;s=TestArray",
-                  dataType: "Double",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              arrayType: VariantArrayType.Array,
-                              value: testArray
-                          });
-                      },
-                      set: null // read only
-                  }
-              }
+            namespace.addVariable({
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "TestArray",
+                    nodeId: "s=TestArray",
+                    dataType: "Double",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                arrayType: VariantArrayType.Array,
+                                value: testArray
+                            });
+                        },
+                        set: null // read only
+                    }
+                }
             );
 
             // add a writable Int32
-            engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "WriteableInt32",
-                  nodeId: "ns=1;s=WriteableInt32",
-                  dataType: "Int32",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              arrayType: VariantArrayType.Array,
-                              value: testArray
-                          });
-                      },
-                      set: function (variant) {
-                          // Variation 1 : synchronous
-                          // assert(_.isFunction(callback));
-                          return StatusCodes.Good;
-                      }
-                  }
-              }
+            namespace.addVariable({
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "WriteableInt32",
+                    nodeId: "s=WriteableInt32",
+                    dataType: "Int32",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                arrayType: VariantArrayType.Array,
+                                value: testArray
+                            });
+                        },
+                        set: function (variant) {
+                            // Variation 1 : synchronous
+                            // assert(_.isFunction(callback));
+                            return StatusCodes.Good;
+                        }
+                    }
+                }
             );
 
             // add a writable Int32
-            engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "WriteableUInt32Async",
-                  nodeId: "ns=1;s=WriteableUInt32Async",
-                  dataType: "UInt32",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              arrayType: VariantArrayType.Array,
-                              value: testArray
-                          });
-                      }
+            namespace.addVariable({
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "WriteableUInt32Async",
+                    nodeId: "s=WriteableUInt32Async",
+                    dataType: "UInt32",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                arrayType: VariantArrayType.Array,
+                                value: testArray
+                            });
+                        }
 
-                  }
-              }
+                    }
+                }
             );
             done();
         });
@@ -150,63 +153,6 @@ describeWithLeakDetector("testing ServerEngine", function () {
         engine = null;
     });
 
-
-    it("findReferenceType findReferenceTypeFromInverseName - should provide a way to access a referenceType from its inverse name", function () {
-        var addressSpace = engine.addressSpace;
-        var n1 = addressSpace.findReferenceType("Organizes").nodeId;
-        should.not.exist(addressSpace.findReferenceType("OrganizedBy"));
-
-        var n2 = addressSpace.findReferenceTypeFromInverseName("OrganizedBy").nodeId;
-        should.not.exist(addressSpace.findReferenceTypeFromInverseName("Organizes"));
-
-        n1.should.equal(n2);
-
-    });
-
-    it("findReferenceType findReferenceTypeFromInverseName - should normalize a {referenceType/isForward} combination", function () {
-        var addressSpace = engine.addressSpace;
-
-        addressSpace.normalizeReferenceType(
-          {referenceType: "OrganizedBy", isForward: true}).should.eql(
-          new Reference({referenceType: "Organizes", isForward: false})
-        );
-
-        addressSpace.normalizeReferenceType(
-          {referenceType: "OrganizedBy", isForward: false}).should.eql(
-          new Reference({referenceType: "Organizes", isForward: true})
-        );
-        addressSpace.normalizeReferenceType(
-          {referenceType: "Organizes", isForward: false}).should.eql(
-          new Reference({referenceType: "Organizes", isForward: false})
-        );
-        addressSpace.normalizeReferenceType(
-          {referenceType: "Organizes", isForward: true}).should.eql(
-          new Reference({referenceType: "Organizes", isForward: true})
-        );
-    });
-
-    it("findReferenceType findReferenceTypeFromInverseName - should provide a easy way to get the inverse name of a Reference Type", function () {
-        var addressSpace = engine.addressSpace;
-
-        addressSpace.inverseReferenceType("Organizes").should.eql("OrganizedBy");
-        addressSpace.inverseReferenceType("ChildOf").should.eql("HasChild");
-        addressSpace.inverseReferenceType("AggregatedBy").should.eql("Aggregates");
-        addressSpace.inverseReferenceType("PropertyOf").should.eql("HasProperty");
-        addressSpace.inverseReferenceType("ComponentOf").should.eql("HasComponent");
-        addressSpace.inverseReferenceType("HistoricalConfigurationOf").should.eql("HasHistoricalConfiguration");
-        addressSpace.inverseReferenceType("HasSupertype").should.eql("HasSubtype");
-        addressSpace.inverseReferenceType("EventSourceOf").should.eql("HasEventSource");
-
-        addressSpace.inverseReferenceType("OrganizedBy").should.eql("Organizes");
-        addressSpace.inverseReferenceType("HasChild").should.eql("ChildOf");
-        addressSpace.inverseReferenceType("Aggregates").should.eql("AggregatedBy");
-        addressSpace.inverseReferenceType("HasProperty").should.eql("PropertyOf");
-        addressSpace.inverseReferenceType("HasComponent").should.eql("ComponentOf");
-        addressSpace.inverseReferenceType("HasHistoricalConfiguration").should.eql("HistoricalConfigurationOf");
-        addressSpace.inverseReferenceType("HasSubtype").should.eql("HasSupertype");
-        addressSpace.inverseReferenceType("HasEventSource").should.eql("EventSourceOf");
-    });
-
     it("should have a rootFolder ", function () {
 
         engine.rootFolder.typeDefinition.should.eql(FolderTypeId);
@@ -215,7 +161,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should find the rootFolder by browseName", function () {
 
-        var browseNode = engine.addressSpace.findNode("RootFolder");
+        const browseNode = engine.addressSpace.findNode("RootFolder");
 
         browseNode.typeDefinition.should.eql(FolderTypeId);
         browseNode.should.equal(engine.rootFolder);
@@ -224,7 +170,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should find the rootFolder by nodeId", function () {
 
-        var browseNode = engine.addressSpace.findNode("i=84");
+        const browseNode = engine.addressSpace.findNode("i=84");
 
         browseNode.typeDefinition.should.eql(FolderTypeId);
         browseNode.should.equal(engine.rootFolder);
@@ -233,7 +179,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should have an 'Objects' folder", function () {
 
-        var rootFolder = engine.addressSpace.rootFolder;
+        const rootFolder = engine.addressSpace.rootFolder;
 
 
         assert(rootFolder.objects);
@@ -244,7 +190,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should have a 'Server' object in the Objects Folder", function () {
 
-        var server = engine.addressSpace.rootFolder.objects.server;
+        const server = engine.addressSpace.rootFolder.objects.server;
         assert(server);
         server.findReferences("Organizes", false)[0].nodeId.should.eql(engine.addressSpace.rootFolder.objects.nodeId);
 
@@ -252,10 +198,10 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should have a 'Server.NamespaceArray' Variable ", function () {
 
-        var server = engine.addressSpace.rootFolder.objects.server;
+        const server = engine.addressSpace.rootFolder.objects.server;
 
-        var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray);
-        var server_NamespaceArray = engine.addressSpace.findNode(server_NamespaceArray_Id);
+        const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray);
+        const server_NamespaceArray = engine.addressSpace.findNode(server_NamespaceArray_Id);
         assert(server_NamespaceArray !== null);
 
         //xx console.log(require("util").inspect(server_NamespaceArray));
@@ -270,21 +216,23 @@ describeWithLeakDetector("testing ServerEngine", function () {
     it("should have a 'Server.Server_ServerArray' Variable", function () {
 
         // find 'Objects' folder
-        var objects = engine.addressSpace.rootFolder.objects;
-        var server = objects.server;
+        const objects = engine.addressSpace.rootFolder.objects;
+        const server = objects.server;
 
-        var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerArray);
-        var server_NamespaceArray = engine.addressSpace.findNode(server_NamespaceArray_Id);
+        const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerArray);
+        const server_NamespaceArray = engine.addressSpace.findNode(server_NamespaceArray_Id);
         assert(server_NamespaceArray !== null);
         //xx server_NamespaceArray.parent.nodeId.should.eql(serverObject.nodeId);
     });
 
     it("should be possible to create a new folder under the 'Root' folder", function () {
+        const namespace = engine.addressSpace.getOwnNamespace();
 
         // find 'Objects' folder
-        var objects = engine.addressSpace.rootFolder.objects;
+        const objects = engine.addressSpace.rootFolder.objects;
 
-        var newFolder = engine.addressSpace.addFolder("ObjectsFolder", "MyNewFolder");
+
+        const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder");
         assert(newFolder);
 
         newFolder.typeDefinition.should.eql(FolderTypeId);
@@ -295,59 +243,65 @@ describeWithLeakDetector("testing ServerEngine", function () {
     });
 
     it("should be possible to find a newly created folder by nodeId", function () {
+        const namespace = engine.addressSpace.getOwnNamespace();
 
-        var newFolder = engine.addressSpace.addFolder("ObjectsFolder", "MyNewFolder");
+        const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder");
 
         // a specific node id should have been assigned by the engine
         assert(newFolder.nodeId instanceof NodeId);
         newFolder.nodeId.namespace.should.eql(1);
 
-        var result = engine.addressSpace.findNode(newFolder.nodeId);
+        const result = engine.addressSpace.findNode(newFolder.nodeId);
         result.should.eql(newFolder);
 
     });
 
     it("should be possible to find a newly created folder by 'browse name'", function () {
 
-        var newFolder = engine.addressSpace.addFolder("ObjectsFolder", "MySecondNewFolder");
+        const namespace = engine.addressSpace.getOwnNamespace();
+        const newFolder = namespace.addFolder("ObjectsFolder", "MySecondNewFolder");
 
-        var result = engine.addressSpace.rootFolder.objects.getFolderElementByName("MySecondNewFolder");
+        const result = engine.addressSpace.rootFolder.objects.getFolderElementByName("MySecondNewFolder");
         assert(result !== null);
         result.should.eql(newFolder);
     });
 
     xit("should not be possible to create a object with an existing 'browse name'", function () {
 
-        var newFolder1 = engine.addressSpace.addFolder("ObjectsFolder", "NoUniqueName");
+        const namespace = engine.addressSpace.getOwnNamespace();
+
+        const newFolder1 = namespace.addFolder("ObjectsFolder", "NoUniqueName");
 
         (function () {
-            engine.addressSpace.addFolder("ObjectsFolder", "NoUniqueName");
+            namespace.addFolder("ObjectsFolder", "NoUniqueName");
         }).should.throw("browseName already registered");
 
-        var result = engine.addressSpace.rootFolder.objects.getFolderElementByName("NoUniqueName");
+        const result = engine.addressSpace.rootFolder.objects.getFolderElementByName("NoUniqueName");
         result.should.eql(newFolder1);
     });
 
     it("should be possible to create a variable in a folder", function (done) {
 
-        var addressSpace = engine.addressSpace;
-        var newFolder = addressSpace.addFolder("ObjectsFolder", "MyNewFolder1");
+        const addressSpace = engine.addressSpace;
+        const namespace = addressSpace.getOwnNamespace();
 
-        var newVariable = addressSpace.addVariable(
-          {
-              componentOf: newFolder,
-              browseName: "Temperature",
-              dataType: "Float",
-              value: {
-                  get: function () {
-                      return new Variant({dataType: DataType.Float, value: 10.0});
-                  },
-                  set: function () {
-                      return StatusCodes.BadNotWritable;
-                  }
-              }
+        const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder1");
 
-          });
+        const newVariable = namespace.addVariable(
+            {
+                componentOf: newFolder,
+                browseName: "Temperature",
+                dataType: "Float",
+                value: {
+                    get: function () {
+                        return new Variant({dataType: DataType.Float, value: 10.0});
+                    },
+                    set: function () {
+                        return StatusCodes.BadNotWritable;
+                    }
+                }
+
+            });
         newVariable.typeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.nodeId.should.equal(newFolder.nodeId);
 
@@ -365,11 +319,11 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should be possible to create a variable in a folder with a predefined nodeID", function () {
 
-        var newFolder = engine.addressSpace.addFolder("ObjectsFolder", "MyNewFolder3");
+        const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder3");
 
-        var newVariable = engine.addressSpace.addVariable({
+        const newVariable = namespace.addVariable({
             componentOf: newFolder,
-            nodeId: "ns=4;b=01020304ffaa",  // << fancy node id here !
+            nodeId: "b=01020304ffaa",  // << fancy node id here !
             browseName: "Temperature",
             dataType: "Double",
             value: {
@@ -384,22 +338,22 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
 
 
-        newVariable.nodeId.toString().should.eql("ns=4;b=01020304ffaa");
+        newVariable.nodeId.toString().should.eql("ns=1;b=01020304ffaa");
 
 
     });
 
     it("should be possible to create a variable in a folder that returns a timestamped value", function (done) {
 
-        var newFolder = engine.addressSpace.addFolder("ObjectsFolder", "MyNewFolder4");
+        const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder4");
 
-        var temperature = new DataValue({
+        const temperature = new DataValue({
             value: new Variant({dataType: DataType.Double, value: 10.0}),
             sourceTimestamp: new Date(Date.UTC(1999, 9, 9)),
             sourcePicoseconds: 10
         });
 
-        var newVariable = engine.addressSpace.addVariable({
+        const newVariable = namespace.addVariable({
             componentOf: newFolder,
             browseName: "TemperatureWithSourceTimestamps",
             dataType: "Double",
@@ -429,14 +383,15 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should be possible to create a variable that returns historical data", function (done) {
 
-        var newFolder = engine.addressSpace.addFolder("ObjectsFolder", "MyNewFolderHistorical1");
-        var readValue = new DataValue({
+        const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolderHistorical1");
+
+        const readValue = new DataValue({
             value: new Variant({dataType: DataType.Double, value: 10.0}),
             sourceTimestamp: new Date(Date.UTC(1999, 9, 9)),
             sourcePicoseconds: 10
         });
 
-        var newVariable = engine.addressSpace.addVariable({
+        const newVariable = namespace.addVariable({
             componentOf: newFolder,
             browseName: "TemperatureHistorical",
             dataType: "Double",
@@ -451,12 +406,12 @@ describeWithLeakDetector("testing ServerEngine", function () {
                     assert(context instanceof SessionContext);
                     assert(callback instanceof Function);
 
-                    var results = [];
-                    var d = new Date();
+                    const results = [];
+                    const d = new Date();
                     d.setUTCMinutes(0);
                     d.setUTCSeconds(0);
                     d.setUTCMilliseconds(0);
-                    for (var i = 0; i < 50; i++) {
+                    for (let i = 0; i < 50; i++) {
                         d.setUTCMinutes(i);
                         results.push(new DataValue({
                             value: {dataType: DataType.Double, value: Math.random() * 75 - 25},
@@ -464,7 +419,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
                         }));
                     }
 
-                    var historyReadResult = new HistoryReadResult({
+                    const historyReadResult = new HistoryReadResult({
                         historyData: new HistoryData({
                             dataValues: results
                         })
@@ -475,7 +430,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
 
 
-        var historyReadRequest = new HistoryReadRequest({
+        const historyReadRequest = new HistoryReadRequest({
             historyReadDetails: new HistoryReadDetails(),
             timestampsToReturn: 3,
             nodesToRead: [{
@@ -495,7 +450,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should be possible to create a object in a folder", function () {
 
-        var simulation = engine.addressSpace.addObject({
+        const simulation = namespace.addObject({
             organizedBy: "ObjectsFolder",
             browseName: "Scalar_Simulation",
             description: "This folder will contain one item per supported data-type.",
@@ -507,10 +462,11 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should be possible to create 3 new folders with a filter function", function () {
 
-        var newFolderWithFilteredItems = engine.addressSpace.addFolder("ObjectsFolder", {"browseName": "filteredItemsFolder"});
+        const newFolderWithFilteredItems = namespace.addFolder("ObjectsFolder", {"browseName": "filteredItemsFolder"});
 
-        var newFolder1 = engine.addressSpace.addFolder(newFolderWithFilteredItems, {
-            "browseName": "filteredFolder1", "browseFilter": function (session) {
+        const newFolder1 = namespace.addFolder(newFolderWithFilteredItems, {
+            "browseName": "filteredFolder1",
+            "browseFilter": function (session) {
                 if (session && session.hasOwnProperty("testFilterArray"))
                     if (session["testFilterArray"].indexOf(1) > -1)
                         return (true);
@@ -522,8 +478,9 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
         assert(newFolder1);
 
-        var newFolder2 = engine.addressSpace.addFolder(newFolderWithFilteredItems, {
-            "browseName": "filteredFolder2", "browseFilter": function (session) {
+        const newFolder2 = namespace.addFolder(newFolderWithFilteredItems, {
+            "browseName": "filteredFolder2",
+            "browseFilter": function (session) {
                 if (session && session.hasOwnProperty("testFilterArray"))
                     if (session["testFilterArray"].indexOf(2) > -1)
                         return (true);
@@ -535,8 +492,9 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
         assert(newFolder2);
 
-        var newFolder3 = engine.addressSpace.addFolder(newFolderWithFilteredItems, {
-            "browseName": "filteredFolder3", "browseFilter": function (session) {
+        const newFolder3 = namespace.addFolder(newFolderWithFilteredItems, {
+            "browseName": "filteredFolder3",
+            "browseFilter": function (session) {
                 if (session && session.hasOwnProperty("testFilterArray"))
                     if (session["testFilterArray"].indexOf(3) > -1)
                         return (true);
@@ -552,14 +510,14 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should browse the 'Objects' folder for back references", function () {
 
-        var browseDescription = {
+        const browseDescription = {
             browseDirection: BrowseDirection.Inverse,
             nodeClassMask: 0, // 0 = all nodes
             referenceTypeId: "Organizes",
             resultMask: 0x3F
         };
 
-        var browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
+        const browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
         browseResult.references.length.should.equal(1);
@@ -577,19 +535,19 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should browse root folder with referenceTypeId", function () {
 
-        var browseDescription = {
+        const browseDescription = {
             browseDirection: BrowseDirection.Both,
             referenceTypeId: "Organizes",
             includeSubtypes: false,
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3F
         };
-        var browseResult = engine.browseSingleNode("RootFolder", browseDescription);
+        const browseResult = engine.browseSingleNode("RootFolder", browseDescription);
 
-        var browseNames = browseResult.references.map(function (r) {
+        const browseNames = browseResult.references.map(function (r) {
             return r.browseName.name;
         });
-        console.log(browseNames);
+        //xx console.log(browseNames);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -622,32 +580,32 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should browse root and find all hierarchical children of the root node (includeSubtypes: true)", function () {
 
-        var browseDescription1 = {
+        const browseDescription1 = {
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: "Organizes",
             includeSubtypes: true,
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3F
         };
-        var browseResult1 = engine.browseSingleNode("RootFolder", browseDescription1);
+        const browseResult1 = engine.browseSingleNode("RootFolder", browseDescription1);
         browseResult1.references.length.should.equal(3);
 
-        var browseDescription2 = {
+        const browseDescription2 = {
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: "HierarchicalReferences",
             includeSubtypes: true, // should include also HasChild , Organizes , HasEventSource etc ...
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3F
         };
-        var browseResult2 = engine.browseSingleNode("RootFolder", browseDescription2);
+        const browseResult2 = engine.browseSingleNode("RootFolder", browseDescription2);
     });
 
     it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true", function () {
 
-        var ref_hierarchical_Ref_Id = engine.addressSpace.findReferenceType("HierarchicalReferences").nodeId;
+        const ref_hierarchical_Ref_Id = engine.addressSpace.findReferenceType("HierarchicalReferences").nodeId;
         ref_hierarchical_Ref_Id.toString().should.eql("ns=0;i=33");
 
-        var browseDescription = new browse_service.BrowseDescription({
+        const browseDescription = new browse_service.BrowseDescription({
             browseDirection: BrowseDirection.Both,
             referenceTypeId: ref_hierarchical_Ref_Id,
             includeSubtypes: true,
@@ -656,7 +614,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
         browseDescription.browseDirection.should.eql(BrowseDirection.Both);
 
-        var browseResult = engine.browseSingleNode("RootFolder", browseDescription);
+        const browseResult = engine.browseSingleNode("RootFolder", browseDescription);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -688,13 +646,13 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should browse a 'Server' object in  the 'Objects' folder", function () {
 
-        var browseDescription = {
+        const browseDescription = {
             browseDirection: BrowseDirection.Forward,
             nodeClassMask: 0, // 0 = all nodes
             referenceTypeId: "Organizes",
             resultMask: 0x3F
         };
-        var browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
+        const browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
         browseResult.references.length.should.be.greaterThan(1);
@@ -706,7 +664,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should handle a BrowseRequest and set StatusCode if node doesn't exist", function () {
 
-        var browseResult = engine.browseSingleNode("ns=46;i=123456");
+        const browseResult = engine.browseSingleNode("ns=46;i=123456");
 
         browseResult.statusCode.should.equal(StatusCodes.BadNodeIdUnknown);
         browseResult.references.length.should.equal(0);
@@ -715,7 +673,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should handle a BrowseRequest with multiple nodes to browse", function () {
 
-        var browseRequest = new browse_service.BrowseRequest({
+        const browseRequest = new browse_service.BrowseRequest({
             nodesToBrowse: [
                 {
                     nodeId: resolveNodeId("RootFolder"),
@@ -734,7 +692,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
 
         browseRequest.nodesToBrowse.length.should.equal(2);
-        var results = engine.browse(browseRequest.nodesToBrowse);
+        const results = engine.browse(browseRequest.nodesToBrowse);
 
         results.length.should.equal(2);
 
@@ -744,28 +702,30 @@ describeWithLeakDetector("testing ServerEngine", function () {
     });
 
     it("should handle a BrowseRequest of a session with a filtered result", function () {
-        var browseDescription = {
+
+        const filteredItemsFolder = engine.addressSpace.rootFolder.objects.getFolderElementByName("filteredItemsFolder");
+        const browseDescription = {
             nodesToBrowse: [{
-                nodeId: engine.addressSpace.rootFolder.objects.getFolderElementByName("filteredItemsFolder").nodeId,
+                nodeId: filteredItemsFolder.nodeId,
                 browseDirection: BrowseDirection.Forward,
                 resultMask: 63,
                 nodeClassMask: 1 // 1=Objects
             }]
         };
 
-        var browseRequest = new browse_service.BrowseRequest(browseDescription);
-        var session = engine.createSession();
+        const browseRequest = new browse_service.BrowseRequest(browseDescription);
+        const session = engine.createSession();
 
         session.testFilterArray = [1, 3];
-        var results1 = engine.browse(browseRequest.nodesToBrowse, session);
+        const results1 = engine.browse(browseRequest.nodesToBrowse, session);
         results1[0].references.length.should.equal(2);
 
         session.testFilterArray = [1, 2, 3];
-        var results2 = engine.browse(browseRequest.nodesToBrowse, session);
+        const results2 = engine.browse(browseRequest.nodesToBrowse, session);
         results2[0].references.length.should.equal(3);
 
         session.testFilterArray = [3];
-        var results3 = engine.browse(browseRequest.nodesToBrowse, session);
+        const results3 = engine.browse(browseRequest.nodesToBrowse, session);
         results3[0].references.length.should.equal(1);
         results3[0].references[0].displayName.text.should.equal("filteredFolder3");
 
@@ -775,8 +735,8 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should provide results that conforms to browseDescription.resultMask", function () {
 
-        var check_flag = require("node-opcua-utils").check_flag;
-        var ResultMask = require("node-opcua-data-model").ResultMask;
+        const check_flag = require("node-opcua-utils").check_flag;
+        const ResultMask = require("node-opcua-data-model").ResultMask;
 
         function test_referenceDescription(referenceDescription, resultMask) {
             if (check_flag(resultMask, ResultMask.ReferenceType)) {
@@ -798,14 +758,14 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         function test_result_mask(resultMask) {
 
-            var browseDescription = {
+            const browseDescription = {
                 browseDirection: BrowseDirection.Both,
                 referenceTypeId: "HierarchicalReferences",
                 includeSubtypes: true,
                 nodeClassMask: 0, // 0 = all nodes
                 resultMask: resultMask
             };
-            var browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
+            const browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
 
             browseResult.references.length.should.be.greaterThan(1);
             browseResult.references.forEach(function (referenceDescription) {
@@ -826,7 +786,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - BrowseName", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.BrowseName);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.BrowseName);
 
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.QualifiedName);
@@ -835,7 +795,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - NodeClass", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.NodeClass);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.NodeClass);
 
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.Int32);
@@ -844,7 +804,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - NodeId", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.NodeId);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.NodeId);
 
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.NodeId);
@@ -853,7 +813,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - DisplayName", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.DisplayName);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.DisplayName);
 
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.LocalizedText);
@@ -862,7 +822,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - Description", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.Description);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.Description);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.LocalizedText);
             readResult.value.value.text.toString().should.equal("The root of the server address space.");
@@ -870,7 +830,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - WriteMask", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.WriteMask);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.WriteMask);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.UInt32);
             readResult.value.value.should.equal(0);
@@ -878,21 +838,21 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - UserWriteMask", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.UserWriteMask);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.UserWriteMask);
             readResult.value.dataType.should.eql(DataType.UInt32);
             readResult.value.value.should.equal(0);
         });
 
         it("should handle a readSingleNode - EventNotifier", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.EventNotifier);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.EventNotifier);
             readResult.value.dataType.should.eql(DataType.Byte);
             readResult.value.value.should.equal(0);
         });
 
         it("should return BadAttributeIdInvalid  - readSingleNode - for bad attribute    ", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.ContainsNoLoops);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.ContainsNoLoops);
             readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
             assert(readResult.value === null);
         });
@@ -900,7 +860,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     describe("readSingleNode on ReferenceType", function () {
 
-        var ref_Organizes_nodeId;
+        let ref_Organizes_nodeId;
         beforeEach(function () {
             ref_Organizes_nodeId = engine.addressSpace.findReferenceType("Organizes").nodeId;
         });
@@ -908,7 +868,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         //  --- on reference Type ....
         it("should handle a readSingleNode - IsAbstract", function () {
 
-            var readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.IsAbstract);
+            const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.IsAbstract);
             readResult.value.dataType.should.eql(DataType.Boolean);
             readResult.value.value.should.equal(false);
             readResult.statusCode.should.eql(StatusCodes.Good);
@@ -916,7 +876,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - Symmetric", function () {
 
-            var readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.Symmetric);
+            const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.Symmetric);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.Boolean);
             readResult.value.value.should.equal(false);
@@ -924,7 +884,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - InverseName", function () {
 
-            var readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.InverseName);
+            const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.InverseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.LocalizedText);
             //xx readResult.value.value.should.equal(false);
@@ -932,7 +892,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should handle a readSingleNode - BrowseName", function () {
 
-            var readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.BrowseName);
+            const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.BrowseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.QualifiedName);
             readResult.value.value.name.should.eql("Organizes");
@@ -940,7 +900,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
         it("should return BadAttributeIdInvalid on EventNotifier", function () {
 
-            var readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.EventNotifier);
+            const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.EventNotifier);
             readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
             assert(readResult.value === null);
         });
@@ -950,12 +910,12 @@ describeWithLeakDetector("testing ServerEngine", function () {
         //
         it("should handle a readSingleNode - BrowseName", function () {
 
-            var readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.BrowseName);
+            const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.BrowseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
         it("should handle a readSingleNode - IsAbstract", function () {
 
-            var readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.IsAbstract);
+            const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.IsAbstract);
 
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.dataType.should.eql(DataType.Boolean);
@@ -963,60 +923,60 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
         it("should handle a readSingleNode - Value", function () {
 
-            var readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.Value);
+            const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.Value);
             readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
         });
 
         it("should handle a readSingleNode - DataType", function () {
 
-            var readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.DataType);
+            const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.DataType);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
         it("should handle a readSingleNode - ValueRank", function () {
 
-            var readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.ValueRank);
+            const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.ValueRank);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
         it("should handle a readSingleNode - ArrayDimensions", function () {
 
-            var readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.ArrayDimensions);
+            const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.ArrayDimensions);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.arrayType.should.eql(VariantArrayType.Array);
         });
     });
 
     describe("readSingleNode on Variable (ProductUri)", function () {
-        var productUri_id = makeNodeId(2262, 0);
+        const productUri_id = makeNodeId(2262, 0);
         it("should handle a readSingleNode - BrowseName", function () {
 
-            var readResult = engine.readSingleNode(context, productUri_id, AttributeIds.BrowseName);
+            const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.BrowseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
         it("should handle a readSingleNode - ArrayDimensions", function () {
 
-            var readResult = engine.readSingleNode(context, productUri_id, AttributeIds.ArrayDimensions);
+            const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.ArrayDimensions);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.arrayType.should.eql(VariantArrayType.Array);
         });
         it("should handle a readSingleNode - AccessLevel", function () {
 
-            var readResult = engine.readSingleNode(context, productUri_id, AttributeIds.AccessLevel);
+            const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.AccessLevel);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
         it("should handle a readSingleNode - UserAccessLevel", function () {
 
-            var readResult = engine.readSingleNode(context, productUri_id, AttributeIds.UserAccessLevel);
+            const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.UserAccessLevel);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
         it("should handle a readSingleNode - MinimumSamplingInterval", function () {
 
-            var readResult = engine.readSingleNode(context, productUri_id, AttributeIds.MinimumSamplingInterval);
+            const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.MinimumSamplingInterval);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.value.should.eql(1000);
         });
         it("should handle a readSingleNode - Historizing", function () {
 
-            var readResult = engine.readSingleNode(context, productUri_id, AttributeIds.Historizing);
+            const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.Historizing);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.value.should.eql(false);
         });
@@ -1027,7 +987,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         // for views
         xit("should handle a readSingleNode - ContainsNoLoops", function () {
 
-            var readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.ContainsNoLoops);
+            const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.ContainsNoLoops);
             readResult.value.dataType.should.eql(DataType.Boolean);
             readResult.value.value.should.equal(true);
         });
@@ -1036,24 +996,24 @@ describeWithLeakDetector("testing ServerEngine", function () {
     describe("readSingleNode on DataType", function () {
         // for views
         it("should have ServerStatusDataType dataType exposed", function () {
-            var obj = engine.addressSpace.findDataType("ServerStatusDataType");
+            const obj = engine.addressSpace.findDataType("ServerStatusDataType");
             obj.browseName.toString().should.eql("ServerStatusDataType");
             obj.nodeClass.should.eql(NodeClass.DataType);
         });
         it("should handle a readSingleNode - ServerStatusDataType - BrowseName", function () {
 
-            var obj = engine.addressSpace.findDataType("ServerStatusDataType");
-            var serverStatusDataType_id = obj.nodeId;
-            var readResult = engine.readSingleNode(context, serverStatusDataType_id, AttributeIds.BrowseName);
+            const obj = engine.addressSpace.findDataType("ServerStatusDataType");
+            const serverStatusDataType_id = obj.nodeId;
+            const readResult = engine.readSingleNode(context, serverStatusDataType_id, AttributeIds.BrowseName);
             readResult.value.dataType.should.eql(DataType.QualifiedName);
             readResult.value.value.name.should.equal("ServerStatusDataType");
         });
 
         it("should handle a readSingleNode - ServerStatusDataType - Description", function () {
 
-            var obj = engine.addressSpace.findDataType("ServerStatusDataType");
-            var serverStatusDataType_id = obj.nodeId;
-            var readResult = engine.readSingleNode(context, serverStatusDataType_id, AttributeIds.Description);
+            const obj = engine.addressSpace.findDataType("ServerStatusDataType");
+            const serverStatusDataType_id = obj.nodeId;
+            const readResult = engine.readSingleNode(context, serverStatusDataType_id, AttributeIds.Description);
             readResult.value.dataType.should.eql(DataType.LocalizedText);
 
         });
@@ -1061,13 +1021,13 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should return BadNodeIdUnknown  - readSingleNode - with unknown object", function () {
 
-        var readResult = engine.readSingleNode(context, "**UNKNOWN**", AttributeIds.DisplayName);
+        const readResult = engine.readSingleNode(context, "ns=0;s=**UNKNOWN**", AttributeIds.DisplayName);
         readResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
     });
 
     it("should read the display name of RootFolder", function () {
 
-        var readRequest = new read_service.ReadRequest({
+        const readRequest = new read_service.ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1079,7 +1039,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(context, readRequest);
+        const dataValues = engine.read(context, readRequest);
         dataValues.length.should.equal(1);
 
     });
@@ -1091,29 +1051,29 @@ describeWithLeakDetector("testing ServerEngine", function () {
         // AccessLevel, BrowseName, DataType, DisplayName, Historizing, NodeClass, NodeId, UserAccessLevel, ValueRank
         // Expect BadIndexRangeNoData
 
-        var nodeId = "ns=1;s=TestVar";
+        const nodeId = "ns=1;s=TestVar";
         before(function () {
-            engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "TestVar",
-                  nodeId: nodeId,
-                  dataType: "Double",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              value: 0
-                          });
-                      },
-                      set: null // read only
-                  }
-              }
+            namespace.addVariable({
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "TestVar",
+                    nodeId: nodeId,
+                    dataType: "Double",
+                    value: {
+                        get: function () {
+                            return new Variant({
+                                dataType: DataType.Double,
+                                value: 0
+                            });
+                        },
+                        set: null // read only
+                    }
+                }
             );
         });
 
         function read_shall_get_BadIndexRangeNoData(attributeId, done) {
             assert(attributeId >= 0 && attributeId < 22);
-            var readRequest = new read_service.ReadRequest({
+            const readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: [
@@ -1125,13 +1085,13 @@ describeWithLeakDetector("testing ServerEngine", function () {
                     }
                 ]
             });
-            var dataValues = engine.read(context, readRequest);
+            const dataValues = engine.read(context, readRequest);
             dataValues.length.should.eql(1);
             dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
             done();
         }
 
-        var attributes = ["AccessLevel", "BrowseName", "DataType", "DisplayName", "Historizing", "NodeClass", "NodeId", "UserAccessLevel", "ValueRank"];
+        const attributes = ["AccessLevel", "BrowseName", "DataType", "DisplayName", "Historizing", "NodeClass", "NodeId", "UserAccessLevel", "ValueRank"];
         attributes.forEach(function (attribute) {
 
             it("shall return BadIndexRangeNoData when performing a read with a  indexRange and attributeId = " + attribute + " ", function (done) {
@@ -1141,7 +1101,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
 
         it("should return ", function () {
-            var readRequest = new read_service.ReadRequest({
+            const readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: [
@@ -1153,7 +1113,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
                     }
                 ]
             });
-            var dataValues = engine.read(context, readRequest);
+            const dataValues = engine.read(context, readRequest);
             dataValues.length.should.eql(1);
             dataValues[0].statusCode.should.eql(StatusCodes.BadDataEncodingInvalid);
         });
@@ -1161,31 +1121,31 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     describe("testing read operation with timestamps", function () {
 
-        var nodesToRead =
-          [
-              {
-                  nodeId: resolveNodeId("RootFolder"),
-                  attributeId: AttributeIds.DisplayName,
-                  indexRange: null, /* ???? */
-                  dataEncoding: null /* */
-              },
-              {
-                  nodeId: resolveNodeId("RootFolder"),
-                  attributeId: AttributeIds.BrowseName,
-                  indexRange: null, /* ???? */
-                  dataEncoding: null /* */
-              },
-              {
-                  nodeId: resolveNodeId("ns=0;i=2259"), //Server_serverStatus_State
-                  attributeId: AttributeIds.Value,
-                  indexRange: null, /* ???? */
-                  dataEncoding: null /* */
-              }
-          ];
+        const nodesToRead =
+            [
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.DisplayName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                },
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.BrowseName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                },
+                {
+                    nodeId: resolveNodeId("ns=0;i=2259"), //Server_serverStatus_State
+                    attributeId: AttributeIds.Value,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                }
+            ];
         it("should read and set the required timestamps : TimestampsToReturn.Neither", function (done) {
 
-            var DataValue =  require("node-opcua-data-value").DataValue;
-            var readRequest = new read_service.ReadRequest({
+            const DataValue = require("node-opcua-data-value").DataValue;
+            const readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: nodesToRead
@@ -1194,7 +1154,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
             engine.refreshValues(readRequest.nodesToRead, function (err) {
                 if (!err) {
 
-                    var dataValues = engine.read(context, readRequest);
+                    const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(3);
 
                     dataValues[0].should.be.instanceOf(DataValue);
@@ -1225,13 +1185,13 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should read and set the required timestamps : TimestampsToReturn.Server", function () {
 
-            var DataValue =  require("node-opcua-data-value").DataValue;
-            var readRequest = new read_service.ReadRequest({
+            const DataValue = require("node-opcua-data-value").DataValue;
+            const readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Server,
                 nodesToRead: nodesToRead
             });
-            var dataValues = engine.read(context, readRequest);
+            const dataValues = engine.read(context, readRequest);
 
             dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
@@ -1260,14 +1220,14 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should read and set the required timestamps : TimestampsToReturn.Source", function () {
 
-            var DataValue =  require("node-opcua-data-value").DataValue;
-            var readRequest = new read_service.ReadRequest({
+            const DataValue = require("node-opcua-data-value").DataValue;
+            const readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Source,
                 nodesToRead: nodesToRead
             });
 
-            var dataValues = engine.read(context, readRequest);
+            const dataValues = engine.read(context, readRequest);
 
             dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
@@ -1295,13 +1255,13 @@ describeWithLeakDetector("testing ServerEngine", function () {
         it("should read and set the required timestamps : TimestampsToReturn.Both", function () {
 
 
-            var DataValue =  require("node-opcua-data-value").DataValue;
-            var readRequest = new read_service.ReadRequest({
+            const DataValue = require("node-opcua-data-value").DataValue;
+            const readRequest = new read_service.ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: nodesToRead
             });
-            var dataValues = engine.read(context, readRequest);
+            const dataValues = engine.read(context, readRequest);
 
             dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
@@ -1326,7 +1286,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should read Server_NamespaceArray ", function (done) {
 
-        var readRequest = new read_service.ReadRequest({
+        const readRequest = new read_service.ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1347,7 +1307,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         engine.refreshValues(readRequest.nodesToRead, function (err) {
             if (!err) {
-                var dataValues = engine.read(context, readRequest);
+                const dataValues = engine.read(context, readRequest);
                 dataValues.length.should.equal(2);
                 dataValues[0].value.value.text.should.eql("NamespaceArray");
                 dataValues[1].value.value.should.be.instanceOf(Array);
@@ -1359,7 +1319,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should handle indexRange with individual value", function (done) {
 
-        var readRequest = new read_service.ReadRequest({
+        const readRequest = new read_service.ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1373,7 +1333,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
         engine.refreshValues(readRequest.nodesToRead, function (err) {
             if (!err) {
-                var dataValues = engine.read(context, readRequest);
+                const dataValues = engine.read(context, readRequest);
                 dataValues.length.should.equal(1);
                 dataValues[0].statusCode.should.eql(StatusCodes.Good);
 
@@ -1387,7 +1347,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should handle indexRange with a simple range", function (done) {
 
-        var readRequest = new read_service.ReadRequest({
+        const readRequest = new read_service.ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1401,7 +1361,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
         engine.refreshValues(readRequest.nodesToRead, function (err) {
             if (!err) {
-                var dataValues = engine.read(context, readRequest);
+                const dataValues = engine.read(context, readRequest);
                 dataValues.length.should.equal(1);
                 dataValues[0].statusCode.should.eql(StatusCodes.Good);
                 dataValues[0].value.value.should.be.instanceOf(Float64Array);
@@ -1415,7 +1375,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should receive BadIndexRangeNoData when indexRange try to access outside boundary", function (done) {
 
-        var readRequest = new read_service.ReadRequest({
+        const readRequest = new read_service.ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1429,7 +1389,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         });
         engine.refreshValues(readRequest.nodesToRead, function (err) {
             if (!err) {
-                var dataValues = engine.read(context, readRequest);
+                const dataValues = engine.read(context, readRequest);
                 dataValues.length.should.equal(1);
                 dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
             }
@@ -1439,7 +1399,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
     });
 
     it("should read Server_NamespaceArray  DataType", function () {
-        var readRequest = new read_service.ReadRequest({
+        const readRequest = new read_service.ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1451,7 +1411,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
                 }
             ]
         });
-        var dataValues = engine.read(context, readRequest);
+        const dataValues = engine.read(context, readRequest);
         dataValues.length.should.equal(1);
         dataValues[0].value.dataType.should.eql(DataType.NodeId);
         dataValues[0].value.value.toString().should.eql("ns=0;i=12"); // String
@@ -1459,7 +1419,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     it("should read Server_NamespaceArray ValueRank", function () {
 
-        var readRequest = new read_service.ReadRequest({
+        const readRequest = new read_service.ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1472,7 +1432,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
             ]
         });
 
-        var dataValues = engine.read(context, readRequest);
+        const dataValues = engine.read(context, readRequest);
         dataValues.length.should.equal(1);
         dataValues[0].statusCode.should.eql(StatusCodes.Good);
 
@@ -1482,16 +1442,16 @@ describeWithLeakDetector("testing ServerEngine", function () {
     });
 
     describe("testing ServerEngine browsePath", function () {
-        var translate_service = require("node-opcua-service-translate-browse-path");
-        var nodeid = require("node-opcua-nodeid");
+        const translate_service = require("node-opcua-service-translate-browse-path");
+        const nodeid = require("node-opcua-nodeid");
 
         it("translating a browse path to a nodeId with a invalid starting node shall return BadNodeIdUnknown", function () {
-            var browsePath = new translate_service.BrowsePath({
+            const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(0), // <=== invalid node id
                 relativePath: []
             });
 
-            var browsePathResult = engine.browsePath(browsePath);
+            const browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
 
             browsePathResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
@@ -1500,17 +1460,17 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("translating a browse path to a nodeId with an empty relativePath  shall return BadNothingToDo", function () {
 
-            var browsePath = new translate_service.BrowsePath({
+            const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84), // <=== valid node id
                 relativePath: {elements: []}         // <=== empty path
             });
-            var browsePathResult = engine.browsePath(browsePath);
+            const browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
             browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
         });
 
         it("The Server shall return BadBrowseNameInvalid if the targetName is missing. ", function () {
-            var browsePath = new translate_service.BrowsePath({
+            const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84),
                 relativePath: {
                     elements: [
@@ -1524,14 +1484,14 @@ describeWithLeakDetector("testing ServerEngine", function () {
                 }
             });
 
-            var browsePathResult = engine.browsePath(browsePath);
+            const browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
 
             browsePathResult.statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
             browsePathResult.targets.length.should.eql(0);
         });
         it("The Server shall return BadNoMatch if the targetName doesn't exist. ", function () {
-            var browsePath = new translate_service.BrowsePath({
+            const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84),
                 relativePath: {
                     elements: [
@@ -1545,7 +1505,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
                 }
             });
 
-            var browsePathResult = engine.browsePath(browsePath);
+            const browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
             browsePathResult.statusCode.should.eql(StatusCodes.BadNoMatch);
             browsePathResult.targets.length.should.eql(0);
@@ -1553,7 +1513,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("The Server shall return Good if the targetName does exist. ", function () {
 
-            var browsePath = new translate_service.BrowsePath({
+            const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84),
                 relativePath: {
                     elements: [
@@ -1567,12 +1527,12 @@ describeWithLeakDetector("testing ServerEngine", function () {
                 }
             });
 
-            var browsePathResult = engine.browsePath(browsePath);
+            const browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
             browsePathResult.statusCode.should.eql(StatusCodes.Good);
             browsePathResult.targets.length.should.eql(1);
             browsePathResult.targets[0].targetId.should.eql(makeExpandedNodeId(85));
-            var UInt32_MaxValue = 0xFFFFFFFF;
+            const UInt32_MaxValue = 0xFFFFFFFF;
             browsePathResult.targets[0].remainingPathIndex.should.equal(UInt32_MaxValue);
         });
 
@@ -1582,7 +1542,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should read  Server_ServerStatus_CurrentTime", function (done) {
 
-            var readRequest = new read_service.ReadRequest({
+            const readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus_CurrentTime,
@@ -1591,7 +1551,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
             });
             engine.refreshValues(readRequest.nodesToRead, function (err) {
                 if (!err) {
-                    var dataValues = engine.read(context, readRequest);
+                    const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
                     dataValues[0].statusCode.should.eql(StatusCodes.Good);
                     dataValues[0].value.dataType.should.eql(DataType.DateTime);
@@ -1604,7 +1564,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should read  Server_ServerStatus_StartTime", function (done) {
 
-            var readRequest = new read_service.ReadRequest({
+            const readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus_StartTime,
@@ -1613,7 +1573,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
             });
             engine.refreshValues(readRequest.nodesToRead, function (err) {
                 if (!err) {
-                    var dataValues = engine.read(context, readRequest);
+                    const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
                     dataValues[0].statusCode.should.eql(StatusCodes.Good);
                     dataValues[0].value.dataType.should.eql(DataType.DateTime);
@@ -1628,7 +1588,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
             engine.serverStatus.buildInfo.buildNumber = "1234";
 
-            var readRequest = new read_service.ReadRequest({
+            const readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus_BuildInfo_BuildNumber,
@@ -1637,7 +1597,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
             });
             engine.refreshValues(readRequest.nodesToRead, function (err) {
                 if (!err) {
-                    var dataValues = engine.read(context, readRequest);
+                    const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
                     dataValues[0].statusCode.should.eql(StatusCodes.Good);
                     dataValues[0].value.dataType.should.eql(DataType.String);
@@ -1651,11 +1611,11 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
             engine.serverStatus.buildInfo.buildNumber = "1234";
 
-            var nodeid = VariableIds.Server_ServerStatus_BuildInfo_BuildNumber;
-            var node = engine.addressSpace.findNode(nodeid);
+            const nodeid = VariableIds.Server_ServerStatus_BuildInfo_BuildNumber;
+            const node = engine.addressSpace.findNode(nodeid);
             should.exist(node);
 
-            var dataValue = node.readAttribute(context, AttributeIds.Value);
+            const dataValue = node.readAttribute(context, AttributeIds.Value);
 
             dataValue.statusCode.should.eql(StatusCodes.Good);
             dataValue.value.dataType.should.eql(DataType.String);
@@ -1666,17 +1626,17 @@ describeWithLeakDetector("testing ServerEngine", function () {
         it("should read  Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount", function (done) {
 
 
-            var nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
-            var node = engine.addressSpace.findNode(nodeid);
+            const nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
+            const node = engine.addressSpace.findNode(nodeid);
             should.exist(node);
 
-            var nodesToRead = [{
+            const nodesToRead = [{
                 nodeId: nodeid,
                 attributeId: AttributeIds.Value
             }];
             engine.refreshValues(nodesToRead, function (err) {
                 if (!err) {
-                    var dataValue = node.readAttribute(context, AttributeIds.Value);
+                    const dataValue = node.readAttribute(context, AttributeIds.Value);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     dataValue.value.dataType.should.eql(DataType.UInt32);
                     dataValue.value.value.should.eql(0);
@@ -1688,7 +1648,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should read all attributes of Server_ServerStatus_CurrentTime", function (done) {
 
-            var readRequest = new read_service.ReadRequest({
+            const readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
                 nodesToRead: [1, 2, 3, 4, 5, 6, 7, 13, 14, 15, 16, 17, 18, 19, 20].map(function (attributeId) {
                     return {
@@ -1699,7 +1659,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
             });
             engine.refreshValues(readRequest.nodesToRead, function (err) {
                 if (!err) {
-                    var dataValues = engine.read(context, readRequest);
+                    const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(15);
                     dataValues[7].statusCode.should.eql(StatusCodes.Good);
                     dataValues[7].value.dataType.should.eql(DataType.DateTime);
@@ -1715,7 +1675,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should be possible to access the ServerStatus Object as a variable", function (done) {
 
-            var readRequest = new read_service.ReadRequest({
+            const readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus,
@@ -1724,14 +1684,14 @@ describeWithLeakDetector("testing ServerEngine", function () {
             });
             engine.refreshValues(readRequest.nodesToRead, function (err) {
                 if (!err) {
-                    var dataValues = engine.read(context, readRequest);
+                    const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
                     dataValues[0].statusCode.should.eql(StatusCodes.Good);
                     dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
 
                     dataValues[0].value.value.should.be.instanceOf(Object);
 
-                    var serverStatus = dataValues[0].value.value;
+                    const serverStatus = dataValues[0].value.value;
 
                     serverStatus.state.key.should.eql("Running");
                     serverStatus.state.value.should.eql(0);
@@ -1752,7 +1712,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should be possible to read the Server_ServerStatus_BuildInfo Object as a complex structure", function (done) {
 
-            var readRequest = new read_service.ReadRequest({
+            const readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus_BuildInfo,
@@ -1761,7 +1721,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
             });
             engine.refreshValues(readRequest.nodesToRead, function (err) {
                 if (!err) {
-                    var dataValues = engine.read(context, readRequest);
+                    const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
                     dataValues[0].statusCode.should.eql(StatusCodes.Good);
                     dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
@@ -1769,7 +1729,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
                     console.log('buildInfo', dataValues[0].value.value);
                     dataValues[0].value.value.should.be.instanceOf(Object);
 
-                    var buildInfo = dataValues[0].value.value;
+                    const buildInfo = dataValues[0].value.value;
 
                     buildInfo.productName.should.equal("NODEOPCUA-SERVER");
                     buildInfo.softwareVersion.should.equal("1.0");
@@ -1784,11 +1744,11 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
     describe("writing nodes ", function () {
 
-        var WriteValue = require("node-opcua-service-write").WriteValue;
+        const WriteValue = require("node-opcua-service-write").WriteValue;
 
         it("should write a single node", function (done) {
 
-            var nodeToWrite = new WriteValue({
+            const nodeToWrite = new WriteValue({
                 nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                 attributeId: AttributeIds.Value,
                 indexRange: null,
@@ -1807,7 +1767,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should return BadNotWritable when trying to write a Executable attribute", function (done) {
 
-            var nodeToWrite = new WriteValue({
+            const nodeToWrite = new WriteValue({
                 nodeId: resolveNodeId("RootFolder"),
                 attributeId: AttributeIds.Executable,
                 indexRange: null,
@@ -1827,7 +1787,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should write many nodes", function (done) {
 
-            var nodesToWrite = [
+            const nodesToWrite = [
                 new WriteValue({
                     nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                     attributeId: AttributeIds.Value,
@@ -1863,7 +1823,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it(" write a single node with a null variant shall return BadTypeMismatch", function (done) {
 
-            var nodeToWrite = new WriteValue({
+            const nodeToWrite = new WriteValue({
                 nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                 attributeId: AttributeIds.Value,
                 indexRange: null,
@@ -1887,26 +1847,26 @@ describeWithLeakDetector("testing ServerEngine", function () {
             // we simulate the scenario where the variable represent a PLC value,
             // and for some reason, the server cannot access the PLC.
             // In this case we expect the value getter to return a StatusCode rather than a Variant
-            engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "FailingPLCValue",
-                  nodeId: "ns=1;s=FailingPLCValue",
-                  dataType: "Double",
-                  value: {
-                      get: function () {
-                          // we return a StatusCode here instead of a Variant
-                          // this means : "Houston ! we have a problem"
-                          return StatusCodes.BadResourceUnavailable;
-                      },
-                      set: null // read only
-                  }
-              }
+            namespace.addVariable({
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "FailingPLCValue",
+                    nodeId: "ns=1;s=FailingPLCValue",
+                    dataType: "Double",
+                    value: {
+                        get: function () {
+                            // we return a StatusCode here instead of a Variant
+                            // this means : "Houston ! we have a problem"
+                            return StatusCodes.BadResourceUnavailable;
+                        },
+                        set: null // read only
+                    }
+                }
             );
         });
 
         it("ZZ should have statusCode=BadResourceUnavailable when trying to read the FailingPLCValue variable", function (done) {
 
-            var readRequest = new read_service.ReadRequest({
+            const readRequest = new read_service.ReadRequest({
                 timestampsToReturn: read_service.TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: "ns=1;s=FailingPLCValue",
@@ -1915,7 +1875,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
             });
             engine.refreshValues(readRequest.nodesToRead, function (err) {
                 if (!err) {
-                    var readResults = engine.read(context, readRequest);
+                    const readResults = engine.read(context, readRequest);
                     readResults[0].statusCode.should.eql(StatusCodes.BadResourceUnavailable);
                 }
                 done(err);
@@ -1927,52 +1887,52 @@ describeWithLeakDetector("testing ServerEngine", function () {
     describe("ServerEngine : forcing variable value refresh", function () {
 
 
-        var value1 = 0;
-        var value2 = 0;
+        let value1 = 0;
+        let value2 = 0;
 
         before(function () {
 
             // add a variable that provide a on demand refresh function
-            engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "RefreshedOnDemandValue",
-                  nodeId: "ns=1;s=RefreshedOnDemandValue",
-                  dataType: "Double",
-                  value: {
-                      refreshFunc: function (callback) {
-                          // add some delay to simulate a long operation to perform the asynchronous read
-                          setTimeout(function () {
-                              value1 += 1;
-                              var dataValue = new DataValue({
-                                  value: {
-                                      dataType: DataType.Double,
-                                      value: value1
-                                  }
-                              });
-                              callback(null, dataValue);
-                          }, 10);
-                      }
-                  }
-              }
+            namespace.addVariable({
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "RefreshedOnDemandValue",
+                    nodeId: "ns=1;s=RefreshedOnDemandValue",
+                    dataType: "Double",
+                    value: {
+                        refreshFunc: function (callback) {
+                            // add some delay to simulate a long operation to perform the asynchronous read
+                            setTimeout(function () {
+                                value1 += 1;
+                                const dataValue = new DataValue({
+                                    value: {
+                                        dataType: DataType.Double,
+                                        value: value1
+                                    }
+                                });
+                                callback(null, dataValue);
+                            }, 10);
+                        }
+                    }
+                }
             );
             // add an other variable that provide a on demand refresh function
-            engine.addressSpace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "OtherRefreshedOnDemandValue",
-                  nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
-                  dataType: "Double",
-                  value: {
-                      refreshFunc: function (callback) {
-                          setTimeout(function () {
-                              value2 += 1;
-                              var dataValue = new DataValue({
-                                  value: {dataType: DataType.Double, value: value2}
-                              });
-                              callback(null, dataValue);
-                          }, 10);
-                      }
-                  }
-              }
+            namespace.addVariable({
+                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                    browseName: "OtherRefreshedOnDemandValue",
+                    nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
+                    dataType: "Double",
+                    value: {
+                        refreshFunc: function (callback) {
+                            setTimeout(function () {
+                                value2 += 1;
+                                const dataValue = new DataValue({
+                                    value: {dataType: DataType.Double, value: value2}
+                                });
+                                callback(null, dataValue);
+                            }, 10);
+                        }
+                    }
+                }
             );
         });
 
@@ -1987,9 +1947,9 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should refresh a single variable value asynchronously", function (done) {
 
-            var nodesToRefresh = [{nodeId: "ns=1;s=RefreshedOnDemandValue"}];
+            const nodesToRefresh = [{nodeId: "ns=1;s=RefreshedOnDemandValue"}];
 
-            var v = engine.readSingleNode(context, nodesToRefresh[0].nodeId, AttributeIds.Value);
+            const v = engine.readSingleNode(context, nodesToRefresh[0].nodeId, AttributeIds.Value);
             v.statusCode.should.equal(StatusCodes.UncertainInitialValue);
 
             engine.refreshValues(nodesToRefresh, function (err, values) {
@@ -2000,7 +1960,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
                     value1.should.equal(1);
                     value2.should.equal(0);
 
-                    var dataValue = engine.readSingleNode(context, nodesToRefresh[0].nodeId, AttributeIds.Value);
+                    const dataValue = engine.readSingleNode(context, nodesToRefresh[0].nodeId, AttributeIds.Value);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
                     dataValue.value.value.should.eql(1);
 
@@ -2012,7 +1972,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         it("should refresh multiple variable values asynchronously", function (done) {
 
 
-            var nodesToRefresh = [
+            const nodesToRefresh = [
                 {nodeId: "ns=1;s=RefreshedOnDemandValue"},
                 {nodeId: "ns=1;s=OtherRefreshedOnDemandValue"}
             ];
@@ -2033,7 +1993,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should  refresh nodes only once if they are duplicated ", function (done) {
 
-            var nodesToRefresh = [
+            const nodesToRefresh = [
                 {nodeId: "ns=1;s=RefreshedOnDemandValue"},
                 {nodeId: "ns=1;s=RefreshedOnDemandValue"}, // <== duplicated node
                 {nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName}
@@ -2054,7 +2014,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
         it("should ignore nodes with attributeId!=AttributeIds.Value ", function (done) {
             value1.should.equal(0);
             value2.should.equal(0);
-            var nodesToRefresh = [
+            const nodesToRefresh = [
                 {nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName}
             ];
             engine.refreshValues(nodesToRefresh, function (err, values) {
@@ -2069,7 +2029,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
 
         it("should perform readValueAsync on Variable", function (done) {
 
-            var variable = engine.addressSpace.findNode("ns=1;s=RefreshedOnDemandValue");
+            const variable = engine.addressSpace.findNode("ns=1;s=RefreshedOnDemandValue");
 
             value1.should.equal(0);
             variable.readValueAsync(context, function (err, value) {
@@ -2084,7 +2044,7 @@ describeWithLeakDetector("testing ServerEngine", function () {
     describe("ServerEngine Diagnostic", function () {
 
         it("should have ServerDiagnosticObject", function () {
-            var server = engine.addressSpace.rootFolder.objects.server;
+            const server = engine.addressSpace.rootFolder.objects.server;
             server.browseName.toString().should.eql("Server");
             server.serverDiagnostics.browseName.toString().should.eql("ServerDiagnostics");
             server.serverDiagnostics.enabledFlag.browseName.toString().should.eql("EnabledFlag");
@@ -2099,10 +2059,10 @@ describe("ServerEngine advanced", function () {
 
     it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown", function (done) {
 
-        var engine = new ServerEngine();
+        const engine = new ServerEngine();
 
-        var sinon = require("sinon");
-        var myFunc = sinon.spy();
+        const sinon = require("sinon");
+        const myFunc = sinon.spy();
 
         engine.registerShutdownTask(myFunc);
 
@@ -2115,10 +2075,10 @@ describe("ServerEngine advanced", function () {
 
     it("ServerEngine#shutdown engine should take care of disposing session on shutdown", function (done) {
 
-        var engine = new ServerEngine();
-        var session1 = engine.createSession();
-        var session2 = engine.createSession();
-        var session3 = engine.createSession();
+        const engine = new ServerEngine();
+        const session1 = engine.createSession();
+        const session2 = engine.createSession();
+        const session3 = engine.createSession();
 
         should.exist(session1);
         should.exist(session2);
@@ -2134,11 +2094,11 @@ describe("ServerEngine advanced", function () {
 
 describe("ServerEngine ServerStatus & ServerCapabilities", function () {
 
-    var sinon = require("sinon");
+    const sinon = require("sinon");
 
-    var engine;
+    let engine;
 
-    var defaultBuildInfo = {
+    const defaultBuildInfo = {
         productName: "NODEOPCUA-SERVER",
         softwareVersion: "1.0",
         manufacturerName: "<Manufacturer>",
@@ -2146,7 +2106,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function () {
     };
 
     this.timeout(40000);
-    var test;
+    let test;
     before(function (done) {
 
         test = this;
@@ -2172,11 +2132,11 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function () {
 
     it("ServerEngine#ServerCapabilities should expose ServerCapabilities ", function (done) {
 
-        var serverCapabilitiesId = makeNodeId(ObjectIds.Server_ServerCapabilities); // ns=0;i=2268
+        const serverCapabilitiesId = makeNodeId(ObjectIds.Server_ServerCapabilities); // ns=0;i=2268
         serverCapabilitiesId.toString().should.eql("ns=0;i=2268");
 
-        var addressSpace = engine.addressSpace;
-        var serverCapabilitiesNode = addressSpace.findNode(serverCapabilitiesId);
+        const addressSpace = engine.addressSpace;
+        const serverCapabilitiesNode = addressSpace.findNode(serverCapabilitiesId);
 
         should(serverCapabilitiesNode).be.instanceOf(UAObject);
 
@@ -2187,23 +2147,23 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function () {
 
     it("ServerEngine#ServerStatus should expose currentTime", function (done) {
 
-        var currentTimeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime); // ns=0;i=2258
+        const currentTimeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime); // ns=0;i=2258
         currentTimeId.value.should.eql(2258);
 
-        var addressSpace = engine.addressSpace;
-        var currentTimeNode = addressSpace.findNode(currentTimeId);
-        var d1 = currentTimeNode.readValue();
+        const addressSpace = engine.addressSpace;
+        const currentTimeNode = addressSpace.findNode(currentTimeId);
+        const d1 = currentTimeNode.readValue();
 
         test.clock.tick(1000);
-        var d2 = currentTimeNode.readValue();
+        const d2 = currentTimeNode.readValue();
         d2.value.value.getTime().should.be.greaterThan(d1.value.value.getTime() + 900);
 
         test.clock.tick(1000);
-        var d3 = currentTimeNode.readValue();
+        const d3 = currentTimeNode.readValue();
         d3.value.value.getTime().should.be.greaterThan(d2.value.value.getTime() + 900);
 
         test.clock.tick(1000);
-        var d4 = currentTimeNode.readValue();
+        const d4 = currentTimeNode.readValue();
         d4.value.value.getTime().should.be.greaterThan(d3.value.value.getTime() + 900);
 
         done();

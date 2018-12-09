@@ -1,12 +1,12 @@
-var should = require("should");
+const should = require("should");
 
-var MessageBuilder = require("../src/message_builder").MessageBuilder;
+const MessageBuilder = require("../src/message_builder").MessageBuilder;
 
 
-var packets = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets");
+const packets = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets");
 
-var redirectToFile = require("node-opcua-debug").redirectToFile;
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const redirectToFile = require("node-opcua-debug").redirectToFile;
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 
 describe("MessageBuilder", function () {
@@ -14,10 +14,10 @@ describe("MessageBuilder", function () {
 
     it('should raise a error event if a HEL or ACK packet is fed instead of a MSG packet ', function (done) {
 
-        var messageBuilder = new MessageBuilder();
+        const messageBuilder = new MessageBuilder();
 
-        var full_message_body_event_received = false;
-        var on_message__received = false;
+        let full_message_body_event_received = false;
+        let on_message__received = false;
 
         messageBuilder.
             on("message", function (message) {
@@ -51,10 +51,10 @@ describe("MessageBuilder", function () {
 
         redirectToFile("MessageBuilder_" + test_case_name + ".log", function () {
 
-            var messageBuilder = new MessageBuilder();
+            const messageBuilder = new MessageBuilder();
 
-            var full_message_body_event_received = false;
-            var on_message__received = false;
+            let full_message_body_event_received = false;
+            let on_message__received = false;
 
             messageBuilder.
                 on("message", function (message) {
@@ -81,7 +81,7 @@ describe("MessageBuilder", function () {
 
     it('should raise an error if the embedded object id is not known', function (done) {
 
-        var bad_packet = new Buffer(packets.packet_cs_2);
+        const bad_packet = Buffer.from(packets.packet_cs_2);
 
         // alter the packet id to scrap the message ID
         // this will cause the message builder not to find the embedded object constructor.
@@ -95,7 +95,7 @@ describe("MessageBuilder", function () {
 
     it('should raise an error if the embedded object failed to be decoded', function (done) {
 
-        var bad_packet = new Buffer(packets.packet_cs_2);
+        const bad_packet = Buffer.from(packets.packet_cs_2);
 
         // alter the packet id  to scrap the inner data
         // this will cause the decode function to fail and raise an exception
@@ -109,7 +109,7 @@ describe("MessageBuilder", function () {
 
     it("should emit a 'invalid_sequence_number' event if a message does not have a 1-increased sequence number", function (done) {
 
-        var messageBuilder = new MessageBuilder();
+        const messageBuilder = new MessageBuilder();
 
         messageBuilder.
             on("message", function (message) {

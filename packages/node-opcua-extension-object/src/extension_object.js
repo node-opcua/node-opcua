@@ -4,13 +4,13 @@
  */
 
 
-var factories = require("node-opcua-factory");
-var is_internal_id = require("node-opcua-factory").is_internal_id;
+const factories = require("node-opcua-factory");
+const is_internal_id = require("node-opcua-factory").is_internal_id;
 
-var ec = require("node-opcua-basic-types");
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const ec = require("node-opcua-basic-types");
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
-var ExtensionObject = function () {
+const ExtensionObject = function () {
 
 };
 
@@ -84,21 +84,21 @@ function encodeExtensionObject(object, stream) {
 
 function decodeExtensionObject(stream) {
 
-    var nodeId = ec.decodeNodeId(stream);
-    var encodingType = stream.readUInt8();
+    const nodeId = ec.decodeNodeId(stream);
+    const encodingType = stream.readUInt8();
 
     if (encodingType === 0) {
         return null;
     }
 
-    var length = stream.readUInt32();
+    const length = stream.readUInt32();
 
     /* istanbul ignore next */
     if (nodeId.value === 0 || encodingType === 0) {
         return null;
     }
 
-    var object = constructEmptyExtensionObject(nodeId);
+    const object = constructEmptyExtensionObject(nodeId);
 
     /* istanbul ignore next */
     if (object === null) {
@@ -106,12 +106,31 @@ function decodeExtensionObject(stream) {
         stream.length += length;
         return null;
     }
-    object.decode(stream);
+    // let verify that  decode will use the expected number of bytes
+    const streamLengthBefore = stream.length;
+
+    try {
+        object.decode(stream);
+    }
+    catch(err) {
+        console.log("Cannot decode object ",err.message);
+    }
+
+    if (streamLengthBefore + length !== stream.length) {
+        // this may happen if the server or client do have a different OPCUA version
+        // for instance SubscriptionDiagnostics structure has been changed between OPCUA version 1.01 and 1.04
+        // causing 2 extra member to be added.
+        console.log("=========================================".bgWhite.red);
+        console.warn("WARNING => Extension object decoding error on ",object.constructor.name," expected size was", length, "actual size was ", stream.length - streamLengthBefore);
+        stream.length =  streamLengthBefore + length;
+    }
     return object;
 }
 
 exports.ExtensionObject = ExtensionObject;
 exports.encodeExtensionObject =encodeExtensionObject;
+
+
 exports.decodeExtensionObject =decodeExtensionObject;
 
 factories.registerBuiltInType({

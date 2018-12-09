@@ -4,21 +4,21 @@
 
 
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
-var sinon = require("sinon");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const should = require("should");
+const sinon = require("sinon");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var ClientSubscription = opcua.ClientSubscription;
-var StatusCodes = opcua.StatusCodes;
-var DataType = opcua.DataType;
-var VariantArrayType = opcua.VariantArrayType;
+const OPCUAClient = opcua.OPCUAClient;
+const ClientSubscription = opcua.ClientSubscription;
+const StatusCodes = opcua.StatusCodes;
+const DataType = opcua.DataType;
+const VariantArrayType = opcua.VariantArrayType;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 module.exports = function (test) {
 
@@ -27,21 +27,23 @@ module.exports = function (test) {
 
         it("SubscriptionDiagnostics-1 : server should expose SubscriptionDiagnosticsArray", function (done) {
 
-            var client = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
             // Given a connected client and a subscription
             perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
 
                 // find the session diagnostic info...
+                const relativePath = "/Objects/Server.ServerDiagnostics.SubscriptionDiagnosticsArray";
 
-                console.log(" getting diagnostic for subscription.id=", subscription.subscriptionId);
+                console.log("subscriptionid",subscription.subscriptionId);
 
-                var relativePath = "/Objects/Server.ServerDiagnostics.SubscriptionDiagnosticsArray";
-
-                var browsePath = [
+                function m(name) {
+                    return "1:"+name
+                }
+                const browsePath = [
                     opcua.makeBrowsePath("RootFolder", relativePath),
-                    opcua.makeBrowsePath("RootFolder", relativePath + "." + subscription.subscriptionId)
+                    opcua.makeBrowsePath("RootFolder", relativePath + ".1:" + subscription.subscriptionId)
                 ];
                 session.translateBrowsePath(browsePath, function (err, result) {
                     //xx console.log("Result = ", result.toString());
@@ -70,15 +72,14 @@ module.exports = function (test) {
                         // it should expose the SubscriptionDiagnostics of the session
                         function (callback) {
 
-                            var subscriptionDiagnosticNodeId = result[1].targets[0].targetId;
-                            session.read([{
+                            const subscriptionDiagnosticNodeId = result[1].targets[0].targetId;
+                            session.read({
                                 nodeId: subscriptionDiagnosticNodeId,
                                 attributeId: opcua.AttributeIds.Value
-                            }], function (err, nodesToRead, results) {
+                            }, function (err, dataValue) {
 
                                 if(err) {return callback(err);}
 
-                                var dataValue = results[0];
                                 dataValue.statusCode.should.eql(StatusCodes.Good);
                                 dataValue.value.dataType.should.eql(DataType.ExtensionObject);
                                 dataValue.value.arrayType.should.eql(VariantArrayType.Scalar);
@@ -93,14 +94,13 @@ module.exports = function (test) {
                         function (callback) {
 
                             // reading SubscriptionDiagnosticsArray should return an array of extension object
-                            var subscriptionDiagnosticArrayNodeId = result[0].targets[0].targetId;
-                            session.read([{
+                            const subscriptionDiagnosticArrayNodeId = result[0].targets[0].targetId;
+                            session.read({
                                 nodeId: subscriptionDiagnosticArrayNodeId,
                                 attributeId: opcua.AttributeIds.Value
-                            }], function (err, nodesToRead, results) {
+                            }, function (err,dataValue) {
                                 if(err) {return callback(err);}
 
-                                var dataValue = results[0];
                                 dataValue.statusCode.should.eql(StatusCodes.Good);
                                 dataValue.value.dataType.should.eql(DataType.ExtensionObject);
                                 dataValue.value.arrayType.should.eql(VariantArrayType.Array);
@@ -108,16 +108,16 @@ module.exports = function (test) {
                                 dataValue.value.value.length.should.be.greaterThan(0,
                                     "the SubscriptionDiagnosticsArray must expose at least one value");
 
-                                var lastIndex = dataValue.value.value.length -1;
+                                const lastIndex = dataValue.value.value.length -1;
                                 dataValue.value.value[0].constructor.name.should.eql("SubscriptionDiagnostics",
                                   "the value inside the array  must be of type SubscriptionDiagnostics");
 
                                 //xx console.log(dataValue.value.value[0]);
                                 //xx console.log(session);
 
-                                var sessionDiagnostic = dataValue.value.value[lastIndex];
+                                const sessionDiagnostic = dataValue.value.value[lastIndex];
 
-                                var expectedSessionId = session.sessionId;
+                                const expectedSessionId = session.sessionId;
                                 sessionDiagnostic.sessionId.toString().should.eql(expectedSessionId.toString(),
                                     "the session diagnostic should expose the correct sessionId");
 
@@ -136,26 +136,26 @@ module.exports = function (test) {
         });
 
         function  readSubscriptionDiagnosticArray(session,callback) {
-            var subscriptionDiagnosticArrayNodeId = "ns=0;i=2290";
-            session.read([{
+            const subscriptionDiagnosticArrayNodeId = "ns=0;i=2290";
+            session.read({
                 nodeId: subscriptionDiagnosticArrayNodeId,
                 attributeId: opcua.AttributeIds.Value
-            }], function (err, nodesToRead, results) {
+            }, function (err, dataValue) {
                 if (err) {return callback(err);}
-                results[0].statusCode.should.eql(StatusCodes.Good);
-                callback(null,results[0].value.value);
+                dataValue.statusCode.should.eql(StatusCodes.Good);
+                callback(null,dataValue.value.value);
             });
 
         }
         it("SubscriptionDiagnostics-2 : server should remove SubscriptionDiagnostics from SubscriptionDiagnosticsArray when subscription is terminated", function (done) {
 
-            var client = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
-            var subscriptionDiagnosticArrayLengthBefore = 0;
+            let subscriptionDiagnosticArrayLengthBefore = 0;
             // Given a connected client and a subscription
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-                var subscription;
+                let subscription;
                 async.series([
 
                     // I should verify that "ns=0;i=2290" (SubscriptionDiagnosticsArray) expose no SubscriptionDiagnostics anympore
@@ -218,27 +218,27 @@ module.exports = function (test) {
             }, done);
         });
         it("SubscriptionDiagnostics-3 : server should remove SubscriptionDiagnostics from SubscriptionDiagnosticsArray when subscription has timedout", function (done) {
-            var client = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
-            var subscriptionDiagnosticArrayLengthBefore = 0;
+            let subscriptionDiagnosticArrayLengthBefore = 0;
 
             function checkSubscriptionExists(session,subscriptionId, callback){
-                var setMonitoringModeRequest = {
+                const setMonitoringModeRequest = {
                     subscriptionId: subscriptionId
                 };
                 session.setMonitoringMode(setMonitoringModeRequest, function (err) {
-                    var exists = !err ||  !(err.message.match(/BadSubscriptionIdInvalid/));
+                    const exists = !err ||  !(err.message.match(/BadSubscriptionIdInvalid/));
                     callback(null, exists);
                 });
             }
 
-            var subscriptionId  = null;
-            var subscriptionTimeOut = 0;
+            let subscriptionId  = null;
+            let subscriptionTimeOut = 0;
 
             // Given a connected client and a subscription
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-                var subscription;
+                let subscription;
                 async.series([
 
                     // I should verify that "ns=0;i=2290" (SubscriptionDiagnosticsArray) expose no SubscriptionDiagnostics anympore
@@ -259,7 +259,7 @@ module.exports = function (test) {
                     function(callback) {
 
                         // Note: we use the bare API here as we don't want the keep alive machinery to be used
-                        var options ={
+                        const options ={
                             requestedPublishingInterval: 100,
                             requestedLifetimeCount: 10,
                             requestedMaxKeepAliveCount: 5,
@@ -301,7 +301,7 @@ module.exports = function (test) {
                     function (callback) {
                         // prevent our client to answer and process keep-alive
 
-                        var time_to_wait_to_make_subscription_to_time_out = subscriptionTimeOut + 2000;
+                        const time_to_wait_to_make_subscription_to_time_out = subscriptionTimeOut + 2000;
                         setTimeout(callback,time_to_wait_to_make_subscription_to_time_out);
                     },
 

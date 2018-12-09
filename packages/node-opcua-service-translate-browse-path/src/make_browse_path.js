@@ -1,11 +1,11 @@
 "use strict";
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 
-var BrowsePath = require("../_generated_/_auto_generated_BrowsePath").BrowsePath;
-var makeRelativePath = require("./make_relative_path").makeRelativePath;
+const BrowsePath = require("../_generated_/_auto_generated_BrowsePath").BrowsePath;
+const makeRelativePath = require("./make_relative_path").makeRelativePath;
 
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
 function _get_nodeId(node) {
     if (node.nodeId) {

@@ -3,7 +3,7 @@
 require("./DataChangeTrigger_enum");
 require("./DeadbandType_enum");
 
-var DataChangeFilter_Schema = {
+const DataChangeFilter_Schema = {
     name: "DataChangeFilter",
     //  BaseType="MonitoringFilter"
     fields: [

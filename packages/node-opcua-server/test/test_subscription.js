@@ -1,27 +1,28 @@
 /* global: require,describe,it,before,beforeEach,after,afterEach */
 "use strict";
 
-var should = require("should");
-var sinon = require("sinon");
+const should = require("should");
+const sinon = require("sinon");
 
-var subscription_service = require("node-opcua-service-subscription");
-var SubscriptionState = require("../src/subscription").SubscriptionState;
-
-
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var Subscription = require("../src/subscription").Subscription;
-var MonitoredItem = require("../src/monitored_item").MonitoredItem;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-
-var SessionContext = require("node-opcua-address-space").SessionContext;
-var fake_publish_engine = {};
+const subscription_service = require("node-opcua-service-subscription");
+const SubscriptionState = require("../src/server_subscription").SubscriptionState;
 
 
-var fakeNotificationData =[new subscription_service.DataChangeNotification()];
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const Subscription = require("../src/server_subscription").Subscription;
+const MonitoredItem = require("../src/monitored_item").MonitoredItem;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
+const SessionContext = require("node-opcua-address-space").SessionContext;
+let fake_publish_engine = {
+};
 
-var server_engine = require("../src/server_engine");
+
+const fakeNotificationData =[new subscription_service.DataChangeNotification()];
+
+const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
+
+const server_engine = require("../src/server_engine");
 
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = {
@@ -39,15 +40,15 @@ function reconstruct_fake_publish_engine() {
     };
 }
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var DataType = require("node-opcua-variant").DataType;
-var MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const DataType = require("node-opcua-variant").DataType;
+const MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
 
 
-var add_mock_monitored_item = require("./helper").add_mock_monitored_item;
+const add_mock_monitored_item = require("./helper").add_mock_monitored_item;
 
-var describeWithLeakDetector = require("node-opcua-leak-detector").describeWithLeakDetector;
-describeWithLeakDetector("Subscriptions", function () {
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("Subscriptions", function () {
 
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();
@@ -61,7 +62,7 @@ describeWithLeakDetector("Subscriptions", function () {
     it("T1 - a subscription will make sure that lifeTimeCount is at least 3 times maxKeepAliveCount", function () {
 
         {
-            var subscription1 = new Subscription({
+            const subscription1 = new Subscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount:    20,
                 lifeTimeCount:        60, // at least 3 times maxKeepAliveCount
@@ -72,10 +73,11 @@ describeWithLeakDetector("Subscriptions", function () {
             subscription1.lifeTimeCount.should.eql(60,"lifeTimeCount shall be unchanged because it is at least 3 times maxKeepAliveCount");
 
             subscription1.terminate();
+            subscription1.dispose();
 
         }
         {
-            var subscription2 = new Subscription({
+            const subscription2 = new Subscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount:    20,
                 lifeTimeCount:         1, // IS NOT at least 3 times maxKeepAliveCount
@@ -85,13 +87,14 @@ describeWithLeakDetector("Subscriptions", function () {
             subscription2.maxKeepAliveCount.should.eql(20);
             subscription2.lifeTimeCount.should.eql(60,"lifeTimeCount must be adjusted to be at least 3 times maxKeepAliveCount");
             subscription2.terminate();
+            subscription2.dispose();
         }
 
     });
 
     it("T2 - when a Subscription is created, the first Message is sent at the end of the first publishing cycle to inform the Client that the Subscription is operational. - Case 1 : PublishRequest in Queue &  no notification available",function() {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount:    20,
             lifeTimeCount:        60, // at least 3 times maxKeepAliveCount
@@ -104,8 +107,8 @@ describeWithLeakDetector("Subscriptions", function () {
 
         subscription.maxKeepAliveCount.should.eql(20);
 
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
 
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
@@ -141,12 +144,13 @@ describeWithLeakDetector("Subscriptions", function () {
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
     it("T3 - when a Subscription is created, the first Message is sent at the end of the first publishing cycle to inform the Client that the Subscription is operational. - Case 2 : NoPublishRequest in Queue &  no notification available",function() {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             id: 1000,
             publishingInterval: 1000,
             maxKeepAliveCount:    20,
@@ -158,8 +162,8 @@ describeWithLeakDetector("Subscriptions", function () {
         // pretend we have NO PublishRequest from client
         fake_publish_engine.pendingPublishRequestCount = 0;
 
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
 
@@ -205,12 +209,13 @@ describeWithLeakDetector("Subscriptions", function () {
 
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
     it("T4 - a subscription that have a new notification ready at the end of the  publishingInterval shall send notifications and no keepalive", function () {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             id: 1000,
             publishingInterval: 1000,
             maxKeepAliveCount:    20,
@@ -222,12 +227,12 @@ describeWithLeakDetector("Subscriptions", function () {
         fake_publish_engine.pendingPublishRequestCount = 10;
         subscription.maxKeepAliveCount.should.eql(20);
 
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
 
-        var monitoredItem  = add_mock_monitored_item(subscription);
+        const monitoredItem  = add_mock_monitored_item(subscription);
 
         monitoredItem.simulateMonitoredItemAddingNotification();
         this.clock.tick(subscription.publishingInterval);
@@ -251,6 +256,7 @@ describeWithLeakDetector("Subscriptions", function () {
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -261,7 +267,7 @@ describeWithLeakDetector("Subscriptions", function () {
         // pretend we have received 10 PublishRequest from client
         fake_publish_engine.pendingPublishRequestCount = 10;
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,   // 1 second interval
             lifeTimeCount: 100000, // very long lifeTimeCount not to be bother by client not pinging us
             maxKeepAliveCount: 20,
@@ -271,15 +277,15 @@ describeWithLeakDetector("Subscriptions", function () {
 
         subscription.state.should.eql(SubscriptionState.CREATING);
 
-        var monitoredItem  = add_mock_monitored_item(subscription);
+        const monitoredItem  = add_mock_monitored_item(subscription);
 
         /* pretend that we do not have a notification ready */
         //xx monitoredItem.simulateMonitoredItemAddingNotification();
 
 
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
-        var expire_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
 
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
@@ -326,17 +332,18 @@ describeWithLeakDetector("Subscriptions", function () {
         subscription.state.should.eql(SubscriptionState.NORMAL);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
     describe("T6 - a subscription shall send its first notification as soon as the publish request is available", function () {
 
-        var addressSpace;
-        var someVariableNode;
-        var engine;
+        let addressSpace,namespace;
+        let someVariableNode;
+        let engine;
 
         function add_mock_monitored_item2(subscription,someVariableNode) {
-            var monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {nodeId: someVariableNode},
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
@@ -345,8 +352,8 @@ describeWithLeakDetector("Subscriptions", function () {
                     samplingInterval: 200
                 }
             });
-            var monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            var monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             return monitoredItem;
         }
@@ -357,7 +364,9 @@ describeWithLeakDetector("Subscriptions", function () {
             engine = new server_engine.ServerEngine();
             engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
                 addressSpace = engine.addressSpace;
-                var node = addressSpace.addVariable({
+                namespace = addressSpace.getOwnNamespace();
+
+                const node = namespace.addVariable({
                     componentOf: "RootFolder",
                     browseName: "SomeVariable",
                     dataType: "UInt32",
@@ -372,16 +381,16 @@ describeWithLeakDetector("Subscriptions", function () {
             engine = null;
         });
 
-        var ServerSidePublishEngine = require("../src/server_publish_engine").ServerSidePublishEngine;
-        var publish_engine;
+        const ServerSidePublishEngine = require("../src/server_publish_engine").ServerSidePublishEngine;
+        let publish_engine;
 
         function simulate_client_adding_publish_request(publishEngine, callback) {
-            var publishRequest = new subscription_service.PublishRequest({});
+            const publishRequest = new subscription_service.PublishRequest({});
             publishEngine._on_PublishRequest(publishRequest, callback);
         }
 
-        var subscription;
-        var notification_event_spy, keepalive_event_spy, expire_event_spy;
+        let subscription;
+        let notification_event_spy, keepalive_event_spy, expire_event_spy;
 
         beforeEach(function () {
 
@@ -415,7 +424,10 @@ describeWithLeakDetector("Subscriptions", function () {
                 done();
             });
             subscription.terminate();
+            subscription.dispose();
             subscription = null;
+            publish_engine.shutdown();
+            publish_engine.dispose();
         });
 
         it(" - case 1 - publish Request arrives before first publishInterval is over ", function (done) {
@@ -464,7 +476,7 @@ describeWithLeakDetector("Subscriptions", function () {
         it(" - case 3 - publish Request arrives late (after first publishInterval is over)", function (done) {
 
 
-            var monitoredItem = add_mock_monitored_item2(subscription,someVariableNode);
+            const monitoredItem = add_mock_monitored_item2(subscription,someVariableNode);
             
             this.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
@@ -493,7 +505,7 @@ describeWithLeakDetector("Subscriptions", function () {
 
         it(" - case 4 - publish Request arrives late (after first publishInterval is over)", function (done) {
 
-            var monitoredItem = add_mock_monitored_item2(subscription,someVariableNode);
+            const monitoredItem = add_mock_monitored_item2(subscription,someVariableNode);
 
             this.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
@@ -521,7 +533,7 @@ describeWithLeakDetector("Subscriptions", function () {
 
         it(" - case 4 (with monitoredItem - 3x value writes) - publish Request arrives late (after first publishInterval is over)", function (done) {
 
-            var monitoredItem = add_mock_monitored_item2(subscription,someVariableNode);
+            const monitoredItem = add_mock_monitored_item2(subscription,someVariableNode);
 
             this.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
@@ -579,16 +591,16 @@ describeWithLeakDetector("Subscriptions", function () {
 
     it("T7 - a subscription that hasn't been pinged by client within the lifetime interval shall terminate", function () {
     
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             //
             publishEngine: fake_publish_engine
         });
 
-        var expire_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
         subscription.on("expired", expire_event_spy);
-        var terminate_spy = sinon.spy(subscription, "terminate");
+        const terminate_spy = sinon.spy(subscription, "terminate");
 
         this.clock.tick(subscription.publishingInterval * (subscription.lifeTimeCount - 2));
 
@@ -601,21 +613,22 @@ describeWithLeakDetector("Subscriptions", function () {
         expire_event_spy.callCount.should.equal(1);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
     it("T8 - a subscription that has been pinged by client before the lifetime expiration shall not terminate", function () {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             //
             publishEngine: fake_publish_engine
         });
 
-        var expire_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
         subscription.on("expired", expire_event_spy);
-        var terminate_spy = sinon.spy(subscription, "terminate");
+        const terminate_spy = sinon.spy(subscription, "terminate");
 
         this.clock.tick(subscription.publishingInterval * (subscription.lifeTimeCount - 2));
 
@@ -634,6 +647,7 @@ describeWithLeakDetector("Subscriptions", function () {
         expire_event_spy.callCount.should.equal(1);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -642,7 +656,7 @@ describeWithLeakDetector("Subscriptions", function () {
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             lifeTimeCount: 100000, // very large lifetime not to be bother by client not pinging us
             maxKeepAliveCount: 20,
@@ -651,14 +665,14 @@ describeWithLeakDetector("Subscriptions", function () {
         });
 
 
-        var expire_event_spy = sinon.spy();
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
         subscription.on("expired", expire_event_spy);
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
 
-        var terminate_spy = sinon.spy(subscription, "terminate");
+        const terminate_spy = sinon.spy(subscription, "terminate");
 
         this.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount - 5));
 
@@ -682,12 +696,13 @@ describeWithLeakDetector("Subscriptions", function () {
         keepalive_event_spy.callCount.should.equal(3);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
     it("T10 - a subscription shall maintain a retransmission queue of pending NotificationMessages.", function () {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 1000,
@@ -697,7 +712,7 @@ describeWithLeakDetector("Subscriptions", function () {
             maxNotificationsPerPublish: 2,
 
         });
-        var monitoredItem  = add_mock_monitored_item(subscription);
+        const monitoredItem  = add_mock_monitored_item(subscription);
 
         monitoredItem.simulateMonitoredItemAddingNotification();
         monitoredItem.simulateMonitoredItemAddingNotification();
@@ -723,6 +738,7 @@ describeWithLeakDetector("Subscriptions", function () {
         subscription.pendingNotificationsCount.should.equal(3);
 
         subscription.terminate();
+        subscription.dispose();
 
 
     });
@@ -730,7 +746,7 @@ describeWithLeakDetector("Subscriptions", function () {
     //OPC Unified Architecture, Part 4 74 Release 1.01
     it("T11 - a subscription shall maintain a retransmission queue of sent NotificationMessages.", function () {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 1000,
@@ -740,7 +756,7 @@ describeWithLeakDetector("Subscriptions", function () {
         });
         fake_publish_engine.pendingPublishRequestCount = 10;
 
-        var monitoredItem  = add_mock_monitored_item(subscription);
+        const monitoredItem  = add_mock_monitored_item(subscription);
 
         subscription.pendingNotificationsCount.should.equal(0);
         subscription.sentNotificationsCount.should.equal(0);
@@ -758,6 +774,7 @@ describeWithLeakDetector("Subscriptions", function () {
         subscription.sentNotificationsCount.should.equal(2);
 
         subscription.terminate();
+        subscription.dispose();
 
 
     });
@@ -766,7 +783,7 @@ describeWithLeakDetector("Subscriptions", function () {
 
         it("T12-1 a NotificationMessage is retained in this queue until it is acknowledged", function () {
 
-            var subscription = new Subscription({
+            const subscription = new Subscription({
                 id: 1234,
                 publishingInterval: 1000,
                 lifeTimeCount: 1000,
@@ -775,10 +792,10 @@ describeWithLeakDetector("Subscriptions", function () {
                 publishEngine: fake_publish_engine
             });
 
-            var send_notification_message_spy = sinon.spy();
+            const send_notification_message_spy = sinon.spy();
             fake_publish_engine.send_notification_message = send_notification_message_spy;
 
-            var monitoredItem  = add_mock_monitored_item(subscription);
+            const monitoredItem  = add_mock_monitored_item(subscription);
 
             monitoredItem.simulateMonitoredItemAddingNotification();
             monitoredItem.simulateMonitoredItemAddingNotification();
@@ -795,10 +812,10 @@ describeWithLeakDetector("Subscriptions", function () {
             this.clock.tick(subscription.publishingInterval);
             subscription.sentNotificationsCount.should.equal(2);
 
-            var notification1 = send_notification_message_spy.getCall(0).args[0];
+            const notification1 = send_notification_message_spy.getCall(0).args[0];
             notification1.sequenceNumber.should.eql(1);
 
-            var notification2 = send_notification_message_spy.getCall(1).args[0];
+            const notification2 = send_notification_message_spy.getCall(1).args[0];
             notification2.sequenceNumber.should.eql(2);
 
             subscription.acknowledgeNotification(notification2.sequenceNumber);
@@ -808,17 +825,18 @@ describeWithLeakDetector("Subscriptions", function () {
             subscription.sentNotificationsCount.should.equal(0);
 
             subscription.terminate();
+            subscription.dispose();
 
         });
 
         it("T12-2 A notificationMessage that hasn't been acknowledge should be accessiblef for republish", function () {
 
-            var send_notification_message_spy = sinon.spy();
+            const send_notification_message_spy = sinon.spy();
             fake_publish_engine.pendingPublishRequestCount = 10;
             fake_publish_engine.send_notification_message = send_notification_message_spy;
 
             //#getMessageForSequenceNumber
-            var subscription = new Subscription({
+            const subscription = new Subscription({
                 id: 1234,
                 publishingInterval: 1000,
                 lifeTimeCount: 1000,
@@ -827,7 +845,7 @@ describeWithLeakDetector("Subscriptions", function () {
                 publishEngine: fake_publish_engine
             });
 
-            var monitoredItem  = add_mock_monitored_item(subscription);
+            const monitoredItem  = add_mock_monitored_item(subscription);
 
             should(subscription.getMessageForSequenceNumber(35)).eql(null);
 
@@ -839,16 +857,17 @@ describeWithLeakDetector("Subscriptions", function () {
             this.clock.tick(subscription.publishingInterval);
             subscription.sentNotificationsCount.should.equal(1);
 
-            var notification1 = send_notification_message_spy.getCall(0).args[0];
+            const notification1 = send_notification_message_spy.getCall(0).args[0];
             notification1.sequenceNumber.should.eql(1);
-            var seqNum = notification1.sequenceNumber;
+            const seqNum = notification1.sequenceNumber;
 
 
             //
-            var message = subscription.getMessageForSequenceNumber(seqNum);
+            const message = subscription.getMessageForSequenceNumber(seqNum);
             message.sequenceNumber.should.eql(seqNum);
 
             subscription.terminate();
+            subscription.dispose();
 
         });
 
@@ -859,7 +878,7 @@ describeWithLeakDetector("Subscriptions", function () {
         xit("T12-4 - 1.01 a NotificationMessage is retained until it has been in the queue for a minimum of one keep-alive interval.", function () {
             // this conforms to OPC UA specifciation 1.01 and is now obsolete as behavior has been chanded in 1.02
 
-            var subscription = new Subscription({
+            const subscription = new Subscription({
                 id: 1234,
                 publishingInterval: 1000,
                 lifeTimeCount: 1000,
@@ -887,6 +906,7 @@ describeWithLeakDetector("Subscriptions", function () {
             subscription.sentNotificationsCount.should.equal(0);
 
             subscription.terminate();
+            subscription.dispose();
         });
 
     });
@@ -897,16 +917,16 @@ describeWithLeakDetector("Subscriptions", function () {
         // pretend there is plenty of PublishRequest in publish engine
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 100,
             maxKeepAliveCount: 20,
             lifeTimeCount: 10,
             publishEngine: fake_publish_engine
         });
 
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
-        var expire_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
 
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
@@ -936,6 +956,7 @@ describeWithLeakDetector("Subscriptions", function () {
         notification_event_spy.callCount.should.equal(0);
 
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("T14 - a subscription send a first message at the end of the first publishing cycle without waiting for the maximum  count to be reached", function () {
@@ -951,21 +972,21 @@ describeWithLeakDetector("Subscriptions", function () {
          * count to be reached, as specified in (f) above.
          *
          */
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             //
             publishEngine: fake_publish_engine
         });
-        var monitoredItem  = add_mock_monitored_item(subscription);
+        const monitoredItem  = add_mock_monitored_item(subscription);
 
         // pretend that we already have notification messages
         // a notification finally arrived !
         monitoredItem.simulateMonitoredItemAddingNotification();
 
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
-        var expire_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
 
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
@@ -988,11 +1009,12 @@ describeWithLeakDetector("Subscriptions", function () {
         notification_event_spy.callCount.should.eql(1);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
     it("T15 - the first Notification Message sent on a Subscription has a sequence number of 1.", function () {
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishEngine: fake_publish_engine
         });
         subscription._get_future_sequence_number().should.equal(1);
@@ -1002,16 +1024,18 @@ describeWithLeakDetector("Subscriptions", function () {
         subscription._get_future_sequence_number().should.equal(4);
 
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("T16 - should return BadMonitorItemInvalid when trying to remove a monitored item that doesn't exist", function () {
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishEngine: fake_publish_engine
         });
         subscription.removeMonitoredItem(26).should.eql(StatusCodes.BadMonitoredItemIdInvalid);
 
         subscription.terminate();
+        subscription.dispose();
 
     });
 
@@ -1037,7 +1061,7 @@ describe("Subscription#setPublishingMode", function () {
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 100,
             maxKeepAliveCount: 5,
             lifeTimeCount: 10,
@@ -1045,7 +1069,7 @@ describe("Subscription#setPublishingMode", function () {
             publishEngine: fake_publish_engine
         });
 
-        var monitoredItem  = add_mock_monitored_item(subscription);
+        const monitoredItem  = add_mock_monitored_item(subscription);
 
         // pretend that we already have notification messages
         // a notification finally arrived !
@@ -1063,9 +1087,9 @@ describe("Subscription#setPublishingMode", function () {
         // a notification finally arrived !
         monitoredItem.simulateMonitoredItemAddingNotification();
 
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
-        var expire_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
 
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
@@ -1092,6 +1116,7 @@ describe("Subscription#setPublishingMode", function () {
         notification_event_spy.callCount.should.be.greaterThan(4);
 
         subscription.terminate();
+        subscription.dispose();
 
         done();
     });
@@ -1101,7 +1126,7 @@ describe("Subscription#setPublishingMode", function () {
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 100,
             maxKeepAliveCount: 5,
             lifeTimeCount: 10,
@@ -1111,15 +1136,15 @@ describe("Subscription#setPublishingMode", function () {
             publishEngine: fake_publish_engine
 
         });
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
-        var expire_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
 
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
         subscription.on("expired", expire_event_spy);
 
-        var monitoredItem  = add_mock_monitored_item(subscription);
+        const monitoredItem  = add_mock_monitored_item(subscription);
 
 
         monitoredItem.simulateMonitoredItemAddingNotification();
@@ -1143,6 +1168,7 @@ describe("Subscription#setPublishingMode", function () {
         notification_event_spy.callCount.should.eql(0);
 
         subscription.terminate();
+        subscription.dispose();
         done();
     });
 
@@ -1151,7 +1177,7 @@ describe("Subscription#setPublishingMode", function () {
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 100,
             maxKeepAliveCount: 5,
             lifeTimeCount: 10,
@@ -1159,17 +1185,17 @@ describe("Subscription#setPublishingMode", function () {
             publishEngine: fake_publish_engine
         });
 
-        var monitoredItem  = add_mock_monitored_item(subscription);
+        const monitoredItem  = add_mock_monitored_item(subscription);
 
         // the monitoredItem provides a new notification every 50ms
         function push_some_notification() {
             monitoredItem.simulateMonitoredItemAddingNotification();
         }
-        var t = setInterval(push_some_notification, 50);
+        const t = setInterval(push_some_notification, 50);
 
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
-        var expire_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
 
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
@@ -1194,6 +1220,7 @@ describe("Subscription#setPublishingMode", function () {
         clearInterval(t);
 
         subscription.terminate();
+        subscription.dispose();
         done();
 
 
@@ -1211,7 +1238,7 @@ describe("Subscription#setPublishingMode", function () {
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
-        var subscription = new Subscription({
+        const subscription = new Subscription({
             publishingInterval: 100,
             maxKeepAliveCount: 5,
             lifeTimeCount: 10,
@@ -1219,17 +1246,17 @@ describe("Subscription#setPublishingMode", function () {
             publishEngine: fake_publish_engine
         });
 
-        var monitoredItem  = add_mock_monitored_item(subscription);
+        const monitoredItem  = add_mock_monitored_item(subscription);
 
         // the monitoredItem provides a new notification every 50ms
         function push_some_notification() {
             monitoredItem.simulateMonitoredItemAddingNotification();
         }
-        var t = setInterval(push_some_notification, 50);
+        const t = setInterval(push_some_notification, 50);
 
-        var notification_event_spy = sinon.spy();
-        var keepalive_event_spy = sinon.spy();
-        var expire_event_spy = sinon.spy();
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
 
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
@@ -1245,7 +1272,7 @@ describe("Subscription#setPublishingMode", function () {
         this.clock.tick(4* subscription.publishingInterval * subscription.maxKeepAliveCount);
         keepalive_event_spy.callCount.should.equal(4);
         notification_event_spy.callCount.should.be.greaterThan(19);
-        var nb = notification_event_spy.callCount;
+        const nb = notification_event_spy.callCount;
 
         subscription.setPublishingMode(false);
         this.clock.tick(4* subscription.publishingInterval * subscription.maxKeepAliveCount);
@@ -1255,6 +1282,7 @@ describe("Subscription#setPublishingMode", function () {
         clearInterval(t);
 
         subscription.terminate();
+        subscription.dispose();
         done();
 
     })
@@ -1280,15 +1308,16 @@ describe("Subscription#adjustSamplingInterval", function () {
     });
 
     it("should adjust sampling interval to subscription publish interval when requested sampling interval === -1", function () {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
+        const subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
 
 
         subscription.adjustSamplingInterval(-1).should.eql(subscription.publishingInterval);
 
         subscription.terminate();
+        subscription.dispose();
     });
 
-    var fake_node = {
+    const fake_node = {
         readAttribute: function (context, attributeId) {
             context.should.be.instanceOf(SessionContext);
             attributeId.should.eql(AttributeIds.MinimumSamplingInterval);
@@ -1297,43 +1326,49 @@ describe("Subscription#adjustSamplingInterval", function () {
     };
 
     it("should adjust sampling interval to subscription publish interval when requested sampling interval is a negative value !== -1", function () {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
+        const subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(-2,fake_node).should.eql(subscription.publishingInterval);
         subscription.adjustSamplingInterval(-0.02,fake_node).should.eql(subscription.publishingInterval);
 
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should leave sampling interval to 0 when requested sampling interval === 0 ( 0 means Event Based mode)", function () {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
+        const subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(0,fake_node).should.eql(0);
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should adjust sampling interval to minimum when requested sampling interval === 1", function () {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
+        const subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(1,fake_node).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should adjust sampling interval to maximum when requested sampling interval is too high", function () {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
+        const subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
         subscription.adjustSamplingInterval(1E10,fake_node).should.eql(MonitoredItem.maximumSamplingInterval);
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should return an unmodified sampling interval when requested sampling is in valid range", function () {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
-        var someValidSamplingInterval = (MonitoredItem.maximumSamplingInterval + MonitoredItem.minimumSamplingInterval) / 2.0;
+        const subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
+        const someValidSamplingInterval = (MonitoredItem.maximumSamplingInterval + MonitoredItem.minimumSamplingInterval) / 2.0;
         subscription.adjustSamplingInterval(someValidSamplingInterval,fake_node).should.eql(someValidSamplingInterval);
         subscription.terminate();
+        subscription.dispose();
     });
 
     it("should adjust sampling interval the minimumSamplingInterval when requested sampling is too low", function () {
-        var subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
-        var someVeryLowSamplingInterval = 1;
+        const subscription = new Subscription({publishingInterval: 1234, publishEngine: fake_publish_engine});
+        const someVeryLowSamplingInterval = 1;
         subscription.adjustSamplingInterval(someVeryLowSamplingInterval,fake_node).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();
+        subscription.dispose();
     });
 
 });

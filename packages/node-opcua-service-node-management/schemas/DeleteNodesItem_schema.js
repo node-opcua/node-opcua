@@ -1,4 +1,4 @@
-var DeleteNodesItem_Schema = {
+const DeleteNodesItem_Schema = {
     name:"DeleteNodesItem",
     fields: [
         { name: "nodeId" ,                    fieldType: "NodeId", documentation: ""},

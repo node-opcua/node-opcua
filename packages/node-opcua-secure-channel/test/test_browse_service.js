@@ -1,19 +1,21 @@
 "use strict";
 
-var verify_multi_chunk_message = require("../test_helpers/verify_message_chunk").verify_multi_chunk_message;
+const verify_multi_chunk_message = require("../test_helpers/verify_message_chunk").verify_multi_chunk_message;
 
-var redirectToFile = require("node-opcua-debug").redirectToFile;
-var makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
+const redirectToFile = require("node-opcua-debug").redirectToFile;
+const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
+
+const BrowseResponse = require("node-opcua-service-browse").BrowseResponse;
 
 
-var fixture_ws_browseRequest_message = makeBuffer(
+const fixture_ws_browseRequest_message = makeBuffer(
     "4d 53 47 46 85 00 00 00 08 00 00 00 01 00 00 00 07 00 00 00 07 00 00 00 01 00 0f 02 05 00 00 20 " +
     "00 00 00 48 09 ee e7 c3 5d bb ce df d0 7a 7d c0 6e e8 54 ba bf fa 46 7e 3f b2 06 98 6e 71 a2 87 " +
     "bd 2c 5d 61 fd 83 6d 17 21 cf 01 05 00 00 00 ff 03 00 00 ff ff ff ff 00 00 00 00 00 00 00 00 00 " +
     "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 55 02 00 00 00 00 00 01 00 00 00 " +
     "00 3f 00 00 00");
 
-var fixture_ws_browseResponse_message = makeBuffer(
+const fixture_ws_browseResponse_message = makeBuffer(
     "4d 53 47 46 2e 01 00 00 48 00 00 00 01 00 00 00 07 00 00 00 05 00 00 00 01 00 12 02 1f eb e2 ae " + //  MSGF....H....................kb.
     "0e 25 cf 01 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 ff ff ff ff " + //   .%O.............................
     "06 00 00 00 00 23 00 00 54 00 00 04 00 00 00 52 6f 6f 74 02 04 00 00 00 52 6f 6f 74 01 00 00 00 " + //   .....#..T......Root.....Root....
@@ -26,7 +28,7 @@ var fixture_ws_browseResponse_message = makeBuffer(
     "54 79 70 65 08 00 00 00 00 00 00 00 00 00"                                                         //    Type..........
 );
 
-var fixture_ws_browseResponse_with_error_and_diagnostic_info_message = makeBuffer(
+const fixture_ws_browseResponse_with_error_and_diagnostic_info_message = makeBuffer(
     "4d 53 47 46 af 03 00 00 5a 00 00 00 01 00 00 00 08 00 00 00 06 00 00 00 01 00 12 02 f5 f6 50 2b " + //   MSGF/...Z...................uvP+
     "86 25 cf 01 06 00 00 00 00 00 00 00 00 02 00 00 00 1f 00 00 00 55 6e 65 78 70 65 63 74 65 64 20 " + //   .%O..................Unexpected.
     "65 72 72 6f 72 20 62 72 6f 77 73 69 6e 67 20 6e 6f 64 65 2e 10 00 00 00 42 61 64 56 69 65 77 49 " + //   error.browsing.node.....BadViewI

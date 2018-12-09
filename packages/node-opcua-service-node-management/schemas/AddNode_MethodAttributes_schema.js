@@ -1,4 +1,4 @@
-var AddNodes_MethodAttributes_Schema = {
+const AddNodes_MethodAttributes_Schema = {
     name: "AddNodes_MethodAttributes",
     fields: [
         {

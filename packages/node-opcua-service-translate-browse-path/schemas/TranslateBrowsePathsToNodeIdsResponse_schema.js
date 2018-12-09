@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var TranslateBrowsePathsToNodeIdsResponse_Schema = {
+const TranslateBrowsePathsToNodeIdsResponse_Schema = {
     name: "TranslateBrowsePathsToNodeIdsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

@@ -1,20 +1,20 @@
 "use strict";
-var opcua = require("node-opcua");
-var should = require("should");
+const opcua = require("node-opcua");
+const should = require("should");
 
-var OPCUAClient = opcua.OPCUAClient;
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const OPCUAClient = opcua.OPCUAClient;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-var redirectToFile = require("node-opcua-debug").redirectToFile;
+const redirectToFile = require("node-opcua-debug").redirectToFile;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Testing Server and Client diagnostic facilities", function () {
 
-    var server, client, temperatureVariableId, endpointUrl;
+    let server, client, temperatureVariableId, endpointUrl;
 
-    var port = 2001;
+    let port = 2001;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
@@ -27,7 +27,7 @@ describe("Testing Server and Client diagnostic facilities", function () {
     });
 
     beforeEach(function (done) {
-        client = new OPCUAClient();
+        client = new OPCUAClient({});
         done();
     });
 
@@ -41,39 +41,47 @@ describe("Testing Server and Client diagnostic facilities", function () {
     });
 
     function extract_server_channel() {
-        var cp = server.endpoints[0];
-        var ckey = Object.keys(cp._channels);
-        var channel = cp._channels[ckey[0]];
+        const cp = server.endpoints[0];
+        const ckey = Object.keys(cp._channels);
+        const channel = cp._channels[ckey[0]];
         return channel;
     }
 
-    it("Server should keep track of transaction statistics", function (done) {
+    it("MM01- Server should keep track of transaction statistics", function (done) {
 
-        redirectToFile("transaction_statistics.log", function (done) {
+        //xx redirectToFile("transaction_statistics.log", function (done) {
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, done) {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
 
-                var server_channel = extract_server_channel();
+                const server_channel = extract_server_channel();
 
-                var transaction_done_counter = 0;
+                let transaction_done_counter = 0;
+
+                let transactionCounter = client.transactionsPerformed;
                 server_channel.on("transaction_done", function () {
                     transaction_done_counter++;
+
+
                     server_channel._dump_transaction_statistics();
 
                     console.log(" Server bytes read : ", server_channel.bytesRead, " bytes written : ", server_channel.bytesWritten);
                     console.log(" Client bytes read : ", client.bytesRead, " bytes written : ", client.bytesWritten);
                     console.log(" transaction count : ", client.transactionsPerformed);
-                    if (transaction_done_counter === 1) {
-                        done();
-                    }
+
+                    client.bytesWritten.should.eql(server_channel.bytesRead);
+                    client.transactionsPerformed.should.eql(transactionCounter+1);
+                    transactionCounter+=1;
+
                 });
 
-                session.browse("RootFolder", function (err, browseResults, diagnosticInfos) {
+                session.browse("RootFolder", function (err, browseResult) {
                     should(err).eql(null);
+                    should.exist(browseResult);
+                    inner_done();
                 });
 
             }, done);
-        }, done);
+        //xx }, done);
     });
 });

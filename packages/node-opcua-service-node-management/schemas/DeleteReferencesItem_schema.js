@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var DeleteReferencesItem_Schema = {
+const DeleteReferencesItem_Schema = {
     name:"DeleteReferencesItem",
     fields: [
         { name: "sourceNodeId" ,           fieldType: "NodeId", documentation: ""},

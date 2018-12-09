@@ -1,12 +1,12 @@
 /* global describe, it, require*/
 "use strict";
 
-var should = require("should");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
-var redirectToFile = require("node-opcua-debug").redirectToFile;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const redirectToFile = require("node-opcua-debug").redirectToFile;
 
 module.exports = function (test) {
 
@@ -18,28 +18,28 @@ module.exports = function (test) {
         });
         it("#355 Client MonitoredItem event handler should be protected against exception raised in user code", function (done) {
 
-            var server = test.server;
+            const server = test.server;
 
-            if (!server) { return done(); }
+            if (!server) {
+                return done();
+            }
 
-            var client = new opcua.OPCUAClient();
-
-
+            const client = new opcua.OPCUAClient();
 
             perform_operation_on_subscription(client,test.endpointUrl,function(session,subscription,callback) {
 
-                redirectToFile("issue_355", function (callback) {
+               redirectToFile("issue_355", function (callback) {
 
-                    var monitoredItem = subscription.monitor(
-                      {nodeId: "ns=2;s=FanSpeed", attributeId: opcua.AttributeIds.Value},
+                    const monitoredItem = subscription.monitor(
+                      {nodeId: "ns=1;s=FanSpeed", attributeId: opcua.AttributeIds.Value},
                       {
                           samplingInterval: 10, // sampling twice as fast as variable refresh rate
                           discardOldest: true,
                           queueSize: 10
                       });
 
-                    var count = 0;
-                    var timerId ;
+                    let count = 0;
+                    let timerId;
                     monitoredItem.on("changed",function(dataValue){
 
                         count++;
@@ -53,15 +53,15 @@ module.exports = function (test) {
                     });
 
                     timerId  = setInterval(function() {
-                        var node = test.server.engine.addressSpace.findNode("ns=2;s=FanSpeed");
-                        console.log("Set")
+                        const node = test.server.engine.addressSpace.findNode("ns=1;s=FanSpeed");
+                        console.log("Set");
                         node.setValueFromSource( new opcua.Variant({
                             value: Math.random(),
                             dataType: "Float"
                         }));
                     },100);
 
-                }, callback);
+               }, callback);
 
 
             },done);

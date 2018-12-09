@@ -1,27 +1,27 @@
 "use strict";
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var QualifiedName = require("node-opcua-data-model").QualifiedName;
-var LocalizedText = require("node-opcua-data-model").LocalizedText;
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
+const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
-var ec = require("node-opcua-basic-types");
+const ec = require("node-opcua-basic-types");
 
-var DataType = require("../schemas/DataType_enum").DataType;
-var VariantArrayType = require("../schemas/VariantArrayType_enum").VariantArrayType;
+const DataType = require("../schemas/DataType_enum").DataType;
+const VariantArrayType = require("../schemas/VariantArrayType_enum").VariantArrayType;
 
-var encode_decode = require("node-opcua-basic-types");
+const encode_decode = require("node-opcua-basic-types");
 
-var utils = require("node-opcua-utils");
+const utils = require("node-opcua-utils");
 
 function isEnumerationItem(value) {
-    return (value instanceof Object && (value.value !== undefined) && value.key);
+    return (value instanceof Object && (value.hasOwnProperty("value")) && value.hasOwnProperty("key"));
 }
 
 
 function coerceVariantType(dataType, value) {
     /* eslint max-statements: ["error",1000], complexity: ["error",1000]*/
-
+    if (value === undefined ) { value = null; }
     if (isEnumerationItem(value)) {
         // OPCUA Specification 1.0.3 5.8.2 encoding rules for various dataType:
         // [...]Enumeration are always encoded as Int32 on the wire [...]
@@ -50,8 +50,8 @@ function coerceVariantType(dataType, value) {
             break;
         case DataType.Int16:
         case DataType.UInt16:
-        case DataType.UInt32:
         case DataType.Int32:
+        case DataType.UInt32:
             assert(value !== undefined);
             if (isEnumerationItem(value)) {
                 // value is a enumeration of some sort
@@ -59,7 +59,7 @@ function coerceVariantType(dataType, value) {
             } else {
                 value = parseInt(value, 10);
             }
-            assert(_.isFinite(value));
+            assert(_.isFinite(value), "expecting a number");
             break;
         case DataType.UInt64:
             value = encode_decode.coerceUInt64(value);
@@ -74,6 +74,13 @@ function coerceVariantType(dataType, value) {
             break;
         case DataType.String:
             assert(typeof value === "string" || value === null);
+            break;
+        case DataType.ByteString:
+            value = (typeof value === "string") ? Buffer.from(value): value;
+            if (!(value === null || value instanceof Buffer)) {
+                throw new Error("ByteString should be null or a Buffer");
+            }
+            assert(value === null || value instanceof Buffer);
             break;
         default:
             assert(dataType !== undefined && dataType !== null, "Invalid DataType");
@@ -112,6 +119,8 @@ function isValidScalarVariant(dataType, value) {
             return ec.isValidInt8(value);
         case DataType.Boolean:
             return ec.isValidBoolean(value);
+        case DataType.ByteString:
+            return ec.isValidByteString(value);
         default:
             return true;
     }
@@ -138,13 +147,12 @@ function isValidArrayVariant(dataType, value) {
     }
     // array values can be store in Buffer, Float32Array
     assert(_.isArray(value));
-    var isValid = true;
-    value.forEach(function (element/*,elementIndex*/) {
-        if (!isValidScalarVariant(dataType, element)) {
-            isValid = false;
+    for (let i=0;i<value.length;i++) {
+        if (!isValidScalarVariant(dataType, value[i])) {
+            return false;
         }
-    });
-    return isValid;
+    }
+    return true;
 }
 
 /*istanbul ignore next*/
@@ -161,7 +169,7 @@ function isValidMatrixVariant(dataType,value,dimensions) {
 
 function isValidVariant(arrayType, dataType, value, dimensions) {
 
-    assert(dataType);
+    assert(dataType,"expecting a variant type");
 
     switch (arrayType) {
         case VariantArrayType.Scalar:
@@ -178,7 +186,7 @@ exports.isValidVariant = isValidVariant;
 
 function buildVariantArray(dataType, nbElements, defaultValue) {
 
-    var value;
+    let value;
     switch (dataType) {
         case DataType.Float:
             value = new Float32Array(nbElements);
@@ -207,7 +215,7 @@ function buildVariantArray(dataType, nbElements, defaultValue) {
         default:
             //xx console.log("xxxx DataType = ",dataType ? dataType.toString(): null,"nb Elements =",nbElements);
             value = new Array(nbElements);
-            for (var i = 0; i < nbElements; i++) {
+            for (let i = 0; i < nbElements; i++) {
                 value[i] = defaultValue;
             }
         //xx console.log("xxx done");
@@ -218,7 +226,7 @@ exports.buildVariantArray = buildVariantArray;
 
 
 // old version of nodejs do not provide a Buffer#equals test
-var oldNodeVersion =  (process.versions.node && process.versions.node.substring(0,1) === "0");
+const oldNodeVersion =  (process.versions.node && process.versions.node.substring(0,1) === "0");
 
 
 function __check_same_array(arr1,arr2) {
@@ -238,12 +246,12 @@ function __check_same_array(arr1,arr2) {
         // this is the most efficient way to compare 2 buffers but it doesn't work with node <= 0.12
         assert(arr2.buffer);
         // compare byte by byte
-        var b1 = Buffer.from(arr1.buffer);
-        var b2 = Buffer.from(arr2.buffer);
+        const b1 = Buffer.from(arr1.buffer,arr1.byteOffset,arr1.byteLength);
+        const b2 = Buffer.from(arr2.buffer,arr2.byteOffset,arr2.byteLength);
         return b1.equals(b2);
     }
-    var n = arr1.length;
-    for (var i = 0; i < n; i++) {
+    const n = arr1.length;
+    for (let i = 0; i < n; i++) {
         if (!_.isEqual(arr1[i], arr2[i])) {
             return false;
         }
@@ -269,6 +277,14 @@ exports.sameVariant = function sameVariant(v1, v2) {
     if (v1.value === v2.value) {
         return true;
     }
+    if(v1.arrayType === VariantArrayType.Scalar){
+      if(Array.isArray(v1.value) && Array.isArray(v2.value)){
+        return __check_same_array(v1.value,v2.value);
+      }
+      if(Buffer.isBuffer(v1.value)&& Buffer.isBuffer(v2.value)){
+        return v1.value.equals(v2.value);
+      }
+    }
     if (v1.arrayType === VariantArrayType.Array) {
         return __check_same_array(v1.value,v2.value);
 
@@ -278,6 +294,5 @@ exports.sameVariant = function sameVariant(v1, v2) {
         }
         return __check_same_array(v1.value,v2.value);
     }
-
     return false;
 };

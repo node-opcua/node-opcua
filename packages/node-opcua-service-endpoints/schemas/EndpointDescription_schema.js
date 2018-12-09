@@ -3,7 +3,7 @@ require("node-opcua-service-secure-channel");
 require("../_generated_/_auto_generated_ApplicationDescription");
 
 // OPC Unified Architecture, Part 4 page 121
-var EndpointDescription_Schema = {
+const EndpointDescription_Schema = {
     name: "EndpointDescription",
     fields: [
         // The URL for the Endpoint described.

@@ -1,18 +1,20 @@
 {
  "name": "node-opcua-buffer-utils",
- "version": "0.1.0-4",
+ "version": "0.5.0",
  "description": "pure nodejs OPCUA SDK - module -buffer-utils",
- "main": "src/buffer_utils.js",
+ "main": "dist/buffer_utils.js",
+ "types": "dist/buffer_utils.d.ts",
  "scripts": {
+  "build": "tsc",
   "test": "mocha test"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
  "dependencies": {
-  "node-opcua-assert": "^0.1.0-4"
+  "node-opcua-assert": "^0.5.0"
  },
  "devDependencies": {
-  "node-opcua-benchmarker": "^0.1.0-4"
+  "node-opcua-benchmarker": "^0.5.0"
  },
  "repository": {
   "type": "git",

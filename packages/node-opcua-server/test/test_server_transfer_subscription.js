@@ -1,17 +1,17 @@
-var should = require("should");
-var sinon = require("sinon");
+const should = require("should");
+const sinon = require("sinon");
 
-var server_engine = require("../src/server_engine");
-var subscription_service = require("node-opcua-service-subscription");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var PublishRequest = subscription_service.PublishRequest;
+const server_engine = require("../src/server_engine");
+const subscription_service = require("node-opcua-service-subscription");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const PublishRequest = subscription_service.PublishRequest;
 
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine Subscriptions Transfer", function () {
 
 
-    var engine, session1, FolderTypeId, BaseDataVariableTypeId;
+    let engine, session1, FolderTypeId, BaseDataVariableTypeId;
 
     beforeEach(function (done) {
 
@@ -37,7 +37,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
         session1 = engine.createSession();
 
-        var subscription = session1.createSubscription({
+        const subscription = session1.createSubscription({
             id: 12345,
             requestedPublishingInterval: 1000,  // Duration
             requestedLifetimeCount: 10,         // Counter
@@ -51,11 +51,12 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
         session2 = engine.createSession();
 
-        var transferResult = engine.transferSubscription(session2,subscription.id,true);
+        const transferResult = engine.transferSubscription(session2,subscription.id,true);
         transferResult.statusCode.should.eql(StatusCodes.Good);
+        transferResult.availableSequenceNumbers.length.should.eql(0);
 
 
-        var publishSpy = sinon.spy();
+        const publishSpy = sinon.spy();
         session1.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
         session1.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
         session1.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );

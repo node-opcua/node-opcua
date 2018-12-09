@@ -1,6 +1,7 @@
 {
   "extends": "./config/tsconfig.flexible", // also available: "./config/tsconfig.strict"
   "compilerOptions": {
+    "skipLibCheck": true,
     "target": "es6",
     "outDir": "build/main",
     "rootDir": "src",
@@ -24,7 +25,7 @@
     }
   },
   "include": [
-    "packages/*/src/**/*.js"
+    "packages/node-opcua-binary-stream/tsource"
   ],
   "exclude": [
     "node_modules/**"

@@ -1,9 +1,9 @@
 "use strict";
-var DiagnosticInfo = require("node-opcua-data-model").DiagnosticInfo;
+const DiagnosticInfo = require("node-opcua-data-model").DiagnosticInfo;
 
 
 // OPC Unified Architecture, Part 4  $7.27 page 139
-var ResponseHeader_Schema = {
+const ResponseHeader_Schema = {
     name: "ResponseHeader",
     fields: [
         // The time the Server sent the response.

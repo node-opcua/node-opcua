@@ -3,36 +3,38 @@
  * @module opcua.client
  */
 
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
-var fs = require("fs");
-var path = require("path");
-var async = require("async");
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var once = require("once");
-var delayed = require("delayed");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const fs = require("fs");
+const path = require("path");
+const async = require("async");
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const once = require("once");
+const delayed = require("delayed");
 
 
-var endpoints_service = require("node-opcua-service-endpoints");
+const endpoints_service = require("node-opcua-service-endpoints");
 
-var GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
-var GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
-var toURI =  require("node-opcua-secure-channel").toURI;
-var SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
+const GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
+const GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
+const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const toURI = require("node-opcua-secure-channel").toURI;
+const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var OPCUASecureObject = require("node-opcua-common").OPCUASecureObject;
+const OPCUASecureObject = require("node-opcua-common").OPCUASecureObject;
 
-var ClientSecureChannelLayer = require("node-opcua-secure-channel/src/client/client_secure_channel_layer").ClientSecureChannelLayer;
+const ClientSecureChannelLayer = require("node-opcua-secure-channel/src/client/client_secure_channel_layer").ClientSecureChannelLayer;
+const ClientSession = require("./client_session").ClientSession;
 
-var defaultConnectionStrategy = {
-    maxRetry:     100,
+
+const defaultConnectionStrategy = {
+    maxRetry: 10000000, // almost infinite
     initialDelay: 1000,
-    maxDelay:     20000,
+    maxDelay: 20*1000,// 20 seconds
     randomisationFactor: 0.1
 };
 
@@ -40,7 +42,7 @@ var defaultConnectionStrategy = {
  * @class OPCUAClientBase
  * @extends EventEmitter
  * @param options
- * @param options.defaultSecureTokenLiveTime {Number} default secure token lifetime in ms
+ * @param options.defaultSecureTokenLifetime {Number} default secure token lifetime in ms
  * @param [options.securityMode=MessageSecurityMode.None] {MessageSecurityMode} the default security mode.
  * @param [options.securityPolicy =SecurityPolicy.NONE] {SecurityPolicy} the security mode.
  * @param [options.serverCertificate=null] {Certificate} the server certificate.
@@ -48,26 +50,33 @@ var defaultConnectionStrategy = {
  * @param [options.privateKeyFile="certificates/client_key_1024.pem"] {String} client private key pem file.
  * @param [options.connectionStrategy] {Object}
  * @param [options.keepSessionAlive=false]{Boolean}
+ * @param [options.tokenRenewalInterval =0] {Number} if not specify or set to 0 , token  renewal will happen around 75% of the defaultSecureTokenLifetime
+ * @param [options.keepPendingSessionsOnDisconnect=false] if set to true, pending session will not be automatically closed *
+ *                                                        when disconnect is called
+ * @param [options.clientName=""] the client Name
  * @constructor
  */
 function OPCUAClientBase(options) {
+
 
     options = options || {};
 
     EventEmitter.call(this);
 
-    options.certificateFile = options.certificateFile || path.join(__dirname,"../certificates/client_selfsigned_cert_1024.pem");
+    this.clientName = options.clientName || "Session";
 
-    options.privateKeyFile = options.privateKeyFile || path.join(__dirname,"../certificates/PKI/own/private/private_key.pem");
+    options.certificateFile = options.certificateFile || path.join(__dirname, "../certificates/client_selfsigned_cert_1024.pem");
+
+    options.privateKeyFile = options.privateKeyFile || path.join(__dirname, "../certificates/PKI/own/private/private_key.pem");
 
     // istanbul ignore next
-    if(!fs.existsSync(options.certificateFile)) {
-        throw new Error(" cannot locate certificate file "+options.certificateFile );
+    if (!fs.existsSync(options.certificateFile)) {
+        throw new Error(" cannot locate certificate file " + options.certificateFile);
     }
 
     // istanbul ignore next
-    if(!fs.existsSync(options.privateKeyFile)) {
-        throw new Error(" cannot locate private key file "+options.privateKeyFile );
+    if (!fs.existsSync(options.privateKeyFile)) {
+        throw new Error(" cannot locate private key file " + options.privateKeyFile);
     }
 
     OPCUASecureObject.call(this, options);
@@ -82,7 +91,8 @@ function OPCUAClientBase(options) {
     this._secureChannel = null;
 
     this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
-
+    this.tokenRenewalInterval = options.tokenRenewalInterval || 0;
+    assert(_.isFinite(this.tokenRenewalInterval) && this.tokenRenewalInterval >= 0);
     /**
      * @property securityMode
      * @type MessageSecurityMode
@@ -109,55 +119,58 @@ function OPCUAClientBase(options) {
      * @type {boolean}
      */
     this.keepSessionAlive = _.isBoolean(options.keepSessionAlive) ? options.keepSessionAlive : false;
-    
+
     // statistics...
-    this._byteRead    = 0;
+    this._byteRead = 0;
     this._byteWritten = 0;
     this._transactionsPerformed = 0;
     this._timedOutRequestCount = 0;
 
-    // this.objectFactory = {
-    //     constructObject: function (id) {
-    //         return factories.constructObject(id);
-    //     }
-    // };
     /**
      * @property connectionStrategy
      * @type {options.connectionStrategy|{maxRetry, initialDelay, maxDelay, randomisationFactor}|*|{maxRetry: number, initialDelay: number, maxDelay: number, randomisationFactor: number}}
      */
-    this.connectionStrategy= options.connectionStrategy || defaultConnectionStrategy;
+    this.connectionStrategy = options.connectionStrategy || defaultConnectionStrategy;
+
+    /***
+     * @property keepPendingSessionsOnDisconnect²
+     * @type {boolean}
+     */
+    this.keepPendingSessionsOnDisconnect = options.keepPendingSessionsOnDisconnect || false;
 }
+
 util.inherits(OPCUAClientBase, EventEmitter);
 
 OPCUAClientBase.prototype.getPrivateKey = OPCUASecureObject.prototype.getPrivateKey;
 OPCUAClientBase.prototype.getCertificate = OPCUASecureObject.prototype.getCertificate;
 OPCUAClientBase.prototype.getCertificateChain = OPCUASecureObject.prototype.getCertificateChain;
 
-var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
-OPCUAClientBase.registry  = new ObjectRegistry();
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+OPCUAClientBase.registry = new ObjectRegistry();
 
 /**
  * is true when the client has already requested the server end points.
  * @property knowsServerEndpoint
  * @type boolean
  */
-OPCUAClientBase.prototype.__defineGetter__("knowsServerEndpoint",function() {
-    var self = this;
-    return (self._server_endpoints && self._server_endpoints.length >0);
+OPCUAClientBase.prototype.__defineGetter__("knowsServerEndpoint", function () {
+    const self = this;
+    return (self._server_endpoints && self._server_endpoints.length > 0);
 });
 
 OPCUAClientBase.prototype._destroy_secure_channel = function () {
 
-    var self = this;
+
+    const self = this;
     if (self._secureChannel) {
 
-        if (doDebug) {
-            debugLog(" DESTROYING SECURE CHANNEL ",self._secureChannel.isTransactionInProgress());
-        }
 
+        if (doDebug) {
+            debugLog(" DESTROYING SECURE CHANNEL ", self._secureChannel.isTransactionInProgress());
+        }
         // keep accumulated statistics
         self._byteWritten += self._secureChannel.bytesWritten;
-        self._byteRead    += self._secureChannel.bytesRead;
+        self._byteRead += self._secureChannel.bytesRead;
         self._transactionsPerformed += self._secureChannel.transactionsPerformed;
         self._timedOutRequestCount += self._secureChannel.timedOutRequestCount;
 
@@ -166,26 +179,50 @@ OPCUAClientBase.prototype._destroy_secure_channel = function () {
 
         self._secureChannel.removeAllListeners();
         self._secureChannel = null;
+
+        if (doDebug) {
+            debugLog("byteWritten  = ",self._byteWritten );
+            debugLog("byteRead     = ",self._byteRead);
+        }
     }
 };
 
 
-function __findEndpoint(endpointUrl,securityMode,securityPolicy,callback) {
+function __findEndpoint(endpointUrl, params, callback) {
 
-    var client = new OPCUAClientBase();
+    const securityMode = params.securityMode;
+    const securityPolicy = params.securityPolicy;
 
-    var selected_endpoint = null;
-    var all_endpoints = null;
-    var tasks = [
-        function(callback) {
-            client.connect(endpointUrl, callback);
+    const options = {
+        connectionStrategy: params.connectionStrategy,
+        endpoint_must_exist: false,
+        certificateFile: params.certificateFile,
+        privateKeyFile: params.privateKeyFile,
+		applicationName: params.applicationName
+    };
+
+    const client = new OPCUAClientBase(options);
+
+    let selected_endpoint = null;
+    const all_endpoints = null;
+    const tasks = [
+        function (callback) {
+            client.on("backoff", function () {
+                console.log("finding Endpoint => reconnecting ");
+            });
+            client.connect(endpointUrl, function (err) {
+                if (err) {
+                    console.log("Fail to connect to server ", endpointUrl, " to collect certificate server");
+                }
+                return callback(err);
+            });
         },
         function (callback) {
-            client.getEndpointsRequest(function (err, endpoints) {
+            client.getEndpoints(function (err, endpoints) {
 
                 if (!err) {
                     endpoints.forEach(function (endpoint, i) {
-                        if (endpoint.securityMode === securityMode && endpoint.securityPolicyUri == securityPolicy.value){
+                        if (endpoint.securityMode === securityMode && endpoint.securityPolicyUri === securityPolicy.value) {
                             selected_endpoint = endpoint; // found it
                         }
                     });
@@ -198,14 +235,23 @@ function __findEndpoint(endpointUrl,securityMode,securityPolicy,callback) {
         }
     ];
 
-    async.series(tasks,function(err){
-       if(err) { return callback(err); }
+    async.series(tasks, function (err) {
+
+        if (err) {
+            return callback(err);
+        }
+
         if (!selected_endpoint) {
-            callback (new Error(" Cannot find an Endpoint matching " +
-                " security mode: "+securityMode.toString() +
+            callback(new Error(" Cannot find an Endpoint matching " +
+                " security mode: " + securityMode.toString() +
                 " policy: " + securityPolicy.toString()));
         }
-        callback(null,selected_endpoint,all_endpoints);
+
+        const result = {
+            selectedEndpoint: selected_endpoint,
+            endpoints: all_endpoints
+        };
+        callback(null, result);
     });
 }
 
@@ -214,34 +260,35 @@ function __findEndpoint(endpointUrl,securityMode,securityPolicy,callback) {
  * @property isReconnecting
  * @type {Boolean} true if the client is trying to reconnect to the server after a connection break.
  */
-OPCUAClientBase.prototype.__defineGetter__("isReconnecting",function() {
+OPCUAClientBase.prototype.__defineGetter__("isReconnecting", function () {
 
-    var self = this;
+    const self = this;
     return !!(self._secureChannel && self._secureChannel.isConnecting);
 });
 
-OPCUAClientBase.prototype._cancel_reconnection = function(callback) {
+OPCUAClientBase.prototype._cancel_reconnection = function (callback) {
 
-    var self = this;
+    const self = this;
 
     // istanbul ignore next
     if (!self._secureChannel) {
         return callback(null); // nothing to do
     }
-    self._secureChannel.abortConnection(function(err){
+    self._secureChannel.abortConnection(function (err) {
         self._secureChannel = null;
         callback();
     });
 };
 
-OPCUAClientBase.prototype._recreate_secure_channel = function(callback) {
+OPCUAClientBase.prototype._recreate_secure_channel = function (callback) {
 
     debugLog("_recreate_secure_channel...");
 
-    var self =this;
+    const self = this;
     assert(_.isFunction(callback));
 
     if (!self.knowsServerEndpoint) {
+        console.log("Cannot reconnect , server endpoint is unknown");
         return callback(new Error("Cannot reconnect, server endpoint is unknown"));
     }
     assert(self.knowsServerEndpoint);
@@ -266,11 +313,10 @@ OPCUAClientBase.prototype._recreate_secure_channel = function(callback) {
 
         self._internal_create_secure_channel(function (err) {
 
-
             if (err) {
                 debugLog("OPCUAClientBase: cannot reconnect ..".bgWhite.red);
             } else {
-                assert(self._secureChannel);
+                assert(self._secureChannel, "expecting a secureChannel here ");
                 // a new channel has be created and a new connection is established
                 debugLog("OPCUAClientBase:  RECONNECTED                                       !!!".bgWhite.red)
             }
@@ -282,31 +328,31 @@ OPCUAClientBase.prototype._recreate_secure_channel = function(callback) {
              * @event after_reconnection
              * @param err
              */
-            self.emit("after_reconnection",err); // send after callback
+            self.emit("after_reconnection", err); // send after callback
 
         });
     });
 };
 
-function _verify_serverCertificate(serverCertificate,callback){
+function _verify_serverCertificate(serverCertificate, callback) {
     // check if certificate is trusted or untrusted
-    var crypto_utils = require("node-opcua-crypto").crypto_utils;
+    const crypto_utils = require("node-opcua-crypto");
 
-    var pki_folder = process.cwd()+"/pki";
+    const pki_folder = process.cwd() + "/pki";
 
     // istanbul ignore next
-    if (!fs.existsSync(pki_folder)){
+    if (!fs.existsSync(pki_folder)) {
         fs.mkdirSync(pki_folder);
     }
-    var pki_untrusted_folder = path.join(pki_folder,"untrusted");
+    const pki_untrusted_folder = path.join(pki_folder, "untrusted");
 
     // istanbul ignore next
-    if (!fs.existsSync(pki_untrusted_folder)){
+    if (!fs.existsSync(pki_untrusted_folder)) {
         fs.mkdirSync(pki_untrusted_folder);
     }
-    var thumbprint = crypto_utils.makeSHA1Thumbprint(serverCertificate);
+    const thumbprint = crypto_utils.makeSHA1Thumbprint(serverCertificate);
 
-    var certificate_filename = path.join(pki_untrusted_folder,thumbprint.toString("hex") + ".pem");
+    const certificate_filename = path.join(pki_untrusted_folder, thumbprint.toString("hex") + ".pem");
     fs.writeFile(certificate_filename, crypto_utils.toPem(serverCertificate, "CERTIFICATE"), function () {
         setImmediate(callback);
     });
@@ -316,8 +362,8 @@ function _verify_serverCertificate(serverCertificate,callback){
 
 OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) {
 
-    var self = this;
-    var secureChannel;
+    const self = this;
+    let secureChannel;
     assert(self._secureChannel === null);
     assert(_.isString(self.endpointUrl));
 
@@ -333,7 +379,8 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
                 serverCertificate: self.serverCertificate,
                 parent: self,
                 objectFactory: self.objectFactory,
-                connectionStrategy: self.connectionStrategy
+                connectionStrategy: self.connectionStrategy,
+                tokenRenewalInterval: self.tokenRenewalInterval,
             });
 
             self._secureChannel = secureChannel;
@@ -345,16 +392,23 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
                     debugLog("Cannot create secureChannel".yellow, (err.message ? err.message.cyan : ""));
                     self._destroy_secure_channel();
                 } else {
-                    _install_secure_channel_event_handlers(self,secureChannel);
+                    if (!self._secureChannel) {
+                        console.log("_secureChannel has been closed during the transaction !");
+                        self._destroy_secure_channel();
+                        return _inner_callback(new Error("Secure Channel Closed"));
+                    }
+                    assert(self._secureChannel !== null);
+                    _install_secure_channel_event_handlers(self, secureChannel);
                 }
+                assert(err || self._secureChannel !== null);
                 _inner_callback(err);
             });
 
-            secureChannel.on("backoff",function(number,delay) {
-                self.emit("backoff",number,delay);
+            secureChannel.on("backoff", function (number, delay) {
+                self.emit("backoff", number, delay);
             });
 
-            secureChannel.on("abort",function() {
+            secureChannel.on("abort", function () {
                 self.emit("abort");
             });
 
@@ -365,11 +419,13 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
 
             if (!self.knowsServerEndpoint) {
                 assert(self._secureChannel !== null);
-                self.getEndpointsRequest(function (err/*, endpoints*/) {
+                self.getEndpoints(function (err/*, endpoints*/) {
+                    assert(self._secureChannel !== null);
                     _inner_callback(err);
                 });
             } else {
                 // end points are already known
+                assert(self._secureChannel !== null);
                 _inner_callback(null);
             }
         }
@@ -382,9 +438,9 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
             self._secureChannel = null;
             callback(err);
         } else {
-            callback(err,secureChannel);
+            assert(self._secureChannel !== null);
+            callback(err, secureChannel);
         }
-
     });
 
 };
@@ -395,12 +451,12 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
  * @type {Boolean}
  */
 OPCUAClientBase.prototype.__defineGetter__("reconnectOnFailure", function () {
-    var self = this;
-    return  self.connectionStrategy.maxRetry >0;
+    const self = this;
+    return self.connectionStrategy.maxRetry > 0 || self.connectionStrategy.maxRetry === -1;
 });
 
 
-function _install_secure_channel_event_handlers(self,secureChannel) {
+function _install_secure_channel_event_handlers(self, secureChannel) {
 
     assert(self instanceof OPCUAClientBase);
 
@@ -442,7 +498,7 @@ function _install_secure_channel_event_handlers(self,secureChannel) {
 
     secureChannel.on("lifetime_75", function (token) {
         // secureChannel requests a new token
-        debugLog("SecureChannel Security Token ",token.tokenId, " is about to expired , it's time to request a new token");
+        debugLog("SecureChannel Security Token ", token.tokenId, " is about to expired , it's time to request a new token");
         // forward message to upper level
         self.emit("lifetime_75", token);
     });
@@ -457,47 +513,58 @@ function _install_secure_channel_event_handlers(self,secureChannel) {
         debugLog(" OPCUAClientBase emitting close".yellow.bold, err);
 
         if (!err || !self.reconnectOnFailure) {
+
             // this is a normal close operation initiated byu
+
             /**
              * @event close
              * @param error {Error}
              */
             self.emit("close", err);
+
             setImmediate(function () {
                 self._destroy_secure_channel();
             });
             return;
+
         } else {
 
+            self.emit("connection_lost");
 
-            self._recreate_secure_channel(function(err) {
+            setImmediate(function () {
 
-                debugLog("secureChannel#on(close) => _recreate_secure_channel returns ",err ? err.message : "OK");
-                if (err) {
-                    //xx assert(!self._secureChannel);
-                    self.emit("close",err);
-                    return;
-                } else {
-                    /**
-                     * @event connection_reestablished
-                     *        send when the connection is reestablished after a connection break
-                     */
-                    self.emit("connection_reestablished");
+                debugLog("recreating new secure channel ");
 
-                    // now delegate to upper class the
-                    if (self._on_connection_reestablished) {
-                        assert(_.isFunction(self._on_connection_reestablished));
-                        self._on_connection_reestablished(function (err) {
+                self._recreate_secure_channel(function (err) {
 
-                            if (err) {
-                                debugLog("connection_reestablished has failed");
-                                self.disconnect(function(){
-                                    //xx callback(err);
-                                });
-                            }
-                        });
+                    debugLog("secureChannel#on(close) => _recreate_secure_channel returns ", err ? err.message : "OK");
+
+                    if (err) {
+                        //xx assert(!self._secureChannel);
+                        self.emit("close", err);
+                        return;
+                    } else {
+                        /**
+                         * @event connection_reestablished
+                         *        send when the connection is reestablished after a connection break
+                         */
+                        self.emit("connection_reestablished");
+
+                        // now delegate to upper class the
+                        if (self._on_connection_reestablished) {
+                            assert(_.isFunction(self._on_connection_reestablished));
+                            self._on_connection_reestablished(function (err) {
+
+                                if (err) {
+                                    debugLog("connection_reestablished has failed");
+                                    self.disconnect(function () {
+                                        //xx callback(err);
+                                    });
+                                }
+                            });
+                        }
                     }
-                }
+                });
             });
         }
         //xx console.log("xxxx OPCUAClientBase emitting close".yellow.bold,err);
@@ -522,15 +589,17 @@ function _install_secure_channel_event_handlers(self,secureChannel) {
  * connect the OPC-UA client to a server end point.
  * @method connect
  * @async
- * @param endpoint_url {string}
+ * @param endpointUrl {string}
  * @param callback {Function}
  */
-OPCUAClientBase.prototype.connect = function (endpoint_url, callback) {
+OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
 
     assert(_.isFunction(callback), "expecting a callback");
-    var self = this;
+    const self = this;
 
-    self.endpointUrl = endpoint_url;
+    self.endpointUrl = endpointUrl;
+
+    debugLog("OPCUAClientBase#connect ", endpointUrl);
 
     // prevent illegal call to connect
     if (self._secureChannel !== null) {
@@ -540,8 +609,9 @@ OPCUAClientBase.prototype.connect = function (endpoint_url, callback) {
         return;
     }
 
-    if (!self.serverCertificate && self.securityMode!== MessageSecurityMode.NONE) {
+    if (!self.serverCertificate && self.securityMode !== MessageSecurityMode.NONE) {
 
+        debugLog("OPCUAClient : getting serverCertificate");
         // we have not been given the serverCertificate but this certificate
         // is required as the connection is to be secured.
         //
@@ -555,29 +625,49 @@ OPCUAClientBase.prototype.connect = function (endpoint_url, callback) {
         // if the certificate has been certified by an Certificate Authority we have to
         // verify that the certificates in the chain are valid and not revoked.
         //
-        return __findEndpoint(endpoint_url,this.securityMode,this.securityPolicy,function(err,endpoint){
-            if (err) { return callback(err); }
-            if (!endpoint) {
-                return callback(new Error("cannot find end point"));
+		const cert = self.certificateFile || 'certificates/client_selfsigned_cert_1024.pem';
+		const key = self.privateKeyFile || 'certificates/client_key_1024.pem';
+		const appName = self.applicationName || 'NodeOPCUA-Client';
+        const params = {
+            securityMode: this.securityMode,
+            securityPolicy: this.securityPolicy,
+            connectionStrategy: this.connectionStrategy,
+            endpoint_must_exist: false,
+			certificateFile: cert, 
+            privateKeyFile: key,
+			applicationName: appName
+        };
+        return __findEndpoint(endpointUrl,params, function (err, result) {
+            if (err) {
+                return callback(err);
             }
-            //xx console.log(" Found End point ");
-            _verify_serverCertificate(endpoint.serverCertificate,function(err) {
-                if (err) { return callback(err); }
+
+            const endpoint = result.selectedEndpoint;
+            if (!endpoint) {
+                // no matching end point can be found ...
+                return callback(new Error("cannot find endpoint"));
+            }
+            assert(endpoint);
+            _verify_serverCertificate(endpoint.serverCertificate, function (err) {
+                if (err) {
+                    return callback(err);
+                }
                 self.serverCertificate = endpoint.serverCertificate;
-                return self.connect(endpoint_url,callback);
+                return self.connect(endpointUrl, callback);
             });
         });
     }
 
-    //todo: make sure endpoint_url exists in the list of endpoints send by the server
+    //todo: make sure endpointUrl exists in the list of endpoints send by the server
     // [...]
 
     // make sure callback will only be call once regardless of outcome, and will be also deferred.
-    var callback_od = once(delayed.deferred(callback)); callback = null;
+    const callback_od = once(delayed.deferred(callback));
+    callback = null;
 
     OPCUAClientBase.registry.register(self);
 
-    self._internal_create_secure_channel(function(err,secureChannel) {
+    self._internal_create_secure_channel(function (err, secureChannel) {
         callback_od(err);
     });
 
@@ -589,7 +679,7 @@ OPCUAClientBase.prototype.getClientNonce = function () {
 
 OPCUAClientBase.prototype.performMessageTransaction = function (request, callback) {
 
-    var self = this;
+    const self = this;
     if (!self._secureChannel) {
         // this may happen if the Server has closed the connection abruptly for some unknown reason
         // or if the tcp connection has been broken.
@@ -603,7 +693,6 @@ OPCUAClientBase.prototype.performMessageTransaction = function (request, callbac
 };
 
 
-
 /**
  *
  * return the endpoint information matching  security mode and security policy.
@@ -611,10 +700,12 @@ OPCUAClientBase.prototype.performMessageTransaction = function (request, callbac
  * @return {EndPoint}
  */
 OPCUAClientBase.prototype.findEndpointForSecurity = function (securityMode, securityPolicy) {
+    securityMode = MessageSecurityMode.get(securityMode);
+    securityPolicy = SecurityPolicy.get(securityPolicy);
     assert(this.knowsServerEndpoint, "Server end point are not known yet");
     return _.find(this._server_endpoints, function (endpoint) {
         return endpoint.securityMode === securityMode &&
-               endpoint.securityPolicyUri === securityPolicy.value;
+            endpoint.securityPolicyUri === securityPolicy.value;
     });
 };
 
@@ -635,7 +726,7 @@ OPCUAClientBase.prototype.findEndpoint = function (endpointUrl, securityMode, se
 
 
 /**
- * @method getEndpointsRequest
+ * @method getEndpoints
  * @async
  * @async
  *
@@ -648,9 +739,9 @@ OPCUAClientBase.prototype.findEndpoint = function (endpointUrl, securityMode, se
  * @param callback.serverEndpoints {Array<EndpointDescription>} the array of endpoint descriptions
  *
  */
-OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
+OPCUAClientBase.prototype.getEndpoints = function (options, callback) {
 
-    var self = this;
+    const self = this;
 
     if (!callback) {
         callback = options;
@@ -658,13 +749,13 @@ OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
     }
     assert(_.isFunction(callback));
 
-    options.endpointUrl = options.endpointUrl || self.endpoint_url;
+  //  options.endpointUrl = options.hasOwnProperty("endpointUrl") ? options.endpointUrl : self.endpointUrl;
     options.localeIds = options.localeIds || [];
     options.profileUris = options.profileUris || [];
 
-    var request = new GetEndpointsRequest({
-        endpointUrl: options.endpointUrl,
-        localeIds:   options.localeIds,
+    const request = new GetEndpointsRequest({
+        endpointUrl: options.endpointUrl || self.endpointUrl,
+        localeIds: options.localeIds,
         profileUris: options.profileUris,
         requestHeader: {
             auditEntryId: null
@@ -681,6 +772,11 @@ OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
     });
 };
 
+OPCUAClientBase.prototype.getEndpointsRequest = function(options,callback) {
+    console.log("note: OPCUAClientBase#getEndpointsRequest is deprecated, use OPCUAClientBase#getEndpoints instead");
+    return this.getEndpoints(options,callback);
+};
+
 /**
  *
  * send a FindServers request to a discovery server
@@ -689,9 +785,11 @@ OPCUAClientBase.prototype.getEndpointsRequest = function (options, callback) {
  * @param callback [Function}
  */
 
-var register_server_service = require("node-opcua-service-register-server");
-var FindServersRequest = register_server_service.FindServersRequest;
-var FindServersResponse = register_server_service.FindServersResponse;
+const discovery_service = require("node-opcua-service-discovery");
+const FindServersRequest = discovery_service.FindServersRequest;
+const FindServersResponse = discovery_service.FindServersResponse;
+const FindServersOnNetworkRequest = discovery_service.FindServersOnNetworkRequest;
+const FindServersOnNetworkResponse = discovery_service.FindServersOnNetworkResponse;
 
 /**
  * @method findServers
@@ -703,7 +801,7 @@ var FindServersResponse = register_server_service.FindServersResponse;
  */
 OPCUAClientBase.prototype.findServers = function (options, callback) {
 
-    var self = this;
+    const self = this;
 
     if (!self._secureChannel) {
         setImmediate(function () {
@@ -717,8 +815,8 @@ OPCUAClientBase.prototype.findServers = function (options, callback) {
         options = {};
     }
 
-    var request = new FindServersRequest({
-        endpointUrl: options.endpointUrl || this.endpoint_url,
+    const request = new FindServersRequest({
+        endpointUrl: options.endpointUrl || this.endpointUrl,
         localeIds: options.localeIds || [],
         serverUris: options.serverUris || []
     });
@@ -734,16 +832,44 @@ OPCUAClientBase.prototype.findServers = function (options, callback) {
 };
 
 
+OPCUAClientBase.prototype.findServersOnNetwork = function (options, callback) {
+
+    const self = this;
+
+    if (!self._secureChannel) {
+        setImmediate(function () {
+            callback(new Error("Invalid Secure Channel"));
+        });
+        return;
+    }
+
+    if (!callback) {
+        callback = options;
+        options = {};
+    }
+
+    const request = new FindServersOnNetworkRequest(options);
+
+    self.performMessageTransaction(request, function (err, response) {
+        if (err) {
+            return callback(err);
+        }
+        assert(response instanceof FindServersOnNetworkResponse);
+        callback(null, response.servers);
+    });
+};
+
+
 OPCUAClientBase.prototype._close_pending_sessions = function (callback) {
 
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
 
-    var sessions = _.clone(self._sessions);
+    const sessions = _.clone(self._sessions);
     async.map(sessions, function (session, next) {
-
+        assert(session instanceof ClientSession);
         assert(session._client === self);
-        session.close(function(err){
+        session.close(function (err) {
             // We should not bother if we have an error here
             // Session may fail to close , if they haven't been activate and forcefully closed by server
             // in a attempt to preserve resources in the case of a DOS attack for instance.
@@ -756,8 +882,10 @@ OPCUAClientBase.prototype._close_pending_sessions = function (callback) {
     }, function (err) {
 
         // istanbul ignore next
-        if (self._sessions.length>0) {
-            console.log(self._sessions.map(function(s){ return s.authenticationToken.toString()}).join(" "));
+        if (self._sessions.length > 0) {
+            debugLog(self._sessions.map(function (s) {
+                return s.authenticationToken.toString()
+            }).join(" "));
         }
 
         assert(self._sessions.length === 0, " failed to disconnect exiting sessions ");
@@ -767,7 +895,7 @@ OPCUAClientBase.prototype._close_pending_sessions = function (callback) {
 };
 
 OPCUAClientBase.prototype._addSession = function (session) {
-    var self = this;
+    const self = this;
     assert(!session._client || session._client === self);
     assert(!_.contains(self._sessions, session), "session already added");
     session._client = self;
@@ -780,12 +908,14 @@ OPCUAClientBase.prototype._addSession = function (session) {
 };
 
 OPCUAClientBase.prototype._removeSession = function (session) {
-    var self = this;
-    var index = self._sessions.indexOf(session);
+    const self = this;
+    const index = self._sessions.indexOf(session);
     if (index >= 0) {
-        self._sessions.splice(index, 1);
+        const s = self._sessions.splice(index, 1)[0];
+        assert(s === session);
         assert(!_.contains(self._sessions, session));
-        session.dispose();
+        assert(session._client === self)
+        session._client = null;
     }
     assert(!_.contains(self._sessions, session));
 };
@@ -799,21 +929,24 @@ OPCUAClientBase.prototype._removeSession = function (session) {
  */
 OPCUAClientBase.prototype.disconnect = function (callback) {
 
-    assert(_.isFunction(callback));
+    assert(_.isFunction(callback), "expecting a callback function here");
+    const self = this;
 
-    var self = this;
+    debugLog("OPCUAClientBase#disconnect",self.endpointUrl);
+
     if (self.isReconnecting) {
         debugLog("OPCUAClientBase#disconnect called while reconnection is in progress");
         // let's abort the reconnection process
-        return self._cancel_reconnection(function(err) {
-            assert(!err," why would this fail ?");
+        return self._cancel_reconnection(function (err) {
+            assert(!err, " why would this fail ?");
             assert(!self.isReconnecting);
             // sessions cannot be cancelled properly and must be discarded.
             self.disconnect(callback);
         });
     }
-    if (self._sessions.length) {
-        console.log("warning : disconnection : closing pending sessions".yellow.bold);
+
+    if (self._sessions.length && !self.keepPendingSessionsOnDisconnect) {
+        debugLog("warning : disconnection : closing pending sessions");
         // disconnect has been called whereas living session exists
         // we need to close them first ....
         self._close_pending_sessions(function (/*err*/) {
@@ -822,13 +955,20 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
         return;
     }
 
+    if (self._sessions.length ) {
+        // transfer active session to  orphan and detach them from channel
+        _.forEach(self._sessions,function(session) {
+            self._removeSession(session)
+        });
+        self._sessions = [];
+    }
     assert(self._sessions.length === 0, " attempt to disconnect a client with live sessions ");
 
     OPCUAClientBase.registry.unregister(self);
 
     if (self._secureChannel) {
 
-        var tmp_channel = self._secureChannel;
+        const tmp_channel = self._secureChannel;
 
         self._destroy_secure_channel();
 
@@ -853,7 +993,7 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
  * @type {Number}
  */
 OPCUAClientBase.prototype.__defineGetter__("bytesRead", function () {
-    var self = this;
+    const self = this;
     return self._byteRead + (self._secureChannel ? self._secureChannel.bytesRead : 0);
 });
 
@@ -863,8 +1003,8 @@ OPCUAClientBase.prototype.__defineGetter__("bytesRead", function () {
  * @type {Number}
  */
 OPCUAClientBase.prototype.__defineGetter__("bytesWritten", function () {
-    var self = this;
-    return self._byteWritten + (self._secureChannel ?  self._secureChannel.bytesWritten : 0 );
+    const self = this;
+    return self._byteWritten + (self._secureChannel ? self._secureChannel.bytesWritten : 0);
 });
 
 /**
@@ -873,38 +1013,54 @@ OPCUAClientBase.prototype.__defineGetter__("bytesWritten", function () {
  * @type {Number}
  */
 OPCUAClientBase.prototype.__defineGetter__("transactionsPerformed", function () {
-    var self = this;
+    const self = this;
     return self._transactionsPerformed + (self._secureChannel ? self._secureChannel.transactionsPerformed : 0);
 });
 
 OPCUAClientBase.prototype.__defineGetter__("timedOutRequestCount", function () {
-    var self = this;
+    const self = this;
     return self._timedOutRequestCount + (self._secureChannel ? self._secureChannel.timedOutRequestCount : 0);
 });
 
 // override me !
-OPCUAClientBase.prototype._on_connection_reestablished = function(callback) {
+OPCUAClientBase.prototype._on_connection_reestablished = function (callback) {
     callback();
 };
 
 
-OPCUAClientBase.prototype.toString = function() {
+OPCUAClientBase.prototype.toString = function () {
 
-    console.log("  defaultSecureTokenLifetime.... ",this.defaultSecureTokenLifetime);
-    console.log("  securityMode.................. ",this.securityMode.toString());
-    console.log("  securityPolicy................ ",this.securityPolicy.toString());
+    console.log("  defaultSecureTokenLifetime.... ", this.defaultSecureTokenLifetime);
+    console.log("  securityMode.................. ", this.securityMode.toString());
+    console.log("  securityPolicy................ ", this.securityPolicy.toString());
     //xx this.serverCertificate = options.serverCertificate || null;
-    console.log("  keepSessionAlive.............. ",this.keepSessionAlive);
-    console.log("  bytesRead..................... ",this.bytesRead);
-    console.log("  bytesWritten.................. ",this.bytesWritten);
-    console.log("  transactionsPerformed......... ",this.transactionsPerformed);
-    console.log("  timedOutRequestCount.......... ",this.timedOutRequestCount);
+    console.log("  keepSessionAlive.............. ", this.keepSessionAlive);
+    console.log("  bytesRead..................... ", this.bytesRead);
+    console.log("  bytesWritten.................. ", this.bytesWritten);
+    console.log("  transactionsPerformed......... ", this.transactionsPerformed);
+    console.log("  timedOutRequestCount.......... ", this.timedOutRequestCount);
     console.log("  connectionStrategy.");
-    console.log("        .maxRetry............... ",this.connectionStrategy.maxRetry);
-    console.log("        .initialDelay........... ",this.connectionStrategy.initialDelay);
-    console.log("        .maxDelay............... ",this.connectionStrategy.maxDelay);
-    console.log("        .randomisationFactor.... ",this.connectionStrategy.randomisationFactor);
-    console.log("  keepSessionAlive.............. ",this.keepSessionAlive);
+    console.log("        .maxRetry............... ", this.connectionStrategy.maxRetry);
+    console.log("        .initialDelay........... ", this.connectionStrategy.initialDelay);
+    console.log("        .maxDelay............... ", this.connectionStrategy.maxDelay);
+    console.log("        .randomisationFactor.... ", this.connectionStrategy.randomisationFactor);
+    console.log("  keepSessionAlive.............. ", this.keepSessionAlive);
 };
 
 exports.OPCUAClientBase = OPCUAClientBase;
+
+const thenify = require("thenify");
+/**
+ * @method connect
+ * @param endpointUrl {string}
+ * @async
+ * @return {Promise}
+ */
+OPCUAClientBase.prototype.connect = thenify.withCallback(OPCUAClientBase.prototype.connect);
+OPCUAClientBase.prototype.disconnect = thenify.withCallback(OPCUAClientBase.prototype.disconnect);
+OPCUAClientBase.prototype.getEndpoints = thenify.withCallback(OPCUAClientBase.prototype.getEndpoints);
+OPCUAClientBase.prototype.findServers = thenify.withCallback(OPCUAClientBase.prototype.findServers);
+OPCUAClientBase.prototype.findServersOnNetwork = thenify.withCallback(OPCUAClientBase.prototype.findServersOnNetwork);
+// deprecated:
+OPCUAClientBase.prototype.getEndpointsRequest = thenify.withCallback(OPCUAClientBase.prototype.getEndpointsRequest);
+

@@ -1,14 +1,14 @@
 /*global describe, it, require*/
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
 module.exports = function (test) {
@@ -18,8 +18,8 @@ module.exports = function (test) {
 
         it("Default client sessionName ",function(done) {
 
-            var client = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
             async.series([
                 function(callback) {
@@ -40,9 +40,9 @@ module.exports = function (test) {
 
         it("should be possible to set the clientName to get more expressive  sessionName ",function(done) {
 
-            var client = new OPCUAClient({ clientName: "ABCDEF-"});
+            const client = new OPCUAClient({ clientName: "ABCDEF-"});
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
             async.series([
                 function(callback) {
                     perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {

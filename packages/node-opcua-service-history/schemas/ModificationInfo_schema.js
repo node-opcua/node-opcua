@@ -1,6 +1,6 @@
-var HistoryUpdateType = require("./HistoryUpdateType_enum").HistoryUpdateType;
+const HistoryUpdateType = require("./HistoryUpdateType_enum").HistoryUpdateType;
 
-var ModificationInfo_Schema = {
+const ModificationInfo_Schema = {
     name: "ModificationInfo",
     fields: [
         { name: "username" , fieldType: "String" , documentation: "The name of the user that made the modification. Support for this field is optional. A null shall be returned if it is not defined." },

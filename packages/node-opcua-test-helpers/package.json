@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-test-helpers",
- "version": "0.1.0-4",
+ "version": "0.5.0",
  "description": "pure nodejs OPCUA SDK - module -test-helpers",
  "main": "index.js",
  "scripts": {
@@ -9,7 +9,7 @@
  "author": "Etienne Rossignon",
  "license": "MIT",
  "dependencies": {
-  "underscore": "^1.8.3"
+  "underscore": "^1.9.1"
  },
  "repository": {
   "type": "git",

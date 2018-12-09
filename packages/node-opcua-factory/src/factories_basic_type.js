@@ -2,12 +2,12 @@
 /**
  * @module opcua.miscellaneous
  */
-var _ = require("underscore");
-var util = require("util");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert").assert;
 
-var _defaultTypeMap = require("./factories_builtin_types")._defaultTypeMap;
-var registerType = require("./factories_builtin_types").registerType;
+const _defaultTypeMap = require("./factories_builtin_types")._defaultTypeMap;
+const registerType = require("./factories_builtin_types").registerType;
 
 
 
@@ -39,9 +39,9 @@ var registerType = require("./factories_builtin_types").registerType;
  * @param [schema.toJSONFunc]{Function} optional, a method to convert a value into the request type.
  */
 function registerBasicType(schema) {
-    var name = schema.name;
+    const name = schema.name;
 
-    var t = _defaultTypeMap[schema.subtype];
+    const t = _defaultTypeMap[schema.subtype];
 
     /* istanbul ignore next */
     if (!t) {
@@ -50,22 +50,22 @@ function registerBasicType(schema) {
     }
     assert(_.isFunction(t.decode));
 
-    var encodeFunc = schema.encode || t.encode;
+    const encodeFunc = schema.encode || t.encode;
     assert(_.isFunction(encodeFunc));
 
-    var decodeFunc = schema.decode || t.decode;
+    const decodeFunc = schema.decode || t.decode;
     assert(_.isFunction(decodeFunc));
 
-    var defaultValue = (schema.defaultValue === undefined ) ? t.defaultValue : schema.defaultValue;
+    const defaultValue = (schema.defaultValue === undefined ) ? t.defaultValue : schema.defaultValue;
     // assert(_.isFunction(defaultValue));
 
-    var coerceFunc = schema.coerce || t.coerce;
+    const coerceFunc = schema.coerce || t.coerce;
 
-    var toJSONFunc = schema.toJSON || t.toJSON;
+    const toJSONFunc = schema.toJSON || t.toJSON;
 
-    var random = schema.random || defaultValue;
+    const random = schema.random || defaultValue;
 
-    var new_schema = {
+    const new_schema = {
         name: name,
         encode: encodeFunc,
         decode: decodeFunc,
@@ -93,7 +93,7 @@ registerBasicType({name: "UInt8",    subtype: "Byte"});
 registerBasicType({name: "Time",     subtype: "String"});
 // string in the form "en-US" or "de-DE" or "fr" etc...
 
-var ec = require("node-opcua-basic-types");
+const ec = require("node-opcua-basic-types");
 registerBasicType({name: "LocaleId",
     subtype: "String",
     encode: ec.encodeLocaleId,

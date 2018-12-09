@@ -1,33 +1,33 @@
 "use strict";
 
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
-var StatusCodes = opcua.StatusCodes;
-var DataType = opcua.DataType;
-var AttributeIds = opcua.AttributeIds;
-var BrowseDirection = opcua.BrowseDirection;
-var client_utils = opcua.client_utils;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
+const StatusCodes = opcua.StatusCodes;
+const DataType = opcua.DataType;
+const AttributeIds = opcua.AttributeIds;
+const BrowseDirection = opcua.BrowseDirection;
+const client_utils = opcua.client_utils;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 
-var port = 2000;
+const port = 2000;
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing AnalogItem on client side", function () {
 
-    var server, client, temperatureVariableId, endpointUrl;
+    let server, client, temperatureVariableId, endpointUrl;
 
     this.timeout(Math.max(600000,this._timeout));
 
-    var g_session = null;
+    let g_session = null;
     before(function (done) {
 
         server = build_server_with_temperature_device({port: port}, function (err) {
@@ -79,7 +79,7 @@ describe("testing AnalogItem on client side", function () {
     it("readUAAnalogItem should extract all properties of a UAAnalogItem ", function (done) {
 
 
-        var nodeId = "ns=4;s=TemperatureAnalogItem";
+        const nodeId = "ns=1;s=TemperatureAnalogItem";
 
         client_utils.readUAAnalogItem(g_session, nodeId, function (err, data) {
 
@@ -97,7 +97,7 @@ describe("testing AnalogItem on client side", function () {
 
     });
     it("readUAAnalogItem should return an error if not doesn't exist", function (done) {
-        var nodeId = "ns=4;s=invalidnode";
+        const nodeId = "ns=4;s=invalidnode";
         client_utils.readUAAnalogItem(g_session, nodeId, function (err, data) {
             should.exist(err);
             done();
@@ -113,7 +113,7 @@ describe("testing AnalogItem on client side", function () {
      */
     function findProperty(g_session, nodeId, browseName, callback) {
 
-        var browseDescription = {
+        const browseDescription = {
             nodeId: nodeId,
             referenceTypeId: "HasProperty",
             browseDirection: BrowseDirection.Forward,
@@ -123,19 +123,19 @@ describe("testing AnalogItem on client side", function () {
 
             if (err) { return callback(err); }
 
-            result = result[0];
+
             if (result.statusCode !== StatusCodes.Good) {
                 return callback(null, null);
             }
 
-            var tmp = _.filter(result.references, function (e) {
-                console.log("     ", e.nodeId.toString(), e.browseName.name.yellow);
+            let tmp = _.filter(result.references, function (e) {
+                //xx console.log("     ", e.nodeId.toString(), e.browseName.name.yellow);
                 return e.browseName.name === browseName;
             });
             tmp = tmp.map(function (e) {
                 return e.nodeId;
             });
-            var found = (tmp.length === 1) ? tmp[0] : null;
+            const found = (tmp.length === 1) ? tmp[0] : null;
             callback(null, found);
 
         });
@@ -144,7 +144,7 @@ describe("testing AnalogItem on client side", function () {
 
     it("should read the EURange property of an analog item", function (done) {
 
-        var nodeId = "ns=4;s=TemperatureAnalogItem";
+        const nodeId = "ns=1;s=TemperatureAnalogItem";
 
         findProperty(g_session, nodeId, "EURange", function (err, propertyId) {
 
@@ -154,21 +154,21 @@ describe("testing AnalogItem on client side", function () {
 
             should.exist(propertyId);
 
-            var nodeToRead = {
+            const nodeToRead = {
                 nodeId: propertyId,
                 attributeId: AttributeIds.Value
             };
-            console.log("propertyId = ", propertyId.toString());
-            g_session.read([nodeToRead], function (err, nodeToRead, results) {
+            //xx console.log("propertyId = ", propertyId.toString());
+            g_session.read(nodeToRead, function (err, dataValue) {
                 if (err) {
                     return done(err);
                 }
-                var result = results[0];
-                //xx console.log("result = ",result.toString());
-                result.value.dataType.should.eql(DataType.ExtensionObject);
 
-                result.value.value.low.should.eql(100);
-                result.value.value.high.should.eql(200);
+                //xx console.log("result = ",result.toString());
+                dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+
+                dataValue.value.value.low.should.eql(100);
+                dataValue.value.value.high.should.eql(200);
 
                 done(err);
             });

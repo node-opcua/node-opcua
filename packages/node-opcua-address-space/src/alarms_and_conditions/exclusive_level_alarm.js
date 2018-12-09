@@ -3,10 +3,11 @@
  * @module opcua.address_space.AlarmsAndConditions
  */
 
-var util = require("util");
+const util = require("util");
+const AddressSpace =require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
 
-
-var UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
+const UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
 
 /**
  * @class UAExclusiveLevelAlarm
@@ -18,6 +19,11 @@ function UAExclusiveLevelAlarm() {
 util.inherits(UAExclusiveLevelAlarm, UAExclusiveLimitAlarm);
 exports.UAExclusiveLevelAlarm =UAExclusiveLevelAlarm;
 
-UAExclusiveLevelAlarm.instantiate = function(addressSpace,type,option,data) {
-    return UAExclusiveLimitAlarm.instantiate(addressSpace, type, option, data);
+UAExclusiveLevelAlarm.instantiate = function(namespace,type,option,data) {
+
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.addressSpace;
+    assert(addressSpace instanceof AddressSpace);
+
+    return UAExclusiveLimitAlarm.instantiate(namespace, type, option, data);
 };

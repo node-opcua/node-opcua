@@ -1,5 +1,5 @@
 require("node-opcua-service-secure-channel");
-var TimestampsToReturn = require("node-opcua-data-value").TimestampsToReturn;
+const TimestampsToReturn = require("node-opcua-data-value").TimestampsToReturn;
 
 /*
  * Maximum age of the value to be read in milliseconds. The age of the value is based on the difference between the
@@ -21,7 +21,7 @@ var TimestampsToReturn = require("node-opcua-data-value").TimestampsToReturn;
  * @class ReadRequest
  */
 
-var ReadRequest_Schema = {
+const ReadRequest_Schema = {
     name: "ReadRequest",
     fields: [
         {   name: "requestHeader" ,               fieldType: "RequestHeader"},

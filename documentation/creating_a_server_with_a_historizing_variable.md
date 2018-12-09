@@ -9,11 +9,11 @@ exposes the pressure of a vessel as an historizing variable.
 Let's use a very basic server script :
 
 ``` javascript
-var opcua = require("node-opcua");
-var path = require("path");
-var assert = require("assert");
+const opcua = require("node-opcua");
+const path = require("path");
+
 // Let's create an instance of OPCUAServer
-var server = new opcua.OPCUAServer({
+const server = new opcua.OPCUAServer({
     port: 26543, // the port of the listening socket of the server
     resourcePath: "UA/MyLittleServer", // this path will be added to the endpoint resource name
     nodeset_filename: [
@@ -21,7 +21,8 @@ var server = new opcua.OPCUAServer({
     ]
 });
 function construct_address_space(server) {
-  var addressSpace = server.engine.addressSpace;
+  const addressSpace = server.engine.addressSpace;
+  const namespace = addresSpace.getOwnNamespace();
   _"create the vessel object"
   _"create historizing variable"
   _"adding historical configuration"
@@ -32,7 +33,7 @@ function post_initialize() {
     server.start(function() {
         console.log("Server is now listening ... ( press CTRL+C to stop)");
         console.log("port ", server.endpoints[0].port);
-        var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         console.log(" the primary server endpoint url is ", endpointUrl );
     });
 }
@@ -46,7 +47,7 @@ We add the code to create the variable inside the ```construct_address_space``` 
 The vessel object will appear in the standard Object Folder
 
 ``` javascript
-var vessel = addressSpace.addObject({
+const vessel = namespace.addObject({
     browseName: "Vessel",
     organizedBy: addressSpace.rootFolder.objects
 });
@@ -59,13 +60,13 @@ We will create  the ``vesselPressure``` variable as a AnalogDataItem, so we can 
 engineering  units in Bars and value range.
 
 ``` javascript
-var vesselPressure = addressSpace.addAnalogDataItem({
+const vesselPressure = namespace.addAnalogDataItem({
     browseName: "Pressure",
     engineeringUnitsRange: {
         low:  0,
         high: 10.0
     },
-    engineeringUnits: opcua.standarUnits.bar,
+    engineeringUnits: opcua.standardUnits.bar,
     componentOf: vessel
 });
 ```
@@ -90,9 +91,9 @@ to change the value on a regular basis.
 
 ``` javascript
 // simulate pressure change
-var t = 0;
+let t = 0;
 setInterval(function() {
-  var value = (Math.sin(t/50)*0.70+Math.random()*0.20)*5.0+5.0;
+  let value = (Math.sin(t/50)*0.70+Math.random()*0.20)*5.0+5.0;
   vesselPressure.setValueFromSource({dataType:"Double",value:value});
   t=t+1;
 }, 200);

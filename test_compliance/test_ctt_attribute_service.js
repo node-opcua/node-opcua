@@ -1,25 +1,25 @@
 "use strict";
-var path = "../bin/node-opcua";
+const path = "../bin/node-opcua";
 require(path+"test_compliance/helpers");
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 function include_test(filename, options) {
-    var test = require("./" + filename);
+    const  test = require("./" + filename);
     test.register_test(options);
 }
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("COMPLIANCE TESTING", function () {
 
-    var options = {
+    const options = {
         server: null,
         endpointUrl: null,
         client: null,
         temperatureVariableId: null
     };
 
-    var port = 2234;
+    const port = 2234;
     before(function (done) {
         console.log("\n INFO - building the server ".yellow);
         options.server = build_server_with_temperature_device({ port: port, add_simulation: true}, function (err) {
@@ -27,7 +27,7 @@ describe("COMPLIANCE TESTING", function () {
             options.endpointUrl = options.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             options.temperatureVariableId = options.server.temperatureVariableId;
 
-            options.client = new OPCUAClient();
+            options.client = new opcua.OPCUAClient({});
 
             done(err);
         });

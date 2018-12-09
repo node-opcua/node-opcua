@@ -1,30 +1,36 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
-var _ = require("underscore");
+const should = require("should");
+const _ = require("underscore");
 
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
-var address_space = require("..");
-var UAMethod = address_space.UAMethod;
-var SessionContext = address_space.SessionContext;
-var context = SessionContext.defaultContext;
+const address_space = require("..");
+const UAMethod = address_space.UAMethod;
+const SessionContext = address_space.SessionContext;
+const context = SessionContext.defaultContext;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing Method -  Attribute UserExecutable & Executable on Method ", function () {
 
-    var addressSpace;
+    let addressSpace,namespace;
 
-    before(function () {
-        addressSpace = new address_space.AddressSpace();
+    before(function (done) {
+        get_mini_address_space(function(err,_addressSpace){
+            addressSpace = _addressSpace;
+            namespace = addressSpace.getOwnNamespace();
+            namespace.index.should.eql(1);
+
+            done(err);
+        })
     });
     after(function (done) {
         if (addressSpace) {
@@ -36,14 +42,15 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
 
     it("should return Executable= false and UserExecutable=false if method is not bound ", function () {
 
-        var method = new UAMethod({
+        const obj = namespace.addObject({browseName:"object"});
+
+        const method = namespace.addMethod(obj,{
             browseName: "MyMethod1",
-            addressSpace: addressSpace,
             userExecutable: false,
             executable: true
         });
 
-        var value;
+        let value;
         value = method.readAttribute(context, AttributeIds.UserExecutable);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Boolean);
@@ -57,9 +64,10 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
     });
     it("should return Executable= true and UserExecutable=true if method is  bound ", function () {
 
-        var method = new UAMethod({
+        const obj = namespace.addObject({browseName:"object"});
+
+        const method = namespace.addMethod(obj,{
             browseName: "MyMethod2",
-            addressSpace: addressSpace,
             userExecutable: false,
             executable: true
         });
@@ -69,7 +77,7 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
 
         method.bindMethod(fakeMethod);
 
-        var value;
+        let value;
         value = method.readAttribute(context, AttributeIds.UserExecutable);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Boolean);
@@ -87,7 +95,7 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", f
 describe("testing Method in address space", function () {
 
 
-    var addressSpace = null;
+    let addressSpace = null;
     before(function (done) {
         get_mini_address_space(function (err, data) {
             addressSpace = data;
@@ -116,18 +124,18 @@ describe("testing Method in address space", function () {
 
     it("should provide a input Parameter variable", function () {
 
-        var method = addressSpace.findMethod("ns=0;i=11489");
+        const method = addressSpace.findMethod("ns=0;i=11489");
         method.should.be.instanceOf(UAMethod);
-        var inputArguments = method.getInputArguments();
+        const inputArguments = method.getInputArguments();
         inputArguments.should.be.instanceOf(Object);
 
     });
     it("should provide a output Parameter variable", function () {
 
-        var method = addressSpace.findMethod("ns=0;i=11489");
+        const method = addressSpace.findMethod("ns=0;i=11489");
         method.should.be.instanceOf(UAMethod);
 
-        var outputArguments = method.getOutputArguments();
+        const outputArguments = method.getOutputArguments();
         outputArguments.should.be.instanceOf(Object);
 
 
@@ -137,8 +145,8 @@ describe("testing Method in address space", function () {
 });
 
 describe("testing Method binding", function () {
-    var addressSpace = null;
-    var rootFolder;
+    let addressSpace = null;
+    let rootFolder;
 
     before(function (done) {
         get_mini_address_space(function (err, data) {
@@ -158,7 +166,7 @@ describe("testing Method binding", function () {
 
     function fake_getMonitoredItemId(inputArguments, context, callback) {
 
-        var self = this;
+        const self = this;
 
         should(_.isArray(inputArguments)).eql(true);
         should(_.isFunction(callback)).eql(true);
@@ -167,7 +175,7 @@ describe("testing Method binding", function () {
         inputArguments[0].dataType.should.eql(DataType.UInt32);
         inputArguments[0].value.should.eql(5);
 
-        var myResult = {
+        const myResult = {
             statusCode: StatusCodes.BadBoundNotFound,
             outputArguments: [
                 {dataType: DataType.UInt32, value: [1, 2, 3]},
@@ -182,9 +190,9 @@ describe("testing Method binding", function () {
 
         rootFolder.objects.server.getMonitoredItems.bindMethod(fake_getMonitoredItemId.bind(this));
 
-        var inputArguments = [{dataType: DataType.UInt32, value: 5}];
+        const inputArguments = [{dataType: DataType.UInt32, value: 5}];
 
-        var context = SessionContext.defaultContext;
+        const context = SessionContext.defaultContext;
         rootFolder.objects.server.getMonitoredItems.execute(inputArguments, context, function (err, result) {
 
             done(err);

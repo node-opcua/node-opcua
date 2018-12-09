@@ -1,4 +1,4 @@
-var AggregateConfiguration_Schema = {
+const AggregateConfiguration_Schema = {
     name: "AggregateConfiguration",
     //xx baseType:"ExtensionObject",
     isAbstract: true,

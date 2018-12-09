@@ -1,8 +1,8 @@
 require("node-opcua-data-model");
-var ApplicationType = require("./ApplicationType_enum").ApplicationType;
+const ApplicationType = require("./ApplicationType_enum").ApplicationType;
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
-var ApplicationDescription_Schema = {
+const ApplicationDescription_Schema = {
     name: "ApplicationDescription",
     fields: [
         // The globally unique identifier for the application instance.

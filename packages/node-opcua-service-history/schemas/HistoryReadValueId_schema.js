@@ -1,6 +1,6 @@
 require("node-opcua-data-model");
 
-var HistoryReadValueId_Schema = {
+const HistoryReadValueId_Schema = {
     name: "HistoryReadValueId",
     // baseType: "ExtensionObject"
     fields: [

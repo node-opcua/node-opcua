@@ -1,21 +1,22 @@
 
 /* global console, require */
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var server = new opcua.OPCUAServer({
+const server = new opcua.OPCUAServer({
     port: 4334 // the port of the listening socket of the server
 });
 
 function post_initialize() {
 
-    var addressSpace = server.engine.addressSpace;
-    
-    var myDevice = addressSpace.addObject({
+    const addressSpace = server.engine.addressSpace;
+    const namespace =addressSpace.getOwnNamespace();
+
+    const myDevice = namespace.addObject({
         organizedBy: addressSpace.rootFolder.objects,
         browseName: "MyDevice"
     });
 
-    var method = addressSpace.addMethod(myDevice,{
+    const method = namespace.addMethod(myDevice,{
     
         browseName: "Bark",
     
@@ -38,20 +39,24 @@ function post_initialize() {
              valueRank: 1
         }]
     });
+    
+    // optionally, we can adjust userAccessLevel attribute 
+    method.outputArguments.userAccessLevel = opcua.makeAccessLevel("CurrentRead");
+    method.inputArguments.userAccessLevel = opcua.makeAccessLevel("CurrentRead");
 
     
     method.bindMethod(function(inputArguments,context,callback) {
     
-        var nbBarks = inputArguments[0].value;
-        var volume =  inputArguments[1].value;
+        const nbBarks = inputArguments[0].value;
+        const volume =  inputArguments[1].value;
     
         console.log("Hello World ! I will bark ",nbBarks," times");
         console.log("the requested volume is ",volume,"");
-        var sound_volume = Array(volume).join("!");
+        const sound_volume = Array(volume).join("!");
     
-        var barks = []; for(var i=0;i<nbBarks;i++){ barks.push("Whaff" + sound_volume);}
+        const barks = []; for(const i=0;i<nbBarks;i++){ barks.push("Whaff" + sound_volume);}
     
-        var callMethodResult = {
+        const callMethodResult = {
             statusCode: opcua.StatusCodes.Good,
             outputArguments: [{
                     dataType: opcua.DataType.String,

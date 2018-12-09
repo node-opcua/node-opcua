@@ -1,13 +1,13 @@
 "use strict";
 
-var _ = require("underscore");
-var subscription_service = require("node-opcua-service-subscription");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const subscription_service = require("node-opcua-service-subscription");
+const assert = require("node-opcua-assert").assert;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 //xx var debugLog = console.log;
 
@@ -15,18 +15,19 @@ var StatusCodes = require("node-opcua-status-code").StatusCodes;
  * A client side implementation to deal with publish service.
  *
  * @class ClientSidePublishEngine
- *
- * @param session {ClientSession} - the client session
- * @constructor
- *
+
  * The ClientSidePublishEngine encapsulates the mechanism to
  * deal with a OPCUA Server and constantly sending PublishRequest
  * The ClientSidePublishEngine also performs  notification acknowledgements.
  * Finally, ClientSidePublishEngine dispatch PublishResponse to the correct
  * Subscription id callback
+ *
+ * @param session {ClientSession} - the client session
+ *
+ *
+ * @constructor
  */
 function ClientSidePublishEngine(session) {
-    assert(session instanceof Object);
 
     this.session = session;
 
@@ -43,8 +44,20 @@ function ClientSidePublishEngine(session) {
     // the maximum number of publish requests we think that the server can queue.
     // we will adjust this value .
     this.nbMaxPublishRequestsAcceptedByServer = 1000;
+
+    this.isSuspended = false;
+
 }
 
+ClientSidePublishEngine.prototype.suspend = function(flag) {
+    assert(this.isSuspended !== !!flag,"invalid state");
+    this.isSuspended = !!flag;
+    if (this.isSuspended) {
+
+    } else {
+        this.replenish_publish_request_queue();
+    }
+};
 
 /**
  * @method acknowledge_notification
@@ -52,6 +65,16 @@ function ClientSidePublishEngine(session) {
  * @param sequenceNumber {Number} the sequence number
  */
 ClientSidePublishEngine.prototype.acknowledge_notification = function (subscriptionId, sequenceNumber) {
+
+    //xx //xx console.log("xxxxxxx acknowledge_notification".bgWhite.red.bold, sequenceNumber);
+    //xx this._unacked = this._unacked || [];
+    //xx for (var i =this._lastAcked+1;i<sequenceNumber;i++) {
+    //xx     //xx console.log("xxxxxxx acknowledge_notification => remembering unacked sequence number".bgWhite.red,i);
+    //xx     this._unacked.push(i);
+    //xx }
+    //xx //xx assert(this.lastAcknowldegedSequence+1 === sequenceNumber,"expecting lastAcknowledgedSequence ");
+    //xx this._lastAcked = sequenceNumber;
+
     this.subscriptionAcknowledgements.push({
         subscriptionId: subscriptionId,
         sequenceNumber: sequenceNumber
@@ -69,33 +92,47 @@ ClientSidePublishEngine.prototype.cleanup_acknowledgment_for_subscription = func
  * @method send_publish_request
  */
 ClientSidePublishEngine.prototype.send_publish_request = function () {
-    var self = this;
+    const self = this;
+
+    if (self.isSuspended) {
+        return;
+    }
 
     if (self.nbPendingPublishRequests >= self.nbMaxPublishRequestsAcceptedByServer) {
         return;
     }
-    assert(self.subscriptionCount >0);
 
-    setImmediate(function () {
-        if (!self.session) {
-            // session has been terminated
-            return;
-        }
-        self._send_publish_request();
-    });
+    if (self.session && !self.session.isChannelValid()) {
+        // wait for channel  to be valid
+        setTimeout(function () {
+            if (self.subscriptionCount) {
+                self.send_publish_request();
+            }
+        }, 100);
+    } else {
+        setImmediate(function () {
+            if (!self.session || self.isSuspended) {
+                // session has been terminated or suspended
+                return;
+            }
+            self._send_publish_request();
+        });
+
+    }
 };
 
 
 ClientSidePublishEngine.prototype._send_publish_request = function () {
 
-    var self = this;
+    const self = this;
     assert(self.session, "ClientSidePublishEngine terminated ?");
+    assert(!self.isSuspended,"should not be suspended");
 
     self.nbPendingPublishRequests +=1;
 
-    debugLog("sending publish request".yellow,self.nbPendingPublishRequests);
+    debugLog("sending publish request ".yellow,self.nbPendingPublishRequests);
 
-    var subscriptionAcknowledgements = self.subscriptionAcknowledgements;
+    const subscriptionAcknowledgements = self.subscriptionAcknowledgements;
     self.subscriptionAcknowledgements = [];
 
     // as started in the spec (Spec 1.02 part 4 page 81 5.13.2.2 Function DequeuePublishReq())
@@ -128,14 +165,14 @@ ClientSidePublishEngine.prototype._send_publish_request = function () {
     // in our case:
 
     assert( self.nbPendingPublishRequests >0);
-    var calculatedTimeout = self.nbPendingPublishRequests * self.timeoutHint;
+    const calculatedTimeout = self.nbPendingPublishRequests * self.timeoutHint;
 
-    var publish_request = new subscription_service.PublishRequest({
+    const publish_request = new subscription_service.PublishRequest({
         requestHeader: {timeoutHint: calculatedTimeout}, // see note
         subscriptionAcknowledgements: subscriptionAcknowledgements
     });
 
-    var active = true;
+    let active = true;
 
     self.session.publish(publish_request, function (err, response) {
 
@@ -216,7 +253,7 @@ ClientSidePublishEngine.prototype.terminate = function () {
  * @type {Number}
  */
 ClientSidePublishEngine.prototype.__defineGetter__("subscriptionCount", function () {
-    var self = this;
+    const self = this;
     return Object.keys(self.subscriptionMap).length;
 });
 
@@ -234,7 +271,7 @@ ClientSidePublishEngine.prototype.registerSubscription = function (subscription)
     debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
 
     assert(arguments.length === 1);
-    var self = this;
+    const self = this;
     assert(_.isFinite(subscription.subscriptionId));
     assert(!self.subscriptionMap.hasOwnProperty(subscription.subscriptionId)); // already registered ?
     assert(_.isFunction(subscription.onNotificationMessage));
@@ -251,7 +288,7 @@ ClientSidePublishEngine.prototype.registerSubscription = function (subscription)
 
 ClientSidePublishEngine.prototype.replenish_publish_request_queue = function() {
 
-    var self = this;
+    const self = this;
     // Spec 1.03 part 4 5.13.5 Publish
     // [..] in high latency networks, the Client may wish to pipeline Publish requests
     // to ensure cyclic reporting from the Server. Pipelining involves sending more than one Publish
@@ -261,7 +298,7 @@ ClientSidePublishEngine.prototype.replenish_publish_request_queue = function() {
     // a response to be received before sending the next request.
     self.send_publish_request();
     // send more than one publish request to server to cope with latency
-    for (var i = 0; i < ClientSidePublishEngine.publishRequestCountInPipeline - 1; i++) {
+    for (let i = 0; i < ClientSidePublishEngine.publishRequestCountInPipeline - 1; i++) {
         self.send_publish_request();
     }
 };
@@ -276,14 +313,20 @@ ClientSidePublishEngine.prototype.unregisterSubscription = function (subscriptio
     debugLog("ClientSidePublishEngine#unregisterSubscription ",subscriptionId);
 
     assert(_.isFinite(subscriptionId) && subscriptionId >0);
-    var self = this;
+    const self = this;
     self.activeSubscriptionCount -= 1;
-    assert(self.subscriptionMap.hasOwnProperty(subscriptionId));
-    delete self.subscriptionMap[subscriptionId];
+    // note : it is possible that we get here while the server has already requested
+    //        a session shutdown ... in this case it is pssoble that subscriptionId is already
+    //        removed
+    if(self.subscriptionMap.hasOwnProperty(subscriptionId)) {
+        delete self.subscriptionMap[subscriptionId];
+    } else {
+        debugLog("ClientSidePublishEngine#unregisterSubscription cannot find subscription  ",subscriptionId);
+    }
 };
 
 ClientSidePublishEngine.prototype.getSubscriptionIds = function() {
-    var self = this;
+    const self = this;
     return Object.keys(self.subscriptionMap).map(parseInt);
 };
 
@@ -295,19 +338,24 @@ ClientSidePublishEngine.prototype.getSubscriptionIds = function() {
  * @return {Subscription|null}
  */
 ClientSidePublishEngine.prototype.getSubscription = function (subscriptionId) {
-    var self = this;
+    const self = this;
     assert(_.isFinite(subscriptionId) && subscriptionId >0);
     assert(self.subscriptionMap.hasOwnProperty(subscriptionId));
     return self.subscriptionMap[subscriptionId];
+};
+ClientSidePublishEngine.prototype.hasSubscription = function (subscriptionId) {
+    const self = this;
+    assert(_.isFinite(subscriptionId) && subscriptionId >0);
+    return self.subscriptionMap.hasOwnProperty(subscriptionId);
 };
 
 ClientSidePublishEngine.prototype._receive_publish_response = function (response) {
 
     debugLog("receive publish response".yellow.bold);
-    var self = this;
+    const self = this;
 
     // the id of the subscription sending the notification message
-    var subscriptionId = response.subscriptionId;
+    const subscriptionId = response.subscriptionId;
 
     // the sequence numbers available in this subscription
     // for retransmission and not acknowledged by the client
@@ -316,7 +364,7 @@ ClientSidePublishEngine.prototype._receive_publish_response = function (response
     // has the server more notification for us ?
     // -- var moreNotifications = response.moreNotifications;
 
-    var notificationMessage = response.notificationMessage;
+    const notificationMessage = response.notificationMessage;
     //  notificationMessage.sequenceNumber
     //  notificationMessage.publishTime
     //  notificationMessage.notificationData[]
@@ -332,7 +380,7 @@ ClientSidePublishEngine.prototype._receive_publish_response = function (response
     // which is only an information of what will be the future sequenceNumber.
     //}
 
-    var subscription = self.subscriptionMap[subscriptionId];
+    const subscription = self.subscriptionMap[subscriptionId];
 
     if (subscription && self.session !== null) {
       
@@ -354,42 +402,59 @@ ClientSidePublishEngine.prototype._receive_publish_response = function (response
     }
 };
 
-var async = require("async");
+const async = require("async");
 
 ClientSidePublishEngine.prototype.republish = function(callback) {
 
-    var self = this;
+    const self = this;
 
     // After re-establishing the connection the Client shall call Republish in a loop, starting with the next expected
     // sequence number and incrementing the sequence number until the Server returns the status Bad_MessageNotAvailable.
     // After receiving this status, the Client shall start sending Publish requests with the normal Publish handling.
     // This sequence ensures that the lost NotificationMessages queued in the Server are not overwritten by new
     // Publish responses
+    /**
+     * call Republish continuously until all Notification messages of un-acknowledged notifications are reprocessed..
+     * @param subscription
+     * @param subscriptionId
+     * @param _i_callback
+     * @private
+     */
     function _republish(subscription,subscriptionId,_i_callback) {
 
         assert(subscription.subscriptionId === +subscriptionId);
 
-        var done = false;
+        let is_done = false;
 
         function _send_republish(_b_callback) {
-            var request = new subscription_service.RepublishRequest({
+            assert(_.isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber+1>=0);
+            const request = new subscription_service.RepublishRequest({
                 subscriptionId: subscription.subscriptionId,
                 retransmitSequenceNumber: subscription.lastSequenceNumber+1
             });
 
-            debugLog(" republish Request for subscription",request.subscriptionId," retransmitSequenceNumber=",request.retransmitSequenceNumber);
+            // istanbul ignore next
+            if (doDebug) {
+                debugLog(" republish Request for subscription".bgCyan.yellow.bold,
+                    request.subscriptionId," retransmitSequenceNumber=",request.retransmitSequenceNumber);
+            }
 
+            if (!self.session || self.session._closeEventHasBeenEmmitted) {
+                debugLog("ClientPublishEngine#_republish aborted ");
+                // has  client been disconnected in the mean time ?
+                is_done = true;
+                return _b_callback();
+            }
             self.session.republish(request,function(err,response){
-                if (!err &&  response.responseHeader.serviceResult === StatusCodes.Good) {
+                if (!err &&  response.responseHeader.serviceResult.equals(StatusCodes.Good)) {
+                    // reprocess notification message  and keep going
                     subscription.onNotificationMessage(response.notificationMessage);
                 } else {
-
-
                     if (!err) {
-                        err = response.responseHeader.serviceResult.toString();
+                        err = new Error(response.responseHeader.serviceResult.toString());
                     }
                     debugLog(" _send_republish ends with ",err.message);
-                    done = true;
+                    is_done = true;
                 }
                 _b_callback(err);
             });
@@ -398,8 +463,7 @@ ClientSidePublishEngine.prototype.republish = function(callback) {
         setImmediate(function() {
 
             assert(_.isFunction(_i_callback));
-            async.whilst(function (){ return !done},_send_republish,function(err) {
-
+            async.whilst(function (){ return !is_done},_send_republish,function(err) {
                 debugLog("nbPendingPublishRequest = ",self.nbPendingPublishRequests);
                 debugLog(" _republish ends with ",err ? err.message : "null");
                 _i_callback(err);
@@ -411,7 +475,14 @@ ClientSidePublishEngine.prototype.republish = function(callback) {
 
         _republish(subscription,subscriptionId,function (err) {
 
+            assert(!err || err instanceof Error);
 
+            debugLog("---------------------------------------------------- err =",err ? err.message: null);
+
+            if (err && err.message.match(/BadSessionInvalid/)) {
+                // _republish failed because subscriptionId is not valid anymore on server side.
+                return _the_callback(err);
+            }
             if (err && err.message.match(/SubscriptionIdInvalid/)) {
 
                 // _republish failed because subscriptionId is not valid anymore on server side.
@@ -425,7 +496,6 @@ ClientSidePublishEngine.prototype.republish = function(callback) {
                 //
                 debugLog("_republish failed because subscriptionId is not valid anymore on server side.".bgWhite.red);
                 return subscription.recreateSubscriptionAndMonitoredItem(_the_callback);
-
             }
             _the_callback();
 

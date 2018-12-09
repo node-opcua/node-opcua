@@ -1,7 +1,11 @@
+"use strict";
 /**
- * @method makeBrowsePath
+ * @module services.translate-browse-path
  */
 module.exports = {
+    /**
+     * @method makeBrowsePath
+     */
     makeBrowsePath: require("./src/make_browse_path").makeBrowsePath,
     makeRelativePath: require("./src/make_relative_path").makeRelativePath,
     constructBrowsePathFromQualifiedName: require("./src/tools_browse_path").constructBrowsePathFromQualifiedName,

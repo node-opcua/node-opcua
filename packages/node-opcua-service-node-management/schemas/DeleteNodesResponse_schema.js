@@ -1,6 +1,6 @@
 require("node-opcua-service-secure-channel");
 
-var DeleteNodesResponse_Schema = {
+const DeleteNodesResponse_Schema = {
     name:"DeleteNodesResponse",
     fields: [
         {name: "responseHeader", fieldType: "ResponseHeader", documentation: "A standard header included in all responses returned by servers."},

@@ -1,5 +1,5 @@
 require("node-opcua-service-secure-channel");
-var HistoryReadResponse_Schema = {
+const HistoryReadResponse_Schema = {
     name: "HistoryReadResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader"},

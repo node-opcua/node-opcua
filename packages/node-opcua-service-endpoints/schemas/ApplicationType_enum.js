@@ -1,8 +1,8 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var ApplicationType_Schema = {
+const ApplicationType_Schema = {
     name: "ApplicationType",
     enumValues: {
         SERVER: 0, // The application is a Server

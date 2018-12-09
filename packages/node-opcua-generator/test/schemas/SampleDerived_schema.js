@@ -1,7 +1,7 @@
 
-var factories = require("node-opcua-factory");
+const factories = require("node-opcua-factory");
 
-var SampleDerived_Schema = {
+const SampleDerived_Schema = {
     name: "SampleDerived",
     baseType: "SampleBase",
     documentation: "A FOOBAR Derived Object.",

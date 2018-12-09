@@ -1,6 +1,6 @@
 "use strict";
 require("./ServerState_enum");
-var RedundantServer_Schema = {
+const RedundantServer_Schema = {
     id: "ns=0;i=855",
     name: "RedundantServer",
     fields: [

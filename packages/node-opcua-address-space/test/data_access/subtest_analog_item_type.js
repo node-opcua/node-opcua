@@ -1,45 +1,46 @@
 "use strict";
-var async = require("async");
+const async = require("async");
 
-var should = require("should");
+const should = require("should");
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 
-var Range = require("node-opcua-data-access").Range;
-var standardUnits = require("node-opcua-data-access").standardUnits;
+const Range = require("node-opcua-data-access").Range;
+const standardUnits = require("node-opcua-data-access").standardUnits;
 
-var SessionContext = require("../..").SessionContext;
+const SessionContext = require("../..").SessionContext;
 
-var BrowseDescription = require("node-opcua-service-browse").BrowseDescription;
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const BrowseDescription = require("node-opcua-service-browse").BrowseDescription;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 
-var AddressSpace = require("../../").AddressSpace;
+const AddressSpace = require("../../").AddressSpace;
 
 
 module.exports = function (maintest) {
 
     describe("AnalogDataItem", function () {
 
-        var addressSpace;
+        let addressSpace,namespace;
         before(function() {
             addressSpace = maintest.addressSpace;
+            namespace = addressSpace.getOwnNamespace();
             should(addressSpace).be.instanceof(AddressSpace);
         });
 
-        var context = SessionContext.defaultContext;
+        const context = SessionContext.defaultContext;
 
         it("should add an analog data item in the addresss_space", function (done) {
 
-            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
-            var fakeValue = 1;
+            let fakeValue = 1;
 
-            var analogItem = addressSpace.addAnalogDataItem({
+            const analogItem = namespace.addAnalogDataItem({
 
                 organizedBy: objectsFolder,
 
@@ -78,14 +79,14 @@ module.exports = function (maintest) {
             analogItem.instrumentRange.readValue().value.value.high.should.eql(200);
 
             // browsing variable
-            var browseDescription = new BrowseDescription({
+            const browseDescription = new BrowseDescription({
                 nodeClassMask: 0, // 0 = all nodes
                 referenceTypeId: 0,
                 browseDirection: BrowseDirection.Forward,
                 resultMask: 0x3F
             });
             //xx var browseResult = engine.browseSingleNode(analogItem.nodeId, browseDescription);
-            var references = analogItem.browseNode(browseDescription);
+            const references = analogItem.browseNode(browseDescription);
 
             references.length.should.eql(6);
 
@@ -139,9 +140,9 @@ module.exports = function (maintest) {
 
 
 
-            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
 
-            var analogItem = addressSpace.addAnalogDataItem({
+            const analogItem = namespace.addAnalogDataItem({
                 organizedBy: objectsFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",
@@ -153,7 +154,7 @@ module.exports = function (maintest) {
                 value: new Variant({dataType: DataType.Double, value: 10.0})
             });
 
-            var dataValue = new DataValue({
+            const dataValue = new DataValue({
                 value: new Variant({dataType: DataType.Double, value: -1000.0})// out of range
             });
 
@@ -167,9 +168,9 @@ module.exports = function (maintest) {
         it("Writing a value within InstrumentRange shall return Good", function (done) {
 
 
-            var objectsFolder = addressSpace.findNode("ObjectsFolder");
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
 
-            var analogItem = addressSpace.addAnalogDataItem({
+            const analogItem = namespace.addAnalogDataItem({
                 organizedBy: objectsFolder,
                 browseName: "TemperatureSensor",
                 definition: "(tempA -25) + tempB",
@@ -181,7 +182,7 @@ module.exports = function (maintest) {
                 value: new Variant({dataType: DataType.Double, value: 10.0})
             });
 
-            var dataValue = new DataValue({
+            const dataValue = new DataValue({
                 value: new Variant({dataType: DataType.Double, value: 150})// in range
             });
 

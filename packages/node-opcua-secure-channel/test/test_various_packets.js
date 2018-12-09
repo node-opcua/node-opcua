@@ -1,18 +1,18 @@
-var should = require("should");
+const should = require("should");
 
-var MessageBuilder = require("../src/message_builder").MessageBuilder;
-var packets = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets");
+const MessageBuilder = require("../src/message_builder").MessageBuilder;
+const packets = require("node-opcua-transport/test-fixtures/fixture_full_tcp_packets");
 
 
 xdescribe("testing with problematic packet", function () {
 
     it("should raise a message event after reassembling and decoding a message ", function (done) {
 
-        var messageBuilder = new MessageBuilder();
+        const messageBuilder = new MessageBuilder();
         messageBuilder.setSecurity("NONE", "None");
 
-        var full_message_body_event_received = false;
-        var on_message__received = false;
+        let full_message_body_event_received = false;
+        let on_message__received = false;
 
         messageBuilder.
         on("message", function (message) {
@@ -39,9 +39,9 @@ xdescribe("testing with problematic packet", function () {
 
     it("should not emit a \"invalid_sequence_number\" event when message have a 1-increased sequence number", function (done) {
 
-        var messageBuilder = new MessageBuilder();
+        const messageBuilder = new MessageBuilder();
 
-        var messageCount = 0;
+        let messageCount = 0;
         messageBuilder.
         on("message", function (message) {
             messageCount += 1;
@@ -65,21 +65,21 @@ xdescribe("testing with problematic packet", function () {
     it("should decode this problematic ReadResponse ", function (done) {
 
         //
-        var services = require("../src/services");
+        const services = require("../src/services");
 
-        var ec = require("node-opcua-basic-types");
-        var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+        const ec = require("node-opcua-basic-types");
+        const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
-        var full_message_body = require("../test_fixtures/fixture_problematic_ReadResponse.js").packet_ReadResponse;
-        var binaryStream = new BinaryStream(full_message_body);
+        const full_message_body = require("../test_fixtures/fixture_problematic_ReadResponse.js").packet_ReadResponse;
+        const binaryStream = new BinaryStream(full_message_body);
 
         // read expandedNodeId:
-        var id = ec.decodeExpandedNodeId(binaryStream);
+        const id = ec.decodeExpandedNodeId(binaryStream);
 
         this.objectFactory = require("node-opcua-factory");
 
         // construct the object
-        var objMessage = this.objectFactory.constructObject(id);
+        const objMessage = this.objectFactory.constructObject(id);
 
         if (!objMessage) {
             console.log(services);
@@ -87,7 +87,7 @@ xdescribe("testing with problematic packet", function () {
         }
         objMessage.constructor.name.should.eql("ReadResponse");
 
-        var packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
+        const packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
 
         packet_analyzer(full_message_body);
 

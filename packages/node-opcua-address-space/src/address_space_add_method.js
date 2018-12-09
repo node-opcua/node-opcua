@@ -4,39 +4,49 @@
  * @class AddressSpace
  */
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var Argument = require("node-opcua-service-call").Argument;
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const Argument = require("node-opcua-service-call").Argument;
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+
+const DataValue =  require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const coerceQualifiedName = require("node-opcua-data-model").coerceQualifiedName;
+
+const Namespace = require("./namespace").Namespace;
+const BaseNode = require("./base_node").BaseNode;
 
 exports.install = function (AddressSpace) {
 
-    var isNonEmptyQualifiedName = AddressSpace.isNonEmptyQualifiedName;
-    var _handle_hierarchy_parent = AddressSpace._handle_hierarchy_parent;
+    const isNonEmptyQualifiedName = Namespace.isNonEmptyQualifiedName;
+    const _handle_hierarchy_parent = Namespace._handle_hierarchy_parent;
 
-    AddressSpace.prototype._addMethod = function(options) {
 
-        var self = this;
+    Namespace.prototype._addMethod = function(options) {
+
+        const self = this;
+
+        const addressSpace = self.addressSpace;
 
         assert(isNonEmptyQualifiedName(options.browseName));
 
-        var references = [];
+        const references = [];
         assert(isNonEmptyQualifiedName(options.browseName));
 
-        _handle_hierarchy_parent(self, references, options);
+        _handle_hierarchy_parent(addressSpace, references, options);
 
-        AddressSpace._process_modelling_rule(references, options.modellingRule);
+        Namespace._process_modelling_rule(references, options.modellingRule);
 
-        var method = self._createNode({
+
+        const method = self._createNode({
             nodeClass: NodeClass.Method,
             nodeId: options.nodeId,
             isAbstract: false,
             browseName: options.browseName,
+            displayName: options.displayName,
             description: options.description || "",
             eventNotifier: +options.eventNotifier,
             references: references
@@ -59,10 +69,15 @@ exports.install = function (AddressSpace) {
      * @param options.outputArguments {Array<Argument>}
      * @return {Object}
      */
-    AddressSpace.prototype.addMethod = function (parentObject, options) {
-        var self = this;
+    AddressSpace.prototype.addMethod = function(parentObject,options) {
+        return  this._resolveRequestedNamespace(options).addMethod(parentObject,options);
+    };
+    Namespace.prototype.addMethod = function (parentObject, options) {
+        const self = this;
 
-        assert(_.isObject(parentObject));
+        const addressSpace = self.addressSpace;
+
+        assert(_.isObject(parentObject) && parentObject instanceof BaseNode,"expecting a valid parent object");
 
         options.nodeClass = NodeClass.Method;
 
@@ -72,14 +87,14 @@ exports.install = function (AddressSpace) {
 
         options.componentOf = parentObject;
 
-        var method = self._addMethod(options);
+        const method = self._addMethod(options);
 
-        var propertyTypeId = self._coerce_VariableTypeIds("PropertyType");
+        const propertyTypeId = addressSpace._coerce_VariableTypeIds("PropertyType");
 
-        var nodeId_ArgumentDataType = "Argument"; // makeNodeId(DataTypeIds.Argument);
+        const nodeId_ArgumentDataType = "Argument"; // makeNodeId(DataTypeIds.Argument);
 
         if (options.inputArguments) {
-            var _inputArgs = new Variant({
+            const _inputArgs = new Variant({
                 dataType: DataType.ExtensionObject,
                 arrayType: VariantArrayType.Array,
                 value: options.inputArguments.map(function (opt) {
@@ -87,11 +102,11 @@ exports.install = function (AddressSpace) {
                 })
             });
 
-            var inputArguments = self.addVariable({
+            const inputArguments = self.addVariable({
                 modellingRule: "Mandatory",
                 propertyOf: method,
                 typeDefinition: "PropertyType",
-                browseName: "InputArguments",
+                browseName: {name:"InputArguments",namespaceIndex:0},
                 description: "the definition of the input argument of method " + parentObject.browseName.toString() + "." + method.browseName.toString(),
                 dataType: nodeId_ArgumentDataType,
                 accessLevel: "CurrentRead",
@@ -109,7 +124,7 @@ exports.install = function (AddressSpace) {
 
 
         if (options.outputArguments) {
-            var _ouputArgs = new Variant({
+            const _ouputArgs = new Variant({
                 dataType: DataType.ExtensionObject,
                 arrayType: VariantArrayType.Array,
                 value: options.outputArguments.map(function (opts) {
@@ -117,11 +132,11 @@ exports.install = function (AddressSpace) {
                 })
             });
 
-            var outputArguments = self.addVariable({
+            const outputArguments = self.addVariable({
                 modellingRule: "Mandatory",
                 propertyOf: method,
                 typeDefinition: "PropertyType",
-                browseName: "OutputArguments",
+                browseName: {name:"OutputArguments",namespaceIndex:0},
                 description: "the definition of the output arguments of method " + parentObject.browseName.toString() + "." + method.browseName.toString(),
                 dataType: nodeId_ArgumentDataType,
                 accessLevel: "CurrentRead",

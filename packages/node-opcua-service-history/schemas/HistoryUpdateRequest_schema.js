@@ -1,5 +1,5 @@
 require("node-opcua-service-secure-channel");
-var HistoryUpdateRequest_Schema = {
+const HistoryUpdateRequest_Schema = {
     name:"HistoryUpdateRequest",
     fields:[
         {   name: "requestHeader", fieldType: "RequestHeader"},

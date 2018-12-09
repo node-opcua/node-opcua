@@ -7,7 +7,7 @@
  * This Service provides for passing input and output arguments to/from a method. These arguments
  * are defined by Properties of the method.
  *
- * @module services.method
+ * @module services.call
  */
 
 

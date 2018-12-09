@@ -3,18 +3,18 @@
  * @module opcua.address_space.AlarmsAndConditions
  */
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
 
-var UALimitAlarm = require("./limit_alarm").UALimitAlarm;
-var DataValue =  require("node-opcua-data-value").DataValue;
-var AddressSpace = require("../address_space").AddressSpace;
-
-var ConditionInfo = require("./condition").ConditionInfo;
+const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const AddressSpace = require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
+const ConditionInfo = require("./condition").ConditionInfo;
 
 /***
  * @class  UANonExclusiveLimitAlarm
@@ -54,7 +54,7 @@ UANonExclusiveLimitAlarm.prototype._calculateConditionInfo = function (states, i
 
     } else {
         // build-up state string
-        var state_str = Object.keys(states).map(function(s) {
+        let state_str = Object.keys(states).map(function(s) {
             return  states[s] === true ? s : null;
         }).filter(function(a) { return !!a;}).join(";"); //
 
@@ -73,7 +73,7 @@ UANonExclusiveLimitAlarm.prototype._calculateConditionInfo = function (states, i
 
 UANonExclusiveLimitAlarm.prototype._signalNewCondition = function (states, isActive, value) {
 
-    var alarm = this;
+    const alarm = this;
 
     if (!states) {
         return;
@@ -96,22 +96,22 @@ UANonExclusiveLimitAlarm.prototype._setStateBasedOnInputValue = function (value)
 
     assert(_.isFinite(value),"expecting a valid value here");
 
-    var alarm = this;
+    const alarm = this;
 
-    var isActive = false;
+    let isActive = false;
 
-    var states = {
+    const states = {
         highHigh: alarm.highHighState ? alarm.highHighState.getValue() : "unset",
         high: alarm.highState ? alarm.highState.getValue() : "unset",
         low: alarm.lowState ? alarm.lowState.getValue() : "unset",
         lowLow: alarm.lowLowState ? alarm.lowLowState.getValue() : "unset"
     };
 
-    var count = 0;
+    let count = 0;
 
     function ___p(stateName, func_value) {
         if (states[stateName] !== "unset") {
-            var value = func_value();
+            const value = func_value();
             isActive = isActive || value;
             if (states[stateName] !== value) {
                 states[stateName] = value;
@@ -142,13 +142,17 @@ exports.UANonExclusiveLimitAlarm = UANonExclusiveLimitAlarm;
 
 /**
  * @method (static)instantiate
- * @param addressSpace
+ * @param namespace {Namespace}
  * @param type
  * @param options
  * @param data
- * @returns {UANonExclusiveLimitAlarm}
+ * @return {UANonExclusiveLimitAlarm}
  */
-UANonExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, data) {
+UANonExclusiveLimitAlarm.instantiate = function (namespace, type, options, data) {
+
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.addressSpace;
+    assert(addressSpace instanceof AddressSpace);
 
     options.optionals = options.optionals || [];
 
@@ -168,21 +172,21 @@ UANonExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, da
         options.optionals.push("HighHighLimit");
         options.optionals.push("HighHighState");
     }
-    var nonExclusiveAlarmType = addressSpace.findEventType(type);
+    const nonExclusiveAlarmType = addressSpace.findEventType(type);
 
     /* istanbul ignore next */
     if (!nonExclusiveAlarmType) {
         throw new Error(" cannot find Alarm Condition Type for " + type);
     }
 
-    var nonExclusiveLimitAlarmType = addressSpace.findEventType("NonExclusiveLimitAlarmType");
+    const nonExclusiveLimitAlarmType = addressSpace.findEventType("NonExclusiveLimitAlarmType");
     /* istanbul ignore next */
     if (!nonExclusiveLimitAlarmType) {
         throw new Error("cannot find NonExclusiveLimitAlarmType");
     }
     //assert(type nonExclusiveLimitAlarmType.browseName.toString());
 
-    var alarm = UALimitAlarm.instantiate(addressSpace, type, options, data);
+    const alarm = UALimitAlarm.instantiate(namespace, type, options, data);
     Object.setPrototypeOf(alarm, UANonExclusiveLimitAlarm.prototype);
     assert(alarm instanceof UALimitAlarm);
     assert(alarm instanceof UANonExclusiveLimitAlarm);

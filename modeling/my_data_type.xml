@@ -1,4 +1,5 @@
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:s1="http://yourorganisation.org/my_data_type/Types.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:s1="http://yourorganisation.org/my_data_type/Types.xsd" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <NamespaceUris>
         <Uri>http://yourorganisation.org/my_data_type/</Uri>
     </NamespaceUris>
@@ -21,7 +22,7 @@
     </Aliases>
     <Extensions>
         <Extension>
-            <ModelInfo Tool="UaModeler" Hash="eVAc6sjiji1dyniSQPIWSg==" Version="1.4.0"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="t8V639LgyRli27e7Nuoh2w==" Version="1.5.2"/>
         </Extension>
     </Extensions>
     <UADataType NodeId="ns=1;i=3003" BrowseName="1:MyOtherStructureDataType">
@@ -95,7 +96,7 @@
             <uax:String>//xs:element[@name='MyStructureDataType']</uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="ByteString" NodeId="ns=1;i=6001" BrowseName="1:my_data_type">
+    <UAVariable SymbolicName="my_data_type_BinarySchema" DataType="ByteString" NodeId="ns=1;i=6001" BrowseName="1:my_data_type">
         <DisplayName>my_data_type</DisplayName>
         <Description>Collects the data type descriptions of http://yourorganisation.org/my_data_type/</Description>
         <References>
@@ -140,7 +141,7 @@
             <uax:String>http://yourorganisation.org/my_data_type/</uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="ByteString" NodeId="ns=1;i=6003" BrowseName="1:my_data_type">
+    <UAVariable SymbolicName="my_data_type_XmlSchema" DataType="ByteString" NodeId="ns=1;i=6003" BrowseName="1:my_data_type">
         <DisplayName>my_data_type</DisplayName>
         <Description>Collects the data type descriptions of http://yourorganisation.org/my_data_type/</Description>
         <References>
@@ -197,7 +198,7 @@
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
-            <uax:String>http://yourorganisation.org/my_data_type/</uax:String>
+            <uax:String>http://yourorganisation.org/my_data_type/Types.xsd</uax:String>
         </Value>
     </UAVariable>
     <UAVariableType DataType="MyOtherStructureDataType" NodeId="ns=1;i=2002" BrowseName="1:MyOtherStructureType">
@@ -296,8 +297,8 @@
         <DisplayName>Comments</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=78</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
         </References>
     </UAVariable>
     <UAVariable DataType="EUInformation" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6011" BrowseName="1:EngineeringUnits">

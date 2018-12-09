@@ -1,9 +1,9 @@
 "use strict";
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
-var UAObjectType = require("./ua_object_type").UAObjectType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var constructBrowsePathFromQualifiedName = require("node-opcua-service-translate-browse-path").constructBrowsePathFromQualifiedName;
+const UAObjectType = require("./ua_object_type").UAObjectType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const constructBrowsePathFromQualifiedName = require("node-opcua-service-translate-browse-path").constructBrowsePathFromQualifiedName;
 
 /**
  * @method checkSelectClause
@@ -13,12 +13,12 @@ var constructBrowsePathFromQualifiedName = require("node-opcua-service-translate
  */
 function checkSelectClause(parentNode, selectClause) {
     // SimpleAttributeOperand
-    var addressSpace = parentNode.addressSpace;
+    const addressSpace = parentNode.addressSpace;
 
     if (selectClause.typeId.isEmpty()) {
         return StatusCodes.Good;
     }
-    var eventTypeNode =  addressSpace.findEventType(selectClause.typeId);
+    const eventTypeNode =  addressSpace.findEventType(selectClause.typeId);
 
     if (!eventTypeNode || !(eventTypeNode instanceof UAObjectType)) {
         //xx console.log("eventTypeNode = ",selectClause.typeId.toString());
@@ -28,8 +28,8 @@ function checkSelectClause(parentNode, selectClause) {
 
     assert(eventTypeNode instanceof UAObjectType);
     // navigate to the innerNode specified by the browsePath [ QualifiedName]
-    var browsePath = constructBrowsePathFromQualifiedName(eventTypeNode, selectClause.browsePath);
-    var browsePathResult = addressSpace.browsePath(browsePath);
+    const browsePath = constructBrowsePathFromQualifiedName(eventTypeNode, selectClause.browsePath);
+    const browsePathResult = addressSpace.browsePath(browsePath);
     return browsePathResult.statusCode;
 
 }

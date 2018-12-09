@@ -3,11 +3,11 @@
  * @module opcua.datamodel
  */
 
-var factories = require("node-opcua-factory");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const factories = require("node-opcua-factory");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var QualifiedName = require("../_generated_/_auto_generated_QualifiedName").QualifiedName;
+const QualifiedName = require("../_generated_/_auto_generated_QualifiedName").QualifiedName;
 exports.QualifiedName = QualifiedName;
 
 exports.QualifiedName.prototype.toString = function () {
@@ -33,11 +33,12 @@ exports.QualifiedName.prototype.isEmpty = function () {
  */
 function stringToQualifiedName(value) {
 
-    var split_array = value.split(":");
-    var namespaceIndex = 0;
-    if (split_array.length === 2) {
+    const split_array = value.split(":");
+    let namespaceIndex = 0;
+    if (!isNaN(parseFloat(split_array[0])) && isFinite(split_array[0]) && Number.isInteger(parseFloat(split_array[0])) && split_array.length > 1) {
         namespaceIndex = parseInt(split_array[0]);
-        value = split_array[1];
+        split_array.shift();
+        value = split_array.join(':');
     }
     return new QualifiedName({namespaceIndex: namespaceIndex, name: value});
 }
@@ -59,5 +60,5 @@ function coerceQualifyName(value) {
 }
 exports.coerceQualifyName = coerceQualifyName;
 
-var factory = require("node-opcua-factory");
+const factory = require("node-opcua-factory");
 factory.registerSpecialVariantEncoder(exports.QualifiedName);

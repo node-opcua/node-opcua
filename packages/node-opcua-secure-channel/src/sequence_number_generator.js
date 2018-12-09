@@ -3,7 +3,7 @@
  * @module opcua.miscellaneous
  */
 
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
 /**
  * SequenceNumberGenerator manages a monotonically increasing sequence number.
@@ -20,7 +20,7 @@ var assert = require("node-opcua-assert");
  * the communication channel was interrupted and re-established. Gaps are permitted between the
  * SequenceNumber for the last MessageChunk received before the interruption and the
  */
-var SequenceNumberGenerator = function SequenceNumberGenerator() {
+const SequenceNumberGenerator = function SequenceNumberGenerator() {
     assert(this instanceof SequenceNumberGenerator);
     this._set(1);
 };
@@ -30,7 +30,7 @@ var SequenceNumberGenerator = function SequenceNumberGenerator() {
  * @return {number}
  */
 SequenceNumberGenerator.prototype.next = function () {
-    var current = this._counter;
+    const current = this._counter;
     this._counter += 1;
     if (this._counter > this.MAXVALUE) {
         this._set(1);
@@ -54,5 +54,11 @@ SequenceNumberGenerator.prototype._set = function (value) {
 };
 
 
+// spec Part 3 says:
+// The same sequence number shall not be reused on a Subscription until over
+// four billion NotificationMessages have been sent.
+// At a continuous rate of one thousand NotificationMessages per second on a given Subscription, it would
+// take roughly fifty days for the same sequence number to be reused. This allows Clients to safely treat
+// sequence numbers as unique.
 SequenceNumberGenerator.prototype.MAXVALUE = 4294966271;
 exports.SequenceNumberGenerator = SequenceNumberGenerator;

@@ -1,12 +1,12 @@
 "use strict";
 /* global describe,it,before*/
-var should = require("should");
+const should = require("should");
 
-var get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
 
 describe("Automatic Generation of  string nodeId", function () {
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         get_mini_address_space(function (err,__addressSpace__) {
             addressSpace = __addressSpace__;
@@ -28,46 +28,52 @@ describe("Automatic Generation of  string nodeId", function () {
         "            the nodeId of the parent node and the browse name of the child.\n"
         ,function() {
 
-            var objNode1 = addressSpace.addObject({
-                nodeId: "ns=1;s=abcdef",
+            const namespace = addressSpace.getOwnNamespace();
+
+            const objNode1 = namespace.addObject({
+                nodeId: "s=abcdef",
                 browseName: "MyObject"
             });
 
-            var comp1 = addressSpace.addVariable({
+            const comp1 = namespace.addVariable({
                 componentOf: objNode1,
                 browseName:  "Component1",
                 dataType:"Double"
             });
-            comp1.browseName.toString().should.eql("Component1");
-            comp1.nodeId.toString().should.eql("ns=1;s=abcdef-Component1");
+            comp1.browseName.toString().should.eql("1:Component1");
+            comp1.nodeId.toString().should.eql("ns=1;s=abcdef-1:Component1");
 
-            var prop1 = addressSpace.addVariable({
+            const prop1 = namespace.addVariable({
                 propertyOf: objNode1,
                 browseName: "Property1",
                 dataType:"Double"
             });
-            prop1.browseName.toString().should.eql("Property1");
-            prop1.nodeId.toString().should.eql("ns=1;s=abcdef-Property1");
+            prop1.browseName.toString().should.eql("1:Property1");
+            prop1.nodeId.toString().should.eql("ns=1;s=abcdef-1:Property1");
 
 
             // but it should not work for organizedBy references
-            var elementInFolder = addressSpace.addVariable({
+            const elementInFolder = namespace.addVariable({
                 organizedBy: objNode1,
                 browseName: "ElementInFolder",
                 dataType:"Double"
             });
-            elementInFolder.browseName.toString().should.eql("ElementInFolder");
+            elementInFolder.browseName.toString().should.eql("1:ElementInFolder");
+            elementInFolder.nodeId.toString().should.not.eql("ns=1;s=abcdef-1:ElementInFolder");
             elementInFolder.nodeId.toString().should.not.eql("ns=1;s=abcdef-ElementInFolder");
         });
 
     it("should generate string NodeIds on components and properties when instantiating an object type that have a string nodeId (node-opcua specific)", function (done) {
 
-        var createCameraType = require("../test/fixture_camera_type").createCameraType;
-        var cameraType = createCameraType(addressSpace);
+        const createCameraType = require("../test/fixture_camera_type").createCameraType;
+        const cameraType = createCameraType(addressSpace);
 
-        var camera1 = cameraType.instantiate({
+        const namespace = addressSpace.getOwnNamespace();
+        namespace.index.should.eql(1);
+
+        const camera1 = cameraType.instantiate({
             organizedBy: "RootFolder",
-            nodeId: "ns=1;s=MYCAMERA",
+            nodeId: "s=MYCAMERA",
             browseName: "Camera2"
         });
         camera1.nodeId.toString().should.eql("ns=1;s=MYCAMERA");
@@ -79,11 +85,11 @@ describe("Automatic Generation of  string nodeId", function () {
     it("should generate string NodeIds on components and properties when instantiating an VariableType that have a string nodeId (node-opcua specific)", function (done) {
 
 
-        var serverStatusType = addressSpace.findVariableType("ServerStatusType");
+        const serverStatusType = addressSpace.findVariableType("ServerStatusType");
 
-        var serverStatus = serverStatusType.instantiate({
+        const serverStatus = serverStatusType.instantiate({
             organizedBy: "RootFolder",
-            nodeId: "ns=1;s=MyServerStatus",
+            nodeId: "s=MyServerStatus",
             browseName: "MyServerStatus"
         });
         serverStatus.nodeId.toString().should.eql("ns=1;s=MyServerStatus");
@@ -101,34 +107,36 @@ describe("Automatic Generation of  string nodeId", function () {
 
     describe("Given a derived ObjectType ",function() {
 
-        var objectType,objectType2;
+        let objectType, objectType2;
         before(function() {
-            objectType = addressSpace.addObjectType({
+            const namespace = addressSpace.getOwnNamespace();
+
+            objectType = namespace.addObjectType({
                 browseName:  "MyObjectType",
             });
 
-            addressSpace.addObject({
+            namespace.addObject({
                 componentOf: objectType,
                 browseName: "PropertySet",
                 modellingRule: "Mandatory"
             });
-            addressSpace.addObject({
+            namespace.addObject({
                 componentOf: objectType,
                 browseName:    "Status",
                 modellingRule: "Optional"
             });
 
-            objectType2 = addressSpace.addObjectType({
+            objectType2 = namespace.addObjectType({
                 subtypeOf: objectType,
                 browseName: "MyObjectType2"
             });
-            addressSpace.addObject({
+            namespace.addObject({
                 componentOf: objectType2,
                 browseName:    "Status",
                 description: "overridden status",
                 modellingRule: "Optional"
             });
-            addressSpace.addObject({
+            namespace.addObject({
                 componentOf: objectType2,
                 browseName:    "OnlyInObjetType2",
                 modellingRule: "Mandatory"
@@ -136,19 +144,19 @@ describe("Automatic Generation of  string nodeId", function () {
         });
 
         it("When instantiating a derived ObjectType, unwanted optional components should not be instantiated",function() {
-            var obj = objectType2.instantiate({
+            const obj = objectType2.instantiate({
                 browseName: "MyInstance1"
             });
-            obj.browseName.toString().should.eql("MyInstance1");
+            obj.browseName.toString().should.eql("1:MyInstance1");
 
             should(obj.getComponentByName("Status")).eql(null,"We didn't ask for optional component Status");
         });
         it("When instantiating a derived ObjectType, wanted optional components should be instantiated",function() {
-            var obj = objectType2.instantiate({
+            const obj = objectType2.instantiate({
                 browseName: "MyInstance2",
                 optionals: ["Status"]
             });
-            obj.browseName.toString().should.eql("MyInstance2");
+            obj.browseName.toString().should.eql("1:MyInstance2");
 
             //xx console.log(obj.toString());
 

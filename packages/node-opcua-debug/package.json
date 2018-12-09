@@ -1,20 +1,24 @@
 {
  "name": "node-opcua-debug",
- "version": "0.1.0-11",
+ "version": "0.5.0",
  "description": "pure nodejs OPCUA SDK - module -debug",
  "scripts": {
+  "build": "tsc",
   "test": "mocha test"
  },
  "dependencies": {
-  "hexy": "^0.2.10",
-  "node-opcua-assert": "^0.1.0-4",
-  "node-opcua-buffer-utils": "^0.1.0-4",
-  "underscore": "^1.8.3"
+  "chalk": "^2.4.1",
+  "hexy": "^0.2.11",
+  "node-opcua-assert": "^0.5.0",
+  "node-opcua-buffer-utils": "^0.5.0",
+  "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "should": "13.1.0"
+  "chalk": "^2.4.1",
+  "should": "13.2.3"
  },
- "main": "index.js",
+ "main": "dist/index.js",
+ "types": "dist/index.d.ts",
  "author": "Etienne Rossignon",
  "license": "MIT",
  "repository": {

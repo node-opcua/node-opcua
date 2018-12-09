@@ -1,10 +1,10 @@
 "use strict";
 
 
-var buffer_utils = require("..");
-var createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
+const buffer_utils = require("..");
+const createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
-var Benchmarker = require("node-opcua-benchmarker").Benchmarker;
+const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
 
 describe("testing buffer utils",function() {
@@ -12,15 +12,16 @@ describe("testing buffer utils",function() {
 
     it("buffer_utils.createFastUninitializedBuffer should be faster than new Buffer(size)",function(done){
 
-        var bench = new Benchmarker();
+        const bench = new Benchmarker();
 
-        var n = 1000;
-        var sizes = [];
-        for(var i=0;i<n;i++) {
+        const n = 1000;
+        const sizes = [];
+        let i;
+        for(i=0;i<n;i++) {
             sizes.push(parseInt(""+Math.ceil(Math.random()*10000)));
         }
 //xx        console.log(sizes);
-        var a;
+        let a;
         for (i = 0; i < n; i++) {
             a = createFastUninitializedBuffer(sizes[i]);
             a =  new Buffer(sizes[i]);
@@ -29,18 +30,18 @@ describe("testing buffer utils",function() {
         bench
             .add("new Buffer(size)", function () {
 
-                var bufs  = new Array(n);
+                let bufs  = new Array(n);
                 for (i = 0; i < n; i++) {
                     bufs[i] = createFastUninitializedBuffer(sizes[i]);
                 }
                 bufs = null;
 
             })
-            .add("createFastUninitializedBuffer", function () {
+            .add("buffer alloc", function () {
 
-                var bufs  = new Array(n);
+                let bufs  = new Array(n);
                 for (i = 0; i < n; i++) {
-                    bufs[i] = new Buffer(sizes[i]);
+                    bufs[i] = Buffer.alloc(sizes[i]);
                 }
                 bufs = null;
 

@@ -9,6 +9,8 @@ var ClientSubscription = opcua.ClientSubscription;
 var resolveNodeId = opcua.resolveNodeId;
 var AttributeIds = opcua.AttributeIds;
 /**
+ * @method perform_operation_on_client_session
+ *
  * simple wrapper that operates on a freshly created opcua session.
  * The wrapper:
  *   - connects to the server,
@@ -33,6 +35,8 @@ exports.perform_operation_on_client_session = perform_operation_on_client_sessio
 
 
 /**
+ * @method perform_operation_on_subscription
+ *
  *  simple wrapper that operates on a freshly created subscription.
  *
  *  - connects to the server,and create a session
@@ -63,9 +67,9 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
             function (callback) {
                 subscription = new ClientSubscription(session, {
                     requestedPublishingInterval: 100,
-                    requestedLifetimeCount: 10 * 60,
-                    requestedMaxKeepAliveCount: 5,
-                    maxNotificationsPerPublish: 2,
+                    requestedLifetimeCount:     6000,
+                    requestedMaxKeepAliveCount:  100,
+                    maxNotificationsPerPublish:    4,
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -92,8 +96,10 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
                     //
                 });
                 subscription.terminate(function(err) {
-                    // ignore errors
-                    if (err) { console.log(err.message);}
+                    // ignore errors : subscription may have been terminated due to timeout or transfer
+                    if (err) {
+                        //xx console.log(err.message);
+                    }
                     callback();
                 });
             }
@@ -122,8 +128,8 @@ function perform_operation_on_raw_subscription(client,endpointUrl,f,done) {
 
                 session.createSubscription({
                     requestedPublishingInterval: 100, // Duration
-                    requestedLifetimeCount:       60,    // Counter
-                    requestedMaxKeepAliveCount:   10, // Counter
+                    requestedLifetimeCount:      600,  // Counter
+                    requestedMaxKeepAliveCount:  100, // Counter
                     maxNotificationsPerPublish:   10, // Counter
                     publishingEnabled:          true,   // Boolean
                     priority:                     14 // Byte

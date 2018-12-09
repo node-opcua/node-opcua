@@ -1,10 +1,11 @@
 # Test against this version of Node.js
 environment:
   matrix:
-  # - nodejs_version: "4"
-  - nodejs_version: "6"
+  # - nodejs_version: "4" (not supported any more)
+  # - nodejs_version: "6"
   - nodejs_version: "8"
-
+  - nodejs_version: "9"
+  - nodejs_version: "10"
 platform:
   - x64
   - x86
@@ -23,14 +24,15 @@ init:
 install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version $env:platform
-  # install modules
-  - npm install
+  # install modules (using appveyor-retry to prevent EPERM bug)
+  - appveyor-retry npm install
 
 # Post-install test scripts.
 test_script:
   # Output useful info for debugging.
   - node --version
   - npm --version
+  - tsc --version
   # run tests
   - npm test
 

@@ -1,15 +1,16 @@
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 
-var add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
+const add_dataItem_stuff = require("./UADataItem").add_dataItem_stuff;
 
-var coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-var EnumValueType  = require("node-opcua-data-model").EnumValueType;
+const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
+const EnumValueType  = require("node-opcua-data-model").EnumValueType;
+const Namespace = require("../namespace").Namespace;
 
 
 function coerceEnumValues(enumValues) {
@@ -52,7 +53,7 @@ module.exports.install = function (AddressSpace) {
      * @example
      *
      *
-     *      addressSpace.addMultiStateValueDiscrete({
+     *      namespace.addMultiStateValueDiscrete({
      *          componentOf:parentObj,
      *          browseName: "myVar",
      *          enumValues: {
@@ -85,25 +86,29 @@ module.exports.install = function (AddressSpace) {
      */
 
     AddressSpace.prototype.addMultiStateValueDiscrete = function (options) {
+        return this._resolveRequestedNamespace(options).addMultiStateValueDiscrete(options);
+    };
+    Namespace.prototype.addMultiStateValueDiscrete = function(options) {
 
         assert(options.hasOwnProperty("enumValues"));
         assert(!options.hasOwnProperty("ValuePrecision"));
 
-        var addressSpace = this;
+        const namespace = this;
+        const addressSpace = namespace.addressSpace;
 
-        var multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
+        const multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
         assert(multiStateValueDiscreteType, "expecting MultiStateValueDiscreteType to be defined , check nodeset xml file");
 
         // todo : if options.typeDefinition is specified, check that type is SubTypeOf MultiStateDiscreteType
 
         // EnumValueType
         //   value: Int64, displayName: LocalizedText, Description: LocalizedText
-        var enumValues = coerceEnumValues(options.enumValues);
+        const enumValues = coerceEnumValues(options.enumValues);
 
 
         options.value = ( options.value === undefined) ? enumValues[0].value : options.value;
 
-        var cloned_options = _.clone(options);
+        let cloned_options = _.clone(options);
         cloned_options = _.extend(cloned_options,{
             typeDefinition: multiStateValueDiscreteType.nodeId,
             dataType:       "Number",
@@ -113,15 +118,15 @@ module.exports.install = function (AddressSpace) {
             value:           new Variant({dataType: DataType.UInt32, value: options.value})
         });
 
-        var variable = addressSpace.addVariable(cloned_options);
+        const variable = namespace.addVariable(cloned_options);
 
         add_dataItem_stuff(variable, options);
 
 
-        addressSpace.addVariable({
+        namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: "EnumValues",
+            browseName: {name:"EnumValues",namespaceIndex:0},
             dataType: "EnumValueType",
             accessLevel: "CurrentRead",
             userAccessLevel: "CurrentRead",
@@ -136,7 +141,7 @@ module.exports.install = function (AddressSpace) {
         });
 
         // construct an index to quickly find a EnumValue from a value
-        var enumValueIndex = {};
+        const enumValueIndex = {};
         enumValues.forEach(function (e) {
             enumValueIndex[e.value[1]] = e;
         });
@@ -146,11 +151,11 @@ module.exports.install = function (AddressSpace) {
 
         function findValueAsText(value) {
             assert(!(value instanceof Variant));
-            var valueAsText = "Invalid";
+            let valueAsText = "Invalid";
             if (enumValueIndex[value]) {
                 valueAsText = enumValueIndex[value].displayName;
             }
-            var result = new Variant({
+            const result = new Variant({
                 dataType: DataType.LocalizedText,
                 value: coerceLocalizedText(valueAsText)
             });
@@ -158,12 +163,12 @@ module.exports.install = function (AddressSpace) {
 
         }
 
-        var valueAsText = findValueAsText(options.value);
+        const valueAsText = findValueAsText(options.value);
 
-        addressSpace.addVariable({
+        namespace.addVariable({
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            browseName: "ValueAsText",
+            browseName: {name:"ValueAsText",namespaceIndex: 0},
             dataType: "LocalizedText",
             accessLevel: "CurrentRead",
             userAccessLevel: "CurrentRead",
@@ -178,7 +183,7 @@ module.exports.install = function (AddressSpace) {
 
         function install_synchronisation(variable) {
             variable.on("value_changed", function (value, indexRange) {
-                var valueAsText = findValueAsText(value.value.value);
+                const valueAsText = findValueAsText(value.value.value);
                 variable.valueAsText.setValueFromSource(valueAsText);
             });
         }
@@ -186,12 +191,12 @@ module.exports.install = function (AddressSpace) {
         install_synchronisation(variable);
 
         // replace clone
-        var old_clone = variable.clone;
+        const old_clone = variable.clone;
         assert(_.isFunction(old_clone));
 
         function new_clone() {
-            var self = this;
-            var variable = old_clone.apply(self, arguments);
+            const self = this;
+            const variable = old_clone.apply(self, arguments);
             install_synchronisation(variable);
             return variable;
         }

@@ -1,4 +1,5 @@
-package-lock.json
+#package-lock.json
+yarn.lock
 .DS_Store
 .idea/
 .vscode/
@@ -60,3 +61,7 @@ bin/crypto_create_CA_config.js
 _source_ignored_
 pki
 test_fixtures/
+.nyc_output/
+*.heapsnapshot
+*.log
+*.stackdump

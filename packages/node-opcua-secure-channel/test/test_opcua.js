@@ -1,20 +1,20 @@
 "use strict";
-var should = require("should");
-var util = require("util");
+const should = require("should");
+const util = require("util");
 
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var RequestHeader = require("../src/services").RequestHeader;
-var ChannelSecurityToken =  require("../src/services").ChannelSecurityToken;
-var ResponseHeader =  require("../src/services").ResponseHeader;
+const RequestHeader = require("../src/services").RequestHeader;
+const ChannelSecurityToken =  require("../src/services").ChannelSecurityToken;
+const ResponseHeader =  require("../src/services").ResponseHeader;
 
 describe("testing OPCUA structures ", function () {
 
 
     it("should create a RequestHeader", function () {
 
-        var requestHeader = new RequestHeader();
+        const requestHeader = new RequestHeader();
 
         requestHeader.should.have.property("authenticationToken");
         requestHeader.should.have.property("timeStamp");
@@ -29,15 +29,15 @@ describe("testing OPCUA structures ", function () {
 
 
         function get_current_date_with_delta_seconds(date, delta) {
-            var result = new Date(date);
+            const result = new Date(date);
             result.setTime(date.getTime() + delta * 1000);
             return result;
 
         }
 
-        var date_before_construction = get_current_date_with_delta_seconds(new Date(), -1);
+        const date_before_construction = get_current_date_with_delta_seconds(new Date(), -1);
 
-        var responseHeader = new ResponseHeader();
+        const responseHeader = new ResponseHeader();
 
         responseHeader.should.have.property("timeStamp");
         responseHeader.should.have.property("requestHandle");
@@ -48,7 +48,7 @@ describe("testing OPCUA structures ", function () {
 
         responseHeader.timeStamp.should.be.instanceOf(Date);
 
-        var date_after_construction = get_current_date_with_delta_seconds(new Date(), 1);
+        const date_after_construction = get_current_date_with_delta_seconds(new Date(), 1);
 
         //xx console.log("date_before_construction " ,date_before_construction , date_before_construction.getTime());
         //xx console.log("timestamp                " ,responseHeader.timeStamp , responseHeader.timeStamp.getTime());
@@ -64,7 +64,7 @@ describe("Testing ChannelSecurityToken", function () {
 
     it("should exposed a expired property", function () {
 
-        var channelSecurityToken = new ChannelSecurityToken({});
+        const channelSecurityToken = new ChannelSecurityToken({});
 
         channelSecurityToken.revisedLifeTime.should.equal(30000);
         channelSecurityToken.createdAt.getTime().should.be.lessThan((new Date().getTime() + 1));
@@ -72,7 +72,7 @@ describe("Testing ChannelSecurityToken", function () {
 
     });
     it("a ChannelSecurityToken should expired after the revisedLifeTime", function (done) {
-        var channelSecurityToken = new ChannelSecurityToken({
+        const channelSecurityToken = new ChannelSecurityToken({
             revisedLifeTime: 3
         });
         (channelSecurityToken.expired).should.equal(false);

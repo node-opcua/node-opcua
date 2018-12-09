@@ -1,5 +1,5 @@
 
-var RepublishRequest_Schema = {
+const RepublishRequest_Schema = {
     name: "RepublishRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"  },

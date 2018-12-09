@@ -8,7 +8,8 @@ IF YOU DON'T FILL OUT THE FOLLOWING INFORMATION WE MIGHT CLOSE YOUR ISSUE WITHOU
  - ( ) bug report => search github for a similar issue or PR before submitting
  - ( ) feature request
  - ( ) support request => Please do not submit support request here, instead see use 
-       [gitter](https://gitter.im/node-opcua/node-opcua) or [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua)
+      - use [gitter](https://gitter.im/node-opcua/node-opcua) or [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua) for community support, or 
+      - [contact Sterfive for commercial support](https://www.sterfive.com)
 
 **Current behavior**
 <!-- Describe how the bug manifests. -->
@@ -31,6 +32,9 @@ please provide the *STEPS TO REPRODUCE* and if possible a *MINIMAL DEMO* of the 
 
 **Please tell us about your environment:**
 <!-- Operating system, opcua server or client type, package manager,  equipment , vendor info -->
+
+  * ( ) my request is related to node-opcua acting as a  OPCUA CLIENT 
+  * ( )  my request is related to node-opcua acting as a OPCUA SERVER 
 
 
   * ( ) I have installed node-opcua from source ( using git clone)
@@ -57,7 +61,8 @@ please provide the *STEPS TO REPRODUCE* and if possible a *MINIMAL DEMO* of the 
      - link : https://
      
     
-* **node-opcua version:** ``
+* **node-opcua version:**  :
+<!-- provide the semver version numero of node-opca -->
 <!-- Check which is the hash of the last commit from node-opcua that you have locally -->
 
 * **Node:** 

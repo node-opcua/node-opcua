@@ -1,5 +1,5 @@
 require("node-opcua-service-secure-channel");
-var CreateSubscriptionRequest_Schema = {
+const CreateSubscriptionRequest_Schema = {
     name: "CreateSubscriptionRequest",
     fields: [
 

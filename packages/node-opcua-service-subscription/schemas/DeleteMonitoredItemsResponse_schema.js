@@ -1,5 +1,5 @@
 require("node-opcua-service-secure-channel");
-var DeleteMonitoredItemsResponse_Schema = {
+const DeleteMonitoredItemsResponse_Schema = {
     name: "DeleteMonitoredItemsResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

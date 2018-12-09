@@ -1,5 +1,5 @@
 "use strict";
-var BuildInfo_Schema = {
+const BuildInfo_Schema = {
     name:"BuildInfo",
     documentation:'Server build Info',
 

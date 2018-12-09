@@ -1,6 +1,6 @@
 require("node-opcua-extension-object");
 
-var HistoryReadResult_Schema = {
+const HistoryReadResult_Schema = {
     name: "HistoryReadResult",
     fields: [
         { name: "statusCode", fieldType:"StatusCode" },

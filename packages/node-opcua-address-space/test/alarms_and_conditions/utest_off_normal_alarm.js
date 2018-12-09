@@ -1,8 +1,8 @@
 "use strict";
 /* global describe,it,before*/
-var should = require("should");
-var DataType = require("node-opcua-variant").DataType;
-var sinon = require("sinon");
+const should = require("should");
+const DataType = require("node-opcua-variant").DataType;
+const sinon = require("sinon");
 
 module.exports = function (test) {
 
@@ -10,22 +10,25 @@ module.exports = function (test) {
     describe("Off Normal Alarms ", function () {
 
 
-        var addressSpace, source, engine, variableWithAlarm, setpointNodeNode;
-        var normalStateNode,multiStateDiscreteNode;
+        let addressSpace, source, engine, variableWithAlarm, setpointNodeNode,namespace;
+        let normalStateNode, multiStateDiscreteNode;
         before(function () {
+
             addressSpace = test.addressSpace;
+            namespace = addressSpace.getOwnNamespace();
+
             source = test.source;
             engine = test.engine;
             variableWithAlarm = test.variableWithAlarm;
             setpointNodeNode = test.setpointNodeNode;
 
-            multiStateDiscreteNode = addressSpace.addMultiStateDiscrete({
+            multiStateDiscreteNode = namespace.addMultiStateDiscrete({
                 organizedBy: addressSpace.rootFolder.objects,
                 browseName: "MyMultiStateVariable",
                 enumStrings: [ "Red","Orange","Green"],
                 value: 1 // Orange
             });
-            normalStateNode = addressSpace.addMultiStateDiscrete({
+            normalStateNode = namespace.addMultiStateDiscrete({
                 organizedBy: addressSpace.rootFolder.objects,
                 browseName: "MyMultiStateVariable",
                 enumStrings: ["Red", "Orange", "Green"],
@@ -39,13 +42,13 @@ module.exports = function (test) {
 
         it("should instantiate a off normal alarm of a 3 state variable",function() {
 
-            var alarm =addressSpace.instantiateOffNormalAlarm({
+            const alarm =namespace.instantiateOffNormalAlarm({
                 browseName: "MyOffNormalAlarm",
                 inputNode:   multiStateDiscreteNode,
                 normalState: normalStateNode,
                 conditionSource: null
             });
-            alarm.browseName.toString().should.eql("MyOffNormalAlarm");
+            alarm.browseName.toString().should.eql("1:MyOffNormalAlarm");
             alarm.activeState.getValue().should.eql(false);
 
             alarm.inputNode.readValue().value.value.should.eql(multiStateDiscreteNode.nodeId,
@@ -61,9 +64,9 @@ module.exports = function (test) {
         it("should automatically active the alarm when inputNode Value doesn't match normal state",function() {
 
             // in this test an alarm is raised whenever the multiStateDiscreteNode is not "Green"
-            var inputNodeNode = multiStateDiscreteNode;
+            const inputNodeNode = multiStateDiscreteNode;
 
-            var alarm =addressSpace.instantiateOffNormalAlarm({
+            const alarm =namespace.instantiateOffNormalAlarm({
                 browseName: "MyOffNormalAlarm2",
                 conditionSource: source,
                 inputNode: inputNodeNode,
@@ -72,13 +75,13 @@ module.exports = function (test) {
 
             alarm.currentBranch().setRetain(false);
 
-            var spyOnEvent = sinon.spy();
+            const spyOnEvent = sinon.spy();
             source.on("event", spyOnEvent);
 
             alarm.activeState.getValue().should.eql(false);
             spyOnEvent.callCount.should.eql(0);
 
-            var green = multiStateDiscreteNode.getIndex("Green");
+            const green = multiStateDiscreteNode.getIndex("Green");
             green.should.eql(2);
 
             normalStateNode.setValueFromSource({dataType: "UInt32", value: green});

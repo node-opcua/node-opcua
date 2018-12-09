@@ -1,19 +1,19 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
-var packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var redirectToFile = require("node-opcua-debug").redirectToFile;
+const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
+const packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const redirectToFile = require("node-opcua-debug").redirectToFile;
 
-var ec = require("node-opcua-basic-types");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var ServiceFault = require("..").ServiceFault;
+const ec = require("node-opcua-basic-types");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const ServiceFault = require("..").ServiceFault;
 
 describe("ServiceFault", function () {
 
     it("should decode a real ServiceFault", function (done) {
-        var ws_message = makeBuffer(
+        const ws_message = makeBuffer(
             "01 00 8d 01 e0 8c 9d ba 65 27 cf 01 05 00 00 00 00 00 0f 80 14 00 00 00 00 91 01 00 00 3e 3e 3e " +//   ....`..:e'O..................>>>
             "20 38 30 30 46 30 30 30 30 0d 0a 2d 2d 2d 20 20 20 20 c3 a0 20 4f 70 63 2e 55 61 2e 53 65 72 76 " +//   .800F0000..---....C..Opc.Ua.Serv
             "65 72 2e 53 74 61 6e 64 61 72 64 53 65 72 76 65 72 2e 52 65 61 64 28 52 65 71 75 65 73 74 48 65 " +//   er.StandardServer.Read(RequestHe
@@ -34,16 +34,16 @@ describe("ServiceFault", function () {
 
             packet_analyzer(ws_message);
 
-            var stream = new BinaryStream(ws_message);
-            var id = ec.decodeExpandedNodeId(stream);
-            var sf = new ServiceFault();
+            const stream = new BinaryStream(ws_message);
+            const id = ec.decodeExpandedNodeId(stream);
+            const sf = new ServiceFault();
             sf.decode(stream);
 
         }, done);
     });
 
     it("should create a ServiceFault with a specific serviceResult", function () {
-        var sf = new ServiceFault({
+        const sf = new ServiceFault({
             responseHeader: {serviceResult: StatusCodes.BadNoSubscription}
         });
         sf.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);

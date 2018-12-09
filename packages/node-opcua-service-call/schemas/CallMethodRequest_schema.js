@@ -2,7 +2,7 @@ require("node-opcua-nodeid");
 require("node-opcua-service-secure-channel");
 
 
-var CallMethodRequest_Schema = {
+const CallMethodRequest_Schema = {
     name: "CallMethodRequest",
     fields: [
 

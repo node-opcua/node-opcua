@@ -1,19 +1,19 @@
 /*global require,setInterval,console */
-var cities = [ 'London','Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
+const cities = [ 'London','Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
 // read the World Weather Online API key.
-var fs = require("fs");
-var key = fs.readFileSync("worldweatheronline.key");
+const fs = require("fs");
+const key = fs.readFileSync("worldweatheronline.key");
+const request = require("request");
 function getCityWeather(city,callback) {
-    var api_url="http://api.worldweatheronline.com/free/v2/weather.ashx?q="+city+"+&format=json&key="+ key;
-    var options = {
+    const api_url="http://api.worldweatheronline.com/free/v2/weather.ashx?q="+city+"+&format=json&key="+ key;
+    const options = {
         url: api_url,
         "content-type": "application-json",
         json: ""
     };
-    var request = require("request");
     request(options, function (error, response, body) {
       if (!error && response.statusCode === 200) {
-        var data  = perform_read(city,body);
+        const data  = perform_read(city,body);
         callback(null,data);
       } else {
         callback(error);
@@ -21,9 +21,9 @@ function getCityWeather(city,callback) {
     });
 }
 function perform_read(city,body) {
-    var obj = JSON.parse(body);
-    var current_condition = obj.data.current_condition[0];
-    var request = obj.data.request[0];
+    const obj = JSON.parse(body);
+    const current_condition = obj.data.current_condition[0];
+    const request = obj.data.request[0];
     return  {
         city:               request.query,
         date:               new Date(),
@@ -34,10 +34,10 @@ function perform_read(city,body) {
         weather:            current_condition.weatherDesc.value
     };
 }
-var city_data_map = { };
+const city_data_map = { };
 // a infinite round-robin iterator over the city array
-var next_city = function(arr) {
-   var counter = arr.length;
+function next_city (arr) {
+   const counter = arr.length;
    return function() {
       counter += 1;
       if (counter>=arr.length) {
@@ -57,8 +57,8 @@ function update_city_data(city) {
      });
 }
 // make a API call every 10 seconds
-var interval = 10* 1000;
+const interval = 10* 1000;
 setInterval(function() {
-     var city = next_city();
+     const city = next_city();
      update_city_data(city);
 }, interval);

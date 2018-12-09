@@ -2,25 +2,26 @@
 /**
  * @module opcua.miscellaneous
  */
-var util = require("util");
-var assert = require("node-opcua-assert");
+const util = require("util");
+const assert = require("node-opcua-assert").assert;
 
-var EventEmitter = require("events").EventEmitter;
+const EventEmitter = require("events").EventEmitter;
 
 
-var PacketAssembler = require("node-opcua-packet-assembler").PacketAssembler;
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const PacketAssembler = require("node-opcua-packet-assembler").PacketAssembler;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
-var readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
+const readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
 
-var buffer_utils = require("node-opcua-buffer-utils");
-var createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
+const buffer_utils = require("node-opcua-buffer-utils");
+const createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
-var get_clock_tick = require("node-opcua-utils").get_clock_tick;
+const get_clock_tick = require("node-opcua-utils").get_clock_tick;
 
+const doPerfMonitoring = false;
 
 function readRawMessageHeader(data) {
-    var messageHeader = readMessageHeader(new BinaryStream(data));
+    const messageHeader = readMessageHeader(new BinaryStream(data));
     return {
         length: messageHeader.length,
         messageHeader: messageHeader
@@ -37,7 +38,7 @@ exports.readRawMessageHeader = readRawMessageHeader;
  * @param [options.signatureLength=0] {Number}
  *
  */
-var MessageBuilderBase = function (options) {
+const MessageBuilderBase = function (options) {
 
     options = options || {};
 
@@ -47,14 +48,16 @@ var MessageBuilderBase = function (options) {
 
     this.packetAssembler = new PacketAssembler({readMessageFunc: readRawMessageHeader});
 
-    var self = this;
+    const self = this;
     this.packetAssembler.on("message", function (messageChunk) {
         self._feed_messageChunk(messageChunk);
     });
     this.packetAssembler.on("newMessage", function (info, data) {
 
-        // record tick 0: when the first data is received
-        self._tick0 = get_clock_tick();
+        if(doPerfMonitoring) {
+            // record tick 0: when the first data is received
+            self._tick0 = get_clock_tick();
+        }
         /**
          *
          * notify the observers that a new message is being built
@@ -112,7 +115,7 @@ MessageBuilderBase.prototype._append = function (message_chunk) {
     this.message_chunks.push(message_chunk);
     this.total_message_size += message_chunk.length;
 
-    var binaryStream = new BinaryStream(message_chunk);
+    const binaryStream = new BinaryStream(message_chunk);
 
     if (!this._read_headers(binaryStream)) {
         return false;
@@ -127,10 +130,10 @@ MessageBuilderBase.prototype._append = function (message_chunk) {
     }
 
     // the start of the message body block
-    var offsetBodyStart = binaryStream.length;
+    const offsetBodyStart = binaryStream.length;
 
     // the end of the message body block
-    var offsetBodyEnd = binaryStream._buffer.length;
+    const offsetBodyEnd = binaryStream._buffer.length;
 
     this.total_body_size += (offsetBodyEnd - offsetBodyStart);
     this.offsetBodyStart = offsetBodyStart;
@@ -138,8 +141,8 @@ MessageBuilderBase.prototype._append = function (message_chunk) {
     // add message body to a queue
     // note : Buffer.slice create a shared memory !
     //        use Buffer.clone
-    var shared_buf = message_chunk.slice(offsetBodyStart, offsetBodyEnd);
-    var cloned_buf = createFastUninitializedBuffer(shared_buf.length);
+    const shared_buf = message_chunk.slice(offsetBodyStart, offsetBodyEnd);
+    const cloned_buf = createFastUninitializedBuffer(shared_buf.length);
     shared_buf.copy(cloned_buf, 0, 0);
     this.blocks.push(cloned_buf);
 
@@ -161,7 +164,7 @@ MessageBuilderBase.prototype.feed = function (data) {
 MessageBuilderBase.prototype._feed_messageChunk = function (messageChunk) {
 
     assert(messageChunk);
-    var messageHeader = readMessageHeader(new BinaryStream(messageChunk));
+    const messageHeader = readMessageHeader(new BinaryStream(messageChunk));
 
     /**
      * notify the observers that new message chunk has been received
@@ -176,11 +179,12 @@ MessageBuilderBase.prototype._feed_messageChunk = function (messageChunk) {
         this._append(messageChunk);
         if (this.status_error) { return false; }
 
-        var full_message_body = Buffer.concat(this.blocks);
+        const full_message_body = Buffer.concat(this.blocks);
 
-        //record tick 1: when a complete message has been received ( all chunks assembled)
-        this._tick1 = get_clock_tick();
-
+        if(doPerfMonitoring) {
+            //record tick 1: when a complete message has been received ( all chunks assembled)
+            this._tick1 = get_clock_tick();
+        }
         /**
          * notify the observers that a full message has been received
          * @event full_message_body

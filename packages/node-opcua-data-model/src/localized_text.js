@@ -3,9 +3,9 @@
  * @module opcua.datamodel
  */
 
-var assert = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
-var LocalizedText = require("../_generated_/_auto_generated_LocalizedText").LocalizedText;
+const LocalizedText = require("../_generated_/_auto_generated_LocalizedText").LocalizedText;
 exports.LocalizedText = LocalizedText;
 
 function coerceLocalizedText(value) {
@@ -25,5 +25,5 @@ function coerceLocalizedText(value) {
 LocalizedText.coerce = coerceLocalizedText;
 exports.coerceLocalizedText = coerceLocalizedText;
 
-var factory = require("node-opcua-factory");
+const factory = require("node-opcua-factory");
 factory.registerSpecialVariantEncoder(exports.LocalizedText);

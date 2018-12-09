@@ -1,15 +1,15 @@
 
 
-var ObjectRegistry = require("..").ObjectRegistry;
-var should = require("should");
+const ObjectRegistry = require("..").ObjectRegistry;
+const should = require("should");
 require("colors");
 
 
 describe("testing ObjectRegistry",function() {
 
-    var oldValue = null;
+    let oldValue = null;
 
-    var registry = new ObjectRegistry();
+    const registry = new ObjectRegistry();
     before(function() {
         oldValue = ObjectRegistry.doDebug ;
         ObjectRegistry.doDebug = true;
@@ -22,7 +22,7 @@ describe("testing ObjectRegistry",function() {
     it("should register and unregister an object",function(){
 
 
-        var myObj = {
+        const myObj = {
             name: "HelloWorld"
         };
 

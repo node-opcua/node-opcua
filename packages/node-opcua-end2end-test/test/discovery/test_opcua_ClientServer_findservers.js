@@ -1,19 +1,19 @@
 "use strict";
-var async = require("async");
-var opcua = require("node-opcua");
+const async = require("async");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
-var port = 2000;
+const port = 2000;
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-describe("testing OPCUA-Service Discovery Endpoint", function () {
+describe("DS5- testing OPCUA-Service Discovery Endpoint", function () {
 
 
-    var server, client, temperatureVariableId, endpointUrl;
+    let server, client, temperatureVariableId, endpointUrl;
 
     before(function (done) {
 
@@ -41,8 +41,8 @@ describe("testing OPCUA-Service Discovery Endpoint", function () {
 
     function make_on_connected_client(functor, done) {
 
-        var connected = false;
-        var tasks = [
+        let connected = false;
+        const tasks = [
             function (callback) {
                 client.connect(endpointUrl, function (err) {
                     connected = true;
@@ -92,7 +92,7 @@ describe("testing OPCUA-Service Discovery Endpoint", function () {
 
         make_on_connected_client(function (client, callback) {
 
-            var filters = {};
+            const filters = {};
             client.findServers(filters, function (err, servers) {
                 servers.length.should.eql(1);
                 callback(err);
@@ -105,7 +105,7 @@ describe("testing OPCUA-Service Discovery Endpoint", function () {
 
         make_on_connected_client(function (client, callback) {
 
-            var filters = {
+            const filters = {
                 serverUris: ["invalid server uri"]
             };
 
@@ -122,7 +122,7 @@ describe("testing OPCUA-Service Discovery Endpoint", function () {
 
         make_on_connected_client(function (client, callback) {
 
-            var filters = {
+            const filters = {
                 serverUris: ["invalid server uri"]
             };
 

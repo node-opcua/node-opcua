@@ -1,21 +1,21 @@
 "use strict";
 /*global describe, it, require*/
 
-var async = require("async");
-var should = require("should");
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
-var doDebug = false;
+const doDebug = false;
 
 module.exports = function (test) {
 
 
-    var MAXCONNECTIONS = 50;
+    const MAXCONNECTIONS = 50;
 
-    var max_reached = false;
+    let max_reached = false;
     function all_connections() {
         if (max_reached) {
             return true;
@@ -28,27 +28,27 @@ module.exports = function (test) {
     }
 
     function getTick() {
-        return (new Date()).getTime()/1000.0;
+        return Date.now()/1000.0;
     }
 
-    var connectivity_strategy = {
+    const connectivity_strategy = {
         maxRetry: 10,
         initialDelay: 100,
         maxDelay: 200,
         randomisationFactor: 0
     };
 
-    var first_client = null;
+    let first_client = null;
     function client_session(data,done) {
 
-        var options = {
+        const options = {
             connectionStrategy: connectivity_strategy,
             requestedSessionTimeout: 100000
         };
 
 
-        var client1 = new OPCUAClient(options);
-        var endpointUrl = test.endpointUrl;
+        const client1 = new OPCUAClient(options);
+        const endpointUrl = test.endpointUrl;
 
         client1.on("send_request",function(req) {
             if(doDebug) { console.log(data.index," >> ",req.constructor.name); }
@@ -76,7 +76,7 @@ module.exports = function (test) {
         function perform(msg,func,callback) {
             setTimeout(function() {
                 if(doDebug) { console.log(msg);}
-                var t = getTick();
+                const t = getTick();
                 func(function(err) {
                     if (err) {
                         if(doDebug) { console.log("   ",msg.red, err.message,r(getTick()-t));}
@@ -89,10 +89,9 @@ module.exports = function (test) {
 
             },10);
         }
-        var the_session;
+        let the_session;
 
 
-        //var endpointUrl = "opc.tcp://localhost:12111";
         async.series([
 
             perform.bind(null,"connecting client " + data.index,function(callback) {
@@ -101,7 +100,7 @@ module.exports = function (test) {
 
             function (callback) {
 
-                var timerId = setInterval(function() {
+                const timerId = setInterval(function() {
                     if (all_connections()) {
                         clearInterval(timerId);
                         callback();
@@ -139,7 +138,7 @@ module.exports = function (test) {
 
         before(function(done){
             first_client= new opcua.OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
             first_client.connect(endpointUrl, done);
 
         });
@@ -153,10 +152,10 @@ module.exports = function (test) {
             test.server.maxAllowedSessionNumber = MAXCONNECTIONS;
             test.server.maxAllowedSessionNumber.should.eql(MAXCONNECTIONS);
 
-            var nb = MAXCONNECTIONS;
-            var q = async.queue(client_session, nb);
+            const nb = MAXCONNECTIONS;
+            const q = async.queue(client_session, nb);
 
-            for (var i = 0; i < nb; i++) {
+            for (let i = 0; i < nb; i++) {
                 q.push({index: i});
             }
 

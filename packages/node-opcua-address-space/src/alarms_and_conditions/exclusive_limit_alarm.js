@@ -3,19 +3,20 @@
  * @module opcua.address_space.AlarmsAndConditions
  */
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var DataValue = require("node-opcua-data-value").DataValue;
-var UALimitAlarm = require("./limit_alarm").UALimitAlarm;
-var UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
-var NodeId = require("node-opcua-nodeid").NodeId;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const DataValue = require("node-opcua-data-value").DataValue;
+const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
+const UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const AddressSpace =require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
 
-
-var ConditionInfo = require("./condition").ConditionInfo;
+const ConditionInfo = require("./condition").ConditionInfo;
 
 /**
  * @class UAExclusiveLimitAlarm
@@ -31,18 +32,18 @@ function UAExclusiveLimitAlarm() {
 
 util.inherits(UAExclusiveLimitAlarm, UALimitAlarm);
 
-var validState = ["HighHigh", "High", "Low", "LowLow", null];
+const validState = ["HighHigh", "High", "Low", "LowLow", null];
 
 
 UAExclusiveLimitAlarm.prototype._signalNewCondition = function (stateName, isActive, value) {
 
-    var alarm = this;
+    const alarm = this;
 
     assert(stateName === null || typeof isActive === "boolean");
     assert(validState.indexOf(stateName) >= 0, "must have a valid state : " + stateName);
 
-    var oldState = alarm.limitState.getCurrentState();
-    var oldActive = alarm.activeState.getValue();
+    const oldState = alarm.limitState.getCurrentState();
+    const oldActive = alarm.activeState.getValue();
 
     if (stateName) {
         alarm.limitState.setState(stateName);
@@ -57,13 +58,13 @@ UAExclusiveLimitAlarm.prototype._setStateBasedOnInputValue = function (value) {
 
     assert(_.isFinite(value));
 
-    var alarm = this;
+    const alarm = this;
 
-    var isActive = false;
+    let isActive = false;
 
-    var state = null;
+    let state = null;
 
-    var oldState = alarm.limitState.getCurrentState();
+    const oldState = alarm.limitState.getCurrentState();
 
     if (alarm.highHighLimit && alarm.getHighHighLimit() < value) {
         state = "HighHigh";
@@ -91,28 +92,33 @@ exports.UAExclusiveLimitAlarm = UAExclusiveLimitAlarm;
 /***
  *
  * @method (static)instantiate
+ * @param namespace {Namespace}
  * @param type
  * @param options
  * @param data
  * @return {UAExclusiveLimitAlarm}
  */
-UAExclusiveLimitAlarm.instantiate = function (addressSpace, type, options, data) {
+UAExclusiveLimitAlarm.instantiate = function (namespace, type, options, data) {
+
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.addressSpace;
+    assert(addressSpace instanceof AddressSpace);
 
     //xx assert(options.conditionOf,"must provide a conditionOf Node");
-    var exclusiveAlarmType = addressSpace.findEventType(type);
+    const exclusiveAlarmType = addressSpace.findEventType(type);
 
     /* istanbul ignore next */
     if (!exclusiveAlarmType) {
         throw new Error(" cannot find Alarm Condition Type for " + type);
     }
 
-    var exclusiveLimitAlarmType = addressSpace.findEventType("ExclusiveLimitAlarmType");
+    const exclusiveLimitAlarmType = addressSpace.findEventType("ExclusiveLimitAlarmType");
     /* istanbul ignore next */
     if (!exclusiveLimitAlarmType) {
         throw new Error("cannot find ExclusiveLimitAlarmType");
     }
 
-    var alarm = UALimitAlarm.instantiate(addressSpace, type, options, data);
+    const alarm = UALimitAlarm.instantiate(namespace, type, options, data);
     Object.setPrototypeOf(alarm, UAExclusiveLimitAlarm.prototype);
     assert(alarm instanceof UAExclusiveLimitAlarm);
     assert(alarm instanceof UALimitAlarm);

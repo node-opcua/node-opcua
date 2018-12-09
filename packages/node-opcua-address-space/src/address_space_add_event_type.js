@@ -6,31 +6,34 @@
  */
 
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
-
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
-
-var doDebug = false;
+const assert = require("node-opcua-assert").assert;
 
 
-var BaseNode = require("./base_node").BaseNode;
-var UAVariable = require("./ua_variable").UAVariable;
-var UAMethod = require("./ua_method").UAMethod;
-var UAObjectType = require("./ua_object_type").UAObjectType;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const sameNodeId = require("node-opcua-nodeid").sameNodeId;
+const lowerFirstLetter = require("node-opcua-utils").lowerFirstLetter;
 
-var constructBrowsePathFromQualifiedName = require("node-opcua-service-translate-browse-path").constructBrowsePathFromQualifiedName;
+const doDebug = false;
 
 
-var SimpleAttributeOperand = require("node-opcua-service-filter").SimpleAttributeOperand;
+const BaseNode = require("./base_node").BaseNode;
+const UAVariable = require("./ua_variable").UAVariable;
+const UAMethod = require("./ua_method").UAMethod;
+const UAObjectType = require("./ua_object_type").UAObjectType;
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var context = require("./session_context").SessionContext.defaultContext;
-var DataValue = require("node-opcua-data-value").DataValue;
+const constructBrowsePathFromQualifiedName = require("node-opcua-service-translate-browse-path").constructBrowsePathFromQualifiedName;
+
+
+const SimpleAttributeOperand = require("node-opcua-service-filter").SimpleAttributeOperand;
+
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const context = require("./session_context").SessionContext.defaultContext;
+const DataValue = require("node-opcua-data-value").DataValue;
+
+const Namespace = require("./namespace").Namespace;
 
 /**
  * @class EventData
@@ -46,23 +49,23 @@ function EventData(eventTypeNode) {
 /**
  * @method resolveSelectClause
  * @param selectClause {SimpleAttributeOperand}
- * @returns {NodeId|null}
+ * @return {NodeId|null}
  */
 EventData.prototype.resolveSelectClause = function(selectClause) {
-    var self = this;
+    const self = this;
     assert(selectClause instanceof SimpleAttributeOperand);
-    var addressSpace = self.$eventDataSource.addressSpace;
+    const addressSpace = self.$eventDataSource.addressSpace;
 
     if (selectClause.browsePath.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
-        assert("Cannot use resolveSelectClause on this selectClause as it has no browsePath");
+        assert(!"Cannot use resolveSelectClause on this selectClause as it has no browsePath");
     }
     // navigate to the innerNode specified by the browsePath [ QualifiedName]
-    var browsePath = constructBrowsePathFromQualifiedName(self.$eventDataSource, selectClause.browsePath);
+    const browsePath = constructBrowsePathFromQualifiedName(self.$eventDataSource, selectClause.browsePath);
 
     //xx console.log(self.$eventDataSource.browseName.toString());
     //xx console.log("xxxxxxxxxxxxx browse Pathx", browsePath.toString());
 
-    var browsePathResult = addressSpace.browsePath(browsePath);
+    const browsePathResult = addressSpace.browsePath(browsePath);
 
     //xx console.log(" br",self.$eventDataSource.nodeId.toString(),selectClause.browsePath.toString(),browsePathResult.targets[0] ? browsePathResult.targets[0].targetId.toString() : "!!!NOT FOUNF!!!".cyan)
 
@@ -89,7 +92,7 @@ function prepare(dataValue) {
 
 
 EventData.prototype.setValue = function(lowerName,node,variant) {
-    var eventData = this;
+    const eventData = this;
     eventData[lowerName] = Variant.coerce(variant);/// _coerceVariant(variant);
     eventData.__nodes[node.nodeId.toString()] = eventData[lowerName];
 };
@@ -98,21 +101,21 @@ EventData.prototype.setValue = function(lowerName,node,variant) {
  * @method readValue
  * @param nodeId {NodeId}
  * @param selectClause {SimpleAttributeOperand}
- * @returns {Variant}
+ * @return {Variant}
  */
 EventData.prototype.readValue = function(nodeId,selectClause) {
     assert(nodeId instanceof NodeId);
     assert(selectClause instanceof SimpleAttributeOperand);
-    var self = this;
+    const self = this;
     assert(nodeId instanceof NodeId);
-    var addressSpace = this.$eventDataSource.addressSpace;
+    const addressSpace = this.$eventDataSource.addressSpace;
 
-    var node = addressSpace.findNode(nodeId);
+    const node = addressSpace.findNode(nodeId);
 
-    var key = node.nodeId.toString();
+    const key = node.nodeId.toString();
 
     // if the value exists in cache ... we read it from cache...
-    var cached_value =self.__nodes[key];
+    const cached_value =self.__nodes[key];
     if (cached_value) {
         return cached_value;
     }
@@ -143,11 +146,11 @@ exports.install = function (AddressSpace) {
      *
      * @example
      *
-     *      var evtType = addressSpace.addEventType({
+     *      var evtType = namespace.addEventType({
      *          browseName: "MyAuditEventType",
      *          subtypeOf:  "AuditEventType"
      *      });
-     *      var myConditionType = addressSpace.addEventType({
+     *      var myConditionType = namespace.addEventType({
      *          browseName: "MyConditionType",
      *          subtypeOf:  "ConditionType",
      *          isAbstract: false
@@ -155,6 +158,11 @@ exports.install = function (AddressSpace) {
      *
      */
     AddressSpace.prototype.addEventType = function (options) {
+        console.log("AddressSpace#addEventType is deprecated. please use addressSpace.getOwnNamespace().addEventType() instead");
+        return this._resolveRequestedNamespace(options).addEventType(options);
+    };
+
+    Namespace.prototype.addEventType = function (options) {
         options.subtypeOf = options.subtypeOf || "BaseEventType";
         // are eventType always abstract ?? No => Condition can be instantiated!
         // but, by default is abstract is true
@@ -172,7 +180,7 @@ exports.install = function (AddressSpace) {
      * find an EventType node in the address space
      * @method findEventType
      * @param eventTypeId {String|NodeId|UAObjectType} the eventType to find
-     * @param namespace the namespace index of the event to find
+     * @param namespaceIndex the namespace index of the event to find
      * @return {UAObjectType|null} the EventType found or null.
      *
      * note:
@@ -184,18 +192,18 @@ exports.install = function (AddressSpace) {
      *     var evtType = addressSpace.findEventType("AuditEventType");
      *
      */
-    AddressSpace.prototype.findEventType = function (eventTypeId,namespace) {
+    AddressSpace.prototype.findEventType = function (eventTypeId,namespaceIndex) {
 
-        var eventType;
+        let eventType;
         if (eventTypeId && eventTypeId.nodeId) {
             eventType = eventTypeId;
         } else {
-            eventType = this.findObjectType(eventTypeId,namespace);
+            eventType = this.findObjectType(eventTypeId,namespaceIndex);
         }
         if (!eventType) {
             return null;
         }
-        var baseEventType = this.findObjectType("BaseEventType");
+        const baseEventType = this.findObjectType("BaseEventType");
         assert(baseEventType,"expecting BaseEventType - please check you nodeset xml file!");
 
         if (eventType.nodeId === baseEventType.nodeId) {
@@ -225,8 +233,8 @@ exports.install = function (AddressSpace) {
          * return a StatusCode for the EventId indicating an error.
          *
          */
-        var self = this;
-        var offset = 16;
+        const self = this;
+        const offset = 16;
         if(!self._eventIdCounter) {
              self._eventIdCounter = require("crypto").randomBytes(20);
              self._eventIdCounter.writeInt32BE(0,offset);
@@ -253,12 +261,12 @@ exports.install = function (AddressSpace) {
     AddressSpace.prototype.constructEventData = function (eventTypeId, data) {
 
 
-        var addressSpace = this;
+        const addressSpace = this;
 
         data = data || {};
 
         // construct the reference dataStructure to store event Data
-        var eventTypeNode  = eventTypeId;
+        let eventTypeNode  = eventTypeId;
 
         if (eventTypeId instanceof UAObjectType) {
             eventTypeNode = addressSpace.findEventType(eventTypeId);
@@ -284,11 +292,11 @@ exports.install = function (AddressSpace) {
         assert(data.sourceNode.dataType ===  DataType.NodeId);
 
         // sourceName
-        var sourceNode = addressSpace.findNode(data.sourceNode.value);
+        const sourceNode = addressSpace.findNode(data.sourceNode.value);
 
         data.sourceName = data.sourceName || { dataType:  DataType.String, value: sourceNode.getDisplayName("en") };
 
-        var nowUTC = (new Date());
+        const nowUTC = (new Date());
 
         // time (UtcTime)
         // TODO
@@ -311,13 +319,13 @@ exports.install = function (AddressSpace) {
         //xx // reminder : event type cannot be instantiated directly !
         //xx assert(eventTypeNode.isAbstract);
 
-        var baseObjectType = addressSpace.findObjectType("BaseObjectType"); // i=58
+        const baseObjectType = addressSpace.findObjectType("BaseObjectType"); // i=58
         assert(baseObjectType, "BaseObjectType must be defined in the address space");
 
-        var visitedProperties = [];
+        const visitedProperties = [];
 
         function _process_var(self,prefix,node) {
-            var lowerName =prefix + lowerFirstLetter(node.browseName.name);
+            const lowerName =prefix + lowerFirstLetter(node.browseName.name);
             // istanbul ignore next
             if (doDebug) { console.log("      "+lowerName.toString()); }
             visitedProperties[lowerName] = node;
@@ -360,17 +368,17 @@ exports.install = function (AddressSpace) {
 
         function populate_data(self, eventData) {
 
-            if (baseObjectType.nodeId === self.nodeId) {
+            if (sameNodeId(baseObjectType.nodeId,self.nodeId)) {
                 return; // nothing to do
             }
 
-            var baseTypeNodeId = self.subtypeOf;
+            const baseTypeNodeId = self.subtypeOf;
             // istanbul ignore next
             if (!baseTypeNodeId) {
                 throw new Error("Object " + self.browseName.toString() + " with nodeId " + self.nodeId + " has no Type");
             }
 
-            var baseType = addressSpace.findNode(baseTypeNodeId);
+            const baseType = addressSpace.findNode(baseTypeNodeId);
             // istanbul ignore next
             if (!baseType) {
                 throw new Error("Cannot find object with nodeId ".red + baseTypeNodeId);
@@ -379,9 +387,9 @@ exports.install = function (AddressSpace) {
             populate_data(baseType, eventData);
 
             // get properties and components from base class
-            var properties = self.getProperties();
-            var components = self.getComponents();
-            var children = [].concat(properties,components);
+            const properties = self.getProperties();
+            const components = self.getComponents();
+            const children = [].concat(properties,components);
 
             // istanbul ignore next
             if (doDebug) { console.log(" "+self.browseName.toString().bgWhite.cyan ); }
@@ -405,9 +413,9 @@ exports.install = function (AddressSpace) {
                 // also store value in index
                 //xx eventData.__nodes[node.nodeId.toString()] = eventData[lowerName];
 
-                var children =node.getAggregates();
+                const children =node.getAggregates();
                 if (children.length >0) {
-                    var lowerName =lowerFirstLetter(node.browseName.name);
+                    const lowerName =lowerFirstLetter(node.browseName.name);
                     //xx console.log(" Children to visit = ",lowerName,children.map(function(a){ return a.browseName.toString();}).join(" "));
                     children.map(function(child) {
                         _process_var(self,lowerName + ".",child);
@@ -417,7 +425,7 @@ exports.install = function (AddressSpace) {
             });
         }
 
-        var eventData = new EventData(eventTypeNode);
+        const eventData = new EventData(eventTypeNode);
 
         // verify standard properties...
         populate_data(eventTypeNode, eventData);

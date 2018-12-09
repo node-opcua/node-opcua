@@ -3,25 +3,25 @@
 /**
  * @module opcua.address_space
  */
-var assert = require("node-opcua-assert");
-var util = require("util");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const util = require("util");
+const _ = require("underscore");
 
 
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var DataValue =  require("node-opcua-data-value").DataValue;
+const DataValue =  require("node-opcua-data-value").DataValue;
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var BaseNode = require("./base_node").BaseNode;
-var UAVariable = require("./ua_variable").UAVariable;
-var SessionContext = require("./session_context").SessionContext;
+const BaseNode = require("./base_node").BaseNode;
+const UAVariable = require("./ua_variable").UAVariable;
+const SessionContext = require("./session_context").SessionContext;
 
 
 function UAMethod(options) {
@@ -51,8 +51,8 @@ UAMethod.prototype.readAttribute = function (context, attributeId) {
 
     assert(context instanceof SessionContext);
 
-    var self = this;
-    var options = {};
+    const self = this;
+    const options = {};
     switch (attributeId) {
         case AttributeIds.Executable:
             options.value = {dataType: DataType.Boolean, value: self.getExecutableFlag(context)};
@@ -84,12 +84,12 @@ UAMethod.checkValidArgument = default_check_valid_argument;
 UAMethod.prototype._getArguments = function (name) {
 
     assert(name === "InputArguments" || name === "OutputArguments");
-    var argsVariable = this.getPropertyByName(name);
+    const argsVariable = this.getPropertyByName(name);
     if (!argsVariable) { return [];}
 
     assert(argsVariable instanceof UAVariable);
 
-    var args = argsVariable.readValue().value.value;
+    const args = argsVariable.readValue().value.value;
 
     // a list of extension object
     assert(_.isArray(args));
@@ -119,7 +119,7 @@ UAMethod.prototype.getOutputArguments = function () {
  */
 UAMethod.prototype.bindMethod = function (async_func) {
     assert(_.isFunction(async_func));
-    var self = this;
+    const self = this;
     self._asyncExecutionFunction = async_func;
 };
 
@@ -128,19 +128,19 @@ UAMethod.prototype.bindMethod = function (async_func) {
  * @method execute
  * @async
  * @param context  {SessionContext}
- * @param inputArguments {Variant[]} input arguments as array of variant
- * @param context
+ * @param inputArguments {null|Variant[]} input arguments as array of variant
  * @param callback
  * @async
  */
 UAMethod.prototype.execute = function (inputArguments, context, callback) {
-    assert(_.isArray(inputArguments));
+    assert(inputArguments === null || _.isArray(inputArguments));
     assert(context instanceof SessionContext);
+    inputArguments = inputArguments ||[];
     inputArguments = inputArguments.map(Variant.coerce);
     assert(inputArguments.length === 0 || inputArguments[0] instanceof Variant);
     assert(_.isObject(context));
     assert(_.isFunction(callback));
-    var self = this;
+    const self = this;
 
     // a context object must be provided
     if (!context.object) {
@@ -165,8 +165,8 @@ UAMethod.prototype.execute = function (inputArguments, context, callback) {
     }
     // verify that input arguments are correct
     // todo :
-    var inputArgumentResults = [];
-    var inputArgumentDiagnosticInfos = [];
+    const inputArgumentResults = [];
+    const inputArgumentDiagnosticInfos = [];
 
     try {
         self._asyncExecutionFunction(inputArguments, context, function (err, callMethodResponse) {
@@ -181,7 +181,7 @@ UAMethod.prototype.execute = function (inputArguments, context, callback) {
 
             // verify that output arguments are correct according to schema
             // Todo : ...
-            var outputArgsDef = self.getOutputArguments();
+            const outputArgsDef = self.getOutputArguments();
 
             //xx assert(outputArgsDef.length === callMethodResponse.outputArguments.length,
             //xx     "_asyncExecutionFunction did not provide the expected number of output arguments");
@@ -195,23 +195,42 @@ UAMethod.prototype.execute = function (inputArguments, context, callback) {
     } catch(err){
         console.log("ERR in method  handler".red,err.message);
         console.error(err.stack);
-        var callMethodResponse = { statusCode: StatusCodes.BadInternalError};
+        const callMethodResponse = { statusCode: StatusCodes.BadInternalError};
         callback(err, callMethodResponse);
 
     }
 
 };
 
-UAMethod.prototype.clone = function (options,optionalfilter,extraInfo) {
 
-    var self = this;
+
+UAMethod.prototype.clone = function (options,optionalFilter,extraInfo) {
+
+    const Namespace = require("./namespace").Namespace;
+
+    assert(!options.componentOf || options.componentOf,"trying to create an orphan method ?");
+
+    const self = this;
     options = options || {};
     options = _.extend(_.clone(options),{
         methodDeclarationId: self.nodeId
     });
-    var clonedMethod =  self._clone(UAMethod,options, optionalfilter, extraInfo);
+    options.references = options.references||[];
+
+    const addressSpace = self.addressSpace;
+    Namespace._handle_hierarchy_parent(addressSpace,options.references,options);
+
+    const clonedMethod =  self._clone(UAMethod,options, optionalFilter, extraInfo);
     clonedMethod._asyncExecutionFunction = self._asyncExecutionFunction;
     clonedMethod._getExecutableFlag = self._getExecutableFlag;
+
+    if (options.componentOf) {
+        //Xx console.log("Options ",options.componentOf.browseName.toString());
+        const m = options.componentOf.getMethodByName(clonedMethod.browseName.name);
+        assert(m);
+    }
+
+
     return clonedMethod;
 };
 exports.UAMethod = UAMethod;

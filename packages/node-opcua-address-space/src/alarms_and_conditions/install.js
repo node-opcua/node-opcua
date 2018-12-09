@@ -1,30 +1,33 @@
+const utils = require("node-opcua-utils");
+
 /**
  * @module opcua.address_space.AlarmsAndConditions
  */
 exports.install = function (AddressSpace) {
 
 
-     // └─ ConditionType
-     //    ├─ DialogConditionType
-     //    └─ AcknowledgeableConditionType
-     //       └─ AlarmConditionType
-     //          ├─ LimitAlarmType
-     //          │  ├─ ExclusiveLimitAlarmType
-     //          │  │  ├─ ExclusiveLevelAlarmType
-     //          │  │  ├─ ExclusiveDeviationAlarmType
-     //          │  │  └─ ExclusiveRateOfChangeAlarmType
-     //          │  └─ NonExclusiveLimitAlarmType
-     //          │     ├─ NonExclusiveLevelAlarmType
-     //          │     ├─ NonExclusiveDeviationAlarmType
-     //          │     └─ NonExclusiveRateOfChangeAlarmType
-     //          └─ DiscreteAlarmType
-     //             ├─ OffNormalAlarmType
-     //             │  ├─ SystemOffNormalAlarmType
-     //             │  │  └─ CertificateExpirationAlarmType
-     //             │  └─ TripAlarmType
+    const Namespace = require("../namespace").Namespace;
+    // └─ ConditionType
+    //    ├─ DialogConditionType
+    //    └─ AcknowledgeableConditionType
+    //       └─ AlarmConditionType
+    //          ├─ LimitAlarmType
+    //          │  ├─ ExclusiveLimitAlarmType
+    //          │  │  ├─ ExclusiveLevelAlarmType
+    //          │  │  ├─ ExclusiveDeviationAlarmType
+    //          │  │  └─ ExclusiveRateOfChangeAlarmType
+    //          │  └─ NonExclusiveLimitAlarmType
+    //          │     ├─ NonExclusiveLevelAlarmType
+    //          │     ├─ NonExclusiveDeviationAlarmType
+    //          │     └─ NonExclusiveRateOfChangeAlarmType
+    //          └─ DiscreteAlarmType
+    //             ├─ OffNormalAlarmType
+    //             │  ├─ SystemOffNormalAlarmType
+    //             │  │  └─ CertificateExpirationAlarmType
+    //             │  └─ TripAlarmType
 
-    var UAConditionBase = require("./condition").UAConditionBase;
-    var UAAcknowledgeableConditionBase = require("./acknowledgeable_condition").UAAcknowledgeableConditionBase;
+    const UAConditionBase = require("./condition").UAConditionBase;
+    const UAAcknowledgeableConditionBase = require("./acknowledgeable_condition").UAAcknowledgeableConditionBase;
 
     /**
      * @class AddressSpace
@@ -43,10 +46,15 @@ exports.install = function (AddressSpace) {
      * @param data
      * @return {UAConditionBase}
      */
-    AddressSpace.prototype.instantiateCondition = function (conditionTypeId, options,data ) {
-        return UAConditionBase.instantiate(this, conditionTypeId, options, data);
+    AddressSpace.prototype.instantiateCondition = function (conditionTypeId, options, data) {
+        return this._resolveRequestedNamespace(options).instantiateCondition(conditionTypeId, options, data);
     };
+    utils.setDeprecated(AddressSpace,"instantiateCondition","use Namespace#instantiateCondition instead");
 
+    Namespace.prototype.instantiateCondition = function (conditionTypeId, options, data) {
+        const namespace = this;
+        return UAConditionBase.instantiate(namespace, conditionTypeId, options, data);
+    };
     /**
      * @class AddressSpace
      * @method instantiateAcknowledgeableCondition
@@ -55,11 +63,15 @@ exports.install = function (AddressSpace) {
      * @param  data
      * @return {UAAcknowledgeableConditionBase}
      */
-    AddressSpace.prototype.instantiateAcknowledgeableCondition = function (conditionTypeId, options,data ) {
-        return UAAcknowledgeableConditionBase.instantiate(this, conditionTypeId, options, data);
+    AddressSpace.prototype.instantiateAcknowledgeableCondition = function (conditionTypeId, options, data) {
+        return this._resolveRequestedNamespace(options).instantiateCondition(conditionTypeId, options, data);
     };
-
-    var UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
+    utils.setDeprecated(AddressSpace,"instantiateAcknowledgeableCondition","use Namespace#instantiateAcknowledgeableCondition instead");
+    Namespace.prototype.instantiateAcknowledgeableCondition = function (conditionTypeId, options, data) {
+        const namespace = this;
+        return UAAcknowledgeableConditionBase.instantiate(namespace, conditionTypeId, options, data);
+    };
+    const UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
     /**
      * @class AddressSpace
      * @method instantiateAlarmCondition
@@ -68,11 +80,16 @@ exports.install = function (AddressSpace) {
      * @param  data
      * @return {UAAlarmConditionBase}
      */
-    AddressSpace.prototype.instantiateAlarmCondition = function (alarmConditionTypeId, options,data ) {
-        return UAAlarmConditionBase.instantiate(this, alarmConditionTypeId, options, data);
+    AddressSpace.prototype.instantiateAlarmCondition = function (alarmConditionTypeId, options, data) {
+        return this._resolveRequestedNamespace(options).instantiateAlarmCondition(alarmConditionTypeId, options, data);
+    };
+    utils.setDeprecated(AddressSpace,"instantiateAlarmCondition","use Namespace#instantiateAlarmCondition instead");
+    Namespace.prototype.instantiateAlarmCondition = function (alarmConditionTypeId, options, data) {
+        const namespace = this;
+        return UAAlarmConditionBase.instantiate(namespace, alarmConditionTypeId, options, data);
     };
 
-    var UALimitAlarm = require("./limit_alarm").UALimitAlarm;
+    const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
     /**
      * @class AddressSpace
      * @method instantiateLimitAlarm
@@ -81,11 +98,15 @@ exports.install = function (AddressSpace) {
      * @param  data
      * @return {UALimitAlarm}
      */
-    AddressSpace.prototype.instantiateLimitAlarm = function (limitAlarmTypeId, options,data ) {
-        return UALimitAlarm.instantiate(this, limitAlarmTypeId, options, data);
+    AddressSpace.prototype.instantiateLimitAlarm = function (limitAlarmTypeId, options, data) {
+        return this._resolveRequestedNamespace(options).instantiateLimitAlarm(limitAlarmTypeId, options, data);
     };
-
-    var UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
+    utils.setDeprecated(AddressSpace,"instantiateLimitAlarm","use Namespace#instantiateLimitAlarm instead");
+    Namespace.prototype.instantiateLimitAlarm = function (limitAlarmTypeId, options, data) {
+        const namespace = this;
+        return UALimitAlarm.instantiate(namespace, limitAlarmTypeId, options, data);
+    };
+    const UAExclusiveLimitAlarm = require("./exclusive_limit_alarm").UAExclusiveLimitAlarm;
     /**
      * @class AddressSpace
      * @method instantiateExclusiveLimitAlarm
@@ -94,11 +115,15 @@ exports.install = function (AddressSpace) {
      * @param  data
      * @return {UAExclusiveLimitAlarm}
      */
-    AddressSpace.prototype.instantiateExclusiveLimitAlarm = function(exclusiveLimitAlarmTypeId, options,data ) {
-        return UAExclusiveLimitAlarm.instantiate(this, exclusiveLimitAlarmTypeId, options, data);
+    AddressSpace.prototype.instantiateExclusiveLimitAlarm = function (exclusiveLimitAlarmTypeId, options, data) {
+        return this._resolveRequestedNamespace(options).instantiateExclusiveLimitAlarm(exclusiveLimitAlarmTypeId, options, data);
     };
-
-    var UAExclusiveDeviationAlarm = require("./exclusive_deviation_alarm").UAExclusiveDeviationAlarm;
+    utils.setDeprecated(AddressSpace,"instantiateExclusiveLimitAlarm","use Namespace#instantiateExclusiveLimitAlarm instead");
+    Namespace.prototype.instantiateExclusiveLimitAlarm = function (exclusiveLimitAlarmTypeId, options, data) {
+        const namespace = this;
+        return UAExclusiveLimitAlarm.instantiate(namespace, exclusiveLimitAlarmTypeId, options, data);
+    };
+    const UAExclusiveDeviationAlarm = require("./exclusive_deviation_alarm").UAExclusiveDeviationAlarm;
     /**
      * @class AddressSpace
      * @method instantiateExclusiveDeviationAlarm
@@ -106,11 +131,15 @@ exports.install = function (AddressSpace) {
      * @param  data
      * @return {UAExclusiveDeviationAlarm}
      */
-    AddressSpace.prototype.instantiateExclusiveDeviationAlarm = function(options,data ) {
-        return UAExclusiveDeviationAlarm.instantiate(this, "ExclusiveDeviationAlarmType", options, data);
+    AddressSpace.prototype.instantiateExclusiveDeviationAlarm = function (options, data) {
+        return this._resolveRequestedNamespace(options).instantiateExclusiveDeviationAlarm(options, data);
     };
-
-    var UANonExclusiveLimitAlarm = require("./non_exclusive_limit_alarm").UANonExclusiveLimitAlarm;
+    utils.setDeprecated(AddressSpace,"instantiateExclusiveDeviationAlarm","use Namespace#instantiateExclusiveDeviationAlarm instead");
+    Namespace.prototype.instantiateExclusiveDeviationAlarm = function (options, data) {
+        const namespace = this;
+        return UAExclusiveDeviationAlarm.instantiate(namespace, "ExclusiveDeviationAlarmType", options, data);
+    };
+    const UANonExclusiveLimitAlarm = require("./non_exclusive_limit_alarm").UANonExclusiveLimitAlarm;
     /**
      * @class AddressSpace
      * @method instantiateNonExclusiveLimitAlarm
@@ -120,10 +149,15 @@ exports.install = function (AddressSpace) {
      * @return {UANonExclusiveLimitAlarm}
      */
     AddressSpace.prototype.instantiateNonExclusiveLimitAlarm = function (nonExclusiveLimitAlarmTypeId, options, data) {
-        return UANonExclusiveLimitAlarm.instantiate(this, nonExclusiveLimitAlarmTypeId, options, data);
+        return this._resolveRequestedNamespace(options).instantiateNonExclusiveLimitAlarm(nonExclusiveLimitAlarmTypeId, options, data);
+    };
+    utils.setDeprecated(AddressSpace,"instantiateNonExclusiveLimitAlarm","use Namespace#instantiateNonExclusiveLimitAlarm instead");
+    Namespace.prototype.instantiateNonExclusiveLimitAlarm = function (nonExclusiveLimitAlarmTypeId, options, data) {
+        const namespace = this;
+        return UANonExclusiveLimitAlarm.instantiate(namespace, nonExclusiveLimitAlarmTypeId, options, data);
     };
 
-    var UANonExclusiveDeviationAlarm = require("./non_exclusive_deviation_alarm").UANonExclusiveDeviationAlarm;
+    const UANonExclusiveDeviationAlarm = require("./non_exclusive_deviation_alarm").UANonExclusiveDeviationAlarm;
     /**
      * @class AddressSpace
      * @method instantiateNonExclusiveDeviationAlarm
@@ -131,25 +165,36 @@ exports.install = function (AddressSpace) {
      * @param  data
      * @return {UANonExclusiveDeviationAlarm}
      */
-    AddressSpace.prototype.instantiateNonExclusiveDeviationAlarm = function(options,data ) {
-        return UANonExclusiveDeviationAlarm.instantiate(this, "NonExclusiveDeviationAlarmType", options, data);
+    AddressSpace.prototype.instantiateNonExclusiveDeviationAlarm = function (options, data) {
+        return this._resolveRequestedNamespace(options).instantiateNonExclusiveDeviationAlarm(options, data);
+    };
+
+    utils.setDeprecated(AddressSpace,"instantiateNonExclusiveDeviationAlarm","use Namespace#instantiateNonExclusiveDeviationAlarm instead");
+    Namespace.prototype.instantiateNonExclusiveDeviationAlarm = function (options, data) {
+        const namespace = this;
+        return UANonExclusiveDeviationAlarm.instantiate(namespace, "NonExclusiveDeviationAlarmType", options, data);
     };
 
 
-    // --------------------------------- Discrete Alarms
-    var UADiscreteAlarm = require("./discrete_alarm").UADiscreteAlarm;
+// --------------------------------- Discrete Alarms
+    const UADiscreteAlarm = require("./discrete_alarm").UADiscreteAlarm;
     /**
      * @class AddressSpace
      * @method instantiateOffNormalAlarm
+     * @param discreteAlarmType
      * @param  options
      * @param  data
      * @return {UAOffNormalAlarm}
      */
-    AddressSpace.prototype.instantiateDiscreteAlarm = function (discreteAlarmType,options, data) {
-        return UADiscreteAlarm.instantiate(this, discreteAlarmType, options, data);
+    AddressSpace.prototype.instantiateDiscreteAlarm = function (discreteAlarmType, options, data) {
+        return this._resolveRequestedNamespace(options).instantiateDiscreteAlarm(discreteAlarmType, options, data);
     };
-
-    var UAOffNormalAlarm = require("./off_normal_alarm").UAOffNormalAlarm;
+    utils.setDeprecated(AddressSpace,"instantiateDiscreteAlarm","use Namespace#instantiateDiscreteAlarm instead");
+    Namespace.prototype.instantiateDiscreteAlarm = function (discreteAlarmType, options, data) {
+        const namespace = this;
+        return UADiscreteAlarm.instantiate(namespace, discreteAlarmType, options, data);
+    };
+    const UAOffNormalAlarm = require("./off_normal_alarm").UAOffNormalAlarm;
     /**
      * @class AddressSpace
      * @method instantiateOffNormalAlarm
@@ -158,8 +203,12 @@ exports.install = function (AddressSpace) {
      * @return {UAOffNormalAlarm}
      */
     AddressSpace.prototype.instantiateOffNormalAlarm = function (options, data) {
-        return UAOffNormalAlarm.instantiate(this, "OffNormalAlarmType", options, data);
+        return this._resolveRequestedNamespace(options).instantiateOffNormalAlarm(options, data);
     };
-
+    utils.setDeprecated(AddressSpace,"instantiateOffNormalAlarm","use Namespace#instantiateOffNormalAlarm instead");
+    Namespace.prototype.instantiateOffNormalAlarm = function (options, data) {
+        const namespace = this;
+        return UAOffNormalAlarm.instantiate(namespace, "OffNormalAlarmType", options, data);
+    };
 
 };

@@ -1,3 +1,7 @@
+"use strict";
+/**
+ * @module opcua.data-value
+ */
 module.exports = {
 
     DataValue: require("./src/datavalue").DataValue,

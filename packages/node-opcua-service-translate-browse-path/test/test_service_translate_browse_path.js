@@ -1,4 +1,4 @@
-var tbp2n = require("..");
+const tbp2n = require("..");
 
 describe("Test TranslateBrowsePath Service",function() {
 

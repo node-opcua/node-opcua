@@ -1,12 +1,12 @@
 /* global: require, describe, it, process*/
 "use strict";
 require("colors");
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
+var crypto_utils = require("node-opcua-crypto");
 var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
 var spawn = require("child_process").spawn;
-
+var os = require("os");
 function constructFilename(p) {
     var filename = path.join(__dirname, "..", p);
     //xx console.log("fi = ",filename);
@@ -17,7 +17,7 @@ function constructFilename(p) {
 }
 
 /**
- *
+ * @method start_simple_server
  * @param options
  * @param options.env
  * @param [options.server_sourcefile {String} ="./bin/simple_server"]
@@ -91,7 +91,7 @@ function start_simple_server(options, callback) {
                     callback(null, {
                         process: server_exec,
                         pid_collected: pid_collected,
-                        endpointUrl: "opc.tcp://localhost:" + port + "/UA/SampleServer",
+                        endpointUrl: "opc.tcp://" + os.hostname() + ":" + port + "/UA/SampleServer",
                         serverCertificate: crypto_utils.readCertificate(serverCertificateFilename)
                     });
 

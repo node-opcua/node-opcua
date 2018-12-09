@@ -1,5 +1,5 @@
 
-var RepublishResponse_Schema = {
+const RepublishResponse_Schema = {
     name: "RepublishResponse",
     fields: [
         { name: "responseHeader", fieldType: "ResponseHeader" },

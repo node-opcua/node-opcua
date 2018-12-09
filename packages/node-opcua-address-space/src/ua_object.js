@@ -3,26 +3,26 @@
 /**
  * @module opcua.address_space
  */
-var assert = require("node-opcua-assert");
-var util = require("util");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const util = require("util");
+const _ = require("underscore");
 
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-
-
-var DataValue =  require("node-opcua-data-value").DataValue;
-var DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 
 
-var ec = require("node-opcua-basic-types");
+const DataValue =  require("node-opcua-data-value").DataValue;
+const DataType = require("node-opcua-variant").DataType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var BaseNode = require("./base_node").BaseNode;
-var SessionContext = require("./session_context").SessionContext;
+
+const ec = require("node-opcua-basic-types");
+
+const BaseNode = require("./base_node").BaseNode;
+const SessionContext = require("./session_context").SessionContext;
 
 
 /**
@@ -41,16 +41,15 @@ util.inherits(UAObject, BaseNode);
 UAObject.prototype.nodeClass = NodeClass.Object;
 UAObject.typeDefinition = resolveNodeId("BaseObjectType");
 
-var getCurrentClock = require("node-opcua-date-time").getCurrentClock;
-var coerceClock = require("node-opcua-date-time").coerceClock;
+const getCurrentClock = require("node-opcua-date-time").getCurrentClock;
 
 
 UAObject.prototype.readAttribute = function (context, attributeId) {
 
     assert(context instanceof SessionContext);
 
-    var now = getCurrentClock();
-    var options = {};
+    const now = getCurrentClock();
+    const options = {};
     switch (attributeId) {
         case AttributeIds.EventNotifier:
             assert(ec.isValidByte(this.eventNotifier));
@@ -66,14 +65,18 @@ UAObject.prototype.readAttribute = function (context, attributeId) {
 };
 
 
-UAObject.prototype.clone = function (options,optionalfilter,extraInfo) {
-    var self = this;
+UAObject.prototype.clone = function (options,optionalFilter,extraInfo) {
+    const self = this;
     options = options || {};
     options = _.extend(_.clone(options),{
         eventNotifier: self.eventNotifier,
         symbolicName: self.symbolicName
     });
-    return self._clone(UAObject,options, optionalfilter, extraInfo);
+    const cloneObject =  self._clone(UAObject,options, optionalFilter, extraInfo);
+
+    //xx  newObject.propagate_back_references();
+    //xx newObject.install_extra_properties();
+    return cloneObject;
 };
 
 exports.UAObject = UAObject;

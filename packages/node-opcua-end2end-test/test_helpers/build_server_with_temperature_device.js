@@ -1,21 +1,21 @@
 "use strict";
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
 require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAServer = opcua.OPCUAServer;
-var StatusCodes = opcua.StatusCodes;
-var Variant = opcua.Variant;
-var DataType = opcua.DataType;
-var DataValue = opcua.DataValue;
-var is_valid_endpointUrl = opcua.is_valid_endpointUrl;
+const OPCUAServer = opcua.OPCUAServer;
+const StatusCodes = opcua.StatusCodes;
+const Variant = opcua.Variant;
+const DataType = opcua.DataType;
+const DataValue = opcua.DataValue;
+const is_valid_endpointUrl = opcua.is_valid_endpointUrl;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
-var build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
+const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
+const build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 
 
@@ -30,12 +30,13 @@ function addTestUAAnalogItem(parentNode) {
 
 //xx    assert(parentNode instanceof opcua.BaseNode);
 
-    var addressSpace = parentNode.addressSpace;
+    const addressSpace = parentNode.addressSpace;
+    const namespace = addressSpace.getOwnNamespace();
 
     // add a UAAnalogItem
-    /* var node = */ addressSpace.addAnalogDataItem({
+    namespace.addAnalogDataItem({
         componentOf: parentNode,
-        nodeId: "ns=4;s=TemperatureAnalogItem",
+        nodeId: "s=TemperatureAnalogItem",
         browseName: "TemperatureAnalogItem",
         definition: "(tempA -25) + tempB",
         valuePrecision: 0.5,
@@ -53,7 +54,7 @@ function addTestUAAnalogItem(parentNode) {
 }
 
 
-var userManager = {
+const userManager = {
     isValidUser: function (userName, password) {
 
         if (userName === "user1" && password === "password1") {
@@ -67,6 +68,8 @@ var userManager = {
 };
 
 /**
+ * @method build_server_with_temperature_device
+ *
  * create and start a fake OPCUA Server that exposes a temperature set point variable.
  *
  *    the SetPoint temperature can be set on the server side by accessing the
@@ -96,7 +99,7 @@ function build_server_with_temperature_device(options, done) {
 
     options.userManager = userManager;
 
-    var server = new OPCUAServer(options);
+    const server = new OPCUAServer(options);
     // we will connect to first server end point
 
     server.on("session_closed", function (session, reason) {
@@ -106,23 +109,27 @@ function build_server_with_temperature_device(options, done) {
 
     server.on("post_initialize", function () {
 
-        var addressSpace = server.engine.addressSpace;
+        const addressSpace = server.engine.addressSpace;
 
-        var myDevices = addressSpace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
-        assert(myDevices.browseName.toString() === "MyDevices");
+        const namespace = addressSpace.getOwnNamespace();
 
-        var variable0 = addressSpace.addVariable({
+        const myDevices = namespace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
+        assert(myDevices.browseName.toString() === "1:MyDevices");
+
+        // create a variable with a string namepsace
+        const variable0 = namespace.addVariable({
             componentOf: myDevices,
             browseName: "FanSpeed",
-            nodeId: "ns=2;s=FanSpeed",
+            nodeId: "s=FanSpeed",
             dataType: "Double",
             value: new Variant({dataType: DataType.Double, value: 1000.0})
         });
+        assert(variable0.nodeId.toString() === "ns=1;s=FanSpeed");
 
-        var setPointTemperatureId = "ns=4;s=SetPointTemperature";
+        const setPointTemperatureId = "s=SetPointTemperature";
         // install a Read/Write variable representing a temperature set point of a temperature controller.
-        server.temperatureVariableId = addressSpace.addVariable({
-            componentOf: myDevices,
+        server.temperatureVariableId = namespace.addVariable({
+            organizedBy: myDevices,
             browseName: "SetPointTemperature",
             nodeId: setPointTemperatureId,
             dataType: "Double",
@@ -139,16 +146,16 @@ function build_server_with_temperature_device(options, done) {
         });
 
         // install a Read-Only variable defined with a fancy Opaque nodeid
-        var pumpSpeedId = "ns=4;b=0102030405060708090a0b0c0d0e0f10";
+        const pumpSpeedId = "b=0102030405060708090a0b0c0d0e0f10";
 
-        server.pumpSpeed = addressSpace.addVariable({
+        server.pumpSpeed = namespace.addVariable({
             componentOf: myDevices,
             browseName: "PumpSpeed",
             nodeId: pumpSpeedId,
             dataType: "Double",
             value: {
                 get: function () {
-                    var pump_speed = 200 + Math.random();
+                    const pump_speed = 200 + Math.random();
                     return new Variant({dataType: DataType.Double, value: pump_speed});
                 },
                 set: function (variant) {
@@ -156,9 +163,9 @@ function build_server_with_temperature_device(options, done) {
                 }
             }
         });
-        assert(server.pumpSpeed.nodeId.toString() === pumpSpeedId);
+        assert(server.pumpSpeed.nodeId.toString() === "ns=1;"+pumpSpeedId);
 
-        var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         debugLog("endpointUrl", endpointUrl);
         is_valid_endpointUrl(endpointUrl).should.equal(true);
 
@@ -171,10 +178,10 @@ function build_server_with_temperature_device(options, done) {
 
 
         // add a variable that can be written asynchronously
-        var asyncWriteNodeId = "ns=4;s=AsynchronousVariable";
-        var asyncValue = 46;
+        const asyncWriteNodeId = "s=AsynchronousVariable";
+        let asyncValue = 46;
 
-        server.asyncWriteNode = addressSpace.addVariable({
+        server.asyncWriteNode = namespace.addVariable({
             componentOf: myDevices,
             browseName: "AsynchronousVariable",
             nodeId: asyncWriteNodeId,
@@ -184,7 +191,7 @@ function build_server_with_temperature_device(options, done) {
                 // asynchronous read
                 refreshFunc: function (callback) {
 
-                    var dataValue = new DataValue({
+                    const dataValue = new DataValue({
                         value: {
                             dataType: DataType.Double,
                             value: asyncValue
@@ -201,6 +208,43 @@ function build_server_with_temperature_device(options, done) {
                         asyncValue = variant.value;
                     }, 1000);
                     return StatusCodes.GoodCompletesAsynchronously;
+                }
+            }
+
+        });
+
+
+        // add a variable that can be written asynchronously and that supports TimeStamps and StatusCodes
+        const asyncWriteFullNodeId = "s=AsynchronousFullVariable";
+        let asyncWriteFull_dataValue = {
+            statusCode: StatusCodes.BadWaitingForInitialData
+        };
+
+        server.asyncWriteNode = namespace.addVariable({
+            componentOf: myDevices,
+            browseName: "AsynchronousFullVariable",
+            nodeId: asyncWriteFullNodeId,
+            dataType: "Double",
+
+            value: {
+                // asynchronous read
+                timestamped_get: function (callback) {
+                    assert(_.isFunction(callback), "callback must be a function");
+                    setTimeout(function () {
+                        callback(null, asyncWriteFull_dataValue);
+                    }, 100);
+                },
+                // asynchronous write
+                // in this case, we are using timestamped_set and not set
+                // as we want to control and deal with the dataValue provided by the client write
+                // This will allow us to handle more specifically timestamps and statusCodes
+                timestamped_set: function (dataValue, callback) {
+                    assert(_.isFunction(callback), "callback must be a function");
+                    //xxx console.log(" DATA VALUE !!!".cyan,dataValue.toString().yellow);
+                    setTimeout(function () {
+                        asyncWriteFull_dataValue = new DataValue(dataValue);
+                        callback();
+                    }, 500);
                 }
             }
 

@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 "use strict";
  /*global require,setInterval,console */
-var path = require("path");
-var opcua = require("node-opcua");
+const path = require("path");
+const opcua = require("node-opcua");
 function constructFilename(filename) {
     return path.join(__dirname,"../",filename);
 }
-var server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_2048.pem");
-var server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
+const server_certificate_file            = constructFilename("certificates/server_selfsigned_cert_2048.pem");
+const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
 
-var nodeset_filenames = [ opcua.standard_nodeset_file ];
+const nodeset_filenames = [ opcua.standard_nodeset_file ];
 
-var server = new opcua.OPCUAServer({
+const server = new opcua.OPCUAServer({
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
 
@@ -29,14 +29,14 @@ var server = new opcua.OPCUAServer({
 function post_initialize() {
     function construct_my_address_space(server) {
 
-        var addressSpace = server.engine.addressSpace;
+        const addressSpace = server.engine.addressSpace;
 
-        var data = {};
+        const data = {};
         opcua.construct_demo_alarm_in_address_space(data,addressSpace);
 
-        var time  = 1;
+        let time  = 1;
         function simulate_variation() {
-            var value = (1.0 + Math.sin(time/360*3))/2.0;
+            const value = (1.0 + Math.sin(time/360*3))/2.0;
             data.tankLevel.setValueFromSource({dataType: "Double",value:value});
 
             data.tankLevel2.setValueFromSource({dataType: "Double",value:value});
@@ -53,7 +53,7 @@ function post_initialize() {
     server.start(function() {
         console.log("Server is now listening ... ( press CTRL+C to stop)");
         console.log("port ", server.endpoints[0].port);
-        var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         console.log(" the primary server endpoint url is ", endpointUrl );
     });
 }

@@ -1,23 +1,23 @@
 "use strict";
 /* global describe,it,before*/
 
-var should = require("should");
-var sinon = require("sinon");
+const should = require("should");
+const sinon = require("sinon");
 
 
-var DataType = require("node-opcua-variant").DataType;
+const DataType = require("node-opcua-variant").DataType;
 
-var UAMethod = require("../..").UAMethod;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var NodeId = require("node-opcua-nodeid").NodeId;
+const UAMethod = require("../..").UAMethod;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const NodeId = require("node-opcua-nodeid").NodeId;
 
-var UAAcknowledgeableConditionBase = require("../..").UAAcknowledgeableConditionBase;
+const UAAcknowledgeableConditionBase = require("../..").UAAcknowledgeableConditionBase;
 
 module.exports = function (test) {
 
     describe("AddressSpace : Acknowledgeable Conditions ", function () {
 
-        var addressSpace,source,engine;
+        let addressSpace, source, engine;
         before(function() {
             addressSpace = test.addressSpace; source = test.source;engine = test.engine;
         });
@@ -25,8 +25,9 @@ module.exports = function (test) {
         it("should instantiate AcknowledgeableConditionType", function () {
 
 
-            var acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType");
-            var condition = acknowledgeableConditionType.instantiate({
+            const acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType");
+
+            const condition = acknowledgeableConditionType.instantiate({
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AcknowledgeableCondition1"
@@ -34,14 +35,15 @@ module.exports = function (test) {
 
             //xx condition.should.be.instanceOf(UAAcknowledgeableConditionBase);
 
-            condition.browseName.toString().should.eql("AcknowledgeableCondition1");
+            condition.browseName.toString().should.eql("1:AcknowledgeableCondition1");
 
         });
 
-
         it("should instantiate AcknowledgeableConditionType (variation 2)", function (done) {
 
-            var condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
+            const namespace = addressSpace.getOwnNamespace();
+
+            const condition = namespace.instantiateCondition("AcknowledgeableConditionType", {
                 componentOf: source,
                 conditionSource: source,
                 browseName: "AcknowledgeableCondition2"
@@ -53,7 +55,26 @@ module.exports = function (test) {
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             condition.ackedState.isTrueSubStateOf.should.eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(1);
-            condition.browseName.toString().should.eql("AcknowledgeableCondition2");
+            condition.browseName.toString().should.eql("1:AcknowledgeableCondition2");
+
+            done();
+
+        });
+        it("should instantiate AcknowledgeableConditionType (variation 3)", function (done) {
+
+            const condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
+                componentOf: source,
+                conditionSource: source,
+                browseName: "AcknowledgeableCondition2"
+
+            }, {
+                "enabledState.id": {dataType: DataType.Boolean, value: true}
+            });
+
+            // HasTrueSubState and HasFalseSubState relationship must be maintained
+            condition.ackedState.isTrueSubStateOf.should.eql(condition.enabledState);
+            condition.enabledState.getTrueSubStates().length.should.eql(1);
+            condition.browseName.toString().should.eql("1:AcknowledgeableCondition2");
 
             done();
 
@@ -62,7 +83,7 @@ module.exports = function (test) {
         it("should instantiate AcknowledgeableConditionType with ConfirmedState", function (done) {
 
 
-            var condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
+            const condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
                 componentOf: source,
                 browseName: "AcknowledgeableCondition5",
                 conditionSource: source,
@@ -81,7 +102,7 @@ module.exports = function (test) {
 
         it("should instantiate AlarmConditionType with ConfirmedState and ShelvedState", function (done) {
 
-            var condition = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
+            const condition = addressSpace.instantiateAlarmCondition("AlarmConditionType", {
                 componentOf: source,
                 browseName: "AlarmConditionType",
                 conditionSource: source,
@@ -120,7 +141,7 @@ module.exports = function (test) {
 
 
             // lets disable the alarm now
-            var statusCode = condition.setEnabledState(false);
+            const statusCode = condition.setEnabledState(false);
             statusCode.should.eql(StatusCodes.Good);
 
 
@@ -135,7 +156,7 @@ module.exports = function (test) {
 
         it("should instantiate AcknowledgeableConditionType **Without** ConfirmedState", function (done) {
 
-            var condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
+            const condition = addressSpace.instantiateCondition("AcknowledgeableConditionType", {
                 componentOf: source,
                 browseName: "AcknowledgeableConditionTypeWithoutConfirmedState",
                 conditionSource: source,

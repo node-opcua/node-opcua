@@ -51,8 +51,7 @@ The node-opcua sdk is made available to the application by this 'require' statem
 
 ```javascript
 /*global require,setInterval,console */
-var opcua = require("node-opcua");
-
+const opcua = require("node-opcua");
 ```
 
 ### server instantiation
@@ -63,7 +62,7 @@ For a simple server, you just need to specify a TCP port.
 
 ```javascript
 // Let's create an instance of OPCUAServer
-var server = new opcua.OPCUAServer({
+const server = new opcua.OPCUAServer({
     port: 4334, // the port of the listening socket of the server
     resourcePath: "UA/MyLittleServer", // this path will be added to the endpoint resource name
     _"setting server info"
@@ -71,7 +70,7 @@ var server = new opcua.OPCUAServer({
 ```
 
 The resource path will be used to construct the endpoint uniform resource identifier (uri) of our server.
-In our case, the endpoint urn of our server will be <pre>opc.tcp://<hostname>:4334/UA/MyLittleServer</pre>
+In our case, the endpoint urn of our server will be <pre>opc.tcp://\<hostname\>:4334/UA/MyLittleServer</pre>
 where <pre>hostname</pre> shall be replaced with your computer name or fully qualified domain name.
 
 Client will have to use this URN to connect to the server.
@@ -117,7 +116,8 @@ The ```addressSpace``` is used to customize the objet model that our server will
 ```javascript
 function construct_my_address_space(server) {
 
-    var addressSpace = server.engine.addressSpace;
+    const addressSpace = server.engine.addressSpace;
+    const namespace = addressSpace.getOwnNamespace();
     
     // declare a new object
     _"add a new object into the objects folder"
@@ -133,7 +133,7 @@ _"start the server"
 #### add a new object into the objects folder
 
 ```javascript
-var device = addressSpace.addObject({
+const device = namespace.addObject({
     organizedBy: addressSpace.rootFolder.objects,
     browseName: "MyDevice"
 });
@@ -146,12 +146,12 @@ This function returns a Variant containing the value of the variable to scan.
 
 ```javascript
 // add a variable named MyVariable1 to the newly created folder "MyDevice"
-var variable1 = 1;
+let variable1 = 1;
 
 // emulate variable1 changing every 500 ms
 setInterval(function(){  variable1+=1; }, 500);
 
-addressSpace.addVariable({
+namespace.addVariable({
     componentOf: device,
     browseName: "MyVariable1",
     dataType: "Double",
@@ -170,9 +170,9 @@ Let's create a more comprehensive Read-Write variable with a fancy nodeId
 ```javascript
 
 // add a variable named MyVariable2 to the newly created folder "MyDevice"
-var variable2 = 10.0;
+let variable2 = 10.0;
 
-server.engine.addressSpace.addVariable({
+namespace.addVariable({
     
     componentOf: device,
     
@@ -201,14 +201,14 @@ Lets create a variable that expose the percentage of free memory on the running 
 Let's write a small utility function that calculate this value.
 
 ```javascript
-var os = require("os");
+const os = require("os");
 /**
  * returns the percentage of free memory on the running machine
  * @return {double}
  */
 function available_memory() {
     // var value = process.memoryUsage().heapUsed / 1000000;
-    var percentageMemUsed = os.freemem() / os.totalmem() * 100.0;
+    const percentageMemUsed = os.freemem() / os.totalmem() * 100.0;
     return percentageMemUsed;
 }
 ```
@@ -216,11 +216,11 @@ function available_memory() {
 Now let's expose our OPCUA Variable
 
 ```javascript
-server.engine.addressSpace.addVariable({
+namespace.addVariable({
     
     componentOf: device,
     
-    nodeId: "ns=1;s=free_memory", // a string nodeID
+    nodeId: "s=free_memory", // a string nodeID
     browseName: "FreeMemory",
     dataType: "Double",    
     value: {
@@ -248,7 +248,7 @@ server.start(function() {
 Once the server has been created and configured, it is possible to retrieve the endpoint url.
 
 ```javascript
-var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 console.log(" the primary server endpoint url is ", endpointUrl );
 ```
 

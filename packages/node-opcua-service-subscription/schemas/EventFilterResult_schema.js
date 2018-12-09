@@ -1,6 +1,6 @@
 require("node-opcua-service-filter");
 
-var EventFilterResult_Schema = {
+const EventFilterResult_Schema = {
     name: "EventFilterResult",
     baseType: "MonitoringFilter", // todo Correct to use?
     fields: [

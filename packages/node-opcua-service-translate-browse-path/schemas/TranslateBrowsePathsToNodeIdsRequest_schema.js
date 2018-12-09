@@ -2,7 +2,7 @@ require("node-opcua-service-secure-channel");
 
 //see part 4 5.8.4 TranslateBrowsePathsToNodeIds
 // Translates one or more paths in the server address space.
-var TranslateBrowsePathsToNodeIdsRequest_Schema = {
+const TranslateBrowsePathsToNodeIdsRequest_Schema = {
     name: "TranslateBrowsePathsToNodeIdsRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader" },

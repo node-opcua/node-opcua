@@ -1,6 +1,6 @@
 require("node-opcua-data-model");
 
-var RelativePathElement_Schema = {
+const RelativePathElement_Schema = {
     name: "RelativePathElement",
     documentation: "An element in a relative path.",
     fields: [

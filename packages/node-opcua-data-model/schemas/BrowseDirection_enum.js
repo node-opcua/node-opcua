@@ -1,10 +1,10 @@
 "use strict";
 
-var factories = require("node-opcua-factory");
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var assert = require("node-opcua-assert");
+const factories = require("node-opcua-factory");
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const assert = require("node-opcua-assert").assert;
 
-var EnumBrowseDirection_Schema = {
+const EnumBrowseDirection_Schema = {
     name: "BrowseDirection",
     enumValues: {
         Invalid: -1, //
@@ -15,7 +15,7 @@ var EnumBrowseDirection_Schema = {
     decode: function(stream) {
 
         assert(stream instanceof BinaryStream);
-        var value = stream.readInteger();
+        const value = stream.readInteger();
         if (value<0 || value>2) {
             return exports.BrowseDirection.Invalid;
         }

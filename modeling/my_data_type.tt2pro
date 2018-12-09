@@ -1,11 +1,11 @@
 ###########################
 # UaModeler Project File  #
-# Generated at 13.12.2015 #
+# Generated at 05.06.2018 #
 ###########################
 
 PROJECTNAME = my_data_type
 
-TEMPLATESET = ($TEMPLATES)/cpp/v1_4/t7/cpp_server.tt2set
+TEMPLATESET = ($TEMPLATES)/cpp/v1_4/t9/cpp_server.tt2set
 
 MODELS += ($MODELS)/Opc.Ua.NodeSet2.ua \
     my_data_type.ua
@@ -18,4 +18,10 @@ COLORS = ($MODELS)/Opc.Ua.NodeSet2.ua: #c71585\
 OUTPUTPATH = ../tmp
 
 GENERATE += my_data_type.ua
+
+NODEACCESSINFOROLES += Administrator \
+    SecurityAdmin \
+    ConfigurationAdmin \
+    Operator \
+    Observer
 

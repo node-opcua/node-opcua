@@ -1,5 +1,5 @@
 
-var BrowsePathResult_Schema = {
+const BrowsePathResult_Schema = {
     name: "BrowsePathResult",
     documentation: "The result of a translate operation.",
     fields: [

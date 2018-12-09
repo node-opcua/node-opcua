@@ -2,39 +2,41 @@
 
 /* jslint */
 /*global require,describe, it, before, after */
-var should = require("should");
+const should = require("should");
 
-var NodeClass = require("node-opcua-data-model").NodeClass;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
-var DataType = require("node-opcua-variant").DataType;
-var Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var util = require("util");
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const util = require("util");
 
-var get_mini_address_space = require("node-opcua-address-space/test_helpers/get_mini_address_space").get_mini_address_space;
+const get_mini_address_space = require("node-opcua-address-space/test_helpers/get_mini_address_space").get_mini_address_space;
 
-var checkSelectClauses = require("node-opcua-address-space").checkSelectClauses;
-var extractEventFields = require("node-opcua-service-filter").extractEventFields;
+const checkSelectClauses = require("node-opcua-address-space").checkSelectClauses;
+const extractEventFields = require("node-opcua-service-filter").extractEventFields;
 
-var filter_service = require("node-opcua-service-filter");
-var SimpleAttributeOperand = require("node-opcua-service-filter").SimpleAttributeOperand;
-var EventFilter = require("node-opcua-service-filter").EventFilter;
+const filter_service = require("node-opcua-service-filter");
+const SimpleAttributeOperand = require("node-opcua-service-filter").SimpleAttributeOperand;
+const EventFilter = require("node-opcua-service-filter").EventFilter;
 
-var EventData = require("node-opcua-address-space").EventData;
+const EventData = require("node-opcua-address-space").EventData;
 // select clause
-var subscription_service = require("node-opcua-service-subscription");
+const subscription_service = require("node-opcua-service-subscription");
 
 
 
 describe("testing Events  ", function () {
 
-    var addressSpace;
-    var eventType;
+    let addressSpace,namespace;
+    let eventType;
     before(function (done) {
         get_mini_address_space(function (err,__addressSpace__) {
             addressSpace =__addressSpace__;
-            eventType = addressSpace.addEventType({browseName: "MyEventType"});
+            namespace = addressSpace.getOwnNamespace();
+
+            eventType = namespace.addEventType({browseName: "SomeEventType"});
             done(err);
         });
     });
@@ -45,10 +47,10 @@ describe("testing Events  ", function () {
     });
 
     it("should create a new EventType", function () {
-        eventType.browseName.toString().should.eql("MyEventType");
+        eventType.browseName.toString().should.eql("1:SomeEventType");
     });
 
-    var EventEmitter = require("events").EventEmitter;
+    const EventEmitter = require("events").EventEmitter;
 
     function Observer() {
     }
@@ -57,12 +59,12 @@ describe("testing Events  ", function () {
 
     it("should raise a new transitory event of  EventType", function (done) {
 
-        var serverObject = addressSpace.findNode("Server");
+        const serverObject = addressSpace.findNode("Server");
         serverObject.browseName.toString().should.eql("Server");
 
-        var eventType = addressSpace.findEventType("MyEventType");
+        const eventType = addressSpace.findEventType("1:SomeEventType");
 
-        var observer = new Observer();
+        const observer = new Observer();
 
         observer.on_event = function (evtData) {
 
@@ -88,9 +90,9 @@ describe("testing Events  ", function () {
 
 
 
-        var baseEventType = addressSpace.findEventType("BaseEventType");
+        const baseEventType = addressSpace.findEventType("BaseEventType");
 
-        var eventFilter = new filter_service.EventFilter({
+        const eventFilter = new filter_service.EventFilter({
 
             selectClauses: [ // SimpleAttributeOperand
                 {
@@ -111,23 +113,23 @@ describe("testing Events  ", function () {
         });
         eventFilter.selectClauses[0].should.be.instanceof(SimpleAttributeOperand);
 
-        var auditEventType = addressSpace.findEventType("AuditEventType");
+        const auditEventType = addressSpace.findEventType("AuditEventType");
         //xx var auditEventInstance =  auditEventType.instantiate({browseName: "Instantiation"});
         // if (eventFilter.selectClauses.length===0) {return 0;}
-        var selectClauseResults = checkSelectClauses(auditEventType, eventFilter.selectClauses);
+        const selectClauseResults = checkSelectClauses(auditEventType, eventFilter.selectClauses);
 
         selectClauseResults.length.should.eql(eventFilter.selectClauses.length);
 
         //xx console.log(selectClauseResults);
 
-        var eventData = new EventData(baseEventType);
+        const eventData = new EventData(baseEventType);
 
-        var eventFields = extractEventFields(eventFilter.selectClauses,eventData);
+        const eventFields = extractEventFields(eventFilter.selectClauses,eventData);
 
 
         eventFields.length.should.eql(eventFilter.selectClauses.length);
 
-        var eventFieldList = new subscription_service.EventFieldList({
+        const eventFieldList = new subscription_service.EventFieldList({
             clientHandle: 1,
             eventFields: /* Array<Variant> */ eventFields
         });
@@ -137,13 +139,16 @@ describe("testing Events  ", function () {
 
     it("should filter an event", function (done) {
 
-        var serverObject = addressSpace.findNode("Server");
+        const serverObject = addressSpace.findNode("Server");
         serverObject.browseName.toString().should.eql("Server");
 
-        var eventType = addressSpace.findEventType("MyEventType");
+        // myEventType is on the Simulation namespace
+        const eventType = addressSpace.findEventType("1:SomeEventType");
+
+        should.exist(eventType);
 
 
-        var eventFilter = new EventFilter({
+        const eventFilter = new EventFilter({
             selectClauses: [ // SimpleAttributeOperand
                 {
                     // This parameter restricts the operand to instances of the TypeDefinitionNode or
@@ -162,17 +167,17 @@ describe("testing Events  ", function () {
             whereClause: []
         });
 
-        var rTime = new Date(1789,6,14);
+        const rTime = new Date(1789,6,14);
 
-        var data = {
+        const data = {
             sourceName: {dataType: "String", value: "Hello"},
             sourceNode: {dataType: "NodeId", value: serverObject.nodeId},
             message: {dataType: "String", value: "Hello World"},
             receiveTime: {dataType: "DateTime",value: rTime}
         };
-        var eventData = addressSpace.constructEventData(eventType,data);
+        const eventData = addressSpace.constructEventData(eventType,data);
 
-        var eventFields = extractEventFields(eventFilter.selectClauses,eventData);
+        const eventFields = extractEventFields(eventFilter.selectClauses,eventData);
 
         // make sure all event fields are Variant
         eventFields.forEach(function(e){
@@ -203,14 +208,14 @@ describe("testing Events  ", function () {
     //
     it("should bubble events up",function(){
 
-        var area1 = addressSpace.createNode({
+        const area1 = namespace.createNode({
             nodeClass: NodeClass.Object,
             browseName:  "Area1",
             organisedBy: "Objects"
         });
         area1.browseName.name.should.eql("Area1");
 
-        var tank1 = addressSpace.createNode({
+        const tank1 = namespace.createNode({
             nodeClass: NodeClass.Object,
             browseName:  "Tank1",
             componentOf: area1,
@@ -218,31 +223,31 @@ describe("testing Events  ", function () {
         });
         tank1.browseName.name.should.eql("Tank1");
 
-        var pump = addressSpace.createNode({
+        const pump = namespace.createNode({
             nodeClass: NodeClass.Object,
             browseName:    "Pump",
             componentOf:   tank1,
             eventSourceOf: tank1,
             eventNotifier: 1
         });
-        var pumpStartEventType = addressSpace.addEventType({browseName: "PumpStartEventType"});
-        pumpStartEventType.browseName.toString().should.eql("PumpStartEventType");
+        const pumpStartEventType = namespace.addEventType({browseName: "PumpStartEventType"});
+        pumpStartEventType.browseName.toString().should.eql("1:PumpStartEventType");
         pumpStartEventType.subtypeOfObj.browseName.toString().should.eql("BaseEventType");
 
-        var receivers = [];
+        const receivers = [];
         function spyFunc(object,data) {
-            var self =this;
+            const self =this;
             console.log("object ",self.browseName.toString(), " received Event");
-            receivers.push(self.browseName.toString());
+            receivers.push(self.browseName.name.toString());
         }
-        var server = addressSpace.findNode("Server");
+        const server = addressSpace.findNode("Server");
 
         server.on("event",spyFunc.bind(server));
         pump.on("event",spyFunc.bind(pump));
         tank1.on("event",spyFunc.bind(tank1));
         area1.on("event",spyFunc.bind(area1));
 
-        var eventData = {};
+        const eventData = {};
         pump.raiseEvent(pumpStartEventType,eventData);
 
         receivers.should.eql([

@@ -1,6 +1,6 @@
 "use strict";
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 /**
  * @method encodeArray
  * @param arr {Array} the array to encode.
@@ -9,15 +9,14 @@ var _ = require("underscore");
  * @param encode_element_func.element {object}
  * @param encode_element_func.stream  {BinaryStream}  the stream.
  */
-exports.encodeArray = function (arr, stream, encode_element_func) {
-
+exports.encodeArray = function(arr, stream, encode_element_func) {
     if (arr === null) {
-        stream.writeUInt32(0xFFFFFFFF);
+        stream.writeUInt32(0xffffffff);
         return;
     }
     assert(_.isArray(arr));
     stream.writeUInt32(arr.length);
-    for (var i = 0; i < arr.length; i++) {
+    for (let i = 0; i < arr.length; i++) {
         encode_element_func(arr[i], stream);
     }
 };
@@ -28,19 +27,16 @@ exports.encodeArray = function (arr, stream, encode_element_func) {
  * @param decode_element_func.stream {BinaryStream}  the stream.
  * @return {Array}
  */
-exports.decodeArray = function (stream, decode_element_func) {
-
-    var length = stream.readUInt32(stream);
-    if (length === 0xFFFFFFFF) {
+exports.decodeArray = function(stream, decode_element_func) {
+    const length = stream.readUInt32(stream);
+    if (length === 0xffffffff) {
         return null;
     }
 
-    var arr = [];
-    for (var i = 0; i < length; i++) {
+    const arr = [];
+    for (let i = 0; i < length; i++) {
         arr.push(decode_element_func(stream));
     }
 
     return arr;
 };
-
-

@@ -1,15 +1,15 @@
-var should = require("should");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const should = require("should");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAServer = opcua.OPCUAServer;
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAServer = opcua.OPCUAServer;
+const OPCUAClient = opcua.OPCUAClient;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 
 /**
@@ -34,8 +34,8 @@ var empty_nodeset_filename = opcua.empty_nodeset_filename;
  */
 function build_client_server_session(options,done) {
 
-    var server, client;
-    var endpointUrl;
+    let server, client;
+    let endpointUrl;
 
     if (_.isFunction(options)) {
         done = options;
@@ -45,13 +45,18 @@ function build_client_server_session(options,done) {
         };
     }
 
+    options.port = options.port || 2001;
+
     server = new OPCUAServer(options);
     // we will connect to first server end point
     endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+
     debugLog("endpointUrl", endpointUrl);
+
     opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
-    client = new OPCUAClient();
+
+    client = new OPCUAClient({});
 
     function start(done) {
         server.start(function () {
@@ -74,7 +79,7 @@ function build_client_server_session(options,done) {
     function shutdown(done) {
 
         // let's verify that the server has got at least one session active (the one we created above)
-        assert(server.engine.currentSessionCount >= 1);
+        assert(server.engine.currentSessionCount >= 1 , "expecting at least one active session on service side");
         assert(client_server.g_session);
 
         client_server.g_session.close(function () {

@@ -3,32 +3,32 @@
 
 Error.stackTraceLimit = Infinity;
 
-var argv = require("yargs")
+const argv = require("yargs")
     .wrap(132)
     .string("port")
     .describe("port")
     .alias('p', 'port')
     .argv;
 
-var path = require("path");
-var fs = require("fs");
-var opcua = require("node-opcua");
+const path = require("path");
+const fs = require("fs");
+const opcua = require("node-opcua");
 
-var rootFolder = path.join(__dirname,"../");
+const rootFolder = path.join(__dirname,"../");
 function constructFilename(pathname) {
     return path.join(__dirname,"../../",pathname);
 }
 
-var OPCUAServer = opcua.OPCUAServer;
-var standard_nodeset_file = opcua.standard_nodeset_file;
+const OPCUAServer = opcua.OPCUAServer;
+const standard_nodeset_file = opcua.standard_nodeset_file;
 
 
-var port = parseInt(argv.port) || 26555;
+const port = parseInt(argv.port) || 26555;
 
-var server_certificate_file            = constructFilename("certificates/server_cert_1024.pem");
-var server_certificate_privatekey_file = constructFilename("certificates/server_key_1024.pem");
+const server_certificate_file            = constructFilename("certificates/server_cert_1024.pem");
+const server_certificate_privatekey_file = constructFilename("certificates/server_key_1024.pem");
 
-var server_options = {
+const server_options = {
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
     port: port,
@@ -45,14 +45,30 @@ if (!fs.existsSync(server_options.nodeset_filename[1])) {
 }
 process.title = "Node OPCUA Server on port : " + server_options.port;
 
-var server = new OPCUAServer(server_options);
+const server = new OPCUAServer(server_options);
 
-var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
 console.log("   Server with custom modeling ");
 console.log("  server PID          :".yellow, process.pid);
 
 server.on("post_initialize", function () {
+
+    const addressSpace = server.engine.addressSpace;
+
+    const rootFolder = addressSpace.findNode("RootFolder");
+
+    const namespace = addressSpace.getOwnNamespace();
+
+    const myDevices = namespace.addFolder(rootFolder.objects, {browseName: "MyDevices"});
+
+    const variable0 = namespace.addVariable({
+        organizedBy: myDevices,
+        browseName: "Counter",
+        nodeId: "ns=1;s=MyCounter",
+        dataType: "Int32",
+        value: new opcua.Variant({dataType: opcua.DataType.Int32, value: 1000.0})
+    });
 
 });
 

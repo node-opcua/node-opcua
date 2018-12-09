@@ -1,34 +1,30 @@
 
 "use strict";
-var should = require("should");
-var opcua = require("node-opcua");
+const should = require("should");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var SecurityPolicy = opcua.SecurityPolicy;
-var MessageSecurityMode = opcua.MessageSecurityMode;
+const OPCUAClient = opcua.OPCUAClient;
+const SecurityPolicy = opcua.SecurityPolicy;
+const MessageSecurityMode = opcua.MessageSecurityMode;
 
-var build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
 
-var crypto_utils = require("node-opcua-crypto").crypto_utils;
-if (!crypto_utils.isFullySupported()) {
-    console.log(" SKIPPING TESTS ON SECURE CONNECTION because crypto, please check your installation".red.bold);
-    return;
-}
+const crypto_utils = require("node-opcua-crypto");
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing server with restricted securityModes - Given a server with a single end point SIGNANDENCRYPT/Basic128Rsa15 (and no discovery service on secure channel)", function () {
 
-    var server, client, temperatureVariableId, endpointUrl, serverCertificate;
+    let server, client, temperatureVariableId, endpointUrl, serverCertificate;
 
-    var port = 2001;
+    let port = 2001;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         port += 1;
 
-        var options = {
+        const options = {
             port: port,
             securityPolicies: [SecurityPolicy.Basic128Rsa15],
             securityModes: [MessageSecurityMode.SIGNANDENCRYPT],

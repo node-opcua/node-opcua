@@ -10,7 +10,11 @@ module.exports = {
 
     ClientSecureChannelLayer: require("node-opcua-secure-channel/src/client/client_secure_channel_layer").ClientSecureChannelLayer,
 
-    perform_findServersRequest: require("./src/tools/findservers").perform_findServersRequest,
+    // tools
+    perform_findServers: require("./src/tools/findservers").perform_findServers,
+    perform_findServersOnNetwork: require("./src/tools/findservers").perform_findServersOnNetwork,
+
+    readHistoryServerCapabilities: require("./src/tools/read_history_server_capabilities").readHistoryServerCapabilities
 
 };
 
@@ -25,7 +29,6 @@ module.exports.makeExpandedNodeId = require("node-opcua-nodeid/src/expanded_node
 module.exports.coerceExpandedNodeId = require("node-opcua-nodeid/src/expanded_nodeid").coerceExpandedNodeId;
 
 module.exports.StatusCodes = require("node-opcua-status-code").StatusCodes;
-
 
 module.exports.DataType = require("node-opcua-variant").DataType;
 module.exports.Variant = require("node-opcua-variant").Variant;
@@ -77,7 +80,7 @@ module.exports.ApplicationType = require("node-opcua-service-endpoints").Applica
 
 module.exports.subscription_service = require("node-opcua-service-subscription");
 module.exports.historizing_service = require("node-opcua-service-history");
-module.exports.register_server_service = require("node-opcua-service-register-server");
+module.exports.discovery_service = require("node-opcua-service-discovery");
 module.exports.secure_channel_service = require("node-opcua-service-secure-channel");
 
 module.exports.translate_browse_paths_to_node_ids_service = require("node-opcua-service-translate-browse-path");
@@ -95,7 +98,7 @@ module.exports.SecurityPolicy = require("node-opcua-secure-channel").SecurityPol
 module.exports.MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 
 module.exports.utils = require("node-opcua-utils");
-module.exports.crypto_utils = require("node-opcua-crypto").crypto_utils;
+module.exports.crypto_utils = require("node-opcua-crypto");
 module.exports.hexDump = require("node-opcua-debug").hexDump;
 
 //xx module.exports.Enum                      = require("node-opcua-enum");

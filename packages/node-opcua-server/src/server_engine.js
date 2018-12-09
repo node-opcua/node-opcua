@@ -5,88 +5,87 @@
  */
 
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
-var async = require("async");
-var util = require("util");
-var EventEmitter = require("events").EventEmitter;
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const util = require("util");
+const EventEmitter = require("events").EventEmitter;
 
-var SessionContext = require("node-opcua-address-space").SessionContext;
+const SessionContext = require("node-opcua-address-space").SessionContext;
 
-var NodeId = require("node-opcua-nodeid").NodeId;
-var resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
-var NodeIdType = require("node-opcua-nodeid").NodeIdType;
-var NumericRange = require("node-opcua-numeric-range").NumericRange;
-var BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-var BrowseResult = require("node-opcua-service-browse").BrowseResult;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const NodeIdType = require("node-opcua-nodeid").NodeIdType;
+const NumericRange = require("node-opcua-numeric-range").NumericRange;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const BrowseResult = require("node-opcua-service-browse").BrowseResult;
 
-var ReadRequest = require("node-opcua-service-read").ReadRequest;
-
-require("node-opcua-common");
-
-var read_service = require("node-opcua-service-read");
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var TimestampsToReturn = read_service.TimestampsToReturn;
-
-var UAVariable = require("node-opcua-address-space").UAVariable;
-
-var historizing_service = require("node-opcua-service-history");
-var HistoryReadRequest = historizing_service.HistoryReadRequest;
-var HistoryReadDetails = historizing_service.HistoryReadDetails;
-var HistoryReadResult = historizing_service.HistoryReadResult;
-
-var DataValue =  require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var DataType = require("node-opcua-variant").DataType;
-var VariantArrayType = require("node-opcua-variant").VariantArrayType;
-var isValidVariant = require("node-opcua-variant").isValidVariant;
-
-
-
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var StatusCode = require("node-opcua-status-code").StatusCode;
-
+const ReadRequest = require("node-opcua-service-read").ReadRequest;
 
 require("node-opcua-common");
 
-var address_space = require("node-opcua-address-space");
-var AddressSpace = address_space.AddressSpace;
+const read_service = require("node-opcua-service-read");
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const TimestampsToReturn = read_service.TimestampsToReturn;
 
-var generate_address_space = require("node-opcua-address-space").generate_address_space;
+const UAVariable = require("node-opcua-address-space").UAVariable;
+const ServerSidePublishEngine = require("./server_publish_engine").ServerSidePublishEngine;
 
-var ServerSession = require("./server_session").ServerSession;
+const historizing_service = require("node-opcua-service-history");
+const HistoryReadRequest = historizing_service.HistoryReadRequest;
+const HistoryReadDetails = historizing_service.HistoryReadDetails;
+const HistoryReadResult = historizing_service.HistoryReadResult;
 
-var VariableIds = require("node-opcua-constants").VariableIds;
-var MethodIds = require("node-opcua-constants").MethodIds;
+const DataValue = require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const DataType = require("node-opcua-variant").DataType;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const isValidVariant = require("node-opcua-variant").isValidVariant;
 
-var ReferenceType = require("node-opcua-address-space").ReferenceType;
+
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCode = require("node-opcua-status-code").StatusCode;
 
 
+require("node-opcua-common");
 
-var ServerState = require("node-opcua-common").ServerState;
-var ServerStatus  = require("node-opcua-common").ServerStatus;
-var ServerDiagnosticsSummary  = require("node-opcua-common").ServerDiagnosticsSummary;
+const address_space = require("node-opcua-address-space");
+const AddressSpace = address_space.AddressSpace;
 
-var endpoints_service = require("node-opcua-service-endpoints");
-var ApplicationDescription = endpoints_service.ApplicationDescription;
+const generate_address_space = require("node-opcua-address-space").generate_address_space;
 
-var nodesets = require("node-opcua-nodesets");
+const ServerSession = require("./server_session").ServerSession;
+
+const VariableIds = require("node-opcua-constants").VariableIds;
+const MethodIds = require("node-opcua-constants").MethodIds;
+
+const ReferenceType = require("node-opcua-address-space").ReferenceType;
+
+
+const ServerState = require("node-opcua-common").ServerState;
+const ServerStatus = require("node-opcua-common").ServerStatus;
+const ServerDiagnosticsSummary = require("node-opcua-common").ServerDiagnosticsSummary;
+
+const endpoints_service = require("node-opcua-service-endpoints");
+const ApplicationDescription = endpoints_service.ApplicationDescription;
+
+const nodesets = require("node-opcua-nodesets");
 exports.standard_nodeset_file = nodesets.standard_nodeset_file;
 exports.di_nodeset_filename = nodesets.di_nodeset_filename;
 exports.adi_nodeset_filename = nodesets.adi_nodeset_filename;
-var mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
+const mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
 exports.mini_nodeset_filename = mini_nodeset_filename;
 
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-var ServerCapabilities = require("./server_capabilities").ServerCapabilities;
+const ServerCapabilities = require("./server_capabilities").ServerCapabilities;
+const HistoryServerCapabilities = require("./history_server_capabilities").HistoryServerCapabilities;
 
-var eoan = require("node-opcua-address-space");
+const eoan = require("node-opcua-address-space");
 
-var ServerSidePublishEngine = require("./server_publish_engine").ServerSidePublishEngine;
 
 /**
  * @class ServerEngine
@@ -99,6 +98,9 @@ var ServerSidePublishEngine = require("./server_publish_engine").ServerSidePubli
  * @param [options.serverCapabilities.serverProfileArray]
  * @param [options.serverCapabilities.localeIdArray]
  * @param options.applicationUri {String} the application URI.
+ * @param [options.historyServerCapabilities]
+ * @param [options.serverDiagnosticsEnabled = true] set to true to enable serverDiagnostics
+ *
  * @constructor
  */
 function ServerEngine(options) {
@@ -107,138 +109,186 @@ function ServerEngine(options) {
     options.buildInfo = options.buildInfo || {};
 
     EventEmitter.apply(this, arguments);
+    const engine = this;
+    ServerEngine.registry.register(engine);
 
-    this._sessions = {};
-    this._closedSessions = {};
+    engine._sessions = {};
+    engine._closedSessions = {};
+    engine._orphanPublishEngine = null; // will be constructed on demand
 
-    this.isAuditing = _.isBoolean(options.isAuditing) ? options.isAuditing : false;
+    engine.isAuditing = _.isBoolean(options.isAuditing) ? options.isAuditing : false;
 
+    options.buildInfo.buildDate = options.buildInfo.buildDate || new Date();
     // ---------------------------------------------------- ServerStatus
-    this.serverStatus = new ServerStatus({
+    engine.serverStatus = new ServerStatus({
         startTime: new Date(),
         currentTime: new Date(),
         state: ServerState.NoConfiguration,
         buildInfo: options.buildInfo,
-        secondsTillShutdown: 10,
+        secondsTillShutdown: 0,
         shutdownReason: {text: ""}
     });
 
-    var self = this;
-
-    this.serverStatus.__defineGetter__("secondsTillShutdown",function() {
-        return self.secondsTillShutdown();
-    });
-
-    this.serverStatus.__defineGetter__("currentTime",function() {
-        return new Date();
-    });
-    this.serverStatus.__defineSetter__("currentTime",function(/*value*/) {
-        // DO NOTHING currentTime is readonly
-    });
 
     // --------------------------------------------------- ServerCapabilities
-    options.serverCapabilities = options.serverCapabilities ||{};
-    options.serverCapabilities.serverProfileArray = options.serverCapabilities.serverProfileArray || [];
-    options.serverCapabilities.localeIdArray = options.serverCapabilities.localeIdArray ||["en-EN", "fr-FR"];
+    options.serverCapabilities = options.serverCapabilities || {};
+    options.serverCapabilities.serverProfileArray = options.serverCapabilities.serverProfileArray || [
+        "Standard UA Server Profile",
+        "Embedded UA Server Profile",
+        "Micro Embedded Device Server Profile",
+        "Nano Embedded Device Server Profile"
+    ];
+    options.serverCapabilities.localeIdArray = options.serverCapabilities.localeIdArray || ["en-EN", "fr-FR"];
 
-    this.serverCapabilities = new ServerCapabilities(options.serverCapabilities);
+    engine.serverCapabilities = new ServerCapabilities(options.serverCapabilities);
+    engine.historyServerCapabilities = new HistoryServerCapabilities(options.historyServerCapabilities);
 
-    // --------------------------------------------------- serverDiagnosticsSummary
-    this.serverDiagnosticsSummary = new ServerDiagnosticsSummary({
+    // --------------------------------------------------- serverDiagnosticsSummary extension Object
+    engine.serverDiagnosticsSummary = new ServerDiagnosticsSummary({});
+    assert(engine.serverDiagnosticsSummary.hasOwnProperty("currentSessionCount"));
 
-    });
-    assert(this.serverDiagnosticsSummary.hasOwnProperty("currentSessionCount"));
+    // note spelling is different for serverDiagnosticsSummary.currentSubscriptionCount
+    //      and sessionDiagnostics.currentSubscriptionsCount ( with an s)
+    assert(engine.serverDiagnosticsSummary.hasOwnProperty("currentSubscriptionCount"));
 
-
-    this.serverDiagnosticsSummary.__defineGetter__("currentSessionCount", function () {
-        return Object.keys(self._sessions).length;
-    });
-    assert(this.serverDiagnosticsSummary.hasOwnProperty("currentSubscriptionCount"));
-    this.serverDiagnosticsSummary.__defineGetter__("currentSubscriptionCount", function () {
+    engine.serverDiagnosticsSummary.__defineGetter__("currentSubscriptionCount", function () {
         // currentSubscriptionCount returns the total number of subscriptions
         // that are currently active on all sessions
-        var counter = 0;
-        _.values(self._sessions).forEach(function (session) {
+        let counter = 0;
+        _.values(engine._sessions).forEach(function (session) {
             counter += session.currentSubscriptionCount;
         });
         return counter;
     });
 
-    this.status = "creating";
+    engine.status = "creating";
 
-    this.setServerState(ServerState.NoConfiguration);
+    engine.setServerState(ServerState.NoConfiguration);
 
-    this.addressSpace = null;
+    engine.addressSpace = null;
 
-    this._shutdownTask = [];
+    engine._shutdownTask = [];
 
-    this._applicationUri = options.applicationUri || "<unset _applicationUri>";
+    engine._applicationUri = options.applicationUri || "<unset _applicationUri>";
+
+    options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable")
+                                            ? options.serverDiagnosticsEnabled : true;
+    engine.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled;
+
 }
 
 util.inherits(ServerEngine, EventEmitter);
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+ServerEngine.registry = new ObjectRegistry();
 
-ServerEngine.prototype.__defineGetter__("startTime",function() {
-    return this.serverStatus.startTime;
+ServerEngine.prototype.dispose = function () {
+
+    const engine = this;
+    engine.addresSpaec = null;
+
+    assert(Object.keys(engine._sessions).length === 0, "ServerEngine#_sessions not empty");
+    engine._sessions = {};
+
+    // todo fix me
+    engine._closedSessions = {};
+    assert(Object.keys(engine._closedSessions).length === 0, "ServerEngine#_closedSessions not empty");
+    engine._closedSessions = {};
+
+    if (engine._orphanPublishEngine) {
+        engine._orphanPublishEngine.dispose();
+        engine._orphanPublishEngine = null;
+    }
+
+    engine._shutdownTask = null;
+    engine.serverStatus = null;
+    engine.status = "disposed";
+
+    engine.removeAllListeners();
+
+    ServerEngine.registry.unregister(engine);
+};
+ServerEngine.prototype.__defineGetter__("startTime", function () {
+    const engine = this;
+    return engine.serverStatus.startTime;
 });
 
-ServerEngine.prototype.__defineGetter__("currentTime",function() {
-    return this.serverStatus.currentTime;
+ServerEngine.prototype.__defineGetter__("currentTime", function () {
+    const engine = this;
+    return engine.serverStatus.currentTime;
 });
 
-ServerEngine.prototype.__defineGetter__("buildInfo",function() {
-    return this.serverStatus.buildInfo;
+ServerEngine.prototype.__defineGetter__("buildInfo", function () {
+    const engine = this;
+    return engine.serverStatus.buildInfo;
 });
 /**
  * register a function that will be called when the server will perform its shut down.
  * @method registerShutdownTask
  */
 ServerEngine.prototype.registerShutdownTask = function (task) {
+    const engine = this;
     assert(_.isFunction(task));
-    this._shutdownTask.push(task);
+    engine._shutdownTask.push(task);
 
 };
 
 function shutdownAndDisposeAddressSpace() {
     /* jshint validthis:true */
-
-    if (this.addressSpace) {
-        assert(this.addressSpace instanceof AddressSpace);
-        this.addressSpace.shutdown();
-        this.addressSpace.dispose();
-        delete this.addressSpace;
+    const engine = this;
+    if (engine.addressSpace) {
+        assert(engine.addressSpace instanceof AddressSpace);
+        engine.addressSpace.shutdown();
+        engine.addressSpace.dispose();
+        delete engine.addressSpace;
     }
 }
+
 /**
  * @method shutdown
  */
 ServerEngine.prototype.shutdown = function () {
 
-    var self = this;
 
-    self.status = "shutdown";
-    self.setServerState(ServerState.Shutdown);
+    debugLog("ServerEngine#shutdown");
+
+    const engine = this;
+
+    engine.status = "shutdown";
+    engine.setServerState(ServerState.Shutdown);
 
     // delete any existing sessions
-    var tokens = Object.keys(self._sessions).map(function (key) {
-        var session = self._sessions[key];
+    const tokens = Object.keys(engine._sessions).map(function (key) {
+        const session = engine._sessions[key];
         return session.authenticationToken;
     });
+
+    // delete and close any orphan subscription
+    if (engine._orphanPublishEngine) {
+        engine._orphanPublishEngine.shutdown();
+    }
+
 
     //xx console.log("xxxxxxxxx ServerEngine.shutdown must terminate "+ tokens.length," sessions");
 
     tokens.forEach(function (token) {
-        self.closeSession(token, true, "Terminated");
+        engine.closeSession(token, true, "Terminated");
     });
 
     // all sessions must have been terminated
-    assert(self.currentSessionCount === 0);
+    assert(engine.currentSessionCount === 0);
 
-    self._shutdownTask.push(shutdownAndDisposeAddressSpace);
+
+    // all subscriptions must have been terminated
+    assert(engine.currentSubscriptionCount === 0, "all subscriptions must have been terminated");
+
+    engine._shutdownTask.push(shutdownAndDisposeAddressSpace);
 
     // perform registerShutdownTask
-    self._shutdownTask.forEach(function (task) {
-        task.call(self);
+    engine._shutdownTask.forEach(function (task) {
+        task.call(engine);
     });
+
+    engine.dispose();
 };
 
 /**
@@ -247,7 +297,8 @@ ServerEngine.prototype.shutdown = function () {
  * @type {Number}
  */
 ServerEngine.prototype.__defineGetter__("currentSessionCount", function () {
-    return this.serverDiagnosticsSummary.currentSessionCount;
+    const engine = this;
+    return engine.serverDiagnosticsSummary.currentSessionCount;
 });
 
 /**
@@ -256,7 +307,8 @@ ServerEngine.prototype.__defineGetter__("currentSessionCount", function () {
  * @type {Number}
  */
 ServerEngine.prototype.__defineGetter__("cumulatedSessionCount", function () {
-    return this.serverDiagnosticsSummary.cumulatedSessionCount;
+    const engine = this;
+    return engine.serverDiagnosticsSummary.cumulatedSessionCount;
 });
 
 /**
@@ -265,7 +317,8 @@ ServerEngine.prototype.__defineGetter__("cumulatedSessionCount", function () {
  * @type {Number}
  */
 ServerEngine.prototype.__defineGetter__("currentSubscriptionCount", function () {
-    return this.serverDiagnosticsSummary.currentSubscriptionCount;
+    const engine = this;
+    return engine.serverDiagnosticsSummary.currentSubscriptionCount;
 });
 /**
  * the cumulated number of subscriptions that have been created since this object exists
@@ -273,26 +326,32 @@ ServerEngine.prototype.__defineGetter__("currentSubscriptionCount", function () 
  * @type {Number}
  */
 ServerEngine.prototype.__defineGetter__("cumulatedSubscriptionCount", function () {
-    return this.serverDiagnosticsSummary.cumulatedSubscriptionCount;
+    const engine = this;
+    return engine.serverDiagnosticsSummary.cumulatedSubscriptionCount;
 });
 
 ServerEngine.prototype.__defineGetter__("rejectedSessionCount", function () {
-    return this.serverDiagnosticsSummary.rejectedSessionCount;
+    const engine = this;
+    return engine.serverDiagnosticsSummary.rejectedSessionCount;
 });
 
 ServerEngine.prototype.__defineGetter__("rejectedRequestsCount", function () {
-    return this.serverDiagnosticsSummary.rejectedRequestsCount;
+    const engine = this;
+    return engine.serverDiagnosticsSummary.rejectedRequestsCount;
 });
 
 ServerEngine.prototype.__defineGetter__("sessionAbortCount", function () {
-    return this.serverDiagnosticsSummary.sessionAbortCount;
+    const engine = this;
+    return engine.serverDiagnosticsSummary.sessionAbortCount;
 });
 ServerEngine.prototype.__defineGetter__("sessionTimeoutCount", function () {
-    return this.serverDiagnosticsSummary.sessionTimeoutCount;
+    const engine = this;
+    return engine.serverDiagnosticsSummary.sessionTimeoutCount;
 });
 
 ServerEngine.prototype.__defineGetter__("publishingIntervalCount", function () {
-    return this.serverDiagnosticsSummary.publishingIntervalCount;
+    const engine = this;
+    return engine.serverDiagnosticsSummary.publishingIntervalCount;
 });
 
 
@@ -303,36 +362,45 @@ ServerEngine.prototype.__defineGetter__("publishingIntervalCount", function () {
  */
 ServerEngine.prototype.secondsTillShutdown = function () {
     // ToDo: implement a correct solution here
-    return 1;
+    return 0;
 };
 
 
-var CallMethodResult = require("node-opcua-service-call").CallMethodResult;
+const CallMethodResult = require("node-opcua-service-call").CallMethodResult;
+
 // binding methods
 function getMonitoredItemsId(inputArguments, context, callback) {
 
+
+    const engine = this; // ServerEngine
 
     assert(_.isArray(inputArguments));
     assert(_.isFunction(callback));
 
     assert(context.hasOwnProperty("session"), " expecting a session id in the context object");
 
-    var session = context.session;
+    const session = context.session;
     if (!session) {
         return callback(null, {statusCode: StatusCodes.BadInternalError});
     }
 
-    var subscriptionId = inputArguments[0].value;
-    var subscription = session.getSubscription(subscriptionId);
+    const subscriptionId = inputArguments[0].value;
+    const subscription = session.getSubscription(subscriptionId);
     if (!subscription) {
+        // subscription may belongs to a different session  that ours
+        if (engine.findSubscription(subscriptionId)) {
+            // if yes, then access to  Subscription data should be denied
+            return callback(null, {statusCode: StatusCodes.BadUserAccessDenied});
+        }
+
         return callback(null, {statusCode: StatusCodes.BadSubscriptionIdInvalid});
     }
-    var result = subscription.getMonitoredItems();
+    const result = subscription.getMonitoredItems();
     assert(result.statusCode);
     assert(_.isArray(result.serverHandles));
     assert(_.isArray(result.clientHandles));
     assert(result.serverHandles.length === result.clientHandles.length);
-    var callMethodResult = new CallMethodResult({
+    const callMethodResult = new CallMethodResult({
         statusCode: result.statusCode,
         outputArguments: [
             {dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: result.serverHandles},
@@ -349,7 +417,8 @@ function getMonitoredItemsId(inputArguments, context, callback) {
  * @type String
  */
 ServerEngine.prototype.__defineGetter__("serverName", function () {
-    return this.serverStatus.buildInfo.productName;
+    const engine = this;
+    return engine.serverStatus.buildInfo.productName;
 });
 
 /**
@@ -358,7 +427,8 @@ ServerEngine.prototype.__defineGetter__("serverName", function () {
  * @type String
  */
 ServerEngine.prototype.__defineGetter__("serverNameUrn", function () {
-    return this._applicationUri;
+    const engine = this;
+    return engine._applicationUri;
 });
 
 /**
@@ -367,15 +437,34 @@ ServerEngine.prototype.__defineGetter__("serverNameUrn", function () {
  * @type String
  */
 ServerEngine.prototype.__defineGetter__("serverNamespaceUrn", function () {
-    return this._applicationUri; // "urn:" + this.serverName;
+    const engine = this;
+    return engine._applicationUri; // "urn:" + engine.serverName;
 });
 
 
 ServerEngine.prototype.setServerState = function (serverState) {
+    const engine = this;
     assert(serverState !== null && serverState !== undefined);
-    this.serverStatus.state = serverState;
+    engine.serverStatus.state = serverState;
 };
 
+ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function () {
+    const engine = this;
+    const serverDiagnostics = engine.server.getComponentByName("ServerDiagnostics");
+    if (!serverDiagnostics) {
+        return false;
+    }
+    return serverDiagnostics.readValue().value.value;
+};
+
+ServerEngine.prototype.getServerDiagnosticsEnabledFlag = function () {
+    const engine = this;
+    const serverDiagnostics = engine.getComponentByName("ServerDiagnostics");
+    if (!serverDiagnostics) {
+        return false;
+    }
+    return serverDiagnostics.readValue().value.value;
+};
 
 /**
  * @method initialize
@@ -387,77 +476,77 @@ ServerEngine.prototype.setServerState = function (serverState) {
  */
 ServerEngine.prototype.initialize = function (options, callback) {
 
-    var self = this;
-    assert(!self.addressSpace); // check that 'initialize' has not been already called
+    const engine = this;
+    assert(!engine.addressSpace); // check that 'initialize' has not been already called
 
-    self.status = "initializing";
+    engine.status = "initializing";
 
     options = options || {};
     assert(_.isFunction(callback));
 
     options.nodeset_filename = options.nodeset_filename || nodesets.standard_nodeset_file;
 
-    var startTime = new Date();
+    const startTime = new Date();
 
     debugLog("Loading ", options.nodeset_filename, "...");
 
-    self.addressSpace = new AddressSpace();
+    engine.addressSpace = new AddressSpace();
 
     // register namespace 1 (our namespace);
-    var serverNamespaceIndex = self.addressSpace.registerNamespace(self.serverNamespaceUrn);
-    assert(serverNamespaceIndex === 1);
+    const serverNamespace = engine.addressSpace.registerNamespace(engine.serverNamespaceUrn);
+    assert(serverNamespace.index === 1);
 
-    generate_address_space(self.addressSpace, options.nodeset_filename, function () {
+    generate_address_space(engine.addressSpace, options.nodeset_filename, function () {
 
-        var endTime = new Date();
+        const endTime = new Date();
         debugLog("Loading ", options.nodeset_filename, " done : ", endTime - startTime, " ms");
 
         function findObjectNodeId(name) {
-            var obj = self.addressSpace.findNode(name);
+            const obj = engine.addressSpace.findNode(name);
             return obj ? obj.nodeId : null;
         }
 
-        self.FolderTypeId = findObjectNodeId("FolderType");
-        self.BaseObjectTypeId = findObjectNodeId("BaseObjectType");
-        self.BaseDataVariableTypeId = findObjectNodeId("BaseDataVariableType");
+        engine.FolderTypeId = findObjectNodeId("FolderType");
+        engine.BaseObjectTypeId = findObjectNodeId("BaseObjectType");
+        engine.BaseDataVariableTypeId = findObjectNodeId("BaseDataVariableType");
 
-        self.rootFolder = self.addressSpace.findNode("RootFolder");
-        assert(self.rootFolder && self.rootFolder.readAttribute," must provide a root folder and expose a readAttribute method");
+        engine.rootFolder = engine.addressSpace.findNode("RootFolder");
+        assert(engine.rootFolder && engine.rootFolder.readAttribute, " must provide a root folder and expose a readAttribute method");
 
-        self.setServerState(ServerState.Running);
+        engine.setServerState(ServerState.Running);
 
         function bindVariableIfPresent(nodeId, opts) {
             assert(nodeId instanceof NodeId);
             assert(!nodeId.isEmpty());
-            var obj = self.addressSpace.findNode(nodeId);
+            const obj = engine.addressSpace.findNode(nodeId);
             if (obj) {
-                __bindVariable(self, nodeId, opts);
+                __bindVariable(engine, nodeId, opts);
             }
             return obj;
         }
 
 
         // -------------------------------------------- install default get/put handler
-        var server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
+        const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
         bindVariableIfPresent(server_NamespaceArray_Id, {
             get: function () {
                 return new Variant({
                     dataType: DataType.String,
                     arrayType: VariantArrayType.Array,
-                    value: self.addressSpace.getNamespaceArray()
+                    value: engine.addressSpace.getNamespaceArray().map(x=>x.namespaceUri)
                 });
             },
             set: null // read only
         });
 
-        var server_NameUrn_var = new Variant({
+        const server_NameUrn_var = new Variant({
             dataType: DataType.String,
             arrayType: VariantArrayType.Array,
             value: [
-                self.serverNameUrn // this is us !
+                engine.serverNameUrn // this is us !
             ]
         });
-        var server_ServerArray_Id = makeNodeId(VariableIds.Server_ServerArray); // ns=0;i=2254
+        const server_ServerArray_Id = makeNodeId(VariableIds.Server_ServerArray); // ns=0;i=2254
 
         bindVariableIfPresent(server_ServerArray_Id, {
             get: function () {
@@ -466,24 +555,23 @@ ServerEngine.prototype.initialize = function (options, callback) {
             set: null // read only
         });
 
+        function bindStandardScalar(id, dataType, func, setter_func) {
 
-        function bindStandardScalar(id, dataType, func , setter_func) {
-
-            assert(_.isNumber(id));
+            assert(_.isNumber(id), "expecting id to be a number");
             assert(_.isFunction(func));
             assert(_.isFunction(setter_func) || !setter_func);
             assert(dataType !== null); // check invalid dataType
 
-            var setter_func2 = null;
+            let setter_func2 = null;
             if (setter_func) {
-                setter_func2 = function(variant) {
-                    var variable2 = !!variant.value;
+                setter_func2 = function (variant) {
+                    const variable2 = !!variant.value;
                     setter_func(variable2);
                     return StatusCodes.Good;
                 };
             }
 
-            var nodeId = makeNodeId(id);
+            const nodeId = makeNodeId(id);
 
             // make sur the provided function returns a valid value for the variant type
             // This test may not be exhaustive but it will detect obvious mistakes.
@@ -506,7 +594,7 @@ ServerEngine.prototype.initialize = function (options, callback) {
             assert(_.isFunction(func));
             assert(variantDataType !== null); // check invalid dataType
 
-            var nodeId = makeNodeId(id);
+            const nodeId = makeNodeId(id);
 
             // make sur the provided function returns a valid value for the variant type
             // This test may not be exhaustive but it will detect obvious mistakes.
@@ -514,8 +602,8 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
             bindVariableIfPresent(nodeId, {
                 get: function () {
-                    var value = func();
-                    assert( _.isArray(value));
+                    const value = func();
+                    assert(_.isArray(value));
                     return new Variant({
                         dataType: variantDataType,
                         arrayType: VariantArrayType.Array,
@@ -533,65 +621,63 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
         bindStandardScalar(VariableIds.Server_Auditing,
             DataType.Boolean, function () {
-                return self.isAuditing;
+                return engine.isAuditing;
             });
 
 
         function bindServerDiagnostics() {
 
-            var serverDiagnostics_Enabled = false;
-
             bindStandardScalar(VariableIds.Server_ServerDiagnostics_EnabledFlag,
-                DataType.Boolean,function() {
-                    return serverDiagnostics_Enabled;
-                },function(newFlag) {
-                    serverDiagnostics_Enabled = newFlag;
+                DataType.Boolean, function () {
+                    return engine.serverDiagnosticsEnabled;
+                }, function (newFlag) {
+                    engine.serverDiagnosticsEnabled = newFlag;
                 });
 
-
-
-            var serverDiagnosticsSummary_var = new Variant({
-                dataType: DataType.ExtensionObject,
-                value: self.serverDiagnosticsSummary
-            });
-            bindVariableIfPresent(makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary), {
-                get: function() {
-                    return serverDiagnosticsSummary_var;
-                },
-                set: null
-            });
-
-            var serverDiagnosticsSummary = self.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary));
-            if(serverDiagnosticsSummary) {
-                serverDiagnosticsSummary.bindExtensionObject();
+            const serverDiagnosticsSummary = engine.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary));
+            if (serverDiagnosticsSummary) {
+                serverDiagnosticsSummary.bindExtensionObject(engine.serverDiagnosticsSummary);
+                engine.serverDiagnosticsSummary = serverDiagnosticsSummary.$extensionObject;
             }
 
         }
 
         function bindServerStatus() {
 
-            bindVariableIfPresent(makeNodeId(VariableIds.Server_ServerStatus), {
-                get: function() {
-                    var serverStatus_var = new Variant({
-                        dataType: DataType.ExtensionObject,
-                        value: self.serverStatus.clone()
-                    });
-                    return serverStatus_var;
-                },
-                set: null
+            const serverStatusNode = engine.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus));
+            if (!serverStatusNode) {
+                return;
+            }
+            if (serverStatusNode) {
+                serverStatusNode.bindExtensionObject(engine.serverStatus);
+                //xx serverStatusNode.updateExtensionObjectPartial(self.serverStatus);
+                //xx self.serverStatus = serverStatusNode.$extensionObject;
+                serverStatusNode.minimumSamplingInterval = 1000;
+            }
+
+            const currentTimeNode = engine.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
+            if (currentTimeNode) {
+                currentTimeNode.minimumSamplingInterval = 1000;
+            }
+            const secondsTillShutdown = engine.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_SecondsTillShutdown));
+            if (secondsTillShutdown) {
+                secondsTillShutdown.minimumSamplingInterval = 1000;
+            }
+
+            assert(serverStatusNode.$extensionObject);
+
+            serverStatusNode.$extensionObject = new Proxy(serverStatusNode.$extensionObject, {
+                get: function (target, prop) {
+                    if (prop === "currentTime") {
+                        serverStatusNode.currentTime.touchValue();
+                        return new Date();
+                    } else if (prop === "secondsTillShutdown") {
+                        serverStatusNode.secondsTillShutdown.touchValue();
+                        return engine.secondsTillShutdown();
+                    }
+                    return target[prop];
+                }
             });
-
-            var serverStatus = self.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus));
-            if(serverStatus) {
-                serverStatus.bindExtensionObject();
-                serverStatus.minimumSamplingInterval = 250;
-            }
-
-            var currentTimeNode = self.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
-
-            if (currentTimeNode){
-                currentTimeNode.minimumSamplingInterval = 1;
-            }
 
         }
 
@@ -599,50 +685,63 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
             bindStandardArray(VariableIds.Server_ServerCapabilities_ServerProfileArray,
                 DataType.String, "String", function () {
-                    return self.serverCapabilities.serverProfileArray;
+                    return engine.serverCapabilities.serverProfileArray;
                 });
 
             bindStandardArray(VariableIds.Server_ServerCapabilities_LocaleIdArray,
                 DataType.String, "LocaleId", function () {
-                    return self.serverCapabilities.localeIdArray;
+                    return engine.serverCapabilities.localeIdArray;
                 });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate,
                 DataType.Double, function () {
-                    return self.serverCapabilities.minSupportedSampleRate;
+                    return engine.serverCapabilities.minSupportedSampleRate;
                 });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints,
                 DataType.UInt16, function () {
-                    return self.serverCapabilities.maxBrowseContinuationPoints;
+                    return engine.serverCapabilities.maxBrowseContinuationPoints;
                 });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints,
                 DataType.UInt16, function () {
-                    return self.serverCapabilities.maxQueryContinuationPoints;
+                    return engine.serverCapabilities.maxQueryContinuationPoints;
                 });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
                 DataType.UInt16, function () {
-                    return self.serverCapabilities.maxHistoryContinuationPoints;
+                    return engine.serverCapabilities.maxHistoryContinuationPoints;
                 });
+
+
+            // added by DI : Server-specific period of time in milliseconds until the Server will revoke a lock.
+            //TODO bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxInactiveLockTime,
+            //TODO     DataType.UInt16, function () {
+            //TODO         return self.serverCapabilities.maxInactiveLockTime;
+            //TODO });
+
 
             bindStandardArray(VariableIds.Server_ServerCapabilities_SoftwareCertificates,
                 DataType.ByteString, "SoftwareCertificates", function () {
-                    return self.serverCapabilities.softwareCertificates;
+                    return engine.serverCapabilities.softwareCertificates;
                 });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxArrayLength,
                 DataType.UInt32, function () {
-                    return self.serverCapabilities.maxArrayLength;
+                    return engine.serverCapabilities.maxArrayLength;
                 });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxStringLength,
                 DataType.UInt32, function () {
-                    return self.serverCapabilities.maxStringLength;
+                    return engine.serverCapabilities.maxStringLength;
                 });
 
-           function bindOperationLimits(operationLimits) {
+            bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength,
+                DataType.UInt32, function () {
+                    return engine.serverCapabilities.maxByteStringLength;
+                });
+
+            function bindOperationLimits(operationLimits) {
 
                 assert(_.isObject(operationLimits));
 
@@ -652,12 +751,12 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
                 //Xx bindStandardArray(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
                 //Xx     DataType.UInt32, "UInt32", function () {  return operationLimits.maxNodesPerWrite;  });
-                var keys = Object.keys(operationLimits);
+                const keys = Object.keys(operationLimits);
 
                 keys.forEach(function (key) {
 
-                    var uid = "Server_ServerCapabilities_OperationLimits_" + upperCaseFirst(key);
-                    var nodeId = makeNodeId(VariableIds[uid]);
+                    const uid = "Server_ServerCapabilities_OperationLimits_" + upperCaseFirst(key);
+                    const nodeId = makeNodeId(VariableIds[uid]);
                     //xx console.log("xxx Binding ".bgCyan,uid,nodeId.toString());
                     assert(!nodeId.isEmpty());
 
@@ -667,7 +766,80 @@ ServerEngine.prototype.initialize = function (options, callback) {
                         });
                 });
             }
-            bindOperationLimits(self.serverCapabilities.operationLimits);
+
+            bindOperationLimits(engine.serverCapabilities.operationLimits);
+
+        }
+
+        function bindHistoryServerCapabilities() {
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnDataValues,
+                DataType.UInt32, function () {
+                    return engine.historyServerCapabilities.maxReturnDataValues;
+                });
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnEventValues,
+                DataType.UInt32, function () {
+                    return engine.historyServerCapabilities.maxReturnEventValues;
+                });
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryDataCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.accessHistoryDataCapability;
+                });
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryEventsCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.accessHistoryEventsCapability;
+                });
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertDataCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.insertDataCapability;
+                });
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceDataCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.replaceDataCapability;
+                });
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateDataCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.updateDataCapability;
+                });
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertEventCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.insertEventCapability;
+                });
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceEventCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.replaceEventCapability;
+                });
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateEventCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.updateEventCapability;
+                });
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteEventCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.deleteEventCapability;
+                });
+
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteRawCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.deleteRawCapability;
+                });
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteAtTimeCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.deleteAtTimeCapability;
+                });
+
+            bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertAnnotationCapability,
+                DataType.Boolean, function () {
+                    return engine.historyServerCapabilities.insertAnnotationCapability;
+                });
+
 
         }
 
@@ -676,6 +848,8 @@ ServerEngine.prototype.initialize = function (options, callback) {
         bindServerStatus();
 
         bindServerCapabilities();
+
+        bindHistoryServerCapabilities();
 
         function bindExtraStuff() {
             // mainly for compliance
@@ -703,67 +877,67 @@ ServerEngine.prototype.initialize = function (options, callback) {
                 DataType.UInt16, function () {
                     return 0.0;
                 });
-
-
         }
 
         bindExtraStuff();
 
-        self.__internal_bindMethod(makeNodeId(MethodIds.Server_GetMonitoredItems), getMonitoredItemsId.bind(self));
+        engine.__internal_bindMethod(makeNodeId(MethodIds.Server_GetMonitoredItems), getMonitoredItemsId.bind(engine));
+
+        // fix getMonitoredItems.outputArguments arrayDimensions
+        (function fixGetMonitoredItemArgs() {
+            const objects = engine.addressSpace.rootFolder.objects;
+            if (!objects || objects.server || objects.server.getMonitoredItems) {
+                return;
+            }
+            const outputArguments = objects.server.getMonitoredItems.outputArguments;
+            const dataValue = outputArguments.readValue();
+            assert(dataValue.value.value[0].arrayDimensions.length === 1 && dataValue.value.value[0].arrayDimensions[0] === 0);
+            assert(dataValue.value.value[1].arrayDimensions.length === 1 && dataValue.value.value[1].arrayDimensions[0] === 0);
+        })();
 
         function prepareServerDiagnostics() {
 
-            var addressSpace = self.addressSpace;
+            const addressSpace = engine.addressSpace;
 
             if (!addressSpace.rootFolder.objects) {
                 return;
             }
-            var server = addressSpace.rootFolder.objects.server;
+            const server = addressSpace.rootFolder.objects.server;
 
             if (!server) {
                 return;
             }
 
             // create SessionsDiagnosticsSummary
-            var serverDiagnostics = server.getComponentByName("ServerDiagnostics");
-
+            const serverDiagnostics = server.getComponentByName("ServerDiagnostics");
             if (!serverDiagnostics) {
                 return;
             }
-            var subscriptionDiagnosticsArray = serverDiagnostics.getComponentByName("SubscriptionDiagnosticsArray");
 
+            const subscriptionDiagnosticsArray = serverDiagnostics.getComponentByName("SubscriptionDiagnosticsArray");
             assert(subscriptionDiagnosticsArray instanceof UAVariable);
+            eoan.bindExtObjArrayNode(subscriptionDiagnosticsArray, "SubscriptionDiagnosticsType", "subscriptionId");
 
-            eoan.bindExtObjArrayNode(subscriptionDiagnosticsArray,"SubscriptionDiagnosticsType","subscriptionId");
-
-
+            const sessionDiagnosticsArray = serverDiagnostics.getComponentByName("SessionsDiagnosticsSummary").getComponentByName("SessionDiagnosticsArray");
+            assert(sessionDiagnosticsArray instanceof UAVariable);
+            eoan.bindExtObjArrayNode(sessionDiagnosticsArray, "SessionDiagnosticsVariableType", "sessionId");
         }
+
         prepareServerDiagnostics();
 
 
-
-        self.status = "initialized";
+        engine.status = "initialized";
         setImmediate(callback);
-
     });
-
 };
-
-var UAVariable = require("node-opcua-address-space").UAVariable;
-
 
 require("node-opcua-address-space");
 
 ServerEngine.prototype.__findObject = function (nodeId) {
-    // coerce nodeToBrowse to NodeId
-    try {
-        nodeId = resolveNodeId(nodeId);
-    }
-    catch (err) {
-        return null;
-    }
+    const engine = this;
+    nodeId = resolveNodeId(nodeId);
     assert(nodeId instanceof NodeId);
-    return this.addressSpace.findNode(nodeId);
+    return engine.addressSpace.findNode(nodeId);
 };
 
 /**
@@ -777,9 +951,9 @@ ServerEngine.prototype.__findObject = function (nodeId) {
  * @return {BrowseResult}
  */
 ServerEngine.prototype.browseSingleNode = function (nodeId, browseDescription, session) {
-    var self = this;
-    assert(self.addressSpace instanceof AddressSpace); // initialize not called
-    var addressSpace = self.addressSpace;
+    const engine = this;
+    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
+    const addressSpace = engine.addressSpace;
     return addressSpace.browseSingleNode(nodeId, browseDescription, session);
 };
 
@@ -791,22 +965,22 @@ ServerEngine.prototype.browseSingleNode = function (nodeId, browseDescription, s
  * @return {BrowseResult[]}
  */
 ServerEngine.prototype.browse = function (nodesToBrowse, session) {
-    var self = this;
-    assert(self.addressSpace instanceof AddressSpace); // initialize not called
+    const engine = this;
+    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
     assert(_.isArray(nodesToBrowse));
 
-    var results = [];
+    const results = [];
     nodesToBrowse.forEach(function (browseDescription) {
 
 
-        var nodeId = resolveNodeId(browseDescription.nodeId);
+        const nodeId = resolveNodeId(browseDescription.nodeId);
 
-        var r = self.browseSingleNode(nodeId, browseDescription, session);
+        const r = engine.browseSingleNode(nodeId, browseDescription, session);
         results.push(r);
     });
     return results;
 };
-var apply_timestamps = require("node-opcua-data-value").apply_timestamps;
+const apply_timestamps = require("node-opcua-data-value").apply_timestamps;
 
 /**
  *
@@ -818,24 +992,25 @@ var apply_timestamps = require("node-opcua-data-value").apply_timestamps;
  * @return {DataValue}
  */
 ServerEngine.prototype.readSingleNode = function (context, nodeId, attributeId, timestampsToReturn) {
+    const engine = this;
 
-    return this._readSingleNode(context,
-      {
-        nodeId: nodeId,
-        attributeId: attributeId
-      },
-      timestampsToReturn);
+    return engine._readSingleNode(context,
+        {
+            nodeId: nodeId,
+            attributeId: attributeId
+        },
+        timestampsToReturn);
 };
 
 ServerEngine.prototype._readSingleNode = function (context, nodeToRead, timestampsToReturn) {
 
     assert(context instanceof SessionContext);
-    var self = this;
-    var nodeId = nodeToRead.nodeId;
-    var attributeId = nodeToRead.attributeId;
-    var indexRange = nodeToRead.indexRange;
-    var dataEncoding = nodeToRead.dataEncoding;
-    assert(self.addressSpace instanceof AddressSpace); // initialize not called
+    const engine = this;
+    const nodeId = nodeToRead.nodeId;
+    const attributeId = nodeToRead.attributeId;
+    const indexRange = nodeToRead.indexRange;
+    const dataEncoding = nodeToRead.dataEncoding;
+    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
 
     if (timestampsToReturn === TimestampsToReturn.Invalid) {
         return new DataValue({statusCode: StatusCodes.BadTimestampsToReturnInvalid});
@@ -843,9 +1018,9 @@ ServerEngine.prototype._readSingleNode = function (context, nodeToRead, timestam
 
     timestampsToReturn = (_.isObject(timestampsToReturn)) ? timestampsToReturn : TimestampsToReturn.Neither;
 
-    var obj = self.__findObject(nodeId);
+    const obj = engine.__findObject(nodeId);
 
-    var dataValue;
+    let dataValue;
     if (!obj) {
         // may be return BadNodeIdUnknown in dataValue instead ?
         // Object Not Found
@@ -860,16 +1035,20 @@ ServerEngine.prototype._readSingleNode = function (context, nodeToRead, timestam
         try {
             dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
             assert(dataValue.statusCode instanceof StatusCode);
-            assert(dataValue.isValid());
+            if(!dataValue.isValid()) {
+                console.log("Invalid value for node ",obj.nodeId.toString(),obj.browseName.toString());
+            }
 
         }
-        catch(err) {
+        catch (err) {
             console.log(" Internal error reading  NodeId       ", obj.nodeId.toString());
             console.log("                         AttributeId  ", attributeId.toString());
             console.log("                        ", err.message);
             console.log("                        ", err.stack);
             return new DataValue({statusCode: StatusCodes.BadInternalError});
         }
+
+        //Xx console.log(dataValue.toString());
 
         dataValue = apply_timestamps(dataValue, timestampsToReturn, attributeId);
 
@@ -911,20 +1090,21 @@ ServerEngine.prototype.read = function (context, readRequest) {
     assert(readRequest instanceof ReadRequest);
     assert(readRequest.maxAge >= 0);
 
-    var self = this;
-    var timestampsToReturn = readRequest.timestampsToReturn;
+    const engine = this;
+    const timestampsToReturn = readRequest.timestampsToReturn;
 
-    var nodesToRead = readRequest.nodesToRead;
+    const nodesToRead = readRequest.nodesToRead;
 
-    assert(self.addressSpace instanceof AddressSpace); // initialize not called
+    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
     assert(_.isArray(nodesToRead));
 
-    var dataValues = nodesToRead.map(function (readValueId) {
-        assert(readValueId.indexRange instanceof NumericRange);
-        return self._readSingleNode(context, readValueId, timestampsToReturn);
-    });
+    context.currentTime = new Date();
 
-    assert(dataValues.length === readRequest.nodesToRead.length);
+    const dataValues = [];
+    for (let i = 0; i < nodesToRead.length; i++) {
+        const readValueId = nodesToRead[i];
+        dataValues[i] = engine._readSingleNode(context, readValueId, timestampsToReturn);
+    }
     return dataValues;
 };
 
@@ -940,7 +1120,7 @@ ServerEngine.prototype.read = function (context, readRequest) {
  */
 ServerEngine.prototype.writeSingleNode = function (context, writeValue, callback) {
 
-    var self = this;
+    const engine = this;
     assert(context instanceof SessionContext);
     assert(_.isFunction(callback));
     assert(writeValue._schema.name === "WriteValue");
@@ -951,20 +1131,20 @@ ServerEngine.prototype.writeSingleNode = function (context, writeValue, callback
     }
 
     assert(writeValue.value.value instanceof Variant);
-    assert(self.addressSpace instanceof AddressSpace); // initialize not called
+    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
 
-    var nodeId = writeValue.nodeId;
+    const nodeId = writeValue.nodeId;
 
-    var obj = self.__findObject(nodeId);
+    const obj = engine.__findObject(nodeId);
     if (!obj) {
-        callback(null, StatusCodes.BadNodeIdUnknown);
+        return callback(null, StatusCodes.BadNodeIdUnknown);
     } else {
         obj.writeAttribute(context, writeValue, callback);
     }
 };
 
 
-var WriteValue = require("node-opcua-service-write").WriteValue;
+const WriteValue = require("node-opcua-service-write").WriteValue;
 
 /**
  * write a collection of nodes
@@ -981,13 +1161,15 @@ ServerEngine.prototype.write = function (context, nodesToWrite, callback) {
     assert(context instanceof SessionContext);
     assert(_.isFunction(callback));
 
-    var self = this;
+    const engine = this;
 
-    assert(self.addressSpace instanceof AddressSpace); // initialize not called
+    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
+
+    context.currentTime = new Date();
 
     function performWrite(writeValue, inner_callback) {
         assert(writeValue instanceof WriteValue);
-        self.writeSingleNode(context, writeValue, inner_callback);
+        engine.writeSingleNode(context, writeValue, inner_callback);
     }
 
     async.map(nodesToWrite, performWrite, function (err, statusCodes) {
@@ -1012,13 +1194,14 @@ ServerEngine.prototype.write = function (context, nodesToWrite, callback) {
  * @param callback.results {HistoryReadResult}
  */
 ServerEngine.prototype.historyReadSingleNode = function (context, nodeId, attributeId, historyReadDetails, timestampsToReturn, callback) {
+    const engine = this;
 
     assert(context instanceof SessionContext);
-    this._historyReadSingleNode(context,
-      {
-        nodeId: nodeId,
-        attributeId: attributeId
-    }, historyReadDetails, timestampsToReturn, callback);
+    engine._historyReadSingleNode(context,
+        {
+            nodeId: nodeId,
+            attributeId: attributeId
+        }, historyReadDetails, timestampsToReturn, callback);
 };
 
 ServerEngine.prototype._historyReadSingleNode = function (context, nodeToRead, historyReadDetails, timestampsToReturn, callback) {
@@ -1026,12 +1209,12 @@ ServerEngine.prototype._historyReadSingleNode = function (context, nodeToRead, h
     assert(context instanceof SessionContext);
     assert(callback instanceof Function);
 
-    var self = this;
-    var nodeId = nodeToRead.nodeId;
-    var indexRange = nodeToRead.indexRange;
-    var dataEncoding = nodeToRead.dataEncoding;
-    var continuationPoint = nodeToRead.continuationPoint;
-    assert(self.addressSpace instanceof AddressSpace); // initialize not called
+    const engine = this;
+    const nodeId = nodeToRead.nodeId;
+    const indexRange = nodeToRead.indexRange;
+    const dataEncoding = nodeToRead.dataEncoding;
+    const continuationPoint = nodeToRead.continuationPoint;
+    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
 
     if (timestampsToReturn === TimestampsToReturn.Invalid) {
         return new DataValue({statusCode: StatusCodes.BadTimestampsToReturnInvalid});
@@ -1039,7 +1222,7 @@ ServerEngine.prototype._historyReadSingleNode = function (context, nodeToRead, h
 
     timestampsToReturn = (_.isObject(timestampsToReturn)) ? timestampsToReturn : TimestampsToReturn.Neither;
 
-    var obj = self.__findObject(nodeId);
+    const obj = engine.__findObject(nodeId);
 
     if (!obj) {
         // may be return BadNodeIdUnknown in dataValue instead ?
@@ -1050,16 +1233,16 @@ ServerEngine.prototype._historyReadSingleNode = function (context, nodeToRead, h
         if (!obj.historyRead) {
             // note : Object and View may also support historyRead to provide Event historical data
             //        todo implement historyRead for Object and View
-            var msg = " this node doesn't provide historyRead! probably not a UAVariable\n "
+            const msg = " this node doesn't provide historyRead! probably not a UAVariable\n "
                 + obj.nodeId.toString() + " " + obj.browseName.toString() + "\n"
                 + "with " + nodeToRead.toString() + "\n"
                 + "HistoryReadDetails " + historyReadDetails.toString();
-            if(doDebug){
-                console.log("ServerEngine#_historyReadSingleNode ".cyan,msg.white.bold);
+            if (doDebug) {
+                console.log("ServerEngine#_historyReadSingleNode ".cyan, msg.white.bold);
             }
-            var err = new Error(msg);
+            const err = new Error(msg);
             // object has no historyRead method
-            return setImmediate(callback.bind(null,err));
+            return setImmediate(callback.bind(null, err));
         }
         // check access
         //    BadUserAccessDenied
@@ -1095,38 +1278,38 @@ ServerEngine.prototype.historyRead = function (context, historyReadRequest, call
     assert(historyReadRequest instanceof HistoryReadRequest);
     assert(_.isFunction(callback));
 
-    var self = this;
-    var timestampsToReturn = historyReadRequest.timestampsToReturn;
-    var historyReadDetails = historyReadRequest.historyReadDetails;
+    const engine = this;
+    const timestampsToReturn = historyReadRequest.timestampsToReturn;
+    const historyReadDetails = historyReadRequest.historyReadDetails;
 
-    var nodesToRead = historyReadRequest.nodesToRead;
+    const nodesToRead = historyReadRequest.nodesToRead;
 
     assert(historyReadDetails instanceof HistoryReadDetails);
-    assert(self.addressSpace instanceof AddressSpace); // initialize not called
+    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
     assert(_.isArray(nodesToRead));
 
-    var historyData=[];
-    async.eachSeries(nodesToRead, function(readValueId, cbNode){
-        self._historyReadSingleNode(context, readValueId, historyReadDetails, timestampsToReturn, function (err, result) {
+    const historyData = [];
+    async.eachSeries(nodesToRead, function (readValueId, cbNode) {
+        engine._historyReadSingleNode(context, readValueId, historyReadDetails, timestampsToReturn, function (err, result) {
 
             if (err && !result) {
-                result=new HistoryReadResult({statusCode: StatusCodes.BadInternalError});
+                result = new HistoryReadResult({statusCode: StatusCodes.BadInternalError});
             }
             historyData.push(result);
             async.setImmediate(cbNode); //it's not guaranteed that the historical read process is really asynchronous
         });
-    }, function(err){
+    }, function (err) {
         assert(historyData.length === nodesToRead.length);
         callback(err, historyData);
     });
 };
 
-function __bindVariable(self,nodeId,options) {
+function __bindVariable(self, nodeId, options) {
     options = options || {};
     // must have a get and a set property
     assert(_.difference(["get", "set"], _.keys(options)).length === 0);
 
-    var obj = self.addressSpace.findNode(nodeId);
+    const obj = self.addressSpace.findNode(nodeId);
     if (obj && obj.bindVariable) {
         obj.bindVariable(options);
         assert(_.isFunction(obj.asyncRefresh));
@@ -1150,11 +1333,11 @@ function __bindVariable(self,nodeId,options) {
  */
 ServerEngine.prototype.__internal_bindMethod = function (nodeId, func) {
 
-    var self = this;
+    const engine = this;
     assert(_.isFunction(func));
     assert(nodeId instanceof NodeId);
 
-    var methodNode = self.addressSpace.findNode(nodeId);
+    const methodNode = engine.addressSpace.findNode(nodeId);
     if (!methodNode) {
         return;
     }
@@ -1167,24 +1350,142 @@ ServerEngine.prototype.__internal_bindMethod = function (nodeId, func) {
     }
 };
 
-ServerEngine.prototype.getOldestUnactivatedSession = function() {
+ServerEngine.prototype.getOldestUnactivatedSession = function () {
 
-    var self = this;
-    var tmp = _.filter(self._sessions, function(session){
+    const engine = this;
+    const tmp = _.filter(engine._sessions, function (session) {
         return session.status === "new";
     });
     if (tmp.length === 0) {
         return null;
     }
-    var session = tmp[0];
-    for (var i=1;i<session.length;i++) {
-        var c = tmp[i];
+    let session = tmp[0];
+    for (let i = 1; i < session.length; i++) {
+        const c = tmp[i];
         if (session.creationDate.getTime() < c.creationDate.getTime()) {
             session = c;
         }
     }
     return session;
 };
+
+
+// note OPCUA 1.03 part 4 page 76
+// The Server-assigned identifier for the Subscription (see 7.14 for IntegerId definition). This identifier shall
+// be unique for the entire Server, not just for the Session, in order to allow the Subscription to be transferred
+// to another Session using the TransferSubscriptions service.
+// After Server start-up the generation of subscriptionIds should start from a random IntegerId or continue from
+// the point before the restart.
+let next_subscriptionId = Math.ceil(Math.random() * 1000000);
+
+function _get_next_subscriptionId() {
+    debugLog(" next_subscriptionId = ", next_subscriptionId);
+    return next_subscriptionId++;
+}
+
+const Subscription = require("./server_subscription").Subscription;
+
+ServerEngine.prototype._getServerSubscriptionDiagnosticsArray = function () {
+
+    const engine = this;
+    if (!engine.addressSpace) {
+        if (doDebug) {
+            console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
+        }
+        return null; // no addressSpace
+    }
+    const subscriptionDiagnosticsType = engine.addressSpace.findVariableType("SubscriptionDiagnosticsType");
+    if (!subscriptionDiagnosticsType) {
+        if (doDebug) {
+            console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray : cannot find SubscriptionDiagnosticsType");
+        }
+    }
+
+    // SubscriptionDiagnosticsArray = i=2290
+    const subscriptionDiagnosticsArray = engine.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray));
+
+    return subscriptionDiagnosticsArray;
+};
+const SubscriptionDiagnostics = require("node-opcua-common").SubscriptionDiagnostics;
+
+ServerEngine.prototype._exposeSubscriptionDiagnostics = function (subscription) {
+
+    debugLog("ServerEngine#_exposeSubscriptionDiagnostics");
+    const engine = this;
+    const subscriptionDiagnosticsArray = engine._getServerSubscriptionDiagnosticsArray();
+    const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+    assert(subscriptionDiagnostics.$subscription == subscription);
+
+    if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+        //xx console.log("GGGGGGGGGGGGGGGG ServerEngine => Exposing subscription diagnostics =>",subscription.id);
+        eoan.addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
+    }
+};
+ServerEngine.prototype._unexposeSubscriptionDiagnostics = function (subscription) {
+
+    const engine = this;
+    const subscriptionDiagnosticsArray = engine._getServerSubscriptionDiagnosticsArray();
+    const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+    assert(subscriptionDiagnostics instanceof SubscriptionDiagnostics);
+    if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+
+        const node = subscriptionDiagnosticsArray[subscription.id];
+        /// console.log("GGGGGGGGGGGGGGGG ServerEngine => **Unexposing** subscription diagnostics =>",subscription.id);
+        eoan.removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
+        assert(!subscriptionDiagnosticsArray[subscription.id]," subscription node must have been removed from subscriptionDiagnosticsArray");
+    }
+    debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
+};
+/**
+ * create a new subscription
+ * @method _createSubscriptionOnSession
+ * @param request
+ * @param request.requestedPublishingInterval {Duration}
+ * @param request.requestedLifetimeCount {Counter}
+ * @param request.requestedMaxKeepAliveCount {Counter}
+ * @param request.maxNotificationsPerPublish {Counter}
+ * @param request.publishingEnabled {Boolean}
+ * @param request.priority {Byte}
+ * @return {Subscription}
+ */
+ServerEngine.prototype._createSubscriptionOnSession = function (session,request) {
+
+    const engine = this;
+
+    assert(request.hasOwnProperty("requestedPublishingInterval")); // Duration
+    assert(request.hasOwnProperty("requestedLifetimeCount"));      // Counter
+    assert(request.hasOwnProperty("requestedMaxKeepAliveCount"));  // Counter
+    assert(request.hasOwnProperty("maxNotificationsPerPublish"));  // Counter
+    assert(request.hasOwnProperty("publishingEnabled"));           // Boolean
+    assert(request.hasOwnProperty("priority"));                    // Byte
+
+    const subscription = new Subscription({
+        publishingInterval: request.requestedPublishingInterval,
+        lifeTimeCount: request.requestedLifetimeCount,
+        maxKeepAliveCount: request.requestedMaxKeepAliveCount,
+        maxNotificationsPerPublish: request.maxNotificationsPerPublish,
+        publishingEnabled: request.publishingEnabled,
+        priority: request.priority,
+        id: _get_next_subscriptionId(),
+        // -------------------
+        publishEngine: session.publishEngine, //
+        sessionId: NodeId.NullNodeId
+    });
+
+    // add subscriptionDiagnostics
+    engine._exposeSubscriptionDiagnostics(subscription);
+
+    assert(subscription.publishEngine === session.publishEngine);
+    session.publishEngine.add_subscription(subscription);
+
+    subscription.once("terminated",function() {
+        const subscription = this;
+        engine._unexposeSubscriptionDiagnostics(subscription);
+    });
+
+    return subscription;
+};
+
 /**
  * create a new server session object.
  * @class ServerEngine
@@ -1198,38 +1499,34 @@ ServerEngine.prototype.createSession = function (options) {
 
     options = options || {};
 
-    var self = this;
+    const engine = this;
 
-    self.serverDiagnosticsSummary.cumulatedSessionCount += 1;
+    engine.serverDiagnosticsSummary.cumulatedSessionCount += 1;
+    engine.serverDiagnosticsSummary.currentSessionCount += 1;
 
-    self.clientDescription = options.clientDescription || new ApplicationDescription({});
+    engine.clientDescription = options.clientDescription || new ApplicationDescription({});
 
-    var sessionTimeout = options.sessionTimeout || 1000;
+    const sessionTimeout = options.sessionTimeout || 1000;
 
     assert(_.isNumber(sessionTimeout));
 
-    var session = new ServerSession(self, self.cumulatedSessionCount, sessionTimeout);
+    const session = new ServerSession(engine, sessionTimeout);
 
-    var key = session.authenticationToken.toString();
+    const key = session.authenticationToken.toString();
 
-    self._sessions[key] = session;
+    engine._sessions[key] = session;
 
     // see spec OPC Unified Architecture,  Part 2 page 26 Release 1.02
     // TODO : When a Session is created, the Server adds an entry for the Client
-    // in its SessionDiagnosticsArray Variable
-
+    //        in its SessionDiagnosticsArray Variable
 
     session.on("new_subscription", function (subscription) {
-
-        self.serverDiagnosticsSummary.cumulatedSubscriptionCount += 1;
-
+        engine.serverDiagnosticsSummary.cumulatedSubscriptionCount += 1;
         // add the subscription diagnostics in our subscriptions diagnostics array
-
     });
+
     session.on("subscription_terminated", function (subscription) {
-
         // remove the subscription diagnostics in our subscriptions diagnostics array
-
     });
 
     // OPC Unified Architecture, Part 4 23 Release 1.03
@@ -1241,22 +1538,64 @@ ServerEngine.prototype.createSession = function (options) {
     session.on("timeout", function () {
         // the session hasn't been active for a while , probably because the client has disconnected abruptly
         // it is now time to close the session completely
-        self.serverDiagnosticsSummary.sessionTimeoutCount += 1;
+        engine.serverDiagnosticsSummary.sessionTimeoutCount += 1;
         session.sessionName = session.sessionName || "";
 
         console.log("Server: closing SESSION ".cyan, session.status, session.sessionName.yellow, " because of timeout = ".cyan, session.sessionTimeout, " has expired without a keep alive".cyan);
-        var channel = session.channel;
+        const channel = session.channel;
         if (channel) {
-            console.log("channel = ".bgCyan,channel.remoteAddress," port = ",channel.remotePort);
+            console.log("channel = ".bgCyan, channel.remoteAddress, " port = ", channel.remotePort);
         }
 
         // If a Server terminates a Session for any other reason, Subscriptions  associated with the Session,
         // are not deleted. => deleteSubscription= false
-        self.closeSession(session.authenticationToken, /*deleteSubscription=*/false,/* reason =*/"Timeout");
+        engine.closeSession(session.authenticationToken, /*deleteSubscription=*/false, /* reason =*/"Timeout");
     });
 
     return session;
 };
+
+
+/**
+ * the ServerSidePublishEngineForOrphanSubscription is keeping track of
+ * live subscription that have been detached from timed out session.
+ * It takes care of providing back those subscription to any session that
+ * will claim them again with transferSubscription  service
+ * It also make sure that subscription are properly disposed when  they expire.
+ *
+ * @constructor
+ */
+function ServerSidePublishEngineForOrphanSubscription() {
+    ServerSidePublishEngine.apply(this, arguments);
+}
+
+util.inherits(ServerSidePublishEngineForOrphanSubscription, ServerSidePublishEngine);
+
+ServerSidePublishEngineForOrphanSubscription.prototype.add_subscription = function (subscription) {
+    debugLog(" adding live subscription with id=".bgCyan.yellow.bold, subscription.id, " to orphan");
+    const publish_engine = this;
+    ServerSidePublishEngine.prototype.add_subscription.apply(this, arguments);
+    // also add an event handler to detected when the subscription has ended
+    // so we can automatically remove it from the orphan table
+    subscription._expired_func = function () {
+        const subscription = this;
+        debugLog(" Removing expired subscription with id=".bgCyan.yellow, subscription.id, " from orphan");
+        // make sure all monitored item have been deleted
+        //Xx subscription.terminate();
+        //xx publish_engine.detach_subscription(subscription);
+        //Xx subscription.dispose();
+    };
+    subscription.on("expired", subscription._expired_func);
+};
+
+ServerSidePublishEngineForOrphanSubscription.prototype.detach_subscription = function (subscription) {
+    // un set the event handler
+    ServerSidePublishEngine.prototype.detach_subscription.apply(this, arguments);
+    subscription.removeListener("expired", subscription._expired_func);
+    subscription._expired_func = null;
+    return subscription;
+};
+
 
 /**
  * @method closeSession
@@ -1274,50 +1613,58 @@ ServerEngine.prototype.createSession = function (options) {
  * in the case of a Session termination. In these cases, the Subscription can be reassigned to another Client before
  * its lifetime expires.
  */
-ServerEngine.prototype.closeSession = function (authenticationToken, deleteSubscriptions,reason) {
+ServerEngine.prototype.closeSession = function (authenticationToken, deleteSubscriptions, reason) {
 
-    var self = this;
+    const engine = this;
 
-    reason  = reason || "CloseSession";
+    reason = reason || "CloseSession";
     assert(_.isString(reason));
-    assert(reason === "Timeout" || reason==="Terminated" || reason === "CloseSession" || reason === "Forcing");
+    assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
 
     debugLog("ServerEngine.closeSession ", authenticationToken.toString(), deleteSubscriptions);
 
-    var key = authenticationToken.toString();
-    var session = self.getSession(key);
+    const key = authenticationToken.toString();
+    const session = engine.getSession(key);
     assert(session);
 
     if (!deleteSubscriptions) {
 
-        if (!self._orphanPublishEngine) {
-            self._orphanPublishEngine = new ServerSidePublishEngine({maxPublishRequestInQueue:0});
+        // Live Subscriptions will not be deleted, but transferred to the orphanPublishEngine
+        // until they time out or until a other session transfer them back to it.
+        if (!engine._orphanPublishEngine) {
+            engine._orphanPublishEngine = new ServerSidePublishEngineForOrphanSubscription({maxPublishRequestInQueue: 0});
+
         }
-        ServerSidePublishEngine.transferSubscriptions(session.publishEngine,self._orphanPublishEngine);
+
+        debugLog("transferring remaining live subscription to orphanPublishEngine !");
+        ServerSidePublishEngine.transferSubscriptionsToOrphan(session.publishEngine, engine._orphanPublishEngine);
     }
 
-    session.close(deleteSubscriptions,reason);
+    session.close(deleteSubscriptions, reason);
 
     assert(session.status === "closed");
 
-    //TODO make sure _closedSessions gets cleaned at some point
-    self._closedSessions[key] = session;
+    engine.serverDiagnosticsSummary.currentSessionCount -= 1;
 
-    delete self._sessions[key];
+    //xx //TODO make sure _closedSessions gets cleaned at some point
+    //xx self._closedSessions[key] = session;
+
+    // remove sessionDiagnostics from server.ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsSummary
+    delete engine._sessions[key];
+    session.dispose();
 
 };
 
-ServerEngine.prototype.findSubscription = function(subscriptionId) {
+ServerEngine.prototype.findSubscription = function (subscriptionId) {
 
-    var self = this;
+    const engine = this;
 
-    console.log("findSubscription  ", subscriptionId);
-    var subscriptions = [];
-    _.map(self._sessions, function (session) {
+    const subscriptions = [];
+    _.map(engine._sessions, function (session) {
         if (subscriptions.length) return;
-        var subscription = session.publishEngine.getSubscriptionById(subscriptionId);
+        const subscription = session.publishEngine.getSubscriptionById(subscriptionId);
         if (subscription) {
-            console.log("foundSubscription  ", subscriptionId, " in session", session.sessionName);
+            //xx console.log("foundSubscription  ", subscriptionId, " in session", session.sessionName);
             subscriptions.push(subscription)
         }
     });
@@ -1325,51 +1672,53 @@ ServerEngine.prototype.findSubscription = function(subscriptionId) {
         assert(subscriptions.length === 1);
         return subscriptions[0];
     }
-    return self.findOrphanSubscription(subscriptionId);
+    return engine.findOrphanSubscription(subscriptionId);
 };
 
-ServerEngine.prototype.findOrphanSubscription = function(subscriptionId) {
+ServerEngine.prototype.findOrphanSubscription = function (subscriptionId) {
 
-    var self = this;
+    const engine = this;
 
-    if (!self._orphanPublishEngine) {
+    if (!engine._orphanPublishEngine) {
         return null;
     }
-    return self._orphanPublishEngine.getSubscriptionById(subscriptionId);
+    return engine._orphanPublishEngine.getSubscriptionById(subscriptionId);
 };
 
-ServerEngine.prototype.deleteOrphanSubscription = function(subscription) {
-    var self = this;
-    assert(self.findSubscription(subscription.id));
+ServerEngine.prototype.deleteOrphanSubscription = function (subscription) {
+    const engine = this;
+    assert(engine.findSubscription(subscription.id));
 
-    var c =self._orphanPublishEngine.subscriptionCount;
+    const c = engine._orphanPublishEngine.subscriptionCount;
     subscription.terminate();
-    assert(self._orphanPublishEngine.subscriptionCount === c-1);
+    subscription.dispose();
+    assert(engine._orphanPublishEngine.subscriptionCount === c - 1);
     return StatusCodes.Good;
 };
 
-var TransferResult  = require("node-opcua-service-subscription").TransferResult;
+const TransferResult = require("node-opcua-service-subscription").TransferResult;
+
 /**
- *
- * @param session           {ServerSession}
- * @param subscriptionId    {IntegerId}
- * @param sendInitialValues {Boolean}
+ * @method transferSubscription
+ * @param session           {ServerSession}  - the new session that will own the subscription
+ * @param subscriptionId    {IntegerId}      - the subscription Id to transfer
+ * @param sendInitialValues {Boolean}        - true if initial values will be resent.
  * @return                  {TransferResult}
  */
-ServerEngine.prototype.transferSubscription = function (session,subscriptionId,sendInitialValues) {
+ServerEngine.prototype.transferSubscription = function (session, subscriptionId, sendInitialValues){
 
-    var self = this;
+    const engine = this;
     assert(session instanceof ServerSession);
     assert(_.isNumber(subscriptionId));
     assert(_.isBoolean(sendInitialValues));
 
-    if (subscriptionId <=0 ) {
-        return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
+    if (subscriptionId <= 0) {
+        return new TransferResult({statusCode: StatusCodes.BadSubscriptionIdInvalid});
     }
 
-    var subscription = self.findSubscription(subscriptionId);
+    const subscription = engine.findSubscription(subscriptionId);
     if (!subscription) {
-        return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
+        return new TransferResult({statusCode: StatusCodes.BadSubscriptionIdInvalid});
     }
     // // now check that new session has sufficient right
     // if (session.authenticationToken.toString() !== subscription.authenticationToken.toString()) {
@@ -1378,25 +1727,40 @@ ServerEngine.prototype.transferSubscription = function (session,subscriptionId,s
     // }
     if (session.publishEngine === subscription.publishEngine) {
         // subscription is already in this session !!
-        return new TransferResult({ statusCode: StatusCodes.BadNothingToDo });
+        return new TransferResult({statusCode: StatusCodes.BadNothingToDo});
+    }
+    if (session === subscription.$session) {
+        // subscription is already in this session !!
+        return new TransferResult({statusCode: StatusCodes.BadNothingToDo});
     }
 
-    var nbSubscriptionBefore = session.publishEngine.subscriptionCount;
+    const nbSubscriptionBefore = session.publishEngine.subscriptionCount;
 
-    ServerSidePublishEngine.transferSubscription(subscription,session.publishEngine,sendInitialValues);
+    subscription.$session._unexposeSubscriptionDiagnostics(subscription);
+    ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
+    subscription.$session = session;
+
+    session._exposeSubscriptionDiagnostics(subscription);
 
     assert(subscription.publishEngine === session.publishEngine);
-    assert(session.publishEngine.subscriptionCount === nbSubscriptionBefore+1);
+    assert(session.publishEngine.subscriptionCount === nbSubscriptionBefore + 1);
 
-    // TODO If the Server transfers the Subscription to the new Session, the Server shall issue a
-    // TODO StatusChangeNotification notificationMessage with the status code Good_SubscriptionTransferred
-    // TODO to the old Session.
+    // TODO: If the Server transfers the Subscription to the new Session, the Server shall issue a
+    //       StatusChangeNotification notificationMessage with the status code Good_SubscriptionTransferred
+    //       to the old Session.
 
-    return new TransferResult({
-        statusCode:  StatusCodes.Good,
+    const result = new TransferResult({
+        statusCode: StatusCodes.Good,
         availableSequenceNumbers: subscription.getAvailableSequenceNumbers()
-    }); 
-    
+    });
+
+    // istanbul ignore next
+    if (doDebug) {
+        debugLog("TransferResult", result.toString());
+    }
+
+    return result;
+
 };
 
 /**
@@ -1409,14 +1773,14 @@ ServerEngine.prototype.transferSubscription = function (session,subscriptionId,s
  */
 ServerEngine.prototype.getSession = function (authenticationToken, activeOnly) {
 
-    var self = this;
-    if (!authenticationToken || ( authenticationToken.identifierType && ( authenticationToken.identifierType.value !== NodeIdType.BYTESTRING.value))) {
+    const engine = this;
+    if (!authenticationToken || (authenticationToken.identifierType && (authenticationToken.identifierType.value !== NodeIdType.BYTESTRING.value))) {
         return null;     // wrong type !
     }
-    var key = authenticationToken.toString();
-    var session = self._sessions[key];
+    const key = authenticationToken.toString();
+    let session = engine._sessions[key];
     if (!activeOnly && !session) {
-        session = self._closedSessions[key];
+        session = engine._closedSessions[key];
     }
     return session;
 };
@@ -1428,7 +1792,8 @@ ServerEngine.prototype.getSession = function (authenticationToken, activeOnly) {
  * @return {BrowsePathResult}
  */
 ServerEngine.prototype.browsePath = function (browsePath) {
-    return this.addressSpace.browsePath(browsePath);
+    const engine = this;
+    return engine.addressSpace.browsePath(browsePath);
 };
 
 
@@ -1451,26 +1816,26 @@ ServerEngine.prototype.browsePath = function (browsePath) {
 ServerEngine.prototype.refreshValues = function (nodesToRefresh, callback) {
 
     assert(callback instanceof Function);
-    var self = this;
+    const engine = this;
 
-    var objs = {};
-    for(var i=0;i<nodesToRefresh.length;i++) {
-        var nodeToRefresh = nodesToRefresh[i];
+    const objs = {};
+    for (let i = 0; i < nodesToRefresh.length; i++) {
+        const nodeToRefresh = nodesToRefresh[i];
         // only consider node  for which the caller wants to read the Value attribute
         // assuming that Value is requested if attributeId is missing,
         if (nodeToRefresh.attributeId && nodeToRefresh.attributeId !== AttributeIds.Value) {
             continue;
         }
         // ... and that are valid object and instances of Variables ...
-        var obj = self.addressSpace.findNode(nodeToRefresh.nodeId);
+        const obj = engine.addressSpace.findNode(nodeToRefresh.nodeId);
         if (!obj || !(obj instanceof UAVariable)) {
             continue;
         }
         // ... and that have been declared as asynchronously updating
-        if (! _.isFunction(obj.refreshFunc)) {
+        if (!_.isFunction(obj.refreshFunc)) {
             continue;
         }
-        var key = obj.nodeId.toString();
+        const key = obj.nodeId.toString();
         if (objs[key]) {
             continue;
         }
@@ -1479,7 +1844,7 @@ ServerEngine.prototype.refreshValues = function (nodesToRefresh, callback) {
     }
     if (Object.keys(objs).length === 0) {
         // nothing to do
-        return callback(null,[]);
+        return callback(null, []);
     }
     // perform all asyncRefresh in parallel
     async.map(objs, function (obj, inner_callback) {

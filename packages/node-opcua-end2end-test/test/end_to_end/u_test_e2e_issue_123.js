@@ -1,16 +1,16 @@
 /*global describe, it, require*/
 "use strict";
-var async = require("async");
-var should = require("should");
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var AttributeIds = opcua.AttributeIds;
-var ClientSubscription = opcua.ClientSubscription;
+const OPCUAClient = opcua.OPCUAClient;
+const AttributeIds = opcua.AttributeIds;
+const ClientSubscription = opcua.ClientSubscription;
 
 
-var doDebug = false;
+const doDebug = false;
 
 
 module.exports = function (test) {
@@ -21,12 +21,14 @@ module.exports = function (test) {
 
         it("test",function(done) {
 
-            var server = test.server;
+            const server = test.server;
 
-            var refreshRate = 100;
+            const refreshRate = 100;
 
-            var counter = 1;
-            var variableToMonitor = server.engine.addressSpace.addVariable({
+            let counter = 1;
+            const namespace = server.engine.addressSpace.getOwnNamespace();
+
+            const variableToMonitor = namespace.addVariable({
                 organizedBy: server.engine.addressSpace.rootFolder.objects,
                 browseName: "SlowVariable",
                 dataType: "UInt32",
@@ -41,10 +43,10 @@ module.exports = function (test) {
                 }
             });
 
-            var client1 = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client1 = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
-            var the_session;
+            let the_session;
 
             async.series([
 
@@ -66,7 +68,7 @@ module.exports = function (test) {
 
                 function (callback) {
 
-                    var subscription = new ClientSubscription(the_session, {
+                    const subscription = new ClientSubscription(the_session, {
                         requestedPublishingInterval:  150,
                         requestedLifetimeCount:       10 * 60 * 10,
                         requestedMaxKeepAliveCount:   10,
@@ -79,7 +81,6 @@ module.exports = function (test) {
                         if (doDebug) {
                             console.log("subscription terminated");
                         }
-                        callback();
                     });
                     subscription.once("started",function() {
                         if (doDebug) {
@@ -91,7 +92,7 @@ module.exports = function (test) {
 
                     // monitor 1
 
-                    var monitoredItem1 = subscription.monitor(
+                    const monitoredItem1 = subscription.monitor(
                         {nodeId: variableToMonitor.nodeId, attributeId: AttributeIds.Value},
                         {
                             samplingInterval: refreshRate, // sampling twice as fast as variable refresh rate
@@ -108,7 +109,7 @@ module.exports = function (test) {
 
                     // monitor 2
 
-                    var monitoredItem2 = subscription.monitor(
+                    const monitoredItem2 = subscription.monitor(
                         {nodeId: variableToMonitor.nodeId, attributeId: AttributeIds.Value},
                         {
                             samplingInterval: refreshRate, // sampling twice as fast as variable refresh rate
@@ -124,7 +125,7 @@ module.exports = function (test) {
 
 
                     setTimeout(function(){
-                        subscription.terminate();
+                        subscription.terminate(callback);
                     },1000);
                 },
 

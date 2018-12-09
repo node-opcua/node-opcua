@@ -5,58 +5,63 @@
  */
 
 
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var EventEmitter = require("events").EventEmitter;
-var util = require("util");
+const EventEmitter = require("events").EventEmitter;
+const util = require("util");
 
-var subscription_service = require("node-opcua-service-subscription");
-var read_service = require("node-opcua-service-read");
+const subscription_service = require("node-opcua-service-subscription");
+const read_service = require("node-opcua-service-read");
 
-var DataValue =  require("node-opcua-data-value").DataValue;
-var Variant = require("node-opcua-variant").Variant;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataValue = require("node-opcua-data-value").DataValue;
+const Variant = require("node-opcua-variant").Variant;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
-var BaseNode = require("node-opcua-address-space").BaseNode;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const BaseNode = require("node-opcua-address-space").BaseNode;
 
-var sameDataValue =  require("node-opcua-data-value").sameDataValue;
+const sameDataValue = require("node-opcua-data-value").sameDataValue;
+const sameVariant = require("node-opcua-variant/src/variant_tools").sameVariant;
+const isValidVariant = require("node-opcua-variant").isValidVariant;
 
-var MonitoringMode = subscription_service.MonitoringMode;
-var MonitoringParameters = subscription_service.MonitoringParameters;
-var MonitoredItemModifyResult = subscription_service.MonitoredItemModifyResult;
-var TimestampsToReturn = read_service.TimestampsToReturn;
-var EventFilter = require("node-opcua-service-filter").EventFilter;
-var apply_timestamps = require("node-opcua-data-value").apply_timestamps;
+const MonitoringMode = subscription_service.MonitoringMode;
+const MonitoringParameters = subscription_service.MonitoringParameters;
+const MonitoredItemModifyResult = subscription_service.MonitoredItemModifyResult;
+const TimestampsToReturn = read_service.TimestampsToReturn;
+const EventFilter = require("node-opcua-service-filter").EventFilter;
+const apply_timestamps = require("node-opcua-data-value").apply_timestamps;
 
-var defaultItemToMonitor = {indexRange: null, attributeId: read_service.AttributeIds.Value};
+const UAVariable = require("node-opcua-address-space").UAVariable;
 
-var SessionContext = require("node-opcua-address-space").SessionContext;
+const defaultItemToMonitor = {indexRange: null, attributeId: read_service.AttributeIds.Value};
+
+const SessionContext = require("node-opcua-address-space").SessionContext;
+const NumericRange = require("node-opcua-numeric-range").NumericRange;
 
 
-var minimumSamplingInterval = 50;              // 50 ms as a minimum sampling interval
-var defaultSamplingInterval = 1500;            // 1500 ms as a default sampling interval
-var maximumSamplingInterval = 1000 * 60 * 60;  // 1 hour !
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
-var doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-function _adjust_sampling_interval(samplingInterval) {
+function _adjust_sampling_interval(samplingInterval,node_minimumSamplingInterval) {
 
-    if(samplingInterval===0){
-        return samplingInterval;
+    assert(_.isNumber(node_minimumSamplingInterval,"expecting a number"));
+
+    if (samplingInterval === 0) {
+        return (node_minimumSamplingInterval === 0) ? samplingInterval : Math.max(MonitoredItem.minimumSamplingInterval,node_minimumSamplingInterval);
     }
-    assert(samplingInterval>=0," this case should have been prevented outside");
-    samplingInterval = samplingInterval || defaultSamplingInterval;
-    maximumSamplingInterval = maximumSamplingInterval || defaultSamplingInterval;
-    samplingInterval = Math.max(samplingInterval, minimumSamplingInterval);
-    samplingInterval = Math.min(samplingInterval, maximumSamplingInterval);
+    assert(samplingInterval >= 0, " this case should have been prevented outside");
+    samplingInterval = samplingInterval || MonitoredItem.defaultSamplingInterval;
+    samplingInterval = Math.max(samplingInterval, MonitoredItem.minimumSamplingInterval);
+    samplingInterval = Math.min(samplingInterval, MonitoredItem.maximumSamplingInterval);
+    samplingInterval = node_minimumSamplingInterval === 0 ? samplingInterval : Math.max(samplingInterval, node_minimumSamplingInterval);
+
     return samplingInterval;
 }
 
 
-var maxQueueSize = 5000;
+const maxQueueSize = 5000;
 
 function _adjust_queue_size(queueSize) {
     queueSize = Math.min(queueSize, maxQueueSize);
@@ -89,14 +94,13 @@ function _adjust_queue_size(queueSize) {
  */
 function MonitoredItem(options) {
 
-
     assert(options.hasOwnProperty("monitoredItemId"));
     assert(!options.monitoringMode, "use setMonitoring mode explicitly to activate the monitored item");
 
     EventEmitter.apply(this, arguments);
     options.itemToMonitor = options.itemToMonitor || defaultItemToMonitor;
 
-    var self = this;
+    const self = this;
     self._samplingId = null;
 
     self._set_parameters(options);
@@ -105,7 +109,6 @@ function MonitoredItem(options) {
 
     self.queue = [];
     self.overflow = false;
-
 
     self.oldDataValue = new DataValue({statusCode: StatusCodes.BadDataUnavailable}); // unset initially
 
@@ -128,63 +131,79 @@ function MonitoredItem(options) {
     if (doDebug) {
         debugLog("Monitoring ", options.itemToMonitor.toString());
     }
+
+    self._on_node_disposed = null;
+
+    MonitoredItem.registry.register(self);
 }
 
 util.inherits(MonitoredItem, EventEmitter);
 
-var ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
+const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 MonitoredItem.registry = new ObjectRegistry();
 
-MonitoredItem.minimumSamplingInterval = minimumSamplingInterval;
-MonitoredItem.defaultSamplingInterval = defaultSamplingInterval;
-MonitoredItem.maximumSamplingInterval = maximumSamplingInterval;
+MonitoredItem.minimumSamplingInterval = 50;              // 50 ms as a minimum sampling interval
+MonitoredItem.defaultSamplingInterval = 1500;            // 1500 ms as a default sampling interval
+MonitoredItem.maximumSamplingInterval = 1000 * 60 * 60;  // 1 hour !
 
-function _validate_parameters(options) {
+function _validate_parameters(monitoringParameters) {
     //xx assert(options instanceof MonitoringParameters);
-    assert(options.hasOwnProperty("clientHandle"));
-    assert(options.hasOwnProperty("samplingInterval"));
-    assert(_.isFinite(options.clientHandle));
-    assert(_.isFinite(options.samplingInterval));
-    assert(_.isBoolean(options.discardOldest));
-    assert(_.isFinite(options.queueSize));
-    assert(options.queueSize >= 0);
+    assert(monitoringParameters.hasOwnProperty("clientHandle"));
+    assert(monitoringParameters.hasOwnProperty("samplingInterval"));
+    assert(_.isFinite(monitoringParameters.clientHandle));
+    assert(_.isFinite(monitoringParameters.samplingInterval));
+    assert(_.isBoolean(monitoringParameters.discardOldest));
+    assert(_.isFinite(monitoringParameters.queueSize));
+    assert(monitoringParameters.queueSize >= 0);
 }
 
-MonitoredItem.prototype.__defineGetter__("node",function () {
-
+MonitoredItem.prototype.__defineGetter__("node", function () {
     return this._node;
 });
 
-MonitoredItem.prototype.__defineSetter__("node",function () {
+MonitoredItem.prototype.__defineSetter__("node", function () {
     throw new Error("Unexpected way to set node");
 });
 
+
+
+function _on_node_disposed(monitoredItem) {
+    const node = this;
+    monitoredItem._on_value_changed(new DataValue({sourceTimestamp: new Date(),statusCode: StatusCodes.BadNodeIdInvalid}));
+    monitoredItem._stop_sampling();
+
+}
+
 MonitoredItem.prototype.setNode = function (node) {
-    var self = this;
-    assert(!self.node || self.node === node,"node already set");
+    const self = this;
+    assert(!self.node || self.node === node, "node already set");
     self._node = node;
     self._semantic_version = node.semantic_version;
+
+
+    assert( self._on_node_disposed ===null,"setNode has been called already ???");
+    self._on_node_disposed = _on_node_disposed.bind(null,self);
+    self._node.on("dispose",self._on_node_disposed);
+
 };
 
 MonitoredItem.prototype._stop_sampling = function () {
 
-    var self = this;
-
-    MonitoredItem.registry.unregister(self);
+    const self = this;
+    debugLog("MonitoredItem#_stop_sampling");
 
     if (self._on_opcua_event_received_callback) {
         assert(_.isFunction(self._on_opcua_event_received_callback));
-        self.node.removeListener("event",self._on_opcua_event_received_callback);
+        self.node.removeListener("event", self._on_opcua_event_received_callback);
         self._on_opcua_event_received_callback = null;
     }
 
     if (self._attribute_changed_callback) {
         assert(_.isFunction(self._attribute_changed_callback));
 
-        var event_name = BaseNode.makeAttributeEventName(self.itemToMonitor.attributeId);
-        self.node.removeListener(event_name,self._attribute_changed_callback);
+        const event_name = BaseNode.makeAttributeEventName(self.itemToMonitor.attributeId);
+        self.node.removeListener(event_name, self._attribute_changed_callback);
         self._attribute_changed_callback = null;
-
     }
 
     if (self._value_changed_callback) {
@@ -193,14 +212,14 @@ MonitoredItem.prototype._stop_sampling = function () {
         assert(_.isFunction(self._value_changed_callback));
         assert(!self._samplingId);
 
-        self.node.removeListener("value_changed",self._value_changed_callback);
+        self.node.removeListener("value_changed", self._value_changed_callback);
         self._value_changed_callback = null;
-
     }
+
     if (self._semantic_changed_callback) {
         assert(_.isFunction(self._semantic_changed_callback));
         assert(!self._samplingId);
-        self.node.removeListener("semantic_changed",self._semantic_changed_callback);
+        self.node.removeListener("semantic_changed", self._semantic_changed_callback);
         self._semantic_changed_callback = null;
 
     }
@@ -216,41 +235,43 @@ MonitoredItem.prototype._stop_sampling = function () {
 
 };
 
-MonitoredItem.prototype._on_value_changed = function(dataValue) {
-    var self = this;
+MonitoredItem.prototype._on_value_changed = function (dataValue,indexRange) {
+    const self = this;
     assert(dataValue instanceof DataValue);
-    self.recordValue(dataValue, true);
+    self.recordValue(dataValue, false, indexRange);
 };
 
-MonitoredItem.prototype._on_semantic_changed = function() {
-    var self = this;
-    var dataValue = self.node.readValue();
+MonitoredItem.prototype._on_semantic_changed = function () {
+    const self = this;
+    const dataValue = self.node.readValue();
     self._on_value_changed(dataValue);
 };
 
-var extractEventFields = require("node-opcua-service-filter").extractEventFields;
+const extractEventFields = require("node-opcua-service-filter").extractEventFields;
 
 MonitoredItem.prototype._on_opcua_event = function (eventData) {
 
-    var self = this;
+    const self = this;
 
     assert(!self.filter || self.filter instanceof EventFilter);
 
-    var selectClauses = self.filter ? self.filter.selectClauses : [];
-    var eventFields = extractEventFields(selectClauses,eventData);
+    const selectClauses = self.filter ? self.filter.selectClauses : [];
+    const eventFields = extractEventFields(selectClauses, eventData);
 
     // istanbul ignore next
     if (doDebug) {
         console.log(" RECEIVED INTERNAL EVENT THAT WE ARE MONITORING");
         console.log(self.filter ? self.filter.toString() : "no filter");
-        eventFields.forEach(function(e) { console.log(e.toString()); });
+        eventFields.forEach(function (e) {
+            console.log(e.toString());
+        });
     }
 
     self._enqueue_event(eventFields);
 };
 
 MonitoredItem.prototype._getSession = function () {
-    var self = this;
+    const self = this;
     if (!self.$subscription) {
         return null;
     }
@@ -262,25 +283,25 @@ MonitoredItem.prototype._getSession = function () {
 
 MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
 
-    var self = this;
+    const self = this;
 
     // make sure oldDataValue is scrapped so first data recording can happen
     self.oldDataValue = new DataValue({statusCode: StatusCodes.BadDataUnavailable}); // unset initially
 
     self._stop_sampling();
 
-    MonitoredItem.registry.register(self);
 
-    var context = new SessionContext({session: self._getSession()});
+    const context = new SessionContext({session: self._getSession(),server: self.server});
 
     if (self.itemToMonitor.attributeId === AttributeIds.EventNotifier) {
 
-        if (doDebug){
-            debugLog("xxxxxx monitoring EventNotifier on",self.node.nodeId.toString(),self.node.browseName.toString());
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog("xxxxxx monitoring EventNotifier on", self.node.nodeId.toString(), self.node.browseName.toString());
         }
         // we are monitoring OPCUA Event
         self._on_opcua_event_received_callback = self._on_opcua_event.bind(self);
-        self.node.on("event",self._on_opcua_event_received_callback);
+        self.node.on("event", self._on_opcua_event_received_callback);
 
         return;
     }
@@ -291,16 +312,14 @@ MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
 
         // non value attribute only react on value change
         self._attribute_changed_callback = self._on_value_changed.bind(this);
-        var event_name = BaseNode.makeAttributeEventName(self.itemToMonitor.attributeId);
+        const event_name = BaseNode.makeAttributeEventName(self.itemToMonitor.attributeId);
 
         self.node.on(event_name, self._attribute_changed_callback);
 
         if (recordInitialValue) {
             // read initial value
-
-
-            var dataValue = self.node.readAttribute(context, self.itemToMonitor.attributeId);
-            self.recordValue(dataValue,true);
+            const dataValue = self.node.readAttribute(context, self.itemToMonitor.attributeId);
+            self.recordValue(dataValue, true, null);
 
         }
         return;
@@ -313,22 +332,22 @@ MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
         self._value_changed_callback = self._on_value_changed.bind(this);
         self._semantic_changed_callback = self._on_semantic_changed.bind(this);
 
-        self.node.on("value_changed",self._value_changed_callback);
-        self.node.on("semantic_changed",self._semantic_changed_callback);
+        self.node.on("value_changed", self._value_changed_callback);
+        self.node.on("semantic_changed", self._semantic_changed_callback);
 
         // initiate first read
         if (recordInitialValue) {
 //xx            setImmediate(function() {
             self.node.readValueAsync(context, function (err, dataValue) {
-                    self.recordValue(dataValue,true);
-                });
+                self.recordValue(dataValue, true);
+            });
 //xx            });
         }
     } else {
 
         self._set_timer();
         if (recordInitialValue) {
-            setImmediate(function() {
+            setImmediate(function () {
                 //xx console.log("Record Initial Value ",self.node.nodeId.toString());
                 // initiate first read (this requires self._samplingId to be set)
                 self._on_sampling_timer();
@@ -340,7 +359,7 @@ MonitoredItem.prototype._start_sampling = function (recordInitialValue) {
 
 MonitoredItem.prototype.setMonitoringMode = function (monitoringMode) {
 
-    var self = this;
+    const self = this;
 
     assert(monitoringMode !== MonitoringMode.Invalid);
 
@@ -349,19 +368,19 @@ MonitoredItem.prototype.setMonitoringMode = function (monitoringMode) {
         return;
     }
 
-    var old_monitoringMode = self.monitoringMode;
+    const old_monitoringMode = self.monitoringMode;
 
 
     self.monitoringMode = monitoringMode;
 
-    if (self.monitoringMode === MonitoringMode.Disabled ) {
+    if (self.monitoringMode === MonitoringMode.Disabled) {
 
         self._stop_sampling();
 
         // OPCUA 1.03 part 4 : $5.12.4
         // setting the mode to DISABLED causes all queued Notifications to be deleted
-        self.queue   = [];
-        self.overflow= false;
+        self.queue = [];
+        self.overflow = false;
     } else {
         assert(self.monitoringMode === MonitoringMode.Sampling || self.monitoringMode === MonitoringMode.Reporting);
 
@@ -370,25 +389,29 @@ MonitoredItem.prototype.setMonitoringMode = function (monitoringMode) {
         // SAMPLING or REPORTING) or it is created in the enabled state, the Server shall report the first
         // sample as soon as possible and the time of this sample becomes the starting point for the next
         // sampling interval.
-        var recordInitialValue = ( old_monitoringMode === MonitoringMode.Invalid || old_monitoringMode === MonitoringMode.Disabled);
+        const recordInitialValue = (old_monitoringMode === MonitoringMode.Invalid || old_monitoringMode === MonitoringMode.Disabled);
 
         self._start_sampling(recordInitialValue);
 
     }
 };
 
-MonitoredItem.prototype._set_parameters = function (options) {
-    var self = this;
-    _validate_parameters(options);
-    self.clientHandle = options.clientHandle;
+MonitoredItem.prototype._set_parameters = function (monitoredParameters) {
+    const self = this;
+    _validate_parameters(monitoredParameters);
+    self.clientHandle = monitoredParameters.clientHandle;
 
     // The Server may support data that is collected based on a sampling model or generated based on an
     // exception-based model. The fastest supported sampling interval may be equal to 0, which indicates
     // that the data item is exception-based rather than being sampled at some period. An exception-based
     // model means that the underlying system does not require sampling and reports data changes.
-    self.samplingInterval = _adjust_sampling_interval(options.samplingInterval);
-    self.discardOldest = options.discardOldest;
-    self.queueSize = _adjust_queue_size(options.queueSize);
+    if (self.node && self.node instanceof UAVariable) {
+        self.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval, self.node ? self.node.minimumSamplingInterval : 0);
+    } else {
+        self.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval, 0);
+    }
+    self.discardOldest = monitoredParameters.discardOldest;
+    self.queueSize = _adjust_queue_size(monitoredParameters.queueSize);
 };
 
 /**
@@ -398,8 +421,49 @@ MonitoredItem.prototype._set_parameters = function (options) {
  * This will stop the internal sampling timer.
  */
 MonitoredItem.prototype.terminate = function () {
-    var self = this;
+    const self = this;
     self._stop_sampling();
+};
+
+MonitoredItem.prototype.dispose = function() {
+    const self = this;
+
+    if (doDebug) {
+        debugLog("DISPOSING MONITORED ITEM" , self._node.nodeId.toString());
+    }
+
+    self._stop_sampling();
+
+    MonitoredItem.registry.unregister(self);
+
+    if (self._on_node_disposed) {
+        self._node.removeListener("dispose",self._on_node_disposed);
+        self._on_node_disposed = null;
+    }
+
+    //x assert(self._samplingId === null,"Sampling Id must be null");
+    self.oldDataValue = null;
+    self.queue = null;
+    self.itemToMonitor = null;
+    self.filter = null;
+    self.monitoredItemId = null;
+    self._node = null;
+    self._semantic_version = 0;
+
+    self.$subscription = null;
+
+    self.removeAllListeners();
+
+    assert(!self._samplingId);
+    assert(!self._value_changed_callback);
+    assert(!self._semantic_changed_callback);
+    assert(!self._attribute_changed_callback);
+    assert(!self._on_opcua_event_received_callback);
+    self._on_opcua_event_received_callback = null;
+    self._attribute_changed_callback = null;
+    self._semantic_changed_callback = null;
+    self._on_opcua_event_received_callback = null;
+
 };
 
 /**
@@ -410,14 +474,13 @@ MonitoredItem.prototype.terminate = function () {
  */
 MonitoredItem.prototype._on_sampling_timer = function () {
 
-    var self = this;
-
+    const self = this;
 
     // istanbul ignore next
-    if(doDebug) {
-        debugLog("MonitoredItem#_on_sampling_timer", self.node ? self.node.nodeId.toString() : "null",self._is_sampling);
+    if (doDebug) {
+        debugLog("MonitoredItem#_on_sampling_timer", self.node ? self.node.nodeId.toString() : "null", " isSampling?=", self._is_sampling);
     }
-    
+
     if (self._samplingId) {
 
         assert(self.monitoringMode === MonitoringMode.Sampling || self.monitoringMode === MonitoringMode.Reporting);
@@ -426,8 +489,7 @@ MonitoredItem.prototype._on_sampling_timer = function () {
             // previous sampling call is not yet completed..
             // there is nothing we can do about it except waiting until next tick.
             // note : see also issue #156 on github
-            return ;
-
+            return;
         }
         //xx console.log("xxxx ON SAMPLING");
         assert(!self._is_sampling, "sampling func shall not be re-entrant !! fix it");
@@ -436,12 +498,20 @@ MonitoredItem.prototype._on_sampling_timer = function () {
 
         self._is_sampling = true;
 
-        self.samplingFunc.call(self,self.oldDataValue,function(err,newDataValue) {
+        self.samplingFunc.call(self, self.oldDataValue, function (err, newDataValue) {
 
-            if (err){
-                console.log(" SAMPLING ERROR =>",err);
+            if(!self._samplingId) {
+                // item has been dispose .... the monitored item has been disposed while the async sampling func
+                // was taking place ... just ignore this
+                return;
+            }
+            if (err) {
+                console.log(" SAMPLING ERROR =>", err);
             } else {
+                // only record value if source timestamp is newer
+                //xx if (newDataValue.sourceTimestamp > self.oldDataValue.sourceTimestamp) {
                 self._on_value_changed(newDataValue);
+                //xx }
             }
             self._is_sampling = false;
         });
@@ -452,11 +522,11 @@ MonitoredItem.prototype._on_sampling_timer = function () {
     }
 };
 
-var extractRange = require("node-opcua-data-value").extractRange;
+const extractRange = require("node-opcua-data-value").extractRange;
 
-var DataChangeFilter = subscription_service.DataChangeFilter;
-var DataChangeTrigger = subscription_service.DataChangeTrigger;
-var DeadbandType = subscription_service.DeadbandType;
+const DataChangeFilter = subscription_service.DataChangeFilter;
+const DataChangeTrigger = subscription_service.DataChangeTrigger;
+const DeadbandType = subscription_service.DeadbandType;
 
 function statusCodeHasChanged(newDataValue, oldDataValue) {
     assert(newDataValue instanceof DataValue);
@@ -464,11 +534,11 @@ function statusCodeHasChanged(newDataValue, oldDataValue) {
     return newDataValue.statusCode !== oldDataValue.statusCode;
 }
 
-var check_deadband = require("node-opcua-service-subscription").check_deadband;
+const check_deadband = require("node-opcua-service-subscription").check_deadband;
 
 
-function valueHasChanged(self,newDataValue, oldDataValue, deadbandType, deadbandValue) {
-    
+function valueHasChanged(self, newDataValue, oldDataValue, deadbandType, deadbandValue) {
+
     assert(newDataValue instanceof DataValue);
     assert(oldDataValue instanceof DataValue);
     switch (deadbandType) {
@@ -476,10 +546,10 @@ function valueHasChanged(self,newDataValue, oldDataValue, deadbandType, deadband
             assert(newDataValue.value instanceof Variant);
             assert(newDataValue.value instanceof Variant);
             // No Deadband calculation should be applied.
-            return check_deadband(oldDataValue.value,newDataValue.value, DeadbandType.None);
+            return check_deadband(oldDataValue.value, newDataValue.value, DeadbandType.None);
         case DeadbandType.Absolute:
             // AbsoluteDeadband
-            return check_deadband(oldDataValue.value,newDataValue.value, DeadbandType.Absolute,deadbandValue);
+            return check_deadband(oldDataValue.value, newDataValue.value, DeadbandType.Absolute, deadbandValue);
         default:
             // Percent_2    PercentDeadband (This type is specified in Part 8).
             assert(deadbandType === DeadbandType.Percent);
@@ -505,24 +575,26 @@ function valueHasChanged(self,newDataValue, oldDataValue, deadbandType, deadband
 
             if (self.node.euRange) {
                 // double,double
-                var rangeVariant = self.node.euRange.readValue().value;
-                var range = rangeVariant.value.high - rangeVariant.value.high;
+                const rangeVariant = self.node.euRange.readValue().value;
+                const range = rangeVariant.value.high - rangeVariant.value.high;
                 assert(_.isFinite(range));
-                return check_deadband(oldDataValue.value,newDataValue.value, DeadbandType.Percent,deadbandValue,range);
+                return check_deadband(oldDataValue.value, newDataValue.value, DeadbandType.Percent, deadbandValue, range);
 
             }
             return true;
     }
 }
-function timestampHasChanged(t1,t2) {
-    if (( t1 || !t2 ) || ( t2 || !t1 ) ) {
+
+function timestampHasChanged(t1, t2) {
+    if ((t1 || !t2) || (t2 || !t1)) {
         return true;
     }
-    if (!t1 || !t2 ) {
+    if (!t1 || !t2) {
         return false;
     }
     return t1.getTime() !== t2.getTime();
 }
+
 function apply_datachange_filter(self, newDataValue, oldDataValue) {
 
     assert(self.filter);
@@ -530,7 +602,7 @@ function apply_datachange_filter(self, newDataValue, oldDataValue) {
     assert(newDataValue instanceof DataValue);
     assert(oldDataValue instanceof DataValue);
 
-    var trigger = self.filter.trigger;
+    const trigger = self.filter.trigger;
 
     switch (trigger.value) {
         case DataChangeTrigger.Status.value: // Status
@@ -546,7 +618,7 @@ function apply_datachange_filter(self, newDataValue, oldDataValue) {
             //              filtering value changes.
             //              This is the default setting if no filter is set.
             return statusCodeHasChanged(newDataValue, oldDataValue) ||
-	               valueHasChanged(self,newDataValue, oldDataValue, self.filter.deadbandType, self.filter.deadbandValue);
+                valueHasChanged(self, newDataValue, oldDataValue, self.filter.deadbandType, self.filter.deadbandValue);
 
         default: // StatusValueTimestamp
             //              Report a notification if either StatusCode, value or the
@@ -557,25 +629,27 @@ function apply_datachange_filter(self, newDataValue, oldDataValue) {
             //              If the DataChangeFilter is not applied to the monitored item, STATUS_VALUE_1
             //              is the default reporting behaviour
             assert(trigger === DataChangeTrigger.StatusValueTimestamp);
-            return timestampHasChanged(newDataValue.sourceTimestamp,oldDataValue.sourceTimestamp) ||
-                   statusCodeHasChanged(newDataValue, oldDataValue) ||
-                   valueHasChanged(self,newDataValue, oldDataValue, self.filter.deadbandType, self.filter.deadbandValue);
-     }
-     return false;
+            return timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp) ||
+                statusCodeHasChanged(newDataValue, oldDataValue) ||
+                valueHasChanged(self, newDataValue, oldDataValue, self.filter.deadbandType, self.filter.deadbandValue);
+    }
+    return false;
 }
 
 function apply_filter(self, newDataValue) {
 
     if (!self.oldDataValue) {
-        return true;
+        return true; // keep
     }
     if (self.filter instanceof DataChangeFilter) {
         return apply_datachange_filter(self, newDataValue, self.oldDataValue);
-    } else {
-        // if filter not set, by default report changes to Status or Value only
-        return !sameDataValue(newDataValue, self.oldDataValue, TimestampsToReturn.Neither);
     }
     return true; // keep
+    // else {
+    //      // if filter not set, by default report changes to Status or Value only
+    //      return !sameDataValue(newDataValue, self.oldDataValue, TimestampsToReturn.Neither);
+    // }
+    // return true; // keep
 }
 
 
@@ -583,50 +657,94 @@ function apply_filter(self, newDataValue) {
  * @property isSampling
  * @type boolean
  */
-MonitoredItem.prototype.__defineGetter__("isSampling",function() {
-    var self = this;
+MonitoredItem.prototype.__defineGetter__("isSampling", function () {
+    const self = this;
     return !!self._samplingId || _.isFunction(self._value_changed_callback) ||
-           _.isFunction(self._attribute_changed_callback);
+        _.isFunction(self._attribute_changed_callback);
 });
 
 /**
  * @method recordValue
  * @param dataValue {DataValue}     the whole dataValue
+ * @param skipChangeTest {Boolean}  indicates whether recordValue should  not check that dataValue is really different
+ *                                  from previous one, ( by checking timestamps but also variant value)
+ * @private
  *
- * Note: recordValue can only be called within timer event
+ * Notes:
+ *  - recordValue can only be called within timer event
+ *  - for performance reason, dataValue may be a shared value with the underlying node,
+ *    therefore recordValue must clone the dataValue to make sure it retains a snapshot
+ *    of the contain at the time recordValue was called.
+ *
  */
-MonitoredItem.prototype.recordValue = function (dataValue) {
+MonitoredItem.prototype.recordValue = function (dataValue, skipChangeTest , indexRange) {
 
-
-    var self = this;
-
-    // istanbul ignore next
-    if (doDebug) {
-        debugLog("MonitoredItem#recordValue", self.node.nodeId.toString(),self.node.browseName.toString());
-    }
+    const self = this;
 
     assert(dataValue instanceof DataValue);
-    assert(dataValue !== self.oldDataValue);
+    assert(dataValue !== self.oldDataValue,               "recordValue expects different dataValue to be provided");
+    assert(!dataValue.value || dataValue.value !== self.oldDataValue.value,   "recordValue expects different dataValue.value to be provided");
+    assert(!dataValue.value  || dataValue.value.isValid(),"expecting a valid variant value");
 
+    const hasSemanticChanged = self.node && (self.node.semantic_version !== self._semantic_version);
+
+    //xx   console.log("`\n----------------------------",skipChangeTest,self.clientHandle,
+    //             self.node.listenerCount("value_changed"),self.node.nodeId.toString());
+    //xx   console.log("events ---- ",self.node.eventNames().join("-"));
+    //xx    console.log((new Error()).stack);
+    //xx    console.log("indexRange = ",indexRange ? indexRange.toString() :"");
+    //xx    console.log("self.itemToMonitor.indexRange = ",self.itemToMonitor.indexRange.toString());
+
+    if (!hasSemanticChanged && indexRange && self.itemToMonitor.indexRange) {
+        // we just ignore changes that do not fall within our range
+        // ( unless semantic bit has changed )
+        if (!NumericRange.overlap(indexRange,self.itemToMonitor.indexRange)) {
+            return; // no overlap !
+        }
+    }
+
+    assert( self.itemToMonitor,"must have a valid itemToMonitor(have this monitoredItem been disposed already ?");
     // extract the range that we are interested with
     dataValue = extractRange(dataValue, self.itemToMonitor.indexRange);
 
-    var hasChanged =!sameDataValue(dataValue,self.oldDataValue);
+    // istanbul ignore next
+    if (doDebug) {
+        debugLog("MonitoredItem#recordValue", self.node.nodeId.toString(), self.node.browseName.toString(), " has Changed = ", !sameDataValue(dataValue, self.oldDataValue));
+    }
 
-    if (!hasChanged) {
+    // if semantic has changed, value need to be enqueued regardless of other assumptions
+    if (hasSemanticChanged) {
+        return self._enqueue_value(dataValue);
+    }
 
-        // may be semantic has changed !
-        var hasSemanticChanged = self.node && (self.node.semantic_version !== self._semantic_version);
-        if (hasSemanticChanged) {
-           self._enqueue_value(dataValue);
+    const useIndexRange = self.itemToMonitor.indexRange && !self.itemToMonitor.indexRange.isEmpty();
+
+    if (!skipChangeTest) {
+        const hasChanged = !sameDataValue(dataValue, self.oldDataValue);
+        if (!hasChanged) {
+            return;
         }
-        return;
     }
 
     if (!apply_filter(self, dataValue)) {
         return;
     }
 
+    if (useIndexRange) {
+        // when an indexRange is provided , make sure that no record happens unless
+        // extracted variant in the selected range  has really changed.
+
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog("Current : ",self.oldDataValue.toString());
+            debugLog("New : ",dataValue.toString());
+            debugLog("indexRange=",indexRange);
+        }
+
+        if (sameVariant(dataValue.value, self.oldDataValue.value)) {
+            return;
+        }
+    }
     // store last value
     self._enqueue_value(dataValue);
 
@@ -635,22 +753,22 @@ MonitoredItem.prototype.recordValue = function (dataValue) {
 MonitoredItem.prototype._setOverflowBit = function (notification) {
 
     if (notification.hasOwnProperty("value")) {
-        assert(notification.value.statusCode === StatusCodes.Good);
-        notification.value.statusCode = StatusCodes.makeStatusCode(notification.value.statusCode,"Overflow | InfoTypeDataValue");
-        assert(_.isEqual(notification.value.statusCode,StatusCodes.GoodWithOverflowBit));
+        assert(notification.value.statusCode.equals(StatusCodes.Good));
+        notification.value.statusCode = StatusCodes.makeStatusCode(notification.value.statusCode, "Overflow | InfoTypeDataValue");
+        assert(_.isEqual(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
         assert(notification.value.statusCode.hasOverflowBit);
     }
 };
 
 function setSemanticChangeBit(notification) {
     if (notification && notification.hasOwnProperty("value")) {
-        notification.value.statusCode = StatusCodes.makeStatusCode(notification.value.statusCode,"SemanticChanged");
+        notification.value.statusCode = StatusCodes.makeStatusCode(notification.value.statusCode, "SemanticChanged");
     }
 }
 
-MonitoredItem.prototype._enqueue_notification = function(notification) {
+MonitoredItem.prototype._enqueue_notification = function (notification) {
 
-    var self = this;
+    const self = this;
 
     if (self.queueSize === 1) {
         // ensure queuesize
@@ -690,47 +808,82 @@ MonitoredItem.prototype._enqueue_notification = function(notification) {
             }
         }
     }
-    assert(self.queue.length >=1);
+    assert(self.queue.length >= 1);
 };
 
 
 MonitoredItem.prototype._makeDataChangeNotification = function (dataValue) {
-    var self = this;
-    var attributeId = self.itemToMonitor.attributeId;
+    const self = this;
+    const attributeId = self.itemToMonitor.attributeId;
     dataValue = apply_timestamps(dataValue, self.timestampsToReturn, attributeId);
-    return new subscription_service.MonitoredItemNotification({clientHandle: self.clientHandle, value: dataValue });
+    return new subscription_service.MonitoredItemNotification({clientHandle: self.clientHandle, value: dataValue});
 };
 
-MonitoredItem.prototype._enqueue_value = function(dataValue) {
-    var self = this;
+function isGoodish(statusCode) {
+    return statusCode.value < 0x10000000;
+}
+
+
+/**
+ * @method _enqueue_value
+ * @param dataValue {DataValue} the dataValue to enquue
+ * @private
+ */
+MonitoredItem.prototype._enqueue_value = function (dataValue) {
+
+    const self = this;
+
+    // preconditions:
+
+    assert(dataValue instanceof DataValue);
+    // lets verify that, if status code is good then we have a valid Variant in the dataValue
+    assert(!isGoodish(dataValue.statusCode) || dataValue.value instanceof Variant);
+    //xx assert(isGoodish(dataValue.statusCode) || util.isNullOrUndefined(dataValue.value) );
+    // let's check that data Value is really a different object
+    // we may end up with corrupted queue if dataValue are recycled and stored as is in notifications
+    assert(dataValue !== self.oldDataValue, "dataValue cannot be the same object twice!");
+
+
+    //Xx // todo ERN !!!! PLEASE CHECK THIS !!!
+    //Xx // let make a clone, so we have a snapshot
+    //Xx dataValue = dataValue.clone();
+
+
+    // let's check that data Value is really a different object
+    // we may end up with corrupted queue if dataValue are recycled and stored as is in notifications
+    assert(!self.oldDataValue || !dataValue.value || (dataValue.value !== self.oldDataValue.value), "dataValue cannot be the same object twice!");
+    if (!(!self.oldDataValue || !self.oldDataValue.value
+            || !dataValue.value || !(dataValue.value.value instanceof Object)
+            || (dataValue.value.value !== self.oldDataValue.value.value)) && !(dataValue.value.value instanceof Date)) {
+        throw new Error("dataValue.value.value cannot be the same object twice! " + self.node.browseName.toString() + " " + dataValue.toString()  + "  " + self.oldDataValue.toString().cyan);
+    }
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog("MonitoredItem#_enqueue_value",self.node.nodeId.toString());
+        debugLog("MonitoredItem#_enqueue_value", self.node.nodeId.toString());
     }
+
     self.oldDataValue = dataValue;
-    var notification = self._makeDataChangeNotification(dataValue);
+    const notification = self._makeDataChangeNotification(dataValue);
     self._enqueue_notification(notification);
 };
 
 MonitoredItem.prototype._makeEventFieldList = function (eventFields) {
-    var self = this;
+    const self = this;
     assert(_.isArray(eventFields));
     return new subscription_service.EventFieldList({clientHandle: self.clientHandle, eventFields: eventFields});
 };
 
-MonitoredItem.prototype._enqueue_event = function(eventFields) {
-    var self = this;
+MonitoredItem.prototype._enqueue_event = function (eventFields) {
+    const self = this;
     debugLog(" MonitoredItem#_enqueue_event");
-    var notification = self._makeEventFieldList(eventFields);
+    const notification = self._makeEventFieldList(eventFields);
     self._enqueue_notification(notification);
 };
 
 
-
-MonitoredItem.prototype._empty_queue = function()
-{
-    var self = this;
+MonitoredItem.prototype._empty_queue = function () {
+    const self = this;
     // empty queue
     self.queue = [];
     self.overflow = false;
@@ -738,9 +891,10 @@ MonitoredItem.prototype._empty_queue = function()
 };
 
 
+
 MonitoredItem.prototype.__defineGetter__("hasMonitoredItemNotifications", function () {
-    var self = this;
-    return self.queue.length >0;
+    const self = this;
+    return self.queue.length > 0;
 });
 
 /**
@@ -749,18 +903,18 @@ MonitoredItem.prototype.__defineGetter__("hasMonitoredItemNotifications", functi
  */
 MonitoredItem.prototype.extractMonitoredItemNotifications = function () {
 
-    var self = this;
+    const self = this;
 
     if (self.monitoringMode !== MonitoringMode.Reporting) {
         return [];
     }
-    var notifications = self.queue;
+    const notifications = self.queue;
     self._empty_queue();
 
     // apply semantic changed bit if necessary
-    if (notifications.length >0 && self.node && self._semantic_version < self.node.semantic_version) {
+    if (notifications.length > 0 && self.node && self._semantic_version < self.node.semantic_version) {
 
-        var dataValue = notifications[notifications.length-1];
+        const dataValue = notifications[notifications.length - 1];
         setSemanticChangeBit(dataValue);
         self._semantic_version = self.node.semantic_version;
     }
@@ -769,31 +923,31 @@ MonitoredItem.prototype.extractMonitoredItemNotifications = function () {
 };
 
 
+const timers = {};
 
-var timers = {};
 function appendToTimer(monitoredItem) {
 
-    var samplingInterval = monitoredItem.samplingInterval;
-    var key = samplingInterval.toString();
-    assert(samplingInterval >0);
-    var _t = timers[key];
+    const samplingInterval = monitoredItem.samplingInterval;
+    const key = samplingInterval.toString();
+    assert(samplingInterval > 0);
+    let _t = timers[key];
     if (!_t) {
 
         _t = {
-            monitoredItems:{},
-            monitoredItemsCount:0,
+            monitoredItems: {},
+            monitoredItemsCount: 0,
             _samplingId: false
         };
 
         _t._samplingId = setInterval(function () {
 
-            _.forEach(_t.monitoredItems,function(m) {
-                setImmediate(function(){
+            _.forEach(_t.monitoredItems, function (m) {
+                setImmediate(function () {
                     m._on_sampling_timer();
                 });
             });
 
-        },samplingInterval);
+        }, samplingInterval);
         timers[key] = _t;
     }
     assert(!_t.monitoredItems[monitoredItem.monitoredItemId]);
@@ -804,45 +958,46 @@ function appendToTimer(monitoredItem) {
 
 function removeFromTimer(monitoredItem) {
 
-    var samplingInterval = monitoredItem.samplingInterval;
-    assert(samplingInterval >0);
-    var key = monitoredItem._samplingId;
-    var _t = timers[key];
-    if( !_t) {
-        console.log("cannot find common timer for samplingInterval",key);
+    const samplingInterval = monitoredItem.samplingInterval;
+    assert(samplingInterval > 0);
+    const key = monitoredItem._samplingId;
+    const _t = timers[key];
+    if (!_t) {
+        console.log("cannot find common timer for samplingInterval", key);
         return;
     }
     assert(_t);
     assert(_t.monitoredItems[monitoredItem.monitoredItemId]);
     delete _t.monitoredItems[monitoredItem.monitoredItemId];
-    _t.monitoredItemsCount --;
-    assert(_t.monitoredItemsCount>=0);
+    _t.monitoredItemsCount--;
+    assert(_t.monitoredItemsCount >= 0);
     if (_t.monitoredItemsCount === 0) {
         clearInterval(_t._samplingId);
         delete timers[key];
     }
 }
 
-var useCommonTimer = true;
-MonitoredItem.prototype._clear_timer = function() {
+const useCommonTimer = true;
+MonitoredItem.prototype._clear_timer = function () {
 
-    var self = this;
+    const self = this;
+
+    //xx console.log("MonitoredItem#_clear_timer",self._samplingId);
     if (self._samplingId) {
         if (useCommonTimer) {
             removeFromTimer(self);
         } else {
             clearInterval(self._samplingId);
         }
-        self._samplingId = 0;
+        self._samplingId = null;
     }
 };
 
 MonitoredItem.prototype._set_timer = function () {
 
-    var self = this;
-    assert(self.samplingInterval >= minimumSamplingInterval);
+    const self = this;
+    assert(self.samplingInterval >= MonitoredItem.minimumSamplingInterval);
     assert(!self._samplingId);
-
 
     if (useCommonTimer) {
         self._samplingId = appendToTimer(self);
@@ -852,14 +1007,14 @@ MonitoredItem.prototype._set_timer = function () {
             self._on_sampling_timer();
         }, self.samplingInterval);
     }
+    //xx console.log("MonitoredItem#_set_timer",self._samplingId);
 
 };
 
 
-
 MonitoredItem.prototype._adjust_queue_to_match_new_queue_size = function () {
 
-    var self = this;
+    const self = this;
 
     // adjust queue size if necessary
     if (self.queueSize < self.queue.length) {
@@ -870,10 +1025,10 @@ MonitoredItem.prototype._adjust_queue_to_match_new_queue_size = function () {
 
         } else {
 
-            var lastElement = self.queue[self.queue.length-1];
+            const lastElement = self.queue[self.queue.length - 1];
             // only keep queueSize first element, discard others
             self.queue.splice(self.queueSize);
-            self.queue[self.queue.length-1] = lastElement;
+            self.queue[self.queue.length - 1] = lastElement;
         }
     }
     if (self.queueSize <= 1) {
@@ -890,9 +1045,9 @@ MonitoredItem.prototype._adjust_queue_to_match_new_queue_size = function () {
     assert(self.queue.length <= self.queueSize);
 };
 
-MonitoredItem.prototype._adjust_sampling = function(old_samplingInterval) {
+MonitoredItem.prototype._adjust_sampling = function (old_samplingInterval) {
 
-    var self = this;
+    const self = this;
     if (old_samplingInterval !== self.samplingInterval) {
         self._start_sampling();
         //xx self._clear_timer(true);
@@ -900,47 +1055,47 @@ MonitoredItem.prototype._adjust_sampling = function(old_samplingInterval) {
     }
 };
 
-var validateFilter  = require("./validate_filter").validateFilter;
+const validateFilter = require("./validate_filter").validateFilter;
 
-MonitoredItem.prototype.modify = function (timestampsToReturn, options) {
+MonitoredItem.prototype.modify = function (timestampsToReturn, monitoredParameters) {
 
-    assert(options instanceof MonitoringParameters);
+    assert(monitoredParameters instanceof MonitoringParameters);
 
-    var self = this;
+    const self = this;
 
-    var old_samplingInterval  = self.samplingInterval;
+    const old_samplingInterval = self.samplingInterval;
 
     self.timestampsToReturn = timestampsToReturn || self.timestampsToReturn;
 
-    if (old_samplingInterval !== 0 && options.samplingInterval === 0 ) {
-        options.samplingInterval = minimumSamplingInterval; // fastest possible
+    if (old_samplingInterval !== 0 && monitoredParameters.samplingInterval === 0) {
+        monitoredParameters.samplingInterval = MonitoredItem.minimumSamplingInterval; // fastest possible
     }
 
-    self._set_parameters(options);
+    self._set_parameters(monitoredParameters);
 
     self._adjust_queue_to_match_new_queue_size();
 
     self._adjust_sampling(old_samplingInterval);
 
 
-    if (options.filter) {
-        var statusCodeFilter = validateFilter(options.filter,self.itemToMonitor , self.node);
-        if (statusCodeFilter !== StatusCodes.Good) {
+    if (monitoredParameters.filter) {
+        const statusCodeFilter = validateFilter(monitoredParameters.filter, self.itemToMonitor, self.node);
+        if (statusCodeFilter.isNot(StatusCodes.Good)) {
             return new MonitoredItemModifyResult({
-                statusCode:statusCodeFilter
+                statusCode: statusCodeFilter
             });
         }
     }
 
     // validate filter
     // note : The DataChangeFilter does not have an associated result structure.
-    var filterResult = null; // new subscription_service.DataChangeFilter
+    const filterResult = null; // new subscription_service.DataChangeFilter
 
     return new MonitoredItemModifyResult({
-        statusCode:              StatusCodes.Good,
+        statusCode: StatusCodes.Good,
         revisedSamplingInterval: self.samplingInterval,
-        revisedQueueSize:        self.queueSize,
-        filterResult:            filterResult
+        revisedQueueSize: self.queueSize,
+        filterResult: filterResult
     });
 };
 

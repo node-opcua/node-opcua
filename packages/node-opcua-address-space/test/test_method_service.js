@@ -1,33 +1,34 @@
 "use strict";
 /* global: describe it before after beforeEach afterEach require*/
 require("should");
-var path = require("path");
-var fs = require("fs");
+const path = require("path");
+const fs = require("fs");
 
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
-var DataType = require("node-opcua-variant").DataType;
-var makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const DataType = require("node-opcua-variant").DataType;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
-var AddressSpace = require("..").AddressSpace;
-var UAObject = require("..").UAObject;
-var UAMethod = require("..").UAMethod;
+const AddressSpace = require("..").AddressSpace;
+const UAObject = require("..").UAObject;
+const UAMethod = require("..").UAMethod;
 
-var generate_address_space = require("..").generate_address_space;
+const generate_address_space = require("..").generate_address_space;
 
-var call_service = require("node-opcua-service-call");
-var hexDump = require("node-opcua-debug").hexDump;
+const call_service = require("node-opcua-service-call");
+const hexDump = require("node-opcua-debug").hexDump;
+const doDebug = false;
 
-var build_retrieveInputArgumentsDefinition = require("../src/argument_list").build_retrieveInputArgumentsDefinition;
+const build_retrieveInputArgumentsDefinition = require("../src/argument_list").build_retrieveInputArgumentsDefinition;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("CallRequest on custom method", function () {
 
-    var addressSpace;
+    let addressSpace;
     before(function (done) {
         addressSpace = new AddressSpace();
-        var xml_file = path.join(__dirname, "../test_helpers/test_fixtures/fixuture_nodeset_objects_with_some_methods.xml");
+        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/fixuture_nodeset_objects_with_some_methods.xml");
         fs.existsSync(xml_file).should.be.eql(true);
 
         generate_address_space(addressSpace, xml_file, function (err) {
@@ -41,21 +42,21 @@ describe("CallRequest on custom method", function () {
     });
     it("Q3 should encode and decode a method call request", function (done) {
 
-        var objectId = makeNodeId(999990, 0);
-        var methodId = makeNodeId(999992, 0);
+        const objectId = makeNodeId(999990, 0);
+        const methodId = makeNodeId(999992, 0);
 
 
-        var obj = addressSpace.findNode(objectId);
+        const obj = addressSpace.findNode(objectId);
         obj.should.be.instanceOf(UAObject);
 
-        var method = obj.getMethodById(methodId);
+        const method = obj.getMethodById(methodId);
         method.should.be.instanceOf(UAMethod);
         method.browseName.toString().should.eql("DoStuff");
 
-        var inputArguments = method.getInputArguments();
+        const inputArguments = method.getInputArguments();
         inputArguments.should.be.instanceOf(Array);
 
-        var callRequest = new call_service.CallRequest({
+        const callRequest = new call_service.CallRequest({
 
             methodsToCall: [{
                 objectId: objectId,
@@ -64,20 +65,22 @@ describe("CallRequest on custom method", function () {
             }]
         });
 
-        var retrieveInputArgumentsDefinition = build_retrieveInputArgumentsDefinition(addressSpace);
+        const retrieveInputArgumentsDefinition = build_retrieveInputArgumentsDefinition(addressSpace);
 
         //xx callRequest.factory = factory;
 
-        var options = {retrieveInputArgumentsDefinition: retrieveInputArgumentsDefinition};
-        var size = callRequest.binaryStoreSize(options);
+        const options = {retrieveInputArgumentsDefinition: retrieveInputArgumentsDefinition};
+        const size = callRequest.binaryStoreSize(options);
 
-        var stream = new BinaryStream(size, options);
+        const stream = new BinaryStream(size, options);
         callRequest.encode(stream, options);
 
-        console.log(hexDump(stream._buffer));
+        if (doDebug) {
+            console.log(hexDump(stream._buffer));
+        }
 
         // now decode
-        var callRequest_reloaded = new call_service.CallRequest();
+        const callRequest_reloaded = new call_service.CallRequest();
         stream.addressSpace = {};
         stream.rewind();
         callRequest_reloaded.decode(stream, options);

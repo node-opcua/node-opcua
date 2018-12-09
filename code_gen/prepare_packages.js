@@ -1,22 +1,22 @@
 "use strict";
-var fs = require("fs");
-var path = require("path");
-var async = require("async");
-var child_process = require("child_process");
+const fs = require("fs");
+const path = require("path");
+const async = require("async");
+const child_process = require("child_process");
 
 
 const packages_folder = path.join(__dirname,"../packages");
 const licence_file = path.join(__dirname,"../LICENSE");
 const main_packagejson = path.join(__dirname,"../package.json");
-var licence_text = "";
-var main_package = {};
+const licence_text = "";
+const main_package = {};
 
 function do_on_folder2(folder,packagejson,callback) {
 
-    var local_license_file = path.resolve(path.join(packages_folder,folder,"LICENSE"));
+    const local_license_file = path.resolve(path.join(packages_folder,folder,"LICENSE"));
     console.log("package",packagejson);
 
-    var local_package ={};
+    const local_package ={};
     async.series([
 
       function(callback) {
@@ -47,7 +47,7 @@ function do_on_folder2(folder,packagejson,callback) {
 }
 function do_on_folder(folder,callback) {
 
-    var package_file = path.resolve(path.join(packages_folder,folder,"package.json"));
+    const package_file = path.resolve(path.join(packages_folder,folder,"package.json"));
     fs.exists(package_file,function (exists) {
         if (exists) {
             return do_on_folder2(folder,package_file,callback);

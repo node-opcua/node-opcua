@@ -25,6 +25,14 @@
         </References>
         <InverseName>NonHierarchicalReferences</InverseName>
     </UAReferenceType>
+    <UAReferenceType NodeId="i=33" BrowseName="HierarchicalReferences" IsAbstract="true">
+        <DisplayName>HierarchicalReferences</DisplayName>
+        <Description>The abstract base type for all hierarchical references.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=31</Reference>
+        </References>
+        <InverseName>HierarchicalReferences</InverseName>
+    </UAReferenceType>
 
     <UAReferenceType NodeId="i=35" BrowseName="Organizes">
         <DisplayName>Organizes</DisplayName>

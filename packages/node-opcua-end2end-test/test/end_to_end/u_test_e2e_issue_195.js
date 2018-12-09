@@ -1,12 +1,12 @@
 /*global describe, it, require*/
 "use strict";
-var async = require("async");
-var should = require("should");
-var _ = require("underscore");
+const async = require("async");
+const should = require("should");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
-var OPCUAClient = opcua.OPCUAClient;
-var ServerSession = opcua.ServerSession;
+const opcua = require("node-opcua");
+const OPCUAClient = opcua.OPCUAClient;
+const ServerSession = opcua.ServerSession;
 
 
 module.exports = function (test) {
@@ -17,9 +17,9 @@ module.exports = function (test) {
 
         it("#195-A the node-opcua client shall automatically detect the maximum number of pending publish request supported by the server and avoid overflowing the server with too many",function(done) {
 
-            var the_session;
-            var the_subscription = 0;
-            var the_monitoredItem =0;
+            let the_session;
+            let the_subscription = 0;
+            let the_monitoredItem =0;
 
             function createSubscription(done) {
 
@@ -27,10 +27,10 @@ module.exports = function (test) {
 
                     // create a single subscription
                     function (callback) {
-                        var parameters = {
+                        const parameters = {
                             requestedPublishingInterval: 100000,
-                            requestedLifetimeCount: 10,
-                            requestedMaxKeepAliveCount: 2
+                            requestedLifetimeCount:      60,
+                            requestedMaxKeepAliveCount:  10
                         };
                         the_subscription = new opcua.ClientSubscription(the_session, parameters);
                         the_subscription.on("started",function() {
@@ -47,7 +47,7 @@ module.exports = function (test) {
                     },
                     function (callback) {
 
-                        var nodeIdToMonitor = "ns=0;i=2257"; // Server_ServerStatus_StartTime
+                        const nodeIdToMonitor = "ns=0;i=2257"; // Server_ServerStatus_StartTime
                         the_monitoredItem = the_subscription.monitor(
                             {
                                 nodeId: nodeIdToMonitor,
@@ -64,7 +64,7 @@ module.exports = function (test) {
                 ],done);
             }
 
-            var oldValue = ServerSession.maxPublishRequestInQueue;
+            const oldValue = ServerSession.maxPublishRequestInQueue;
             oldValue.should.be.greaterThan(20);
             ServerSession.maxPublishRequestInQueue = 10;
 
@@ -72,16 +72,16 @@ module.exports = function (test) {
             // Given a client session with many subscriptions
             // and many Publish Request send
             // the client shall detect the maximum number of pending publish request supported by the server
-            var server = test.server;
+            const server = test.server;
 
             if (!server) { return done(); }
 
-            var client1 = new OPCUAClient({
+            const client1 = new OPCUAClient({
                 requestedSessionTimeout: 10000,
                 keepSessionAlive: false
             });
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
             async.series([
 
@@ -129,9 +129,9 @@ module.exports = function (test) {
 
         });
 
-        it("#195-B a client shall detect when the server has closed a session due to timeout and  inactive subscriptions", function (done) {
+        it("NXX1 #195-B a client shall detect when the server has closed a session due to timeout and  inactive subscriptions", function (done) {
 
-            var the_session;
+            let the_session;
 
             // Given a server
             // Given a client with keepSessionAlive = false
@@ -140,21 +140,21 @@ module.exports = function (test) {
             // at some point the server will send a publish response with BadSessionClosed
             // and the client will raise a "session_closed" event
             //
-            var server = test.server;
+            const server = test.server;
 
             if (!server) { return done(); }
 
-            var client1 = new OPCUAClient({
-                requestedSessionTimeout: 2500,
+            const client1 = new OPCUAClient({
+                requestedSessionTimeout: 2500, // very short session timeout ....
                 keepSessionAlive: false
             });
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
-            var the_subscription = 0;
-            var the_monitoredItem =0;
+            let the_subscription = 0;
+            let the_monitoredItem =0;
 
-            var subscriptionId = null;
+            let subscriptionId = null;
             async.series([
 
                 function (callback) {
@@ -174,16 +174,14 @@ module.exports = function (test) {
 
                 // create a single subscription
                 function (callback) {
-                    var parameters = {
+                    const parameters = {
                         requestedPublishingInterval: 1000,
-                        requestedLifetimeCount:      100000,
-                        requestedMaxKeepAliveCount:  50
+                        requestedLifetimeCount:      100000,  // very long subscription lifetime
+                        requestedMaxKeepAliveCount:  1000
                     };
                     the_subscription = new opcua.ClientSubscription(the_session, parameters);
                     the_subscription.on("started",function() {
-
                         subscriptionId =the_subscription.subscriptionId;
-
                         callback();
                     }).on("internal_error", function (err) {
                         console.log(" received internal error", err.message);
@@ -197,7 +195,7 @@ module.exports = function (test) {
                 },
                 function (callback) {
 
-                    var nodeIdToMonitor = "ns=0;i=2257"; // Server_ServerStatus_StartTime
+                    const nodeIdToMonitor = "ns=0;i=2257"; // Server_ServerStatus_StartTime
                     the_monitoredItem = the_subscription.monitor(
                         {
                             nodeId: nodeIdToMonitor,
@@ -235,8 +233,11 @@ module.exports = function (test) {
                 },
 
                 function( callback) {
-                    _.isNumber(subscriptionId).should.eql(true);
+
+                _.isNumber(subscriptionId).should.eql(true);
+
                     console.log("transferring subscription", subscriptionId);
+
                     the_session.transferSubscriptions({
                         subscriptionIds: [ subscriptionId]
                     },function(err,response){
@@ -244,7 +245,8 @@ module.exports = function (test) {
                         response.results[0].statusCode.should.eql(opcua.StatusCodes.Good);
                         callback();
                     });
-                },
+
+                    },
                 function(callback) {
                     the_session.close(callback);
                 },

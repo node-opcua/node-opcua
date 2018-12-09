@@ -25,7 +25,7 @@
     <ItemData role="0" rolename="DisplayRole">
      <Value typename="QString" type="10" data="Server Test"/>
     </ItemData>
-    <ChildRows size="10">
+    <ChildRows size="11">
      <Row row="0">
       <Column column="0">
        <ItemData role="0" rolename="DisplayRole">
@@ -143,13 +143,13 @@
      <Row row="3">
       <Column column="0">
        <ItemData role="0" rolename="DisplayRole">
-        <Value typename="QString" type="10" data="Time Tolerence"/>
+        <Value typename="QString" type="10" data="Time Tolerance"/>
        </ItemData>
        <ChildRows size="0"/>
       </Column>
       <Column column="1">
        <ItemData role="0" rolename="DisplayRole">
-        <Value typename="QString" type="10" data="100"/>
+        <Value typename="QString" type="10" data="200"/>
        </ItemData>
        <ChildRows size="0"/>
       </Column>
@@ -187,7 +187,7 @@
       </Column>
       <Column column="1">
        <ItemData role="0" rolename="DisplayRole">
-        <Value typename="QString" type="10" data="2000"/>
+        <Value typename="QString" type="10" data="15"/>
        </ItemData>
        <ChildRows size="0"/>
       </Column>
@@ -259,7 +259,7 @@
        <ItemData role="0" rolename="DisplayRole">
         <Value typename="QString" type="10" data="Capabilities"/>
        </ItemData>
-       <ChildRows size="8">
+       <ChildRows size="10">
         <Row row="0">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
@@ -275,7 +275,7 @@
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="The maximum length of a string value.&lt;br>&lt;font color=&quot;blue&quot;>TIP: 0 means no limit&lt;/font>&lt;br/>&lt;font color=&quot;red&quot;>&lt;strong>ATTENTION&lt;/strong>: Reliability cannot be guaranteed for values higher than 65534."/>
+           <Value typename="QString" type="10" data="The maximum length of a string value.&lt;br>&lt;font color=&quot;blue&quot;>TIP: 0 means no limit or the limit is greater than 65534&lt;/font>&lt;br/>&lt;font color=&quot;red&quot;>&lt;strong>ATTENTION&lt;/strong>: Reliability cannot be guaranteed for values higher than 65534."/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -307,7 +307,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="0"/>
+           <Value typename="QString" type="10" data="50"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -345,7 +345,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="10"/>
+           <Value typename="QString" type="10" data="5"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -535,7 +535,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="10"/>
+           <Value typename="QString" type="10" data="0"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -554,6 +554,82 @@
          <Column column="4">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="2"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="8">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="SecurityNone Enabled"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="2"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="SecurityNone should be disabled by default.&lt;br/>&lt;strong>Checked&lt;/strong>: SecurityNone is enabled because the user has specifically enabled it.&lt;br/>&lt;strong>Unchecked&lt;/strong>: SecurityNone is not specifically enabled and therefore should be unavailable."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="3"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="4"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="9">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Max Supported Sessions"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="10"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="The MAX # of Sessions the Server supports.&lt;br/>&lt;strong>Note&lt;/strong>: 0 = means no limit."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="3"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -586,7 +662,7 @@
       </Column>
       <Column column="4">
        <ItemData role="0" rolename="DisplayRole">
-        <Value typename="int" type="2" data="0"/>
+        <Value typename="int" type="2" data="4"/>
        </ItemData>
        <ChildRows size="0"/>
       </Column>
@@ -650,7 +726,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="2000000"/>
+           <Value typename="QString" type="10" data="2000"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -993,7 +1069,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="userdenied"/>
+           <Value typename="QString" type="10" data="username"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -1212,7 +1288,7 @@
        <ItemData role="0" rolename="DisplayRole">
         <Value typename="QString" type="10" data="NodeIds"/>
        </ItemData>
-       <ChildRows size="6">
+       <ChildRows size="8">
         <Row row="0">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
@@ -1230,7 +1306,7 @@
                 <ItemData role="0" rolename="DisplayRole">
                  <Value typename="QString" type="10" data="Scalar"/>
                 </ItemData>
-                <ChildRows size="33">
+                <ChildRows size="34">
                  <Row row="0">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
@@ -2304,7 +2380,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_ImageBMP"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -2342,7 +2418,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_ImageBMP"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -2380,7 +2456,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_ImageGIF"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -2418,7 +2494,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_ImageJPG"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -2456,7 +2532,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_ImagePNG"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -2485,6 +2561,44 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
+                 <Row row="33">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="Decimal"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="" type="0" data=""/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="The NodeId of a Node of type: DECIMAL&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="3"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
                 </ChildRows>
                </Column>
                <Column column="1">
@@ -2507,7 +2621,7 @@
                </Column>
                <Column column="4">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="int" type="2" data="0"/>
+                 <Value typename="int" type="2" data="4"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -3317,11 +3431,11 @@
              <ItemData role="0" rolename="DisplayRole">
               <Value typename="QString" type="10" data="DA Profile"/>
              </ItemData>
-             <ChildRows size="5">
+             <ChildRows size="6">
               <Row row="0">
                <Column column="0">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="DataItem"/>
+                 <Value typename="QString" type="10" data="AnalogType"/>
                 </ItemData>
                 <ChildRows size="12">
                  <Row row="0">
@@ -3333,13 +3447,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Byte"/>
+                    <Value typename="QString" type="10" data="ns=411;s=ByteAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Byte.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Byte&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3371,13 +3485,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Double"/>
+                    <Value typename="QString" type="10" data="ns=411;s=DoubleAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Double.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Double&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3409,13 +3523,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Float"/>
+                    <Value typename="QString" type="10" data="ns=411;s=FloatAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Float.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Float&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3447,13 +3561,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Int16"/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int16AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Int16.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Int16&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3479,19 +3593,19 @@
                  <Row row="4">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="UInt16"/>
+                    <Value typename="QString" type="10" data="Int32"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_UInt16"/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int32AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a UInt16.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Int32&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3517,19 +3631,19 @@
                  <Row row="5">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Int32"/>
+                    <Value typename="QString" type="10" data="Int64"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Int32"/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int64AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Int32.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Int64&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3555,19 +3669,19 @@
                  <Row row="6">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="UInt32"/>
+                    <Value typename="QString" type="10" data="SByte"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_UInt32"/>
+                    <Value typename="QString" type="10" data="ns=411;s=SByteDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a UInt32.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>SByte&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3593,19 +3707,19 @@
                  <Row row="7">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Int64"/>
+                    <Value typename="QString" type="10" data="UInt16"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt16AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Int64.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>UInt16&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3631,19 +3745,19 @@
                  <Row row="8">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="UInt64"/>
+                    <Value typename="QString" type="10" data="UInt32"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt32AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a UInt64.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>UInt32&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3669,19 +3783,19 @@
                  <Row row="9">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="SByte"/>
+                    <Value typename="QString" type="10" data="UInt64"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_SByte"/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt64AnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a SByte.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>UInt64&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3707,19 +3821,19 @@
                  <Row row="10">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="String"/>
+                    <Value typename="QString" type="10" data="NodeIdWithEngineeringUnits"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_String"/>
+                    <Value typename="QString" type="10" data="ns=411;s=DoubleAnalogDataItemWithEU"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a String.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data=""/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3745,19 +3859,19 @@
                  <Row row="11">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="DateTime"/>
+                    <Value typename="QString" type="10" data="NodeIdWithInstrumentRange"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_DateTime"/>
+                    <Value typename="QString" type="10" data="ns=411;s=DoubleAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a DateTime.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>&lt;br>&lt;font color=&quot;red&quot;>Leave empty if your system does not support the full-resolution of a DateTime, i.e. 100-nanosecond intervals from 1601.&lt;/font>"/>
+                    <Value typename="QString" type="10" data=""/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3816,9 +3930,9 @@
               <Row row="1">
                <Column column="0">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="AnalogType"/>
+                 <Value typename="QString" type="10" data="AnalogType Arrays"/>
                 </ItemData>
-                <ChildRows size="12">
+                <ChildRows size="6">
                  <Row row="0">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
@@ -3828,13 +3942,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=4;s=TemperatureAnalogItem"/>
+                    <Value typename="QString" type="10" data="ns=411;s=DoubleArrayAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Double&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Double array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3866,13 +3980,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=FloatArrayAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Float&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Float array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3904,13 +4018,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int16ArrayAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Int16&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of an Int16 array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3936,19 +4050,19 @@
                  <Row row="3">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="UInt16"/>
+                    <Value typename="QString" type="10" data="Int32"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt16ArrayAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>UInt16&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of an Int32 array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -3974,19 +4088,19 @@
                  <Row row="4">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Int32"/>
+                    <Value typename="QString" type="10" data="UInt16"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt16ArrayAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Int32&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of an UInt16 array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4018,241 +4132,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt32ArrayAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>UInt32&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="3">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="1"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="4">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="0"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="5">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                 </Row>
-                 <Row row="6">
-                  <Column column="0">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Int64"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="1">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="2">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Int64&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="3">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="1"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="4">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="0"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="5">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                 </Row>
-                 <Row row="7">
-                  <Column column="0">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="UInt64"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="1">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="2">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>UInt64&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="3">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="1"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="4">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="0"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="5">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                 </Row>
-                 <Row row="8">
-                  <Column column="0">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Byte"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="1">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="2">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>Byte&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="3">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="1"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="4">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="0"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="5">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                 </Row>
-                 <Row row="9">
-                  <Column column="0">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="SByte"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="1">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="2">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type AnalogType and is a &lt;b>SByte&lt;/b>.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="3">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="1"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="4">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="0"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="5">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                 </Row>
-                 <Row row="10">
-                  <Column column="0">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeIdWithEngineeringUnits"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="1">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=4;s=TemperatureAnalogItem"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="2">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="3">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="1"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="4">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="0"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="5">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                 </Row>
-                 <Row row="11">
-                  <Column column="0">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeIdWithInstrumentRange"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="1">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=4;s=TemperatureAnalogItem"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="2">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="NodeId of an UInt32 array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4311,25 +4197,25 @@
               <Row row="2">
                <Column column="0">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="AnalogType Arrays"/>
+                 <Value typename="QString" type="10" data="ArrayItemType"/>
                 </ItemData>
-                <ChildRows size="6">
+                <ChildRows size="5">
                  <Row row="0">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Int16"/>
+                    <Value typename="QString" type="10" data="CubeItemType"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Array_Int16"/>
+                    <Value typename="QString" type="10" data=""/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of an Int16 array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="Specify the NodeId of a variable of type CubeItemType&lt;br>&lt;font color=&quot;green&quot;>UA Part 8 section 5.3.4.5&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4347,7 +4233,7 @@
                   </Column>
                   <Column column="5">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
+                    <Value typename="int" type="2" data="0"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4355,7 +4241,7 @@
                  <Row row="1">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Int32"/>
+                    <Value typename="QString" type="10" data="ImageItemType"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4367,7 +4253,7 @@
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of an Int32 array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="Specify the NodeId of a variable of type ImageItemType&lt;br>&lt;font color=&quot;green&quot;>UA Part 8 section 5.3.4.4&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4385,7 +4271,7 @@
                   </Column>
                   <Column column="5">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
+                    <Value typename="int" type="2" data="0"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4393,19 +4279,19 @@
                  <Row row="2">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="UInt16"/>
+                    <Value typename="QString" type="10" data="NDimensionArrayItemType"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Array_UInt16"/>
+                    <Value typename="QString" type="10" data=""/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of an UInt16 array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="Specify the NodeId of a variable of type NDimensionArrayItemType&lt;br>&lt;font color=&quot;green&quot;>UA Part 8 section 5.3.4.6&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4423,7 +4309,7 @@
                   </Column>
                   <Column column="5">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
+                    <Value typename="int" type="2" data="0"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4431,19 +4317,19 @@
                  <Row row="3">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="UInt32"/>
+                    <Value typename="QString" type="10" data="XYArrayItemType"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Array_UInt32"/>
+                    <Value typename="QString" type="10" data=""/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of an UInt32 array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="Specify the NodeId of a variable of type YYArrayItemType&lt;br>&lt;font color=&quot;green&quot;>UA Part 8 section 5.3.4.3&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4461,7 +4347,7 @@
                   </Column>
                   <Column column="5">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
+                    <Value typename="int" type="2" data="0"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4469,19 +4355,19 @@
                  <Row row="4">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Float"/>
+                    <Value typename="QString" type="10" data="YArrayItemType"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Array_Float"/>
+                    <Value typename="QString" type="10" data=""/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Float array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="Specify the NodeId of a variable of type YArrayItemType&lt;br>&lt;font color=&quot;green&quot;>UA Part 8 section 5.3.4.2&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4499,45 +4385,7 @@
                   </Column>
                   <Column column="5">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                 </Row>
-                 <Row row="5">
-                  <Column column="0">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Double"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="1">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Array_Double"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="2">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Double array Node, setup with an EURange.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="3">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="1"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="4">
-                   <ItemData role="0" rolename="DisplayRole">
                     <Value typename="int" type="2" data="0"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="5">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4564,7 +4412,7 @@
                </Column>
                <Column column="4">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="int" type="2" data="0"/>
+                 <Value typename="int" type="2" data="6"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -4578,25 +4426,25 @@
               <Row row="3">
                <Column column="0">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="DiscreteType"/>
+                 <Value typename="QString" type="10" data="DataItem"/>
                 </ItemData>
-                <ChildRows size="10">
+                <ChildRows size="12">
                  <Row row="0">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="MultiStateDiscrete001"/>
+                    <Value typename="QString" type="10" data="Byte"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=ByteDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete. Configure remaining MultiStateDiscrete options if available.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Byte.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4622,19 +4470,19 @@
                  <Row row="1">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="MultiStateDiscrete002"/>
+                    <Value typename="QString" type="10" data="DateTime"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=DateTimeDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a DateTime.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>&lt;br>&lt;font color=&quot;red&quot;>Leave empty if your system does not support the full-resolution of a DateTime, i.e. 100-nanosecond intervals from 1601.&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4660,19 +4508,19 @@
                  <Row row="2">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="MultiStateDiscrete003"/>
+                    <Value typename="QString" type="10" data="Double"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=DoubleDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Double.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4698,19 +4546,19 @@
                  <Row row="3">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="MultiStateDiscrete004"/>
+                    <Value typename="QString" type="10" data="Float"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=FloatDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Float.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4736,19 +4584,19 @@
                  <Row row="4">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="MultiStateDiscrete005"/>
+                    <Value typename="QString" type="10" data="Int16"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int16DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Int16.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4774,19 +4622,19 @@
                  <Row row="5">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="TwoStateDiscrete001"/>
+                    <Value typename="QString" type="10" data="Int32"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int32DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete. Configure remaining TwoStateDiscrete options if available.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Int32.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4812,19 +4660,19 @@
                  <Row row="6">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="TwoStateDiscrete002"/>
+                    <Value typename="QString" type="10" data="Int64"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int64DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a Int64.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4850,19 +4698,19 @@
                  <Row row="7">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="TwoStateDiscrete003"/>
+                    <Value typename="QString" type="10" data="SByte"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=SByteDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a SByte.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4888,19 +4736,19 @@
                  <Row row="8">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="TwoStateDiscrete004"/>
+                    <Value typename="QString" type="10" data="String"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=StringDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a String.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4926,19 +4774,95 @@
                  <Row row="9">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="TwoStateDiscrete005"/>
+                    <Value typename="QString" type="10" data="UInt16"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt16DataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a UInt16.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="10">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="UInt32"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=UInt32DataItem"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a UInt32.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="11">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="UInt64"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=UInt64DataItem"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type DataItem, and is a UInt64.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -4997,25 +4921,25 @@
               <Row row="4">
                <Column column="0">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="MultiStateValueDiscreteType"/>
+                 <Value typename="QString" type="10" data="DiscreteType"/>
                 </ItemData>
-                <ChildRows size="8">
+                <ChildRows size="10">
                  <Row row="0">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Byte"/>
+                    <Value typename="QString" type="10" data="MultiStateDiscrete001"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete001"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete. Configure remaining MultiStateDiscrete options if available.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5041,19 +4965,19 @@
                  <Row row="1">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="SByte"/>
+                    <Value typename="QString" type="10" data="MultiStateDiscrete002"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete002"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5079,19 +5003,19 @@
                  <Row row="2">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Int16"/>
+                    <Value typename="QString" type="10" data="MultiStateDiscrete003"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete003"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5117,19 +5041,19 @@
                  <Row row="3">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Int32"/>
+                    <Value typename="QString" type="10" data="MultiStateDiscrete004"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete004"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5155,19 +5079,438 @@
                  <Row row="4">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="MultiStateDiscrete005"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=MultiStateDiscrete005"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="5">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="TwoStateDiscrete001"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete001"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete. Configure remaining TwoStateDiscrete options if available.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="6">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="TwoStateDiscrete002"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete002"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="7">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="TwoStateDiscrete003"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete003"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="8">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="TwoStateDiscrete004"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete004"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="9">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="TwoStateDiscrete005"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=TwoStateDiscrete005"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specfically of type MultiStateDiscrete.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                </ChildRows>
+               </Column>
+               <Column column="1">
+                <ItemData role="0" rolename="DisplayRole">
+                 <Value typename="QString" type="10" data=""/>
+                </ItemData>
+                <ChildRows size="0"/>
+               </Column>
+               <Column column="2">
+                <ItemData role="0" rolename="DisplayRole">
+                 <Value typename="QString" type="10" data=""/>
+                </ItemData>
+                <ChildRows size="0"/>
+               </Column>
+               <Column column="3">
+                <ItemData role="0" rolename="DisplayRole">
+                 <Value typename="int" type="2" data="0"/>
+                </ItemData>
+                <ChildRows size="0"/>
+               </Column>
+               <Column column="4">
+                <ItemData role="0" rolename="DisplayRole">
+                 <Value typename="int" type="2" data="0"/>
+                </ItemData>
+                <ChildRows size="0"/>
+               </Column>
+               <Column column="5">
+                <ItemData role="0" rolename="DisplayRole">
+                 <Value typename="int" type="2" data="0"/>
+                </ItemData>
+                <ChildRows size="0"/>
+               </Column>
+              </Row>
+              <Row row="5">
+               <Column column="0">
+                <ItemData role="0" rolename="DisplayRole">
+                 <Value typename="QString" type="10" data="MultiStateValueDiscreteType"/>
+                </ItemData>
+                <ChildRows size="8">
+                 <Row row="0">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="Byte"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=ByteMultiStateValueDiscrete"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type MultiStateValueDiscreteType, and is a Byte.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="1">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="Int16"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=Int16MultiStateValueDiscrete"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type MultiStateValueDiscreteType, and is a Int16.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="2">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="Int32"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=Int32MultiStateValueDiscrete"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type MultiStateValueDiscreteType, and is a Int32.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="3">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="Int64"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=Int64MultiStateValueDiscrete"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type MultiStateValueDiscreteType, and is a Int64.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="3">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="1"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="4">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="0"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="5">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="int" type="2" data="5"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                 </Row>
+                 <Row row="4">
+                  <Column column="0">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="SByte"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="1">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="ns=411;s=SByteMultiStateValueDiscrete"/>
+                   </ItemData>
+                   <ChildRows size="0"/>
+                  </Column>
+                  <Column column="2">
+                   <ItemData role="0" rolename="DisplayRole">
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type MultiStateValueDiscreteType, and is a SByte.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5199,13 +5542,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt16MultiStateValueDiscrete"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type MultiStateValueDiscreteType, and is a UInt16.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5237,13 +5580,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt32MultiStateValueDiscrete"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type MultiStateValueDiscreteType, and is a UInt32.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5275,13 +5618,13 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="ns=411;s=UInt64MultiStateValueDiscrete"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
                   <Column column="2">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
+                    <Value typename="QString" type="10" data="NodeId of a Node that is specficially of type MultiStateValueDiscreteType, and is a UInt64.&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -5359,7 +5702,7 @@
             </Column>
             <Column column="4">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="int" type="2" data="0"/>
+              <Value typename="int" type="2" data="4"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -5994,7 +6337,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Array_Float"/>
+                 <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Double"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -7626,7 +7969,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=85"/>
+              <Value typename="QString" type="10" data="ns=411;s=ByteAnalogDataItem"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -7664,7 +8007,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=86"/>
+              <Value typename="QString" type="10" data="ns=411;s=ByteArrayAnalogDataItem"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -7702,7 +8045,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=90"/>
+              <Value typename="QString" type="10" data="ns=411;s=DateTimeAnalogDataItem"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -7740,7 +8083,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=15"/>
+              <Value typename="QString" type="10" data="ns=411;s=ByteDataItem"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -7778,7 +8121,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=29"/>
+              <Value typename="QString" type="10" data="ns=411;s=ByteDataItem"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -7816,7 +8159,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=85"/>
+              <Value typename="QString" type="10" data="ns=411;s=ByteDataItem"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -7854,7 +8197,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=2253"/>
+              <Value typename="QString" type="10" data=""/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -7969,7 +8312,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=Path_1Deep"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8122,7 +8465,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=411;s=Scalar_Static_Boolean"/>
+              <Value typename="QString" type="10" data="i=2258"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8160,7 +8503,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=411;s=Scalar_Static"/>
+              <Value typename="QString" type="10" data="i=85"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8236,7 +8579,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=2041"/>
+              <Value typename="QString" type="10" data="i=58"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8274,7 +8617,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=3051"/>
+              <Value typename="QString" type="10" data="i=62"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8312,7 +8655,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=46"/>
+              <Value typename="QString" type="10" data="i=31"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8350,7 +8693,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="i=338"/>
+              <Value typename="QString" type="10" data="i=24"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8465,7 +8808,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=AccessLevel_CurrentRead"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8503,7 +8846,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=AccessLevel_CurrentWrite"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8541,7 +8884,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=AccessLevel_CurrentRead_NotUser"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8579,7 +8922,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=AccessLevel_CurrentWrite_NotUser"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8655,7 +8998,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=411;s=AccessLevel_CurrentWrite_NotCurrentRead"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8732,7 +9075,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=2;i=12"/>
+              <Value typename="QString" type="10" data=""/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8776,7 +9119,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -9080,7 +9423,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -9118,7 +9461,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="2"/>
+                 <Value typename="QString" type="10" data="0"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -9498,7 +9841,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -9549,7 +9892,7 @@
             </Column>
             <Column column="4">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="int" type="2" data="6"/>
+              <Value typename="int" type="2" data="0"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -9841,7 +10184,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10031,7 +10374,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10069,7 +10412,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10107,7 +10450,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10145,7 +10488,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10183,7 +10526,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10221,7 +10564,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10259,7 +10602,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10297,7 +10640,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="0"/>
+                 <Value typename="QString" type="10" data="2"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10348,7 +10691,7 @@
             </Column>
             <Column column="4">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="int" type="2" data="6"/>
+              <Value typename="int" type="2" data="0"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -10564,7 +10907,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="2"/>
+                 <Value typename="QString" type="10" data="0"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10602,7 +10945,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="2"/>
+                 <Value typename="QString" type="10" data="0"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10678,7 +11021,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="2"/>
+                 <Value typename="QString" type="10" data="0"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10716,7 +11059,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="2"/>
+                 <Value typename="QString" type="10" data="0"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10792,7 +11135,7 @@
                </Column>
                <Column column="1">
                 <ItemData role="0" rolename="DisplayRole">
-                 <Value typename="QString" type="10" data="2"/>
+                 <Value typename="QString" type="10" data="0"/>
                 </ItemData>
                 <ChildRows size="0"/>
                </Column>
@@ -10881,13 +11224,357 @@
             </Column>
             <Column column="4">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="int" type="2" data="6"/>
+              <Value typename="int" type="2" data="0"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
             <Column column="5">
              <ItemData role="0" rolename="DisplayRole">
               <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+          </ChildRows>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data=""/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data=""/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="6">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Methods"/>
+          </ItemData>
+          <ChildRows size="5">
+           <Row row="0">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="MethodNoArgs"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ns=411;s=MethodNoArgs"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="NodeId of a Method whose signature matches: void method();"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="5"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="1">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="MethodIO"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ns=411;s=MethodIO"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="NodeId of a Method whose signature has both in and out parameters, e.g. void method( in, out ).&lt;br/>The CTT will automatically utilize the parameters while respecting the data-types."/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="5"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="2">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="MethodI"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ns=411;s=MethodI"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="NodeId of a Method whose signature has in parameters only, e.g. void method( in ).&lt;br/>The CTT will automatically utilize the parameters while respecting the data-types."/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="5"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="3">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="MethodO"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ns=411;s=MethodO"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="NodeId of a Method whose signature has out parameters only, e.g. void method( out )."/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="5"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="4">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="MultipleMethods"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ns=411;s=ObjectWithMethods"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Node that has multiple methods attached to it."/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="5"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+          </ChildRows>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data=""/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data=""/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="7">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Events"/>
+          </ItemData>
+          <ChildRows size="2">
+           <Row row="0">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="TriggerNode01"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ns=411;s=TriggerNode01"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Node that will invoke an event (of any kind) whenever it is written to."/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="5"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="1">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="TriggerNode02"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ns=411;s=TriggerNode02"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Node that will invoke an event (of any kind) whenever it is written to."/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="5"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -10958,6 +11645,44 @@
        <ChildRows size="0"/>
       </Column>
      </Row>
+     <Row row="10">
+      <Column column="0">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="QString" type="10" data="Debug"/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+      <Column column="1">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="QString" type="10" data="2"/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+      <Column column="2">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="QString" type="10" data="True = print verbose output for UA Service calls via library objects.&#xa;False = print minimal information (faster performance)"/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+      <Column column="3">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="int" type="2" data="1"/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+      <Column column="4">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="int" type="2" data="0"/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+      <Column column="5">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="int" type="2" data="4"/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+     </Row>
     </ChildRows>
    </Column>
    <Column column="1">
@@ -10996,14 +11721,52 @@
     <ItemData role="0" rolename="DisplayRole">
      <Value typename="QString" type="10" data="Advanced"/>
     </ItemData>
-    <ChildRows size="4">
+    <ChildRows size="5">
      <Row row="0">
       <Column column="0">
        <ItemData role="0" rolename="DisplayRole">
         <Value typename="QString" type="10" data="Certificates"/>
        </ItemData>
-       <ChildRows size="22">
+       <ChildRows size="37">
         <Row row="0">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="CertificateAuthority"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuactt_ca.der"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Public key for a Certificate Authority.&lt;br>&lt;font color=blue>Please copy this certificate to your Server's trust list.&lt;/font>"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="13"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="1">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="CertificateTrustListLocation"/>
@@ -11041,7 +11804,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="1">
+        <Row row="2">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="CertificateRevocationListLocation"/>
@@ -11056,7 +11819,7 @@
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="Location of the Revoked Certificate List repository.&lt;br>Copy the contents (*.crl) to your Server's CRL directory."/>
+           <Value typename="QString" type="10" data="Location of the Revoked Certificate List repository."/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11079,7 +11842,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="2">
+        <Row row="3">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate"/>
@@ -11117,7 +11880,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="3">
+        <Row row="4">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientPrivateKey"/>
@@ -11155,7 +11918,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="4">
+        <Row row="5">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ExpiredClientCertificate"/>
@@ -11193,7 +11956,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="5">
+        <Row row="6">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ExpiredClientPrivateKey"/>
@@ -11231,7 +11994,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="6">
+        <Row row="7">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="IncorrectlySignedClientCertificate"/>
@@ -11240,13 +12003,13 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/certs/opcuactt_incorrectSign.der"/>
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuactt_incorrectsign.der"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="The &lt;b>Incorrectly Signed&lt;/b> Certificate that the UA CTT should use when connecting to a UA Server.&lt;br>&lt;font color=blue>Please copy this certificate to your Server's trust list.&lt;/font>"/>
+           <Value typename="QString" type="10" data="The &lt;b>Incorrectly Signed&lt;/b> Certificate that the UA CTT should use when connecting to a UA Server."/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11269,7 +12032,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="7">
+        <Row row="8">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="IncorrectlySignedClientPrivateKey"/>
@@ -11278,7 +12041,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/private/opcuactt_incorrectSign.pem"/>
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuactt_incorrectsign.pem"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11307,7 +12070,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="8">
+        <Row row="9">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_NotTrusted"/>
@@ -11345,7 +12108,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="9">
+        <Row row="10">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_NotTrustedPrivateKey"/>
@@ -11383,7 +12146,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="10">
+        <Row row="11">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_Revoked"/>
@@ -11421,7 +12184,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="11">
+        <Row row="12">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_RevokedPrivateKey"/>
@@ -11459,7 +12222,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="12">
+        <Row row="13">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_NotYetValid"/>
@@ -11468,7 +12231,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/certs/NotyetValid.der"/>
+           <Value typename="QString" type="10" data="PKI/CA/certs/notyetvalid.der"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11497,7 +12260,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="13">
+        <Row row="14">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_NotYetValidPrivateKey"/>
@@ -11506,7 +12269,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/private/NotyetValid.pem"/>
+           <Value typename="QString" type="10" data="PKI/CA/private/notyetvalid.pem"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11535,7 +12298,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="14">
+        <Row row="15">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_IssuerUnknown"/>
@@ -11544,7 +12307,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/certs/isserunknown.der"/>
+           <Value typename="QString" type="10" data="PKI/CA/certs/issuerunknown.der"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11573,7 +12336,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="15">
+        <Row row="16">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_IssuerUnknownPrivateKey"/>
@@ -11611,7 +12374,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="16">
+        <Row row="17">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_HostnameInvalid"/>
@@ -11620,7 +12383,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/certs/opcuactt_incorrectIP.der"/>
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuactt_incorrectip.der"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11649,7 +12412,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="17">
+        <Row row="18">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_HostnameInvalidPrivateKey"/>
@@ -11658,7 +12421,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/private/opcuactt_incorrectIP.pem"/>
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuactt_incorrectip.pem"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11687,7 +12450,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="18">
+        <Row row="19">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="UserCertificate"/>
@@ -11702,45 +12465,7 @@
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="X509 Certificate for a USER."/>
-          </ItemData>
-          <ChildRows size="0"/>
-         </Column>
-         <Column column="3">
-          <ItemData role="0" rolename="DisplayRole">
-           <Value typename="int" type="2" data="1"/>
-          </ItemData>
-          <ChildRows size="0"/>
-         </Column>
-         <Column column="4">
-          <ItemData role="0" rolename="DisplayRole">
-           <Value typename="int" type="2" data="0"/>
-          </ItemData>
-          <ChildRows size="0"/>
-         </Column>
-         <Column column="5">
-          <ItemData role="0" rolename="DisplayRole">
-           <Value typename="int" type="2" data="13"/>
-          </ItemData>
-          <ChildRows size="0"/>
-         </Column>
-        </Row>
-        <Row row="19">
-         <Column column="0">
-          <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="CertificateAuthority"/>
-          </ItemData>
-          <ChildRows size="0"/>
-         </Column>
-         <Column column="1">
-          <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/certs/opcuactt_ca.der"/>
-          </ItemData>
-          <ChildRows size="0"/>
-         </Column>
-         <Column column="2">
-          <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="Public key for a Certificate Authority."/>
+           <Value typename="QString" type="10" data="X509 Certificate for a USER.&lt;br>&lt;font color=blue>Please copy this certificate to your Server's trust list.&lt;/font>"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11766,13 +12491,51 @@
         <Row row="20">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_PrivateKey"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuser.pem"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Private key of the valid/trusted user x509 certificate."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="15"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="21">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_ExpiredNotTrusted"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/certs/expiredNotTrusted.der"/>
+           <Value typename="QString" type="10" data="PKI/CA/certs/expirednottrusted.der"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11801,7 +12564,7 @@
           <ChildRows size="0"/>
          </Column>
         </Row>
-        <Row row="21">
+        <Row row="22">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="ClientCertificate_ExpiredNotTrustedPrivateKey"/>
@@ -11810,13 +12573,545 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="PKI/CA/private/expiredNotTrusted.pem"/>
+           <Value typename="QString" type="10" data="PKI/CA/private/expirednottrusted.pem"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="Expired Client Certificate, private key."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="15"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="23">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_NotYetValid"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuser-notyetvalid.der"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserX509 certificate that is not yet valid"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="13"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="24">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_NotYetValid_PrivateKey"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuser-notyetvalid.pem"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Private key for the user certificate that is not yet valid"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="15"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="25">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="ClientCertificate_Issued"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuactt_issued.der"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Issued client certificate."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="13"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="26">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="ClientCertificate_IssuedPrivateKey"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuactt_issued.pem"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Private key of the Issued client certificate."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="15"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="27">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Expired"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuser-expired.der"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="User x509 certificate that is trusted, but has expired.&lt;br>&lt;font color=blue>Please copy this certificate to your Server's trust list.&lt;/font>"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="13"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="28">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Expired_PrivateKey"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuser-expired.pem"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Private key for the trusted/expired user x509 certificate"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="15"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="29">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Untrusted"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuser-untrusted.der"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="User x509 certificate that is valid, but not in the trust list."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="13"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="30">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Untrusted_PrivateKey"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuser-untrusted.pem"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Private key of the valid but not trusted user certificate"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="15"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="31">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Revoked"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuser_revoked.der"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="User x509 certificate that is revoked.&lt;br>&lt;font color=blue>Please copy this certificate to your Server's trust list.&lt;/font>"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="13"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="32">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Revoked_PrivateKey"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuser_revoked.pem"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Private key for the revoked user X509 certificate"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="15"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="33">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Issued"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuser_issued.der"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Issued User X509 certificate that is trusted.&lt;br>&lt;font color=blue>Please copy this certificate to your Server's trust list.&lt;/font>"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="13"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="34">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Issued_PrivateKey"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuser_issued.pem"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Private key of the issued user x509 cert."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="15"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="35">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Invalid"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/certs/opcuser_incorrectsign.der"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="User X509 certificate that is not valid."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="13"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="36">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="UserCertificate_Invalid_PrivateKey"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="PKI/CA/private/opcuser_incorrectsign.pem"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Private key of a user X509 cert that is not valid."/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -11861,7 +13156,7 @@
       </Column>
       <Column column="4">
        <ItemData role="0" rolename="DisplayRole">
-        <Value typename="int" type="2" data="0"/>
+        <Value typename="int" type="2" data="4"/>
        </ItemData>
        <ChildRows size="0"/>
       </Column>
@@ -12159,7 +13454,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="b="/>
+              <Value typename="QString" type="10" data="b=NULL"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -12268,7 +13563,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="&quot;http://opcfoundation.org/UA/&quot;, &quot;urn:XLEURI11022:NodeOPCUA-Server&quot;"/>
+           <Value typename="QString" type="10" data="&quot;http://opcfoundation.org/UA/&quot;, &quot;urn:STERFIVEPC2:NodeOPCUA-Server&quot;, &quot;http://opcfoundation.org/UA/DI/&quot;"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -12732,7 +14027,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="8"/>
+              <Value typename="QString" type="10" data="28"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -12770,7 +14065,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="2"/>
+              <Value typename="QString" type="10" data="0"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -12841,7 +14136,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="0"/>
+           <Value typename="QString" type="10" data="2"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -12962,6 +14257,197 @@
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="Checked=Do not add any warning details below testcase in result tree.&lt;br/>Unchecked=Also log warning details."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="4"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+       </ChildRows>
+      </Column>
+      <Column column="1">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="QString" type="10" data=""/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+      <Column column="2">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="QString" type="10" data=""/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+      <Column column="3">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="int" type="2" data="0"/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+      <Column column="4">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="int" type="2" data="0"/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+      <Column column="5">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="int" type="2" data="0"/>
+       </ItemData>
+       <ChildRows size="0"/>
+      </Column>
+     </Row>
+     <Row row="4">
+      <Column column="0">
+       <ItemData role="0" rolename="DisplayRole">
+        <Value typename="QString" type="10" data="CertificateOverrides"/>
+       </ItemData>
+       <ChildRows size="4">
+        <Row row="0">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="DisableCertificateTimeInvalid"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to suppress the verification of the certificate's validity regarding the expiry date/time. A server may be configured to allow connections using trusted but expired certificates."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="4"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="1">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="DisableCertificateRevocationUnknown"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to suppress errors caused by unavailable revocation list. If this flag is not set the server must have a revocation list (even an empty one) for each and every one trusted CA."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="3"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="4"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="2">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="DisableCertificateUseNotAllowed"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to ignore informational content of a certificate. Server can be configured to suppress set of optional uses of the certificate."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="3"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="4"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="3">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="DisableCertificateHostNameInvalid"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to ignore domain- and/or hostname mismatch when comparing the URL used to connect with the content of the certificate. Note: most server will have this supression flag set, because they technically can not resolve the domain name of an incoming service call and by this can not compare it to match the domain name in the certificate."/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>

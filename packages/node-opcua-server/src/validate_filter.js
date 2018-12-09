@@ -1,13 +1,13 @@
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var subscription_service = require("node-opcua-service-subscription");
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var AttributeIds = require("node-opcua-data-model").AttributeIds;
+const subscription_service = require("node-opcua-service-subscription");
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
-var UAVariable = require("node-opcua-address-space").UAVariable;
-var NodeId = require("node-opcua-nodeid").NodeId;
-var EventFilter = require("node-opcua-service-filter").EventFilter;
+const UAVariable = require("node-opcua-address-space").UAVariable;
+const NodeId = require("node-opcua-nodeid").NodeId;
+const EventFilter = require("node-opcua-service-filter").EventFilter;
 
 function __validateDataChangeFilter(filter,itemToMonitor,node) {
 
@@ -23,11 +23,13 @@ function __validateDataChangeFilter(filter,itemToMonitor,node) {
 
     // if node is not Numerical=> DataChangeFilter
     assert(node.dataType instanceof NodeId);
-    var dataType = node.addressSpace.findDataType(node.dataType);
+    const dataType = node.addressSpace.findDataType(node.dataType);
 
-    var dataTypeNumber = node.addressSpace.findDataType("Number");
-    if (!dataType.isSupertypeOf(dataTypeNumber)) {
+    const dataTypeNumber = node.addressSpace.findDataType("Number");
+    if (filter.deadbandType !== subscription_service.DeadbandType.None) {
+      if (!dataType.isSupertypeOf(dataTypeNumber)) {
         return StatusCodes.BadFilterNotAllowed;
+      }
     }
 
 
@@ -39,7 +41,7 @@ function __validateDataChangeFilter(filter,itemToMonitor,node) {
         // node must also have a valid euRange
         if (!node.euRange) {
             console.log(" node has no euRange ! DeadbandPercent cannot be used on node "+ node.nodeId.toString());
-            return StatusCodes.BadFilterNotAllowed;
+            return StatusCodes.BadMonitoredItemFilterUnsupported;
         }
     }
     return StatusCodes.Good;

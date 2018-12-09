@@ -1,4 +1,4 @@
-var CloseSecureChannelRequest_Schema = {
+const CloseSecureChannelRequest_Schema = {
     name: "CloseSecureChannelRequest",
     fields: [
         { name: "requestHeader", fieldType: "RequestHeader"                  }

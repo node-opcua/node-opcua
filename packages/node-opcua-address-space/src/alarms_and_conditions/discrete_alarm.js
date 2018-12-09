@@ -4,15 +4,16 @@
  */
 
 
-var util = require("util");
-var assert = require("node-opcua-assert");
-var _ = require("underscore");
+const util = require("util");
+const assert = require("node-opcua-assert").assert;
+const _ = require("underscore");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-var DataType = require("node-opcua-variant").DataType;
-var AddressSpace =require("../address_space").AddressSpace;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const DataType = require("node-opcua-variant").DataType;
+const AddressSpace =require("../address_space").AddressSpace;
+const Namespace = require("../namespace").Namespace;
 
-var UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
+const UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
 
 /*=
  *      +----------------------+
@@ -40,27 +41,33 @@ var UAAlarmConditionBase = require("./alarm_condition").UAAlarmConditionBase;
 
 /**
  * @class UADiscreteAlarm
- * @extends UAAlarmConditionBase
- * @constructor
+ *
  * The DiscreteAlarmType is used to classify Types into Alarm Conditions where the input for the
  * Alarm may take on only a certain number of possible values (e.g. true/false,
  * running/stopped/terminating).
+ *
+ *  @extends UAAlarmConditionBase
+ * @constructor
+ *
+ *
  */
 function UADiscreteAlarm() {
 }
 util.inherits(UADiscreteAlarm, UAAlarmConditionBase);
 
-UADiscreteAlarm.instantiate = function(addressSpace, discreteAlarmTypeId, options, data) {
+UADiscreteAlarm.instantiate = function(namespace, discreteAlarmTypeId, options, data) {
 
+    assert(namespace instanceof Namespace);
+    const addressSpace = namespace.addressSpace;
     assert(addressSpace instanceof AddressSpace);
 
-    var discreteAlarmType = addressSpace.findEventType(discreteAlarmTypeId);
+    const discreteAlarmType = addressSpace.findEventType(discreteAlarmTypeId);
     /* istanbul ignore next */
     if (!discreteAlarmType) {
         throw new Error(" cannot find Condition Type for " + discreteAlarmType);
     }
 
-    var discreteAlarmTypeBase = addressSpace.findObjectType("DiscreteAlarmType");
+    const discreteAlarmTypeBase = addressSpace.findObjectType("DiscreteAlarmType");
     assert(discreteAlarmTypeBase,"expecting DiscreteAlarmType - please check you nodeset xml file!");
 
     /* eventTypeNode should be subtypeOf("DiscreteAlarmType"); */
@@ -69,7 +76,7 @@ UADiscreteAlarm.instantiate = function(addressSpace, discreteAlarmTypeId, option
         throw new Error("UADiscreteAlarm.instantiate : event found is not subType of DiscreteAlarmType");
     }
 
-    var alarmNode = UAAlarmConditionBase.instantiate(addressSpace, discreteAlarmType, options, data);
+    const alarmNode = UAAlarmConditionBase.instantiate(namespace, discreteAlarmType, options, data);
     Object.setPrototypeOf(alarmNode, UADiscreteAlarm.prototype);
 
     return alarmNode;

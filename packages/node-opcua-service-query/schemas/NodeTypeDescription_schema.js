@@ -1,4 +1,4 @@
-var NodeTypeDescription_Schema = {
+const NodeTypeDescription_Schema = {
     name: "NodeTypeDescription",
     fields: [
         {name: "typeDefinitionNode",fieldType: "ExpandedNodeId",

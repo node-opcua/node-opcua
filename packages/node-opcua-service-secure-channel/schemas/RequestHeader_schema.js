@@ -1,9 +1,9 @@
 "use strict";
 
-var ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
+const ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
 
 // OPC Unified Architecture, Part 4  $7.27 page 139
-var RequestHeader_Schema = {
+const RequestHeader_Schema = {
     name: "RequestHeader",
     fields: [
 

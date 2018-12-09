@@ -1,13 +1,13 @@
 "use strict";
 
 
-var  BrowseDirection=  require("node-opcua-data-model").BrowseDirection;
-var  ResultMask=  require("node-opcua-data-model").ResultMask;
-var NodeClass = require("node-opcua-data-model").NodeClass;
+const BrowseDirection=  require("node-opcua-data-model").BrowseDirection;
+const ResultMask=  require("node-opcua-data-model").ResultMask;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
-var BrowseDescription_Schema = {
+const BrowseDescription_Schema = {
     name: "BrowseDescription",
-    documentation: 'A request to browse the the references from a node.',
+    documentation: "A request to browse the the references from a node.",
     fields: [
         {name: "nodeId", fieldType: "NodeId", documentation: "The id of the node to browse."},
         {name: "browseDirection", fieldType: "BrowseDirection", documentation: "The direction of the references to return."},

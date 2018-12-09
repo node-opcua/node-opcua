@@ -1,17 +1,22 @@
 "use strict";
-var should = require("should");
+const should = require("should");
 
-var build_client_server_session = require("../test_helpers/build_client_server_session").build_client_server_session;
+const async = require("async");
 
-var VariableIds = require("node-opcua").VariableIds;
-var subscription_service = require("node-opcua").subscription_service;
-var read_service = require("node-opcua").read_service;
-var makeNodeId = require("node-opcua").makeNodeId;
+const build_client_server_session = require("../test_helpers/build_client_server_session").build_client_server_session;
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const VariableIds = require("node-opcua").VariableIds;
+const subscription_service = require("node-opcua").subscription_service;
+const read_service = require("node-opcua").read_service;
+const makeNodeId = require("node-opcua").makeNodeId;
+
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing basic Client Server dealing with subscription at low level", function () {
-    var g_session;
-    var client_server;
+
+    this.timeout(20000);
+
+    let g_session;
+    let client_server;
 
     before(function (done) {
 
@@ -29,84 +34,154 @@ describe("testing basic Client Server dealing with subscription at low level", f
         client_server.shutdown(done);
     });
 
-    var subscriptionId = null;
+
     it("server should create a subscription (CreateSubscriptionRequest)", function (done) {
 
+        let subscriptionId = null;
+
         // CreateSubscriptionRequest
-        var request = new subscription_service.CreateSubscriptionRequest({
+        const request = new subscription_service.CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
             requestedLifetimeCount: 100 * 60 * 10,
-            requestedMaxKeepAliveCount: 2,
-            maxNotificationsPerPublish: 2,
+            requestedMaxKeepAliveCount: 20,
+            maxNotificationsPerPublish: 10,
+            publishingEnabled: true,
+            priority: 6
+        });
+
+        g_session.createSubscription(request, function (err, response) {
+
+            if (err) {
+                return done(err);
+            }
+            response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
+            subscriptionId = response.subscriptionId;
+
+            //xx console.log(response.toString());
+
+            setImmediate(function () {
+                const request = new subscription_service.DeleteSubscriptionsRequest({
+                    subscriptionIds: [ subscriptionId ]
+                });
+                g_session.deleteSubscriptions(request, function (err, result) {
+                    done(err);
+                });
+            });
+        });
+    });
+
+    it("server should create a monitored item  (CreateMonitoredItems)", function (done) {
+
+
+        let subscriptionId = null;
+        // CreateSubscriptionRequest
+        const request = new subscription_service.CreateSubscriptionRequest({
+            requestedPublishingInterval: 100,
+            requestedLifetimeCount: 100 * 60 * 10,
+            requestedMaxKeepAliveCount: 20,
+            maxNotificationsPerPublish: 10,
             publishingEnabled: true,
             priority: 6
         });
         g_session.createSubscription(request, function (err, response) {
-            if (!err) {
-                response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
-                subscriptionId = response.subscriptionId;
+            if (err) {
+                return done(err);
             }
-            done(err);
-
-        });
-    });
-    it("server should create a monitored item  (CreateMonitoredItems)", function (done) {
+            response.should.be.instanceof(subscription_service.CreateSubscriptionResponse);
+            subscriptionId = response.subscriptionId;
 
 
-        // CreateMonitoredItemsRequest
-        var request = new subscription_service.CreateMonitoredItemsRequest({
-            subscriptionId: subscriptionId,
-            timestampsToReturn: read_service.TimestampsToReturn.Both,
-            itemsToCreate: [
-                {
-                    itemToMonitor: {
-                        nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
-                    },
-                    monitoringMode: subscription_service.MonitoringMode.Sampling,
-                    requestedParameters: {
-                        clientHandle: 26,
-                        samplingInterval: 100,
-                        filter: null,
-                        queueSize: 100,
-                        discardOldest: true
+            // CreateMonitoredItemsRequest
+            const request = new subscription_service.CreateMonitoredItemsRequest({
+                subscriptionId: subscriptionId,
+                timestampsToReturn: read_service.TimestampsToReturn.Both,
+                itemsToCreate: [
+                    {
+                        itemToMonitor: {
+                            nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
+                        },
+                        monitoringMode: subscription_service.MonitoringMode.Sampling,
+                        requestedParameters: {
+                            clientHandle: 26,
+                            samplingInterval: 100,
+                            filter: null,
+                            queueSize: 100,
+                            discardOldest: true
+                        }
                     }
+                ]
+            });
+            g_session.createMonitoredItems(request, function (err, response) {
+                if (!err) {
+                    response.should.be.instanceof(subscription_service.CreateMonitoredItemsResponse);
                 }
-            ]
-        });
-        g_session.createMonitoredItems(request, function (err, response) {
-            if (!err) {
-                response.should.be.instanceof(subscription_service.CreateMonitoredItemsResponse);
-            }
-            done(err);
+                done(err);
+            });
         });
     });
 
     it("server should handle Publish request", function (done) {
 
-        // publish request now requires a subscriptions
-        var request = new subscription_service.PublishRequest({
-            subscriptionAcknowledgements: []
-        });
-        g_session.publish(request, function (err, response) {
+        let subscriptionId = null;
 
-            if (!err) {
-                response.should.be.instanceof(subscription_service.PublishResponse);
+        async.series([
+            function (callback) {
 
-                response.should.have.ownProperty("subscriptionId");          // IntegerId
-                response.should.have.ownProperty("availableSequenceNumbers");// Array,Counter,
-                response.should.have.ownProperty("moreNotifications");       // Boolean
-                response.should.have.ownProperty("notificationMessage");
-                response.should.have.ownProperty("results");
-                response.should.have.ownProperty("diagnosticInfos");
+                // CreateSubscriptionRequest
+                const request = new subscription_service.CreateSubscriptionRequest({
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 100 * 60 * 10,
+                    requestedMaxKeepAliveCount: 20,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
+                });
+                g_session.createSubscription(request, function (err, response) {
+                    if (err) {
+                        return done(err);
+                    }
+                    subscriptionId = response.subscriptionId;
+                    callback();
+                });
+            },
+            function (callback) {
+
+                // publish request now requires a subscriptions
+                const request = new subscription_service.PublishRequest({
+                    subscriptionAcknowledgements: []
+                });
+
+                g_session.publish(request, function (err, response) {
+
+                    if (!err) {
+                        response.should.be.instanceof(subscription_service.PublishResponse);
+
+                        response.should.have.ownProperty("subscriptionId");          // IntegerId
+                        response.should.have.ownProperty("availableSequenceNumbers");// Array,Counter,
+                        response.should.have.ownProperty("moreNotifications");       // Boolean
+                        response.should.have.ownProperty("notificationMessage");
+                        response.should.have.ownProperty("results");
+                        response.should.have.ownProperty("diagnosticInfos");
+                    }
+                    callback(err);
+                });
+            },
+            function(callback) {
+                const request = new subscription_service.DeleteSubscriptionsRequest({
+                    subscriptionIds: [ subscriptionId ]
+                });
+                g_session.deleteSubscriptions(request, function (err, result) {
+                    callback(err);
+                });
             }
-            done(err);
-        });
+
+        ],done);
     });
 
 
     it("server should handle DeleteMonitoredItems  request", function (done) {
 
-        var request = new subscription_service.DeleteMonitoredItemsRequest({});
+        const request = new subscription_service.DeleteMonitoredItemsRequest({});
         g_session.deleteMonitoredItems(request, function (err, response) {
             err.message.should.match(/BadSubscriptionIdInvalid/);
             done();
@@ -126,7 +201,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
     it("server should handle DeleteSubscriptionsRequest", function (done) {
 
-        var request = new subscription_service.DeleteSubscriptionsRequest({
+        const request = new subscription_service.DeleteSubscriptionsRequest({
             subscriptionIds: [1, 2]
         });
         g_session.deleteSubscriptions(request, function (err, response) {

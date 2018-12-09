@@ -1,8 +1,8 @@
 "use strict";
 
-var _FIRST_INTERNAL_ID = 0xFFFE0000;
+const _FIRST_INTERNAL_ID = 0xFFFE0000;
 
-var _next_available_id = _FIRST_INTERNAL_ID;
+let _next_available_id = _FIRST_INTERNAL_ID;
 exports.generate_new_id = function () {
     _next_available_id += 1;
     return _next_available_id;

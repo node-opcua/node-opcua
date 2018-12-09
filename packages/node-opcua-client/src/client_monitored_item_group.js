@@ -3,17 +3,17 @@
  * @module opcua.client
  */
 
-var util = require("util");
-var _ = require("underscore");
+const util = require("util");
+const _ = require("underscore");
 
-var EventEmitter = require("events").EventEmitter;
-var subscription_service = require("node-opcua-service-subscription");
-var read_service = require("node-opcua-service-read");
+const EventEmitter = require("events").EventEmitter;
+const subscription_service = require("node-opcua-service-subscription");
+const read_service = require("node-opcua-service-read");
 
-var assert = require("node-opcua-assert");
-var TimestampsToReturn = read_service.TimestampsToReturn;
+const assert = require("node-opcua-assert").assert;
+const TimestampsToReturn = read_service.TimestampsToReturn;
 
-var ClientMonitoredItemBase = require("./client_monitored_item_base").ClientMonitoredItemBase;
+const ClientMonitoredItemBase = require("./client_monitored_item_base").ClientMonitoredItemBase;
 
 /**
  * ClientMonitoredItemGroup
@@ -58,14 +58,14 @@ util.inherits(ClientMonitoredItemGroup, EventEmitter);
 
 ClientMonitoredItemGroup.prototype.toString = function () {
 
-    var self = this;
-    var ret = "";
-    ret += "itemsToMonitor:        " + self.monitoredItems.map(function (a) {
-          return a.nodeId.toString()
-      }).join("\n");
+    const self = this;
+    let ret = "ClientMonitoredItemGroup : \n";
+    ret += "itemsToMonitor:       = [\n " + self.monitoredItems.map(function (monitoredItem) {
+        return monitoredItem.itemToMonitor.toString();
+    }).join("\n") + "\n];\n";
 
     ret += "timestampsToReturn:   " + self.timestampsToReturn.toString() + "\n";
-    ret += "monitoringMode        " + self.monitoringMode;
+    ret += "monitoringMode        " + subscription_service.MonitoringMode[self.monitoringMode];
     return ret;
 };
 
@@ -78,7 +78,7 @@ ClientMonitoredItemGroup.prototype.toString = function () {
 ClientMonitoredItemGroup.prototype.terminate = function (done) {
 
     assert(!done || _.isFunction(done));
-    var self = this;
+    const self = this;
     /**
      * Notify the observer that this monitored item has been terminated.
      * @event terminated
@@ -100,7 +100,7 @@ ClientMonitoredItemGroup.prototype.terminate = function (done) {
  */
 ClientMonitoredItemGroup.prototype._monitor = function (done) {
     assert(done === undefined || _.isFunction(done));
-    var self = this;
+    const self = this;
 
     self.monitoredItems.forEach(function (monitoredItem, index) {
         monitoredItem.on("changed", function (dataValue) {
@@ -143,13 +143,13 @@ ClientMonitoredItemGroup.prototype._monitor = function (done) {
  * @param callback {Function}
  */
 ClientMonitoredItemGroup.prototype.modify = function (parameters, timestampsToReturn, callback) {
-    var self = this;
+    const self = this;
     self.timestampsToReturn = timestampsToReturn || self.timestampsToReturn;
     ClientMonitoredItemBase._toolbox_modify(self.subscription, self.monitoredItems, parameters, self.timestampsToReturn, callback);
 };
 
 ClientMonitoredItemGroup.prototype.setMonitoringMode = function (monitoringMode, callback) {
-    var self = this;
+    const self = this;
     ClientMonitoredItemBase._toolbox_setMonitoringMode(self.subscription, self.monitoredItems, monitoringMode, callback);
 };
 

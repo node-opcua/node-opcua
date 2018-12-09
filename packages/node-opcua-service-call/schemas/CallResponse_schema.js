@@ -1,6 +1,6 @@
 
 
-var CallResponse_Schema = {
+const CallResponse_Schema = {
     name: "CallResponse",
     documentation: "This Service is used to call (invoke) a list of Methods.",
     fields: [

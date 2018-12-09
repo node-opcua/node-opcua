@@ -1,22 +1,22 @@
 /*global xit,it,describe,before,after,beforeEach,afterEach,require*/
 "use strict";
 
-var assert = require("node-opcua-assert");
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var ClientSession = opcua.ClientSession;
+const OPCUAClient = opcua.OPCUAClient;
+const ClientSession = opcua.ClientSession;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
 
-var securityMode   = opcua.MessageSecurityMode.NONE;
-var securityPolicy = opcua.SecurityPolicy.None;
+const securityMode   = opcua.MessageSecurityMode.NONE;
+const securityPolicy = opcua.SecurityPolicy.None;
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 
@@ -24,7 +24,7 @@ module.exports = function (test) {
 
     describe("Testing bug #73 -  Server resets sequence number after secure channel renewal ", function () {
 
-        var options = {
+        const options = {
             securityMode: securityMode,
             securityPolicy: securityPolicy,
             serverCertificate: null,
@@ -33,7 +33,7 @@ module.exports = function (test) {
 
         this.timeout(Math.max(200000, this._timeout));
 
-        var client, endpointUrl;
+        let client, endpointUrl;
 
         beforeEach(function (done) {
             client = new OPCUAClient(options);
@@ -49,14 +49,14 @@ module.exports = function (test) {
         it("should not reset sequence number after secure channel renewal ", function (done) {
 
 
-            var old_client_connect = client.connect;
+            const old_client_connect = client.connect;
 
-            var sequenceNumbers = [];
-            var messages = [];
+            const sequenceNumbers = [];
+            const messages = [];
 
-            function new_client_connect(endpoint_url, callback) {
-                var self = this;
-                old_client_connect.call(this, endpoint_url, function (err) {
+            function new_client_connect(endpointUrl, callback) {
+                const self = this;
+                old_client_connect.call(this, endpointUrl, function (err) {
 
 
                     self._secureChannel.messageBuilder.on("message", function (msg) {
@@ -91,7 +91,7 @@ module.exports = function (test) {
                     // sequence number should be increasing monotonically
                     console.log(sequenceNumbers);
 
-                    for (var i = 1; i < sequenceNumbers.length; i++) {
+                    for (let i = 1; i < sequenceNumbers.length; i++) {
                         sequenceNumbers[i].should.be.greaterThan(sequenceNumbers[i - 1]);
                     }
                     inner_done();

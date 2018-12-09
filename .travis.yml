@@ -3,30 +3,88 @@ language: node_js
 node_js:
   # dropping support for node 0.10 - "0.10"
   # dropping support for node 0.12 - "0.12"
-  - "4"
+  # dropping support for node 4
   - "6"
   # dropped - "7"
   - "8"
+  - "9"
+  - "10"
 
+os:
+  - linux
+  - osx
+
+matrix:
+  allow_failures:
+    - os: osx
+
+before_install:
+  # make sure we have enough ephemeral port on MacOS
+  # https://superuser.com/questions/145989/does-mac-os-x-throttle-the-rate-of-socket-creation
+  # https://superuser.com/a/443168
+  - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]; then
+       sudo ulimit -a;
+       sudo sysctl net.inet.ip.portrange.first net.inet.ip.portrange.hifirst net.inet.ip.portrange.last net.inet.ip.portrange.hilast;
+       sudo sysctl -w net.inet.ip.portrange.first=32768;
+       sudo sysctl -w net.inet.ip.portrange.hifirst=32768;
+       sudo sysctl -w net.inet.tcp.msl=1000;
+       sudo sysctl kern.maxfiles;
+       sysctl kern.maxfilesperproc;
+       echo " setting new limits";
+       sudo sysctl -w kern.maxfiles=50000;
+       sudo sysctl -w kern.maxfilesperproc=20000;
+       sudo serverinfo --setperfmode true;
+       sudo ulimit -c unlimited;
+       sudo ulimit -n 1024;
+       sudo ulimit -l unlimited;
+       sudo ulimit -a;
+    fi;
+  - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]; then
+      brew install libressl;
+      export PATH=/usr/local/opt/libressl/bin:$PATH;
+    fi;
+  - openssl version
 
 before_script:
-  - npm install -g istanbul coveralls
   - npm install -g mocha
-  - npm install -g codeclimate-test-reporter
+  - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; then
+      if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
+         npm install -g istanbul coveralls;
+         npm install -g codeclimate-test-reporter;
+      fi;
+    fi;
+
   # memcpy only works with node version > 0.8 and <= 0.12, and not with io.js, at this time
   - if [[ `node --version` == v0.12 ]]; then npm i memcpy ; fi
   - if [[ `node --version` == v0.10* ]]; then npm i ursa@0.8.5 ; fi
 
+install:
+  - npm install -g npm
+  - npm install typescript -g
+  - npm ci
+
+# keep the npm cache around to speed up installs
+cache:
+    directories:
+    - "$HOME/.npm"
+
 after_success:
-  - make test-cov
+  # only run code coverage on linux and latest nodejs version
+  - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; then
+      if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
+         make test-cov;
+      fi;
+    fi;
+
 script:
-  - npm test
+  - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]];
+    then  npm test ;
+    else  npm test;
+    fi
 
 addons:
   code_climate:
     repo_token: 0860a573fd01a1fbafc298b7c40cd0c1fd8b25e5f53a5e8346d3b42cb40ab48e
-
-
 
 notifications:
   webhooks:

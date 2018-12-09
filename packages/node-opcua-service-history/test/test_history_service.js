@@ -1,5 +1,5 @@
 "use strict";
-var history_service = require("..");
+const history_service = require("..");
 describe("History Service",function() {
 
     it("should create a HistoryReadDetails",function() {

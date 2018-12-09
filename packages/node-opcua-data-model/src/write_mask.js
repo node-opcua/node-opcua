@@ -1,8 +1,8 @@
 "use strict";
 
-var Enum = require("node-opcua-enum");
+const Enum = require("node-opcua-enum");
 
-var WriteMask = new Enum({
+const WriteMask = new Enum({
     AccessLevel: (1 << 0),// Indicates if the AccessLevel Attribute is writable.
     ArrayDimensions: (1 << 1),// Indicates if the ArrayDimensions Attribute is writable.
     BrowseName: (1 << 2), //Indicates if the BrowseName Attribute is writable.

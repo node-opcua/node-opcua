@@ -1,23 +1,23 @@
 "use strict";
-var should = require("should");
-var async = require("async");
-var _ = require("underscore");
+const should = require("should");
+const async = require("async");
+const _ = require("underscore");
 
 
-var OPCUAServer = require("node-opcua-server").OPCUAServer;
-var OPCUAClient = require("node-opcua-client").OPCUAClient;
+const OPCUAServer = require("node-opcua-server").OPCUAServer;
+const OPCUAClient = require("node-opcua-client").OPCUAClient;
 
-var opcua = require("node-opcua");
-var ObjectIds = opcua.ObjectIds;
+const opcua = require("node-opcua");
+const ObjectIds = opcua.ObjectIds;
 
-var debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-var empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 // a fake request type that is supposed to be correctly decoded on server side
 // but that is not supported by the server engine
 
-var ServerSideUnimplementedRequest_Schema = {
+const ServerSideUnimplementedRequest_Schema = {
     name: "ServerSideUnimplementedRequest",
     id: ObjectIds.Annotation_Encoding_DefaultXml,
     fields: [
@@ -25,18 +25,18 @@ var ServerSideUnimplementedRequest_Schema = {
     ]
 };
 
-var generator = require("node-opcua-generator");
-var path = require("path");
-var temporary_folder = path.join(__dirname, "..", "_test_generated");
+const generator = require("node-opcua-generator");
+const path = require("path");
+const temporary_folder = path.join(__dirname, "..", "_test_generated");
 
 exports.ServerSideUnimplementedRequest_Schema = ServerSideUnimplementedRequest_Schema;
-var ServerSideUnimplementedRequest = generator.registerObject(ServerSideUnimplementedRequest_Schema, temporary_folder);
+const ServerSideUnimplementedRequest = generator.registerObject(ServerSideUnimplementedRequest_Schema, temporary_folder);
 
-var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing Server resilience to unsupported request", function () {
-    var server, client;
-    var endpointUrl, g_session;
+    let server, client;
+    let endpointUrl, g_session;
 
 
     this.timeout(Math.max(20000, this._timeout));
@@ -76,7 +76,7 @@ describe("testing Server resilience to unsupported request", function () {
 
     it("server should return a ServiceFault if receiving a unsupported MessageType", function (done) {
 
-        var bad_request = new ServerSideUnimplementedRequest(); // intentionally send a bad request
+        const bad_request = new ServerSideUnimplementedRequest(); // intentionally send a bad request
 
         g_session.performMessageTransaction(bad_request, function (err, response) {
             err.should.be.instanceOf(Error);
@@ -92,8 +92,8 @@ function abrupty_disconnect_client(client, callback) {
 }
 
 describe("testing Server resilience with bad internet connection", function () {
-    var server, client;
-    var endpointUrl;
+    let server, client;
+    let endpointUrl;
 
     this.timeout(Math.max(20000, this._timeout));
 
@@ -114,7 +114,7 @@ describe("testing Server resilience with bad internet connection", function () {
         // ask for a very short session timeout
         client = new OPCUAClient({requestedSessionTimeout: 200});
 
-        var the_session;
+        let the_session;
 
         async.series([
             // assert that server has 0 session

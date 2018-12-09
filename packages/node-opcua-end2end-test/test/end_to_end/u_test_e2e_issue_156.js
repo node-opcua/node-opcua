@@ -1,19 +1,19 @@
 /*global describe, it, require*/
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
-var AttributeIds = opcua.AttributeIds;
-var resolveNodeId = opcua.resolveNodeId;
-var StatusCodes = opcua.StatusCodes;
-var DataType = opcua.DataType;
-var ClientSubscription = opcua.ClientSubscription;
+const OPCUAClient = opcua.OPCUAClient;
+const AttributeIds = opcua.AttributeIds;
+const resolveNodeId = opcua.resolveNodeId;
+const StatusCodes = opcua.StatusCodes;
+const DataType = opcua.DataType;
+const ClientSubscription = opcua.ClientSubscription;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
 module.exports = function (test) {
@@ -24,12 +24,14 @@ module.exports = function (test) {
 
         it("test",function(done) {
 
-            var server = test.server;
+            const server = test.server;
 
-            var refreshRate = 500;
+            const refreshRate = 500;
 
-            var counter = 1;
-            var slowVar = server.engine.addressSpace.addVariable({
+            const namespace = server.engine.addressSpace.getOwnNamespace();
+
+            let counter = 1;
+            const slowVar = namespace.addVariable({
                 organizedBy: server.engine.addressSpace.rootFolder.objects,
                 browseName: "SlowVariable",
                 dataType: "UInt32",
@@ -44,10 +46,10 @@ module.exports = function (test) {
                 }
             });
 
-            var client1 = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client1 = new OPCUAClient();
+            const endpointUrl = test.endpointUrl;
 
-            var the_session;
+            let the_session;
 
             async.series([
 
@@ -69,7 +71,7 @@ module.exports = function (test) {
 
                 function (callback) {
 
-                    var subscription = new ClientSubscription(the_session, {
+                    const subscription = new ClientSubscription(the_session, {
                         requestedPublishingInterval:  150,
                         requestedLifetimeCount:       10 * 60 * 10,
                         requestedMaxKeepAliveCount:   10,
@@ -80,7 +82,6 @@ module.exports = function (test) {
 
                     subscription.once("terminated", function () {
                         //xx console.log("subscription terminated");
-                        callback();
                     });
                     subscription.once("started",function() {
                         //xx console.log("publishingInterval",subscription.publishingInterval);
@@ -88,7 +89,7 @@ module.exports = function (test) {
                     });
 
 
-                    var monitoredItem = subscription.monitor(
+                    const monitoredItem = subscription.monitor(
                         {nodeId: slowVar.nodeId, attributeId: AttributeIds.Value},
                         {
                             samplingInterval: refreshRate/2, // sampling twice as fast as variable refresh rate
@@ -102,7 +103,7 @@ module.exports = function (test) {
 
 
                     setTimeout(function(){
-                        subscription.terminate();
+                        subscription.terminate(callback);
                     },3000);
                 },
 

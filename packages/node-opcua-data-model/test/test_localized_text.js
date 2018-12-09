@@ -1,15 +1,15 @@
 "use strict";
 
-var should = require("should");
-var util = require("util");
-var BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-var LocalizedText = require("..").LocalizedText;
+const should = require("should");
+const util = require("util");
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const LocalizedText = require("..").LocalizedText;
 
 describe("LocalizedText", function () {
 
     it("should create a LocalizeText", function () {
 
-        var ltext = new LocalizedText({text: "HelloWorld", locale: "en-US"});
+        const ltext = new LocalizedText({text: "HelloWorld", locale: "en-US"});
         ltext.should.have.property("text");
         ltext.should.have.property("locale");
         ltext.text.should.equal("HelloWorld");
@@ -19,16 +19,16 @@ describe("LocalizedText", function () {
 
     it("should encode and decode a LocalizeText that have both text and locale", function () {
 
-        var ltext = new LocalizedText({text: "HelloWorld", locale: "en-US"});
+        const ltext = new LocalizedText({text: "HelloWorld", locale: "en-US"});
 
-        var stream = new BinaryStream();
+        const stream = new BinaryStream();
         stream.length.should.equal(0);
 
         ltext.encode(stream);
 
         stream.length.should.be.greaterThan(0);
 
-        var ltext_verif = new LocalizedText();
+        const ltext_verif = new LocalizedText();
 
         stream.rewind();
         ltext_verif.decode(stream);
@@ -42,19 +42,19 @@ describe("LocalizedText", function () {
 
     it("should encode and decode a LocalizeText that have text but no locale", function () {
 
-        var ltext = new LocalizedText({text: "HelloWorld", locale: null});
+        const ltext = new LocalizedText({text: "HelloWorld", locale: null});
 
         ltext.should.have.property("locale");
         should.not.exist(ltext.locale);
 
-        var stream = new BinaryStream();
+        const stream = new BinaryStream();
         stream.length.should.equal(0);
 
         ltext.encode(stream);
 
         stream.length.should.be.greaterThan(0);
 
-        var ltext_verif = new LocalizedText();
+        const ltext_verif = new LocalizedText();
 
         stream.rewind();
         ltext_verif.decode(stream);
@@ -66,19 +66,19 @@ describe("LocalizedText", function () {
 
     it("should encode and decode a LocalizeText that have no text but a locale", function () {
 
-        var ltext = new LocalizedText({text: null, locale: "en-US"});
+        const ltext = new LocalizedText({text: null, locale: "en-US"});
 
         ltext.should.have.property("text");
         should.not.exist(ltext.text);
 
-        var stream = new BinaryStream();
+        const stream = new BinaryStream();
         stream.length.should.equal(0);
 
         ltext.encode(stream);
 
         stream.length.should.be.greaterThan(0);
 
-        var ltext_verif = new LocalizedText();
+        const ltext_verif = new LocalizedText();
 
         stream.rewind();
         ltext_verif.decode(stream);
@@ -90,7 +90,7 @@ describe("LocalizedText", function () {
 
     });
 
-    var coerceLocalizedText = require("..").coerceLocalizedText;
+    const coerceLocalizedText = require("..").coerceLocalizedText;
     it("#coerceLocalizedText - null", function () {
 
         should.not.exist(coerceLocalizedText(null));

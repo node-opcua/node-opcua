@@ -13,29 +13,29 @@
  -    * compare the published NotificationMessage to the republished NotificationMessage (should equal).
  */
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
-var sinon = require("sinon");
-var opcua = require("node-opcua");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const should = require("should");
+const sinon = require("sinon");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
-var perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-var perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
 module.exports = function (test) {
 
     describe("Testing ctt  ", function () {
 
 
-        var ClientSubscription = opcua.ClientSubscription;
-        var subscription = null;
+        const ClientSubscription = opcua.ClientSubscription;
+        let subscription = null;
 
-        var nodeId = "ns=411;s=Scalar_Static_Int32";
-        var monitoredItem1;
-        var subscription_raw_notification_event;
-        var spy_publish;
+        const nodeId = "ns=2;s=Scalar_Static_Int32";
+        let monitoredItem1;
+        let subscription_raw_notification_event;
+        let spy_publish;
 
         function create_subscription_and_monitor_item(the_session, callback) {
 
@@ -66,7 +66,6 @@ module.exports = function (test) {
                   });
 
                 monitoredItem1.once("changed", function (dataValue) {
-
                     subscription.on("raw_notification", subscription_raw_notification_event);
                     spy_publish = sinon.spy(the_session, "publish");
                     callback();
@@ -87,13 +86,13 @@ module.exports = function (test) {
 
         }
 
-        var _the_value = 10001;
+        let _the_value = 10001;
 
         function write_value(session, callback) {
 
             _the_value += 1;
 
-            var nodesToWrite = [
+            const nodesToWrite = [
                 {
                     nodeId: nodeId,
                     attributeId: opcua.AttributeIds.Value,
@@ -110,6 +109,7 @@ module.exports = function (test) {
         function write_value_and_wait_for_change(session, callback) {
 
             monitoredItem1.once("changed", function (dataValue) {
+                //xx console.log("write_value_and_wait_for_change ! Changed !!!!".cyan,dataValue.toString().green);
                 dataValue.value.value.should.eql(_the_value);
                 callback();
             });
@@ -117,17 +117,19 @@ module.exports = function (test) {
             });
         }
 
-        it("HGHGH should ....", function (done) {
+        it("verifying that RepublishRequest service is working as expected", function (done) {
 
-            var client = new OPCUAClient();
-            var endpointUrl = test.endpointUrl;
+            const client = new OPCUAClient({
 
-            var expected_values = [];
-            var sequenceNumbers = [];
+            });
+            const endpointUrl = test.endpointUrl;
+
+            const expected_values = [];
+            let sequenceNumbers = [];
 
             function verify_republish(session,index, callback) {
                 // index  => used to identify sequenceNumbers to retransmit
-                var request = new opcua.subscription_service.RepublishRequest({
+                const request = new opcua.subscription_service.RepublishRequest({
                     subscriptionId: subscription.subscriptionId,
                     retransmitSequenceNumber: sequenceNumbers[index]
                 });
@@ -140,8 +142,9 @@ module.exports = function (test) {
                     callback(err);
                 });
             }
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
+
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 async.series([
                     //xx write_value.bind(null,session),
@@ -157,7 +160,7 @@ module.exports = function (test) {
 
                         subscription_raw_notification_event.callCount.should.eql(4);
 
-                        var seqNumber1 = subscription_raw_notification_event.getCall(0).args[0].sequenceNumber;
+                        const seqNumber1 = subscription_raw_notification_event.getCall(0).args[0].sequenceNumber;
                         subscription_raw_notification_event.getCall(0).args[0].sequenceNumber.should.eql(seqNumber1 + 0);
                         subscription_raw_notification_event.getCall(1).args[0].sequenceNumber.should.eql(seqNumber1 + 1);
                         subscription_raw_notification_event.getCall(2).args[0].sequenceNumber.should.eql(seqNumber1 + 2);

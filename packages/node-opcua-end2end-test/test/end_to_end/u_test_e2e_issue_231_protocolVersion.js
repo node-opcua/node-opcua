@@ -1,12 +1,12 @@
 /*global describe, it, require*/
 
-var assert = require("node-opcua-assert");
-var async = require("async");
-var should = require("should");
+const assert = require("node-opcua-assert").assert;
+const async = require("async");
+const should = require("should");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var OPCUAClient = opcua.OPCUAClient;
+const OPCUAClient = opcua.OPCUAClient;
 
 
 
@@ -17,12 +17,12 @@ module.exports = function (test) {
 
         it("#231-A ", function (done) {
 
-            var client1 = new OPCUAClient();
+            const client1 = new OPCUAClient();
 
             client1.protocolVersion.should.eql(0);
             client1.protocolVersion = 0x1000;
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
             async.series([
 
@@ -40,7 +40,7 @@ module.exports = function (test) {
         });
         it("#231-B BadProtocolVersionUnsupported", function (done) {
 
-            var client1 = new OPCUAClient();
+            const client1 = new OPCUAClient();
 
             client1.protocolVersion.should.eql(0);
 
@@ -48,7 +48,7 @@ module.exports = function (test) {
             // special version number that causes our server to simulate BadProtocolVersionUnsupported
             client1.protocolVersion = 0xDEADBEEF;
 
-            var endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl;
 
             async.series([
 

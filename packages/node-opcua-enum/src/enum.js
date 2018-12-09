@@ -11,7 +11,7 @@
  * @param {String} key  The Enum key.
  * @param {Number} value The Enum value.
  */
-var EnumItem = function (key, value) {
+const EnumItem = function (key, value) {
     this.key = key;
     this.value = value;
 };
@@ -19,7 +19,7 @@ var EnumItem = function (key, value) {
 /**
  * Checks if the EnumItem is the same as the passing object.
  * @method is
- * @param  {EnumItem || String || Number} item The object to check with.
+ * @param  {EnumItem | String | Number} item The object to check with.
  * @return {Boolean}                          The check result.
  */
 EnumItem.prototype.is = function (item) {
@@ -35,7 +35,7 @@ EnumItem.prototype.is = function (item) {
 /**
  * Checks if the flagged EnumItem has the passing object.
  * @method has
- * @param  {EnumItem || String || Number} value The object to check with.
+ * @param  {EnumItem | String |Number} value The object to check with.
  * @return {Boolean}                            The check result.
  */
 EnumItem.prototype.has = function (value) {
@@ -79,9 +79,9 @@ EnumItem.prototype.valueOf = function valueOf() {
 };
 
 // check if enum is flaggable
-var check_is_flaggable = function (enums) {
-    for (var i in enums) {
-        var e = enums[i];
+const check_is_flaggable = function (enums) {
+    for (const i in enums) {
+        const e = enums[i];
         if (!(e.value !== 0 && !(e.value & e.value - 1))) {
             return false;
         }
@@ -94,16 +94,16 @@ var check_is_flaggable = function (enums) {
  * Represents an Enum with enum items.
  * @param {Array || Object}  map     This are the enum items.
  */
-var Enum = function (map) {
-    var self = this;
+const Enum = function (map) {
+    const self = this;
     self.enums = [];
-    var mm = null;
+    let mm = null;
 
-    var is_flaggable = null;
+    let is_flaggable = null;
     if (Array.isArray(map)) {
         // create map as flaggable enum
         mm = {};
-        for (var i = 0; i < map.length; i++) {
+        for (let i = 0; i < map.length; i++) {
             mm[map[i]] = 1 << i;
         }
         is_flaggable = true;
@@ -111,10 +111,10 @@ var Enum = function (map) {
         mm = map;
     }
 
-    for (var key in mm) {
-        var val = mm[key];
+    for (const key in mm) {
+        const val = mm[key];
         if (undefined === val) { continue; }
-        var kv = new EnumItem(key, val);
+        const kv = new EnumItem(key, val);
         self[key] = kv;
         self[val] = kv;
         self.enums.push(kv);
@@ -134,10 +134,16 @@ var Enum = function (map) {
  */
 Enum.prototype.get = function (key) {
 
+    if (key instanceof EnumItem) {
+      //xx console.log("sssss");
+      if (!this[key.key]){ throw new Error("Invalid key"); }
+      return key;
+    }
+
     if (key === null || key === undefined) {
         return null;
     }
-    var prop = this[key];
+    const prop = this[key];
     if (prop) {
         return prop;
     } else if (this._is_flaggable) {
@@ -151,21 +157,21 @@ Enum.prototype.get = function (key) {
 
 Enum.prototype._get_by_str = function (key) {
 
-    var parts = key.split(' | ');
+    const parts = key.split(' | ');
 
-    var val = 0;
-    for (var i = 0; i < parts.length; i++) {
-        var part = parts[i];
-        var item = this[part];
+    let val = 0;
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        const item = this[part];
         if (undefined === item) {
             return undefined;
         }
         val |= item.value;
     }
-    var kv = new EnumItem(key, val);
+    const kv = new EnumItem(key, val);
 
     // add in cache for later
-    var prop = this[val];
+    let prop = this[val];
     if (prop === undefined) {
         this[val] = kv;
     }
@@ -180,9 +186,9 @@ Enum.prototype._get_by_num = function (key) {
 
     if (key === 0) { return undefined; }
 
-    var name;
-    var c = 1, item;
-    for (var i = 0; c < key; i++) {
+    let name;
+    let c = 1, item;
+    for (let i = 0; c < key; i++) {
         if ((c & key) === c) {
             item = this[c];
             if (undefined === item) {
@@ -196,7 +202,7 @@ Enum.prototype._get_by_num = function (key) {
         }
         c *= 2;
     }
-    var kv = new EnumItem(name, key);
+    const kv = new EnumItem(name, key);
     // add in cache for later
     this[name] = kv;
     this[key] = kv;

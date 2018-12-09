@@ -1,9 +1,9 @@
 "use strict";
 
-var _ = require("underscore");
-var assert = require("node-opcua-assert");
+const _ = require("underscore");
+const assert = require("node-opcua-assert").assert;
 
-var AttributeIds = {
+const AttributeIds = {
     NodeId: 1,
     NodeClass: 2,
     BrowseName: 3,

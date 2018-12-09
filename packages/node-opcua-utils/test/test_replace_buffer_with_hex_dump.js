@@ -1,17 +1,13 @@
 "use strict";
 require("should");
-var replaceBufferWithHexDump = require("../src/replace_buffer_with_hex_dump").replaceBufferWithHexDump;
+const replaceBufferWithHexDump = require("../dist/replace_buffer_with_hex_dump").replaceBufferWithHexDump;
 
-describe("replaceBufferWithHexDump",function() {
-    it("replaceBufferWithHexDump", function () {
-
-        var obj = {stuff: new Buffer("ABCDEF")};
+describe("replaceBufferWithHexDump", function() {
+    it("replaceBufferWithHexDump", function() {
+        let obj = { stuff: Buffer.from("ABCDEF") };
 
         obj = replaceBufferWithHexDump(obj);
 
-        obj.should.eql({stuff: "<BUFFER>414243444546</BUFFER>"});
-
+        obj.should.eql({ stuff: "<BUFFER>414243444546</BUFFER>" });
     });
-
-
 });

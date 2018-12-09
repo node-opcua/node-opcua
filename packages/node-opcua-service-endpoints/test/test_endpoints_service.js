@@ -1,16 +1,16 @@
 
 
-var should = require("should");
+const should = require("should");
 
 
-var endpoints_service = require("..");
-var GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
-var GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
+const endpoints_service = require("..");
+const GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
+const GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
 
 
 describe(" EndPoint Service", function () {
     it(" should create a GetEndPointRequest", function () {
-        var endpointRequest = new GetEndpointsRequest();
+        const endpointRequest = new GetEndpointsRequest();
 
         endpointRequest.should.have.property("requestHeader");
         endpointRequest.should.have.property("endpointUrl");
@@ -24,7 +24,7 @@ describe(" EndPoint Service", function () {
 
     it(" should create a GetEndPointResponse", function () {
 
-        var endpointResponse = new GetEndpointsResponse();
+        const endpointResponse = new GetEndpointsResponse();
 
     });
 });

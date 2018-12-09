@@ -1,5 +1,5 @@
 
-var EventFilter_Schema = {
+const EventFilter_Schema = {
     name: "EventFilter",
     baseType: "MonitoringFilter",
     fields: [
