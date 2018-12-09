@@ -104,7 +104,7 @@ export class SessionContext implements ISessionContext {
         // tslint:disable:no-bitwise
         const lNode = node as any;
 
-        assert(action === "CurrentRead" || action === "CurrentWrite");
+        assert(AccessLevelFlag.hasOwnProperty(action));
         const actionFlag: number = makeAccessLevelFlag(action);
 
         if (!lNode._permissions) {

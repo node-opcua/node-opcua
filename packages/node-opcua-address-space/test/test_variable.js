@@ -1,6 +1,7 @@
+/// <reference path="../../source/index.ts" />
+/// <reference types="node" />
 "use strict";
 
-const _ = require("underscore");
 const should = require("should");
 
 const async = require("async");
@@ -17,7 +18,6 @@ const NodeId = require("node-opcua-nodeid").NodeId;
 const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
 const nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
-
 
 const address_space = require("..");
 const UAVariable = address_space.UAVariable;
@@ -1470,11 +1470,13 @@ describe("testing UAVariable ", function () {
             dataType: "Double",
             value: {
                 refreshFunc: function (callback) {
+                    callback;
                     throw new Error("Something goes wrong here");
                 }
             }
         });
         temperatureVar.readValueAsync(context, function (err, value) {
+            value;
             should.exist(err);
             //Xx console.log("err=", err);
             done();
@@ -1538,6 +1540,7 @@ describe("testing UAVariable ", function () {
             value: {value: {dataType: DataType.String, value: "New Description"}}
         });
         variableInteger.writeAttribute(context, v, function (err, statusCode) {
+            statusCode;
             should.not.exist(err);
             done(err);
         });
@@ -1561,6 +1564,7 @@ describe("testing UAVariable ", function () {
 
         let changeDetected = 0;
         temperatureVar.on("value_changed", function (dataValue) {
+            dataValue;
             changeDetected += 1;
         });
 
