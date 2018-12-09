@@ -85,32 +85,9 @@ export declare class OPCUAClientBase {
     on(event: string, eventhandler: Function): void;
 }
 
-export interface BrowseResponse {
-    references: {
-        referenceTypeId: string,
-        isForward: boolean,
-        nodeId: any,
-        browseName: {
-            namespaceIndex: number,
-            name: string
-        },
-        displayName: {
-            text: string,
-            local: string
-        },
-        nodeClass: string | { key: string, value: any },
-        typeDefinition: string
-    }[];
-    statusCode: {
-        value: number,
-        description: string,
-        name: string
-    }
-}
-
 export declare interface ReferenceDescription{
     referenceTypeId: NodeId;
-    isForward: UABoolean;
+    isForward: boolean;
     nodeId: ExpandedNodeId;
     browseName: QualifiedName;
     displayName: LocalizedText;
