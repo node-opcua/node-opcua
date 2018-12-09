@@ -75,6 +75,16 @@ module.exports = function (test) {
                 if (!err) {
                     browseResult.schema.name.should.equal("BrowseResult");
                 }
+
+                // xx console.log(browseResult.toString());//.length.should.eql(4);
+
+                browseResult.statusCode.should.eql(StatusCodes.Good);
+                browseResult.references.length.should.eql(3);
+                browseResult.references[0].browseName.toString().should.eql("Objects");
+                browseResult.references[1].browseName.toString().should.eql("Types");
+                browseResult.references[2].browseName.toString().should.eql("Views");
+
+
                 done(err);
             });
 

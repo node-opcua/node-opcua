@@ -121,11 +121,12 @@ const warningLog = debugLog;
 function coerceBrowseDescription(data: any): BrowseDescription {
     if (typeof data === "string" || data instanceof NodeId) {
         return coerceBrowseDescription({
-            browseDirection: BrowseDirection.Both,
+            browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
             nodeClassMask: 0,
             nodeId: data,
-            resultMask: 63
+            referenceTypeId: "HierarchicalReferences",
+            resultMask: 63,
         });
     } else {
         data.nodeId = resolveNodeId(data.nodeId);
