@@ -314,9 +314,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     public  endpoint?: EndpointDescription;
+
     private endpoint_must_exist: boolean;
     private requestedSessionTimeout: number;
-    private applicationName: string;
     private ___sessionName_counter: number;
     private userIdentityInfo: UserIdentityInfo;
     private serverUri?: string;
@@ -336,8 +336,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             : !!options.endpoint_must_exist;
 
         this.requestedSessionTimeout = options.requestedSessionTimeout || 60000; // 1 minute
-
-        this.applicationName = options.applicationName || "NodeOPCUA-Client";
 
         this.___sessionName_counter = 0;
         this.userIdentityInfo = {type: UserTokenType.Anonymous};

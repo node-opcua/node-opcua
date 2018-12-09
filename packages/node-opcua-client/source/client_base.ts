@@ -38,6 +38,9 @@ export interface FindEndpointOptions {
     securityMode: MessageSecurityMode;
     securityPolicy: SecurityPolicy;
     connectionStrategy: ConnectionStrategyOptions;
+    certificateFile: string;
+    privateKeyFile: string;
+    applicationName: string;
 }
 
 export interface FindEndpointResult {
@@ -48,6 +51,12 @@ export interface FindEndpointResult {
 export type FindEndpointCallback = (err: Error | null, result?: FindEndpointResult) => void;
 
 export interface OPCUAClientBaseOptions {
+
+    /**
+     * the client application name
+     * @default "NodeOPCUA-Client"
+     */
+    applicationName?: string;
 
     connectionStrategy?: ConnectionStrategyOptions;
 
@@ -279,6 +288,7 @@ export interface OPCUAClientBase {
     readonly keepPendingSessionsOnDisconnect: boolean;
     readonly endpointUrl: string;
     readonly keepSessionAlive: boolean;
+    readonly applicationName: string;
 }
 export class OPCUAClientBase {
 

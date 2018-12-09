@@ -1,3 +1,4 @@
+// tslint:disable:no-bitwise
 /**
  * @module opcua.datamodel
  */
@@ -26,14 +27,14 @@ export function makeAccessLevelFlag(str: string | number | null): AccessLevelFla
 
     if (typeof str === "number") {
         const value = str as number;
-        if (value === 0) { return AccessLevelFlag.NONE; }
+        if (value === 0) { return AccessLevelFlag.None; }
         return value as AccessLevelFlag;
     }
 
     let accessFlag: AccessLevelFlag | null;
 
     if (str === "" || str === null) {
-        accessFlag = AccessLevelFlag.NONE;
+        accessFlag = AccessLevelFlag.None;
     } else {
         const flags = str.split(" | ");
         accessFlag = 0;
@@ -54,16 +55,48 @@ export function randomAccessLevel(): AccessLevelFlag {
     return AccessLevelFlag.CurrentRead;
 }
 
+// tslint:disable:no-bitwise
+export function accessLevelFlagToString(accessLevelFlag: AccessLevelFlag): string {
+    const retVal = [];
+    if (accessLevelFlag & AccessLevelFlag.CurrentRead) {
+        retVal.push("CurrentRead");
+    }
+    if (accessLevelFlag & AccessLevelFlag.CurrentWrite) {
+        retVal.push("CurrentWrite");
+    }
+    if (accessLevelFlag & AccessLevelFlag.StatusWrite) {
+        retVal.push("StatusWrite");
+    }
+    if (accessLevelFlag & AccessLevelFlag.TimestampWrite) {
+        retVal.push("TimestampWrite");
+    }
+    if (accessLevelFlag & AccessLevelFlag.HistoryRead) {
+        retVal.push("HistoryRead");
+    }
+    if (accessLevelFlag & AccessLevelFlag.HistoryWrite) {
+        retVal.push("HistoryWrite");
+    }
+    if (accessLevelFlag & AccessLevelFlag.SemanticChange) {
+        retVal.push("SemanticChange");
+    }
+    if (retVal.length === 0) {
+        retVal.push("None");
+    }
+    return retVal.join(" | ");
+}
+
 registerBasicType({
     name: "AccessLevelFlag",
     subType: "Byte",
+
     defaultValue: () => AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite,
-    encode: (value: AccessLevelFlag, stream: BinaryStream) => stream.writeUInt8(value & 0x8F),
+
+    coerce: (value: any): AccessLevelFlag => makeAccessLevelFlag(value),
     decode: (stream: BinaryStream): AccessLevelFlag => {
         const code = stream.readUInt8();
         return (code ? AccessLevelFlag[code] : AccessLevelFlag.NONE) as AccessLevelFlag;
     },
-    coerce: (value: any): AccessLevelFlag => makeAccessLevelFlag(value),
+    encode: (value: AccessLevelFlag, stream: BinaryStream) => stream.writeUInt8(value & 0x8F),
     random: randomAccessLevel
 });
-
+

@@ -65,11 +65,6 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
 
     requestedSessionTimeout?: number;
     /**
-     * the client application name
-     * @default "NodeOPCUA-Client"
-     */
-    applicationName?: string;
-    /**
      * set to false if the client should accept server endpoint mismatch
      * @default true
      */

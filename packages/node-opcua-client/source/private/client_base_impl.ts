@@ -70,7 +70,11 @@ function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callba
 
     const options = {
         connectionStrategy: params.connectionStrategy,
-        endpoint_must_exist: false
+        endpoint_must_exist: false,
+
+        applicationName: params.applicationName,
+        certificateFile: params.certificateFile,
+        privateKeyFile: params.privateKeyFile,
     };
 
     const client = new ClientBaseImpl(options);
@@ -237,6 +241,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public connectionStrategy: ConnectionStrategy;
     public keepPendingSessionsOnDisconnect: boolean;
     public endpointUrl: string;
+    public readonly applicationName: string;
+
     /// true if session shall periodically probe the server to keep the session alive and prevent timeout
     public keepSessionAlive: boolean;
     public _sessions: any;
@@ -327,6 +333,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
          * @type {boolean}
          */
         this.keepPendingSessionsOnDisconnect = options.keepPendingSessionsOnDisconnect || false;
+
+        this.applicationName = options.applicationName || "NodeOPCUA-Client";
+
     }
 
     public _cancel_reconnection(callback: ErrorCallback) {
@@ -505,7 +514,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             // is required as the connection is to be secured.
             //
             // Let's explore the server endpoint that matches our security settings
-            // This will give us the missing Certificate as well from the server itthis.
+            // This will give us the missing Certificate as well from the server.
             // todo :
             // Once we have the certificate, we cannot trust it straight away
             // we have to verify that the certificate is valid and not outdated and not revoked.
@@ -514,11 +523,19 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             // if the certificate has been certified by an Certificate Authority we have to
             // verify that the certificates in the chain are valid and not revoked.
             //
+            const certificateFile = this.certificateFile || "certificates/client_selfsigned_cert_1024.pem";
+            const privateKeyFile = this.privateKeyFile || "certificates/client_key_1024.pem";
+            const applicationName = (this as any).applicationName || "NodeOPCUA-Client";
+
             const params = {
                 connectionStrategy: this.connectionStrategy,
                 endpoint_must_exist: false,
                 securityMode: this.securityMode,
                 securityPolicy: this.securityPolicy,
+
+                applicationName,
+                certificateFile,
+                privateKeyFile,
             };
             return __findEndpoint(endpointUrl, params, (err: Error | null, result?: FindEndpointResult) => {
                 if (err) {
