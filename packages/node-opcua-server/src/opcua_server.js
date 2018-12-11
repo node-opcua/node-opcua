@@ -2101,7 +2101,6 @@ OPCUAServer.prototype._on_HistoryReadRequest = function (message, channel) {
         }
 
         assert(request.nodesToRead[0].schema.name === "HistoryReadValueId");
-        assert(request.timestampsToReturn);
 
         // limit size of nodesToRead array to maxNodesPerRead
         if (server.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
