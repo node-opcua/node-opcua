@@ -23,7 +23,7 @@ function construct_address_space(server) {
           low:  0,
           high: 10.0
       },
-      engineeringUnits: opcua.standarUnits.bar,
+      engineeringUnits: opcua.standardUnits.bar,
       componentOf: vessel
   });
   addressSpace.installHistoricalDataNode(vesselPressure);
@@ -38,7 +38,11 @@ function construct_address_space(server) {
 };
 function post_initialize() {
     construct_address_space(server);
-    server.start(function() {
+    server.start(function(err) {
+        if (err) {
+            console.log(" Cannot start Server");
+            return;
+        }
         console.log("Server is now listening ... ( press CTRL+C to stop)");
         console.log("port ", server.endpoints[0].port);
         const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;

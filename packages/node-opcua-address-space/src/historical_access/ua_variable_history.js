@@ -27,9 +27,5 @@ UAVariable.prototype.historyRead = function (context, historyReadDetails, indexR
     if (typeof this["_historyRead"] !== "function") {
         return callback(null, new HistoryReadResult({statusCode: StatusCodes.BadNotReadable}));
     }
-
-    if (continuationPoint) {
-        console.warn(" Continuation point not supported in HistoryRead");
-    }
     this._historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback);
 };
