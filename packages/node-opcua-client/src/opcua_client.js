@@ -334,6 +334,15 @@ function createUserNameIdentityToken(session, userName, password) {
     const endpoint_desc = session.endpoint;
     assert(endpoint_desc instanceof EndpointDescription);
 
+    /**
+     * OPC Unified Architecture 1.0.4:  Part 4 155
+     * Each UserIdentityToken allowed by an Endpoint shall have a UserTokenPolicy specified in the
+     * EndpointDescription. The UserTokenPolicy specifies what SecurityPolicy to use when encrypting
+     * or signing. If this SecurityPolicy is omitted then the Client uses the SecurityPolicy in the
+     * EndpointDescription. If the matching SecurityPolicy is set to None then no encryption or signature
+     * is required.
+     *
+     */
     const userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserIdentityTokenType.USERNAME);
 
     // istanbul ignore next
@@ -349,31 +358,41 @@ function createUserNameIdentityToken(session, userName, password) {
         assert(securityPolicy);
     }
 
-    let userIdentityToken;
+    let identityToken;
     let serverCertificate = session.serverCertificate;
     // if server does not provide certificate use unencrypted password
-    if (serverCertificate === null) {
-        userIdentityToken = new UserNameIdentityToken({
-            userName: userName,
-            password: Buffer.from(password, "utf-8"),
+    if (!serverCertificate) {
+        identityToken = new UserNameIdentityToken({
             encryptionAlgorithm: null,
-            policyId: userTokenPolicy.policyId
+            password: Buffer.from(password, "utf-8"),
+            policyId: userTokenPolicy ? userTokenPolicy.policyId : null,
+            userName: userName,
         });
-        return userIdentityToken;
+        return identityToken;
     }
 
     assert(serverCertificate instanceof Buffer);
-
     serverCertificate = crypto_utils.toPem(serverCertificate, "CERTIFICATE");
     const publicKey = crypto_utils.extractPublicKeyFromCertificateSync(serverCertificate);
 
-    let serverNonce = session.serverNonce;
-    // if serverNonce not specified by server
-    if (serverNonce === null) {
-        serverNonce = Buffer.alloc(0);
-    }
+    let serverNonce = session.serverNonce || Buffer.alloc(0);
     assert(serverNonce instanceof Buffer);
 
+    // If None is specified for the UserTokenPolicy and SecurityPolicy is None
+    // then the password only contains the UTF-8 encoded password.
+    // note: this means that password is sent in clear text to the server
+    // note: OPCUA specification discourages use of unencrypted password
+    //       but some old OPCUA server may only provide this policy and we
+    //       still have to support in the client?
+    if (securityPolicy === SecurityPolicy.None) {
+        identityToken = new UserNameIdentityToken({
+            encryptionAlgorithm: null,
+            password: Buffer.from(password, "utf-8"),
+            policyId: userTokenPolicy.policyId,
+            userName
+        });
+        return identityToken;
+    }
     // see Release 1.02 155 OPC Unified Architecture, Part 4
     const cryptoFactory = getCryptoFactory(securityPolicy);
 
@@ -382,21 +401,21 @@ function createUserNameIdentityToken(session, userName, password) {
         throw new Error(" Unsupported security Policy");
     }
 
-    userIdentityToken = new UserNameIdentityToken({
-        userName: userName,
-        password: Buffer.from(password, "utf-8"),
+    identityToken = new UserNameIdentityToken({
         encryptionAlgorithm: cryptoFactory.asymmetricEncryptionAlgorithm,
-        policyId: userTokenPolicy.policyId
+        password: Buffer.from(password, "utf-8"),
+        policyId: userTokenPolicy.policyId,
+        userName: userName,
     });
 
 
     // now encrypt password as requested
     const lenBuf = createFastUninitializedBuffer(4);
-    lenBuf.writeUInt32LE(userIdentityToken.password.length + serverNonce.length, 0);
-    const block = Buffer.concat([lenBuf, userIdentityToken.password, serverNonce]);
-    userIdentityToken.password = cryptoFactory.asymmetricEncrypt(block, publicKey);
+    lenBuf.writeUInt32LE(identityToken.password.length + serverNonce.length, 0);
+    const block = Buffer.concat([lenBuf, identityToken.password, serverNonce]);
+    identityToken.password = cryptoFactory.asymmetricEncrypt(block, publicKey);
 
-    return userIdentityToken;
+    return identityToken;
 }
 
 OPCUAClient.prototype.createUserIdentityToken = function (session, userIdentityToken, callback) {

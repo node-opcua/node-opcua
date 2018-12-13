@@ -83,6 +83,8 @@ module.exports.register_node_service = require("node-opcua-service-register-node
 module.exports.get_endpoints_service = require("node-opcua-service-endpoints");
 module.exports.EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
 module.exports.ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
+module.exports.UserTokenPolicy = require("node-opcua-service-endpoints").UserTokenPolicy;
+module.exports.UserIdentityTokenType = require("node-opcua-service-endpoints").UserIdentityTokenType;
 
 module.exports.subscription_service = require("node-opcua-service-subscription");
 module.exports.historizing_service = require("node-opcua-service-history");
