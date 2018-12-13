@@ -1,10 +1,12 @@
+import * as  long from "long";
 import assert from "node-opcua-assert";
-const long = require("long");
 
 export class DateWithPicoseconds extends Date {
-    picoseconds = 0;
+
+    public picoseconds = 0;
+
     // tslint:disable:variable-name
-    high_low = [ 0, 0];
+    public high_low = [0, 0];
 }
 
 export const offsetFactor1601 = (function offset_factor_1601() {
@@ -15,16 +17,16 @@ export const offsetFactor1601 = (function offset_factor_1601() {
     const utc1600PlusOneDay = new Date(Date.UTC(1601, 0, 2, 0, 0, 0));
     const t1600OneDay = utc1600PlusOneDay.getTime();
 
-    const factor = (24 * 60 * 60 * 1000) * 10000 / (t1600OneDay - t1600);
+    const factor1 = (24 * 60 * 60 * 1000) * 10000 / (t1600OneDay - t1600);
 
     const utc1970 = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
     const t1970 = utc1970.getTime();
 
     const offsetToGregorianCalendarZero = -t1600 + t1970;
 
-    assert(factor === 10000);
+    assert(factor1 === 10000);
     assert(offsetToGregorianCalendarZero === 11644473600000);
-    return [offsetToGregorianCalendarZero, factor];
+    return [offsetToGregorianCalendarZero, factor1];
 
 })();
 
@@ -75,7 +77,7 @@ const factorLong = long.fromNumber(factor, true);
  *
  * @returns {[high,low]}
  */
-export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: number)  {
+export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: number) {
     assert(date instanceof Date);
     if ((date as any).high_low) {
         return (date as any).high_low;
@@ -100,7 +102,7 @@ export function bn_dateToHundredNanoSecondFrom1601Excess(date: Date, picoseconds
     return (picoseconds !== undefined && picoseconds !== null) ? picoseconds % 100000 : 0;
 }
 
-export function bn_hundredNanoSecondFrom1601ToDate(high: number, low: number, picoseconds= 0): DateWithPicoseconds {
+export function bn_hundredNanoSecondFrom1601ToDate(high: number, low: number, picoseconds = 0): DateWithPicoseconds {
     assert(low !== undefined);
     //           value_64 / factor  - offset = t
     const l = new long(low, high, /*unsigned*/true);
@@ -114,7 +116,6 @@ export function bn_hundredNanoSecondFrom1601ToDate(high: number, low: number, pi
     return date as DateWithPicoseconds;
 }
 
-
 let lastNowDate: Date;
 let lastPicoseconds = 0;
 const smallTickPicosecond: number = 1000 * 100; // 100 nano second in picoseconds
@@ -123,6 +124,7 @@ export interface PreciseClock {
     timestamp: DateWithPicoseconds;
     picoseconds: number;
 }
+
 export interface PreciseClockEx extends PreciseClock {
     tick: number[];
 }
@@ -131,7 +133,7 @@ export interface PreciseClockEx extends PreciseClock {
  *
  * @return PreciseClock
  */
-export  function getCurrentClockWithJavascriptDate(): PreciseClock {
+export function getCurrentClockWithJavascriptDate(): PreciseClock {
     const now = new Date();
     if (lastNowDate && now.getTime() === lastNowDate.getTime()) {
         lastPicoseconds += smallTickPicosecond; // add 100-nano-second which is the resolution of OPCUA DateTime
@@ -141,6 +143,7 @@ export  function getCurrentClockWithJavascriptDate(): PreciseClock {
     }
     return {
         timestamp: lastNowDate as DateWithPicoseconds,
+
         picoseconds: lastPicoseconds
     };
 }
@@ -150,15 +153,16 @@ const refTime = Date.now();
 const gClock: PreciseClockEx = {
     tick: [0, 0],
     timestamp: new Date() as DateWithPicoseconds,
+
     picoseconds: 0
 };
 
-// make sure we get a pointer to the actual process.hrtime, just in case it get overridden by some library (such as sinon)
+// make sure we get a pointer to the actual process.hrtime,
+// just in case it get overridden by some library (such as sinon)
 const hrtime = process.hrtime;
 
-
 /*kWithProcessHRTime*/
-export function getCurrentClock (): PreciseClock {
+export function getCurrentClock(): PreciseClock {
     gClock.tick = hrtime(origin); // [seconds, nanoseconds]
     const milliseconds = gClock.tick[0] * 1000 + Math.floor(gClock.tick[1] / 1000000) + refTime;
     const picoseconds = (gClock.tick[1] % 1000000) * 1000;
@@ -172,7 +176,7 @@ export function getCurrentClock (): PreciseClock {
 
 export function coerceClock(timestamp: any, picoseconds = 0) {
     if (timestamp) {
-        return {timestamp, picoseconds};
+        return { timestamp, picoseconds };
     } else {
         return getCurrentClock();
     }

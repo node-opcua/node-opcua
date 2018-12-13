@@ -29,7 +29,7 @@ const doDebug = false;
  * @class UAStateMachine
  * @constructor
  * @extends UAObject
- * UAStateMachine.initialState as Node
+ *
  *
  */
 function UAStateMachine() {

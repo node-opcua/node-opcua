@@ -19,7 +19,7 @@ import {
     WriteValueOptions
 } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
-import { DataType, Variant, VariantLike } from "node-opcua-variant";
+import { Variant, VariantLike } from "node-opcua-variant";
 import { SessionContext } from "./session_context";
 
 type ErrorCallback = (err?: Error) => void;
@@ -27,7 +27,10 @@ type ErrorCallback = (err?: Error) => void;
 export declare interface AddReferenceOpts {
     referenceType: string | NodeId;
     nodeId: NodeId | string;
-    isForward: boolean;
+    /**
+     * default = true
+     */
+    isForward?: boolean;
 }
 
 export declare class UAReference {
@@ -348,7 +351,6 @@ export interface AddVariableTypeOptions extends AddBaseNodeOptions, VariableStuf
     postInstantiateFunc?: (node: UAVariableType) => void;
     value?: VariantLike;
 }
-
 
 export interface AddVariableOptions extends AddBaseNodeOptions, VariableStuff {
     /**

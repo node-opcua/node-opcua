@@ -23,9 +23,12 @@ const UADiscreteAlarm = require("./discrete_alarm").UADiscreteAlarm;
  * discrete Condition that is considered to be not normal.
  * This sub type is usually used to indicate that a discrete value is in an Alarm state, it is active as
  * long as a non-normal value is present.
+ *
  * @class UAOffNormalAlarm
  * @extends UADiscreteAlarm
  * @constructor
+ *
+ *
  */
 function UAOffNormalAlarm() {
     // HasProperty Variable NormalState NodeId PropertyType Mandatory
@@ -194,12 +197,15 @@ module.exports.UAOffNormalAlarm = UAOffNormalAlarm;
 
 
 /**
- * @class UASystemOffNormalAlarm
- * @constructor
- * @extends UAOffNormalAlarm
+ *
  * This Condition is used by a Server to indicate that an underlying system that is providing  Alarm information is
  * having a communication problem and that the Server may have invalid or incomplete Condition state in the
  * Subscription.
+ *
+ * @class UASystemOffNormalAlarm
+ * @constructor
+ * @extends UAOffNormalAlarm
+
  */
 function UASystemOffNormalAlarm() {
 }

@@ -2,37 +2,39 @@
  * @module opcua.miscellaneous
  */
 import assert from "node-opcua-assert";
-import * as  _ from "underscore";
-import { emptyGuid } from "node-opcua-guid";
-import { BinaryStream } from "node-opcua-binary-stream";
-import { makeNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
-import { FieldCategory, TypeSchemaBase, BasicTypeDefinition, BasicTypeDefinitionOptions } from "./types";
 import {
 
-    encodeArray,  decodeArray,
-    encodeBoolean, decodeBoolean, coerceBoolean,
-    encodeSByte, decodeSByte, coerceSByte,
-    encodeInt8, decodeInt8, coerceInt8,
-    encodeInt16, decodeInt16, coerceInt16,
-    encodeInt32, decodeInt32, coerceInt32,
-    encodeInt64, decodeInt64, coerceInt64,
-    encodeByte, decodeByte, coerceByte,
-    encodeUInt8, decodeUInt8, coerceUInt8,
-    encodeUInt16, decodeUInt16, coerceUInt16,
-    encodeUInt32, decodeUInt32, coerceUInt32,
-    encodeUInt64, decodeUInt64, coerceUInt64,
-    encodeByteString, decodeByteString, coerceByteString,
-    encodeFloat, decodeFloat, coerceFloat,
-    encodeDouble, decodeDouble, coerceDouble,
-    encodeString, decodeString,
-    encodeDateTime, decodeDateTime, coerceDateTime,
-    encodeGuid, decodeGuid,
-    encodeNodeId, decodeNodeId, coerceNodeId,
-    encodeExpandedNodeId, decodeExpandedNodeId, coerceExpandedNodeId
+    coerceBoolean, coerceByte,
+    coerceByteString, coerceDateTime, coerceDouble,
+    coerceExpandedNodeId, coerceFloat, coerceInt16,
+    coerceInt32, coerceInt64, coerceInt8,
+    coerceNodeId, coerceSByte, coerceUInt16,
+    coerceUInt32, coerceUInt64, coerceUInt8,
+    decodeBoolean, decodeByte,
+    decodeByteString, decodeDateTime, decodeDouble,
+    decodeExpandedNodeId, decodeFloat, decodeGuid,
+    decodeInt16, decodeInt32, decodeInt64,
+    decodeInt8, decodeNodeId, decodeSByte,
+    decodeString, decodeUInt16, decodeUInt32,
+    decodeUInt64, decodeUInt8,
+    encodeBoolean, encodeByte, encodeByteString,
+    encodeDateTime, encodeDouble, encodeExpandedNodeId,
+    encodeFloat, encodeGuid,
+    encodeInt16, encodeInt32, encodeInt64,
+    encodeInt8, encodeNodeId,
+    encodeSByte, encodeString, encodeUInt16,
+    encodeUInt32, encodeUInt64, encodeUInt8
 
 } from "node-opcua-basic-types";
-import { StatusCodes, encodeStatusCode, decodeStatusCode, coerceStatusCode } from "node-opcua-status-code";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { emptyGuid } from "node-opcua-guid";
+import { makeExpandedNodeId, makeNodeId } from "node-opcua-nodeid";
+import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } from "node-opcua-status-code";
+import * as  _ from "underscore";
+import { BasicTypeDefinition, BasicTypeDefinitionOptions, FieldCategory, TypeSchemaBase } from "./types";
 
+// tslint:disable:no-empty
+// tslint:enable:no-unused-variable
 function defaultEncode(value: any, stream: BinaryStream): void {
 
 }
@@ -43,9 +45,10 @@ function defaultDecode(stream: BinaryStream): any {
 
 export class BasicTypeSchema extends TypeSchemaBase implements BasicTypeDefinition {
 
-    subType: string;
-    encode: (value: any, stream: BinaryStream) => void;
-    decode: (stream: BinaryStream) => any;
+    public subType: string;
+
+    public encode: (value: any, stream: BinaryStream) => void;
+    public decode: (stream: BinaryStream) => any;
 
     constructor(options: BasicTypeDefinitionOptions) {
         super(options);
@@ -55,7 +58,7 @@ export class BasicTypeSchema extends TypeSchemaBase implements BasicTypeDefiniti
     }
 }
 
-export const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0));
+export const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
 
 function defaultGuidValue(): any {
     return Buffer.alloc(0);
@@ -71,32 +74,24 @@ function toJSONGuid(value: any): any {
 
 function encodeAny(value: any, stream: BinaryStream) {
     assert(false, "type 'Any' cannot be encoded");
-    stream = stream;
-    value = value;
 }
 
 function decodeAny(stream: BinaryStream) {
     assert(false, "type 'Any' cannot be decoded");
-    stream = stream;
 }
 
 function encodeNull(value: any, stream: BinaryStream): void {
-    stream = stream;
-    value = value;
 }
 
 function decodeNull(stream: BinaryStream): any {
-    stream = stream;
     return null;
 }
-
 
 // there are 4 types of DataTypes in opcua:
 //   Built-In DataType
 //   Simple DataType
 //   Complex DataType
 //   Enumeration
-
 
 const defaultXmlElement = "";
 
@@ -105,104 +100,135 @@ const _defaultType: any[] = [
     // Built-in DataTypes ( see OPCUA Part III v1.02 - $5.8.2 )
     {
         name: "Null",
-        encode: encodeNull,
+
         decode: decodeNull,
+        encode: encodeNull,
+
         defaultValue: null
     },
     {
         name: "Any",
-        encode: encodeAny,
+
         decode: decodeAny,
+        encode: encodeAny
     },
     {
         name: "Boolean",
-        encode: encodeBoolean,
+
         decode: decodeBoolean,
-        defaultValue: false,
-        coerce: coerceBoolean
+        encode: encodeBoolean,
+
+        coerce: coerceBoolean,
+        defaultValue: false
     },
-    {name: "Int8", encode: encodeInt8, decode: decodeInt8, defaultValue: 0, coerce: coerceInt8},
-    {name: "UInt8", encode: encodeUInt8, decode: decodeUInt8, defaultValue: 0, coerce: coerceUInt8},
-    {name: "SByte", encode: encodeSByte, decode: decodeSByte, defaultValue: 0, coerce: coerceSByte},
-    {name: "Byte", encode: encodeByte, decode: decodeByte, defaultValue: 0, coerce: coerceByte},
-    {name: "Int16", encode: encodeInt16, decode: decodeInt16, defaultValue: 0, coerce: coerceInt16},
-    {name: "UInt16", encode: encodeUInt16, decode: decodeUInt16, defaultValue: 0, coerce: coerceUInt16},
-    {name: "Int32", encode: encodeInt32, decode: decodeInt32, defaultValue: 0, coerce: coerceInt32},
-    {name: "UInt32", encode: encodeUInt32, decode: decodeUInt32, defaultValue: 0, coerce: coerceUInt32},
+    { name: "Int8", encode: encodeInt8, decode: decodeInt8, defaultValue: 0, coerce: coerceInt8 },
+    { name: "UInt8", encode: encodeUInt8, decode: decodeUInt8, defaultValue: 0, coerce: coerceUInt8 },
+    { name: "SByte", encode: encodeSByte, decode: decodeSByte, defaultValue: 0, coerce: coerceSByte },
+    { name: "Byte", encode: encodeByte, decode: decodeByte, defaultValue: 0, coerce: coerceByte },
+    { name: "Int16", encode: encodeInt16, decode: decodeInt16, defaultValue: 0, coerce: coerceInt16 },
+    { name: "UInt16", encode: encodeUInt16, decode: decodeUInt16, defaultValue: 0, coerce: coerceUInt16 },
+    { name: "Int32", encode: encodeInt32, decode: decodeInt32, defaultValue: 0, coerce: coerceInt32 },
+    { name: "UInt32", encode: encodeUInt32, decode: decodeUInt32, defaultValue: 0, coerce: coerceUInt32 },
     {
         name: "Int64",
-        encode: encodeInt64,
+
         decode: decodeInt64,
-        defaultValue: coerceInt64(0),
-        coerce: coerceInt64
+        encode: encodeInt64,
+
+        coerce: coerceInt64,
+        defaultValue: coerceInt64(0)
     },
     {
         name: "UInt64",
-        encode: encodeUInt64,
+
         decode: decodeUInt64,
-        defaultValue: coerceUInt64(0),
-        coerce: coerceUInt64
+        encode: encodeUInt64,
+
+        coerce: coerceUInt64,
+        defaultValue: coerceUInt64(0)
     },
     {
         name: "Float",
-        encode: encodeFloat,
+
         decode: decodeFloat,
-        defaultValue: 0.0,
-        coerce: coerceFloat
+        encode: encodeFloat,
+
+        coerce: coerceFloat,
+        defaultValue: 0.0
     },
     {
         name: "Double",
-        encode: encodeDouble,
+
         decode: decodeDouble,
-        defaultValue: 0.0,
-        coerce: coerceFloat
+        encode: encodeDouble,
+
+        coerce: coerceDouble,
+        defaultValue: 0.0
     },
     {
         name: "String",
-        encode: encodeString, decode: decodeString, defaultValue: ""
+
+        decode: decodeString,
+        encode: encodeString,
+
+        defaultValue: ""
     },
     // OPC Unified Architecture, part 3.0 $8.26 page 67
     {
         name: "DateTime",
-        encode: encodeDateTime,
+
         decode: decodeDateTime,
-        defaultValue: exports.minDate,
-        coerce: coerceDateTime
+        encode: encodeDateTime,
+
+        coerce: coerceDateTime,
+        defaultValue: exports.minDate
     },
     {
         name: "Guid",
-        encode: encodeGuid,
+
         decode: decodeGuid,
+        encode: encodeGuid,
+
         defaultValue: emptyGuid
     },
 
     {
         name: "ByteString",
-        encode: encodeByteString,
+
         decode: decodeByteString,
-        defaultValue: null,
+        encode: encodeByteString,
+
         coerce: coerceByteString,
+        defaultValue: null,
         toJSON: toJSONGuid
     },
     {
         name: "XmlElement",
-        encode: encodeString,
+
         decode: decodeString,
+        encode: encodeString,
+
         defaultValue: defaultXmlElement
     },
 
     // see OPCUA Part 3 - V1.02 $8.2.1
     {
         name: "NodeId",
-        encode: encodeNodeId, decode: decodeNodeId,
-        defaultValue: makeNodeId,
-        coerce: coerceNodeId
+
+        decode: decodeNodeId,
+        encode: encodeNodeId,
+
+        coerce: coerceNodeId,
+        defaultValue: makeNodeId
     },
     {
         name: "ExpandedNodeId",
-        encode: encodeExpandedNodeId, decode: decodeExpandedNodeId,
-        defaultValue: makeExpandedNodeId,
-        coerce: coerceExpandedNodeId
+
+        decode: decodeExpandedNodeId,
+        encode: encodeExpandedNodeId,
+
+        coerce: coerceExpandedNodeId,
+        defaultValue: makeExpandedNodeId
     },
 
     // ----------------------------------------------------------------------------------------
@@ -217,14 +243,15 @@ const _defaultType: any[] = [
     // the value as defined by  Duration
     //
 
-
     // OPC Unified Architecture, part 4.0 $7.13
     // IntegerID: This primitive data type is an UInt32 that is used as an identifier, such as a handle. All values,
     // except for 0, are valid.
     {
         name: "IntegerId",
-        encode: encodeUInt32,
+
         decode: decodeUInt32,
+        encode: encodeUInt32,
+
         defaultValue: 0xFFFFFFFF
     },
 
@@ -234,13 +261,14 @@ const _defaultType: any[] = [
     // 7.33 Part 4 - P 143
     {
         name: "StatusCode",
-        encode: encodeStatusCode,
+
         decode: decodeStatusCode,
-        defaultValue: StatusCodes.Good,
+        encode: encodeStatusCode,
+
         coerce: coerceStatusCode,
+        defaultValue: StatusCodes.Good
     }
 ];
-
 
 /**
  * @method registerType
@@ -267,7 +295,6 @@ export function unregisterType(typeName: string): void {
     _defaultTypeMap.delete(typeName);
 }
 
-
 /**
  * @method findSimpleType
  * @param name
@@ -280,7 +307,6 @@ export function findSimpleType(name: string): BasicTypeDefinition {
     return typeSchema as BasicTypeDefinition;
 }
 
-
 // populate the default type map
 const _defaultTypeMap: Map<string, BasicTypeSchema> = new Map<string, BasicTypeSchema>();
 _defaultType.forEach(registerType);
@@ -290,7 +316,7 @@ export function hasBuiltInType(name: string): boolean {
 }
 
 export function getBuildInType(name: string): BasicTypeDefinition {
-    return _defaultTypeMap.get(name)  as BasicTypeDefinition;
+    return _defaultTypeMap.get(name) as BasicTypeDefinition;
 }
 
 /**

@@ -1,7 +1,10 @@
 import assert from "node-opcua-assert";
-import { bn_dateToHundredNanoSecondFrom1601, bn_hundredNanoSecondFrom1601ToDate, DateWithPicoseconds } from "./date_time";
 import { BinaryStream } from "node-opcua-binary-stream";
-
+import {
+    bn_dateToHundredNanoSecondFrom1601,
+    bn_hundredNanoSecondFrom1601ToDate,
+    DateWithPicoseconds
+} from "./date_time";
 
 //  Date(year, month [, day, hours, minutes, seconds, ms])
 export function isValidDateTime(value: any) {
@@ -20,7 +23,6 @@ function getRandomInt(min: number, max: number) {
     // note : Math.random() returns a random number between 0 (inclusive) and 1 (exclusive):
     return Math.floor(Math.random() * (max - min)) + min;
 }
-
 
 export function randomDateTime() {
     const r = getRandomInt;
@@ -59,7 +61,6 @@ export function encodeDateTime(date: Date | null, stream: BinaryStream) {
     encodeHighAccuracyDateTime(date, 0, stream);
 }
 
-
 /**
  *
  * @param stream
@@ -71,7 +72,6 @@ export function decodeDateTime(stream: BinaryStream): DateWithPicoseconds {
     return bn_hundredNanoSecondFrom1601ToDate(hi, lo);
 }
 export const decodeHighAccuracyDateTime = decodeDateTime;
-
 
 export function coerceDateTime(value: any): Date {
     if (value instanceof Date) {
