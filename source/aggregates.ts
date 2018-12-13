@@ -1,8 +1,7 @@
-
 import { ObjectIds } from "node-opcua-constants";
 import { makeNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
-import { DataType  } from "node-opcua-variant";
+import { DataType } from "node-opcua-variant";
 
 import { AggregateConfigurationOptions } from "./interval";
 
@@ -26,7 +25,7 @@ const historicalCapabilitiesDefaultProperties = {
     accessHistoryDataCapability: true, // Boolean PropertyType Mandatory
     accessHistoryEventsCapability: true, // Boolean PropertyType Mandatory
     deleteAtTimeCapability: false, // Boolean PropertyType Mandatory
-    deleteEventCapability:       false, // Boolean PropertyType Mandatory
+    deleteEventCapability: false, // Boolean PropertyType Mandatory
     deleteRawCapability: false, // Boolean PropertyType Mandatory
     insertAnnotationsCapability: false, // Boolean PropertyType Mandatory
     insertDataCapability: false, // Boolean PropertyType Mandatory
@@ -36,7 +35,7 @@ const historicalCapabilitiesDefaultProperties = {
     replaceDataCapability: false, // Boolean PropertyType Mandatory
     replaceEventCapability: false, // Boolean PropertyType Mandatory
     updateDataCapability: false, // Boolean PropertyType Mandatory
-    updateEventCapability:       false, // Boolean PropertyType Mandatory
+    updateEventCapability: false // Boolean PropertyType Mandatory
 };
 
 export function createHistoryServerCapabilities(addressSpace: any, serverCapabilities: any): any {
@@ -50,29 +49,35 @@ export function createHistoryServerCapabilities(addressSpace: any, serverCapabil
     });
     return historyServerCapabilities;
 }
-function setHistoricalServerCapabilities(historyServerCapabilities: any, historicalCapabilitiesDefaultProperties: any) {
+
+function setHistoricalServerCapabilities(
+  historyServerCapabilities: any,
+  historicalCapabilitiesDefaultProperties: any
+) {
     function setBoolean(propName: string) {
         const lowerCase = utils.lowerFirstLetter(propName);
-        if (! historicalCapabilitiesDefaultProperties.hasOwnProperty(lowerCase)) {
-             throw new Error("cannot find " + lowerCase);
+        if (!historicalCapabilitiesDefaultProperties.hasOwnProperty(lowerCase)) {
+            throw new Error("cannot find " + lowerCase);
         }
         const value = historicalCapabilitiesDefaultProperties[lowerCase];
         const prop = historyServerCapabilities.getChildByName(propName);
         if (!prop) {
             throw new Error(" Cannot find property " + propName);
         }
-        prop.setValueFromSource({ dataType: DataType.Boolean, value});
+        prop.setValueFromSource({ dataType: DataType.Boolean, value });
 
     }
+
     function setUInt32(propName: string) {
         const lowerCase = utils.lowerFirstLetter(propName);
-        if (! historyServerCapabilities.hasOwnProperty(lowerCase)) {
+        if (!historyServerCapabilities.hasOwnProperty(lowerCase)) {
             throw new Error("cannot find " + lowerCase);
         }
         const value = historicalCapabilitiesDefaultProperties[lowerCase];
         const prop = historyServerCapabilities.getChildByName(propName);
-        prop.setValueFromSource({ dataType: DataType.UInt32, value});
+        prop.setValueFromSource({ dataType: DataType.UInt32, value });
     }
+
     setBoolean("AccessHistoryDataCapability");
     setBoolean("AccessHistoryEventsCapability");
 
@@ -96,7 +101,7 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, histori
 
 function addAggregateFunctionSupport(addressSpace: any, functionName: any): any {
     // AggregateFunction_Interpolative
- // xx      assert(functionName === "Interpolative");
+    // xx      assert(functionName === "Interpolative");
     if (!functionName) {
         throw new Error("Invalid function name");
     }
@@ -111,54 +116,54 @@ function addAggregateFunctionSupport(addressSpace: any, functionName: any): any 
     }
     aggregateFunctions.addReference({
         nodeId: functionNode.nodeId,
-        referenceType: "Organizes",
+        referenceType: "Organizes"
     });
 
     aggregateFunctionsInHist.addReference({
         nodeId: functionNode.nodeId,
-        referenceType: "Organizes",
+        referenceType: "Organizes"
     });
 
 }
 
-const AggregateFunction = {
-    AnnotationCount: ObjectIds.AggregateFunction_AnnotationCount,
-    Average: ObjectIds.AggregateFunction_Average,
-    Count: ObjectIds.AggregateFunction_Count,
-    Delta: ObjectIds.AggregateFunction_Delta,
-    DeltaBounds: ObjectIds.AggregateFunction_DeltaBounds,
-    DurationBad: ObjectIds.AggregateFunction_DurationBad,
-    DurationGood: ObjectIds.AggregateFunction_DurationGood,
-    DurationInStateNonZero: ObjectIds.AggregateFunction_DurationInStateNonZero,
-    DurationInStateZero: ObjectIds.AggregateFunction_End,
-    EndBound: ObjectIds.AggregateFunction_EndBound,
-    Interpolative: ObjectIds.AggregateFunction_Interpolative,
-    Maximum: ObjectIds.AggregateFunction_Maximum,
-    Maximum2: ObjectIds.AggregateFunction_Maximum2,
-    MaximumActualTime: ObjectIds.AggregateFunction_MaximumActualTime,
-    MaximumActualTime2: ObjectIds.AggregateFunction_MaximumActualTime2,
-    Minimum: ObjectIds.AggregateFunction_Minimum,
-    Minimum2: ObjectIds.AggregateFunction_Minimum2,
-    MinimumActualTime: ObjectIds.AggregateFunction_MinimumActualTime,
-    MinimumActualTime2: ObjectIds.AggregateFunction_MinimumActualTime2,
-    NumberOfTransitions: ObjectIds.AggregateFunction_NumberOfTransitions,
-    PercentBad: ObjectIds.AggregateFunction_PercentBad,
-    PercentGood: ObjectIds.AggregateFunction_PercentGood,
-    Range: ObjectIds.AggregateFunction_Range,
-    Range2: ObjectIds.AggregateFunction_Range2,
-    StandardDeviationPopulation: ObjectIds.AggregateFunction_StandardDeviationPopulation,
-    StandardDeviationSample: ObjectIds.AggregateFunction_StandardDeviationSample,
-    Start: ObjectIds.AggregateFunction_Start,
-    StartBound: ObjectIds.AggregateFunction_StartBound,
-    TimeAverage: ObjectIds.AggregateFunction_TimeAverage,
-    TimeAverage2: ObjectIds.AggregateFunction_TimeAverage2,
-    Total: ObjectIds.AggregateFunction_Total,
-    Total2: ObjectIds.AggregateFunction_Total2,
-    VariancePopulation: ObjectIds.AggregateFunction_VariancePopulation,
-    VarianceSample: ObjectIds.AggregateFunction_VarianceSample,
-    WorstQuality: ObjectIds.AggregateFunction_WorstQuality,
-    WorstQuality2: ObjectIds.AggregateFunction_WorstQuality2
-};
+const enum AggregateFunction {
+    AnnotationCount = ObjectIds.AggregateFunction_AnnotationCount,
+    Average = ObjectIds.AggregateFunction_Average,
+    Count = ObjectIds.AggregateFunction_Count,
+    Delta = ObjectIds.AggregateFunction_Delta,
+    DeltaBounds = ObjectIds.AggregateFunction_DeltaBounds,
+    DurationBad = ObjectIds.AggregateFunction_DurationBad,
+    DurationGood = ObjectIds.AggregateFunction_DurationGood,
+    DurationInStateNonZero = ObjectIds.AggregateFunction_DurationInStateNonZero,
+    DurationInStateZero = ObjectIds.AggregateFunction_End,
+    EndBound = ObjectIds.AggregateFunction_EndBound,
+    Interpolative = ObjectIds.AggregateFunction_Interpolative,
+    Maximum = ObjectIds.AggregateFunction_Maximum,
+    Maximum2 = ObjectIds.AggregateFunction_Maximum2,
+    MaximumActualTime = ObjectIds.AggregateFunction_MaximumActualTime,
+    MaximumActualTime2 = ObjectIds.AggregateFunction_MaximumActualTime2,
+    Minimum = ObjectIds.AggregateFunction_Minimum,
+    Minimum2 = ObjectIds.AggregateFunction_Minimum2,
+    MinimumActualTime = ObjectIds.AggregateFunction_MinimumActualTime,
+    MinimumActualTime2 = ObjectIds.AggregateFunction_MinimumActualTime2,
+    NumberOfTransitions = ObjectIds.AggregateFunction_NumberOfTransitions,
+    PercentBad = ObjectIds.AggregateFunction_PercentBad,
+    PercentGood = ObjectIds.AggregateFunction_PercentGood,
+    Range = ObjectIds.AggregateFunction_Range,
+    Range2 = ObjectIds.AggregateFunction_Range2,
+    StandardDeviationPopulation = ObjectIds.AggregateFunction_StandardDeviationPopulation,
+    StandardDeviationSample = ObjectIds.AggregateFunction_StandardDeviationSample,
+    Start = ObjectIds.AggregateFunction_Start,
+    StartBound = ObjectIds.AggregateFunction_StartBound,
+    TimeAverage = ObjectIds.AggregateFunction_TimeAverage,
+    TimeAverage2 = ObjectIds.AggregateFunction_TimeAverage2,
+    Total = ObjectIds.AggregateFunction_Total,
+    Total2 = ObjectIds.AggregateFunction_Total2,
+    VariancePopulation = ObjectIds.AggregateFunction_VariancePopulation,
+    VarianceSample = ObjectIds.AggregateFunction_VarianceSample,
+    WorstQuality = ObjectIds.AggregateFunction_WorstQuality,
+    WorstQuality2 = ObjectIds.AggregateFunction_WorstQuality2
+}
 
 export function addAggregateSupport(addressSpace: any) {
     const aggregateConfigurationType = addressSpace.getNamespace(0).findObjectType("AggregateConfigurationType");
@@ -195,8 +200,8 @@ export function addAggregateSupport(addressSpace: any) {
 
 export function installAggregateConfigurationOptions(node: any, options: AggregateConfigurationOptions) {
     const aggregateConfiguration = node.$historicalDataConfiguration.aggregateConfiguration;
-    aggregateConfiguration.percentDataBad.setValueFromSource({dataType: "Byte", value: options.percentDataBad});
-    aggregateConfiguration.percentDataGood.setValueFromSource({dataType: "Byte", value: options.percentDataGood});
+    aggregateConfiguration.percentDataBad.setValueFromSource({ dataType: "Byte", value: options.percentDataBad });
+    aggregateConfiguration.percentDataGood.setValueFromSource({ dataType: "Byte", value: options.percentDataGood });
     aggregateConfiguration.treatUncertainAsBad.setValueFromSource({
         dataType: "Boolean",
         value: options.treatUncertainAsBad
@@ -217,7 +222,7 @@ export function getAggregateConfiguration(node: any): AggregateConfigurationOpti
     const aggregateConfiguration = node.$historicalDataConfiguration.aggregateConfiguration;
 
     // Beware ! Stepped value comes from Historical Configuration !
-    const stepped =  node.$historicalDataConfiguration.stepped.readValue().value.value;
+    const stepped = node.$historicalDataConfiguration.stepped.readValue().value.value;
 
     return {
         percentDataBad: aggregateConfiguration.percentDataBad.readValue().value.value,
@@ -225,7 +230,6 @@ export function getAggregateConfiguration(node: any): AggregateConfigurationOpti
         stepped,
         treatUncertainAsBad: aggregateConfiguration.treatUncertainAsBad.readValue().value.value,
         // xx stepped:                aggregateConfiguration.stepped.readValue().value,
-        useSlopedExtrapolation: aggregateConfiguration.useSlopedExtrapolation.readValue().value.value,
+        useSlopedExtrapolation: aggregateConfiguration.useSlopedExtrapolation.readValue().value.value
     };
 }
-
