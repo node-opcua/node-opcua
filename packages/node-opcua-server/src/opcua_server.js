@@ -1186,12 +1186,12 @@ OPCUAServer.prototype.isValidUserNameIdentityToken = function (
     userTokenSignature
 ) {
 
-    const self = this;
-
     assert(userIdentityToken instanceof UserNameIdentityToken);
 
     const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
-
+    if (securityPolicy === SecurityPolicy.None) {
+        return StatusCodes.Good;
+    }
     const cryptoFactory = getCryptoFactory(securityPolicy);
     if (!cryptoFactory) {
         return StatusCodes.BadSecurityPolicyRejected;
@@ -1292,21 +1292,26 @@ OPCUAServer.prototype.userNameIdentityTokenAuthenticateUser = function (channel,
 
     const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
 
-    const serverPrivateKey = self.getPrivateKey();
-
-    const serverNonce = session.nonce;
-    assert(serverNonce instanceof Buffer);
-
-    const cryptoFactory = getCryptoFactory(securityPolicy);
-    if (!cryptoFactory) {
-        return done(new Error(" Unsupported security Policy"));
-    }
     const userName = userIdentityToken.userName;
     let password = userIdentityToken.password;
 
-    const buff = cryptoFactory.asymmetricDecrypt(password, serverPrivateKey);
-    const length = buff.readUInt32LE(0) - serverNonce.length;
-    password = buff.slice(4, 4 + length).toString("utf-8");
+    // decrypt password if necessary
+    if (securityPolicy === SecurityPolicy.None) {
+        password = password.toString();
+    } else {
+        const serverPrivateKey = self.getPrivateKey();
+
+        const serverNonce = session.nonce;
+        assert(serverNonce instanceof Buffer);
+
+        const cryptoFactory = getCryptoFactory(securityPolicy);
+        if (!cryptoFactory) {
+            return done(new Error(" Unsupported security Policy"));
+        }
+        const buff = cryptoFactory.asymmetricDecrypt(password, serverPrivateKey);
+        const length = buff.readUInt32LE(0) - serverNonce.length;
+        password = buff.slice(4, 4 + length).toString("utf-8");
+    }
 
     if (_.isFunction(self.userManager.isValidUserAsync)) {
         self.userManager.isValidUserAsync.call(session, userName, password, done);

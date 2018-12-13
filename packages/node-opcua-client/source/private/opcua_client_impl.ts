@@ -247,13 +247,13 @@ function createUserNameIdentityToken(
     }
 
     let identityToken;
-    let serverCertificate: Buffer | string = session.serverCertificate;
+    let serverCertificate: Buffer | string | null = session.serverCertificate;
     // if server does not provide certificate use unencrypted password
-    if (serverCertificate === null) {
+    if (!serverCertificate) {
         identityToken = new UserNameIdentityToken({
             encryptionAlgorithm: null,
             password: Buffer.from(password as string, "utf-8"),
-            policyId: userTokenPolicy.policyId,
+            policyId: userTokenPolicy ? userTokenPolicy!.policyId : null,
             userName,
         });
         return identityToken;
@@ -265,6 +265,22 @@ function createUserNameIdentityToken(
 
     const serverNonce: Nonce = session.serverNonce || Buffer.alloc(0);
     assert(serverNonce instanceof Buffer);
+
+    // If None is specified for the UserTokenPolicy and SecurityPolicy is None
+    // then the password only contains the UTF-8 encoded password.
+    // note: this means that password is sent in clear text to the server
+    // note: OPCUA specification discourages use of unencrypted password
+    //       but some old OPCUA server may only provide this policy and we
+    //       still have to support in the client?
+    if (securityPolicy === SecurityPolicy.None) {
+        identityToken = new UserNameIdentityToken({
+            encryptionAlgorithm: null,
+            password: Buffer.from(password as string, "utf-8"),
+            policyId: userTokenPolicy.policyId,
+            userName
+        });
+        return identityToken;
+    }
 
     // see Release 1.02 155 OPC Unified Architecture, Part 4
     const cryptoFactory = getCryptoFactory(securityPolicy);

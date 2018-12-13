@@ -352,6 +352,9 @@ const default_transportProfileUri = "http://opcfoundation.org/UA-Profile/Transpo
  * @param options.server.discoveryUrls       {String}
  * @param [options.resourcePath=""]          {String} resource Path is a string added at the end of the url such as "/UA/Server"
  * @param [options.hostname=get_fully_qualified_domain_name()] {string} default hostname
+ * @param options.restricted                 {boolean}
+ * @param [options.allowAnonymous=true]      {boolean} allow anonymous connection
+ * @param [options.allowUnsecurePassword=false] {boolean} allow unencrypted password in userNameIdentity (
  * @return {EndpointDescription}
  * @private
  */
@@ -377,6 +380,16 @@ function _makeEndpointDescription(options) {
     const userIdentityTokens = [];
 
     if (options.securityPolicy === SecurityPolicy.None) {
+
+        if (options.allowUnsecurePassword) {
+            userIdentityTokens.push({
+                policyId: "username_unsecure",
+                tokenType: UserTokenType.UserName,
+                issuedTokenType: null,
+                issuerEndpointUrl: null,
+                securityPolicyUri: null,
+            });
+        }
 
         userIdentityTokens.push({
             policyId: "username_basic256",
@@ -560,6 +573,7 @@ OPCUAServerEndPoint.prototype.addEndpointDescription = function (securityMode, s
         securityMode: securityMode,
         securityPolicy: securityPolicy,
         allowAnonymous: options.allowAnonymous,
+        allowUnsecurePassword: options.allowUnsecurePassword,
         resourcePath: options.resourcePath,
         hostname: options.hostname,
         restricted: !!options.restricted
