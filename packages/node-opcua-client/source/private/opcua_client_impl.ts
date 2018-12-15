@@ -163,6 +163,9 @@ function createX509IdentityToken(
         policyId: userTokenPolicy.policyId,
     });
 
+    const serverCertificate: Certificate  = session.serverCertificate;
+    assert(serverCertificate instanceof Buffer);
+
     const serverNonce: Nonce = session.serverNonce || Buffer.alloc(0);
     assert(serverNonce instanceof Buffer);
 
@@ -180,7 +183,7 @@ function createX509IdentityToken(
      * ...
      * If the token is an X509IdentityToken then the proof is a signature generated with private key
      * associated with the Certificate. The data to sign is created by appending the last serverNonce to
-     * the serverCertificate specified in the CreateSession response. If a token includes a secret then it
+     * the **serverCertificate** specified in the CreateSession response. If a token includes a secret then it
      * should be encrypted using the public key from the serverCertificate.
      *
      * page 155:
@@ -206,7 +209,7 @@ function createX509IdentityToken(
 
     // The signature generated with private key associated with the User Certificate
     const userTokenSignature: SignatureDataOptions = computeSignature(
-        certificate, serverNonce, privateKey, securityPolicy)!;
+        serverCertificate, serverNonce, privateKey, securityPolicy)!;
 
     return {userIdentityToken, userTokenSignature};
 }
@@ -275,7 +278,7 @@ function createUserNameIdentityToken(
     if (securityPolicy === SecurityPolicy.None) {
         identityToken = new UserNameIdentityToken({
             encryptionAlgorithm: null,
-            password: Buffer.from(password as string, "utf-8"),
+            password: Buffer.from(password!, "utf-8"),
             policyId: userTokenPolicy.policyId,
             userName
         });

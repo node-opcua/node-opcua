@@ -1244,12 +1244,15 @@ OPCUAServer.prototype.isValidX509IdentityToken = function (
     }
     const certificate = userIdentityToken.certificateData/* as Certificate*/;
     const nonce = session.nonce;
+    const serverCertificate = this.getCertificate();
+
+    assert(serverCertificate instanceof Buffer);
     assert(certificate instanceof Buffer, "expecting certificate to be a Buffer");
     assert(nonce instanceof Buffer, "expecting nonce to be a Buffer");
     assert(userTokenSignature.signature instanceof Buffer, "expecting userTokenSignature to be a Buffer");
 
     // verify proof of possession by checking certificate signature & server nonce correctness
-    if (!verifySignature(certificate, nonce, userTokenSignature, certificate, securityPolicy)) {
+    if (!verifySignature(serverCertificate, nonce, userTokenSignature, certificate, securityPolicy)) {
         return callback(null, StatusCodes.BadUserSignatureInvalid);
     }
 

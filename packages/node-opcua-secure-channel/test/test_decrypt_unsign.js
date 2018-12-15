@@ -2,7 +2,7 @@
 const should = require("should");
 const makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
 const inlineText = require("node-opcua-debug").inlineText;
-const hexDump = require("node-opcua-utils").hexDump;
+const hexDump = require("node-opcua-debug").hexDump;
 const crypto_utils = require("node-opcua-crypto");
 
 let buffer = makebuffer_from_trace(
@@ -59,8 +59,10 @@ let buffer = makebuffer_from_trace(
          00000600: 5f 1e 1e 58 bd 7b 33 7f fd 98 fd 20 9d 71 30 3a 3c 84 1e 87 b8 1b 2d 51 2b 55 62 41 e4 b9 a5 29    _..X={3.}.}..q0:<...8.-Q+UbAd9%)
          00000620: 24 2a 91 b6 06 05 01 df 80 dd b1 04 2e 05 aa 17 ef 6a 53 46 05 78 0c c7 5c 9c 7f cf e4 37 80 de    $*.6..._.]1...*.ojSF.x.G\..Od7.^
          00000640: bf 31 de 11 13 70 f4 93 fe 0c a2 4f ef 58 b9 c8 a8 3a 5e 76 20 0c 87 f0 ef                         ?1^..pt.~."OoX9H(:^v...po
-         */
+*/
     });
+
+//console.log(hexDump(buffer, 32 , 10000));
 
 const privateKey = inlineText(
     function () {
