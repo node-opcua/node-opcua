@@ -1,4 +1,5 @@
-const util = require("util");
+// tslint:disable:no-console
+import * as util from "util";
 
 export function dump(obj: any) {
     console.log("\n", util.inspect(JSON.parse(JSON.stringify(obj)), { colors: true, depth: 10 }));

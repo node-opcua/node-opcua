@@ -1,15 +1,12 @@
-const path = require("path");
-const fs = require("fs");
+import * as fs from "fs";
+import * as path from "path";
 
-export function getTempFilename(tmpfile:string|null):string {
-    tmpfile = tmpfile || "";
-    const this_dirname = __dirname;
-    const temporaryFolder = path.join(this_dirname, '../../../../tmp/');
+export function getTempFilename(tmpFilename: string | null): string {
+    tmpFilename = tmpFilename || "";
+    const folderOfThisFile = __dirname;
+    const temporaryFolder = path.join(folderOfThisFile, "../../../../tmp/");
     if (!fs.existsSync(temporaryFolder)) {
         fs.mkdirSync(temporaryFolder);
     }
-    return path.normalize(path.join(temporaryFolder,tmpfile));
+    return path.normalize(path.join(temporaryFolder, tmpFilename!));
 }
-
-
-
