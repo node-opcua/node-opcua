@@ -1,3 +1,4 @@
+"use strict";
 /**
  *
  */
@@ -7,6 +8,7 @@ const ObjectIds = require("node-opcua-constants").ObjectIds;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const assert = require("node-opcua-assert").assert;
 
 
 function readHistoryServerCapabilities(the_session,callback) {
@@ -75,9 +77,9 @@ function readHistoryServerCapabilities(the_session,callback) {
                     data[propName] = dataValues[i].value.value;
                 }
                 callback(null,data);
-            })
+            });
         });
     });
-};
+}
 
 module.exports.readHistoryServerCapabilities = readHistoryServerCapabilities;
