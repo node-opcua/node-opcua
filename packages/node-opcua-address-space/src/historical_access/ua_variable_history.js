@@ -29,3 +29,5 @@ UAVariable.prototype.historyRead = function (context, historyReadDetails, indexR
     }
     this._historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback);
 };
+const thenify = require("thenify");
+UAVariable.prototype.historyRead = thenify.withCallback(UAVariable.prototype.historyRead);

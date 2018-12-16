@@ -24,78 +24,147 @@ const DataType = require("node-opcua-variant").DataType;
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
+// import { isMinDate } from "node-opcua-date-time";
+const isMinDate = require("node-opcua-date-time").isMinDate;
+
 const UAVariable = require("../ua_variable").UAVariable;
 const SessionContext = require("../session_context").SessionContext;
 
 
-const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
+/* interface Historian  */
+// {
+//
+// }
+function inInTimeRange(historyReadDetails, dataValue) {
 
-function isMinDate(date) {
-    return date.getTime() === minDate.getTime();
+    if (historyReadDetails.startTime &&
+      !isMinDate(historyReadDetails.startTime)
+      && dataValue.sourceTimestamp < historyReadDetails.startTime) {
+        return false;
+    }
+    if (historyReadDetails.endTime
+      && !isMinDate(historyReadDetails.endTime)
+      && dataValue.sourceTimestamp > historyReadDetails.endTime) {
+        return false;
+    }
+    return true;
+}
+
+function inInTimeRange2(historyReadDetails, dataValue) {
+    if (historyReadDetails.endTime &&
+      !isMinDate(historyReadDetails.endTime) &&
+      dataValue.sourceTimestamp > historyReadDetails.endTime) {
+        return false;
+    }
+    if (historyReadDetails.startTime &&
+      !isMinDate(historyReadDetails.startTime) &&
+      dataValue.sourceTimestamp < historyReadDetails.startTime) {
+        return false;
+    }
+    return true;
+}
+
+function filter_dequeue(q, historyReadRawModifiedDetails, onlyThisNumber, isReversed) {
+
+    const r = [];
+    const predicate = isReversed ?
+      inInTimeRange2.bind(null, historyReadRawModifiedDetails)
+      : inInTimeRange.bind(null, historyReadRawModifiedDetails);
+
+    if (isReversed) {
+        let c = q.head.prev;
+        while (c.data) {
+            if (predicate(c.data)) {
+                r.push(c.data);
+            }
+            c = c.prev;
+            if (onlyThisNumber && r.length === onlyThisNumber)
+                return r;
+        }
+
+    } else {
+        let c = q.head.next;
+        while (c.data) {
+            if (predicate(c.data)) {
+                r.push(c.data);
+            }
+            c = c.next;
+            if (onlyThisNumber && r.length === onlyThisNumber)
+                return r;
+        }
+    }
+    return r;
+}
+
+
+class VariableHistorian {
+
+    constructor(node, options) {
+        this._timeline = new Dequeue(); // is is ordered here ??????
+        this._maxOnlineValues = options.maxOnlineValues || 1000;
+        this.lastDate = new Date(1600, 0, 1, 0, 0, 0);
+        this.lastDatePicoSeconds = 0;
+        this.node = node;
+    }
+
+    /* public */
+    push(newDataValue) {
+
+        this._timeline.push(newDataValue);
+
+        const sourceTime = newDataValue.sourceTimestamp || new Date();
+        const sourcePicoSeconds = newDataValue.sourcePicoseconds || 0;
+
+        // ensure that values are set with date increasing
+        if (sourceTime.getTime() <= this.lastDate.getTime()) {
+            if (!(sourceTime.getTime() === this.lastDate.getTime() && sourcePicoSeconds > this.lastDatePicoSeconds)) {
+                console.log("Warning date not increasing ".red,
+                  newDataValue.toString(), " last known date = ", this.lastDate);
+            }
+        }
+
+        this.lastDate = sourceTime;
+        this.lastDatePicoSeconds = newDataValue.sourcePicoseconds || 0;
+
+        // we keep only a limited amount in main memory
+        if (this._timeline.length > this._maxOnlineValues) {
+            assert(_.isNumber(this._maxOnlineValues) && this._maxOnlineValues > 0);
+            while (this._timeline.length > this._maxOnlineValues) {
+                this._timeline.shift();
+            }
+        }
+
+        if (this._timeline.length >= this._maxOnlineValues || this._timeline.length === 1) {
+            const first = this._timeline.first();
+            this.node._update_startOfOnlineArchive(first.sourceTimestamp);
+            //we update the node startOnlineDate
+        }
+    }
+
+    extractDataValues(
+      historyReadRawModifiedDetails,
+      maxNumberToExtract,
+      isReversed,
+      reverseDataValue,
+      callback
+    ) {
+
+        const node = this.node;
+        assert(callback instanceof Function);
+
+        let dataValues = filter_dequeue(
+          this._timeline,
+          historyReadRawModifiedDetails,
+          maxNumberToExtract, isReversed);
+
+        if (reverseDataValue) {
+            dataValues = dataValues.reverse();
+        }
+        callback(null, dataValues);
+    }
 }
 
 exports.install = function (AddressSpace) {
-
-    function inInTimeRange(historyReadDetails, dataValue) {
-
-        if (historyReadDetails.startTime &&
-          !isMinDate(historyReadDetails.startTime)
-          && dataValue.sourceTimestamp < historyReadDetails.startTime) {
-            return false;
-        }
-        if (historyReadDetails.endTime
-          && !isMinDate(historyReadDetails.endTime)
-          && dataValue.sourceTimestamp > historyReadDetails.endTime) {
-            return false;
-        }
-        return true;
-    }
-
-    function inInTimeRange2(historyReadDetails, dataValue) {
-        if (historyReadDetails.endTime &&
-          !isMinDate(historyReadDetails.endTime) &&
-          dataValue.sourceTimestamp > historyReadDetails.endTime) {
-            return false;
-        }
-        if (historyReadDetails.startTime &&
-          !isMinDate(historyReadDetails.startTime) &&
-          dataValue.sourceTimestamp < historyReadDetails.startTime) {
-            return false;
-        }
-        return true;
-    }
-
-    function filter_dequeue(q, historyReadRawModifiedDetails, onlyThisNumber, isReversed) {
-
-        const r = [];
-        const predicate = isReversed ?
-          inInTimeRange2.bind(null, historyReadRawModifiedDetails)
-          : inInTimeRange.bind(null, historyReadRawModifiedDetails);
-
-        if (isReversed) {
-            let c = q.head.prev;
-            while (c.data) {
-                if (predicate(c.data)) {
-                    r.push(c.data);
-                }
-                c = c.prev;
-                if (onlyThisNumber && r.length === onlyThisNumber)
-                    return r;
-            }
-
-        } else {
-            let c = q.head.next;
-            while (c.data) {
-                if (predicate(c.data)) {
-                    r.push(c.data);
-                }
-                c = c.next;
-                if (onlyThisNumber && r.length === onlyThisNumber)
-                    return r;
-            }
-        }
-        return r;
-    }
 
 
     function _get_startOfOfflineArchive(node) {
@@ -123,6 +192,8 @@ exports.install = function (AddressSpace) {
         }
     }
 
+    UAVariable.prototype._update_startOfOnlineArchive = _update_startOfOnlineArchive;
+
     function _historyPush(newDataValue) {
 
         const node = this;
@@ -134,36 +205,15 @@ exports.install = function (AddressSpace) {
         }
         assert(node.historizing === true);
 
-        node._timeline.push(newDataValue);
-
-        const sourceTime = newDataValue.sourceTimestamp || new Date();
-        const sourcePicoSeconds = newDataValue.sourcePicoseconds || 0;
-
-        // ensure that values are set with date increasing
-        if (sourceTime.getTime() <= node.lastDate.getTime()) {
-            if (!(sourceTime.getTime() === node.lastDate.getTime() && sourcePicoSeconds > node.lastDatePicoSeconds)) {
-                console.log("Warning date not increasing ".red, newDataValue.toString(), " last known date = ", node.lastDate);
-            }
-        }
-
-        node.lastDate = sourceTime;
-        node.lastDatePicoSeconds = newDataValue.sourcePicoseconds || 0;
-
-        // we keep only a limited amount in main memory
-        if (node._timeline.length > node._maxOnlineValues) {
-            assert(_.isNumber(node._maxOnlineValues) && node._maxOnlineValues > 0);
-            while (node._timeline.length > node._maxOnlineValues) {
-                node._timeline.shift();
-            }
-        }
-
-        if (node._timeline.length >= node._maxOnlineValues || node._timeline.length === 1) {
-            const first = node._timeline.first();
-            _update_startOfOnlineArchive.call(node, first.sourceTimestamp);
-            //we update the node startOnlineDate
-        }
+        node.varHistorian.push(newDataValue);
 
     }
+
+
+
+
+
+
 
     function createContinuationPoint() {
         return new Buffer("ABCDEF");
@@ -244,17 +294,15 @@ exports.install = function (AddressSpace) {
       callback
     ) {
 
+        assert(callback instanceof Function);
         const node = this;
 
-        let dataValues = filter_dequeue(
-          node._timeline,
+        node.varHistorian.extractDataValues(
           historyReadRawModifiedDetails,
-          maxNumberToExtract, isReversed);
-
-        if (reverseDataValue) {
-            dataValues = dataValues.reverse();
-        }
-        callback(null, dataValues);
+          maxNumberToExtract,
+          isReversed,
+          reverseDataValue,
+          callback);
     }
 
     function _historyReadRaw(
@@ -410,7 +458,6 @@ exports.install = function (AddressSpace) {
         }
 
         node._historyReadRawAsync(
-
           historyReadRawModifiedDetails,
           maxNumberToExtract,
           isReversed,
@@ -673,10 +720,7 @@ exports.install = function (AddressSpace) {
         node._historyReadRawAsync = _historyReadRawAsync;
 
 
-        node.lastDate = new Date(1600, 0, 1);
-        node._timeline = new Dequeue(); // is is ordered here ??????
-        node._maxOnlineValues = options.maxOnlineValues || 1000;
-
+        node.varHistorian = options.historian || new VariableHistorian(node, options);
 
         const historicalDataConfigurationType = addressSpace.findObjectType("HistoricalDataConfigurationType");
         node.historizing = true;

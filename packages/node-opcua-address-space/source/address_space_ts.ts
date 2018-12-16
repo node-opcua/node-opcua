@@ -13,6 +13,7 @@ import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import {
     BrowseDescription,
+    BrowseDescriptionOptions,
     BrowseResult
 } from "node-opcua-service-browse";
 import {
@@ -63,7 +64,7 @@ export declare class BaseNode {
       dataEncoding?: any
     ): DataValue;
 
-    [key: string]: any;
+    // [key: string]: BaseNode;
 }
 
 export declare class UAView extends BaseNode {
@@ -111,6 +112,9 @@ type BindVariableOptions =
   BindVariableOptionsVariation1 |
   BindVariableOptionsVariation2 |
   BindVariableOptionsVariation3 ;
+
+export type ContinuationPoint = Buffer;
+export type Callback<T> = (err: Error | null, result?: T) => void;
 
 export declare class UAVariable extends BaseNode {
 
@@ -193,10 +197,27 @@ export declare class UAVariable extends BaseNode {
       overwrite?: boolean
     ): void;
 
+    public historyRead(
+      context: SessionContext,
+      historyReadDetails: HistoryReadDetails,
+      indexRange?: NumericRange | null,
+      dataEncoding?: string | null,
+      continuationPoint?: ContinuationPoint
+    ): Promise<HistoryReadResult>;
+    public historyRead(
+      context: SessionContext,
+      historyReadDetails: HistoryReadDetails,
+      indexRange: NumericRange | null | undefined,
+      dataEncoding: string | null| undefined,
+      continuationPoint: ContinuationPoint| null | undefined,
+      callback: Callback<HistoryReadResult>
+    ): void;
+
     // ----------------- Event handlers
 
     public on(eventName: "semantic_changed", eventHandler: () => void): void;
     public on(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): void;
+
     public once(eventName: "semantic_changed", eventHandler: () => void): void;
     public once(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): void;
 
@@ -448,6 +469,25 @@ export interface RootFolder extends Folder {
     views: Folder;
 }
 
+import { HistoryReadDetails, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
+
+export interface IVariableHistorian {
+
+    push(newDataValue: DataValue): void;
+
+    extractDataValues(
+      historyReadRawModifiedDetails: ReadRawModifiedDetails,
+      maxNumberToExtract: number,
+      isReversed: boolean,
+      reverseDataValue: boolean,
+      callback: (err?: Error | null, dataValue?: DataValue[]) => void
+    ): void;
+}
+
+export interface IVariableHistorianOptions {
+    maxOnlineValues?: number;
+}
+
 export declare class AddressSpace {
 
     public rootFolder: RootFolder;
@@ -475,4 +515,21 @@ export declare class AddressSpace {
       browseDescription: BrowseDescription
     ): BrowseResult;
 
+    // -------------- Historizing support
+    public installHistoricalDataNode(
+      variableNode: UAVariable,
+      options: IHistoricalDataNodeOptions
+    ): void;
+
+    public dispose(): void;
 }
+
+export interface IHistoricalDataNodeOptions {
+    historian: IVariableHistorian;
+}
+
+export declare function generate_address_space(
+  addressSpace: AddressSpace,
+  xmlFiles: string | string[],
+  callback: (err?: Error) => void
+): void;
