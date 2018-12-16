@@ -14,6 +14,9 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
+  "@types/async": "^2.0.50",
+  "@types/underscore": "^1.8.9",
+  "@types/once": "^1.4.0",
   "async": "^2.6.1",
   "chalk": "^2.4.1",
   "delayed": "^1.0.1",
@@ -56,9 +59,10 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/async": "^2.0.50",
-  "@types/underscore": "^1.8.9",
+  "@types/mocha": "^5.2.5",
   "dequeue": "^1.0.5",
+  "node-opcua-binary-stream": "^2.0.0-alpha.7",
+  "node-opcua-factory": "^2.0.0-alpha.7",
   "node-opcua-leak-detector": "^2.0.0-alpha.7",
   "should": "13.2.3",
   "sinon": "^7.1.1"
