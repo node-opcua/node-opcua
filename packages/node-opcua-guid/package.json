@@ -2,14 +2,14 @@
  "name": "node-opcua-guid",
  "main": "./dist/guid.js",
  "types": "./dist/guid.d.ts",
- "version": "2.0.0-alpha.7",
+ "version": "2.0.0-alpha.8",
  "description": "pure nodejs OPCUA SDK - module -guid",
  "scripts": {
   "build": "tsc",
   "test": "mocha test"
  },
  "dependencies": {
-  "node-opcua-assert": "^2.0.0-alpha.7"
+  "node-opcua-assert": "^2.0.0-alpha.8"
  },
  "devDependencies": {
   "should": "13.2.3"

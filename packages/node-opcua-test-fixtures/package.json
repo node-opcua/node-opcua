@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-test-fixtures",
- "version": "2.0.0-alpha.7",
+ "version": "2.0.0-alpha.8",
  "description": "pure nodejs OPCUA SDK - module -test-fixtures",
  "main": "index.js",
  "private": true,

@@ -1,6 +1,6 @@
 {
   "name": "playground",
-  "version": "2.0.0-alpha.7",
+  "version": "2.0.0-alpha.8",
   "description": "",
   "main": "sample1.js",
   "private": true,
@@ -8,8 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "node-opcua": "^2.0.0-alpha.7",
-    "node-opcua-client": "^2.0.0-alpha.7"
+    "node-opcua": "^2.0.0-alpha.8",
+    "node-opcua-client": "^2.0.0-alpha.8"
   },
   "author": "etienne",
   "license": "ISC"

@@ -1,17 +1,17 @@
 {
 	"name": "node-opcua-benchmarker",
-	"version": "2.0.0-alpha.7",
+	"version": "2.0.0-alpha.8",
 	"description": "pure nodejs OPCUA SDK - module -benchmarker",
 	"main": "./dist/benchmarker.js",
 	"types": "./dist/benchmarker.d.ts",
- "scripts": {
-  "build": "tsc",
-  "clean": "node -e \"require('rimraf').sync('dist');\"",
-  "lint": "tslint source/**/*.ts"
- },
+	"scripts": {
+		"build": "tsc",
+		"clean": "node -e \"require('rimraf').sync('dist');\"",
+		"lint": "tslint source/**/*.ts"
+	},
 	"dependencies": {
 		"async": "^2.6.1",
-  "node-opcua-assert": "^2.0.0-alpha.7",
+		"node-opcua-assert": "^2.0.0-alpha.8",
 		"underscore": "^1.9.1"
 	},
 	"author": "Etienne Rossignon",

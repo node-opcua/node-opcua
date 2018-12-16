@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-status-code",
- "version": "2.0.0-alpha.7",
+ "version": "2.0.0-alpha.8",
  "description": "pure nodejs OPCUA SDK - module -status-code",
  "main": "./dist/opcua_status_code.js",
  "types": "./dist/opcua_status_code.d.ts",
@@ -9,12 +9,12 @@
   "test": "mocha test"
  },
  "dependencies": {
-  "node-opcua-assert": "^2.0.0-alpha.7",
-  "node-opcua-constants": "^2.0.0-alpha.7",
+  "node-opcua-assert": "^2.0.0-alpha.8",
+  "node-opcua-constants": "^2.0.0-alpha.8",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-binary-stream": "^2.0.0-alpha.7",
+  "node-opcua-binary-stream": "^2.0.0-alpha.8",
   "should": "13.2.3"
  },
  "author": "Etienne Rossignon",
