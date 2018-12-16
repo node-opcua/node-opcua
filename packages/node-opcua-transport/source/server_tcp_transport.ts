@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-transport
+ */
 // tslint:disable:class-name
 // system
 import chalk from "chalk";
@@ -87,7 +90,9 @@ export class ServerTCP_transport extends TCP_transport {
      *
      */
     public init(socket: Socket, callback: ErrorCallback) {
-        if (debugLog) { debugLog(chalk.cyan("init socket")); }
+        if (debugLog) {
+            debugLog(chalk.cyan("init socket"));
+        }
         assert(!this._socket, "init already called!");
         assert(_.isFunction(callback), "expecting a valid callback ");
         this._install_socket(socket);
@@ -96,7 +101,9 @@ export class ServerTCP_transport extends TCP_transport {
 
     private _abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback) {
 
-        if (debugLog) { debugLog(chalk.cyan("_abortWithError")); }
+        if (debugLog) {
+            debugLog(chalk.cyan("_abortWithError"));
+        }
 
         assert(_.isFunction(callback), "expecting a callback");
 
@@ -114,7 +121,7 @@ export class ServerTCP_transport extends TCP_transport {
 
             const errorResponse = new TCPErrorMessage({
                 reason: statusCode.description
-     ,           statusCode,
+                , statusCode
             });
 
             const messageChunk = packTcpMessage("ERR", errorResponse);
@@ -133,7 +140,7 @@ export class ServerTCP_transport extends TCP_transport {
     private _send_ACK_response(helloMessage: HelloMessage) {
 
         assert(helloMessage.receiveBufferSize >= minimumBufferSize);
-        assert(helloMessage.sendBufferSize    >= minimumBufferSize);
+        assert(helloMessage.sendBufferSize >= minimumBufferSize);
 
         this.receiveBufferSize = clamp_value(helloMessage.receiveBufferSize, 8192, 512 * 1024);
         this.sendBufferSize = clamp_value(helloMessage.sendBufferSize, 8192, 512 * 1024);
@@ -145,7 +152,7 @@ export class ServerTCP_transport extends TCP_transport {
             maxMessageSize: this.maxMessageSize,
             protocolVersion: this.protocolVersion,
             receiveBufferSize: this.receiveBufferSize,
-            sendBufferSize: this.sendBufferSize,
+            sendBufferSize: this.sendBufferSize
         });
         const messageChunk = packTcpMessage("ACK", acknowledgeMessage);
 
@@ -164,8 +171,10 @@ export class ServerTCP_transport extends TCP_transport {
 
     private _install_HEL_message_receiver(callback: ErrorCallback) {
 
-        if (debugLog) { debugLog(chalk.cyan("_install_HEL_message_receiver ")); }
-        this._install_one_time_message_receiver((err?: Error|null, data?: Buffer) => {
+        if (debugLog) {
+            debugLog(chalk.cyan("_install_HEL_message_receiver "));
+        }
+        this._install_one_time_message_receiver((err?: Error | null, data?: Buffer) => {
             if (err) {
                 this._abortWithError(StatusCodes.BadConnectionRejected, err.message, callback);
             } else {
@@ -179,7 +188,9 @@ export class ServerTCP_transport extends TCP_transport {
     }
 
     private _on_HEL_message(data: Buffer, callback: ErrorCallback) {
-        if (debugLog) { debugLog(chalk.cyan("_on_HEL_message")); }
+        if (debugLog) {
+            debugLog(chalk.cyan("_on_HEL_message"));
+        }
 
         assert(data instanceof Buffer);
         assert(!this._helloReceived);
@@ -203,7 +214,7 @@ export class ServerTCP_transport extends TCP_transport {
             // The Server shall always accept versions greater than what it supports.
             if (helloMessage.protocolVersion !== this.protocolVersion) {
                 debugLog(`warning ! client sent helloMessage.protocolVersion = ` +
-                  ` 0x${helloMessage.protocolVersion.toString(16)} `+
+                  ` 0x${helloMessage.protocolVersion.toString(16)} ` +
                   `whereas server protocolVersion is 0x${this.protocolVersion.toString(16)}`);
             }
 
@@ -223,13 +234,12 @@ export class ServerTCP_transport extends TCP_transport {
             // TransportProtocol. UASC requires a TransportProtocol buffer size that is at least 8 192 bytes
             if (helloMessage.receiveBufferSize < minimumBufferSize || helloMessage.sendBufferSize < minimumBufferSize) {
                 return this._abortWithError(StatusCodes.BadConnectionRejected,
-                  "Buffer size too small (should be at least " + minimumBufferSize , callback);
+                  "Buffer size too small (should be at least " + minimumBufferSize, callback);
             }
             // the helloMessage shall only be received once.
             this._helloReceived = true;
             this._send_ACK_response(helloMessage);
             callback(); // no Error
-
 
         } else {
 
@@ -238,9 +248,10 @@ export class ServerTCP_transport extends TCP_transport {
             if (doDebug) {
                 debugLog(chalk.red("BadCommunicationError ") + "Expecting 'HEL' message to initiate communication");
             }
-            this._abortWithError(StatusCodes.BadCommunicationError, "Expecting 'HEL' message to initiate communication", callback);
+            this._abortWithError(
+              StatusCodes.BadCommunicationError,
+              "Expecting 'HEL' message to initiate communication", callback);
 
         }
     }
 }
-

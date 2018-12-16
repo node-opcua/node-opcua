@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-generator
+ */
 // tslint:disable:no-console
 // tslint:disable:object-literal-sort-keys
 

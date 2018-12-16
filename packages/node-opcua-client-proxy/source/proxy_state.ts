@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-proxy
+ */
 import { NodeId } from "node-opcua-nodeid";
 
 export class ProxyState {

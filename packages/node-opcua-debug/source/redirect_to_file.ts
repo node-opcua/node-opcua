@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-debug
+ */
 // tslint:disable:no-console
 // tslint:disable:ban-types
 import * as fs from "fs";

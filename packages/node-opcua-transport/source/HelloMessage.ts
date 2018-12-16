@@ -1,46 +1,64 @@
+/**
+ * @module node-opcua-transport
+ */
 import {
-    BaseUAObject,
-    check_options_correctness_against_schema, initialize_field,
-    parameters,
-    buildStructuredType, StructuredTypeSchema
-} from "node-opcua-factory";
+    decodeUAString, decodeUInt32, encodeUAString,
+    encodeUInt32, UAString, UInt32
+} from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import {
-    UInt32, encodeUInt32, decodeUInt32,
-    UAString, encodeUAString, decodeUAString
-} from "node-opcua-basic-types";
+    BaseUAObject,
+    buildStructuredType, check_options_correctness_against_schema,
+    initialize_field,
+    parameters, StructuredTypeSchema
+} from "node-opcua-factory";
 
 const schemaHelloMessage: StructuredTypeSchema = buildStructuredType({
     name: "HelloMessage",
+
     baseType: "BaseUAObject",
+
     fields: [
         {
             name: "protocolVersion",
+
             fieldType: "UInt32",
+
             documentation: "The latest version of the OPC UA TCP protocol supported by the Client"
         },
         {
             name: "receiveBufferSize",
+
             fieldType: "UInt32",
+
             documentation: "The largest message that the sender can receive."
         },
-        {name: "sendBufferSize", fieldType: "UInt32", documentation: "The largest message that the sender will send."},
-        {name: "maxMessageSize", fieldType: "UInt32", documentation: "The maximum size for any response message."},
+        {
+            name: "sendBufferSize",
+
+            fieldType: "UInt32",
+
+            documentation: "The largest message that the sender will send."
+        },
+        { name: "maxMessageSize", fieldType: "UInt32", documentation: "The maximum size for any response message." },
         {
             name: "maxChunkCount",
+
             fieldType: "UInt32",
+
             documentation: "The maximum number of chunks in any response message"
         },
         {
             name: "endpointUrl",
+
             fieldType: "UAString",
+
             documentation: "The URL of the Endpoint which the Client wished to connect to."
         }
     ]
 });
 
-export interface HelloMessageOptions
-{
+export interface HelloMessageOptions {
     protocolVersion?: UInt32;
     receiveBufferSize?: UInt32;
     sendBufferSize?: UInt32;
@@ -50,12 +68,21 @@ export interface HelloMessageOptions
 }
 
 export class HelloMessage extends BaseUAObject {
-    protocolVersion: UInt32;
-    receiveBufferSize: UInt32;
-    sendBufferSize: UInt32;
-    maxMessageSize: UInt32;
-    maxChunkCount: UInt32;
-    endpointUrl: UAString;
+
+    public static possibleFields: string[] = [
+        "protocolVersion",
+        "receiveBufferSize",
+        "sendBufferSize",
+        "maxMessageSize",
+        "maxChunkCount",
+        "endpointUrl"
+    ];
+    public protocolVersion: UInt32;
+    public receiveBufferSize: UInt32;
+    public sendBufferSize: UInt32;
+    public maxMessageSize: UInt32;
+    public maxChunkCount: UInt32;
+    public endpointUrl: UAString;
 
     constructor(options?: HelloMessageOptions) {
         options = options || {};
@@ -74,7 +101,7 @@ export class HelloMessage extends BaseUAObject {
         this.endpointUrl = initialize_field(schema.fields[5], options.endpointUrl);
     }
 
-    encode(stream: BinaryStream): void {
+    public encode(stream: BinaryStream): void {
         super.encode(stream);
         encodeUInt32(this.protocolVersion, stream);
         encodeUInt32(this.receiveBufferSize, stream);
@@ -84,7 +111,7 @@ export class HelloMessage extends BaseUAObject {
         encodeUAString(this.endpointUrl, stream);
     }
 
-    decode(stream: BinaryStream): void {
+    public decode(stream: BinaryStream): void {
         super.decode(stream);
         this.protocolVersion = decodeUInt32(stream);
         this.receiveBufferSize = decodeUInt32(stream);
@@ -93,13 +120,4 @@ export class HelloMessage extends BaseUAObject {
         this.maxChunkCount = decodeUInt32(stream);
         this.endpointUrl = decodeUAString(stream);
     }
-
-    static possibleFields: string[] = [
-        "protocolVersion",
-        "receiveBufferSize",
-        "sendBufferSize",
-        "maxMessageSize",
-        "maxChunkCount",
-        "endpointUrl"
-    ];
 }

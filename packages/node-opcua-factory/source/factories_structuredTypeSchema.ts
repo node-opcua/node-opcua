@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-factory
+ */
 import {
     CommonInterface,
     FieldCategory,
@@ -7,16 +10,15 @@ import {
     TypeSchemaBase
 } from "./types";
 
-
-import { getStructuredTypeSchema, getStructureTypeConstructor } from "./factories_factories";
-import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { getBuildInType, hasBuiltInType } from "./factories_builtin_types";
+import { getEnumeration, hasEnumeration } from "./factories_enumerations";
+import { getStructuredTypeSchema, getStructureTypeConstructor } from "./factories_factories";
 import { parameters } from "./factories_schema_helpers";
 
-import { NodeId, ExpandedNodeId } from "node-opcua-nodeid";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { capitalizeFirstLetter, lowerFirstLetter } from "node-opcua-utils";
 import { display_trace_from_this_projet_only } from "node-opcua-debug";
+import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+import { capitalizeFirstLetter, lowerFirstLetter } from "node-opcua-utils";
 
 import chalk from "chalk";
 import * as  _ from "underscore";
@@ -97,21 +99,21 @@ function buildField(fieldLight: FieldInterfaceOptions): FieldType {
 
 export class StructuredTypeSchema extends TypeSchemaBase {
 
-    fields: FieldType[];
-    id: NodeId;
-    baseType: string;
-    _possibleFields: string[];
-    _baseSchema: StructuredTypeSchema | null;
+    public fields: FieldType[];
+    public id: NodeId;
+    public baseType: string;
+    public _possibleFields: string[];
+    public _baseSchema: StructuredTypeSchema | null;
 
-    documentation?: string;
+    public documentation?: string;
 
-    isValid?: (options: any) => boolean;
+    public isValid?: (options: any) => boolean;
 
-    decodeDebug?: (stream: BinaryStream, options: any) => any;
-    constructHook?: (options: any) => any;
+    public decodeDebug?: (stream: BinaryStream, options: any) => any;
+    public constructHook?: (options: any) => any;
 
-    encodingDefaultBinary?: ExpandedNodeId;
-    encodingDefaultXml?: ExpandedNodeId;
+    public encodingDefaultBinary?: ExpandedNodeId;
+    public encodingDefaultXml?: ExpandedNodeId;
 
     constructor(options: StructuredTypeOptions) {
         super(options);
@@ -123,7 +125,6 @@ export class StructuredTypeSchema extends TypeSchemaBase {
         this._baseSchema = null;
     }
 }
-
 
 /**
  *
@@ -188,7 +189,6 @@ export function extract_all_fields(schema: StructuredTypeSchema) {
     return possibleFields;
 }
 
-
 /**
  * check correctness of option fields against scheme
  *
@@ -244,9 +244,7 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
     return true;
 }
 
-
 export function buildStructuredType(schemaLight: StructuredTypeOptions): StructuredTypeSchema {
     return new StructuredTypeSchema(schemaLight);
 }
-
-
+

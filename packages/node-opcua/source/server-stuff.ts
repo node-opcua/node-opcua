@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua
+ */
 import { ServerState } from "node-opcua-common";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";

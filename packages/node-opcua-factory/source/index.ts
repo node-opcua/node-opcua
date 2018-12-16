@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-factory
+ */
 export * from "./factories_id_generator";
 export * from "./factories_enumerations";
 export * from "./factories_basic_type";

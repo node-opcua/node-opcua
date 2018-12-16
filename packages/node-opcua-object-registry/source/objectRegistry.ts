@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-object-registry
+ */
 import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { trace_from_this_projet_only } from "node-opcua-debug";

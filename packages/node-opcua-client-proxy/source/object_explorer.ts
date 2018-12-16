@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-proxy
+ */
 import * as async from "async";
 import * as _ from "underscore";
 

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-data-model
+ */
 export * from "./access_level";
 export * from "./localized_text";
 export * from "./qualified_name";

@@ -1,12 +1,10 @@
-"use strict";
-/* global: Buffer */
 /**
- * @module opcua.datamodel
+ * @module node-opcua-nodeid
  */
-
-const util = require("util");
-import { coerceNodeId, NodeId, NodeIdType } from "./nodeid";
 import * as  _ from "underscore";
+
+import { Guid } from "node-opcua-guid";
+import { coerceNodeId, NodeId, NodeIdType } from "./nodeid";
 
 /**
  * An ExpandedNodeId extends the NodeId structure.
@@ -36,18 +34,24 @@ import * as  _ from "underscore";
  *
  *
  *
- * @param {NodeIdType}                identifierType   - the nodeID type
- * @param {Number|String|GUID|Buffer} value            - the node id value. The type of Value depends on identifierType.
- * @param {Number}                    namespace        - the index of the related namespace (optional , default value = 0 )
- * @param {String|null}               namespaceUri     - NamespaceUri
- * @param {number|null}               serverIndex      - the server Index
+ * @param identifierType   - the nodeID type
+ * @param value            - the node id value. The type of Value depends on identifierType.
+ * @param namespace        - the index of the related namespace (optional , default value = 0 )
+ * @param namespaceUri     - NamespaceUri
+ * @param serverIndex      - the server Index
  * @constructor
  */
 export class ExpandedNodeId extends NodeId {
 
-    namespaceUri: null | string;
-    serverIndex: number;
-    constructor(identifierType: NodeIdType, value: any, namespace: number, namespaceUri?: null|string, serverIndex?: number) {
+    public namespaceUri: null | string;
+    public serverIndex: number;
+    constructor(
+      identifierType: NodeIdType,
+      value: number | string | Guid | Buffer,
+      namespace: number,
+      namespaceUri?: null|string,
+      serverIndex?: number
+    ) {
         super(identifierType, value, namespace);
         this.namespaceUri = namespaceUri || null;
         this.serverIndex = serverIndex || 0;
@@ -57,7 +61,7 @@ export class ExpandedNodeId extends NodeId {
      * @method toString
      * @return {string}
      */
-    toString() {
+    public toString() {
 
         let str = NodeId.prototype.toString.call(this);
         if (this.namespaceUri) {
@@ -74,7 +78,7 @@ export class ExpandedNodeId extends NodeId {
      * @method  toJSON
      * @return {String}
      */
-    toJSON(): any {
+    public toJSON(): any {
         return this.toString();
     }
 }
@@ -87,8 +91,8 @@ export function coerceExpandedNodeId(value: any): ExpandedNodeId {
 
 /**
  * @method  makeExpandedNodeId
- * @param  value {ExpandedNodeId|NodeId|Integer}
- * @param [namespace=0] {Integer} the namespace
+ * @param  value
+ * @param [namespace=0] the namespace
  * @return {ExpandedNodeId}
  */
 export function makeExpandedNodeId(value: any, namespace?: number) {

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-data-model
+ */
 
 export function isDataEncoding(dataEncoding: any): boolean {
     return (dataEncoding && typeof dataEncoding.name === "string");
@@ -12,4 +15,3 @@ export function isValidDataEncoding(dataEncoding: string): boolean {
     }
     return validEncoding.indexOf(dataEncoding) !== -1;
 }
-

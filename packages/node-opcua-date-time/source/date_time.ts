@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-date-time
+ */
 import * as  long from "long";
 import assert from "node-opcua-assert";
 
@@ -187,4 +190,3 @@ const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
 export function isMinDate(date: Date): boolean {
     return date.getTime() === minDate.getTime();
 }
-

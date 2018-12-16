@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-factory
+ */
 const _FIRST_INTERNAL_ID = 0xFFFE0000;
 
 let _nextAvailableId = _FIRST_INTERNAL_ID;

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-date-time
+ */
 import assert from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import {

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-secure-channel
+ */
 
 /**
  * SequenceNumberGenerator manages a monotonically increasing sequence number.

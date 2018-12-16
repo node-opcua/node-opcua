@@ -2,8 +2,8 @@
  "name": "node-opcua-buffer-utils",
  "version": "2.0.0-alpha.8",
  "description": "pure nodejs OPCUA SDK - module -buffer-utils",
- "main": "./dist/buffer_utils.js",
- "types": "./dist/buffer_utils.d.ts",
+ "main": "./dist/index.js",
+ "types": "./dist/index.d.ts",
  "scripts": {
   "build": "tsc",
   "test": "mocha test",

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-transport
+ */
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 
@@ -138,7 +141,7 @@ export class MessageBuilderBase extends EventEmitter {
         /**
          * notify the observers that an error has occurred
          * @event error
-         * @param error {Error} the error to raise
+         * @param error the error to raise
          */
         this.emit("error", new Error(errorMessage), this.sequenceHeader ? this.sequenceHeader.requestId : null);
         return false;
@@ -155,7 +158,7 @@ export class MessageBuilderBase extends EventEmitter {
     /**
      * append a message chunk
      * @method _append
-     * @param chunk {Buffer}
+     * @param chunk
      * @private
      */
     private _append(chunk: Buffer): boolean {
@@ -210,7 +213,7 @@ export class MessageBuilderBase extends EventEmitter {
         /**
          * notify the observers that new message chunk has been received
          * @event chunk
-         * @param messageChunk {Buffer} the raw message chunk
+         * @param messageChunk the raw message chunk
          */
         this.emit("chunk", chunk);
 
@@ -231,7 +234,7 @@ export class MessageBuilderBase extends EventEmitter {
             /**
              * notify the observers that a full message has been received
              * @event full_message_body
-             * @param full_message_body {Buffer} the full message body made of all concatenated chunks.
+             * @param full_message_body the full message body made of all concatenated chunks.
              */
             this.emit("full_message_body", fullMessageBody);
 

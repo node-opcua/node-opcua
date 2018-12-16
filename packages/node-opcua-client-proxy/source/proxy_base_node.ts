@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-proxy
+ */
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { WriteValueLike } from "node-opcua-client/dist";

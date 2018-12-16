@@ -1,3 +1,8 @@
+/**
+ * @module node-opcua-data-model
+ */
+// tslint:disable:no-bitwise
+
 // Specifies the NodeClasses of the TargetNodes. Only TargetNodes with the
 // selected NodeClasses are returned. The NodeClasses are assigned the
 // following bits:

@@ -1,41 +1,43 @@
 /**
- * @module opcua.datamodel
+ * @module node-opcua-data-model
  */
 import { assert } from "node-opcua-assert";
 import {
     BaseUAObject,
-    check_options_correctness_against_schema,
-    initialize_field, registerClassDefinition,
-    registerSpecialVariantEncoder,
     buildStructuredType,
+    check_options_correctness_against_schema, initialize_field,
     parameters,
-    StructuredTypeSchema,
+    registerSpecialVariantEncoder,
 } from "node-opcua-factory";
 
 import * as _ from "underscore";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { makeExpandedNodeId, ExpandedNodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
 
 import {
-    UInt16, Int32 , UAString,
-    encodeUInt16, decodeUInt16,
-    encodeUAString, decodeUAString
+    decodeUAString, decodeUInt16, encodeUAString,
+    encodeUInt16, Int32,
+    UAString, UInt16
 } from "node-opcua-basic-types";
 
 export const schemaQualifiedName = buildStructuredType({
-    name: "QualifiedName",
     baseType: "BaseUAObject",
+    name: "QualifiedName",
+
     fields: [
         {
             name: "namespaceIndex",
-            fieldType: "UInt16",
+
+            fieldType: "UInt16"
         },
         {
             name: "name",
+
             fieldType: "UAString",
+
             defaultValue: () => null
-        },
+        }
     ]
 });
 schemaQualifiedName.coerce = coerceQualifiedName;
@@ -46,9 +48,16 @@ export interface QualifiedNameOptions {
 }
 
 export class QualifiedName extends BaseUAObject {
-    namespaceIndex: UInt16;
-    name: UAString;
-    static schema = schemaQualifiedName;
+    public static schema = schemaQualifiedName;
+
+    public static possibleFields: string[] = [
+        "namespaceIndex",
+        "name"
+    ];
+    public static encodingDefaultBinary: ExpandedNodeId = makeExpandedNodeId(0, 0);
+    public static encodingDefaultXml: ExpandedNodeId = makeExpandedNodeId(0, 0);
+    public namespaceIndex: UInt16;
+    public name: UAString;
 
     /**
      *
@@ -87,7 +96,7 @@ export class QualifiedName extends BaseUAObject {
      *
      * @param stream {BinaryStream}
      */
-    encode(stream: BinaryStream): void {
+    public encode(stream: BinaryStream): void {
         // call base class implementation first
         super.encode(stream);
         encodeUInt16(this.namespaceIndex, stream);
@@ -100,39 +109,30 @@ export class QualifiedName extends BaseUAObject {
      *
      * @param stream {BinaryStream}
      */
-    decode(stream: BinaryStream): void {
+    public decode(stream: BinaryStream): void {
         // call base class implementation first
         super.decode(stream);
         this.namespaceIndex = decodeUInt16(stream);
         this.name = decodeUAString(stream);
     }
 
-    static possibleFields: string[] = [
-        "namespaceIndex",
-        "name"
-    ];
-    static encodingDefaultBinary: ExpandedNodeId = makeExpandedNodeId(0, 0);
-    static encodingDefaultXml: ExpandedNodeId = makeExpandedNodeId(0, 0);
-
-
-    toString(): string {
+    public toString(): string {
         if (this.namespaceIndex) {
             return this.namespaceIndex + ":" + this.name;
         }
         return this.name || "<null>";
     }
 
-    isEmpty() {
+    public isEmpty() {
         return !this.name || this.name.length === 0;
     }
 
 }
+
 QualifiedName.prototype.schema = QualifiedName.schema;
 // not an extension object registerClassDefinition("QualifiedName", QualifiedName);
 
-
 export type QualifiedNameLike = QualifiedNameOptions | QualifiedName | string;
-
 
 // xx QualifiedName.prototype.isEmpty = function (): boolean {
 // xx    return !this.name || this.name.length === 0;
@@ -140,8 +140,8 @@ export type QualifiedNameLike = QualifiedNameOptions | QualifiedName | string;
 
 function isInteger(value: any): boolean {
     return typeof value === "number" &&
-        isFinite(value) &&
-        Math.floor(value) === value;
+      isFinite(value) &&
+      Math.floor(value) === value;
 }
 
 /**
@@ -158,12 +158,16 @@ export function stringToQualifiedName(value: string): QualifiedName {
 
     const splitArray = value.split(":");
     let namespaceIndex = 0;
-    if (!isNaN(parseFloat(splitArray[0])) && isFinite(parseInt(splitArray[0])) && isInteger(parseFloat(splitArray[0])) && splitArray.length > 1) {
-        namespaceIndex = parseInt(splitArray[0]);
+
+    if (!isNaN(parseFloat(splitArray[0])) &&
+      isFinite(parseInt(splitArray[0], 10)) &&
+      isInteger(parseFloat(splitArray[0])) &&
+      splitArray.length > 1) {
+        namespaceIndex = parseInt(splitArray[0], 10);
         splitArray.shift();
         value = splitArray.join(":");
     }
-    return new QualifiedName({namespaceIndex, name: value});
+    return new QualifiedName({ namespaceIndex, name: value });
 }
 
 export function coerceQualifiedName(value: any): QualifiedName | null {
@@ -183,10 +187,10 @@ export function coerceQualifiedName(value: any): QualifiedName | null {
 
 registerSpecialVariantEncoder(QualifiedName);
 
-
 export function encodeQualifiedName(value: QualifiedName, stream: BinaryStream): void {
     value.encode(stream);
 }
+
 export function decodeQualifiedName(stream: BinaryStream): QualifiedName {
     const value = new QualifiedName({});
     value.decode(stream);

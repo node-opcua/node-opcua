@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-secure-channel
+ */
 export {
     OpenSecureChannelRequest, OpenSecureChannelResponse,
     CloseSecureChannelRequest, CloseSecureChannelResponse,

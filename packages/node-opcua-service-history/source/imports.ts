@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-history
+ */
 import { TimestampsToReturn } from "node-opcua-data-value";
 
 export {

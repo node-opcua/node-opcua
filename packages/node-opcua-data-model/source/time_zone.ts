@@ -1,3 +1,7 @@
+/**
+ * @module node-opcua-data-model
+ */
+// tslint:disable:no-bitwise
 
 /*
  *  This Structured DataType defines the local time that may or may not take daylight saving time
@@ -11,5 +15,4 @@
  *                                       include the DST correction and DST may or may not have
  *                                       been in effect.
  */
-exports.TimeZoneDataType = require("./_generated_/_tuto").TimeZoneDataType;
-
+// todo : repair exports.TimeZoneDataType = require("./_generated_/_tuto").TimeZoneDataType;

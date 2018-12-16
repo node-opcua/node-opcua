@@ -1,5 +1,5 @@
 /**
- * @module opcua.datamodel
+ * @module node-opcua-data-model
  */
 import { registerEnumeration } from "node-opcua-factory";
 

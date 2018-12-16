@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-common
+ */
 export {
     ServerState,
     ServerStatusDataType,            // ServerStatus

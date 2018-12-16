@@ -1,9 +1,12 @@
-import { BinaryStream } from "node-opcua-binary-stream";
-import * as _ from "underscore";
+/**
+ * @module node-opcua-factory
+ */
 import assert from "node-opcua-assert";
+import { BinaryStream } from "node-opcua-binary-stream";
 import { Enum, EnumItem } from "node-opcua-enum";
-import { ConstructorFunc } from "./factories_factories";
 import { NodeId } from "node-opcua-nodeid";
+import * as _ from "underscore";
+import { ConstructorFunc } from "./factories_factories";
 import { FieldInterfaceOptions } from "./types";
 
 // ------------------
@@ -54,6 +57,7 @@ export interface StructuredTypeField {
     decode?: (stream: BinaryStream) => any;
 }
 
+// tslint:disable:no-empty-interface
 export interface FieldEnumeration extends StructuredTypeField {
     // xx category: FieldCategory.enumeration;
 }
@@ -90,7 +94,6 @@ export interface StructuredTypeOptions {
     _resolved?: boolean;
 }
 
-
 export interface TypeSchemaConstructorOptions {
     name: string;
     category?: FieldCategory;
@@ -121,7 +124,6 @@ export interface EnumerationDefinition extends CommonInterface {
 
 export type TypeDefinition = BuiltInTypeDefinition | EnumerationDefinition | BasicTypeDefinition | TypeSchemaBase;
 
-
 // tslint:disable-next-line:no-empty
 function defaultEncode(value: any, stream: BinaryStream): void {
 
@@ -140,13 +142,13 @@ function defaultDecode(stream: BinaryStream): void {
  */
 export class TypeSchemaBase implements CommonInterface {
 
-    name: string;
-    defaultValue: any;
-    encode?: (value: any, stream: BinaryStream) => void;
-    decode?: (stream: BinaryStream) => any;
-    coerce?: (value: any) => any;
+    public name: string;
+    public defaultValue: any;
+    public encode?: (value: any, stream: BinaryStream) => void;
+    public decode?: (stream: BinaryStream) => any;
+    public coerce?: (value: any) => any;
 
-    category: FieldCategory;
+    public category: FieldCategory;
 
     constructor(options: TypeSchemaConstructorOptions) {
 
@@ -169,7 +171,7 @@ export class TypeSchemaBase implements CommonInterface {
      * @param defaultValue {*} the default value
      * @return {*}
      */
-    computer_default_value(defaultValue: any): any {
+    public computer_default_value(defaultValue: any): any {
 
         if (defaultValue === undefined) {
             defaultValue = this.defaultValue;
@@ -188,7 +190,7 @@ export class TypeSchemaBase implements CommonInterface {
      * @param defaultValue
      * @return {*}
      */
-    initialize_value(value: any, defaultValue: any): any {
+    public initialize_value(value: any, defaultValue: any): any {
 
         if (value === undefined) {
             return defaultValue;
@@ -208,4 +210,3 @@ export class TypeSchemaBase implements CommonInterface {
         return value;
     }
 }
-

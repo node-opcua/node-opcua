@@ -1,5 +1,7 @@
 // tslint:disable:max-classes-per-file
-
+/**
+ * @module node-opcua-address-space
+ */
 import { UInt32 } from "node-opcua-basic-types";
 import {
     AccessLevelFlag,

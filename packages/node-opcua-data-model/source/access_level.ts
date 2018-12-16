@@ -1,6 +1,7 @@
 // tslint:disable:no-bitwise
+// tslint:disable:max-line-length
 /**
- * @module opcua.datamodel
+ * @module node-opcua-data-model
  */
 import { BinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
@@ -99,4 +100,3 @@ registerBasicType({
     encode: (value: AccessLevelFlag, stream: BinaryStream) => stream.writeUInt8(value & 0x8F),
     random: randomAccessLevel
 });
-

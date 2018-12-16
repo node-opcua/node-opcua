@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-proxy
+ */
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-client";
 import { ReferenceDescription } from "node-opcua-service-browse";

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-proxy
+ */
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";

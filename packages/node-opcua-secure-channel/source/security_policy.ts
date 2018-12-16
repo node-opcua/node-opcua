@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-secure-channel
+ */
 // tslint:disable:object-literal-short-hand
 // tslint:disable:variable-name
 // tslint:disable:max-line-length

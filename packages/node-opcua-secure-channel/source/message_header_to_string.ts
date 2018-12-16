@@ -1,5 +1,5 @@
 /**
- * @module opcua.miscellaneous
+ * @module node-opcua-secure-channel
  */
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";

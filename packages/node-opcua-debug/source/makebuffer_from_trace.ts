@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-debug
+ */
 import { makeBuffer } from "node-opcua-buffer-utils";
 
 export function inlineText(f: any): string {

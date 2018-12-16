@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-filter
+ */
 export  {
 
     FilterOperator,

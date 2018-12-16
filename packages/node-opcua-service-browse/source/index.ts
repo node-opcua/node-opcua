@@ -1,4 +1,6 @@
-// ----------------------------------------------------------------------------------------------------------------------
+/**
+ * @module node-opcua-service-browse
+ */
 import {
     BrowseDescription,
     BrowseNextRequest, BrowseNextResponse,

@@ -1,5 +1,5 @@
+import * as should from "should";
 import * as t from "..";
-import * as should  from "should";
 
 describe("Testing node-opcua-test", () => {
     it("AxisInformation", () => {

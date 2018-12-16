@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-endpoints
+ */
 export {
     ApplicationType,
     ApplicationDescription,

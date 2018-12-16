@@ -1,5 +1,5 @@
 /**
- * @module opcua.miscellaneous
+ * @module node-opcua-factory
  * @class Factory
  * @static
  */
@@ -103,4 +103,3 @@ export function registerClassDefinition(className: string, classConstructor: Con
     }
     constructorMap[expandedNodeId.value] = classConstructor;
 }
-

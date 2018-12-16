@@ -1,5 +1,8 @@
-import { registerEnumeration } from "node-opcua-factory";
+/**
+ * @module node-opcua-data-value
+ */
 import { Enum } from "node-opcua-enum";
+import { registerEnumeration } from "node-opcua-factory";
 
 export enum DataValueEncodingByte {
 Value=              0x01,
@@ -11,6 +14,7 @@ ServerPicoseconds=  0x20
 }
 export const schemaDataValueEncodingByte = {
     name: "DataValue_EncodingByte",
+
     enumValues: DataValueEncodingByte
 };
 export const _enumerationDataValueEncodingByte: Enum = registerEnumeration(schemaDataValueEncodingByte);

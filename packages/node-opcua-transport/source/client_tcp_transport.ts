@@ -1,22 +1,25 @@
+/**
+ * @module node-opcua-transport
+ */
 // tslint:disable:class-name
 // system
+import { createConnection, Socket } from "net";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
-import { Socket, createConnection } from "net";
-import * as os from "os";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
-import { TCP_transport, getFakeTransport } from "./tcp_transport";
-import { packTcpMessage, parseEndpointUrl, decodeMessage } from "./tools";
+import * as os from "os";
+import * as _ from "underscore";
+import { getFakeTransport, TCP_transport } from "./tcp_transport";
+import { decodeMessage, packTcpMessage, parseEndpointUrl } from "./tools";
 
-import { TCPErrorMessage } from "./TCPErrorMessage";
-import { HelloMessage } from "./HelloMessage";
-import { AcknowledgeMessage } from "./AcknowledgeMessage";
 import * as debug from "node-opcua-debug";
+import { AcknowledgeMessage } from "./AcknowledgeMessage";
+import { HelloMessage } from "./HelloMessage";
+import { TCPErrorMessage } from "./TCPErrorMessage";
 
 const doDebug = debug.checkDebugFlag(__filename);
 const debugLog = debug.make_debugLog(__filename);
-const hostname = os.hostname();
+const gHostname = os.hostname();
 
 export type ErrorCallback = (err?: Error) => void;
 
@@ -29,7 +32,7 @@ function createClientSocket(endpointUrl: string): Socket {
     switch (ep.protocol) {
         case "opc.tcp":
 
-            socket = createConnection({host: hostname, port});
+            socket = createConnection({ host: hostname, port });
 
             // Setting true for noDelay will immediately fire off data each time socket.write() is called.
             socket.setNoDelay(true);
@@ -37,7 +40,7 @@ function createClientSocket(endpointUrl: string): Socket {
             socket.setTimeout(0);
 
             socket.on("timeout", () => {
-                console.log("Socket has timed out");
+                debugLog("Socket has timed out");
             });
 
             return socket;
@@ -99,13 +102,13 @@ export interface ConnectOptions {
  *
  */
 export class ClientTCP_transport extends TCP_transport {
+    public endpointUrl: string;
+    public serverUri: string;
+    public numberOfRetry: number;
 
     private connected: boolean;
     private parameters?: any;
-    public endpointUrl: string;
-    public serverUri: string;
     private _counter: number;
-    numberOfRetry: number;
 
     constructor() {
         super();
@@ -117,17 +120,10 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     public dispose() {
-        if (doDebug) debugLog(" ClientTCP_transport disposed");
-        super.dispose();
-    }
-
-    protected on_socket_ended(err: Error | null) {
-        if (this.connected) {
-            super.on_socket_ended(err);
+        if (doDebug) {
+            debugLog(" ClientTCP_transport disposed");
         }
-        //  if (this._socket) {
-        //      this._socket.removeAllListeners();
-        // }
+        super.dispose();
     }
 
     public connect(endpointUrl: string, callback: ErrorCallback) {
@@ -139,13 +135,16 @@ export class ClientTCP_transport extends TCP_transport {
 
         this.endpointUrl = endpointUrl;
 
-        this.serverUri = "urn:" + hostname + ":Sample";
-        if (doDebug) debugLog("endpointUrl =", endpointUrl, "ep", ep);
+        this.serverUri = "urn:" + gHostname + ":Sample";
+        if (doDebug) {
+            debugLog("endpointUrl =", endpointUrl, "ep", ep);
+        }
         try {
             this._socket = createClientSocket(endpointUrl);
-        }
-        catch (err) {
-            if (doDebug) debugLog("CreateClientSocket has failed");
+        } catch (err) {
+            if (doDebug) {
+                debugLog("CreateClientSocket has failed");
+            }
             return callback(err);
         }
 
@@ -155,14 +154,16 @@ export class ClientTCP_transport extends TCP_transport {
         const self = this;
 
         function _on_socket_error_after_connection(err: Error) {
-            if (doDebug) debugLog(" _on_socket_error_after_connection ClientTCP_transport Socket Error", err.message);
+            if (doDebug) {
+                debugLog(" _on_socket_error_after_connection ClientTCP_transport Socket Error", err.message);
+            }
             // EPIPE : EPIPE (Broken pipe): A write on a pipe, socket, or FIFO for which there is no process to read the
-            // data. Commonly encountered at the net and http layers, indicative that the remote side of the stream being
-            // written to has been closed.
+            // data. Commonly encountered at the net and http layers, indicative that the remote side of the stream
+            // being written to has been closed.
 
             // ECONNRESET (Connection reset by peer): A connection was forcibly closed by a peer. This normally results
-            // from a loss of the connection on the remote socket due to a timeout or reboot. Commonly encountered via the
-            // http and net modu
+            // from a loss of the connection on the remote socket due to a timeout or reboot. Commonly encountered
+            // via the http and net modu
             if (err.message.match(/ECONNRESET|EPIPE/)) {
                 /**
                  * @event connection_break
@@ -174,11 +175,15 @@ export class ClientTCP_transport extends TCP_transport {
 
         function _on_socket_connect() {
 
-            if (doDebug) debugLog("entering _on_socket_connect");
+            if (doDebug) {
+                debugLog("entering _on_socket_connect");
+            }
             _remove_connect_listeners();
             self._perform_HEL_ACK_transaction((err?: Error) => {
                 if (!err) {
-                    if (!self._socket) throw new Error("internal error");
+                    if (!self._socket) {
+                        throw new Error("internal error");
+                    }
                     // install error handler to detect connection break
                     self._socket.on("error", _on_socket_error_after_connection);
 
@@ -196,27 +201,44 @@ export class ClientTCP_transport extends TCP_transport {
                 callback(err);
             });
         }
+
         function _on_socket_error_for_connect(err: Error) {
             // this handler will catch attempt to connect to an inaccessible address.
-            if (doDebug) debugLog(" _on_socket_error_for_connect", err.message);
+            if (doDebug) {
+                debugLog(" _on_socket_error_for_connect", err.message);
+            }
             assert(err instanceof Error);
             _remove_connect_listeners();
             callback(err);
         }
 
         function _on_socket_end_for_connect(err: Error | null) {
-            if (doDebug) debugLog("_on_socket_end_for_connect Socket has been closed by server", err);
+            if (doDebug) {
+                debugLog("_on_socket_end_for_connect Socket has been closed by server", err);
+            }
         }
 
         function _remove_connect_listeners() {
-            if (!self._socket) return;
+            if (!self._socket) {
+                return;
+            }
             self._socket.removeListener("error", _on_socket_error_for_connect);
             self._socket.removeListener("end", _on_socket_end_for_connect);
         }
-        this._socket.once("error",   _on_socket_error_for_connect);
-        this._socket.once("end",     _on_socket_end_for_connect);
+
+        this._socket.once("error", _on_socket_error_for_connect);
+        this._socket.once("end", _on_socket_end_for_connect);
         this._socket.once("connect", _on_socket_connect);
 
+    }
+
+    protected on_socket_ended(err: Error | null) {
+        if (this.connected) {
+            super.on_socket_ended(err);
+        }
+        //  if (this._socket) {
+        //      this._socket.removeAllListeners();
+        // }
     }
 
     private _handle_ACK_response(messageChunk: Buffer, callback: ErrorCallback) {
@@ -229,7 +251,8 @@ export class ClientTCP_transport extends TCP_transport {
             return callback(err);
         }
 
-        let responseClass, response;
+        let responseClass;
+        let response;
 
         if (messageHeader.msgType === "ERR") {
             responseClass = TCPErrorMessage;
@@ -252,7 +275,9 @@ export class ClientTCP_transport extends TCP_transport {
 
     private _send_HELLO_request() {
 
-        if (doDebug) debugLog("entering _send_HELLO_request");
+        if (doDebug) {
+            debugLog("entering _send_HELLO_request");
+        }
 
         assert(this._socket);
         assert(_.isFinite(this.protocolVersion));
@@ -261,12 +286,14 @@ export class ClientTCP_transport extends TCP_transport {
         // Write a message to the socket as soon as the client is connected,
         // the server will receive it as message from the client
         const request = new HelloMessage({
+
+            endpointUrl: this.endpointUrl,
+            maxChunkCount: 0,                 // 0 - no limits
+            maxMessageSize: 0,                // 0 - no limits
+
             protocolVersion: this.protocolVersion,
             receiveBufferSize: 1024 * 64 * 10,
-            sendBufferSize: 1024 * 64 * 10,   // 8192 min,
-            maxMessageSize: 0,                // 0 - no limits
-            maxChunkCount: 0,                 // 0 - no limits
-            endpointUrl: this.endpointUrl
+            sendBufferSize: 1024 * 64 * 10   // 8192 min,
         });
 
         const messageChunk = packTcpMessage("HEL", request);
@@ -275,7 +302,9 @@ export class ClientTCP_transport extends TCP_transport {
 
     private _on_ACK_response(externalCallback: ErrorCallback, err: Error | null, data?: Buffer) {
 
-        if (doDebug) debugLog("entering _on_ACK_response");
+        if (doDebug) {
+            debugLog("entering _on_ACK_response");
+        }
 
         assert(_.isFunction(externalCallback));
         assert(this._counter === 0, "Ack response should only be received once !");
@@ -288,7 +317,9 @@ export class ClientTCP_transport extends TCP_transport {
                 // Xx this._socket.removeAllListeners();
             }
         } else {
-            if (!data) return;
+            if (!data) {
+                return;
+            }
             this._handle_ACK_response(data, externalCallback);
         }
     }
@@ -300,9 +331,13 @@ export class ClientTCP_transport extends TCP_transport {
         assert(this._socket, "expecting a valid socket to send a message");
         assert(_.isFunction(callback));
         this._counter = 0;
-        if (doDebug) debugLog("entering _perform_HEL_ACK_transaction");
+        if (doDebug) {
+            debugLog("entering _perform_HEL_ACK_transaction");
+        }
         this._install_one_time_message_receiver((err: Error | null, data?: Buffer) => {
-            if (doDebug) debugLog("before  _on_ACK_response");
+            if (doDebug) {
+                debugLog("before  _on_ACK_response");
+            }
             this._on_ACK_response(callback, err, data);
         });
         this._send_HELLO_request();

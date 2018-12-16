@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-crawler
+ */
 import * as async from "async";
 import chalk from "chalk";
 import { EventEmitter } from "events";
@@ -5,7 +8,7 @@ import * as _ from "underscore";
 
 import { UAReferenceType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
-import { BrowseDescriptionLike, ReadValueIdOptions, ResponseCallback } from "node-opcua-client/dist";
+import { BrowseDescriptionLike, ReadValueIdOptions, ResponseCallback } from "node-opcua-client";
 import { ReferenceTypeIds, VariableIds } from "node-opcua-constants";
 import {
     AccessLevelFlag,

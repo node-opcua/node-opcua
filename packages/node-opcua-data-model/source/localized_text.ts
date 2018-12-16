@@ -1,22 +1,23 @@
+/**
+ * @module node-opcua-data-model
+ */
 import { assert } from "node-opcua-assert";
+import {
+    decodeByte,
+    decodeString,
+    encodeByte, encodeString,
+    LocaleId, UAString
+} from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import {
-    registerSpecialVariantEncoder,
-    parameters,
-    buildStructuredType,
     BaseUAObject,
+    buildStructuredType,
     check_options_correctness_against_schema,
     initialize_field,
+    parameters,
+    registerSpecialVariantEncoder,
     StructuredTypeSchema
 } from "node-opcua-factory";
-import {
-    UAString,
-    LocaleId,
-    encodeByte, decodeByte,
-    decodeString, encodeString
-} from "node-opcua-basic-types";
-
-
 
 export function coerceLocalizedText(value: any): LocalizedText | null {
     if (value === undefined || value === null) {
@@ -37,21 +38,25 @@ export function coerceLocalizedText(value: any): LocalizedText | null {
 // see Part 3 - $8.5 page 63
 const schemaLocalizedText = buildStructuredType({
     name: "LocalizedText",
+
     baseType: "BaseUAObject",
+
     fields: [
         {
             name: "locale",
+
             fieldType: "LocaleId",
         },
         {
             name: "text",
+
             fieldType: "UAString",
+
             defaultValue: () => null
         }
     ],
 });
 schemaLocalizedText.coerce = coerceLocalizedText;
-
 
 export interface LocalizedTextOptions {
     locale?: LocaleId;
@@ -59,16 +64,27 @@ export interface LocalizedTextOptions {
 }
 
 export class LocalizedText extends BaseUAObject {
-    locale: LocaleId;
-    text: UAString;
 
     static get schema(): StructuredTypeSchema {
         return schemaLocalizedText;
     }
 
-    get schema(): StructuredTypeSchema {
+    public get schema(): StructuredTypeSchema {
         return schemaLocalizedText;
     }
+
+    public static possibleFields: string[] = [
+        "locale",
+        "text"
+    ];
+    // xx static encodingDefaultBinary = makeExpandedNodeId(0, 0);
+    // xx static encodingDefaultXml = makeExpandedNodeId(0, 0);
+
+    public static coerce(value: any): LocalizedText | null {
+        return coerceLocalizedText(value);
+    }
+    public locale: LocaleId;
+    public text: UAString;
 
     /**
      *
@@ -101,13 +117,14 @@ export class LocalizedText extends BaseUAObject {
         this.text = initialize_field(schema.fields[1], options.text);
     }
 
-    toString(): string {
+    public toString(): string {
         return "locale=" + (this as any).locale + " text=" + (this as any).text;
     }
 
     // OPCUA Part 6 $ 5.2.2.14 : localizedText have a special encoding
-    encode(stream: BinaryStream) {
+    public encode(stream: BinaryStream) {
 
+        // tslint:disable:no-bitwise
         const encodingMask = getLocalizeText_EncodingByte(this);
 
         encodeByte(encodingMask, stream);
@@ -120,7 +137,7 @@ export class LocalizedText extends BaseUAObject {
         }
     }
 
-    decodeDebug(stream: BinaryStream, options: any) {
+    public decodeDebug(stream: BinaryStream, options: any) {
 
         let cursorBefore;
         const tracer = options.tracer;
@@ -148,7 +165,7 @@ export class LocalizedText extends BaseUAObject {
         tracer.trace("end", options.name, stream.length, stream.length);
     }
 
-    decode(stream: BinaryStream): void {
+    public decode(stream: BinaryStream): void {
 
         const encodingMask = decodeByte(stream);
         if ((encodingMask & 0x01) === 0x01) {
@@ -161,17 +178,6 @@ export class LocalizedText extends BaseUAObject {
         } else {
             this.text = null;
         }
-    }
-
-    static possibleFields: string[] = [
-        "locale",
-        "text"
-    ];
-    // xx static encodingDefaultBinary = makeExpandedNodeId(0, 0);
-    // xx static encodingDefaultXml = makeExpandedNodeId(0, 0);
-
-    static coerce(value: any): LocalizedText | null {
-        return coerceLocalizedText(value);
     }
 }
 // not an extension object registerClassDefinition("LocalizedText", LocalizedText);
@@ -194,11 +200,9 @@ const emptyLocalizedText = new LocalizedText({});
 export function encodeLocalizedText(value: LocalizedText, stream: BinaryStream): void {
     if (value) {
         value.encode(stream);
-    }
-    else emptyLocalizedText.encode(stream);
+    } else { emptyLocalizedText.encode(stream); }
 }
-export function decodeLocalizedText(stream: BinaryStream): LocalizedText
-{
+export function decodeLocalizedText(stream: BinaryStream): LocalizedText {
     const value = new LocalizedText({});
     value.decode(stream);
     return value;

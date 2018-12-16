@@ -6,8 +6,8 @@
   "build": "tsc",
   "test": "mocha test"
  },
- "main": "./dist/enum.js",
- "@types": "./dist/enum.d.ts",
+ "main": "./dist/index.js",
+ "@types": "./dist/index.d.ts",
  "dependencies": {
   "node-opcua-assert": "^2.0.0-alpha.8"
  },

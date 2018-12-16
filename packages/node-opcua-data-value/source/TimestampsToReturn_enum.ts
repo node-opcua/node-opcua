@@ -1,6 +1,9 @@
-import { registerEnumeration } from "node-opcua-factory";
+/**
+ * @module node-opcua-data-value
+ */
 import { BinaryStream } from "node-opcua-binary-stream";
 import { Enum } from "node-opcua-enum";
+import { registerEnumeration } from "node-opcua-factory";
 
 export enum TimestampsToReturn {
     Source = 0,
@@ -12,14 +15,15 @@ export enum TimestampsToReturn {
 
 export const schemaTimestampsToReturn = {
     name: "TimestampsToReturn",
-    enumValues: TimestampsToReturn,
+
+    enumValues: TimestampsToReturn
 };
 
 export function encodeTimestampsToReturn(value: TimestampsToReturn, stream: BinaryStream) {
     stream.writeUInt32(value);
 }
 
-function clamp(min: number, a: number,  max: number) {
+function clamp(min: number, a: number, max: number) {
     return Math.max(Math.min(a, max), min);
 }
 
@@ -27,4 +31,4 @@ export function decodeTimestampsToReturn(stream: BinaryStream): TimestampsToRetu
     return clamp(TimestampsToReturn.Source, stream.readUInt32(), TimestampsToReturn.Invalid) as TimestampsToReturn;
 }
 
-export const _enumerationTimestampsToReturn : Enum = registerEnumeration(schemaTimestampsToReturn);
+export const _enumerationTimestampsToReturn: Enum = registerEnumeration(schemaTimestampsToReturn);

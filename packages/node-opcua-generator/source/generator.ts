@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-generator
+ */
 import * as fs from "fs";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";

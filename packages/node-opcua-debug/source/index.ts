@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-debug
+ */
 export { trace_from_this_projet_only, display_trace_from_this_projet_only } from "./display_trace";
 export { checkDebugFlag, setDebugFlag, make_debugLog } from "./make_debug_log";
 export { getTempFilename } from "./get_temp_filename";

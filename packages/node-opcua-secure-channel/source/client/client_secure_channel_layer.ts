@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-secure-channel
+ */
 // tslint:disable:variable-name
 // tslint:disable:object-literal-shorthand
 // tslint:disable:no-console

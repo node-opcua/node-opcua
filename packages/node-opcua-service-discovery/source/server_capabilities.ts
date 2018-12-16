@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-discovery
+ */
 
 export const serverCapabilities = [
 

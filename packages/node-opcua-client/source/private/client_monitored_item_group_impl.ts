@@ -17,7 +17,7 @@ import { ClientSubscription } from "../client_subscription";
 import { Callback, ErrorCallback } from "../common";
 import { ClientMonitoredItemBaseImpl } from "./client_monitored_item_base_impl";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
-import { ReadValueIdOptions } from "../../../node-opcua-types/dist";
+import { ReadValueIdOptions } from "node-opcua-types";
 import { resolveNodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);

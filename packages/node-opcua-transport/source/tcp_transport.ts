@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-transport
+ */
 import { default as chalk } from "chalk";
 import { EventEmitter } from "events";
 import { Socket } from "net";
@@ -16,7 +19,7 @@ type ErrorCallback = (err?: Error | null) => void;
 const debugLog = debug.make_debugLog(__filename);
 const doDebug = debug.checkDebugFlag(__filename);
 
-let fakeSocket: any = {invalid: true};
+let fakeSocket: any = { invalid: true };
 
 export function setFakeTransport(mockSocket: any) {
     fakeSocket = mockSocket;
@@ -222,7 +225,9 @@ export class TCP_transport extends EventEmitter {
 
         assert(socket);
         this._socket = socket;
-        if (doDebug) { debugLog("_install_socket ", this.name); }
+        if (doDebug) {
+            debugLog("_install_socket ", this.name);
+        }
 
         // install packet assembler ...
         this.packetAssembler = new PacketAssembler({
@@ -231,14 +236,16 @@ export class TCP_transport extends EventEmitter {
             minimumSizeInBytes: this.headerSize
         });
 
-        if (!this.packetAssembler) { throw new Error("Internal Error"); }
+        if (!this.packetAssembler) {
+            throw new Error("Internal Error");
+        }
         this.packetAssembler.on("message", (messageChunk: Buffer) => this._on_message_received(messageChunk));
 
         this._socket
-            .on("data", (data: Buffer) => this._on_socket_data(data))
-            .on("close", (hadError) => this._on_socket_close(hadError))
-            .on("end", (err: Error) => this._on_socket_end(err))
-            .on("error", (err: Error) => this._on_socket_error(err));
+          .on("data", (data: Buffer) => this._on_socket_data(data))
+          .on("close", (hadError) => this._on_socket_close(hadError))
+          .on("end", (err: Error) => this._on_socket_end(err))
+          .on("error", (err: Error) => this._on_socket_error(err));
 
         const doDestroyOnTimeout = false;
         if (doDestroyOnTimeout) {
@@ -265,8 +272,9 @@ export class TCP_transport extends EventEmitter {
      * * TCP_transport will not emit the ```message``` event, while the "one time message receiver" is in operation.
      * * the TCP_transport will wait for the next complete message chunk and call the provided callback func
      *   ```callback(null,messageChunk);```
-     * * if a messageChunk is not received within ```TCP_transport.timeout``` or if the underlying socket reports an error,
-     *    the callback function will be called with an Error.
+     *
+     * if a messageChunk is not received within ```TCP_transport.timeout``` or if the underlying socket reports
+     * an error, the callback function will be called with an Error.
      *
      */
     protected _install_one_time_message_receiver(callback: CallbackWithData) {
@@ -322,14 +330,16 @@ export class TCP_transport extends EventEmitter {
         // Setup timeout detection timer ....
         this._timerId = setTimeout(() => {
             this._timerId = null;
-            this._fulfill_pending_promises(new Error(`Timeout in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
+            this._fulfill_pending_promises(
+              new Error(`Timeout in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
         }, this.timeout);
 
         // also monitored
         if (this._socket) {
             // to do = intercept socket error as well
             this._on_error_during_one_time_message_receiver = (err?: Error) => {
-                this._fulfill_pending_promises(new Error(`ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
+                this._fulfill_pending_promises(
+                  new Error(`ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
             };
             this._socket.on("close", this._on_error_during_one_time_message_receiver);
         }
@@ -351,7 +361,9 @@ export class TCP_transport extends EventEmitter {
     }
 
     private _on_socket_data(data: Buffer): void {
-        if (!this.packetAssembler) { throw new Error("internal Error"); }
+        if (!this.packetAssembler) {
+            throw new Error("internal Error");
+        }
         this.bytesRead += data.length;
         if (data.length > 0) {
             this.packetAssembler.feed(data);
@@ -361,10 +373,12 @@ export class TCP_transport extends EventEmitter {
     private _on_socket_close(hadError: boolean) {
         // istanbul ignore next
         if (doDebug) {
-            debugLog(chalk.red(" SOCKET CLOSE : "), chalk.yellow("had_error ="), chalk.cyan(hadError.toString()), this.name);
+            debugLog(chalk.red(" SOCKET CLOSE : "),
+              chalk.yellow("had_error ="), chalk.cyan(hadError.toString()), this.name);
         }
         if (this._socket) {
-            debugLog("  remote address = ", this._socket.remoteAddress, " ", this._socket.remoteFamily, " ", this._socket.remotePort);
+            debugLog("  remote address = ",
+              this._socket.remoteAddress, " ", this._socket.remoteFamily, " ", this._socket.remotePort);
         }
         if (hadError) {
             if (this._socket) {
@@ -384,7 +398,7 @@ export class TCP_transport extends EventEmitter {
 
         debugLog(chalk.red("Transport Connection ended") + " " + this.name);
         assert(!this._disconnecting);
-        err = err ||    new Error("_socket has been disconnected by third party");
+        err = err || new Error("_socket has been disconnected by third party");
 
         this.on_socket_ended(err);
 

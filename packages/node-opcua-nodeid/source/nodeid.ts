@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-nodeid
+ */
 import assert from "node-opcua-assert";
 import { isValidGuid, emptyGuid } from "node-opcua-guid";
 import * as  _ from "underscore";
@@ -10,11 +13,6 @@ import {
     MethodIds,
     ReferenceTypeIds
 } from "node-opcua-constants";
-
-/* global Buffer */
-/**
- * @module opcua.datamodel
- */
 
 /**
  * `NodeIdType` an enumeration that specifies the possible types of a `NodeId` value.

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-secure-channel
+ */
 // tslint:disable:variable-name
 // tslint:disable:no-empty
 // tslint:disable:no-console
@@ -10,6 +13,7 @@ import * as crypto from "crypto";
 import { EventEmitter } from "events";
 import { Socket } from "net";
 import { assert } from "node-opcua-assert";
+import { PublicKeyLength } from "node-opcua-crypto";
 import * as _ from "underscore";
 import { callbackify, promisify } from "util";
 
@@ -436,14 +440,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @method getCertificate
      * @return  the X509 DER form certificate
      */
-    public getCertificate() {
+    public getCertificate(): Certificate {
         if (!this.parent) {
             throw new Error("expecting a valid parent");
         }
         return this.parent.getCertificate();
     }
 
-    public getSignatureLength() {
+    public getSignatureLength(): PublicKeyLength {
         const chain = this.getCertificateChain();
         const firstCertificateInChain = split_der(chain)[0];
         const cert = exploreCertificateInfo(firstCertificateInChain);
@@ -468,7 +472,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @param socket
      * @param callback
      */
-    public init(socket: Socket, callback: ErrorCallback) {
+    public init(socket: Socket, callback: ErrorCallback): void {
 
         this.transport.timeout = this.timeout;
 
@@ -505,7 +509,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @param message
      * @param callback
      */
-    public send_response(msgType: string, response: Response, message: Message, callback: ErrorCallback) {
+    public send_response(msgType: string, response: Response, message: Message, callback: ErrorCallback): void {
 
         const request = message.request;
         const requestId = message.requestId;
@@ -589,7 +593,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @param message     {String}
      * @param callback
      */
-    public send_error_and_abort(statusCode: StatusCode, description: string, message: Message, callback: ErrorCallback) {
+    public send_error_and_abort(
+      statusCode: StatusCode,
+      description: string,
+      message: Message,
+      callback: ErrorCallback
+    ): void {
 
         assert(message.request.schema);
         assert(message.requestId > 0);
@@ -625,7 +634,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
     }
 
-    public has_endpoint_for_security_mode_and_policy(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy) {
+    public has_endpoint_for_security_mode_and_policy(
+      securityMode: MessageSecurityMode,
+      securityPolicy: SecurityPolicy
+    ): boolean {
 
         if (!this.parent) {
             console.log("XXXXXXXX => CHECK HERE");

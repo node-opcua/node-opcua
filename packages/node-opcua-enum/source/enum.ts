@@ -1,5 +1,5 @@
 /**
- * @module opcua.miscellaneous
+ * @module node-opcua-enum
  *
  */
 /**

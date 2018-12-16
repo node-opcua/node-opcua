@@ -30,7 +30,8 @@
     "lebab-let": "node  ./node_modules/lerna/cli.js exec lebab  --replace index.js  --transform let && node  ./node_modules/lerna/cli.js exec lebab  --replace test  --transform let && node  ./node_modules/lerna/cli.js exec lebab  --replace src  --transform let",
     "licences": " npx license-checker --production --summary",
     "alex": "npx alex documentation/*.md",
-    "cost-of-modules": "npx cost-of-modules"
+    "cost-of-modules": "npx cost-of-modules",
+    "typedoc": "ts-node documentation/maketypedoc.ts"
   },
   "repository": {
     "type": "git",

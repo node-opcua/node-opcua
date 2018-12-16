@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "chalk": "^2.4.1",
+    "node-opcua-debug": "^2.0.0-alpha.8",
     "node-opcua-assert": "^2.0.0-alpha.8",
     "node-opcua-basic-types": "^2.0.0-alpha.8",
     "node-opcua-binary-stream": "^2.0.0-alpha.8",

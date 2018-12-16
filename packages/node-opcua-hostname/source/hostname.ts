@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-hostname
+ */
 import * as os from "os";
 
 function trim(str: string, length?: number): string {

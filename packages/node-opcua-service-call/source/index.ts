@@ -1,4 +1,7 @@
 /**
+ * @module node-opcua-service-browse
+ */
+/**
  *
  * This Service is used to call (invoke) a list of Methods. Each method call is invoked within the context
  * of an existing Session. If the Session is terminated, the results of the method’s execution cannot be

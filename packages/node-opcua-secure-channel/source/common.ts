@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-secure-channel
+ */
 import { Certificate, PrivateKeyPEM } from "node-opcua-crypto";
 import { TypeSchemaBase } from "node-opcua-factory";
 import {

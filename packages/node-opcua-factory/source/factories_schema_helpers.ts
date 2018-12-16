@@ -1,5 +1,5 @@
 /**
- * @module opcua.miscellaneous
+ * @module node-opcua-factory
  */
 import assert from "node-opcua-assert";
 import { make_debugLog } from "node-opcua-debug";

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-debug
+ */
 // tslint:disable:no-console
 import * as util from "util";
 

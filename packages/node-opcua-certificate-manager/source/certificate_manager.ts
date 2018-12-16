@@ -1,7 +1,7 @@
-// tslint:disable:no-empty
 /**
  * @module node-opcua-certificate-manager
  */
+// tslint:disable:no-empty
 import * as envPaths from "env-paths";
 import * as fs from "fs";
 import assert from "node-opcua-assert";

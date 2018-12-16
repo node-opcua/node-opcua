@@ -24,7 +24,7 @@ const sameNodeId = require("node-opcua-nodeid").sameNodeId;
 const coerceQualifiedName = require("node-opcua-data-model").coerceQualifiedName;
 const QualifiedName = require("node-opcua-data-model").QualifiedName;
 const coerceLocalizedText = require("node-opcua-data-model").coerceLocalizedText;
-const AttributeNameById = require("node-opcua-data-model").AttributeNameById;
+const attributeNameById = require("node-opcua-data-model").attributeNameById;
 const ResultMask = require("node-opcua-data-model").ResultMask;
 const NodeClass = require("node-opcua-data-model").NodeClass;
 const makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
@@ -239,7 +239,7 @@ Object.defineProperty(BaseNode.prototype, "description", {
 
 BaseNode.makeAttributeEventName = function (attributeId) {
 
-    const attributeName = AttributeNameById[attributeId];
+    const attributeName = attributeNameById[attributeId];
     return attributeName + "_changed";
 };
 

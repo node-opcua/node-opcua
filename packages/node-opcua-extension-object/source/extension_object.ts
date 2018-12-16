@@ -1,10 +1,13 @@
 /**
- * @module opcua.miscellaneous
+ * @module node-opcua-extension-object
  */
+import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { is_internal_id, constructObject, registerBuiltInType, BaseUAObject } from "node-opcua-factory";
-import { makeNodeId, ExpandedNodeId, NodeId } from "node-opcua-nodeid";
-import { encodeNodeId, decodeNodeId } from "node-opcua-basic-types";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { BaseUAObject, constructObject, is_internal_id, registerBuiltInType } from "node-opcua-factory";
+import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
+
+const debugLog = make_debugLog(__filename);
 
 import chalk from "chalk";
 
@@ -15,12 +18,12 @@ export class ExtensionObject extends BaseUAObject {
     }
 
 }
-ExtensionObject.prototype.schema = {name: "ExtensionObject"};
+
+ExtensionObject.prototype.schema = { name: "ExtensionObject" };
 
 function constructEmptyExtensionObject(expandedNodeId: NodeId): any {
     return constructObject(expandedNodeId as ExpandedNodeId);
 }
-
 
 // OPC-UA Part 6 - $5.2.2.15 ExtensionObject
 // An ExtensionObject is encoded as sequence of bytes prefixed by the  NodeId of its
@@ -48,7 +51,6 @@ function constructEmptyExtensionObject(expandedNodeId: NodeId): any {
 //                    |  string without any null terminator.
 //
 
-
 export function encodeExtensionObject(object: any, stream: BinaryStream): void {
 
     if (!object) {
@@ -61,17 +63,18 @@ export function encodeExtensionObject(object: any, stream: BinaryStream): void {
         const encodingDefaultBinary = object.schema.encodingDefaultBinary;
         /* istanbul ignore next */
         if (!encodingDefaultBinary) {
-            console.log(chalk.yellow("xxxxxxxxx encoding ExtObj "), object);
+            debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "), object);
             throw new Error("Cannot find encodingDefaultBinary for this object");
         }
         /* istanbul ignore next */
         if (encodingDefaultBinary.isEmpty()) {
-            console.log(chalk.yellow("xxxxxxxxx encoding ExtObj "), object.encodingDefaultBinary.toString());
+            debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "), object.encodingDefaultBinary.toString());
             throw new Error("Cannot find encodingDefaultBinary for this object");
         }
         /* istanbul ignore next */
         if (is_internal_id(encodingDefaultBinary.value)) {
-            console.log(chalk.yellow("xxxxxxxxx encoding ExtObj "), object.encodingDefaultBinary.toString(), object.schema.name);
+            debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "),
+              object.encodingDefaultBinary.toString(), object.schema.name);
             throw new Error("Cannot find valid OPCUA encodingDefaultBinary for this object");
         }
 
@@ -82,7 +85,7 @@ export function encodeExtensionObject(object: any, stream: BinaryStream): void {
     }
 }
 
-export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | null  {
+export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | null {
 
     const nodeId = decodeNodeId(stream);
     const encodingType = stream.readUInt8();
@@ -95,7 +98,7 @@ export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | n
 
     /* istanbul ignore next */
     if (nodeId.value === 0 || encodingType === 0) {
-        return  {} as ExtensionObject;
+        return {} as ExtensionObject;
     }
 
     const object = constructEmptyExtensionObject(nodeId);
@@ -104,35 +107,39 @@ export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | n
     if (object === null) {
         // this object is unknown to us ..
         stream.length += length;
-        return  {} as ExtensionObject;
+        return {} as ExtensionObject;
     }
     // let verify that  decode will use the expected number of bytes
     const streamLengthBefore = stream.length;
 
     try {
         object.decode(stream);
-    }
-    catch (err) {
-        console.log("Cannot decode object ", err.message);
+    } catch (err) {
+        debugLog("Cannot decode object ", err.message);
     }
 
     if (streamLengthBefore + length !== stream.length) {
         // this may happen if the server or client do have a different OPCUA version
         // for instance SubscriptionDiagnostics structure has been changed between OPCUA version 1.01 and 1.04
         // causing 2 extra member to be added.
-        console.log(chalk.bgWhiteBright.red("========================================="));
-        console.warn("WARNING => Extension object decoding error on ", object.constructor.name, " expected size was", length, "actual size was ", stream.length - streamLengthBefore);
+        debugLog(chalk.bgWhiteBright.red("========================================="));
+
+        // tslint:disable-next-line:no-console
+        console.warn("WARNING => Extension object decoding error on ",
+          object.constructor.name, " expected size was", length,
+          "actual size was ", stream.length - streamLengthBefore);
         stream.length = streamLengthBefore + length;
     }
     return object;
 }
 
-
 registerBuiltInType({
     name: "ExtensionObject",
     subType: "",
-    encode: encodeExtensionObject,
-    decode: decodeExtensionObject,
-    defaultValue:  () => null
-});
 
+    encode: encodeExtensionObject,
+
+    decode: decodeExtensionObject,
+
+    defaultValue: () => null
+});

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-data-model
+ */
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
@@ -27,10 +30,8 @@ export enum AttributeIds {
     INVALID= 999
 }
 
-
 // deprecated use getAttributeName(attributeId: AttributeIds);
-
-export const AttributeNameById = _.invert(AttributeIds);
+export const attributeNameById  =  _.invert(AttributeIds);
 
 export function isValidAttributeId(attributeId: any) {
     assert(_.isFinite(attributeId));

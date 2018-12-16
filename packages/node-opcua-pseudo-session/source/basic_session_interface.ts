@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-pseudo-session
+ */
 import { DataValue } from "node-opcua-data-value";
 import {
     BrowseDescription,

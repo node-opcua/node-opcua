@@ -22,6 +22,7 @@ import {
     ServerSecureChannelLayer,
     ServerSecureChannelParent
 } from "../source";
+import { CertificateManager } from "node-opcua-certificate-manager";
 
 type Callback = (err?: Error) => void;
 
@@ -34,7 +35,7 @@ interface TestParam {
     clientPrivateKey?: PrivateKeyPEM;
     shouldFailAtClientConnection?: boolean;
 }
-
+// tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing secure client and server connection", () => {
 
@@ -53,7 +54,9 @@ describe("Testing secure client and server connection", () => {
 
         const parentS: ServerSecureChannelParent = {
 
-            // tslint:disable-next-line:object-literal-shorthand
+            certificateManager:  new CertificateManager(),
+
+        // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function() {
 
                 const chain = this.getCertificateChain();

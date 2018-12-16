@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-proxy
+ */
 import * as async from "async";
 import { assert } from "node-opcua-assert";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";

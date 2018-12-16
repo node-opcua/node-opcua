@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua
+ */
 // tslint:disable:max-line-length
 // tslint:disable:no-var-requires
 // tslint:disable:no-console

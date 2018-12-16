@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-proxy
+ */
 // tslint:disable:no-shadowed-variable
 import * as async from "async";
 import { assert } from "node-opcua-assert";

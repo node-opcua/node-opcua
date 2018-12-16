@@ -1,5 +1,8 @@
+/**
+ * @module node-opcua-service-browse
+ */
 import { assert } from "node-opcua-assert";
-import { NodeId, resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import {
     Argument
 } from "node-opcua-types";
@@ -12,7 +15,6 @@ export {
     CallMethodResult,
     CallResponse
 } from "node-opcua-types";
-
 
 ///
 function constructHookArgument(options?: { dataType: any, valueRank?: number, arrayDimensions?: any }): any {

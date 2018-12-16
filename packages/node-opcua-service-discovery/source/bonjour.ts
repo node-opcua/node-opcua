@@ -1,8 +1,12 @@
+/**
+ * @module node-opcua-service-discovery
+ */
 // tslint:disable:no-console
 import { assert } from "node-opcua-assert";
 import * as   _ from "underscore";
 
-const bonjour = require("bonjour");
+// tslint:disable:no-var-requires
+const bonjourLib = require("bonjour");
 
 let gBonjour: any = null;
 let gBonjourRefCount = 0;
@@ -10,7 +14,7 @@ let gBonjourRefCount = 0;
 export function acquireBonjour() {
     if (gBonjourRefCount === 0) {
         // will start the BOnjour service
-        gBonjour = bonjour();
+        gBonjour = bonjourLib();
     }
     gBonjourRefCount++;
     return gBonjour;
@@ -75,9 +79,9 @@ export function _announcedOnMulticastSubnet(
 ) {
 
     assert(self, "must be call with call(this,options)");
-    assert(!self.bonjour,"already called ?");
+    assert(!self.bonjour, "already called ?");
     self.bonjour = acquireBonjour();
-    self._bonjourPublish = _announceServerOnMulticastSubnet(self.bonjour,options);
+    self._bonjourPublish = _announceServerOnMulticastSubnet(self.bonjour, options);
 }
 
 export function _stop_announcedOnMulticastSubnet(self: any): void {

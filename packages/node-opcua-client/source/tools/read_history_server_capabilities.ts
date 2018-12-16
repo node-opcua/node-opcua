@@ -1,5 +1,5 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client
  */
 import { assert } from "node-opcua-assert";
 import { ObjectIds } from "node-opcua-constants";

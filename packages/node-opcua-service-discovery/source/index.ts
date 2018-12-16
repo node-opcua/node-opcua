@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-discovery
+ */
 
 export {
     RegisteredServer,
@@ -17,7 +20,6 @@ export {
     FindServersOnNetworkRequest,
     FindServersOnNetworkRequestOptions,
     FindServersOnNetworkResponse,
-
 
     ServerOnNetwork
 } from "node-opcua-types";

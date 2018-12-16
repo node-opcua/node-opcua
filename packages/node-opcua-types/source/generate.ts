@@ -1,12 +1,14 @@
+/**
+ * @module node-opcua-types
+ */
 // tslint:disable:no-console
 import * as fs from "fs";
 import { generate } from "node-opcua-generator";
 import * as path from "path";
 import { promisify } from "util";
 
-const fileExists = promisify(fs.exists);
-const mkdir = promisify(fs.mkdir);
-
+// const fileExists = promisify(fs.exists);
+// const mkdir = promisify(fs.mkdir);
 // async function build_generated_folder() {
 //
 //     const currentFolder = path.join(__dirname, "..");

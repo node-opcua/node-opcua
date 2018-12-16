@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-node-management
+ */
 export {
     AddNodesRequest, AddNodesResponse,
     AddReferencesRequest, AddReferencesResponse,

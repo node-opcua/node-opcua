@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-client-proxy
+ */
 // tslint:disable:no-shadowed-variable
 import { EventEmitter } from "events";
 

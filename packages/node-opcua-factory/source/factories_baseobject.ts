@@ -1,7 +1,7 @@
-// tslint:disable:no-shadowed-variable
 /**
- * @module opcua.address_space.types
+ * @module node-opcua-factory
  */
+// tslint:disable:no-shadowed-variable
 import chalk from "chalk";
 import assert from "node-opcua-assert";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";

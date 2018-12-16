@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-data-value
+ */
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { DateWithPicoseconds, getCurrentClock } from "node-opcua-date-time";
@@ -21,7 +24,7 @@ import {
     decodeStatusCode, decodeUInt16,
     decodeUInt8, encodeHighAccuracyDateTime,
     encodeStatusCode, encodeUInt16,
-    encodeUInt8, UInt16,
+    encodeUInt8, UInt16
 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
 
@@ -67,6 +70,7 @@ export function encodeDataValue(dataValue: DataValue, stream: BinaryStream): voi
             dataValue.value = new Variant();
         }
         if (!dataValue.value.encode) {
+            // tslint:disable-next-line:no-console
             console.log(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELP", dataValue.toString());
         }
         dataValue.value.encode(stream);
@@ -209,13 +213,14 @@ function isValidDataValue(self: DataValue): boolean {
 const schemaDataValue: StructuredTypeSchema = buildStructuredType({
     baseType: "BaseUAObject",
     name: "DataValue",
+
     fields: [
-        {name: "value", fieldType: "Variant", defaultValue: null},
-        {name: "statusCode", fieldType: "StatusCode", defaultValue: StatusCodes.Good},
-        {name: "sourceTimestamp", fieldType: "DateTime", defaultValue: null},
-        {name: "sourcePicoseconds", fieldType: "UInt16", defaultValue: 0},
-        {name: "serverTimestamp", fieldType: "DateTime", defaultValue: null},
-        {name: "serverPicoseconds", fieldType: "UInt16", defaultValue: 0}
+        { name: "value", fieldType: "Variant", defaultValue: null },
+        { name: "statusCode", fieldType: "StatusCode", defaultValue: StatusCodes.Good },
+        { name: "sourceTimestamp", fieldType: "DateTime", defaultValue: null },
+        { name: "sourcePicoseconds", fieldType: "UInt16", defaultValue: 0 },
+        { name: "serverTimestamp", fieldType: "DateTime", defaultValue: null },
+        { name: "serverPicoseconds", fieldType: "UInt16", defaultValue: 0 }
     ]
 });
 
@@ -265,7 +270,7 @@ export class DataValue extends BaseUAObject {
             check_options_correctness_against_schema(this, schema, options);
         }
         if (options === null) {
-            this.value = new Variant({dataType: DataType.Null});
+            this.value = new Variant({ dataType: DataType.Null });
         }
 
         /**
@@ -274,9 +279,9 @@ export class DataValue extends BaseUAObject {
          * @default  null
          */
         if (options.value === undefined || options.value === null) {
-            this.value = new Variant({dataType: DataType.Null});
+            this.value = new Variant({ dataType: DataType.Null });
         } else {
-            this.value = (options.value) ? new Variant(options.value) : new Variant({dataType: DataType.Null});
+            this.value = (options.value) ? new Variant(options.value) : new Variant({ dataType: DataType.Null });
         }
 
         /**
@@ -335,11 +340,11 @@ export class DataValue extends BaseUAObject {
 
         function toMicroNanoPico(picoseconds: number): string {
             return ""
-                + w((picoseconds / 1000000) >> 0)
-                + "."
-                + w(((picoseconds % 1000000) / 1000) >> 0)
-                + "."
-                + w((picoseconds % 1000) >> 0);
+              + w((picoseconds / 1000000) >> 0)
+              + "."
+              + w(((picoseconds % 1000000) / 1000) >> 0)
+              + "."
+              + w((picoseconds % 1000) >> 0);
             //    + " (" + picoseconds+ ")";
         }
 
@@ -351,11 +356,11 @@ export class DataValue extends BaseUAObject {
         }
         str += "\n   statusCode:      " + (this.statusCode ? this.statusCode.toString() : "null");
         str += "\n   serverTimestamp: " + (this.serverTimestamp ? this.serverTimestamp.toISOString()
-            + " $ " + toMicroNanoPico(this.serverPicoseconds)
-            : "null"); // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
+          + " $ " + toMicroNanoPico(this.serverPicoseconds)
+          : "null"); // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
         str += "\n   sourceTimestamp: " + (this.sourceTimestamp ? this.sourceTimestamp.toISOString()
-            + " $ " + toMicroNanoPico(this.sourcePicoseconds)
-            : "null"); // + "  " + (this.sourceTimestamp ? this.sourceTimestamp.getTime() :"-");
+          + " $ " + toMicroNanoPico(this.sourcePicoseconds)
+          : "null"); // + "  " + (this.sourceTimestamp ? this.sourceTimestamp.getTime() :"-");
         return str;
     }
 
@@ -387,7 +392,11 @@ function _partial_clone(dataValue: DataValue): DataValue {
     return cloneDataValue;
 }
 
-export function apply_timestamps(dataValue: DataValue, timestampsToReturn: TimestampsToReturn, attributeId: AttributeIds) {
+export function apply_timestamps(
+  dataValue: DataValue,
+  timestampsToReturn: TimestampsToReturn,
+  attributeId: AttributeIds
+): DataValue {
 
     assert(attributeId > 0);
     assert(dataValue.hasOwnProperty("serverTimestamp"));
@@ -437,7 +446,11 @@ export function apply_timestamps(dataValue: DataValue, timestampsToReturn: Times
     return cloneDataValue;
 }
 
-function apply_timestamps2(dataValue: DataValue, timestampsToReturn: TimestampsToReturn, attributeId: AttributeIds): DataValue {
+function apply_timestamps2(
+  dataValue: DataValue,
+  timestampsToReturn: TimestampsToReturn,
+  attributeId: AttributeIds
+): DataValue {
 
     assert(attributeId > 0);
     assert(dataValue.hasOwnProperty("serverTimestamp"));
@@ -488,10 +501,15 @@ function _clone_with_array_replacement(dataValue: DataValue, result: any): DataV
 
     const clonedDataValue = new DataValue({
         statusCode: result.statusCode,
+
         serverTimestamp: dataValue.serverTimestamp,
+
         serverPicoseconds: dataValue.serverPicoseconds,
+
         sourceTimestamp: dataValue.sourceTimestamp,
+
         sourcePicoseconds: dataValue.sourcePicoseconds,
+
         value: {
             dataType: DataType.Null
         }
@@ -505,8 +523,9 @@ function _clone_with_array_replacement(dataValue: DataValue, result: any): DataV
 
 function canRange(dataValue: DataValue): boolean {
     return dataValue.value && ((dataValue.value.arrayType !== VariantArrayType.Scalar) ||
-        ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.ByteString)) ||
-        ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.String)));
+      ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.ByteString))
+      ||
+      ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.String)));
 }
 
 /**
@@ -548,15 +567,19 @@ function sameDate(date1: DateTime, date2: DateTime): boolean {
 
 export function sourceTimestampHasChanged(dataValue1: DataValue, dataValue2: DataValue): boolean {
     return !sameDate(dataValue1.sourceTimestamp, dataValue2.sourceTimestamp)
-        || (dataValue1.sourcePicoseconds !== dataValue2.sourcePicoseconds);
+      || (dataValue1.sourcePicoseconds !== dataValue2.sourcePicoseconds);
 }
 
 export function serverTimestampHasChanged(dataValue1: DataValue, dataValue2: DataValue): boolean {
     return !sameDate(dataValue1.serverTimestamp, dataValue2.serverTimestamp)
-        || (dataValue1.serverPicoseconds !== dataValue2.serverPicoseconds);
+      || (dataValue1.serverPicoseconds !== dataValue2.serverPicoseconds);
 }
 
-export function timestampHasChanged(dataValue1: DataValue, dataValue2: DataValue, timestampsToReturn?: TimestampsToReturn): boolean {
+export function timestampHasChanged(
+  dataValue1: DataValue,
+  dataValue2: DataValue,
+  timestampsToReturn?: TimestampsToReturn
+): boolean {
     // TODO:    timestampsToReturn = timestampsToReturn || { key: "Neither"};
     if (timestampsToReturn === undefined) {
         return sourceTimestampHasChanged(dataValue1, dataValue2) || serverTimestampHasChanged(dataValue1, dataValue2);
@@ -565,7 +588,8 @@ export function timestampHasChanged(dataValue1: DataValue, dataValue2: DataValue
         case TimestampsToReturn.Neither:
             return false;
         case TimestampsToReturn.Both:
-            return sourceTimestampHasChanged(dataValue1, dataValue2) || serverTimestampHasChanged(dataValue1, dataValue2);
+            return sourceTimestampHasChanged(dataValue1, dataValue2) ||
+              serverTimestampHasChanged(dataValue1, dataValue2);
         case TimestampsToReturn.Source:
             return sourceTimestampHasChanged(dataValue1, dataValue2);
         default:

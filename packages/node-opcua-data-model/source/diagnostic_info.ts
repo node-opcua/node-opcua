@@ -1,68 +1,83 @@
-
-/*
- * @module opcua.datamodel
+/**
+ * @module node-opcua-data-model
  */
-
-import { BinaryStream } from "node-opcua-binary-stream";
 import assert from "node-opcua-assert";
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
+import { BinaryStream } from "node-opcua-binary-stream";
 import {
-    parameters,
     BaseUAObject,
-    registerSpecialVariantEncoder,
     buildStructuredType,
+    parameters,
+    registerSpecialVariantEncoder,
     StructuredTypeSchema
 } from "node-opcua-factory";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import {
-    Int32,
-    UAString,
-    encodeInt32, decodeInt32,
-    encodeByte, decodeByte,
-    encodeString, decodeString,
-    encodeStatusCode, decodeStatusCode
+    decodeByte,
+    decodeInt32,
+    decodeStatusCode, decodeString,
+    encodeByte, encodeInt32,
+    encodeStatusCode, encodeString,
+    Int32, UAString
 } from "node-opcua-basic-types";
-import { check_options_correctness_against_schema, initialize_field } from "../../node-opcua-factory/dist";
+import {
+    check_options_correctness_against_schema,
+    initialize_field
+} from "node-opcua-factory";
 
 // --------------------------------------------------------------------------------------------
 export const schemaDiagnosticInfo: StructuredTypeSchema = buildStructuredType({
     name: "DiagnosticInfo",
+
     baseType: "BaseUAObject",
+
     fields: [
         {
             name: "namespaceUri",
+
             fieldType: "Int32",
+
             defaultValue: -1,
             documentation: "The symbolicId is defined within the context of a namespace."
         },
         {
             name: "symbolicId",
+
             fieldType: "Int32",
+
             defaultValue: -1,
             documentation: "The symbolicId shall be used to identify a vendor-specific error or condition"
         },
         {
             name: "locale",
+
             fieldType: "Int32",
+
             defaultValue: -1,
             documentation: "The locale part of the vendor-specific localized text describing the symbolic id."
         },
-        {name: "localizedText", fieldType: "Int32", defaultValue: -1},
+        { name: "localizedText", fieldType: "Int32", defaultValue: -1 },
         {
             name: "additionalInfo",
+
             fieldType: "String",
+
             defaultValue: null,
             documentation: "Vendor-specific diagnostic information."
         },
         {
             name: "innerStatusCode",
+
             fieldType: "StatusCode",
+
             defaultValue: StatusCodes.Good,
             documentation: "The StatusCode from the inner operation."
         },
         {
             name: "innerDiagnosticInfo",
+
             fieldType: "DiagnosticInfo",
+
             defaultValue: null,
             documentation: "The diagnostic info associated with the inner StatusCode."
         }
@@ -71,15 +86,20 @@ export const schemaDiagnosticInfo: StructuredTypeSchema = buildStructuredType({
 
 export class DiagnosticInfo extends BaseUAObject {
 
-    symbolicId: Int32;
-    namespaceURI: Int32;
-    locale: Int32;
-    localizedText: Int32;
-    additionalInfo: UAString;
-    innerStatusCode: StatusCode;
-    innerDiagnosticInfo: DiagnosticInfo;
+    public static schema = schemaDiagnosticInfo;
+    public static possibleFields = [
+        "symbolicId", "namespaceURI", "locale", "localizedText",
+        "additionalInfo", "innerStatusCode", "innerDiagnosticInfo"
+    ];
 
-    static schema = schemaDiagnosticInfo;
+    public symbolicId: Int32;
+    public namespaceURI: Int32;
+    public locale: Int32;
+    public localizedText: Int32;
+    public additionalInfo: UAString;
+    public innerStatusCode: StatusCode;
+    public innerDiagnosticInfo: DiagnosticInfo;
+
     /**
      *
      * @class DiagnosticInfo
@@ -104,33 +124,33 @@ export class DiagnosticInfo extends BaseUAObject {
         this.innerDiagnosticInfo = initialize_field(schema.fields[6], options.innerDiagnosticInfo);
     }
 
-    encode(stream: BinaryStream): void {
+    public encode(stream: BinaryStream): void {
         encode_DiagnosticInfo(this, stream);
     }
-    decode(stream: BinaryStream): void {
+
+    public decode(stream: BinaryStream): void {
         decode_DiagnosticInfo(this, stream);
     }
-    decodeDebug(stream: BinaryStream, options: any): void {
+
+    public decodeDebug(stream: BinaryStream, options: any): void {
         decodeDebug_DiagnosticInfo(this, stream, options);
     }
-    static possibleFields = [
-        "symbolicId", "namespaceURI", "locale",  "localizedText", "additionalInfo", "innerStatusCode", "innerDiagnosticInfo"
-    ];
 }
+
 DiagnosticInfo.prototype.schema = DiagnosticInfo.schema;
 DiagnosticInfo.schema.fields[6].schema = DiagnosticInfo.schema;
 
 export enum DiagnosticInfo_EncodingByte {
-    SymbolicId=          0x01,
-    NamespaceURI=        0x02,
-    LocalizedText=       0x04,
-    Locale=              0x08,
-    AdditionalInfo=      0x10,
-    InnerStatusCode=     0x20,
-    InnerDiagnosticInfo= 0x40
+    SymbolicId = 0x01,
+    NamespaceURI = 0x02,
+    LocalizedText = 0x04,
+    Locale = 0x08,
+    AdditionalInfo = 0x10,
+    InnerStatusCode = 0x20,
+    InnerDiagnosticInfo = 0x40
 }
 
-
+// tslint:disable:no-bitwise
 function getDiagnosticInfoEncodingByte(diagnosticInfo: DiagnosticInfo): DiagnosticInfo_EncodingByte {
     assert(diagnosticInfo);
 
@@ -200,7 +220,6 @@ function encode_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: BinaryStr
     }
 }
 
-
 function decodeDebug_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: BinaryStream, options: any): void {
 
     const tracer = options.tracer;
@@ -212,7 +231,6 @@ function decodeDebug_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: Bina
 
     tracer.trace("member", "encodingByte", "0x" + encodingMask.toString(16), cursorBefore, stream.length, "Mask");
     tracer.encoding_byte(encodingMask, DiagnosticInfo_EncodingByte, cursorBefore, stream.length);
-
 
     cursorBefore = stream.length;
 
@@ -236,7 +254,7 @@ function decodeDebug_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: Bina
     }
     // read localized text
     if (encodingMask & DiagnosticInfo_EncodingByte.LocalizedText) {
-        diagnosticInfo.localizedText =  decodeInt32(stream);
+        diagnosticInfo.localizedText = decodeInt32(stream);
         tracer.trace("member", "localizedText", diagnosticInfo.localizedText, cursorBefore, stream.length, "Int32");
         cursorBefore = stream.length;
     }
@@ -249,7 +267,8 @@ function decodeDebug_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: Bina
     // read inner status code
     if (encodingMask & DiagnosticInfo_EncodingByte.InnerStatusCode) {
         diagnosticInfo.innerStatusCode = decodeStatusCode(stream);
-        tracer.trace("member", "innerStatusCode", diagnosticInfo.innerStatusCode, cursorBefore, stream.length, "StatusCode");
+        tracer.trace("member", "innerStatusCode",
+          diagnosticInfo.innerStatusCode, cursorBefore, stream.length, "StatusCode");
         cursorBefore = stream.length;
     }
     // read inner status code
@@ -258,12 +277,14 @@ function decodeDebug_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: Bina
         if (diagnosticInfo.innerDiagnosticInfo) {
             diagnosticInfo.innerDiagnosticInfo.decodeDebug(stream, options);
         }
-        tracer.trace("member", "innerDiagnosticInfo", diagnosticInfo.innerDiagnosticInfo, cursorBefore, stream.length, "DiagnosticInfo");
+        tracer.trace("member", "innerDiagnosticInfo",
+          diagnosticInfo.innerDiagnosticInfo, cursorBefore, stream.length, "DiagnosticInfo");
     }
 
     tracer.trace("end", options.name, stream.length, stream.length);
 
 }
+
 function decode_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: BinaryStream): void {
 
     const encodingMask = decodeByte(stream);
@@ -302,6 +323,7 @@ function decode_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: BinaryStr
 }
 
 const emptyDiagnosticInfo = new DiagnosticInfo({});
+
 export function encodeDiagnosticInfo(value: DiagnosticInfo, stream: BinaryStream): void {
     if (value === null) {
         emptyDiagnosticInfo.encode(stream);
@@ -315,6 +337,7 @@ export function decodeDiagnosticInfo(stream: BinaryStream): DiagnosticInfo {
     value.decode(stream);
     return value;
 }
+
 // Note:
 // the SymbolicId, NamespaceURI, LocalizedText and Locale fields are indexes in a string table which is returned
 // in the response header. Only the index of the corresponding string in the string table is encoded. An index

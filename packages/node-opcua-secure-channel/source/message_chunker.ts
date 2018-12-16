@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-secure-channel
+ */
 // tslint:disable:max-line-length
 
 import { assert } from "node-opcua-assert";

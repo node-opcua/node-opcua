@@ -38,7 +38,7 @@ export {
 
 
 export {
-    AttributeNameById,
+    attributeNameById,
     AttributeIds
 } from "node-opcua-data-model";
 export {

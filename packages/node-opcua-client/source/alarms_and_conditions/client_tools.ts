@@ -1,5 +1,5 @@
 /**
- * @module bode-opcua-client
+ * @module node-opcua-client
  */
 // tslint:disable:no-empty
 // tslint:disable: only-arrow-functions

@@ -1,17 +1,21 @@
+/**
+ * @module node-opcua-service-filter
+ */
 // tslint:disable:object-literal-shorthand
 // tslint:disable:only-arrow-functions
 import { assert } from "node-opcua-assert";
-import * as  _ from "underscore";
-import { SimpleAttributeOperand, EventFilter, } from "./imports";
+import { makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
-import { makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import * as  _ from "underscore";
+import { EventFilter, SimpleAttributeOperand } from "./imports";
 
 import { ObjectTypeIds } from "node-opcua-constants";
 import { AttributeIds, stringToQualifiedName } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
-const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 /**
  * helper to construct event filters:
@@ -41,30 +45,30 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
     if (conditionTypes && !_.isArray(conditionTypes)) {
         return constructEventFilter(arrayOfNames, [conditionTypes]);
     }
-    if (!(arrayOfNames instanceof Array)) throw new Error("internal error");
-
+    if (!(arrayOfNames instanceof Array)) {
+        throw new Error("internal error");
+    }
     // replace "string" element in the form A.B.C into [ "A","B","C"]
-    const arrayOfNames2 = arrayOfNames.map(function (path) {
+    const arrayOfNames2 = arrayOfNames.map((path) => {
         if (typeof path !== "string") {
             return path;
         }
         return path.split(".");
     });
 
-    const arrayOfNames3 = arrayOfNames2.map(function (path) {
+    const arrayOfNames3 = arrayOfNames2.map((path) => {
         if (_.isArray(path)) {
             return path.map(stringToQualifiedName);
         }
         return path;
     });
     // replace "string" elements in arrayOfName with QualifiedName in namespace 0
-    const arrayOfNames4 = arrayOfNames3.map(function (s) {
+    const arrayOfNames4 = arrayOfNames3.map((s) => {
         return (typeof s === "string") ? stringToQualifiedName(s) : s;
     });
 
-
     // construct browse paths array
-    const browsePaths = arrayOfNames4.map(function (s) {
+    const browsePaths = arrayOfNames4.map((s) => {
         return _.isArray(s) ? s : [s];
     });
 
@@ -76,27 +80,28 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
     // The SimpleAttributeOperand structure allows the Client to specify any Attribute, however, the Server is only
     // required to support the Value Attribute for Variable Nodes and the NodeId Attribute for Object Nodes.
     // That said, profiles defined in Part 7 may make support for additional Attributes mandatory.
-    let selectClauses = browsePaths.map(function (browsePath) {
+    let selectClauses = browsePaths.map((browsePath) => {
         return new SimpleAttributeOperand({
-            typeDefinitionId: makeNodeId(ObjectTypeIds.BaseEventType), // i=2041
-            browsePath: browsePath,
+
             attributeId: AttributeIds.Value,
-            indexRange: undefined //  NumericRange
+            browsePath,
+            indexRange: undefined, //  NumericRange
+            typeDefinitionId: makeNodeId(ObjectTypeIds.BaseEventType) // i=2041
+
         });
     });
 
-    if (conditionTypes) {
-        const extraSelectClauses = conditionTypes.map(function (nodeId) {
+    if (conditionTypes && conditionTypes instanceof Array) {
+        const extraSelectClauses = conditionTypes.map((nodeId) => {
             return new SimpleAttributeOperand({
-                typeDefinitionId: nodeId, // conditionType for instance
-                browsePath: undefined,
                 attributeId: AttributeIds.NodeId,
-                indexRange: undefined //  NumericRange
+                browsePath: undefined,
+                indexRange: undefined, //  NumericRange
+                typeDefinitionId: nodeId // conditionType for instance
             });
         });
         selectClauses = selectClauses.concat(extraSelectClauses);
     }
-
 
     const filter = new EventFilter({
 
@@ -127,7 +132,6 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
 
 }
 
-
 /**
  * @class SimpleAttributeOperand
  * @method toPath
@@ -138,8 +142,10 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
  *
  */
 function simpleAttributeOperandToPath(self: SimpleAttributeOperand): string {
-    if (!self.browsePath) return "";
-    return self.browsePath.map(function (a) {
+    if (!self.browsePath) {
+        return "";
+    }
+    return self.browsePath.map((a) => {
         return a.name;
     }).join("/");
 }
@@ -163,11 +169,11 @@ export function simpleAttributeOperandToShortString(self: SimpleAttributeOperand
     str += "[" + self.typeDefinitionId.toString() + "]" + simpleAttributeOperandToPath(self);
     return str;
 }
+
 function assert_valid_event_data(eventData: any) {
     assert(_.isFunction(eventData.resolveSelectClause));
     assert(_.isFunction(eventData.readValue));
 }
-
 
 /**
  *
@@ -191,7 +197,7 @@ function extractEventField(eventData: any, selectClause: any) {
             // not ConditionType
             console.warn("this case is not handled yet : selectClause.typeDefinitionId = " + selectClause.typeDefinitionId.toString());
             const eventSource = eventData.$eventDataSource;
-            return new Variant({dataType: DataType.NodeId, value: eventSource.nodeId});
+            return new Variant({ dataType: DataType.NodeId, value: eventSource.nodeId });
         }
         const conditionTypeNodeId = resolveNodeId("ConditionType");
         assert(sameNodeId(selectClause.typeDefinitionId, conditionTypeNodeId));
@@ -209,9 +215,8 @@ function extractEventField(eventData: any, selectClause: any) {
             return new Variant();
         }
         // Yeh : our EventType is a Condition Type !
-        return new Variant({dataType: DataType.NodeId, value: eventSource.nodeId});
+        return new Variant({ dataType: DataType.NodeId, value: eventSource.nodeId });
     }
-
 
     const handle = eventData.resolveSelectClause(selectClause);
 
@@ -222,7 +227,7 @@ function extractEventField(eventData: any, selectClause: any) {
 
     } else {
 
-         // Part 4 - 7.17.3
+        // Part 4 - 7.17.3
         // A null value is returned in the corresponding event field in the Publish response if the selected
         // field is not part of the Event or an error was returned in the selectClauseResults of the EventFilterResult.
         // return new Variant({dataType: DataType.StatusCode, value: browsePathResult.statusCode});
@@ -245,5 +250,3 @@ function extractEventFields(selectClauses: any, eventData: any) {
 }
 
 exports.extractEventFields = extractEventFields;
-
-

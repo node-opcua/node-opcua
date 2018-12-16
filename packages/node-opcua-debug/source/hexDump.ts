@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-debug
+ */
 // tslint:disable:no-var-requires
 const hexy = require("hexy");
 export function hexDump(buffer: Buffer | null, width: number = 32, maxSize: number = 1024) {

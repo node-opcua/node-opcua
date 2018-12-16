@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-transport
+ */
 export * from "./HelloMessage";
 export * from "./AcknowledgeMessage";
 export * from "./TCPErrorMessage";

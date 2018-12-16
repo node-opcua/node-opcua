@@ -10,7 +10,7 @@ import { DateTime, UInt8 } from "node-opcua-basic-types";
 import { ReferenceTypeIds, StatusCodes } from "node-opcua-constants";
 import { Certificate, Nonce } from "node-opcua-crypto";
 import {
-    AttributeNameById,
+    attributeNameById,
     BrowseDirection,
     LocalizedTextLike,
     makeResultMask
@@ -157,7 +157,7 @@ const keys = Object.keys(AttributeIds).filter(
 const attributeNames: string[] = ((): string[] => {
     const r = [];
     for (let i = 1; i <= 22; i++) {
-        r.push(AttributeNameById[i]);
+        r.push(attributeNameById[i]);
     }
     return r;
 })();

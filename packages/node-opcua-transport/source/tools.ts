@@ -1,9 +1,12 @@
+/**
+ * @module node-opcua-transport
+ */
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
-import { TCPErrorMessage } from "./TCPErrorMessage";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import { BaseUAObject } from "node-opcua-factory";
+import { TCPErrorMessage } from "./TCPErrorMessage";
 
 function is_valid_msg_type(msgType: string): boolean {
     assert(["HEL", "ACK", "ERR",   // Connection Layer
@@ -59,8 +62,11 @@ export function parseEndpointUrl(endpointUrl: string) {
     }
     return {
         protocol: matches[1],
+
         hostname: matches[2],
+
         port: parseInt(matches[3], 10),
+
         address: matches[4] || ""
     };
 }
@@ -70,7 +76,7 @@ export function is_valid_endpointUrl(endpointUrl: string): boolean {
     return e.hasOwnProperty("hostname");
 }
 
-export function writeTCPMessageHeader(msgType: string, chunkType: string , totalLength: number, stream: BinaryStream) {
+export function writeTCPMessageHeader(msgType: string, chunkType: string, totalLength: number, stream: BinaryStream) {
 
     if (stream instanceof Buffer) {
         stream = new BinaryStream(stream);
@@ -96,4 +102,3 @@ function encodeMessage(msgType: string, messageContent: BaseUAObject, stream: Bi
     messageContent.encode(stream);
     assert(totalLength === stream.length, "invalid message size");
 }
-

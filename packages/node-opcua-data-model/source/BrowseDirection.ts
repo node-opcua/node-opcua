@@ -1,6 +1,9 @@
+/**
+ * @module node-opcua-data-model
+ */
 import { BinaryStream } from "node-opcua-binary-stream";
-import { registerEnumeration } from "node-opcua-factory";
 import { Enum } from "node-opcua-enum";
+import { registerEnumeration } from "node-opcua-factory";
 
 export enum BrowseDirection {
     Forward=  0, // return forward references.
@@ -11,6 +14,7 @@ export enum BrowseDirection {
 
 export const schemaBrowseDirection = {
     name: "BrowseDirection",
+
     enumValues: BrowseDirection,
     // decode: (stream: BinaryStream) => {
     //
@@ -32,4 +36,3 @@ export function decodeBrowseDirection(stream: BinaryStream): BrowseDirection {
 }
 
 export const _enumerationBrowseDirection: Enum = registerEnumeration(schemaBrowseDirection);
-
