@@ -3,4 +3,5 @@
 */source/**/*.d.ts
 *.d.ts
 *.js.map
-
+package-lock.json
+*.lerna_backup

@@ -55,6 +55,7 @@ bin/.history*
 test_support/
 code_gen/1.02
 code_gen/1.03
+code_gen/1.04*
 code_gen/old
 out
 bin/crypto_create_CA_config.js
@@ -65,4 +66,5 @@ test_fixtures/
 *.heapsnapshot
 *.log
 *.stackdump
-
+build/
+doc1/
