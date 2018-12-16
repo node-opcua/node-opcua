@@ -1,3 +1,4 @@
+// tslint:disable:no-console
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import { MessageBuilder, messageHeaderToString, MessageSecurityMode, SecurityPolicy } from "../source/index";
 
@@ -12,9 +13,9 @@ export function verify_multi_chunk_message(packets: any[]) {
 
     messageBuilder.on("full_message_body", (fullMessageBody: Buffer) => {
         console.log("full_message_body received:");
-        analyseExtensionObject(fullMessageBody,0,0);
+        analyseExtensionObject(fullMessageBody, 0, 0);
     });
-    messageBuilder.on("start_chunk", (info, data) => {
+    messageBuilder.on("start_chunk", (info) => {
         console.log(" starting new chunk ", info.messageHeader);
     });
 

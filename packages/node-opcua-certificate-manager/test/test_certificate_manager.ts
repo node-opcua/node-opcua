@@ -39,7 +39,7 @@ describe("Testing OPCUA Client Certificate Manager", () => {
             rootFolder: temporaryFolder
         });
         certificate1 = await readCertificate(certificate1File);
-        console.log(certificate1.toString("base64"));
+        // console.log(certificate1.toString("base64"));
 
         console.log("certificateMgr.trusted", certificateMgr.pkiTrustedFolder);
     });

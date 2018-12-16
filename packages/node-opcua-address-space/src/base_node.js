@@ -30,6 +30,7 @@ const NodeClass = require("node-opcua-data-model").NodeClass;
 const makeNodeClassMask = require("node-opcua-data-model").makeNodeClassMask;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
 
 const ReferenceDescription = require("node-opcua-service-browse").ReferenceDescription;
 

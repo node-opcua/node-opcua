@@ -1,3 +1,8 @@
+// tslint:disable:no-bitwise
+// tslint:disable:no-console
+// tslint:disable:max-line-length
+// tslint:disable:no-empty-interface
+
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import * as  _ from "underscore";
@@ -34,7 +39,9 @@ function display_encoding_mask_withEnum(padding: string, encodingMask: any, enco
 function display_encoding_mask(padding: string, encodingMask: any, encodingInfo: any) {
 
     for (const v in encodingInfo) {
-
+        if (!encodingInfo.hasOwnProperty(v)) {
+            continue;
+        }
         const enumKey = encodingInfo[v];
         if (typeof enumKey === "number") {
             continue;
@@ -74,8 +81,8 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number) {
         console.log((pad() + str + spaces).substr(0, 132 + extra) + "|" + hexInfo);
     }
 
-    function display_encodeable(value: any, buffer: Buffer, start: number, end: number) {
-        const bufferExtract = buffer.slice(start, end);
+    function display_encodeable(value: any, buffer1: Buffer, start: number, end: number) {
+        const bufferExtract = buffer1.slice(start, end);
         const stream = new BinaryStream(bufferExtract);
         const nodeId = decodeNodeId(stream);
         const encodingMask = decodeByte(stream); // 1 bin 2: xml
@@ -175,7 +182,8 @@ export function analyzePacket(buffer: Buffer, objMessage: any, padding: number, 
 export function analyseExtensionObject(buffer: Buffer, padding: number, offset: number, customOptions?: AnalyzePacketOptions) {
 
     const stream = new BinaryStream(buffer);
-    let id, objMessage;
+    let id;
+    let objMessage;
     try {
 
         id = decodeExpandedNodeId(stream);
@@ -223,4 +231,3 @@ export function analyze_object_binary_encoding(obj: BaseUAObject) {
     analyzePacket(stream.buffer, reloadedObject, 0);
 
 }
-

@@ -9,7 +9,6 @@ const doDebug = false;
  * @constructor
  */
 
-
 export interface MessageHeader {
     msgType: string;
     isFinal: string;
@@ -50,26 +49,7 @@ export class PacketAssembler extends EventEmitter {
         assert(_.isFunction(this.readMessageFunc), "packet assembler requires a readMessageFunc");
     }
 
-    private _readPacketInfo(data: Buffer) {
-        return this.readMessageFunc(data);
-    }
-
-    private _buildData(data: Buffer) {
-        if (data && this._stack.length === 0) {
-            return data;
-        }
-        if (!data && this._stack.length === 1) {
-            data = this._stack[0];
-            this._stack.length = 0; // empty stack array
-            return data;
-        }
-        this._stack.push(data);
-        data = Buffer.concat(this._stack);
-        this._stack.length = 0;
-        return data;
-    }
-
-    feed(data: Buffer) {
+    public feed(data: Buffer) {
         let messageChunk;
 
         if (this.expectedLength === 0 && this.currentLength + data.length >= this.minimumSizeInBytes) {
@@ -129,4 +109,24 @@ export class PacketAssembler extends EventEmitter {
             }
         }
     }
+
+    private _readPacketInfo(data: Buffer) {
+        return this.readMessageFunc(data);
+    }
+
+    private _buildData(data: Buffer) {
+        if (data && this._stack.length === 0) {
+            return data;
+        }
+        if (!data && this._stack.length === 1) {
+            data = this._stack[0];
+            this._stack.length = 0; // empty stack array
+            return data;
+        }
+        this._stack.push(data);
+        data = Buffer.concat(this._stack);
+        this._stack.length = 0;
+        return data;
+    }
+
 }

@@ -1,4 +1,4 @@
-import { MessageSecurityMode, _enumerationMessageSecurityMode } from "node-opcua-types";
+import { _enumerationMessageSecurityMode, MessageSecurityMode } from "node-opcua-types";
 
 export function coerceMessageSecurityMode(value?: number | string): MessageSecurityMode {
     if (value === undefined) {
@@ -6,7 +6,9 @@ export function coerceMessageSecurityMode(value?: number | string): MessageSecur
     }
     if (typeof value === "string") {
         const e =  _enumerationMessageSecurityMode.get(value);
-        if (!e) return MessageSecurityMode.Invalid;
+        if (!e)  {
+            return MessageSecurityMode.Invalid;
+        }
         return e.value as MessageSecurityMode;
     }
     return value as MessageSecurityMode;

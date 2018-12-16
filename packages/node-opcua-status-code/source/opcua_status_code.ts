@@ -1,13 +1,17 @@
-"use strict";
+// tslint:disable:no-bitwise
 /**
  * @module opcua.status-code
  */
 import * as  _ from "underscore";
+
 import assert from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { StatusCodes } from "node-opcua-constants";
 
-export const StatusCodes = require("node-opcua-constants").StatusCodes;
-
+function warnLog(...args: [any?, ...any[]]) {
+    // tslint:disable-next-line:no-console
+    console.warn.apply(console, args);
+}
 export const extraStatusCodeBits: any = {
 
 // StatusCode Special bits
@@ -58,14 +62,15 @@ export const extraStatusCodeBits: any = {
 //                         High      10     The value is at the higher limit for the data source.
 //                         Constant  11     The value is constant and cannot change.
     LimitLow: (0x1 << 8),
+
     LimitHigh: (0x2 << 8),
+
     LimitConstant: (0x3 << 8),
 
 // Overflow         7:7    This bit shall only be set if the MonitoredItem queue size is greater than 1.
 //                         If this bit is set, not every detected change has been returned since the Server’s
 //                         queue buffer for the MonitoredItem reached its limit and had to purge out data.
     Overflow: (0x1 << 7), // 1 << 7
-
 
 // Reserved         5:6    Reserved for future use. Shall always be zero.
 
@@ -82,30 +87,32 @@ export const extraStatusCodeBits: any = {
 //                                                   minimum values at different timestamps within the same interval).
 //                         Part 11 describes how these bits are used in more detail.
     HistorianCalculated: 0x1 << 0,
+
     HistorianInterpolated: 0x2 << 0,
 
     HistorianPartial: 0x1 << 2,
+
     HistorianExtraData: 0x1 << 3,
-    HistorianMultiValue: 0x1 << 4,
+
+    HistorianMultiValue: 0x1 << 4
 
 };
 
-
 // Release 1.03 144 OPC Unified Architecture, Part 4
-
 
 StatusCodes.Bad = {
     name: "Bad",
     value: 0x80000000,
+
     description: "The value is bad but no specific reason is known."
 };
 
 StatusCodes.Uncertain = {
     name: "Uncertain",
     value: 0x40000000,
+
     description: "The value is uncertain but no specific reason is known."
 };
-
 
 /**
  * a particular StatusCode , with it's value , name and description
@@ -121,44 +128,10 @@ StatusCodes.Uncertain = {
 
 export abstract class StatusCode {
 
-    abstract get value(): number;
-    abstract get name(): string;
-    abstract get description(): string;
-
-    get valueOf(): number {
-        return this.value;
-    }
-
-    toString(): string {
-        return this.name + " (0x" + ("0000" + this.value.toString(16)).substr(-8) + ")";
-    }
-
-    checkBit(mask: number): boolean {
-        return (this.value & mask) === mask;
-    }
-
-    get hasOverflowBit(): boolean {
-        return this.checkBit(extraStatusCodeBits.Overflow);
-    }
-    get hasSemanticChangedBit(): boolean {
-        return this.checkBit(extraStatusCodeBits.SemanticChanged);
-    }
-    get hasStructureChangedBit(): boolean {
-        return this.checkBit(extraStatusCodeBits.StructureChanged);
-    }
-
-    isNot(other: StatusCode): boolean {
-        assert(other instanceof StatusCode);
-        return this.value !== other.value;
-    }
-
-    equals(other: StatusCode): boolean {
-        assert(other instanceof StatusCode);
-        return this.value === other.value;
-    }
-
-    // return a status code that can be modified
-    static makeStatusCode(statusCode: StatusCode, optionalBits: string): StatusCode {
+    /**
+     *  return a status code that can be modified
+     */
+    public static makeStatusCode(statusCode: StatusCode, optionalBits: string): StatusCode {
         const tmp = new ModifiableStatusCode({
             _base: statusCode
         });
@@ -168,58 +141,96 @@ export abstract class StatusCode {
         return tmp;
     }
 
-    toJSON(): any {
-        return { value: this.value, name: this.name, description: this.description  };
+    public abstract get value(): number;
+
+    public abstract get name(): string;
+
+    public abstract get description(): string;
+
+    public get valueOf(): number {
+        return this.value;
+    }
+
+    public toString(): string {
+        return this.name + " (0x" + ("0000" + this.value.toString(16)).substr(-8) + ")";
+    }
+
+    public checkBit(mask: number): boolean {
+        return (this.value & mask) === mask;
+    }
+
+    public get hasOverflowBit(): boolean {
+        return this.checkBit(extraStatusCodeBits.Overflow);
+    }
+
+    public get hasSemanticChangedBit(): boolean {
+        return this.checkBit(extraStatusCodeBits.SemanticChanged);
+    }
+
+    public get hasStructureChangedBit(): boolean {
+        return this.checkBit(extraStatusCodeBits.StructureChanged);
+    }
+
+    public isNot(other: StatusCode): boolean {
+        assert(other instanceof StatusCode);
+        return this.value !== other.value;
+    }
+
+    public equals(other: StatusCode): boolean {
+        assert(other instanceof StatusCode);
+        return this.value === other.value;
+    }
+
+    public toJSON(): any {
+        return { value: this.value, name: this.name, description: this.description };
     }
 }
-Object.defineProperty(StatusCode.prototype, "value",{enumerable: true });
-Object.defineProperty(StatusCode.prototype, "description",{enumerable: true });
-Object.defineProperty(StatusCode.prototype, "name",{enumerable: true });
 
+Object.defineProperty(StatusCode.prototype, "value", { enumerable: true });
+Object.defineProperty(StatusCode.prototype, "description", { enumerable: true });
+Object.defineProperty(StatusCode.prototype, "name", { enumerable: true });
 
+// tslint:disable:max-classes-per-file
 export class ConstantStatusCode extends StatusCode {
 
-    private _value: number;
-    private _description: string;
-    private _name: string;
+    private readonly _value: number;
+    private readonly _description: string;
+    private readonly _name: string;
 
-    constructor(options: {value: number, description: string, name: string}) {
+    constructor(options: { value: number, description: string, name: string }) {
         super();
         this._value = options.value;
         this._description = options.description;
         this._name = options.name;
     }
 
-    get value(): number {
+    public get value(): number {
         return this._value;
     }
 
-    get name(): string {
+    public get name(): string {
         return this._name;
     }
 
-    get description(): string {
+    public get description(): string {
         return this._description;
     }
 
-    toJSON(): any {
-        return {value: this.value };
+    public toJSON(): any {
+        return { value: this.value };
     }
 }
+
 Object.defineProperty(ConstantStatusCode.prototype, "_value", { enumerable: false, writable: true });
 Object.defineProperty(ConstantStatusCode.prototype, "_description", { enumerable: false, writable: true });
 Object.defineProperty(ConstantStatusCode.prototype, "_name", { enumerable: false, writable: true });
 Object.defineProperty(ConstantStatusCode.prototype, "value", { enumerable: true });
-Object.defineProperty(ConstantStatusCode.prototype, "description", { enumerable: true});
+Object.defineProperty(ConstantStatusCode.prototype, "description", { enumerable: true });
 Object.defineProperty(ConstantStatusCode.prototype, "name", { enumerable: true });
 
-
-
-
-export function encodeStatusCode(statusCode: StatusCode|ConstantStatusCode, stream: BinaryStream) {
+export function encodeStatusCode(statusCode: StatusCode | ConstantStatusCode, stream: BinaryStream) {
     stream.writeUInt32(statusCode.value);
 }
-
 
 function b(c: number) {
     const tmp = "0000000000000000000000" + (c >>> 0).toString(2);
@@ -228,7 +239,7 @@ function b(c: number) {
 
 /* construct status codes fast search indexes */
 const statusCodesReversedMap: any = {};
-_.forEach(StatusCodes, (code: {value: number, description: string, name: string}) => {
+_.forEach(StatusCodes, (code: { value: number, description: string, name: string }) => {
     code = new ConstantStatusCode(code);
     statusCodesReversedMap[code.value.toString()] = code;
     StatusCodes[code.name] = code;
@@ -242,10 +253,10 @@ export function getStatusCodeFromCode(code: number) {
     let sc = statusCodesReversedMap[codeWithoutInfoBits];
     if (!sc) {
         sc = StatusCodes.Bad;
-        console.warn("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16));
+        warnLog("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16));
     }
     if (infoBits) {
-        const tmp = new ModifiableStatusCode({_base: sc});
+        const tmp = new ModifiableStatusCode({ _base: sc });
         tmp.set(infoBits);
         sc = tmp;
     }
@@ -258,13 +269,10 @@ export function decodeStatusCode(stream: BinaryStream) {
 
 }
 
-
-
-
 export class ModifiableStatusCode extends StatusCode {
 
-    private _base: StatusCode;
-    private _extraBits: number;
+    private readonly _base: StatusCode;
+    private  _extraBits: number;
 
     constructor(options: { _base: StatusCode }) {
         super();
@@ -276,34 +284,19 @@ export class ModifiableStatusCode extends StatusCode {
         }
     }
 
-    _getExtraName() {
-
-        const self = this;
-        const str: string[] = [];
-        _.forEach(extraStatusCodeBits, (value: number, key: string) => {
-            if ((self._extraBits & value) === value) {
-                str.push(key);
-            }
-        });
-        if (str.length === 0) {
-            return "";
-        }
-        return "#" + str.join("|");
-    }
-
-    get value() {
+    public get value() {
         return this._base.value + this._extraBits;
     }
 
-    get name() {
+    public get name() {
         return this._base.name + this._getExtraName();
     }
 
-    get description() {
+    public get description() {
         return this._base.description;
     }
 
-    set(bit: string | number) {
+    public set(bit: string | number) {
 
         if (typeof bit === "string") {
             const bitsArray = bit.split(" | ");
@@ -322,17 +315,14 @@ export class ModifiableStatusCode extends StatusCode {
         this._extraBits = this._extraBits | (bit as number);
     }
 
-    unset(bit: string) {
+    public unset(bit: string) {
 
         if (typeof bit === "string") {
 
             const bitsArray = bit.split(" | ");
             if (bitsArray.length > 1) {
                 for (const bitArray of bitsArray) {
-
-                    console.log(" Unset", this._extraBits.toString(16));
                     this.unset(bitArray);
-                    console.log(" Unset", this._extraBits.toString(16));
                 }
                 return;
             }
@@ -346,14 +336,24 @@ export class ModifiableStatusCode extends StatusCode {
 
     }
 
+    private _getExtraName() {
+
+        const self = this;
+        const str: string[] = [];
+        _.forEach(extraStatusCodeBits, (value: number, key: string) => {
+            if ((self._extraBits & value) === value) {
+                str.push(key);
+            }
+        });
+        if (str.length === 0) {
+            return "";
+        }
+        return "#" + str.join("|");
+    }
 }
-Object.defineProperty(ModifiableStatusCode.prototype, "_base", { enumerable: false, writable: true});
-Object.defineProperty(ModifiableStatusCode.prototype, "_extraBits", { enumerable: false, writable: true});
 
-
-
-
-
+Object.defineProperty(ModifiableStatusCode.prototype, "_base", { enumerable: false, writable: true });
+Object.defineProperty(ModifiableStatusCode.prototype, "_extraBits", { enumerable: false, writable: true });
 
 StatusCodes.GoodWithOverflowBit = StatusCodes.makeStatusCode(StatusCodes.Good, "Overflow | InfoTypeDataValue");
 
@@ -373,4 +373,4 @@ export function coerceStatusCode(statusCode: any) {
     return StatusCodes[statusCode.name];
 }
 
-
+export { StatusCodes } from "node-opcua-constants";

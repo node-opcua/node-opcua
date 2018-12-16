@@ -245,7 +245,7 @@ export class TCP_transport extends EventEmitter {
             // set socket timeout
             debugLog("setting _socket.setTimeout to ", this.timeout);
             this._socket.setTimeout(this.timeout, () => {
-                console.log(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
+                debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
                 if (this._socket) {
                     this._socket.destroy();
                     // 08/2008 shall we do this ?
@@ -384,7 +384,7 @@ export class TCP_transport extends EventEmitter {
 
         debugLog(chalk.red("Transport Connection ended") + " " + this.name);
         assert(!this._disconnecting);
-        err = err || new Error("_socket has been disconnected by third party");
+        err = err ||    new Error("_socket has been disconnected by third party");
 
         this.on_socket_ended(err);
 
