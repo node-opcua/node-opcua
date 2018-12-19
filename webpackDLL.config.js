@@ -13,7 +13,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const config  = {
     target: "node",
     //xx context: __dirname,
-    entry: ["./packages/node-opcua/index.js"],
+    entry: ["./packages/node-opcua/dist/index.js"],
     devtool: "source-map",
     output: {
         path: path.resolve(path.join(__dirname, "dist")),
@@ -73,7 +73,7 @@ const config  = {
 const configMax = {
     target: "node",
     //xx context: __dirname,
-    entry: ["./packages/node-opcua/index.js"],
+    entry: ["./packages/node-opcua/dist/index.js"],
     devtool: "source-map",
     output: {
         path: path.resolve(path.join(__dirname, "dist")),

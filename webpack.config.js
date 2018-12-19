@@ -12,7 +12,7 @@ const simple_client = {
     target: "node",
     context: __dirname,
     entry: {
-        simple_server: "./bin/simple_server.js"
+        simple_server: "./packages/node-opcua-samples/bin/simple_server.js"
     },
     devtool: "source-map",
     output: {
@@ -35,6 +35,15 @@ const simple_client = {
     }),"node-opcua"],
 
 
+    module: {
+        rules: [
+            {
+                test: /.*\.js/,
+                loader: 'shebang-loader'
+            }
+
+        ]
+    },
     // "spawn-sync", "camelcase", "string-width", "read-pkg-up", "os-locale", "memcpy", "yargs", "ursa", "usage", "require-main-filename"],
     // module: {
     //     rules: [
