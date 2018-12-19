@@ -1,21 +1,33 @@
+/**
+ * @module node-opcua-service-secure-channel
+ */
 // OPC UA Secure Conversation Message Header : Part 6 page 36
 // Asymmetric algorithms are used to secure the OpenSecureChannel messages.
 import {
-    BaseUAObject,
-    check_options_correctness_against_schema, initialize_field,
-    parameters, buildStructuredType, StructuredTypeSchema
-} from "node-opcua-factory";
+    ByteString,
+    decodeByteString,
+    decodeString,
+    encodeByteString,
+    encodeString,
+    UAString
+} from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { UAString, ByteString,  decodeString, encodeByteString, encodeString, decodeByteString } from "node-opcua-basic-types";
+import {
+    BaseUAObject,
+    buildStructuredType, check_options_correctness_against_schema,
+    initialize_field, parameters, StructuredTypeSchema
+} from "node-opcua-factory";
 
 const schemaAsymmetricAlgorithmSecurityHeader: StructuredTypeSchema = buildStructuredType({
     name: "AsymmetricAlgorithmSecurityHeader",
+
     baseType: "BaseUAObject",
+
     fields: [
         // length shall not exceed 256
         // The URI of the security policy used to secure the message.
         // This field is encoded as a UTF8 string without a null terminator
-        {name: "securityPolicyUri", fieldType: "String"},
+        { name: "securityPolicyUri", fieldType: "String" },
 
         // The X509v3 certificate assigned to the sending application instance.
         // This is a DER encoded blob.
@@ -33,20 +45,27 @@ const schemaAsymmetricAlgorithmSecurityHeader: StructuredTypeSchema = buildStruc
         // Receivers can extract the Certificates from the byte array by using the Certificate size contained
         // in DER header (see X509).
         // Receivers that do not handle Certificate chains shall ignore the extra bytes.
-        {name: "senderCertificate", fieldType: "ByteString", defaultValue: null},
+        { name: "senderCertificate", fieldType: "ByteString", defaultValue: null },
 
         // The thumbprint of the X509v3 certificate assigned to the receiving application
         // The thumbprint is the SHA1 digest of the DER encoded form of the certificate.
         // This indicates what public key was used to encrypt the MessageChunk
         // This field shall be null if the message is not encrypted.
-        {name: "receiverCertificateThumbprint", fieldType: "ByteString", defaultValue: null}
+        { name: "receiverCertificateThumbprint", fieldType: "ByteString", defaultValue: null }
     ]
 });
 
 export class AsymmetricAlgorithmSecurityHeader extends BaseUAObject {
-    securityPolicyUri: UAString;
-    senderCertificate: ByteString;
-    receiverCertificateThumbprint: ByteString;
+
+    public static possibleFields: string[] = [
+      "securityPolicyUri",
+        "senderCertificate",
+        "receiverCertificateThumbprint"
+    ];
+    public static schema = schemaAsymmetricAlgorithmSecurityHeader;
+    public securityPolicyUri: UAString;
+    public senderCertificate: ByteString;
+    public receiverCertificateThumbprint: ByteString;
 
     constructor(options?: any) {
         options = options || {};
@@ -61,22 +80,19 @@ export class AsymmetricAlgorithmSecurityHeader extends BaseUAObject {
         this.receiverCertificateThumbprint = initialize_field(schema.fields[2], options.receiverCertificateThumbprint);
     }
 
-    encode(stream: BinaryStream): void {
+    public encode(stream: BinaryStream): void {
         super.encode(stream);
         encodeString(this.securityPolicyUri, stream);
         encodeByteString(this.senderCertificate, stream);
         encodeByteString(this.receiverCertificateThumbprint, stream);
     }
 
-    decode(stream: BinaryStream): void {
+    public decode(stream: BinaryStream): void {
         super.decode(stream);
         this.securityPolicyUri = decodeString(stream);
         this.senderCertificate = decodeByteString(stream);
         this.receiverCertificateThumbprint = decodeByteString(stream);
     }
-
-    static possibleFields: string[] = ["securityPolicyUri", "senderCertificate", "receiverCertificateThumbprint"];
-    static schema = schemaAsymmetricAlgorithmSecurityHeader;
 }
 
 AsymmetricAlgorithmSecurityHeader.prototype.schema = AsymmetricAlgorithmSecurityHeader.schema;

@@ -11,6 +11,6 @@
     "node-opcua": "^2.0.0-alpha.8",
     "node-opcua-client": "^2.0.0-alpha.8"
   },
-  "author": "etienne",
-  "license": "ISC"
+  "author": "Etienne Rossignon",
+  "license": "MIT"
 }

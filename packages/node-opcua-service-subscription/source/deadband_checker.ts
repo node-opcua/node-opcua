@@ -1,7 +1,10 @@
+/**
+ * @module node-opcua-service-subscription
+ */
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
-import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 export enum DeadbandType {
     None = 0x00,
@@ -12,7 +15,12 @@ export enum DeadbandType {
 
 export type NumberType = number | number[];
 
-function _differenceScalar(value1: NumberType, value2: NumberType, dataType: DataType, absoluteDeadband: number): boolean {
+function _differenceScalar(
+  value1: NumberType,
+  value2: NumberType,
+  dataType: DataType,
+  absoluteDeadband: number
+): boolean {
 
     let diff;
     if (dataType === DataType.UInt64 || dataType === DataType.Int64) {
@@ -79,7 +87,13 @@ function difference(v1: Variant, v2: Variant, absoluteDeadBand: number): boolean
  * @param valueRange    {Float}
  * @return {boolean}
  */
-export function checkDeadBand(variant1: Variant, variant2: Variant, deadbandType: DeadbandType, deadbandValue: number, valueRange?: number): boolean {
+export function checkDeadBand(
+  variant1: Variant,
+  variant2: Variant,
+  deadbandType: DeadbandType,
+  deadbandValue: number,
+  valueRange?: number
+): boolean {
 
     switch (deadbandType) {
 
@@ -114,8 +128,9 @@ export function checkDeadBand(variant1: Variant, variant2: Variant, deadbandType
             // deadband checking is necessary and the entire array shall be returned.
             // assert(false, "Not implemented yet");
             assert(_.isNumber(valueRange));
-            if (valueRange === undefined) throw new Error("Internal Error");
+            if (valueRange === undefined) {
+                throw new Error("Internal Error");
+            }
             return checkDeadBand(variant1, variant2, DeadbandType.Absolute, valueRange * deadbandValue / 100);
     }
 }
-

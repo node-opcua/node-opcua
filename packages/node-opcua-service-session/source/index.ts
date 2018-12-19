@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-session
+ */
 export {
     CreateSessionRequest, CreateSessionResponse,
     ActivateSessionRequest, ActivateSessionResponse,

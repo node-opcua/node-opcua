@@ -753,7 +753,7 @@ export function coerceVariantType(dataType: DataType, value: any): any {
                 value = parseInt(value, 10);
             }
             if (!_.isFinite(value)) {
-                //xx console.log("xxx ", value, ttt);
+                // xx console.log("xxx ", value, ttt);
             }
             assert(_.isFinite(value), "expecting a number");
             break;

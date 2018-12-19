@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-variant
  */
-import { registerEnumeration } from "node-opcua-factory";
 import { Enum } from "node-opcua-enum";
+import { registerEnumeration } from "node-opcua-factory";
 
 export enum DataType {
     Null=              0,

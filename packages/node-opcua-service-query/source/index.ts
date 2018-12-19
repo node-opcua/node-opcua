@@ -1,6 +1,15 @@
+/**
+ * @module node-opcua-service-query
+ */
 export {
-    QueryFirstRequest, QueryFirstRequestOptions,
+    NodeTypeDescription,
+    ParsingResult,
+    QueryDataDescription,
+    QueryDataSet,
+    QueryFirstRequest,
+    QueryFirstRequestOptions,
     QueryFirstResponse,
-    QueryNextRequest, QueryNextRequestOptions,
-    QueryNextResponse
+    QueryNextRequest,
+    QueryNextRequestOptions,
+    QueryNextResponse,
 } from "node-opcua-types";

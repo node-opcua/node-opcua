@@ -1,12 +1,11 @@
 /**
- * @module opcua.miscellaneous
+ * @module node-opcua-service-translate-browse-path
  * @class ToolBrowsePath
- *
  * @static
  */
-import { BrowsePath } from "./imports";
-import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { ReferenceTypeIds } from "node-opcua-constants";
+import { makeNodeId, NodeId } from "node-opcua-nodeid";
+import { BrowsePath } from "./imports";
 
 const hierarchicalReferencesId = makeNodeId(ReferenceTypeIds.HierarchicalReferences);
 export { stringToQualifiedName } from "node-opcua-data-model";
@@ -17,22 +16,28 @@ export { stringToQualifiedName } from "node-opcua-data-model";
  * @param targetNames
  * @return {BrowsePath}
  */
-export function constructBrowsePathFromQualifiedName(startingNode: { nodeId: NodeId }, targetNames: null | string[]): BrowsePath {
+export function constructBrowsePathFromQualifiedName(
+  startingNode: { nodeId: NodeId },
+  targetNames: null | string[]
+): BrowsePath {
 
     targetNames = targetNames || [];
 
     const elements = targetNames.map((targetName) => {
         return {
-            referenceTypeId: hierarchicalReferencesId,
             isInverse: false,
+
             includeSubtypes: true,
+
+            referenceTypeId: hierarchicalReferencesId,
             targetName
         };
     });
 
     const browsePath = new BrowsePath({
         startingNode: startingNode.nodeId, // ROOT
-        relativePath: {elements}
+
+        relativePath: { elements }
     });
     return browsePath;
 }

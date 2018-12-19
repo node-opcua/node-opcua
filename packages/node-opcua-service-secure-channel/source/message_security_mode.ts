@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-secure-channel
+ */
 import { _enumerationMessageSecurityMode, MessageSecurityMode } from "node-opcua-types";
 
 export function coerceMessageSecurityMode(value?: number | string): MessageSecurityMode {

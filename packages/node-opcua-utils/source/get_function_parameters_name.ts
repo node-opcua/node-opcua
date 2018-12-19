@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-utils
+ */
 const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
 const ARGUMENT_NAMES = /([^\s,]+)/g;
 

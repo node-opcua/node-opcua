@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-write
+ */
 export {
     WriteValue,
     WriteValueOptions,

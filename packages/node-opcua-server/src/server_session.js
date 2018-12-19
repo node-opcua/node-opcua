@@ -166,7 +166,7 @@ Object.defineProperty(ServerSession.prototype, "clientConnectionTime", {
 Object.defineProperty(ServerSession.prototype, "clientLastContactTime", {
     get: function () {
         const self = this;
-        return self._watchDogData.last_seen;
+        return self._watchDogData.lastSeen;
     }
 });
 

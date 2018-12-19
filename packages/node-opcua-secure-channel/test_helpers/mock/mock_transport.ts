@@ -1,35 +1,36 @@
-import * as _ from "underscore";
-import { assert } from "node-opcua-assert";
-import { hexDump, make_debugLog, display_trace_from_this_projet_only } from "node-opcua-debug";
-import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
-import { analyseExtensionObject } from "node-opcua-packet-analyzer";
+// tslint:disable:no-console
 import chalk from "chalk";
-import { CloseSecureChannelResponse, OpenSecureChannelResponse } from "node-opcua-service-secure-channel";
-import { CreateSessionResponse, ActivateSessionResponse } from "node-opcua-service-session";
-import { AcknowledgeMessage } from "node-opcua-transport";
-import { GetEndpointsResponse } from "node-opcua-service-endpoints";
 import { EventEmitter } from "events";
+import { assert } from "node-opcua-assert";
+import { display_trace_from_this_projet_only, hexDump, make_debugLog } from "node-opcua-debug";
+import { analyseExtensionObject } from "node-opcua-packet-analyzer";
+import { GetEndpointsResponse } from "node-opcua-service-endpoints";
+import { CloseSecureChannelResponse, OpenSecureChannelResponse } from "node-opcua-service-secure-channel";
+import { ActivateSessionResponse, CreateSessionResponse } from "node-opcua-service-session";
+import { AcknowledgeMessage } from "node-opcua-transport";
+import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
+import * as _ from "underscore";
 
 const debugLog = make_debugLog(__filename);
 
 export const fakeAcknowledgeMessage = new AcknowledgeMessage({
+    maxChunkCount: 600000,
+    maxMessageSize: 100000,
     protocolVersion: 0,
     receiveBufferSize: 8192,
     sendBufferSize: 8192,
-    maxMessageSize: 100000,
-    maxChunkCount: 600000
 });
 
 export const fakeCloseSecureChannelResponse = new CloseSecureChannelResponse({});
 
-
 export const fakeOpenSecureChannelResponse = new OpenSecureChannelResponse({
     serverProtocolVersion: 0,
+
     securityToken: {
         channelId: 23,
-        tokenId: 1,
         createdAt: new Date(), // now
-        revisedLifetime: 30000
+        revisedLifetime: 30000,
+        tokenId: 1,
     },
     serverNonce: Buffer.from("qwerty")
 });
@@ -44,7 +45,6 @@ export const fakeGetEndpointsResponse = new GetEndpointsResponse({
 
 export const fakeCreateSessionResponse = new CreateSessionResponse({});
 export const fakeActivateSessionResponse = new ActivateSessionResponse({});
-
 
 export class MockServerTransport extends EventEmitter {
 
@@ -95,7 +95,8 @@ export class MockServerTransport extends EventEmitter {
                 });
 
             } else {
-                const msg = " MockServerTransport has no more packets to send to client to emulate server responses.... ";
+                const msg = " MockServerTransport has no more packets to send to client to" +
+                  " emulate server responses.... ";
                 console.log(chalk.red.bold(msg));
                 console.log(chalk.blue.bold(hexDump(data)));
 
@@ -108,4 +109,3 @@ export class MockServerTransport extends EventEmitter {
     }
 
 }
-

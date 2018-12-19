@@ -1,16 +1,21 @@
+/**
+ * @module node-opcua-service-secure-channel
+ */
 // Symmetric algorithms are used to secure all messages other than the OpenSecureChannel messages
 // OPC UA Secure Conversation Message Header Release 1.02 Part 6 page 39
+import { decodeUInt32, encodeUInt32, UInt32 } from "node-opcua-basic-types";
+import { BinaryStream } from "node-opcua-binary-stream";
 import {
-    buildStructuredType,
     BaseUAObject,
+    buildStructuredType,
     initialize_field, StructuredTypeSchema
 } from "node-opcua-factory";
-import { BinaryStream } from "node-opcua-binary-stream";
-import { encodeUInt32, UInt32, decodeUInt32 } from "node-opcua-basic-types";
 
 const schemaSymmetricAlgorithmSecurityHeader: StructuredTypeSchema = buildStructuredType({
     name: "SymmetricAlgorithmSecurityHeader",
+
     baseType: "BaseUAObject",
+
     fields: [
         // A unique identifier for the ClientSecureChannelLayer token used to secure the message
         // This identifier is returned by the server in an OpenSecureChannel response message. If a
@@ -21,7 +26,11 @@ const schemaSymmetricAlgorithmSecurityHeader: StructuredTypeSchema = buildStruct
 });
 
 export class SymmetricAlgorithmSecurityHeader extends BaseUAObject {
-    tokenId: UInt32;
+
+    public static possibleFields: string[] = ["tokenId"];
+
+    public static schema = schemaSymmetricAlgorithmSecurityHeader;
+    public tokenId: UInt32;
 
     constructor(options?: any) {
         options = options || {};
@@ -32,22 +41,17 @@ export class SymmetricAlgorithmSecurityHeader extends BaseUAObject {
         this.tokenId = initialize_field(schema.fields[0], options.tokenId);
     }
 
-    encode(stream: BinaryStream): void {
+    public encode(stream: BinaryStream): void {
         // call base class implementation first
         super.encode(stream);
         encodeUInt32(this.tokenId, stream);
     }
 
-    decode(stream: BinaryStream): void {
+    public decode(stream: BinaryStream): void {
         // call base class implementation first
         super.decode(stream);
         this.tokenId = decodeUInt32(stream);
     }
-
-    static possibleFields: string[] = ["tokenId"];
-
-    static schema = schemaSymmetricAlgorithmSecurityHeader;
 }
 
 SymmetricAlgorithmSecurityHeader.prototype.schema = SymmetricAlgorithmSecurityHeader.schema;
-

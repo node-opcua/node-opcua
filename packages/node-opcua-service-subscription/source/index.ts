@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-subscription
+ */
 export {
     NotificationData,
     MonitoringMode,
@@ -32,13 +35,11 @@ export {
 } from "node-opcua-types";
 
 export * from "./deadband_checker";
-import { PublishResponse, MonitoringParameters } from "node-opcua-types";
 import { assert } from "node-opcua-assert";
+import { MonitoringParameters, PublishResponse } from "node-opcua-types";
 
 assert(PublishResponse.schema.fields[1].name === "subscriptionId");
 PublishResponse.schema.fields[1].defaultValue = 0xFFFFFFFF;
 
 assert(MonitoringParameters.schema.fields[0].name === "clientHandle");
 MonitoringParameters.schema.fields[0].defaultValue = 0xFFFFFFFF;
-
-

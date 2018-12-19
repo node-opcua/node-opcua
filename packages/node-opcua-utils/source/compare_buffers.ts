@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-utils
+ */
 import { buffer_ellipsis } from "./buffer_ellipsis";
 import chalk from "chalk";
 

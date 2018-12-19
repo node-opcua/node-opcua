@@ -56,7 +56,10 @@ const nodeopcuaModules = [
     "service-filter",
     "service-history",
     "service-node-management",
-
+    "service-read",
+    "service-write",
+    "service-subscription",
+    "variant",
     "types"
 
 ];

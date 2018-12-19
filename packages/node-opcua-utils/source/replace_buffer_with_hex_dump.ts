@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-utils
+ */
 export function replaceBufferWithHexDump(obj: any): any {
     for (const p in obj) {
         if (obj.hasOwnProperty(p)) {

@@ -1,9 +1,25 @@
+/**
+ * @module node-opcua-service-secure-channel
+ */
 import { assert } from "node-opcua-assert";
 import { AsymmetricAlgorithmSecurityHeader } from "./AsymmetricAlgorithmSecurityHeader";
 import { SymmetricAlgorithmSecurityHeader } from "./SymmetricAlgorithmSecurityHeader";
 
-import { ChannelSecurityToken, RequestHeader, ResponseHeader, SignatureData } from "node-opcua-types";
-
+import {
+    _enumerationMessageSecurityMode,
+    ChannelSecurityToken,
+    CloseSecureChannelRequest,
+    CloseSecureChannelResponse,
+    MessageSecurityMode,
+    OpenSecureChannelRequest,
+    OpenSecureChannelResponse,
+    RequestHeader,
+    ResponseHeader,
+    SecurityTokenRequestType,
+    ServiceFault,
+    SignatureData,
+    UserTokenPolicy
+} from "node-opcua-types";
 
 export {
     ChannelSecurityToken,
@@ -26,13 +42,10 @@ export { AsymmetricAlgorithmSecurityHeader } from "./AsymmetricAlgorithmSecurity
 export { SymmetricAlgorithmSecurityHeader } from "./SymmetricAlgorithmSecurityHeader";
 export * from "./message_security_mode";
 
-
-
 // createdAt
 ChannelSecurityToken.schema.fields[2].defaultValue =  () => new Date();
 // revisedLifetime
 ChannelSecurityToken.schema.fields[3].defaultValue =  () => 30000;
-
 
 export function hasTokenExpired(token: ChannelSecurityToken): boolean {
 
@@ -42,14 +55,13 @@ export function hasTokenExpired(token: ChannelSecurityToken): boolean {
 
 Object.defineProperty(ChannelSecurityToken.prototype, "expired", {
     get() { return hasTokenExpired(this as ChannelSecurityToken); },
+    configurable: true,
     enumerable: true,
-    configurable: true
 });
 
 // ErrorMessage
 // "Error",  "UInt32","The numeric code for the error. This shall be one of the values listed in Table 40."
 // "Reason","String", "A more verbose description of the error.This string shall not be more than 4096 characters."
-
 
 // OPC Unified Architecture, Part 4  $7.27 page 139
 // RequestHeader",
@@ -71,7 +83,6 @@ RequestHeader.schema.fields[2].defaultValue = 0xDEADBEEF;
 assert(RequestHeader.schema.fields[6].name === "additionalHeader");
 RequestHeader.schema.fields[6].defaultValue = () => null;
 
-
 // OPC Unified Architecture, Part 4  $7.27 page 139
 // ResponseHeade,
 // 0. timestamp                 UtcTime           The time the Server sent the response.
@@ -85,7 +96,6 @@ ResponseHeader.schema.fields[0].defaultValue = () => new Date() ;
 //                                                 parameters contained in the response (see 7.8). Each is identified within this
 //                                                 table by its zero-based index.
 // 5. additionalHeader          ExtensionObject    Reserved for future use.
-
 
 // OpenSecureChannelResponse
 // documentation excerpt:

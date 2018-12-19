@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-utils
+ */
 export function buffer_ellipsis(buffer: Buffer, start?: number, end?: number): string {
     start = start || 0;
     end = end || buffer.length;

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-service-translate-browse-path
+ */
 export {
     RelativePathElement,
     RelativePath,

@@ -1,3 +1,7 @@
+/**
+ * @module node-opcua-utils
+ */
+// tslint:disable:variable-name
 export function capitalizeFirstLetter(str: string): string {
     if (str == null) {
         return str;

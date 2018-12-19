@@ -1,16 +1,18 @@
 /**
- * @module opcua.utils
+ * @module node-opcua-utils
  */
-
+// tslint:disable:no-bitwise
 import { assert } from "node-opcua-assert";
-const path = require("path");
+import * as path from "path";
 
 /**
  * set a flag
  * @method set_flag
  */
 export function set_flag(value: number, mask: number| {value: number}): number {
-    if ((mask as any).value) mask = (mask as any).value;
+    if ((mask as any).value) {
+        mask = (mask as any).value;
+    }
     assert(!mask.hasOwnProperty("value"));
     assert(mask !== undefined);
     return value | (mask as number);
@@ -20,7 +22,9 @@ export function set_flag(value: number, mask: number| {value: number}): number {
  * @method check_flag
  */
 export function check_flag(value: number, mask: number| {value: number}): boolean {
-    if ((mask as any).value) mask = (mask as any).value;
+    if ((mask as any).value) {
+        mask = (mask as any).value;
+    }
     assert(!mask.hasOwnProperty("value"));
     return ((value & (mask as number)) === (mask as number));
 }

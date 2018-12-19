@@ -1,13 +1,15 @@
+/**
+ * @module node-opcua-service-translate-browse-path
+ */
 import { assert } from "node-opcua-assert";
-import { resolveNodeId, NodeId } from "node-opcua-nodeid";
 import { QualifiedName } from "node-opcua-data-model";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { RelativePath } from "node-opcua-types";
 /*=
  * Release 1.03 page 152 OPC Unified Architecture, Part 4
  * Annex A (informative) BNF definitions
  * BNF for RelativePath
  */
-
 
 /*
 
@@ -21,7 +23,6 @@ import { RelativePath } from "node-opcua-types";
  Follows any forward Reference with a BrowseName = ‘1:ConnectedTo’ and
  finds targets with BrowseName = ‘1:Boiler’. From there follows any hierarchical
  Reference and find targets with BrowseName = ‘1:HeatSensor’.
-
 
  “<1:ConnectedTo>1:Boiler/”
  Follows any forward Reference with a BrowseName = ‘1:ConnectedTo’ and finds targets
@@ -62,7 +63,6 @@ import { RelativePath } from "node-opcua-types";
 const hierarchicalReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");
 const aggregatesReferenceTypeNodeId = resolveNodeId("Aggregates");
 
-
 //  The following BNF describes the syntax of the RelativePath text format.
 //  <relative-path> ::= <reference-type> <browse-name> [relative-path]
 //  <reference-type> ::= '/' | '.' | '<' ['#'] ['!'] <browse-name> '>'
@@ -91,7 +91,7 @@ function makeQualifiedName(mm: RegExpMatchArray): QualifiedName {
     if (!strName || strName.length === 0) {
         return new QualifiedName({});
     }
-    const namespaceIndex = mm[11] ? parseInt(mm[11]) : 0;
+    const namespaceIndex = mm[11] ? parseInt(mm[11], 10) : 0;
     const name = unescape(mm[12]);
     return new QualifiedName({namespaceIndex, name});
 }
@@ -122,7 +122,9 @@ export function makeRelativePath(str: string, addressSpace?: any) {
         }
         // console.log(mm);
 
-        let referenceTypeId: NodeId, includeSubtypes: boolean, isInverse: boolean;
+        let referenceTypeId: NodeId;
+        let includeSubtypes: boolean;
+        let isInverse: boolean;
 
         //
         // ------------ extract reference type
@@ -148,7 +150,7 @@ export function makeRelativePath(str: string, addressSpace?: any) {
             // match 5
             // namespace match 6 ( ns:)
             // name      match 7
-            const ns = matches[6] ? parseInt(matches[6]) : 0;
+            const ns = matches[6] ? parseInt(matches[6], 10) : 0;
             const name = matches[7];
             if (!matches[6]) {
                 referenceTypeId = resolveNodeId(name);
