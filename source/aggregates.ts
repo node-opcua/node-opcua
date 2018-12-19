@@ -198,7 +198,10 @@ export function addAggregateSupport(addressSpace: any) {
 
 }
 
-export function installAggregateConfigurationOptions(node: any, options: AggregateConfigurationOptions) {
+export function installAggregateConfigurationOptions(
+  node: any,
+  options: AggregateConfigurationOptions
+) {
     const aggregateConfiguration = node.$historicalDataConfiguration.aggregateConfiguration;
     aggregateConfiguration.percentDataBad.setValueFromSource({ dataType: "Byte", value: options.percentDataBad });
     aggregateConfiguration.percentDataGood.setValueFromSource({ dataType: "Byte", value: options.percentDataGood });
