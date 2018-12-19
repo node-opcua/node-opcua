@@ -95,8 +95,8 @@ export function adjustProcessingOptions(
     options.treatUncertainAsBad = options.treatUncertainAsBad || false;
     options.useSlopedExtrapolation = options.useSlopedExtrapolation || false;
     options.stepped = options.stepped || false;
-    options.percentDataBad = options.percentDataBad + 0;
-    options.percentDataGood = options.percentDataGood + 0;
+    options.percentDataBad = parseInt(options.percentDataBad, 10);
+    options.percentDataGood = parseInt(options.percentDataGood, 10);
     return options;
 }
 

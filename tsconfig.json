@@ -6,13 +6,15 @@
     "moduleResolution": "node",
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "source",
+    "rootDir": ".",
     "strict": true,
     "listFiles": false,
     "outDir": "dist"
   },
   "files": [
-    "source/index.ts"
+    "source/index.ts",
+    "test/test_aggregates.ts",
+    "test/test_aggregates_functions.ts"
   ],
   "typeRoots": [
     "node_modules/@types"

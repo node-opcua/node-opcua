@@ -1,8 +1,7 @@
 import { DataValue } from "node-opcua";
 import { StatusCodes } from "node-opcua-status-code";
 
-import { interpolatedValue } from "../source/interpolate";
-import { getInterval } from "../source/interval";
+import { getInterval , interpolatedValue } from "../source";
 
 import { makeDataValue, makeDate } from "./helpers/helpers";
 
