@@ -19,7 +19,14 @@ const HistoryReadResult = historizing_service.HistoryReadResult;
  * @param callback.err
  * @param callback.result {HistoryReadResult}
  */
-UAVariable.prototype.historyRead = function (context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback) {
+UAVariable.prototype.historyRead = function (
+  context,
+  historyReadDetails,
+  indexRange,
+  dataEncoding,
+  continuationPoint,
+  callback
+) {
 
     assert(context instanceof SessionContext);
     assert(callback instanceof Function);

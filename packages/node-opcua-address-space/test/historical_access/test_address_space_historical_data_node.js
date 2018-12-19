@@ -4,8 +4,6 @@ const should = require("should");
 const fs = require("fs");
 const async = require("async");
 
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
-
 const AddressSpace = require("../..").AddressSpace;
 const SessionContext = require("../..").SessionContext;
 const context = SessionContext.defaultContext;
@@ -16,9 +14,16 @@ const nodesets = require("node-opcua-nodesets");
 const WriteValue = require("node-opcua-service-write").WriteValue;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const DataType = require("node-opcua-variant").DataType;
-var StatusCodes = require("node-opcua-status-code").StatusCodes;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const historizing_service = require("node-opcua-service-history");
 require("date-utils");
+
+function date_add(date, options) {
+    const tmp = new Date(date);
+
+    tmp.add(options);
+    return tmp;
+}
 
 // make sure extra error checking is made on object constructions
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -49,7 +54,7 @@ describe("Testing Historical Data Node", function () {
         }
     });
 
-    it("should create a 'HA Configuration' node", function () {
+    it("HHH1- should create a 'HA Configuration' node", function () {
 
         const node = addressSpace.getOwnNamespace().addVariable({
             browseName: "MyVar",
@@ -59,18 +64,10 @@ describe("Testing Historical Data Node", function () {
         addressSpace.installHistoricalDataNode(node);
         node["hA Configuration"].browseName.toString().should.eql("HA Configuration");
     });
-
-    function date_add(date, options) {
-        const tmp = new Date(date);
-
-        tmp.add(options);
-        return tmp;
-    }
-
-    it("should keep values in memory to provide historical reads", function (done) {
+    it("HHH2- should keep values in memory to provide historical reads", function (done) {
 
         const node = addressSpace.getOwnNamespace().addVariable({
-            browseName: "MyVar",
+            browseName: "MyVar1",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
         });
@@ -105,6 +102,10 @@ describe("Testing Historical Data Node", function () {
 
         node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
+            if (err) {
+                return done(err);
+            }
+
             should.not.exist(historyReadResult.continuationPoint);
             historyReadResult.statusCode.should.eql(StatusCodes.Good);
             const dataValues = historyReadResult.historyData.dataValues;
@@ -121,143 +122,7 @@ describe("Testing Historical Data Node", function () {
         });
 
     });
-
-
-    it("should keep values up to options.maxOnlineValues to provide historical reads", function (done) {
-
-        const node = addressSpace.getOwnNamespace().addVariable({
-            browseName: "MyVar",
-            dataType: "Double",
-            componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
-        });
-        addressSpace.installHistoricalDataNode(node, {
-            maxOnlineValues: 3 // Only very few values !!!!
-        });
-        node["hA Configuration"].browseName.toString().should.eql("HA Configuration");
-
-        // let's injects some values into the history
-        const today = new Date();
-
-        const historyReadDetails = new historizing_service.ReadRawModifiedDetails({
-            isReadModified: false,
-            startTime: date_add(today, { seconds: -10 }),
-            endTime: date_add(today, { seconds: 10 }),
-            numValuesPerNode: 1000,
-            returnBounds: true
-        });
-        const indexRange = null;
-        const dataEncoding = null;
-        const continuationPoint = null;
-
-        async.series([
-
-            function (callback) {
-                node.setValueFromSource({
-                    dataType: "Double",
-                    value: 0
-                }, StatusCodes.Good, date_add(today, { seconds: 0 }));
-
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 0 }));
-                callback();
-            },
-            function (callback) {
-                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
-
-                    const dataValues = historyReadResult.historyData.dataValues;
-                    dataValues.length.should.eql(1);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today, { seconds: 0 }));
-                    callback();
-                });
-            },
-
-            function (callback) {
-                node.setValueFromSource({
-                    dataType: "Double",
-                    value: 0
-                }, StatusCodes.Good, date_add(today, { seconds: 1 }));
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 0 }));
-                callback();
-            },
-            function (callback) {
-                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
-
-                    const dataValues = historyReadResult.historyData.dataValues;
-                    dataValues.length.should.eql(2);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today, { seconds: 0 }));
-                    dataValues[1].sourceTimestamp.should.eql(date_add(today, { seconds: 1 }));
-                    callback();
-                });
-            },
-
-
-            function (callback) {
-                node.setValueFromSource({
-                    dataType: "Double",
-                    value: 0
-                }, StatusCodes.Good, date_add(today, { seconds: 2 }));
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 0 }));
-                callback();
-            },
-            function (callback) {
-                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
-
-                    const dataValues = historyReadResult.historyData.dataValues;
-                    dataValues.length.should.eql(3);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today, { seconds: 0 }));
-                    dataValues[1].sourceTimestamp.should.eql(date_add(today, { seconds: 1 }));
-                    dataValues[2].sourceTimestamp.should.eql(date_add(today, { seconds: 2 }));
-                    callback();
-                });
-            },
-
-
-            // the queue is full, the next insertion will cause the queue to be trimmed
-
-            function (callback) {
-                node.setValueFromSource({
-                    dataType: "Double",
-                    value: 0
-                }, StatusCodes.Good, date_add(today, { seconds: 3 }));
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 1 }));
-                callback();
-            },
-            function (callback) {
-                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
-
-                    const dataValues = historyReadResult.historyData.dataValues;
-                    dataValues.length.should.eql(3);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today, { seconds: 1 }));
-                    dataValues[1].sourceTimestamp.should.eql(date_add(today, { seconds: 2 }));
-                    dataValues[2].sourceTimestamp.should.eql(date_add(today, { seconds: 3 }));
-                    callback();
-                });
-            },
-
-            // the queue is (still)  full, the next insertion will cause the queue to be trimmed, again
-
-            function (callback) {
-                node.setValueFromSource({
-                    dataType: "Double",
-                    value: 0
-                }, StatusCodes.Good, date_add(today, { seconds: 4 }));
-                node["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 2 }));
-                callback();
-            },
-            function (callback) {
-                node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
-
-                    const dataValues = historyReadResult.historyData.dataValues;
-                    dataValues.length.should.eql(3);
-                    dataValues[0].sourceTimestamp.should.eql(date_add(today, { seconds: 2 }));
-                    dataValues[1].sourceTimestamp.should.eql(date_add(today, { seconds: 3 }));
-                    dataValues[2].sourceTimestamp.should.eql(date_add(today, { seconds: 4 }));
-                    callback();
-                });
-            }
-        ], done);
-
-    });
-    it("should store initial dataValue when historical stuff is set", function (done) {
+    it("HHH4- should store initial dataValue when historical stuff is set", function (done) {
 
         const node = addressSpace.getOwnNamespace().addVariable({
             browseName: "MyVar42",
@@ -270,7 +135,7 @@ describe("Testing Historical Data Node", function () {
         const historyReadDetails = new historizing_service.ReadRawModifiedDetails({
             isReadModified: false,
             startTime: date_add(today, { seconds: -10 }),
-            endTime: date_add(today, { seconds: 10 }),
+            endTime: date_add(today, { seconds: 20 }),
             numValuesPerNode: 1000,
             returnBounds: true
         });
@@ -290,6 +155,9 @@ describe("Testing Historical Data Node", function () {
             function read_history1(callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
 
+                    if (err) {
+                        return callback(err);
+                    }
                     const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(1);
                     dataValues[0].value.value.should.eql(3.14);
@@ -305,6 +173,9 @@ describe("Testing Historical Data Node", function () {
             },
             function read_history2(callback) {
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                    if (err) {
+                        return callback(err);
+                    }
                     const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(2);
                     dataValues[0].value.value.should.eql(3.14);
@@ -315,13 +186,12 @@ describe("Testing Historical Data Node", function () {
         ], done);
 
     });
-
-    it("#420 should be possible to set/unset historizing attribute ", function (done) {
+    it("HHH5- #420 should be possible to set/unset historizing attribute ", function (done) {
 
         // unseting the historizing flag shall suspend value being collected
 
         const node = addressSpace.getOwnNamespace().addVariable({
-            browseName: "MyVar",
+            browseName: "MyVar4",
             dataType: "Double",
             componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
         });
@@ -405,6 +275,9 @@ describe("Testing Historical Data Node", function () {
 
 
                 node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                    if (err) {
+                        return callback(err);
+                    }
 
                     const dataValues = historyReadResult.historyData.dataValues;
                     dataValues.length.should.eql(4);
@@ -423,7 +296,6 @@ describe("Testing Historical Data Node", function () {
 
     });
 
-
     describe("HRRM HistoryReadRawModified", function () {
 
         let node;
@@ -432,7 +304,7 @@ describe("Testing Historical Data Node", function () {
         before(function () {
 
             node = addressSpace.getOwnNamespace().addVariable({
-                browseName: "MyVar42",
+                browseName: "MyVar5",
                 dataType: "Double",
                 componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo
             });
@@ -492,6 +364,9 @@ describe("Testing Historical Data Node", function () {
 
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
+                          if (err) {
+                              return callback(err);
+                          }
 
                           const dataValues = historyReadResult.historyData.dataValues;
                           dataValues.length.should.eql(1);
@@ -523,6 +398,9 @@ describe("Testing Historical Data Node", function () {
 
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
+                          if (err) {
+                              return callback(err);
+                          }
 
                           const dataValues = historyReadResult.historyData.dataValues;
                           dataValues.length.should.eql(1);
@@ -551,6 +429,9 @@ describe("Testing Historical Data Node", function () {
                 function make_initial_read(callback) {
 
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, null, function (err, historyReadResult) {
+                        if (err) {
+                            return callback(err);
+                        }
 
                         historyReadResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -567,6 +448,9 @@ describe("Testing Historical Data Node", function () {
                 },
                 function make_first_continuation_read(callback) {
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                        if (err) {
+                            return callback(err);
+                        }
 
                         historyReadResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -584,6 +468,9 @@ describe("Testing Historical Data Node", function () {
                 },
                 function make_second_continuation_read(callback) {
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, function (err, historyReadResult) {
+                        if (err) {
+                            return callback(err);
+                        }
 
                         historyReadResult.statusCode.should.eql(StatusCodes.Good);
 
@@ -619,6 +506,9 @@ describe("Testing Historical Data Node", function () {
 
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
+                          if (err) {
+                              return callback(err);
+                          }
 
                           const dataValues = historyReadResult.historyData.dataValues;
                           dataValues.length.should.eql(7);
@@ -655,6 +545,9 @@ describe("Testing Historical Data Node", function () {
                 function (callback) {
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
+                          if (err) {
+                              return callback(err);
+                          }
 
                           const dataValues = historyReadResult.historyData.dataValues;
                           dataValues.length.should.eql(3);
@@ -672,6 +565,9 @@ describe("Testing Historical Data Node", function () {
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
 
+                          if (err) {
+                              return callback(err);
+                          }
                           const dataValues = historyReadResult.historyData.dataValues;
                           dataValues.length.should.eql(3);
                           should.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
@@ -688,6 +584,9 @@ describe("Testing Historical Data Node", function () {
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
 
+                          if (err) {
+                              return callback(err);
+                          }
                           const dataValues = historyReadResult.historyData.dataValues;
                           dataValues.length.should.eql(1);
                           should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
@@ -720,6 +619,9 @@ describe("Testing Historical Data Node", function () {
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
 
+                          if (err) {
+                              return callback(err);
+                          }
                           const dataValues = historyReadResult.historyData.dataValues;
                           dataValues.length.should.eql(7);
                           should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
@@ -758,6 +660,9 @@ describe("Testing Historical Data Node", function () {
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
 
+                          if (err) {
+                              return callback(err);
+                          }
                           historyReadResult.statusCode.should.eql(StatusCodes.BadHistoryOperationInvalid);
                           should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
 
@@ -787,6 +692,9 @@ describe("Testing Historical Data Node", function () {
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
 
+                          if (err) {
+                              return callback(err);
+                          }
                           historyReadResult.statusCode.should.eql(StatusCodes.BadHistoryOperationInvalid);
 
                           should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
@@ -810,6 +718,9 @@ describe("Testing Historical Data Node", function () {
 
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
+                          if (err) {
+                              return callback(err);
+                          }
                           historyReadResult.statusCode.should.eql(StatusCodes.BadUnexpectedError);
                           should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
                           callback();
@@ -831,6 +742,9 @@ describe("Testing Historical Data Node", function () {
 
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
+                          if (err) {
+                              return callback(err);
+                          }
                           historyReadResult.statusCode.should.eql(StatusCodes.BadUnexpectedError);
                           should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
                           callback();
@@ -852,17 +766,16 @@ describe("Testing Historical Data Node", function () {
 
                     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
                       function (err, historyReadResult) {
+                          if (err) {
+                              return callback(err);
+                          }
                           historyReadResult.statusCode.should.eql(StatusCodes.BadUnexpectedError);
                           should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
                           callback();
                       });
                 }
             ], done);
-
         });
-
-
-
     });
 
 });

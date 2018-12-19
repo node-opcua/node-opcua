@@ -6,6 +6,7 @@ const StatusCodes = require("..").StatusCodes;
 const StatusCode = require("..").StatusCode;
 const encodeStatusCode = require("..").encodeStatusCode;
 const decodeStatusCode = require("..").decodeStatusCode;
+const getStatusCodeFromCode = require("..").getStatusCodeFromCode;
 
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
@@ -131,6 +132,13 @@ describe("testing status code manipulation", function () {
             statusCode.set("Overflow"); // << set is not defined !!!
 
         }).throwError();
-    })
+    });
+
+    it("should convert ",function() {
+        const statusCode = StatusCodes.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianInterpolated");
+        const check = getStatusCodeFromCode(statusCode.value);
+
+        statusCode.should.eql(check);
+    });
 
 });

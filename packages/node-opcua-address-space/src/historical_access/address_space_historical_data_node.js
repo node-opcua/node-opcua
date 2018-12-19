@@ -29,6 +29,7 @@ const isMinDate = require("node-opcua-date-time").isMinDate;
 
 const UAVariable = require("../ua_variable").UAVariable;
 const SessionContext = require("../session_context").SessionContext;
+const AddressSpace = require("../address_space").AddressSpace;
 
 
 /* interface Historian  */
@@ -96,7 +97,6 @@ function filter_dequeue(q, historyReadRawModifiedDetails, onlyThisNumber, isReve
     return r;
 }
 
-
 class VariableHistorian {
 
     constructor(node, options) {
@@ -163,6 +163,15 @@ class VariableHistorian {
         callback(null, dataValues);
     }
 }
+exports.VariableHistorian = VariableHistorian;
+
+
+AddressSpace.historizerFactory = AddressSpace.historizerFactory || {
+
+    create: function (node, options) {
+        return new VariableHistorian(node, options);
+    }
+};
 
 exports.install = function (AddressSpace) {
 
@@ -173,6 +182,13 @@ exports.install = function (AddressSpace) {
 
     function _get_startOfArchive(node) {
         return node.$historicalDataConfiguration.startOfArchive.readValue();
+    }
+
+    function _update_startOfArchive(newDate) {
+        const node = this;
+        node.$historicalDataConfiguration.startOfArchive.setValueFromSource({
+            dataType: DataType.DateTime, value: newDate
+        });
     }
 
     function _update_startOfOnlineArchive(newDate) {
@@ -186,13 +202,12 @@ exports.install = function (AddressSpace) {
 
         const startOfArchiveDataValue = _get_startOfOfflineArchive(node);
         if (startOfArchiveDataValue.statusCode !== StatusCodes.Good || startOfArchiveDataValue.value.value.getTime() >= newDate.getTime()) {
-            node.$historicalDataConfiguration.startOfArchive.setValueFromSource({
-                dataType: DataType.DateTime, value: newDate
-            });
+            node._update_startOfArchive(newDate);
         }
     }
 
     UAVariable.prototype._update_startOfOnlineArchive = _update_startOfOnlineArchive;
+    UAVariable.prototype._update_startOfArchive = _update_startOfArchive;
 
     function _historyPush(newDataValue) {
 
@@ -209,14 +224,9 @@ exports.install = function (AddressSpace) {
 
     }
 
-
-
-
-
-
-
     function createContinuationPoint() {
-        return new Buffer("ABCDEF");
+        // todo: improve
+        return Buffer.from("ABCDEF");
     }
 
     function _historyReadModify(
@@ -428,9 +438,10 @@ exports.install = function (AddressSpace) {
         let isReversed = false;
         let reverseDataValue = false;
         if (isMinDate(historyReadRawModifiedDetails.endTime)) {
+            // end time is not specified
             maxNumberToExtract = historyReadRawModifiedDetails.numValuesPerNode;
-
             if (isMinDate(historyReadRawModifiedDetails.startTime)) {
+                // end start and start time are not specified, this is invalid
                 const result = new HistoryReadResult({
                     statusCode: StatusCodes.BadHistoryOperationInvalid // should be an error
                 });
@@ -438,17 +449,24 @@ exports.install = function (AddressSpace) {
             }
 
         } else if (isMinDate(historyReadRawModifiedDetails.startTime)) {
+            // start time is not specified
+            // end time is specified
             maxNumberToExtract = historyReadRawModifiedDetails.numValuesPerNode;
             isReversed = true;
             reverseDataValue = false;
 
             if (historyReadRawModifiedDetails.numValuesPerNode === 0) {
+                // when start time is not specified
+                // and end time is specified
+                // numValuesPerNode shall be greater than 0
                 const result = new HistoryReadResult({
                     statusCode: StatusCodes.BadHistoryOperationInvalid // should be an error
                 });
                 return callback(null, result);
             }
         } else {
+            // start time is specified
+            // end time is specified
             if (historyReadRawModifiedDetails.endTime.getTime() < historyReadRawModifiedDetails.startTime.getTime()) {
                 reverseDataValue = true;
                 const tmp = historyReadRawModifiedDetails.endTime;
@@ -720,7 +738,8 @@ exports.install = function (AddressSpace) {
         node._historyReadRawAsync = _historyReadRawAsync;
 
 
-        node.varHistorian = options.historian || new VariableHistorian(node, options);
+        node.varHistorian = options.historian ||
+           AddressSpace.historizerFactory.create(node,options);
 
         const historicalDataConfigurationType = addressSpace.findObjectType("HistoricalDataConfigurationType");
         node.historizing = true;

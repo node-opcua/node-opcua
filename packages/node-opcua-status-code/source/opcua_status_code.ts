@@ -1,7 +1,8 @@
-// tslint:disable:no-bitwise
 /**
- * @module opcua.status-code
+ * @module node-opcua-status-code
  */
+// tslint:disable:no-bitwise
+
 import * as  _ from "underscore";
 
 import assert from "node-opcua-assert";

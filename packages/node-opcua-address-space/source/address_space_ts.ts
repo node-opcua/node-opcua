@@ -19,6 +19,11 @@ import {
     BrowseResult
 } from "node-opcua-service-browse";
 import {
+    HistoryReadDetails,
+    HistoryReadResult,
+    ReadRawModifiedDetails
+} from "node-opcua-service-history";
+import {
     WriteValueOptions
 } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
@@ -471,12 +476,24 @@ export interface RootFolder extends Folder {
     views: Folder;
 }
 
-import { HistoryReadDetails, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
-
 export interface IVariableHistorian {
 
-    push(newDataValue: DataValue): void;
+    /**
+     * push a new value into the history for this variable
+     * the method should take a very small amount of time and not
+     * directly write to the underlying database
+     * @param newDataValue
+     */
+    push(newDataValue: DataValue): Promise<void>;
 
+    /**
+     * Extract a series of dataValue from the History database for this value
+     * @param historyReadRawModifiedDetails
+     * @param maxNumberToExtract
+     * @param isReversed
+     * @param reverseDataValue
+     * @param callback
+     */
     extractDataValues(
       historyReadRawModifiedDetails: ReadRawModifiedDetails,
       maxNumberToExtract: number,
@@ -484,6 +501,14 @@ export interface IVariableHistorian {
       reverseDataValue: boolean,
       callback: (err?: Error | null, dataValue?: DataValue[]) => void
     ): void;
+
+/*    extractDataValues(
+      historyReadRawModifiedDetails: ReadRawModifiedDetails,
+      maxNumberToExtract: number,
+      isReversed: boolean,
+      reverseDataValue: boolean
+    ): Promise<DataValue[]>;
+*/
 }
 
 export interface IVariableHistorianOptions {
@@ -491,6 +516,8 @@ export interface IVariableHistorianOptions {
 }
 
 export declare class AddressSpace {
+
+    static historizerFactory: any;
 
     public rootFolder: RootFolder;
 
@@ -535,3 +562,31 @@ export declare function generate_address_space(
   xmlFiles: string | string[],
   callback: (err?: Error) => void
 ): void;
+
+export declare class VariableHistorian implements IVariableHistorian {
+
+    public constructor(node: UAVariable, options: IVariableHistorianOptions);
+    /**
+     * push a new value into the history for this variable
+     * the method should take a very small amount of time and not
+     * directly write to the underlying database
+     * @param newDataValue
+     */
+    public push(newDataValue: DataValue): Promise<void>;
+
+    /**
+     * Extract a series of dataValue from the History database for this value
+     * @param historyReadRawModifiedDetails
+     * @param maxNumberToExtract
+     * @param isReversed
+     * @param reverseDataValue
+     * @param callback
+     */
+    public extractDataValues(
+      historyReadRawModifiedDetails: ReadRawModifiedDetails,
+      maxNumberToExtract: number,
+      isReversed: boolean,
+      reverseDataValue: boolean,
+      callback: (err?: Error | null, dataValue?: DataValue[]) => void
+    ): void;
+}
