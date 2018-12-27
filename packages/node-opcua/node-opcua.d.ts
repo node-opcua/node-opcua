@@ -271,7 +271,7 @@ export declare class OPCUAClientBase {
      * @returns {OPCUAClientBase}
      * @chainable
      */
-    on(event: string, eventHandler: (...args:any) => void): OPCUAClientBase;
+    on(event: string, eventHandler: (...args: any[]) => void): OPCUAClientBase;
 }
 
 export interface BrowseResponse {
