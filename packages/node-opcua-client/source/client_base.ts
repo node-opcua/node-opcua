@@ -169,11 +169,25 @@ export interface OPCUAClientBase extends EventEmitter {
     // tslint:disable:unified-signatures
 
     /**
+     * this Event is raised when the  initial connection has succeeded
+     * @param event
+     * @param eventHandler
+     */
+    on(event: "connected", eventHandler: () => void): this;
+
+    /**
+     * this Event is raised when the  initial connection has failed
+     * @param event
+     * @param eventHandler
+     */
+    on(event: "connection_failed", eventHandler: (err: Error) => void): this;
+
+    /**
      * this Event is raised when a failing connection is about to be tried again
      * @param event
      * @param eventHandler
      */
-    on(event: "backoff", eventHandler: (count: number, delay: number) => void): OPCUAClientBase;
+    on(event: "backoff", eventHandler: (count: number, delay: number) => void): this;
 
     /**
      * this event is raised when the client has encountered a connection failure and
@@ -183,7 +197,7 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
-    on(event: "start_reconnection", eventHandler: () => void): OPCUAClientBase;
+    on(event: "start_reconnection", eventHandler: () => void): this;
 
     /**
      * this event is raised after the client has successfully manage to re-establish the connection with
@@ -194,21 +208,21 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
-    on(event: "after_reconnection", eventHandler: (err?: Error) => void): OPCUAClientBase;
+    on(event: "after_reconnection", eventHandler: (err?: Error) => void): this;
 
     /**
      * the event is raised when the connection has been aborted by the remote OPCUA Server
      * @param event
      * @param eventHandler
      */
-    on(event: "abort", eventHandler: () => void): OPCUAClientBase;
+    on(event: "abort", eventHandler: () => void): this;
 
     /**
      * this event is raised when the connection is closed
      * @param event
      * @param eventHandler
      */
-    on(event: "close", eventHandler: () => void): OPCUAClientBase;
+    on(event: "close", eventHandler: () => void): this;
 
     /**
      * this event is raised when the client is sending a message chunk to the server
@@ -216,7 +230,7 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
-    on(event: "send_chunk", eventHandler: (chunk: Buffer) => void): OPCUAClientBase;
+    on(event: "send_chunk", eventHandler: (chunk: Buffer) => void): this;
 
     /**
      * this event is raised when the client has recevied a new message chunk from the servers
@@ -224,9 +238,9 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
-    on(event: "receive_chunk", eventHandler: (chunk: Buffer) => void): OPCUAClientBase;
-    on(event: "send_request", eventHandler: (request: Request) => void): OPCUAClientBase;
-    on(event: "receive_response", eventHandler: (response: Response) => void): OPCUAClientBase;
+    on(event: "receive_chunk", eventHandler: (chunk: Buffer) => void): this;
+    on(event: "send_request", eventHandler: (request: Request) => void): this;
+    on(event: "receive_response", eventHandler: (response: Response) => void): this;
 
     /**
      * this event is raised when the current security token has reached 75% of its livetime and is therefore
@@ -234,7 +248,7 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
-    on(event: "lifetime_75", eventHandler: (token: SecurityToken) => void): OPCUAClientBase;
+    on(event: "lifetime_75", eventHandler: (token: SecurityToken) => void): this;
 
     /**
      * this event is raised after the (about ) security token as been renewed
@@ -242,21 +256,21 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
-    on(event: "security_token_renewed", eventHandler: () => void): OPCUAClientBase;
+    on(event: "security_token_renewed", eventHandler: () => void): this;
 
     /**
      * this event is raised when a broken connection with the remote Server has been reestablished
      * @param event
      * @param eventHandler
      */
-    on(event: "connection_lost", eventHandler: () => void): OPCUAClientBase;
+    on(event: "connection_lost", eventHandler: () => void): this;
 
     /**
      * this event is raised when a broken connection with the remote Server has been reestablished
      * @param event
      * @param eventHandler
      */
-    on(event: "connection_reestablished", eventHandler: () => void): OPCUAClientBase;
+    on(event: "connection_reestablished", eventHandler: () => void): this;
 
     /**
      * This event is raised when a request sent to the remote OPCUA server has reach it's timeout value without
@@ -264,7 +278,7 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
-    on(event: "timed_out_request", eventHandler: (request: Request) => void): OPCUAClientBase;
+    on(event: "timed_out_request", eventHandler: (request: Request) => void): this;
 
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 

@@ -90,24 +90,27 @@ export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
 
 }
 
-interface SeverSecureChannelLayerOptions {
+export interface SeverSecureChannelLayerOptions {
     parent: ServerSecureChannelParent;
+    /**
+     * timeout in milliseconds [default = 30000]
+     */
     timeout?: number;
+    /**
+     * default secure token life time in milliseconds [default = 300000]
+     */
     defaultSecureTokenLifetime?: number;
     objectFactory?: ObjectFactory;
-
 }
 
-type SecurityToken = ChannelSecurityToken;
-
-interface Message {
+export interface Message {
     request: Request;
     requestId: number;
     securityHeader?: SecurityHeader;
     channel?: ServerSecureChannelLayer;
 }
 
-interface ServerTransactionStatistics {
+export  interface ServerTransactionStatistics {
     bytesRead: number;
     bytesWritten: number;
     lap_reception: number;
@@ -156,32 +159,26 @@ function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
  * @extends EventEmitter
  * @uses MessageBuilder
  * @uses MessageChunker
- * @constructor
- * @param options
- * @param options.parent {OPCUAServerEndPoint} parent
- * @param [options.timeout = 30000] {Number} timeout in milliseconds
- * @param [options.defaultSecureTokenLifetime = 30000] defaultSecureTokenLifetime
- * @param [options.objectFactory] an factory that provides a method createObjectId(id) for the message builder
  */
 export class ServerSecureChannelLayer extends EventEmitter {
 
-    get securityTokenCount() {
+    public get securityTokenCount() {
         assert(_.isNumber(this.lastTokenId));
         return this.lastTokenId;
     }
 
-    get remoteAddress() {
+    public get remoteAddress() {
         return this._remoteAddress;
     }
 
-    get remotePort() {
+    public get remotePort() {
         return this._remotePort;
     }
 
     /**
      *
      */
-    get aborted() {
+    public get aborted() {
         return this._abort_has_been_called;
     }
 
@@ -190,7 +187,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @property bytesRead
      * @type {Number}
      */
-    get bytesRead() {
+    public get bytesRead() {
         return this.transport ? this.transport.bytesRead : 0;
     }
 
@@ -199,11 +196,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @property bytesWritten
      * @type {Number}
      */
-    get bytesWritten() {
+    public get bytesWritten() {
         return this.transport ? this.transport.bytesWritten : 0;
     }
 
-    get transactionsCount() {
+    public get transactionsCount() {
         return this._transactionsCount;
     }
 
@@ -213,7 +210,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @type {Boolean}
      *
      */
-    get isOpened() {
+    public get isOpened() {
         return !!this.clientCertificate;
     }
 
@@ -222,11 +219,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @property hasSession
      * @type {Boolean}
      */
-    get hasSession() {
+    public get hasSession() {
         return Object.keys(this.sessionTokens).length > 0;
     }
 
-    get certificateManager() {
+    public get certificateManager() {
         return this.parent!.certificateManager!;
     }
 
@@ -235,7 +232,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @property hashKey
      * @type {String}
      */
-    get hashKey() {
+    public get hashKey() {
         return this.__hash;
     }
 
@@ -243,20 +240,20 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     private readonly __hash: number;
     private parent: ServerSecureChannelParent | null;
-    private protocolVersion: number;
+    private readonly protocolVersion: number;
     private lastTokenId: number;
-    private timeout: number;
-    private defaultSecureTokenLifetime: number;
-    private securityToken: SecurityToken;
+    private readonly timeout: number;
+    private readonly defaultSecureTokenLifetime: number;
+    private securityToken: ChannelSecurityToken;
     private serverNonce: Buffer | null;
-    private messageBuilder: MessageBuilder;
+    private readonly messageBuilder: MessageBuilder;
     private securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     private receiverPublicKey: string | null;
     private receiverPublicKeyLength: number;
     private receiverCertificate: Buffer | null;
     private clientCertificate: Buffer | null;
     private clientNonce: Buffer | null;
-    private messageChunker: MessageChunker;
+    private readonly messageChunker: MessageChunker;
     private securityMode: MessageSecurityMode;
 
     private clientSecurityHeader?: SecurityHeader;
@@ -266,7 +263,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private sessionTokens: any;
     private channelId: number | null;
     private revisedLifetime: number;
-    private transport: ServerTCP_transport;
+    private readonly transport: ServerTCP_transport;
     private derivedKeys?: DerivedKeys1;
 
     private objectFactory?: ObjectFactory;
@@ -285,9 +282,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private _abort_has_been_called: boolean;
     private __verifId: any;
     private _transport_socket_close_listener?: any;
-    private _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
+    private readonly _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
 
-    constructor(options: SeverSecureChannelLayerOptions) {
+    public constructor(options: SeverSecureChannelLayerOptions) {
 
         super();
 
@@ -409,18 +406,22 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     /**
      * the endpoint associated with this secure channel
-     * @property endpoints
-     * @type {OPCUAServerEndPoint}
      *
      */
-    public getEndpointDescription(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy) {
+    public getEndpointDescription(
+      securityMode: MessageSecurityMode,
+      securityPolicy: SecurityPolicy
+    ): EndpointDescription | null {
         if (!this.parent) {
             return null; // throw new Error("getEndpointDescription - no parent");
         }
         return this.parent.getEndpointDescription(this.securityMode, securityPolicy);
     }
 
-    public setSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy) {
+    public setSecurity(
+      securityMode: MessageSecurityMode,
+      securityPolicy: SecurityPolicy
+    ): void {
         // TODO verify that the endpoint really supports this mode
         this.messageBuilder.setSecurity(securityMode, securityPolicy);
     }
@@ -429,7 +430,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @method getCertificateChain
      * @return the X509 DER form certificate
      */
-    public getCertificateChain() {
+    public getCertificateChain(): Certificate {
         if (!this.parent) {
             throw new Error("expecting a valid parent");
         }
@@ -509,7 +510,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @param message
      * @param callback
      */
-    public send_response(msgType: string, response: Response, message: Message, callback: ErrorCallback): void {
+    public send_response(
+      msgType: string,
+      response: Response,
+      message: Message,
+      callback: ErrorCallback
+    ): void {
 
         const request = message.request;
         const requestId = message.requestId;

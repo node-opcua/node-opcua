@@ -733,7 +733,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         debugLog("OPCUAClientImpl#reactivateSession");
 
-        this._activateSession(internalSession, (err: Error | null, newSession?: ClientSessionImpl) => {
+        this._activateSession(internalSession, (err: Error | null /*, newSession?: ClientSessionImpl*/) => {
             if (!err) {
 
                 if (old_client !== this) {
@@ -770,7 +770,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         assert(_.isFunction(callback));
 
         // call base class implementation first
-        ClientBaseImpl.prototype._on_connection_reestablished.call(this, (err?: Error) => {
+        ClientBaseImpl.prototype._on_connection_reestablished.call(this, (/*err?: Error*/) => {
             repair_client_sessions(this, callback);
         });
 
@@ -1231,7 +1231,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
-const opts = {multiArgs: false};
 OPCUAClientImpl.prototype.connect = thenify.withCallback(OPCUAClientImpl.prototype.connect);
 OPCUAClientImpl.prototype.disconnect = thenify.withCallback(OPCUAClientImpl.prototype.disconnect);
 /**

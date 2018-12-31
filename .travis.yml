@@ -63,6 +63,7 @@ before_script:
 install:
   - npm install -g npm
   - npm install typescript -g
+  - npm install codecov -g
   - npm ci
 
 # keep the npm cache around to speed up installs
@@ -75,7 +76,9 @@ after_success:
   # only run code coverage on linux and latest nodejs version
   - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; then
       if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
-         make test-cov;
+          # make test-cov;
+          # codecov
+          istanbul cover--report lcovonly packages\run_all_mocha_tests.js && codecov
       fi;
     fi;
 

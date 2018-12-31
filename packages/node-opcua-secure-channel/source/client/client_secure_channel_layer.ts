@@ -206,37 +206,49 @@ export interface ClientSecureChannelParent  extends ICertificateKeyPairProvider 
 }
 
 export interface ClientSecureChannelLayerOptions {
+    /**
+     * default secure token life time , if not specified  30 seconds will be used as default value
+     */
     defaultSecureTokenLifetime?: number;
+    /**
+     * percentage of SecureTokenLifetime at which token renewal will be attempted.
+     *
+     * if 0 or not specify, the security token renewal will happen at 75% of defaultSecureTokenLifetime
+     */
     tokenRenewalInterval?: number;
+    /**
+     *  message security mode
+     *  default value =MessageSecurityMode.None
+     */
     securityMode?: MessageSecurityMode;
+    /**
+     * security policy
+     * default value = SecurityPolicy.None
+     */
     securityPolicy?: SecurityPolicy;
+    /**
+     * the serverCertificate (required if securityMode!=None)
+     */
     serverCertificate?: Certificate;
+
     parent: ClientSecureChannelParent;
+
     /* OPCUClientBase */
+    /**
+     *   the transport timeout interval in ms ( default = 10 seconds)
+     */
     transportTimeout?: number;
+    /**
+     * the connection strategy options
+     * @param [options.connectionStrategy.maxRetry      = 10]
+     * @param [options.connectionStrategy.initialDelay  = 10]
+     * @param [options.connectionStrategy.maxDelay      = 10000]
+     */
     connectionStrategy: ConnectionStrategyOptions;
 }
 
 /**
  * a ClientSecureChannelLayer represents the client side of the OPCUA secure channel.
- * @class ClientSecureChannelLayer
- * @extends EventEmitter
- * @uses MessageChunker
- * @uses MessageBuilder
- * @param options
- * @param [options.defaultSecureTokenLifetime=30000 = 30 seconds]
- * @param [options.tokenRenewalInterval =0]  if 0, security token renewal will happen at 75% of defaultSecureTokenLifetime
- * @param [options.securityMode=MessageSecurityMode.None]
- * @param [options.securityPolicy=SecurityPolicy.None]
- * @param [options.serverCertificate=null] the serverCertificate (required if securityMode!=None)
- * @param options.parent {ClientBaseImpl} parent
- * @param [options.factory] an factory that provides a method createObjectId(id) for the message builder
- * @param [options.transportTimeout = ClientSecureChannelLayer.defaultTransportTimeout = 10 seconds] the transport timeout interval in ms
- * @param [options.connectionStrategy] {Object}
- * @param [options.connectionStrategy.maxRetry      = 10]
- * @param [options.connectionStrategy.initialDelay  = 10]
- * @param [options.connectionStrategy.maxDelay      = 10000]
- * @constructor
  */
 export class ClientSecureChannelLayer extends EventEmitter {
 
@@ -305,7 +317,22 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     private lastError?: Error;
 
-    constructor(options: ClientSecureChannelLayerOptions) {
+    /***
+     * @param options
+     * @param [options.defaultSecureTokenLifetime=30000 = 30 seconds]
+     * @param [options.tokenRenewalInterval =0]  if 0, security token renewal will happen at 75% of defaultSecureTokenLifetime
+     * @param [options.securityMode=MessageSecurityMode.None]
+     * @param [options.securityPolicy=SecurityPolicy.None]
+     * @param [options.serverCertificate=null] the serverCertificate (required if securityMode!=None)
+     * @param options.parent {ClientBaseImpl} parent
+     * @param [options.factory] an factory that provides a method createObjectId(id) for the message builder
+     * @param [options.transportTimeout = ClientSecureChannelLayer.defaultTransportTimeout = 10 seconds] the transport timeout interval in ms
+     * @param [options.connectionStrategy] {Object}
+     * @param [options.connectionStrategy.maxRetry      = 10]
+     * @param [options.connectionStrategy.initialDelay  = 10]
+     * @param [options.connectionStrategy.maxDelay      = 10000]
+     */
+     constructor(options: ClientSecureChannelLayerOptions) {
         super();
 
         this.securityHeader = null;
@@ -1304,7 +1331,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this.emit("send_chunk", chunk);
 
             /* istanbul ignore next */
-            if (doDebug && chunk !== null) {
+            if (doDebug) {
                 verify_message_chunk(chunk);
                 debugLog(chalk.yellow("CLIENT SEND chunk "));
                 debugLog(chalk.yellow(messageHeaderToString(chunk)));

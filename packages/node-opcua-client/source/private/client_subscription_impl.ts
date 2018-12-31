@@ -780,11 +780,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         delete this.monitoredItems[clientHandle];
     }
 
-    private _delete_monitored_item(
-        monitoredItem: ClientMonitoredItemBase,
-        callback: ErrorCallback) {
-        this._delete_monitored_items([monitoredItem], callback);
-    }
 }
 
 // tslint:disable:no-var-requires

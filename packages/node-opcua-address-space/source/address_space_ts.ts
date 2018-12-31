@@ -463,6 +463,7 @@ export interface Server extends UAObject {
     namespaces: UAObject;
     serverCapabilities: UAObject;
     serverConfiguration: UAObject;
+    vendorServerInfo: UAObject;
 }
 
 export interface ObjectsFolder extends Folder {
@@ -517,7 +518,7 @@ export interface IVariableHistorianOptions {
 
 export declare class AddressSpace {
 
-    static historizerFactory: any;
+    public static historizerFactory: any;
 
     public rootFolder: RootFolder;
 

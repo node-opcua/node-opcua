@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "skipLibCheck": true,
+        "skipLibCheck": false,
         "moduleResolution": "node",
         "target": "es6",
         "module": "commonjs",
