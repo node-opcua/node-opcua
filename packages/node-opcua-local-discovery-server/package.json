@@ -4,7 +4,8 @@
   "description": "pure nodejs OPCUA SDK - local-discovery-server",
   "bin": {
     "lds": "./bin/local-discovery-server.js",
-    "local-discovery-server": "./bin/local-discovery-server.js"
+    "local-discovery-server": "./bin/local-discovery-server.js",
+    "node-opcua-local-discovery-server": "./bin/local-discovery-server.js"
   },
   "scripts": {
     "postinstall": "node bin/create_certificates.js  demo -s",
