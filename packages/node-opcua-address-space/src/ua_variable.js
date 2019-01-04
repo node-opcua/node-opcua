@@ -127,13 +127,18 @@ function validateDataType(addressSpace, dataTypeNodeId, variantDataType, nodeId)
     const destUADataType = addressSpace.findNode(dataTypeNodeId);
     assert(destUADataType instanceof UADataType);
 
-    if (destUADataType.isAbstract) {
+    if (destUADataType.isAbstract || destUADataType.nodeId.namespace !== 0) {
         builtInUADataType = destUADataType;
     } else {
         builtInType = findBuiltInType(destUADataType.browseName).name;
         builtInUADataType = addressSpace.findDataType(builtInType);
     }
     assert(builtInUADataType instanceof UADataType);
+
+    const enumerationUADataType = addressSpace.findDataType("Enumeration");
+    if (destUADataType.isSupertypeOf(enumerationUADataType)) {
+        return true;
+    }
 
 
     // The value supplied for the attribute is not of the same type as the  value.
@@ -488,6 +493,7 @@ UAVariable.prototype.writeEnumValue = function writeEnumValue(value) {
             throw new Error("UAVariable#writeEnumValue : value out of range", value);
         }
         self.setValueFromSource({dataType: DataType.Int32, value: value});
+        return StatusCodes.Good;
     } else {
         throw new Error("UAVariable#writeEnumValue:  value type mismatch");
     }
