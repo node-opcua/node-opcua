@@ -8,7 +8,10 @@ const app = new Application({
     logger: "console",
     mode: "modules",
     module: "commonjs",
-    target: "es2015"
+    target: "es2015",
+
+    gaID: "UA-25438821-3",
+    gaSite: "node-opcua.github.io"
 });
 
 const nodeopcuaModules = [
