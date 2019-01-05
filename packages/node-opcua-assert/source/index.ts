@@ -5,7 +5,9 @@ import chalk from "chalk";
 
 const displayAssert = process.env.DISPLAY_ASSERT ? true : false;
 
-export function assert(cond: boolean | object | null | undefined | Function, message?: string): void {
+type func = (...args: any[]) => any;
+
+export function assert(cond: boolean | object | null | undefined | func , message?: string): void {
     if (!cond) {
         const err = new Error(message);
         if (displayAssert) {

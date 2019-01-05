@@ -123,14 +123,14 @@ BinaryStream.prototype.readArrayBuffer1 = function (length) {
     const result = Buffer.from(this.buffer.buffer, this.length, length);
     this.length += length;
     return Buffer.from(result);
-}
+};
 
 BinaryStream.prototype.readArrayBuffer2 = function (length) {
     const slice = this.buffer.slice(this.length, this.length + length);
     this.length += length;
     return Buffer.from(slice);
 
-}
+};
 BinaryStream.prototype.readArrayBuffer3 = function (length) {
     //xx assert(this.length + length <= this.buffer.length, "not enough bytes in buffer");
     const slice = this.buffer.slice(this.length, this.length + length);

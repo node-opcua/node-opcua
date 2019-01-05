@@ -35,9 +35,8 @@ export function constructBrowsePathFromQualifiedName(
     });
 
     const browsePath = new BrowsePath({
+        relativePath: { elements },
         startingNode: startingNode.nodeId, // ROOT
-
-        relativePath: { elements }
     });
     return browsePath;
 }

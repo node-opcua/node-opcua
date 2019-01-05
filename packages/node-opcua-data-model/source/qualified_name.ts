@@ -8,6 +8,7 @@ import {
     check_options_correctness_against_schema, initialize_field,
     parameters,
     registerSpecialVariantEncoder,
+    StructuredTypeSchema
 } from "node-opcua-factory";
 
 import * as _ from "underscore";
@@ -48,7 +49,8 @@ export interface QualifiedNameOptions {
 }
 
 export class QualifiedName extends BaseUAObject {
-    public static schema = schemaQualifiedName;
+
+    public static schema: StructuredTypeSchema = schemaQualifiedName;
 
     public static possibleFields: string[] = [
         "namespaceIndex",

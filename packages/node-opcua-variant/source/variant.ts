@@ -541,10 +541,13 @@ function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstr
         newArr[i] = coerceFunc(value[i]);
     }
     if (arrayTypeConstructor && displayWarning && n > 10) {
+        // tslint:disable-next-line:no-console
         console.log("Warning ! an array containing  " + DataType[dataType] +
             " elements has been provided as a generic array. ");
+        // tslint:disable-next-line:no-console
         console.log("          This is inefficient as every array value will " +
             "have to be coerced and verified against the expected type");
+        // tslint:disable-next-line:no-console
         console.log("          It is highly recommended that you use a " +
             " typed array ", arrayTypeConstructor.constructor.name, " instead");
     }
@@ -601,8 +604,8 @@ function encodeVariantArray(dataType: DataType, stream: BinaryStream, value: any
         try {
             return _getHelper(dataType).encode(stream, value);
         } catch (err) {
-            console.log("DATATYPE", dataType);
-            console.log("value", value.length);
+            // tslint:disable-next-line:no-console
+            console.log("encodeVariantArray error : DATATYPE", dataType, "\nvalue", value.length);
         }
     }
     return encodeGeneralArray(dataType, stream, value);

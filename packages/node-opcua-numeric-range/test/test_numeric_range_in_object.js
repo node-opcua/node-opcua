@@ -33,7 +33,7 @@ class ObjWithNumericRange extends BaseUAObject
         this.numericRange = decodeNumericRange(stream);
     }
 }
-ObjWithNumericRange.prototype.schema = schemaObjWithNumericRange
+ObjWithNumericRange.prototype.schema = schemaObjWithNumericRange;
 ObjWithNumericRange.schema = schemaObjWithNumericRange;
 
 describe(" encoding / decoding", function () {

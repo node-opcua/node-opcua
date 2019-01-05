@@ -9,4 +9,4 @@ export const SampleBase_Schema = {
     fields: [
         {name: "name", fieldType: "String", documentation: "The name."}
     ]
-}
+};

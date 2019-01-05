@@ -6,35 +6,37 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { DateTime, UInt8 } from "node-opcua-basic-types";
+import { DateTime } from "node-opcua-basic-types";
 import { ReferenceTypeIds, StatusCodes } from "node-opcua-constants";
 import { Certificate, Nonce } from "node-opcua-crypto";
-import {
-    attributeNameById,
-    BrowseDirection,
-    LocalizedTextLike,
-    makeResultMask
-} from "node-opcua-data-model";
+import { attributeNameById, BrowseDirection, LocalizedTextLike, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { ErrorCallback, SignatureData } from "node-opcua-secure-channel";
 import {
-    BrowseDescription, BrowseDescriptionOptions, BrowseRequest, BrowseResponse, BrowseResult
+    BrowseDescription,
+    BrowseDescriptionOptions,
+    BrowseRequest,
+    BrowseResponse,
+    BrowseResult
 } from "node-opcua-service-browse";
-import {
-    CallMethodRequest, CallMethodRequestOptions, CallMethodResult, CallRequest, CallResponse
-} from "node-opcua-service-call";
+import { CallMethodRequest, CallMethodResult, CallRequest, CallResponse } from "node-opcua-service-call";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import {
-    HistoryReadRequest, HistoryReadRequestOptions, HistoryReadResponse, HistoryReadResult, ReadRawModifiedDetails
+    HistoryReadRequest,
+    HistoryReadResponse,
+    HistoryReadResult,
+    ReadRawModifiedDetails
 } from "node-opcua-service-history";
+import { QueryFirstRequest, QueryFirstResponse } from "node-opcua-service-query";
 import {
-    QueryFirstRequest, QueryFirstRequestOptions, QueryFirstResponse, QueryNextRequest, QueryNextResponse
-} from "node-opcua-service-query";
-import {
-    AttributeIds, ReadRequest,
-    ReadResponse, ReadValueId, ReadValueIdOptions, TimestampsToReturn
+    AttributeIds,
+    ReadRequest,
+    ReadResponse,
+    ReadValueId,
+    ReadValueIdOptions,
+    TimestampsToReturn
 } from "node-opcua-service-read";
 import {
     RegisterNodesRequest,
@@ -44,65 +46,61 @@ import {
 } from "node-opcua-service-register-node";
 import {
     CreateMonitoredItemsRequest,
-    CreateMonitoredItemsRequestOptions,
     CreateMonitoredItemsResponse,
     CreateSubscriptionRequest,
-    CreateSubscriptionRequestOptions,
     CreateSubscriptionResponse,
     DeleteMonitoredItemsRequest,
-    DeleteMonitoredItemsRequestOptions,
     DeleteMonitoredItemsResponse,
     DeleteSubscriptionsRequest,
-    DeleteSubscriptionsRequestOptions,
     DeleteSubscriptionsResponse,
     ModifyMonitoredItemsRequest,
-    ModifyMonitoredItemsRequestOptions,
     ModifyMonitoredItemsResponse,
     ModifySubscriptionRequest,
-    ModifySubscriptionRequestOptions,
     ModifySubscriptionResponse,
     PublishRequest,
     PublishResponse,
     RepublishRequest,
     RepublishResponse,
     SetMonitoringModeRequest,
-    SetMonitoringModeRequestOptions,
     SetMonitoringModeResponse,
     SetPublishingModeRequest,
     SetPublishingModeResponse,
-    TransferSubscriptionsRequest, TransferSubscriptionsRequestOptions, TransferSubscriptionsResponse,
-
+    TransferSubscriptionsRequest,
+    TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
 import {
-    BrowsePath, BrowsePathResult,
+    BrowsePath,
+    BrowsePathResult,
     TranslateBrowsePathsToNodeIdsRequest,
     TranslateBrowsePathsToNodeIdsResponse
 } from "node-opcua-service-translate-browse-path";
-import {
-    WriteRequest, WriteResponse, WriteValue, WriteValueOptions
-} from "node-opcua-service-write";
+import { WriteRequest, WriteResponse, WriteValue } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
 import { getFunctionParameterNames, isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
-import { DataType, Variant, VariantLike, VariantOptions } from "node-opcua-variant";
+import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
 import { ClientSubscription } from "../client_subscription";
 import { Request, Response } from "../common";
 import { ClientSidePublishEngine } from "./client_publish_engine";
-
-import { OPCUAClientBase } from "../client_base";
 import {
     ArgumentDefinition,
-    BrowseDescriptionLike, CallMethodRequestLike,
+    BrowseDescriptionLike,
+    CallMethodRequestLike,
     ClientSession,
     CreateMonitoredItemsRequestLike,
-    CreateSubscriptionOptions,
-    CreateSubscriptionRequestLike, DeleteMonitoredItemsRequestLike,
-    DeleteSubscriptionsRequestLike, MethodId,
+    CreateSubscriptionRequestLike,
+    DeleteMonitoredItemsRequestLike,
+    DeleteSubscriptionsRequestLike,
+    MethodId,
     ModifyMonitoredItemsRequestLike,
-    ModifySubscriptionRequestLike, MonitoredItemData,
-    NodeAttributes, QueryFirstRequestLike, ReadValueIdLike,
-    SetMonitoringModeRequestLike, SubscriptionId,
+    ModifySubscriptionRequestLike,
+    MonitoredItemData,
+    NodeAttributes,
+    QueryFirstRequestLike,
+    ReadValueIdLike,
+    SetMonitoringModeRequestLike,
+    SubscriptionId,
     TransferSubscriptionsRequestLike,
     WriteValueLike
 } from "../client_session";
@@ -208,11 +206,14 @@ function __findBasicDataType(
     callback: (err: Error | null, dataType?: DataType) => void
 ) {
 
+    if (dataTypeId.identifierType !==  NodeIdType.NUMERIC) {
+        throw new Error("Invalid NodeId Identifier type => Numeric expected");
+    }
     assert(dataTypeId instanceof NodeId);
 
     if (dataTypeId.value <= 25) {
         // we have a well-known DataType
-        const dataTypeName = DataType[dataTypeId.value];
+        const dataTypeName = DataType[dataTypeId.value as number];
         callback(null, dataTypeId.value as DataType);
     } else {
 

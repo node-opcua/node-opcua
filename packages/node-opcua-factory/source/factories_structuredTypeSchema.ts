@@ -88,11 +88,13 @@ function buildField(fieldLight: FieldInterfaceOptions): FieldType {
     const schema = figureOutSchema(fieldLight, category);
     return {
         name: lowerFirstLetter(fieldLight.name),
+
+        category,
+        defaultValue: fieldLight.defaultValue,
         isArray: fieldLight.isArray,
+
         documentation: fieldLight.documentation,
         fieldType: fieldLight.fieldType,
-        defaultValue: fieldLight.defaultValue,
-        category,
         schema
     };
 }
@@ -205,13 +207,14 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
 
     // istanbul ignore next
     if (!_.isObject(options) && !(typeof(options) === "object")) {
-        let message = chalk.red(" Invalid options specified while trying to construct a ") + " " + chalk.yellow(schema.name);
+        let message = chalk.red(" Invalid options specified while trying to construct a ")
+          + " " + chalk.yellow(schema.name);
         message += "\n";
         message += chalk.red(" expecting a ") + chalk.yellow(" Object ");
         message += "\n";
         message += chalk.red(" and got a ") + chalk.yellow((typeof options)) + chalk.red(" instead ");
-        console.log(" Schema  = ", schema);
-        console.log(" options = ", options);
+        // console.log(" Schema  = ", schema);
+        // console.log(" options = ", options);
         throw new Error(message);
     }
 
@@ -231,11 +234,10 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
 
     /* istanbul ignore next */
     if (invalidOptionsFields.length > 0) {
+        // tslint:disable:no-console
         console.log("expected schema", schema.name);
-        // xx console.log("schema", schema);
         console.log(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
         console.log(chalk.red("current fields= "), currentFields.sort().join(" "));
-        // display_trace_from_this_projet_only();
         console.log(chalk.cyan("invalid_options_fields= "), invalidOptionsFields.sort().join(" "));
     }
     if (invalidOptionsFields.length !== 0) {
@@ -247,4 +249,3 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
 export function buildStructuredType(schemaLight: StructuredTypeOptions): StructuredTypeSchema {
     return new StructuredTypeSchema(schemaLight);
 }
-

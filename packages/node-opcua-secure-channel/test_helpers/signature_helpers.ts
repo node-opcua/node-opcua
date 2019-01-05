@@ -1,21 +1,22 @@
-import { assert } from "node-opcua-assert";
 import * as  fs from "fs";
-import * as should from "should";
+import { assert } from "node-opcua-assert";
+import { makeMessageChunkSignature, verifyChunkSignature } from "node-opcua-crypto";
 import { SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { SecureMessageChunkManager, SequenceNumberGenerator, SecureMessageChunkManagerOptions } from "../source";
-import { makeMessageChunkSignature ,verifyChunkSignature } from "node-opcua-crypto";
+import * as should from "should";
+import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SequenceNumberGenerator } from "../source";
 
+// tslint:disable:no-var-requires
 const getFixture = require("node-opcua-test-fixtures").getFixture;
 
 function construct_makeMessageChunkSignatureForTest() {
 
     const privateKey = fs.readFileSync(getFixture("certs/server_key_1024.pem")).toString("ascii");
 
-    return  (chunk: Buffer) => {
+    return (chunk: Buffer) => {
         const options = {
             algorithm: "RSA-SHA256",
+            privateKey,
             signatureLength: 128,
-            privateKey
         };
         const buf = makeMessageChunkSignature(chunk, options); // Buffer
         assert(buf instanceof Buffer, "expecting a Buffer");
@@ -25,23 +26,22 @@ function construct_makeMessageChunkSignatureForTest() {
 
 export const makeMessageChunkSignatureForTest = construct_makeMessageChunkSignatureForTest();
 
-
 export function construct_verifyMessageChunkSignatureForTest() {
     const publicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub")).toString("ascii");
-    return  (chunk: Buffer)  => {
+    return (chunk: Buffer) => {
         assert(chunk instanceof Buffer);
         const options = {
             algorithm: "RSA-SHA256",
-            signatureLength: 128,
-            publicKey
+            publicKey,
+            signatureLength: 128
         };
 
         return verifyChunkSignature(chunk, options);
     };
 
 }
-export const verifyMessageChunkSignatureForTest = construct_verifyMessageChunkSignatureForTest();
 
+export const verifyMessageChunkSignatureForTest = construct_verifyMessageChunkSignatureForTest();
 
 export function performMessageChunkManagerTest(options: SecureMessageChunkManagerOptions) {
 
@@ -58,11 +58,9 @@ export function performMessageChunkManagerTest(options: SecureMessageChunkManage
 
     const sequenceNumberGenerator = new SequenceNumberGenerator();
 
-
     const msgChunkManager = new SecureMessageChunkManager(
-        "HEL", options, securityHeader, sequenceNumberGenerator
+      "HEL", options, securityHeader, sequenceNumberGenerator
     );
-
 
     const chunks: Buffer[] = [];
 
@@ -76,9 +74,9 @@ export function performMessageChunkManagerTest(options: SecureMessageChunkManage
         chunks.push(chunkCopy);
     }
 
-    msgChunkManager.on("chunk",  (chunk: Buffer, final: boolean) => {
+    msgChunkManager.on("chunk", (chunk: Buffer, final: boolean) => {
 
-         collect_chunk(chunk);
+        collect_chunk(chunk);
 
         chunkCounter += 1;
         if (!final) {
@@ -129,5 +127,4 @@ export function performMessageChunkManagerTest(options: SecureMessageChunkManage
     if (options.verifyBufferFunc) {
         chunks.forEach(options.verifyBufferFunc);
     }
-
 }

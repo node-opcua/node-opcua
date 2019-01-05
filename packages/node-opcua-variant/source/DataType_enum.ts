@@ -34,6 +34,7 @@ export enum DataType {
 }
 const schemaDataType = {
     name: "DataType",
+
     enumValues: DataType
 };
 export const _enumerationDataType: Enum = registerEnumeration(schemaDataType);

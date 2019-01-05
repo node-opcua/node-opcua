@@ -10,11 +10,11 @@ describe("XMLToJSON", function () {
         const parser = new Xml2Json({
 
             parser: {
-                'person': {
+                "person": {
                     init: function (name, attrs) {
                         name.should.equal("person");
                         attrs.should.have.property("name");
-                        attrs['name'].should.equal("John");
+                        attrs["name"].should.equal("John");
                         init_called = true;
 
                         this.parent.root.obj = {};
@@ -23,13 +23,13 @@ describe("XMLToJSON", function () {
                     },
                     finish: function (name) {
 
-                        this.obj.should.eql({name: 'John', address: 'Paris'});
+                        this.obj.should.eql({ name: "John", address: "Paris" });
                         finish_called = true;
                     },
                     parser: {
-                        'address': {
+                        "address": {
                             finish: function () {
-                                this.parent.obj['address'] = this.text;
+                                this.parent.obj["address"] = this.text;
                             }
                         }
                     }
@@ -38,19 +38,19 @@ describe("XMLToJSON", function () {
         });
 
         parser.parseString(
-            "<employees>" +
-            "   <person name='John'>" +
-            "     <address>Paris</address>" +
-            "   </person>" +
-            "</employees>", function () {
+          "<employees>" +
+          "   <person name='John'>" +
+          "     <address>Paris</address>" +
+          "   </person>" +
+          "</employees>", function () {
 
-                init_called.should.equal(true);
+              init_called.should.equal(true);
 
-                finish_called.should.equal(true);
+              finish_called.should.equal(true);
 
-                parser.obj.should.eql({name: 'John', address: 'Paris'});
-                done();
-            });
+              parser.obj.should.eql({ name: "John", address: "Paris" });
+              done();
+          });
 
     });
     xit("should parse a UTF8 encoded xml file with a BOM", function (done) {
@@ -69,12 +69,12 @@ describe("XMLToJSON", function () {
         });
     });
 
-    it("should parse a escaped string",function (done) {
+    it("should parse a escaped string", function (done) {
 
         let displayName = null;
         const parser = new Xml2Json({
             parser: {
-                'DisplayName': {
+                "DisplayName": {
                     finish: function () {
                         displayName = this.text;
                     }
@@ -83,12 +83,12 @@ describe("XMLToJSON", function () {
         });
 
         parser.parseString(
-            "<object>" +
-            "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" +
-            "</object>", function () {
-                displayName.should.eql("<HelloWorld>");
-                done();
-            });
+          "<object>" +
+          "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" +
+          "</object>", function () {
+              displayName.should.eql("<HelloWorld>");
+              done();
+          });
 
 
     });

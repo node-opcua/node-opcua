@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-generator
  */
+// tslint:disable:max-line-length
 import * as fs from "fs";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";

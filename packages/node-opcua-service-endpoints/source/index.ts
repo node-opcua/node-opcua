@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-service-endpoints
  */
+// tslint:disable:max-line-length
 export {
     ApplicationType,
     ApplicationDescription,
@@ -27,7 +28,6 @@ import { UserTokenType } from "node-opcua-types";
 // 5.   discoveryProfileUri   String          A URI that identifies the discovery profile supported by the URLs provided
 // 6.   discoveryUrls         String[]        A list of URLs for the discovery Endpoints provided by the application
 
-
 // OPC Unified Architecture, Part 4 page 121
 // EndpointDescription",
 //   endpointUrl          String                     The URL for the Endpoint described.
@@ -43,7 +43,6 @@ import { UserTokenType } from "node-opcua-types";
 //                                                   is compared to other EndpointDescriptions for the same Server.
 //                                                   A value of 0 indicates that the EndpointDescription is not
 //                                                   recommended and is only supported for backward compatibility.
-
 
 // OPC Unified Architecture, Part 4 page 16
 // GetEndpointsRequest
@@ -88,5 +87,3 @@ import { UserTokenType } from "node-opcua-types";
 //                                             EndpointDescription.)
 // ", defaultValue: null  }
 //
-
-

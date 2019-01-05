@@ -1,6 +1,7 @@
 /***
  * @module node-opcua-buffer-utils
  */
+
 //
 // note: new Buffer(size)#  is deprecated since: v6.0. and is replaced with Buffer.allocUnsafe
 //       to ensure backward compatibility we have to replace
@@ -9,6 +10,7 @@
 //       Buffer.alloc and Buffer.allocUnsafe have been introduced in nodejs 5.1.0
 //  in node 0.11 new Buffer
 //
+// tslint:disable-next-line:ban-types
 export const createFastUninitializedBuffer: Function =
     Buffer.allocUnsafe ? Buffer.allocUnsafe :  (size: number) => {
         return new Buffer(size);

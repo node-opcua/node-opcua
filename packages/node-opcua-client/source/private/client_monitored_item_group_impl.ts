@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-client-private
  */
+// tslint:disable:no-empty
 import { EventEmitter } from "events";
 import * as _ from "underscore";
 
@@ -10,6 +11,8 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { MonitoringMode, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
 
+import { resolveNodeId } from "node-opcua-nodeid";
+import { ReadValueIdOptions } from "node-opcua-types";
 import { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
@@ -17,8 +20,6 @@ import { ClientSubscription } from "../client_subscription";
 import { Callback, ErrorCallback } from "../common";
 import { ClientMonitoredItemBaseImpl } from "./client_monitored_item_base_impl";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
-import { ReadValueIdOptions } from "node-opcua-types";
-import { resolveNodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);

@@ -34,8 +34,8 @@ function construct_address_space(server) {
     vesselPressure.setValueFromSource({dataType:"Double",value:value});
     t=t+1;
   }, 200);
-  
-};
+
+}
 function post_initialize() {
     construct_address_space(server);
     server.start(function(err) {

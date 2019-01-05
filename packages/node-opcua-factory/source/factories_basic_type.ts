@@ -2,13 +2,12 @@
  * @module node-opcua-factory
  */
 import assert from "node-opcua-assert";
-import * as  _ from "underscore";
-import { registerType, findSimpleType } from "./factories_builtin_types";
-import { validateLocaleId, decodeLocaleId, encodeLocaleId } from "node-opcua-basic-types";
-import * as util from "util";
+import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
+import * as  _ from "underscore";
+import * as util from "util";
+import { findSimpleType, registerType } from "./factories_builtin_types";
 import { BasicTypeDefinition, BasicTypeDefinitionOptions } from "./types";
-
 
 export interface BasicTypeOptions {
     name: string;
@@ -38,15 +37,15 @@ export interface BasicTypeOptions {
  * @param schema.encode.value  {*}
  * @param schema.encode.stream {BinaryStream}
  *
- * @param [schema.decode] {Function} optional,a specific decoder function that returns  the decode value out of the stream.
+ * @param [schema.decode] optional,a specific decoder function that returns  the decode value out of the stream.
  * @param [schema.decode.stream] {BinaryStream}
  *
- * @param [schema.coerce] {Function} optional, a method to convert a value into the request type.
+ * @param [schema.coerce]  optional, a method to convert a value into the request type.
  * @param schema.coerce.value {*} the value to coerce.
  *
- * @param [schema.random] {Function} optional, a method to construct a random object of this type
+ * @param [schema.random] optional, a method to construct a random object of this type
  *
- * @param [schema.toJSON]{Function} optional, a method to convert a value into the request type.
+ * @param [schema.toJSON]optional, a method to convert a value into the request type.
  */
 export function registerBasicType(schema: BasicTypeOptions) {
 
@@ -56,6 +55,7 @@ export function registerBasicType(schema: BasicTypeOptions) {
 
     /* istanbul ignore next */
     if (!t) {
+        // tslint:disable-next-line:no-console
         console.log(util.inspect(schema, { colors: true}));
         throw new Error(" cannot find subtype " + schema.subType);
     }
@@ -76,13 +76,19 @@ export function registerBasicType(schema: BasicTypeOptions) {
 
     const newSchema = {
         name,
-        encode: encodeFunc,
-        decode: decodeFunc,
-        defaultValue,
-        coerce: coerceFunc,
-        toJSON: toJSONFunc,
+
         subType: schema.subType,
-        random
+
+        coerce: coerceFunc,
+        decode: decodeFunc,
+        encode: encodeFunc,
+
+        random,
+
+        defaultValue,
+
+        toJSON: toJSONFunc,
+
     };
     registerType(newSchema);
 }
@@ -105,10 +111,12 @@ registerBasicType({name: "Time",     subType: "String"});
 
 registerBasicType({name: "LocaleId",
     subType: "String",
-    encode: encodeLocaleId,
+
+    defaultValue: null,
+
     decode: decodeLocaleId,
+    encode: encodeLocaleId,
     validate: validateLocaleId,
-    defaultValue: null
 });
 
 registerBasicType({name: "ContinuationPoint", subType: "ByteString"});

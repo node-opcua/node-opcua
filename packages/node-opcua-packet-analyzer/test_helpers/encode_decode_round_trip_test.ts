@@ -1,14 +1,14 @@
 // @ts-check
-import * as  _ from "underscore";
-import { BinaryStream } from "node-opcua-binary-stream";
-import { BaseUAObject, constructObject } from "node-opcua-factory";
-import { hexDump } from "node-opcua-debug";
-import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import chalk from "chalk";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { hexDump } from "node-opcua-debug";
+import { BaseUAObject, constructObject } from "node-opcua-factory";
+import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import * as should from "should";
+import * as  _ from "underscore";
 
-import { analyzePacket, analyze_object_binary_encoding } from "../source";
-
+import { analyze_object_binary_encoding, analyzePacket } from "../source";
+// tslint:disable:no-console
 
 function dump_block_in_debug_mode(buffer: Buffer, id: any, options: any) {
     if (process.env.DEBUG) {
@@ -59,17 +59,15 @@ function redirectToNull(functor: () => void) {
     const old = console.log;
 
     if (!process.env.DEBUG) {
-        console.log = () => {
-        };
+        // tslint:disable:no-empty
+        console.log = () => {};
     }
 
     try {
         functor();
-    }
-    catch (err) {
+    } catch (err) {
         throw err;
-    }
-    finally {
+    } finally {
         console.log = old;
     }
 }
@@ -92,7 +90,6 @@ export function encode_decode_round_trip_test(obj: any, options: any, callback_b
 
     should.exist(obj);
 
-
     const size = obj.binaryStoreSize(options);
 
     const stream = new BinaryStream(Buffer.alloc(size));
@@ -113,7 +110,6 @@ export function encode_decode_round_trip_test(obj: any, options: any, callback_b
     compare(objReloaded, obj);
     return objReloaded;
 }
-
 
 export function json_encode_decode_round_trip_test(obj: any, options: any, callbackBuffer?: any) {
     if (!callbackBuffer && _.isFunction(options)) {

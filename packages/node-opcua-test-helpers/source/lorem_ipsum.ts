@@ -13,5 +13,3 @@ export const loremIpsum = "Lorem ipsum dolor sit amet, consectetuer adipiscing e
     "lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, " +
     "anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta " +
     "decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.";
-
-

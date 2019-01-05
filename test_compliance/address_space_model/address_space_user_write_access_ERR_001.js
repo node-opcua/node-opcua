@@ -40,7 +40,7 @@ function check_statusCodes_are_expected(err,statusCodes,expectedStatusCodes,extr
 
         for( statusCode in statusCodes) {
 
-            var found = (expectedStatusCodes.indexOf(statusCodes) !== -1)
+            var found = (expectedStatusCodes.indexOf(statusCodes) !== -1);
             if (found) {
                 err = new Error(" Expecting statusCode  " + statusCode.toString() + " to be one of  "+ expectedStatusCodes.toString() );
                 break;

@@ -3,6 +3,9 @@
  */
 // tslint:disable:no-console
 // tslint:disable:object-literal-sort-keys
+// tslint:disable:max-line-length
+// tslint:disable:no-var-requires
+// tslint:disable:no-empty
 
 import chalk from "chalk";
 import * as fs from "fs";
@@ -52,7 +55,7 @@ const predefinedType: any = {
     "ua:StringNodeId": 1,
     "ua:TwoByteNodeId": 1,
     "ua:Variant": 1,
-    "ua:XmlElement": 1,
+    "ua:XmlElement": 1
 };
 
 const found: any = {};
@@ -94,13 +97,13 @@ const state0: any = {
     },
     parser: {
         TypeDictionary: {
-            init: function () {
+            init: function() {
                 const self = this as any;
                 self.typeDictionary = self.engine.typeDictionary;
             },
             parser: {
                 Import: {
-                    finish: function () {
+                    finish: function() {
                         const self = this as any;
                         // _register_namespace_uri(this.text);
                         console.log("Import NameSpace = ", self.attrs.Namespace, " Location", self.attrs.Location);
@@ -108,34 +111,34 @@ const state0: any = {
                 },
 
                 EnumeratedType: {
-                    init: function () {
+                    init: function() {
 
                         const self = this as any;
 
                         if (doDebug) {
                             console.log(chalk.cyan("EnumeratedType Name="),
-                                w(self.attrs.Name, 40), "LengthInBits=", self.attrs.LengthInBits);
+                              w(self.attrs.Name, 40), "LengthInBits=", self.attrs.LengthInBits);
                         }
 
                         self.enumeratedType = {
                             enumeratedValues: [] as EnumeratedValue[],
                             lengthInBits: parseInt(self.attrs.LengthInBits, 10),
-                            name: self.attrs.Name,
+                            name: self.attrs.Name
                         };
                     },
                     parser: {
                         Documentation: {
-                            finish: function () {
+                            finish: function() {
                                 const self = this as any;
                                 self.parent.enumeratedType.documentation = self.text;
                             }
                         },
                         EnumeratedValue: {
-                            finish: function () {
+                            finish: function() {
                                 const self = this as any;
                                 if (doDebug) {
                                     console.log(" EnumeratedValue Name=",
-                                        w(self.attrs.Name, 40), " Value=", self.attrs.Value);
+                                      w(self.attrs.Name, 40), " Value=", self.attrs.Value);
                                 }
                                 self.parent.enumeratedType.enumeratedValues.push({
                                     name: self.attrs.Name,
@@ -144,17 +147,17 @@ const state0: any = {
                             }
                         }
                     },
-                    finish: function () {
+                    finish: function() {
                         const self = this as any;
                         self.parent.typeDictionary.enumeratedTypes[self.attrs.Name] = self.enumeratedType;
                     }
                 },
                 StructuredType: {
-                    init: function () {
+                    init: function() {
                         const self = this as any;
                         if (doDebug) {
                             console.log(chalk.cyan("StructureType Name="),
-                                self.attrs.Name.green, " BaseType=", self.attrs.BaseType);
+                              self.attrs.Name.green, " BaseType=", self.attrs.BaseType);
                         }
                         const baseType = self.attrs.BaseType;
 
@@ -171,22 +174,22 @@ const state0: any = {
                     },
                     parser: {
                         Field: {
-                            finish: function () {
+                            finish: function() {
                                 const self = this as any;
 
                                 if (self.attrs.SourceType) {
                                     // ignore  this field, This is a repeatition of the base type field with same name
-                                   return;
+                                    return;
                                 }
                                 if (doDebug) {
                                     console.log(
-                                        chalk.yellow(" field Name="), w(self.attrs.Name, 40),
-                                        chalk.yellow(" field TypeName="), w(self.attrs.TypeName, 40),
-                                        chalk.yellow(" field LengthField="), w(self.attrs.LengthField, 40));
+                                      chalk.yellow(" field Name="), w(self.attrs.Name, 40),
+                                      chalk.yellow(" field TypeName="), w(self.attrs.TypeName, 40),
+                                      chalk.yellow(" field LengthField="), w(self.attrs.LengthField, 40));
                                 }
                                 resolveType(self.parent.typeDictionary, self.attrs.TypeName);
 
-                                const field: any = {name: self.attrs.Name, fieldType: self.attrs.TypeName};
+                                const field: any = { name: self.attrs.Name, fieldType: self.attrs.TypeName };
 
                                 if (field.fieldType === "opc:Bit") {
                                     // do something to collect bits but ignore them as field
@@ -205,7 +208,7 @@ const state0: any = {
                             }
                         }
                     },
-                    finish: function () {
+                    finish: function() {
                         const self = this as any;
                         self.parent.typeDictionary.structuredTypes[self.attrs.Name] = self.structuredType;
                     }
@@ -216,9 +219,9 @@ const state0: any = {
 };
 
 export function parseBinaryXSD(
-    xmlString: string,
-    callback: (err: Error | null, typeDictionary: TypeDictionary
-    ) => void) {
+  xmlString: string,
+  callback: (err: Error | null, typeDictionary: TypeDictionary
+  ) => void) {
 
     const typeDictionary: TypeDictionary = {
         structuredTypes: {},

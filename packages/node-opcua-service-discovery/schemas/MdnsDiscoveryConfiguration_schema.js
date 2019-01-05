@@ -1,6 +1,6 @@
 "use strict";
 require("node-opcua-data-model");
-require("node-opcua-service-endpoints")
+require("node-opcua-service-endpoints");
 const factories = require("node-opcua-factory");
 
 const MdnsDiscoveryConfiguration_Schema = {

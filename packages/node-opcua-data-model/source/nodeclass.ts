@@ -16,8 +16,8 @@ export enum NodeClass {
 }
 export const schemaEnumNodeClass = {
     name: "NodeClass",
+
     documentation: "A mask specifying the class of the node.",
     enumValues: NodeClass
 };
 registerEnumeration(schemaEnumNodeClass);
-

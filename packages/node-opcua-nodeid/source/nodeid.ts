@@ -1,18 +1,19 @@
 /**
  * @module node-opcua-nodeid
  */
+// tslint:disable:no-conditional-assignment
 import assert from "node-opcua-assert";
-import { isValidGuid, emptyGuid } from "node-opcua-guid";
-import * as  _ from "underscore";
 import {
     DataTypeIds,
-    VariableIds,
+    MethodIds,
     ObjectIds,
     ObjectTypeIds,
-    VariableTypeIds,
-    MethodIds,
-    ReferenceTypeIds
+    ReferenceTypeIds,
+    VariableIds,
+    VariableTypeIds
 } from "node-opcua-constants";
+import { emptyGuid, Guid, isValidGuid } from "node-opcua-guid";
+import * as  _ from "underscore";
 
 /**
  * `NodeIdType` an enumeration that specifies the possible types of a `NodeId` value.
@@ -44,14 +45,10 @@ export enum NodeIdType {
     BYTESTRING = 0x04
 }
 
-
 /**
  * Construct a node ID
  *
  * @class NodeId
- * @param {NodeIdType}                identifierType   - the nodeID type
- * @param {Number|String|GUID|Buffer} value            - the node id value. The type of Value depends on identifierType.
- * @param {Number}                    namespace        - the index of the related namespace (optional , default value = 0 )
  * @example
  *
  *    ``` javascript
@@ -61,40 +58,34 @@ export enum NodeIdType {
  */
 export class NodeId {
 
-    identifierType: NodeIdType;
-    value: any;
-    namespace: number;
+    public static NodeIdType = NodeIdType;
+    public static nullNodeId: NodeId;
+    public static resolveNodeId: (a: string | NodeId) => NodeId;
+    public static sameNodeId: (n1: NodeId, n2: NodeId) => boolean;
 
+    public identifierType: NodeIdType;
+    public value: number | string | Buffer | Guid;
+    public namespace: number;
+
+    /**
+     * @param identifierType   - the nodeID type
+     * @param value            - the node id value. The type of Value depends on identifierType.
+     * @param namespace        - the index of the related namespace (optional , default value = 0 )
+     */
     constructor(identifierType: NodeIdType, value: any, namespace?: number) {
 
-        /**
-         * @property identifierType
-         * @type {NodeIdType}
-         */
         this.identifierType = identifierType;
-
-        /**
-         * @property  value
-         * @type  {*}
-         */
-
         this.value = value;
-        /**
-         * @property namespace
-         * @type {Number}
-         */
         this.namespace = namespace || 0;
 
         // namespace shall be a UInt16
         assert(this.namespace >= 0 && this.namespace <= 0xFFFF);
 
         assert(this.identifierType !== NodeIdType.NUMERIC || (this.value >= 0 && this.value <= 0xFFFFFFFF));
-        assert(this.identifierType !== NodeIdType.GUID || isValidGuid(this.value));
+        assert(this.identifierType !== NodeIdType.GUID || isValidGuid(this.value as string));
         assert(this.identifierType !== NodeIdType.STRING || typeof this.value === "string");
 
     }
-
-    static NodeIdType = NodeIdType;
 
     /**
      * get the string representation of the nodeID.
@@ -114,7 +105,7 @@ export class NodeId {
      * @param [options.addressSpace] {AddressSpace}
      * @return {String}
      */
-    toString(options?: { addressSpace?: any }): string {
+    public toString(options?: { addressSpace?: any }): string {
 
         const addressSpace = options ? options.addressSpace : null;
         let str;
@@ -129,9 +120,10 @@ export class NodeId {
                 str = "ns=" + this.namespace + ";g=" + this.value;
                 break;
             default:
-                assert(this.identifierType === NodeIdType.BYTESTRING, "invalid identifierType in NodeId : " + this.identifierType);
+                assert(this.identifierType === NodeIdType.BYTESTRING,
+                  "invalid identifierType in NodeId : " + this.identifierType);
                 if (this.value) {
-                    str = "ns=" + this.namespace + ";b=" + this.value.toString("hex");
+                    str = "ns=" + this.namespace + ";b=" + (this.value as Buffer).toString("hex");
                 } else {
                     str = "ns=" + this.namespace + ";b=<null>";
                 }
@@ -141,7 +133,7 @@ export class NodeId {
         if (addressSpace) {
             if (this.namespace === 0 && (this.identifierType === NodeIdType.NUMERIC)) {
                 // find standard browse name
-                const name = reverse_map(this.value) || "<undefined>";
+                const name = reverse_map(this.value.toString()) || "<undefined>";
                 str += " " + name.green.bold;
             } else {
                 // let use the provided address space to figure out the browseNode of this node.
@@ -153,23 +145,17 @@ export class NodeId {
         return str;
     }
 
-
     /**
      * convert nodeId to a JSON string. same as {@link NodeId#toString }
-     * @method  toJSON
-     * @return {String}
      */
-    toJSON(): string {
+    public toJSON(): string {
         return this.toString();
     }
 
-    /**
-     * @return {String}
-     */
-    displayText(): string {
+    public displayText(): string {
 
         if (this.namespace === 0 && this.identifierType === NodeIdType.NUMERIC) {
-            const name = reverse_map(this.value);
+            const name = reverse_map(this.value.toString());
             if (name) {
                 return name + " (" + this.toString() + ")";
             }
@@ -177,40 +163,34 @@ export class NodeId {
         return this.toString();
     }
 
-
     /**
-     * @method isEmpty
-     * @return {Boolean} true if the NodeId is null or empty
+     * returns true if the NodeId is null or empty
      */
-    isEmpty(): boolean {
+    public isEmpty(): boolean {
         switch (this.identifierType) {
             case NodeIdType.NUMERIC:
                 return this.value === 0;
             case NodeIdType.STRING:
-                return !this.value || this.value.length === 0;
+                return !this.value || (this.value as string).length === 0;
             case NodeIdType.GUID:
                 return !this.value || this.value === emptyGuid;
             default:
-                assert(this.identifierType === NodeIdType.BYTESTRING, "invalid identifierType in NodeId : " + this.identifierType);
-                return !this.value || this.value.length === 0;
+                assert(this.identifierType === NodeIdType.BYTESTRING,
+                  "invalid identifierType in NodeId : " + this.identifierType);
+                return !this.value || (this.value as Buffer).length === 0;
         }
     }
 
-    static nullNodeId: NodeId;
-    static resolveNodeId: (a: string | NodeId) => NodeId;
-    static sameNodeId: (n1: NodeId, n2: NodeId) => boolean;
 }
 
 NodeId.nullNodeId = new NodeId(NodeIdType.NUMERIC, 0);
 
 export type NodeIdLike = string | NodeId;
 
-
 const regexNamespaceI = /ns=([0-9]+);i=([0-9]+)/;
 const regexNamespaceS = /ns=([0-9]+);s=(.*)/;
 const regexNamespaceB = /ns=([0-9]+);b=(.*)/;
 const regexNamespaceG = /ns=([0-9]+);g=(.*)/;
-
 
 /**
  * Convert a value into a nodeId:
@@ -219,17 +199,16 @@ const regexNamespaceG = /ns=([0-9]+);g=(.*)/;
  * @static
  *
  * @description:
- *    - if nodeId is a string of form : "i=1234" => nodeId({ namespace: 0 , value=1234  , identifierType: NodeIdType.NUMERIC})
- *    - if nodeId is a string of form : "s=foo"  => nodeId({ namespace: 0 , value="foo" , identifierType: NodeIdType.STRING})
+ *    - if nodeId is a string of form : "i=1234" => nodeId({value=1234, identifierType: NodeIdType.NUMERIC})
+ *    - if nodeId is a string of form : "s=foo"  => nodeId({value="foo", identifierType: NodeIdType.STRING})
  *    - if nodeId is a {@link NodeId} :  coerceNodeId returns value
- *
  * @param value
  * @param namespace {number}
  */
 export function coerceNodeId(value: any, namespace?: number): NodeId {
 
-    let matches, twoFirst;
-
+    let matches;
+    let twoFirst;
     if (value instanceof NodeId) {
         return value;
     }
@@ -307,7 +286,6 @@ export function coerceNodeId(value: any, namespace?: number): NodeId {
     return new NodeId(identifierType, value, namespace);
 }
 
-
 /**
  * construct a node Id from a value and a namespace.
  * @class opcua
@@ -317,7 +295,7 @@ export function coerceNodeId(value: any, namespace?: number): NodeId {
  * @param [namespace]=0 {Number} the node id namespace
  * @return {NodeId}
  */
-export function makeNodeId(value: any, namespace?: number) {
+export function makeNodeId(value: string | Buffer | number, namespace?: number) {
 
     value = value || 0;
     namespace = namespace || 0;
@@ -347,7 +325,6 @@ export function makeNodeId(value: any, namespace?: number) {
 
     return nodeId;
 }
-
 
 // reverse maps
 let _nodeIdToNameIndex: any = {};
@@ -383,7 +360,6 @@ function reverse_map(nodeId: string) {
     return _nodeIdToNameIndex[nodeId];
 }
 
-
 /**
  * @class opcua
  * @method resolveNodeId
@@ -405,7 +381,6 @@ export function resolveNodeId(nodeIdOrString: NodeId | string): NodeId {
 }
 
 NodeId.resolveNodeId = resolveNodeId;
-
 
 export function sameNodeId(n1: NodeId, n2: NodeId): boolean {
     if (n1.identifierType !== n2.identifierType) {

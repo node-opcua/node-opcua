@@ -35,6 +35,7 @@ import {
 } from "node-opcua-crypto";
 import { SecureMessageChunkManagerOptions } from "./secure_message_chunk_manager";
 
+// tslint:disable:no-empty
 function errorLog(...args: any[]) {
 
 }

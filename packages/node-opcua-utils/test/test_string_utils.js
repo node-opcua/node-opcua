@@ -12,7 +12,7 @@ describe("string_utils",function() {
 
         it("should keep a capitalized first letter capitalized",function() {
             capitalizeFirstLetter("Foo").should.eql("Foo");
-        })
+        });
 
         it("should handle nulls",function() {
             should.equal(capitalizeFirstLetter(null), null);

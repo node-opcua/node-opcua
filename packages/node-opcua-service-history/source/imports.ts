@@ -26,9 +26,8 @@ export {
     ReadEventDetails,
     HistoryReadRequestOptions
 } from "node-opcua-types";
-
-import { HistoryReadRequest } from "node-opcua-types";
 import { assert } from "node-opcua-assert";
+import { HistoryReadRequest } from "node-opcua-types";
 
 assert(HistoryReadRequest.schema.fields[2].name === "timestampsToReturn");
 HistoryReadRequest.schema.fields[2].defaultValue = TimestampsToReturn.Neither;

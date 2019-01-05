@@ -67,9 +67,8 @@ async function cycle() {
     //xx await heapdump.writeSnapshot();
 
 }
-;(async ()=> {
-
-  //xx  global.gc(true);
+(async () => {
+    //xx  global.gc(true);
 
 
     for (let i =0;i<1000;i++) {

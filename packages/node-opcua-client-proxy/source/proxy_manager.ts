@@ -283,8 +283,6 @@ export class UAProxyManager {
                 callback(err!);
             });
 
-
-
     }
 
     public _monitor_execution_flag(

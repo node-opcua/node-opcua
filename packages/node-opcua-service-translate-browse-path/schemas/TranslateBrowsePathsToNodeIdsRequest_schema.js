@@ -9,4 +9,4 @@ const TranslateBrowsePathsToNodeIdsRequest_Schema = {
         { name: "browsePath", isArray: true, fieldType: "BrowsePath", documentation: "The list of paths to translate."}
     ]
 };
-exports.TranslateBrowsePathsToNodeIdsRequest_Schema = TranslateBrowsePathsToNodeIdsRequest_Schema
+exports.TranslateBrowsePathsToNodeIdsRequest_Schema = TranslateBrowsePathsToNodeIdsRequest_Schema;

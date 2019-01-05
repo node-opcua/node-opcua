@@ -16,6 +16,3 @@ export function next_available_id(): number  {
 export function is_internal_id(value: number): boolean  {
     return value >= _FIRST_INTERNAL_ID;
 }
-
-
-

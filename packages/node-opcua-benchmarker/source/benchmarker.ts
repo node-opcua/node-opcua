@@ -21,7 +21,7 @@ export interface IRunOptions {
      */
     max_time?: number;
     /**
-     * specify the minimum number of time the benchmarked test cycle should be repeated
+     * specify the minimum number of time the benchmark-ed test cycle should be repeated
      */
     min_count?: number;
 }

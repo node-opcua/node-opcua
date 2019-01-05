@@ -269,8 +269,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         const timestampsToReturn = args[2] as TimestampsToReturn;
         const done = args[3] as Callback<ClientMonitoredItemGroup>;
 
-
-
         const monitoredItemGroup = new ClientMonitoredItemGroupImpl(
             this, itemsToMonitor, requestedParameters, timestampsToReturn);
 

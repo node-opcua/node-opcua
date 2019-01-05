@@ -2,6 +2,15 @@
   "extends": [
     "tslint:recommended"
   ],
+  "linterOptions": {
+    "exclude": [
+      "coverage/",
+      "dist/*",
+      "doc1/*",
+      "documentation/*",
+      "node_modules/*"
+    ]
+  },
   "jsRules": {},
   "rules": {
     "interface-name": [

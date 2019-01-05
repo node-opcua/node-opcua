@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-client-proxy
  */
-import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-client";
+import { NodeClass } from "node-opcua-data-model";
 import { ReferenceDescription } from "node-opcua-service-browse";
 import { ProxyBaseNode } from "./proxy_base_node";
 import { UAProxyManager } from "./proxy_manager";

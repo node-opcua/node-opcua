@@ -67,6 +67,9 @@ export function getConstructor(expandedId: ExpandedNodeId): ConstructorFunc | nu
         console.log(chalk.red("#getConstructor : cannot find constructor for expandedId "), expandedId.toString());
         return null;
     }
+    if (expandedId.value instanceof Buffer) {
+        throw new Error("getConstructor not implemented for opaque nodeId");
+    }
     return constructorMap[expandedId.value];
 }
 
@@ -78,6 +81,9 @@ export function hasConstructor(expandedId: ExpandedNodeId) {
     // only namespace 0 can be in constructorMap
     if (expandedId.namespace !== 0) {
         return false;
+    }
+    if (expandedId.value instanceof Buffer) {
+        throw new Error("getConstructor not implemented for opaque nodeId");
     }
     return !!constructorMap[expandedId.value];
 }
@@ -97,9 +103,15 @@ export function registerClassDefinition(className: string, classConstructor: Con
     const expandedNodeId = classConstructor.encodingDefaultBinary;
 
     /* istanbul ignore next */
+    if (expandedNodeId.value instanceof Buffer) {
+        throw new Error("getConstructor not implemented for opaque nodeid");
+    }
+
+    /* istanbul ignore next */
     if (expandedNodeId.value in constructorMap) {
         throw new Error(" Class " + className + " with ID " + expandedNodeId +
           "  already in constructorMap for  " + constructorMap[expandedNodeId.value].name);
     }
+
     constructorMap[expandedNodeId.value] = classConstructor;
 }

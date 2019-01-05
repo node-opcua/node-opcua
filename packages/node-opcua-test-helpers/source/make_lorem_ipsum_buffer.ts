@@ -14,6 +14,4 @@ export function make_simple_buffer(chunkSize: number): Buffer {
         buf.writeUInt8(i % 256, i);
     }
     return buf;
-
 }
-

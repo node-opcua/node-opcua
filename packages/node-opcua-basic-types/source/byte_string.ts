@@ -4,7 +4,7 @@
 import * as _ from "underscore";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { createFastUninitializedBuffer }  from "node-opcua-buffer-utils";
+import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
 import { getRandomInt } from "./utils";
 

@@ -1,5 +1,5 @@
 import {  assert } from "node-opcua-assert";
-import { SequenceNumberGenerator, SecureMessageChunkManager } from "../source";
+import { SecureMessageChunkManager, SequenceNumberGenerator } from "../source";
 
 /**
  * @method decompose_message_body_in_chunks
@@ -21,13 +21,13 @@ export function decompose_message_body_in_chunks(messageBody: Buffer, msgType: s
     const sequenceNumberGenerator = new SequenceNumberGenerator();
 
     const options = {
-        chunkSize,
         channelId: 10,
-        requestId: 36,
-        signatureLength: 0,
-        sequenceHeaderSize: 0,
-        plainBlockSize: 0,
+        chunkSize,
         cipherBlockSize: 0,
+        plainBlockSize: 0,
+        requestId: 36,
+        sequenceHeaderSize: 0,
+        signatureLength: 0,
     };
 
     const msgChunkManager = new SecureMessageChunkManager(msgType, options, null, sequenceNumberGenerator);

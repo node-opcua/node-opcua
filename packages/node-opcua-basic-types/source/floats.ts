@@ -46,8 +46,8 @@ export function roundToFloat2(float: number): number {
     //   significand has a precision of 53 bits (about 16 decimal digits).
     //
     const nbDigits = Math.ceil(Math.log(Math.abs(float)) / Math.log(10));
-    const r = Math.pow(10, -nbDigits + 2);
-    return Math.round(float * r) / r;
+    const scale = Math.pow(10, -nbDigits + 2);
+    return Math.round(float * scale) / scale;
 }
 
 const r = new Float32Array(1);

@@ -3,6 +3,7 @@
  */
 // tslint:disable:object-literal-shorthand
 // tslint:disable:only-arrow-functions
+// tslint:disable:max-line-length
 import { assert } from "node-opcua-assert";
 import { makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
@@ -195,9 +196,10 @@ function extractEventField(eventData: any, selectClause: any) {
         // "ns=0;i=2041" => BaseEventType
         if (selectClause.typeDefinitionId.toString() !== "ns=0;i=2782") {
             // not ConditionType
+            // tslint:disable-next-line:no-console
             console.warn("this case is not handled yet : selectClause.typeDefinitionId = " + selectClause.typeDefinitionId.toString());
-            const eventSource = eventData.$eventDataSource;
-            return new Variant({ dataType: DataType.NodeId, value: eventSource.nodeId });
+            const eventSource1 = eventData.$eventDataSource;
+            return new Variant({ dataType: DataType.NodeId, value: eventSource1.nodeId });
         }
         const conditionTypeNodeId = resolveNodeId("ConditionType");
         assert(sameNodeId(selectClause.typeDefinitionId, conditionTypeNodeId));

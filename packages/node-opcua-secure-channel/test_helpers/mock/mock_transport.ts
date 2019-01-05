@@ -88,10 +88,10 @@ export class MockServerTransport extends EventEmitter {
                     replies = reply;
                 }
                 assert(replies.length >= 1, " expecting at least one reply " + JSON.stringify(reply));
-                replies.forEach((reply: any) => {
+                replies.forEach((reply1: any) => {
                     debugLog("\nFAKE SERVER SEND");
-                    debugLog(hexDump(reply).red);
-                    this._mockTransport.server.write(reply);
+                    debugLog(chalk.red(hexDump(reply1)));
+                    this._mockTransport.server.write(reply1);
                 });
 
             } else {

@@ -2,18 +2,24 @@
  * @module node-opcua-enum
  *
  */
+// tslint:disable:no-bitwise
+// tslint:disable:max-classes-per-file
+
 /**
- * @class Enum
- * @constructor
  * Represents an Item of an Enum.
- * @param {String} key  The Enum key.
- * @param {Number} value The Enum value.
+ *
+ * @class Enum
  */
 export class EnumItem {
-    key: string;
-    value: number;
+    public key: string;
+    public value: number;
 
-    constructor(key: string, value: number) {
+    /**
+     *
+     * @param key the enum key
+     * @param value the enum value
+     */
+    public constructor(key: string, value: number) {
         this.key = key;
         this.value = value;
     }
@@ -24,7 +30,7 @@ export class EnumItem {
      * @param  {EnumItem | String | Number} item The object to check with.
      * @return {Boolean}                          The check result.
      */
-    is(item: any): boolean {
+    public is(item: any): boolean {
         if (item instanceof EnumItem) {
             return this.value === item.value;
         } else if (typeof item === "string") {
@@ -40,7 +46,7 @@ export class EnumItem {
      * @param  {EnumItem | String |Number} value The object to check with.
      * @return {Boolean}                            The check result.
      */
-    has(value: string | number | EnumItem): boolean {
+    public has(value: string | number | EnumItem): boolean {
         if (value instanceof EnumItem) {
             return (value.value & this.value) !== 0;
         } else if (typeof value === "string") {
@@ -50,13 +56,12 @@ export class EnumItem {
         }
     }
 
-
     /**
      * Returns String representation of this EnumItem.
      * @method toString
      * @return {String} String representation of this EnumItem.
      */
-    toString(): string {
+    public toString(): string {
         return this.key;
     }
 
@@ -66,7 +71,7 @@ export class EnumItem {
      * @return {String} JSON object representation of this EnumItem.
      */
 
-    toJSON(): any {
+    public toJSON(): any {
         return this.key;
     }
 
@@ -76,7 +81,7 @@ export class EnumItem {
      * @return {String} The value to compare with.
      */
 
-    valueOf(): number {
+    public valueOf(): number {
         return this.value;
     }
 }
@@ -118,7 +123,7 @@ export class Enum {
             mm = map;
         }
 
-        for (const key in mm) {
+        for (const key of Object.keys(mm)) {
             const val = mm[key];
             if (undefined === val) {
                 continue;
@@ -141,10 +146,10 @@ export class Enum {
     /**
      * Returns the appropriate EnumItem.
      * @method get
-     * @param  {EnumItem || String || Number} key The object to get with.
-     * @return {EnumItem}                         The get result.
+     * @param  key The object to get with.
+     * @return the get result.
      */
-    get(key: EnumItem | string | number): (EnumItem | null) {
+    public get(key: EnumItem | string | number): (EnumItem | null) {
 
         const pThis = this as any;
         if (key instanceof EnumItem) {
@@ -170,7 +175,15 @@ export class Enum {
         return null;
     }
 
-    private _getByString(key: string): (EnumItem|null) {
+    public getDefaultValue(): EnumItem {
+        return this.enumItems[0];
+    }
+
+    public toString(): string {
+        return this.enumItems.join(" , ");
+    }
+
+    private _getByString(key: string): (EnumItem | null) {
 
         const pThis = this as any;
         const parts = key.split(" | ");
@@ -197,7 +210,7 @@ export class Enum {
         return kv;
     }
 
-    private _getByNum(key: number): (EnumItem|null) {
+    private _getByNum(key: number): (EnumItem | null) {
 
         if (key === 0) {
             return null;
@@ -205,10 +218,10 @@ export class Enum {
         const pThis = this as any;
 
         let name;
-        let c = 1, item;
+        let c = 1;
         for (let i = 0; c < key; i++) {
             if ((c & key) === c) {
-                item = pThis[c];
+                const item = pThis[c];
                 if (undefined === item) {
                     return null;
                 }
@@ -227,11 +240,4 @@ export class Enum {
         return kv;
     }
 
-    getDefaultValue(): EnumItem {
-        return this.enumItems[0];
-    }
-
-    toString() {
-        return this.enumItems.join(" , ");
-    }
 }

@@ -27,14 +27,14 @@ const emptyCallback = (err?: Error) => {
 export interface ClientSessionKeepAliveManagerEvents {
     on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): ClientSessionKeepAliveManager;
 }
+
 export class ClientSessionKeepAliveManager extends EventEmitter implements ClientSessionKeepAliveManagerEvents {
 
-    private session: ClientSessionImpl;
+    private readonly session: ClientSessionImpl;
     private timerId?: NodeJS.Timer;
     private pingTimeout: number;
     private lastKnownState?: ServerState;
     private checkInterval: number;
-
 
     constructor(session: ClientSessionImpl) {
         super();
@@ -98,39 +98,41 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         // Server_ServerStatus_State
         session.readVariableValue(serverStatusStateNodeId, (err: Error | null, dataValue?: DataValue) => {
 
-                if (err || !dataValue || !dataValue.value) {
-                    if (err) {
+              if (err || !dataValue || !dataValue.value) {
+                  if (err) {
 
-                        warningLog(chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "),
-                            chalk.yellow(err.message));
-                    }
-                    this.stop();
+                      warningLog(chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "),
+                        chalk.yellow(err.message));
+                  }
+                  this.stop();
 
-                    /**
-                     * @event failure
-                     * raised when the server is not responding or is responding with en error to
-                     * the keep alive read Variable value transaction
-                     */
-                    this.emit("failure");
-                    if (callback) { callback(); }
-                    return;
+                  /**
+                   * @event failure
+                   * raised when the server is not responding or is responding with en error to
+                   * the keep alive read Variable value transaction
+                   */
+                  this.emit("failure");
+                  if (callback) {
+                      callback();
+                  }
+                  return;
 
-                }
+              }
 
-                if (dataValue.statusCode === StatusCodes.Good) {
-                    const newState = dataValue.value.value as ServerState;
-                    // istanbul ignore next
-                    if (newState !== this.lastKnownState) {
-                        warningLog(" Server State = ", newState.toString());
-                    }
-                    this.lastKnownState = newState;
-                }
+              if (dataValue.statusCode === StatusCodes.Good) {
+                  const newState = dataValue.value.value as ServerState;
+                  // istanbul ignore next
+                  if (newState !== this.lastKnownState) {
+                      warningLog(" Server State = ", newState.toString());
+                  }
+                  this.lastKnownState = newState;
+              }
 
-                this.emit("keepalive", this.lastKnownState);
-                if (callback) {
-                    callback();
-                }
-            }
+              this.emit("keepalive", this.lastKnownState);
+              if (callback) {
+                  callback();
+              }
+          }
         );
     }
 

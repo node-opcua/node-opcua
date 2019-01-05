@@ -26,7 +26,7 @@ install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   # install modules (using appveyor-retry to prevent EPERM bug)
   - npm install -g npm
-  - npm install -g typescript@3.2.1
+  - npm install -g typescript@3.2.2
   - set path=C:\Users\appveyor\AppData\Roaming\npm\;%path%
   - tsc --version
   - appveyor-retry npm install

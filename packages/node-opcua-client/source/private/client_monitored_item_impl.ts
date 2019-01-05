@@ -2,6 +2,7 @@
  * @module node-opcua-client-private
  */
 // tslint:disable:unified-signatures
+// tslint:disable:no-empty
 import { EventEmitter } from "events";
 import * as _ from "underscore";
 

@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-service-secure-channel
  */
+// tslint:disable:max-line-length
 import { assert } from "node-opcua-assert";
 import { AsymmetricAlgorithmSecurityHeader } from "./AsymmetricAlgorithmSecurityHeader";
 import { SymmetricAlgorithmSecurityHeader } from "./SymmetricAlgorithmSecurityHeader";
@@ -84,7 +85,7 @@ assert(RequestHeader.schema.fields[6].name === "additionalHeader");
 RequestHeader.schema.fields[6].defaultValue = () => null;
 
 // OPC Unified Architecture, Part 4  $7.27 page 139
-// ResponseHeade,
+// Response Header,
 // 0. timestamp                 UtcTime           The time the Server sent the response.
 assert(ResponseHeader.schema.fields[0].name === "timestamp");
 ResponseHeader.schema.fields[0].defaultValue = () => new Date() ;

@@ -16,7 +16,7 @@ import {
 const connectionStrategy: ConnectionStrategyOptions = {
     initialDelay: 1000,
     maxRetry: 1,
-}
+};
 const options: OPCUAClientOptions = {
     applicationName: "Hello",
     connectionStrategy: connectionStrategy,

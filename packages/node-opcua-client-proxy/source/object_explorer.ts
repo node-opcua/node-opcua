@@ -93,8 +93,8 @@ function convertNodeIdToDataTypeAsync(
 
         const dataTypeName = dataValue.value.value;
 
-        if (dataTypeId.namespace === 0 && DataType[dataTypeId.value]) {
-            dataType = (DataType as any)[dataTypeId.value] as DataType;
+        if (dataTypeId.namespace === 0 && DataType[dataTypeId.value as number]) {
+            dataType = (DataType as any)[dataTypeId.value as number] as DataType;
             setImmediate(() => {
                 callback(null, dataType);
             });

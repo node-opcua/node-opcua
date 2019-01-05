@@ -19,7 +19,7 @@
     "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
 
     "lib" : [
-      "es6"
+      "es2017"
     ],
     "types" : [
       "node"

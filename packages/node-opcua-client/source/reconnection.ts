@@ -10,9 +10,9 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ErrorCallback } from "node-opcua-secure-channel";
 import { TransferSubscriptionsRequest, TransferSubscriptionsResponse } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
+import { SubscriptionId } from "./client_session";
 import { ClientSessionImpl } from "./private/client_session_impl";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
-import { SubscriptionId } from "./client_session";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -127,9 +127,9 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
 }
 
 function repair_client_session_by_recreating_a_new_session(
-    client: OPCUAClientImpl,
-    session: ClientSessionImpl,
-    callback: (err?: Error) => void) {
+  client: OPCUAClientImpl,
+  session: ClientSessionImpl,
+  callback: (err?: Error) => void) {
 
     if (doDebug) {
         debugLog(" repairing client session by_recreating a new session ", session.sessionId.toString());
@@ -203,80 +203,80 @@ function repair_client_session_by_recreating_a_new_session(
             // Transfer subscriptions
             const subscriptionsToTransfer = new TransferSubscriptionsRequest({
                 sendInitialValues: false,
-                subscriptionIds: subscriptionsIds,
+                subscriptionIds: subscriptionsIds
             });
 
             assert(newSession.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
             newSession.transferSubscriptions(subscriptionsToTransfer,
-                (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
-                    if (err) {
-                        // when transfer subscription has failed, we have no other choice but
-                        // recreate the subscriptions on the server side
-                        return innerCallback(err);
-                    }
-                    if (!transferSubscriptionsResponse) {
-                        return innerCallback(new Error("Internal Error"));
-                    }
+              (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
+                  if (err) {
+                      // when transfer subscription has failed, we have no other choice but
+                      // recreate the subscriptions on the server side
+                      return innerCallback(err);
+                  }
+                  if (!transferSubscriptionsResponse) {
+                      return innerCallback(new Error("Internal Error"));
+                  }
 
-                    const results = transferSubscriptionsResponse.results || [];
+                  const results = transferSubscriptionsResponse.results || [];
 
-                    // istanbul ignore next
-                    if (doDebug) {
-                        debugLog(chalk.cyan("    =>  transfer subscriptions  done"),
-                            results.map((x: any) => x.statusCode.toString()).join(" "));
-                    }
+                  // istanbul ignore next
+                  if (doDebug) {
+                      debugLog(chalk.cyan("    =>  transfer subscriptions  done"),
+                        results.map((x: any) => x.statusCode.toString()).join(" "));
+                  }
 
-                    const subscriptionsToRecreate = [];
+                  const subscriptionsToRecreate = [];
 
-                    // some subscriptions may be marked as invalid on the server side ...
-                    // those one need to be recreated and repaired ....
-                    for (let i = 0; i < results.length; i++) {
+                  // some subscriptions may be marked as invalid on the server side ...
+                  // those one need to be recreated and repaired ....
+                  for (let i = 0; i < results.length; i++) {
 
-                        const statusCode = results[i].statusCode;
-                        if (statusCode === StatusCodes.BadSubscriptionIdInvalid) {
+                      const statusCode = results[i].statusCode;
+                      if (statusCode === StatusCodes.BadSubscriptionIdInvalid) {
 
-                            // repair subscription
-                            debugLog(chalk.red("         WARNING SUBSCRIPTION  "),
-                                subscriptionsIds[i], chalk.red(" SHOULD BE RECREATED"));
+                          // repair subscription
+                          debugLog(chalk.red("         WARNING SUBSCRIPTION  "),
+                            subscriptionsIds[i], chalk.red(" SHOULD BE RECREATED"));
 
-                            subscriptionsToRecreate.push(subscriptionsIds[i]);
-                        } else {
-                            const availableSequenceNumbers = results[i].availableSequenceNumbers;
+                          subscriptionsToRecreate.push(subscriptionsIds[i]);
+                      } else {
+                          const availableSequenceNumbers = results[i].availableSequenceNumbers;
 
-                            debugLog(chalk.green("         SUBSCRIPTION "), subscriptionsIds[i],
-                                chalk.green(" CAN BE REPAIRED AND AVAILABLE "), availableSequenceNumbers);
-                            // should be Good.
+                          debugLog(chalk.green("         SUBSCRIPTION "), subscriptionsIds[i],
+                            chalk.green(" CAN BE REPAIRED AND AVAILABLE "), availableSequenceNumbers);
+                          // should be Good.
+                      }
+                  }
+                  debugLog("  new session subscriptionCount = ", newSession.getPublishEngine().subscriptionCount);
+
+                  async.forEach(subscriptionsToRecreate, (subscriptionId: SubscriptionId, next: ErrorCallback) => {
+
+                        if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
+                            debugLog(chalk.red("          => CANNOT RECREATE SUBSCRIPTION  "), subscriptionId);
+                            return next();
                         }
-                    }
-                    debugLog("  new session subscriptionCount = ", newSession.getPublishEngine().subscriptionCount);
+                        const subscription = session.getPublishEngine().getSubscription(subscriptionId);
+                        assert(subscription.constructor.name === "ClientSubscriptionImpl");
+                        debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
+                        assert(subscription.session === newSession, "must have the session");
 
-                    async.map(subscriptionsToRecreate, (subscriptionId: SubscriptionId, next: ErrorCallback) => {
-
-                            if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
-                                debugLog(chalk.red("          => CANNOT RECREATE SUBSCRIPTION  "), subscriptionId);
-                                return next();
+                        subscription.recreateSubscriptionAndMonitoredItem((err1?: Error) => {
+                            if (err1) {
+                                debugLog("_recreateSubscription failed !");
                             }
-                            const subscription = session.getPublishEngine().getSubscription(subscriptionId);
-                            assert(subscription.constructor.name === "ClientSubscriptionImpl");
-                            debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
-                            assert(subscription.session === newSession, "must have the session");
 
-                            subscription.recreateSubscriptionAndMonitoredItem((err1?: Error) => {
-                                if (err1) {
-                                    debugLog("_recreateSubscription failed !");
-                                }
+                            debugLog(chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE "),
+                              subscriptionId);
 
-                                debugLog(chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE "),
-                                    subscriptionId);
+                            next();
+                        });
 
-                                next();
-                            });
-
-                        },(err) => {
-                            innerCallback(err!);
-                        }
-                    );
-                });
+                    }, (err1?: Error | null) => {
+                        innerCallback(err1!);
+                    }
+                  );
+              });
         },
 
         function ask_for_subscription_republish(innerCallback: ErrorCallback) {
@@ -298,15 +298,15 @@ function repair_client_session_by_recreating_a_new_session(
             debugLog("listenerCountBefore =", listenerCountBefore, "listenerCountAfter = ", listenerCountAfter);
             innerCallback();
         }
-    ], (err)=> { 
-        callback(err!); 
+    ], (err) => {
+        callback(err!);
     });
 }
 
 export function repair_client_session(
-    client: OPCUAClientImpl,
-    session: ClientSessionImpl,
-    callback: (err?: Error) => void
+  client: OPCUAClientImpl,
+  session: ClientSessionImpl,
+  callback: (err?: Error) => void
 ): void {
 
     const self = client;

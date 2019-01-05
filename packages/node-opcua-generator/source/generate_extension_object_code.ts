@@ -58,7 +58,6 @@ function writeEnumeratedType(enumeratedType: EnumeratedType) {
     // xx console.log(" isFala", arrayValues.join(" "), " - ", isFlaggable, minEnumValue, maxEnumValue);
 
     write("");
-    write("");
 
     write(`// --------------------------------------------------------------------------------------------`);
     write(`export enum ${enumeratedType.name} {`);
@@ -100,17 +99,17 @@ function writeEnumeratedType(enumeratedType: EnumeratedType) {
 
 function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
 
-    write("");
-    write("");
     write(`// --------------------------------------------------------------------------------------------`);
 
     write(`const schema${structuredType.name} = buildStructuredType({`);
     write(`    name: "${structuredType.name}",`);
+    write(``);
     write(`    baseType: "${structuredType.baseType}",`);
     write(`    fields: [`);
     for (const field of structuredType.fields) {
         write(`        {`);
         write(`            name: "${field.name}",`);
+        write(``);
         write(`            fieldType: "${field.fieldType}",`);
         if (field.isArray) {
             write(`            isArray: ${field.isArray}`);
@@ -120,23 +119,6 @@ function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
     }
     write(`    ]`);
     write(`});`);
-
-    write("");
-
-    // const baseType = structuredType.baseType === "ExtensionObject" ? "BaseUAObject" : structuredType.baseType;
-
-    // write(`export class ${structuredType.name} extends ${baseType} {`);
-    // write(`    constructor(options) {`);
-    // write(`      super();`);
-    // write(`    }`);
-    //
-    // write(`    encode(stream: BinaryStream) {`);
-    // write(`    }`);
-    //
-    // write(`    decode(stream: BinaryStream) {`);
-    // write(`    }`);
-    //
-    // write(`}`);
 
     writeStructuredType(write, structuredType);
 
@@ -231,6 +213,13 @@ export async function generate(
         }
 
         write(`// tslint:disable:no-this-assignment
+// tslint:disable:max-classes-per-file
+// tslint:disable:no-empty-interface
+// tslint:disable:no-trailing-whitespace
+// tslint:disable:array-type
+// tslint:disable:object-literal-sort-keys
+// tslint:disable:max-line-length
+
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -309,10 +298,6 @@ import {
         write(`}`);
         write(``);
 
-        write(``);
-        write(``);
-        write(``);
-
         const alreadyDone: { [key: string]: any } = {};
         /* tslint:disable:no-string-literal */
         alreadyDone["ExtensionObject"] = true;
@@ -379,6 +364,7 @@ import {
             // if (++i > 250) { break; }
         }
 
+        write(``);
         f.saveFormat(generatedTypescriptFilename, (code) => {
             // const options: prettier.Options = {
             //     printWidth: 120,

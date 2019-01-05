@@ -10,6 +10,7 @@ import { decodeGuid, encodeGuid, isValidGuid } from "./guid";
 import { decodeUInt32, encodeUInt32 } from "./integers";
 import { decodeString, encodeString } from "./string";
 import { getRandomInt } from "./utils";
+import { Guid } from "node-opcua-guid";
 
 // tslint:disable:no-bitwise
 
@@ -41,13 +42,13 @@ function nodeID_encodingByte(nodeId: NodeId): number {
     let encodingByte = 0;
 
     if (nodeId.identifierType === NodeIdType.NUMERIC) {
-        if (isUInt8(nodeId.value) &&
+        if (isUInt8(nodeId.value as number) &&
             !nodeId.namespace &&
             !(nodeId as ExpandedNodeId).namespaceUri &&
             !(nodeId as ExpandedNodeId).serverIndex) {
             encodingByte = encodingByte | EnumNodeIdEncoding.TwoBytes;
         } else if (
-            isUInt16(nodeId.value) &&
+            isUInt16(nodeId.value as number) &&
             isUInt8(nodeId.namespace) &&
             !(nodeId as ExpandedNodeId).namespaceUri &&
             !(nodeId as ExpandedNodeId).serverIndex
@@ -95,28 +96,28 @@ function _encodeNodeId(encodingByte: number, nodeId: NodeId, stream: BinaryStrea
 
     switch (encodingByte) {
         case EnumNodeIdEncoding.TwoBytes:
-            stream.writeUInt8(nodeId ? nodeId.value : 0);
+            stream.writeUInt8(nodeId ? nodeId.value as number : 0);
             break;
         case EnumNodeIdEncoding.FourBytes:
             stream.writeUInt8(nodeId.namespace);
-            stream.writeUInt16(nodeId.value);
+            stream.writeUInt16(nodeId.value as number);
             break;
         case EnumNodeIdEncoding.Numeric:
             stream.writeUInt16(nodeId.namespace);
-            stream.writeUInt32(nodeId.value);
+            stream.writeUInt32(nodeId.value as number);
             break;
         case EnumNodeIdEncoding.String:
             stream.writeUInt16(nodeId.namespace);
-            encodeString(nodeId.value, stream);
+            encodeString(nodeId.value as string, stream);
             break;
         case EnumNodeIdEncoding.ByteString:
             stream.writeUInt16(nodeId.namespace);
-            encodeByteString(nodeId.value, stream);
+            encodeByteString(nodeId.value as Buffer, stream);
             break;
         default:
             assert(encodingByte === EnumNodeIdEncoding.Guid);
             stream.writeUInt16(nodeId.namespace);
-            encodeGuid(nodeId.value, stream);
+            encodeGuid(nodeId.value as Guid, stream);
             break;
     }
 }

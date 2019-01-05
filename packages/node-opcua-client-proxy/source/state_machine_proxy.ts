@@ -1,10 +1,7 @@
 /**
  * @module node-opcua-client-proxy
  */
-import * as async from "async";
 import { assert } from "node-opcua-assert";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { makeRefId } from "./proxy";
 import { makeProxyState, ProxyState } from "./proxy_state";
 import { makeProxyTransition, ProxyTransition } from "./proxy_transition";
 
@@ -45,17 +42,16 @@ export class UAStateMachineType {
         }).map(makeProxyTransition);
     }
 
+    // var initialStateTypeId = makeRefId("InitialStateType");
+    //
+    // var initialStateType = addressSpace.findObjectType("InitialStateType");
+    // should(!!initialStateType).eql(true);
+    //
+    // var stateType = addressSpace.findObjectType("StateType");
+    // should(!!stateType).eql(true);
+    //
+    // var transitionType = addressSpace.findObjectType("TransitionType");
+    // should(!!transitionType).eql(true);
 
-        // var initialStateTypeId = makeRefId("InitialStateType");
-        //
-        // var initialStateType = addressSpace.findObjectType("InitialStateType");
-        // should(!!initialStateType).eql(true);
-        //
-        // var stateType = addressSpace.findObjectType("StateType");
-        // should(!!stateType).eql(true);
-        //
-        // var transitionType = addressSpace.findObjectType("TransitionType");
-        // should(!!transitionType).eql(true);
-
-   // }
+    // }
 }

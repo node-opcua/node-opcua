@@ -107,7 +107,7 @@ exports.install = function (AddressSpace) {
         let definition;
         const enumerationType = addressSpace.findDataType("Enumeration");
         assert(enumerationType.nodeId instanceof NodeId);
-        assert(enumerationType instanceof UADataType)
+        assert(enumerationType instanceof UADataType);
         const references = [
             {referenceType: "HasSubtype", isForward: false, nodeId: enumerationType.nodeId}
         ];

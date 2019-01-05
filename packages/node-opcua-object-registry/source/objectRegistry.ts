@@ -1,17 +1,20 @@
 /**
  * @module node-opcua-object-registry
  */
-import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { trace_from_this_projet_only } from "node-opcua-debug";
+import * as _ from "underscore";
 
 const gRegistries: ObjectRegistry[] = [];
 let hashCounter = 1;
 
 export class ObjectRegistry {
 
+    public static doDebug = false;
+    public static registries: any = gRegistries;
+
     private _objectType: any;
-    private _cache: any;
+    private readonly _cache: any;
 
     constructor(objectType: any) {
 
@@ -20,15 +23,11 @@ export class ObjectRegistry {
         gRegistries.push(this);
     }
 
-    static doDebug = false;
-
-    static registries: any = gRegistries;
-
-    getClassName() {
+    public getClassName(): string {
         return this._objectType ? this._objectType.name : "<???>";
     }
 
-    register(obj: any) {
+    public register(obj: any): void {
 
         if (!this._objectType) {
             this._objectType = obj.constructor;
@@ -46,21 +45,21 @@ export class ObjectRegistry {
         }
     }
 
-    unregister(obj: any) {
+    public unregister(obj: any): void {
         this._cache[obj._____hash] = null;
         delete this._cache[obj._____hash];
     }
 
-    count() {
+    public count(): number {
         return Object.keys(this._cache).length;
     }
 
-    toString() {
+    public toString(): string {
 
         const className = this.getClassName();
         let str = " className :" + className + " found => " + this.count() + " object leaking\n";
 
-        _.forEach(this._cache, function (obj/*,key*/) {
+        _.forEach(this._cache, (obj/*,key*/) => {
             str += obj.constructor.name + " " + obj.toString() + "\n";
         });
 

@@ -2,12 +2,17 @@
     "compilerOptions": {
         "skipLibCheck": false,
         "moduleResolution": "node",
+        "strictFunctionTypes": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
         "target": "es6",
         "module": "commonjs",
         "declaration": true,
         "sourceMap": true,
         "strict": true,
         "listFiles": false,
+        "noStrictGenericChecks": false,
+        "skipDefaultLibCheck": false,
         "outDir": "dist"
     }
 }

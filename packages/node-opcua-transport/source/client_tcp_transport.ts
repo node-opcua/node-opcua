@@ -59,10 +59,6 @@ function createClientSocket(endpointUrl: string): Socket {
     }
 }
 
-export interface ConnectOptions {
-    protocolVersion?: number;
-}
-
 /**
  * a ClientTCP_transport connects to a remote server socket and
  * initiates a communication with a HEL/ACK transaction.
@@ -150,10 +146,7 @@ export class ClientTCP_transport extends TCP_transport {
 
         this._install_socket(this._socket);
 
-        // tslint:disable:no-this-assignment
-        const self = this;
-
-        function _on_socket_error_after_connection(err: Error) {
+        const _on_socket_error_after_connection = (err: Error) => {
             if (doDebug) {
                 debugLog(" _on_socket_error_after_connection ClientTCP_transport Socket Error", err.message);
             }
@@ -163,46 +156,46 @@ export class ClientTCP_transport extends TCP_transport {
 
             // ECONNRESET (Connection reset by peer): A connection was forcibly closed by a peer. This normally results
             // from a loss of the connection on the remote socket due to a timeout or reboot. Commonly encountered
-            // via the http and net modu
+            // via the http and net module
             if (err.message.match(/ECONNRESET|EPIPE/)) {
                 /**
                  * @event connection_break
                  *
                  */
-                self.emit("connection_break");
+                this.emit("connection_break");
             }
-        }
+        };
 
-        function _on_socket_connect() {
+        const _on_socket_connect = () => {
 
             if (doDebug) {
                 debugLog("entering _on_socket_connect");
             }
             _remove_connect_listeners();
-            self._perform_HEL_ACK_transaction((err?: Error) => {
+            this._perform_HEL_ACK_transaction((err?: Error) => {
                 if (!err) {
-                    if (!self._socket) {
+                    if (!this._socket) {
                         throw new Error("internal error");
                     }
                     // install error handler to detect connection break
-                    self._socket.on("error", _on_socket_error_after_connection);
+                    this._socket.on("error", _on_socket_error_after_connection);
 
-                    self.connected = true;
+                    this.connected = true;
                     /**
                      * notify the observers that the transport is connected (the socket is connected and the the HEL/ACK
                      * transaction has been done)
                      * @event connect
                      *
                      */
-                    self.emit("connect");
+                    this.emit("connect");
                 } else {
                     debugLog("_perform_HEL_ACK_transaction has failed with err=", err.message);
                 }
                 callback(err);
             });
-        }
+        };
 
-        function _on_socket_error_for_connect(err: Error) {
+        const _on_socket_error_for_connect = (err: Error) => {
             // this handler will catch attempt to connect to an inaccessible address.
             if (doDebug) {
                 debugLog(" _on_socket_error_for_connect", err.message);
@@ -210,21 +203,21 @@ export class ClientTCP_transport extends TCP_transport {
             assert(err instanceof Error);
             _remove_connect_listeners();
             callback(err);
-        }
+        };
 
-        function _on_socket_end_for_connect(err: Error | null) {
+        const  _on_socket_end_for_connect = (err: Error | null) => {
             if (doDebug) {
                 debugLog("_on_socket_end_for_connect Socket has been closed by server", err);
             }
-        }
+        };
 
-        function _remove_connect_listeners() {
-            if (!self._socket) {
+        const  _remove_connect_listeners = () => {
+            if (!this._socket) {
                 return;
             }
-            self._socket.removeListener("error", _on_socket_error_for_connect);
-            self._socket.removeListener("end", _on_socket_end_for_connect);
-        }
+            this._socket.removeListener("error", _on_socket_error_for_connect);
+            this._socket.removeListener("end", _on_socket_end_for_connect);
+        };
 
         this._socket.once("error", _on_socket_error_for_connect);
         this._socket.once("end", _on_socket_end_for_connect);
@@ -326,7 +319,7 @@ export class ClientTCP_transport extends TCP_transport {
 
     private _perform_HEL_ACK_transaction(callback: ErrorCallback) {
         if (!this._socket) {
-            return callback(new Error("No socket availabke to perform HEL/ACK transaction"));
+            return callback(new Error("No socket available to perform HEL/ACK transaction"));
         }
         assert(this._socket, "expecting a valid socket to send a message");
         assert(_.isFunction(callback));

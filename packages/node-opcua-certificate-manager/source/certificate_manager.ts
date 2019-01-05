@@ -279,6 +279,7 @@ export function checkCertificateValidity(certificate: Certificate): StatusCode {
 
     if (cert.notBefore.getTime() > now.getTime()) {
         // certificate is not active yet
+        // tslint:disable-next-line:no-console
         console.log(chalk.red(" Sender certificate is invalid : certificate is not active yet !") +
             "  not before date =" + cert.notBefore
         );
@@ -286,6 +287,7 @@ export function checkCertificateValidity(certificate: Certificate): StatusCode {
     }
     if (cert.notAfter.getTime() <= now.getTime()) {
         // certificate is obsolete
+        // tslint:disable-next-line:no-console
         console.log(chalk.red(" Sender certificate is invalid : certificate has expired !") +
             " not after date =" + cert.notAfter);
         return StatusCodes.BadCertificateTimeInvalid;

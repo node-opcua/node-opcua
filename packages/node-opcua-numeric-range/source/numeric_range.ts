@@ -45,21 +45,23 @@ const NUMERIC_RANGE_EMPTY_STRING = "NumericRange:<Empty>";
 export const schemaNumericRange = {
     name: "NumericRange",
     subType: "UAString",
-    defaultValue: function() {
+
+    defaultValue: () => {
         return new NumericRange();
     },
-    encode: function(value: NumericRange | null, stream: BinaryStream) {
+
+    encode: (value: NumericRange | null, stream: BinaryStream) => {
         assert(value === null || value instanceof NumericRange);
         const strValue = (value === null) ? null : value.toEncodeableString();
         encodeString(strValue, stream);
     },
 
-    decode: function(stream: BinaryStream) {
+    decode: (stream: BinaryStream) => {
         const str = decodeString(stream);
         return new NumericRange(str);
     },
 
-    random: function(): NumericRange {
+    random: (): NumericRange => {
         function r() {
             return Math.ceil(Math.random() * 100);
         }
@@ -161,8 +163,12 @@ function construct_numeric_range_bit_from_string(str: string): NumericalRange0 {
     }
 }
 
-function _normalize(e: NumericalRange1): any {
-    return (e.type === NumericRangeType.SingleValue) ? [e.value, e.value] : e.value;
+function _normalize(e: NumericalRange1): number | number[] {
+    if (e.type === NumericRangeType.SingleValue) {
+        const ee = e as NumericalRangeSingleValue;
+        return [ ee.value, ee.value];
+    }
+    return e.value as number;
 }
 
 function construct_numeric_range_from_string(str: string): NumericalRange0 {
@@ -180,17 +186,18 @@ function construct_numeric_range_from_string(str: string): NumericalRange0 {
         return construct_numeric_range_bit_from_string(values[0]);
 
     } else if (values.length === 2) {
-        let rowRange, colRange;
         const elements = values.map(construct_numeric_range_bit_from_string);
-        rowRange = elements[0];
-        colRange = elements[1];
+        let rowRange: any = elements[0];
+        let colRange: any = elements[1];
         if (rowRange.type === NumericRangeType.InvalidRange || colRange.type === NumericRangeType.InvalidRange) {
             return {type: NumericRangeType.InvalidRange, value: str};
         }
-
         rowRange = _normalize(rowRange);
         colRange = _normalize(colRange);
-        return {type: NumericRangeType.MatrixRange, value: [rowRange, colRange]};
+        return {
+            type: NumericRangeType.MatrixRange,
+            value: [rowRange, colRange]
+        };
 
     } else {
         // not supported yet
@@ -216,8 +223,8 @@ function _set_single_value(value: any): NumericalRange0 {
     } else {
 
         return {
-            value: value,
-            type: NumericRangeType.SingleValue
+            type: NumericRangeType.SingleValue,
+            value: value
         };
     }
 }
@@ -246,8 +253,8 @@ function _check_range(numericalRange: NumericalRange0) {
 function _set_range_value(low: number, high: number): NumericalRangeArrayRange | NumericalRangeInvalid {
 
     const numericalRange: NumericalRangeArrayRange = {
+        type: NumericRangeType.ArrayRange,
         value: [low, high],
-        type: NumericRangeType.ArrayRange
     };
     if (!_check_range(numericalRange as NumericalRangeArrayRange)) {
         return {
@@ -454,7 +461,11 @@ export class NumericRange implements NumericalRange1 {
             };
         }
 
-        let index, low_index, high_index, rowRange, colRange;
+        let index;
+        let low_index;
+        let high_index;
+        let rowRange;
+        let colRange;
         switch (self.type) {
             case NumericRangeType.Empty:
                 return extract_empty(array, dimensions);
@@ -484,7 +495,8 @@ export class NumericRange implements NumericalRange1 {
 
         const self = this as NumericalRange0;
 
-        let low_index, high_index;
+        let low_index;
+        let high_index;
         switch (self.type) {
             case NumericRangeType.Empty:
                 low_index = 0;
@@ -511,7 +523,9 @@ export class NumericRange implements NumericalRange1 {
         if ((this.type !== NumericRangeType.Empty) && newValues.length !== (high_index - low_index + 1)) {
             return {array: [], statusCode: StatusCodes.BadIndexRangeInvalid};
         }
-        const insertInPlace = (_.isArray(arrayToAlter) ? insertInPlaceStandardArray : (arrayToAlter instanceof Buffer ? insertInPlaceBuffer : insertInPlaceTypedArray));
+        const insertInPlace = (_.isArray(arrayToAlter)
+          ? insertInPlaceStandardArray
+          : (arrayToAlter instanceof Buffer ? insertInPlaceBuffer : insertInPlaceTypedArray));
         return {
             array: insertInPlace(arrayToAlter, low_index, high_index, newValues),
             statusCode: StatusCodes.Good
@@ -637,7 +651,10 @@ function extract_matrix_range(array: any, rowRange: number[], colRange: number[]
     // store the extracted matrix.
     const tmp = new array.constructor(nbColDest * nbRowDest);
 
-    let row, col, r, c;
+    let row;
+    let col;
+    let r;
+    let c;
     r = 0;
     for (row = rowLow; row <= rowHigh; row++) {
         c = 0;
@@ -712,4 +729,3 @@ function coerceNumericRange(value: any | string | NumericRange | null | number[]
     assert(typeof value === "string" || _.isArray(value));
     return new NumericRange(value);
 }
-

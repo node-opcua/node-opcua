@@ -147,7 +147,6 @@ module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPC
 module.exports.checkSelectClause = require("node-opcua-address-space").checkSelectClause;
 module.exports.constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
 
-
 const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
 
 module.exports.build_address_space_for_conformance_testing =

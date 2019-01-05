@@ -16,11 +16,12 @@ import {
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
+import { MonitoredItemCreateRequestOptions } from "node-opcua-types";
 import { ClientMonitoredItemBase } from "./client_monitored_item_base";
 import { SetMonitoringModeRequestLike } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
 import { Callback, ErrorCallback } from "./common";
-import { ClientMonitoredItemBaseImpl } from "./private/client_monitored_item_base_impl";
+import { ClientMonitoredItemBaseImpl, PrepareForMonitoringResult } from "./private/client_monitored_item_base_impl";
 import { ClientSessionImpl } from "./private/client_session_impl";
 
 const debugLog = make_debugLog(__filename);
@@ -38,7 +39,7 @@ export class ClientMonitoredItemToolbox {
         done: ErrorCallback
     ) {
         assert(_.isFunction(done));
-        const itemsToCreate = [];
+        const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
         for (const monitoredItem of monitoredItems) {
 
             const monitoredItemI = monitoredItem as ClientMonitoredItemBaseImpl;
@@ -46,7 +47,7 @@ export class ClientMonitoredItemToolbox {
             if (_.isString(itemToCreate.error)) {
                 return done(new Error(itemToCreate.error));
             }
-            itemsToCreate.push(itemToCreate);
+            itemsToCreate.push(itemToCreate as MonitoredItemCreateRequestOptions);
         }
 
         const createMonitorItemsRequest = new CreateMonitoredItemsRequest({

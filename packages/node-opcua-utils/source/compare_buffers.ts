@@ -1,8 +1,9 @@
 /**
  * @module node-opcua-utils
  */
-import { buffer_ellipsis } from "./buffer_ellipsis";
+// tslint:disable:no-console
 import chalk from "chalk";
+import { buffer_ellipsis } from "./buffer_ellipsis";
 
 export function compare_buffers(buf1: Buffer, buf2: Buffer, max_length?: number): void {
     max_length = max_length || buf2.length;

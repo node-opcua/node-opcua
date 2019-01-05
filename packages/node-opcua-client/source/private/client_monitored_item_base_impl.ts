@@ -24,6 +24,13 @@ import { ClientSubscriptionImpl } from "./client_subscription_impl";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
+export type PrepareForMonitoringResult  = { error: string } | {
+    error?: null;
+    itemToMonitor: ReadValueIdOptions;
+    monitoringMode: MonitoringMode;
+    requestedParameters: MonitoringParameters;
+};
+
 export class ClientMonitoredItemBaseImpl extends EventEmitter implements ClientMonitoredItemBase {
 
     public itemToMonitor: ReadValueId;
@@ -96,7 +103,7 @@ export class ClientMonitoredItemBaseImpl extends EventEmitter implements ClientM
      * @internal
      * @private
      */
-    public _prepare_for_monitoring() {
+    public _prepare_for_monitoring() { // : PrepareForMonitoringResult {
 
         assert(this.monitoringParameters.clientHandle === 4294967295, "should not have a client handle yet");
 
@@ -159,7 +166,6 @@ export class ClientMonitoredItemBaseImpl extends EventEmitter implements ClientM
             }
         }
         return {
-            error: null,
             itemToMonitor: this.itemToMonitor,
             monitoringMode: this.monitoringMode,
             requestedParameters: this.monitoringParameters
