@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-secure-channel",
- "version": "0.5.5",
+ "version": "0.5.6",
  "description": "pure nodejs OPCUA SDK - module -service-secure-channel",
  "main": "./index.js",
  "scripts": {
@@ -10,20 +10,20 @@
  },
  "dependencies": {
   "node-opcua-assert": "^0.5.0",
-  "node-opcua-basic-types": "^0.5.5",
-  "node-opcua-data-model": "^0.5.5",
-  "node-opcua-extension-object": "^0.5.5",
-  "node-opcua-factory": "^0.5.5",
-  "node-opcua-nodeid": "^0.5.0",
+  "node-opcua-basic-types": "^0.5.6",
+  "node-opcua-data-model": "^0.5.6",
+  "node-opcua-extension-object": "^0.5.6",
+  "node-opcua-factory": "^0.5.6",
+  "node-opcua-nodeid": "^0.5.6",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-binary-stream": "^0.5.0",
-  "node-opcua-buffer-utils": "^0.5.0",
-  "node-opcua-debug": "^0.5.5",
-  "node-opcua-generator": "^0.5.5",
-  "node-opcua-packet-analyzer": "^0.5.5",
-  "node-opcua-status-code": "^0.5.0",
+  "node-opcua-binary-stream": "^0.5.6",
+  "node-opcua-buffer-utils": "^0.5.6",
+  "node-opcua-debug": "^0.5.6",
+  "node-opcua-generator": "^0.5.6",
+  "node-opcua-packet-analyzer": "^0.5.6",
+  "node-opcua-status-code": "^0.5.6",
   "should": "13.2.3"
  },
  "author": "Etienne Rossignon",

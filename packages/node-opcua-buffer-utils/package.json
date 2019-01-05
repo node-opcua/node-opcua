@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-buffer-utils",
- "version": "0.5.0",
+ "version": "0.5.6",
  "description": "pure nodejs OPCUA SDK - module -buffer-utils",
  "main": "dist/buffer_utils.js",
  "types": "dist/buffer_utils.d.ts",
@@ -14,7 +14,7 @@
   "node-opcua-assert": "^0.5.0"
  },
  "devDependencies": {
-  "node-opcua-benchmarker": "^0.5.0"
+  "node-opcua-benchmarker": "^0.5.6"
  },
  "repository": {
   "type": "git",

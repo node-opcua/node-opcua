@@ -1,7 +1,7 @@
 {
  "name": "node-opcua-data-value",
  "main": "./index.js",
- "version": "0.5.5",
+ "version": "0.5.6",
  "description": "pure nodejs OPCUA SDK - module -data-value",
  "scripts": {
   "test": "mocha test",
@@ -10,20 +10,20 @@
  },
  "dependencies": {
   "node-opcua-assert": "^0.5.0",
-  "node-opcua-basic-types": "^0.5.5",
-  "node-opcua-binary-stream": "^0.5.0",
-  "node-opcua-date-time": "^0.5.0",
-  "node-opcua-factory": "^0.5.5",
-  "node-opcua-nodeid": "^0.5.0",
-  "node-opcua-status-code": "^0.5.0",
-  "node-opcua-utils": "^0.5.0",
-  "node-opcua-variant": "^0.5.5",
+  "node-opcua-basic-types": "^0.5.6",
+  "node-opcua-binary-stream": "^0.5.6",
+  "node-opcua-date-time": "^0.5.6",
+  "node-opcua-factory": "^0.5.6",
+  "node-opcua-nodeid": "^0.5.6",
+  "node-opcua-status-code": "^0.5.6",
+  "node-opcua-utils": "^0.5.6",
+  "node-opcua-variant": "^0.5.6",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.5.5",
-  "node-opcua-numeric-range": "^0.5.5",
-  "node-opcua-packet-analyzer": "^0.5.5",
+  "node-opcua-generator": "^0.5.6",
+  "node-opcua-numeric-range": "^0.5.6",
+  "node-opcua-packet-analyzer": "^0.5.6",
   "should": "13.2.3"
  },
  "author": "Etienne Rossignon",
