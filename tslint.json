@@ -11,11 +11,11 @@
     "interface-over-type-literal": true,
     "variable-name": [
       true,
-      "ban-keyword",
+      "ban-keywords",
       "allow-leading-underscore"
     ],
     "trailing-comma": [
-      "never"
+      true
     ]
   },
   "rulesDirectory": []

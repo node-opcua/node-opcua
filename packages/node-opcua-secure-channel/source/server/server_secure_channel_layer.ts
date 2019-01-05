@@ -12,18 +12,18 @@ import chalk from "chalk";
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 import { Socket } from "net";
-import { assert } from "node-opcua-assert";
-import { PublicKeyLength } from "node-opcua-crypto";
 import * as _ from "underscore";
 import { callbackify, promisify } from "util";
 
+import { assert } from "node-opcua-assert";
 import {
     Certificate,
     exploreCertificateInfo,
     extractPublicKeyFromCertificate,
     makeSHA1Thumbprint,
     Nonce,
-    PrivateKey, PrivateKeyPEM, rsa_length, split_der
+    PrivateKey,
+    PrivateKeyPEM, PublicKeyLength, rsa_length, split_der
 } from "node-opcua-crypto";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
