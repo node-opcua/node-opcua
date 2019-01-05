@@ -38,7 +38,7 @@
   "node-opcua-utils": "^0.5.0",
   "node-opcua-variant": "^0.5.5",
   "node-opcua-xml2json": "^0.5.5",
-  "object.values": "^1.0.4",
+  "object.values": "^1.1.0",
   "set-prototype-of": "^1.0.0",
   "underscore": "^1.9.1",
   "xml-writer": "^1.7.0"
@@ -57,7 +57,7 @@
   "node-opcua-packet-analyzer": "^0.5.5",
   "node-opcua-test-fixtures": "^0.5.0",
   "should": "13.2.3",
-  "sinon": "^7.1.0"
+  "sinon": "^7.2.2"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

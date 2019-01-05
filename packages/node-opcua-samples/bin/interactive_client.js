@@ -5,7 +5,7 @@
 const readline = require("readline");
 const treeify = require("treeify");
 require("colors");
-const sprintf = require("sprintf");
+const sprintf = require("sprintf-js").sprintf;
 const util = require("util");
 const fs = require("fs");
 const path = require("path");

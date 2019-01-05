@@ -2,7 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const csv = require("csv");
-const sprintf = require("sprintf").sprintf;
+const sprintf = require("sprintf-js").sprintf;
 
 const datafolder = path.join(__dirname,"1.03");
 

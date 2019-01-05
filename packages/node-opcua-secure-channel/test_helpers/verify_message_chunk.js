@@ -1,6 +1,6 @@
 "use strict";
 
-const sprintf = require("sprintf");
+const sprintf = require("sprintf-js").sprintf;
 const packet_analyzer = require("node-opcua-packet-analyzer").packet_analyzer;
 const MessageBuilder = require("../src/message_builder").MessageBuilder;
 const messageHeaderToString = require("../src/message_header_to_string").messageHeaderToString;

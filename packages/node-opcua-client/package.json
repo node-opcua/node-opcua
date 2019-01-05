@@ -23,7 +23,7 @@
   "node-opcua-hostname": "^0.5.0",
   "node-opcua-nodeid": "^0.5.0",
   "node-opcua-object-registry": "^0.5.5",
-  "node-opcua-pki": "1.0.0",
+  "node-opcua-pki": "1.0.1",
   "node-opcua-secure-channel": "^0.5.5",
   "node-opcua-service-browse": "^0.5.5",
   "node-opcua-service-call": "^0.5.5",
@@ -49,7 +49,7 @@
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^0.5.5",
   "should": "13.2.3",
-  "sinon": "^7.1.0"
+  "sinon": "^7.2.2"
  },
  "eslintConfig": {
   "env": {
