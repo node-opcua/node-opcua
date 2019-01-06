@@ -10,7 +10,7 @@ node_js:
   - "8"
   - "9"
   - "10"
-# - "11" not used yet => Lerna stack overflows!
+  # - "11" not used yet => Lerna stack overflows!
 
 os:
   - linux
@@ -25,21 +25,21 @@ before_install:
   # https://superuser.com/questions/145989/does-mac-os-x-throttle-the-rate-of-socket-creation
   # https://superuser.com/a/443168
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]; then
-       sudo ulimit -a;
-       sudo sysctl net.inet.ip.portrange.first net.inet.ip.portrange.hifirst net.inet.ip.portrange.last net.inet.ip.portrange.hilast;
-       sudo sysctl -w net.inet.ip.portrange.first=32768;
-       sudo sysctl -w net.inet.ip.portrange.hifirst=32768;
-       sudo sysctl -w net.inet.tcp.msl=1000;
-       sudo sysctl kern.maxfiles;
-       sysctl kern.maxfilesperproc;
-       echo " setting new limits";
-       sudo sysctl -w kern.maxfiles=50000;
-       sudo sysctl -w kern.maxfilesperproc=20000;
-       sudo serverinfo --setperfmode true;
-       sudo ulimit -c unlimited;
-    sudo ulimit -n unlimited;
-    sudo ulimit -l unlimited;
-       sudo ulimit -a;
+      sudo ulimit -a;
+      sudo sysctl net.inet.ip.portrange.first net.inet.ip.portrange.hifirst net.inet.ip.portrange.last net.inet.ip.portrange.hilast;
+      sudo sysctl -w net.inet.ip.portrange.first=32768;
+      sudo sysctl -w net.inet.ip.portrange.hifirst=32768;
+      sudo sysctl -w net.inet.tcp.msl=1000;
+      sudo sysctl kern.maxfiles;
+      sysctl kern.maxfilesperproc;
+      echo " setting new limits";
+      sudo sysctl -w kern.maxfiles=50000;
+      sudo sysctl -w kern.maxfilesperproc=20000;
+      sudo serverinfo --setperfmode true;
+      sudo ulimit -c unlimited;
+      sudo ulimit -n unlimited;
+      sudo ulimit -l unlimited;
+      sudo ulimit -a;
     fi;
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]; then
       brew install libressl;
@@ -51,8 +51,8 @@ before_script:
   - npm install -g mocha
   - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; then
       if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
-         npm install -g istanbul coveralls;
-         npm install -g codeclimate-test-reporter;
+        npm install -g istanbul coveralls;
+        npm install -g codeclimate-test-reporter;
       fi;
     fi;
 
@@ -76,29 +76,22 @@ after_success:
   # only run code coverage on linux and latest nodejs version
   - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; then
       if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
-          # make test-cov;
-          # codecov
-          istanbul cover--report lcovonly packages\run_all_mocha_tests.js && codecov
+        make test-cov;
       fi;
     fi;
 
 script:
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]];
-    then  npm test ;
+    then  npm test;
     else  npm test;
-    fi
-  - lerna run test-typescript
+    fi ;
+    lerna run test-typescript
 
 addons:
-  code_climate:
-    repo_token: 0860a573fd01a1fbafc298b7c40cd0c1fd8b25e5f53a5e8346d3b42cb40ab48e
-
-
 
 notifications:
   webhooks:
-    urls:
-      https://webhooks.gitter.im/e/4d51130aaea652dbc8f1
+    urls: https://webhooks.gitter.im/e/4d51130aaea652dbc8f1
     on_success: always  # options: [always|never|change] default: always
     on_failure: always  # options: [always|never|change] default: always
     on_start: true     # default: false
