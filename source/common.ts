@@ -5,6 +5,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { getAggregateConfiguration } from "./aggregates";
 import { AggregateConfigurationOptions, getInterval, Interval } from "./interval";
 
+// tslint:disable:no-var-requires
 const SessionContext = require("node-opcua-address-space").SessionContext;
 
 export function processAggregateData(

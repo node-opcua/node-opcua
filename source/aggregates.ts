@@ -52,14 +52,14 @@ export function createHistoryServerCapabilities(addressSpace: any, serverCapabil
 
 function setHistoricalServerCapabilities(
   historyServerCapabilities: any,
-  historicalCapabilitiesDefaultProperties: any
+  defaultProperties: any
 ) {
     function setBoolean(propName: string) {
         const lowerCase = utils.lowerFirstLetter(propName);
-        if (!historicalCapabilitiesDefaultProperties.hasOwnProperty(lowerCase)) {
+        if (!defaultProperties.hasOwnProperty(lowerCase)) {
             throw new Error("cannot find " + lowerCase);
         }
-        const value = historicalCapabilitiesDefaultProperties[lowerCase];
+        const value = defaultProperties[lowerCase];
         const prop = historyServerCapabilities.getChildByName(propName);
         if (!prop) {
             throw new Error(" Cannot find property " + propName);
@@ -73,7 +73,7 @@ function setHistoricalServerCapabilities(
         if (!historyServerCapabilities.hasOwnProperty(lowerCase)) {
             throw new Error("cannot find " + lowerCase);
         }
-        const value = historicalCapabilitiesDefaultProperties[lowerCase];
+        const value = defaultProperties[lowerCase];
         const prop = historyServerCapabilities.getChildByName(propName);
         prop.setValueFromSource({ dataType: DataType.UInt32, value });
     }
@@ -95,7 +95,7 @@ function setHistoricalServerCapabilities(
     setBoolean("DeleteEventCapability");
 
     /// FOUND A BUG HERE spec says InsertAnnotationsCapability
-    /// Standar dnodeset2 says InsertAnnotationCapability ( without s )
+    /// Standard dnodeset2 says InsertAnnotationCapability ( without s )
     // xx setBoolean("InsertAnnotationsCapability");
 }
 

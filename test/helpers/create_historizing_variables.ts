@@ -1,11 +1,10 @@
-import { makeDataValue } from "./helpers";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { installAggregateConfigurationOptions } from "../../source/aggregates";
+import { makeDataValue } from "./helpers";
 
 function addHistory(node: any, time: string, value: number| boolean|null, statusCode: StatusCode): void {
     node._historyPush(makeDataValue(time, value, statusCode));
 }
-
 
 /// Example 1 : Example Aggregate data – Historian 1
 //  For the purposes of Historian 1 examples consider a source historian with the following data:
@@ -101,7 +100,6 @@ export function createHistorian2(addressSpace: any ) {
 
     addressSpace.installHistoricalDataNode(node, options);
 
-
     // 12:00:00  -      Bad_NoData         First archive entry, Point created
     addHistory(node, "12:00:00", 10, StatusCodes.BadNoData);
     // 12:00:02  10     Raw, Good
@@ -160,7 +158,6 @@ export function createHistorian2(addressSpace: any ) {
 // the quality will be Good, or if all values are Bad then the quality will be Bad, but if
 // there is some Good and some Bad then the quality will be Uncertain.
 // ------------------------------------------------------------------------------------
-
 
 // A.1.3 Example Aggregate data – Historian 3
 // This example is included to illustrate stepped data. For the purposes of Historian 3 examples
