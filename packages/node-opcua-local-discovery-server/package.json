@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-local-discovery-server",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "description": "pure nodejs OPCUA Local Discovery Server",
   "bin": {
     "lds": "./bin/local-discovery-server.js",
