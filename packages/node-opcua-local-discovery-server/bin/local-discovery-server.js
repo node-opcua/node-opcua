@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+"use strict"
 const opcua = require("node-opcua");
 const path = require("path");
 // Create a new instance of vantage.
