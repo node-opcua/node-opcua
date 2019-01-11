@@ -23,6 +23,7 @@ module.exports = {
         "WeakMap": true
     },
     env: {
+        es6: true,
         node: true,
         mocha: true
     },

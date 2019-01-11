@@ -102,6 +102,7 @@ export interface ClientSubscription extends EventEmitter {
      * options.trigger       {DataChangeTrigger} {Status|StatusValue|StatusValueTimestamp}
      * options.deadbandType  {DeadbandType}      {None|Absolute|Percent}
      * options.deadbandValue {Double}
+     *
      * @example:
      *
      *   clientSubscription.monitor(

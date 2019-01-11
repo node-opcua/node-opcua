@@ -4,11 +4,11 @@ import { Application } from "typedoc";
 
 // @ts-ignore
 const app = new Application({
-    experimentalDecorators: true,
+    experimentalDecorators: false,
     logger: "console",
     mode: "modules",
     module: "commonjs",
-    target: "es2015",
+    target: "es2017",
 
     gaID: "UA-25438821-3",
     gaSite: "node-opcua.github.io"

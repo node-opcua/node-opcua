@@ -101,25 +101,6 @@ ClientSessionImpl.prototype.enableCondition = () => {
 
 };
 
-/**
- * @method addCommentCondition
- * The AddComment Method is used to apply a comment to a specific state of a Condition instance.
- * Normally, the NodeId of the object instance as the ObjectId is passed to the Call Service.
- * However, some Servers do not expose Condition instances in the AddressSpace. Therefore all Servers
- * shall also allow Clients to call the AddComment Method by specifying ConditionId as the ObjectId.
- * The Method cannot be called with an ObjectId of the ConditionType Node.
- *
- * Notes:
- * Comments are added to Event occurrences identified via an EventId. EventIds where the related EventType
- * is not a ConditionType (or subtype of it) and thus does not support Comments are rejected.
- * A ConditionEvent – where the Comment Variable contains this text – will be sent for the identified
- * state. If a comment is added to a previous state (i.e. a state for which the Server has created a
- * branch), the BranchId and all Condition values of this branch will be reported/.
- *
- * @param conditionId
- * @param eventId
- * @param comment
- */
 ClientSessionImpl.prototype.addCommentCondition = function(
     conditionId: NodeIdLike,
     eventId: Buffer,
@@ -129,12 +110,6 @@ ClientSessionImpl.prototype.addCommentCondition = function(
     this._callMethodCondition("AddComment", conditionId, eventId, comment, callback);
 };
 
-/**
- * @method findMethodId
- * @param nodeId
- * @param methodName
- * @param callback
- */
 ClientSessionImpl.prototype.findMethodId = function(
     nodeId: NodeIdLike,
     methodName: string,
@@ -167,6 +142,15 @@ ClientSessionImpl.prototype.findMethodId = function(
 
 };
 
+/**
+ *
+ * @param methodName
+ * @param conditionId
+ * @param eventId
+ * @param comment
+ * @param callback
+ * @private
+ */
 ClientSessionImpl.prototype._callMethodCondition = function(
     methodName: string,
     conditionId: NodeIdLike,
@@ -225,21 +209,6 @@ ClientSessionImpl.prototype._callMethodCondition = function(
     });
 };
 
-/**
- * @method confirmCondition
- * from Spec 1.03 Part 9 : page 27
- *    The Confirm Method is used to confirm an Event Notifications for a Condition instance state
- *    where ConfirmedState is FALSE.
- *    Normally, the NodeId of the object instance as the ObjectId is passed to the Call Service.
- *    However, some Servers do not expose Condition instances in the AddressSpace.
- *    Therefore all Servers shall also allow Clients to call the Confirm Method by specifying ConditionId
- *    as the ObjectId.
- *    The Method cannot be called with an ObjectId of the AcknowledgeableConditionType Node.
- * @param conditionId
- * @param eventId
- * @param comment
- * @param callback
- */
 ClientSessionImpl.prototype.confirmCondition = function(
     conditionId: NodeId,
     eventId: Buffer,
@@ -251,36 +220,6 @@ ClientSessionImpl.prototype.confirmCondition = function(
     this._callMethodCondition("Confirm", conditionId, eventId, comment, callback);
 };
 
-/**
- * @class ClientSessionImpl
- * @method acknowledgeCondition
- *
- * from Spec 1.03 Part 9 : page 27
- *   The Acknowledge Method is used to acknowledge an Event Notification for a Condition
- *   instance state where AckedState is false.
- *   Normally, the NodeId of the object instance as the ObjectId is passed to the Call Service.
- *   However, some Servers do not expose Condition instances in the AddressSpace.
- *   Therefore all Servers shall also allow Clients to call the Acknowledge Method by specifying ConditionId
- *   as the ObjectId.
- *   The Method cannot be called with an ObjectId of the AcknowledgeableConditionType Node.
- *
- *   A Condition instance may be an Object that appears in the Server Address Space. If this is
- *   the case the ConditionId is the NodeId for the Object.
- *
- *   The EventId identifies a specific Event Notification where a state to be acknowledged was
- *   reported. Acknowledgement and the optional comment will be applied to the state identified
- *   with the EventId. If the comment field is NULL (both locale and text are empty) it will be
- *   ignored and any existing comments will remain unchanged. If the comment is to be reset, an
- *   empty text with a locale shall be provided.
- *   A valid EventId will result in an Event Notification where AckedState/Id is set to TRUE and the
- *   Comment Property contains the text of the optional comment argument. If a previous state is
- *   acknowledged, the BranchId and all Condition values of this branch will be reported.
- *
- * @param conditionId
- * @param eventId
- * @param comment
- * @param callback
- */
 ClientSessionImpl.prototype.acknowledgeCondition = function(
     conditionId: NodeId,
     eventId: Buffer,
@@ -289,3 +228,14 @@ ClientSessionImpl.prototype.acknowledgeCondition = function(
     // ns=0;i=9111 AcknowledgeableConditionType#Acknowledge
     this._callMethodCondition("Acknowledge", conditionId, eventId, comment, callback);
 };
+
+// tslint:disable:no-var-requires
+// tslint:disable:max-line-length
+const thenify = require("thenify");
+const opts = {multiArgs: false};
+ClientSessionImpl.prototype.addCommentCondition = thenify.withCallback(ClientSessionImpl.prototype.addCommentCondition, opts);
+ClientSessionImpl.prototype.findMethodId = thenify.withCallback(ClientSessionImpl.prototype.findMethodId, opts);
+ClientSessionImpl.prototype.confirmCondition = thenify.withCallback(ClientSessionImpl.prototype.confirmCondition, opts);
+ClientSessionImpl.prototype.acknowledgeCondition = thenify.withCallback(ClientSessionImpl.prototype.acknowledgeCondition, opts);
+
+
