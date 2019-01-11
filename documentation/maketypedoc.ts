@@ -15,6 +15,7 @@ const app = new Application({
 });
 
 const nodeopcuaModules = [
+    "types",
     "address-space",
     "assert",
     "basic-types",
@@ -63,7 +64,6 @@ const nodeopcuaModules = [
     "service-write",
     "service-subscription",
     "variant",
-    "types"
 
 ];
 
