@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-constants",
-  "version": "2.0.0-alpha.8",
+  "version": "2.0.0-alpha.9",
   "description": "pure nodejs OPCUA SDK - module -constants",
   "scripts": {
     "clean": "node -e \"require('rimraf').sync('dist');\"",
