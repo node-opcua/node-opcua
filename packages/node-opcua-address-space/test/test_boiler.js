@@ -5,7 +5,7 @@ const async = require("async");
 const generateAddressSpace = require("..").generate_address_space;
 const AddressSpace = require("..").AddressSpace;
 
-const UAStateMachine = require("..").UAStateMachine;
+const StateMachine = require("..").StateMachine;
 const context = require("..").SessionContext.defaultContext;
 
 const createBoilerType = require("../test_helpers/boiler_system").createBoilerType;
@@ -49,7 +49,7 @@ describe("Testing Boiler System", function () {
 
         const psm = programStateMachine.instantiate({browseName: "MyStateMachine#2"});
 
-        UAStateMachine.promote(psm);
+        StateMachine.promote(psm);
 
         psm.getStates().map(getBrowseName).sort().should.eql(['Halted', 'Ready', 'Running', 'Suspended' ]);
 
@@ -67,7 +67,7 @@ describe("Testing Boiler System", function () {
         });
 
         const psm = myProgramStateMachine.instantiate({browseName: "MyStateMachine#2"});
-        UAStateMachine.promote(psm);
+        StateMachine.promote(psm);
 
         psm.getStates().map(getBrowseName).sort().should.eql([ 'Halted', 'Ready', 'Running', 'Suspended']);
 

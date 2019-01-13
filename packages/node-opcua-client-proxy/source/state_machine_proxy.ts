@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { makeProxyState, ProxyState } from "./proxy_state";
 import { makeProxyTransition, ProxyTransition } from "./proxy_transition";
 
-export class UAStateMachineType {
+export class ProxyStateMachineType {
 
     public initialState: ProxyState | undefined;
     public states: ProxyState[];

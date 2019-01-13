@@ -86,7 +86,7 @@ export * from "node-opcua-service-query";
 export * from "node-opcua-service-node-management";
 export { DiagnosticInfo } from "node-opcua-data-model";
 
-export * from "node-opcua-secure-channel";
+export { SecurityPolicy, ErrorCallback, MessageSecurityMode } from "node-opcua-secure-channel";
 
 // -----------------------------------------------------------------------------
 // Nodeset stuff

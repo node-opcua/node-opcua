@@ -3,9 +3,8 @@
 
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
-
+const utils = require("node-opcua-utils");
 const Namespace = require("../namespace").Namespace;
-
 const DataType = require("node-opcua-variant").DataType;
 
 /**
@@ -27,6 +26,8 @@ exports.install = function (AddressSpace) {
     AddressSpace.prototype.addState = function (component, stateName, stateNumber, isInitialState) {
         return this.getOwnNamespace().addState(component, stateName, stateNumber, isInitialState);
     };
+    utils.setDeprecated(AddressSpace,"addState","use addressSpace.getOwnNamespace().addState(..) instead");
+
 
     Namespace.prototype.addState = function (component, stateName, stateNumber, isInitialState) {
 

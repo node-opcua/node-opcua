@@ -354,6 +354,7 @@ class OPCUAServer extends OPCUABaseServer {
 
     constructor(options) {
 
+        options = options || {};
 
         super(options);
 
@@ -572,6 +573,8 @@ class OPCUAServer extends OPCUABaseServer {
      * create and register a new session
      * @method createSession
      * @return {ServerSession}
+     * @internal
+     * @private
      */
     createSession(options) {
         const self = this;
@@ -597,7 +600,7 @@ class OPCUAServer extends OPCUABaseServer {
     getSession(authenticationToken, activeOnly) {
         const self = this;
         return self.engine.getSession(authenticationToken, activeOnly);
-    };
+    }
 
     /**
      * true if the server has been initialized
@@ -609,7 +612,6 @@ class OPCUAServer extends OPCUABaseServer {
         const self = this;
         return self.engine.addressSpace !== null;
     }
-
 
     /**
      * Initialize the server by installing default node set.
@@ -1277,6 +1279,7 @@ OPCUAServer.prototype.isValidX509IdentityToken = function (
 };
 
 /**
+ * @internal
  * @method userNameIdentityTokenAuthenticateUser
  * @param channel
  * @param session
@@ -1360,6 +1363,15 @@ function createAnonymousIdentityToken(endpoint_desc) {
 }
 
 
+/**
+ * @internal
+ * @param channel
+ * @param session
+ * @param userIdentityToken
+ * @param userTokenSignature
+ * @param callback
+ * @returns {*}
+ */
 OPCUAServer.prototype.isValidUserIdentityToken = function (
     channel,
     session,
@@ -1396,6 +1408,15 @@ OPCUAServer.prototype.isValidUserIdentityToken = function (
 };
 
 
+/**
+ *
+ * @internal
+ * @param channel
+ * @param session
+ * @param userIdentityToken
+ * @param done
+ * @returns {*}
+ */
 OPCUAServer.prototype.isUserAuthorized = function (channel, session, userIdentityToken, done) {
 
     const self = this;
@@ -2977,4 +2998,8 @@ exports.RegisterServerMethod = RegisterServerMethod;
 
 const thenify = require("thenify");
 const opts = {multiArgs: false};
+OPCUAServer.prototype.start = thenify.withCallback(OPCUAServer.prototype.start, opts);
+OPCUAServer.prototype.initialize = thenify.withCallback(OPCUAServer.prototype.initialize, opts);
 OPCUAServer.prototype.shutdown = thenify.withCallback(OPCUAServer.prototype.shutdown, opts);
+OPCUAServer.prototype.registerServer = thenify.withCallback(OPCUAServer.prototype.registerServer, opts);
+OPCUAServer.prototype.unregisterServer = thenify.withCallback(OPCUAServer.prototype.unregisterServer, opts);

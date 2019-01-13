@@ -11,7 +11,7 @@ const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const DataType = require("node-opcua-variant").DataType;
 const DataValue = require("node-opcua-data-value").DataValue;
 const UALimitAlarm = require("./limit_alarm").UALimitAlarm;
-const UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
+const StateMachine = require("../state_machine/finite_state_machine").StateMachine;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const AddressSpace =require("../address_space").AddressSpace;
 const Namespace = require("../namespace").Namespace;
@@ -26,7 +26,7 @@ const ConditionInfo = require("./condition").ConditionInfo;
 function UAExclusiveLimitAlarm() {
     /**
      * @property limitState
-     * @type  UAStateMachine
+     * @type  StateMachine
      */
 }
 
@@ -125,7 +125,7 @@ UAExclusiveLimitAlarm.instantiate = function (namespace, type, options, data) {
 
     // ---------------- install LimitState StateMachine
     assert(alarm.limitState, "limitState is mandatory");
-    UAStateMachine.promote(alarm.limitState);
+    StateMachine.promote(alarm.limitState);
 
     // start with a inactive state
     alarm.activeState.setValue(false);

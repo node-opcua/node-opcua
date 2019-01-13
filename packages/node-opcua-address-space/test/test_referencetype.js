@@ -503,7 +503,7 @@ describe(" improving performance of isSupertypeOf", function () {
                 return addressSpace.findReferenceType(referenceTypeName);
             });
             referenceTypes = referenceTypes.filter(function (e) {
-                return e !== undefined;
+                return (e !== null && e !== undefined );
             });
 
             referenceTypes[0].nodeClass.should.eql(NodeClass.ReferenceType);

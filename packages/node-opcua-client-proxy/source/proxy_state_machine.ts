@@ -6,7 +6,7 @@ import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
 import { UAProxyManager } from "./proxy_manager";
 
-export class UAStateMachineProxy extends EventEmitter {
+export class StateMachineProxy extends EventEmitter {
 
     public nodeId: NodeId;
     private proxyManager: UAProxyManager;

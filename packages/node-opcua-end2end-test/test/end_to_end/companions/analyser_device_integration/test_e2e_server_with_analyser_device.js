@@ -355,11 +355,11 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         subStateMachineType.browseName.name.toString().should.eql("AnalyserChannel_OperatingModeSubStateMachineType");
 
-        const UAStateMachine = require("node-opcua-address-space").UAStateMachine;
+        const StateMachine = require("node-opcua-address-space").StateMachine;
 
         const sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
-        UAStateMachine.promote(sm);
+        StateMachine.promote(sm);
 
         redirectToFile("OperatingModeSubStateMachineType.graphviz", function () {
             dumpStateMachineToGraphViz(sm);
@@ -381,11 +381,11 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         subStateMachineType.browseName.name.toString().should.eql("AnalyserChannel_OperatingModeExecuteSubStateMachineType");
 
-        const UAStateMachine = require("node-opcua-address-space").UAStateMachine;
+        const StateMachine = require("node-opcua-address-space").StateMachine;
 
         const sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
-        UAStateMachine.promote(sm);
+        StateMachine.promote(sm);
 
         redirectToFile("OperatingModeExecuteSubStateMachineType.graphviz", function () {
             dumpStateMachineToGraphViz(sm);

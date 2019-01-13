@@ -99,6 +99,8 @@ class OPCUABaseServer extends OPCUASecureObject {
     constructor(options) {
 
 
+        options = options || {};
+
         options.certificateFile = options.certificateFile || constructFilename("certificates/server_selfsigned_cert_2048.pem");
         options.privateKeyFile = options.privateKeyFile || constructFilename("certificates/PKI/own/private/private_key.pem");
 

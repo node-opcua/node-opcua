@@ -170,12 +170,6 @@ exports.install = function (AddressSpace) {
         return this.addObjectType(options);
     };
 
-    //function _coerceEventType(addressSpace, eventType) {
-    //
-    //    var nodeid = makeNodeId(ObjectTypeIds[eventType]);
-    //    var eventTypeNode = addressSpace.findNode(nodeid);
-    //    return eventTypeNode;
-    //}
     /**
      * find an EventType node in the address space
      * @method findEventType

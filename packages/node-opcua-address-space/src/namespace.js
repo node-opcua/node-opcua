@@ -130,40 +130,44 @@ function _adjust_options(self, options) {
 
 /**
  *
- * @param objectType {String}
+ * @param objectTypeName {String}
  * @return {UAObjectType|null}
  */
-UANamespace.prototype.findObjectType = function (objectType) {
-    assert(typeof objectType === "string");
-    return this._objectTypeMap[objectType];
+UANamespace.prototype.findObjectType = function (objectTypeName) {
+    assert(typeof objectTypeName === "string");
+    const objectType = this._objectTypeMap[objectTypeName];
+    return objectType ? objectType : null;
 };
 /**
  *
- * @param variableType {String}
+ * @param variableTypeName {String}
  * @returns {UAVariableType|null}
  */
-UANamespace.prototype.findVariableType = function (variableType) {
-    assert(typeof variableType === "string");
-    return this._variableTypeMap[variableType];
+UANamespace.prototype.findVariableType = function (variableTypeName) {
+    assert(typeof variableTypeName === "string");
+    const variableType = this._variableTypeMap[variableTypeName];
+    return variableType ? variableType : null;
 };
 /**
  *
- * @param dataType {String}
+ * @param dataTypeName {String}
  * @returns {UADataType|null}
  */
-UANamespace.prototype.findDataType = function (dataType) {
-    assert(typeof dataType === "string");
+UANamespace.prototype.findDataType = function (dataTypeName) {
+    assert(typeof dataTypeName === "string");
     assert(this._dataTypeMap,"internal error : _dataTypeMap is missing");
-    return this._dataTypeMap[dataType];
+    const dataType = this._dataTypeMap[dataTypeName];
+    return dataType ? dataType : null;
 };
 /**
  *
- * @param referenceType {String}
+ * @param referenceTypeName {String}
  * @returns  {ReferenceType|null}
  */
-UANamespace.prototype.findReferenceType = function (referenceType) {
-    assert(typeof referenceType === "string");
-    return this._referenceTypeMap[referenceType];
+UANamespace.prototype.findReferenceType = function (referenceTypeName) {
+    assert(typeof referenceTypeName === "string");
+    const referenceType =  this._referenceTypeMap[referenceTypeName];
+    return referenceType ? referenceType : null;
 };
 /**
  * find a ReferenceType by its inverse name.
@@ -175,7 +179,7 @@ UANamespace.prototype.findReferenceTypeFromInverseName = function (inverseName) 
     assert(typeof inverseName === "string");
     const node = this._referenceTypeMapInv[inverseName];
     assert(!node || (node.nodeClass === NodeClass.ReferenceType && node.inverseName.text === inverseName));
-    return node;
+    return node ? node : null;
 };
 
 function _registerObjectType(self, node) {

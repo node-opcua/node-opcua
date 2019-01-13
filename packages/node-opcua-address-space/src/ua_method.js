@@ -104,7 +104,6 @@ UAMethod.prototype.getInputArguments = function () {
 
 UAMethod.prototype.getOutputArguments = function () {
     return this._getArguments("OutputArguments");
-
 };
 
 /**
@@ -202,10 +201,9 @@ UAMethod.prototype.execute = function (inputArguments, context, callback) {
 
 };
 
-
-
 UAMethod.prototype.clone = function (options,optionalFilter,extraInfo) {
 
+    // placed here to prevent cyclic require
     const Namespace = require("./namespace").Namespace;
 
     assert(!options.componentOf || options.componentOf,"trying to create an orphan method ?");
@@ -233,5 +231,11 @@ UAMethod.prototype.clone = function (options,optionalFilter,extraInfo) {
 
     return clonedMethod;
 };
+
+// tslint:disable:no-var-requires
+// tslint:disable:max-line-length
+const thenify = require("thenify");
+UAMethod.prototype.execute = thenify.withCallback(UAMethod.prototype.execute);
+
 exports.UAMethod = UAMethod;
 

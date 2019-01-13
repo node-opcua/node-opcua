@@ -24,7 +24,7 @@ import { readUAStructure } from "./object_explorer";
 import { makeRefId } from "./proxy";
 import { ProxyBaseNode } from "./proxy_base_node";
 import { ProxyObject } from "./proxy_object";
-import { UAStateMachineType } from "./state_machine_proxy";
+import { ProxyStateMachineType } from "./state_machine_proxy";
 
 function getObject(
     proxyManager: UAProxyManager,
@@ -330,7 +330,7 @@ export class UAProxyManager {
 
     public getStateMachineType(
         nodeId: NodeIdLike,
-        callback: (err: Error | null, stateMachineType?: UAStateMachineType) => void
+        callback: (err: Error | null, stateMachineType?: ProxyStateMachineType) => void
     ) {
 
         if (typeof nodeId === "string") {
@@ -343,7 +343,7 @@ export class UAProxyManager {
             // read fromState and toState Reference on
             let stateMachineType;
             if (!err) {
-                stateMachineType = new UAStateMachineType(obj);
+                stateMachineType = new ProxyStateMachineType(obj);
             }
             callback(err, stateMachineType);
         });

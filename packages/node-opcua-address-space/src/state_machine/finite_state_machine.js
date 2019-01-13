@@ -21,42 +21,45 @@ const UAObjectType = require("../ua_object_type").UAObjectType;
 const UAObject = require("../ua_object").UAObject;
 const BaseNode = require("../base_node").BaseNode;
 
-const utils= require("node-opcua-utils");
+const utils = require("node-opcua-utils");
 
 const doDebug = false;
+
 /*
  *
- * @class UAStateMachine
+ * @class StateMachine
  * @constructor
  * @extends UAObject
  *
  *
  */
-function UAStateMachine() {
+function StateMachine() {
 
     /**
      * @property currentState
      */
 }
-util.inherits(UAStateMachine,UAObject);
+
+util.inherits(StateMachine, UAObject);
 
 
-UAStateMachine.promote = function( node) {
-    if (node instanceof UAStateMachine) {
+StateMachine.promote = function (node) {
+    if (node instanceof StateMachine) {
         return node; // already promoted
     }
-    Object.setPrototypeOf(node,UAStateMachine.prototype);
+    Object.setPrototypeOf(node, StateMachine.prototype);
+    assert(node instanceof StateMachine, "should now  be a State Machine");
     node._post_initialize();
     return node;
 };
 
-UAStateMachine.prototype._post_initialize = function() {
-    const self =this;
+StateMachine.prototype._post_initialize = function () {
+    const self = this;
     const addressSpace = self.addressSpace;
     const finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType");
     assert(finiteStateMachineType.browseName.toString() === "FiniteStateMachineType");
 
-    assert(self.typeDefinitionObj&&!self.subtypeOfObj); 
+    assert(self.typeDefinitionObj && !self.subtypeOfObj);
     assert(!self.typeDefinitionObj || self.typeDefinitionObj.isSupertypeOf(finiteStateMachineType));
     // get current Status
 
@@ -76,32 +79,32 @@ function getComponentFromTypeAndSubtype(typeDef) {
     const components_parts = [];
     components_parts.push(typeDef.getComponents());
 
-    while(typeDef.subtypeOfObj) {
+    while (typeDef.subtypeOfObj) {
         typeDef = typeDef.subtypeOfObj;
         components_parts.push(typeDef.getComponents());
     }
-    return [].concat.apply([],components_parts);
+    return [].concat.apply([], components_parts);
 }
 
 /**
  * @method getStates
  * @return {*}
  */
-UAStateMachine.prototype.getStates = function() {
+StateMachine.prototype.getStates = function () {
 
     const self = this;
     const addressSpace = self.addressSpace;
 
     const initialStateType = addressSpace.findObjectType("InitialStateType");
-    const stateType        = addressSpace.findObjectType("StateType");
+    const stateType = addressSpace.findObjectType("StateType");
 
     assert(initialStateType.isSupertypeOf(stateType));
 
     const typeDef = self.typeDefinitionObj;
-    
+
     let comp = getComponentFromTypeAndSubtype(typeDef);
 
-    comp = comp.filter(function(c){
+    comp = comp.filter(function (c) {
         if (!(c.typeDefinitionObj instanceof UAObjectType)) {
             return false;
         }
@@ -111,7 +114,7 @@ UAStateMachine.prototype.getStates = function() {
     return comp;
 };
 
-UAStateMachine.prototype.__defineGetter__("states",function() {
+StateMachine.prototype.__defineGetter__("states", function () {
     return this.getStates();
 });
 
@@ -120,17 +123,19 @@ UAStateMachine.prototype.__defineGetter__("states",function() {
  * @param name  {string}
  * @return {null|UAObject}
  */
-UAStateMachine.prototype.getStateByName = function(name) {
+StateMachine.prototype.getStateByName = function (name) {
 
     const self = this;
     let states = self.getStates();
-    states = states.filter(function(s){ return s.browseName.name === name; });
-    assert(states.length<=1);
+    states = states.filter(function (s) {
+        return s.browseName.name === name;
+    });
+    assert(states.length <= 1);
     return states.length === 1 ? states[0] : null;
 };
 
 
-UAStateMachine.prototype.getTransitions = function() {
+StateMachine.prototype.getTransitions = function () {
 
     const self = this;
     const addressSpace = self.addressSpace;
@@ -140,7 +145,7 @@ UAStateMachine.prototype.getTransitions = function() {
 
     let comp = getComponentFromTypeAndSubtype(typeDef);
 
-    comp = comp.filter(function(c){
+    comp = comp.filter(function (c) {
         if (!(c.typeDefinitionObj instanceof UAObjectType)) {
             return false;
         }
@@ -150,7 +155,8 @@ UAStateMachine.prototype.getTransitions = function() {
     return comp;
 
 };
-UAStateMachine.prototype.__defineGetter__("transitions",function() {
+
+StateMachine.prototype.__defineGetter__("transitions", function () {
     return this.getTransitions();
 });
 
@@ -159,7 +165,7 @@ UAStateMachine.prototype.__defineGetter__("transitions",function() {
  * @property initialState
  * @type  {UAObject}
  */
-UAStateMachine.prototype.__defineGetter__("initialState", function() {
+StateMachine.prototype.__defineGetter__("initialState", function () {
     const self = this;
     const addressSpace = self.addressSpace;
 
@@ -168,19 +174,19 @@ UAStateMachine.prototype.__defineGetter__("initialState", function() {
 
     let comp = getComponentFromTypeAndSubtype(typeDef);
 
-    comp = comp.filter(function(c){
+    comp = comp.filter(function (c) {
         return c.typeDefinitionObj === initialStateType;
     });
 
     // istanbul ignore next
-    if (comp.length >1 ) {
+    if (comp.length > 1) {
         throw new Error(" More than 1 initial state in stateMachine");
     }
-    return comp.length === 0 ?  null : comp[0];
+    return comp.length === 0 ? null : comp[0];
 });
 
 
-UAStateMachine.prototype._coerceNode = function(node) {
+StateMachine.prototype._coerceNode = function (node) {
 
     if (node === null) {
         return null;
@@ -190,11 +196,11 @@ UAStateMachine.prototype._coerceNode = function(node) {
     let retValue = node;
     if (node instanceof BaseNode) {
         return node;
-    } else if(node instanceof NodeId) {
+    } else if (node instanceof NodeId) {
         retValue = addressSpace.findNode(node);
 
     } else if (_.isString(node)) {
-        retValue  = self.getStateByName(node);
+        retValue = self.getStateByName(node);
     }
     if (!retValue) {
         ///xx console.log(" cannot find component with ",node ? node.toString():"null");
@@ -203,17 +209,17 @@ UAStateMachine.prototype._coerceNode = function(node) {
 };
 
 
-UAObject.prototype.__defineGetter__("toStateNode",function() {
+UAObject.prototype.__defineGetter__("toStateNode", function () {
     const self = this;
-    const nodes = self.findReferencesAsObject("ToState",true);
-    assert(nodes.length<=1);
+    const nodes = self.findReferencesAsObject("ToState", true);
+    assert(nodes.length <= 1);
     return nodes.length === 1 ? nodes[0] : null;
 });
 
-UAObject.prototype.__defineGetter__("fromStateNode",function() {
-    const self =this;
-    const nodes = self.findReferencesAsObject("FromState",true);
-    assert(nodes.length<=1);
+UAObject.prototype.__defineGetter__("fromStateNode", function () {
+    const self = this;
+    const nodes = self.findReferencesAsObject("FromState", true);
+    assert(nodes.length <= 1);
     return nodes.length === 1 ? nodes[0] : null;
 });
 
@@ -222,7 +228,7 @@ UAObject.prototype.__defineGetter__("fromStateNode",function() {
  * @param toStateNode
  * @return {boolean}
  */
-UAStateMachine.prototype.isValidTransition = function(toStateNode) {
+StateMachine.prototype.isValidTransition = function (toStateNode) {
     assert(toStateNode);
     // is it legal to go from state currentState to toStateNode;
     const self = this;
@@ -232,12 +238,12 @@ UAStateMachine.prototype.isValidTransition = function(toStateNode) {
     const n = self.currentState.readValue();
 
     // to be executed there must be a transition from currentState to toState
-    const transition = self.findTransitionNode(self.currentStateNode,toStateNode);
+    const transition = self.findTransitionNode(self.currentStateNode, toStateNode);
     if (!transition) {
 
         // istanbul ignore next
         if (doDebug) {
-            console.log(" No transition from ",self.currentStateNode.browseName.toString(), " to " , toStateNode.toString());
+            console.log(" No transition from ", self.currentStateNode.browseName.toString(), " to ", toStateNode.toString());
         }
         return false;
     }
@@ -250,31 +256,33 @@ UAStateMachine.prototype.isValidTransition = function(toStateNode) {
  * @param toStateNode   {NodeId|BaseNode|string}
  * @return {UAObject}
  */
-UAStateMachine.prototype.findTransitionNode = function(fromStateNode,toStateNode) {
+StateMachine.prototype.findTransitionNode = function (fromStateNode, toStateNode) {
 
     const self = this;
     const addressSpace = self.addressSpace;
 
     fromStateNode = self._coerceNode(fromStateNode);
-    if (!fromStateNode) { return null; }
+    if (!fromStateNode) {
+        return null;
+    }
 
     toStateNode = self._coerceNode(toStateNode);
 
     assert(fromStateNode instanceof UAObject);
-    assert(toStateNode   instanceof UAObject);
+    assert(toStateNode instanceof UAObject);
 
     const stateType = addressSpace.findObjectType("StateType");
 
     assert(fromStateNode.typeDefinitionObj.isSupertypeOf(stateType));
     assert(toStateNode.typeDefinitionObj.isSupertypeOf(stateType));
 
-    let transitions = fromStateNode.findReferencesAsObject("FromState",false);
+    let transitions = fromStateNode.findReferencesAsObject("FromState", false);
 
-    transitions = transitions.filter(function(transition){
+    transitions = transitions.filter(function (transition) {
         assert(transition.toStateNode instanceof UAObject);
         return transition.toStateNode === toStateNode;
     });
-    if (transitions.length ===0 ) {
+    if (transitions.length === 0) {
         // cannot find a transition from fromState to toState
         return null;
     }
@@ -282,7 +290,7 @@ UAStateMachine.prototype.findTransitionNode = function(fromStateNode,toStateNode
     return transitions[0];
 };
 
-UAStateMachine.prototype.__defineGetter__("currentStateNode",function() {
+StateMachine.prototype.__defineGetter__("currentStateNode", function () {
     const self = this;
     return self._currentStateNode;
 });
@@ -291,7 +299,7 @@ UAStateMachine.prototype.__defineGetter__("currentStateNode",function() {
  * @property currentStateNode
  * @type BaseNode
  */
-UAStateMachine.prototype.__defineSetter__("currentStateNode",function(value) {
+StateMachine.prototype.__defineSetter__("currentStateNode", function (value) {
     const self = this;
     return self._currentStateNode = value;
 });
@@ -300,7 +308,7 @@ UAStateMachine.prototype.__defineSetter__("currentStateNode",function(value) {
  * @method getCurrentState
  * @return {String}
  */
-UAStateMachine.prototype.getCurrentState = function() {
+StateMachine.prototype.getCurrentState = function () {
     //xx self.currentState.readValue().value.value.text
     //xx self.shelvingState.currentStateNode.browseName.toString()
     const self = this;
@@ -314,20 +322,20 @@ UAStateMachine.prototype.getCurrentState = function() {
  * @method setState
  * @param toStateNode {String|false|UAObject}
  */
-UAStateMachine.prototype.setState = function(toStateNode) {
+StateMachine.prototype.setState = function (toStateNode) {
 
     const self = this;
 
     if (!toStateNode) {
         self.currentStateNode = null;
-        self.currentState.setValueFromSource({dataType: DataType.Null},StatusCodes.BadStateNotActive);
+        self.currentState.setValueFromSource({ dataType: DataType.Null }, StatusCodes.BadStateNotActive);
         return;
     }
-    if (_.isString(toStateNode))  {
-        const state= self.getStateByName(toStateNode);
+    if (_.isString(toStateNode)) {
+        const state = self.getStateByName(toStateNode);
         // istanbul ignore next
         if (!state) {
-            throw new Error("Cannot find state with name "+toStateNode);
+            throw new Error("Cannot find state with name " + toStateNode);
         }
         assert(state.browseName.toString() === toStateNode);
         toStateNode = state;
@@ -340,11 +348,11 @@ UAStateMachine.prototype.setState = function(toStateNode) {
     self.currentState.setValueFromSource({
         dataType: DataType.LocalizedText,
         value: coerceLocalizedText(toStateNode.browseName.toString())
-    },StatusCodes.Good);
+    }, StatusCodes.Good);
 
     self.currentStateNode = toStateNode;
 
-    const transitionNode = self.findTransitionNode(fromStateNode,toStateNode);
+    const transitionNode = self.findTransitionNode(fromStateNode, toStateNode);
 
     if (transitionNode) {
 
@@ -356,25 +364,25 @@ UAStateMachine.prototype.setState = function(toStateNode) {
         // Transition identifies the Transition that triggered the Event.
         // FromState identifies the State before the Transition.
         // ToState identifies the State after the Transition.
-        self.raiseEvent("TransitionEventType",{
+        self.raiseEvent("TransitionEventType", {
 
             // Base EventType
             //xx nodeId:      self.nodeId,
             // TransitionEventType
             // TransitionVariableType
-            "transition":    { dataType: "LocalizedText", value: transitionNode.displayName},
+            "transition": { dataType: "LocalizedText", value: transitionNode.displayName },
             "transition.id": transitionNode.transitionNumber.readValue().value,
 
-            "fromState":     { dataType: "LocalizedText", value: fromStateNode.displayName },   // StateVariableType
+            "fromState": { dataType: "LocalizedText", value: fromStateNode.displayName },   // StateVariableType
             "fromState.id": fromStateNode.stateNumber.readValue().value,
 
-            "toState":       { dataType: "LocalizedText", value: toStateNode.displayName   },    // StateVariableType
-            "toState.id":    toStateNode.stateNumber.readValue().value
+            "toState": { dataType: "LocalizedText", value: toStateNode.displayName },    // StateVariableType
+            "toState.id": toStateNode.stateNumber.readValue().value
         });
 
     } else {
         if (fromStateNode && fromStateNode !== toStateNode) {
-            if (doDebug)  {
+            if (doDebug) {
                 const f = fromStateNode.browseName.toString();
                 const t = toStateNode.browseName.toString();
                 console.log("Warning".red, " cannot raise event :  transition " + f + " to " + t + " is missing");
@@ -384,11 +392,11 @@ UAStateMachine.prototype.setState = function(toStateNode) {
 
     // also update executable flags on methods
 
-    self.getMethods().forEach(function(method) {
+    self.getMethods().forEach(function (method) {
         method._notifyAttributeChange(AttributeIds.Executable);
     });
 
 };
 
 
-exports.UAStateMachine = UAStateMachine;
+exports.StateMachine = StateMachine;

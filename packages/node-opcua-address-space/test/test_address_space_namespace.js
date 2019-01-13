@@ -149,26 +149,26 @@ describe("testing  address space namespace loading", function () {
             // now try to retrieve some VariableType from DI namespace
             const UIElementType = addressSpace.findVariableType("UIElementType",di_ns);
             UIElementType.browseName.toString().should.eql("2:UIElementType");
-            should(addressSpace.findVariableType("UIElementType")).eql(undefined,"namespace is not provided");
+            should(addressSpace.findVariableType("UIElementType")).eql(null,"namespace is not provided");
             should(addressSpace.findVariableType("2:UIElementType")).eql(UIElementType);
 
 
             // now extract some ObjectType From DI namespace
             const TransferServicesType = addressSpace.findObjectType("TransferServicesType",di_ns);
             TransferServicesType.browseName.toString().should.eql("2:TransferServicesType");
-            should(addressSpace.findObjectType("TransferServicesType")).eql(undefined,"namespace is not provided");
+            should(addressSpace.findObjectType("TransferServicesType")).eql(null,"namespace is not provided");
             should(addressSpace.findObjectType("2:TransferServicesType")).eql(TransferServicesType);
 
             // now extract some ReferenceType
             const ConnectsToRefType = addressSpace.findReferenceType("ConnectsTo",di_ns);
             ConnectsToRefType.browseName.toString().should.eql("2:ConnectsTo");
-            should(addressSpace.findReferenceType("ConnectsTo")).eql(undefined,"namespace is not provided");
+            should(addressSpace.findReferenceType("ConnectsTo")).eql(null,"namespace is not provided");
             should(addressSpace.findReferenceType("2:ConnectsTo")).eql(ConnectsToRefType);
 
             // now extract some DataType
             const ParameterResultDataType = addressSpace.findDataType("ParameterResultDataType",di_ns);
             ParameterResultDataType.browseName.toString().should.eql("2:ParameterResultDataType");
-            should(addressSpace.findDataType("ParameterResultDataType")).eql(undefined,"namespace is not provided");
+            should(addressSpace.findDataType("ParameterResultDataType")).eql(null,"namespace is not provided");
             should(addressSpace.findDataType("2:ParameterResultDataType")).eql(ParameterResultDataType);
 
             addressSpace.dispose();

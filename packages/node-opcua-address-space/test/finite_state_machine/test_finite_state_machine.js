@@ -5,7 +5,7 @@ const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const DataType = require("node-opcua-variant").DataType;
 const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
-const UAStateMachine = require("../..").UAStateMachine;
+const StateMachine = require("../..").StateMachine;
 
 const AddressSpace = require("../..").AddressSpace;
 const generate_address_space = require("../..").generate_address_space;
@@ -158,7 +158,7 @@ describe("Testing Finite State Machine", function () {
         if (doDebug) {
             console.log(myStateMachine.toString());
         }
-        UAStateMachine.promote(myStateMachine);
+        StateMachine.promote(myStateMachine);
 
         // get the states
         const a = myStateMachine.getStates().map(function (e) {

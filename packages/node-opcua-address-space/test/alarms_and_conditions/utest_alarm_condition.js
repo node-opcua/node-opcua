@@ -171,7 +171,7 @@ module.exports = function (test) {
                 //-----------------------------------------------------------------------------------------------------------
                 // playing with ShelvingState
                 //-----------------------------------------------------------------------------------------------------------
-                alarm.shelvingState.constructor.name.should.eql("UAShelvingStateMachine");
+                alarm.shelvingState.constructor.name.should.eql("ShelvingStateMachine");
                 function getBrowseName(x) {
                     return x.browseName.toString();
                 }
@@ -192,7 +192,7 @@ module.exports = function (test) {
 
             it("checking shelving state behavior with automatic unshelving", function (done) {
 
-                alarm.shelvingState.constructor.name.should.eql("UAShelvingStateMachine");
+                alarm.shelvingState.constructor.name.should.eql("ShelvingStateMachine");
 
                 alarm.shelvingState.setState("Unshelved");
                 alarm.shelvingState.getCurrentState().should.eql("Unshelved");

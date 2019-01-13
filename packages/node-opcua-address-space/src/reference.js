@@ -86,6 +86,9 @@ Reference.prototype.toString = function (options) {
     return _arrow(refType,40,this.isForward) + infoNode ;
 };
 
+/**
+ * @internal
+ */
 Reference.prototype.__defineGetter__("hash",function() {
 
     if (!this.__hash) {
@@ -94,6 +97,9 @@ Reference.prototype.__defineGetter__("hash",function() {
     return this.__hash;
 });
 
+/**
+ * @internal
+ */
 Reference.prototype.dispose = function() {
     this.__hash = null;
     this._referenceType =null;

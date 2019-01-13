@@ -1236,6 +1236,7 @@ OPCUAClientImpl.prototype.disconnect = thenify.withCallback(OPCUAClientImpl.prot
 /**
  * @method createSession
  * @param [userIdentityInfo {Object} ] optional
+ * @param [userIdentityInfo.type {UserTokenType.UserName}
  * @param [userIdentityInfo.userName {String} ]
  * @param [userIdentityInfo.password {String} ]
  * @return {Promise}
@@ -1247,7 +1248,7 @@ OPCUAClientImpl.prototype.disconnect = thenify.withCallback(OPCUAClientImpl.prot
  *
  * @example
  *     // create a session with a userName and password
- *     const userIdentityInfo  = { userName: "JoeDoe", password:"secret"};
+ *     const userIdentityInfo  = {UserTokenType.UserName, userName: "JoeDoe", password:"secret"};
  *     const session = client.createSession(userIdentityInfo);
  *
  */

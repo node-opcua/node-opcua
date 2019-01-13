@@ -27,21 +27,21 @@ const UAAcknowledgeableConditionBase = require("./acknowledgeable_condition").UA
 
 const doDebug = false;
 //----------------------------------------------------------------------------------------------------------------------
-// UAShelvingStateMachine
+// ShelvingStateMachine
 //----------------------------------------------------------------------------------------------------------------------
-const UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
+const StateMachine = require("../state_machine/finite_state_machine").StateMachine;
 
-function UAShelvingStateMachine() {
+function ShelvingStateMachine() {
 
 }
 
-util.inherits(UAShelvingStateMachine, UAStateMachine);
+util.inherits(ShelvingStateMachine, StateMachine);
 
-UAShelvingStateMachine.promote = function (shelvingState) {
+ShelvingStateMachine.promote = function (shelvingState) {
 
-    UAStateMachine.promote(shelvingState);
+    StateMachine.promote(shelvingState);
 
-    Object.setPrototypeOf(shelvingState, UAShelvingStateMachine.prototype);
+    Object.setPrototypeOf(shelvingState, ShelvingStateMachine.prototype);
     shelvingState._timer = null;
 
     if (shelvingState.unshelve) {
@@ -61,7 +61,7 @@ UAShelvingStateMachine.promote = function (shelvingState) {
         }, true);
     }
 
-    assert(shelvingState instanceof UAShelvingStateMachine);
+    assert(shelvingState instanceof ShelvingStateMachine);
 };
 
 
@@ -273,7 +273,7 @@ function _unshelve_method(inputArguments, context, callback) {
 }
 
 function _clear_timer_if_any(shelvingState) {
-    assert(shelvingState instanceof UAShelvingStateMachine);
+    assert(shelvingState instanceof ShelvingStateMachine);
     if (shelvingState._timer) {
         clearTimeout(shelvingState._timer);
         //xx console.log("_clear_timer_if_any shelvingState = ",shelvingState._timer,shelvingState.constructor.name);
@@ -341,7 +341,7 @@ function _timedShelve_method(inputArguments, context, callback) {
     assert(inputArguments.length === 1);
 
     const shelvingState = context.object;
-    assert(shelvingState instanceof UAShelvingStateMachine);
+    assert(shelvingState instanceof ShelvingStateMachine);
 
     if (shelvingState.getCurrentState() !== "Unshelved") {
         return callback(null, {
@@ -786,10 +786,10 @@ UAAlarmConditionBase.instantiate = function (namespace, alarmConditionTypeId, op
      * displayed to the user. It is quite often used to block nuisance Alarms.
      *
      * @property shelvingState
-     * @type UAShelvingStateMachine
+     * @type ShelvingStateMachine
      */
     if (alarmNode.shelvingState) {
-        UAShelvingStateMachine.promote(alarmNode.shelvingState);
+        ShelvingStateMachine.promote(alarmNode.shelvingState);
 
     }
 

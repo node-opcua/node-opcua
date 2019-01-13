@@ -104,7 +104,7 @@ function dumpStateMachineToPlantUML(stateMachineType) {
  LR_8 -> LR_5 [ label = "S(a)" ];
  }
  */
-function dumpStateMachineToGraphViz(/*UAStateMachineProxy*/ stateMachineType) {
+function dumpStateMachineToGraphViz(/*StateMachineProxy*/ stateMachineType) {
 
     function w(str) {
         console.log(str);

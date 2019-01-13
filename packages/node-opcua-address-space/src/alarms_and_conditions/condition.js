@@ -20,7 +20,7 @@ const BaseNode = require("../base_node").BaseNode;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const NodeClass = require("node-opcua-data-model").NodeClass;
 const TimeZoneDataType = require("node-opcua-common").TimeZoneDataType;
-const UAStateMachine = require("../state_machine/finite_state_machine").UAStateMachine;
+const StateMachine = require("../state_machine/finite_state_machine").StateMachine;
 const UATwoStateVariable = require("../ua_two_state_variable").UATwoStateVariable;
 
 const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
