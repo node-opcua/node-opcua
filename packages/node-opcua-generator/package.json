@@ -9,7 +9,7 @@
   "test": "mocha test"
  },
  "dependencies": {
-  "chalk": "^2.4.1",
+  "chalk": "^2.4.2",
   "node-opcua-assert": "^2.0.0-alpha.9",
   "node-opcua-basic-types": "^2.0.0-alpha.9",
   "node-opcua-buffer-utils": "^2.0.0-alpha.9",
@@ -33,7 +33,7 @@
   "node-opcua-extension-object": "^2.0.0-alpha.9",
   "node-opcua-packet-analyzer": "^2.0.0-alpha.9",
   "should": "13.2.3",
-  "source-map-support": "^0.5.9"
+  "source-map-support": "^0.5.10"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

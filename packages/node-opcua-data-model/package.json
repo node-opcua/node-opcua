@@ -24,7 +24,7 @@
   "node-opcua-generator": "^2.0.0-alpha.9",
   "node-opcua-packet-analyzer": "^2.0.0-alpha.9",
   "should": "13.2.3",
-  "source-map-support": "^0.5.9"
+  "source-map-support": "^0.5.10"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

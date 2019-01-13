@@ -12,7 +12,7 @@
  },
  "dependencies": {
   "better-assert": "1.0.2",
-  "chalk": "^2.4.1"
+  "chalk": "^2.4.2"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

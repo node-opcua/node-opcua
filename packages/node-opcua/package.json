@@ -11,7 +11,7 @@
         "node": ">=6.10"
     },
     "dependencies": {
-        "chalk": "^2.4.1",
+        "chalk": "^2.4.2",
         "node-opcua-address-space": "^2.0.0-alpha.9",
         "node-opcua-address-space-for-conformance-testing": "^2.0.0-alpha.9",
         "node-opcua-assert": "^2.0.0-alpha.9",

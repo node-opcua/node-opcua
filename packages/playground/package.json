@@ -9,7 +9,10 @@
   },
   "dependencies": {
     "node-opcua": "^2.0.0-alpha.9",
-    "node-opcua-client": "^2.0.0-alpha.9"
+    "node-opcua-client": "^2.0.0-alpha.9",
+    "node-opcua-assert": "^2.0.0-alpha.9",
+    "node-opcua-utils": "^2.0.0-alpha.9"
+
   },
   "author": "Etienne Rossignon",
   "license": "MIT"
