@@ -10,7 +10,7 @@ function parse_xml(nodeset_files, callback) {
 
     const addressSpace = new address_space.AddressSpace();
 
-    address_space.generate_address_space(addressSpace, nodeset_files, function (err) {
+    address_space.generateAddressSpace(addressSpace, nodeset_files, function (err) {
         const pseudoSession = new PseudoSession(addressSpace);
         parse_opcua_common(pseudoSession, callback);
     });

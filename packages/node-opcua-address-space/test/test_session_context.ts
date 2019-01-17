@@ -9,23 +9,21 @@ import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject } from ".."
 // let's make sure should don't get removed by typescript optimizer
 const keep_should = should;
 
-const get_mini_address_space = require("../test_helpers/get_mini_address_space").get_mini_address_space;
+import { getMiniAddressSpace } from "../";
 
+// tslint:disable-next-line:no-var-requires
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("SessionContext", () => {
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    before((done: (err?: Error) => void) => {
+    before(async () => {
 
-        get_mini_address_space((err: Error | null, _addressSpace: AddressSpace) => {
-            if (err) {
-                done(err!);
-                return;
-            }
-            addressSpace = _addressSpace;
-            namespace = addressSpace.getOwnNamespace();
-            done();
-        });
+        addressSpace = await getMiniAddressSpace();
+        namespace = addressSpace.getOwnNamespace();
+    });
+    after(() => {
+        addressSpace.dispose();
     });
 
     it("should provide a default session context - getCurrentUserRole", () => {
@@ -86,13 +84,14 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
         // ConfigureAdmin     The Role is allowed to change the non-security related configuration settings.
         // SecurityAdmin      The Role is allowed to change security related settings.
 
-        getUserRole(username: string) {
+        getUserRole(username: string): string {
             if (username === "anonymous") {
                 return "Anonymous";
             }
             if (username === "NodeOPCUA") {
                 return "AuthenticatedUser;SecurityAdmin";
             }
+            return "None";
         }
     };
 
@@ -109,21 +108,17 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
         })
     };
 
-    before((done: (err?: Error) => void) => {
+    before(async () => {
 
         sessionContext = new SessionContext({
             server: mockServer,
-            session: mockSession,
+            session: mockSession
         });
-        get_mini_address_space((err: Error | null, _addressSpace: AddressSpace) => {
-            if (err) {
-                done(err!);
-                return;
-            }
-            addressSpace = _addressSpace;
-            namespace = addressSpace.getOwnNamespace();
-            done();
-        });
+        addressSpace = await getMiniAddressSpace();
+        namespace = addressSpace.getOwnNamespace();
+    });
+    after(() => {
+        addressSpace.dispose();
     });
 
     it("should provide a default session context - getCurrentUserRole", () => {

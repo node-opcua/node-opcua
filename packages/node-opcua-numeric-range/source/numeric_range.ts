@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import * as  _ from "underscore";
 
 import { decodeString, encodeString, UAString } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
 import { StatusCodes } from "node-opcua-status-code";
 
@@ -50,7 +50,7 @@ export const schemaNumericRange = {
         return new NumericRange();
     },
 
-    encode: (value: NumericRange | null, stream: BinaryStream) => {
+    encode: (value: NumericRange | null, stream: OutputBinaryStream) => {
         assert(value === null || value instanceof NumericRange);
         const strValue = (value === null) ? null : value.toEncodeableString();
         encodeString(strValue, stream);
@@ -532,7 +532,7 @@ export class NumericRange implements NumericalRange1 {
         };
     }
 
-    public encode(stream: BinaryStream) {
+    public encode(stream: OutputBinaryStream) {
         encodeString(this.toEncodeableString(), stream);
     }
 
@@ -708,7 +708,7 @@ function _overlap(l1: number, h1: number, l2: number, h2: number): boolean {
     return Math.max(l1, l2) <= Math.min(h1, h2);
 }
 
-export function encodeNumericRange(numericRange: NumericRange, stream: BinaryStream) {
+export function encodeNumericRange(numericRange: NumericRange, stream: OutputBinaryStream) {
     assert(numericRange instanceof NumericRange);
     numericRange.encode(stream);
 }

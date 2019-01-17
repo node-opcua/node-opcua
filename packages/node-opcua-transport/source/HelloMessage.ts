@@ -5,7 +5,7 @@ import {
     decodeUAString, decodeUInt32, encodeUAString,
     encodeUInt32, UAString, UInt32
 } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType, check_options_correctness_against_schema,
@@ -101,7 +101,7 @@ export class HelloMessage extends BaseUAObject {
         this.endpointUrl = initialize_field(schema.fields[5], options.endpointUrl);
     }
 
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
         super.encode(stream);
         encodeUInt32(this.protocolVersion, stream);
         encodeUInt32(this.receiveBufferSize, stream);

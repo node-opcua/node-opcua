@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-data-value
  */
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Enum } from "node-opcua-enum";
 import { registerEnumeration } from "node-opcua-factory";
 
@@ -19,7 +19,7 @@ export const schemaTimestampsToReturn = {
     enumValues: TimestampsToReturn
 };
 
-export function encodeTimestampsToReturn(value: TimestampsToReturn, stream: BinaryStream) {
+export function encodeTimestampsToReturn(value: TimestampsToReturn, stream: OutputBinaryStream) {
     stream.writeUInt32(value);
 }
 

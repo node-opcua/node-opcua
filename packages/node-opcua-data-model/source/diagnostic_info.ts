@@ -2,7 +2,7 @@
  * @module node-opcua-data-model
  */
 import assert from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
@@ -124,7 +124,7 @@ export class DiagnosticInfo extends BaseUAObject {
         this.innerDiagnosticInfo = initialize_field(schema.fields[6], options.innerDiagnosticInfo);
     }
 
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
         encode_DiagnosticInfo(this, stream);
     }
 
@@ -180,7 +180,7 @@ function getDiagnosticInfoEncodingByte(diagnosticInfo: DiagnosticInfo): Diagnost
     return encodingMask;
 }
 
-function encode_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: BinaryStream): void {
+function encode_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: OutputBinaryStream): void {
 
     const encodingMask = getDiagnosticInfoEncodingByte(diagnosticInfo);
 
@@ -324,7 +324,7 @@ function decode_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: BinaryStr
 
 const emptyDiagnosticInfo = new DiagnosticInfo({});
 
-export function encodeDiagnosticInfo(value: DiagnosticInfo, stream: BinaryStream): void {
+export function encodeDiagnosticInfo(value: DiagnosticInfo, stream: OutputBinaryStream): void {
     if (value === null) {
         emptyDiagnosticInfo.encode(stream);
     } else {

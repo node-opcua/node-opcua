@@ -26,7 +26,7 @@ class ObjWithNumericRange extends BaseUAObject
         options= options || {};
         this.numericRange = NumericRange.coerce(options.numericRange);
     }
-    encode(stream/*: BinaryStream*/) {
+    encode(stream/*: IBinaryStream*/) {
         encodeNumericRange(this.numericRange,stream);
     }
     decode(stream/*: BinaryStream*/) {

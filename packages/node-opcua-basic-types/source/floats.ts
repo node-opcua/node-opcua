@@ -3,7 +3,7 @@
  */
 import * as _ from "underscore";
 
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 const minFloat = -3.4 * Math.pow(10, 38);
 const maxFloat = 3.4 * Math.pow(10, 38);
@@ -64,7 +64,7 @@ export function randomFloat(): Float {
     return roundToFloat(getRandomDouble(-1000, 1000));
 }
 
-export function encodeFloat(value: Float, stream: BinaryStream): void {
+export function encodeFloat(value: Float, stream: OutputBinaryStream): void {
     stream.writeFloat(value);
 }
 
@@ -85,7 +85,7 @@ export function randomDouble(): Double {
     return getRandomDouble(-1000000, 1000000);
 }
 
-export function encodeDouble(value: Double, stream: BinaryStream) {
+export function encodeDouble(value: Double, stream: OutputBinaryStream) {
     stream.writeDouble(value);
 }
 

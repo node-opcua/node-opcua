@@ -2,6 +2,7 @@ const should = require("should");
 
 const MessageBuilder = require("..").MessageBuilder;
 const packets = require("node-opcua-transport/dist/test-fixtures");
+const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
 
 xdescribe("testing with problematic packet", function () {
@@ -68,7 +69,6 @@ xdescribe("testing with problematic packet", function () {
         const services = require("../src/services");
 
         const ec = require("node-opcua-basic-types");
-        const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
         const full_message_body = require("../test_fixtures/fixture_problematic_ReadResponse.js").packet_ReadResponse;
         const binaryStream = new BinaryStream(full_message_body);

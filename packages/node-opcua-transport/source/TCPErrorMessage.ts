@@ -2,7 +2,7 @@
  * @module node-opcua-transport
  */
 import { decodeString, encodeString, UAString } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType, check_options_correctness_against_schema,
@@ -41,7 +41,7 @@ export class TCPErrorMessage extends BaseUAObject {
         this.reason = initialize_field(schema.fields[1], options.reason);
     }
 
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
         // call base class implementation first
         super.encode(stream);
         encodeStatusCode(this.statusCode, stream);

@@ -2,7 +2,7 @@
  * @module node-opcua-basic-types
  */
 import assert from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream" ;
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream" ;
 import * as _ from "underscore";
 import { getRandomInt } from "./utils" ;
 
@@ -32,7 +32,7 @@ export function randomUInt16(): UInt16 {
     return getRandomInt(0, 0xffff) as UInt16;
 }
 
-export function encodeUInt16(value: UInt16, stream: BinaryStream): void {
+export function encodeUInt16(value: UInt16, stream: OutputBinaryStream): void {
     stream.writeUInt16(value);
 }
 
@@ -51,7 +51,7 @@ export function randomInt16(): Int16 {
     return getRandomInt(-0x8000, 0x7fff);
 }
 
-export function encodeInt16(value: Int16, stream: BinaryStream): void {
+export function encodeInt16(value: Int16, stream: OutputBinaryStream): void {
     assert(_.isFinite(value));
     stream.writeInt16(value);
 }
@@ -71,7 +71,7 @@ export function randomInt32(): Int32 {
     return getRandomInt(-0x80000000, 0x7fffffff) as Int32;
 }
 
-export function encodeInt32(value: Int32, stream: BinaryStream): void {
+export function encodeInt32(value: Int32, stream: OutputBinaryStream): void {
     assert(_.isFinite(value));
     stream.writeInteger(value);
 }
@@ -91,7 +91,7 @@ export function randomUInt32(): UInt32 {
     return getRandomInt(0, 0xffffffff);
 }
 
-export function encodeUInt32(value: UInt32, stream: BinaryStream) {
+export function encodeUInt32(value: UInt32, stream: OutputBinaryStream) {
     stream.writeUInt32(value);
 }
 
@@ -110,7 +110,7 @@ export function randomInt8(): Int8 {
     return getRandomInt(-0x7f, 0x7e);
 }
 
-export function encodeInt8(value: Int8, stream: BinaryStream): void {
+export function encodeInt8(value: Int8, stream: OutputBinaryStream): void {
     assert(isValidInt8(value));
     stream.writeInt8(value);
 }
@@ -135,7 +135,7 @@ export function randomUInt8(): UInt8 {
     return getRandomInt(0x00, 0xff);
 }
 
-export function encodeUInt8(value: UInt8, stream: BinaryStream): void {
+export function encodeUInt8(value: UInt8, stream: OutputBinaryStream): void {
     stream.writeUInt8(value);
 }
 
@@ -156,7 +156,7 @@ export function randomUInt64(): UInt64 {
     return [getRandomInt(0, 0xffffffff), getRandomInt(0, 0xffffffff)];
 }
 
-export function encodeUInt64(value: UInt64 | number, stream: BinaryStream) {
+export function encodeUInt64(value: UInt64 | number, stream: OutputBinaryStream) {
     if (_.isNumber(value)) {
         const arr = coerceUInt64(value);
         stream.writeUInt32(arr[1]);

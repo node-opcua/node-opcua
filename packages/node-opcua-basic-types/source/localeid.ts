@@ -1,7 +1,7 @@
 /***
  * @module node-opcua-basic-types
  */
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 import { decodeUAString, encodeUAString, UAString } from "./string";
 
@@ -12,7 +12,7 @@ export function validateLocaleId(value: any): boolean {
 }
 
 export type LocaleId = UAString;
-export function encodeLocaleId(localeId: LocaleId, stream: BinaryStream): void {
+export function encodeLocaleId(localeId: LocaleId, stream: OutputBinaryStream): void {
     return encodeUAString(localeId, stream);
 }
 

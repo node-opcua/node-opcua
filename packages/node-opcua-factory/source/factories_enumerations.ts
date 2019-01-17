@@ -4,13 +4,13 @@
 import assert from "node-opcua-assert";
 import * as  _ from "underscore";
 
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Enum, EnumItem } from "node-opcua-enum";
 import { EnumerationDefinition, TypeSchemaBase, TypeSchemaConstructorOptions } from "./types";
 
 const _enumerations: Map<string, EnumerationDefinition> = new Map<string, EnumerationDefinition>();
 
-function _encode_enumeration(value: EnumItem, stream: BinaryStream): void {
+function _encode_enumeration(value: EnumItem, stream: OutputBinaryStream): void {
     stream.writeInteger(value.value);
 }
 
@@ -21,14 +21,14 @@ export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptio
 
     // specialized methods
     defaultValue?: EnumItem;
-    encode?: (value: EnumItem, stream: BinaryStream) => void;
+    encode?: (value: EnumItem, stream: OutputBinaryStream) => void;
     decode?: (stream: BinaryStream) => EnumItem;
 }
 
 export class EnumerationDefinitionSchema extends TypeSchemaBase implements EnumerationDefinition {
     public enumValues: any;
     public typedEnum: Enum;
-    // xx encode: (value: EnumItem, stream: BinaryStream) => void;
+    // xx encode: (value: EnumItem, stream: OutputBinaryStream) => void;
     // xx decode: (stream: BinaryStream) => EnumItem;
 
     constructor(options: EnumerationDefinitionOptions) {

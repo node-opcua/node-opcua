@@ -6,13 +6,14 @@
 import * as  _ from "underscore";
 
 import assert from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { StatusCodes } from "node-opcua-constants";
 
 function warnLog(...args: [any?, ...any[]]) {
     // tslint:disable-next-line:no-console
     console.warn.apply(console, args);
 }
+
 export const extraStatusCodeBits: any = {
 
 // StatusCode Special bits
@@ -229,7 +230,7 @@ Object.defineProperty(ConstantStatusCode.prototype, "value", { enumerable: true 
 Object.defineProperty(ConstantStatusCode.prototype, "description", { enumerable: true });
 Object.defineProperty(ConstantStatusCode.prototype, "name", { enumerable: true });
 
-export function encodeStatusCode(statusCode: StatusCode | ConstantStatusCode, stream: BinaryStream) {
+export function encodeStatusCode(statusCode: StatusCode | ConstantStatusCode, stream: OutputBinaryStream) {
     stream.writeUInt32(statusCode.value);
 }
 
@@ -273,7 +274,7 @@ export function decodeStatusCode(stream: BinaryStream) {
 export class ModifiableStatusCode extends StatusCode {
 
     private readonly _base: StatusCode;
-    private  _extraBits: number;
+    private _extraBits: number;
 
     constructor(options: { _base: StatusCode }) {
         super();

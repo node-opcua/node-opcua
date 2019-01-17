@@ -4,7 +4,7 @@
 // Symmetric algorithms are used to secure all messages other than the OpenSecureChannel messages
 // OPC UA Secure Conversation Message Header Release 1.02 Part 6 page 39
 import { decodeUInt32, encodeUInt32, UInt32 } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
@@ -41,7 +41,7 @@ export class SymmetricAlgorithmSecurityHeader extends BaseUAObject {
         this.tokenId = initialize_field(schema.fields[0], options.tokenId);
     }
 
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
         // call base class implementation first
         super.encode(stream);
         encodeUInt32(this.tokenId, stream);

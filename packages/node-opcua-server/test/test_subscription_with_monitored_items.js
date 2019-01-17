@@ -85,7 +85,7 @@ function install_spying_samplingFunc() {
 
 const server_engine = require("../src/server_engine");
 
-const add_eventGeneratorObject = require("node-opcua-address-space/test_helpers/add_event_generator_object").add_eventGeneratorObject;
+const add_eventGeneratorObject = require("node-opcua-address-space").add_eventGeneratorObject;
 
 
 function simulate_client_adding_publish_request(publishEngine, callback) {

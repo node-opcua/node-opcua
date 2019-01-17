@@ -27,10 +27,10 @@ module.exports = function(test) {
             const timerId = setInterval(function() {
                 const now = new Date();
                 const dataValue = new opcua.DataValue({
-                    sourceTimestamp: now,
-                    sourcePicoseconds: 0,
-                    serverTimestamp: now,
                     serverPicoseconds: 0,
+                    serverTimestamp: now,
+                    sourcePicoseconds: 0,
+                    sourceTimestamp: now,
                     statusCode: opcua.StatusCodes.Good
                 });
                 dataValue.value = variant;

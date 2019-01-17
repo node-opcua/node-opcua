@@ -2,7 +2,7 @@
  * @module node-opcua-transport
  */
 import { decodeUInt32, encodeUInt32, UInt32 } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType, check_options_correctness_against_schema,
@@ -80,7 +80,7 @@ export class AcknowledgeMessage extends BaseUAObject {
         this.maxChunkCount = initialize_field(schema.fields[4], options.maxChunkCount);
     }
 
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
 
         super.encode(stream);
         encodeUInt32(this.protocolVersion, stream);

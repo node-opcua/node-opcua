@@ -4,7 +4,7 @@
 // tslint:disable:no-shadowed-variable
 import chalk from "chalk";
 import assert from "node-opcua-assert";
-import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
+import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
 import * as utils from "node-opcua-utils";
 import * as  _ from "underscore";
@@ -39,7 +39,7 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
             }
             tracer.trace("member", options.name, value, cursorBefore, stream.length, fieldType);
             break;
-        case FieldCategory.complex:
+        case FieldCategory.complex: {
             assert(field.category === FieldCategory.complex);
 
             if (!field.fieldTypeConstructor) {
@@ -52,7 +52,7 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
             const constructor = field.fieldTypeConstructor;
             value = callConstructor(constructor);
             value.decodeDebug(stream, options);
-            break;
+        }
     }
 
     return value;
@@ -66,7 +66,7 @@ function applyOnAllSchemaFields(self: any, schema: StructuredTypeSchema, data: a
     }
 }
 
-const _nbElements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH, 10 ) : 10;
+const _nbElements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH, 10) : 10;
 
 function _arrayEllipsis(value: any[] | null) {
 
@@ -145,7 +145,7 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
                     value = value.toString.apply(value, args);
                 }
                 str = fieldNameF + " " + fieldTypeF + ": "
-                        + ((value === null || value === undefined) ? chalk.blue("null") : value.toString());
+                  + ((value === null || value === undefined) ? chalk.blue("null") : value.toString());
             }
             data.lines.push(str);
         }
@@ -178,7 +178,7 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
                         const element = value[i];
                         data.lines.push(padding + chalk.cyan("  { " + ("/*" + i + "*/")));
 
-                        const data1 = {padding: padding + "    ", lines: []};
+                        const data1 = { padding: padding + "    ", lines: [] };
                         applyOnAllSchemaFields(element, _newDesc, data1, _exploreObject, args);
                         data.lines = data.lines.concat(data1.lines);
 
@@ -193,7 +193,7 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
             } else {
 
                 data.lines.push(fieldNameF + " " + fieldTypeF + ": {");
-                const data1 = {padding: padding + "  ", lines: []};
+                const data1 = { padding: padding + "  ", lines: [] };
                 applyOnAllSchemaFields(value, _newDesc, data1, _exploreObject, args);
                 data.lines = data.lines.concat(data1.lines);
 
@@ -290,7 +290,7 @@ export class BaseUAObject {
      * @method encode
      * @param stream {BinaryStream}
      */
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
     }
 
     /**
@@ -309,7 +309,7 @@ export class BaseUAObject {
      */
     public binaryStoreSize(): number {
         const stream = new BinaryStreamSizeCalculator();
-        this.encode(stream as BinaryStream);
+        this.encode(stream as OutputBinaryStream);
         return stream.length;
     }
 
@@ -317,7 +317,7 @@ export class BaseUAObject {
      * @method toString
      * @return {String}
      */
-    public toString(): string {
+    public toString(...args: any[]): string {
 
         if (this.schema && this.schema.hasOwnProperty("toString")) {
             return this.schema.toString.apply(this, arguments);
@@ -397,7 +397,7 @@ export class BaseUAObject {
 
         const data: { padding: string, lines: string[] } = {
             lines: [],
-            padding: " ",
+            padding: " "
         };
 
         data.lines.push("{" + chalk.cyan(" /*" + this.schema.name + "*/"));
@@ -445,21 +445,23 @@ export class BaseUAObject {
         return new self.constructor(params);
     }
 }
+
 // tslint:disable:max-classes-per-file
 export class ExtensionObject extends BaseUAObject {
     public static encodingDefaultBinary: ExpandedNodeId;
     public static encodingDefaultXml: ExpandedNodeId;
+
     constructor(options: any) {
         super();
     }
 }
 
 function _visitSchemaChain(
-    self: BaseUAObject,
-    schema: StructuredTypeSchema,
-    options: any,
-    func: (self: BaseUAObject, schema: StructuredTypeSchema, options: any) => void,
-    extraData: any
+  self: BaseUAObject,
+  schema: StructuredTypeSchema,
+  options: any,
+  func: (self: BaseUAObject, schema: StructuredTypeSchema, options: any) => void,
+  extraData: any
 ) {
     assert(_.isFunction(func));
 

@@ -12,7 +12,7 @@ const Variant = require("node-opcua-variant").Variant;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const util = require("util");
 
-const get_mini_address_space = require("node-opcua-address-space/test_helpers/get_mini_address_space").get_mini_address_space;
+const getMiniAddressSpace = require("node-opcua-address-space").getMiniAddressSpace;
 
 const checkSelectClauses = require("node-opcua-address-space").checkSelectClauses;
 const extractEventFields = require("node-opcua-service-filter").extractEventFields;
@@ -32,7 +32,7 @@ describe("testing Events  ", function () {
     let addressSpace,namespace;
     let eventType;
     before(function (done) {
-        get_mini_address_space(function (err,__addressSpace__) {
+        getMiniAddressSpace(function (err,__addressSpace__) {
             addressSpace =__addressSpace__;
             namespace = addressSpace.getOwnNamespace();
 

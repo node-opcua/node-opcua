@@ -34,7 +34,7 @@ const LocalizedText = require("node-opcua-data-model").LocalizedText;
 
 const standardUnits = require("node-opcua-data-access").standardUnits;
 
-const add_eventGeneratorObject = require("node-opcua-address-space/test_helpers/add_event_generator_object").add_eventGeneratorObject;
+const add_eventGeneratorObject = require("node-opcua-address-space").add_eventGeneratorObject;
 
 function defaultValidator(/*value*/) {
     return true;
@@ -145,7 +145,6 @@ function _add_variable(namespace, parent, varName, dataTypeName, current_value, 
 
     const addressSpace = namespace.addressSpace;
     assert(typeof extra_name === "string");
-    assert(addressSpace instanceof AddressSpace);
 
     const variant = makeVariant(dataTypeName, isArray, current_value);
 
@@ -945,8 +944,6 @@ function add_two_state_discrete_variables(namespace, parentFolder) {
 
 function add_multi_state_discrete_variable(namespace, parentFolder) {
 
-    assert(namespace instanceof Namespace);
-
     const DADiscreteTypeFolder = getDADiscreteTypeFolder(namespace, parentFolder);
 
     //MultiStateDiscrete001
@@ -1181,7 +1178,7 @@ function add_enumeration_variable(namespaceDemo, parentFolder) {
     // now instantiate a variable that have this type.
     const e = namespaceDemo.addVariable({
         organizedBy: parentFolder,
-        propertyOf: addressSpace.rootFolder.objects.server.venderServerInfos,
+        propertyOf: addressSpace.rootFolder.objects.server.vendorServerInfos,
         dataType: myEnumType,
         browseName: "RunningState",
         value: {
@@ -1257,13 +1254,11 @@ function add_sampleView(namespace) {
 
 build_address_space_for_conformance_testing = function (addressSpace, options) {
 
-
     const namespace = addressSpace.registerNamespace("urn://node-opcua-simulator");
 
     options = options || {};
     options.mass_variable = options.mass_variable || false;
 
-    assert(addressSpace instanceof AddressSpace);
 
     const objectsFolder = addressSpace.findNode("ObjectsFolder");
 

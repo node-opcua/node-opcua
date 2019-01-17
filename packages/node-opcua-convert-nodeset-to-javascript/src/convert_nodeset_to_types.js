@@ -210,11 +210,10 @@ function makeStructure(dataType, bForce, schema_folder) {
 
     bForce = !!bForce;
 
-    assert(dataType instanceof UADataType);
+    assert(dataType.nodeClass === NodeClass.DataType);
 
     const addressSpace = dataType.addressSpace;
     assert(addressSpace.constructor.name === "AddressSpace");
-    assert(addressSpace instanceof AddressSpace);
 
     const namespaceUri = addressSpace.getNamespaceUri(dataType.nodeId.namespace);
 
@@ -372,7 +371,6 @@ function registerDataType(addressSpace, dataTypeName, schema_folder, bForce) {
  * @param addressSpace {AddressSpace}
  */
 const createExtensionObjectDefinition = function(addressSpace) {
-    assert(addressSpace instanceof AddressSpace);
     const force = true;
     // nodeset.ApplicationDescription = nodeset.ApplicationDescription || registerDataType(addressSpace, "ApplicationDescription",force);
     nodeset.ServerState = nodeset.ServerState || registerDataTypeEnum(addressSpace, "ServerState", force);

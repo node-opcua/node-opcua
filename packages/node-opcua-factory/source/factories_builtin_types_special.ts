@@ -2,7 +2,7 @@
  * @module node-opcua-factory
  */
 import assert from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import * as  _ from "underscore";
 
 import { registerType } from "./factories_builtin_types";
@@ -10,7 +10,7 @@ import { ConstructorFunc } from "./factories_factories";
 
 function _self_encode(constructor: any) {
     assert(_.isFunction(constructor));
-    return (value: any, stream: BinaryStream) => {
+    return (value: any, stream: OutputBinaryStream) => {
         if (!value || !value.encode) {
             value = new constructor(value);
         }

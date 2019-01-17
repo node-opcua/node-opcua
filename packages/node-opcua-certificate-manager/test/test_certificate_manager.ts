@@ -51,6 +51,8 @@ describe("Testing OPCUA Client Certificate Manager", () => {
     });
 
     it("should handled an untrusted certificate", async () => {
+        await certificateMgr.untrustCertificate(certificate1);
+
         const statusCode = await certificateMgr.isCertificateTrusted(certificate1);
         statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
     });

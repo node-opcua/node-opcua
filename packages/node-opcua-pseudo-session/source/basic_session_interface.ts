@@ -23,16 +23,12 @@ export interface IBasicSession {
 
     browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
     browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
-
     browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
-
     browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
 
     read(nodeToRead: ReadValueIdLike, callback: ResponseCallback<DataValue>): void;
     read(nodesToRead: ReadValueIdLike[], callback: ResponseCallback<DataValue[]>): void;
-
     read(nodeToRead: ReadValueIdLike): Promise<DataValue>;
-
     read(nodesToRead: ReadValueIdLike[]): Promise<DataValue[]>;
 
 }

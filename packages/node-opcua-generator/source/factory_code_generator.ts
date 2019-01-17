@@ -345,7 +345,7 @@ function write_isValid(write: WriteFunc, schema: StructuredTypeSchema): void {
 function write_encode(write: WriteFunc, schema: StructuredTypeSchema): void {
 
     if (_.isFunction(schema.encode)) {
-        write("    public encode(stream: BinaryStream): void {");
+        write("    public encode(stream: OutputBinaryStream): void {");
         write("        " + "schema" + ".encode(this, stream);");
         write("    }");
     } else {
@@ -357,7 +357,7 @@ function write_encode(write: WriteFunc, schema: StructuredTypeSchema): void {
             write("     * @param stream {BinaryStream}");
             write("     */");
         }
-        write("     public encode(stream: BinaryStream): void {");
+        write("     public encode(stream: OutputBinaryStream): void {");
         write("        super.encode(stream);");
 
         const n = schema.fields.length;
@@ -571,7 +571,7 @@ function write_enumerations(write: WriteFunc, schema: StructuredTypeSchema): voi
 
 function write_expose_encoder_decoder(write: WriteFunc, schema: StructuredTypeSchema): void {
     write("");
-    write("import { BinaryStream } from \"node-opcua-binary-stream\";");
+    write("import { BinaryStream, OutputBinaryStream } from \"node-opcua-binary-stream\";");
     write("import { ExpandedNodeId, NodeId } from \"node-opcua-nodeid\";");
 
     const n = schema.fields.length;
@@ -586,11 +586,11 @@ function write_expose_encoder_decoder(write: WriteFunc, schema: StructuredTypeSc
                     break;
                 case FieldCategory.enumeration:
                     write("const _enumeration" + field.fieldType + " = " + "getEnumeration(\"" + field.fieldType + "\");");
-                    write("const encode" + field.fieldType + ": (value: any, stream: BinaryStream) => void = getEnumeration(\"" + field.fieldType + "\").encode;");
+                    write("const encode" + field.fieldType + ": (value: any, stream: OutputBinaryStream) => void = getEnumeration(\"" + field.fieldType + "\").encode;");
                     write("const decode" + field.fieldType + ": (stream: BinaryStream) => void = getEnumeration(\"" + field.fieldType + "\").decode;");
                     break;
                 case FieldCategory.complex:
-                    write("const encode" + field.fieldType + ": (value: any, stream: BinaryStream) => void = getBuildInType(\"" + field.fieldType + "\").encode;");
+                    write("const encode" + field.fieldType + ": (value: any, stream: OutputBinaryStream) => void = getBuildInType(\"" + field.fieldType + "\").encode;");
                     write("const decode" + field.fieldType + ": (stream: BinaryStream) => void  = getBuildInType(\"" + field.fieldType + "\").decode;");
                     break;
             }

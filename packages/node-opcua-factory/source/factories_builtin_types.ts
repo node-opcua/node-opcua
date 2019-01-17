@@ -26,7 +26,7 @@ import {
     encodeUInt32, encodeUInt64, encodeUInt8
 
 } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { emptyGuid } from "node-opcua-guid";
 import { makeExpandedNodeId, makeNodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } from "node-opcua-status-code";
@@ -35,7 +35,7 @@ import { BasicTypeDefinition, BasicTypeDefinitionOptions, FieldCategory, TypeSch
 
 // tslint:disable:no-empty
 // tslint:enable:no-unused-variable
-function defaultEncode(value: any, stream: BinaryStream): void {
+function defaultEncode(value: any, stream: OutputBinaryStream): void {
 
 }
 
@@ -47,7 +47,7 @@ export class BasicTypeSchema extends TypeSchemaBase implements BasicTypeDefiniti
 
     public subType: string;
 
-    public encode: (value: any, stream: BinaryStream) => void;
+    public encode: (value: any, stream: OutputBinaryStream) => void;
     public decode: (stream: BinaryStream) => any;
 
     constructor(options: BasicTypeDefinitionOptions) {
@@ -72,7 +72,7 @@ function toJSONGuid(value: any): any {
     return value.toString("base64");
 }
 
-function encodeAny(value: any, stream: BinaryStream) {
+function encodeAny(value: any, stream: OutputBinaryStream) {
     assert(false, "type 'Any' cannot be encoded");
 }
 
@@ -80,7 +80,7 @@ function decodeAny(stream: BinaryStream) {
     assert(false, "type 'Any' cannot be decoded");
 }
 
-function encodeNull(value: any, stream: BinaryStream): void {
+function encodeNull(value: any, stream: OutputBinaryStream): void {
 }
 
 function decodeNull(stream: BinaryStream): any {
@@ -95,6 +95,15 @@ function decodeNull(stream: BinaryStream): any {
 
 const defaultXmlElement = "";
 
+interface T {
+    subType?: any;
+    name: string;
+    encode: (value: any, stream: OutputBinaryStream) => void;
+    decode: (stream: BinaryStream) => any;
+    coerce?: any;
+    defaultValue?: any;
+    toJSON?: any;
+}
 // Built-In Type
 const _defaultType: any[] = [
     // Built-in DataTypes ( see OPCUA Part III v1.02 - $5.8.2 )

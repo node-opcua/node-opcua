@@ -2,7 +2,7 @@ const should = require("should");
 const NodeCrawler = require("..").NodeCrawler;
 
 const PseudoSession = require("node-opcua-address-space").PseudoSession;
-const get_mini_address_space = require("node-opcua-address-space/test_helpers/get_mini_address_space").get_mini_address_space;
+const getMiniAddressSpace = require("node-opcua-address-space").getMiniAddressSpace;
 
 const ObjectIds = require("node-opcua-constants").ObjectIds;
 const makeNodeId = require("node-opcua-nodeid").makeNodeId;
@@ -11,9 +11,8 @@ describe("NodeCrawler",function(){
 
     let addressSpace = null;
 
-
     before(function (done) {
-        get_mini_address_space(function (err, data) {
+        getMiniAddressSpace(function (err, data) {
             addressSpace = data;
             done(err);
         });

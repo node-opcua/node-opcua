@@ -10,10 +10,11 @@ const makeResultMask = opcua.makeResultMask;
 const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 const makeRefId = require("node-opcua-client-proxy").makeRefId;
 
-const dumpStateMachineToGraphViz = require("node-opcua-address-space/test_helpers/dump_statemachine").dumpStateMachineToGraphViz;
-const dumpStateMachineToPlantUML = require("node-opcua-address-space/test_helpers/dump_statemachine").dumpStateMachineToPlantUML;
+const dumpStateMachineToGraphViz = require("node-opcua-address-space").dumpStateMachineToGraphViz;
+const dumpStateMachineToPlantUML = require("node-opcua-address-space").dumpStateMachineToPlantUML;
 
 const redirectToFile = require("node-opcua-debug").redirectToFile;
+const promoteToStateMachine = require("node-opcua-address-space").promoteToStateMachine;
 
 const doDebug = false;
 
@@ -359,7 +360,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         const sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
-        StateMachine.promote(sm);
+        promoteToStateMachine(sm);
 
         redirectToFile("OperatingModeSubStateMachineType.graphviz", function () {
             dumpStateMachineToGraphViz(sm);
@@ -385,7 +386,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         const sm = subStateMachineType.instantiate({browseName: "MyStateMachine"});
 
-        StateMachine.promote(sm);
+        promoteToStateMachine(sm);
 
         redirectToFile("OperatingModeExecuteSubStateMachineType.graphviz", function () {
             dumpStateMachineToGraphViz(sm);

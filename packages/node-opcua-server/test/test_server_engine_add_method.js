@@ -8,6 +8,7 @@ const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const DataType = require("node-opcua-variant").DataType;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
 let engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
@@ -17,11 +18,10 @@ const SessionContext = require("node-opcua-address-space").SessionContext;
 
 const translate_service = require("node-opcua-service-translate-browse-path");
 
-
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine - addMethod", function () {
 
-    let addressSpace, namespace;
+    let addressSpace; let namespace;
     before(function (done) {
 
         engine = new server_engine.ServerEngine();
@@ -79,7 +79,7 @@ describe("ServerEngine - addMethod", function () {
             ]
         });
 
-        method.should.be.instanceOf(UAMethod);
+        method.nodeClass.should.eql(NodeClass.Method);
 
         method.nodeId.should.be.instanceOf(NodeId);
         const objectMethod = object.getMethodById(method.nodeId);

@@ -163,87 +163,10 @@ export interface OPCUAServerOptions {
     isAuditing?: boolean;
 }
 
-export declare interface AddReferenceOpts {
-    referenceType: string | NodeId;
-    nodeId: NodeId | string;
-}
-
-export declare class UAReference {
-}
-
-export declare class BaseNode {
-    public browseName: QualifiedName;
-
-    public addReference(options: AddReferenceOpts): UAReference;
-}
-
-export declare class UAView extends BaseNode {
-}
-
-export declare class UAVariable extends BaseNode {
-}
-
-export declare class UAAnalogItem extends UAVariable {
-}
-
 export { DiagnosticInfo } from "node-opcua-data-model";
 
-export declare class WriteValue {
-    public nodeId: NodeId;
-    public attributeId: AttributeIds;
-    public indexRange?: any;
-    public value: DataValue;
-}
-
-export interface AddNodeOptions {
-    browseName: string;
-    displayName?: string | LocalizedText | LocalizedText[];
-    description?: string;
-
-    organizedBy?: NodeId | BaseNode;
-    componentOf?: NodeId | BaseNode;
-    nodeId?: string | NodeId;
-}
-
-export interface AddVariableOpts extends AddNodeOptions {
-    dataType: string | DataType;
-    value?: {
-        get?: () => Variant;
-        timestamp_get?: () => DataValue;
-        refreshFunc?: (err: null | Error, dataValue?: DataValue) => void;
-    };
-}
-
-export enum EUEngineeringUnit {
-    degree_celsius
-    // to be continued
-}
-
-export interface AddAnalogDataItemOpts extends AddNodeOptions {
-    /** @example  "(tempA -25) + tempB" */
-    definition: string;
-    /** @example 0.5 */
-    valuePrecision: number;
-    engineeringUnitsRange: {
-        low: number;
-        high: number;
-    };
-    instrumentRange: {
-        low: number;
-        high: number;
-    };
-    engineeringUnits: EUEngineeringUnit;
-}
-
-export declare class AddressSpace {
-    public find(node: NodeId | string): BaseNode;
-
-    public addVariable(options: AddVariableOpts): UAVariable;
-
-    public addAnalogDataItem(options: AddAnalogDataItemOpts): UAAnalogItem;
-
-    public addView(options: AddNodeOptions): UAView;
-}
+export * from "node-opcua-address-space";
+import { AddressSpace } from "node-opcua-address-space";
 
 export declare class ServerEngine {
     public addressSpace: AddressSpace;

@@ -2,7 +2,7 @@
  * @module node-opcua-date-time
  */
 import assert from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     bn_dateToHundredNanoSecondFrom1601,
     bn_hundredNanoSecondFrom1601ToDate,
@@ -41,7 +41,7 @@ export function randomDateTime() {
  * @param picoseconds {null} {number of picoseconds to improve javascript date... }
  * @param stream {BinaryStream}
  */
-export function encodeHighAccuracyDateTime(date: Date | null, picoseconds: number, stream: BinaryStream) {
+export function encodeHighAccuracyDateTime(date: Date | null, picoseconds: number, stream: OutputBinaryStream) {
 
     if (date === null) {
         stream.writeUInt32(0);
@@ -60,7 +60,7 @@ export function encodeHighAccuracyDateTime(date: Date | null, picoseconds: numbe
     stream.writeInteger(hi);
 }
 
-export function encodeDateTime(date: Date | null, stream: BinaryStream) {
+export function encodeDateTime(date: Date | null, stream: OutputBinaryStream) {
     encodeHighAccuracyDateTime(date, 0, stream);
 }
 

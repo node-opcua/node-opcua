@@ -11,7 +11,7 @@ import {
     encodeString,
     UAString
 } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType, check_options_correctness_against_schema,
@@ -80,7 +80,7 @@ export class AsymmetricAlgorithmSecurityHeader extends BaseUAObject {
         this.receiverCertificateThumbprint = initialize_field(schema.fields[2], options.receiverCertificateThumbprint);
     }
 
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
         super.encode(stream);
         encodeString(this.securityPolicyUri, stream);
         encodeByteString(this.senderCertificate, stream);

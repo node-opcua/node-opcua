@@ -187,6 +187,6 @@ export function coerceClock(timestamp: any, picoseconds = 0) {
 
 const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
 
-export function isMinDate(date: Date): boolean {
-    return date.getTime() === minDate.getTime();
+export function isMinDate(date?: Date | null): boolean {
+    return !date || date.getTime() === minDate.getTime();
 }

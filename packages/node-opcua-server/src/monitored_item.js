@@ -17,6 +17,7 @@ const read_service = require("node-opcua-service-read");
 const DataValue = require("node-opcua-data-value").DataValue;
 const Variant = require("node-opcua-variant").Variant;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const BaseNode = require("node-opcua-address-space").BaseNode;
@@ -405,7 +406,7 @@ MonitoredItem.prototype._set_parameters = function (monitoredParameters) {
     // exception-based model. The fastest supported sampling interval may be equal to 0, which indicates
     // that the data item is exception-based rather than being sampled at some period. An exception-based
     // model means that the underlying system does not require sampling and reports data changes.
-    if (self.node && self.node instanceof UAVariable) {
+    if (self.node && self.node.nodeClass === NodeClass.Variable) {
         self.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval, self.node ? self.node.minimumSamplingInterval : 0);
     } else {
         self.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval, 0);

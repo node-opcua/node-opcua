@@ -16,7 +16,7 @@ export class ObjectRegistry {
     private _objectType: any;
     private readonly _cache: any;
 
-    constructor(objectType: any) {
+    constructor(objectType?: any) {
 
         this._objectType = objectType;
         this._cache = {};

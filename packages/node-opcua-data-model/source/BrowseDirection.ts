@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-data-model
  */
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Enum } from "node-opcua-enum";
 import { registerEnumeration } from "node-opcua-factory";
 
@@ -26,7 +26,7 @@ export const schemaBrowseDirection = {
     // }
 };
 
-export function encodeBrowseDirection(value: BrowseDirection, stream: BinaryStream) {
+export function encodeBrowseDirection(value: BrowseDirection, stream: OutputBinaryStream) {
     stream.writeUInt32(value);
 }
 

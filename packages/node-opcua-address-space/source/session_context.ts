@@ -37,27 +37,23 @@ export interface SessionContextOptions {
     server?: any;
 }
 
-/**
- * @class SessionContext
- * @param options
- * @param [options.session=null] {Session}
- * @param [options.object=null] {Session}
- * @param [options.server=null] {OPCUAServer}
- * @constructor
- */
 export class SessionContext implements ISessionContext {
 
     public static defaultContext = new SessionContext({});
 
+    public  object: any;
+    public readonly currentTime?: Date;
+    public continuationPoints: any = {};
+    public userIdentity: any;
     private readonly session: any;
-    private readonly object: any;
     private readonly server: any;
 
-    constructor(options: SessionContextOptions) {
+    constructor(options?: SessionContextOptions) {
         options = options || {};
         this.session = options.session;
         this.object = options.object;
         this.server = options.server;
+        this.currentTime = undefined;
     }
 
     /**

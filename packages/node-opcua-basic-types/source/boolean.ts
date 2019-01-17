@@ -2,7 +2,7 @@
  * @module node-opcua-basic-types
  */
 import assert from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream" ;
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream" ;
 
 export function isValidBoolean(value: any): boolean {
     return typeof value === "boolean";
@@ -12,7 +12,7 @@ export function randomBoolean() {
     return Math.random() > 0.5;
 }
 
-export function encodeBoolean(value: boolean, stream: BinaryStream): void {
+export function encodeBoolean(value: boolean, stream: OutputBinaryStream): void {
     assert(isValidBoolean(value));
     stream.writeUInt8(value ? 1 : 0);
 }

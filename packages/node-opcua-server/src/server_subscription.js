@@ -14,7 +14,9 @@ const StatusChangeNotification = subscription_service.StatusChangeNotification;
 const MonitoringMode = subscription_service.MonitoringMode;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const Enum = require("node-opcua-enum").Enum;const assert = require("node-opcua-assert").assert;
+const Enum = require("node-opcua-enum").Enum;
+const assert = require("node-opcua-assert").assert;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 const _ = require("underscore");
 
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
@@ -1280,7 +1282,7 @@ Subscription.prototype.createMonitoredItem = function (addressSpace, timestampsT
     }
 
 
-    if (itemToMonitor.attributeId === AttributeIds.Value && !(node instanceof UAVariable)) {
+    if (itemToMonitor.attributeId === AttributeIds.Value && !(node.nodeClass === NodeClass.Variable)) {
         // AttributeIds.Value is only valid for monitoring value of UAVariables.
         return handle_error(StatusCodes.BadAttributeIdInvalid);
     }

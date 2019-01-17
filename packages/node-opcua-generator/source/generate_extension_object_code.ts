@@ -89,7 +89,7 @@ function writeEnumeratedType(enumeratedType: EnumeratedType) {
         write(`    return  stream.readUInt32() as ${enumeratedType.name};`);
     }
     write(`}`);
-    write(`function encode${enumeratedType.name}(value: ${enumeratedType.name}, stream: BinaryStream): void {`);
+    write(`function encode${enumeratedType.name}(value: ${enumeratedType.name}, stream: OutputBinaryStream): void {`);
     write(`    stream.writeUInt32(value);`);
     write(`}`);
 
@@ -256,7 +256,7 @@ import {
 
 import { Enum, EnumItem } from "node-opcua-enum";
 
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream , OutputBinaryStream} from "node-opcua-binary-stream";
 import {
     _enumerationBrowseDirection, BrowseDirection, decodeBrowseDirection, decodeDiagnosticInfo,
     decodeLocalizedText, decodeQualifiedName, DiagnosticInfo, encodeBrowseDirection,

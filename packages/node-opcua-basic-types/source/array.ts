@@ -2,19 +2,19 @@
  * @module node-opcua-basic-types
  */
 import assert from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream" ;
+import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream" ;
 import * as _ from "underscore";
 
 /**
  * @method encodeArray
- * @param arr {Array} the array to encode.
- * @param stream {BinaryStream}  the stream.
+ * @param arr     the array to encode.
+ * @param stream  the stream.
  * @param encodeElementFunc   The  function to encode a single array element.
  */
 export function encodeArray(
     arr: any[] | null,
-    stream: BinaryStream,
-    encodeElementFunc: (value: any, stream: BinaryStream) => void): void {
+    stream: OutputBinaryStream,
+    encodeElementFunc: (value: any, stream: OutputBinaryStream) => void): void {
     if (arr === null) {
         stream.writeUInt32(0xffffffff);
         return;
