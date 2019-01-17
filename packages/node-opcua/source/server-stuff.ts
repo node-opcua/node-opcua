@@ -8,7 +8,11 @@
 
 import { ServerState } from "node-opcua-common";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
+import {
+    MessageSecurityMode,
+    SecurityPolicy,
+    ServerSecureChannelLayer
+} from "node-opcua-secure-channel";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 
 type ErrorCallback = (err?: Error) => void;
@@ -35,6 +39,9 @@ export interface UserManagerOptions {
 import { CertificateManager } from "node-opcua-certificate-manager";
 
 export * from "node-opcua-certificate-manager";
+
+import { Request, Response } from "node-opcua-client";
+export { Request, Response } from "node-opcua-client";
 
 export declare function generate_address_space(
   addressSpace: AddressSpace, xmlFiles: string[] | string, callback: ErrorCallback
@@ -472,7 +479,6 @@ export declare class OPCUAServer implements EventRaiser {
     public raiseEvent(
       eventType: "TransitionEventType", options: RaiseEventTransitionEventData): void;
 
-    public on(event: string, eventHandler: () => void): this;
     public on(event: "create_session", eventHandler: (session: Session) => void): this;
     public on(event: "session_closed", eventHandler: (session: Session, reason: string) => void): this;
     public on(event: "post_initialize", eventHandler: () => void): void;
@@ -505,6 +511,29 @@ export declare class OPCUAServer implements EventRaiser {
      * event raised after the server has raised an OPCUA event toward a client
      */
     public on(event: "event", eventHandler: (eventData: any) => void): void;
+
+    /**
+     * event raised when the server received a request from one of its connected client.
+     * useful for trace purpose.
+     */
+    public on(event: "request", eventHandler: (request: Request, channel: ServerSecureChannelLayer) => void): void;
+    /**
+     * event raised when the server send an response to a request to one of its connected client.
+     * useful for trace purpose.
+     */
+    public on(event: "response", eventHandler: (request: Response, channel: ServerSecureChannelLayer) => void): void;
+
+    /**
+     * event raised when a new secure channel is opened
+     */
+    public on(event: "newChannel", eventHandler: (channel: ServerSecureChannelLayer) => void ): void;
+    /**
+     * event raised when a new secure channel is closed
+     */
+    public on(event: "closeChannel", eventHandler: (channel: ServerSecureChannelLayer) => void ): void;
+
+    public on(event: string, eventHandler: () => void): this;
+
 }
 
 export interface ServerSession {

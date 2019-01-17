@@ -10,7 +10,10 @@ import {
     FolderType,
     OPCUAServer,
     ProgramFiniteStateMachine,
-    ProgramFiniteStateMachineType, RegisterServerMethod,
+    ProgramFiniteStateMachineType,
+    RegisterServerMethod,
+    Request,
+    Response,
     SessionContext, State, StateMachine,
     StatusCodes,
     TransitionEventType, UAAnalogItem,
@@ -18,7 +21,10 @@ import {
     UAObject,
     UAObjectType,
     UAReferenceType,
-    UAVariable
+    UAVariable,
+    BrowseRequest,
+    BrowseResponse,
+    ActivateSessionRequest
 } from "node-opcua";
 import { assert } from "node-opcua-assert";
 import { lowerFirstLetter } from "node-opcua-utils";
@@ -620,6 +626,40 @@ async function main() {
 
         await server.initialize();
 
+        server.on("request", (request: Request) => {
+ 
+            console.log(request.constructor.name,request.requestHeader.requestHandle);
+            
+            // you can either check the instance of the request object directl 
+            if (request instanceof BrowseRequest) {
+                console.log("BrowseRequest.requestedMaxReferencesPerNode=", request.requestedMaxReferencesPerNode);
+            } else if ( request instanceof ActivateSessionRequest) {
+                console.log(request.toString());
+            }
+            // ... or check its schema name
+            switch(request.schema.name) {
+                case "BrowseRequest":
+                    const browseRequest = request as BrowseRequest;
+                    break;
+                // etc... 
+            }
+        
+        });
+        server.on("response", (response: Response) => {
+
+            // you can either check the instance of the request object directl 
+           if (response instanceof BrowseResponse) {         
+                console.log("BrowseResponse.results.length =", response.results ? response.results.length : 0);
+            }
+
+            switch(response.schema.name) {
+                case "BrowseResponce":
+                    const browseRequest = response as BrowseResponse;
+                    console.log("BrowseResponse.results.length =", browseRequest.results ? browseRequest.results.length : 0);
+                    break;
+                // etc... 
+            }
+        });
         // post-initialize
         const addressSpace = server.engine.addressSpace;
 
