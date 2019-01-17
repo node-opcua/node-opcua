@@ -6,6 +6,7 @@
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { BrowsePath } from "./imports";
+import { QualifiedName } from "node-opcua-data-model";
 
 const hierarchicalReferencesId = makeNodeId(ReferenceTypeIds.HierarchicalReferences);
 export { stringToQualifiedName } from "node-opcua-data-model";
@@ -18,7 +19,7 @@ export { stringToQualifiedName } from "node-opcua-data-model";
  */
 export function constructBrowsePathFromQualifiedName(
   startingNode: { nodeId: NodeId },
-  targetNames: null | string[]
+  targetNames: QualifiedName[] |  null
 ): BrowsePath {
 
     targetNames = targetNames || [];

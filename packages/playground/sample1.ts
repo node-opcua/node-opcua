@@ -38,7 +38,7 @@ const client = OPCUAClient.create(options);
             console.log("Backoff");
         });
 
-        const session = await client.createSession({
+        const session = await client.createSession
             password: "password1",
             type: UserTokenType.UserName,
             userName: "user1",

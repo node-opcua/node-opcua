@@ -1,6 +1,6 @@
 "use strict";
 const should = require("should");
-const empty_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").empty_nodeset_filename;
+const empty_nodeset_filename = require("node-opcua-address-space").empty_nodeset_filename;
 
 const OPCUAServer = require("..").OPCUAServer;
 

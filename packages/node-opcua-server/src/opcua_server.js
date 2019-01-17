@@ -15,6 +15,7 @@ const ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const StatusCode = require("node-opcua-status-code").StatusCode;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
 const SessionContext = require("node-opcua-address-space").SessionContext;
 const fromURI = require("node-opcua-secure-channel").fromURI;
@@ -1937,9 +1938,9 @@ OPCUAServer.prototype._on_BrowseRequest = function (message, channel) {
             //xx console.log("xxxx ",request.view.toString());
             //xx console.log("xxxx NodeClas",View.prototype.nodeClass);
             let theView = server.engine.addressSpace.findNode(request.view.viewId);
-            if (theView && theView.constructor.nodeClass !== View.prototype.nodeClass) {
+            if (theView && theView.nodeClass !== NodeClass.View) {
                 // Error: theView is not a View
-                diagnostic.localizedText = {text: "blah"};
+                diagnostic.localizedText = {text: "Expecting a view here"};
                 theView = null;
             }
             if (!theView) {
@@ -2278,7 +2279,6 @@ function monitoredItem_read_and_record_value_async(self, context, oldValue, node
 
 function build_scanning_node_function(context, addressSpace, monitoredItem, itemToMonitor) {
 
-    //assert(addressSpace instanceof AddressSpace);
     assert(context instanceof SessionContext);
     assert(addressSpace.constructor.name === "AddressSpace");
     assert(itemToMonitor instanceof ReadValueId);

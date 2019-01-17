@@ -8,7 +8,7 @@ import {
     encodeByte, encodeString,
     LocaleId, UAString
 } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
@@ -29,8 +29,9 @@ export function coerceLocalizedText(value: any): LocalizedText | null {
     if (value instanceof LocalizedText) {
         return value;
     }
-    assert(value.hasOwnProperty("locale"));
-    assert(value.hasOwnProperty("text"));
+    if (!value.hasOwnProperty("text")) {
+        throw new Error("cannot coerce to coerceLocalizedText");
+    }
     return new LocalizedText(value);
 }
 
@@ -122,7 +123,7 @@ export class LocalizedText extends BaseUAObject {
     }
 
     // OPCUA Part 6 $ 5.2.2.14 : localizedText have a special encoding
-    public encode(stream: BinaryStream) {
+    public encode(stream: OutputBinaryStream) {
 
         // tslint:disable:no-bitwise
         const encodingMask = getLocalizeText_EncodingByte(this);
@@ -197,7 +198,7 @@ function getLocalizeText_EncodingByte(localizedText: LocalizedText): number {
 }
 
 const emptyLocalizedText = new LocalizedText({});
-export function encodeLocalizedText(value: LocalizedText, stream: BinaryStream): void {
+export function encodeLocalizedText(value: LocalizedText, stream: OutputBinaryStream): void {
     if (value) {
         value.encode(stream);
     } else { emptyLocalizedText.encode(stream); }

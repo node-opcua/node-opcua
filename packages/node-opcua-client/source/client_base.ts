@@ -306,7 +306,7 @@ export interface OPCUAClientBase {
 }
 export class OPCUAClientBase {
 
-    public static registry = new ObjectRegistry(OPCUAClientBase);
+    public static registry = new ObjectRegistry();
     public static  create(options: OPCUAClientBaseOptions): OPCUAClientBase {
        throw new Error("Not Implemented");
     }

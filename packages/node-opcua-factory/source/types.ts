@@ -2,7 +2,7 @@
  * @module node-opcua-factory
  */
 import assert from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Enum, EnumItem } from "node-opcua-enum";
 import { NodeId } from "node-opcua-nodeid";
 import * as _ from "underscore";
@@ -19,7 +19,7 @@ export interface CommonInterface {
 
     name: string;
 
-    encode?: (value: any, stream: BinaryStream) => void;
+    encode?: (value: any, stream: OutputBinaryStream) => void;
     decode?: (stream: BinaryStream) => any;
 
     coerce?: (value: any) => any;
@@ -98,7 +98,7 @@ export interface TypeSchemaConstructorOptions {
     name: string;
     category?: FieldCategory;
     defaultValue?: any;
-    encode?: (value: any, stream: BinaryStream) => void;
+    encode?: (value: any, stream: OutputBinaryStream) => void;
     decode?: (stream: BinaryStream) => any;
     coerce?: (value: any) => any;
 }
@@ -144,7 +144,7 @@ export class TypeSchemaBase implements CommonInterface {
 
     public name: string;
     public defaultValue: any;
-    public encode?: (value: any, stream: BinaryStream) => void;
+    public encode?: (value: any, stream: OutputBinaryStream) => void;
     public decode?: (stream: BinaryStream) => any;
     public coerce?: (value: any) => any;
 

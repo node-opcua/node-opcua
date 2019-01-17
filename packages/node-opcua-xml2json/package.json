@@ -2,8 +2,8 @@
   "name": "node-opcua-xml2json",
   "version": "2.0.0-alpha.10",
   "description": "pure nodejs OPCUA SDK - module -xml2json",
-  "main": "dist/xml2json.js",
-  "type": "dist/xml2json.d.ts",
+  "main": "dist/source/xml2json.js",
+  "type": "dist/source/xml2json.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "mocha test"

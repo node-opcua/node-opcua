@@ -13,7 +13,7 @@ import {
 
 import * as _ from "underscore";
 
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
 
 import {
@@ -98,7 +98,7 @@ export class QualifiedName extends BaseUAObject {
      *
      * @param stream {BinaryStream}
      */
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
         // call base class implementation first
         super.encode(stream);
         encodeUInt16(this.namespaceIndex, stream);
@@ -189,7 +189,7 @@ export function coerceQualifiedName(value: any): QualifiedName | null {
 
 registerSpecialVariantEncoder(QualifiedName);
 
-export function encodeQualifiedName(value: QualifiedName, stream: BinaryStream): void {
+export function encodeQualifiedName(value: QualifiedName, stream: OutputBinaryStream): void {
     value.encode(stream);
 }
 

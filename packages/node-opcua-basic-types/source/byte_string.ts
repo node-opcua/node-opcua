@@ -3,7 +3,7 @@
  */
 import * as _ from "underscore";
 
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
 import { getRandomInt } from "./utils";
@@ -23,7 +23,7 @@ export function randomByteString(value: any, len: number): ByteString {
     return b;
 }
 
-export function encodeByteString(byteString: ByteString, stream: BinaryStream) {
+export function encodeByteString(byteString: ByteString, stream: OutputBinaryStream) {
     stream.writeByteStream(byteString);
 }
 

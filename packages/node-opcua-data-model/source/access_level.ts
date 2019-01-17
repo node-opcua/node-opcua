@@ -3,7 +3,7 @@
 /**
  * @module node-opcua-data-model
  */
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
 import * as utils from "node-opcua-utils";
 
@@ -97,6 +97,6 @@ registerBasicType({
         const code = stream.readUInt8();
         return (code ? AccessLevelFlag[code] : AccessLevelFlag.NONE) as AccessLevelFlag;
     },
-    encode: (value: AccessLevelFlag, stream: BinaryStream) => stream.writeUInt8(value & 0x8F),
+    encode: (value: AccessLevelFlag, stream: OutputBinaryStream) => stream.writeUInt8(value & 0x8F),
     random: randomAccessLevel
 });

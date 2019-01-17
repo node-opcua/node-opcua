@@ -38,7 +38,10 @@ const doDebug = checkDebugFlag(__filename);
  *     constructEventFilter(["SourceName" ,"EnabledState.EffectiveDisplayName" ]);
  *
  */
-export function constructEventFilter(arrayOfNames: string[] | string, conditionTypes?: NodeId[] | NodeId): any {
+export function constructEventFilter(
+  arrayOfNames: string[] | string,
+  conditionTypes?: NodeId[] | NodeId
+): EventFilter {
 
     if (!_.isArray(arrayOfNames)) {
         return constructEventFilter([arrayOfNames], conditionTypes);
@@ -130,7 +133,6 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
         }
     });
     return filter;
-
 }
 
 /**
@@ -160,11 +162,14 @@ function simpleAttributeOperandToPath(self: SimpleAttributeOperand): string {
  *
  *
  */
-export function simpleAttributeOperandToShortString(self: SimpleAttributeOperand, addressSpace: any) {
+export function simpleAttributeOperandToShortString(
+  self: SimpleAttributeOperand,
+  addressSpace: any // Address Space
+): string {
 
     let str = "";
     if (addressSpace) {
-        const n = addressSpace.findNode(self.typeDefinitionId);
+        const n = addressSpace.findNode(self.typeDefinitionId)!;
         str += n.BrowseName.toString();
     }
     str += "[" + self.typeDefinitionId.toString() + "]" + simpleAttributeOperandToPath(self);
@@ -183,7 +188,7 @@ function assert_valid_event_data(eventData: any) {
  * @param eventData
  * @param selectClause
  */
-function extractEventField(eventData: any, selectClause: any) {
+function extractEventField(eventData: any, selectClause: SimpleAttributeOperand) {
 
     assert_valid_event_data(eventData);
     assert(selectClause instanceof SimpleAttributeOperand);
@@ -243,12 +248,10 @@ function extractEventField(eventData: any, selectClause: any) {
  * @param selectClauses
  * @param eventData : a pseudo Node that provides a browse Method and a readValue(nodeId)
  */
-function extractEventFields(selectClauses: any, eventData: any) {
+export function extractEventFields(selectClauses: SimpleAttributeOperand[], eventData: any) {
 
     assert_valid_event_data(eventData);
     assert(_.isArray(selectClauses));
     assert(selectClauses.length === 0 || selectClauses[0] instanceof SimpleAttributeOperand);
     return selectClauses.map(extractEventField.bind(null, eventData));
 }
-
-exports.extractEventFields = extractEventFields;

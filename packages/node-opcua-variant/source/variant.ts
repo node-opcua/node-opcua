@@ -31,7 +31,7 @@ import {
 
 import * as utils from "node-opcua-utils";
 
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { _enumerationDataType, DataType } from "./DataType_enum";
 import { _enumerationVariantArrayType, VariantArrayType } from "./VariantArrayType_enum";
 // tslint:disable:no-bitwise
@@ -146,7 +146,7 @@ export class Variant extends BaseUAObject {
         this.arrayType = coercedValue.value as VariantArrayType;
     }
 
-    public encode(stream: BinaryStream) {
+    public encode(stream: OutputBinaryStream) {
         encodeVariant(this, stream);
     }
 
@@ -244,7 +244,7 @@ export const VARIANT_TYPE_MASK = 0x3f;
 /***
  * @private
  */
-export function encodeVariant(variant: Variant, stream: BinaryStream): void {
+export function encodeVariant(variant: Variant, stream: OutputBinaryStream): void {
 
     let encodingByte = variant.dataType;
 
@@ -556,7 +556,7 @@ function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstr
 
 interface DataTypeHelper {
     coerce: (value: any) => any;
-    encode: (stream: BinaryStream, value: any) => void;
+    encode: (stream: OutputBinaryStream, value: any) => void;
     decode: (stream: BinaryStream) => any;
 }
 
@@ -576,7 +576,7 @@ function coerceVariantArray(dataType: DataType, value: any) {
     }
 }
 
-function encodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream: BinaryStream, value: any) {
+function encodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream: OutputBinaryStream, value: any) {
 
     assert(value instanceof arrayTypeConstructor);
     assert(value.buffer instanceof ArrayBuffer);
@@ -585,7 +585,7 @@ function encodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream
 
 }
 
-function encodeGeneralArray(dataType: DataType, stream: BinaryStream, value: any) {
+function encodeGeneralArray(dataType: DataType, stream: OutputBinaryStream, value: any) {
     const arr = value || [];
     assert(arr instanceof Array);
     assert(_.isFinite(arr.length));
@@ -598,7 +598,7 @@ function encodeGeneralArray(dataType: DataType, stream: BinaryStream, value: any
     }
 }
 
-function encodeVariantArray(dataType: DataType, stream: BinaryStream, value: any) {
+function encodeVariantArray(dataType: DataType, stream: OutputBinaryStream, value: any) {
 
     if (value.buffer) {
         try {
@@ -703,7 +703,7 @@ function decodeDimension(stream: BinaryStream) {
     return decodeGeneralArray(DataType.UInt32, stream);
 }
 
-function encodeDimension(dimensions: number[], stream: BinaryStream) {
+function encodeDimension(dimensions: number[], stream: OutputBinaryStream) {
     return encodeGeneralArray(DataType.UInt32, stream, dimensions);
 }
 

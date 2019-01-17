@@ -5,9 +5,9 @@ require("ts-node").register();
 
 Error.stackTraceLimit = Infinity;
 
-let Mocha = require("mocha"),
-  fs = require("fs"),
-  path = require("path");
+const Mocha = require("mocha");
+const fs = require("fs");
+const path = require("path");
 
 require("mocha-clean");
 
@@ -16,50 +16,62 @@ let filterOpts = process.argv[process.argv.length - 1];
 if (filterOpts.match(/run_all_mocha/)) {
     filterOpts = "";
 }
-console.log("filterOpts", filterOpts);
+if (filterOpts) {
+    console.log("test filter = ", filterOpts);
+}
 // Instantiate a Mocha instance.
 let mocha = new Mocha({
     bail: false,
-    grep: filterOpts,
     fullTrace: true,
+    grep: filterOpts,
+    reporter: process.env.REPORTER || "spec", //"nyan", //"tap"
     slow: 1000,
-    reporter: process.env.REPORTER || "spec" //"nyan", //"tap"
 });
 
+let testFiles = [];
 
-let test_files = [];
+function collect_files(testFolder) {
 
-function collect_files(test_folder) {
+    for (const file of fs.readdirSync(testFolder)) {
 
-    fs.readdirSync(test_folder).forEach(function (file) {
-        let f = path.join(test_folder, file);
+        let f = path.join(testFolder, file);
         if (fs.lstatSync(f).isDirectory()) {
             collect_files(f);
         } else {
-            if (file.match(/^test_.*.js/)) {
-                test_files.push(f);
+
+            if (file.match(/^test_.*\.ts/) && !file.match(/^test_.*\.d\.ts/) ) {
+
+                testFiles.push(f);
+            } else if (file.match(/^test_.*\.js/)) {
+                // make sure that there is not a TS file along side
+                if (fs.existsSync(file.replace(".js", ".ts"))) {
+                    console.log("warning => transpiled js file ignored : ", file);
+                } else {
+                    testFiles.push(f);
+                }
             } else {
                 //xx console.log("skipping file ",f);
             }
         }
-    });
+    }
 }
 
-fs.readdirSync(__dirname).forEach(function (file) {
+for (const file of fs.readdirSync(__dirname)) {
 
-    let test_folder = path.join(__dirname, file, "test");
-    if (fs.existsSync(test_folder)) {
-        collect_files(test_folder);
+    const testFolder = path.join(__dirname, file, "test");
+    if (fs.existsSync(testFolder)) {
+        collect_files(testFolder);
     }
-});
+}
 
-test_files = test_files.sort();
+testFiles = testFiles.sort();
+
 // Add each .js file to the mocha instance
-test_files.filter(function (file) {
+testFiles.filter((file) => {
     // Only keep the .js files
     const extension = file.substr(-3);
     return extension === ".js" || extension === ".ts";
-}).forEach(function (file) {
+}).forEach((file) => {
 
     function test_no_leak() {
 
@@ -79,7 +91,6 @@ mocha.timeout(200000);
 mocha.bail(true);
 
 // Run the tests.
-mocha.run(function (failures) {
+mocha.run((failures) => {
     process.exit(failures);  // exit with non-zero status if there were failures
 });
-

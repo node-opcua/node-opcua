@@ -95,6 +95,7 @@
     "@types/node": "^10.12.18",
     "@types/once": "^1.4.0",
     "@types/rimraf": "^2.0.2",
+    "@types/sinon": "^7.0.5",
     "@types/underscore": "^1.8.9",
     "async": "^2.6.1",
     "backoff": "^2.5.0",

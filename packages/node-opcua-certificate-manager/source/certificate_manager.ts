@@ -94,7 +94,12 @@ export class CertificateManager implements ICertificateManager {
     /**
      *
      * @param certificate
+     * @param callback
      */
+    public trustCertificate(
+        certificate: Certificate,
+        callback: (err: Error|null, statusCode?: StatusCode) => void
+    ): void;
     public trustCertificate(certificate: Certificate): Promise<StatusCode>;
     /**
      * @internal

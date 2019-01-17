@@ -8,25 +8,25 @@ const opcua = require("node-opcua");
 Error.stackTraceLimit = Infinity;
 
 const argv = require("yargs")
-    .wrap(132)
-    .string("port")
-    .describe("port")
-    .alias("p", "port")
-    .argv;
+  .wrap(132)
+  .string("port")
+  .describe("port")
+  .alias("p", "port")
+  .argv;
 
 
 function constructFilename(filename) {
-    return path.join(__dirname,"../",filename);
+    return path.join(__dirname, "../", filename);
 }
 
 const OPCUAServer = opcua.OPCUAServer;
 
 const standard_nodeset_file = opcua.nodesets.standard;
 
-const rootFolder = path.join(__dirname,"../");
+const rootFolder = path.join(__dirname, "../");
 
 const port = parseInt(argv.port) || 26555;
-const server_certificate_file            = constructFilename("certificates/server_cert_1024.pem");
+const server_certificate_file = constructFilename("certificates/server_cert_1024.pem");
 const server_certificate_privatekey_file = constructFilename("certificates/server_key_1024.pem");
 
 const server_options = {
@@ -35,7 +35,7 @@ const server_options = {
     port: port,
     nodeset_filename: [
         standard_nodeset_file,
-        path.join(rootFolder,"modeling/my_data_type.xml")
+        path.join(rootFolder, "modeling/my_data_type.xml")
     ]
 };
 

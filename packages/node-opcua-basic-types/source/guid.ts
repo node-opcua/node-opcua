@@ -2,7 +2,7 @@
  * @module node-opcua-basic-types
  */
 
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { emptyGuid, isValidGuid } from "node-opcua-guid";
 
 import { getRandomInt } from "./utils";
@@ -25,7 +25,7 @@ export  function randomGuid(): Guid {
     return value;
 }
 
-export function encodeGuid(guid: Guid, stream: BinaryStream): void {
+export function encodeGuid(guid: Guid, stream: OutputBinaryStream): void {
     if (!isValidGuid(guid)) {
         throw new Error(" Invalid GUID : '" + JSON.stringify(guid) + "'");
     }

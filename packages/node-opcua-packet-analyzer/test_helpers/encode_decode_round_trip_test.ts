@@ -60,7 +60,7 @@ function redirectToNull(functor: () => void) {
 
     if (!process.env.DEBUG) {
         // tslint:disable:no-empty
-        console.log = () => {};
+        console.log = (...args: any[]) => {};
     }
 
     try {

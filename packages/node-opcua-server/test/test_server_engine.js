@@ -59,7 +59,7 @@ function resolveExpandedNodeId(nodeId) {
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ServerEngine", function () {
 
-    let engine,namespace, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
+    let engine, namespace, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
     const defaultBuildInfo = {
         productName: "NODEOPCUA-SERVER",
@@ -69,9 +69,9 @@ describe("testing ServerEngine", function () {
     };
     before(function (done) {
 
-        engine = new ServerEngine({buildInfo: defaultBuildInfo});
+        engine = new ServerEngine({ buildInfo: defaultBuildInfo });
 
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine.initialize({ nodeset_filename: server_engine.mini_nodeset_filename }, function () {
 
             const addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
@@ -89,66 +89,118 @@ describe("testing ServerEngine", function () {
             }
 
             namespace.addVariable({
-                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                    browseName: "TestArray",
-                    nodeId: "s=TestArray",
-                    dataType: "Double",
-                    value: {
-                        get: function () {
-                            return new Variant({
-                                dataType: DataType.Double,
-                                arrayType: VariantArrayType.Array,
-                                value: testArray
-                            });
-                        },
-                        set: null // read only
-                    }
-                }
+                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                  browseName: "TestArray",
+                  nodeId: "s=TestArray",
+                  dataType: "Double",
+                  value: {
+                      get: function () {
+                          return new Variant({
+                              dataType: DataType.Double,
+                              arrayType: VariantArrayType.Array,
+                              value: testArray
+                          });
+                      },
+                      set: null // read only
+                  }
+              }
             );
 
             // add a writable Int32
             namespace.addVariable({
-                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                    browseName: "WriteableInt32",
-                    nodeId: "s=WriteableInt32",
-                    dataType: "Int32",
-                    value: {
-                        get: function () {
-                            return new Variant({
-                                dataType: DataType.Double,
-                                arrayType: VariantArrayType.Array,
-                                value: testArray
-                            });
-                        },
-                        set: function (variant) {
-                            // Variation 1 : synchronous
-                            // assert(_.isFunction(callback));
-                            return StatusCodes.Good;
-                        }
-                    }
-                }
+                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                  browseName: "WriteableInt32",
+                  nodeId: "s=WriteableInt32",
+                  dataType: "Int32",
+                  value: {
+                      get: function () {
+                          return new Variant({
+                              dataType: DataType.Double,
+                              arrayType: VariantArrayType.Array,
+                              value: testArray
+                          });
+                      },
+                      set: function (variant) {
+                          // Variation 1 : synchronous
+                          // assert(_.isFunction(callback));
+                          return StatusCodes.Good;
+                      }
+                  }
+              }
             );
 
             // add a writable Int32
             namespace.addVariable({
-                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                    browseName: "WriteableUInt32Async",
-                    nodeId: "s=WriteableUInt32Async",
-                    dataType: "UInt32",
-                    value: {
-                        get: function () {
-                            return new Variant({
-                                dataType: DataType.Double,
-                                arrayType: VariantArrayType.Array,
-                                value: testArray
-                            });
-                        }
+                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                  browseName: "WriteableUInt32Async",
+                  nodeId: "s=WriteableUInt32Async",
+                  dataType: "UInt32",
+                  value: {
+                      get: function () {
+                          return new Variant({
+                              dataType: DataType.Double,
+                              arrayType: VariantArrayType.Array,
+                              value: testArray
+                          });
+                      }
 
+                  }
+              }
+            );
+
+            const newFolderWithFilteredItems = namespace.addFolder("ObjectsFolder", {
+                browseName: "filteredItemsFolder"
+            });
+
+            const newFolder1 = namespace.addFolder(newFolderWithFilteredItems, {
+                browseName: "filteredFolder1",
+                browseFilter: function (session) {
+                    if (session && session.hasOwnProperty("testFilterArray")) {
+                        if (session["testFilterArray"].indexOf(1) > -1) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return true;
                     }
                 }
-            );
+            });
+            assert(newFolder1);
+
+            const newFolder2 = namespace.addFolder(newFolderWithFilteredItems, {
+                browseName: "filteredFolder2",
+
+                browseFilter: function (session/* any*/) {
+
+                    if (session && session.hasOwnProperty("testFilterArray"))
+                        if (session["testFilterArray"].indexOf(2) > -1)
+                            return true;
+                        else
+                            return false;
+                    else
+                        return true;
+                }
+            });
+            assert(newFolder2);
+
+            const newFolder3 = namespace.addFolder(newFolderWithFilteredItems, {
+                browseName: "filteredFolder3",
+                browseFilter: function (session) {
+                    if (session && session.hasOwnProperty("testFilterArray"))
+                        if (session["testFilterArray"].indexOf(3) > -1)
+                            return true;
+                        else
+                            return false;
+                    else
+                        return true;
+                }
+            });
+            assert(newFolder3);
+
             done();
         });
+
 
     });
     after(function () {
@@ -291,20 +343,20 @@ describe("testing ServerEngine", function () {
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder1");
 
         const newVariable = namespace.addVariable(
-            {
-                componentOf: newFolder,
-                browseName: "Temperature",
-                dataType: "Float",
-                value: {
-                    get: function () {
-                        return new Variant({dataType: DataType.Float, value: 10.0});
-                    },
-                    set: function () {
-                        return StatusCodes.BadNotWritable;
-                    }
-                }
+          {
+              componentOf: newFolder,
+              browseName: "Temperature",
+              dataType: "Float",
+              value: {
+                  get: function () {
+                      return new Variant({ dataType: DataType.Float, value: 10.0 });
+                  },
+                  set: function () {
+                      return StatusCodes.BadNotWritable;
+                  }
+              }
 
-            });
+          });
         newVariable.typeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.nodeId.should.equal(newFolder.nodeId);
 
@@ -331,7 +383,7 @@ describe("testing ServerEngine", function () {
             dataType: "Double",
             value: {
                 get: function () {
-                    return new Variant({dataType: DataType.Double, value: 10.0});
+                    return new Variant({ dataType: DataType.Double, value: 10.0 });
                 },
                 set: function () {
                     return StatusCodes.BadNotWritable;
@@ -351,7 +403,7 @@ describe("testing ServerEngine", function () {
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder4");
 
         const temperature = new DataValue({
-            value: new Variant({dataType: DataType.Double, value: 10.0}),
+            value: new Variant({ dataType: DataType.Double, value: 10.0 }),
             sourceTimestamp: new Date(Date.UTC(1999, 9, 9)),
             sourcePicoseconds: 10
         });
@@ -389,7 +441,7 @@ describe("testing ServerEngine", function () {
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolderHistorical1");
 
         const readValue = new DataValue({
-            value: new Variant({dataType: DataType.Double, value: 10.0}),
+            value: new Variant({ dataType: DataType.Double, value: 10.0 }),
             sourceTimestamp: new Date(Date.UTC(1999, 9, 9)),
             sourcePicoseconds: 10
         });
@@ -417,7 +469,7 @@ describe("testing ServerEngine", function () {
                     for (let i = 0; i < 50; i++) {
                         d.setUTCMinutes(i);
                         results.push(new DataValue({
-                            value: {dataType: DataType.Double, value: Math.random() * 75 - 25},
+                            value: { dataType: DataType.Double, value: Math.random() * 75 - 25 },
                             sourceTimestamp: d
                         }));
                     }
@@ -460,54 +512,6 @@ describe("testing ServerEngine", function () {
             nodeId: makeNodeId(4000, 1)
         });
 
-
-    });
-
-    it("should be possible to create 3 new folders with a filter function", function () {
-
-        const newFolderWithFilteredItems = namespace.addFolder("ObjectsFolder", {"browseName": "filteredItemsFolder"});
-
-        const newFolder1 = namespace.addFolder(newFolderWithFilteredItems, {
-            "browseName": "filteredFolder1",
-            "browseFilter": function (session) {
-                if (session && session.hasOwnProperty("testFilterArray"))
-                    if (session["testFilterArray"].indexOf(1) > -1)
-                        return (true);
-                    else
-                        return (false);
-                else
-                    return (true);
-            }
-        });
-        assert(newFolder1);
-
-        const newFolder2 = namespace.addFolder(newFolderWithFilteredItems, {
-            "browseName": "filteredFolder2",
-            "browseFilter": function (session) {
-                if (session && session.hasOwnProperty("testFilterArray"))
-                    if (session["testFilterArray"].indexOf(2) > -1)
-                        return (true);
-                    else
-                        return (false);
-                else
-                    return (true);
-            }
-        });
-        assert(newFolder2);
-
-        const newFolder3 = namespace.addFolder(newFolderWithFilteredItems, {
-            "browseName": "filteredFolder3",
-            "browseFilter": function (session) {
-                if (session && session.hasOwnProperty("testFilterArray"))
-                    if (session["testFilterArray"].indexOf(3) > -1)
-                        return (true);
-                    else
-                        return (false);
-                else
-                    return (true);
-            }
-        });
-        assert(newFolder3);
 
     });
 
@@ -679,18 +683,17 @@ describe("testing ServerEngine", function () {
         const browseRequest = new browse_service.BrowseRequest({
             nodesToBrowse: [
                 {
-                    nodeId: resolveNodeId("RootFolder"),
-                    includeSubtypes: true,
                     browseDirection: BrowseDirection.Both,
+                    includeSubtypes: true,
+                    nodeId: resolveNodeId("RootFolder"),
                     resultMask: 63
                 },
                 {
-                    nodeId: resolveNodeId("ObjectsFolder"),
-                    includeSubtypes: true,
                     browseDirection: BrowseDirection.Both,
+                    includeSubtypes: true,
+                    nodeId: resolveNodeId("ObjectsFolder"),
                     resultMask: 63
                 }
-
             ]
         });
 
@@ -706,13 +709,14 @@ describe("testing ServerEngine", function () {
 
     it("should handle a BrowseRequest of a session with a filtered result", function () {
 
-        const filteredItemsFolder = engine.addressSpace.rootFolder.objects.getFolderElementByName("filteredItemsFolder");
+        const objects = engine.addressSpace.rootFolder.objects;
+        const filteredItemsFolder = objects.getFolderElementByName("filteredItemsFolder");
         const browseDescription = {
             nodesToBrowse: [{
-                nodeId: filteredItemsFolder.nodeId,
                 browseDirection: BrowseDirection.Forward,
+                nodeClassMask: 1, // 1=Objects
+                nodeId: filteredItemsFolder.nodeId,
                 resultMask: 63,
-                nodeClassMask: 1 // 1=Objects
             }]
         };
 
@@ -770,7 +774,7 @@ describe("testing ServerEngine", function () {
             const browseResult = engine.browseSingleNode("ObjectsFolder", browseDescription);
 
             browseResult.references.length.should.be.greaterThan(1);
-            for(const referenceDescription of browseResult.references) {
+            for (const referenceDescription of browseResult.references) {
                 test_referenceDescription(referenceDescription, resultMask);
             }
 
@@ -1056,20 +1060,20 @@ describe("testing ServerEngine", function () {
         const nodeId = "ns=1;s=TestVar";
         before(function () {
             namespace.addVariable({
-                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                    browseName: "TestVar",
-                    nodeId: nodeId,
-                    dataType: "Double",
-                    value: {
-                        get: function () {
-                            return new Variant({
-                                dataType: DataType.Double,
-                                value: 0
-                            });
-                        },
-                        set: null // read only
-                    }
-                }
+                  browseName: "TestVar",
+                  dataType: "Double",
+                  nodeId: nodeId,
+                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                  value: {
+                      get: function () {
+                          return new Variant({
+                              dataType: DataType.Double,
+                              value: 0
+                          });
+                      },
+                      set: null // read only
+                  }
+              }
             );
         });
 
@@ -1077,15 +1081,15 @@ describe("testing ServerEngine", function () {
             assert(attributeId >= 0 && attributeId < 22);
             const readRequest = new read_service.ReadRequest({
                 maxAge: 0,
-                timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: [
                     {
-                        nodeId: nodeId,
                         attributeId: attributeId,
+                        dataEncoding: null, /* */
                         indexRange: "1:2",
-                        dataEncoding: null /* */
+                        nodeId: nodeId,
                     }
-                ]
+                ],
+                timestampsToReturn: TimestampsToReturn.Both,
             });
             const dataValues = engine.read(context, readRequest);
             dataValues.length.should.eql(1);
@@ -1102,48 +1106,65 @@ describe("testing ServerEngine", function () {
 
         });
 
-        it("should return ", function () {
+        it("should return BadDataEncodingInvalid", function () {
             const readRequest = new read_service.ReadRequest({
                 maxAge: 0,
-                timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: [
                     {
-                        nodeId: nodeId,
                         attributeId: AttributeIds.Value,
+                        dataEncoding: { name: "Invalid Data Encoding" }, // QualifiedName
                         indexRange: null,
-                        dataEncoding: {name: "Invalid Data Encoding"} // QualifiedName
+                        nodeId: nodeId
                     }
-                ]
+                ],
+                timestampsToReturn: TimestampsToReturn.Both
             });
             const dataValues = engine.read(context, readRequest);
             dataValues.length.should.eql(1);
             dataValues[0].statusCode.should.eql(StatusCodes.BadDataEncodingInvalid);
+        });
+        it("should return Good (dataEncoding = DefaultBinary) ", function () {
+            const readRequest = new read_service.ReadRequest({
+                maxAge: 0,
+                nodesToRead: [
+                    {
+                        attributeId: AttributeIds.Value,
+                        dataEncoding: "DefaultBinary",
+                        indexRange: null,
+                        nodeId: nodeId
+                    }
+                ],
+                timestampsToReturn: TimestampsToReturn.Both
+            });
+            const dataValues = engine.read(context, readRequest);
+            dataValues.length.should.eql(1);
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
         });
     });
 
     describe("testing read operation with timestamps", function () {
 
         const nodesToRead =
-            [
-                {
-                    nodeId: resolveNodeId("RootFolder"),
-                    attributeId: AttributeIds.DisplayName,
-                    indexRange: null, /* ???? */
-                    dataEncoding: null /* */
-                },
-                {
-                    nodeId: resolveNodeId("RootFolder"),
-                    attributeId: AttributeIds.BrowseName,
-                    indexRange: null, /* ???? */
-                    dataEncoding: null /* */
-                },
-                {
-                    nodeId: resolveNodeId("ns=0;i=2259"), //Server_serverStatus_State
-                    attributeId: AttributeIds.Value,
-                    indexRange: null, /* ???? */
-                    dataEncoding: null /* */
-                }
-            ];
+          [
+              {
+                  nodeId: resolveNodeId("RootFolder"),
+                  attributeId: AttributeIds.DisplayName,
+                  indexRange: null, /* ???? */
+                  dataEncoding: null /* */
+              },
+              {
+                  nodeId: resolveNodeId("RootFolder"),
+                  attributeId: AttributeIds.BrowseName,
+                  indexRange: null, /* ???? */
+                  dataEncoding: null /* */
+              },
+              {
+                  nodeId: resolveNodeId("ns=0;i=2259"), //Server_serverStatus_State
+                  attributeId: AttributeIds.Value,
+                  indexRange: null, /* ???? */
+                  dataEncoding: null /* */
+              }
+          ];
         it("should read and set the required timestamps : TimestampsToReturn.Neither", function (done) {
 
             const DataValue = require("node-opcua-data-value").DataValue;
@@ -1464,7 +1485,7 @@ describe("testing ServerEngine", function () {
 
             const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84), // <=== valid node id
-                relativePath: {elements: []}         // <=== empty path
+                relativePath: { elements: [] }         // <=== empty path
             });
             const browsePathResult = engine.browsePath(browsePath);
             browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
@@ -1501,7 +1522,7 @@ describe("testing ServerEngine", function () {
                             //xx referenceTypeId: null,
                             isInverse: false,
                             includeSubtypes: 0,
-                            targetName: {namespaceIndex: 0, name: "xxxx invalid name xxx"}
+                            targetName: { namespaceIndex: 0, name: "xxxx invalid name xxx" }
                         }
                     ]
                 }
@@ -1523,7 +1544,7 @@ describe("testing ServerEngine", function () {
                             //xx referenceTypeId: null,
                             isInverse: false,
                             includeSubtypes: 0,
-                            targetName: {namespaceIndex: 0, name: "Objects"}
+                            targetName: { namespaceIndex: 0, name: "Objects" }
                         }
                     ]
                 }
@@ -1627,14 +1648,13 @@ describe("testing ServerEngine", function () {
 
         it("should read  Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount", function (done) {
 
-
             const nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
             const node = engine.addressSpace.findNode(nodeid);
             should.exist(node);
 
             const nodesToRead = [{
-                nodeId: nodeid,
-                attributeId: AttributeIds.Value
+                attributeId: AttributeIds.Value,
+                nodeId: nodeid
             }];
             engine.refreshValues(nodesToRead, function (err) {
                 if (!err) {
@@ -1727,7 +1747,7 @@ describe("testing ServerEngine", function () {
                     dataValues[0].statusCode.should.eql(StatusCodes.Good);
                     dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
 
-                    console.log('buildInfo', dataValues[0].value.value);
+                    console.log("buildInfo", dataValues[0].value.value);
                     dataValues[0].value.value.should.be.instanceOf(Object);
 
                     const buildInfo = dataValues[0].value.value;
@@ -1853,19 +1873,19 @@ describe("testing ServerEngine", function () {
             // and for some reason, the server cannot access the PLC.
             // In this case we expect the value getter to return a StatusCode rather than a Variant
             namespace.addVariable({
-                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                    browseName: "FailingPLCValue",
-                    nodeId: "ns=1;s=FailingPLCValue",
-                    dataType: "Double",
-                    value: {
-                        get: function () {
-                            // we return a StatusCode here instead of a Variant
-                            // this means : "Houston ! we have a problem"
-                            return StatusCodes.BadResourceUnavailable;
-                        },
-                        set: null // read only
-                    }
-                }
+                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                  browseName: "FailingPLCValue",
+                  nodeId: "ns=1;s=FailingPLCValue",
+                  dataType: "Double",
+                  value: {
+                      get: function () {
+                          // we return a StatusCode here instead of a Variant
+                          // this means : "Houston ! we have a problem"
+                          return StatusCodes.BadResourceUnavailable;
+                      },
+                      set: null // read only
+                  }
+              }
             );
         });
 
@@ -1899,45 +1919,45 @@ describe("testing ServerEngine", function () {
 
             // add a variable that provide a on demand refresh function
             namespace.addVariable({
-                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                    browseName: "RefreshedOnDemandValue",
-                    nodeId: "ns=1;s=RefreshedOnDemandValue",
-                    dataType: "Double",
-                    value: {
-                        refreshFunc: function (callback) {
-                            // add some delay to simulate a long operation to perform the asynchronous read
-                            setTimeout(function () {
-                                value1 += 1;
-                                const dataValue = new DataValue({
-                                    value: {
-                                        dataType: DataType.Double,
-                                        value: value1
-                                    }
-                                });
-                                callback(null, dataValue);
-                            }, 10);
-                        }
-                    }
-                }
+                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                  browseName: "RefreshedOnDemandValue",
+                  nodeId: "ns=1;s=RefreshedOnDemandValue",
+                  dataType: "Double",
+                  value: {
+                      refreshFunc: function (callback) {
+                          // add some delay to simulate a long operation to perform the asynchronous read
+                          setTimeout(function () {
+                              value1 += 1;
+                              const dataValue = new DataValue({
+                                  value: {
+                                      dataType: DataType.Double,
+                                      value: value1
+                                  }
+                              });
+                              callback(null, dataValue);
+                          }, 10);
+                      }
+                  }
+              }
             );
             // add an other variable that provide a on demand refresh function
             namespace.addVariable({
-                    organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                    browseName: "OtherRefreshedOnDemandValue",
-                    nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
-                    dataType: "Double",
-                    value: {
-                        refreshFunc: function (callback) {
-                            setTimeout(function () {
-                                value2 += 1;
-                                const dataValue = new DataValue({
-                                    value: {dataType: DataType.Double, value: value2}
-                                });
-                                callback(null, dataValue);
-                            }, 10);
-                        }
-                    }
-                }
+                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                  browseName: "OtherRefreshedOnDemandValue",
+                  nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
+                  dataType: "Double",
+                  value: {
+                      refreshFunc: function (callback) {
+                          setTimeout(function () {
+                              value2 += 1;
+                              const dataValue = new DataValue({
+                                  value: { dataType: DataType.Double, value: value2 }
+                              });
+                              callback(null, dataValue);
+                          }, 10);
+                      }
+                  }
+              }
             );
         });
 
@@ -1952,7 +1972,7 @@ describe("testing ServerEngine", function () {
 
         it("should refresh a single variable value asynchronously", function (done) {
 
-            const nodesToRefresh = [{nodeId: "ns=1;s=RefreshedOnDemandValue"}];
+            const nodesToRefresh = [{ nodeId: "ns=1;s=RefreshedOnDemandValue" }];
 
             const v = engine.readSingleNode(context, nodesToRefresh[0].nodeId, AttributeIds.Value);
             v.statusCode.should.equal(StatusCodes.UncertainInitialValue);
@@ -1978,8 +1998,8 @@ describe("testing ServerEngine", function () {
 
 
             const nodesToRefresh = [
-                {nodeId: "ns=1;s=RefreshedOnDemandValue"},
-                {nodeId: "ns=1;s=OtherRefreshedOnDemandValue"}
+                { nodeId: "ns=1;s=RefreshedOnDemandValue" },
+                { nodeId: "ns=1;s=OtherRefreshedOnDemandValue" }
             ];
 
             engine.refreshValues(nodesToRefresh, function (err, values) {
@@ -1999,9 +2019,9 @@ describe("testing ServerEngine", function () {
         it("should  refresh nodes only once if they are duplicated ", function (done) {
 
             const nodesToRefresh = [
-                {nodeId: "ns=1;s=RefreshedOnDemandValue"},
-                {nodeId: "ns=1;s=RefreshedOnDemandValue"}, // <== duplicated node
-                {nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName}
+                { nodeId: "ns=1;s=RefreshedOnDemandValue" },
+                { nodeId: "ns=1;s=RefreshedOnDemandValue" }, // <== duplicated node
+                { nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName }
             ];
             engine.refreshValues(nodesToRefresh, function (err, values) {
 
@@ -2020,7 +2040,7 @@ describe("testing ServerEngine", function () {
             value1.should.equal(0);
             value2.should.equal(0);
             const nodesToRefresh = [
-                {nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName}
+                { nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName }
             ];
             engine.refreshValues(nodesToRefresh, function (err, values) {
                 if (!err) {
@@ -2116,9 +2136,9 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function () {
 
         test = this;
 
-        engine = new ServerEngine({buildInfo: defaultBuildInfo});
+        engine = new ServerEngine({ buildInfo: defaultBuildInfo });
 
-        engine.initialize({nodeset_filename: server_engine.standard_nodeset_file}, function () {
+        engine.initialize({ nodeset_filename: server_engine.standard_nodeset_file }, function () {
             done();
         });
 
@@ -2143,8 +2163,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function () {
         const addressSpace = engine.addressSpace;
         const serverCapabilitiesNode = addressSpace.findNode(serverCapabilitiesId);
 
-        should(serverCapabilitiesNode).be.instanceOf(UAObject);
-
+        serverCapabilitiesNode.nodeClass.should.eql(NodeClass.Object);
 
         // ->
         done();

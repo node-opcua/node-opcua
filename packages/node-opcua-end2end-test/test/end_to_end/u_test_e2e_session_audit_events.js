@@ -280,7 +280,9 @@ module.exports = function (test) {
 
             ], function final(err) {
 
-                events_received.length.should.eql(6);
+//                console.log(events_received);
+
+                events_received.length.should.eql(3);
 
                 // Session/CreateSession, Session/ActivateSession , Session/CloseSession
 
@@ -368,7 +370,7 @@ module.exports = function (test) {
 
             ], function final(err) {
 
-                events_received.length.should.eql(6);
+                events_received.length.should.eql(3);
                 // Session/CreateSession, Session/ActivateSession , Session/CloseSession
 
                 //

@@ -8,18 +8,18 @@ const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const UAVariable = require("node-opcua-address-space").UAVariable;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const EventFilter = require("node-opcua-service-filter").EventFilter;
+const NodeClass = require("node-opcua-data-model").NodeClass;
 
 function __validateDataChangeFilter(filter,itemToMonitor,node) {
 
     assert(itemToMonitor.attributeId  === AttributeIds.Value);
     assert(filter instanceof subscription_service.DataChangeFilter);
 
-
-    if (!(node instanceof UAVariable)) {
+    if ((node.nodeClass !== NodeClass.Variable)) {
         return StatusCodes.BadNodeIdInvalid;
     }
 
-    assert(node instanceof UAVariable);
+    assert(node.nodeClass === NodeClass.Variable);
 
     // if node is not Numerical=> DataChangeFilter
     assert(node.dataType instanceof NodeId);

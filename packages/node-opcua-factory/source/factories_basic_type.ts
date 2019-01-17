@@ -3,7 +3,7 @@
  */
 import assert from "node-opcua-assert";
 import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import * as  _ from "underscore";
 import * as util from "util";
 import { findSimpleType, registerType } from "./factories_builtin_types";
@@ -12,7 +12,7 @@ import { BasicTypeDefinition, BasicTypeDefinitionOptions } from "./types";
 export interface BasicTypeOptions {
     name: string;
     subType: string;
-    encode?: (value: any, stream: BinaryStream) => void;
+    encode?: (value: any, stream: OutputBinaryStream) => void;
     decode?: (stream: BinaryStream) => void;
     validate?: (value: any) => boolean;
     coerce?: (value: any) => any;

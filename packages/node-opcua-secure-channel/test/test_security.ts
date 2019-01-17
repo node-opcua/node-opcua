@@ -1,7 +1,11 @@
 // luanch with mocha -r ts-node/register test/*.ts
 // or compile with  tsc  -t es2017 -m commonjs test\test_security.ts  --outdir toto
 import * as async from "async";
+import * as fs from "fs";
 import { Socket } from "net";
+import * as should from "should";
+
+import { CertificateManager } from "node-opcua-certificate-manager";
 import {
     Certificate,
     PrivateKey,
@@ -22,7 +26,7 @@ import {
     ServerSecureChannelLayer,
     ServerSecureChannelParent
 } from "../source";
-import { CertificateManager } from "node-opcua-certificate-manager";
+import { StatusCode } from "node-opcua-status-code";
 
 type Callback = (err?: Error) => void;
 
@@ -35,6 +39,7 @@ interface TestParam {
     clientPrivateKey?: PrivateKeyPEM;
     shouldFailAtClientConnection?: boolean;
 }
+
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing secure client and server connection", () => {
@@ -54,9 +59,9 @@ describe("Testing secure client and server connection", () => {
 
         const parentS: ServerSecureChannelParent = {
 
-            certificateManager:  new CertificateManager(),
+            certificateManager: new CertificateManager(),
 
-        // tslint:disable-next-line:object-literal-shorthand
+            // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function() {
 
                 const chain = this.getCertificateChain();
@@ -75,7 +80,7 @@ describe("Testing secure client and server connection", () => {
 
             getPrivateKey: () => {
                 return param.serverPrivateKey!;
-            },
+            }
         };
 
         const serverSChannel: ServerSecureChannelLayer = new ServerSecureChannelLayer({
@@ -84,7 +89,6 @@ describe("Testing secure client and server connection", () => {
             parent: parentS,
             timeout: 0
         });
-        serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
 
         const transportServer = (directTransport.server as any) as Socket;
 
@@ -103,14 +107,13 @@ describe("Testing secure client and server connection", () => {
 
             getPrivateKey: () => {
                 return param.clientPrivateKey!;
-            },
-
+            }
         };
 
         const clientChannel: ClientSecureChannelLayer = new ClientSecureChannelLayer({
             connectionStrategy: {
                 maxDelay: 100,
-                maxRetry: 0,
+                maxRetry: 0
 
             },
             defaultSecureTokenLifetime: 1000000,
@@ -119,7 +122,7 @@ describe("Testing secure client and server connection", () => {
             securityPolicy: param.securityPolicy,
             serverCertificate: param.serverCertificate,
             tokenRenewalInterval: 0,
-            transportTimeout: 0,
+            transportTimeout: 0
         });
 
         serverSChannel.init(transportServer, (err?: Error) => {
@@ -128,12 +131,21 @@ describe("Testing secure client and server connection", () => {
 
         async.series([
             (callback: Callback) => {
-                callback();
+                serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
+                if (param.clientCertificate) {
+                    const certMan = serverSChannel.certificateManager as CertificateManager;
+                    certMan.trustCertificate(param.clientCertificate,
+                      (err: Error|null, statusCode?: StatusCode) => {
+                        callback(err!);
+                    });
+                } else {
+                    callback();
+                }
             },
 
             (callback: Callback) => {
 
-                clientChannel.create("fake://totot:123", (err?: Error) => {
+                clientChannel.create("fake://foobar:123", (err?: Error) => {
 
                     if (param.shouldFailAtClientConnection) {
                         if (!err) {
@@ -146,7 +158,6 @@ describe("Testing secure client and server connection", () => {
                             return callback(err);
                         }
                         callback();
-
                     }
                 });
             },
@@ -172,14 +183,24 @@ describe("Testing secure client and server connection", () => {
         performTest({
             securityMode: MessageSecurityMode.None,
             securityPolicy: SecurityPolicy.None,
-            serverCertificate: undefined,
+            serverCertificate: undefined
         }, done);
 
     });
 
-    function performTest1(sizeC: number, sizeS: number, securityPolicy: SecurityPolicy, done: (err?: Error) => void) {
+    function performTest1(
+      sizeC: number,
+      sizeS: number,
+      securityPolicy: SecurityPolicy,
+      done: (err?: Error) => void
+    ): void {
         function m(file: string): string {
-            return path.join(__dirname, "../../../packages/node-opcua-end2end-test/certificates/" + file);
+            const fullpathname = path.join(__dirname,
+              "../../../packages/node-opcua-end2end-test/certificates/" + file);
+            if (!fs.existsSync(fullpathname)) {
+                throw new Error("file must exist: " + fullpathname);
+            }
+            return fullpathname;
         }
 
         const serverCertificateFile = m(`server_cert_${sizeS}.pem`);
@@ -198,7 +219,7 @@ describe("Testing secure client and server connection", () => {
             securityMode: MessageSecurityMode.Sign,
             securityPolicy,
             serverCertificate,
-            serverPrivateKey,
+            serverPrivateKey
             //   shouldFailAtClientConnection: false,
         }, done);
 

@@ -2,7 +2,7 @@
  * @module node-opcua-data-value
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { DateWithPicoseconds, getCurrentClock } from "node-opcua-date-time";
 import {
     BaseUAObject,
@@ -58,7 +58,7 @@ function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte 
     return encodingMask;
 }
 
-export function encodeDataValue(dataValue: DataValue, stream: BinaryStream): void {
+export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream): void {
     const encodingMask = getDataValue_EncodingByte(dataValue);
     assert(_.isFinite(encodingMask) && encodingMask >= 0 && encodingMask <= 0x3F);
     // write encoding byte
@@ -320,7 +320,7 @@ export class DataValue extends BaseUAObject {
         this.serverPicoseconds = initialize_field(schema.fields[5], options.serverPicoseconds);
     }
 
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
         encodeDataValue(this, stream);
     }
 

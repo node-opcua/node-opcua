@@ -44,7 +44,7 @@ function start_simple_server(options, callback) {
         throw new Error("start_simple_server : cannot find server script : "+ server_script);
 
     }
-    var port = options.port || "2223";
+    var port = options.port || "2222";
 
     delete options.server_sourcefile;
     delete options.port;

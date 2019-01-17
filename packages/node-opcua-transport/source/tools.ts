@@ -2,7 +2,7 @@
  * @module node-opcua-transport
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import { BaseUAObject } from "node-opcua-factory";
@@ -76,7 +76,7 @@ export function is_valid_endpointUrl(endpointUrl: string): boolean {
     return e.hasOwnProperty("hostname");
 }
 
-export function writeTCPMessageHeader(msgType: string, chunkType: string, totalLength: number, stream: BinaryStream) {
+export function writeTCPMessageHeader(msgType: string, chunkType: string, totalLength: number, stream: OutputBinaryStream) {
 
     if (stream instanceof Buffer) {
         stream = new BinaryStream(stream);
@@ -93,7 +93,7 @@ export function writeTCPMessageHeader(msgType: string, chunkType: string, totalL
     stream.writeUInt32(totalLength);
 }
 
-function encodeMessage(msgType: string, messageContent: BaseUAObject, stream: BinaryStream) {
+function encodeMessage(msgType: string, messageContent: BaseUAObject, stream: OutputBinaryStream) {
 
     // the length of the message, in bytes. (includes the 8 bytes of the message header)
     const totalLength = messageContent.binaryStoreSize() + 8;

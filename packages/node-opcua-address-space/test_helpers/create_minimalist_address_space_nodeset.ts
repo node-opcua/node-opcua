@@ -1,0 +1,197 @@
+// tslint:disable:no-console
+// tslint:disable:max-line-length
+
+import chalk from "chalk";
+import { assert } from "node-opcua-assert";
+import { DataTypeIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableTypeIds } from "node-opcua-constants";
+import { NodeClass } from "node-opcua-data-model";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+
+import {
+    AddReferenceOpts,
+    AddressSpace,
+    Folder,
+    UAObject,
+    UAReferenceType,
+    UAVariableType
+} from "../source";
+
+import * as should from "should";
+
+const _should = should;
+
+function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
+
+    const addressSpace = _addressSpace;
+
+    function _dump(referenceType: UAReferenceType, level: string) {
+
+        console.log(level, referenceType.browseName.toString(), "(",
+          chalk.green(referenceType.getAllSubtypes().map((x: any) => x.browseName.toString()).join(" ")),
+          ")");
+
+        const subTypes = referenceType.findReferencesExAsObject("HasSubtype");
+        for (const subType of subTypes) {
+            _dump(subType as UAReferenceType, "     " + level);
+        }
+    }
+
+    const references = addressSpace.findReferenceType(ReferenceTypeIds.References)!;
+
+    _dump(references, " ");
+
+}
+
+export function create_minimalist_address_space_nodeset(
+  addressSpace: AddressSpace
+) {
+    resolveNodeId(ObjectTypeIds.BaseObjectType).toString().should.eql("ns=0;i=58");
+
+    const namespace0 = addressSpace.registerNamespace("http://opcfoundation.org/UA/");
+    assert(namespace0.index === 0);
+
+    function addReferenceType(
+      browseName_: string,
+      isAbstract?: boolean,
+      superType?: UAReferenceType
+    ): UAReferenceType {
+
+        const tmp = browseName_.split("/");
+        const inverseName = tmp[1] as string;
+        const browseName = tmp[0] as string;
+
+        const options = {
+            browseName,
+            inverseName,
+            isAbstract,
+            nodeClass: NodeClass.ReferenceType,
+            nodeId: resolveNodeId((ReferenceTypeIds as any)[browseName]),
+            references: [] as AddReferenceOpts[],
+            superType
+        };
+
+        const hasSubType = resolveNodeId("HasSubtype");
+        if (superType) {
+            options.references.push({
+                isForward: false,
+                nodeId: superType.nodeId,
+                referenceType: hasSubType
+            });
+        }
+        const node = namespace0._createNode(options);
+
+        node.propagate_back_references();
+
+        return node as UAReferenceType;
+    }
+
+    // add references
+    {
+
+        // before we do any thing , we need to create the HasSubtype reference
+        // which is required in the first to create the hierachy of References
+        const hasSubtype = addReferenceType("HasSubtype/HasSupertype");
+
+        const references = addReferenceType("References", true);
+        {
+            const nonHierarchicalReferences = addReferenceType("NonHierarchicalReferences", true, references);
+            {
+                const hasTypeDefinition = addReferenceType("HasTypeDefinition/TypeDefinitionOf", false, nonHierarchicalReferences);
+            }
+        }
+        {
+            const hierarchicalReferences = addReferenceType("HierarchicalReferences", true, references);
+            {
+
+                const hasChild = addReferenceType("HasChild/ChildOf", true, hierarchicalReferences);
+                {
+                    const aggregates = addReferenceType("Aggregates/AggregatedBy", true, hasChild);
+                    {
+                        const hasComponent = addReferenceType("HasComponent/ComponentOf", false, aggregates);
+                        const hasProperty = addReferenceType("HasProperty/PropertyOf", false, aggregates);
+                        const hasHistoricalConfiguration = addReferenceType("HasHistoricalConfiguration/HistoricalConfigurationOf", false, aggregates);
+                    }
+                }
+                {
+                    // add a link to hasSubType
+                    hasSubtype.addReference({
+                        isForward: false,
+                        nodeId: hasChild,
+                        referenceType: hasSubtype
+                    });
+                }
+            }
+            {
+                const organizes = addReferenceType("Organizes/OrganizedBy", false, hierarchicalReferences);
+            }
+            {
+                const hasEventSource = addReferenceType("HasEventSource/EventSourceOf", false, hierarchicalReferences);
+            }
+        }
+    }
+
+    dumpReferencesHierarchy(addressSpace);
+
+    const baseObjectType = namespace0._createNode({
+        browseName: "BaseObjectType",
+        isAbstract: true,
+        nodeClass: NodeClass.ObjectType,
+        nodeId: resolveNodeId(ObjectTypeIds.BaseObjectType)
+    });
+
+    const baseVariableType = namespace0._createNode({
+        browseName: "BaseVariableType",
+        isAbstract: true,
+        nodeClass: NodeClass.VariableType,
+        nodeId: resolveNodeId(VariableTypeIds.BaseVariableType)
+    }) as any as UAVariableType;
+
+    const propertyType = namespace0.addVariableType({
+        browseName: "PropertyType",
+        subtypeOf: baseVariableType
+    });
+
+    const baseDataVariableType = namespace0._createNode({
+        browseName: "BaseDataVariableType",
+        isAbstract: true,
+        nodeClass: NodeClass.VariableType,
+        nodeId: resolveNodeId(VariableTypeIds.BaseDataVariableType),
+        subtypeOf: baseVariableType.nodeId
+    }) as any as UAVariableType;
+
+    // add the root folder
+    {
+        const rootFolder = namespace0._createNode({
+            browseName: "RootFolder",
+            nodeClass: NodeClass.Object,
+            nodeId: resolveNodeId(ObjectIds.RootFolder)
+        }) as any as UAObject;
+
+        {
+            const objectsFolder = namespace0.addObject({
+                browseName: "Objects",
+                nodeId: resolveNodeId(ObjectIds.ObjectsFolder),
+                organizedBy: rootFolder
+            });
+
+            rootFolder.getFolderElementByName("Objects")!
+              .browseName.toString().should.eql("Objects");
+
+        }
+        {
+            const dataTypeFolder = namespace0.addObject({
+                browseName: "DataType",
+                nodeId: resolveNodeId(ObjectIds.DataTypesFolder),
+                organizedBy: rootFolder
+            });
+            {
+                const doubleDataType = namespace0._createNode({
+                    browseName: "Double",
+                    nodeClass: NodeClass.DataType,
+                    nodeId: resolveNodeId(DataTypeIds.Double),
+                    organisedBy: dataTypeFolder
+                });
+            }
+        }
+    }
+}

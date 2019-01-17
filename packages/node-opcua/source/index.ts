@@ -11,39 +11,39 @@ import chalk from "chalk";
 const semver = require("semver");
 const minimumNodeVersionRequired = ">=8.0.0"; // minimum
 if (!semver.satisfies(process.version, minimumNodeVersionRequired)) {
-  console.log(
-        chalk.cyan(`warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${
-      process.version
-      }.`));
+    console.log(
+      chalk.cyan(`warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${
+        process.version
+        }.`));
 }
 
 export * from "node-opcua-common";
 
 export {
-  NodeId,
-  NodeIdLike,
-  resolveNodeId,
-  makeNodeId,
-  coerceNodeId,
-  sameNodeId,
-  NodeIdType,
-  ExpandedNodeId,
-  makeExpandedNodeId,
-  coerceExpandedNodeId
+    NodeId,
+    NodeIdLike,
+    resolveNodeId,
+    makeNodeId,
+    coerceNodeId,
+    sameNodeId,
+    NodeIdType,
+    ExpandedNodeId,
+    makeExpandedNodeId,
+    coerceExpandedNodeId
 } from "node-opcua-nodeid";
 
 export {
-  StatusCode
+    StatusCode
 } from "node-opcua-status-code";
 export {
-  StatusCodes,
-  VariableTypeIds,
-  VariableIds,
-  MethodIds,
-  ObjectIds,
-  ObjectTypeIds,
-  ReferenceTypeIds,
-  DataTypeIds
+    StatusCodes,
+    VariableTypeIds,
+    VariableIds,
+    MethodIds,
+    ObjectIds,
+    ObjectTypeIds,
+    ReferenceTypeIds,
+    DataTypeIds
 } from "node-opcua-constants";
 
 export { DataType, Variant, VariantArrayType, buildVariantArray } from "node-opcua-variant";
@@ -51,16 +51,16 @@ export { DataValue, sameDataValue } from "node-opcua-data-value";
 export { NumericRange } from "node-opcua-numeric-range";
 
 export {
-  AccessLevelFlag,
-  makeAccessLevelFlag,
-  LocalizedText,
-  coerceLocalizedText,
-  QualifiedName,
-  coerceQualifiedName,
-  NodeClass,
-  NodeClassMask,
-  AttributeIds,
-  BrowseDirection
+    AccessLevelFlag,
+    makeAccessLevelFlag,
+    LocalizedText,
+    coerceLocalizedText,
+    QualifiedName,
+    coerceQualifiedName,
+    NodeClass,
+    NodeClassMask,
+    AttributeIds,
+    BrowseDirection
 } from "node-opcua-data-model";
 
 // basic_types
@@ -79,7 +79,7 @@ export * from "node-opcua-service-session";
 export * from "node-opcua-service-register-node";
 export * from "node-opcua-service-endpoints";
 export * from "node-opcua-service-subscription";
-export * from "node-opcua-service-history";
+// export * from "node-opcua-service-history";
 export * from "node-opcua-service-discovery";
 export * from "node-opcua-service-secure-channel";
 export * from "node-opcua-service-translate-browse-path";
@@ -94,8 +94,10 @@ export { SecurityPolicy, ErrorCallback, MessageSecurityMode } from "node-opcua-s
 // -----------------------------------------------------------------------------
 export { nodesets } from "node-opcua-nodesets";
 // an incomplete but sufficient nodeset file used during testing
-export const empty_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").empty_nodeset_filename;
-export const mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
+export {
+    empty_nodeset_filename,
+    mini_nodeset_filename
+} from "node-opcua-address-space";
 
 module.exports.utils = require("node-opcua-utils");
 // xx module.exports.crypto_utils = require("node-opcua-crypto");
@@ -116,6 +118,16 @@ export * from "./server-stuff";
 // filtering tools
 export * from "node-opcua-service-filter";
 
+export * from "node-opcua-address-space";
+export {
+    construct_demo_alarm_in_address_space,
+    createBoilerType,
+    makeBoiler,
+    getAddressSpaceFixture
+} from "node-opcua-address-space";
+
+////
+
 module.exports.perform_findServers = require("node-opcua-client").perform_findServers;
 module.exports.perform_findServersOnNetwork = require("node-opcua-client").perform_findServersOnNetwork;
 module.exports.readHistoryServerCapabilities = require("node-opcua-client").readHistoryServerCapabilities;
@@ -133,18 +145,10 @@ module.exports.MonitoredItem = require("node-opcua-server").MonitoredItem;
 module.exports.ServerSession = require("node-opcua-server").ServerSession;
 module.exports.Subscription = require("node-opcua-server").Subscription;
 
-module.exports.generate_address_space = require("node-opcua-address-space").generate_address_space;
-module.exports.AddressSpace = require("node-opcua-address-space").AddressSpace;
-module.exports.SessionContext = require("node-opcua-address-space").SessionContext;
-module.exports.checkSelectClause = require("node-opcua-address-space").checkSelectClause;
-
 // basic opcua NodeClass
-
-module.exports.getAddressSpaceFixture = require("node-opcua-address-space/test_helpers/get_address_space_fixture").getAddressSpaceFixture;
 
 module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
 // filtering tools
-module.exports.checkSelectClause = require("node-opcua-address-space").checkSelectClause;
 module.exports.constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
 
 const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
@@ -153,7 +157,3 @@ module.exports.build_address_space_for_conformance_testing =
   address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 module.exports.install_optional_cpu_and_memory_usage_node = require("node-opcua-vendor-diagnostic").install_optional_cpu_and_memory_usage_node;
-module.exports.construct_demo_alarm_in_address_space = require("node-opcua-address-space/test_helpers/alarms_and_conditions_demo").construct_demo_alarm_in_address_space;
-
-module.exports.createBoilerType = require("node-opcua-address-space/test_helpers/boiler_system").createBoilerType;
-module.exports.makeBoiler = require("node-opcua-address-space/test_helpers/boiler_system").makeBoiler;

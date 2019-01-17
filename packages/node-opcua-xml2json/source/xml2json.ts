@@ -20,7 +20,7 @@ declare interface LtxParser {
 
     end(): void;
 
-    on(eventName: "startElement", eventHandler: (name: string, attrs: Attributes) => void): void;
+    on(eventName: "startElement", eventHandler: (name: string, attrs: XmlAttributes) => void): void;
 
     on(eventName: "endElement", eventHandler: (name: string) => void): void;
 
@@ -32,9 +32,6 @@ declare interface LtxParser {
 
 export interface Parser {
     [key: string]: ReaderState;
-}
-export interface ParserLike {
-    [key: string]: ReaderStateParser;
 }
 
 /**
@@ -57,13 +54,27 @@ function _coerceParser(parser: ParserLike): Parser {
     return parser as Parser;
 }
 
-type Attributes = any;
+export interface XmlAttributes {
+    [key: string]: string;
+}
+
 export interface ReaderStateParser {
-    parser?: Parser;
-    init?: (name: string, attrs: Attributes) => void;
-    finish?: () => void;
-    startElement?: (name: string, attrs: Attributes) => void;
-    endElement?: (name: string) => void;
+    parser?: ParserLike;
+    init?: (this: any, name: string, attrs: XmlAttributes) => void;
+    finish?: (this: any) => void;
+    startElement?: (this: any, name: string, attrs: XmlAttributes) => void;
+    endElement?: (this: any, name: string) => void;
+}
+
+export interface ParserLike {
+    [key: string]: ReaderStateParserLike;
+}
+export interface ReaderStateParserLike {
+    parser?: ParserLike;
+    init?: (this: any, name: string, attrs: XmlAttributes) => void;
+    finish?: (this: any) => void;
+    startElement?: (this: any, name: string, attrs: XmlAttributes) => void;
+    endElement?: (this: any, name: string) => void;
 }
 
 /**
@@ -78,12 +89,12 @@ export interface ReaderStateParser {
  */
 export class ReaderState {
 
-    public _init?: (name: string, attrs: Attributes) => void;
+    public _init?: (name: string, attrs: XmlAttributes) => void;
     public _finish?: () => void;
-    public _startElement?: (name: string, attrs: Attributes) => void;
+    public _startElement?: (name: string, attrs: XmlAttributes) => void;
     public _endElement?: (name: string) => void;
     public parser: any;
-    public attrs?: Attributes;
+    public attrs?: XmlAttributes;
     public chunks: any[] = [];
     public text: string = "";
     public name?: string = "";
@@ -118,7 +129,7 @@ export class ReaderState {
      * @param attrs
      * @protected
      */
-    protected _on_init(name: string, attrs: Attributes) {
+    protected _on_init(name: string, attrs: XmlAttributes) {
         this.attrs = attrs;
         assert(this.attrs);
         if (this._init) {
@@ -132,7 +143,7 @@ export class ReaderState {
      * @param attrs
      * @protected
      */
-    protected _on_startElement(name: string, attrs: Attributes) {
+    protected _on_startElement(name: string, attrs: XmlAttributes) {
         this.chunks = [];
         this.text = "";
         if (this.parser.hasOwnProperty(name)) {
@@ -303,7 +314,7 @@ export class Xml2Json {
         }
     }
 
-    private _promote(new_state: ReaderState, name?: string, attr?: Attributes) {
+    private _promote(new_state: ReaderState, name?: string, attr?: XmlAttributes) {
         attr = attr || {};
         new_state.name = name;
         new_state.parent = this.current_state;
@@ -322,7 +333,7 @@ export class Xml2Json {
 
         const parser = new LtxParser();
         let c = 0;
-        parser.on("startElement", (name: string, attrs: Attributes) => {
+        parser.on("startElement", (name: string, attrs: XmlAttributes) => {
             const tag_ns = resolve_namespace(name);
             this.current_state._on_startElement(tag_ns.tag, attrs);
             c += 1;

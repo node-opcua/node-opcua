@@ -2,7 +2,7 @@
  * @module node-opcua-chunkmanager
  */
 import { decodeUInt32, encodeUInt32, UInt32 } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
@@ -42,7 +42,7 @@ export class SequenceHeader extends BaseUAObject {
         this.requestId = initialize_field(schema.fields[1], options.requestId);
     }
 
-    public encode(stream: BinaryStream): void {
+    public encode(stream: OutputBinaryStream): void {
         super.encode(stream);
         encodeUInt32(this.sequenceNumber, stream);
         encodeUInt32(this.requestId, stream);

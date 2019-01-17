@@ -2,15 +2,17 @@
 /**
  * @module node-opcua-address-space
  */
-import { DateTime, UInt32 } from "node-opcua-basic-types";
+import { EventEmitter } from "events";
+import { DateTime, Int64, UABoolean, UAString, UInt32 } from "node-opcua-basic-types";
 import {
     AccessLevelFlag,
-    AttributeIds, BrowseDirection,
+    AttributeIds, BrowseDirection, DiagnosticInfo,
     LocalizedText, LocalizedTextLike,
     NodeClass,
     QualifiedName, QualifiedNameLike
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { PreciseClock } from "node-opcua-date-time";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import {
@@ -20,35 +22,79 @@ import {
 } from "node-opcua-service-browse";
 import {
     HistoryReadDetails,
-    HistoryReadResult,
+    HistoryReadResult, ReadAtTimeDetails, ReadEventDetails, ReadProcessedDetails,
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
 import {
     WriteValueOptions
 } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
-import { Argument, ArgumentOptions } from "node-opcua-types";
-import { Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
+import {
+    Argument,
+    ArgumentOptions,
+    AxisInformation,
+    AxisInformationOptions,
+    AxisScaleEnumeration,
+    BrowsePath,
+    BrowsePathResult,
+    BuildInfo, CallMethodResult, CallMethodResultOptions,
+    EnumValueType,
+    EnumValueTypeOptions,
+    EUInformation,
+    EUInformationOptions,
+    Range, RangeOptions,
+    ReferenceDescription,
+    ServerState,
+    ServerStatusDataType
+} from "node-opcua-types";
+import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
+import { MinimalistAddressSpace, Reference } from "../src/reference";
+import { PseudoSession } from "./pseudo_session";
 import { SessionContext } from "./session_context";
-import { State, StateMachine, Transition } from "./state_machine";
+import { State, StateMachine, StateMachineType, Transition } from "./interfaces/state_machine";
+
+import { AddressSpacePrivate } from "../src/address_space_private";
+import { UAAcknowledgeableConditionBase } from "../src/alarms_and_conditions/ua_acknowledgeable_condition_base";
+import { UAAlarmConditionBase } from "../src/alarms_and_conditions/ua_alarm_condition_base";
+import { UAConditionBase } from "../src/alarms_and_conditions/ua_condition_base";
+import { UADiscreteAlarm } from "../src/alarms_and_conditions/ua_discrete_alarm";
+import { UAExclusiveDeviationAlarm } from "../src/alarms_and_conditions/ua_exclusive_deviation_alarm";
+import { UAExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_exclusive_limit_alarm";
+import { UALimitAlarm } from "../src/alarms_and_conditions/ua_limit_alarm";
+import { UANonExclusiveDeviationAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_deviation_alarm";
+import { UANonExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_limit_alarm";
 
 export type ErrorCallback = (err?: Error) => void;
 
 export declare interface AddReferenceOpts {
-    referenceType: string | NodeId;
+    referenceType: string | NodeId | UAReferenceType;
     nodeId: NodeId | string | BaseNode;
     /**
      * default = true
      */
     isForward?: boolean;
+    _referenceType?: UAReferenceType;
+    node?: BaseNode;
+
 }
 
-export interface  UAReference {
+export interface UAReference {
     readonly nodeId: NodeId;
     readonly referenceType: NodeId;
-    readonly isForward: boolean ;
-    readonly node: BaseNode;
+    readonly isForward: boolean;
+
+    readonly node?: BaseNode;
 }
+
+export declare function resolveReferenceType(
+  addressSpace: MinimalistAddressSpace,
+  reference: UAReference
+): UAReferenceType;
+
+export declare function resolveReferenceNode(
+  addressSpace: MinimalistAddressSpace,
+  reference: UAReference
+): BaseNode;
 
 export interface ISessionContext {
 
@@ -61,38 +107,123 @@ export interface ISessionContext {
 
 }
 
-export declare class BaseNode {
+export interface XmlWriter {
 
+    translationTable: any;
+    visitedNode: any;
+
+    startElement(elementName: string): this;
+
+    endElement(): this;
+
+    writeAttribute(attributeName: string, attributeValue: string | number): this;
+
+    writeComment(comment: string): this;
+
+    text(str: string): this;
+
+}
+
+export declare class BaseNode extends EventEmitter {
+
+    public readonly addressSpace: AddressSpace;
     public readonly browseName: QualifiedName;
+    public readonly displayName: LocalizedText[];
     public readonly description: LocalizedText;
     public readonly nodeClass: NodeClass;
     public readonly nodeId: NodeId;
-    public readonly modellingRule?: string;
-    public readonly parent?: BaseNode;
+    public readonly modellingRule?: ModellingRuleType;
+    public readonly parentNodeId?: NodeId;
 
-    public addReference(options: AddReferenceOpts): UAReference;
+    // access to parent namespace
+    public readonly namespaceIndex: number;
+    public readonly namespaceUri: string;
+    public readonly namespace: Namespace;
+
+    /**
+     * return a complete name of this object by pre-pending
+     * name of its parent(s) to its own name
+     */
+    public fullName(): string;
+
+    public addReference(options: AddReferenceOpts): void;
+    public removeReference(referenceOpts: AddReferenceOpts): void;
 
     public readAttribute(
-      context: SessionContext,
+      context: SessionContext | null,
       attributeId: AttributeIds,
       indexRange?: NumericRange,
       dataEncoding?: QualifiedNameLike | null
     ): DataValue;
 
+    /**
+     * return a array with the event source of this object.
+     * self = HasEventSource => nodes
+     */
+    public getEventSources(): BaseNode[];
+
+    /**
+     * return a array of the objects for which this node is an EventSource
+     * nodes = HasEventSource => self
+     */
+    public getEventSourceOfs(): BaseNode[];
+
     // [key: string]: BaseNode;
-    public getComponentByName(componentName: QualifiedNameLike): BaseNode;
 
     public install_extra_properties(): void;
 
+    public findReferencesEx(
+      strReference: string,
+      browseDirection?: BrowseDirection
+    ): UAReference[];
+
+    public findReferences(
+      referenceType: string | NodeId | UAReferenceType,
+      isForward?: boolean
+    ): UAReference[];
+
+    public findReference(
+      strReference: string,
+      isForward?: boolean
+    ): UAReference | null;
+
     public findReferencesExAsObject(
       strReference: string,
-      browseDirection: BrowseDirection
-    ): UAReference[];
+      browseDirection?: BrowseDirection
+    ): BaseNode[];
 
     public findReferencesAsObject(
       strReference: string,
       isForward: boolean
-    ): UAReferenceType[];
+    ): BaseNode[];
+
+    public allReferences(): Reference[];
+
+    public getChildByName(
+      browseName: string | QualifiedName
+    ): BaseNode | null;
+
+    /**
+     * this methods propagates the forward references to the pointed node
+     * by inserting backward references to the counter part node
+     */
+    public propagate_back_references(): void;
+
+    /**
+     * browse the node to extract information requested in browseDescription
+     * @method browseNode
+     * @param browseDescription
+     * @param browseDescription.referenceTypeId {NodeId}
+     * @param browseDescription.browseDirection {BrowseDirection}
+     * @param browseDescription.nodeClassMask   {NodeClassMask}
+     * @param browseDescription.resultMask      {UInt32}
+     * @param session                           {SessionContext}
+     * @return {ReferenceDescription[]}
+     */
+    public browseNode(
+      browseDescription: BrowseDescriptionOptions,
+      session?: SessionContext): ReferenceDescription[];
+
 
 }
 
@@ -106,40 +237,58 @@ export interface EnumValue2 {
     value: number;
 }
 
-type VariableSetterVariation1 = (value: Variant) => StatusCode;
-type VariableSetterVariation2 = (
+export  type VariableSetterVariation1 = (
+  this: UAVariable,
+  value: Variant
+) => StatusCode;
+
+export  type VariableSetterVariation2 = (
+  this: UAVariable,
   value: Variant,
   callback: (err: Error | null, statusCode: StatusCode) => void) => void;
 
-type VariableSetter = VariableSetterVariation1
+export type VariableSetter = VariableSetterVariation1
   | VariableSetterVariation2;
 
-interface BindVariableOptionsVariation1 {
-    get: () => Variant;
-    set?: VariableSetter;
+export interface BindVariableOptionsVariation1 {
+    get: (this: UAVariable) => Variant;
+    set?: VariableSetter | null;
+    historyRead?: any;
 }
 
-type VariableDataValueGetterSync =
+export  type DataValueCallback =
+  (err: Error | null, dataValue?: DataValue) => void;
+
+export  type StatusCodeCallBack =
+  (err: Error | null, statusCode?: StatusCode) => void;
+
+export  type VariableDataValueGetterSync =
   () => DataValue;
-type VariableDataValueGetterWithCallback =
-  (err: Error | null, dataValue: DataValue) => void;
+export  type VariableDataValueGetterAsync =
+  (callback: DataValueCallback) => void;
 
-type VariableDataValueSetterWithCallback = (
+export  type VariableDataValueSetterWithCallback = (
   dataValue: DataValue,
-  callback: (err: Error | null, statusCode: StatusCode) => void) => void;
+  callback: StatusCodeCallBack
+) => void;
 
-interface BindVariableOptionsVariation2 {
-    timestamped_get: VariableDataValueGetterSync | VariableDataValueGetterWithCallback;
+export interface BindVariableOptionsVariation2 {
+    timestamped_get: VariableDataValueGetterSync | VariableDataValueGetterAsync;
     timestamped_set?: VariableDataValueSetterWithCallback;
+    historyRead?: any;
 }
 
-interface BindVariableOptionsVariation3 {
+export interface BindVariableOptionsVariation3 {
     refreshFunc: (
-      callback: (err: Error | null, dataValue: DataValue) => void
+      callback: DataValueCallback
     ) => void;
+    historyRead?: any;
 }
 
-type BindVariableOptions =
+export type BindVariableOptions =
+  {
+      historyRead?: any
+  } |
   BindVariableOptionsVariation1 |
   BindVariableOptionsVariation2 |
   BindVariableOptionsVariation3 ;
@@ -147,17 +296,55 @@ type BindVariableOptions =
 export type ContinuationPoint = Buffer;
 export type Callback<T> = (err: Error | null, result?: T) => void;
 
-export declare class UAVariable extends BaseNode {
+export interface VariableAttributes {
+    dataType: NodeId;
+    accessLevel: number;
+    userAccessLevel: number;
+    valueRank: number;
+    minimumSamplingInterval: number;
+}
 
-    public typeDefinitionObj: UAVariableType;
+export interface IPropertyAndComponentHolder {
 
-    public isReadable(context: SessionContext): boolean;
+    getComponentByName(componentName: QualifiedNameLike, namespaceIndex?: number): BaseNode | null;
 
-    public isUserReadable(context: SessionContext): boolean;
+    getPropertyByName(browseName: string, namespaceIndex?: number): UAVariable | null;
 
-    public isWritable(context: SessionContext): boolean;
+    getAggregates(): BaseNode[];
 
-    public isUserWritable(context: SessionContext): boolean;
+    getComponents(): BaseNode[];
+
+    getProperties(): BaseNode[];
+
+    getNotifiers(): BaseNode[];
+}
+
+export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndComponentHolder {
+
+    readonly nodeClass: NodeClass.Variable;
+    readonly parent: BaseNode | null;
+    readonly dataTypeObj: UADataType;
+    readonly semantic_version: number;
+
+    typeDefinitionObj: UAVariableType;
+    typeDefinition: NodeId;
+
+    // variable attributes
+    dataType: NodeId;
+    accessLevel: number;
+    userAccessLevel: number;
+    valueRank: number;
+    minimumSamplingInterval: number;
+    arrayDimensions: number[];
+    historizing: boolean;
+
+    isReadable(context: SessionContext): boolean;
+
+    isUserReadable(context: SessionContext): boolean;
+
+    isWritable(context: SessionContext): boolean;
+
+    isUserWritable(context: SessionContext): boolean;
 
     /***
      * from OPC.UA.Spec 1.02 part 4
@@ -184,88 +371,184 @@ export declare class UAVariable extends BaseNode {
      *  BadNotReadable              The access level does not allow reading or subscribing to the Node.
      *  BadUserAccessDenied         User does not have permission to perform the requested operation. (table 165)
      */
-    public readValue(
-      context?: SessionContext,
+    readValue(
+      context?: SessionContext | null,
       indexRange?: NumericRange,
       dataEncoding?: QualifiedNameLike | null
     ): DataValue;
 
-    public readEnumValue(): EnumValue2;
+    readValueAsync(
+      context?: SessionContext | null
+    ): Promise<DataValue>;
 
-    public writeEnumValue(value: string | number): void;
+    readValueAsync(
+      context: SessionContext | null,
+      callback: DataValueCallback
+    ): void;
 
-    public readAttribute(
-      context: SessionContext,
+    readEnumValue(): EnumValue2;
+
+    writeEnumValue(value: string | number): void;
+
+    readAttribute(
+      context: SessionContext | null,
       attributeId: AttributeIds,
       indexRange?: NumericRange,
       dataEncoding?: QualifiedNameLike | null
     ): DataValue;
 
-    public setValueFromSource(
+    setValueFromSource(
       value: VariantLike,
       statusCode?: StatusCode,
       sourceTimestamp?: Date
     ): void;
 
-    public writeValue(
+    writeValue(
       context: SessionContext,
       dataValue: DataValue,
-      indexRange: NumericRange,
-      callback: ErrorCallback
+      indexRange: string | NumericRange | null,
+      callback: StatusCodeCallBack
     ): void;
-    public writeValue(
+
+    writeValue(
       context: SessionContext,
       dataValue: DataValue,
-      indexRange: NumericRange
-    ): Promise<void>;
+      callback: StatusCodeCallBack
+    ): void;
 
-    public WriteAttribute(
+    writeValue(
+      context: SessionContext,
+      dataValue: DataValue,
+      indexRange?: string | NumericRange | null
+    ): Promise<StatusCode>;
+
+    asyncRefresh(
+      callback: DataValueCallback
+    ): void;
+
+    asyncRefresh(): Promise<DataValue>;
+
+    writeAttribute(
       context: SessionContext,
       writeValue: WriteValueOptions,
-      callback: ErrorCallback
+      callback: StatusCodeCallBack
     ): void;
-    public WriteAttribute(
+
+    writeAttribute(
       context: SessionContext,
       writeValue: WriteValueOptions
-    ): Promise<void>;
+    ): Promise<StatusCode>;
 
     // advanced
-    public touchValue(updateNow?: boolean): void;
+    touchValue(updateNow?: PreciseClock): void;
 
-    public setPermissions(permissions: Permissions): void;
+    setPermissions(permissions: Permissions): void;
 
-    public bindVariable(
+    bindVariable(
       options: BindVariableOptions,
       overwrite?: boolean
     ): void;
 
-    public historyRead(
+    bindExtensionObject(
+      optionalExtensionObject?: ExtensionObject
+    ): ExtensionObject | null;
+
+    historyRead(
       context: SessionContext,
       historyReadDetails: HistoryReadDetails,
-      indexRange?: NumericRange | null,
-      dataEncoding?: QualifiedNameLike | null,
+      indexRange: NumericRange | null,
+      dataEncoding: QualifiedNameLike | null,
       continuationPoint?: ContinuationPoint
     ): Promise<HistoryReadResult>;
-    public historyRead(
+
+    historyRead(
       context: SessionContext,
-      historyReadDetails: HistoryReadDetails,
-      indexRange: NumericRange | null | undefined,
-      dataEncoding: QualifiedNameLike | null | undefined,
-      continuationPoint: ContinuationPoint | null | undefined,
+      historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+      indexRange: NumericRange | null,
+      dataEncoding: QualifiedNameLike | null,
+      continuationPoint: ContinuationPoint | null,
       callback: Callback<HistoryReadResult>
     ): void;
 
+    clone(
+      options?: any,
+      optionalFilter?: any,
+      extraInfo?: any): UAVariable;
+
     // ----------------- Event handlers
 
-    public on(eventName: "semantic_changed", eventHandler: () => void): void;
-    public on(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): void;
+    on(eventName: "semantic_changed", eventHandler: () => void): this;
 
-    public once(eventName: "semantic_changed", eventHandler: () => void): void;
-    public once(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): void;
+    on(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): this;
+
+    once(eventName: "semantic_changed", eventHandler: () => void): this;
+
+    once(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): this;
+}
+
+export interface AddDataItemOptions extends AddVariableOptions {
+    /** @example  "(tempA -25) + tempB" */
+    definition?: string;
+    /** @example 0.5 */
+    valuePrecision?: number;
+}
+
+export interface UADataItem extends UAVariable {
+    definition?: Property<DataType.String>;
+    valuePrecision?: Property<DataType.Double>;
+}
+
+export interface AddAnalogDataItemOptions extends AddDataItemOptions {
+    engineeringUnitsRange?: {
+        low: number;
+        high: number;
+    };
+    instrumentRange?: {
+        low: number;
+        high: number;
+    };
+    engineeringUnits?: EUInformationOptions | EUInformation;
+    minimumSamplingInterval?: number;
+    dataType?: string | NodeIdLike;
+}
+
+export interface UAAnalogItem extends UADataItem {
+// HasProperty  Variable  InstrumentRange  Range  PropertyType  Optional
+// HasProperty  Variable  EURange  Range  PropertyType  Mandatory
+// HasProperty  Variable  EngineeringUnits  EUInformation  PropertyType  Optional
+    engineeringUnits: Property<"EUInformation">;
+    instrumentRange?: Property<"Range">;
+    euRange: Property<"Range">;
+}
+
+export interface UAMultiStateDiscrete extends UAVariable {
+
+    enumStrings: Property<"StringArray">;
+
+    getValue(): number;
+
+    getValueAsString(): string;
+
+    getIndex(value: string): number;
+
+    setValue(value: string | number): void;
 
 }
 
-export declare class UAAnalogItem extends UAVariable {
+export interface EnumValueTypeOptionsLike {
+    value?: Int64 | UInt32;
+    displayName?: (LocalizedTextLike | null);
+    description?: (LocalizedTextLike | null);
+}
+export interface AddMultiStateValueDiscreteOptions extends AddVariableOptions {
+    enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number };
+    value?: number | Int64;
+}
+
+export interface UAMultiStateValueDiscrete extends UAVariable {
+    enumValues: Property<"EnumValueType">;
+    valueAsText: Property<DataType.String>;
+
 }
 
 // tslint:disable:no-empty-interface
@@ -275,28 +558,37 @@ export interface UAEventType extends UAObjectType {
 
 export type EventTypeLike = string | NodeId | UAEventType;
 
+export interface PseudoVariantNull {
+    dataType: "Null" | DataType.Null;
+}
+
 export interface PseudoVariantString {
-    dataType: "String";
+    dataType: "String" | DataType.String;
     value: string;
 }
 
 export interface PseudoVariantBoolean {
-    dataType: "Boolean";
+    dataType: "Boolean" | DataType.Boolean;
     value: boolean;
 }
 
 export interface PseudoVariantNodeId {
-    dataType: "NodeId";
+    dataType: "NodeId" | DataType.NodeId;
     value: NodeId;
 }
 
+export interface PseudoVariantUInt32 {
+    dataType: "UInt32" | DataType.UInt32;
+    value: UInt32;
+}
+
 export interface PseudoVariantDateTime {
-    dataType: "DateTime";
+    dataType: "DateTime" | DataType.DateTime;
     value: DateTime;
 }
 
 export interface PseudoVariantLocalizedText {
-    dataType: "LocalizedText";
+    dataType: "LocalizedText" | DataType.LocalizedText;
     value: LocalizedTextLike;
 }
 
@@ -305,13 +597,18 @@ export interface PseudoVariantDuration {
     value: number;
 }
 
+export interface PseudoVariantStatusCode {
+    dataType: "StatusCode" | DataType.StatusCode;
+    value: StatusCode;
+}
+
 export interface PseudoVariantByteString {
-    dataType: "ByteString";
+    dataType: "ByteString" | DataType.ByteString;
     value: Buffer;
 }
 
 export interface PseudoVariantExtensionObject {
-    dataType: "ExtensionObject";
+    dataType: "ExtensionObject" | DataType.ExtensionObject;
     value: object;
 }
 
@@ -322,6 +619,7 @@ export interface PseudoVariantExtensionObjectArray {
 }
 
 export type PseudoVariant =
+  PseudoVariantNull |
   PseudoVariantString |
   PseudoVariantBoolean |
   PseudoVariantNodeId |
@@ -329,34 +627,55 @@ export type PseudoVariant =
   PseudoVariantByteString |
   PseudoVariantDuration |
   PseudoVariantLocalizedText |
+  PseudoVariantStatusCode |
+  PseudoVariantUInt32 |
   PseudoVariantExtensionObject |
   PseudoVariantExtensionObjectArray
   ;
 
 export interface RaiseEventData {
-    [key: string]: PseudoVariant;
+    $eventDataSource?: UAEventType;
+    [key: string]: PseudoVariant | Variant | UAEventType | undefined;
 }
 
 export interface EventRaiser {
     raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
 }
 
-export declare class UAObject extends BaseNode implements EventRaiser {
+export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHolder {
 
-    public readonly nodeClass: NodeClass.Object;
-    public typeDefinitionObj: UAObjectType;
+    readonly nodeClass: NodeClass.Object;
+    parent: BaseNode | null;
+    typeDefinitionObj: UAObjectType;
+    typeDefinition: NodeId;
 
-    public getMethodByName(methodName: string): UAMethod | null;
+    readonly hasMethods: boolean;
 
-    public raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
+    //
+    getFolderElementByName(browseName: string, namespaceIndex?: number): BaseNode | null;
+
+    // Method accessor
+    getMethodById(nodeId: NodeId): UAMethod | null;
+
+    getMethodByName(methodName: string): UAMethod | null;
+
+    getMethods(): UAMethod[];
+
+    raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
+
+    on(eventName: "event", eventHandler: (eventData: EventData) => void): this;
+
 }
 
-export interface CallMethodResponse {
-    statusCode: StatusCode;
-    outputArguments: VariantLike[];
-}
+// export interface CallMethodResult {
+//     statusCode: StatusCode;
+//     outputArguments?: VariantLike[];
+//     inputArgumentResults?: StatusCode[];
+//     inputArgumentDiagnosticInfos?: DiagnosticInfo[];
+//
+// }
 
-export type MethodFunctorCallback = (err: Error | null, callMethodResponse: CallMethodResponse) => void;
+export type MethodFunctorCallback = (err: Error | null, callMethodResult: CallMethodResultOptions) => void;
 
 export type MethodFunctor = (
   this: UAMethod,
@@ -369,7 +688,11 @@ export declare class UAMethod extends BaseNode {
 
     public readonly nodeClass: NodeClass.Method;
     public readonly typeDefinitionObj: UAObjectType;
-    public readonly parent?: UAObject;
+    public readonly parent: UAObject | null;
+
+    public readonly inputArguments?: UAVariable;
+    public readonly outputArguments?: UAVariable;
+
     /**
      *
      */
@@ -390,7 +713,7 @@ export declare class UAMethod extends BaseNode {
      * @param callback
      */
     public execute(
-      inputArguments: null | VariantLike[],
+      inputArguments: VariantLike[] | null,
       context: SessionContext,
       callback: MethodFunctorCallback
     ): void;
@@ -398,7 +721,7 @@ export declare class UAMethod extends BaseNode {
     public execute(
       inputArguments: null | VariantLike[],
       context: SessionContext
-    ): Promise<CallMethodResponse>;
+    ): Promise<CallMethodResultOptions>;
 
     public clone(
       options: any,
@@ -408,11 +731,25 @@ export declare class UAMethod extends BaseNode {
 
 }
 
-export declare class UADataType extends BaseNode {
-    public readonly nodeClass: NodeClass.DataType;
-    public readonly subtypeOfObj: UADataType;
+export interface UADataType extends BaseNode {
+    readonly nodeClass: NodeClass.DataType;
+    readonly subtypeOfObj: UADataType | null;
+    readonly subtypeOf: NodeId | null;
 
-    public isSupertypeOf(referenceType: NodeIdLike | UADataType): boolean;
+    readonly isAbstract: boolean;
+
+    readonly binaryEncodingDefinition: string;
+    readonly binaryEncodingNodeId: NodeId;
+    readonly binaryEncoding: BaseNode;
+
+    readonly xmlEncodingDefinition: string;
+    readonly xmlEncodingNodeId: NodeId;
+    readonly xmlEncoding: BaseNode;
+
+    isSupertypeOf(referenceType: NodeIdLike | UADataType): boolean;
+
+    getEncodingNode(encodingName: string): BaseNode | null;
+
 }
 
 export interface InstantiateOptions {
@@ -464,61 +801,104 @@ export interface InstantiateOptions {
     /**
      * modellingRule
      */
-    modellingRule?: string;
+    modellingRule?: ModellingRuleType;
 
+    /**
+     * a (optional) predefined nodeId to assigned to the instance
+     * If not specified, a default nodeid will be created.
+     */
+    nodeId?: NodeIdLike;
 }
 
 export interface InstantiateVariableOptions extends InstantiateOptions {
-    minimumSamplingInterval?: number;
+    arrayDimensions?: number[];
+    dataType?: any;
     extensionObject?: any;
+    nodeId?: NodeIdLike;
+    minimumSamplingInterval?: number;
+    value?: any;
+    valueRank?: number;
 }
 
-export declare class UAObjectType extends BaseNode {
-    public readonly nodeClass: NodeClass.ObjectType;
-    public readonly subtypeOfObj: UAObjectType;
-
-    public instantiate(options: InstantiateOptions): UAObject;
-
-    public isSupertypeOf(referenceType: NodeIdLike | UAObjectType): boolean;
-
-    public getMethodByName(methodName: string): UAMethod | null;
+export interface InstantiateObjectOptions extends InstantiateOptions {
+    //
+    conditionSource?: NodeId | BaseNode;
 }
 
-export declare class UAVariableType extends BaseNode {
+export declare interface UAObjectType extends BaseNode, IPropertyAndComponentHolder {
+    readonly nodeClass: NodeClass.ObjectType;
+    readonly subtypeOf: NodeId | null;
+    readonly subtypeOfObj: UAObjectType | null;
+
+    readonly isAbstract: boolean;
+    readonly hasMethods: boolean;
+
+    isSupertypeOf(referenceType: NodeIdLike | UAObjectType): boolean;
+
+    instantiate(options: InstantiateObjectOptions): UAObject;
+
+    // Method accessor
+    getMethodById(nodeId: NodeId): UAMethod | null;
+    getMethodByName(methodName: string): UAMethod | null;
+    getMethods(): UAMethod[];
+
+}
+
+export declare class UAVariableType extends BaseNode implements VariableAttributes {
     public readonly nodeClass: NodeClass.VariableType;
-    public readonly subtypeOfObj: UAVariableType;
+    public readonly subtypeOfObj: UAVariableType | null;
+    public readonly subtypeOf: NodeId | null;
 
-    public instantiate(options: InstantiateVariableOptions): UAVariableType;
+    public dataType: NodeId;
+    public accessLevel: number;
+    public userAccessLevel: number;
+    public valueRank: number;
+    public minimumSamplingInterval: number;
+    public arrayDimensions: number[];
+    public historizing: boolean;
 
-    public isSupertypeOf(referenceType: NodeIdLike | UAVariableType): boolean;
+    public isAbstract: boolean;
+
+    public isSupertypeOf(type: UAVariableType): boolean;
+
+    public instantiate(options: InstantiateVariableOptions): UAVariable;
 
 }
 
 export declare class UAReferenceType extends BaseNode {
     public readonly nodeClass: NodeClass.ReferenceType;
-    public readonly subtypeOfObj: UAReferenceType;
+    public readonly subtypeOfObj: UAReferenceType | null;
+    public readonly subtypeOf: NodeId | null;
 
-    public isSupertypeOf(referenceType: NodeIdLike | UAReferenceType): boolean;
+    public readonly inverseName: LocalizedText;
+
+    public isSupertypeOf(baseType: UAReferenceType): boolean;
+
+    public getAllSubtypes(): UAReferenceType[];
 
 }
 
-export interface AddAnalogDataItemOptions extends AddBaseNodeOptions {
-    /** @example  "(tempA -25) + tempB" */
-    definition?: string;
-    /** @example 0.5 */
-    valuePrecision?: number;
-    engineeringUnitsRange?: {
-        low: number;
-        high: number;
-    };
-    instrumentRange?: {
-        low: number;
-        high: number;
-    };
-    engineeringUnits?: EUEngineeringUnit;
-    minimumSamplingInterval?: number;
-    dataType?: string | NodeIdLike;
+export declare interface UATwoStateVariable extends UAVariable {
+    // components & properties
+    readonly falseState?: UAVariable;
+    readonly trueState?: UAVariable;
+    readonly id: UAVariable;
+    readonly effectiveTransitionTime?: UAVariable;
+    readonly transitionTime?: UAVariable;
+    readonly effectiveDisplayName?: UAVariable;
+    // references
+    readonly isFalseSubStateOf: BaseNode | null;
+    readonly isTrueSubStateOf: BaseNode | null;
 
+    setValue(boolValue: boolean): void;
+
+    getValue(): boolean;
+
+    getValueAsString(): string;
+
+    getFalseSubStates(): BaseNode[];
+
+    getTrueSubStates(): BaseNode[];
 }
 
 export enum EUEngineeringUnit {
@@ -526,7 +906,7 @@ export enum EUEngineeringUnit {
     // to be continued
 }
 
-export type ModellingRuleType = "Mandatory" | "Optional";
+export type ModellingRuleType = "Mandatory" | "Optional" | null;
 
 export interface AddBaseNodeOptions {
 
@@ -534,15 +914,18 @@ export interface AddBaseNodeOptions {
 
     nodeId?: NodeIdLike;
 
-    displayName?: string | LocalizedTextLike | LocalizedTextLike[];
-    description?: string;
+    displayName?: LocalizedTextLike | LocalizedTextLike[];
+    description?: LocalizedTextLike;
 
-    organizedBy?: NodeId | BaseNode;
-    componentOf?: NodeId | BaseNode;
-    propertyOf?: NodeId | BaseNode;
+    componentOf?: NodeIdLike | BaseNode;
+    eventSourceOf?: NodeIdLike | BaseNode;
+    notifierOf?: NodeIdLike | BaseNode;
+    organizedBy?: NodeIdLike | BaseNode;
+    propertyOf?: NodeIdLike | BaseNode;
 
     modellingRule?: ModellingRuleType;
 
+    references?: AddReferenceOpts[];
 }
 
 export interface Permissions {
@@ -554,9 +937,11 @@ export interface Permissions {
     TimestampWrite?: string[];
 }
 
+export type AccessLevelString = string;
+
 // element common between AddVariableTypeOptions and AddVariableOptions
 export interface VariableStuff {
-    dataType?: string | NodeIdLike;
+    dataType?: string | NodeIdLike | UADataType;
     /**
      * This Attribute indicates whether the Value Attribute of the Variable is an array and how many dimensions
      * the array has.
@@ -593,14 +978,14 @@ export interface VariableStuff {
      * any user access rights into account, i.e. although the Variable is writable this may be
      * restricted to a certain user / user group. The AccessLevelType is defined in 8.57.
      */
-    accessLevel?: UInt32;
+    accessLevel?: UInt32 | AccessLevelString;
 
     /**
      * The UserAccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
      * (read/write) and if it contains current or historic data taking user access rights into account.
      * The AccessLevelType is defined in 8.57.
      */
-    userAccessLevel?: number;
+    userAccessLevel?: UInt32 | AccessLevelString;
 
     /**
      * The minimumSamplingInterval Attribute indicates how 'current' the Value of the Variable will
@@ -643,7 +1028,7 @@ export interface AddVariableOptions extends AddBaseNodeOptions, VariableStuff {
     // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
     permissions?: Permissions;
-    value?: VariantLike | BindVariableOptions;
+    value?: VariantLike | BindVariableOptions | number | Int64;
     postInstantiateFunc?: (node: UAVariable) => void;
 }
 
@@ -657,17 +1042,133 @@ export interface AddObjectTypeOptions extends AddBaseNodeOptions {
     postInstantiateFunc?: (node: UAObject) => void;
 }
 
+export interface EnumerationItem {
+    description?: LocalizedTextLike;
+    displayName: LocalizedTextLike;
+    value: number;
+}
+
+export interface AddEnumerationTypeOptions extends AddBaseNodeOptions {
+    enumeration: string [] | EnumerationItem[];
+}
+
 export interface AddObjectOptions extends AddBaseNodeOptions {
     eventNotifier?: number;
     // default value is "BaseObjectType";
     typeDefinition?: string | NodeId | UAObjectType;
+    nodeVersion?: string;
 }
 
-export type AddReferenceTypeOptions = any;
-export type CreateDataTypeOptions = any;
+export interface AddViewOptions extends AddBaseNodeOptions {
+    //
+    typeDefinition?: string | NodeId | UAObjectType;
+}
+
+export interface AddMethodOptions {
+    nodeId?: NodeIdLike;
+    browseName: QualifiedNameLike;
+    displayName?: LocalizedTextLike;
+    description?: LocalizedTextLike;
+    inputArguments: ArgumentOptions[];
+    modellingRule?: ModellingRuleType;
+    outputArguments: ArgumentOptions[];
+    componentOf?: NodeIdLike | BaseNode;
+    executable?: boolean;
+    userExecutable?: boolean;
+}
+
+export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, VariableStuff {
+    value?: number;
+    enumStrings: string[];    // default value is "BaseVariableType";
+    typeDefinition?: string | NodeId | UAVariableType;
+    permissions?: Permissions;
+    postInstantiateFunc?: (node: UAVariable) => void;
+}
+
+export interface AddReferenceTypeOptions extends AddBaseNodeOptions {
+    isAbstract?: boolean;
+    inverseName: string;
+    subtypeOf?: string | NodeId | UAReferenceType;
+}
+
+export interface AddTwoStateVariableOptions extends AddVariableOptions {
+    falseState?: string;
+    trueState?: string;
+    optionals?: string[];
+    isFalseSubStateOf?: NodeIdLike | BaseNode;
+    isTrueSubStateOf?: NodeIdLike | BaseNode;
+}
+
+export interface CreateDataTypeOptions extends AddBaseNodeOptions {
+    isAbstract?: boolean;
+    superType?: string | NodeId;
+
+}
+
+// -
+/**
+ *
+ * @param options.componentOf {NodeId}
+ * @param options.browseName {String}
+ * @param options.title {String}
+ * @param [options.instrumentRange]
+ * @param [options.instrumentRange.low] {Double}
+ * @param [options.instrumentRange.high] {Double}
+ * @param options.engineeringUnitsRange.low {Double}
+ * @param options.engineeringUnitsRange.high {Double}
+ * @param options.engineeringUnits {String}
+ * @param [options.nodeId = {NodeId}]
+ * @param options.accessLevel
+ * @param options.userAccessLevel
+ * @param options.title {String}
+ * @param options.axisScaleType {AxisScaleEnumeration}
+ *
+ * @param options.xAxisDefinition {AxisInformation}
+ * @param options.xAxisDefinition.engineeringUnits  EURange
+ * @param options.xAxisDefinition.range
+ * @param options.xAxisDefinition.range.low
+ * @param options.xAxisDefinition.range.high
+ * @param options.xAxisDefinition.title  {LocalizedText}
+ * @param options.xAxisDefinition.axisScaleType {AxisScaleEnumeration}
+ * @param options.xAxisDefinition.axisSteps = <null>  {Array<Double>}
+ * @param options.value
+ */
+export interface AddYArrayItemOptions extends AddVariableOptions {
+
+    title: string;
+    instrumentRange?: RangeOptions;
+    engineeringUnitsRange?: RangeOptions;
+    engineeringUnits?: EUInformationOptions;
+    axisScaleType: AxisScaleEnumeration | string;
+    xAxisDefinition?: AxisInformationOptions;
+}
+
+export interface RangeVariable extends UAVariable {
+    low: UAVariableT<DataType.Double>;
+    high: UAVariableT<DataType.Double>;
+}
+
+export interface XAxisDefinitionVariable extends UAVariable {
+    engineeringUnits: UAVariableT<UAString>;
+    title: UAVariableT<UAString>;
+    euRange: RangeVariable;
+
+}
+export interface YArrayItemVariable extends UAVariable {
+    euRange: UAVariableT<Range>;
+    title: UAVariableT<DataType.String>;
+    xAxisDefinition: UAVariableT<DataType.ExtensionObject>; // AxisInformationOptions
+    instrumentRange: UAVariableT<Range>;
+}
+
 export type CreateNodeOptions = any;
 
+export declare const NamespaceOptions: {nodeIdNameSeparator: string };
+
 export declare interface Namespace {
+
+    version: number;
+    publicationDate: Date;
     namespaceUri: string;
     addressSpace: AddressSpace;
     index: number;
@@ -675,8 +1176,6 @@ export declare interface Namespace {
     // -------------------------------------------------------------------------
 
     findObjectType(objectType: string): UAObjectType | null;
-
-    findEventType(objectType: string): UAObjectType | null;
 
     findVariableType(variableType: string): UAVariableType | null;
 
@@ -698,21 +1197,35 @@ export declare interface Namespace {
 
     addReferenceType(options: AddReferenceTypeOptions): UAReferenceType;
 
+    addEnumerationType(options: AddEnumerationTypeOptions): UADataType;
+
     createDataType(options: CreateDataTypeOptions): UADataType;
 
     addVariable(options: AddVariableOptions): UAVariable;
 
     addObject(options: AddObjectOptions): UAObject;
 
-    addView(options: AddBaseNodeOptions): UAView;
+    addView(options: AddViewOptions): UAView;
 
-    addFolder(parentFolder: UAObject, options: any): UAObject;
+    addFolder(parentFolder: NodeIdLike | UAObject, options: any): UAObject;
+
+    addTwoStateVariable(options: AddTwoStateVariableOptions): UATwoStateVariable;
+
+    addTwoStateDiscrete(options: any): UATwoStateDiscrete;
+
+    addMultiStateDiscrete(options: AddMultiStateDiscreteOptions): UAMultiStateDiscrete;
+
+    addMultiStateValueDiscrete(options: AddMultiStateValueDiscreteOptions): UAMultiStateValueDiscrete;
+
+    addYArrayItem(options: AddYArrayItemOptions): YArrayItemVariable;
 
     createNode(options: CreateNodeOptions): BaseNode;
 
     // -------------------------------------------------------------------------
 
     deleteNode(node: NodeId | BaseNode): void;
+
+    addDataItem(options: AddDataItemOptions): UADataItem;
 
     addAnalogDataItem(options: AddAnalogDataItemOptions): UAAnalogItem;
 
@@ -744,20 +1257,69 @@ export declare interface Namespace {
      *
      */
 
-    addMethod(parent: UAObject, options: {
-        nodeId?: NodeIdLike;
-        browseName: QualifiedNameLike;
-        description?: LocalizedTextLike;
-        inputArguments: ArgumentOptions[];
-        outputArguments: ArgumentOptions[];
-    }): UAMethod;
+    addMethod(parent: UAObject | UAObjectType, options: AddMethodOptions): UAMethod;
 
     toNodeset2XML(): string;
+
+    // --- Alarms & Conditions -------------------------------------------------
+    instantiateCondition(
+      conditionTypeId: UAEventType | NodeId | string, options: any, data?: any
+    ): UAConditionBase;
+
+    instantiateAcknowledgeableCondition(
+      conditionTypeId: UAEventType | NodeId | string, options: any, data?: any
+    ): UAAcknowledgeableConditionBase;
+
+    instantiateAlarmCondition(
+      alarmConditionTypeId: UAEventType | NodeId | string, options: any, data?: any
+    ): UAAlarmConditionBase;
+
+    instantiateLimitAlarm(
+      limitAlarmTypeId: UAEventType | NodeId | string, options: any, data?: any
+    ): UALimitAlarm;
+
+    instantiateExclusiveLimitAlarm(
+      exclusiveLimitAlarmTypeId: UAEventType | NodeId | string, options: any, data?: any
+    ): UAExclusiveLimitAlarm;
+
+    instantiateExclusiveDeviationAlarm(
+      options: any, data?: any
+    ): UAExclusiveDeviationAlarm;
+
+    instantiateNonExclusiveLimitAlarm(
+      nonExclusiveLimitAlarmTypeId: UAEventType | NodeId | string, options: any, data?: any
+    ): UANonExclusiveLimitAlarm;
+
+    instantiateNonExclusiveDeviationAlarm(
+      options: any, data?: any
+    ): UANonExclusiveDeviationAlarm;
+
+    instantiateDiscreteAlarm(
+      discreteAlarmType: UAEventType | NodeId | string, options: any, data?: any
+    ): UADiscreteAlarm;
+
+    instantiateOffNormalAlarm(
+      options: any, data?: any
+    ): UAOffNormalAlarm;
+
+    /**
+     * @internal
+     */
+    _createNode(options: CreateNodeOptions): BaseNode;
+
+    /**
+     * @internals
+     */
+    getStandardsNodeIds(): {
+        referenceTypeIds: { [key: string]: string },
+        objectTypeIds: { [key: string]: string }
+    };
 }
 
 // tslint:disable:no-empty-interface
 export interface Folder extends UAObject {
 }
+
 export type FolderType = UAObjectType;
 
 export interface TypesFolder extends Folder {
@@ -768,7 +1330,29 @@ export interface TypesFolder extends Folder {
     variableTypes: Folder;
 }
 
+export interface BuildInfo1 extends UAVariable {
+    productUri: UAVariableT<UAString>;
+    manufacturerName: UAVariableT<UAString>;
+    productName: UAVariableT<UAString>;
+    softwareVersion: UAVariableT<UAString>;
+    buildNumber: UAVariableT<UAString>;
+    buildDate: UAVariableT<DateTime>;
+    $extensionObject: BuildInfo;
+}
+
+export interface ServerStatus1 extends UAVariable {
+    startTime: UAVariableT<DataType.DateTime>;
+    currentTime: UAVariableT<DataType.DateTime>;
+    state: UAVariableT<ServerState>; // Enumeration
+    secondsTillShutdown: UAVariableT<DataType.UInt32>;
+    shutdownReason: UAVariableT<DataType.LocalizedText>;
+    buildInfo: BuildInfo1;
+
+    $extensionObject: ServerStatusDataType;
+}
+
 export interface Server extends UAObject {
+    serverStatus: ServerStatus1;
     auditing: UAVariable;
     currentTimeZone: UAVariable;
     estimatedReturnTime: UAVariable;
@@ -777,6 +1361,7 @@ export interface Server extends UAObject {
     serverCapabilities: UAObject;
     serverConfiguration: UAObject;
     vendorServerInfo: UAObject;
+    getMonitoredItems: UAMethod;
 }
 
 export interface ObjectsFolder extends Folder {
@@ -813,7 +1398,7 @@ export interface IVariableHistorian {
       maxNumberToExtract: number,
       isReversed: boolean,
       reverseDataValue: boolean,
-      callback: (err?: Error | null, dataValue?: DataValue[]) => void
+      callback: (err: Error | null, dataValue?: DataValue[]) => void
     ): void;
 
     /*    extractDataValues(
@@ -827,15 +1412,27 @@ export interface IVariableHistorian {
 
 export interface IVariableHistorianOptions {
     maxOnlineValues?: number;
+    historian?: IVariableHistorian;
 }
 
-export declare class AddressSpace {
+export interface EventData {
+    /**
+     * the event type node
+     */
+    $eventDataSource?: BaseNode;
+    /**
+     *
+     */
+    eventId: NodeId;
+}
 
-    public static historizerFactory: any;
+export interface AddressSpace {
 
-    public rootFolder: RootFolder;
+    rootFolder: RootFolder;
 
-    public findNode(node: NodeIdLike): BaseNode;
+    historizingNodes?: any;
+
+    findNode(node: NodeIdLike): BaseNode | null;
 
     /**
      *
@@ -852,9 +1449,9 @@ export declare class AddressSpace {
      *     variableType.browseName.toString().should.eql("BaseVariableType");
      * ```
      */
-    public findVariableType(variableTypeId: NodeIdLike, namespaceIndex?: number): UAVariableType | null;
+    findVariableType(variableTypeId: NodeIdLike, namespaceIndex?: number): UAVariableType | null;
 
-    public findMethod(nodeId: NodeIdLike): UAMethod | null;
+    findMethod(nodeId: NodeIdLike): UAMethod | null;
 
     /**
      * find an EventType node in the address space
@@ -887,7 +1484,7 @@ export declare class AddressSpace {
      *     objectType.browseName.toString().should.eql("BaseObjectType");
      * ```
      */
-    public findObjectType(objectTypeId: NodeIdLike, namespaceIndex?: number): UAObjectType | null;
+    findObjectType(objectTypeId: NodeIdLike, namespaceIndex?: number): UAObjectType | null;
 
     /**
      * find an EventType node in the address space
@@ -908,37 +1505,65 @@ export declare class AddressSpace {
      *  ```
      *
      */
-    public findEventType(eventTypeId: NodeIdLike | UAObjectType, namespaceIndex?: number): UAObjectType | null;
+    findEventType(
+      eventTypeId: NodeIdLike | UAObjectType,
+      namespaceIndex?: number
+    ): UAObjectType | null;
 
-    public findReferenceType(
-      referenceTypeId: NodeIdLike | UAReferenceType, namespaceIndex?: number): UAReferenceType | null;
+    findReferenceType(
+      referenceTypeId: NodeIdLike | UAReferenceType,
+      namespaceIndex?: number
+    ): UAReferenceType | null;
 
-    public getDefaultNamespace(): Namespace;
+    /**
+     * find a ReferenceType by its inverse name.
+     * @param inverseName the inverse name of the ReferenceType to find
+     */
+    findReferenceTypeFromInverseName(inverseName: string): UAReferenceType | null;
 
-    public getOwnNamespace(): Namespace;
+    findDataType(
+      dataType: string | NodeId | UADataType | DataType,
+      namespaceIndex?: number
+    ): UADataType | null;
 
-    public getNamespace(indexOrName: number | string): Namespace;
+    findCorrespondingBasicDataType(dataType: NodeIdLike | UADataType): DataType;
 
-    public registerNamespace(namespaceUri: string): Namespace;
+    deleteNode(node: NodeId | BaseNode): void;
 
-    public getNamespaceIndex(namespaceUri: string): number;
+    getDefaultNamespace(): Namespace;
 
-    public getNamespaceUri(namespaceIndex: number): string;
+    getOwnNamespace(): Namespace;
 
-    public getNamespaceArray(): Namespace[];
+    getNamespace(indexOrName: number | string): Namespace;
 
-    public browseSingleNode(
+    registerNamespace(namespaceUri: string): Namespace;
+
+    getNamespaceIndex(namespaceUri: string): number;
+
+    getNamespaceUri(namespaceIndex: number): string;
+
+    getNamespaceArray(): Namespace[];
+
+    browseSingleNode(
       nodeId: NodeIdLike,
-      browseDescription: BrowseDescription
+      browseDescription: BrowseDescription,
+      session?: SessionContext
     ): BrowseResult;
+
+    browsePath(browsePath: BrowsePath): BrowsePathResult;
+
+    inverseReferenceType(referenceType: string): string;
+
+    // -------------- Extension Objects
+    constructExtensionObject(dataType: UADataType | NodeId, options?: any): any;
 
     // -------------- Event helpers
 
     /***
      * construct a simple javascript object with all the default properties of the event
      *
-     * @return result.$eventDataSource {BaseNode} the event type node
-     * @return result.eventId {NodeId} the
+     * @return result.$eventDataSource  the event type node
+     * @return result.eventId the
      * ...
      *
      *
@@ -946,37 +1571,60 @@ export declare class AddressSpace {
      * or an instance of a ConditionType
      *
      */
-    public constructEventData(eventTypeId: UAEventType, data: any): {
-        /**
-         * the event type node
-         */
-        $eventDataSource: BaseNode;
-        /**
-         *
-         */
-        eventId: NodeId;
-    };
+    constructEventData(eventTypeId: UAEventType, data: any): EventData;
+
+    /**
+     * walk up the hierarchy of objects until a view is found
+     * objects may belong to multiples views.
+     * Note: this method doesn't return the main view => Server object.
+     * @param node
+     * @internal
+     */
+    extractRootViews(node: UAObject | UAVariable): UAView[];
 
     // -------------- Historizing support
-    public installHistoricalDataNode(
+    installHistoricalDataNode(
       variableNode: UAVariable,
-      options: IHistoricalDataNodeOptions
+      options?: IHistoricalDataNodeOptions
     ): void;
 
-    public dispose(): void;
+    shutdown(): void;
+    dispose(): void;
 
-    public installAlarmsAndConditionsService(): void;
+    installAlarmsAndConditionsService(): void;
+
+    normalizeReferenceType(
+      params: AddReferenceOpts | Reference
+    ): Reference;
+
+    /**
+     * EventId is generated by the Server to uniquely identify a particular Event Notification.
+     */
+    generateEventId(): VariantT<DataType.ByteString>;
+
 }
 
-export interface IHistoricalDataNodeOptions {
-    historian: IVariableHistorian;
+import { ExtensionObject } from "node-opcua-extension-object";
+import { AddressSpace as AddressSpaceImpl } from "../src/address_space";
+import { UAOffNormalAlarm } from "../src/alarms_and_conditions/ua_off_normal_alarm";
+import { UATwoStateDiscrete } from "./interfaces/data_access/ua_two_state_discrete";
+
+export class AddressSpace {
+    public static historizerFactory: any;
+
+    public static create(): AddressSpace {
+        return new AddressSpaceImpl() as AddressSpace;
+    }
+
+    private constructor() { /* empty */
+    }
 }
 
-export declare function generate_address_space(
-  addressSpace: AddressSpace,
-  xmlFiles: string | string[],
-  callback: (err?: Error) => void
-): void;
+export type IHistoricalDataNodeOptions =
+  IVariableHistorianOptions |
+  { historian: IVariableHistorian };
+
+export { generateAddressSpace } from "./loader/load_nodeset2";
 
 export declare class VariableHistorian implements IVariableHistorian {
 
@@ -1003,25 +1651,131 @@ export declare class VariableHistorian implements IVariableHistorian {
       maxNumberToExtract: number,
       isReversed: boolean,
       reverseDataValue: boolean,
-      callback: (err?: Error | null, dataValue?: DataValue[]) => void
+      callback: (err: Error | null, dataValue?: DataValue[]) => void
     ): void;
 
 }
 
-// tslint:disable:max-classes-per-file
-export interface AddressSpace {
+export interface VariantT<T> extends Variant {
+}
 
+export interface DataValueT<T> extends DataValue {
+}
+
+export interface UAVariableT<T> extends UAVariable {
+
+    readValue(
+      context?: SessionContext,
+      indexRange?: NumericRange,
+      dataEncoding?: QualifiedNameLike | null
+    ): DataValueT<T>;
+
+    writeValue(
+      context: SessionContext,
+      dataValue: DataValueT<T>,
+      indexRange: NumericRange | null,
+      callback: (err: Error | null, statusCode?: StatusCode) => void
+    ): void;
+
+    writeValue(
+      context: SessionContext,
+      dataValue: DataValueT<T>,
+      callback: (err: Error | null, statusCode?: StatusCode) => void
+    ): void;
+
+    writeValue(
+      context: SessionContext,
+      dataValue: DataValueT<T>,
+      indexRange?: NumericRange | null
+    ): Promise<StatusCode>;
+
+}
+
+export interface UAVariableTypeT<T> extends UAVariableType {
+}
+
+export interface Property<T> extends UAVariableT<T> {
+}
+
+export interface UAAggregateConfiguration extends UAObject {
+    treatUncertainAsBad: UAVariableT<DataType.Boolean>;
+    percentDataBad: UAVariableT<DataType.Byte>;
+    percentDataGood: UAVariableT<DataType.Byte>;
+}
+
+export interface HistoricalDataConfiguration extends UAObject {
+    startOfArchive: UAVariableT<DataType.DateTime>;
+    startOfOnlineArchive: UAVariableT<DataType.DateTime>;
+    stepped: UAVariableT<DataType.Boolean>;
+    maxTimeInterval: UAVariableT<"Duration">;
+    minTimeInterval: UAVariableT<"Duration">;
+    aggregateConfiguration: UAAggregateConfiguration;
+}
+
+export interface Namespace {
     addState(
-      component: StateMachine,
+      component: StateMachine | StateMachineType,
       stateName: string,
       stateNumber: number,
-      isInitialState: boolean
+      isInitialState?: boolean
     ): State;
 
     addTransition(
-      component: StateMachine,
-      fromState: State,
-      toState: State,
+      component: StateMachine | StateMachineType,
+      fromState: string,
+      toState: string,
       transitionNumber: number
     ): Transition;
 }
+
+export type UAClonable = UAObject | UAVariable | UAMethod;
+
+export interface ConditionType extends UAObjectType {
+    disable: UAMethod;
+    enable: UAMethod;
+    conditionRefresh: UAMethod;
+    conditionRefresh2: UAMethod;
+    addComment: UAMethod;
+}
+
+export interface Enumeration extends UAVariable {
+
+}
+
+// {{ Dynamic Array Variable
+export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVariable {
+    $$variableType: UAVariableType;
+    $$dataType: UADataType;
+    $$extensionObjectArray: T[];
+    $$getElementBrowseName: (obj: T) => QualifiedName;
+    $$indexPropertyName: string;
+}
+
+export declare function prepareDataType(dataType: UADataType): void;
+
+export declare function createExtObjArrayNode<T extends ExtensionObject>(
+  parentFolder: UAObject,
+  options: any
+): UADynamicVariableArray<T>;
+
+export declare function bindExtObjArrayNode<T extends ExtensionObject>(
+  uaArrayVariableNode: UADynamicVariableArray<T>,
+  variableTypeNodeId: string | NodeId,
+  indexPropertyName: string
+): UAVariable;
+
+export declare function addElement<T extends ExtensionObject>(
+  options: any /* ExtensionObjectConstructor | ExtensionObject | UAVariable*/,
+  uaArrayVariableNode: UADynamicVariableArray<T>
+): UAVariable;
+
+export declare function removeElement<T extends ExtensionObject>(
+  uaArrayVariableNode: UADynamicVariableArray<T>,
+  element: any /* number | UAVariable | (a any) => boolean | ExtensionObject */
+): void;
+// }}
+
+export declare function dumpXml(
+  node: BaseNode,
+  options: any
+): string;

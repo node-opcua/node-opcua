@@ -2,7 +2,7 @@
  * @module node-opcua-extension-object
  */
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { BaseUAObject, constructObject, is_internal_id, registerBuiltInType } from "node-opcua-factory";
 import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
@@ -51,7 +51,7 @@ function constructEmptyExtensionObject(expandedNodeId: NodeId): any {
 //                    |  string without any null terminator.
 //
 
-export function encodeExtensionObject(object: any, stream: BinaryStream): void {
+export function encodeExtensionObject(object: any, stream: OutputBinaryStream): void {
 
     if (!object) {
         encodeNodeId(makeNodeId(0), stream);

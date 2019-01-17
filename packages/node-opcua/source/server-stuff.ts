@@ -15,6 +15,21 @@ import {
 } from "node-opcua-secure-channel";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 
+import {
+    AddressSpace,
+    EventRaiser,
+    PseudoVariantBoolean,
+    PseudoVariantByteString,
+    PseudoVariantDateTime,
+    PseudoVariantDuration,
+    PseudoVariantExtensionObject,
+    PseudoVariantExtensionObjectArray,
+    PseudoVariantLocalizedText,
+    PseudoVariantNodeId,
+    PseudoVariantString,
+    RaiseEventData
+} from "node-opcua-address-space";
+
 type ErrorCallback = (err?: Error) => void;
 
 export declare enum RegisterServerMethod {
@@ -42,10 +57,6 @@ export * from "node-opcua-certificate-manager";
 
 import { Request, Response } from "node-opcua-client";
 export { Request, Response } from "node-opcua-client";
-
-export declare function generate_address_space(
-  addressSpace: AddressSpace, xmlFiles: string[] | string, callback: ErrorCallback
-): void;
 
 export interface OPCUAServerOptions {
 
@@ -215,20 +226,6 @@ export interface OPCUAServerOptions {
     serverCertificateManager?: CertificateManager;
 }
 
-import {
-    AddressSpace,
-    EventRaiser,
-    PseudoVariantBoolean,
-    PseudoVariantByteString,
-    PseudoVariantDateTime,
-    PseudoVariantDuration,
-    PseudoVariantExtensionObject,
-    PseudoVariantExtensionObjectArray,
-    PseudoVariantLocalizedText,
-    PseudoVariantNodeId,
-    PseudoVariantString,
-    RaiseEventData
-} from "node-opcua-address-space";
 
 export * from "node-opcua-address-space";
 

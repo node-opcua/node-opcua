@@ -1,10 +1,14 @@
 {
   "extends" : "../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "source",
+    "rootDir": ".",
     "outDir": "dist"
   },
   "files": [
-    "source/index.ts"
+    "source/index.ts",
+    "src/address_space.ts",
+    "src/ua_object_type.ts",
+    "src/index_current.ts",
+    "test_helpers/index.ts"
   ]
 }

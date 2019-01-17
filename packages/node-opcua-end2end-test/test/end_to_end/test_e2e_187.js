@@ -13,7 +13,7 @@ const context = opcua.SessionContext.defaultContext;
 
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-const makeBoiler = require("node-opcua-address-space/test_helpers/boiler_system").makeBoiler;
+const makeBoiler = require("node-opcua-address-space").makeBoiler;
 
 
 const doDebug = false;

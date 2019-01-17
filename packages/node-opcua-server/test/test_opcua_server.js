@@ -8,7 +8,7 @@ const OPCUAServer = require("../src/opcua_server").OPCUAServer;
 const NodeId = require("node-opcua-nodeid").NodeId;
 
 const mini_nodeset_filename =require("../src/server_engine").mini_nodeset_filename;
-fs.existsSync(mini_nodeset_filename).should.eql(true);
+fs.existsSync(mini_nodeset_filename).should.eql(true," expecting " + mini_nodeset_filename + " to exist");
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

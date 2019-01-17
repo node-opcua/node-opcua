@@ -2,7 +2,7 @@
  * @module node-opcua-basic-types
  */
 import assert from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { ExpandedNodeId, makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 
 import { decodeByteString, encodeByteString } from "./byte_string";
@@ -87,7 +87,7 @@ export function randomNodeId(): NodeId {
     return makeNodeId(value, namespace);
 }
 
-function _encodeNodeId(encodingByte: number, nodeId: NodeId, stream: BinaryStream) {
+function _encodeNodeId(encodingByte: number, nodeId: NodeId, stream: OutputBinaryStream) {
 
     stream.writeUInt8(encodingByte); // encoding byte
 
@@ -122,14 +122,14 @@ function _encodeNodeId(encodingByte: number, nodeId: NodeId, stream: BinaryStrea
     }
 }
 
-export function encodeNodeId(nodeId: NodeId, stream: BinaryStream): void {
+export function encodeNodeId(nodeId: NodeId, stream: OutputBinaryStream): void {
     let encodingByte = nodeID_encodingByte(nodeId);
     /*jslint bitwise: true */
     encodingByte &= 0x3f;
     _encodeNodeId(encodingByte, nodeId, stream);
 }
 
-export function encodeExpandedNodeId(expandedNodeId: ExpandedNodeId, stream: BinaryStream) {
+export function encodeExpandedNodeId(expandedNodeId: ExpandedNodeId, stream: OutputBinaryStream) {
     assert(expandedNodeId, "encodeExpandedNodeId: must provide a valid expandedNodeId");
     const encodingByte = nodeID_encodingByte(expandedNodeId);
     _encodeNodeId(encodingByte, expandedNodeId, stream);

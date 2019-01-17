@@ -13,6 +13,7 @@ const EventEmitter = require("events").EventEmitter;
 
 const SessionContext = require("node-opcua-address-space").SessionContext;
 
+const NodeClass = require("node-opcua-data-model").NodeClass;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 const makeNodeId = require("node-opcua-nodeid").makeNodeId;
@@ -54,8 +55,8 @@ require("node-opcua-common");
 
 const address_space = require("node-opcua-address-space");
 const AddressSpace = address_space.AddressSpace;
-
-const generate_address_space = require("node-opcua-address-space").generate_address_space;
+const generateAddressSpace = address_space.generateAddressSpace;
+assert(generateAddressSpace);
 
 const ServerSession = require("./server_session").ServerSession;
 
@@ -76,7 +77,7 @@ const nodesets = require("node-opcua-nodesets");
 exports.standard_nodeset_file = nodesets.standard_nodeset_file;
 exports.di_nodeset_filename = nodesets.di_nodeset_filename;
 exports.adi_nodeset_filename = nodesets.adi_nodeset_filename;
-const mini_nodeset_filename = require("node-opcua-address-space/test_helpers/get_mini_address_space").mini_nodeset_filename;
+const mini_nodeset_filename = require("node-opcua-address-space").mini_nodeset_filename;
 exports.mini_nodeset_filename = mini_nodeset_filename;
 
 
@@ -128,7 +129,7 @@ function ServerEngine(options) {
         state: ServerState.NoConfiguration,
         buildInfo: options.buildInfo,
         secondsTillShutdown: 0,
-        shutdownReason: {text: ""}
+        shutdownReason: { text: "" }
     });
 
 
@@ -174,7 +175,7 @@ function ServerEngine(options) {
     engine._applicationUri = options.applicationUri || "<unset _applicationUri>";
 
     options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable")
-                                            ? options.serverDiagnosticsEnabled : true;
+      ? options.serverDiagnosticsEnabled : true;
     engine.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled;
 
 }
@@ -238,7 +239,6 @@ function shutdownAndDisposeAddressSpace() {
     /* jshint validthis:true */
     const engine = this;
     if (engine.addressSpace) {
-        assert(engine.addressSpace instanceof AddressSpace);
         engine.addressSpace.shutdown();
         engine.addressSpace.dispose();
         delete engine.addressSpace;
@@ -382,7 +382,7 @@ function getMonitoredItemsId(inputArguments, context, callback) {
 
     const session = context.session;
     if (!session) {
-        return callback(null, {statusCode: StatusCodes.BadInternalError});
+        return callback(null, { statusCode: StatusCodes.BadInternalError });
     }
 
     const subscriptionId = inputArguments[0].value;
@@ -391,10 +391,10 @@ function getMonitoredItemsId(inputArguments, context, callback) {
         // subscription may belongs to a different session  that ours
         if (engine.findSubscription(subscriptionId)) {
             // if yes, then access to  Subscription data should be denied
-            return callback(null, {statusCode: StatusCodes.BadUserAccessDenied});
+            return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
         }
 
-        return callback(null, {statusCode: StatusCodes.BadSubscriptionIdInvalid});
+        return callback(null, { statusCode: StatusCodes.BadSubscriptionIdInvalid });
     }
     const result = subscription.getMonitoredItems();
     assert(result.statusCode);
@@ -404,8 +404,8 @@ function getMonitoredItemsId(inputArguments, context, callback) {
     const callMethodResult = new CallMethodResult({
         statusCode: result.statusCode,
         outputArguments: [
-            {dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: result.serverHandles},
-            {dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: result.clientHandles}
+            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: result.serverHandles },
+            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: result.clientHandles }
         ]
     });
     callback(null, callMethodResult);
@@ -497,7 +497,7 @@ ServerEngine.prototype.initialize = function (options, callback) {
     const serverNamespace = engine.addressSpace.registerNamespace(engine.serverNamespaceUrn);
     assert(serverNamespace.index === 1);
 
-    generate_address_space(engine.addressSpace, options.nodeset_filename, function () {
+    generateAddressSpace(engine.addressSpace, options.nodeset_filename, function () {
 
         const endTime = new Date();
         debugLog("Loading ", options.nodeset_filename, " done : ", endTime - startTime, " ms");
@@ -534,7 +534,7 @@ ServerEngine.prototype.initialize = function (options, callback) {
                 return new Variant({
                     dataType: DataType.String,
                     arrayType: VariantArrayType.Array,
-                    value: engine.addressSpace.getNamespaceArray().map(x=>x.namespaceUri)
+                    value: engine.addressSpace.getNamespaceArray().map(x => x.namespaceUri)
                 });
             },
             set: null // read only
@@ -616,24 +616,24 @@ ServerEngine.prototype.initialize = function (options, callback) {
         }
 
         bindStandardScalar(VariableIds.Server_ServiceLevel,
-            DataType.Byte, function () {
-                return 255;
-            });
+          DataType.Byte, function () {
+              return 255;
+          });
 
         bindStandardScalar(VariableIds.Server_Auditing,
-            DataType.Boolean, function () {
-                return engine.isAuditing;
-            });
+          DataType.Boolean, function () {
+              return engine.isAuditing;
+          });
 
 
         function bindServerDiagnostics() {
 
             bindStandardScalar(VariableIds.Server_ServerDiagnostics_EnabledFlag,
-                DataType.Boolean, function () {
-                    return engine.serverDiagnosticsEnabled;
-                }, function (newFlag) {
-                    engine.serverDiagnosticsEnabled = newFlag;
-                });
+              DataType.Boolean, function () {
+                  return engine.serverDiagnosticsEnabled;
+              }, function (newFlag) {
+                  engine.serverDiagnosticsEnabled = newFlag;
+              });
 
             const serverDiagnosticsSummary = engine.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary));
             if (serverDiagnosticsSummary) {
@@ -685,34 +685,34 @@ ServerEngine.prototype.initialize = function (options, callback) {
         function bindServerCapabilities() {
 
             bindStandardArray(VariableIds.Server_ServerCapabilities_ServerProfileArray,
-                DataType.String, "String", function () {
-                    return engine.serverCapabilities.serverProfileArray;
-                });
+              DataType.String, "String", function () {
+                  return engine.serverCapabilities.serverProfileArray;
+              });
 
             bindStandardArray(VariableIds.Server_ServerCapabilities_LocaleIdArray,
-                DataType.String, "LocaleId", function () {
-                    return engine.serverCapabilities.localeIdArray;
-                });
+              DataType.String, "LocaleId", function () {
+                  return engine.serverCapabilities.localeIdArray;
+              });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate,
-                DataType.Double, function () {
-                    return engine.serverCapabilities.minSupportedSampleRate;
-                });
+              DataType.Double, function () {
+                  return engine.serverCapabilities.minSupportedSampleRate;
+              });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints,
-                DataType.UInt16, function () {
-                    return engine.serverCapabilities.maxBrowseContinuationPoints;
-                });
+              DataType.UInt16, function () {
+                  return engine.serverCapabilities.maxBrowseContinuationPoints;
+              });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints,
-                DataType.UInt16, function () {
-                    return engine.serverCapabilities.maxQueryContinuationPoints;
-                });
+              DataType.UInt16, function () {
+                  return engine.serverCapabilities.maxQueryContinuationPoints;
+              });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
-                DataType.UInt16, function () {
-                    return engine.serverCapabilities.maxHistoryContinuationPoints;
-                });
+              DataType.UInt16, function () {
+                  return engine.serverCapabilities.maxHistoryContinuationPoints;
+              });
 
 
             // added by DI : Server-specific period of time in milliseconds until the Server will revoke a lock.
@@ -723,24 +723,24 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
 
             bindStandardArray(VariableIds.Server_ServerCapabilities_SoftwareCertificates,
-                DataType.ByteString, "SoftwareCertificates", function () {
-                    return engine.serverCapabilities.softwareCertificates;
-                });
+              DataType.ByteString, "SoftwareCertificates", function () {
+                  return engine.serverCapabilities.softwareCertificates;
+              });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxArrayLength,
-                DataType.UInt32, function () {
-                    return engine.serverCapabilities.maxArrayLength;
-                });
+              DataType.UInt32, function () {
+                  return engine.serverCapabilities.maxArrayLength;
+              });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxStringLength,
-                DataType.UInt32, function () {
-                    return engine.serverCapabilities.maxStringLength;
-                });
+              DataType.UInt32, function () {
+                  return engine.serverCapabilities.maxStringLength;
+              });
 
             bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength,
-                DataType.UInt32, function () {
-                    return engine.serverCapabilities.maxByteStringLength;
-                });
+              DataType.UInt32, function () {
+                  return engine.serverCapabilities.maxByteStringLength;
+              });
 
             function bindOperationLimits(operationLimits) {
 
@@ -762,9 +762,9 @@ ServerEngine.prototype.initialize = function (options, callback) {
                     assert(!nodeId.isEmpty());
 
                     bindStandardScalar(VariableIds[uid],
-                        DataType.UInt32, function () {
-                            return operationLimits[key];
-                        });
+                      DataType.UInt32, function () {
+                          return operationLimits[key];
+                      });
                 });
             }
 
@@ -775,71 +775,71 @@ ServerEngine.prototype.initialize = function (options, callback) {
         function bindHistoryServerCapabilities() {
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnDataValues,
-                DataType.UInt32, function () {
-                    return engine.historyServerCapabilities.maxReturnDataValues;
-                });
+              DataType.UInt32, function () {
+                  return engine.historyServerCapabilities.maxReturnDataValues;
+              });
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnEventValues,
-                DataType.UInt32, function () {
-                    return engine.historyServerCapabilities.maxReturnEventValues;
-                });
+              DataType.UInt32, function () {
+                  return engine.historyServerCapabilities.maxReturnEventValues;
+              });
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryDataCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.accessHistoryDataCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.accessHistoryDataCapability;
+              });
             bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryEventsCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.accessHistoryEventsCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.accessHistoryEventsCapability;
+              });
             bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertDataCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.insertDataCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.insertDataCapability;
+              });
             bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceDataCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.replaceDataCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.replaceDataCapability;
+              });
             bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateDataCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.updateDataCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.updateDataCapability;
+              });
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertEventCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.insertEventCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.insertEventCapability;
+              });
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceEventCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.replaceEventCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.replaceEventCapability;
+              });
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateEventCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.updateEventCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.updateEventCapability;
+              });
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteEventCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.deleteEventCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.deleteEventCapability;
+              });
 
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteRawCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.deleteRawCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.deleteRawCapability;
+              });
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteAtTimeCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.deleteAtTimeCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.deleteAtTimeCapability;
+              });
 
             bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertAnnotationCapability,
-                DataType.Boolean, function () {
-                    return engine.historyServerCapabilities.insertAnnotationCapability;
-                });
+              DataType.Boolean, function () {
+                  return engine.historyServerCapabilities.insertAnnotationCapability;
+              });
 
 
         }
@@ -857,27 +857,27 @@ ServerEngine.prototype.initialize = function (options, callback) {
 
             //The version number for the data type description. i=104
             bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion,
-                DataType.UInt16, function () {
-                    return 0.0;
-                });
+              DataType.UInt16, function () {
+                  return 0.0;
+              });
 
             // i=111
             bindStandardScalar(VariableIds.ModellingRuleType_NamingRule,
-                DataType.UInt16, function () {
-                    return 0.0;
-                });
+              DataType.UInt16, function () {
+                  return 0.0;
+              });
 
             // i=112
             bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule,
-                DataType.UInt16, function () {
-                    return 0.0;
-                });
+              DataType.UInt16, function () {
+                  return 0.0;
+              });
 
             // i=113
             bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule,
-                DataType.UInt16, function () {
-                    return 0.0;
-                });
+              DataType.UInt16, function () {
+                  return 0.0;
+              });
         }
 
         bindExtraStuff();
@@ -916,11 +916,11 @@ ServerEngine.prototype.initialize = function (options, callback) {
             }
 
             const subscriptionDiagnosticsArray = serverDiagnostics.getComponentByName("SubscriptionDiagnosticsArray");
-            assert(subscriptionDiagnosticsArray instanceof UAVariable);
+            assert(subscriptionDiagnosticsArray.nodeClass === NodeClass.Variable);
             eoan.bindExtObjArrayNode(subscriptionDiagnosticsArray, "SubscriptionDiagnosticsType", "subscriptionId");
 
             const sessionDiagnosticsArray = serverDiagnostics.getComponentByName("SessionsDiagnosticsSummary").getComponentByName("SessionDiagnosticsArray");
-            assert(sessionDiagnosticsArray instanceof UAVariable);
+            assert(sessionDiagnosticsArray.nodeClass === NodeClass.Variable);
             eoan.bindExtObjArrayNode(sessionDiagnosticsArray, "SessionDiagnosticsVariableType", "sessionId");
         }
 
@@ -951,9 +951,12 @@ ServerEngine.prototype.__findObject = function (nodeId) {
  * @param [session] {ServerSession}
  * @return {BrowseResult}
  */
-ServerEngine.prototype.browseSingleNode = function (nodeId, browseDescription, session) {
+ServerEngine.prototype.browseSingleNode = function (
+  nodeId,
+  browseDescription,
+  session
+) {
     const engine = this;
-    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
     const addressSpace = engine.addressSpace;
     return addressSpace.browseSingleNode(nodeId, browseDescription, session);
 };
@@ -967,18 +970,16 @@ ServerEngine.prototype.browseSingleNode = function (nodeId, browseDescription, s
  */
 ServerEngine.prototype.browse = function (nodesToBrowse, session) {
     const engine = this;
-    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
     assert(_.isArray(nodesToBrowse));
 
     const results = [];
-    nodesToBrowse.forEach(function (browseDescription) {
-
+    for (const browseDescription of nodesToBrowse) {
 
         const nodeId = resolveNodeId(browseDescription.nodeId);
 
         const r = engine.browseSingleNode(nodeId, browseDescription, session);
         results.push(r);
-    });
+    }
     return results;
 };
 const apply_timestamps = require("node-opcua-data-value").apply_timestamps;
@@ -996,11 +997,11 @@ ServerEngine.prototype.readSingleNode = function (context, nodeId, attributeId, 
     const engine = this;
 
     return engine._readSingleNode(context,
-        {
-            nodeId: nodeId,
-            attributeId: attributeId
-        },
-        timestampsToReturn);
+      {
+          nodeId: nodeId,
+          attributeId: attributeId
+      },
+      timestampsToReturn);
 };
 
 ServerEngine.prototype._readSingleNode = function (context, nodeToRead, timestampsToReturn) {
@@ -1011,10 +1012,9 @@ ServerEngine.prototype._readSingleNode = function (context, nodeToRead, timestam
     const attributeId = nodeToRead.attributeId;
     const indexRange = nodeToRead.indexRange;
     const dataEncoding = nodeToRead.dataEncoding;
-    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
 
     if (timestampsToReturn === TimestampsToReturn.Invalid) {
-        return new DataValue({statusCode: StatusCodes.BadTimestampsToReturnInvalid});
+        return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
     }
 
     timestampsToReturn = (timestampsToReturn !== undefined) ? timestampsToReturn : TimestampsToReturn.Neither;
@@ -1025,7 +1025,7 @@ ServerEngine.prototype._readSingleNode = function (context, nodeToRead, timestam
     if (!obj) {
         // may be return BadNodeIdUnknown in dataValue instead ?
         // Object Not Found
-        return new DataValue({statusCode: StatusCodes.BadNodeIdUnknown});
+        return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
     } else {
 
         // check access
@@ -1036,17 +1036,16 @@ ServerEngine.prototype._readSingleNode = function (context, nodeToRead, timestam
         try {
             dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
             assert(dataValue.statusCode instanceof StatusCode);
-            if(!dataValue.isValid()) {
-                console.log("Invalid value for node ",obj.nodeId.toString(),obj.browseName.toString());
+            if (!dataValue.isValid()) {
+                console.log("Invalid value for node ", obj.nodeId.toString(), obj.browseName.toString());
             }
 
-        }
-        catch (err) {
+        } catch (err) {
             console.log(" Internal error reading  NodeId       ", obj.nodeId.toString());
             console.log("                         AttributeId  ", attributeId.toString());
             console.log("                        ", err.message);
             console.log("                        ", err.stack);
-            return new DataValue({statusCode: StatusCodes.BadInternalError});
+            return new DataValue({ statusCode: StatusCodes.BadInternalError });
         }
 
         //Xx console.log(dataValue.toString());
@@ -1096,7 +1095,6 @@ ServerEngine.prototype.read = function (context, readRequest) {
 
     const nodesToRead = readRequest.nodesToRead;
 
-    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
     assert(_.isArray(nodesToRead));
 
     context.currentTime = new Date();
@@ -1132,7 +1130,6 @@ ServerEngine.prototype.writeSingleNode = function (context, writeValue, callback
     }
 
     assert(writeValue.value.value instanceof Variant);
-    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
 
     const nodeId = writeValue.nodeId;
 
@@ -1164,7 +1161,6 @@ ServerEngine.prototype.write = function (context, nodesToWrite, callback) {
 
     const engine = this;
 
-    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
 
     context.currentTime = new Date();
 
@@ -1199,10 +1195,10 @@ ServerEngine.prototype.historyReadSingleNode = function (context, nodeId, attrib
 
     assert(context instanceof SessionContext);
     engine._historyReadSingleNode(context,
-        {
-            nodeId: nodeId,
-            attributeId: attributeId
-        }, historyReadDetails, timestampsToReturn, callback);
+      {
+          nodeId: nodeId,
+          attributeId: attributeId
+      }, historyReadDetails, timestampsToReturn, callback);
 };
 
 ServerEngine.prototype._historyReadSingleNode = function (context, nodeToRead, historyReadDetails, timestampsToReturn, callback) {
@@ -1215,10 +1211,9 @@ ServerEngine.prototype._historyReadSingleNode = function (context, nodeToRead, h
     const indexRange = nodeToRead.indexRange;
     const dataEncoding = nodeToRead.dataEncoding;
     const continuationPoint = nodeToRead.continuationPoint;
-    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
 
     if (timestampsToReturn === TimestampsToReturn.Invalid) {
-        return new DataValue({statusCode: StatusCodes.BadTimestampsToReturnInvalid});
+        return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
     }
 
     timestampsToReturn = (_.isObject(timestampsToReturn)) ? timestampsToReturn : TimestampsToReturn.Neither;
@@ -1228,16 +1223,16 @@ ServerEngine.prototype._historyReadSingleNode = function (context, nodeToRead, h
     if (!obj) {
         // may be return BadNodeIdUnknown in dataValue instead ?
         // Object Not Found
-        callback(null, new HistoryReadResult({statusCode: StatusCodes.BadNodeIdUnknown}));
+        callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadNodeIdUnknown }));
     } else {
 
         if (!obj.historyRead) {
             // note : Object and View may also support historyRead to provide Event historical data
             //        todo implement historyRead for Object and View
             const msg = " this node doesn't provide historyRead! probably not a UAVariable\n "
-                + obj.nodeId.toString() + " " + obj.browseName.toString() + "\n"
-                + "with " + nodeToRead.toString() + "\n"
-                + "HistoryReadDetails " + historyReadDetails.toString();
+              + obj.nodeId.toString() + " " + obj.browseName.toString() + "\n"
+              + "with " + nodeToRead.toString() + "\n"
+              + "HistoryReadDetails " + historyReadDetails.toString();
             if (doDebug) {
                 console.log("ServerEngine#_historyReadSingleNode ".cyan, msg.white.bold);
             }
@@ -1286,7 +1281,6 @@ ServerEngine.prototype.historyRead = function (context, historyReadRequest, call
     const nodesToRead = historyReadRequest.nodesToRead;
 
     assert(historyReadDetails instanceof HistoryReadDetails);
-    assert(engine.addressSpace instanceof AddressSpace); // initialize not called
     assert(_.isArray(nodesToRead));
 
     const historyData = [];
@@ -1294,7 +1288,7 @@ ServerEngine.prototype.historyRead = function (context, historyReadRequest, call
         engine._historyReadSingleNode(context, readValueId, historyReadDetails, timestampsToReturn, function (err, result) {
 
             if (err && !result) {
-                result = new HistoryReadResult({statusCode: StatusCodes.BadInternalError});
+                result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
             }
             historyData.push(result);
             async.setImmediate(cbNode); //it's not guaranteed that the historical read process is really asynchronous
@@ -1345,7 +1339,7 @@ ServerEngine.prototype.__internal_bindMethod = function (nodeId, func) {
         methodNode.bindMethod(func);
     } else {
         console.log("WARNING:  cannot bind a method with id ".yellow + nodeId.toString().cyan + ". please check your nodeset.xml file or add this node programmatically".yellow);
-        console.log(trace_from_this_projet_only())
+        console.log(trace_from_this_projet_only());
     }
 };
 
@@ -1432,7 +1426,7 @@ ServerEngine.prototype._unexposeSubscriptionDiagnostics = function (subscription
         const node = subscriptionDiagnosticsArray[subscription.id];
         /// console.log("GGGGGGGGGGGGGGGG ServerEngine => **Unexposing** subscription diagnostics =>",subscription.id);
         eoan.removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
-        assert(!subscriptionDiagnosticsArray[subscription.id]," subscription node must have been removed from subscriptionDiagnosticsArray");
+        assert(!subscriptionDiagnosticsArray[subscription.id], " subscription node must have been removed from subscriptionDiagnosticsArray");
     }
     debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
 };
@@ -1448,7 +1442,7 @@ ServerEngine.prototype._unexposeSubscriptionDiagnostics = function (subscription
  * @param request.priority {Byte}
  * @return {Subscription}
  */
-ServerEngine.prototype._createSubscriptionOnSession = function (session,request) {
+ServerEngine.prototype._createSubscriptionOnSession = function (session, request) {
 
     const engine = this;
 
@@ -1478,7 +1472,7 @@ ServerEngine.prototype._createSubscriptionOnSession = function (session,request)
     assert(subscription.publishEngine === session.publishEngine);
     session.publishEngine.add_subscription(subscription);
 
-    subscription.once("terminated",function() {
+    subscription.once("terminated", function () {
         const subscription = this;
         engine._unexposeSubscriptionDiagnostics(subscription);
     });
@@ -1632,7 +1626,7 @@ ServerEngine.prototype.closeSession = function (authenticationToken, deleteSubsc
         // Live Subscriptions will not be deleted, but transferred to the orphanPublishEngine
         // until they time out or until a other session transfer them back to it.
         if (!engine._orphanPublishEngine) {
-            engine._orphanPublishEngine = new ServerSidePublishEngineForOrphanSubscription({maxPublishRequestInQueue: 0});
+            engine._orphanPublishEngine = new ServerSidePublishEngineForOrphanSubscription({ maxPublishRequestInQueue: 0 });
 
         }
 
@@ -1665,7 +1659,7 @@ ServerEngine.prototype.findSubscription = function (subscriptionId) {
         const subscription = session.publishEngine.getSubscriptionById(subscriptionId);
         if (subscription) {
             //xx console.log("foundSubscription  ", subscriptionId, " in session", session.sessionName);
-            subscriptions.push(subscription)
+            subscriptions.push(subscription);
         }
     });
     if (subscriptions.length) {
@@ -1705,7 +1699,7 @@ const TransferResult = require("node-opcua-service-subscription").TransferResult
  * @param sendInitialValues {Boolean}        - true if initial values will be resent.
  * @return                  {TransferResult}
  */
-ServerEngine.prototype.transferSubscription = function (session, subscriptionId, sendInitialValues){
+ServerEngine.prototype.transferSubscription = function (session, subscriptionId, sendInitialValues) {
 
     const engine = this;
     assert(session instanceof ServerSession);
@@ -1713,12 +1707,12 @@ ServerEngine.prototype.transferSubscription = function (session, subscriptionId,
     assert(_.isBoolean(sendInitialValues));
 
     if (subscriptionId <= 0) {
-        return new TransferResult({statusCode: StatusCodes.BadSubscriptionIdInvalid});
+        return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
     }
 
     const subscription = engine.findSubscription(subscriptionId);
     if (!subscription) {
-        return new TransferResult({statusCode: StatusCodes.BadSubscriptionIdInvalid});
+        return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
     }
     // // now check that new session has sufficient right
     // if (session.authenticationToken.toString() !== subscription.authenticationToken.toString()) {
@@ -1727,11 +1721,11 @@ ServerEngine.prototype.transferSubscription = function (session, subscriptionId,
     // }
     if (session.publishEngine === subscription.publishEngine) {
         // subscription is already in this session !!
-        return new TransferResult({statusCode: StatusCodes.BadNothingToDo});
+        return new TransferResult({ statusCode: StatusCodes.BadNothingToDo });
     }
     if (session === subscription.$session) {
         // subscription is already in this session !!
-        return new TransferResult({statusCode: StatusCodes.BadNothingToDo});
+        return new TransferResult({ statusCode: StatusCodes.BadNothingToDo });
     }
 
     const nbSubscriptionBefore = session.publishEngine.subscriptionCount;
@@ -1828,7 +1822,7 @@ ServerEngine.prototype.refreshValues = function (nodesToRefresh, callback) {
         }
         // ... and that are valid object and instances of Variables ...
         const obj = engine.addressSpace.findNode(nodeToRefresh.nodeId);
-        if (!obj || !(obj instanceof UAVariable)) {
+        if (!obj || !(obj.nodeClass === NodeClass.Variable)) {
             continue;
         }
         // ... and that have been declared as asynchronously updating
