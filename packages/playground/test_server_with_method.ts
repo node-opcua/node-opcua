@@ -49,7 +49,14 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
             }
 
         ],
-        outputArguments: []
+        outputArguments: [
+            {
+                dataType: DataType.String,
+                description: { text: "description of result output" },
+                name: "Result",
+
+            }
+        ]
     });
 
     methodI.bindMethod(function(
@@ -59,7 +66,12 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
       callback: MethodFunctorCallback) {
 
         const callMethodResult = {
-            outputArguments: [],
+            outputArguments: [
+                new Variant({
+                    dataType: DataType.String,
+                    value: "Hello World"
+                })
+            ],
             statusCode: StatusCodes.Good
         };
         callback(null, callMethodResult);
@@ -68,9 +80,9 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
     return myObject;
 }
 
-function callMethodFromServer(addressSpace: AddressSpace, nodeId: NodeIdLike) {
+async function callMethodFromServer(addressSpace: AddressSpace, nodeId: NodeIdLike) {
     // Find server commands (methods)
-    const commands = addressSpace.getOwnNamespace().findNode("ns=1;s=VALMET-OPCUA-Server") as UAObject;
+    const commands = addressSpace.getOwnNamespace().findNode(nodeId) as UAObject;
     if (commands) {
         const method = commands.getMethodByName("DoStuff");
 
@@ -83,17 +95,12 @@ function callMethodFromServer(addressSpace: AddressSpace, nodeId: NodeIdLike) {
         const param3 = { dataType: DataType.String, value: "bar" };
 
         const context = SessionContext.defaultContext as SessionContext;
-        method.execute(
-          [param1, param2, param3],
-          context,
-          (err: Error | null, callMethodResponse: CallMethodResponse) => {
 
-              if (err || !callMethodResponse) {
-                  console.log("something went wrong");
-              } else {
-                  console.log(callMethodResponse.outputArguments);
-              }
-        });
+        const callMethodResponse = await method.execute(
+          [param1, param2, param3],
+          context);
+
+        console.log(callMethodResponse.outputArguments[0].toString());
     }
 }
 
@@ -114,7 +121,8 @@ async function main() {
 
         const object = installObjectWithMethod(addressSpace);
 
-        callMethodFromServer(addressSpace, object.nodeId);
+        console.log("object = ", object.toString());
+        await callMethodFromServer(addressSpace, object.nodeId);
 
         await server.start();
         console.log(" Server started ", server.endpoints[0].endpointDescriptions()[0].endpointUrl);

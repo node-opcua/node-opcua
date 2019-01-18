@@ -353,7 +353,7 @@ export declare class UAObject extends BaseNode implements EventRaiser {
 
 export interface CallMethodResponse {
     statusCode: StatusCode;
-    outputArguments: Variant[];
+    outputArguments: VariantLike[];
 }
 
 export type MethodFunctorCallback = (err: Error | null, callMethodResponse: CallMethodResponse) => void;
