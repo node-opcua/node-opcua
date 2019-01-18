@@ -185,7 +185,7 @@ export class NodeId {
 
 NodeId.nullNodeId = new NodeId(NodeIdType.NUMERIC, 0);
 
-export type NodeIdLike = string | NodeId;
+export type NodeIdLike = string | NodeId | number;
 
 const regexNamespaceI = /ns=([0-9]+);i=([0-9]+)/;
 const regexNamespaceS = /ns=([0-9]+);s=(.*)/;
@@ -367,7 +367,7 @@ function reverse_map(nodeId: string) {
  * @param nodeIdOrString {NodeId|String}
  * @return {NodeId}
  */
-export function resolveNodeId(nodeIdOrString: NodeId | string): NodeId {
+export function resolveNodeId(nodeIdOrString: NodeIdLike): NodeId {
 
     let nodeId;
 

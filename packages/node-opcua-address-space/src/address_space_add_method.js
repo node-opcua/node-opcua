@@ -69,9 +69,6 @@ exports.install = function (AddressSpace) {
      * @param options.outputArguments {Array<Argument>}
      * @return {Object}
      */
-    AddressSpace.prototype.addMethod = function(parentObject,options) {
-        return  this._resolveRequestedNamespace(options).addMethod(parentObject,options);
-    };
     Namespace.prototype.addMethod = function (parentObject, options) {
         const self = this;
 
@@ -155,6 +152,9 @@ exports.install = function (AddressSpace) {
         parentObject.install_extra_properties();
 
         return method;
+    };
+    AddressSpace.prototype.addMethod = function(parentObject,options) {
+        return  this._resolveRequestedNamespace(options).addMethod(parentObject,options);
     };
 
 };

@@ -2,38 +2,46 @@
 // tslint:disable:object-literal-sort-keys
 // tslint:disable:unused-var
 import {
+    ActivateSessionRequest,
     AddressSpace,
     Argument,
     BaseNode,
+    BrowseRequest,
+    BrowseResponse,
     CallMethodResponse,
     Folder,
     FolderType,
     OPCUAServer,
     ProgramFiniteStateMachine,
     ProgramFiniteStateMachineType,
-    RegisterServerMethod,
-    Request,
-    Response,
-    SessionContext, State, StateMachine,
+    RegisterServerMethod, Request, Response,
+    SessionContext,
+    State, StateMachine,
     StatusCodes,
-    TransitionEventType, UAAnalogItem,
+    TransitionEventType,
+    UAAnalogItem,
     UAMethod,
     UAObject,
     UAObjectType,
     UAReferenceType,
     UAVariable,
-    BrowseRequest,
-    BrowseResponse,
-    ActivateSessionRequest
+    Variant, VariantLike
 } from "node-opcua";
 import { assert } from "node-opcua-assert";
 import { lowerFirstLetter } from "node-opcua-utils";
 
 // tslint:disable:no-empty-interface
-interface FlowToReference extends UAReferenceType {}
-interface HotFlowToReference extends UAReferenceType {}
-interface SignalToReference extends UAReferenceType {}
-interface BoilerHaltedEventType extends TransitionEventType {}
+interface FlowToReference extends UAReferenceType {
+}
+
+interface HotFlowToReference extends UAReferenceType {
+}
+
+interface SignalToReference extends UAReferenceType {
+}
+
+interface BoilerHaltedEventType extends TransitionEventType {
+}
 
 interface CustomControllerB {
     input1: UAVariable;
@@ -43,42 +51,66 @@ interface CustomControllerB {
 // conflict here !    description: UAVariable;
 }
 
-interface CustomControllerType extends CustomControllerB, UAObjectType {}
-interface CustomController extends CustomControllerB, UAObject {}
+interface CustomControllerType extends CustomControllerB, UAObjectType {
+}
+
+interface CustomController extends CustomControllerB, UAObject {
+}
 
 interface GenericSensorB {
     output: UAAnalogItem;
 }
-interface GenericSensorType extends GenericSensorB, UAObjectType {}
-interface GenericSensor extends GenericSensorB, UAObject {}
+
+interface GenericSensorType extends GenericSensorB, UAObjectType {
+}
+
+interface GenericSensor extends GenericSensorB, UAObject {
+}
 
 interface GenericControllerB {
     controlOut: UAVariable;
     measurement: UAVariable;
     setPoint: UAVariable;
 }
-interface GenericControllerType extends GenericControllerB, UAObjectType {}
-interface GenericController extends GenericControllerB, UAObject {}
 
-interface FlowControllerType extends GenericControllerType {}
-interface FlowController extends GenericController {}
+interface GenericControllerType extends GenericControllerB, UAObjectType {
+}
 
-interface LevelControllerType extends GenericControllerType {}
-interface LevelController extends GenericController {}
+interface GenericController extends GenericControllerB, UAObject {
+}
 
-interface FlowTransmitterType extends GenericSensorType {}
+interface FlowControllerType extends GenericControllerType {
+}
 
-interface FlowTransmitter extends GenericSensor {}
+interface FlowController extends GenericController {
+}
 
-interface LevelIndicatorType extends GenericSensorType {}
-interface LevelIndicator extends GenericSensor {}
+interface LevelControllerType extends GenericControllerType {
+}
+
+interface LevelController extends GenericController {
+}
+
+interface FlowTransmitterType extends GenericSensorType {
+}
+
+interface FlowTransmitter extends GenericSensor {
+}
+
+interface LevelIndicatorType extends GenericSensorType {
+}
+
+interface LevelIndicator extends GenericSensor {
+}
 
 interface GenericActuatorType extends UAObjectType {
     input: UAAnalogItem;
 }
+
 interface GenericActuator extends UAObject {
     input: UAAnalogItem;
 }
+
 interface ValveType extends GenericActuatorType {
 }
 
@@ -89,25 +121,32 @@ interface BoilerInputPipeType extends FolderType {
     ftX001: FlowTransmitter;
     valveX001: Valve;
 }
+
 interface BoilerInputPipe extends Folder {
     ftX001: FlowTransmitter;
     valveX001: Valve;
 }
+
 interface BoilerOutputPipeType extends FolderType {
     ftX002: FlowTransmitter;
 }
+
 interface BoilerOutputPipe extends Folder {
     ftX002: FlowTransmitter;
 
 }
+
 interface BoilerDrumpType extends FolderType {
     liX001: LevelIndicator;
 }
+
 interface BoilerDrump extends Folder {
     liX001: LevelIndicator;
 }
+
 interface BoilerStateMachineType extends ProgramFiniteStateMachineType {
 }
+
 interface BoilerStateMachine extends ProgramFiniteStateMachine {
 }
 
@@ -137,6 +176,7 @@ function MygetExecutableFlag(method: UAMethod, toState: string, methodName: stri
     const stateMachineW = StateMachine.promote(method.parent!);
     return stateMachineW.isValidTransition(toState);
 }
+
 function implementProgramStateMachine(programStateMachine: UAObject): void {
 
     function installMethod(methodName: string, toState: string) {
@@ -158,21 +198,21 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
         }
         assert(method instanceof UAMethod);
 
-        method._getExecutableFlag =  function(/* sessionContext: SessionContext */) {
+        method._getExecutableFlag = function(/* sessionContext: SessionContext */) {
             // must use  a function here to capture 'this'
             return MygetExecutableFlag(this as UAMethod, toState, methodName);
         };
 
         method.bindMethod(
           (
-            inputArguments: Argument[],
+            inputArguments: VariantLike[],
             context: SessionContext,
-            callback: (err: Error | null, callMethodResponse?: CallMethodResponse) => void
+            callback: (err: Error | null, callMethodResponse: CallMethodResponse) => void
           ) => {
-            const stateMachineW = StateMachine.promote(method!.parent! as UAObject);
-            stateMachineW.setState(toState);
-            callback(null, { statusCode: StatusCodes.Good, outputArguments: [] });
-        });
+              const stateMachineW = StateMachine.promote(method!.parent! as UAObject);
+              stateMachineW.setState(toState);
+              callback(null, { statusCode: StatusCodes.Good, outputArguments: [] });
+          });
 
         assert(programStateMachine.getMethodByName(methodName) !== null,
           "Method " + methodName + " should be added to parent object (checked with getMethodByName)");
@@ -193,14 +233,14 @@ function addRelation(
   referenceType: UAReferenceType | string,
   targetNode: BaseNode
 ) {
-    assert( srcNode, "expecting srcNode !== null");
-    assert( targetNode, "expecting targetNode !== null");
+    assert(srcNode, "expecting srcNode !== null");
+    assert(targetNode, "expecting targetNode !== null");
     if (typeof referenceType === "string") {
         const nodes = srcNode.findReferencesAsObject(referenceType, true);
         assert(nodes.length === 1);
         referenceType = nodes[0] as UAReferenceType;
     }
-    srcNode.addReference( { referenceType: referenceType.nodeId, nodeId: targetNode });
+    srcNode.addReference({ referenceType: referenceType.nodeId, nodeId: targetNode });
 }
 
 function createBoilerType(addressSpace: AddressSpace): BoilerType {
@@ -627,37 +667,37 @@ async function main() {
         await server.initialize();
 
         server.on("request", (request: Request) => {
- 
-            console.log(request.constructor.name,request.requestHeader.requestHandle);
-            
-            // you can either check the instance of the request object directl 
+
+            console.log(request.constructor.name, request.requestHeader.requestHandle);
+
+            // you can either check the instance of the request object directl
             if (request instanceof BrowseRequest) {
                 console.log("BrowseRequest.requestedMaxReferencesPerNode=", request.requestedMaxReferencesPerNode);
-            } else if ( request instanceof ActivateSessionRequest) {
+            } else if (request instanceof ActivateSessionRequest) {
                 console.log(request.toString());
             }
             // ... or check its schema name
-            switch(request.schema.name) {
+            switch (request.schema.name) {
                 case "BrowseRequest":
                     const browseRequest = request as BrowseRequest;
                     break;
-                // etc... 
+              // etc...
             }
-        
+
         });
         server.on("response", (response: Response) => {
 
-            // you can either check the instance of the request object directl 
-           if (response instanceof BrowseResponse) {         
+            // you can either check the instance of the request object directl
+            if (response instanceof BrowseResponse) {
                 console.log("BrowseResponse.results.length =", response.results ? response.results.length : 0);
             }
 
-            switch(response.schema.name) {
+            switch (response.schema.name) {
                 case "BrowseResponce":
                     const browseRequest = response as BrowseResponse;
                     console.log("BrowseResponse.results.length =", browseRequest.results ? browseRequest.results.length : 0);
                     break;
-                // etc... 
+              // etc...
             }
         });
         // post-initialize
@@ -672,7 +712,7 @@ async function main() {
         });
 
         const HVACModuleType = namespace.addObjectType({
-            browseName: "HVACModuleType",
+            browseName: "HVACModuleType"
         });
 
         namespace.addAnalogDataItem({

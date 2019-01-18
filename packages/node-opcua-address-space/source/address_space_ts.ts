@@ -356,10 +356,13 @@ export interface CallMethodResponse {
     outputArguments: Variant[];
 }
 
+export type MethodFunctorCallback = (err: Error | null, callMethodResponse: CallMethodResponse) => void;
+
 export type MethodFunctor = (
-  inputArguments: Argument[],
+  this: UAMethod,
+  inputArguments: Variant[],
   context: SessionContext,
-  callback: (err: Error | null, callMethodResponse?: CallMethodResponse) => void
+  callback: MethodFunctorCallback
 ) => void;
 
 export declare class UAMethod extends BaseNode {
@@ -389,7 +392,7 @@ export declare class UAMethod extends BaseNode {
     public execute(
       inputArguments: null | VariantLike[],
       context: SessionContext,
-      callback: CallMethodResponse
+      callback: MethodFunctorCallback
     ): void;
 
     public execute(
@@ -669,17 +672,23 @@ export declare interface Namespace {
     addressSpace: AddressSpace;
     index: number;
 
-    findObjectType(objectType: string): UAObjectType;
+    // -------------------------------------------------------------------------
 
-    findEventType(objectType: string): UAObjectType;
+    findObjectType(objectType: string): UAObjectType | null;
 
-    findVariableType(variableType: string): UAVariableType;
+    findEventType(objectType: string): UAObjectType | null;
 
-    findDataType(dataType: string): UADataType;
+    findVariableType(variableType: string): UAVariableType | null;
 
-    findReferenceType(referenceType: string): UAReferenceType;
+    findDataType(dataType: string): UADataType | null;
 
-    findReferenceTypeFromInverseName(referenceType: string): UAReferenceType;
+    findReferenceType(referenceType: string): UAReferenceType | null;
+
+    findReferenceTypeFromInverseName(referenceType: string): UAReferenceType | null;
+
+    findNode(nodeId: NodeIdLike): BaseNode | null;
+
+    // -------------------------------------------------------------------------
 
     addAlias(aliasName: string, nodeId: NodeId): void;
 
@@ -700,6 +709,8 @@ export declare interface Namespace {
     addFolder(parentFolder: UAObject, options: any): UAObject;
 
     createNode(options: CreateNodeOptions): BaseNode;
+
+    // -------------------------------------------------------------------------
 
     deleteNode(node: NodeId | BaseNode): void;
 
@@ -739,7 +750,7 @@ export declare interface Namespace {
         description?: LocalizedTextLike;
         inputArguments: ArgumentOptions[];
         outputArguments: ArgumentOptions[];
-    }): void;
+    }): UAMethod;
 
     toNodeset2XML(): string;
 }

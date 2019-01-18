@@ -21,6 +21,7 @@ export * from "node-opcua-common";
 
 export {
   NodeId,
+  NodeIdLike,
   resolveNodeId,
   makeNodeId,
   coerceNodeId,
