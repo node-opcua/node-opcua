@@ -817,7 +817,7 @@ NodeCrawler.prototype.followReference = function (parentNode, reference, userDat
     if (!childCacheNode) {
         childCacheNode = crawler._createCacheNode(reference.nodeId);
         childCacheNode.browseName = reference.browseName;
-        childCacheNode.displayName = reference.DisplayName;
+        childCacheNode.displayName = reference.displayName;
         childCacheNode.typeDefinition = reference.typeDefinition;
         childCacheNode.nodeClass = reference.nodeClass;
 
