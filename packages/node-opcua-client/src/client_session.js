@@ -317,7 +317,7 @@ ClientSession.prototype.readVariableValue = function (nodes, callback) {
 
     const request = new read_service.ReadRequest({
         nodesToRead: nodesToRead,
-        timestampsToReturn: read_service.TimestampsToReturn.Neither
+        timestampsToReturn: read_service.TimestampsToReturn.Both
     });
 
     assert(nodes.length === request.nodesToRead.length);
