@@ -4,4 +4,4 @@ async function main() {
     console.log("Hello World");
 }
 
-main();
+main().then();
