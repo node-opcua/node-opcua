@@ -23,8 +23,8 @@
   "node-opcua-status-code": "^2.0.0-alpha.10",
   "node-opcua-utils": "^2.0.0-alpha.10",
   "node-opcua-xml2json": "^2.0.0-alpha.10",
-  "prettier": "^1.15.3",
-  "typescript": "^3.2.2",
+  "prettier": "^1.16.4",
+  "typescript": "^3.3.3",
   "underscore": "^1.9.1"
  },
  "devDependencies": {

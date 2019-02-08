@@ -14,7 +14,7 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
-  "@types/async": "^2.0.50",
+  "@types/async": "^2.4.0",
   "@types/once": "^1.4.0",
   "@types/underscore": "^1.8.9",
   "async": "^2.6.1",
@@ -65,7 +65,7 @@
   "node-opcua-factory": "^2.0.0-alpha.11",
   "node-opcua-leak-detector": "^2.0.0-alpha.10",
   "should": "13.2.3",
-  "sinon": "^7.2.2"
+  "sinon": "^7.2.3"
  },
  "eslintConfig": {
   "env": {
