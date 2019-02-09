@@ -54,6 +54,7 @@
         "node-opcua-service-write": "^2.0.0-alpha.11",
         "node-opcua-status-code": "^2.0.0-alpha.10",
         "node-opcua-transport": "^2.0.0-alpha.11",
+        "node-opcua-types": "^2.0.0-alpha.11",
         "node-opcua-utils": "^2.0.0-alpha.10",
         "node-opcua-variant": "^2.0.0-alpha.11",
         "node-opcua-vendor-diagnostic": "^2.0.0-alpha.11",

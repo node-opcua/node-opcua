@@ -11,7 +11,7 @@
   },
   "scripts": {
     "_x_preinstall": "npm i browserify -g",
-    "bootstrap": "node  ./node_modules/lerna/cli.js bootstrap --hoist --reject-cycles --sort",
+    "bootstrap": "node  ./node_modules/lerna/cli.js bootstrap --hoist --reject-cycles --sort --concurrency=1",
     "build": "node  ./node_modules/lerna/cli.js run build",
     "generate": "node  ./node_modules/lerna/cli.js run generate",
     "postinstall": "npm run bootstrap && npm run build && npm run generate",
@@ -124,7 +124,7 @@
     "mocha-typescript": "^1.1.17",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "^1.0.1",
-    "node-opcua-pki": "^1.0.2",
+    "node-opcua-pki": "^1.0.3",
     "object.values": "^1.1.0",
     "once": "^1.4.0",
     "progress": "^2.0.3",
