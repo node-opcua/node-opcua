@@ -110,10 +110,10 @@ const server_options = {
     ],
 
     serverInfo: {
+        applicationName: {text: "NodeOPCUA" ,locale: "en"},
         applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), productUri),
-        productUri: productUri,
-        applicationName: {text: "NodeOPCUA" ,locale:"en"},
         gatewayServerUri: null,
+        productUri: productUri,
         discoveryProfileUri: null,
         discoveryUrls: []
     },
