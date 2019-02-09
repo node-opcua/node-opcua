@@ -56,7 +56,33 @@ import { CertificateManager } from "node-opcua-certificate-manager";
 export * from "node-opcua-certificate-manager";
 
 import { Request, Response } from "node-opcua-client";
+import { NodeId } from "node-opcua-nodeid";
+import { ApplicationDescription } from "node-opcua-types";
+
 export { Request, Response } from "node-opcua-client";
+
+export interface OperationLimitsOptions {
+    maxNodesPerRead?: number;
+    maxNodesPerBrowse?: number;
+    maxNodesPerWrite?: number;
+    maxNodesPerMethodCall?: number;
+    maxNodesPerRegisterNodes?: number;
+    maxNodesPerNodeManagement?: number;
+    maxMonitoredItemsPerCall?: number;
+    maxNodesPerHistoryReadData?: number;
+    maxNodesPerHistoryReadEvents?: number;
+    maxNodesPerHistoryUpdateData?: number;
+    maxNodesPerHistoryUpdateEvents?: number;
+    maxNodesPerTranslateBrowsePathsToNodeIds?: number;
+}
+
+export interface ServerCapabilitiesOptions {
+    maxBrowseContinuationPoints?: number;
+    maxHistoryContinuationPoints?: number;
+    maxStringLength?: number;
+    maxQueryContinuationPoints?: number;
+    operationLimits?: OperationLimitsOptions;
+}
 
 export interface OPCUAServerOptions {
 
@@ -149,6 +175,7 @@ export interface OPCUAServerOptions {
         productUri?: string | null, // << should be same as default_server_info.productUri?
         manufacturerName?: string,
         softwareVersion?: string,
+        buildNumber?: string;
     };
 
     /**
@@ -178,7 +205,7 @@ export interface OPCUAServerOptions {
     /**
      *
      */
-    serverCapabilities?: string[];
+    serverCapabilities?: ServerCapabilitiesOptions;
     /**
      * if server shall raise AuditingEvent
      * @default true
@@ -476,9 +503,16 @@ export declare class OPCUAServer implements EventRaiser {
     public raiseEvent(
       eventType: "TransitionEventType", options: RaiseEventTransitionEventData): void;
 
-    public on(event: "create_session", eventHandler: (session: Session) => void): this;
-    public on(event: "session_closed", eventHandler: (session: Session, reason: string) => void): this;
-    public on(event: "post_initialize", eventHandler: () => void): void;
+}
+
+import { EventEmitter } from "events";
+
+export interface OPCUAServer extends EventEmitter {
+    on(event: "create_session", eventHandler: (session: Session) => void): this;
+
+    on(event: "session_closed", eventHandler: (session: Session, reason: string) => void): this;
+
+    on(event: "post_initialize", eventHandler: () => void): void;
 
     /**
      * emitted when the server is trying to registered the LDS
@@ -487,53 +521,62 @@ export declare class OPCUAServer implements EventRaiser {
      * connection process is raised
      * @event serverRegistrationPending
      */
-    public on(event: "serverRegistrationPending", eventHandler: () => void): void;
+    on(event: "serverRegistrationPending", eventHandler: () => void): void;
+
     /**
      * event raised when server  has been successfully registered on the local discovery server
      * @event serverRegistered
      */
-    public on(event: "serverRegistered", eventHandler: () => void): void;
+    on(event: "serverRegistered", eventHandler: () => void): void;
+
     /**
      * event raised when server registration has been successfully renewed on the local discovery server
      * @event serverRegistered
      */
-    public on(event: "serverRegistrationRenewed", eventHandler: () => void): void;
+    on(event: "serverRegistrationRenewed", eventHandler: () => void): void;
+
     /**
      * event raised when server  has been successfully unregistered from the local discovery server
      * @event serverUnregistered
      */
-    public on(event: "serverUnregistered", eventHandler: () => void): void;
+    on(event: "serverUnregistered", eventHandler: () => void): void;
 
     /**
      * event raised after the server has raised an OPCUA event toward a client
      */
-    public on(event: "event", eventHandler: (eventData: any) => void): void;
+    on(event: "event", eventHandler: (eventData: any) => void): void;
 
     /**
      * event raised when the server received a request from one of its connected client.
      * useful for trace purpose.
      */
-    public on(event: "request", eventHandler: (request: Request, channel: ServerSecureChannelLayer) => void): void;
+    on(event: "request", eventHandler: (request: Request, channel: ServerSecureChannelLayer) => void): void;
+
     /**
      * event raised when the server send an response to a request to one of its connected client.
      * useful for trace purpose.
      */
-    public on(event: "response", eventHandler: (request: Response, channel: ServerSecureChannelLayer) => void): void;
+    on(event: "response", eventHandler: (request: Response, channel: ServerSecureChannelLayer) => void): void;
 
     /**
      * event raised when a new secure channel is opened
      */
-    public on(event: "newChannel", eventHandler: (channel: ServerSecureChannelLayer) => void ): void;
+    on(event: "newChannel", eventHandler: (channel: ServerSecureChannelLayer) => void): void;
+
     /**
      * event raised when a new secure channel is closed
      */
-    public on(event: "closeChannel", eventHandler: (channel: ServerSecureChannelLayer) => void ): void;
+    on(event: "closeChannel", eventHandler: (channel: ServerSecureChannelLayer) => void): void;
 
-    public on(event: string, eventHandler: () => void): this;
+    on(event: string, eventHandler: (...args: [any?, ...any[]]) => void): this;
 
 }
 
 export interface ServerSession {
+    clientDescription: ApplicationDescription;
+    sessionName: string;
+    sessionTimeout: number;
+    sessionId: NodeId;
 }
 
 export interface Subscription {
