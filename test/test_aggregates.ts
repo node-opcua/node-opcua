@@ -22,12 +22,12 @@ describe("Aggregates ", () => {
     let addressSpace: any;
     beforeEach((done) => {
 
-        addressSpace = new opcua.AddressSpace();
+        addressSpace = opcua.AddressSpace.create();
 
         const nodesets: string[] = [
             opcua.nodesets.standard_nodeset_file
         ];
-        opcua.generate_address_space(addressSpace, nodesets, (err?: Error) => {
+        opcua.generateAddressSpace(addressSpace, nodesets, (err?: Error) => {
             done(err);
         });
     });
@@ -48,12 +48,12 @@ describe("Aggregates - Function ", () => {
 
     before((done: (err: Error | null) => void) => {
 
-        addressSpace = new opcua.AddressSpace();
+        addressSpace = opcua.AddressSpace.create();
 
         const nodesets: string[] = [
             opcua.nodesets.standard_nodeset_file
         ];
-        opcua.generate_address_space(addressSpace, nodesets, (err?: Error) => {
+        opcua.generateAddressSpace(addressSpace, nodesets, (err?: Error) => {
 
             const namespace = addressSpace.registerNamespace("PRIVATENAMESPACE");
             namespace.index.should.eql(1);

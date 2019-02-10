@@ -2,7 +2,6 @@ import { DataValue } from "node-opcua-data-value";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
-import { VariantOptions } from "node-opcua-variant";
 const year = 2018;
 const month = 10;
 const day = 9;
