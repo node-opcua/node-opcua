@@ -414,25 +414,27 @@ export interface ClientSession {
 export interface ClientSession {
 
     readHistoryValue(
-      nodes: ReadValueIdLike[],
+      nodes: ReadValueIdOptions[],
       start: DateTime,
       end: DateTime,
-      callback: (err: Error | null, results?: HistoryReadResult[]) => void): void;
+      callback: (err: Error | null, results?: HistoryReadResult[]) => void
+    ): void;
 
     readHistoryValue(
-      nodes: ReadValueIdLike[],
+      nodes: ReadValueIdOptions[],
       start: DateTime,
       end: DateTime
     ): Promise<HistoryReadResult[]>;
 
     readHistoryValue(
-      node: ReadValueIdLike,
+      node: ReadValueIdOptions,
       start: DateTime,
       end: DateTime,
-      callback: (err: Error | null, results?: HistoryReadResult) => void): void;
+      callback: (err: Error | null, result?: HistoryReadResult) => void
+    ): void;
 
     readHistoryValue(
-      nodes: ReadValueIdLike,
+      nodes: ReadValueIdOptions,
       start: DateTime,
       end: DateTime
     ): Promise<HistoryReadResult>;
