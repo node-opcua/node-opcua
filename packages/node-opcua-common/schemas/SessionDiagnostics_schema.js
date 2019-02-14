@@ -27,7 +27,8 @@ const SessionDiagnostics_Schema = {
         },
         {
             name: "localeIds",
-            fieldType: "LocaleId"
+            isArray: true,
+            fieldType: "String"
         },
         {
             name: "actualSessionTimeout",
