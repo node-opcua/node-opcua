@@ -1359,8 +1359,8 @@ ServerEngine.prototype.getOldestUnactivatedSession = function () {
     if (tmp.length === 0) {
         return null;
     }
-    let session = tmp[0];
-    for (let i = 1; i < session.length; i++) {
+    let session = [0];
+    for (let i = 1; i < tmp.length; i++) {
         const c = tmp[i];
         if (session.creationDate.getTime() < c.creationDate.getTime()) {
             session = c;
@@ -1623,8 +1623,7 @@ ServerEngine.prototype.closeSession = function (authenticationToken, deleteSubsc
 
     debugLog("ServerEngine.closeSession ", authenticationToken.toString(), deleteSubscriptions);
 
-    const key = authenticationToken.toString();
-    const session = engine.getSession(key);
+    const session = engine.getSession(authenticationToken);
     assert(session);
 
     if (!deleteSubscriptions) {
@@ -1774,6 +1773,7 @@ ServerEngine.prototype.transferSubscription = function (session, subscriptionId,
 ServerEngine.prototype.getSession = function (authenticationToken, activeOnly) {
 
     const engine = this;
+    assert( authenticationToken instanceof NodeId);
     if (!authenticationToken || (authenticationToken.identifierType && (authenticationToken.identifierType.value !== NodeIdType.BYTESTRING.value))) {
         return null;     // wrong type !
     }
