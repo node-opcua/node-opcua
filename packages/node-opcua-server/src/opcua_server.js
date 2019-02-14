@@ -2119,7 +2119,7 @@ function monitoredItem_read_and_record_value(self, oldValue, node, itemToMonitor
     assert(oldValue instanceof DataValue);
     assert(itemToMonitor.attributeId === AttributeIds.Value);
 
-    const dataValue = node.readAttribute(itemToMonitor.attributeId, itemToMonitor.indexRange, itemToMonitor.dataEncoding);
+    const dataValue = node.readAttribute(null, itemToMonitor.attributeId, itemToMonitor.indexRange, itemToMonitor.dataEncoding);
 
     callback(null, dataValue);
 }
@@ -2201,7 +2201,7 @@ function build_scanning_node_function(context, addressSpace, monitoredItem, item
             assert(oldDataValue instanceof DataValue);
             assert(_.isFunction(callback));
 
-            const newDataValue = node.readAttribute(itemToMonitor.attributeId);
+            const newDataValue = node.readAttribute(null, itemToMonitor.attributeId);
             callback(null, newDataValue);
         };
     }
