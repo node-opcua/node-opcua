@@ -882,14 +882,14 @@ AddressSpace.prototype.modelChangeTransaction = function(func) {
 
     this._modelChangeTransactionCounter = this._modelChangeTransactionCounter || 0;
 
-    function beginModelChange(node) {
+    function beginModelChange() {
         /* jshint validthis:true */
         assert(this);
         this._modelChanges = addressSpace._modelChanges || [];
         assert(this._modelChangeTransactionCounter >=0);
         this._modelChangeTransactionCounter +=1;
     }
-    function endModelChange(node) {
+    function endModelChange() {
         /* jshint validthis:true */
         assert(this);
         this._modelChangeTransactionCounter -=1;
