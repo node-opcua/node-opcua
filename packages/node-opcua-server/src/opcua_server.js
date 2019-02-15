@@ -2772,7 +2772,7 @@ OPCUAServer.prototype._on_UnregisterNodesRequest = function (message, channel) {
             return sendResponse(response);
         }
         if (server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
-            if (request.nodesToRegister.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes) {
+            if (request.nodesToUnregister.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes) {
                 return sendError(StatusCodes.BadTooManyOperations);
             }
         }
