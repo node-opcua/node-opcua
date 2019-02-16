@@ -1,5 +1,5 @@
 /**
- * @module opcua.address_space.AlarmsAndConditions
+ * @module node-opcua-address-space.AlarmsAndConditions
  */
 import * as util from "util";
 import { UAOffNormalAlarm } from "./ua_off_normal_alarm";

@@ -1,5 +1,5 @@
 /**
- * @module opcua.address_space.AlarmsAndConditions
+ * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { DataType } from "node-opcua-variant";
 import { UAVariableT } from "../../source";

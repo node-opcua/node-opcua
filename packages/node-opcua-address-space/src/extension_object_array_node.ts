@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.Private
+ */
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 import * as util from "util";

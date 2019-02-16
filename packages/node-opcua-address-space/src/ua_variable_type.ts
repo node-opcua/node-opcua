@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 // tslint:disable:max-classes-per-file
 // tslint:disable:no-console
 import chalk from "chalk";

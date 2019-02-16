@@ -1,5 +1,5 @@
 /**
- * @module opcua.server
+ * @module node-opcua-server
  */
 // tslint:disable:no-console
 import * as async from "async";

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCode } from "node-opcua-status-code";
 import { ConditionInfo } from "../../../src/alarms_and_conditions/condition_info";

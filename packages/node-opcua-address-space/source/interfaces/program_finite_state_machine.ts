@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 // tslint:disable:no-empty-interface
 import { InstantiateObjectOptions, UAMethod, UAObject, UAObjectType } from "../address_space_ts";
 import { FiniteStateMachineB } from "./finite_state_machine";

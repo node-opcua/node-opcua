@@ -1,6 +1,5 @@
-"use strict";
 /**
- * @module opcua.address_space.AlarmsAndConditions
+ * @module node-opcua-address-space.AlarmsAndConditions
  */
 import * as _ from "underscore";
 

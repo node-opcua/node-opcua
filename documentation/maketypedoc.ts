@@ -51,7 +51,7 @@ const nodeopcuaModules = [
     // "packet-assembler",
     "pseudo-session",
     "secure-channel",
-    // "server",
+    "server",
     // "server-discovery",
     "service-browse",
     "service-call",

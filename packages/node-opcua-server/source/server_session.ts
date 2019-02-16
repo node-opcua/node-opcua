@@ -1,7 +1,7 @@
-// tslint:disable:no-console
 /**
- * @module opcua.server
+ * @module node-opcua-server
  */
+// tslint:disable:no-console
 
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
@@ -31,7 +31,8 @@ import { lowerFirstLetter } from "node-opcua-utils";
 
 import { ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import { ApplicationDescription, UserIdentityToken } from "node-opcua-types";
-import { ISubscriber, IWatchdogData2 } from "node-opcua-utils/dist/watchdog";
+
+import { ISubscriber, IWatchdogData2 } from "node-opcua-utils";
 import { ContinuationPointManager } from "./continuation_point_manager";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { Subscription } from "./server_subscription";

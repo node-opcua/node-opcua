@@ -1,5 +1,5 @@
 /**
- * @module opcua.address_space.AlarmsAndConditions
+ * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";

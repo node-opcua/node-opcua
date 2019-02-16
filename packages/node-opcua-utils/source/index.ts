@@ -61,6 +61,6 @@ export { get_clock_tick } from "./get_clock_tick";
 export { compare_buffers } from "./compare_buffers";
 export { constructFilename } from "./construct_filename";
 export { getFunctionParameterNames } from "./get_function_parameters_name";
-export { WatchDog } from "./watchdog";
+export * from "./watchdog";
 export { LineFile } from "./linefile";
 export { setDeprecated } from "./set_deprecated";

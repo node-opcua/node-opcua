@@ -3,8 +3,6 @@
 import * as async from "async";
 import * as fs from "fs";
 import { Socket } from "net";
-import * as should from "should";
-
 import { CertificateManager } from "node-opcua-certificate-manager";
 import {
     Certificate,
@@ -16,8 +14,10 @@ import {
     split_der
 } from "node-opcua-crypto";
 import { EndpointDescription } from "node-opcua-service-endpoints";
+import { StatusCode } from "node-opcua-status-code";
 import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
 import * as path from "path";
+import * as should from "should";
 import {
     ClientSecureChannelLayer,
     ClientSecureChannelParent,
@@ -26,9 +26,8 @@ import {
     ServerSecureChannelLayer,
     ServerSecureChannelParent
 } from "../source";
-import { StatusCode } from "node-opcua-status-code";
 
-type Callback = (err?: Error) => void;
+type SimpleCallback = (err?: Error) => void;
 
 interface TestParam {
     securityMode: MessageSecurityMode;
@@ -130,7 +129,7 @@ describe("Testing secure client and server connection", () => {
         });
 
         async.series([
-            (callback: Callback) => {
+            (callback: SimpleCallback) => {
                 serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
                 if (param.clientCertificate) {
                     const certMan = serverSChannel.certificateManager as CertificateManager;
@@ -143,7 +142,7 @@ describe("Testing secure client and server connection", () => {
                 }
             },
 
-            (callback: Callback) => {
+            (callback: SimpleCallback) => {
 
                 clientChannel.create("fake://foobar:123", (err?: Error) => {
 
@@ -162,14 +161,14 @@ describe("Testing secure client and server connection", () => {
                 });
             },
 
-            (callback: Callback) => {
+            (callback: SimpleCallback) => {
                 if (param.shouldFailAtClientConnection) {
                     return callback();
                 }
                 clientChannel.close(callback);
             },
 
-            (callback: Callback) => {
+            (callback: SimpleCallback) => {
                 serverSChannel.close();
                 serverSChannel.dispose();
                 callback();

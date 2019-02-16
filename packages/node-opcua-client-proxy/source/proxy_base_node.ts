@@ -3,10 +3,10 @@
  */
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import { WriteValueLike } from "node-opcua-client/dist";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
+import { WriteValueOptions } from "node-opcua-service-write";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { UAProxyManager } from "./proxy_manager";
@@ -124,7 +124,7 @@ export class ProxyBaseNode extends EventEmitter {
         const session = this.proxyManager.session;
         assert(session);
 
-        const nodeToWrite: WriteValueLike = {
+        const nodeToWrite: WriteValueOptions = {
             attributeId: AttributeIds.Value,
             nodeId: this.nodeId,
             value: dataValue

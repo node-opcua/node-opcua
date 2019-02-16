@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.AlarmsAndConditions
+ */
 import { UAOffNormalAlarm } from "./ua_off_normal_alarm";
 
 /**

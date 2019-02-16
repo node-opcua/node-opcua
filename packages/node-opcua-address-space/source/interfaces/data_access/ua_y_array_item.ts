@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { DataType } from "node-opcua-variant";
 import { UAVariableT } from "../..";
 import { UAVariable } from "../..";

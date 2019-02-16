@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.DataAccess
+ */
 // Release 1.02  5  OPC Unified Architecture, Part 8
 
 // HasProperty  Variable  Definition  String  PropertyType  Optional

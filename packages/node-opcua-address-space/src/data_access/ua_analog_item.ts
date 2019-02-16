@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.DataAccess
+ */
 import { assert } from "node-opcua-assert";
 import { StatusCodes } from "node-opcua-constants";
 import { StatusCode } from "node-opcua-status-code";

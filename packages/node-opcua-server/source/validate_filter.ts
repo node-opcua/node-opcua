@@ -1,3 +1,6 @@
+/**
+ * @module opcua.server
+ */
 import { assert } from "node-opcua-assert";
 
 import { AttributeIds } from "node-opcua-data-model";

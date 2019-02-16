@@ -1,5 +1,5 @@
 /**
- * @module opcua.address_space
+ * @module node-opcua-address-space
  */
 import * as _ from "underscore";
 

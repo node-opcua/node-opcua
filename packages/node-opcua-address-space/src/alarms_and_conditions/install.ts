@@ -2,28 +2,10 @@
 // import * as utils  from "node-opcua-utils";
 //
 // /**
-//  * @module opcua.address_space.AlarmsAndConditions
+//  * @module node-opcua-address-space.AlarmsAndConditions
 //  */
 // exports.install = function (AddressSpace) {
 //
-//     // └─ ConditionType
-//     //    ├─ DialogConditionType
-//     //    └─ AcknowledgeableConditionType
-//     //       └─ AlarmConditionType
-//     //          ├─ LimitAlarmType
-//     //          │  ├─ ExclusiveLimitAlarmType
-//     //          │  │  ├─ ExclusiveLevelAlarmType
-//     //          │  │  ├─ ExclusiveDeviationAlarmType
-//     //          │  │  └─ ExclusiveRateOfChangeAlarmType
-//     //          │  └─ NonExclusiveLimitAlarmType
-//     //          │     ├─ NonExclusiveLevelAlarmType
-//     //          │     ├─ NonExclusiveDeviationAlarmType
-//     //          │     └─ NonExclusiveRateOfChangeAlarmType
-//     //          └─ DiscreteAlarmType
-//     //             ├─ OffNormalAlarmType
-//     //             │  ├─ SystemOffNormalAlarmType
-//     //             │  │  └─ CertificateExpirationAlarmType
-//     //             │  └─ TripAlarmType
 //
 //     const UAConditionBase = require("./condition").UAConditionBase;
 //     const UAAcknowledgeableConditionBase = require("./acknowledgeable_condition").UAAcknowledgeableConditionBase;
