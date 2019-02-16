@@ -5,6 +5,7 @@ const async = require("async");
 const _ = require("underscore");
 const os = require("os");
 const opcua = require("node-opcua");
+const RegisterServerManager = require("node-opcua-server").RegisterServerManager;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
@@ -297,7 +298,6 @@ describe("NodeRed -  testing frequent server restart within same process", funct
 
     it("T0g- registration manager as a standalone object", function (done) {
 
-        const RegisterServerManager = require("node-opcua-server/src/register_server_manager").RegisterServerManager;
         const registrationManager = new RegisterServerManager(
             {
                 timeout: 1000,
@@ -321,7 +321,6 @@ describe("NodeRed -  testing frequent server restart within same process", funct
     });
     it("T0h- registration manager as a standalone object", function (done) {
 
-        const RegisterServerManager = require("node-opcua-server/src/register_server_manager").RegisterServerManager;
         const registrationManager = new RegisterServerManager(
             {
                 timeout: 1000,

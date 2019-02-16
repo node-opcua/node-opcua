@@ -1,5 +1,5 @@
 const async = require("async");
-require("colors");
+const chalk = require("chalk");
 const path = require("path");
 const start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
 const stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
@@ -68,10 +68,10 @@ function start_active_client(callback) {
                     callback(err);
                 });
                 client.on("connection_reestablished", function () {
-                    console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.red);
+                    console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
                 });
                 client.on("backoff", function (number, delay) {
-                    console.log("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
+                    console.log(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
                 });
             },
 
@@ -83,11 +83,13 @@ function start_active_client(callback) {
                     console.log("session timeout = ", session.timeout);
                     the_session.on("keepalive", function (state) {
                         if (doDebug) {
-                            console.log("KeepAlive state=".yellow, state.toString(), " pending request on server = ".yellow, the_subscription.publish_engine.nbPendingPublishRequests);
+                            console.log(chalk.yellow("KeepAlive state="),
+                              state.toString(), " pending request on server = ",
+                              the_subscription.publish_engine.nbPendingPublishRequests);
                         }
                     });
                     the_session.on("session_closed", function (statusCode) {
-                        console.log("Session has closed : statusCode = ".yellow, statusCode ? statusCode.toString() : "????");
+                        console.log(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
                     });
                     callback(err);
                 });
@@ -126,7 +128,7 @@ function start_active_client(callback) {
 
                 }).on("keepalive", function () {
 
-                    console.log("keepalive ".cyan, " pending request on server = ".cyan, the_subscription.publish_engine.nbPendingPublishRequests);
+                    console.log(chalk.cyan("keepalive "), chalk.cyan(" pending request on server = "), the_subscription.publish_engine.nbPendingPublishRequests);
 
                 }).on("terminated", function (err) {
                     console.log("Session Terminated", err.message);
@@ -150,7 +152,7 @@ function start_active_client(callback) {
                  });
                 monitoredItem.on("changed",function(dataValue){
                     if (doDebug) {
-                        console.log(" ||||||||||| VALUE CHANGED !!!!".cyan,dataValue.statusCode.toString(),dataValue.value.toString());
+                        console.log(chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"),dataValue.statusCode.toString(),dataValue.value.toString());
                     }
                     result.push(dataValue);
                 });
@@ -170,8 +172,8 @@ function start_active_client(callback) {
 
                         console.log(" Session OK ? ", the_session.isChannelValid(),
                             "session will expired in ", the_session.evaluateRemainingLifetime() / 1000, " seconds",
-                            "subscription will expire in ".red, the_subscription.evaluateRemainingLifetime() / 1000, " seconds",
-                            "subscription?".red, the_session.subscriptionCount);
+                            chalk.red("subscription will expire in "), the_subscription.evaluateRemainingLifetime() / 1000, " seconds",
+                            chalk.red("subscription?"), the_session.subscriptionCount);
                     }
                     if (!the_session.isChannelValid() && false) {
                         //xx console.log(the_session.toString());
@@ -193,7 +195,7 @@ function start_active_client(callback) {
                     the_session.write([nodeToWrite], function (err, statusCode) {
                         if (err) {
                             if (doDebug) {
-                                console.log("       writing Failed ".red, err.message);
+                                console.log(chalk.red("       writing Failed "), err.message);
                             }
                         } else {
                             if (doDebug) {
@@ -259,7 +261,7 @@ describe("Testing client reconnection with crashing server", function () {
 
     function f(func) {
         return function (callback) {
-            console.log("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, "**$1**".green));
+            console.log("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
             return func(callback);
         };
     }

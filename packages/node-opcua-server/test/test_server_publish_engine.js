@@ -37,12 +37,14 @@ const sinon = require("sinon");
 const should = require("should");
 const _ = require("underscore");
 
-const ServerSidePublishEngine = require("../src/server_publish_engine").ServerSidePublishEngine;
-const Subscription = require("../src/server_subscription").Subscription;
-const SubscriptionState = require("../src/server_subscription").SubscriptionState;
 const subscription_service = require("node-opcua-service-subscription");
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
+
+
+const ServerSidePublishEngine = require("..").ServerSidePublishEngine;
+const Subscription = require("..").Subscription;
+const SubscriptionState = require("..").SubscriptionState;
 
 const fakeNotificationData = [new subscription_service.DataChangeNotification()];
 

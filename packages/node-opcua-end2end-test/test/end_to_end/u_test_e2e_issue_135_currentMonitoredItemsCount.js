@@ -139,7 +139,7 @@ module.exports = function (test) {
                                 return callback(err);
                             }
 
-                            //xx console.log("-----------------------------------------------".bgWhite.red,err);
+                            //xx console.log(chalk.bgWhite.red("-----------------------------------------------"),err);
                             //xx console.log("results = ",results);
 
                             dataValues.length.should.eql(3);

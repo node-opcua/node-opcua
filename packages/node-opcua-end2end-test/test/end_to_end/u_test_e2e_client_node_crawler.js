@@ -1,5 +1,5 @@
 
-
+const chalk = require("chalk");
 const should = require("should");
 const assert = require("node-opcua-assert").assert;
 const async = require("async");
@@ -52,10 +52,10 @@ module.exports = function (test) {
             }
 
             console.log("    referenceTypeId ",
-                f(reference.referenceTypeId.displayText(), 35).yellow +
+                f(chalk.yellow(reference.referenceTypeId.displayText(), 35)) +
                 (  reference.isForward ? " => " : " <= ") +
-                f(reference.browseName.name, 20).blue.bold +
-                "(" + reference.nodeId.displayText().cyan + ")"
+                f(chalk.blue.bold(reference.browseName.name, 20)) +
+                "(" + chalk.cyan(reference.nodeId.displayText()) + ")"
             );
         }
 
@@ -76,7 +76,7 @@ module.exports = function (test) {
                     const data = {};
                     crawler.on("browsed", function (nodeElement, data) {
 
-                        //xx console.log("nodeElement ".yellow, nodeElement.browseName.toString(), nodeElement.nodeId.displayText());
+                        //xx console.log(chalk.yellow("nodeElement "), nodeElement.browseName.toString(), nodeElement.nodeId.displayText());
                         const objectIndex = {
                             findNode: function (nodeId) {
                                 return null;

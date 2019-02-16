@@ -3,7 +3,7 @@ const async = require("async");
 const opcua = require("node-opcua-client");
 const assert = require("assert");
 const parseBinaryXSD = require("node-opcua-generator").parseBinaryXSD;
-
+const chalk = require("chalk");
 
 const doDebug = false;
 
@@ -51,7 +51,7 @@ function parse_opcua_common(session,callback)  {
                 const nodeId = reference.nodeId;
 
                 if (doDebug) {
-                    console.log("nodeId".cyan, nodeId.toString(), "browseName ", reference.browseName.toString());
+                    console.log(chalk.cyan("nodeId"), nodeId.toString(), "browseName ", reference.browseName.toString());
                 }
 
                 let strTypeDictionary;

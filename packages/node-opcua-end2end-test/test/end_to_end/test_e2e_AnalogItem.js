@@ -1,5 +1,5 @@
 "use strict";
-
+const chalk = require("chalk");
 const should = require("should");
 const async = require("async");
 const _ = require("underscore");
@@ -13,7 +13,6 @@ const BrowseDirection = opcua.BrowseDirection;
 const readUAAnalogItem = opcua.readUAAnalogItem;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
-
 
 const port = 2000;
 
@@ -48,7 +47,7 @@ describe("testing AnalogItem on client side", function () {
                 debugLog(" createSession");
                 client.createSession(function (err, session) {
                     g_session = session;
-                    debugLog(" Error =".yellow.bold, err);
+                    debugLog(chalk.yellow.bold(" Error ="), err);
                     callback(err);
                 });
             }

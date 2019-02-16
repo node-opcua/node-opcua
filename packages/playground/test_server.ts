@@ -6,10 +6,11 @@ import {
     BrowseRequest,
     BrowseResponse,
     OPCUAServer,
-    RegisterServerMethod, Request, Response,
+    RegisterServerMethod,
+    Request,
+    Response,
+    makeBoiler,
 } from "node-opcua";
-
-import { makeBoiler} from "../node-opcua-address-space";
 
 async function main() {
     try {
@@ -50,7 +51,7 @@ async function main() {
             }
 
             switch (response.schema.name) {
-                case "BrowseResponce": {
+                case "BrowseResponse": {
                     const browseRequest = response as BrowseResponse;
                     console.log("BrowseResponse.results.length =", browseRequest.results ? browseRequest.results.length : 0);
                 }  break;

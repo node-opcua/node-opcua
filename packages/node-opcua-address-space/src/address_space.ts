@@ -778,7 +778,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
             // istanbul ignore next
             if (doDebug) {
-                console.log(" " + self.browseName.toString().bgWhite.cyan);
+                console.log(" " + chalk.bgWhite.cyan(self.browseName.toString()));
             }
 
             for (const node of children) {
@@ -1040,11 +1040,10 @@ export class AddressSpace implements AddressSpacePrivate {
     public browseSingleNode(
       nodeId: NodeIdLike,
       browseDescription: BrowseDescription,
-      session?: SessionContext
+      context?: SessionContext
     ): BrowseResult {
 
         browseDescription = browseDescription || new BrowseDescription();
-
         browseDescription.browseDirection =
           adjustBrowseDirection(browseDescription.browseDirection, BrowseDirection.Forward);
 
@@ -1093,7 +1092,7 @@ export class AddressSpace implements AddressSpacePrivate {
             // xx console.log("xxxxxx browsing ",nodeId.toString() , " not found" );
         } else {
             browseResult.statusCode = StatusCodes.Good;
-            browseResult.references = obj.browseNode(browseDescription, session);
+            browseResult.references = obj.browseNode(browseDescription, context);
         }
         return new BrowseResult(browseResult);
     }

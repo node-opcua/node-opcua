@@ -5,18 +5,15 @@
 const should = require("should");
 const sinon = require("sinon");
 
+const SessionContext = require("node-opcua-address-space").SessionContext;
+const add_eventGeneratorObject = require("node-opcua-address-space").add_eventGeneratorObject;
 const subscription_service = require("node-opcua-service-subscription");
+const MonitoringParameters = subscription_service.MonitoringParameters;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-
-const Subscription = require("../src/server_subscription").Subscription;
-const SubscriptionState = require("../src/server_subscription").SubscriptionState;
-const ServerSidePublishEngine = require("../src/server_publish_engine").ServerSidePublishEngine;
-
+const encode_decode = require("node-opcua-basic-types");
 const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
-
 const MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
 const makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
-
 const DataType = require("node-opcua-variant").DataType;
 const DataValue = require("node-opcua-data-value").DataValue;
 const Variant = require("node-opcua-variant").Variant;
@@ -28,12 +25,18 @@ const NodeId = require("node-opcua-nodeid").NodeId;
 const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
-const MonitoredItem = require("../src/monitored_item").MonitoredItem;
-const encode_decode = require("node-opcua-basic-types");
 
-const SessionContext = require("node-opcua-address-space").SessionContext;
+
+const Subscription = require("..").Subscription;
+const SubscriptionState = require("..").SubscriptionState;
+const ServerSidePublishEngine = require("..").ServerSidePublishEngine;
+const MonitoredItem = require("..").MonitoredItem;
+const ServerEngine = require("..").ServerEngine;
+const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const nodeset_filename = require("..").nodeset_filename;
+
+
 const context = SessionContext.defaultContext;
-const MonitoringParameters = subscription_service.MonitoringParameters;
 
 const doDebug = false;
 
@@ -83,10 +86,6 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
-const server_engine = require("../src/server_engine");
-
-const add_eventGeneratorObject = require("node-opcua-address-space").add_eventGeneratorObject;
-
 
 function simulate_client_adding_publish_request(publishEngine, callback) {
     callback = callback || function () {
@@ -110,8 +109,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
     const test = this;
 
     before(function (done) {
-        engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.nodeset_filename}, function () {
+        engine = new ServerEngine();
+        engine.initialize({nodeset_filename: nodeset_filename}, function () {
 
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
@@ -1409,13 +1408,12 @@ describe("SM2 - MonitoredItem advanced", function () {
     let engine;
     let publishEngine;
     before(function (done) {
-        engine = new server_engine.ServerEngine();
+        engine = new ServerEngine();
 
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
 
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
-
 
             const node = namespace.addVariable({
                 organizedBy: "RootFolder",

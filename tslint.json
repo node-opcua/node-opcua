@@ -8,11 +8,19 @@
       "dist/*",
       "doc1/*",
       "documentation/*",
-      "node_modules/*"
+      "node_modules/*",
+      "**/*.js"
     ]
   },
   "jsRules": {},
   "rules": {
+
+    "object-literal-sort-keys": true,
+
+    "max-line-length": false,
+
+    "no-consecutive-blank-lines": true,
+
     "interface-name": [
       false,
       "never-prefix"

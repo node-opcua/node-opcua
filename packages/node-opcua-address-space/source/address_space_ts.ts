@@ -43,15 +43,15 @@ import {
     EUInformation,
     EUInformationOptions,
     Range, RangeOptions,
-    ReferenceDescription,
+    ReferenceDescription, ServerDiagnosticsSummaryDataType,
     ServerState,
-    ServerStatusDataType
+    ServerStatusDataType, SessionDiagnosticsDataType
 } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { MinimalistAddressSpace, Reference } from "../src/reference";
+import { State, StateMachine, StateMachineType, Transition } from "./interfaces/state_machine";
 import { PseudoSession } from "./pseudo_session";
 import { SessionContext } from "./session_context";
-import { State, StateMachine, StateMachineType, Transition } from "./interfaces/state_machine";
 
 import { AddressSpacePrivate } from "../src/address_space_private";
 import { UAAcknowledgeableConditionBase } from "../src/alarms_and_conditions/ua_acknowledgeable_condition_base";
@@ -124,6 +124,8 @@ export interface XmlWriter {
 
 }
 
+export declare function makeAttributeEventName(attributeId: AttributeIds): string;
+
 export declare class BaseNode extends EventEmitter {
 
     public readonly addressSpace: AddressSpace;
@@ -155,6 +157,12 @@ export declare class BaseNode extends EventEmitter {
       indexRange?: NumericRange,
       dataEncoding?: QualifiedNameLike | null
     ): DataValue;
+
+    public writeAttribute(
+      context: SessionContext,
+      writeValue: any,
+      callback: (err: Error | null, statusCode?: StatusCode) => void
+    ): void;
 
     /**
      * return a array with the event source of this object.
@@ -222,9 +230,8 @@ export declare class BaseNode extends EventEmitter {
      */
     public browseNode(
       browseDescription: BrowseDescriptionOptions,
-      session?: SessionContext): ReferenceDescription[];
-
-
+      session?: SessionContext
+    ): ReferenceDescription[];
 }
 
 export declare class UAView extends BaseNode {
@@ -306,7 +313,10 @@ export interface VariableAttributes {
 
 export interface IPropertyAndComponentHolder {
 
-    getComponentByName(componentName: QualifiedNameLike, namespaceIndex?: number): BaseNode | null;
+    getComponentByName(
+      componentName: QualifiedNameLike,
+      namespaceIndex?: number
+    ): UAObject | UAVariable | null;
 
     getPropertyByName(browseName: string, namespaceIndex?: number): UAVariable | null;
 
@@ -463,7 +473,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     historyRead(
       context: SessionContext,
-      historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+      historyReadDetails: HistoryReadDetails,
       indexRange: NumericRange | null,
       dataEncoding: QualifiedNameLike | null,
       continuationPoint: ContinuationPoint | null,
@@ -1340,7 +1350,7 @@ export interface BuildInfo1 extends UAVariable {
     $extensionObject: BuildInfo;
 }
 
-export interface ServerStatus1 extends UAVariable {
+export interface UAServerStatus extends UAVariable {
     startTime: UAVariableT<DataType.DateTime>;
     currentTime: UAVariableT<DataType.DateTime>;
     state: UAVariableT<ServerState>; // Enumeration
@@ -1351,8 +1361,22 @@ export interface ServerStatus1 extends UAVariable {
     $extensionObject: ServerStatusDataType;
 }
 
+export interface UASessionDiagnostics extends UAVariable {
+    $extensionObject: SessionDiagnosticsDataType;
+}
+export interface UAServerDiagnosticsSummary extends UAVariable {
+    $extensionObject: ServerDiagnosticsSummaryDataType;
+}
+export interface UASessionDiagnosticsSummary extends UAObject {
+    sessionDiagnosticsArray: UADynamicVariableArray<SessionDiagnosticsDataType>;
+}
+
+export interface UAServerDiagnostics extends UAObject {
+    sessionsDiagnosticsSummary: UASessionDiagnosticsSummary;
+    bindExtensionObject(obj: UAServerDiagnosticsSummary): UAServerDiagnosticsSummary;
+}
 export interface Server extends UAObject {
-    serverStatus: ServerStatus1;
+    serverStatus: UAServerStatus;
     auditing: UAVariable;
     currentTimeZone: UAVariable;
     estimatedReturnTime: UAVariable;
@@ -1362,6 +1386,7 @@ export interface Server extends UAObject {
     serverConfiguration: UAObject;
     vendorServerInfo: UAObject;
     getMonitoredItems: UAMethod;
+    serverDiagnostics: UAServerDiagnostics;
 }
 
 export interface ObjectsFolder extends Folder {
@@ -1547,7 +1572,7 @@ export interface AddressSpace {
     browseSingleNode(
       nodeId: NodeIdLike,
       browseDescription: BrowseDescription,
-      session?: SessionContext
+      context?: SessionContext
     ): BrowseResult;
 
     browsePath(browsePath: BrowsePath): BrowsePathResult;

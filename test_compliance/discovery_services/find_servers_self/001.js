@@ -7,7 +7,7 @@ var should = require("should");
 var assert = require("node-opcua-assert").assert;
 
 function addError( str) {
-    console.log("ERROR".red , str.cyan);
+    console.log(chalk.red("ERROR") , str);
 
 }
 /*

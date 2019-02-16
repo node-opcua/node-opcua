@@ -42,6 +42,7 @@ import {
     UAReference as UAReferencePublic,
     UAReferenceType as UAReferenceTypePublic,
     UAVariable as UAVariablePublic,
+    UAObject as UAObjectPublic,
     UAVariableType as UAVariableTypePublic,
     XmlWriter
 } from "../source";
@@ -65,7 +66,7 @@ require("object.values");
 
 const doDebug = false;
 
-function defaultBrowseFilterFunc(session?: any): boolean {
+function defaultBrowseFilterFunc(context?: SessionContext): boolean {
     return true;
 }
 
@@ -85,7 +86,7 @@ export interface InternalBaseNodeOptions {
     displayName?: LocalizedTextLike | LocalizedTextLike[];
     description?: LocalizedTextLike | null;
 
-    browseFilter?: (this: BaseNode, session?: any) => boolean;
+    browseFilter?: (this: BaseNode, context?: SessionContext) => boolean;
 
 }
 
@@ -98,6 +99,11 @@ function _is_valid_BrowseDirection(browseDirection: any) {
 
 export interface BaseNode {
     nodeVersion?: number;
+}
+
+export function makeAttributeEventName(attributeId: AttributeIds) {
+    const attributeName = attributeNameById[attributeId];
+    return attributeName + "_changed";
 }
 
 /**
@@ -232,8 +238,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     public static makeAttributeEventName(attributeId: AttributeIds) {
-        const attributeName = attributeNameById[attributeId];
-        return attributeName + "_changed";
+        return  makeAttributeEventName(attributeId);
     }
 
     protected static _getCache(baseNode: BaseNode) {
@@ -542,11 +547,21 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     public getComponentByName(
       browseName: QualifiedNameLike,
       namespaceIndex?: number
-    ): BaseNodePublic | null {
+    ): UAVariablePublic | UAObjectPublic | null {
         const components = this.getComponents();
         const select = _filter_by_browse_name(components, browseName, namespaceIndex);
         assert(select.length <= 1, "BaseNode#getComponentByName found duplicated reference");
-        return select.length === 1 ? select[0] : null;
+        if (select.length === 1) {
+            const component = select[0];
+            if (component.nodeClass === NodeClass.Method) {
+                console.log("please use getMethodByName to retrieve a method");
+                return null;
+            }
+            assert(component.nodeClass === NodeClass.Variable || component.nodeClass === NodeClass.Object);
+            return component as any as (UAVariablePublic | UAObjectPublic);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -832,7 +847,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      */
     public browseNode(
       browseDescription: BrowseDescription,
-      session?: SessionContext): ReferenceDescription[] {
+      context?: SessionContext
+    ): ReferenceDescription[] {
 
         assert(_.isFinite(browseDescription.nodeClassMask));
         assert(_.isFinite(browseDescription.browseDirection));
@@ -869,7 +885,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 
         references = _filter_by_nodeclass.call(this, references, browseDescription.nodeClassMask);
 
-        references = _filter_by_userFilter.call(this, references, session);
+        references = _filter_by_userFilter.call(this, references, context);
 
         const referenceDescriptions = _constructReferenceDescription(
           addressSpace, references, browseDescription.resultMask);
@@ -1638,7 +1654,7 @@ function _filter_by_nodeclass(
 function _filter_by_userFilter(
   this: BaseNode,
   references: Reference[],
-  session?: SessionContext
+  context?: SessionContext
 ): Reference[] {
     const addressSpace = this.addressSpace;
     return references.filter((reference: Reference) => {
@@ -1652,7 +1668,7 @@ function _filter_by_userFilter(
             throw Error("Internal error : cannot find browseFilter");
         }
 
-        return _private._browseFilter.call(obj, session);
+        return _private._browseFilter.call(obj, context);
     });
 }
 

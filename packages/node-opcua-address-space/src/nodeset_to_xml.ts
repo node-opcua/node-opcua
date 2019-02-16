@@ -142,7 +142,6 @@ function _dumpVariantExtensionObjectValue_Body(
             xw.startElement(utils.capitalizeFirstLetter(field.name));
             const v = value[field.name];
             if (v !== null && v !== undefined) {
-                // xx console.log("xxxxx field",field," V ".red,v);
                 switch (field.fieldType) {
                     case "UInt64":
                     case "Int64":
@@ -231,7 +230,6 @@ function _dumpValue(
 
     const schema = getStructuredTypeSchema(dataTypeName);
 
-    // xx console.log("xxxxxxxxx schema".cyan,dataTypeName.yellow,schema);
     function encodeXml(value1: any) {
         _dumpVariantExtensionObjectValue_Body(xw, schema, value1);
     }

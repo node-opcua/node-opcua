@@ -104,7 +104,7 @@ function build_server_with_temperature_device(options, done) {
 
     server.on("session_closed", function (session, reason) {
         //xx console.log(" server_with_temperature_device has closed a session :",reason);
-        //xx console.log("              session name: ".cyan,session.sessionName.toString());
+        //xx console.log(chalk.cyan("              session name: "),session.sessionName.toString());
     });
 
     server.on("post_initialize", function () {
@@ -240,7 +240,7 @@ function build_server_with_temperature_device(options, done) {
                 // This will allow us to handle more specifically timestamps and statusCodes
                 timestamped_set: function (dataValue, callback) {
                     assert(_.isFunction(callback), "callback must be a function");
-                    //xxx console.log(" DATA VALUE !!!".cyan,dataValue.toString().yellow);
+                    //xxx console.log(chalk.cyan(" DATA VALUE !!!"), chalk.yellow(dataValue.toString()));
                     setTimeout(function () {
                         asyncWriteFull_dataValue = new DataValue(dataValue);
                         callback();

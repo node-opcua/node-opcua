@@ -18,7 +18,7 @@ const messageHeaderToString = require("../lib/misc/message_header").messageHeade
 
 const s = require("../lib/datamodel/structures");
 
-require("colors");
+const chalk = require("chalk");
 
 const remote_port = parseInt(argv.port, 10) || 4841;
 const hostname = argv.hostname || "localhost";
@@ -57,7 +57,7 @@ TrafficAnalyser.prototype.add = function (data) {
             analyseExtensionObject(full_message_body);
         }
         catch (err) {
-            console.log("ERROR : ".red, err);
+            console.log(chalk.red("ERROR : "), err);
         }
     });
 
@@ -67,9 +67,9 @@ TrafficAnalyser.prototype.add = function (data) {
         case "HEL":
         case "ACK":
             if (this.id % 2) {
-                console.log(JSON.stringify(messageHeader, null, "").red.bold);
+                console.log(chalk.red.bold(JSON.stringify(messageHeader, null, "")));
             } else {
-                console.log(JSON.stringify(messageHeader, null, "").yellow.bold);
+                console.log(chalk.yellow.bold(JSON.stringify(messageHeader, null, "")));
             }
             break;
 
@@ -78,9 +78,9 @@ TrafficAnalyser.prototype.add = function (data) {
         case "MSG": // message
                     // decode secure message
             if (this.id % 2) {
-                console.log(messageHeaderToString(data).red.bold);
+                console.log(chalk.red.bold(messageHeaderToString(data)));
             } else {
-                console.log(messageHeaderToString(data).yellow.bold);
+                console.log(chalk.yellow.bold(messageHeaderToString(data)));
             }
 
             messageBuild.feed(data);

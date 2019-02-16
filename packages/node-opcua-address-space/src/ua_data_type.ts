@@ -79,7 +79,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
                 options.value = { dataType: DataType.Boolean, value: !!this.isAbstract };
                 break;
             default:
-                return BaseNode.prototype.readAttribute.call(this, context, attributeId);
+                return super.readAttribute(context, attributeId);
         }
         return new DataValue(options);
     }

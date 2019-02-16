@@ -24,6 +24,7 @@ export function getMiniAddressSpace(...args: any[]): any {
     assert(serverNamespace.index === 1);
 
     generateAddressSpace(addressSpace, mini_nodeset_filename, (err?: Error) => {
+        // istanbul ignore next
         if (err) {
             // tslint:disable:no-console
             console.log("err =", err);

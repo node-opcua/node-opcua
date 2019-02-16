@@ -19,12 +19,12 @@ module.exports = function(test) {
             const server = test.server;
 
             const spy_new_channel = sinon.spy(function(channel) {
-                //xx console.log("Client connected with address = ".bgYellow,channel.remoteAddress," port = ",channel.remotePort);
+                //xx console.log(chalk.bgYellow("Client connected with address = "),channel.remoteAddress," port = ",channel.remotePort);
                 channel.remoteAddress.should.be.instanceof(String);
                 channel.remotePort.should.be.instanceof(Number);
             });
             const spy_close_channel = sinon.spy(function(channel) {
-                //xx console.log("Client disconnected with address = ".bgCyan,channel.remoteAddress," port = ",channel.remotePort);
+                //xx console.log(chalk.bgCyan("Client disconnected with address = "),channel.remoteAddress," port = ",channel.remotePort);
                 channel.remoteAddress.should.be.instanceof(String);
                 channel.remotePort.should.be.instanceof(Number);
             });

@@ -89,6 +89,7 @@ export interface FiniteTransitionVariableB extends TransitionVariableB {
 export interface FiniteTransitionVariable extends FiniteTransitionVariableB, UAVariableT<LocalizedText> {
 }
 
+// tslint:disable-next-line:no-empty-interface
 export interface FiniteStateMachine extends StateMachine {
 
 }
@@ -96,4 +97,3 @@ export interface FiniteStateMachine extends StateMachine {
 export interface FiniteStateMachineType extends StateMachineType {
     instantiate(options: InstantiateObjectOptions): StateMachine;
 }
-

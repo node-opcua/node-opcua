@@ -540,6 +540,7 @@ function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstr
     for (let i = 0; i < n; i++) {
         newArr[i] = coerceFunc(value[i]);
     }
+    // istanbul ignore next
     if (arrayTypeConstructor && displayWarning && n > 10) {
         // tslint:disable-next-line:no-console
         console.log("Warning ! an array containing  " + DataType[dataType] +
@@ -748,7 +749,7 @@ export function coerceVariantType(dataType: DataType, value: any): any {
         case DataType.Int32:
         case DataType.UInt32:
             assert(value !== undefined);
-            const ttt = value;
+
             if (isEnumerationItem(value)) {
                 // value is a enumeration of some sort
                 value = value.value;
@@ -776,6 +777,8 @@ export function coerceVariantType(dataType: DataType, value: any): any {
             break;
         case DataType.ByteString:
             value = (typeof value === "string") ? Buffer.from(value) : value;
+
+            // istanbul ignore next
             if (!(value === null || value instanceof Buffer)) {
                 throw new Error("ByteString should be null or a Buffer");
             }
@@ -874,7 +877,7 @@ function isValidMatrixVariant(dataType: DataType, value: any, dimensions: number
 export function isValidVariant(
     arrayType: VariantArrayType,
     dataType: DataType,
-    value: any, dimensions: number[] | null): boolean {
+    value: any, dimensions?: number[] | null): boolean {
 
     switch (arrayType) {
         case VariantArrayType.Scalar:
@@ -883,7 +886,7 @@ export function isValidVariant(
             return isValidArrayVariant(dataType, value);
         default:
             assert(arrayType === VariantArrayType.Matrix);
-            return isValidMatrixVariant(dataType, value, dimensions);
+            return isValidMatrixVariant(dataType, value, dimensions!);
     }
 }
 
@@ -917,9 +920,11 @@ export function buildVariantArray(dataType: DataType, nbElements: number, defaul
             break;
         default:
             value = new Array(nbElements);
-            for (let i = 0; i < nbElements; i++) {
-                value[i] = defaultValue;
-            }
+    }
+    if (defaultValue !== undefined) {
+        for (let i = 0; i < nbElements; i++) {
+            value[i] = defaultValue;
+        }
     }
     return value;
 }

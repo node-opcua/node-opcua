@@ -136,7 +136,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
                 console.log(f(c));
             });
         }
-        //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + objectType.browseName.toString());
+        //xx console.log(chalk.yellow("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz") + objectType.browseName.toString());
         let baseType = objectType.subtypeOfObj;
 
         if (doDebug) {
@@ -144,14 +144,14 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
                 console.log(f(c));
             });
         }
-        //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + baseType.browseName.toString());
+        //xx console.log(chalk.yellow("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz") + baseType.browseName.toString());
         baseType = baseType.subtypeOfObj;
         if (doDebug) {
             baseType.getComponents().forEach(function (c) {
                 console.log(f(c));
             });
         }
-        //xx console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz".yellow + baseType.browseName.toString());
+        //xx console.log(chalk.yellow("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz") + baseType.browseName.toString());
 
     }
 

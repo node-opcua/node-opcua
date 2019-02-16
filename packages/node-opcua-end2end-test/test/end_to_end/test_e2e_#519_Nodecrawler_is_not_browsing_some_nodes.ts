@@ -42,7 +42,7 @@ describe("testing monitoring Executable flags on methods", () => {
         done();
     });
     after( async () => {
-        await server.shutdown(100);
+        await server.shutdown();
     });
     it("should browse a variable", async () => {
 

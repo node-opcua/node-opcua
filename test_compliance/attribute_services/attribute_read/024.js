@@ -81,7 +81,7 @@ function test_24_on_node(session,nodeId,callback) {
 
             });
         } else {
-            console.log("err = ".yellow,err);
+            console.log(chalk.yellow("err = "),err);
             // cannot read array
             callback(err);
         }

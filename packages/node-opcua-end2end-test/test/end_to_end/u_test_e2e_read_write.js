@@ -92,10 +92,10 @@ module.exports = function (test) {
                         dataValue.serverTimestamp = null;
                         dataValues[0].serverTimestamp = null;
                         if (!sameDataValue(dataValue, dataValues[0])) {
-                            console.log(" ------- > expected".yellow);
-                            console.log(dataValue.toString().yellow);
-                            console.log(" ------- > actual".cyan);
-                            console.log(dataValues[0].toString().cyan);
+                            console.log(chalk.yellow(" ------- > expected"));
+                            console.log(chalk.yellow(dataValue.toString()));
+                            console.log(chalk.cyan(" ------- > actual"));
+                            console.log(chalk.cyan(dataValues[0].toString()));
                             // dataValue.toString().split("\n").should.eql(results[0].toString().split("\n"));
                             return inner_done(new Error("dataValue is not as expected"));
                         }

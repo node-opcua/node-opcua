@@ -91,7 +91,7 @@ export function checkDeadBand(
   variant1: Variant,
   variant2: Variant,
   deadbandType: DeadbandType,
-  deadbandValue: number,
+  deadbandValue?: number,
   valueRange?: number
 ): boolean {
 
@@ -102,10 +102,16 @@ export function checkDeadBand(
             return difference(variant1, variant2, 0);
 
         case DeadbandType.Absolute:
+            if (deadbandValue === undefined) {
+                throw new Error("Invalid deadbandValue");
+            }
             // AbsoluteDeadband
             return difference(variant1, variant2, deadbandValue);
 
         default:
+            if (deadbandValue === undefined) {
+                throw new Error("Invalid deadbandValue");
+            }
             // Percent_2    PercentDeadband (This type is specified in Part 8).
             assert(deadbandType === DeadbandType.Percent);
 

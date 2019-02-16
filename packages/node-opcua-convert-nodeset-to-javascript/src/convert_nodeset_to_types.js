@@ -229,7 +229,7 @@ function makeStructure(dataType, bForce, schema_folder) {
     // if binaryEncodingNodeId is in the standard factory => no need to overwrite
 
     if (!bForce && (hasConstructor(dataType.binaryEncodingNodeId) || dataType.binaryEncodingNodeId.namespace === 0)) {
-        //xx console.log("Skipping standard constructor".bgYellow ," for dataType" ,dataType.browseName.toString());
+        //xx console.log(chalk.bgYellow("Skipping standard constructor") ," for dataType" ,dataType.browseName.toString());
         return getConstructor(dataType.binaryEncodingNodeId);
     }
 
@@ -242,8 +242,6 @@ function makeStructure(dataType, bForce, schema_folder) {
     const filename = getSchemaSourceFile(namespaceUri, schema.name, "");
 
     const relative_filename = normalize_require_file(__dirname, filename);
-
-    //xx console.log("xxxxxxxxxxxxxxxxxx => ".green,schema.name,filename.cyan,relative_filename.yellow);
 
     const constructor = require(relative_filename)[schema.name];
     assert(_.isFunction(constructor), "expecting a constructor here");

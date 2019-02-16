@@ -86,7 +86,10 @@ export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
 
     getPrivateKey(): PrivateKeyPEM;
 
-    getEndpointDescription(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): EndpointDescription;
+    getEndpointDescription(
+      securityMode: MessageSecurityMode,
+      securityPolicy: SecurityPolicy
+    ): EndpointDescription | null;
 
 }
 
@@ -108,6 +111,8 @@ export interface Message {
     requestId: number;
     securityHeader?: SecurityHeader;
     channel?: ServerSecureChannelLayer;
+    session?: any;
+    session_statusCode?: StatusCode;
 }
 
 export  interface ServerTransactionStatistics {
@@ -237,31 +242,33 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     public static registry: any;
+    public _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
+    public sessionTokens: any;
+    public channelId: number | null;
+    public readonly timeout: number;
+    public readonly messageBuilder: MessageBuilder;
+    public receiverCertificate: Buffer | null;
+    public clientCertificate: Buffer | null;
+    public clientNonce: Buffer | null;
+    public endpoint: any;
+    public securityMode: MessageSecurityMode;
+    public securityHeader: AsymmetricAlgorithmSecurityHeader | null;
+    public clientSecurityHeader?: SecurityHeader;
 
     private readonly __hash: number;
     private parent: ServerSecureChannelParent | null;
     private readonly protocolVersion: number;
     private lastTokenId: number;
-    private readonly timeout: number;
     private readonly defaultSecureTokenLifetime: number;
     private securityToken: ChannelSecurityToken;
     private serverNonce: Buffer | null;
-    private readonly messageBuilder: MessageBuilder;
-    private securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     private receiverPublicKey: string | null;
     private receiverPublicKeyLength: number;
-    private receiverCertificate: Buffer | null;
-    private clientCertificate: Buffer | null;
-    private clientNonce: Buffer | null;
     private readonly messageChunker: MessageChunker;
-    private securityMode: MessageSecurityMode;
 
-    private clientSecurityHeader?: SecurityHeader;
     private timeoutId: NodeJS.Timer | null;
     private _securityTokenTimeout: NodeJS.Timer | null;
     private _transactionsCount: number;
-    private sessionTokens: any;
-    private channelId: number | null;
     private revisedLifetime: number;
     private readonly transport: ServerTCP_transport;
     private derivedKeys?: DerivedKeys1;
@@ -278,11 +285,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     private _remoteAddress: string;
     private _remotePort: number;
-    private endpoint: any;
     private _abort_has_been_called: boolean;
     private __verifId: any;
     private _transport_socket_close_listener?: any;
-    private readonly _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
 
     public constructor(options: SeverSecureChannelLayerOptions) {
 
@@ -514,7 +519,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
       msgType: string,
       response: Response,
       message: Message,
-      callback: ErrorCallback
+      callback?: ErrorCallback
     ): void {
 
         const request = message.request;
@@ -819,7 +824,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
     }
 
-    private _send_chunk(callback: ErrorCallback, messageChunk: Buffer | null) {
+    private _send_chunk(callback: ErrorCallback | undefined, messageChunk: Buffer | null) {
 
         if (messageChunk) {
             this.transport.write(messageChunk);
@@ -982,12 +987,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 break;
             case MessageSecurityMode.Sign:
             case MessageSecurityMode.SignAndEncrypt:
-            default:
-
+            default: {
                 // get the thumbprint of the client certificate
                 const thumbprint = this.receiverCertificate
-                    ? makeSHA1Thumbprint(this.receiverCertificate)
-                    : null;
+                  ? makeSHA1Thumbprint(this.receiverCertificate)
+                  : null;
 
                 if (!this.clientSecurityHeader) {
                     throw new Error("Internal");
@@ -999,7 +1003,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     securityPolicyUri: asymmClientSecurityHeader.securityPolicyUri,
                     senderCertificate: this.getCertificateChain() // certificate of the private key used to sign the message
                 });
-                break;
+            }
         }
         return securityHeader;
     }
@@ -1352,7 +1356,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return this._send_error(StatusCodes.BadSecurityPolicyRejected, description, message, callback);
         }
 
-        this.endpoint = this.getEndpointDescription(this.securityMode, securityPolicy);
+        this.endpoint = this.getEndpointDescription(this.securityMode, securityPolicy)!;
 
         this.messageBuilder
             .on("message", (request, msgType, requestId, channelId) => {

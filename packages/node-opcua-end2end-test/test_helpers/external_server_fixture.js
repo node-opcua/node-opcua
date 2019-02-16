@@ -1,6 +1,6 @@
 /* global: require, describe, it, process*/
 "use strict";
-require("colors");
+const chalk = require("chalk");
 var crypto_utils = require("node-opcua-crypto");
 var fs = require("fs");
 var path = require("path");
@@ -124,10 +124,10 @@ function start_simple_server(options, callback) {
     }
 
     server_exec.stdout.on("data", function (data) {
-        dumpData("stdout:  ".cyan, data.toString("utf8"));
+        dumpData(chalk.cyan("stdout:  "), data.toString("utf8"));
     });
     server_exec.stderr.on("data", function (data) {
-        dumpData("stderr: ".red, data.toString("utf8"));
+        dumpData(chalk.red("stderr: "), data.toString("utf8"));
     });
 
 }

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /* eslint no-process-exit: 0 */
 "use strict";
-var path = require("path");
-var _ = require("underscore");
-var opcua = require("node-opcua");
+const chalk = require("chalk");
+const path = require("path");
+const _ = require("underscore");
+const opcua = require("node-opcua");
 
 const SecurityPolicy = opcua.SecurityPolicy;
 const MessageSecurityMode = opcua.MessageSecurityMode;
@@ -14,9 +15,9 @@ function constructFilename(filename) {
     return path.join(__dirname, "../", filename);
 }
 
-var yargs = require("yargs/yargs");
+const yargs = require("yargs/yargs");
 
-var argv = yargs(process.argv)
+const argv = yargs(process.argv)
 .wrap(132)
 
 .string("alternateHostname")
@@ -106,18 +107,18 @@ server.on("post_initialize", function () {
 });
 
 
-console.log("  server PID          :".yellow, process.pid);
-console.log("  silent              :".yellow, argv.silent);
+console.log(chalk.yellow("  server PID          :"), process.pid);
+console.log(chalk.yellow("  silent              :"), argv.silent);
 
 server.start(function (err) {
     if (err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
-    console.log("  server on port      :".yellow, server.endpoints[0].port.toString().cyan);
-    console.log("  endpointUrl         :".yellow, endpointUrl.cyan);
+    console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
+    console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
 
-    console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
+    console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
     if (argv.silent) {
         console.log(" silent");
@@ -128,27 +129,27 @@ server.start(function (err) {
 
 server.on("create_session", function (session) {
     console.log(" SESSION CREATED");
-    console.log("    client application URI: ".cyan, session.clientDescription.applicationUri);
-    console.log("        client product URI: ".cyan, session.clientDescription.productUri);
-    console.log("   client application name: ".cyan, session.clientDescription.applicationName.toString());
-    console.log("   client application type: ".cyan, session.clientDescription.applicationType.toString());
-    console.log("              session name: ".cyan, session.sessionName ? session.sessionName.toString() : "<null>");
-    console.log("           session timeout: ".cyan, session.sessionTimeout);
-    console.log("                session id: ".cyan, session.sessionId);
+    console.log(chalk.cyan("    client application URI: "), session.clientDescription.applicationUri);
+    console.log(chalk.cyan("        client product URI: "), session.clientDescription.productUri);
+    console.log(chalk.cyan("   client application name: "), session.clientDescription.applicationName.toString());
+    console.log(chalk.cyan("   client application type: "), session.clientDescription.applicationType.toString());
+    console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
+    console.log(chalk.cyan("           session timeout: "), session.sessionTimeout);
+    console.log(chalk.cyan("                session id: "), session.sessionId);
 });
 
 server.on("session_closed", function (session, reason) {
     console.log(" SESSION CLOSED :", reason);
-    console.log("              session name: ".cyan, session.sessionName ? session.sessionName.toString() : "<null>");
+    console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
 });
 
 process.on("SIGINT", function () {
     // only work on linux apparently
-    console.error(" Received server interruption from user ".red.bold);
-    console.error(" shutting down ...".red.bold);
+    console.error(chalk.red.bold(" Received server interruption from user "));
+    console.error(chalk.red.bold(" shutting down ..."));
     server.shutdown(1000, function () {
-        console.error(" shutting down completed ".red.bold);
-        console.error(" done ".red.bold);
+        console.error(chalk.red.bold(" shutting down completed "));
+        console.error(chalk.red.bold(" done "));
         console.error("");
         process.exit(-1);
     });

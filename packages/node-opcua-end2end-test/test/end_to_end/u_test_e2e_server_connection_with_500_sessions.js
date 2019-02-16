@@ -107,10 +107,10 @@ module.exports = function (test) {
             });
 
             client.on("start_reconnection", function (err) {
-                if(doDebug) { console.log("start_reconnection".bgWhite.yellow,data.index);}
+                if(doDebug) { console.log(chalk.bgWhite.yellow("start_reconnection"),data.index);}
             });
             client.on("backoff", function (number, delay) {
-                if(doDebug) { console.log("backoff".bgWhite.yellow,number,delay);}
+                if(doDebug) { console.log(chalk.bgWhite.yellow("backoff"),number,delay);}
             });
 
             //xx client.knowsServerEndpoint.should.eql(true);

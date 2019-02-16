@@ -291,7 +291,7 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
 
         const str = JSON.stringify(blob);
 
-        console.log("JSON string".yellow, str.cyan);
+        console.log(chalk.yellow("JSON string"), str);
 
         const obj = new Blob(JSON.parse(str));
 

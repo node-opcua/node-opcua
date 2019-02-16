@@ -2,6 +2,7 @@
  * @module node-opcua-nodeid
  */
 // tslint:disable:no-conditional-assignment
+import chalk from "chalk";
 import assert from "node-opcua-assert";
 import {
     DataTypeIds,
@@ -134,7 +135,7 @@ export class NodeId {
             if (this.namespace === 0 && (this.identifierType === NodeIdType.NUMERIC)) {
                 // find standard browse name
                 const name = reverse_map(this.value.toString()) || "<undefined>";
-                str += " " + name.green.bold;
+                str += " " + chalk.green.bold(name);
             } else {
                 // let use the provided address space to figure out the browseNode of this node.
                 // to make the message a little bit more useful.

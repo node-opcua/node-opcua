@@ -1,5 +1,5 @@
 "use strict";
-
+const chalk = require("chalk");
 const should = require("should");
 const assert = require("node-opcua-assert").assert;
 const async = require("async");
@@ -99,7 +99,7 @@ describe("Functional test : one server with many concurrent clients", function()
                 client.createSession(function(err, session) {
                     debugLog(" session created for ", name);
                     data.session = session;
-                    debugLog(" Error =".yellow.bold, err);
+                    debugLog(chalk.yellow.bold(" Error ="), err);
                     callback(err);
                 });
             },
@@ -123,15 +123,15 @@ describe("Functional test : one server with many concurrent clients", function()
 
                 subscription.on("started", function() {
                     debugLog(
-                        "subscription started".yellow.bold,
-                        name.cyan,
+                        chalk.yellow.bold("subscription started"),
+                        chalk.cyan(name),
                         expectedSubscriptionCount,
                         server.currentSubscriptionCount
                     );
                 });
 
                 subscription.on("terminated", function() {
-                    debugLog("subscription terminated".red.bold, name);
+                    debugLog(chalk.red.bold("subscription terminated"), name);
                 });
 
                 const monitoredItem = opcua.ClientMonitoredItem.create(

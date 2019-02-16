@@ -175,7 +175,7 @@ describe("testing Server resilience to DDOS attacks", function () {
         function step2_close_all_channels(callback) {
 
             async.eachLimit(channels, 1, function (channel, callback) {
-                //xxconsole.log(" CLOSING =======================================".bgWhite.red,channel._transport.name);
+                //xxconsole.log(chalk.bgWhite.red(" CLOSING ======================================="),channel._transport.name);
                 channel.close(function (err) {
                     if (err) {
                         nbError++;
@@ -215,13 +215,13 @@ describe("testing Server resilience to DDOS attacks", function () {
 
         client.on("start_reconnection", (err) => {
             if (doDebug) {
-                debugLog("start_reconnection".bgWhite.yellow, data.index);
+                debugLog(chalk.bgWhite.yellow("start_reconnection"), data.index);
             }
             throw Error("Expecting automatic reconnection to be disabled");
         });
         client.on("backoff", (number, delay) => {
             if (doDebug) {
-                debugLog("backoff".bgWhite.yellow, number, delay);
+                debugLog(chalk.bgWhite.yellow("backoff"), number, delay);
             }
             throw Error("Expecting automatic reconnection to be disabled");
         });
@@ -237,13 +237,13 @@ describe("testing Server resilience to DDOS attacks", function () {
 
             function (callback) {
                 if (doDebug) {
-                    debugLog("about to start client".bgWhite.yellow, client.name);
+                    debugLog(chalk.bgWhite.yellow("about to start client"), client.name);
                 }
                 client.connect(endpointUrl, function (err) {
 
                     if (!err) {
                         if (doDebug) {
-                            debugLog("client".bgWhite.yellow, client.name, " connected");
+                            debugLog(chalk.bgWhite.yellow("client"), client.name, " connected");
                         }
                         client._secureChannel.connectionStrategy.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /* eslint no-process-exit: 0 */
 "use strict";
-
+const chalk = require("chalk");
 const readline = require("readline");
 const treeify = require("treeify");
-require("colors");
 const sprintf = require("sprintf-js").sprintf;
 const util = require("util");
 const fs = require("fs");
@@ -112,7 +111,7 @@ const rl = readline.createInterface({
     completer: completer
 });
 
-let the_prompt = ">".cyan;
+let the_prompt = chalk.cyan(">");
 rl.setPrompt(the_prompt);
 rl.prompt();
 
@@ -213,7 +212,7 @@ function setCurrentNode(node) {
         }
         return lowerFirstLetter(c.browseName.name.toString());
     });
-    the_prompt = nodePathName.join(".").yellow+">";
+    the_prompt = chalk.yellow(nodePathName.join("."))+">";
     rl.setPrompt(the_prompt);
 }
 function setRootNode(node) {
@@ -226,7 +225,7 @@ function moveToChild(browseName) {
     if (browseName === "..") {
         nodePathName.pop();
         curNode = nodePath.splice(-1,1)[0];
-        the_prompt = nodePathName.join(".").yellow+">";
+        the_prompt = chalk.yellow(nodePathName.join("."))+">";
         rl.setPrompt(the_prompt);
         return;
     }
@@ -272,7 +271,7 @@ client.on("receive_chunk", function (message_chunk) {
 
 client.on("send_request", function (message) {
     if (dumpPacket) {
-        log(" sending request".red);
+        log(chalk.red(" sending request"));
         opcua.analyze_object_binary_encoding(message);
     }
 });
@@ -280,7 +279,7 @@ client.on("send_request", function (message) {
 client.on("receive_response", function (message) {
     if (dumpPacket) {
         assert(message);
-        log(" receive response".cyan.bold);
+        log(chalk.cyan.bold(" receive response"));
         opcua.analyze_object_binary_encoding(message);
     }
 });
@@ -291,7 +290,7 @@ function dumpNodeResult(node) {
     log(str);
 }
 function colorize(value) {
-    return ("" + value).yellow.bold;
+    return chalk.yellow.bold("" + value);
 }
 
 
@@ -345,14 +344,14 @@ function apply_on_valid_session(cmd, func ,callback) {
             func(the_session,callback);
         });
     } else {
-        log("command : ", cmd.yellow, " requires a valid session , use createSession first");
+        log("command : ", chalk.yellow(cmd), " requires a valid session , use createSession first");
     }
 }
 
 function dump_dataValues(nodesToRead, dataValues) {
     for (let i = 0; i < dataValues.length; i++) {
         const dataValue = dataValues[i];
-        log("           Node : ", (nodesToRead[i].nodeId.toString()).cyan.bold, nodesToRead[i].attributeId.toString());
+        log("           Node : ",chalk.cyan.bold((nodesToRead[i].nodeId.toString())), nodesToRead[i].attributeId.toString());
         if (dataValue.value) {
             log("           type : ", colorize(DataType[dataValue.value.dataType]));
             log("           value: ", colorize(dataValue.value.value));
@@ -366,7 +365,7 @@ function dump_dataValues(nodesToRead, dataValues) {
 
 function dump_historyDataValues(nodeToRead,startDate,endDate, historyReadResult) {
 
-    log("           Node : ", (nodeToRead.nodeId.toString()).cyan.bold, nodeToRead.attributeId.toString());
+    log("           Node : ",chalk.cyan.bold((nodeToRead.nodeId.toString())), nodeToRead.attributeId.toString());
     log("      startDate : ",startDate);
     log("        endDate : ",endDate);
     if (historyReadResult.statusCode !== opcua.StatusCodes.Good) {
@@ -412,14 +411,14 @@ function open_session(callback) {
         client.requestedSessionTimeout = sessionTimeout;
         client.createSession(function (err, session) {
             if (err) {
-                log("Error : ".red, err);
+                log(chalk.red("Error : "), err);
             } else {
 
                 the_session = session;
                 log("session created ", session.sessionId.toString());
                 proxyManager = new UAProxyManager(the_session);
 
-                the_prompt = "session:".cyan + the_session.sessionId.toString().yellow + ">".cyan;
+                the_prompt = chalk.cyan("session:") + chalk.yellow(the_session.sessionId.toString()) + chalk.cyan(">");
                 rl.setPrompt(the_prompt);
 
                 assert(!crawler);
@@ -430,7 +429,7 @@ function open_session(callback) {
             callback();
         });
         client.on("close", function () {
-            log(" Server has disconnected ".red);
+            log(chalk.red(" Server has disconnected "));
             the_session = null;
             crawler = null;
         });
@@ -487,8 +486,8 @@ function process_line(line) {
             const hostname = p.hostname;
             const port = p.port;
             log(" open    url : ", endpointUrl);
-            log("    hostname : ", (hostname || "<null>").yellow);
-            log("        port : ", port.toString().yellow);
+            log("    hostname : ", chalk.yellow(hostname || "<null>"));
+            log("        port : ", chalk.yellow(port.toString()));
 
             apply_command(cmd,function(callback) {
 
@@ -497,7 +496,7 @@ function process_line(line) {
                     if (err) {
                         log("client connected err=", err);
                     } else {
-                        log("client connected : ", "OK".green);
+                        log("client connected : ", chalk.green("OK"));
 
                         add_endpoint_to_history(endpointUrl);
 
@@ -697,7 +696,7 @@ function process_line(line) {
                 }
 
                 const nodeId = args[1] || "ObjectsFolder";
-                log("now crawling " + nodeId.yellow + " ...please wait...");
+                log("now crawling " + chalk.yellow(nodeId) + " ...please wait...");
                 crawler.read(nodeId, function (err, obj) {
                     if (!err) {
                         log(" crawling done ");
@@ -745,10 +744,10 @@ rl.on("line", function (line) {
         rl.prompt();
     }
     catch (err) {
-        log("------------------------------------------------".red);
-        log(err.message.bgRed.yellow.bold);
+        log(chalk.red("------------------------------------------------"));
+        log(chalk.bgRed.yellow.bold(err.message);
         log(err.stack);
-        log("------------------------------------------------".red);
+        log(chalk.red("------------------------------------------------"));
         rl.resume();
     }
 });

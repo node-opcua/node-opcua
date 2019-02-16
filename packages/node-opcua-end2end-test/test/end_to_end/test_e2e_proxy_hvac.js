@@ -242,10 +242,10 @@ describe("testing client Proxy", function () {
 //                          console.log("Interior temperature",hvac.interiorTemperature.dataValue);
 
                             hvac.interiorTemperature.on("value_changed",function(value){
-                               console.log("  EVENT: interiorTemperature has changed to ".yellow,value.value.toString());
+                               console.log(chalk.yellow("  EVENT: interiorTemperature has changed to "),value.value.toString());
                             });
                             hvac.targetTemperature.on("value_changed",function(value){
-                                console.log("  EVENT: targetTemperature has changed to ".cyan,value.value.toString());
+                                console.log(chalk.cyan("  EVENT: targetTemperature has changed to "),value.value.toString());
                             });
 
 

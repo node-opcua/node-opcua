@@ -2,15 +2,17 @@
 const should = require("should");
 const sinon = require("sinon");
 
-const server_engine = require("../src/server_engine");
 const subscription_service = require("node-opcua-service-subscription");
+const PublishRequest = subscription_service.PublishRequest;
+
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
-
-const SubscriptionState = require("../src/server_subscription").SubscriptionState;
 const MonitoredItemCreateRequest = require("node-opcua-service-subscription").MonitoredItemCreateRequest;
 
-const PublishRequest = subscription_service.PublishRequest;
+
+const ServerEngine = require("..").ServerEngine;
+const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const SubscriptionState = require("..").SubscriptionState;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
@@ -22,8 +24,8 @@ describe("ServerEngine Subscriptions service", function () {
     beforeEach(function (done) {
 
 
-        engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine = new ServerEngine();
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
             FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
             BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();
@@ -79,7 +81,6 @@ describe("ServerEngine Subscriptions service", function () {
 
     it("XCX session should emit a new_subscription and subscription_terminated event", function () {
 
-        const sinon= require("sinon");
         session = engine.createSession();
 
         session.currentSubscriptionCount.should.equal(0);
@@ -88,8 +89,8 @@ describe("ServerEngine Subscriptions service", function () {
         const spyNew = sinon.spy();
         const spyTerminated = sinon.spy();
 
-        session.on("new_subscription",spyNew);
-        session.on("subscription_terminated",spyTerminated);
+        session.on("new_subscription", spyNew);
+        session.on("subscription_terminated", spyTerminated);
 
         const subscription = session.createSubscription({
             requestedPublishingInterval: 1000,  // Duration
@@ -111,8 +112,8 @@ describe("ServerEngine Subscriptions service", function () {
         spyNew.callCount.should.eql(1);
         spyTerminated.callCount.should.eql(1);
 
-        session.removeListener("new_subscription",spyNew);
-        session.removeListener("subscription_terminated",spyTerminated);
+        session.removeListener("new_subscription", spyNew);
+        session.removeListener("subscription_terminated", spyTerminated);
 
         session.currentSubscriptionCount.should.equal(0);
         session.cumulatedSubscriptionCount.should.equal(1);
@@ -181,16 +182,16 @@ describe("ServerEngine Subscriptions service", function () {
 
     });
 
-    it("DDD delete a subscription with 2 outstanding PublishRequest",function() {
+    it("DDD delete a subscription with 2 outstanding PublishRequest", function () {
 
         session = engine.createSession();
 
         // CTT : deleteSub5106004
         const subscription_parameters = {
             requestedPublishingInterval: 1000,  // Duration
-            requestedLifetimeCount:      10,    // Counter
-            requestedMaxKeepAliveCount:  10,    // Counter
-            maxNotificationsPerPublish:  10,    // Counter
+            requestedLifetimeCount: 10,    // Counter
+            requestedMaxKeepAliveCount: 10,    // Counter
+            maxNotificationsPerPublish: 10,    // Counter
             publishingEnabled: true,            // Boolean
             priority: 14                        // Byte
         };
@@ -198,10 +199,10 @@ describe("ServerEngine Subscriptions service", function () {
         const subscription1 = session.createSubscription(subscription_parameters);
 
         const publishSpy = sinon.spy();
-        const o1 = {requestHeader:{ requestHandle: 100}};
-        session.publishEngine._on_PublishRequest(new PublishRequest(o1),publishSpy );
-        const o2 = {requestHeader:{ requestHandle: 101}};
-        session.publishEngine._on_PublishRequest(new PublishRequest(o2),publishSpy );
+        const o1 = { requestHeader: { requestHandle: 100 } };
+        session.publishEngine._on_PublishRequest(new PublishRequest(o1), publishSpy);
+        const o2 = { requestHeader: { requestHandle: 101 } };
+        session.publishEngine._on_PublishRequest(new PublishRequest(o2), publishSpy);
 
 
         publishSpy.callCount.should.eql(0);
@@ -225,10 +226,9 @@ describe("ServerEngine Subscriptions service", function () {
         const test = this;
         test.clock = sinon.useFakeTimers();
         let the_err;
-        try{
+        try {
             workerFunc.call(this);
-        }
-        catch(err) {
+        } catch (err) {
             the_err = err;
         }
         test.clock.restore();
@@ -239,20 +239,19 @@ describe("ServerEngine Subscriptions service", function () {
 
     it("ZDZ create and terminate 2 subscriptions , with 4 publish requests", function () {
 
-        with_fake_timer.call(this,function() {
+        with_fake_timer.call(this, function () {
 
-            session = engine.createSession({sessionTimeout: 100000000 });
+            session = engine.createSession({ sessionTimeout: 100000000 });
 
             const test = this;
 
-            const SubscriptionState = require("../src/server_subscription").SubscriptionState;
 
             // CTT : deleteSub5106004
             const subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount:      60,    // Counter
-                requestedMaxKeepAliveCount:  10,    // Counter
-                maxNotificationsPerPublish:  10,    // Counter
+                requestedLifetimeCount: 60,    // Counter
+                requestedMaxKeepAliveCount: 10,    // Counter
+                maxNotificationsPerPublish: 10,    // Counter
                 publishingEnabled: true,            // Boolean
                 priority: 14                        // Byte
             };
@@ -274,10 +273,10 @@ describe("ServerEngine Subscriptions service", function () {
 
 
             const publishSpy = sinon.spy();
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 100}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 100 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 102 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 103 } }), publishSpy);
 
             test.clock.tick(subscription2.publishingInterval);
             subscription2.state.should.eql(SubscriptionState.KEEPALIVE);
@@ -295,7 +294,7 @@ describe("ServerEngine Subscriptions service", function () {
             publishSpy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
             publishSpy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
 
-            engine.closeSession(session.authenticationToken,true,"CloseSession");
+            engine.closeSession(session.authenticationToken, true, "CloseSession");
 
         });
 
@@ -304,17 +303,17 @@ describe("ServerEngine Subscriptions service", function () {
 
     it("ZDZ LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout - with 2 subscriptions", function () {
 
-        with_fake_timer.call(this,function() {
+        with_fake_timer.call(this, function () {
             const test = this;
 
-            session = engine.createSession({sessionTimeout: 100000000 });
+            session = engine.createSession({ sessionTimeout: 100000000 });
 
             // CTT : deleteSub5106004
             const subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount:      60,    // Counter
-                requestedMaxKeepAliveCount:  10,    // Counter
-                maxNotificationsPerPublish:  10,    // Counter
+                requestedLifetimeCount: 60,    // Counter
+                requestedMaxKeepAliveCount: 10,    // Counter
+                maxNotificationsPerPublish: 10,    // Counter
                 publishingEnabled: true,            // Boolean
                 priority: 14                        // Byte
             };
@@ -336,10 +335,10 @@ describe("ServerEngine Subscriptions service", function () {
 
 
             const publishSpy = sinon.spy();
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 104}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 102 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 103 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 104 } }), publishSpy);
 
             session.deleteSubscription(subscription2.id);
             test.clock.tick(subscription2.publishingInterval);
@@ -356,31 +355,31 @@ describe("ServerEngine Subscriptions service", function () {
             publishSpy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
             publishSpy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
 
-            engine.closeSession(session.authenticationToken,true,"CloseSession");
+            engine.closeSession(session.authenticationToken, true, "CloseSession");
 
         });
 
     });
 
-    it("AZQ should receive StatusChangeNotification from first subscription even if publishRequest arrives late",function(done){
+    it("AZQ should receive StatusChangeNotification from first subscription even if publishRequest arrives late", function (done) {
 
         // given a subscription with monitored Item
         // given that the client doesn't send Publish Request
         // When the subscription times out and closed
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
-        with_fake_timer.call(this,function() {
+        with_fake_timer.call(this, function () {
 
             const test = this;
 
-            session = engine.createSession({sessionTimeout: 100000000});
+            session = engine.createSession({ sessionTimeout: 100000000 });
 
             // CTT : deleteSub5106004
             const subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount:        60,    // Counter
-                requestedMaxKeepAliveCount:    10,    // Counter
-                maxNotificationsPerPublish:    10,    // Counter
+                requestedLifetimeCount: 60,    // Counter
+                requestedMaxKeepAliveCount: 10,    // Counter
+                maxNotificationsPerPublish: 10,    // Counter
                 publishingEnabled: true,            // Boolean
                 priority: 14                        // Byte
             };
@@ -392,10 +391,10 @@ describe("ServerEngine Subscriptions service", function () {
             test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
 
             const publishSpy = sinon.spy();
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 104}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 102 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 103 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 104 } }), publishSpy);
 
 
             publishSpy.callCount.should.eql(4);
@@ -421,29 +420,29 @@ describe("ServerEngine Subscriptions service", function () {
             publishSpy.getCall(3).args[1].notificationMessage.sequenceNumber.should.eql(0);
             publishSpy.getCall(3).args[1].notificationMessage.notificationData.length.should.eql(0);
 
-            engine.closeSession(session.authenticationToken,true,"CloseSession");
+            engine.closeSession(session.authenticationToken, true, "CloseSession");
             done();
         });
     });
 
-    it("AZW1 should receive StatusChangeNotification from first subscription even if publishRequest arrives late",function(done){
+    it("AZW1 should receive StatusChangeNotification from first subscription even if publishRequest arrives late", function (done) {
 
         // given a subscription with monitored Item
         // given that the client doesn't send Publish Request
         // When the subscription times out and closed
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
-        with_fake_timer.call(this,function() {
+        with_fake_timer.call(this, function () {
             const test = this;
 
-            session = engine.createSession({sessionTimeout: 100000000});
+            session = engine.createSession({ sessionTimeout: 100000000 });
 
             // CTT : deleteSub5106004
             const subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount:        60,    // Counter
-                requestedMaxKeepAliveCount:    10,    // Counter
-                maxNotificationsPerPublish:    10,    // Counter
+                requestedLifetimeCount: 60,    // Counter
+                requestedMaxKeepAliveCount: 10,    // Counter
+                maxNotificationsPerPublish: 10,    // Counter
                 publishingEnabled: true,            // Boolean
                 priority: 14                        // Byte
             };
@@ -459,10 +458,10 @@ describe("ServerEngine Subscriptions service", function () {
             subscription2.state.should.eql(SubscriptionState.CREATING);
 
             const publishSpy = sinon.spy();
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 101}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 102}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 103}}),publishSpy );
-            session.publishEngine._on_PublishRequest(new PublishRequest({requestHeader:{ requestHandle: 104}}),publishSpy );
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 102 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 103 } }), publishSpy);
+            session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 104 } }), publishSpy);
 
             publishSpy.callCount.should.eql(1);
             publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -470,12 +469,12 @@ describe("ServerEngine Subscriptions service", function () {
             publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
             publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.BadTimeout);
 
-            engine.closeSession(session.authenticationToken,true,"CloseSession");
+            engine.closeSession(session.authenticationToken, true, "CloseSession");
             done();
         });
     });
 
-    it("AZW2 should terminate a orphan subscription containing monitored items",function(done){
+    it("AZW2 should terminate a orphan subscription containing monitored items", function (done) {
 
         // given a client session
         // given a subscription with monitored Item
@@ -483,16 +482,16 @@ describe("ServerEngine Subscriptions service", function () {
         // When the orphan subscription times out
         // Then subscription shall be disposed
 
-        with_fake_timer.call(this,function() {
+        with_fake_timer.call(this, function () {
             const test = this;
 
-            session = engine.createSession({sessionTimeout: 100000000});
+            session = engine.createSession({ sessionTimeout: 100000000 });
 
             const subscription_parameters = {
-                requestedPublishingInterval:  100,  // Duration
-                requestedLifetimeCount:        60,  // Counter
-                requestedMaxKeepAliveCount:    30,  // Counter
-                maxNotificationsPerPublish:  1000,  // Counter
+                requestedPublishingInterval: 100,  // Duration
+                requestedLifetimeCount: 60,  // Counter
+                requestedMaxKeepAliveCount: 30,  // Counter
+                maxNotificationsPerPublish: 1000,  // Counter
                 publishingEnabled: true,            // Boolean
                 priority: 14                        // Byte
             };
@@ -502,14 +501,14 @@ describe("ServerEngine Subscriptions service", function () {
 
 
             subscription.on("monitoredItem", function (monitoredItem) {
-                monitoredItem.samplingFunc = function(){
+                monitoredItem.samplingFunc = function () {
 
                 };
             });
 
 
-            const monitoredItemCreateRequest =new MonitoredItemCreateRequest({
-                itemToMonitor: {nodeId: "ns=0;i=2258" },
+            const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+                itemToMonitor: { nodeId: "ns=0;i=2258" },
                 monitoringMode: subscription_service.MonitoringMode.Reporting,
                 requestedParameters: {
                     clientHandle: 123,
@@ -522,8 +521,8 @@ describe("ServerEngine Subscriptions service", function () {
             monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
 
 
-            const deleteSubscriptions= false;
-            engine.closeSession(session.authenticationToken,deleteSubscriptions,"CloseSession");
+            const deleteSubscriptions = false;
+            engine.closeSession(session.authenticationToken, deleteSubscriptions, "CloseSession");
 
             // wait until subscription expired by timeout
             test.clock.tick(subscription.publishingInterval * subscription.lifeTimeCount);

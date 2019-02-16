@@ -57,10 +57,10 @@ module.exports = function (test) {
             if(doDebug) { console.log(data.index," << ",res.constructor.name,res.responseHeader.serviceResult.toString()); }
         });
         client1.on("start_reconnection", function () {
-            if(doDebug) { console.log("start_reconnection".bgWhite.yellow,data.index); }
+            if(doDebug) { console.log(chalk.bgWhite.yellow("start_reconnection"),data.index); }
         });
         client1.on("backoff", function (number, delay) {
-            if(doDebug) { console.log("backoff".bgWhite.yellow,data.index,number,delay);}
+            if(doDebug) { console.log(chalk.bgWhite.yellow("backoff"),data.index,number,delay);}
         });
 
         should.exist(first_client);

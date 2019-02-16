@@ -1,11 +1,12 @@
 const should = require("should");
 const sinon = require("sinon");
 
-const server_engine = require("../src/server_engine");
 const subscription_service = require("node-opcua-service-subscription");
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const PublishRequest = subscription_service.PublishRequest;
 
+const ServerEngine = require("..").ServerEngine;
+const mini_nodeset_filename = require("..").mini_nodeset_filename;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine Subscriptions Transfer", function () {
@@ -16,8 +17,8 @@ describe("ServerEngine Subscriptions Transfer", function () {
     beforeEach(function (done) {
 
 
-        engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine = new ServerEngine();
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
             FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
             BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();

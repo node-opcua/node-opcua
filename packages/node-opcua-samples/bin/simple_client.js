@@ -4,7 +4,7 @@
 const fs = require("fs");
 const treeify = require("treeify");
 const _ = require("underscore");
-const colors = require("colors");
+const chalk = require("chalk");
 const Table = require("easy-table");
 const async = require("async");
 const assert = require("node-opcua-assert").assert;
@@ -86,9 +86,9 @@ const timeout = parseInt(argv.timeout) * 1000 || 20000;
 
 const monitored_node = argv.node || "ns=1;s=PumpSpeed"; //"ns=1;s=Temperature";
 
-console.log("securityMode        = ".cyan, securityMode.toString());
-console.log("securityPolicy      = ".cyan, securityPolicy.toString());
-console.log("timeout             = ".cyan, timeout ? timeout : " Infinity " );
+console.log(chalk.cyan("securityMode        = "), securityMode.toString());
+console.log(chalk.cyan("securityPolicy      = "), securityPolicy.toString());
+console.log(chalk.cyan("timeout             = "), timeout ? timeout : " Infinity " );
 console.log(" monitoring node id = ", monitored_node);
 let client = null;
 
@@ -150,16 +150,16 @@ function __dumpEvent(session,fields,eventFields,_callback) {
             getBrowseName(session,variant.value,function(err,name){
 
                 if (!err) {
-                    console.log(w(name,20),w(fields[index],15).yellow,
-                        w(DataType[variant.dataType],10).toString().cyan,name.cyan.bold,"(",w(variant.value,20),")");
+                    console.log(chalk.yellow(w(name,20),w(fields[index],15)),
+                        chalk.cyan(w(DataType[variant.dataType],10).toString()),chalk.cyan.bold(name),"(",w(variant.value,20),")");
                 }
                 callback();
             });
 
         } else {
-            setImmediate(function() {
-                console.log(w("",20),w(fields[index],15).yellow,
-                    w(DataType[variant.dataType],10).toString().cyan,variant.value);
+            setImmediate(() => {
+                console.log(chalk.yellow(w("",20),w(fields[index],15)),
+                    chalk.cyan(w(DataType[variant.dataType],10).toString()),variant.value);
                 callback();
             });
         }
@@ -218,7 +218,6 @@ function enumerateAllConditionTypes(the_session,callback) {
         ];
         the_session.browse(nodesToBrowse,function(err,browseResults) {
 
-            //xx console.log(" exploring".yellow ,browseName.cyan, typeNodeId.toString());
             tree[browseName] = {};
             if (!err) {
                 browseResults[0].references = browseResults[0].references || [];
@@ -399,13 +398,13 @@ async.series([
 
         client = opcua.OPCUAClient.create(options);
 
-        console.log(" connecting to ", endpointUrl.cyan.bold);
+        console.log(" connecting to ",chalk.cyan.bold(endpointUrl));
         console.log("    strategy", client.connectionStrategy);
 
         client.connect(endpointUrl, callback);
 
         client.on("backoff", function (number, delay) {
-            console.log("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
+            console.log(chalk.bgWhite.yellow("backoff  attempt #"),number, " retrying in ",delay/1000.0," seconds");
         });
 
     },
@@ -473,8 +472,8 @@ async.series([
     function (callback) {
 
         const hexDump = opcua.hexDump;
-        console.log("Server Certificate :".cyan);
-        console.log(hexDump(serverCertificate).yellow);
+        console.log(chalk.cyan("Server Certificate :"));
+        console.log(chalk.yellow(hexDump(serverCertificate)));
 
         const options = {
             securityMode: securityMode,
@@ -495,7 +494,7 @@ async.series([
 
         client = opcua.OPCUAClient.create(options);
 
-        console.log(" reconnecting to ", endpointUrl.cyan.bold);
+        console.log(" reconnecting to ",chalk.cyan.bold(endpointUrl));
         client.connect(endpointUrl, callback);
     },
 
@@ -514,7 +513,7 @@ async.series([
         client.createSession(userIdentity, function (err, session) {
             if (!err) {
                 the_session = session;
-                console.log(" session created".yellow);
+                console.log(chalk.yellow(" session created"));
                 console.log(" sessionId : ", session.sessionId.toString());
             }
             callback(err);
@@ -522,13 +521,13 @@ async.series([
     },
     function set_event_handlers(callback) {
         client.on("connection_reestablished",function() {
-            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.red);
+            console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
         });
         client.on("backoff", function (number, delay) {
-            console.log("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
+            console.log(chalk.bgWhite.yellow("backoff  attempt #"),number, " retrying in ",delay/1000.0," seconds");
         });
         client.on("start_reconnection", function () {
-            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!".bgWhite.red);
+            console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
         });
 
 
@@ -558,7 +557,7 @@ async.series([
 
         getAllEventTypes(the_session,function(err,result){
 
-            console.log("--------------------------------------------------------------- All Event Types ".cyan);
+            console.log(chalk.cyan("--------------------------------------------------------------- All Event Types "));
             console.log(treeify.asTree(result, true));
 
             callback();
@@ -573,7 +572,7 @@ async.series([
             t2 = Date.now();
             const util = require("util");
             const str = util.format("R= %d W= %d T=%d t= %d", client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
-            console.log(str.yellow.bold);
+            console.log(chalk.yellow.bold(str));
         }
 
         if (doCrawling) {
@@ -647,11 +646,11 @@ async.series([
                 alarms.forEach(function(alarm) {
                     console.log(
                         "parent = ",
-                        w(alarm.parent.toString(),30).cyan,
-                        w(alarm.typeDefinitionName,30).green.bold,
+                        chalk.cyan(w(alarm.parent.toString(),30)),
+                        chalk.green.bold(w(alarm.typeDefinitionName,30)),
                         "alarmName = ",
-                        w(alarm.browseName.toString(),30).cyan,
-                        w(alarm.alarmNodeId.toString(),40).yellow
+                        chalk.cyan(w(alarm.browseName.toString(),30)),
+                        chalk.yellow(w(alarm.alarmNodeId.toString(),40))
                     );
                 });
                 console.log(" -----------------------------------------------------------------------------------------------------------------");
@@ -757,7 +756,7 @@ async.series([
                 console.log("MonitoredItems clientHandles", results.clientHandles);
                 console.log("MonitoredItems serverHandles", results.serverHandles);
             } else {
-                console.log(" getMonitoredItems ERROR ".red, err.message.cyan);
+                console.log(chalk.red(" getMonitoredItems ERROR "), err.message);
             }
             callback();
         });
@@ -792,7 +791,7 @@ async.series([
             console.log(monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue.value.toString());
         });
         monitoredItem.on("err", function (err_message) {
-            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
+            console.log(monitoredItem.itemToMonitor.nodeId.toString(), chalk.red(" ERROR"), err_message);
             callback();
         });
 
@@ -872,7 +871,7 @@ async.series([
             dumpEvent(the_session,fields,eventFields,function() {});
         });
         event_monitoringItem.on("err", function (err_message) {
-            console.log("event_monitoringItem ", baseEventTypeId, " ERROR".red, err_message);
+            console.log(chalk.red("event_monitoringItem ", baseEventTypeId, " ERROR"), err_message);
         });
 
     },
@@ -899,9 +898,9 @@ async.series([
             // simulate a connection break at t =timeout/2
             setTimeout(function () {
 
-                console.log("  -------------------------------------------------------------------- ".red.bgWhite);
-                console.log("  --                               SIMULATE CONNECTION BREAK        -- ".red.bgWhite);
-                console.log("  -------------------------------------------------------------------- ".red.bgWhite);
+                console.log(chalk.red("  -------------------------------------------------------------------- ").bgWhite);
+                console.log(chalk.red("  --                               SIMULATE CONNECTION BREAK        -- ").bgWhite);
+                console.log(chalk.red("  -------------------------------------------------------------------- ").bgWhite);
                 const socket = client._secureChannel._transport._socket;
                 socket.end();
                 socket.emit("error", new Error("ECONNRESET"));
@@ -927,10 +926,10 @@ async.series([
     }
 ], function (err) {
 
-    console.log(" disconnected".cyan);
+    console.log(chalk.cyan(" disconnected"));
 
     if (err) {
-        console.log(" client : process terminated with an error".red.bold);
+        console.log(chalk.red.bold(" client : process terminated with an error"));
         console.log(" error", err);
         console.log(" stack trace", err.stack);
     } else {
@@ -962,8 +961,8 @@ process.on("SIGINT", function () {
     }
     if (the_subscription) {
 
-        console.log(" Received client interruption from user ".red.bold);
-        console.log(" shutting down ...".red.bold);
+        console.log(chalk.red.bold(" Received client interruption from user "));
+        console.log(chalk.red.bold(" shutting down ..."));
 
         the_subscription.terminate(function() {});
         the_subscription = null;

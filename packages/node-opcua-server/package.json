@@ -3,12 +3,15 @@
  "version": "2.0.0-alpha.12",
  "description": "pure nodejs OPCUA SDK - module -server",
  "scripts": {
+  "build": "tsc",
+  "lint": "tslint source/**/*.ts",
   "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
   "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
   "clean": "node -e \"require('rimraf').sync('certificates');\"",
   "test": "mocha test"
  },
- "main": "index.js",
+ "main": "./dist/index.js",
+ "types": "./dist/index.d.ts",
  "dependencies": {
   "async": "^2.6.1",
   "bonjour": "^3.5.0",
@@ -27,6 +30,7 @@
   "node-opcua-date-time": "^2.0.0-alpha.12",
   "node-opcua-debug": "^2.0.0-alpha.10",
   "node-opcua-enum": "^2.0.0-alpha.10",
+  "node-opcua-extension-object": "2.0.0-alpha.12",
   "node-opcua-factory": "^2.0.0-alpha.12",
   "node-opcua-hostname": "^2.0.0-alpha.10",
   "node-opcua-nodeid": "^2.0.0-alpha.11",
@@ -51,6 +55,7 @@
   "node-opcua-service-translate-browse-path": "^2.0.0-alpha.12",
   "node-opcua-service-write": "^2.0.0-alpha.12",
   "node-opcua-status-code": "^2.0.0-alpha.12",
+  "node-opcua-types": "^2.0.0-alpha.12",
   "node-opcua-utils": "^2.0.0-alpha.12",
   "node-opcua-variant": "^2.0.0-alpha.12",
   "underscore": "^1.9.1"

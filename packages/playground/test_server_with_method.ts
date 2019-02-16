@@ -13,9 +13,9 @@ import {
     StatusCodes,
     UAMethod,
     UAObject,
-    Variant
+    Variant,
+    MethodFunctorCallback
 } from "node-opcua";
-import { CallMethodResponse, MethodFunctorCallback } from "../node-opcua-address-space/source";
 
 function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
 
@@ -100,7 +100,7 @@ async function callMethodFromServer(addressSpace: AddressSpace, nodeId: NodeIdLi
           [param1, param2, param3],
           context);
 
-        console.log(callMethodResponse.outputArguments[0].toString());
+        console.log(callMethodResponse.outputArguments![0]!.toString());
     }
 }
 
