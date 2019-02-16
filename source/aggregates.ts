@@ -4,6 +4,7 @@ import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 
 import { AggregateConfigurationOptions } from "./interval";
+// import { HistoryServerCapabilities } from "node-opcua-server";
 
 /*
 HasProperty Variable AccessHistoryDataCapability Boolean PropertyType Mandatory
@@ -21,13 +22,13 @@ HasProperty Variable UpdateEventCapability Boolean PropertyType Mandatory
 HasProperty Variable DeleteEventCapability Boolean PropertyType Mandatory
 HasProperty Variable InsertAnnotationsCapability Boolean PropertyType Mandatory
  */
-const historicalCapabilitiesDefaultProperties = {
+const historicalCapabilitiesDefaultProperties /*: HistoryServerCapabilities */ = {
     accessHistoryDataCapability: true, // Boolean PropertyType Mandatory
     accessHistoryEventsCapability: true, // Boolean PropertyType Mandatory
     deleteAtTimeCapability: false, // Boolean PropertyType Mandatory
     deleteEventCapability: false, // Boolean PropertyType Mandatory
     deleteRawCapability: false, // Boolean PropertyType Mandatory
-    insertAnnotationsCapability: false, // Boolean PropertyType Mandatory
+    insertAnnotationCapability: false, // Boolean PropertyType Mandatory
     insertDataCapability: false, // Boolean PropertyType Mandatory
     insertEventCapability: false, // Boolean PropertyType Mandatory
     maxReturnDataValues: 0,
