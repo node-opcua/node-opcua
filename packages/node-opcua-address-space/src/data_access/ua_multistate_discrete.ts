@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.DataAccess
+ */
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";

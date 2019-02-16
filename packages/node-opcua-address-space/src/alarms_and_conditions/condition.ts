@@ -1,5 +1,5 @@
 /**
- * @module opcua.address_space.AlarmsAndConditions
+ * @module node-opcua-address-space.AlarmsAndConditions
  */
 // tslint:disable:no-console
 // tslint:disable:no-var-requires

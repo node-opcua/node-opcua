@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.AlarmsAndConditions
+ */
 import chalk from "chalk";
 import * as _ from "underscore";
 
@@ -85,6 +88,27 @@ export interface UAConditionBase {
  * @class UAConditionBase
  * @constructor
  * @extends BaseEventType
+ *
+ *
+ *   └─ ConditionType
+ *    ├─ DialogConditionType
+ *    └─ AcknowledgeableConditionType
+ *       └─ AlarmConditionType
+ *          ├─ LimitAlarmType
+ *          │  ├─ ExclusiveLimitAlarmType
+ *          │  │  ├─ ExclusiveLevelAlarmType
+ *          │  │  ├─ ExclusiveDeviationAlarmType
+ *          │  │  └─ ExclusiveRateOfChangeAlarmType
+ *          │  └─ NonExclusiveLimitAlarmType
+ *          │     ├─ NonExclusiveLevelAlarmType
+ *          │     ├─ NonExclusiveDeviationAlarmType
+ *          │     └─ NonExclusiveRateOfChangeAlarmType
+ *          └─ DiscreteAlarmType
+ *             ├─ OffNormalAlarmType
+ *             │  ├─ SystemOffNormalAlarmType
+ *             │  │  └─ CertificateExpirationAlarmType
+ *             │  └─ TripAlarmType
+ *
  */
 export class UAConditionBase extends BaseEventType {
 
@@ -867,7 +891,7 @@ function UAConditionBase_instantiate(
 
         options.conditionSource = addressSpace._coerceNode(options.conditionSource);
         if (options.conditionSource.nodeClass !== NodeClass.Object &&
-            options.conditionSource.nodeClass !== NodeClass.Variable) {
+          options.conditionSource.nodeClass !== NodeClass.Variable) {
             // tslint:disable:no-console
             console.log(options.conditionSource);
             throw new Error("Expecting condition source to be NodeClass.Object or Variable");

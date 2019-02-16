@@ -714,7 +714,7 @@ export function produce_tscript_code(
     // - insert common require's
     // -------------------------------------------------------------------------
     write("/**");
-    write(" * @module opcua.address_space.types");
+    write(" * @module node-opcua-address-space.types");
     write(" */");
     write("import assert from \"node-opcua-assert\";");
     write("import * as util from \"util\";");

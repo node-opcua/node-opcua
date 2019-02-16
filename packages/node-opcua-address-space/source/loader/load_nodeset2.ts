@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import * as async from "async";
 import * as fs from "fs";
 import * as _ from "underscore";

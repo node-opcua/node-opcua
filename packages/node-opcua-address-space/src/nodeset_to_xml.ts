@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 // produce nodeset xml files
 import { AddressSpacePrivate } from "./address_space_private";
 

@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-server
+ */
 // tslint:disable:max-classes-per-file
 /**
  * @class OperationLimits

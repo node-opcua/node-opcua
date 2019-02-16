@@ -1,10 +1,10 @@
+/**
+ * @module node-opcua-server
+ */
 // tslint:disable:no-console
 
 import { TimestampsToReturn } from "node-opcua-data-value";
 
-/**
- * @module opcua.server
- */
 // tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
 import chalk from "chalk";
@@ -316,13 +316,13 @@ export interface SubscriptionOptions {
     /**
      * subscription priority Byte:(0-255)
      */
-    priority: number;
+    priority?: number;
 
-    publishEngine: IServerPublishEngine;
+    publishEngine?: IServerPublishEngine;
     /**
      *  a unique identifier
      */
-    id: number;
+    id?: number;
 }
 
 type IServerPublishEngine = any;

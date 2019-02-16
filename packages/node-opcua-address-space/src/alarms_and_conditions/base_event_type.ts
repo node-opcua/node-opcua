@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.AlarmsAndConditions
+ */
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, Variant } from "node-opcua-variant";

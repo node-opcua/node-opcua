@@ -1,5 +1,5 @@
 /**
- * @module opcua.address_space.AlarmsAndConditions
+ * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { NodeId } from "node-opcua-nodeid";
 import { NamespacePrivate } from "../namespace_private";

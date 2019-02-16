@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 // tslint:disable:no-console
 import { NodeClass } from "node-opcua-data-model";
 import { SimpleAttributeOperand } from "node-opcua-service-filter";

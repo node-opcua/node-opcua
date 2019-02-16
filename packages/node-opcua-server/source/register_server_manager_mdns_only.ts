@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-server
+ */
 // RegisterServerManagerMDNSONLY
 
 import { EventEmitter } from "events";
@@ -7,7 +10,7 @@ import {
     _stop_announcedOnMulticastSubnet
 } from "node-opcua-service-discovery";
 import { OPCUABaseServer } from "./base_server";
-import { IRegisterServerManager } from "./IRegisterServerManager";
+import { IRegisterServerManager } from "./I_register_server_manager";
 
 /**
  *

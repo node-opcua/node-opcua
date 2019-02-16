@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { LocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { InstantiateObjectOptions, UAVariableT } from "../address_space_ts";

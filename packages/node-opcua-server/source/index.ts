@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-server
+ */
 export * from "./base_server";
 export * from "./opcua_server";
 export * from "./server_end_point";

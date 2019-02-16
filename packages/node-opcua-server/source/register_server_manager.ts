@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-server
+ */
 // tslint:disable:no-console
 import * as async from "async";
 import chalk from "chalk";
@@ -21,9 +24,9 @@ import {
 } from "node-opcua-service-discovery";
 import { EndpointDescription, MdnsDiscoveryConfiguration } from "node-opcua-types";
 import { OPCUABaseServer } from "./base_server";
-import { IRegisterServerManager } from "./IRegisterServerManager";
+import { IRegisterServerManager } from "./I_register_server_manager";
 
-export type Callback = (err?: Error) => void;
+export type EmptyCallback = (err?: Error) => void;
 
 const debugLog = make_debugLog(__filename);
 
@@ -187,7 +190,7 @@ function sendRegisterServerRequest(
   self: any,
   client: any,
   isOnline: boolean,
-  callback: Callback
+  callback: EmptyCallback
 ) {
 
     // try to send a RegisterServer2Request
@@ -343,7 +346,7 @@ export class RegisterServerManager
         });
     }
 
-    public _establish_initial_connection(outer_callback: Callback) {
+    public _establish_initial_connection(outer_callback: EmptyCallback) {
 
         if (!this.server) {
             throw  new Error("Internal Error");
@@ -377,7 +380,7 @@ export class RegisterServerManager
         async.series([
 
             //  do_initial_connection_with_discovery_server
-            (callback: Callback) => {
+            (callback: EmptyCallback) => {
                 client.connect(this.discoveryServerEndpointUrl, (err?: Error) => {
                     if (err) {
                         debugLog("RegisterServerManager#_establish_initial_connection " +
@@ -389,7 +392,7 @@ export class RegisterServerManager
             },
 
             // getEndpoints_on_discovery_server
-            (callback: Callback)  => {
+            (callback: EmptyCallback)  => {
                 client.getEndpoints((err: Error|null, endpoints?: EndpointDescription[]) => {
                     if (!err) {
                         const endpoint = findSecureEndpoint(endpoints!);
@@ -411,7 +414,7 @@ export class RegisterServerManager
                 });
             },
             // function closing_discovery_server_connection
-            (callback: Callback) => {
+            (callback: EmptyCallback) => {
 
                 this._serverEndpoints = (client as any)._serverEndpoints;
 
@@ -421,7 +424,7 @@ export class RegisterServerManager
                 });
             },
             // function wait_a_little_bit
-            (callback: Callback) => {
+            (callback: EmptyCallback) => {
                 setTimeout(callback, 100);
             }
         ], (err?: Error|null) => {
@@ -501,7 +504,7 @@ export class RegisterServerManager
 
     }
 
-    public stop(outer_callback: Callback) {
+    public stop(outer_callback: EmptyCallback) {
 
         debugLog("RegisterServerManager#stop");
 
@@ -537,7 +540,7 @@ export class RegisterServerManager
      * @param outer_callback
      * @private
      */
-    public _registerServer(isOnline: boolean, outer_callback: Callback) {
+    public _registerServer(isOnline: boolean, outer_callback: EmptyCallback) {
         assert(_.isFunction(outer_callback));
 
         debugLog("RegisterServerManager#_registerServer isOnline:",
@@ -585,7 +588,7 @@ export class RegisterServerManager
 
         async.series([
             // establish_connection_with_lds
-            (callback: Callback) => {
+            (callback: EmptyCallback) => {
 
                 client.connect(selectedEndpoint.endpointUrl, (err?: Error) => {
                     debugLog("establish_connection_with_lds => err = ", err);
@@ -642,13 +645,13 @@ export class RegisterServerManager
                     }
                 });
             },
-            (callback: Callback) => {
+            (callback: EmptyCallback) => {
                 sendRegisterServerRequest(this, client, isOnline, (err?: Error) => {
                     callback(err!);
                 });
             },
             // close_connection_with_lds
-            (callback: Callback) => {
+            (callback: EmptyCallback) => {
                 client.disconnect(callback);
             }
         ], (err?: Error | null) => {

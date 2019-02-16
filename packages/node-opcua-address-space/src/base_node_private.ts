@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.Private
+ */
 // tslint:disable:no-bitwise
 import chalk from "chalk";
 import * as _ from "underscore";

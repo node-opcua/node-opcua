@@ -13,7 +13,7 @@ import * as _ from "underscore";
 
 const LtxParser = require("ltx/lib/parsers/ltx.js");
 
-export type Callback = (err?: Error) => void;
+export type SimpleCallback = (err?: Error) => void;
 
 declare interface LtxParser {
     write(str: string): void;
@@ -272,7 +272,7 @@ export class Xml2Json {
      * @param callback
      * @async
      */
-    public parseString(xml_text: string, callback: Callback) {
+    public parseString(xml_text: string, callback: SimpleCallback) {
         const parser = this._prepareParser(callback);
         parser.write(xml_text);
         parser.end();
@@ -284,7 +284,7 @@ export class Xml2Json {
      * @param xmlFile - the name of the xml file to parse.
      * @param callback
      */
-    public parse(xmlFile: string, callback: Callback) {
+    public parse(xmlFile: string, callback: SimpleCallback) {
 
         const self = this;
         const readWholeFile = true;

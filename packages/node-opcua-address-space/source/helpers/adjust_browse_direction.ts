@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { BrowseDirection } from "node-opcua-data-model";
 
 export function adjustBrowseDirection(

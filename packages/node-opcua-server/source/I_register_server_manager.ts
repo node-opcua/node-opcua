@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-server
+ */
 import { EventEmitter } from "events";
 
 export interface IRegisterServerManager extends EventEmitter {

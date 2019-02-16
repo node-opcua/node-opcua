@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 // tslint:disable:no-empty-interface
 import { DateTime, UAString, UInt32 } from "node-opcua-basic-types";
 import { LocalizedText, QualifiedName, QualifiedNameLike } from "node-opcua-data-model";

@@ -1,5 +1,5 @@
 /**
- * @module opcua.address_space.AlarmsAndConditions
+ * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { UAExclusiveLimitAlarm } from "./ua_exclusive_limit_alarm";
 

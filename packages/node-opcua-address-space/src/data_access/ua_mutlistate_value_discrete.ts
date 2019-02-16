@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.DataAccess
+ */
 import { DataType } from "node-opcua-variant";
 
 import {

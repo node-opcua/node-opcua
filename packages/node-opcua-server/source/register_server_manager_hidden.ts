@@ -1,5 +1,8 @@
+/**
+ * @module node-opcua-server
+ */
 import { EventEmitter } from "events";
-import { IRegisterServerManager } from "./IRegisterServerManager";
+import { IRegisterServerManager } from "./I_register_server_manager";
 
 export class RegisterServerManagerHidden
   extends EventEmitter

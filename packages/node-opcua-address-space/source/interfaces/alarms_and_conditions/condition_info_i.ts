@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { UInt16 } from "node-opcua-basic-types";
 import { LocalizedTextLike } from "node-opcua-data-model";
 import { StatusCode } from "node-opcua-status-code";

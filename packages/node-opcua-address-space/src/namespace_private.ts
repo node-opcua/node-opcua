@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.Private
+ */
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
 import { AddReferenceOpts, CreateNodeOptions, ModellingRuleType, Namespace } from "../source";

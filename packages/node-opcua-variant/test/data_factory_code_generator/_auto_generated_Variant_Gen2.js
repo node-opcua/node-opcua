@@ -1,7 +1,7 @@
 
 // --------- This code has been automatically generated !!! Wed Apr 29 2015 20:52:17 GMT+0200 (Paris, Madrid (heure d�t�))
 /**
- * @module opcua.address_space.types
+ * @module node-opcua-address-space.types
  */
 const assert = require("node-opcua-assert").assert;
 const util = require("util");

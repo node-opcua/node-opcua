@@ -1,5 +1,5 @@
 /**
- * @module opcua.address_space
+ * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";

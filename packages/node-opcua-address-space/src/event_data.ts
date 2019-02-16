@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.Private
+ */
 import { assert } from "node-opcua-assert";
 import { StatusCodes } from "node-opcua-constants";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";

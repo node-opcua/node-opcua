@@ -21,6 +21,7 @@
   "node-opcua-service-browse": "^2.0.0-alpha.12",
   "node-opcua-service-call": "^2.0.0-alpha.12",
   "node-opcua-service-read": "^2.0.0-alpha.12",
+  "node-opcua-service-write": "^2.0.0-alpha.12",
   "node-opcua-service-subscription": "^2.0.0-alpha.12",
   "node-opcua-status-code": "^2.0.0-alpha.12",
   "node-opcua-utils": "^2.0.0-alpha.12",

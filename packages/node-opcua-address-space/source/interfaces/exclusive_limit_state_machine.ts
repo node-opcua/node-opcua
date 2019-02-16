@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { InstantiateObjectOptions } from "../address_space_ts";
 import { StateMachine, StateMachineType } from "./state_machine";
 

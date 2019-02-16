@@ -1,13 +1,13 @@
+/**
+ * @module node-opcua-server
+ */
 // tslint:disable:no-console
 // tslint:disable:max-line-length
 // tslint:disable:unified-signatures
-/**
- * @module opcua.server
- */
-
 import * as async from "async";
 import chalk from "chalk";
 import * as crypto from "crypto";
+import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -152,7 +152,7 @@ import { VariantArrayType } from "node-opcua-variant";
 
 import { OPCUABaseServer, OPCUABaseServerOptions } from "./base_server";
 import { Factory } from "./factory";
-import { IRegisterServerManager } from "./IRegisterServerManager";
+import { IRegisterServerManager } from "./I_register_server_manager";
 import { MonitoredItem } from "./monitored_item";
 import { RegisterServerManager } from "./register_server_manager";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
@@ -250,16 +250,6 @@ function _attempt_to_close_some_old_unactivated_session(
     if (session) {
         server.engine!.closeSession(session.authenticationToken, false, "Forcing");
     }
-}
-
-function onlyforUri(
-  serverUri: string,
-  endpoint: EndpointDescription
-): boolean {
-    assert(_.isString(serverUri));
-    assert(endpoint instanceof EndpointDescription);
-    // to do  ...
-    return serverUri === endpoint.endpointUrl;
 }
 
 function getRequiredEndpointInfo(endpoint: EndpointDescription) {
@@ -880,54 +870,15 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions {
      */
     serverCertificateManager?: CertificateManager;
 
+    /**
+     *  if Discovery Service on unsecure channel shall be disabled
+     *
+     */
     disableDiscovery?: boolean;
 }
 
 /**
- * @class OPCUAServer
- * @extends  OPCUABaseServer
- * @uses ServerEngine
- * @param options
- * @param [options.defaultSecureTokenLifetime = 60000] {Number} the default secure token life time in ms.
- * @param [options.timeout=10000] {Number}              the HEL/ACK transaction timeout in ms. Use a large value
- *                                                      ( i.e 15000 ms) for slow connections or embedded devices.
- * @param [options.port= 26543] {Number}                the TCP port to listen to.
- * @param [options.maxAllowedSessionNumber = 10 ]       the maximum number of concurrent sessions allowed.
  *
- * @param [options.nodeset_filename]{Array<String>|String} the nodeset.xml files to load
- * @param [options.serverInfo = null]                   the information used in the end point description
- * @param [options.serverInfo.applicationUri = "urn:NodeOPCUA-Server"] {String}
- * @param [options.serverInfo.productUri = "NodeOPCUA-Server"]{String}
- * @param [options.serverInfo.applicationName = {text: "applicationName"}]{LocalizedText}
- * @param [options.serverInfo.gatewayServerUri = null]{String}
- * @param [options.serverInfo.discoveryProfileUri= null]{String}
- * @param [options.serverInfo.discoveryUrls = []]{Array<String>}
- * @param [options.securityPolicies= [SecurityPolicy.None,SecurityPolicy.Basic128Rsa15,SecurityPolicy.Basic256]]
- * @param [options.securityModes= [None,Sign,SignAndEncrypt]]
- * @param [options.disableDiscovery = false] true if Discovery Service on unsecure channel shall be disabled
- * @param [options.allowAnonymous = true] tells if the server default endpoints should allow anonymous connection.
- * @param [options.userManager = null ] a object that implements user authentication methods
- * @param [options.userManager.isValidUser ] synchronous function to check the credentials -
- *                                           can be overruled by isValidUserAsync
- * @param [options.userManager.isValidUserAsync ] asynchronous function to check if the credentials
- *                                                 - overrules isValidUser
- * @param [options.userManager.getUserRole ] synchronous function to return the role of the given user
- * @param [options.resourcePath=null] {String} resource Path is a string added at the end of the url
- *                                              such as "/UA/Server"
- * @param [options.alternateHostname=null] {String} alternate hostname to use
- * @param [options.maxConnectionsPerEndpoint=null]
- * @param [options.serverCapabilities]
- *  UserNameIdentityToken is valid.
- * @param [options.isAuditing = false] {Boolean} true if server shall raise AuditingEvent
- *
- * @param [options.registerServerMethod= RegisterServerMethod.HIDDEN] {RegisterServerMethod}
- * @param [options.discoveryServerEndpointUrl = "opc.tcp://localhost:4840"]
- * @param [options.capabilitiesForMDNS = ["NA"] ] {Array<String>} supported server capabilities for the Mutlicast (mDNS)
- *                                          (any of node-opcua-discovery.serverCapabilities)
- *
- * @param [options.userCertificateManager]
- * @param [options.serverCertificateManager]
- * @constructor
  */
 export class OPCUAServer extends OPCUABaseServer {
 
@@ -985,28 +936,28 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     /**
-     * @property rejectedSessionCount
+     * the number of session activation requests that have been rejected
      */
     public get rejectedSessionCount(): number {
         return this.engine.rejectedSessionCount;
     }
 
     /**
-     * @property rejectedSessionCount
+     * the number of request that have been rejected
      */
     public get rejectedRequestsCount(): number {
         return this.engine.rejectedRequestsCount;
     }
 
     /**
-     * @property sessionAbortCount
+     * the number of sessions that have been aborted
      */
     public get sessionAbortCount(): number {
         return this.engine.sessionAbortCount;
     }
 
     /**
-     * @property publishingIntervalCount
+     * the publishing interval count
      */
     public get publishingIntervalCount(): number {
         return this.engine.publishingIntervalCount;
@@ -1023,31 +974,59 @@ export class OPCUAServer extends OPCUABaseServer {
      * true if the server has been initialized
      *
      */
-    get initialized(): boolean {
+    public get initialized(): boolean {
         return this.engine.addressSpace !== null;
     }
-
+    /**
+     * is the server auditing ?
+     */
     public get isAuditing(): boolean {
         return this.engine.isAuditing;
     }
 
     public static registry = new ObjectRegistry();
     public static fallbackSessionName = "Client didn't provide a meaningful sessionName ...";
+    /**
+     * the maximum number of subscription that can be created per server
+     */
     public static MAX_SUBSCRIPTION = 50;
 
+    /**
+     * the maximum number of concurrent sessions allowed on the server
+     */
     public maxAllowedSessionNumber: number;
+    /**
+     * the maximum number for concurrent connection per end point
+     */
     public maxConnectionsPerEndpoint: number;
+
     public engine: ServerEngine;
-    public nonce: Nonce;
-    public protocolVersion: number;
-    public objectFactory: Factory;
+    /**
+     * false if anonymouse connection are not allowed
+     */
     public allowAnonymous: boolean = false;
+    /**
+     * the user manager
+     */
     public userManager: UserManagerOptions;
+    /**
+     *
+     */
     public registerServerMethod: RegisterServerMethod;
+    /**
+     *
+     */
     public discoveryServerEndpointUrl: string;
     public registerServerManager?: IRegisterServerManager;
+    /**
+     *
+     */
     public capabilitiesForMDNS: string[];
     public userCertificateManager: CertificateManager;
+
+    private nonce: Nonce;
+    private protocolVersion: number;
+    private objectFactory: Factory;
 
     constructor(options?: OPCUAServerOptions) {
 
@@ -1165,44 +1144,35 @@ export class OPCUAServer extends OPCUABaseServer {
 
     }
 
-    /**
-     * create and register a new session
-     * @method createSession
-     * @return {ServerSession}
-     * @internal
-     * @private
-     */
-    public createSession(options: any): ServerSession {
-        return this.engine.createSession(options);
-    }
-
-    /**
-     * retrieve a session by authentication token
-     * @param authenticationToken
-     * @param activeOnly search only within sessions that are not closed
-     */
-    public getSession(
-      authenticationToken: NodeId,
-      activeOnly?: boolean
-    ): ServerSession | null {
-        return this.engine.getSession(authenticationToken, activeOnly);
-    }
 
     /**
      * Initialize the server by installing default node set.
      *
-     * @method initialize
-     * @async
-     *
-     * This is a asynchronous function that requires a callback function.
-     * The callback function typically completes the creation of custom node
      * and instruct the server to listen to its endpoints.
      *
-     * @param done
+     * ```javascript
+     * const server = new OPCUAServer();
+     * await server.initialize();
+     *
+     * // default server namespace is now initialized
+     * // it is a good time to create life instance objects
+     * const namespace = server.engine.addressSpace.getOwnNamespace();
+     * namespace.addObject({
+     *     browseName: "SomeObject",
+     *     organizedBy: server.engine.addressSpace.rootFolder.objects
+     * });
+     *
+     * // the addressSpace is now complete
+     * // let's now start listening to clients
+     * await server.start();
+     * ```
      */
-    public initialize(done: () => void) {
+    public initialize(): Promise<void>;
+    public initialize(done: () => void): void;
+    public initialize(...args: [any?, ...any[]]): any {
 
-        assert(!this.initialized); // already initialized ?
+        const done = args[0] as () => void;
+        assert(!this.initialized, "server is already initialized"); // already initialized ?
 
         OPCUAServer.registry.register(this);
 
@@ -1214,9 +1184,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
     /**
      * Initiate the server by starting all its endpoints
-     * @method start
      * @async
-     * @param done
      */
     public start(): Promise<void> ;
     public start(done: () => void): void ;
@@ -1255,20 +1223,24 @@ export class OPCUAServer extends OPCUABaseServer {
      * shutdown all server endpoints
      * @method shutdown
      * @async
-     * @param  [timeout=0] {Number} the timeout before the server is actually shutdown
-     * @param  callback      {Callback}
-     * @param  callback.err  {Error|null}
-     *
+     * @param  timeout the timeout (in ms) before the server is actually shutdown
      *
      * @example
      *
+     * ```javascript
      *    // shutdown immediately
      *    server.shutdown(function(err) {
      *    });
-     *
+     * ```
+     * ```ts
+     *   // in typescript with async/await
+     *   await server.shutdown();
+     * ```
+     * ```javascript
      *    // shutdown within 10 seconds
      *    server.shutdown(10000,function(err) {
      *    });
+     *   ```
      */
     public shutdown(timeout?: number): Promise<void>;
     public shutdown(callback: (err?: Error) => void): void;
@@ -1324,7 +1296,77 @@ export class OPCUAServer extends OPCUABaseServer {
         OPCUAServer.registry.unregister(self);
     }
 
-    public computeServerSignature(
+    public raiseEvent(eventType: any, options: any): void {
+
+        const self = this;
+
+        if (!self.engine.addressSpace) {
+            console.log("addressSpace missing");
+            return;
+        }
+
+        const server = self.engine.addressSpace.findNode("Server") as UAObject;
+
+        if (!server) {
+            // xx throw new Error("OPCUAServer#raiseEvent : cannot find Server object");
+            return;
+        }
+
+        let eventTypeNode = eventType;
+        if (typeof (eventType) === "string") {
+            eventTypeNode = self.engine.addressSpace.findEventType(eventType);
+        }
+
+        if (eventTypeNode) {
+            return server.raiseEvent(eventTypeNode, options);
+        } else {
+            console.warn(" cannot find event type ", eventType);
+        }
+    }
+
+    public registerServer(
+      discoveryServerEndpointUrl: string,
+      callback: any
+    ) {
+        assert(!"registerServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
+        _registerServer.call(this, discoveryServerEndpointUrl, true, callback);
+    }
+
+    public unregisterServer(
+      discoveryServerEndpointUrl: string,
+      callback: any
+    ) {
+        assert(!"unregisterServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
+        _registerServer.call(this, discoveryServerEndpointUrl, false, callback);
+    }
+
+    /**
+     * create and register a new session
+     * @internal
+     */
+    protected createSession(options: any): ServerSession {
+        return this.engine.createSession(options);
+    }
+
+    /**
+     * retrieve a session by authentication token
+     * @internal
+     */
+    protected getSession(
+      authenticationToken: NodeId,
+      activeOnly?: boolean
+    ): ServerSession | null {
+        return this.engine.getSession(authenticationToken, activeOnly);
+    }
+
+    /**
+     *
+     * @param channel
+     * @param clientCertificate
+     * @param clientNonce
+     * @internal
+     */
+    protected computeServerSignature(
       channel: ServerSecureChannelLayer,
       clientCertificate: Certificate,
       clientNonce: Nonce
@@ -1335,7 +1377,14 @@ export class OPCUAServer extends OPCUABaseServer {
           channel.messageBuilder.securityPolicy);
     }
 
-    public verifyClientSignature(
+    /**
+     *
+     * @param session
+     * @param channel
+     * @param clientSignature
+     * @internal
+     */
+    protected verifyClientSignature(
       session: ServerSession,
       channel: ServerSecureChannelLayer,
       clientSignature: SignatureData
@@ -1355,23 +1404,8 @@ export class OPCUAServer extends OPCUABaseServer {
         return result;
     }
 
-    public registerServer(
-      discoveryServerEndpointUrl: string,
-      callback: any
-    ) {
-        assert(!"registerServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
-        _registerServer.call(this, discoveryServerEndpointUrl, true, callback);
-    }
 
-    public unregisterServer(
-      discoveryServerEndpointUrl: string,
-      callback: any
-    ) {
-        assert(!"unregisterServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
-        _registerServer.call(this, discoveryServerEndpointUrl, false, callback);
-    }
-
-    public isValidUserNameIdentityToken(
+    protected isValidUserNameIdentityToken(
       channel: ServerSecureChannelLayer,
       session: ServerSession,
       userTokenPolicy: any,
@@ -1405,7 +1439,7 @@ export class OPCUAServer extends OPCUABaseServer {
         return callback(null, StatusCodes.Good);
     }
 
-    public isValidX509IdentityToken(
+    protected isValidX509IdentityToken(
       channel: ServerSecureChannelLayer,
       session: ServerSession,
       userTokenPolicy: any,
@@ -1471,7 +1505,7 @@ export class OPCUAServer extends OPCUABaseServer {
     /**
      * @internal
      */
-    public userNameIdentityTokenAuthenticateUser(
+    protected userNameIdentityTokenAuthenticateUser(
       channel: ServerSecureChannelLayer,
       session: ServerSession,
       userTokenPolicy: any,
@@ -1517,7 +1551,7 @@ export class OPCUAServer extends OPCUABaseServer {
     /**
      * @internal
      */
-    public isValidUserIdentityToken(
+    protected isValidUserIdentityToken(
       channel: ServerSecureChannelLayer,
       session: ServerSession,
       userIdentityToken: UserIdentityToken,
@@ -1562,7 +1596,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * @param callback
      * @returns {*}
      */
-    public isUserAuthorized(
+    protected isUserAuthorized(
       channel: ServerSecureChannelLayer,
       session: ServerSession,
       userIdentityToken: UserIdentityToken,
@@ -1586,36 +1620,8 @@ export class OPCUAServer extends OPCUABaseServer {
         async.setImmediate(callback.bind(null, null, true));
     }
 
-    public makeServerNonce(): Nonce {
+    protected makeServerNonce(): Nonce {
         return crypto.randomBytes(32);
-    }
-
-    public raiseEvent(eventType: any, options: any): void {
-
-        const self = this;
-
-        if (!self.engine.addressSpace) {
-            console.log("addressSpace missing");
-            return;
-        }
-
-        const server = self.engine.addressSpace.findNode("Server") as UAObject;
-
-        if (!server) {
-            // xx throw new Error("OPCUAServer#raiseEvent : cannot find Server object");
-            return;
-        }
-
-        let eventTypeNode = eventType;
-        if (typeof (eventType) === "string") {
-            eventTypeNode = self.engine.addressSpace.findEventType(eventType);
-        }
-
-        if (eventTypeNode) {
-            return server.raiseEvent(eventTypeNode, options);
-        } else {
-            console.warn(" cannot find event type ", eventType);
-        }
     }
 
     // session services
@@ -3323,8 +3329,6 @@ export interface OPCUAServer {
       eventType: "TransitionEventType", options: RaiseEventTransitionEventData): void;
 
 }
-
-import { EventEmitter } from "events";
 
 export interface OPCUAServer extends EventEmitter {
     on(event: "create_session", eventHandler: (session: ServerSession) => void): this;

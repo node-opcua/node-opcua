@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.Private
+ */
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { BrowsePath, ModelChangeStructureDataType } from "node-opcua-types";

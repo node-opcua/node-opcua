@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-server
+ */
 // tslint:disable:no-console
 import chalk from "chalk";
 
@@ -16,7 +19,7 @@ const doDebug = checkDebugFlag(__filename);
  * will claim them again with transferSubscription  service
  * It also make sure that subscription are properly disposed when  they expire.
  *
- * @constructor
+ * @internal
  */
 export class ServerSidePublishEngineForOrphanSubscription extends  ServerSidePublishEngine {
 

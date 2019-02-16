@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.AlarmsAndConditions
+ */
 
 // --------------------------------------------------------------------------------------------------
 // ShelvingStateMachine

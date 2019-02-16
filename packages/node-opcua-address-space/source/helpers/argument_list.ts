@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import chalk from "chalk";
 import * as _ from "underscore";
 

@@ -1,5 +1,5 @@
 /**
- * @module opcua.server
+ * @module node-opcua-server
  */
 // tslint:disable:no-console
 import * as async from "async";
@@ -216,7 +216,7 @@ export class ServerEngine extends EventEmitter {
     constructor(options: ServerEngineOptions) {
         super();
 
-        options = options || {};
+        options = options || { applicationUri: ""} as ServerEngineOptions;
         options.buildInfo = options.buildInfo || {};
 
         ServerEngine.registry.register(this);

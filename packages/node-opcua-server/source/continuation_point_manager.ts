@@ -1,5 +1,5 @@
 /**
- * @module opcua.server
+ * @module node-opcua-server
  */
 import { ContinuationPoint } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
