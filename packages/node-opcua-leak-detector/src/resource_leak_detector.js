@@ -3,8 +3,8 @@ Error.stackTraceLimit = Infinity;
 
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
+const chalk = require("chalk");
 
-require("colors");
 
 const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 ObjectRegistry.doDebug = true;
@@ -97,7 +97,7 @@ ResourceLeakDetector.prototype.verify_registry_counts = function (info) {
         });
 
 
-        console.log("LEAKS in  => ", self.ctx ? self.ctx.test.parent.file + "  " + self.ctx.test.parent.title.cyan : "???");
+        console.log("LEAKS in  => ", self.ctx ? self.ctx.test.parent.file + "  " + self.ctx.test.parent.title : "???");
         throw new Error("LEAKS !!!" + errorMessages.join("\n"));
     }
 

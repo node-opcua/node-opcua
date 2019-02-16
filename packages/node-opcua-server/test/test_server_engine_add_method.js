@@ -1,7 +1,6 @@
 const _ = require("underscore");
 const should = require("should");
 
-const server_engine = require("../src/server_engine");
 
 const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
@@ -18,15 +17,19 @@ const SessionContext = require("node-opcua-address-space").SessionContext;
 
 const translate_service = require("node-opcua-service-translate-browse-path");
 
+const ServerEngine = require("..").ServerEngine;
+const mini_nodeset_filename = require("..").mini_nodeset_filename;
+
+
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine - addMethod", function () {
 
     let addressSpace; let namespace;
     before(function (done) {
 
-        engine = new server_engine.ServerEngine();
+        engine = new ServerEngine();
 
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
 
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();

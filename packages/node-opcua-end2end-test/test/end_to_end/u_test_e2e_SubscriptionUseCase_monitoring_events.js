@@ -435,7 +435,7 @@ module.exports = function (test) {
                                 if (true) {
                                     console.log("Changed !!!  ");
                                     eventFields.forEach(function (variant, index) {
-                                        console.log(w(fields[index], 15).yellow, variant.toString().cyan);
+                                        console.log(chalk.yellow(w(fields[index], 15)), chalk.cyan(variant.toString()));
                                     });
                                 }
                             });

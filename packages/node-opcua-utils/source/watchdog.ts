@@ -12,9 +12,12 @@ export interface IWatchdogData2 {
     lastSeen: number;
     visitCount: number;
 }
+
 export interface ISubscriber {
+
     _watchDog?: WatchDog;
-    _watchDogData: IWatchdogData2;
+    _watchDogData?: IWatchdogData2;
+
     watchdogReset: () => void;
     keepAlive?: () => void;
     onClientSeen?: (t: Date) => void;
@@ -28,6 +31,10 @@ function has_expired(watchDogData: IWatchdogData2, currentTime: number) {
 function keepAliveFunc(this: ISubscriber) {
     const self: ISubscriber = this as ISubscriber;
     assert(self._watchDog instanceof WatchDog);
+    if (!self._watchDogData) {
+        throw new Error("Internal error");
+    }
+
     assert(_.isNumber(self._watchDogData.key));
     self._watchDogData.lastSeen = Date.now();
     if (self.onClientSeen) {
@@ -38,12 +45,11 @@ function keepAliveFunc(this: ISubscriber) {
 export class WatchDog extends EventEmitter {
     /**
      * returns the number of subscribers using the WatchDog object.
-     * @property subscriberCount
-     * @type {number}
      */
     get subscriberCount(): number {
         return Object.keys(this._watchdogDataMap).length;
     }
+
     private readonly _watchdogDataMap: { [id: number]: IWatchdogData2 };
     private _counter: number;
     private _currentTime: number;
@@ -72,9 +78,9 @@ export class WatchDog extends EventEmitter {
      * if the subscriber failed to call keepAlive withing the timeout period.
      * @param subscriber
      * @param timeout
-     * @return {number}
+     * @return the numerical key associated with this subscriber
      */
-    public addSubscriber(subscriber: ISubscriber, timeout: number) {
+    public addSubscriber(subscriber: ISubscriber, timeout: number): number {
         const self = this;
         self._currentTime = Date.now();
         timeout = timeout || 1000;
@@ -114,6 +120,10 @@ export class WatchDog extends EventEmitter {
         if (!subscriber._watchDog) {
             return; // already removed !!!
         }
+        if (!subscriber._watchDogData) {
+            throw new Error("Internal error");
+        }
+
         assert(subscriber._watchDog instanceof WatchDog);
         assert(_.isNumber(subscriber._watchDogData.key));
         assert(_.isFunction(subscriber.keepAlive));
@@ -125,7 +135,6 @@ export class WatchDog extends EventEmitter {
         delete subscriber.keepAlive;
 
         // delete timer when the last subscriber comes out
-        // xx console.log("xxxx WatchDog.prototype.removeSubscriber ",this.subscriberCount );
         if (this.subscriberCount === 0) {
             this._stop_timer();
         }
@@ -133,8 +142,8 @@ export class WatchDog extends EventEmitter {
 
     public shutdown(): void {
         assert(
-            this._timer === null && Object.keys(this._watchdogDataMap).length === 0,
-            " leaking subscriber in watchdog"
+          this._timer === null && Object.keys(this._watchdogDataMap).length === 0,
+          " leaking subscriber in watchdog"
         );
     }
 
@@ -163,6 +172,7 @@ export class WatchDog extends EventEmitter {
         assert(this._timer === null, " setInterval already called ?");
         this._timer = setInterval(this._visitSubscriberB, 1000) as NodeJS.Timer;
     }
+
     private _stop_timer(): void {
         assert(this._timer !== null, "_stop_timer already called ?");
         if (this._timer !== null) {

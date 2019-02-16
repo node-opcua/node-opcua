@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint no-process-exit: 0 */
 "use strict";
+const chalk = require("chalk");
 const _ = require("underscore");
 const path = require("path");
 const opcua = require("node-opcua");
@@ -48,7 +49,7 @@ const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 const hostname = require("os").hostname();
 
 
-console.log("  server PID          :".yellow, process.pid);
+console.log(chalk.yellow("  server PID          :"), process.pid);
 
 server.on("post_initialize", function () {
     const addressSpace = server.engine.addressSpace;
@@ -60,15 +61,15 @@ server.start(function (err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
-    console.log("  server on port      :".yellow, server.endpoints[0].port.toString().cyan);
-    console.log("  endpointUrl         :".yellow, endpointUrl.cyan);
-    console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
+    console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
+    console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
+    console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 });
 
 process.on("SIGINT", function () {
     // only work on linux apparently
     server.shutdown(1000, function () {
-        console.log(" shutting down completed ".red.bold);
+        console.log(chalk.red.bold(" shutting down completed "));
         process.exit(-1);
     });
 });

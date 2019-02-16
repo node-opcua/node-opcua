@@ -117,4 +117,3 @@ export function dumpReferences(
             : reference.referenceType.toString(), " ", objectName);
     }
 }
-

@@ -3,6 +3,7 @@
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 Error.stackTraceLimit = Infinity;
 
+const chalk = require("chalk");
 const should = require("should");
 const sinon = require("sinon");
 const path = require("path");
@@ -20,7 +21,7 @@ const ClientSecureChannelLayer = require("node-opcua-client").ClientSecureChanne
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 const certificate_store = path.join(__dirname, "../../certificates");
-fs.existsSync(certificate_store).should.eql(true, "expecting certificate store");
+fs.existsSync(certificate_store).should.eql(true, "expecting certificate store at " + certificate_store);
 
 const port = 2225;
 
@@ -74,7 +75,7 @@ function stop_inner_server_local(data, callback) {
             // faulty client that do not renew token properly, causing server to abruptly drop the connection that
             // has become un-secured. We simply issue a warning rather than a exception if we find that currentSessionCount != 0
             if (server.engine.currentSessionCount !== 0) {
-                console.log("stop_inner_server_local:  Warning all sessions should have been closed".yellow);
+                console.log(chalk.yellow("stop_inner_server_local:  Warning all sessions should have been closed"));
             }
             //xxx server.engine.currentSessionCount.should.equal(0, " all sessions should have been closed");
             //xxx server.currentChannelCount.should.equal(0, "All channel should have been closed");
@@ -238,7 +239,7 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
     });
 
     subscription.on("internal_error", function (err) {
-        debugLog("xxx internal error in ClientSubscription".red, err.message);
+        debugLog(chalk.red("xxx internal error in ClientSubscription"), err.message);
         the_error = err;
     });
     subscription.on("terminated", function () {
@@ -288,7 +289,7 @@ function common_test(securityPolicy, securityMode, options, done) {
         const expectedExpiryTick = token.createdAt.getTime() + token.revisedLifetime;
         const delay = (expectedExpiryTick - Date.now());
         if (delay <= 100) {
-            console.log("WARNING : token renewal is happening too late !!".red, delay);
+            console.log(chalk.red("WARNING : token renewal is happening too late !!"), delay);
         }
         debugLog("received lifetime_75", JSON.stringify(token), delay);
     });
@@ -378,7 +379,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
 
     }, function (err) {
 
-        debugLog(" RECEIVED ERROR :".yellow.bold, err);
+        debugLog(chalk.yellow.bold(" RECEIVED ERROR :"), err);
         start_reconnection_spy.callCount.should.eql(1);
         //xx after_reconnection_spy.callCount.should.eql(1);
         should(err).be.instanceOf(Error);
@@ -387,7 +388,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
     });
 
     client.on("backoff", function (number, delay) {
-        console.log("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
+        console.log(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
     });
     client.on("lifetime_75", function (token) {
         debugLog("            received lifetime_75", JSON.stringify(token));

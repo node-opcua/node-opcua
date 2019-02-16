@@ -1,7 +1,7 @@
 /*global xit,it,describe,before,beforeEach,afterEach*/
 "use strict";
 
-
+const chalk = require("chalk");
 const assert = require("node-opcua-assert").assert;
 const async = require("async");
 const should = require("should");
@@ -26,7 +26,7 @@ const perform_operation_on_client_session = require("../../test_helpers/perform_
 const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 const perform_operation_on_monitoredItem = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_monitoredItem;
 
-const Subscription = require("node-opcua-server/src/server_subscription").Subscription;
+const Subscription = require("node-opcua-server").Subscription;
 
 const doDebug = true;
 const f = require("../../test_helpers/display_function_name").f.bind(null, true);
@@ -36,7 +36,7 @@ function trace_console_log() {
     global.console.log = function () {
         const t = (new Error("")).stack.split("\n")[2];
         if (t.match(/opcua/)) {
-            log1.call(console, t.cyan);
+            log1.call(console, chalk.cyan(t));
         }
         log1.apply(console, arguments);
     };
@@ -475,7 +475,7 @@ module.exports = function (test) {
         //        },
         //        function (callback) {
         //            try {
-        //                console.log(" ------------------------------------------------ INNER FUNC".bgWhite);
+        //                console.log(chalk.bgWhite.black(" ------------------------------------------------ INNER FUNC"));
         //                inner_func(callback);
         //            }
         //            catch (err) {
@@ -2242,7 +2242,7 @@ module.exports = function (test) {
                 });
 
                 subscription.on("terminated", function () {
-                    //xx console.log(" subscription terminated ".yellow);
+                    //xx console.log(chalk.yellow(" subscription terminated "));
                     inner_done();
                 });
 
@@ -2362,7 +2362,7 @@ module.exports = function (test) {
             const nodeId = "ns=2;s=Scalar_Static_Int16";
 
             const node = server.engine.addressSpace.findNode(nodeId);
-            //xx console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~".cyan,node.toString());
+            //xx console.log(chalk.cyan("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"),node.toString());
             const server_node = test.server.engine.addressSpace.rootFolder.objects.simulation.scalar.scalar_Static.scalar_Static_Int16;
             //xx console.log("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
             server_node.minimumSamplingInterval = forcedMinimumInterval;
@@ -3179,7 +3179,7 @@ module.exports = function (test) {
                 });
 
                 subscription.on("terminated", function () {
-                    //xx console.log(" subscription terminated ".yellow);
+                    //xx console.log(chalk.yellow(" subscription terminated "));
                 });
                 subscription.on("started", function () {
 

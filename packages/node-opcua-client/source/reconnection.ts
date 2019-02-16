@@ -119,7 +119,7 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
         if (session.hasBeenClosed()) {
             return callback(new Error("Cannot complete subscription republish due to session termination"));
         }
-        debugLog(chalk.bgCyan.bold.green("_ask_for_subscription_republish done "), err ? err.message : "OK");
+        debugLog(chalk.bgCyan.green.bold("_ask_for_subscription_republish done "), err ? err.message : "OK");
         // xx assert(session.getPublishEngine().nbPendingPublishRequests === 0);
         session.resumePublishEngine();
         callback(err);

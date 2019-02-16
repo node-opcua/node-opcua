@@ -188,7 +188,7 @@ function assert_valid_event_data(eventData: any) {
  * @param eventData
  * @param selectClause
  */
-function extractEventField(eventData: any, selectClause: SimpleAttributeOperand) {
+function extractEventField(eventData: any, selectClause: SimpleAttributeOperand): Variant {
 
     assert_valid_event_data(eventData);
     assert(selectClause instanceof SimpleAttributeOperand);
@@ -248,7 +248,7 @@ function extractEventField(eventData: any, selectClause: SimpleAttributeOperand)
  * @param selectClauses
  * @param eventData : a pseudo Node that provides a browse Method and a readValue(nodeId)
  */
-export function extractEventFields(selectClauses: SimpleAttributeOperand[], eventData: any) {
+export function extractEventFields(selectClauses: SimpleAttributeOperand[], eventData: any): Variant[] {
 
     assert_valid_event_data(eventData);
     assert(_.isArray(selectClauses));

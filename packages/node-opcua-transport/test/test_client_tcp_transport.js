@@ -1,7 +1,7 @@
 "use strict";
 const should = require("should");
 const assert = require("node-opcua-assert").assert;
-const color = require("colors");
+const chalk = require("chalk");
 const sinon = require("sinon");
 
 
@@ -207,8 +207,8 @@ describe("testing ClientTCP_transport", function () {
 
         let counter = 1;
         const spyOnServerWrite = sinon.spy(function (socket, data) {
-            debugLog("\ncounter = ".cyan.bold, counter);
-            debugLog(hexDump(data).yellow.bold);
+            debugLog(chalk.cyan.bold("\ncounter = "), counter);
+            debugLog(chalk.yellow.bold(hexDump(data)));
             if (counter === 1) {
                 // HEL/ACK transaction
                 const messageChunk = packTcpMessage("ACK", fakeAcknowledgeMessage);
@@ -236,7 +236,7 @@ describe("testing ClientTCP_transport", function () {
         transport.timeout = 1000; // very short timeout;
 
         transport.on("message", function (message_chunk) {
-            debugLog(hexDump(message_chunk).cyan.bold);
+            debugLog(chalk.cyan.bold(hexDump(message_chunk)));
             compare_buffers(message_chunk.slice(8), message1);
 
             spyOnConnect.callCount.should.eql(1);
@@ -250,7 +250,7 @@ describe("testing ClientTCP_transport", function () {
 
         transport.connect(url, function (err) {
             if (err) {
-                console.log(" err = ".bgWhite.red, err.message);
+                console.log(chalk.bgWhite.red(" err = "), err.message);
             }
             assert(!err);
             const buf = transport.createChunk("MSG", "F", message1.length);
@@ -268,8 +268,8 @@ describe("testing ClientTCP_transport", function () {
         let transport_confirms_that_close_event_has_been_processed = false;
 
         const spyOnServerWrite = sinon.spy(function (socket, data) {
-            debugLog("\ncounter = ".cyan.bold, counter);
-            debugLog(hexDump(data).yellow.bold);
+            debugLog(chalk.cyan.bold("\ncounter = "), counter);
+            debugLog(chalk.yellow.bold(hexDump(data)));
             if (counter === 1) {
                 // HEL/ACK transaction
                 const messageChunk = packTcpMessage("ACK", fakeAcknowledgeMessage);
@@ -296,14 +296,14 @@ describe("testing ClientTCP_transport", function () {
 
         transport.connect(url, function (err) {
             if (err) {
-                console.log(" err = ".bgWhite.red, err.message);
+                console.log(chalk.bgWhite.red(" err = "), err.message);
             }
             assert(!err);
             server_confirms_that_server_socket_has_been_closed.should.equal(false);
             transport_confirms_that_close_event_has_been_processed.should.equal(false);
             transport.disconnect(function (err) {
                 if (err) {
-                    console.log(" err = ".bgWhite.red, err.message);
+                    console.log(chalk.bgWhite.red(" err = "), err.message);
                 }
                 assert(!err);
                 setImmediate(function () {
@@ -324,8 +324,8 @@ describe("testing ClientTCP_transport", function () {
 
         const spyOnServerWrite = sinon.spy(function (socket, data) {
 
-            debugLog("\ncounter = ".cyan.bold, counter);
-            debugLog(hexDump(data).yellow.bold);
+            debugLog(chalk.cyan.bold("\ncounter = "), counter);
+            debugLog(chalk.yellow.bold(hexDump(data)));
             if (counter === 1) {
                 // HEL/ACK transaction
                 const messageChunk = packTcpMessage("ACK", fakeAcknowledgeMessage);

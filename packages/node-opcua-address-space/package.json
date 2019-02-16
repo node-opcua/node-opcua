@@ -10,6 +10,7 @@
  "scripts": {
   "build": "tsc",
   "test": "mocha test",
+  "lint": "tslint source/**/*.ts",
   "clean": "node -e \"require('rimraf').sync('_generated_');\""
  },
  "dependencies": {

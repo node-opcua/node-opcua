@@ -32,21 +32,21 @@ function getUserName(userIdentityToken: UserIdentityToken) {
 }
 
 export interface SessionContextOptions {
-    session?: any;
+    session?: any;  /* ServerSession */
     object?: any;
-    server?: any;
+    server?: any;   /* OPCUAServer*/
 }
 
 export class SessionContext implements ISessionContext {
 
     public static defaultContext = new SessionContext({});
 
-    public  object: any;
-    public readonly currentTime?: Date;
+    public object: any;
+    public currentTime?: Date;
     public continuationPoints: any = {};
     public userIdentity: any;
-    private readonly session: any;
-    private readonly server: any;
+    public readonly session: any;
+    public readonly server: any;
 
     constructor(options?: SessionContextOptions) {
         options = options || {};

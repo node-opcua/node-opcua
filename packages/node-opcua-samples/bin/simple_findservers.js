@@ -14,15 +14,15 @@ perform_findServers(discovery_server_endpointUrl, function (err, servers,endpoin
 
         servers.forEach(function (server) {
 
-            console.log("     applicationUri:", server.applicationUri.cyan.bold);
-            console.log("         productUri:", server.productUri.cyan.bold);
-            console.log("    applicationName:", server.applicationName.text.cyan.bold);
-            console.log("               type:", ApplicationType[server.applicationType].cyan.bold);
-            console.log("   gatewayServerUri:", server.gatewayServerUri ? server.gatewayServerUri.cyan.bold : "");
-            console.log("discoveryProfileUri:", server.discoveryProfileUri ? server.discoveryProfileUri.cyan.bold : "");
+            console.log("     applicationUri:",chalk.cyan.bold(server.applicationUri));
+            console.log("         productUri:",chalk.cyan.bold(server.productUri));
+            console.log("    applicationName:",chalk.cyan.bold(server.applicationName.text));
+            console.log("               type:",chalk.cyan.bold(ApplicationType[server.applicationType]));
+            console.log("   gatewayServerUri:", server.gatewayServerUri ? chalk.cyan.bold(server.gatewayServerUri) : "");
+            console.log("discoveryProfileUri:", server.discoveryProfileUri ? chalk.cyan.bold(server.discoveryProfileUri) : "");
             console.log("      discoveryUrls:");
             server.discoveryUrls.forEach(function (discoveryUrl) {
-                console.log("                    " + discoveryUrl.cyan.bold);
+                console.log("                    " +chalk.cyan.bold(discoveryUrl));
             });
             console.log("-------------");
         });

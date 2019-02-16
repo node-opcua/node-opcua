@@ -1,7 +1,7 @@
 // tslint:disable:no-empty-interface
 import { InstantiateObjectOptions, UAMethod, UAObject, UAObjectType } from "../address_space_ts";
-import { State, StateMachine, StateMachineType, Transition } from "./state_machine";
 import { FiniteStateMachineB } from "./finite_state_machine";
+import { State, StateMachine, StateMachineType, Transition } from "./state_machine";
 
 /**
  * Program Finite State Machine

@@ -8,7 +8,6 @@ const sinon = require("sinon");
 const subscription_service = require("node-opcua-service-subscription");
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
-const Subscription = require("../src/server_subscription").Subscription;
 
 const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
 
@@ -24,9 +23,17 @@ const AttributeIds = require("node-opcua-data-model").AttributeIds;
 const NodeId = require("node-opcua-nodeid").NodeId;
 const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
-const MonitoredItem = require("../src/monitored_item").MonitoredItem;
 
 const SessionContext = require("node-opcua-address-space").SessionContext;
+
+
+const MonitoredItem = require("..").MonitoredItem;
+const Subscription = require("..").Subscription;
+const ServerEngine = require("..").ServerEngine;
+const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const nodeset_filename = require("..").nodeset_filename;
+
+
 const context = SessionContext.defaultContext;
 
 const now = (new Date()).getTime();
@@ -75,7 +82,6 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
-const server_engine = require("../src/server_engine");
 describe("Subscriptions and MonitoredItems", function () {
 
     this.timeout(Math.max(300000, this._timeout));
@@ -87,9 +93,9 @@ describe("Subscriptions and MonitoredItems", function () {
 
     before(function (done) {
 
-        engine = new server_engine.ServerEngine();
+        engine = new ServerEngine();
 
-        engine.initialize({nodeset_filename: server_engine.nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: nodeset_filename}, function () {
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 

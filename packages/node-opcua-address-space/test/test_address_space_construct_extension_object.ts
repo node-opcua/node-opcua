@@ -32,7 +32,7 @@ import {
     BaseNode,
     generateAddressSpace,
     Namespace,
-    ServerStatus1,
+    UAServerStatus,
     SessionContext,
     UAObject,
 } from "..";
@@ -217,7 +217,7 @@ describe("testing address space namespace loading", function(this: any) {
         // the process shall automatically bind variables and substructures recursively
         const VariableIds = require("node-opcua-constants").VariableIds;
 
-        const serverStatus = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus))! as ServerStatus1;
+        const serverStatus = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus))! as UAServerStatus;
         serverStatus.browseName.toString().should.eql("ServerStatus");
 
         // before bindExtensionObject is called, startTime property exists but is not bound

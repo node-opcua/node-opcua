@@ -173,7 +173,7 @@ describe("testing monitoring Executable flags on methods", function () {
 
 
                     if (doDebug) {
-                        console.log("    ====================================================================== STARTING .... ".bgWhite.cyan);
+                        console.log(chalk.bgWhite.cyan("    ====================================================================== STARTING .... "));
                     }
                     boiler.simulation.start([], function (err) {
                         if (doDebug) {
@@ -189,7 +189,7 @@ describe("testing monitoring Executable flags on methods", function () {
 
                 function (callback) {
                     if (doDebug) {
-                        console.log("    ====================================================================== STARTED .... ".bgWhite.cyan);
+                        console.log(chalk.bgWhite.cyan("    ====================================================================== STARTED .... "));
                     }
 
                     boiler.simulation.currentState.dataValue.value.value.text.should.eql("Running");

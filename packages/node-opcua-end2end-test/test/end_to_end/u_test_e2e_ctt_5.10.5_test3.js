@@ -107,7 +107,7 @@ module.exports = function (test) {
         function write_value_and_wait_for_change(session, callback) {
 
             monitoredItem1.once("changed", function (dataValue) {
-                //xx console.log("write_value_and_wait_for_change ! Changed !!!!".cyan,dataValue.toString().green);
+                //xx console.log(chalk.cyan("write_value_and_wait_for_change ! Changed !!!!"),dataValue.toString().green);
                 dataValue.value.value.should.eql(_the_value);
                 callback();
             });

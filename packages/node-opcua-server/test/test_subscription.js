@@ -5,15 +5,21 @@ const should = require("should");
 const sinon = require("sinon");
 
 const subscription_service = require("node-opcua-service-subscription");
-const SubscriptionState = require("../src/server_subscription").SubscriptionState;
-
-
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const Subscription = require("../src/server_subscription").Subscription;
-const MonitoredItem = require("../src/monitored_item").MonitoredItem;
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
-
 const SessionContext = require("node-opcua-address-space").SessionContext;
+const DataValue =  require("node-opcua-data-value").DataValue;
+const DataType = require("node-opcua-variant").DataType;
+const MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
+const add_mock_monitored_item = require("./helper").add_mock_monitored_item;
+
+const Subscription = require("..").Subscription;
+const SubscriptionState = require("..").SubscriptionState;
+const MonitoredItem = require("..").MonitoredItem;
+const ServerEngine = require("..").ServerEngine;
+const ServerSidePublishEngine = require("..").ServerSidePublishEngine;
+const mini_nodeset_filename = require("..").mini_nodeset_filename;
+
 let fake_publish_engine = {
 };
 
@@ -22,7 +28,6 @@ const fakeNotificationData =[new subscription_service.DataChangeNotification()];
 
 const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
 
-const server_engine = require("../src/server_engine");
 
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = {
@@ -40,12 +45,8 @@ function reconstruct_fake_publish_engine() {
     };
 }
 
-const DataValue =  require("node-opcua-data-value").DataValue;
-const DataType = require("node-opcua-variant").DataType;
-const MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
 
 
-const add_mock_monitored_item = require("./helper").add_mock_monitored_item;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Subscriptions", function () {
@@ -361,8 +362,8 @@ describe("Subscriptions", function () {
 
 
         before(function (done) {
-            engine = new server_engine.ServerEngine();
-            engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+            engine = new ServerEngine();
+            engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
                 addressSpace = engine.addressSpace;
                 namespace = addressSpace.getOwnNamespace();
 
@@ -381,7 +382,6 @@ describe("Subscriptions", function () {
             engine = null;
         });
 
-        const ServerSidePublishEngine = require("../src/server_publish_engine").ServerSidePublishEngine;
         let publish_engine;
 
         function simulate_client_adding_publish_request(publishEngine, callback) {

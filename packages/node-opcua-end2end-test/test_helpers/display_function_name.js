@@ -1,4 +1,4 @@
-var colors = require("colors");
+const chalk = require("chalk");
 
 var step_count = 0;
 
@@ -6,13 +6,13 @@ function f(doDebug,func) {
 
     return function (callback) {
         if (doDebug) {
-            console.log("FUNC=>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold);
+            console.log(chalk.bgWhite.cyan("FUNC=>  "), " ", step_count, chalk.yellow.bold(func.name));
         }
         try {
 
             func(function (err) {
                 if (doDebug) {
-                    console.log("END =>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
+                    console.log(chalk.bgWhite.cyan("END =>  "), " ", step_count, chalk.yellow.bold(func.name), " => ", err ? err.name.red : chalk.green("OK"));
                 }
                 step_count++;
                 setImmediate(function () {
@@ -21,7 +21,7 @@ function f(doDebug,func) {
             });
         } catch(err) {
             if (doDebug) {
-                console.log("END WITH EXCEPTION=>  ".bgWhite.cyan, " ", step_count, func.name.yellow.bold, " => ", err ? err.name.red : "OK".green);
+                console.log(chalk.bgWhite.cyan("END WITH EXCEPTION=>  "), " ", step_count, chalk.yellow.bold(func.name), " => ", err ? err.name.red : chalk.green("OK"));
             }
             callback(err);
         }

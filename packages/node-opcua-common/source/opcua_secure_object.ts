@@ -28,8 +28,8 @@ function _load_private_key_pem(privateKeyFilename: string): PrivateKeyPEM {
 }
 
 export interface IOPCUASecureObjectOptions {
-    certificateFile: string;
-    privateKeyFile: string;
+    certificateFile?: string;
+    privateKeyFile?: string;
 }
 
 /**
@@ -59,8 +59,8 @@ export class OPCUASecureObject extends  EventEmitter implements ICertificateKeyP
         assert(typeof options.certificateFile === "string");
         assert(typeof options.privateKeyFile === "string");
 
-        this.certificateFile = options.certificateFile;
-        this.privateKeyFile = options.privateKeyFile;
+        this.certificateFile = options.certificateFile || "invalid certificate file";
+        this.privateKeyFile = options.privateKeyFile || "invalid private key file";
     }
 
     public getCertificate(): Certificate {

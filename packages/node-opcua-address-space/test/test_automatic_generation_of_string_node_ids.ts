@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import * as should from "should";
 
-import { AddressSpace , ServerStatus1, UAObjectType } from "..";
+import { AddressSpace , UAServerStatus, UAObjectType } from "..";
 import { getMiniAddressSpace } from "../";
 import { createCameraType, FakeCamera } from "./fixture_camera_type";
 
@@ -84,7 +84,7 @@ describe("Automatic Generation of  string nodeId", () => {
             browseName: "MyServerStatus",
             nodeId: "s=MyServerStatus",
             organizedBy: "RootFolder",
-        }) as ServerStatus1;
+        }) as UAServerStatus;
         serverStatus.nodeId.toString().should.eql("ns=1;s=MyServerStatus");
         serverStatus.buildInfo.nodeId.toString().should.eql("ns=1;s=MyServerStatus-BuildInfo");
         serverStatus.buildInfo.productUri.nodeId.toString().should.eql("ns=1;s=MyServerStatus-BuildInfo-ProductUri");

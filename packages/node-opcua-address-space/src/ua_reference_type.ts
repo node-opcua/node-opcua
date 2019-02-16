@@ -67,7 +67,7 @@ export class UAReferenceType extends BaseNode implements UAReferenceTypePublic {
                 options.statusCode = StatusCodes.Good;
                 break;
             default:
-                return BaseNode.prototype.readAttribute.call(this, context, attributeId);
+                return super.readAttribute(context, attributeId);
         }
         return new DataValue(options);
     }

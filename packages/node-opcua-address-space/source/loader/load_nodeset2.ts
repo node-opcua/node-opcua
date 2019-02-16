@@ -292,7 +292,6 @@ export function generateAddressSpace(
 
         },
         finish(this: any) {
-            // xx debugLog("xxxx add object ".red,this.obj.nodeId.toString().yellow , this.obj.browseName);
             _internal_createNode(this.obj);
         },
         parser: {

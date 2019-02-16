@@ -6,6 +6,8 @@ const _ = require("underscore");
 const Variant = require("..").Variant;
 const DataType = require("..").DataType;
 const VariantArrayType = require("..").VariantArrayType;
+const isValidVariant = require("..").isValidVariant;
+const buildVariantArray = require("..").buildVariantArray;
 
 const ec = require("node-opcua-basic-types");
 const QualifiedName = require("node-opcua-data-model").QualifiedName;
@@ -130,6 +132,19 @@ describe("Variant", function () {
         });
     });
 
+    it("should create a Scalar Date Variant", function() {
+        const var1 = new Variant({
+            dataType: DataType.DateTime,
+            value: new Date()
+        });
+        var1.dataType.should.eql(DataType.DateTime);
+        var1.arrayType.should.eql(VariantArrayType.Scalar);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            stream.length.should.equal(9);
+        });
+
+    });
     it("should create a Scalar ByteString  Variant - null", function () {
         const var1 = new Variant({dataType: DataType.ByteString, value: null});
 
@@ -171,6 +186,21 @@ describe("Variant", function () {
 
         encode_decode_round_trip_test(var1, function (stream) {
             stream.length.should.equal(1 + 4 + 5);
+        });
+    });
+
+    it("should create a empty Array String Variant", function () {
+        const var1 = new Variant({
+            dataType: DataType.String,
+            arrayType: VariantArrayType.Array,
+            value: null
+        });
+
+        var1.dataType.should.eql(DataType.String);
+        var1.arrayType.should.eql(VariantArrayType.Array);
+
+        encode_decode_round_trip_test(var1, function (stream) {
+            stream.length.should.equal(5);
         });
     });
 
@@ -376,12 +406,12 @@ describe("Variant - Analyser", function () {
     this.timeout(Math.max(400000, this._timeout));
 
     const manyValues = [];
-    for (var i = 0; i < 1000; i++) {
+    for (let i = 0; i < 1000; i++) {
         manyValues[i] = Math.random() * 1000 - 500;
     }
 
     const veryLargeFloatArray = new Float64Array(10 * 1024);
-    for (var i = 0; i < veryLargeFloatArray.length; i++) {
+    for (let i = 0; i < veryLargeFloatArray.length; i++) {
         veryLargeFloatArray[i] = (Math.random() - 0.5) * 10000;
     }
     const various_variants = [
@@ -558,7 +588,7 @@ describe("Variant - Analyser", function () {
             .run({max_time: 0.2});
 
         // note : the following test could be *slow* with large value of length
-        //        for (var i=0;i<length;i++) { obj.value[i].should.eql(i); }
+        //        for (let i=0;i<length;i++) { obj.value[i].should.eql(i); }
         function validate_array() {
             for (let i = 0; i < length; i++) {
                 if (obj.value[i] !== i) {
@@ -611,7 +641,7 @@ xdescribe("benchmarking variant encode", function () {
 
         const encodeVariant = require("..").encodeVariant;
 
-        var stream = new BinaryStream(4096);
+        const stream = new BinaryStream(4096);
         const variant = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Array,
@@ -1770,3 +1800,39 @@ describe("testing variant JSON conversion", function() {
     });
 
 });
+
+describe("testing isValidVariant", function() {
+    it("isValidVariant with scalar", function() {
+        isValidVariant(VariantArrayType.Scalar,DataType.Double, 3.15).should.eql(true);
+        isValidVariant(VariantArrayType.Scalar,DataType.Byte, 655525).should.eql(false);
+
+    });
+    it("isValidVariant with Array", function() {
+        isValidVariant(VariantArrayType.Array,DataType.Double, [-2.24,3.15]).should.eql(true);
+        isValidVariant(VariantArrayType.Array,DataType.Byte, [655525, 12]).should.eql(false);
+
+        isValidVariant(VariantArrayType.Array,DataType.Float,
+          buildVariantArray(DataType.Float,3,0)).should.eql(true);
+        isValidVariant(VariantArrayType.Array,DataType.Double,
+          buildVariantArray(DataType.Double,3,0)).should.eql(true);
+
+        isValidVariant(VariantArrayType.Array,DataType.Byte,
+          buildVariantArray(DataType.Byte,3,0)).should.eql(true);
+        isValidVariant(VariantArrayType.Array,DataType.SByte,
+          buildVariantArray(DataType.SByte,3,0)).should.eql(true);
+        isValidVariant(VariantArrayType.Array,DataType.UInt16,
+          buildVariantArray(DataType.UInt16,3,0)).should.eql(true);
+        isValidVariant(VariantArrayType.Array,DataType.Int16,
+          buildVariantArray(DataType.Int16,3,0)).should.eql(true);
+        isValidVariant(VariantArrayType.Array,DataType.UInt32,
+          buildVariantArray(DataType.UInt32,3,0)).should.eql(true);
+        isValidVariant(VariantArrayType.Array,DataType.Int32,
+          buildVariantArray(DataType.Int32,3,0)).should.eql(true);
+    });
+
+    it("isValidVariant with Matrix", function() {
+        isValidVariant(VariantArrayType.Matrix,DataType.Double, [-2.24,3.15], [1,2]).should.eql(true);
+        isValidVariant(VariantArrayType.Matrix,DataType.Byte, [655525, 12], [1,2]).should.eql(false);
+    });
+
+})

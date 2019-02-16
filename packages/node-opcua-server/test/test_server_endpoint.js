@@ -2,7 +2,6 @@
 
 const should = require("should");
 
-const OPCUAServerEndPoint = require("../src/server_end_point").OPCUAServerEndPoint;
 
 const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
@@ -13,8 +12,9 @@ const it_with_crypto = it;
 
 const default_port = 1234;
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const OPCUAServerEndPoint = require("..").OPCUAServerEndPoint;
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServerEndpoint#addEndpointDescription", function () {
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 "use strict";
+const chalk = require("chalk");
 const opcua = require("node-opcua");
 const _ = require("underscore");
 const path = require("path");
@@ -207,39 +208,39 @@ function dumpNode(node) {
 }
 
 
-console.log("  server PID          :".yellow, process.pid);
+console.log(chalk.yellow("  server PID          :"), process.pid);
 
 server.start(function (err) {
     if (err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
-    console.log("  server on port      :".yellow, server.endpoints[0].port.toString().cyan);
-    console.log("  endpointUrl         :".yellow, endpointUrl.cyan);
+    console.log(chalk.yellow("  server on port      :"), server.endpoints[0].port.toString());
+    console.log(chalk.yellow("  endpointUrl         :"), endpointUrl);
 
-    console.log("  serverInfo          :".yellow);
+    console.log(chalk.yellow("  serverInfo          :"));
     console.log(dumpNode(server.serverInfo));
-    console.log("  buildInfo           :".yellow);
+    console.log(chalk.yellow("  buildInfo           :"));
     console.log(dumpNode(server.engine.buildInfo));
 
-    console.log("\n  server now waiting for connections. CTRL+C to stop".yellow);
+    console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 });
 
 server.on("create_session",function(session) {
 
     console.log(" SESSION CREATED");
-    console.log("    client application URI: ".cyan,session.clientDescription.applicationUri);
-    console.log("        client product URI: ".cyan,session.clientDescription.productUri);
-    console.log("   client application name: ".cyan,session.clientDescription.applicationName.toString());
-    console.log("   client application type: ".cyan,session.clientDescription.applicationType.toString());
-    console.log("              session name: ".cyan,session.sessionName ? session.sessionName.toString():"<null>" );
-    console.log("           session timeout: ".cyan,session.sessionTimeout);
-    console.log("                session id: ".cyan,session.sessionId);
+    console.log(chalk.cyan("    client application URI: "),session.clientDescription.applicationUri);
+    console.log(chalk.cyan("        client product URI: "),session.clientDescription.productUri);
+    console.log(chalk.cyan("   client application name: "),session.clientDescription.applicationName.toString());
+    console.log(chalk.cyan("   client application type: "),session.clientDescription.applicationType.toString());
+    console.log(chalk.cyan("              session name: "),session.sessionName ? session.sessionName.toString():"<null>" );
+    console.log(chalk.cyan("           session timeout: "),session.sessionTimeout);
+    console.log(chalk.cyan("                session id: "),session.sessionId);
 });
 
 server.on("session_closed",function(session,reason) {
     console.log(" SESSION CLOSED :",reason);
-    console.log("              session name: ".cyan,session.sessionName ? session.sessionName.toString():"<null>");
+    console.log(chalk.cyan("              session name: "),session.sessionName ? session.sessionName.toString():"<null>");
 });
 
 function w(s,w) {
@@ -251,7 +252,7 @@ function t(d) {
 
 server.on("response", function (response) {
     console.log(t(response.responseHeader.timestamp),response.responseHeader.requestHandle,
-                response.schema.name.cyan," status = ",response.responseHeader.serviceResult.toString().cyan);
+                response.schema.name," status = ",response.responseHeader.serviceResult.toString());
     switch (response.schema.name) {
         case "ModifySubscriptionResponse":
         case "CreateMonitoredItemsResponse":
@@ -269,7 +270,7 @@ function indent(str,nb) {
 }
 server.on("request", function (request,channel) {
     console.log(t(request.requestHeader.timestamp),request.requestHeader.requestHandle,
-                request.schema.name.yellow, " ID =",channel.channelId.toString().cyan);
+                request.schema.name, " ID =",channel.channelId.toString());
     switch (request.schema.name) {
         case "ModifySubscriptionRequest":
         case "CreateMonitoredItemsRequest":
@@ -287,11 +288,11 @@ server.on("request", function (request,channel) {
 
 process.on("SIGINT", function() {
     // only work on linux apparently
-    console.log(" Received server interruption from user ".red.bold);
-    console.log(" shutting down ...".red.bold);
+    console.log(chalk.red.bold(" Received server interruption from user "));
+    console.log(chalk.red.bold(" shutting down ..."));
     server.shutdown(1000, function () {
-        console.log(" shutting down completed ".red.bold);
-        console.log(" done ".red.bold);
+        console.log(chalk.red.bold(" shutting down completed "));
+        console.log(chalk.red.bold(" done "));
         console.log("");
         process.exit(-1);
     });

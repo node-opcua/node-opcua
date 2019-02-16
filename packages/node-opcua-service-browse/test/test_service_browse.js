@@ -117,7 +117,7 @@ describe("Browse Service", function () {
             const json_str = JSON.stringify(object, null, " ");
 
             console.log(require("util").inspect(object, {colors: true, depth: 15}));
-            console.log("/////".yellow.bold);
+            console.log(chalk.yellow.bold("/////"));
             console.log(json_str);
 
             const b = new browse_service.BrowseResponse(JSON.parse(json_str));

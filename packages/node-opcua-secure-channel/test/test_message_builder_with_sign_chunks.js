@@ -1,6 +1,6 @@
 "use strict";
 const should = require("should");
-const colors = require("colors");
+const chalk = require("chalk");
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const hexDump = require("node-opcua-debug").hexDump;
@@ -103,7 +103,7 @@ describe("MessageBuilder with SIGN support", function () {
         })
         .on("error", function (err) {
             debugLog(err);
-            debugLog("this chunk has a altered body ( signature verification failed)".yellow);
+            debugLog(chalk.yellow("this chunk has a altered body ( signature verification failed)"));
             //xx debugLog(hexDump(chunk));
             done();
         });

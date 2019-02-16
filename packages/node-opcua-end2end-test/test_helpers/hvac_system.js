@@ -1,6 +1,6 @@
 "use strict";
 
-
+const chalk = require("chalk");
 const _ = require("underscore");
 const assert = require("node-opcua-assert").assert;
 const opcua = require("node-opcua");
@@ -191,7 +191,7 @@ exports.createHVACSystem = function (addressSpace) {
     myHVAC.setTargetTemperature.bindMethod(function (inputArguments, context, callback) {
 
         if (doDebug) {
-            console.log(" In SetTargetTemperature".cyan.bold);
+            console.log(chalk.cyan.bold(" In SetTargetTemperature"));
             console.log("inputArguments", inputArguments[0].toString());
         }
 
@@ -206,7 +206,7 @@ exports.createHVACSystem = function (addressSpace) {
         }
         const s = variable.isValueInRange(targetTemperature);
         if (s.isNot(StatusCodes.Good)) {
-            console.log(" Invalid Value specified for targetTemperature".red.bold);
+            console.log(chalk.red.bold(" Invalid Value specified for targetTemperature"));
             return callback(null, {statusCode: s});
         }
 

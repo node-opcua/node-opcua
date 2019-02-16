@@ -1239,9 +1239,6 @@ function _update_sourceTimestamp<T>(
   this: UAConditionVariable<T>,
   dataValue: DataValue /*, indexRange*/
 ) {
-    // xx console.log("_update_sourceTimestamp = "+
-    // self.nodeId.toString().cyan+ " " + self.browseName.toString(),
-    // self.sourceTimestamp.nodeId.toString().cyan + " " + dataValue.sourceTimestamp);
     this.sourceTimestamp.setValueFromSource({
         dataType: DataType.DateTime,
         value: dataValue.sourceTimestamp

@@ -23,10 +23,10 @@ function server_stuff() {
         server = new opcua.OPCUAServer(server_options);
         server.start(function (err) {
             if (err) {
-                console.log(" Server failed to start ... exiting".red);
+                console.log(chalk.red(" Server failed to start ... exiting"));
                 process.exit(-3);
             }
-            console.log("  server on port      :".yellow, server.endpoints[0].port.toString().cyan);
+            console.log(chalk.yellow("  server on port      :"), server.endpoints[0].port.toString());
         
             callback();
         });
@@ -34,7 +34,7 @@ function server_stuff() {
     }
     function stop_server(callback)  {
 
-        console.log("---------------------------------- SHUTING DOWN SERVER".red);
+        console.log(chalk.red("---------------------------------- SHUTING DOWN SERVER"));
         server.simulateCrash(callback);
         if (true) return;
 
@@ -118,10 +118,10 @@ async.series([
         });
 
         client.on("connection_reestablished",function() {
-            console.log(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.red);
+            console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
         });
         client.on("backoff", function (number, delay) {
-            console.log("backoff  attempt #".bgWhite.yellow,number, " retrying in ",delay/1000.0," seconds");
+            console.log(chalk.bgWhite.yellow("backoff  attempt #"),number, " retrying in ",delay/1000.0," seconds");
         });
     },
 
@@ -133,12 +133,12 @@ async.series([
             }
             console.log("session timeout = ",session.timeout);
             the_session.on("keepalive",function(state) {
-                console.log("KeepAlive state=".yellow,state.toString()," pending request on server = ".yellow, the_subscription.publish_engine.nbPendingPublishRequests);
+                console.log(chalk.yellow("KeepAlive state="),state.toString()," pending request on server = "), the_subscription.publish_engine.nbPendingPublishRequests);
 
             });
             the_session.on("session_closed" ,function(statusCode) {
             
-                console.log("Session has closed : statusCode = ".yellow, statusCode ? statusCode.toString() : "????");
+                console.log(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
 
             });
             callback(err);
@@ -183,7 +183,7 @@ async.series([
         }).on("keepalive", function () {
 
             const t1 = getTick();
-            console.log("keepalive ".cyan, " pending request on server = ".cyan, the_subscription.publish_engine.nbPendingPublishRequests);
+            console.log(chalk.cyan("keepalive "), chalk.cyan(" pending request on server = "), the_subscription.publish_engine.nbPendingPublishRequests);
 
         }).on("terminated", function (err) {
 
@@ -209,7 +209,7 @@ async.series([
             });
            monitoredItem.on("changed",function(dataValue){
                if (doDebug) {
-                   console.log(" ||||||||||| VALUE CHANGED !!!!".cyan,dataValue.statusCode.toString(),dataValue.value.toString());
+                   console.log(chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"),dataValue.statusCode.toString(),dataValue.value.toString());
                }
                result.push(dataValue);
            });
@@ -232,8 +232,8 @@ async.series([
 
                     "session will expired in ", the_session.evaluateRemainingLifetime()/1000, " seconds",
 
-                    "subscripiton will expirer in ".red,the_subscription.evaluateRemainingLifetime()/1000, " seconds",
-                    "subscripiton?".red,the_session.subscriptionCount);
+                    chalk.red("subscripiton will expirer in "),the_subscription.evaluateRemainingLifetime()/1000, " seconds",
+                    chalk.red("subscripiton?"),the_session.subscriptionCount);
             if (!the_session.isChannelValid() && false) {
                 //xx console.log(the_session.toString());
                 return; // ignore write as session is invalid for the time being

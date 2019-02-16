@@ -3,6 +3,7 @@
  */
 import assert from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { Guid } from "node-opcua-guid";
 import { ExpandedNodeId, makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 
 import { decodeByteString, encodeByteString } from "./byte_string";
@@ -10,7 +11,6 @@ import { decodeGuid, encodeGuid, isValidGuid } from "./guid";
 import { decodeUInt32, encodeUInt32 } from "./integers";
 import { decodeString, encodeString } from "./string";
 import { getRandomInt } from "./utils";
-import { Guid } from "node-opcua-guid";
 
 // tslint:disable:no-bitwise
 

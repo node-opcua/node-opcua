@@ -96,7 +96,7 @@ module.exports = function(test) {
                         nbChanges += 1;
                     });
                     monitoredItem.on("err", function(err_message) {
-                        debugLog(monitoredItem.itemToMonitor.nodeId.toString(), " ERROR".red, err_message);
+                        debugLog(monitoredItem.itemToMonitor.nodeId.toString(), chalk.red(" ERROR"), err_message);
                     });
                 },
                 function(err) {

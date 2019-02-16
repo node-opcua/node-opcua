@@ -16,6 +16,7 @@ export  {
     ContentFilterElement,
     ContentFilter,
     EventFilter,
+    DataChangeFilter,
 
     AttributeOperandOptions,
     ElementOperandOptions,

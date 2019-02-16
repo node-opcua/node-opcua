@@ -2,41 +2,40 @@ const should = require("should");
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
+const ContinuationPointManager = require("..").ContinuationPointManager;
 
-const ContinuationPointManager = require("../src/continuation_point_manager").ContinuationPointManager;
+describe("ContinuationPointManager", () => {
 
-describe("ContinuationPointManager", function () {
-
-    it("should create a ContinuationPointManager", function () {
+    it("should create a ContinuationPointManager", () => {
 
         const cpm = new ContinuationPointManager();
 
     });
-    it("should return the full a array and no continuation point if array length is less than maxElements", function () {
+    it("should return the full a array and no continuation point if array length is less than maxElements", () => {
 
         const cpm = new ContinuationPointManager();
 
         const fullarray = [1, 2, 3, 4, 5, 6, 7, 8];
         const maxElements = 1000;
         const results = cpm.register(maxElements, fullarray);
-        should(results.continuationPoint).eql(null);
+        should.not.exist(results.continuationPoint);
         results.references.should.eql([1, 2, 3, 4, 5, 6, 7, 8]);
 
     });
 
-    it("should return the full a array if maxElements===0", function () {
+    it("should return the full a array if maxElements===0", () => {
 
         const cpm = new ContinuationPointManager();
 
         const fullarray = [1, 2, 3, 4, 5, 6, 7, 8];
         const maxElements = 0;
         const results = cpm.register(maxElements, fullarray);
-        should(results.continuationPoint).eql(null);
+        should(results.continuationPoint).eql(undefined);
         results.references.should.eql([1, 2, 3, 4, 5, 6, 7, 8]);
 
     });
 
-    it("should return up  maxElements if array.length is greater than maxElements", function () {
+    it("should return up  maxElements if array.length is greater than maxElements", () => {
 
         const cpm = new ContinuationPointManager();
 
@@ -66,7 +65,7 @@ describe("ContinuationPointManager", function () {
 
     });
 
-    it("ContinuationPointManager#cancel - should be possible to cancel a continuation point to free up memory", function () {
+    it("ContinuationPointManager#cancel - should be possible to cancel a continuation point to free up memory", () => {
         const cpm = new ContinuationPointManager();
 
         const fullarray = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -83,6 +82,4 @@ describe("ContinuationPointManager", function () {
         should.not.exist(results.references);
 
     });
-
-
 });

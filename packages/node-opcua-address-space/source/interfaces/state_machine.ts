@@ -1,8 +1,8 @@
 // tslint:disable:no-empty-interface
 import { DateTime, UAString, UInt32 } from "node-opcua-basic-types";
 import { LocalizedText, QualifiedName, QualifiedNameLike } from "node-opcua-data-model";
-import { DataType } from "node-opcua-variant";
 import { NodeId } from "node-opcua-nodeid";
+import { DataType } from "node-opcua-variant";
 import {
     InstantiateObjectOptions, ModellingRuleType,
     Property,

@@ -1,5 +1,8 @@
 const should = require("should");
-const server_engine = require("../src/server_engine");
+
+const ServerEngine = require("..").ServerEngine;
+const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const SubscriptionState = require("..").SubscriptionState;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
@@ -9,8 +12,8 @@ describe("Testing the server  engine - View related ", function () {
 
     let engine;
     beforeEach(function (done) {
-        engine = new server_engine.ServerEngine();
-        engine.initialize({nodeset_filename: server_engine.mini_nodeset_filename}, function () {
+        engine = new ServerEngine();
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
             const FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
             const BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();

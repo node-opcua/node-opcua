@@ -1,55 +1,52 @@
+/// <reference types=".." />
 /* jslint */
 /*global require,describe, it, before, after */
 "use strict";
 const should = require("should");
-
-const assert = require("node-opcua-assert").assert;
 const util = require("util");
 
-const server_engine = require("../src/server_engine");
-const ServerEngine = server_engine.ServerEngine;
-
-const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-const NodeClass = require("node-opcua-data-model").NodeClass;
-
-const ServerState = require("node-opcua-common").ServerState;
-
-const browse_service = require("node-opcua-service-browse");
-const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-const ResultMask = require("node-opcua-data-model").ResultMask;
-
-const read_service = require("node-opcua-service-read");
-const TimestampsToReturn = read_service.TimestampsToReturn;
-const NodeId = require("node-opcua-nodeid").NodeId;
-const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
-const AttributeIds = require("node-opcua-data-model").AttributeIds;
-
-const DataType = require("node-opcua-variant").DataType;
-const DataValue = require("node-opcua-data-value").DataValue;
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-
-const VariableIds = require("node-opcua-constants").VariableIds;
-const ObjectIds = require("node-opcua-constants").ObjectIds;
-const Variant = require("node-opcua-variant").Variant;
-const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-
-const historizing_service = require("node-opcua-service-history");
-const HistoryReadRequest = historizing_service.HistoryReadRequest;
-const HistoryReadDetails = historizing_service.HistoryReadDetails;
-const HistoryReadResult = historizing_service.HistoryReadResult;
-const HistoryData = historizing_service.HistoryData;
-
-const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
-
-const assert_arrays_are_equal = require("node-opcua-test-helpers").assert_arrays_are_equal;
-
-const QualifiedName = require("node-opcua-data-model").QualifiedName;
-const UAObject = require("node-opcua-address-space").UAObject;
-const Reference = require("node-opcua-address-space").Reference;
+const assert = require("node-opcua-assert").assert;
 
 const SessionContext = require("node-opcua-address-space").SessionContext;
+const UAObject = require("node-opcua-address-space").UAObject;
+const Reference = require("node-opcua-address-space").Reference;
+const ServerState = require("node-opcua-common").ServerState;
+const VariableIds = require("node-opcua-constants").VariableIds;
+const ObjectIds = require("node-opcua-constants").ObjectIds;
+const NodeClass = require("node-opcua-data-model").NodeClass;
+const QualifiedName = require("node-opcua-data-model").QualifiedName;
+const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
+const ResultMask = require("node-opcua-data-model").ResultMask;
+const DataValue = require("node-opcua-data-value").DataValue;
+const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
+const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
+const NodeId = require("node-opcua-nodeid").NodeId;
+
+const BrowseRequest = require("node-opcua-service-browse").BrowseRequest;
+const BrowseDescription =  require("node-opcua-service-browse").BrowseDescription;
+const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
+const ReadRequest = require("node-opcua-service-read").ReadRequest;
+const HistoryReadRequest = require("node-opcua-service-history").HistoryReadRequest;
+const HistoryReadDetails = require("node-opcua-service-history").HistoryReadDetails;
+const HistoryReadResult = require("node-opcua-service-history").HistoryReadResult;
+const HistoryData = require("node-opcua-service-history").HistoryData;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
+
+const DataType = require("node-opcua-variant").DataType;
+const Variant = require("node-opcua-variant").Variant;
+const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const assert_arrays_are_equal = require("node-opcua-test-helpers").assert_arrays_are_equal;
+
+
+const ServerEngine = require("..").ServerEngine;
+const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const standard_nodeset_file = require("..").standard_nodeset_file;
+
+
+const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 const context = SessionContext.defaultContext;
 
 function resolveExpandedNodeId(nodeId) {
@@ -57,21 +54,22 @@ function resolveExpandedNodeId(nodeId) {
 }
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing ServerEngine", function () {
+describe("testing ServerEngine", () => {
 
     let engine, namespace, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
     const defaultBuildInfo = {
-        productName: "NODEOPCUA-SERVER",
-        softwareVersion: "1.0",
         manufacturerName: "<Manufacturer>",
-        productUri: "URI:NODEOPCUA-SERVER"
+        productName: "NODEOPCUA-SERVER",
+        productUri: "URI:NODEOPCUA-SERVER",
+        softwareVersion: "1.0",
     };
+
     before(function (done) {
 
         engine = new ServerEngine({ buildInfo: defaultBuildInfo });
 
-        engine.initialize({ nodeset_filename: server_engine.mini_nodeset_filename }, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
 
             const addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
@@ -80,7 +78,6 @@ describe("testing ServerEngine", function () {
             BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType").nodeId;
             ref_Organizes_Id = addressSpace.findReferenceType("Organizes").nodeId;
             ref_Organizes_Id.toString().should.eql("ns=0;i=35");
-
 
             // add a variable as a Array of Double with some values
             const testArray = [];
@@ -152,87 +149,71 @@ describe("testing ServerEngine", function () {
                 browseName: "filteredItemsFolder"
             });
 
+            function check_if_allow(n, context/*: SessionContext*/) {
+                if (context && context.session && context.session.hasOwnProperty("testFilterArray")) {
+                    if (context.session["testFilterArray"].indexOf(n) > -1) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return true;
+                }
+            }
             const newFolder1 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder1",
-                browseFilter: function (session) {
-                    if (session && session.hasOwnProperty("testFilterArray")) {
-                        if (session["testFilterArray"].indexOf(1) > -1) {
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    } else {
-                        return true;
-                    }
-                }
+                browseFilter: check_if_allow.bind(null,1)
             });
             assert(newFolder1);
 
             const newFolder2 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder2",
 
-                browseFilter: function (session/* any*/) {
-
-                    if (session && session.hasOwnProperty("testFilterArray"))
-                        if (session["testFilterArray"].indexOf(2) > -1)
-                            return true;
-                        else
-                            return false;
-                    else
-                        return true;
-                }
+                browseFilter: check_if_allow.bind(null,2)
             });
             assert(newFolder2);
 
             const newFolder3 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder3",
-                browseFilter: function (session) {
-                    if (session && session.hasOwnProperty("testFilterArray"))
-                        if (session["testFilterArray"].indexOf(3) > -1)
-                            return true;
-                        else
-                            return false;
-                    else
-                        return true;
-                }
+                browseFilter: check_if_allow.bind(null,3)
             });
             assert(newFolder3);
 
             done();
         });
 
-
     });
+
     after(function () {
         engine.shutdown();
         engine = null;
     });
 
-    it("should have a rootFolder ", function () {
+    it("should have a rootFolder ", () => {
 
-        engine.rootFolder.typeDefinition.should.eql(FolderTypeId);
+        engine.addressSpace.rootFolder.typeDefinition.should.eql(FolderTypeId);
 
     });
 
-    it("should find the rootFolder by browseName", function () {
+    it("should find the rootFolder by browseName", () => {
 
         const browseNode = engine.addressSpace.findNode("RootFolder");
 
         browseNode.typeDefinition.should.eql(FolderTypeId);
-        browseNode.should.equal(engine.rootFolder);
+        browseNode.should.equal(engine.addressSpace.rootFolder);
 
     });
 
-    it("should find the rootFolder by nodeId", function () {
+    it("should find the rootFolder by nodeId", () => {
 
         const browseNode = engine.addressSpace.findNode("i=84");
 
         browseNode.typeDefinition.should.eql(FolderTypeId);
-        browseNode.should.equal(engine.rootFolder);
+        browseNode.should.equal(engine.addressSpace.rootFolder);
 
     });
 
-    it("should have an 'Objects' folder", function () {
+    it("should have an 'Objects' folder", () => {
 
         const rootFolder = engine.addressSpace.rootFolder;
 
@@ -243,7 +224,7 @@ describe("testing ServerEngine", function () {
         rootFolder.objects.typeDefinition.should.eql(FolderTypeId);
     });
 
-    it("should have a 'Server' object in the Objects Folder", function () {
+    it("should have a 'Server' object in the Objects Folder", () => {
 
         const server = engine.addressSpace.rootFolder.objects.server;
         assert(server);
@@ -251,7 +232,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should have a 'Server.NamespaceArray' Variable ", function () {
+    it("should have a 'Server.NamespaceArray' Variable ", () => {
 
         const server = engine.addressSpace.rootFolder.objects.server;
 
@@ -268,7 +249,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should have a 'Server.Server_ServerArray' Variable", function () {
+    it("should have a 'Server.Server_ServerArray' Variable", () => {
 
         // find 'Objects' folder
         const objects = engine.addressSpace.rootFolder.objects;
@@ -280,12 +261,11 @@ describe("testing ServerEngine", function () {
         //xx server_NamespaceArray.parent.nodeId.should.eql(serverObject.nodeId);
     });
 
-    it("should be possible to create a new folder under the 'Root' folder", function () {
+    it("should be possible to create a new folder under the 'Root' folder", () => {
         const namespace = engine.addressSpace.getOwnNamespace();
 
         // find 'Objects' folder
         const objects = engine.addressSpace.rootFolder.objects;
-
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder");
         assert(newFolder);
@@ -297,7 +277,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should be possible to find a newly created folder by nodeId", function () {
+    it("should be possible to find a newly created folder by nodeId", () => {
         const namespace = engine.addressSpace.getOwnNamespace();
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder");
@@ -311,7 +291,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should be possible to find a newly created folder by 'browse name'", function () {
+    it("should be possible to find a newly created folder by 'browse name'", () => {
 
         const namespace = engine.addressSpace.getOwnNamespace();
         const newFolder = namespace.addFolder("ObjectsFolder", "MySecondNewFolder");
@@ -321,7 +301,7 @@ describe("testing ServerEngine", function () {
         result.should.eql(newFolder);
     });
 
-    xit("should not be possible to create a object with an existing 'browse name'", function () {
+    xit("should not be possible to create a object with an existing 'browse name'", () => {
 
         const namespace = engine.addressSpace.getOwnNamespace();
 
@@ -372,7 +352,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should be possible to create a variable in a folder with a predefined nodeID", function () {
+    it("should be possible to create a variable in a folder with a predefined nodeID", () => {
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder3");
 
@@ -392,9 +372,7 @@ describe("testing ServerEngine", function () {
 
         });
 
-
         newVariable.nodeId.toString().should.eql("ns=1;b=01020304ffaa");
-
 
     });
 
@@ -432,7 +410,6 @@ describe("testing ServerEngine", function () {
             }
             done(err);
         });
-
 
     });
 
@@ -484,7 +461,6 @@ describe("testing ServerEngine", function () {
             }
         });
 
-
         const historyReadRequest = new HistoryReadRequest({
             historyReadDetails: new HistoryReadDetails(),
             timestampsToReturn: 3,
@@ -503,7 +479,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should be possible to create a object in a folder", function () {
+    it("should be possible to create a object in a folder", () => {
 
         const simulation = namespace.addObject({
             organizedBy: "ObjectsFolder",
@@ -512,10 +488,9 @@ describe("testing ServerEngine", function () {
             nodeId: makeNodeId(4000, 1)
         });
 
-
     });
 
-    it("should browse the 'Objects' folder for back references", function () {
+    it("should browse the 'Objects' folder for back references", () => {
 
         const browseDescription = {
             browseDirection: BrowseDirection.Inverse,
@@ -537,10 +512,9 @@ describe("testing ServerEngine", function () {
         browseResult.references[0].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
 
-
     });
 
-    it("should browse root folder with referenceTypeId", function () {
+    it("should browse root folder with referenceTypeId", () => {
 
         const browseDescription = {
             browseDirection: BrowseDirection.Both,
@@ -557,7 +531,6 @@ describe("testing ServerEngine", function () {
         //xx console.log(browseNames);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
-
 
         browseResult.references.length.should.equal(3);
 
@@ -585,7 +558,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should browse root and find all hierarchical children of the root node (includeSubtypes: true)", function () {
+    it("should browse root and find all hierarchical children of the root node (includeSubtypes: true)", () => {
 
         const browseDescription1 = {
             browseDirection: BrowseDirection.Forward,
@@ -607,12 +580,12 @@ describe("testing ServerEngine", function () {
         const browseResult2 = engine.browseSingleNode("RootFolder", browseDescription2);
     });
 
-    it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true", function () {
+    it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true", () => {
 
         const ref_hierarchical_Ref_Id = engine.addressSpace.findReferenceType("HierarchicalReferences").nodeId;
         ref_hierarchical_Ref_Id.toString().should.eql("ns=0;i=33");
 
-        const browseDescription = new browse_service.BrowseDescription({
+        const browseDescription = new BrowseDescription({
             browseDirection: BrowseDirection.Both,
             referenceTypeId: ref_hierarchical_Ref_Id,
             includeSubtypes: true,
@@ -651,7 +624,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should browse a 'Server' object in  the 'Objects' folder", function () {
+    it("should browse a 'Server' object in  the 'Objects' folder", () => {
 
         const browseDescription = {
             browseDirection: BrowseDirection.Forward,
@@ -669,7 +642,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should handle a BrowseRequest and set StatusCode if node doesn't exist", function () {
+    it("should handle a BrowseRequest and set StatusCode if node doesn't exist", () => {
 
         const browseResult = engine.browseSingleNode("ns=46;i=123456");
 
@@ -678,9 +651,9 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should handle a BrowseRequest with multiple nodes to browse", function () {
+    it("should handle a BrowseRequest with multiple nodes to browse", () => {
 
-        const browseRequest = new browse_service.BrowseRequest({
+        const browseRequest = new BrowseRequest({
             nodesToBrowse: [
                 {
                     browseDirection: BrowseDirection.Both,
@@ -707,7 +680,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should handle a BrowseRequest of a session with a filtered result", function () {
+    it("should handle a BrowseRequest of a session with a filtered result", () => {
 
         const objects = engine.addressSpace.rootFolder.objects;
         const filteredItemsFolder = objects.getFolderElementByName("filteredItemsFolder");
@@ -717,22 +690,24 @@ describe("testing ServerEngine", function () {
                 nodeClassMask: 1, // 1=Objects
                 nodeId: filteredItemsFolder.nodeId,
                 resultMask: 63,
-            }]
+            }],
         };
 
-        const browseRequest = new browse_service.BrowseRequest(browseDescription);
+        const browseRequest = new BrowseRequest(browseDescription);
         const session = engine.createSession();
 
+        const context = new SessionContext({ session });
+
         session.testFilterArray = [1, 3];
-        const results1 = engine.browse(browseRequest.nodesToBrowse, session);
+        const results1 = engine.browse(browseRequest.nodesToBrowse, context);
         results1[0].references.length.should.equal(2);
 
         session.testFilterArray = [1, 2, 3];
-        const results2 = engine.browse(browseRequest.nodesToBrowse, session);
+        const results2 = engine.browse(browseRequest.nodesToBrowse, context);
         results2[0].references.length.should.equal(3);
 
         session.testFilterArray = [3];
-        const results3 = engine.browse(browseRequest.nodesToBrowse, session);
+        const results3 = engine.browse(browseRequest.nodesToBrowse, context);
         results3[0].references.length.should.equal(1);
         results3[0].references[0].displayName.text.should.equal("filteredFolder3");
 
@@ -740,7 +715,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should provide results that conforms to browseDescription.resultMask", function () {
+    it("should provide results that conforms to browseDescription.resultMask", () => {
 
 
         function test_referenceDescription(referenceDescription, resultMask) {
@@ -788,9 +763,9 @@ describe("testing ServerEngine", function () {
 
     });
 
-    describe("readSingleNode on Object", function () {
+    describe("readSingleNode on Object", () => {
 
-        it("should handle a readSingleNode - BrowseName", function () {
+        it("should handle a readSingleNode - BrowseName", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.BrowseName);
 
@@ -799,7 +774,7 @@ describe("testing ServerEngine", function () {
             readResult.value.value.name.should.equal("Root");
         });
 
-        it("should handle a readSingleNode - NodeClass", function () {
+        it("should handle a readSingleNode - NodeClass", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.NodeClass);
 
@@ -808,7 +783,7 @@ describe("testing ServerEngine", function () {
             readResult.value.value.should.equal(NodeClass.Object);
         });
 
-        it("should handle a readSingleNode - NodeId", function () {
+        it("should handle a readSingleNode - NodeId", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.NodeId);
 
@@ -817,7 +792,7 @@ describe("testing ServerEngine", function () {
             readResult.value.value.toString().should.equal("ns=0;i=84");
         });
 
-        it("should handle a readSingleNode - DisplayName", function () {
+        it("should handle a readSingleNode - DisplayName", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.DisplayName);
 
@@ -826,7 +801,7 @@ describe("testing ServerEngine", function () {
             readResult.value.value.text.toString().should.equal("Root");
         });
 
-        it("should handle a readSingleNode - Description", function () {
+        it("should handle a readSingleNode - Description", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.Description);
             readResult.statusCode.should.eql(StatusCodes.Good);
@@ -834,7 +809,7 @@ describe("testing ServerEngine", function () {
             readResult.value.value.text.toString().should.equal("The root of the server address space.");
         });
 
-        it("should handle a readSingleNode - WriteMask", function () {
+        it("should handle a readSingleNode - WriteMask", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.WriteMask);
             readResult.statusCode.should.eql(StatusCodes.Good);
@@ -842,21 +817,21 @@ describe("testing ServerEngine", function () {
             readResult.value.value.should.equal(0);
         });
 
-        it("should handle a readSingleNode - UserWriteMask", function () {
+        it("should handle a readSingleNode - UserWriteMask", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.UserWriteMask);
             readResult.value.dataType.should.eql(DataType.UInt32);
             readResult.value.value.should.equal(0);
         });
 
-        it("should handle a readSingleNode - EventNotifier", function () {
+        it("should handle a readSingleNode - EventNotifier", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.EventNotifier);
             readResult.value.dataType.should.eql(DataType.Byte);
             readResult.value.value.should.equal(0);
         });
 
-        it("should return BadAttributeIdInvalid  - readSingleNode - for bad attribute    ", function () {
+        it("should return BadAttributeIdInvalid  - readSingleNode - for bad attribute    ", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.ContainsNoLoops);
             readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
@@ -864,7 +839,7 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("readSingleNode on ReferenceType", function () {
+    describe("readSingleNode on ReferenceType", () => {
 
         let ref_Organizes_nodeId;
         beforeEach(function () {
@@ -872,7 +847,7 @@ describe("testing ServerEngine", function () {
         });
 
         //  --- on reference Type ....
-        it("should handle a readSingleNode - IsAbstract", function () {
+        it("should handle a readSingleNode - IsAbstract", () => {
 
             const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.IsAbstract);
             readResult.value.dataType.should.eql(DataType.Boolean);
@@ -880,7 +855,7 @@ describe("testing ServerEngine", function () {
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
 
-        it("should handle a readSingleNode - Symmetric", function () {
+        it("should handle a readSingleNode - Symmetric", () => {
 
             const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.Symmetric);
             readResult.statusCode.should.eql(StatusCodes.Good);
@@ -888,7 +863,7 @@ describe("testing ServerEngine", function () {
             readResult.value.value.should.equal(false);
         });
 
-        it("should handle a readSingleNode - InverseName", function () {
+        it("should handle a readSingleNode - InverseName", () => {
 
             const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.InverseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
@@ -896,7 +871,7 @@ describe("testing ServerEngine", function () {
             //xx readResult.value.value.should.equal(false);
         });
 
-        it("should handle a readSingleNode - BrowseName", function () {
+        it("should handle a readSingleNode - BrowseName", () => {
 
             const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.BrowseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
@@ -904,7 +879,7 @@ describe("testing ServerEngine", function () {
             readResult.value.value.name.should.eql("Organizes");
             //xx readResult.value.value.should.equal(false);
         });
-        it("should return BadAttributeIdInvalid on EventNotifier", function () {
+        it("should return BadAttributeIdInvalid on EventNotifier", () => {
 
             const readResult = engine.readSingleNode(context, ref_Organizes_nodeId, AttributeIds.EventNotifier);
             readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
@@ -912,14 +887,14 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("readSingleNode on VariableType", function () {
+    describe("readSingleNode on VariableType", () => {
         //
-        it("should handle a readSingleNode - BrowseName", function () {
+        it("should handle a readSingleNode - BrowseName", () => {
 
             const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.BrowseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
-        it("should handle a readSingleNode - IsAbstract", function () {
+        it("should handle a readSingleNode - IsAbstract", () => {
 
             const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.IsAbstract);
 
@@ -927,23 +902,23 @@ describe("testing ServerEngine", function () {
             readResult.value.dataType.should.eql(DataType.Boolean);
             readResult.value.value.should.equal(false);
         });
-        it("should handle a readSingleNode - Value", function () {
+        it("should handle a readSingleNode - Value", () => {
 
             const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.Value);
             readResult.statusCode.should.eql(StatusCodes.BadAttributeIdInvalid);
         });
 
-        it("should handle a readSingleNode - DataType", function () {
+        it("should handle a readSingleNode - DataType", () => {
 
             const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.DataType);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
-        it("should handle a readSingleNode - ValueRank", function () {
+        it("should handle a readSingleNode - ValueRank", () => {
 
             const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.ValueRank);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
-        it("should handle a readSingleNode - ArrayDimensions", function () {
+        it("should handle a readSingleNode - ArrayDimensions", () => {
 
             const readResult = engine.readSingleNode(context, "DataTypeDescriptionType", AttributeIds.ArrayDimensions);
             readResult.statusCode.should.eql(StatusCodes.Good);
@@ -951,36 +926,36 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("readSingleNode on Variable (ProductUri)", function () {
+    describe("readSingleNode on Variable (ProductUri)", () => {
         const productUri_id = makeNodeId(2262, 0);
-        it("should handle a readSingleNode - BrowseName", function () {
+        it("should handle a readSingleNode - BrowseName", () => {
 
             const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.BrowseName);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
-        it("should handle a readSingleNode - ArrayDimensions", function () {
+        it("should handle a readSingleNode - ArrayDimensions", () => {
 
             const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.ArrayDimensions);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.arrayType.should.eql(VariantArrayType.Array);
         });
-        it("should handle a readSingleNode - AccessLevel", function () {
+        it("should handle a readSingleNode - AccessLevel", () => {
 
             const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.AccessLevel);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
-        it("should handle a readSingleNode - UserAccessLevel", function () {
+        it("should handle a readSingleNode - UserAccessLevel", () => {
 
             const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.UserAccessLevel);
             readResult.statusCode.should.eql(StatusCodes.Good);
         });
-        it("should handle a readSingleNode - MinimumSamplingInterval", function () {
+        it("should handle a readSingleNode - MinimumSamplingInterval", () => {
 
             const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.MinimumSamplingInterval);
             readResult.statusCode.should.eql(StatusCodes.Good);
             readResult.value.value.should.eql(1000);
         });
-        it("should handle a readSingleNode - Historizing", function () {
+        it("should handle a readSingleNode - Historizing", () => {
 
             const readResult = engine.readSingleNode(context, productUri_id, AttributeIds.Historizing);
             readResult.statusCode.should.eql(StatusCodes.Good);
@@ -988,10 +963,10 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("readSingleNode on View", function () {
+    describe("readSingleNode on View", () => {
 
         // for views
-        xit("should handle a readSingleNode - ContainsNoLoops", function () {
+        xit("should handle a readSingleNode - ContainsNoLoops", () => {
 
             const readResult = engine.readSingleNode(context, "RootFolder", AttributeIds.ContainsNoLoops);
             readResult.value.dataType.should.eql(DataType.Boolean);
@@ -999,14 +974,14 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("readSingleNode on DataType", function () {
+    describe("readSingleNode on DataType", () => {
         // for views
-        it("should have ServerStatusDataType dataType exposed", function () {
+        it("should have ServerStatusDataType dataType exposed", () => {
             const obj = engine.addressSpace.findDataType("ServerStatusDataType");
             obj.browseName.toString().should.eql("ServerStatusDataType");
             obj.nodeClass.should.eql(NodeClass.DataType);
         });
-        it("should handle a readSingleNode - ServerStatusDataType - BrowseName", function () {
+        it("should handle a readSingleNode - ServerStatusDataType - BrowseName", () => {
 
             const obj = engine.addressSpace.findDataType("ServerStatusDataType");
             const serverStatusDataType_id = obj.nodeId;
@@ -1015,7 +990,7 @@ describe("testing ServerEngine", function () {
             readResult.value.value.name.should.equal("ServerStatusDataType");
         });
 
-        it("should handle a readSingleNode - ServerStatusDataType - Description", function () {
+        it("should handle a readSingleNode - ServerStatusDataType - Description", () => {
 
             const obj = engine.addressSpace.findDataType("ServerStatusDataType");
             const serverStatusDataType_id = obj.nodeId;
@@ -1025,15 +1000,15 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    it("should return BadNodeIdUnknown  - readSingleNode - with unknown object", function () {
+    it("should return BadNodeIdUnknown  - readSingleNode - with unknown object", () => {
 
         const readResult = engine.readSingleNode(context, "ns=0;s=**UNKNOWN**", AttributeIds.DisplayName);
         readResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
     });
 
-    it("should read the display name of RootFolder", function () {
+    it("should read the display name of RootFolder", () => {
 
-        const readRequest = new read_service.ReadRequest({
+        const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1050,7 +1025,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-    describe("testing read with indexRange for attributes that can't be used with IndexRange ", function () {
+    describe("testing read with indexRange for attributes that can't be used with IndexRange ", () => {
         // see CTT Attribute Service, AttributeRead , Test-Case / Err015.js
         // Read a single node specifying an IndexRange for attributes that can't be used
         // with IndexRange, as in:
@@ -1079,7 +1054,7 @@ describe("testing ServerEngine", function () {
 
         function read_shall_get_BadIndexRangeNoData(attributeId, done) {
             assert(attributeId >= 0 && attributeId < 22);
-            const readRequest = new read_service.ReadRequest({
+            const readRequest = new ReadRequest({
                 maxAge: 0,
                 nodesToRead: [
                     {
@@ -1106,8 +1081,8 @@ describe("testing ServerEngine", function () {
 
         });
 
-        it("should return BadDataEncodingInvalid", function () {
-            const readRequest = new read_service.ReadRequest({
+        it("should return BadDataEncodingInvalid", () => {
+            const readRequest = new ReadRequest({
                 maxAge: 0,
                 nodesToRead: [
                     {
@@ -1123,8 +1098,8 @@ describe("testing ServerEngine", function () {
             dataValues.length.should.eql(1);
             dataValues[0].statusCode.should.eql(StatusCodes.BadDataEncodingInvalid);
         });
-        it("should return Good (dataEncoding = DefaultBinary) ", function () {
-            const readRequest = new read_service.ReadRequest({
+        it("should return Good (dataEncoding = DefaultBinary) ", () => {
+            const readRequest = new ReadRequest({
                 maxAge: 0,
                 nodesToRead: [
                     {
@@ -1142,7 +1117,7 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("testing read operation with timestamps", function () {
+    describe("testing read operation with timestamps", () => {
 
         const nodesToRead =
           [
@@ -1167,8 +1142,7 @@ describe("testing ServerEngine", function () {
           ];
         it("should read and set the required timestamps : TimestampsToReturn.Neither", function (done) {
 
-            const DataValue = require("node-opcua-data-value").DataValue;
-            const readRequest = new read_service.ReadRequest({
+            const readRequest = new ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: nodesToRead
@@ -1206,10 +1180,10 @@ describe("testing ServerEngine", function () {
 
         });
 
-        it("should read and set the required timestamps : TimestampsToReturn.Server", function () {
+        it("should read and set the required timestamps : TimestampsToReturn.Server", () => {
 
             const DataValue = require("node-opcua-data-value").DataValue;
-            const readRequest = new read_service.ReadRequest({
+            const readRequest = new ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Server,
                 nodesToRead: nodesToRead
@@ -1241,10 +1215,10 @@ describe("testing ServerEngine", function () {
 
         });
 
-        it("should read and set the required timestamps : TimestampsToReturn.Source", function () {
+        it("should read and set the required timestamps : TimestampsToReturn.Source", () => {
 
             const DataValue = require("node-opcua-data-value").DataValue;
-            const readRequest = new read_service.ReadRequest({
+            const readRequest = new ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Source,
                 nodesToRead: nodesToRead
@@ -1275,11 +1249,11 @@ describe("testing ServerEngine", function () {
 
         });
 
-        it("should read and set the required timestamps : TimestampsToReturn.Both", function () {
+        it("should read and set the required timestamps : TimestampsToReturn.Both", () => {
 
 
             const DataValue = require("node-opcua-data-value").DataValue;
-            const readRequest = new read_service.ReadRequest({
+            const readRequest = new ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: nodesToRead
@@ -1309,7 +1283,7 @@ describe("testing ServerEngine", function () {
 
     it("should read Server_NamespaceArray ", function (done) {
 
-        const readRequest = new read_service.ReadRequest({
+        const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1342,7 +1316,7 @@ describe("testing ServerEngine", function () {
 
     it("should handle indexRange with individual value", function (done) {
 
-        const readRequest = new read_service.ReadRequest({
+        const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1370,7 +1344,7 @@ describe("testing ServerEngine", function () {
 
     it("should handle indexRange with a simple range", function (done) {
 
-        const readRequest = new read_service.ReadRequest({
+        const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1398,7 +1372,7 @@ describe("testing ServerEngine", function () {
 
     it("should receive BadIndexRangeNoData when indexRange try to access outside boundary", function (done) {
 
-        const readRequest = new read_service.ReadRequest({
+        const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1421,8 +1395,8 @@ describe("testing ServerEngine", function () {
 
     });
 
-    it("should read Server_NamespaceArray  DataType", function () {
-        const readRequest = new read_service.ReadRequest({
+    it("should read Server_NamespaceArray  DataType", () => {
+        const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1440,9 +1414,9 @@ describe("testing ServerEngine", function () {
         dataValues[0].value.value.toString().should.eql("ns=0;i=12"); // String
     });
 
-    it("should read Server_NamespaceArray ValueRank", function () {
+    it("should read Server_NamespaceArray ValueRank", () => {
 
-        const readRequest = new read_service.ReadRequest({
+        const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
@@ -1464,11 +1438,11 @@ describe("testing ServerEngine", function () {
 
     });
 
-    describe("testing ServerEngine browsePath", function () {
+    describe("testing ServerEngine browsePath", () => {
         const translate_service = require("node-opcua-service-translate-browse-path");
         const nodeid = require("node-opcua-nodeid");
 
-        it("translating a browse path to a nodeId with a invalid starting node shall return BadNodeIdUnknown", function () {
+        it("translating a browse path to a nodeId with a invalid starting node shall return BadNodeIdUnknown", () => {
             const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(0), // <=== invalid node id
                 relativePath: []
@@ -1481,7 +1455,7 @@ describe("testing ServerEngine", function () {
         });
 
 
-        it("translating a browse path to a nodeId with an empty relativePath  shall return BadNothingToDo", function () {
+        it("translating a browse path to a nodeId with an empty relativePath  shall return BadNothingToDo", () => {
 
             const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84), // <=== valid node id
@@ -1492,7 +1466,7 @@ describe("testing ServerEngine", function () {
             browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
         });
 
-        it("The Server shall return BadBrowseNameInvalid if the targetName is missing. ", function () {
+        it("The Server shall return BadBrowseNameInvalid if the targetName is missing. ", () => {
             const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84),
                 relativePath: {
@@ -1513,7 +1487,7 @@ describe("testing ServerEngine", function () {
             browsePathResult.statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
             browsePathResult.targets.length.should.eql(0);
         });
-        it("The Server shall return BadNoMatch if the targetName doesn't exist. ", function () {
+        it("The Server shall return BadNoMatch if the targetName doesn't exist. ", () => {
             const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84),
                 relativePath: {
@@ -1534,7 +1508,7 @@ describe("testing ServerEngine", function () {
             browsePathResult.targets.length.should.eql(0);
         });
 
-        it("The Server shall return Good if the targetName does exist. ", function () {
+        it("The Server shall return Good if the targetName does exist. ", () => {
 
             const browsePath = new translate_service.BrowsePath({
                 startingNode: nodeid.makeNodeId(84),
@@ -1561,12 +1535,12 @@ describe("testing ServerEngine", function () {
 
     });
 
-    describe("Accessing ServerStatus nodes", function () {
+    describe("Accessing ServerStatus nodes", () => {
 
         it("should read  Server_ServerStatus_CurrentTime", function (done) {
 
-            const readRequest = new read_service.ReadRequest({
-                timestampsToReturn: read_service.TimestampsToReturn.Neither,
+            const readRequest = new ReadRequest({
+                timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus_CurrentTime,
                     attributeId: AttributeIds.Value
@@ -1587,8 +1561,8 @@ describe("testing ServerEngine", function () {
 
         it("should read  Server_ServerStatus_StartTime", function (done) {
 
-            const readRequest = new read_service.ReadRequest({
-                timestampsToReturn: read_service.TimestampsToReturn.Neither,
+            const readRequest = new ReadRequest({
+                timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus_StartTime,
                     attributeId: AttributeIds.Value
@@ -1611,8 +1585,8 @@ describe("testing ServerEngine", function () {
 
             engine.serverStatus.buildInfo.buildNumber = "1234";
 
-            const readRequest = new read_service.ReadRequest({
-                timestampsToReturn: read_service.TimestampsToReturn.Neither,
+            const readRequest = new ReadRequest({
+                timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus_BuildInfo_BuildNumber,
                     attributeId: AttributeIds.Value
@@ -1630,7 +1604,7 @@ describe("testing ServerEngine", function () {
             });
         });
 
-        it("should read  Server_ServerStatus_BuildInfo_BuildNumber (2nd)", function () {
+        it("should read  Server_ServerStatus_BuildInfo_BuildNumber (2nd)", () => {
 
             engine.serverStatus.buildInfo.buildNumber = "1234";
 
@@ -1670,8 +1644,8 @@ describe("testing ServerEngine", function () {
 
         it("should read all attributes of Server_ServerStatus_CurrentTime", function (done) {
 
-            const readRequest = new read_service.ReadRequest({
-                timestampsToReturn: read_service.TimestampsToReturn.Neither,
+            const readRequest = new ReadRequest({
+                timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: [1, 2, 3, 4, 5, 6, 7, 13, 14, 15, 16, 17, 18, 19, 20].map(function (attributeId) {
                     return {
                         nodeId: VariableIds.Server_ServerStatus_CurrentTime,
@@ -1693,12 +1667,12 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("Accessing ServerStatus as a single composite object", function () {
+    describe("Accessing ServerStatus as a single composite object", () => {
 
         it("should be possible to access the ServerStatus Object as a variable", function (done) {
 
-            const readRequest = new read_service.ReadRequest({
-                timestampsToReturn: read_service.TimestampsToReturn.Neither,
+            const readRequest = new ReadRequest({
+                timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus,
                     attributeId: AttributeIds.Value
@@ -1728,13 +1702,12 @@ describe("testing ServerEngine", function () {
         });
     });
 
-
-    describe("Accessing BuildInfo as a single composite object", function () {
+    describe("Accessing BuildInfo as a single composite object", () => {
 
         it("should be possible to read the Server_ServerStatus_BuildInfo Object as a complex structure", function (done) {
 
-            const readRequest = new read_service.ReadRequest({
-                timestampsToReturn: read_service.TimestampsToReturn.Neither,
+            const readRequest = new ReadRequest({
+                timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: VariableIds.Server_ServerStatus_BuildInfo,
                     attributeId: AttributeIds.Value
@@ -1762,8 +1735,7 @@ describe("testing ServerEngine", function () {
         });
     });
 
-
-    describe("writing nodes ", function () {
+    describe("writing nodes ", () => {
 
         const WriteValue = require("node-opcua-service-write").WriteValue;
 
@@ -1864,8 +1836,7 @@ describe("testing ServerEngine", function () {
 
     });
 
-
-    describe("testing the ability to handle variable that returns a StatusCode rather than a Variant", function () {
+    describe("testing the ability to handle variable that returns a StatusCode rather than a Variant", () => {
 
         before(function () {
             // add a variable that fails to provide a Variant.
@@ -1891,8 +1862,8 @@ describe("testing ServerEngine", function () {
 
         it("ZZ should have statusCode=BadResourceUnavailable when trying to read the FailingPLCValue variable", function (done) {
 
-            const readRequest = new read_service.ReadRequest({
-                timestampsToReturn: read_service.TimestampsToReturn.Neither,
+            const readRequest = new ReadRequest({
+                timestampsToReturn: TimestampsToReturn.Neither,
                 nodesToRead: [{
                     nodeId: "ns=1;s=FailingPLCValue",
                     attributeId: AttributeIds.Value
@@ -1909,7 +1880,7 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("ServerEngine : forcing variable value refresh", function () {
+    describe("ServerEngine : forcing variable value refresh", () => {
 
 
         let value1 = 0;
@@ -2066,9 +2037,9 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    describe("ServerEngine Diagnostic", function () {
+    describe("ServerEngine Diagnostic", () => {
 
-        it("should have ServerDiagnosticObject", function () {
+        it("should have ServerDiagnosticObject", () => {
             const server = engine.addressSpace.rootFolder.objects.server;
             server.browseName.toString().should.eql("Server");
             server.serverDiagnostics.browseName.toString().should.eql("ServerDiagnostics");
@@ -2078,9 +2049,7 @@ describe("testing ServerEngine", function () {
 
 });
 
-
-describe("ServerEngine advanced", function () {
-
+describe("ServerEngine advanced", () => {
 
     it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown", function (done) {
 
@@ -2116,8 +2085,7 @@ describe("ServerEngine advanced", function () {
 
 });
 
-
-describe("ServerEngine ServerStatus & ServerCapabilities", function () {
+describe("ServerEngine ServerStatus & ServerCapabilities", function(/*this: any*/) {
 
     const sinon = require("sinon");
 
@@ -2138,7 +2106,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function () {
 
         engine = new ServerEngine({ buildInfo: defaultBuildInfo });
 
-        engine.initialize({ nodeset_filename: server_engine.standard_nodeset_file }, function () {
+        engine.initialize({ nodeset_filename: standard_nodeset_file }, () => {
             done();
         });
 

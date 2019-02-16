@@ -78,8 +78,8 @@ module.exports = function (test) {
 
             Object.keys(e).forEach(function (key) {
                 const value = e[key];
-                //xx console.log(w(key,20).yellow,value.toString());
-                //,w(eventField.dataType.toString(),15).cyan,eventField.value.toString());
+                //xx console.log(chalk.yellow(w(key,20)),value.toString());
+                //,chalk.yellow(w(eventField.dataType.toString(),15)),eventField.value.toString());
             });
             //xx console.log("");
 

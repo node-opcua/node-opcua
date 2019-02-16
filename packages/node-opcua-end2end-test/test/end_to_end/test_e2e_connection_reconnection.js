@@ -76,13 +76,13 @@ describe("KJH1 testing basic Client-Server communication", function () {
         };
         client = OPCUAClient.create(options);
         client.on("connection_reestablished", function () {
-            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!".bgWhite.black);
+            debugLog(chalk.bgWhite.black(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
         });
         client.on("backoff", function (number, delay) {
-            debugLog("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
+            debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
         });
         client.on("start_reconnection", function () {
-            debugLog(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!".bgWhite.black);
+            debugLog(chalk.bgWhite.black(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
         });
         done();
     });
@@ -135,7 +135,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
                 client.connect(endpointUrl, function (err) {
 
-                    debugLog(" Error =".yellow.bold, err);
+                    debugLog(chalk.yellow.bold(" Error ="), err);
 
                     callback(err ? null : new Error("Expecting an error here"));
 
@@ -157,7 +157,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
             function (callback) {
                 debugLog(" connect");
                 client.connect(endpointUrl, function (err) {
-                    debugLog(" Error =".yellow.bold, err);
+                    debugLog(chalk.yellow.bold(" Error ="), err);
                     callback(err);
                 });
             },
@@ -165,7 +165,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
                 debugLog(" createSession");
                 client.createSession(function (err, session) {
                     g_session = session;
-                    debugLog(" Error =".yellow.bold, err);
+                    debugLog(chalk.yellow.bold(" Error ="), err);
                     callback(err);
                 });
 
@@ -484,7 +484,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             debugLog("starting reconnection");
         });
         client.on("backoff", function (number, delay) {
-            debugLog("backoff  attempt #".bgWhite.yellow, number, " retrying in ", delay / 1000.0, " seconds");
+            debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
             backoff_counter += 1;
         });
         client.on("connection_reestablished", function () {

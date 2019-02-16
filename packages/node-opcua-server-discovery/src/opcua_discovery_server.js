@@ -1,4 +1,5 @@
 "use strict";
+const chalk = require("chalk");
 const util = require("util");
 const _ = require("underscore");
 const assert = require("node-opcua-assert").assert;
@@ -268,7 +269,7 @@ function  _isValidServerType(serverType) {
 function __internalRegisterServer(RegisterServerXResponse, discoveryServer, server, discoveryConfiguration) {
 
     function sendError(statusCode) {
-        ///Xx xconsole.log("_on_RegisterServerRequest error".red, statusCode.toString());
+        ///Xx xconsole.log(chalk.red("_on_RegisterServerRequest error"), statusCode.toString());
         const response = new RegisterServerXResponse({responseHeader: {serviceResult: statusCode}});
         return response;
     }
@@ -293,7 +294,7 @@ function __internalRegisterServer(RegisterServerXResponse, discoveryServer, serv
 
     const key = server.serverUri;
     if (server.isOnline) {
-        debugLog(" registering server : ".cyan, server.serverUri.yellow);
+        debugLog(chalk.cyan(" registering server : "), server.serverUri.yellow);
         discoveryServer.registered_servers[key] = server;
 
         // prepare serverInfo which will be used by FindServers
@@ -332,7 +333,7 @@ function __internalRegisterServer(RegisterServerXResponse, discoveryServer, serv
     } else {
         if (key in  discoveryServer.registered_servers) {
             const server  = discoveryServer.registered_servers[key];
-            debugLog("unregistering server : ".cyan, server.serverUri.yellow);
+            debugLog(chalk.cyan("unregistering server : "), server.serverUri.yellow);
             if (server.bonjourEntry) {
                 server.bonjourEntry.stop();
                 server.bonjourEntry = null;

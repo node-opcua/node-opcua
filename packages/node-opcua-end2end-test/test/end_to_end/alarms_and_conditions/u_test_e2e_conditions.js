@@ -1,6 +1,7 @@
     /*global xit,it,describe,before,after,beforeEach,afterEach*/
 "use strict";
 
+const chalk = require("chalk");
 const assert = require("node-opcua-assert").assert;
 const async = require("async");
 const should = require("should");
@@ -69,7 +70,9 @@ module.exports = function (test) {
                     const node = test.server.engine.addressSpace.findNode(v.value);
                     str = node ? node.browseName.toString() : " Unknown Node";
                 }
-                console.log((e + "                             ").substr(0, 25).cyan, v.toString() + " " + str.white.bold);
+                console.log(
+                  chalk.yellow(e + "                             ".substr(0, 25)),
+                v.toString() + " " + chalk.white.bold(str));
             });
             console.log("--------------------");
         }

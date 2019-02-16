@@ -2,7 +2,6 @@
 import { assert } from "node-opcua-assert";
 import { StatusCodes } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
-import { CallMethodResult } from "node-opcua-service-call";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { VariantLike } from "node-opcua-variant";
@@ -219,8 +218,6 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
 
         assert(programStateMachine.getMethodByName(methodName) !== null,
           "Method " + methodName + " should be added to parent object (checked with getMethodByName)");
-        assert(programStateMachine.getComponentByName(methodName) !== null,
-          "Component (Method) " + methodName + " should be added to parent object (checked with getComponentByName)");
         const lc_name = lowerFirstLetter(methodName);
     }
 
@@ -251,6 +248,7 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
 
     const namespace = addressSpace.getOwnNamespace();
 
+    // istanbul ignore next
     if (namespace.findObjectType("BoilerType")) {
         console.warn("createBoilerType has already been called");
         return namespace.findObjectType("BoilerType") as BoilerType;
@@ -626,6 +624,7 @@ export function makeBoiler(
     let boilerType: UAObjectType | null;
     boilerType = namespace.findObjectType("BoilerType");
 
+    // istanbul ignore next
     if (!boilerType) {
         createBoilerType(addressSpace);
         boilerType = namespace.findObjectType("BoilerType")!;

@@ -33,7 +33,7 @@ const g_weakMap = new WeakMap();
 interface BaseNodeCache {
     __address_space: AddressSpace | null;
     _back_referenceIdx: any;
-    _browseFilter?: (this: BaseNode, session?: any) => boolean;
+    _browseFilter?: (this: BaseNode, context?: SessionContext) => boolean;
     _cache: any;
     _description?: LocalizedText;
     _displayName: LocalizedText[];

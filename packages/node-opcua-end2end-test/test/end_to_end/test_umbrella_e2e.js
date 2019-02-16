@@ -50,7 +50,7 @@ describe("testing Client - Umbrella ", function () {
             test.serverCertificate = data.serverCertificate;
             test.temperatureVariableId = data.temperatureVariableId;
             test.data;
-            console.log(" test.endpointUrl  = ".yellow, test.endpointUrl.cyan);
+            console.log(chalk.yellow(" test.endpointUrl  = "), test.endpointUrl);
             done();
         });
     }
