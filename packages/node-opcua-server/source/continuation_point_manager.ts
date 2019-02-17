@@ -4,7 +4,10 @@
 import { ContinuationPoint } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { BrowseResultOptions, ReferenceDescription, ReferenceDescriptionOptions } from "node-opcua-types";
+import {
+    BrowseResultOptions,
+    ReferenceDescription
+} from "node-opcua-types";
 
 let counter = 0;
 

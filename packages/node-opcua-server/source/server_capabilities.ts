@@ -2,22 +2,9 @@
  * @module node-opcua-server
  */
 // tslint:disable:max-classes-per-file
+import { Certificate } from "node-opcua-crypto";
+
 /**
- * @class OperationLimits
- * @param options {Object}
- * @param [options.maxNodesPerRead=0]
- * @param [options.maxNodesPerWrite=0]
- * @param [options.maxNodesPerMethodCall=0]
- * @param [options.maxNodesPerBrowse=0]
- * @param [options.maxNodesPerRegisterNodes=0]
- * @param [options.maxNodesPerNodeManagement=0]
- * @param [options.maxMonitoredItemsPerCall=0]
- * @param [options.maxNodesPerHistoryReadData=0]
- * @param [options.maxNodesPerHistoryReadEvents=0]
- * @param [options.maxNodesPerHistoryUpdateData=0]
- * @param [options.maxNodesPerHistoryUpdateEvents=0]
- * @param [options.maxNodesPerTranslateBrowsePathsToNodeIds=0]
- * @constructor
  */
 export interface OperationLimitsOptions {
     maxNodesPerRead?: number;
@@ -53,62 +40,61 @@ export class OperationLimits {
 
         /**
          * @property maxNodesPerRead
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerRead = options.maxNodesPerRead || 0;
         /**
          * @property maxNodesPerWrite
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerWrite = options.maxNodesPerWrite || 0;
         /**
          * @property maxNodesPerMethodCall
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerMethodCall = options.maxNodesPerMethodCall || 0;
         /**
          * @property maxNodesPerBrowse
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerBrowse = options.maxNodesPerBrowse || 0;
         /**
          * @property maxNodesPerRegisterNodes
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerRegisterNodes = options.maxNodesPerRegisterNodes || 0;
         /**
          * @property maxNodesPerNodeManagement
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerNodeManagement = options.maxNodesPerNodeManagement || 0;
         /**
          * @property maxMonitoredItemsPerCall
-         * @type {Number}
+         * @default 0
          */
         this.maxMonitoredItemsPerCall = options.maxMonitoredItemsPerCall || 0;
         /**
          * @property maxNodesPerHistoryReadData
-         * @type {Number}
          */
         this.maxNodesPerHistoryReadData = options.maxNodesPerHistoryReadData || 0;
         /**
          * @property maxNodesPerHistoryReadEvents
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerHistoryReadEvents = options.maxNodesPerHistoryReadEvents || 0;
         /**
          * @property maxNodesPerHistoryUpdateData
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerHistoryUpdateData = options.maxNodesPerHistoryUpdateData || 0;
         /**
          * @property maxNodesPerHistoryUpdateEvents
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerHistoryUpdateEvents = options.maxNodesPerHistoryUpdateEvents || 0;
         /**
          * @property maxNodesPerTranslateBrowsePathsToNodeIds
-         * @type {Number}
+         * @default 0
          */
         this.maxNodesPerTranslateBrowsePathsToNodeIds = options.maxNodesPerTranslateBrowsePathsToNodeIds || 0;
 
@@ -131,32 +117,6 @@ export interface ServerCapabilitiesOptions {
 }
 
 /**
- * @class ServerCapabilities
- * @param options
- * @param options.operationLimits
- * @param [options.operationLimits.maxNodesPerRead=0]
- * @param [options.operationLimits.maxNodesPerWrite=0]
- * @param [options.operationLimits.maxNodesPerMethodCall=0]
- * @param [options.operationLimits.maxNodesPerBrowse=0]
- * @param [options.operationLimits.maxNodesPerRegisterNodes=0]
- * @param [options.operationLimits.maxNodesPerNodeManagement=0]
- * @param [options.operationLimits.maxMonitoredItemsPerCall=0]
- * @param [options.operationLimits.maxNodesPerHistoryReadData=0]
- * @param [options.operationLimits.maxNodesPerHistoryReadEvents=0]
- * @param [options.operationLimits.maxNodesPerHistoryUpdateData=0]
- * @param [options.operationLimits.maxNodesPerHistoryUpdateEvents=0]
- * @param [options.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds=0]
- * @param [options.serverProfileArray=0]
- * @param [options.localeIdArray=0]
- * @param [options.softwareCertificates=0]
- * @param [options.maxArrayLength=0]
- * @param [options.maxStringLength=0]
- * @param [options.maxByteStringLength=0]
- * @param [options.maxBrowseContinuationPoints=0]
- * @param [options.maxQueryContinuationPoints=0]
- * @param [options.maxHistoryContinuationPoints=0]
- * @param [options.minSupportedSampleRate=0]
- * @constructor
  */
 export class ServerCapabilities {
 
@@ -171,7 +131,7 @@ export class ServerCapabilities {
 
     public serverProfileArray: string[];
     public localeIdArray: string[];
-    public softwareCertificates: Buffer[];
+    public softwareCertificates: Certificate[];
 
     constructor(options: ServerCapabilitiesOptions) {
 
@@ -183,38 +143,31 @@ export class ServerCapabilities {
         this.softwareCertificates = options.softwareCertificates || [];
         /**
          * @property maxArrayLength
-         * @type {Number}
          */
         this.maxArrayLength = options.maxArrayLength || 0;
         /**
          * @property maxStringLength
-         * @type {Number}
          */
         this.maxStringLength = options.maxStringLength || 0;
         /**
          * @property maxByteStringLength
-         * @type {Number}
          */
         this.maxByteStringLength = options.maxByteStringLength || 0;
         /**
          * @property maxBrowseContinuationPoints
-         * @type {Number}
          */
         this.maxBrowseContinuationPoints = options.maxBrowseContinuationPoints || 0;
         /**
          * @property maxQueryContinuationPoints
-         * @type {Number}
          */
         this.maxQueryContinuationPoints = options.maxQueryContinuationPoints || 0;
         /**
          * @property maxHistoryContinuationPoints
-         * @type {Number}
          */
         this.maxHistoryContinuationPoints = options.maxHistoryContinuationPoints || 0;
 
         /**
          * @property operationLimits
-         * @type {OperationLimits}
          */
         this.operationLimits = new OperationLimits(options.operationLimits);
 

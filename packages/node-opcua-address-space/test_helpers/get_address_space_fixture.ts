@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import * as fs from "fs";
 import * as path from "path";
 

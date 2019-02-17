@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { Folder, MethodFunctor, MethodFunctorCallback, Namespace, SessionContext } from "../source";

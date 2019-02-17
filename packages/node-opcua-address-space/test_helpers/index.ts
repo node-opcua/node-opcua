@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 export * from "./add_event_generator_object";
 export * from "./alarms_and_conditions_demo";
 export * from "./assertHasMatchingReference";

@@ -15,9 +15,7 @@ import * as utils from "node-opcua-utils";
 
 import {
     AddressSpace,
-    Callback,
     ContinuationPoint,
-    EventRaiser,
     getMethodDeclaration_ArgumentList,
     PseudoVariantBoolean,
     PseudoVariantByteString,
@@ -35,11 +33,11 @@ import {
     UAView,
     verifyArguments_ArgumentList
 } from "node-opcua-address-space";
-import { ErrorCallback, UAMethod } from "node-opcua-address-space";
+import { UAMethod } from "node-opcua-address-space";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, Nonce } from "node-opcua-crypto";
-import { AttributeIds, DiagnosticInfo, LocalizedTextLike, NodeClass } from "node-opcua-data-model";
+import { AttributeIds, DiagnosticInfo, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
@@ -977,6 +975,7 @@ export class OPCUAServer extends OPCUABaseServer {
     public get initialized(): boolean {
         return this.engine.addressSpace !== null;
     }
+
     /**
      * is the server auditing ?
      */
@@ -1038,12 +1037,10 @@ export class OPCUAServer extends OPCUABaseServer {
 
         /**
          * @property maxAllowedSessionNumber
-         * @type {number}
          */
         this.maxAllowedSessionNumber = options.maxAllowedSessionNumber || default_maxAllowedSessionNumber;
         /**
          * @property maxConnectionsPerEndpoint
-         * @type {number}
          */
         this.maxConnectionsPerEndpoint = options.maxConnectionsPerEndpoint || default_maxConnectionsPerEndpoint;
 
@@ -1075,7 +1072,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
         /**
          * @property allowAnonymous
-         * @type {boolean}
          */
         options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
 
@@ -1085,6 +1081,8 @@ export class OPCUAServer extends OPCUABaseServer {
         const endPoint = new OPCUAServerEndPoint({
             port,
 
+            certificateManager: this.serverCertificateManager,
+
             defaultSecureTokenLifetime: options.defaultSecureTokenLifetime || 600000,
             timeout: options.timeout || 10000,
 
@@ -1093,7 +1091,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
             maxConnections: this.maxConnectionsPerEndpoint,
             objectFactory: this.objectFactory,
-            serverInfo: this.serverInfo
+            serverInfo: this.serverInfo,
         });
 
         endPoint.addStandardEndpointDescriptions({
@@ -1108,7 +1106,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         this.endpoints.push(endPoint);
 
-        endPoint.on("message", (message, channel) => {
+        endPoint.on("message", (message: Message, channel: ServerSecureChannelLayer) => {
             this.on_request(message, channel);
         });
 
@@ -1143,7 +1141,6 @@ export class OPCUAServer extends OPCUABaseServer {
         this.userCertificateManager = options.userCertificateManager;
 
     }
-
 
     /**
      * Initialize the server by installing default node set.
@@ -1403,7 +1400,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
         return result;
     }
-
 
     protected isValidUserNameIdentityToken(
       channel: ServerSecureChannelLayer,

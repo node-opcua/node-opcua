@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space.AlarmsAndConditions
+ */
 export * from "./condition_info";
 export * from "./condition_snapshot";
 export * from "./ua_condition_base";

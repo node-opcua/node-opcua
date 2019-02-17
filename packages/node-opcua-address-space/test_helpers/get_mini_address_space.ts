@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { assert } from "node-opcua-assert";
 import * as path from "path";
 

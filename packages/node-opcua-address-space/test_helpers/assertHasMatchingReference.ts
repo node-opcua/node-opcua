@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { assert } from "node-opcua-assert";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { AddReferenceOpts, BaseNode, UAReference } from "../source";

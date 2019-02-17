@@ -169,26 +169,16 @@ export interface ServerEngineOptions {
 
     buildInfo?: BuildInfoOptions;
     isAuditing?: boolean;
+    /**
+     * set to true to enable serverDiagnostics
+     */
     serverDiagnosticsEnabled?: boolean;
     serverCapabilities?: ServerCapabilitiesOptions;
     historyServerCapabilities?: HistoryServerCapabilitiesOptions;
 }
 
 /**
- * @class ServerEngine
- * @extends EventEmitter
- * @uses ServerSidePublishEngine
- * @param options {Object}
- * @param options.buildInfo
- * @param [options.isAuditing = false ] {Boolean}
- * @param [options.serverCapabilities]
- * @param [options.serverCapabilities.serverProfileArray]
- * @param [options.serverCapabilities.localeIdArray]
- * @param options.applicationUri {String} the application URI.
- * @param [options.historyServerCapabilities]
- * @param [options.serverDiagnosticsEnabled = true] set to true to enable serverDiagnostics
  *
- * @constructor
  */
 export class ServerEngine extends EventEmitter {
 
@@ -216,7 +206,7 @@ export class ServerEngine extends EventEmitter {
     constructor(options: ServerEngineOptions) {
         super();
 
-        options = options || { applicationUri: ""} as ServerEngineOptions;
+        options = options || { applicationUri: "" } as ServerEngineOptions;
         options.buildInfo = options.buildInfo || {};
 
         ServerEngine.registry.register(this);
@@ -955,13 +945,6 @@ export class ServerEngine extends EventEmitter {
         });
     }
 
-    public __findObject(nodeId: NodeIdLike): BaseNode {
-        const engine = this;
-        nodeId = resolveNodeId(nodeId);
-        assert(nodeId instanceof NodeId);
-        return engine.addressSpace!.findNode(nodeId)!;
-    }
-
     /**
      *
      * @method browseSingleNode
@@ -1026,62 +1009,6 @@ export class ServerEngine extends EventEmitter {
               nodeId
           },
           timestampsToReturn);
-    }
-
-    public _readSingleNode(
-      context: SessionContext,
-      nodeToRead: ReadValueIdOptions,
-      timestampsToReturn?: TimestampsToReturn
-    ): DataValue {
-
-        assert(context instanceof SessionContext);
-        const engine = this;
-        const nodeId = nodeToRead.nodeId!;
-        const attributeId = nodeToRead.attributeId!;
-        const indexRange = nodeToRead.indexRange;
-        const dataEncoding = nodeToRead.dataEncoding;
-
-        if (timestampsToReturn === TimestampsToReturn.Invalid) {
-            return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
-        }
-
-        timestampsToReturn = (timestampsToReturn !== undefined) ? timestampsToReturn : TimestampsToReturn.Neither;
-
-        const obj = engine.__findObject(nodeId!);
-
-        let dataValue;
-        if (!obj) {
-            // may be return BadNodeIdUnknown in dataValue instead ?
-            // Object Not Found
-            return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
-        } else {
-
-            // check access
-            //    BadUserAccessDenied
-            //    BadNotReadable
-            //    invalid attributes : BadNodeAttributesInvalid
-            //    invalid range      : BadIndexRangeInvalid
-            try {
-                dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
-                assert(dataValue.statusCode instanceof StatusCode);
-                if (!dataValue.isValid()) {
-                    console.log("Invalid value for node ", obj.nodeId.toString(), obj.browseName.toString());
-                }
-
-            } catch (err) {
-                console.log(" Internal error reading  NodeId       ", obj.nodeId.toString());
-                console.log("                         AttributeId  ", attributeId.toString());
-                console.log("                        ", err.message);
-                console.log("                        ", err.stack);
-                return new DataValue({ statusCode: StatusCodes.BadInternalError });
-            }
-
-            // Xx console.log(dataValue.toString());
-
-            dataValue = apply_timestamps(dataValue, timestampsToReturn, attributeId);
-
-            return dataValue;
-        }
     }
 
     /**
@@ -1217,8 +1144,8 @@ export class ServerEngine extends EventEmitter {
       historyReadDetails:
         ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
       timestampsToReturn: TimestampsToReturn,
-      callback: (err: Error|null, results?: HistoryReadResult) => void
-    ): void  {
+      callback: (err: Error | null, results?: HistoryReadResult) => void
+    ): void {
 
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
             callback(null,
@@ -1232,73 +1159,6 @@ export class ServerEngine extends EventEmitter {
           new HistoryReadValueId({
               nodeId
           }), historyReadDetails, timestampsToReturn, callback);
-    }
-
-    public _historyReadSingleNode(
-      context: SessionContext,
-      nodeToRead: HistoryReadValueId,
-      historyReadDetails: HistoryReadDetails,
-      timestampsToReturn: TimestampsToReturn,
-      callback: Callback<HistoryReadResult>
-    ): void {
-
-        assert(context instanceof SessionContext);
-        assert(callback instanceof Function);
-
-        const nodeId = nodeToRead.nodeId;
-        const indexRange = nodeToRead.indexRange;
-        const dataEncoding = nodeToRead.dataEncoding;
-        const continuationPoint = nodeToRead.continuationPoint;
-
-        timestampsToReturn = (_.isObject(timestampsToReturn)) ? timestampsToReturn : TimestampsToReturn.Neither;
-
-        const obj = this.__findObject(nodeId) as UAVariable;
-
-        if (!obj) {
-            // may be return BadNodeIdUnknown in dataValue instead ?
-            // Object Not Found
-            callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadNodeIdUnknown }));
-            return;
-
-        } else {
-
-            if (!obj.historyRead) {
-                // note : Object and View may also support historyRead to provide Event historical data
-                //        todo implement historyRead for Object and View
-                const msg = " this node doesn't provide historyRead! probably not a UAVariable\n "
-                  + obj.nodeId.toString() + " " + obj.browseName.toString() + "\n"
-                  + "with " + nodeToRead.toString() + "\n"
-                  + "HistoryReadDetails " + historyReadDetails.toString();
-                if (doDebug) {
-                    console.log(chalk.cyan("ServerEngine#_historyReadSingleNode "),
-                      chalk.white.bold(msg));
-                }
-                const err = new Error(msg);
-                // object has no historyRead method
-                setImmediate(callback.bind(null, err));
-                return;
-            }
-            // check access
-            //    BadUserAccessDenied
-            //    BadNotReadable
-            //    invalid attributes : BadNodeAttributesInvalid
-            //    invalid range      : BadIndexRangeInvalid
-            obj.historyRead(
-              context,
-              historyReadDetails,
-              indexRange,
-              dataEncoding,
-              continuationPoint,
-              (err: Error | null, result?: HistoryReadResult) => {
-                  if (err || !result) {
-                      return callback(err);
-                  }
-                  assert(result!.statusCode instanceof StatusCode);
-                  assert(result!.isValid());
-                  // result = apply_timestamps(result, timestampsToReturn, attributeId);
-                  callback(err, result);
-              });
-        }
     }
 
     /**
@@ -1358,33 +1218,6 @@ export class ServerEngine extends EventEmitter {
           });
     }
 
-    /**
-     */
-    public __internal_bindMethod(
-      nodeId: NodeId,
-      func: MethodFunctor
-    ) {
-
-        const engine = this;
-        assert(_.isFunction(func));
-        assert(nodeId instanceof NodeId);
-
-        const methodNode = engine.addressSpace!.findNode(nodeId)! as UAMethod;
-        if (!methodNode) {
-            return;
-        }
-        if (methodNode && methodNode.bindMethod) {
-            methodNode.bindMethod(func);
-        } else {
-            console.log(
-              chalk.yellow("WARNING:  cannot bind a method with id ") +
-              chalk.cyan(nodeId.toString()) +
-              chalk.yellow(". please check your nodeset.xml file or add this node programmatically"));
-
-            console.log(trace_from_this_projet_only());
-        }
-    }
-
     public getOldestUnactivatedSession(): ServerSession | null {
 
         const tmp = _.filter(this._sessions, (session1: ServerSession) => {
@@ -1401,104 +1234,6 @@ export class ServerEngine extends EventEmitter {
             }
         }
         return session;
-    }
-
-    public _getServerSubscriptionDiagnosticsArray()
-      : UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
-
-        if (!this.addressSpace) {
-            if (doDebug) {
-                console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
-            }
-            return null; // no addressSpace
-        }
-        const subscriptionDiagnosticsType = this.addressSpace.findVariableType("SubscriptionDiagnosticsType");
-        if (!subscriptionDiagnosticsType) {
-            if (doDebug) {
-                console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray " +
-                  ": cannot find SubscriptionDiagnosticsType");
-            }
-        }
-
-        // SubscriptionDiagnosticsArray = i=2290
-        const subscriptionDiagnosticsArray = this.addressSpace.findNode(
-          makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray))!;
-
-        return subscriptionDiagnosticsArray as UADynamicVariableArray<SubscriptionDiagnosticsDataType>;
-    }
-
-    public _exposeSubscriptionDiagnostics(subscription: Subscription): void {
-
-        debugLog("ServerEngine#_exposeSubscriptionDiagnostics");
-        const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArray();
-        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-        assert(subscriptionDiagnostics.$subscription === subscription);
-        assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
-
-        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            // xx console.log("GGGGGGGGGGGGGGGG ServerEngine => Exposing subscription diagnostics =>",subscription.id);
-            addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
-        }
-    }
-
-    public _unexposeSubscriptionDiagnostics(subscription: Subscription) {
-
-        const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArray();
-        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-        assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
-        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-
-            const node = (subscriptionDiagnosticsArray as any)[subscription.id];
-            // console.log("GG ServerEngine => ** Un-exposing** subscription diagnostics =>",
-            // subscription.id);
-            removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
-            assert(!(subscriptionDiagnosticsArray as any)[subscription.id],
-              " subscription node must have been removed from subscriptionDiagnosticsArray");
-        }
-        debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
-    }
-
-    /**
-     * create a new subscription
-     * @return {Subscription}
-     */
-    public _createSubscriptionOnSession(
-      session: ServerSession,
-      request: CreateSubscriptionRequestLike
-    ) {
-
-        assert(request.hasOwnProperty("requestedPublishingInterval")); // Duration
-        assert(request.hasOwnProperty("requestedLifetimeCount"));      // Counter
-        assert(request.hasOwnProperty("requestedMaxKeepAliveCount"));  // Counter
-        assert(request.hasOwnProperty("maxNotificationsPerPublish"));  // Counter
-        assert(request.hasOwnProperty("publishingEnabled"));           // Boolean
-        assert(request.hasOwnProperty("priority"));                    // Byte
-
-        const subscription = new Subscription({
-            id: _get_next_subscriptionId(),
-            lifeTimeCount: request.requestedLifetimeCount,
-            maxKeepAliveCount: request.requestedMaxKeepAliveCount,
-            maxNotificationsPerPublish: request.maxNotificationsPerPublish,
-            priority: request.priority || 0,
-            publishEngine: session.publishEngine, //
-            publishingEnabled: request.publishingEnabled,
-            publishingInterval: request.requestedPublishingInterval,
-            // -------------------
-            sessionId: NodeId.nullNodeId
-        });
-
-        // add subscriptionDiagnostics
-        this._exposeSubscriptionDiagnostics(subscription);
-
-        assert(subscription.publishEngine === session.publishEngine);
-        session.publishEngine.add_subscription(subscription);
-
-        const engine = this;
-        subscription.once("terminated", function(this: Subscription) {
-            engine._unexposeSubscriptionDiagnostics(this);
-        });
-
-        return subscription;
     }
 
     /**
@@ -1742,7 +1477,7 @@ export class ServerEngine extends EventEmitter {
 
         const result = new TransferResult({
             availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
-            statusCode: StatusCodes.Good,
+            statusCode: StatusCodes.Good
         });
 
         // istanbul ignore next
@@ -1804,7 +1539,7 @@ export class ServerEngine extends EventEmitter {
      */
     public refreshValues(
       nodesToRefresh: any,
-      callback: (err: Error|null, dataValues?: DataValue[]) => void
+      callback: (err: Error | null, dataValues?: DataValue[]) => void
     ): void {
 
         assert(callback instanceof Function);
@@ -1849,8 +1584,263 @@ export class ServerEngine extends EventEmitter {
             }
             (obj as UAVariable).asyncRefresh(inner_callback);
 
-        }, (err?: Error|null, arrResult?: (DataValue|undefined)[]) => {
+        }, (err?: Error | null, arrResult?: (DataValue | undefined)[]) => {
             callback(err || null, arrResult as DataValue[]);
         });
+    }
+
+    private _exposeSubscriptionDiagnostics(subscription: Subscription): void {
+
+        debugLog("ServerEngine#_exposeSubscriptionDiagnostics");
+        const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArray();
+        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+        assert(subscriptionDiagnostics.$subscription === subscription);
+        assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
+
+        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+            // xx console.log("GGGGGGGGGGGGGGGG ServerEngine => Exposing subscription diagnostics =>",subscription.id);
+            addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
+        }
+    }
+
+    private _unexposeSubscriptionDiagnostics(subscription: Subscription) {
+
+        const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArray();
+        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+        assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
+        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+
+            const node = (subscriptionDiagnosticsArray as any)[subscription.id];
+            // console.log("GG ServerEngine => ** Un-exposing** subscription diagnostics =>",
+            // subscription.id);
+            removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
+            assert(!(subscriptionDiagnosticsArray as any)[subscription.id],
+              " subscription node must have been removed from subscriptionDiagnosticsArray");
+        }
+        debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
+    }
+
+    /**
+     * create a new subscription
+     * @return {Subscription}
+     */
+    private _createSubscriptionOnSession(
+      session: ServerSession,
+      request: CreateSubscriptionRequestLike
+    ) {
+
+        assert(request.hasOwnProperty("requestedPublishingInterval")); // Duration
+        assert(request.hasOwnProperty("requestedLifetimeCount"));      // Counter
+        assert(request.hasOwnProperty("requestedMaxKeepAliveCount"));  // Counter
+        assert(request.hasOwnProperty("maxNotificationsPerPublish"));  // Counter
+        assert(request.hasOwnProperty("publishingEnabled"));           // Boolean
+        assert(request.hasOwnProperty("priority"));                    // Byte
+
+        const subscription = new Subscription({
+            id: _get_next_subscriptionId(),
+            lifeTimeCount: request.requestedLifetimeCount,
+            maxKeepAliveCount: request.requestedMaxKeepAliveCount,
+            maxNotificationsPerPublish: request.maxNotificationsPerPublish,
+            priority: request.priority || 0,
+            publishEngine: session.publishEngine, //
+            publishingEnabled: request.publishingEnabled,
+            publishingInterval: request.requestedPublishingInterval,
+            // -------------------
+            sessionId: NodeId.nullNodeId
+        });
+
+        // add subscriptionDiagnostics
+        this._exposeSubscriptionDiagnostics(subscription);
+
+        assert(subscription.publishEngine === session.publishEngine);
+        session.publishEngine.add_subscription(subscription);
+
+        const engine = this;
+        subscription.once("terminated", function(this: Subscription) {
+            engine._unexposeSubscriptionDiagnostics(this);
+        });
+
+        return subscription;
+    }
+
+    private __findObject(nodeId: NodeIdLike): BaseNode {
+        const engine = this;
+        nodeId = resolveNodeId(nodeId);
+        assert(nodeId instanceof NodeId);
+        return engine.addressSpace!.findNode(nodeId)!;
+    }
+
+    private _readSingleNode(
+      context: SessionContext,
+      nodeToRead: ReadValueIdOptions,
+      timestampsToReturn?: TimestampsToReturn
+    ): DataValue {
+
+        assert(context instanceof SessionContext);
+        const engine = this;
+        const nodeId = nodeToRead.nodeId!;
+        const attributeId = nodeToRead.attributeId!;
+        const indexRange = nodeToRead.indexRange;
+        const dataEncoding = nodeToRead.dataEncoding;
+
+        if (timestampsToReturn === TimestampsToReturn.Invalid) {
+            return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
+        }
+
+        timestampsToReturn = (timestampsToReturn !== undefined) ? timestampsToReturn : TimestampsToReturn.Neither;
+
+        const obj = engine.__findObject(nodeId!);
+
+        let dataValue;
+        if (!obj) {
+            // may be return BadNodeIdUnknown in dataValue instead ?
+            // Object Not Found
+            return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+        } else {
+
+            // check access
+            //    BadUserAccessDenied
+            //    BadNotReadable
+            //    invalid attributes : BadNodeAttributesInvalid
+            //    invalid range      : BadIndexRangeInvalid
+            try {
+                dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
+                assert(dataValue.statusCode instanceof StatusCode);
+                if (!dataValue.isValid()) {
+                    console.log("Invalid value for node ", obj.nodeId.toString(), obj.browseName.toString());
+                }
+
+            } catch (err) {
+                console.log(" Internal error reading  NodeId       ", obj.nodeId.toString());
+                console.log("                         AttributeId  ", attributeId.toString());
+                console.log("                        ", err.message);
+                console.log("                        ", err.stack);
+                return new DataValue({ statusCode: StatusCodes.BadInternalError });
+            }
+
+            // Xx console.log(dataValue.toString());
+
+            dataValue = apply_timestamps(dataValue, timestampsToReturn, attributeId);
+
+            return dataValue;
+        }
+    }
+
+    private _historyReadSingleNode(
+      context: SessionContext,
+      nodeToRead: HistoryReadValueId,
+      historyReadDetails: HistoryReadDetails,
+      timestampsToReturn: TimestampsToReturn,
+      callback: Callback<HistoryReadResult>
+    ): void {
+
+        assert(context instanceof SessionContext);
+        assert(callback instanceof Function);
+
+        const nodeId = nodeToRead.nodeId;
+        const indexRange = nodeToRead.indexRange;
+        const dataEncoding = nodeToRead.dataEncoding;
+        const continuationPoint = nodeToRead.continuationPoint;
+
+        timestampsToReturn = (_.isObject(timestampsToReturn)) ? timestampsToReturn : TimestampsToReturn.Neither;
+
+        const obj = this.__findObject(nodeId) as UAVariable;
+
+        if (!obj) {
+            // may be return BadNodeIdUnknown in dataValue instead ?
+            // Object Not Found
+            callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadNodeIdUnknown }));
+            return;
+
+        } else {
+
+            if (!obj.historyRead) {
+                // note : Object and View may also support historyRead to provide Event historical data
+                //        todo implement historyRead for Object and View
+                const msg = " this node doesn't provide historyRead! probably not a UAVariable\n "
+                  + obj.nodeId.toString() + " " + obj.browseName.toString() + "\n"
+                  + "with " + nodeToRead.toString() + "\n"
+                  + "HistoryReadDetails " + historyReadDetails.toString();
+                if (doDebug) {
+                    console.log(chalk.cyan("ServerEngine#_historyReadSingleNode "),
+                      chalk.white.bold(msg));
+                }
+                const err = new Error(msg);
+                // object has no historyRead method
+                setImmediate(callback.bind(null, err));
+                return;
+            }
+            // check access
+            //    BadUserAccessDenied
+            //    BadNotReadable
+            //    invalid attributes : BadNodeAttributesInvalid
+            //    invalid range      : BadIndexRangeInvalid
+            obj.historyRead(
+              context,
+              historyReadDetails,
+              indexRange,
+              dataEncoding,
+              continuationPoint,
+              (err: Error | null, result?: HistoryReadResult) => {
+                  if (err || !result) {
+                      return callback(err);
+                  }
+                  assert(result!.statusCode instanceof StatusCode);
+                  assert(result!.isValid());
+                  // result = apply_timestamps(result, timestampsToReturn, attributeId);
+                  callback(err, result);
+              });
+        }
+    }
+
+    /**
+     */
+    private __internal_bindMethod(
+      nodeId: NodeId,
+      func: MethodFunctor
+    ) {
+
+        const engine = this;
+        assert(_.isFunction(func));
+        assert(nodeId instanceof NodeId);
+
+        const methodNode = engine.addressSpace!.findNode(nodeId)! as UAMethod;
+        if (!methodNode) {
+            return;
+        }
+        if (methodNode && methodNode.bindMethod) {
+            methodNode.bindMethod(func);
+        } else {
+            console.log(
+              chalk.yellow("WARNING:  cannot bind a method with id ") +
+              chalk.cyan(nodeId.toString()) +
+              chalk.yellow(". please check your nodeset.xml file or add this node programmatically"));
+
+            console.log(trace_from_this_projet_only());
+        }
+    }
+
+    private _getServerSubscriptionDiagnosticsArray()
+      : UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
+
+        if (!this.addressSpace) {
+            if (doDebug) {
+                console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
+            }
+            return null; // no addressSpace
+        }
+        const subscriptionDiagnosticsType = this.addressSpace.findVariableType("SubscriptionDiagnosticsType");
+        if (!subscriptionDiagnosticsType) {
+            if (doDebug) {
+                console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray " +
+                  ": cannot find SubscriptionDiagnosticsType");
+            }
+        }
+
+        // SubscriptionDiagnosticsArray = i=2290
+        const subscriptionDiagnosticsArray = this.addressSpace.findNode(
+          makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray))!;
+
+        return subscriptionDiagnosticsArray as UADynamicVariableArray<SubscriptionDiagnosticsDataType>;
     }
 }
