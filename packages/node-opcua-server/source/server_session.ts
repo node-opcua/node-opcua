@@ -298,7 +298,285 @@ export class ServerSession  extends EventEmitter implements ISubscriber {
         return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray;
     }
 
-    public _createSessionObjectInAddressSpace() {
+
+    /**
+     * number of active subscriptions
+     */
+    public get currentSubscriptionCount(): number {
+        return this.publishEngine ? this.publishEngine.subscriptionCount : 0;
+    }
+
+    /**
+     * number of subscriptions ever created since this object is live
+     */
+    public get cumulatedSubscriptionCount(): number {
+        return this._cumulatedSubscriptionCount;
+    }
+
+    /**
+     * number of monitored items
+     */
+    public get currentMonitoredItemCount(): number {
+        const self = this;
+        return self.publishEngine ? self.publishEngine.currentMonitoredItemCount : 0;
+    }
+
+    /**
+     * retrieve an existing subscription by subscriptionId
+     * @method getSubscription
+     * @param subscriptionId {Number}
+     * @return {Subscription}
+     */
+    public getSubscription(subscriptionId: number): Subscription | null {
+        const subscription = this.publishEngine.getSubscriptionById(subscriptionId);
+        if (subscription && subscription.state === SubscriptionState.CLOSED) {
+            // subscription is CLOSED but has not been notified yet
+            // it should be considered as excluded
+            return null;
+        }
+        assert(!subscription || subscription.state !== SubscriptionState.CLOSED,
+          "CLOSED subscription shall not be managed by publish engine anymore");
+        return subscription;
+    }
+
+    /**
+     * @method deleteSubscription
+     * @param subscriptionId {Number}
+     * @return {StatusCode}
+     */
+    public deleteSubscription(subscriptionId: number): StatusCode {
+
+        const session = this;
+        const subscription = session.getSubscription(subscriptionId);
+        if (!subscription) {
+            return StatusCodes.BadSubscriptionIdInvalid;
+        }
+
+        // xx this.publishEngine.remove_subscription(subscription);
+        subscription.terminate();
+
+        if (session.currentSubscriptionCount === 0) {
+
+            const local_publishEngine = session.publishEngine;
+            local_publishEngine.cancelPendingPublishRequest();
+        }
+        return StatusCodes.Good;
+    }
+
+    /**
+     * close a ServerSession, this will also delete the subscriptions if the flag is set.
+     *
+     * Spec extract:
+     *
+     * If a Client invokes the CloseSession Service then all Subscriptions associated with the Session are also deleted
+     * if the deleteSubscriptions flag is set to TRUE. If a Server terminates a Session for any other reason,
+     * Subscriptions associated with the Session, are not deleted. Each Subscription has its own lifetime to protect
+     * against data loss in the case of a Session termination. In these cases, the Subscription can be reassigned to
+     * another Client before its lifetime expires.
+     *
+     * @method close
+     * @param deleteSubscriptions : should we delete subscription ?
+     * @param [reason = "CloseSession"] the reason for closing the session
+     *         (shall be "Timeout", "Terminated" or "CloseSession")
+     *
+     */
+    public close(deleteSubscriptions: boolean, reason: string) {
+
+        if (this.publishEngine) {
+            this.publishEngine.onSessionClose();
+        }
+
+        theWatchDog.removeSubscriber(this);
+        // ---------------  delete associated subscriptions ---------------------
+
+        if (!deleteSubscriptions && this.currentSubscriptionCount !== 0) {
+
+            // I don't know what to do yet if deleteSubscriptions is false
+            console.log("TO DO : Closing session without deleting subscription not yet implemented");
+            // to do: Put subscriptions in safe place for future transfer if any
+
+        }
+
+        this._deleteSubscriptions();
+
+        assert(this.currentSubscriptionCount === 0);
+
+        // Post-Conditions
+        assert(this.currentSubscriptionCount === 0);
+
+        this.status = "closed";
+        /**
+         * @event session_closed
+         * @param deleteSubscriptions {Boolean}
+         * @param reason {String}
+         */
+        this.emit("session_closed", this, deleteSubscriptions, reason);
+
+        // ---------------- shut down publish engine
+        if (this.publishEngine) {
+
+            // remove subscription
+            this.publishEngine.shutdown();
+
+            assert(this.publishEngine.subscriptionCount === 0);
+            this.publishEngine.dispose();
+            this.publishEngine = null as any as ServerSidePublishEngine;
+        }
+
+        this._removeSessionObjectFromAddressSpace();
+
+        assert(!this.sessionDiagnostics, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
+        assert(!this.sessionObject, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
+
+    }
+
+    public registerNode(nodeId: NodeId) {
+        assert(nodeId instanceof NodeId);
+        const session = this;
+
+        if (nodeId.namespace === 0 && nodeId.identifierType === NodeIdType.NUMERIC) {
+            return nodeId;
+        }
+
+        const key = nodeId.toString();
+
+        const registeredNode = session._registeredNodes[key];
+        if (registeredNode) {
+            // already registered
+            return registeredNode;
+        }
+
+        const node = session.addressSpace.findNode(nodeId);
+        if (!node) {
+            return nodeId;
+        }
+
+        session._registeredNodesCounter += 1;
+
+        const aliasNodeId = makeNodeId(session._registeredNodesCounter, registeredNodeNameSpace);
+        session._registeredNodes[key] = aliasNodeId;
+        session._registeredNodesInv[aliasNodeId.toString()] = node;
+        return aliasNodeId;
+    }
+
+    public unRegisterNode(aliasNodeId: NodeId): void {
+
+        assert(aliasNodeId instanceof NodeId);
+        if (aliasNodeId.namespace !== registeredNodeNameSpace) {
+            return; // not a registered Node
+        }
+        const session = this;
+
+        const node = session._registeredNodesInv[aliasNodeId.toString()];
+        if (!node) {
+            return;
+        }
+        session._registeredNodesInv[aliasNodeId.toString()] = null;
+        session._registeredNodes[node.nodeId.toString()] = null;
+    }
+
+    public resolveRegisteredNode(aliasNodeId: NodeId): NodeId {
+
+        if (aliasNodeId.namespace !== registeredNodeNameSpace) {
+            return aliasNodeId; // not a registered Node
+        }
+        const node = this._registeredNodesInv[aliasNodeId.toString()];
+        if (!node) {
+            return aliasNodeId;
+        }
+        return node.nodeId;
+    }
+
+    /**
+     * true if the underlying channel has been closed or aborted...
+     */
+    public get aborted() {
+        if (!this.channel) {
+            return true;
+        }
+        return this.channel.aborted;
+    }
+
+    public createSubscription(parameters: any): Subscription {
+        const subscription = this.parent._createSubscriptionOnSession(this, parameters);
+        this.assignSubscription(subscription);
+        assert(subscription.$session === this);
+        assert(subscription.sessionId instanceof NodeId);
+        assert(sameNodeId(subscription.sessionId, this.nodeId));
+        return subscription;
+    }
+
+    public _attach_channel(channel: ServerSecureChannelLayer) {
+        assert(this.nonce && this.nonce instanceof Buffer);
+        this.channel = channel;
+        this.channelId = channel.channelId;
+        const key = this.authenticationToken.toString();
+        assert(!channel.sessionTokens.hasOwnProperty(key), "channel has already a session");
+
+        channel.sessionTokens[key] = this;
+
+        // when channel is aborting
+        this.channel_abort_event_handler = on_channel_abort.bind(this);
+        channel.on("abort", this.channel_abort_event_handler);
+
+    }
+
+    public _detach_channel() {
+        const channel = this.channel;
+        if (!channel) {
+            throw new Error("expecting a valid channel");
+        }
+        assert(this.nonce && this.nonce instanceof Buffer);
+        assert(this.authenticationToken);
+        const key = this.authenticationToken.toString();
+        assert(channel.sessionTokens.hasOwnProperty(key));
+        assert(this.channel);
+        assert(_.isFunction(this.channel_abort_event_handler));
+        channel.removeListener("abort", this.channel_abort_event_handler);
+
+        delete channel.sessionTokens[key];
+        this.channel = undefined;
+        this.channelId = undefined;
+    }
+
+    public  _exposeSubscriptionDiagnostics(subscription: Subscription) {
+        debugLog("ServerSession#_exposeSubscriptionDiagnostics");
+        assert(subscription.$session === this);
+        const subscriptionDiagnosticsArray = this._getSubscriptionDiagnosticsArray();
+        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+        assert(subscriptionDiagnostics.$subscription === subscription);
+
+        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+            // xx console.log("GG => ServerSession Exposing subscription diagnostics =>",
+            // subscription.id,"on session", session.nodeId.toString());
+            addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
+        }
+    }
+
+    public _unexposeSubscriptionDiagnostics(subscription: Subscription) {
+
+        const subscriptionDiagnosticsArray = this._getSubscriptionDiagnosticsArray();
+        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+        assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
+        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+            // console.log("GG => ServerSession **Unexposing** subscription diagnostics =>",
+            // subscription.id,"on session", session.nodeId.toString());
+            removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
+        }
+        debugLog("ServerSession#_unexposeSubscriptionDiagnostics");
+    }
+    /**
+     * @method watchdogReset
+     * used as a callback for the Watchdog
+     * @private
+     */
+    public watchdogReset() {
+        const self = this;
+        // the server session has expired and must be removed from the server
+        self.emit("timeout");
+    }
+
+    private _createSessionObjectInAddressSpace() {
 
         if (this.sessionObject) {
             return;
@@ -424,7 +702,11 @@ export class ServerSession  extends EventEmitter implements ISubscriber {
         return this.sessionObject;
     }
 
-    public _removeSessionObjectFromAddressSpace() {
+    /**
+     *
+     * @private
+     */
+    private _removeSessionObjectFromAddressSpace() {
 
         // todo : dump session statistics in a file or somewhere for deeper diagnostic analysis on closed session
 
@@ -451,7 +733,11 @@ export class ServerSession  extends EventEmitter implements ISubscriber {
         }
     }
 
-    public _getSubscriptionDiagnosticsArray() {
+    /**
+     *
+     * @private
+     */
+    private _getSubscriptionDiagnosticsArray() {
 
         if (!this.addressSpace) {
             if (doDebug) {
@@ -468,34 +754,7 @@ export class ServerSession  extends EventEmitter implements ISubscriber {
         return subscriptionDiagnosticsArray;
     }
 
-    public _exposeSubscriptionDiagnostics(subscription: Subscription) {
-        debugLog("ServerSession#_exposeSubscriptionDiagnostics");
-        assert(subscription.$session === this);
-        const subscriptionDiagnosticsArray = this._getSubscriptionDiagnosticsArray();
-        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-        assert(subscriptionDiagnostics.$subscription === subscription);
-
-        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            // xx console.log("GG => ServerSession Exposing subscription diagnostics =>",
-            // subscription.id,"on session", session.nodeId.toString());
-            addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
-        }
-    }
-
-    public _unexposeSubscriptionDiagnostics(subscription: Subscription) {
-
-        const subscriptionDiagnosticsArray = this._getSubscriptionDiagnosticsArray();
-        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-        assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
-        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            // console.log("GG => ServerSession **Unexposing** subscription diagnostics =>",
-            // subscription.id,"on session", session.nodeId.toString());
-            removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
-        }
-        debugLog("ServerSession#_unexposeSubscriptionDiagnostics");
-    }
-
-    public assignSubscription(subscription: Subscription) {
+    private assignSubscription(subscription: Subscription) {
         assert(!subscription.$session);
         assert(this.nodeId instanceof NodeId);
 
@@ -523,80 +782,7 @@ export class ServerSession  extends EventEmitter implements ISubscriber {
 
     }
 
-    public createSubscription(parameters: any): Subscription {
-        const subscription = this.parent._createSubscriptionOnSession(this, parameters);
-        this.assignSubscription(subscription);
-        assert(subscription.$session === this);
-        assert(subscription.sessionId instanceof NodeId);
-        assert(sameNodeId(subscription.sessionId, this.nodeId));
-        return subscription;
-    }
-
-    /**
-     * number of active subscriptions
-     */
-    public get currentSubscriptionCount(): number {
-        return this.publishEngine ? this.publishEngine.subscriptionCount : 0;
-    }
-
-    /**
-     * number of subscriptions ever created since this object is live
-     */
-    public get cumulatedSubscriptionCount(): number {
-        return this._cumulatedSubscriptionCount;
-    }
-
-    /**
-     * number of monitored items
-     */
-    public get currentMonitoredItemCount(): number {
-        const self = this;
-        return self.publishEngine ? self.publishEngine.currentMonitoredItemCount : 0;
-    }
-
-    /**
-     * retrieve an existing subscription by subscriptionId
-     * @method getSubscription
-     * @param subscriptionId {Number}
-     * @return {Subscription}
-     */
-    public getSubscription(subscriptionId: number): Subscription | null {
-        const subscription = this.publishEngine.getSubscriptionById(subscriptionId);
-        if (subscription && subscription.state === SubscriptionState.CLOSED) {
-            // subscription is CLOSED but has not been notified yet
-            // it should be considered as excluded
-            return null;
-        }
-        assert(!subscription || subscription.state !== SubscriptionState.CLOSED,
-          "CLOSED subscription shall not be managed by publish engine anymore");
-        return subscription;
-    }
-
-    /**
-     * @method deleteSubscription
-     * @param subscriptionId {Number}
-     * @return {StatusCode}
-     */
-    public deleteSubscription(subscriptionId: number): StatusCode {
-
-        const session = this;
-        const subscription = session.getSubscription(subscriptionId);
-        if (!subscription) {
-            return StatusCodes.BadSubscriptionIdInvalid;
-        }
-
-        // xx this.publishEngine.remove_subscription(subscription);
-        subscription.terminate();
-
-        if (session.currentSubscriptionCount === 0) {
-
-            const local_publishEngine = session.publishEngine;
-            local_publishEngine.cancelPendingPublishRequest();
-        }
-        return StatusCodes.Good;
-    }
-
-    public _deleteSubscriptions() {
+    private _deleteSubscriptions() {
         assert(this.publishEngine);
         const subscriptions = this.publishEngine.subscriptions;
         subscriptions.forEach((subscription: Subscription) => {
@@ -604,181 +790,4 @@ export class ServerSession  extends EventEmitter implements ISubscriber {
         });
     }
 
-    /**
-     * close a ServerSession, this will also delete the subscriptions if the flag is set.
-     *
-     * Spec extract:
-     *
-     * If a Client invokes the CloseSession Service then all Subscriptions associated with the Session are also deleted
-     * if the deleteSubscriptions flag is set to TRUE. If a Server terminates a Session for any other reason,
-     * Subscriptions associated with the Session, are not deleted. Each Subscription has its own lifetime to protect
-     * against data loss in the case of a Session termination. In these cases, the Subscription can be reassigned to
-     * another Client before its lifetime expires.
-     *
-     * @method close
-     * @param deleteSubscriptions : should we delete subscription ?
-     * @param [reason = "CloseSession"] the reason for closing the session
-     *         (shall be "Timeout", "Terminated" or "CloseSession")
-     *
-     */
-    public close(deleteSubscriptions: boolean, reason: string) {
-
-        if (this.publishEngine) {
-            this.publishEngine.onSessionClose();
-        }
-
-        theWatchDog.removeSubscriber(this);
-        // ---------------  delete associated subscriptions ---------------------
-
-        if (!deleteSubscriptions && this.currentSubscriptionCount !== 0) {
-
-            // I don't know what to do yet if deleteSubscriptions is false
-            console.log("TO DO : Closing session without deleting subscription not yet implemented");
-            // to do: Put subscriptions in safe place for future transfer if any
-
-        }
-
-        this._deleteSubscriptions();
-
-        assert(this.currentSubscriptionCount === 0);
-
-        // Post-Conditions
-        assert(this.currentSubscriptionCount === 0);
-
-        this.status = "closed";
-        /**
-         * @event session_closed
-         * @param deleteSubscriptions {Boolean}
-         * @param reason {String}
-         */
-        this.emit("session_closed", this, deleteSubscriptions, reason);
-
-        // ---------------- shut down publish engine
-        if (this.publishEngine) {
-
-            // remove subscription
-            this.publishEngine.shutdown();
-
-            assert(this.publishEngine.subscriptionCount === 0);
-            this.publishEngine.dispose();
-            this.publishEngine = null as any as ServerSidePublishEngine;
-        }
-
-        this._removeSessionObjectFromAddressSpace();
-
-        assert(!this.sessionDiagnostics, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
-        assert(!this.sessionObject, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
-
-    }
-
-    /**
-     * @method watchdogReset
-     * used as a callback for the Watchdog
-     * @private
-     */
-    public watchdogReset() {
-        const self = this;
-        // the server session has expired and must be removed from the server
-        self.emit("timeout");
-    }
-
-    public registerNode(nodeId: NodeId) {
-        assert(nodeId instanceof NodeId);
-        const session = this;
-
-        if (nodeId.namespace === 0 && nodeId.identifierType === NodeIdType.NUMERIC) {
-            return nodeId;
-        }
-
-        const key = nodeId.toString();
-
-        const registeredNode = session._registeredNodes[key];
-        if (registeredNode) {
-            // already registered
-            return registeredNode;
-        }
-
-        const node = session.addressSpace.findNode(nodeId);
-        if (!node) {
-            return nodeId;
-        }
-
-        session._registeredNodesCounter += 1;
-
-        const aliasNodeId = makeNodeId(session._registeredNodesCounter, registeredNodeNameSpace);
-        session._registeredNodes[key] = aliasNodeId;
-        session._registeredNodesInv[aliasNodeId.toString()] = node;
-        return aliasNodeId;
-    }
-
-    public unRegisterNode(aliasNodeId: NodeId): void {
-
-        assert(aliasNodeId instanceof NodeId);
-        if (aliasNodeId.namespace !== registeredNodeNameSpace) {
-            return; // not a registered Node
-        }
-        const session = this;
-
-        const node = session._registeredNodesInv[aliasNodeId.toString()];
-        if (!node) {
-            return;
-        }
-        session._registeredNodesInv[aliasNodeId.toString()] = null;
-        session._registeredNodes[node.nodeId.toString()] = null;
-    }
-
-    public resolveRegisteredNode(aliasNodeId: NodeId): NodeId {
-
-        if (aliasNodeId.namespace !== registeredNodeNameSpace) {
-            return aliasNodeId; // not a registered Node
-        }
-        const node = this._registeredNodesInv[aliasNodeId.toString()];
-        if (!node) {
-            return aliasNodeId;
-        }
-        return node.nodeId;
-    }
-
-    /**
-     * true if the underlying channel has been closed or aborted...
-     */
-    public get aborted() {
-        if (!this.channel) {
-            return true;
-        }
-        return this.channel.aborted;
-    }
-
-    public _attach_channel(channel: ServerSecureChannelLayer) {
-        assert(this.nonce && this.nonce instanceof Buffer);
-        this.channel = channel;
-        this.channelId = channel.channelId;
-        const key = this.authenticationToken.toString();
-        assert(!channel.sessionTokens.hasOwnProperty(key), "channel has already a session");
-
-        channel.sessionTokens[key] = this;
-
-        // when channel is aborting
-        this.channel_abort_event_handler = on_channel_abort.bind(this);
-        channel.on("abort", this.channel_abort_event_handler);
-
-    }
-
-    public _detach_channel() {
-        const channel = this.channel;
-        if (!channel) {
-            throw new Error("expecting a valid channel");
-        }
-        assert(this.nonce && this.nonce instanceof Buffer);
-        assert(this.authenticationToken);
-        const key = this.authenticationToken.toString();
-        assert(channel.sessionTokens.hasOwnProperty(key));
-        assert(this.channel);
-        assert(_.isFunction(this.channel_abort_event_handler));
-        channel.removeListener("abort", this.channel_abort_event_handler);
-
-        delete channel.sessionTokens[key];
-        this.channel = undefined;
-        this.channelId = undefined;
-    }
 }

@@ -6,7 +6,7 @@ import * as async from "async";
 import chalk from "chalk";
 import { EventEmitter } from "events";
 import * as net from "net";
-import { Server,  Socket } from "net";
+import { Server, Socket } from "net";
 import * as path from "path";
 import * as _ from "underscore";
 
@@ -24,6 +24,7 @@ import {
 } from "node-opcua-secure-channel";
 import { UserTokenType } from "node-opcua-service-endpoints";
 import { EndpointDescription } from "node-opcua-service-endpoints";
+import { ApplicationDescription } from "node-opcua-types";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -48,97 +49,67 @@ function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
             console.log(" SOCKET IS CLOSED");
         }
     }
+
     for (const channel of channels) {
         dumpChannel(channel);
     }
 }
 
-/**
- * @method _prevent_DOS_Attack
- * @async
- * @param self
- * @param establish_connection
- * @private
- */
-function _prevent_DDOS_Attack(
-  self: OPCUAServerEndPoint,
-  establish_connection: () => void
-) {
-
-    const nbConnections = self.activeChannelCount;
-
-    if (nbConnections >= self.maxConnections) {
-        // istanbul ignore next
-        if (doDebug) {
-            console.log(chalk.bgRed.white("PREVENTING DOS ATTACK => Closing unused channels"));
-        }
-        const unused_channels: ServerSecureChannelLayer[] = _.filter(self.getChannels(),
-          (channel1: ServerSecureChannelLayer) => {
-            return !channel1.isOpened && !channel1.hasSession;
-        });
-        if (unused_channels.length === 0) {
-            // all channels are in used , we cannot get any
-
-            // istanbul ignore next
-            if (doDebug) {
-                console.log("  - all channel are used !!!!");
-                dumpChannelInfo(self.getChannels());
-            }
-            setImmediate(establish_connection);
-            return;
-        }
-        // istanbul ignore next
-        if (doDebug) {
-            console.log("   - Unused channels that can be clobbered",
-              _.map(unused_channels, (channel1: ServerSecureChannelLayer) => channel1.hashKey).join(" "));
-        }
-        const channel = unused_channels[0];
-
-        channel.close(() => {
-            // istanbul ignore next
-            if (doDebug) {
-                console.log("   _ Unused channel has been closed ", channel.hashKey);
-            }
-            self._unregisterChannel(channel);
-
-            establish_connection();
-        });
-    } else {
-        setImmediate(establish_connection);
-    }
-}
+const emptyCertificate = new Buffer(0);
+const emptyPrivateKeyPEM = "";
 
 let OPCUAServerEndPointCounter = 0;
+
+export interface OPCUAServerEndPointOptions {
+    /**
+     * the tcp port
+     */
+    port: number;
+    /**
+     * the DER certificate chain
+     */
+    certificateChain: Certificate;
+
+    /**
+     * privateKey
+     */
+    privateKey: PrivateKeyPEM;
+
+    certificateManager: CertificateManager;
+
+    /**
+     *  the default secureToken lifetime @default=60000
+     */
+    defaultSecureTokenLifetime?: number;
+
+    /**
+     * the maximum number of connection allowed on the TCP server socket
+     * @default 20
+     */
+    maxConnections?: number;
+
+    /**
+     *  the  timeout for the TCP HEL/ACK transaction (in ms)
+     *  @default 30000
+     */
+    timeout?: number;
+
+    serverInfo: ApplicationDescription;
+
+    objectFactory?: any;
+}
+
 /**
  * OPCUAServerEndPoint a Server EndPoint.
- * @class OPCUAServerEndPoint
- *
  * A sever end point is listening to one port
- *
- * @param options {Object}
- * @param options.port                                  {Number} the tcp port
- * @param options.certificateChain                      {Buffer} the DER certificate chain
- * @param options.privateKey                            {String} PEM string of the private key
- * @param [options.defaultSecureTokenLifetime=600000]   {Number} the default secure token lifetime
- * @param [options.timeout=30000]                       {Number} the  timeout for the TCP HEL/ACK transaction (in ms)
- * @param [options.maxConnections = 20 ]                {Number} the maximum number of connection allowed on the
- *                                                               TCP server socket
- * @param options.serverInfo                            {ApplicationDescription}
- * @param [options.serverInfo.applicationUri]           {String}
- * @param [options.serverInfo.productUri]               {String}
- * @param [options.serverInfo.applicationName]          {LocalizedText}
- * @param [options.serverInfo.gatewayServerUri]         {String|null}
- * @param [options.serverInfo.discoveryProfileUri]      {String|null}
- * @param [options.serverInfo.discoveryUrls]            {String[]}
- * @param options.objectFactory
- * @param [options.certificateManager]
- * @constructor
- *
  * note:
  *   see OPCUA Release 1.03 part 4 page 108 7.1 ApplicationDescription
  */
 export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureChannelParent {
 
+    /**
+     * the tcp port
+     */
     public port: number;
     public certificateManager: CertificateManager;
     public defaultSecureTokenLifetime: number;
@@ -148,21 +119,21 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public bytesReadInOldChannels: number;
     public transactionsCountOldChannels: number;
     public securityTokenCountOldChannels: number;
-    public serverInfo: any;
+    public serverInfo: ApplicationDescription;
     public objectFactory: any;
 
-    public _on_new_channel?: (channel: ServerSecureChannelLayer) => void ;
+    public _on_new_channel?: (channel: ServerSecureChannelLayer) => void;
     public _on_close_channel?: (channel: ServerSecureChannelLayer) => void;
-    private _certificateChain: any;
-    private _privateKey: any;
-    private _channels: { [key: string]: ServerSecureChannelLayer} ;
+    private _certificateChain: Certificate;
+    private _privateKey: PrivateKeyPEM;
+    private _channels: { [key: string]: ServerSecureChannelLayer };
     private _server?: Server;
     private _endpoints: EndpointDescription[];
     private _listen_callback: any;
     private _started: boolean = false;
     private _counter = OPCUAServerEndPointCounter++;
 
-    constructor(options: any) {
+    constructor(options: OPCUAServerEndPointOptions) {
 
         super();
 
@@ -175,7 +146,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         options = options || {};
         options.port = options.port || 0;
 
-        this.port = parseInt(options.port, 10);
+        this.port = parseInt(options.port.toString(), 10);
         assert(_.isNumber(this.port));
 
         this._certificateChain = options.certificateChain;
@@ -208,12 +179,12 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
     public dispose() {
 
-        this._certificateChain = null;
-        this._privateKey = null;
+        this._certificateChain = emptyCertificate;
+        this._privateKey = emptyPrivateKeyPEM;
 
         assert(Object.keys(this._channels).length === 0, "OPCUAServerEndPoint channels must have been deleted");
         this._channels = {};
-        this.serverInfo = null;
+        this.serverInfo = new ApplicationDescription({});
 
         this._endpoints = [];
         assert(this._endpoints.length === 0, "endpoints must have been deleted");
@@ -227,118 +198,17 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public toString(): string {
-        return "EndPoints " + this._counter + " port = " + this.port + " l = " + this._endpoints.length  ;
+        return "EndPoints " + this._counter + " port = " + this.port + " l = " + this._endpoints.length;
     }
 
     public getChannels(): ServerSecureChannelLayer[] {
-      return _.values(this._channels);
-    }
-
-    public _dump_statistics() {
-
-        const self = this;
-
-        self._server!.getConnections((err: Error | null, count: number) => {
-            debugLog(chalk.cyan("CONCURRENT CONNECTION = "), count);
-        });
-        debugLog(chalk.cyan("MAX CONNECTIONS = "), self._server!.maxConnections);
-    }
-
-    public _setup_server() {
-
-        assert(!this._server);
-        this._server = net.createServer({ pauseOnConnect: true }, this._on_client_connection.bind(this));
-
-        // xx console.log(" Server with max connections ", self.maxConnections);
-        this._server.maxConnections = this.maxConnections + 1; // plus one extra
-
-        this._listen_callback = null;
-        this._server.on("connection", (socket: NodeJS.Socket) => {
-
-            // istanbul ignore next
-            if (doDebug) {
-                this._dump_statistics();
-                debugLog("server connected  with : " +
-                  (socket as any).remoteAddress + ":" + (socket as any).remotePort);
-            }
-
-        }).on("close", () => {
-            debugLog("server closed : all connections have ended");
-        }).on("error", (err: Error) => {
-            // this could be because the port is already in use
-            debugLog(chalk.red.bold("server error: "), err.message);
-        });
-    }
-
-    public _on_client_connection(socket: Socket) {
-
-        // a client is attempting a connection on the socket
-        (socket as any).setNoDelay(true);
-
-        debugLog("OPCUAServerEndPoint#_on_client_connection", this._started);
-        if (!this._started) {
-            debugLog(chalk.bgWhite.cyan("OPCUAServerEndPoint#_on_client_connection " +
-              "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"));
-            socket.end();
-            return;
-        }
-
-        const establish_connection = () => {
-
-            const nbConnections = Object.keys(this._channels).length;
-            debugLog(" nbConnections ", nbConnections, " self._server.maxConnections",
-              this._server!.maxConnections, this.maxConnections);
-            if (nbConnections >= this.maxConnections) {
-                debugLog(chalk.bgWhite.cyan("OPCUAServerEndPoint#_on_client_connection " +
-                  "The maximum number of connection has been reached - Connection is refused"));
-                socket.end();
-                (socket as any).destroy();
-                return;
-            }
-
-            debugLog("OPCUAServerEndPoint._on_client_connection successful => New Channel");
-
-            const channel = new ServerSecureChannelLayer({
-                defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
-                // objectFactory: this.objectFactory,
-                parent: this,
-                timeout: this.timeout
-            });
-
-            socket.resume();
-
-            this._preregisterChannel(channel);
-
-            channel.init(socket, (err?: Error) => {
-                this._unpreregisterChannel(channel);
-                debugLog(chalk.yellow.bold("Channel#init done"), err);
-                if (err) {
-                    socket.end();
-                } else {
-                    debugLog("server receiving a client connection");
-                    this._registerChannel(channel);
-                }
-            });
-
-            channel.on("message", (message: any) => {
-                // forward
-                this.emit("message", message, channel, this);
-            });
-        };
-        // Each SecureChannel exists until it is explicitly closed or until the last token has expired and the overlap
-        // period has elapsed. A Server application should limit the number of SecureChannels.
-        // To protect against misbehaving Clients and denial of service attacks, the Server shall close the oldest
-        // SecureChannel that has no Session assigned before reaching the maximum number of supported SecureChannels.
-        _prevent_DDOS_Attack(this, establish_connection);
-
+        return _.values(this._channels);
     }
 
     /**
-     * @method getCertificate
      * Returns the X509 DER form of the server certificate
-     * @return {Buffer}
      */
-    public getCertificate() {
+    public getCertificate(): Certificate {
         return split_der(this._certificateChain)[0];
     }
 
@@ -460,112 +330,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         return this._endpoints;
     }
 
-    public _preregisterChannel(channel: ServerSecureChannelLayer) {
-        // _preregisterChannel is used to keep track of channel for which
-        // that are in early stage of the hand shaking process.
-        // e.g HEL/ACK and OpenSecureChannel may not have been received yet
-        // as they will need to be interrupted when OPCUAServerEndPoint is closed
-        assert(this._started, "OPCUAServerEndPoint must be started");
-
-        assert(!this._channels.hasOwnProperty(channel.hashKey), " channel already preregistered!");
-
-        this._channels[channel.hashKey] = channel;
-
-        (channel as any)._unpreregisterChannelEvent = () => {
-            debugLog("Channel received an abort event during the preregistration phase");
-            this._unpreregisterChannel(channel);
-            channel.dispose();
-        };
-        channel.on("abort", (channel as any)._unpreregisterChannelEvent);
-    }
-
-    public _unpreregisterChannel(channel: ServerSecureChannelLayer) {
-
-        if (!this._channels[channel.hashKey]) {
-            debugLog("Already un preregistered ?", channel.hashKey);
-            return;
-        }
-
-        delete this._channels[channel.hashKey];
-        assert(_.isFunction((channel as any)._unpreregisterChannelEvent));
-        channel.removeListener("abort", (channel as any)._unpreregisterChannelEvent);
-        (channel as any)._unpreregisterChannelEvent = null;
-    }
-
-    /**
-     * @method _registerChannel
-     * @param channel
-     * @private
-     */
-    public _registerChannel(channel: ServerSecureChannelLayer) {
-
-        if (this._started) {
-
-            debugLog(chalk.red("_registerChannel = "), "channel.hashKey = ", channel.hashKey);
-
-            assert(!this._channels[channel.hashKey]);
-            this._channels[channel.hashKey] = channel;
-
-            channel._rememberClientAddressAndPort();
-            /**
-             * @event newChannel
-             * @param channel
-             */
-            this.emit("newChannel", channel);
-
-            channel.on("abort", () => {
-                this._unregisterChannel(channel);
-            });
-
-        } else {
-            debugLog("OPCUAServerEndPoint#_registerChannel called when end point is shutdown !");
-            debugLog("  -> channel will be forcefully terminated");
-            channel.close();
-            channel.dispose();
-        }
-    }
-
-    /**
-     * @method _unregisterChannel
-     * @param channel
-     * @private
-     */
-    public _unregisterChannel(channel: ServerSecureChannelLayer): void {
-
-        debugLog("_un-registerChannel channel.hashKey", channel.hashKey);
-        if (!this._channels.hasOwnProperty(channel.hashKey)) {
-            return;
-        }
-
-        assert(this._channels.hasOwnProperty(channel.hashKey), "channel is not registered");
-
-        /**
-         * @event closeChannel
-         * @param channel
-         */
-        this.emit("closeChannel", channel);
-
-        // keep trace of statistics data from old channel for our own accumulated stats.
-        this.bytesWrittenInOldChannels += channel.bytesWritten;
-        this.bytesReadInOldChannels += channel.bytesRead;
-        this.transactionsCountOldChannels += channel.transactionsCount;
-        delete this._channels[channel.hashKey];
-
-        // istanbul ignore next
-        if (doDebug) {
-            this._dump_statistics();
-            debugLog("un-registering channel  - Count = ", this.currentChannelCount);
-        }
-
-        /// channel.dispose();
-    }
-
-    public _end_listen(err?: Error) {
-        assert(_.isFunction(this._listen_callback));
-        this._listen_callback(err);
-        this._listen_callback = null;
-    }
-
     /**
      * @method listen
      * @async
@@ -634,7 +398,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             this.suspendConnection(() => {
                 // shutdown all opened channels ...
                 const _channels = _.values(this._channels);
-                async.each(_channels, shutdown_channel.bind(this), (err?: Error| null) => {
+                async.each(_channels,
+                  (channel: ServerSecureChannelLayer, callback1: (err?: Error) => void) => {
+                      this.shutdown_channel(channel, callback1);
+                  }, (err?: Error | null) => {
                     if (!(Object.keys(this._channels).length === 0)) {
                         console.log(" Bad !");
                     }
@@ -658,32 +425,32 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public get bytesWritten(): number {
-        const chnls = _.values(this._channels);
-        return this.bytesWrittenInOldChannels + chnls.reduce(
+        const channels = _.values(this._channels);
+        return this.bytesWrittenInOldChannels + channels.reduce(
           (accumulated: number, channel: ServerSecureChannelLayer) => {
               return accumulated + channel.bytesWritten;
           }, 0);
     }
 
     public get bytesRead(): number {
-        const chnls = _.values(this._channels);
-        return this.bytesReadInOldChannels + chnls.reduce(
+        const channels = _.values(this._channels);
+        return this.bytesReadInOldChannels + channels.reduce(
           (accumulated: number, channel: ServerSecureChannelLayer) => {
               return accumulated + channel.bytesRead;
           }, 0);
     }
 
     public get transactionsCount(): number {
-        const chnls = _.values(this._channels);
-        return this.transactionsCountOldChannels + chnls.reduce(
+        const channels = _.values(this._channels);
+        return this.transactionsCountOldChannels + channels.reduce(
           (accumulated: number, channel: ServerSecureChannelLayer) => {
               return accumulated + channel.transactionsCount;
           }, 0);
     }
 
     public get securityTokenCount(): number {
-        const chnls = _.values(this._channels);
-        return this.securityTokenCountOldChannels + chnls.reduce(
+        const channels = _.values(this._channels);
+        return this.securityTokenCountOldChannels + channels.reduce(
           (accumulated: number, channel: ServerSecureChannelLayer) => {
               return accumulated + channel.securityTokenCount;
           }, 0);
@@ -693,40 +460,325 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         return Object.keys(this._channels).length;
     }
 
+    private _dump_statistics() {
+
+        const self = this;
+
+        self._server!.getConnections((err: Error | null, count: number) => {
+            debugLog(chalk.cyan("CONCURRENT CONNECTION = "), count);
+        });
+        debugLog(chalk.cyan("MAX CONNECTIONS = "), self._server!.maxConnections);
+    }
+
+    private _setup_server() {
+
+        assert(!this._server);
+        this._server = net.createServer({ pauseOnConnect: true }, this._on_client_connection.bind(this));
+
+        // xx console.log(" Server with max connections ", self.maxConnections);
+        this._server.maxConnections = this.maxConnections + 1; // plus one extra
+
+        this._listen_callback = null;
+        this._server.on("connection", (socket: NodeJS.Socket) => {
+
+            // istanbul ignore next
+            if (doDebug) {
+                this._dump_statistics();
+                debugLog("server connected  with : " +
+                  (socket as any).remoteAddress + ":" + (socket as any).remotePort);
+            }
+
+        }).on("close", () => {
+            debugLog("server closed : all connections have ended");
+        }).on("error", (err: Error) => {
+            // this could be because the port is already in use
+            debugLog(chalk.red.bold("server error: "), err.message);
+        });
+    }
+
+    private _on_client_connection(socket: Socket) {
+
+        // a client is attempting a connection on the socket
+        (socket as any).setNoDelay(true);
+
+        debugLog("OPCUAServerEndPoint#_on_client_connection", this._started);
+        if (!this._started) {
+            debugLog(chalk.bgWhite.cyan("OPCUAServerEndPoint#_on_client_connection " +
+              "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"));
+            socket.end();
+            return;
+        }
+
+        const establish_connection = () => {
+
+            const nbConnections = Object.keys(this._channels).length;
+            debugLog(" nbConnections ", nbConnections, " self._server.maxConnections",
+              this._server!.maxConnections, this.maxConnections);
+            if (nbConnections >= this.maxConnections) {
+                debugLog(chalk.bgWhite.cyan("OPCUAServerEndPoint#_on_client_connection " +
+                  "The maximum number of connection has been reached - Connection is refused"));
+                socket.end();
+                (socket as any).destroy();
+                return;
+            }
+
+            debugLog("OPCUAServerEndPoint._on_client_connection successful => New Channel");
+
+            const channel = new ServerSecureChannelLayer({
+                defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
+                // objectFactory: this.objectFactory,
+                parent: this,
+                timeout: this.timeout
+            });
+
+            socket.resume();
+
+            this._preregisterChannel(channel);
+
+            channel.init(socket, (err?: Error) => {
+                this._un_pre_registerChannel(channel);
+                debugLog(chalk.yellow.bold("Channel#init done"), err);
+                if (err) {
+                    socket.end();
+                } else {
+                    debugLog("server receiving a client connection");
+                    this._registerChannel(channel);
+                }
+            });
+
+            channel.on("message", (message: any) => {
+                // forward
+                this.emit("message", message, channel, this);
+            });
+        };
+        // Each SecureChannel exists until it is explicitly closed or until the last token has expired and the overlap
+        // period has elapsed. A Server application should limit the number of SecureChannels.
+        // To protect against misbehaving Clients and denial of service attacks, the Server shall close the oldest
+        // SecureChannel that has no Session assigned before reaching the maximum number of supported SecureChannels.
+        this._prevent_DDOS_Attack(establish_connection);
+
+    }
+
+    private _preregisterChannel(channel: ServerSecureChannelLayer) {
+        // _preregisterChannel is used to keep track of channel for which
+        // that are in early stage of the hand shaking process.
+        // e.g HEL/ACK and OpenSecureChannel may not have been received yet
+        // as they will need to be interrupted when OPCUAServerEndPoint is closed
+        assert(this._started, "OPCUAServerEndPoint must be started");
+
+        assert(!this._channels.hasOwnProperty(channel.hashKey), " channel already preregistered!");
+
+        this._channels[channel.hashKey] = channel;
+
+        (channel as any)._unpreregisterChannelEvent = () => {
+            debugLog("Channel received an abort event during the preregistration phase");
+            this._un_pre_registerChannel(channel);
+            channel.dispose();
+        };
+        channel.on("abort", (channel as any)._unpreregisterChannelEvent);
+    }
+
+    private _un_pre_registerChannel(channel: ServerSecureChannelLayer) {
+
+        if (!this._channels[channel.hashKey]) {
+            debugLog("Already un preregistered ?", channel.hashKey);
+            return;
+        }
+
+        delete this._channels[channel.hashKey];
+        assert(_.isFunction((channel as any)._unpreregisterChannelEvent));
+        channel.removeListener("abort", (channel as any)._unpreregisterChannelEvent);
+        (channel as any)._unpreregisterChannelEvent = null;
+    }
+
+    /**
+     * @method _registerChannel
+     * @param channel
+     * @private
+     */
+    private _registerChannel(channel: ServerSecureChannelLayer) {
+
+        if (this._started) {
+
+            debugLog(chalk.red("_registerChannel = "), "channel.hashKey = ", channel.hashKey);
+
+            assert(!this._channels[channel.hashKey]);
+            this._channels[channel.hashKey] = channel;
+
+            channel._rememberClientAddressAndPort();
+            /**
+             * @event newChannel
+             * @param channel
+             */
+            this.emit("newChannel", channel);
+
+            channel.on("abort", () => {
+                this._unregisterChannel(channel);
+            });
+
+        } else {
+            debugLog("OPCUAServerEndPoint#_registerChannel called when end point is shutdown !");
+            debugLog("  -> channel will be forcefully terminated");
+            channel.close();
+            channel.dispose();
+        }
+    }
+
+    /**
+     * @method _unregisterChannel
+     * @param channel
+     * @private
+     */
+    private _unregisterChannel(channel: ServerSecureChannelLayer): void {
+
+        debugLog("_un-registerChannel channel.hashKey", channel.hashKey);
+        if (!this._channels.hasOwnProperty(channel.hashKey)) {
+            return;
+        }
+
+        assert(this._channels.hasOwnProperty(channel.hashKey), "channel is not registered");
+
+        /**
+         * @event closeChannel
+         * @param channel
+         */
+        this.emit("closeChannel", channel);
+
+        // keep trace of statistics data from old channel for our own accumulated stats.
+        this.bytesWrittenInOldChannels += channel.bytesWritten;
+        this.bytesReadInOldChannels += channel.bytesRead;
+        this.transactionsCountOldChannels += channel.transactionsCount;
+        delete this._channels[channel.hashKey];
+
+        // istanbul ignore next
+        if (doDebug) {
+            this._dump_statistics();
+            debugLog("un-registering channel  - Count = ", this.currentChannelCount);
+        }
+
+        /// channel.dispose();
+    }
+
+    private _end_listen(err?: Error) {
+        assert(_.isFunction(this._listen_callback));
+        this._listen_callback(err);
+        this._listen_callback = null;
+    }
+
+    /**
+     *  shutdown_channel
+     * @param channel
+     * @param inner_callback
+     */
+    private shutdown_channel(
+      channel: ServerSecureChannelLayer,
+      inner_callback: (err?: Error) => void
+    ) {
+        assert(_.isFunction(inner_callback));
+        channel.once("close", () => {
+            // xx console.log(" ON CLOSED !!!!");
+        });
+
+        channel.close(() => {
+            this._unregisterChannel(channel);
+            setImmediate(inner_callback);
+        });
+    }
+
+    /**
+     * @private
+     */
+    private _prevent_DDOS_Attack(establish_connection: () => void) {
+
+        const nbConnections = this.activeChannelCount;
+
+        if (nbConnections >= this.maxConnections) {
+            // istanbul ignore next
+            if (doDebug) {
+                console.log(chalk.bgRed.white("PREVENTING DOS ATTACK => Closing unused channels"));
+            }
+            const unused_channels: ServerSecureChannelLayer[] = _.filter(this.getChannels(),
+              (channel1: ServerSecureChannelLayer) => {
+                  return !channel1.isOpened && !channel1.hasSession;
+              });
+            if (unused_channels.length === 0) {
+                // all channels are in used , we cannot get any
+
+                // istanbul ignore next
+                if (doDebug) {
+                    console.log("  - all channel are used !!!!");
+                    dumpChannelInfo(this.getChannels());
+                }
+                setImmediate(establish_connection);
+                return;
+            }
+            // istanbul ignore next
+            if (doDebug) {
+                console.log("   - Unused channels that can be clobbered",
+                  _.map(unused_channels, (channel1: ServerSecureChannelLayer) => channel1.hashKey).join(" "));
+            }
+            const channel = unused_channels[0];
+
+            channel.close(() => {
+                // istanbul ignore next
+                if (doDebug) {
+                    console.log("   _ Unused channel has been closed ", channel.hashKey);
+                }
+                this._unregisterChannel(channel);
+
+                establish_connection();
+            });
+        } else {
+            setImmediate(establish_connection);
+        }
+    }
+
+}
+
+interface MakeEndpointDescriptionOptions {
+    port: number;
+    serverCertificateChain: Certificate;
+    securityMode: MessageSecurityMode;
+    securityPolicy: SecurityPolicy;
+
+    securityLevel?: number;
+
+    server: ApplicationDescription;
+    /*
+        {
+            applicationUri: string;
+            applicationName: LocalizedTextOptions;
+            applicationType: ApplicationType;
+            gatewayServerUri: string;
+            discoveryProfileUri: string;
+            discoveryUrls: string[];
+        };
+     */
+    resourcePath?: string;
+    /**
+     * * @default get_fully_qualified_domain_name()  default hostname
+     */
+    hostname: string;
+    allowAnonymous?: boolean; // default true
+
+    // allow unencrypted password in userNameIdentity
+    allowUnsecurePassword?: boolean; // default false
+
+    restricted: boolean;
 }
 
 /**
- * @method _makeEndpointDescription
- * @param options.port
- * @param options.serverCertificate
- * @param options.securityMode
- * @param options.securityPolicy
- * @param options.securityLevel              {Number}
- * @param options.server.applicationUri      {String}
- * @param options.server.productUri          {String}
- * @param options.server.applicationName     {LocalizedText} // {text: "SampleServer", locale: null},
- * @param options.server.applicationType     {ApplicationType}
- * @param options.server.gatewayServerUri    {String}
- * @param options.server.discoveryProfileUri {String}
- * @param options.server.discoveryUrls       {String}
- * @param [options.resourcePath=""]          {String} resource Path is a string added at the end
- *                                                   of the url such as "/UA/Server"
- * @param [options.hostname=get_fully_qualified_domain_name()] {string} default hostname
- * @param options.restricted                 {boolean}
- * @param [options.allowAnonymous=true]      {boolean} allow anonymous connection
- * @param [options.allowUnsecurePassword=false] {boolean} allow unencrypted password in userNameIdentity (
- * @return {EndpointDescription}
  * @private
  */
-function _makeEndpointDescription(options: any) {
+function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
 
     assert(_.isFinite(options.port), "expecting a valid port number");
     assert(options.hasOwnProperty("serverCertificateChain"));
     assert(!options.hasOwnProperty("serverCertificate"));
-    assert(options.securityMode); // s.MessageSecurityMode
-    assert(options.securityPolicy);
+    assert(!!options.securityMode); // s.MessageSecurityMode
+    assert(!!options.securityPolicy);
     assert(_.isObject(options.server));
-    assert(options.hostname && (typeof options.hostname === "string"));
+    assert(!!options.hostname && (typeof options.hostname === "string"));
     assert(_.isBoolean(options.restricted));
 
     options.securityLevel = (options.securityLevel === undefined) ? 3 : options.securityLevel;
@@ -743,7 +795,7 @@ function _makeEndpointDescription(options: any) {
 
         if (options.allowUnsecurePassword) {
             userIdentityTokens.push({
-                policyId: "username_unsecure",
+                policyId: "username_unè_secure",
                 tokenType: UserTokenType.UserName,
 
                 issuedTokenType: null,
@@ -886,11 +938,11 @@ function _makeEndpointDescription(options: any) {
 }
 
 /**
- * @method matching_endpoint
+ * return true if the end point matches security mode and policy
  * @param endpoint
  * @param securityMode
  * @param securityPolicy
- * @return {Boolean}
+ * @internal
  *
  */
 function matching_endpoint(
@@ -915,24 +967,3 @@ const defaultSecurityPolicies = [
 // xx UNUSED!!    SecurityPolicy.Basic256Rsa15,
     SecurityPolicy.Basic256Sha256
 ];
-
-/**
- * @method shutdown_channel
- * @param channel
- * @param inner_callback
- */
-function shutdown_channel(
-  this: OPCUAServerEndPoint,
-  channel: ServerSecureChannelLayer,
-  inner_callback: (err?: Error) => void
-) {
-    assert(_.isFunction(inner_callback));
-    channel.once("close", () => {
-        // xx console.log(" ON CLOSED !!!!");
-    });
-
-    channel.close(() => {
-        this._unregisterChannel(channel);
-        setImmediate(inner_callback);
-    });
-}

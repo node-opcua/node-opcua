@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 export {AddressSpace} from "./address_space";
 export * from "../source/session_context";
 export * from "../source/helpers/dump_tools";

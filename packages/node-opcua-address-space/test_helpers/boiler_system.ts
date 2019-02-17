@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 // tslint:disable:no-empty-interface
 import { assert } from "node-opcua-assert";
 import { StatusCodes } from "node-opcua-constants";

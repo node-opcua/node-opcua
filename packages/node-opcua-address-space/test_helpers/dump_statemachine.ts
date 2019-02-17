@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 // tslint:disable:no-console
 /*
  * class Node {

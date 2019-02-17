@@ -13,11 +13,10 @@ import { OPCUABaseServer } from "./base_server";
 import { IRegisterServerManager } from "./I_register_server_manager";
 
 /**
- *
- * @param options
- * @constructor
+ * a RegisterServerManager that declare the server the OPCUA Bonjour service
+ * available on the current computer
  */
-export class  RegisterServerManagerMDNSONLY
+export class RegisterServerManagerMDNSONLY
   extends EventEmitter
     implements IRegisterServerManager {
 

@@ -194,9 +194,9 @@ export class OPCUABaseServer extends OPCUASecureObject {
               cleanupEndpoint(endpoint);
               endpoint.shutdown(callback);
           }, (err?: Error | null) => {
-            debugLog("shutdown completed");
-            done(err!);
-        });
+              debugLog("shutdown completed");
+              done(err!);
+          });
     }
 
     public simulateCrash(callback: (err?: Error | null) => void) {
@@ -204,11 +204,11 @@ export class OPCUABaseServer extends OPCUASecureObject {
         assert(_.isFunction(callback));
         debugLog("OPCUABaseServer#simulateCrash");
         async.forEach(this.endpoints,
-            (endpoint: OPCUAServerEndPoint, inner_callback: (err?: Error) => void) => {
-                console.log(" crashing endpoint ", endpoint.endpointDescriptions()[0].endpointUrl);
-                endpoint.suspendConnection(emptyCallback);
-                endpoint.killClientSockets(inner_callback);
-            }, callback);
+          (endpoint: OPCUAServerEndPoint, inner_callback: (err?: Error) => void) => {
+              console.log(" crashing endpoint ", endpoint.endpointDescriptions()[0].endpointUrl);
+              endpoint.suspendConnection(emptyCallback);
+              endpoint.killClientSockets(inner_callback);
+          }, callback);
     }
 
     public on_request(message: Message, channel: ServerSecureChannelLayer) {
@@ -297,14 +297,36 @@ export class OPCUABaseServer extends OPCUASecureObject {
         return servers;
     }
 
+    /**
+     * set all the end point into a state where they do not accept further connections
+     *
+     * note:
+     *     this method is useful for testing purpose
+     *
+     */
+    public suspendEndPoints(callback: (err?: Error) => void) {
+
+        async.forEach(this.endpoints, (ep: OPCUAServerEndPoint, _inner_callback) => {
+            ep.suspendConnection(_inner_callback);
+        }, (err?: Error | null) => callback(err!));
+    }
+
+    /**
+     * set all the end point into a state where they do accept connections
+     * note:
+     *    this method is useful for testing purpose
+     */
+    public resumeEndPoints(callback: (err?: Error) => void) {
+        async.forEach(this.endpoints, (ep: OPCUAServerEndPoint, _inner_callback) => {
+            ep.restoreConnection(_inner_callback);
+        }, (err?: Error | null) => callback(err!));
+    }
+
     protected prepare(message: Message, channel: ServerSecureChannelLayer): void {
         /* empty */
     }
 
     /**
-     * @method _on_GetEndpointsRequest
-     * @param message
-     * @param channel
      * @private
      */
     protected _on_GetEndpointsRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -340,9 +362,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
     }
 
     /**
-     * @method _on_FindServersRequest
-     * @param message
-     * @param channel
      * @private
      */
     protected _on_FindServersRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -409,34 +428,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
         return channels;
     }
 
-    /**
-     * set all the end point into a state where they do not accept further connections
-     *
-     * note:
-     *     this method is useful for testing purpose
-     *
-     */
-    protected suspendEndPoints(callback: (err?: Error) => void) {
-
-        async.forEach(this.endpoints, (ep: OPCUAServerEndPoint, _inner_callback) => {
-            ep.suspendConnection(_inner_callback);
-        }, (err?: Error | null) => callback(err!));
-    }
-
-    /**
-     * set all the end point into a state where they do accept connections
-     * note:
-     *    this method is useful for testing purpose
-     * @method resumeEndPoints
-     * @param callback
-     */
-    protected resumeEndPoints(callback: (err?: Error) => void) {
-
-        async.forEach(this.endpoints, (ep: OPCUAServerEndPoint, _inner_callback) => {
-            ep.restoreConnection(_inner_callback);
-        }, (err?: Error | null) => callback(err!));
-    }
-
 }
 
 /**
@@ -461,3 +452,10 @@ function makeServiceFault(
     console.log(chalk.cyan(" messages "), messages.join("\n"));
     return response;
 }
+
+// tslint:disable:no-var-requires
+const thenify = require("thenify");
+const opts = { multiArgs: false };
+OPCUABaseServer.prototype.resumeEndPoints = thenify.withCallback(OPCUABaseServer.prototype.resumeEndPoints, opts);
+OPCUABaseServer.prototype.suspendEndPoints = thenify.withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);
+OPCUABaseServer.prototype.suspendEndPoints = thenify.withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);

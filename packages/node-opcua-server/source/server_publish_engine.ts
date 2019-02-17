@@ -55,9 +55,11 @@ function prepare_timeout_info(request: PublishRequest) {
     (request as any).timeout_time = (request.requestHeader.timeoutHint > 0)
       ? (request as any).received_time + request.requestHeader.timeoutHint : 0;
 }
+
 function addDate(date: Date, delta: number) {
     return new Date(date.getTime() + delta);
 }
+
 function timeout_filter(publishData: PublishData): boolean {
     const request = publishData.request;
     const results = publishData.results;
@@ -119,15 +121,14 @@ export class ServerSidePublishEngine extends EventEmitter {
      *
      * @param subscription
      * @param destPublishEngine
-     * @param sendInitialValues {boolean} true if initial values should be sent
-     * @return {void}
+     * @param sendInitialValues true if initial values should be sent
      * @private
      */
     public static transferSubscription(
       subscription: Subscription,
       destPublishEngine: ServerSidePublishEngine,
       sendInitialValues: boolean
-    ) {
+    ): void {
 
         const srcPublishEngine = subscription.publishEngine;
 
@@ -232,310 +233,6 @@ export class ServerSidePublishEngine extends EventEmitter {
      */
     public get subscriptions(): Subscription[] {
         return _.map(this._subscriptions, (x: Subscription) => x);
-    }
-
-    public _feed_late_subscription() {
-
-        if (!this.pendingPublishRequestCount) {
-            return;
-        }
-        const starving_subscription = this.findSubscriptionWaitingForFirstPublish()
-          || this.findLateSubscriptionSortedByPriority();
-
-        if (starving_subscription) {
-            debugLog(
-              chalk.bgWhite.red("feeding most late subscription subscriptionId  = "),
-              starving_subscription.id);
-            starving_subscription.process_subscription();
-        }
-    }
-
-    public _feed_closed_subscription() {
-
-        if (!this.pendingPublishRequestCount) {
-            return false;
-        }
-
-        debugLog("ServerSidePublishEngine#_feed_closed_subscription");
-        const closed_subscription = this._closed_subscriptions.shift();
-        if (closed_subscription) {
-
-            traceLog("_feed_closed_subscription for closed_subscription ", closed_subscription.id);
-
-            if (closed_subscription.hasPendingNotifications) {
-                closed_subscription._publish_pending_notifications();
-
-                // now closed_subscription can be disposed
-                closed_subscription.dispose();
-
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public send_error_for_request(
-      publishData: PublishData,
-      statusCode: StatusCode
-    ): void {
-        _assertValidPublishData(publishData);
-        this.send_response_for_request(publishData, new PublishResponse({
-            responseHeader: { serviceResult: statusCode }
-        }));
-    }
-
-    public _cancelPendingPublishRequest(statusCode: StatusCode): void {
-
-        debugLog(
-          chalk.red("Cancelling pending PublishRequest with statusCode  "),
-          statusCode.toString(), " length =", this._publish_request_queue.length);
-
-        for (const publishData of this._publish_request_queue) {
-            this.send_error_for_request(publishData, statusCode);
-        }
-        this._publish_request_queue = [];
-    }
-
-    public cancelPendingPublishRequestBeforeChannelChange() {
-        this._cancelPendingPublishRequest(StatusCodes.BadSecureChannelClosed);
-    }
-
-    public cancelPendingPublishRequest() {
-        assert(this.subscriptionCount === 0);
-        this._cancelPendingPublishRequest(StatusCodes.BadNoSubscription);
-    }
-
-    public onSessionClose() {
-        this.isSessionClosed = true;
-        this._cancelPendingPublishRequest(StatusCodes.BadSessionClosed);
-    }
-
-    public _handle_too_many_requests() {
-
-        if (this.pendingPublishRequestCount > this.maxPublishRequestInQueue) {
-
-            traceLog("server has received too many PublishRequest",
-              this.pendingPublishRequestCount, "/", this.maxPublishRequestInQueue);
-            assert(this.pendingPublishRequestCount === (this.maxPublishRequestInQueue + 1));
-            // When a Server receives a new Publish request that exceeds its limit it shall de-queue the oldest Publish
-            // request and return a response with the result set to Bad_TooManyPublishRequests.
-
-            // dequeue oldest request
-            const publishData = this._publish_request_queue.shift()!;
-            this.send_error_for_request(publishData, StatusCodes.BadTooManyPublishRequests);
-        }
-    }
-
-    public _on_PublishRequest(request: PublishRequest, callback: any) {
-
-        // xx console.log("#_on_PublishRequest self._publish_request_queue.length before ",
-        // self._publish_request_queue.length);
-
-        callback = callback || dummy_function;
-        if (!(request instanceof PublishRequest)) {
-            throw new Error("Internal error : expecting a Publish Request here");
-        }
-
-        assert(_.isFunction(callback));
-
-        const subscriptionAckResults = this.process_subscriptionAcknowledgements(
-          request.subscriptionAcknowledgements || []);
-
-        const publishData: PublishData = {
-            callback,
-            request,
-            results: subscriptionAckResults
-        };
-
-        if (this._process_pending_publish_response(publishData)) {
-            console.log(" PENDING RESPONSE HAS BEEN PROCESSED !");
-            return;
-        }
-
-        if (this.isSessionClosed) {
-
-            traceLog("server has received a PublishRequest but session is Closed");
-            this.send_error_for_request(publishData, StatusCodes.BadSessionClosed);
-
-        } else if (this.subscriptionCount === 0) {
-
-            if (this._closed_subscriptions.length > 0 && this._closed_subscriptions[0].hasPendingNotifications) {
-
-                const verif = this._publish_request_queue.length;
-                // add the publish request to the queue for later processing
-                this._publish_request_queue.push(publishData);
-
-                const processed = this._feed_closed_subscription();
-                assert(verif === this._publish_request_queue.length);
-                assert(processed);
-                return;
-            }
-            traceLog("server has received a PublishRequest but has no subscription opened");
-            this.send_error_for_request(publishData, StatusCodes.BadNoSubscription);
-
-        } else {
-
-            prepare_timeout_info(request);
-
-            // add the publish request to the queue for later processing
-            this._publish_request_queue.push(publishData);
-
-            debugLog(
-              chalk.bgWhite.red("Adding a PublishRequest to the queue "),
-              this._publish_request_queue.length);
-
-            this._feed_late_subscription();
-
-            this._feed_closed_subscription();
-
-            this._handle_too_many_requests();
-
-        }
-    }
-
-    /**
-     * call by a subscription when no notification message is available after the keep alive delay has
-     * expired.
-     *
-     * @method send_keep_alive_response
-     * @param subscriptionId
-     * @param future_sequence_number
-     * @return true if a publish response has been sent
-     */
-    public send_keep_alive_response(
-      subscriptionId: number,
-      future_sequence_number: number
-    ): boolean {
-
-        //  this keep-alive Message informs the Client that the Subscription is still active.
-        //  Each keep-alive Message is a response to a Publish request in which the  notification Message
-        //  parameter does not contain any Notifications and that contains the sequence number of the next
-        //  Notification Message that is to be sent.
-
-        const subscription = this.getSubscriptionById(subscriptionId);
-        /* istanbul ignore next */
-        if (!subscription) {
-            traceLog("send_keep_alive_response  => invalid subscriptionId = ", subscriptionId);
-            return false;
-        }
-
-        if (this.pendingPublishRequestCount === 0) {
-            return false;
-        }
-
-        const sequenceNumber = future_sequence_number;
-        this.send_notification_message({
-            moreNotifications: false,
-            notificationData: [],
-            sequenceNumber,
-            subscriptionId
-        }, false);
-
-        return true;
-    }
-
-    public _on_tick(): void {
-        this._cancelTimeoutRequests();
-    }
-
-    public _cancelTimeoutRequests(): void {
-
-        if (this._publish_request_queue.length === 0) {
-            return;
-        }
-
-        // filter out timeout requests
-        const partition = _.partition(this._publish_request_queue, timeout_filter);
-
-        this._publish_request_queue = partition[1]; // still valid
-
-        const invalid_published_request = partition[0];
-        invalid_published_request.forEach((publishData: any) => {
-            console.log(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
-            const response = new PublishResponse({
-                responseHeader: { serviceResult: StatusCodes.BadTimeout }
-            });
-            this.send_response_for_request(publishData, response);
-        });
-    }
-
-    /**
-     * @method send_notification_message
-     * @param param                          {Object}
-     * @param param.subscriptionId           {Number}
-     * @param param.sequenceNumber           {Number}
-     * @param param.notificationData         {Object}
-     * @param param.availableSequenceNumbers {Array<Number>}
-     * @param param.moreNotifications        {Boolean}
-     * @param force                          {Boolean} push response in queue until next publish Request is received
-     * @private
-     */
-    public send_notification_message(param: any, force: boolean) {
-
-        assert(this.pendingPublishRequestCount > 0 || force);
-
-        assert(!param.hasOwnProperty("availableSequenceNumbers"));
-        assert(param.hasOwnProperty("subscriptionId"));
-        assert(param.hasOwnProperty("sequenceNumber"));
-        assert(param.hasOwnProperty("notificationData"));
-        assert(param.hasOwnProperty("moreNotifications"));
-
-        const subscription = this.getSubscriptionById(param.subscriptionId);
-
-        const subscriptionId = param.subscriptionId;
-        const sequenceNumber = param.sequenceNumber;
-        const notificationData = param.notificationData;
-        const moreNotifications = param.moreNotifications;
-
-        const availableSequenceNumbers = subscription ? subscription.getAvailableSequenceNumbers() : [];
-
-        const response = new PublishResponse({
-            availableSequenceNumbers,
-            moreNotifications,
-            notificationMessage: {
-                notificationData,
-                publishTime: new Date(),
-                sequenceNumber
-            },
-            subscriptionId
-        });
-
-        if (this.pendingPublishRequestCount === 0) {
-            console.log(
-              chalk.bgRed.white.bold(
-                " -------------------------------- PUSHING PUBLISH RESPONSE FOR LATE ANSWER !"));
-
-            this._publish_response_queue.push(response);
-        } else {
-            const publishData = this._publish_request_queue.shift()!;
-            this.send_response_for_request(publishData, response);
-        }
-
-    }
-
-    public _process_pending_publish_response(publishData: PublishData) {
-
-        _assertValidPublishData(publishData);
-        if (this._publish_response_queue.length === 0) {
-            // no pending response to send
-            return false;
-        }
-        assert(this._publish_request_queue.length === 0);
-        const response = this._publish_response_queue.shift()!;
-
-        this.send_response_for_request(publishData, response);
-        return true;
-    }
-
-    public send_response_for_request(
-      publishData: PublishData,
-      response: PublishResponse
-    ) {
-        _assertValidPublishData(publishData);
-        // xx assert(response.responseHeader.requestHandle !== 0,"expecting a valid requestHandle");
-        response.results = publishData.results;
-        response.responseHeader.requestHandle = publishData.request.requestHeader.requestHandle;
-        publishData.callback(publishData.request, response);
     }
 
     /**
@@ -721,6 +418,319 @@ export class ServerSidePublishEngine extends EventEmitter {
         late_subscriptions = _(late_subscriptions).sortBy("timeToExpiration");
 
         return late_subscriptions;
+    }
+
+    public cancelPendingPublishRequestBeforeChannelChange() {
+        this._cancelPendingPublishRequest(StatusCodes.BadSecureChannelClosed);
+    }
+
+    public onSessionClose() {
+        this.isSessionClosed = true;
+        this._cancelPendingPublishRequest(StatusCodes.BadSessionClosed);
+    }
+
+    /**
+     * @private
+     */
+    public cancelPendingPublishRequest() {
+        assert(this.subscriptionCount === 0);
+        this._cancelPendingPublishRequest(StatusCodes.BadNoSubscription);
+    }
+
+    /**
+     *
+     * @param request
+     * @param callback
+     * @private
+     */
+    public _on_PublishRequest(request: PublishRequest, callback: any) {
+
+        // xx console.log("#_on_PublishRequest self._publish_request_queue.length before ",
+        // self._publish_request_queue.length);
+
+        callback = callback || dummy_function;
+        if (!(request instanceof PublishRequest)) {
+            throw new Error("Internal error : expecting a Publish Request here");
+        }
+
+        assert(_.isFunction(callback));
+
+        const subscriptionAckResults = this.process_subscriptionAcknowledgements(
+          request.subscriptionAcknowledgements || []);
+
+        const publishData: PublishData = {
+            callback,
+            request,
+            results: subscriptionAckResults
+        };
+
+        if (this._process_pending_publish_response(publishData)) {
+            console.log(" PENDING RESPONSE HAS BEEN PROCESSED !");
+            return;
+        }
+
+        if (this.isSessionClosed) {
+
+            traceLog("server has received a PublishRequest but session is Closed");
+            this.send_error_for_request(publishData, StatusCodes.BadSessionClosed);
+
+        } else if (this.subscriptionCount === 0) {
+
+            if (this._closed_subscriptions.length > 0 && this._closed_subscriptions[0].hasPendingNotifications) {
+
+                const verif = this._publish_request_queue.length;
+                // add the publish request to the queue for later processing
+                this._publish_request_queue.push(publishData);
+
+                const processed = this._feed_closed_subscription();
+                assert(verif === this._publish_request_queue.length);
+                assert(processed);
+                return;
+            }
+            traceLog("server has received a PublishRequest but has no subscription opened");
+            this.send_error_for_request(publishData, StatusCodes.BadNoSubscription);
+
+        } else {
+
+            prepare_timeout_info(request);
+
+            // add the publish request to the queue for later processing
+            this._publish_request_queue.push(publishData);
+
+            debugLog(
+              chalk.bgWhite.red("Adding a PublishRequest to the queue "),
+              this._publish_request_queue.length);
+
+            this._feed_late_subscription();
+
+            this._feed_closed_subscription();
+
+            this._handle_too_many_requests();
+
+        }
+    }
+
+    private _feed_late_subscription() {
+
+        if (!this.pendingPublishRequestCount) {
+            return;
+        }
+        const starving_subscription = this.findSubscriptionWaitingForFirstPublish()
+          || this.findLateSubscriptionSortedByPriority();
+
+        if (starving_subscription) {
+            debugLog(
+              chalk.bgWhite.red("feeding most late subscription subscriptionId  = "),
+              starving_subscription.id);
+            starving_subscription.process_subscription();
+        }
+    }
+
+    private _feed_closed_subscription() {
+
+        if (!this.pendingPublishRequestCount) {
+            return false;
+        }
+
+        debugLog("ServerSidePublishEngine#_feed_closed_subscription");
+        const closed_subscription = this._closed_subscriptions.shift();
+        if (closed_subscription) {
+
+            traceLog("_feed_closed_subscription for closed_subscription ", closed_subscription.id);
+
+            if (closed_subscription.hasPendingNotifications) {
+                closed_subscription._publish_pending_notifications();
+
+                // now closed_subscription can be disposed
+                closed_subscription.dispose();
+
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private send_error_for_request(
+      publishData: PublishData,
+      statusCode: StatusCode
+    ): void {
+        _assertValidPublishData(publishData);
+        this.send_response_for_request(publishData, new PublishResponse({
+            responseHeader: { serviceResult: statusCode }
+        }));
+    }
+
+    private _cancelPendingPublishRequest(statusCode: StatusCode): void {
+
+        debugLog(
+          chalk.red("Cancelling pending PublishRequest with statusCode  "),
+          statusCode.toString(), " length =", this._publish_request_queue.length);
+
+        for (const publishData of this._publish_request_queue) {
+            this.send_error_for_request(publishData, statusCode);
+        }
+        this._publish_request_queue = [];
+    }
+
+    private _handle_too_many_requests() {
+
+        if (this.pendingPublishRequestCount > this.maxPublishRequestInQueue) {
+
+            traceLog("server has received too many PublishRequest",
+              this.pendingPublishRequestCount, "/", this.maxPublishRequestInQueue);
+            assert(this.pendingPublishRequestCount === (this.maxPublishRequestInQueue + 1));
+            // When a Server receives a new Publish request that exceeds its limit it shall de-queue the oldest Publish
+            // request and return a response with the result set to Bad_TooManyPublishRequests.
+
+            // dequeue oldest request
+            const publishData = this._publish_request_queue.shift()!;
+            this.send_error_for_request(publishData, StatusCodes.BadTooManyPublishRequests);
+        }
+    }
+
+    /**
+     * call by a subscription when no notification message is available after the keep alive delay has
+     * expired.
+     *
+     * @method send_keep_alive_response
+     * @param subscriptionId
+     * @param future_sequence_number
+     * @return true if a publish response has been sent
+     */
+    private send_keep_alive_response(
+      subscriptionId: number,
+      future_sequence_number: number
+    ): boolean {
+
+        //  this keep-alive Message informs the Client that the Subscription is still active.
+        //  Each keep-alive Message is a response to a Publish request in which the  notification Message
+        //  parameter does not contain any Notifications and that contains the sequence number of the next
+        //  Notification Message that is to be sent.
+
+        const subscription = this.getSubscriptionById(subscriptionId);
+        /* istanbul ignore next */
+        if (!subscription) {
+            traceLog("send_keep_alive_response  => invalid subscriptionId = ", subscriptionId);
+            return false;
+        }
+
+        if (this.pendingPublishRequestCount === 0) {
+            return false;
+        }
+
+        const sequenceNumber = future_sequence_number;
+        this.send_notification_message({
+            moreNotifications: false,
+            notificationData: [],
+            sequenceNumber,
+            subscriptionId
+        }, false);
+
+        return true;
+    }
+
+    private _on_tick(): void {
+        this._cancelTimeoutRequests();
+    }
+
+    private _cancelTimeoutRequests(): void {
+
+        if (this._publish_request_queue.length === 0) {
+            return;
+        }
+
+        // filter out timeout requests
+        const partition = _.partition(this._publish_request_queue, timeout_filter);
+
+        this._publish_request_queue = partition[1]; // still valid
+
+        const invalid_published_request = partition[0];
+        invalid_published_request.forEach((publishData: any) => {
+            console.log(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
+            const response = new PublishResponse({
+                responseHeader: { serviceResult: StatusCodes.BadTimeout }
+            });
+            this.send_response_for_request(publishData, response);
+        });
+    }
+
+    /**
+     * @method send_notification_message
+     * @param param                          {Object}
+     * @param param.subscriptionId           {Number}
+     * @param param.sequenceNumber           {Number}
+     * @param param.notificationData         {Object}
+     * @param param.availableSequenceNumbers {Array<Number>}
+     * @param param.moreNotifications        {Boolean}
+     * @param force                          {Boolean} push response in queue until next publish Request is received
+     * @private
+     */
+    private send_notification_message(param: any, force: boolean) {
+
+        assert(this.pendingPublishRequestCount > 0 || force);
+
+        assert(!param.hasOwnProperty("availableSequenceNumbers"));
+        assert(param.hasOwnProperty("subscriptionId"));
+        assert(param.hasOwnProperty("sequenceNumber"));
+        assert(param.hasOwnProperty("notificationData"));
+        assert(param.hasOwnProperty("moreNotifications"));
+
+        const subscription = this.getSubscriptionById(param.subscriptionId);
+
+        const subscriptionId = param.subscriptionId;
+        const sequenceNumber = param.sequenceNumber;
+        const notificationData = param.notificationData;
+        const moreNotifications = param.moreNotifications;
+
+        const availableSequenceNumbers = subscription ? subscription.getAvailableSequenceNumbers() : [];
+
+        const response = new PublishResponse({
+            availableSequenceNumbers,
+            moreNotifications,
+            notificationMessage: {
+                notificationData,
+                publishTime: new Date(),
+                sequenceNumber
+            },
+            subscriptionId
+        });
+
+        if (this.pendingPublishRequestCount === 0) {
+            console.log(
+              chalk.bgRed.white.bold(
+                " -------------------------------- PUSHING PUBLISH RESPONSE FOR LATE ANSWER !"));
+
+            this._publish_response_queue.push(response);
+        } else {
+            const publishData = this._publish_request_queue.shift()!;
+            this.send_response_for_request(publishData, response);
+        }
+
+    }
+
+    private _process_pending_publish_response(publishData: PublishData) {
+
+        _assertValidPublishData(publishData);
+        if (this._publish_response_queue.length === 0) {
+            // no pending response to send
+            return false;
+        }
+        assert(this._publish_request_queue.length === 0);
+        const response = this._publish_response_queue.shift()!;
+
+        this.send_response_for_request(publishData, response);
+        return true;
+    }
+
+    private send_response_for_request(
+      publishData: PublishData,
+      response: PublishResponse
+    ) {
+        _assertValidPublishData(publishData);
+        // xx assert(response.responseHeader.requestHandle !== 0,"expecting a valid requestHandle");
+        response.results = publishData.results;
+        response.responseHeader.requestHandle = publishData.request.requestHeader.requestHandle;
+        publishData.callback(publishData.request, response);
     }
 
 }

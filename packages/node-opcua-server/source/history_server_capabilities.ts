@@ -20,23 +20,6 @@ export interface HistoryServerCapabilitiesOptions {
     insertAnnotationCapability?: boolean;
 }
 /**
- * @class HistoryServerCapabilities
- * @param options
- * @param options.accessHistoryDataCapability
- * @param options.accessHistoryEventsCapability
- * @param options.maxReturnDataValues
- * @param options.maxReturnEventValues
- * @param options.insertDataCapability
- * @param options.replaceDataCapability
- * @param options.updateDataCapability
- * @param options.deleteRawCapability
- * @param options.deleteAtTimeCapability
- * @param options.insertEventCapability
- * @param options.replaceEventCapability
- * @param options.updateEventCapability
- * @param options.deleteEventCapability
- * @param options.insertAnnotationCapability
- * @constructor
  */
 export class HistoryServerCapabilities {
 

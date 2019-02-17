@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-address-space
+ */
 import { assert } from "node-opcua-assert";
 import { AddressSpace } from "../source";
 
@@ -26,7 +29,6 @@ export function construct_demo_alarm_in_address_space(
         propertyOf: tank
     });
 //    assert(tank.getNotifiers().length === 1, "expecting a notifier now");
-
 
     // --------------------------------------------------------------------------------
     // Let's create a exclusive Limit Alarm that automatically raise itself
@@ -83,32 +85,32 @@ export function construct_demo_alarm_in_address_space(
         dataType: "Double",
         description: "Fill level in percentage (0% to 100%) of the water tank",
         eventSourceOf: tank,
-        propertyOf: tank,
+        propertyOf: tank
     });
 
     const nonExclusiveLimitAlarmType = addressSpace.findEventType("NonExclusiveLimitAlarmType");
-    if (!nonExclusiveLimitAlarmType)  {
+    if (!nonExclusiveLimitAlarmType) {
         throw new Error("!!");
     }
 
     const tankLevelCondition2 = namespace.instantiateNonExclusiveLimitAlarm(
       nonExclusiveLimitAlarmType, {
-        browseName: "TankLevelCondition2",
-        componentOf: tank,
-        conditionName: "Test",
-        conditionSource: tankLevel2,
+          browseName: "TankLevelCondition2",
+          componentOf: tank,
+          conditionName: "Test",
+          conditionSource: tankLevel2,
 
-        highHighLimit: 0.9,
-        highLimit: 0.8,
+          highHighLimit: 0.9,
+          highLimit: 0.8,
 
-        inputNode: tankLevel2,   // the variable that will be monitored for change
+          inputNode: tankLevel2,   // the variable that will be monitored for change
 
-        lowLimit: 0.2,
+          lowLimit: 0.2,
 
-        optionals: [
-            "ConfirmedState", "Confirm" // confirm state and confirm Method
-        ],
-    });
+          optionals: [
+              "ConfirmedState", "Confirm" // confirm state and confirm Method
+          ]
+      });
 
     test.tankLevel = tankLevel;
     test.tankLevelCondition = tankLevelCondition;
