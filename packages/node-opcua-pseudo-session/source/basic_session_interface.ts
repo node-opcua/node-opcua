@@ -26,6 +26,26 @@ export interface IBasicSession {
     browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
     browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
 
+    browseNext(
+      continuationPoint: Buffer,
+      releaseContinuationPoints: boolean,
+      callback: ResponseCallback<BrowseResult>): void;
+
+    browseNext(
+      continuationPoints: Buffer[],
+      releaseContinuationPoints: boolean,
+      callback: ResponseCallback<BrowseResult[]>): void;
+
+    browseNext(
+      continuationPoint: Buffer,
+      releaseContinuationPoints: boolean
+    ): Promise<BrowseResult>;
+
+    browseNext(
+      continuationPoints: Buffer[],
+      releaseContinuationPoints: boolean
+    ): Promise<BrowseResult[]>;
+
     read(nodeToRead: ReadValueIdLike, callback: ResponseCallback<DataValue>): void;
     read(nodesToRead: ReadValueIdLike[], callback: ResponseCallback<DataValue[]>): void;
     read(nodeToRead: ReadValueIdLike): Promise<DataValue>;
