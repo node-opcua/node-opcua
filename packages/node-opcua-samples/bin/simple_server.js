@@ -375,7 +375,7 @@ function dumpObject(obj) {
     }
 
     return _.map(obj, function (value, key) {
-        return "      " + w(key, 30).green + "  : " + ((value === null) ? null : value.toString());
+        return "      " + w(key, 30) + "  : " + ((value === null) ? null : value.toString());
     }).join("\n");
 }
 
@@ -491,7 +491,7 @@ server.on("request", function (request, channel) {
            break;
            if (request.nodesToWrite) {
                 const lines = request.nodesToWrite.map(function (node) {
-                    return "     " + node.nodeId.toString().green + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(), 10) + "\n";
+                    return "     " + node.nodeId.toString() + " " + node.attributeId + " " + node.indexRange + "\n" + indent("" + node.value.toString(), 10) + "\n";
                 });
                 console.log(lines.join("\n"));
             }

@@ -2667,7 +2667,6 @@ module.exports = function (test) {
                                 response.notificationMessage.notificationData.length.should.eql(1);
 
                                 const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
-                                //xx console.log("notification= ", notification.toString().red);
                                 notification.value.value.value.should.eql(7);
 
                                 parameters.queueSize.should.eql(1);

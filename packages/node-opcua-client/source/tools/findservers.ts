@@ -8,17 +8,28 @@ import { ServerOnNetwork } from "node-opcua-service-discovery";
 import { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
 import { ClientBaseImpl } from "../private/client_base_impl";
 
+export interface FindServerResults {
+    servers: ApplicationDescription[];
+    endpoints: EndpointDescription[];
+}
 /**
  * extract the server endpoints exposed by a discovery server
- * @method perform_findServers
+ * @method findServers
  * @async
  * @param discoveryServerEndpointUri
  * @param callback
  */
-export function perform_findServers(
+export function findServers(
+  discoveryServerEndpointUri: string,
+  callback: (err: Error | null, result?: FindServerResults) => void
+): void;
+export async function findServers(
+  discoveryServerEndpointUri: string,
+): Promise<FindServerResults>;
+export function findServers(
     discoveryServerEndpointUri: string,
-    callback: (err: Error | null, servers: any, endpoint: any) => void
-) {
+    callback?: (err: Error | null, result?: FindServerResults) => void
+): any {
 
     const client = new ClientBaseImpl({});
 
@@ -50,22 +61,25 @@ export function perform_findServers(
 
     ], (err) => {
         client.disconnect(() => {
-            callback(err ? err : null, servers, endpoints);
+            callback!(err ? err : null, { servers, endpoints });
         });
     });
 }
 
 /**
  * extract the server endpoints exposed by a discovery server
- * @method perform_findServers
- * @async
- * @param discoveryServerEndpointUri
- * @param callback
  */
-export function perform_findServersOnNetwork(
+export async function findServersOnNetwork(
+  discoveryServerEndpointUri: string
+): Promise<ServerOnNetwork>;
+export function findServersOnNetwork(
+      discoveryServerEndpointUri: string,
+      callback: (err: Error | null, servers?: ServerOnNetwork[]) => void
+): void;
+export function findServersOnNetwork(
     discoveryServerEndpointUri: string,
-    callback: (err: Error | null, servers?: ServerOnNetwork[]) => void
-) {
+    callback?: (err: Error | null, servers?: ServerOnNetwork[]) => void
+): any {
 
     const client = new ClientBaseImpl({});
 
@@ -73,13 +87,20 @@ export function perform_findServersOnNetwork(
         if (!err) {
             client.findServersOnNetwork((err1, servers) => {
                 client.disconnect(() => {
-                    callback(err1, servers);
+                    callback!(err1, servers);
                 });
             });
         } else {
             client.disconnect(() => {
-                callback(err);
+                callback!(err);
             });
         }
     });
 }
+
+// tslint:disable:no-var-requires
+const thenify = require("thenify");
+(module.exports as any).findServersOnNetwork =
+  thenify.withCallback((module.exports as any).findServersOnNetwork);
+(module.exports as any).findServers =
+  thenify.withCallback((module.exports as any).findServers);

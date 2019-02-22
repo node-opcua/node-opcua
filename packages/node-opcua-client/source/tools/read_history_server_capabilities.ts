@@ -13,15 +13,24 @@ import { lowerFirstLetter } from "node-opcua-utils";
 import { Variant } from "node-opcua-variant";
 
 import { ClientSession } from "../client_session";
+import { ClientSessionImpl } from "../private/client_session_impl";
 
 export interface HistoryServerCapabilities {
     [key: string]: any;
 }
 
 export function readHistoryServerCapabilities(
+  session: ClientSession
+): Promise<HistoryServerCapabilities>;
+export function readHistoryServerCapabilities(
     session: ClientSession,
-    callback: (err: Error | null, capabilities?: HistoryServerCapabilities) => void) {
+    callback: (err: Error | null, capabilities?: HistoryServerCapabilities) => void): void;
+export function readHistoryServerCapabilities(
+  session: ClientSession,
+  callback?: (err: Error | null, capabilities?: HistoryServerCapabilities) => void
+): any {
 
+    if (!callback) { throw new Error("Internal error"); }
     // display HistoryCapabilities of server
     const browsePath: BrowsePath = makeBrowsePath(
         ObjectIds.ObjectsFolder,
@@ -111,3 +120,7 @@ export function readHistoryServerCapabilities(
         });
     });
 }
+// tslint:disable:no-var-requires
+const thenify = require("thenify");
+const opts = {multiArgs: false};
+(module as any).exports.readHistoryServerCapabilities = thenify.withCallback((module as any).exports.readHistoryServerCapabilities, opts);

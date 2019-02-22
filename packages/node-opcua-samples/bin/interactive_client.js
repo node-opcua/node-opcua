@@ -511,7 +511,8 @@ function process_line(line) {
         case "fs":
         case "FindServers":
             apply_command(cmd,function(callback){
-                client.findServers({}, function (err, servers) {
+                client.findServers({}, function (err, data) {
+                    const { servers, endpoints } = data;
                     if (err) {
                         log(err.message);
                     }
@@ -745,7 +746,7 @@ rl.on("line", function (line) {
     }
     catch (err) {
         log(chalk.red("------------------------------------------------"));
-        log(chalk.bgRed.yellow.bold(err.message);
+        log(chalk.bgRed.yellow.bold(err.message));
         log(err.stack);
         log(chalk.red("------------------------------------------------"));
         rl.resume();

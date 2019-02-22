@@ -3,7 +3,7 @@
 const opcua = require("node-opcua");
 const should = require("should");
 const async = require("async");
-
+const fs = require("fs");
 const assert = require("node-opcua-assert").assert;
 
 const OPCUAServer = opcua.OPCUAServer;
@@ -11,9 +11,10 @@ const OPCUAClient = opcua.OPCUAClient;
 const ApplicationType = opcua.ApplicationType;
 
 const OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
+const readCertificate = require("node-opcua-crypto").readCertificate;
 
-const perform_findServers = opcua.perform_findServers;
-const perform_findServersOnNetwork = opcua.perform_findServersOnNetwork;
+const findServers = opcua.findServers;
+const findServersOnNetwork = opcua.findServersOnNetwork;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
@@ -23,6 +24,8 @@ const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("DS1 - Discovery server", function () {
+
+    this.timeout(20000);
 
     let discovery_server, discovery_server_endpointUrl;
 
@@ -169,6 +172,8 @@ describe("DS1 - Discovery server", function () {
 
 describe("DS2 - DiscoveryServer2", function () {
 
+    this.timeout(20000);
+
     let discovery_server, discoveryServerEndpointUrl;
     let server;
 
@@ -190,7 +195,15 @@ describe("DS2 - DiscoveryServer2", function () {
         discovery_server.shutdown(done);
     });
 
-    it("should register server to the discover server", function (done) {
+    function addServerCertificateToTrustedCertificateInDiscoveryServer(server,callback){
+
+        const filename = server.certificateFile;
+        fs.existsSync(filename).should.eql(true);
+        const certificate = readCertificate(filename);
+        discovery_server.serverCertificateManager.trustCertificate(certificate,callback);
+
+    }
+    it("should register server to the discover server 2", function (done) {
 
         // there should be no endpoint exposed by an blank discovery server
         discovery_server.registeredServerCount.should.equal(0);
@@ -198,7 +211,12 @@ describe("DS2 - DiscoveryServer2", function () {
         async.series([
 
             function (callback) {
-                perform_findServers(discoveryServerEndpointUrl,  (err, servers) => {
+                findServers(discoveryServerEndpointUrl,  (err, data ) => {
+
+                    const { servers , endpoints } = data;
+                    if(err) {
+                        return callback(err);
+                    }
                     initialServerCount = servers.length;
                     servers[0].discoveryUrls.length.should.eql(1);
                     //xx debugLog(" initialServerCount = ", initialServerCount);
@@ -212,9 +230,12 @@ describe("DS2 - DiscoveryServer2", function () {
                 server = new OPCUAServer({
                     port: 1236,
                     registerServerMethod: opcua.RegisterServerMethod.LDS,
-                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
+                    discoveryServerEndpointUrl: discoveryServerEndpointUrl
 
                 });
+                addServerCertificateToTrustedCertificateInDiscoveryServer(server, callback);
+            },
+            function (callback) {
                 server.start( (err) => {
                     if(err) { return callback(err); }
                 });
@@ -222,6 +243,7 @@ describe("DS2 - DiscoveryServer2", function () {
                 // server registration takes place in parallel and should be checked independently
                 server.on("serverRegistered",() =>{
                     callback();
+
                 });
             },
 
@@ -231,7 +253,8 @@ describe("DS2 - DiscoveryServer2", function () {
             },
 
             function (callback) {
-                perform_findServers(discoveryServerEndpointUrl,  (err, servers) => {
+                findServers(discoveryServerEndpointUrl,  (err, data) => {
+                    const { servers , endpoints } = data;
                     //xx debugLog(servers[0].toString());
                     servers.length.should.eql(initialServerCount + 1);
                     servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
@@ -243,7 +266,8 @@ describe("DS2 - DiscoveryServer2", function () {
                 server.shutdown(callback);
             },
             function (callback) {
-                perform_findServers(discoveryServerEndpointUrl,  (err, servers) => {
+                findServers(discoveryServerEndpointUrl,  (err, data) => {
+                    const { servers , endpoints } = data;
                     servers.length.should.eql(initialServerCount);
                     callback(err);
                 });
@@ -412,7 +436,9 @@ describe("DS3 - Discovery server - many server", function () {
 
             function query_discovery_server_for_available_servers(callback) {
 
-                perform_findServers(discoveryServerEndpointUrl, function (err, servers) {
+                findServers(discoveryServerEndpointUrl, function (err, data) {
+                    const { servers , endpoints } = data;
+
                     if (doDebug) {
                         for (const s of servers) {
                             debugLog(s.applicationUri, s.productUri, s.applicationType.key, s.discoveryUrls[0]);
@@ -428,7 +454,7 @@ describe("DS3 - Discovery server - many server", function () {
 
 
             function query_discovery_server_for_available_servers_on_network(callback) {
-                perform_findServersOnNetwork(discoveryServerEndpointUrl, function (err, servers) {
+                findServersOnNetwork(discoveryServerEndpointUrl, function (err, servers) {
                     if (doDebug) {
                         for (const s of servers) {
                             debugLog(s.toString());

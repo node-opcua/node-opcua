@@ -143,6 +143,7 @@ export class MessageBuilderBase extends EventEmitter {
          * @event error
          * @param error the error to raise
          */
+        console.log("xxxxx =", errorMessage);
         this.emit("error", new Error(errorMessage), this.sequenceHeader ? this.sequenceHeader.requestId : null);
         return false;
     }

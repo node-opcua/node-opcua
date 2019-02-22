@@ -24,7 +24,7 @@ import {
 } from "node-opcua-secure-channel";
 import { UserTokenType } from "node-opcua-service-endpoints";
 import { EndpointDescription } from "node-opcua-service-endpoints";
-import { ApplicationDescription } from "node-opcua-types";
+import { ApplicationDescription } from "node-opcua-service-endpoints";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -55,7 +55,7 @@ function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
     }
 }
 
-const emptyCertificate = new Buffer(0);
+const emptyCertificate = Buffer.alloc(0);
 const emptyPrivateKeyPEM = "";
 
 let OPCUAServerEndPointCounter = 0;
@@ -143,7 +143,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this.certificateManager = options.certificateManager;
 
-        options = options || {};
         options.port = options.port || 0;
 
         this.port = parseInt(options.port.toString(), 10);
@@ -296,7 +295,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         return this.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
     }
 
-    public addStandardEndpointDescriptions(options: any) {
+    public addStandardEndpointDescriptions(options?: any) {
 
         options = options || {};
 

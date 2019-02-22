@@ -98,6 +98,29 @@ export class PseudoSession implements IBasicSession {
 
         callback!(null, isArray ? dataValues : dataValues[0]);
     }
+
+    public browseNext(
+      continuationPoint: Buffer,
+      releaseContinuationPoints: boolean,
+      callback: ResponseCallback<BrowseResult>): void;
+
+    public browseNext(
+      continuationPoints: Buffer[],
+      releaseContinuationPoints: boolean,
+      callback: ResponseCallback<BrowseResult[]>): void;
+
+    public browseNext(
+      continuationPoint: Buffer,
+      releaseContinuationPoints: boolean
+    ): Promise<BrowseResult>;
+
+    public browseNext(
+      continuationPoints: Buffer[],
+      releaseContinuationPoints: boolean
+    ): Promise<BrowseResult[]>;
+    public browseNext(...args: [any?, ...any[]]): any {
+        throw new Error("Not Implemented");
+    }
 }
 
 // tslint:disable:no-var-requires

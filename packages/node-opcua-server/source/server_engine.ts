@@ -762,7 +762,7 @@ export class ServerEngine extends EventEmitter {
 
                         const uid = "Server_ServerCapabilities_OperationLimits_" + upperCaseFirst(key);
                         const nodeId = makeNodeId((VariableIds as any)[uid]);
-                        // xx console.log("xxx Binding ".bgCyan,uid,nodeId.toString());
+                        // xx console.log("xxx Binding ",uid,nodeId.toString());
                         assert(!nodeId.isEmpty());
 
                         bindStandardScalar((VariableIds as any)[uid],

@@ -977,7 +977,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         secureChannel.on("lifetime_75", (token: SecurityToken) => {
             // secureChannel requests a new token
-            debugLog("SecureChannel Security Token ", token.tokenId,
+            debugLog("SecureChannel Security Token ", token.tokenId, "live time was =", token.revisedLifetime,
               " is about to expired , it's time to request a new token");
             // forward message to upper level
             this.emit("lifetime_75", token);

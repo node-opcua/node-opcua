@@ -3,15 +3,20 @@
 	"version": "2.0.0-alpha.12",
 	"description": "pure nodejs OPCUA SDK - module -server-discovery",
 	"scripts": {
+		"build": "tsc",
 		"postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
 		"test": "echo no test here  : see node-opcua-end-to-end"
 	},
-	"main": "index.js",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"dependencies": {
 		"bonjour": "^3.5.0",
 		"node-opcua-assert": "^2.0.0-alpha.10",
+		"node-opcua-basic-types": "2.0.0-alpha.12",
 		"node-opcua-common": "^2.0.0-alpha.12",
 		"node-opcua-debug": "^2.0.0-alpha.10",
+		"node-opcua-certificate-manager": "^2.0.0-alpha.12",
+		"node-opcua-secure-channel": "^2.0.0-alpha.12",
 		"node-opcua-hostname": "^2.0.0-alpha.10",
 		"node-opcua-pki": "^1.0.3",
 		"node-opcua-server": "^2.0.0-alpha.12",

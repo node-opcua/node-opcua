@@ -11,7 +11,7 @@ const GetEndpointsRequest = require("node-opcua-service-endpoints").GetEndpoints
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ServerSecureChannelLayer ", function () {
 
-    this.timeout(1990000);
+    this.timeout(10000);
 
     it("KK1 should create a ServerSecureChannelLayer", function () {
 
@@ -20,13 +20,16 @@ describe("testing ServerSecureChannelLayer ", function () {
         server_secure_channel.timeout.should.be.greaterThan(100);
 
         server_secure_channel.dispose();
-        server_secure_channel = null;
     });
 
     it("KK2 should end with a timeout if no message is received from client", function (done) {
 
         const node = new DirectTransport();
-        const server_secure_channel = new ServerSecureChannelLayer({});
+        const server_secure_channel = new ServerSecureChannelLayer({
+             timeout:50,
+
+        });
+
         server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         server_secure_channel.timeout = 50;
 
@@ -111,10 +114,13 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         let server_secure_channel = new ServerSecureChannelLayer({});
         server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
-        server_secure_channel.timeout = 50; // miliseconds !
+        server_secure_channel.timeout = 50; // milliseconds !
         server_secure_channel.init(node.server, function (err) {
             should.not.exist(err);
-            server_secure_channel.close(done);
+            server_secure_channel.close(function() {
+                server_secure_channel.dispose();
+                done();
+            });
         });
 
         const fake_HelloMessage = require("node-opcua-transport/dist/test-fixtures").packet_cs_1; // HEL
@@ -123,10 +129,10 @@ describe("testing ServerSecureChannelLayer ", function () {
         const fake_OpenSecureChannelRequest = require("node-opcua-transport/dist/test-fixtures").packet_cs_2; // OPN
         node.client.write(fake_OpenSecureChannelRequest);
 
-        server_secure_channel.close(function () {
-            server_secure_channel.dispose();
-            server_secure_channel = null;
-        });
+        ///     server_secure_channel.close(function () {
+        ///            server_secure_channel.dispose();
+        ///      server_secure_channel = null;
+        /// });
     });
 
     it("KK6 should handle a OpenSecureChannelRequest start emitting subsequent messages ", function (done) {
@@ -136,8 +142,17 @@ describe("testing ServerSecureChannelLayer ", function () {
         const server_secure_channel = new ServerSecureChannelLayer({});
         server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         server_secure_channel.timeout = 50;
+
+        server_secure_channel.channelId = 8;
+
         server_secure_channel.init(node.server, function (err) {
             should.not.exist(err);
+
+            setImmediate(() => {
+                const fake_GetEndpointsRequest = require("node-opcua-transport/dist/test-fixtures").packet_cs_3; // GetEndPoints
+                fake_GetEndpointsRequest.writeInt16LE(server_secure_channel.channelId, 8);
+                node.client.write(fake_GetEndpointsRequest);
+            })
         });
         server_secure_channel.on("message", function (message) {
             message.request.schema.name.should.equal("GetEndpointsRequest");
@@ -155,10 +170,6 @@ describe("testing ServerSecureChannelLayer ", function () {
         const fake_OpenSecureChannelRequest = require("node-opcua-transport/dist/test-fixtures").packet_cs_2; // OPN
         node.client.write(fake_OpenSecureChannelRequest);
 
-        const fake_GetEndpointsRequest = require("node-opcua-transport/dist/test-fixtures").packet_cs_3; // GetEndPoints
-        fake_GetEndpointsRequest.writeInt16LE(server_secure_channel.channelId,8);
-
-        node.client.write(fake_GetEndpointsRequest);
 
         // server_secure_channel.close(function() {
         //     server_secure_channel.dispose();

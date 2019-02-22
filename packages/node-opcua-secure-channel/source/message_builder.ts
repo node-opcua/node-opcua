@@ -17,13 +17,14 @@ import {
     DerivedKeys,
     exploreCertificate,
     exploreCertificateInfo,
+    makeSHA1Thumbprint,
     PrivateKeyPEM,
     reduceLength,
     removePadding,
     verifyChunkSignatureWithDerivedKeys
 } from "node-opcua-crypto";
 import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
-import { BaseUAObject, constructObject } from "node-opcua-factory";
+import { BaseUAObject, constructObject, hasConstructor } from "node-opcua-factory";
 import { ExpandedNodeId } from "node-opcua-nodeid";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import {
@@ -56,17 +57,22 @@ export interface SecurityToken {
     revisedLifetime: number;
 }
 
-const defaultObjectFactory =  { constructObject };
+const defaultObjectFactory = {
+    constructObject,
+    hasConstructor
+};
 
 export interface ObjectFactory {
-
     constructObject: (expandedNodeId: ExpandedNodeId) => BaseUAObject;
+    hasConstructor: (expandedNodeId: ExpandedNodeId) => boolean;
 }
+
 export interface MessageBuilderOptions {
     securityMode?: MessageSecurityMode;
     privateKey?: PrivateKeyPEM;
     objectFactory?: ObjectFactory;
-    signatureLength?: number;
+    signatureLength?: number
+    name?: string;
 }
 
 export interface SecurityTokenAndDerivedKeys {
@@ -75,6 +81,7 @@ export interface SecurityTokenAndDerivedKeys {
 }
 
 const invalidPrivateKey = "<invalid>";
+let counter =0;
 
 /**
  * @class MessageBuilder
@@ -91,15 +98,18 @@ export class MessageBuilder extends MessageBuilderBase {
     public securityMode: MessageSecurityMode;
     public cryptoFactory: CryptoFactory | null;
     public securityHeader?: SecurityHeader;
-    private objectFactory: ObjectFactory;
+    private readonly objectFactory: ObjectFactory;
     private _previousSequenceNumber: number;
     private _tokenStack: SecurityTokenAndDerivedKeys[];
     private privateKey: PrivateKeyPEM;
+    private id: string;
 
     constructor(options: MessageBuilderOptions) {
 
         super(options);
         options = options || {};
+
+        this.id  = (options.name ? options.name : "Id") +  counter++;
 
         this.privateKey = options.privateKey || invalidPrivateKey;
 
@@ -134,7 +144,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
     }
 
-    public pushNewToken(securityToken: SecurityToken, derivedKeys: DerivedKeys| null) {
+    public pushNewToken(securityToken: SecurityToken, derivedKeys: DerivedKeys | null) {
 
         assert(securityToken.hasOwnProperty("tokenId"));
 
@@ -143,8 +153,11 @@ export class MessageBuilder extends MessageBuilderBase {
         assert(this._tokenStack.length === 0 || this._tokenStack[0].securityToken.tokenId !== securityToken.tokenId);
         this._tokenStack.push({
             derivedKeys,
-            securityToken,
+            securityToken
         });
+        if (doDebug) {
+            debugLog("id=", this.id, chalk.cyan("Pushing new token with id "), securityToken.tokenId , this.tokenIds());
+        }
     }
 
     protected _read_headers(binaryStream: BinaryStream): boolean {
@@ -218,6 +231,11 @@ export class MessageBuilder extends MessageBuilderBase {
         // read expandedNodeId:
         const id = decodeExpandedNodeId(binaryStream);
 
+        if (!this.objectFactory.hasConstructor(id)) {
+            this._report_error("cannot construct object with nodeID " + id);
+            return false;
+        }
+
         let objMessage;
         try {
 
@@ -235,7 +253,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
         } else {
 
-            debugLog("message size =", this.totalMessageSize, " body size =", this.totalBodySize);
+            debugLog("message size =", this.totalMessageSize, " body size =", this.totalBodySize, objMessage.constructor.name);
 
             if (this._safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
 
@@ -303,18 +321,23 @@ export class MessageBuilder extends MessageBuilderBase {
         this._previousSequenceNumber = sequenceNumber;
     }
 
-    private _decrypt_OPN(binaryStream: BinaryStream) {
+    private _decrypt_OPN(binaryStream: BinaryStream): boolean {
 
         assert(this.securityPolicy !== SecurityPolicy.None);
         assert(this.securityPolicy !== SecurityPolicy.Invalid);
         assert(this.securityMode !== MessageSecurityMode.None);
         assert(this.securityHeader instanceof AsymmetricAlgorithmSecurityHeader);
 
-        const asymmetricAlgorithmSecurityHeader = this.securityHeader as AsymmetricAlgorithmSecurityHeader;
+        const asymmetricAlgorithmSecurityHeader = this.securityHeader! as AsymmetricAlgorithmSecurityHeader;
 
         /* istanbul ignore next */
         if (doDebug) {
-            debugLog("securityHeader", JSON.stringify(this.securityHeader, null, " "));
+            debugLog("securityHeader = {");
+            debugLog("             securityPolicyId: " , asymmetricAlgorithmSecurityHeader.securityPolicyUri);
+            debugLog("             senderCertificate: " ,
+              makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex"));
+
+            debugLog("};");
         }
 
         // OpcUA part 2 V 1.02 page 15
@@ -331,9 +354,9 @@ export class MessageBuilder extends MessageBuilderBase {
         /* istanbul ignore next */
         if (doDebug) {
             debugLog(chalk.cyan("EN------------------------------"));
-            debugLog(hexDump(binaryStream.buffer, 32, 0xFFFFFFFF));
+            // xx debugLog(hexDump(binaryStream.buffer, 32, 0xFFFFFFFF));
             debugLog("---------------------- SENDER CERTIFICATE");
-            debugLog(hexDump(asymmetricAlgorithmSecurityHeader.senderCertificate));
+            debugLog("thumbprint ", makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex"));
         }
 
         if (!this.cryptoFactory) {
@@ -361,9 +384,10 @@ export class MessageBuilder extends MessageBuilderBase {
             /* istanbul ignore next */
             if (doDebug) {
                 debugLog(chalk.cyan("DE-----------------------------"));
-                debugLog(hexDump(binaryStream.buffer));
+                // debugLog(hexDump(binaryStream.buffer));
                 debugLog(chalk.cyan("-------------------------------"));
-                debugLog("Certificate :", hexDump(asymmetricAlgorithmSecurityHeader.senderCertificate));
+                const thumbprint = makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate);
+                debugLog("Certificate thumbprint:", thumbprint.toString("hex"));
             }
         }
 
@@ -371,7 +395,7 @@ export class MessageBuilder extends MessageBuilderBase {
         // then verify the signature
         const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
         assert(signatureLength === 128 ||
-                signatureLength === 256 ||
+          signatureLength === 256 ||
           signatureLength === 384 ||
           signatureLength === 512);
 
@@ -380,7 +404,9 @@ export class MessageBuilder extends MessageBuilderBase {
         const signatureIsOK = asymmetricVerifyChunk(this.cryptoFactory, chunk, asymmetricAlgorithmSecurityHeader.senderCertificate);
 
         if (!signatureIsOK) {
-            console.log(hexDump(binaryStream.buffer));
+            if (doDebug) {
+                debugLog(hexDump(binaryStream.buffer));
+            }
             this._report_error("Sign and Encrypt asymmetricVerify : Invalid packet signature");
             return false;
         }
@@ -396,23 +422,42 @@ export class MessageBuilder extends MessageBuilderBase {
         return true; // success
     }
 
+    private  tokenIds() {
+        return this._tokenStack.map((a) => a.securityToken.tokenId);
+    }
     private _select_matching_token(tokenId: number): SecurityTokenAndDerivedKeys | null {
 
+        if (doDebug) {
+            debugLog("id=",this.id, " ", chalk.yellow("_select_matching_token : searching token " ),
+              tokenId, "length = ", this._tokenStack.length, this.tokenIds());
+        }
+        // this method select the security token matching the provided tokenId
+        // it also get rid of older security token
         let gotNewToken = false;
-        this._tokenStack = this._tokenStack || [];
+
         while (this._tokenStack.length) {
-            if (this._tokenStack.length === 0) {
-                return null; // no token
-            }
-            if (this._tokenStack[0].securityToken.tokenId === tokenId) {
+
+            const firstToken = this._tokenStack[0];
+
+            if (firstToken.securityToken.tokenId === tokenId) {
                 if (gotNewToken) {
                     this.emit("new_token", tokenId);
                 }
-                return this._tokenStack[0];
+                if (doDebug) {
+                    debugLog("id=",this.id, chalk.red(" found token"), gotNewToken, firstToken.securityToken.tokenId, this.tokenIds());
+                }
+                return firstToken;
             }
             // remove first
-            this._tokenStack = this._tokenStack.slice(1);
+            this._tokenStack.shift();
+            if (doDebug) {
+                debugLog("id=",this.id, "Remove first token ",  firstToken.securityToken.tokenId, this.tokenIds());
+            }
             gotNewToken = true;
+        }
+
+        if (doDebug) {
+            debugLog("id=",this.id, " Cannot find token ", tokenId);
         }
         return null;
     }
@@ -446,6 +491,7 @@ export class MessageBuilder extends MessageBuilderBase {
         const buf = binaryStream.buffer.slice(binaryStream.length);
 
         if (!securityTokenData.derivedKeys) {
+            console.log("xxxxxxx NO DERIVED KEYX");
             return false;
         }
 

@@ -79,7 +79,7 @@ export class MockServerTransport extends EventEmitter {
                 }
 
                 debugLog("\nFAKE SERVER RECEIVED");
-                debugLog(hexDump(data).blue);
+                debugLog(hexDump(data));
 
                 let replies = [];
                 if (reply instanceof Buffer) {

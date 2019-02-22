@@ -13,6 +13,7 @@ import { ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { Variant } from "node-opcua-variant";
 import { ClientSession,  ResponseCallback } from "./client_session";
+import { ClientSessionImpl } from "./private/client_session_impl";
 
 const hasPropertyRefId = resolveNodeId("HasProperty");
 
@@ -51,11 +52,21 @@ interface AnalogDataItemSnapshot {
  * @param callback
  */
 export function readUAAnalogItem(
+  session: ClientSession,
+  nodeId: NodeIdLike
+): Promise<AnalogDataItemSnapshot>;
+export function readUAAnalogItem(
     session: ClientSession,
     nodeId: NodeIdLike,
     callback: ResponseCallback<AnalogDataItemSnapshot>
-) {
+): void;
+export function readUAAnalogItem(
+  session: ClientSession,
+  nodeId: NodeIdLike,
+  ...args: [ any?, ...any[]]
+): any {
 
+    const callback = args[0] as ResponseCallback<AnalogDataItemSnapshot>;
     assert(_.isFunction(callback));
 
     const browsePath = [
@@ -120,3 +131,8 @@ export function readUAAnalogItem(
         });
     });
 }
+// tslint:disable:no-var-requires
+// tslint:disable:max-line-length
+const thenify = require("thenify");
+const opts = {multiArgs: false};
+(module as any).exports.readUAAnalogItem = thenify.withCallback((module as any).exports.readUAAnalogItem, opts);

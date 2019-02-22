@@ -4,8 +4,11 @@ const should = require("should");
 const async = require("async");
 const _ = require("underscore");
 const os = require("os");
+const fs = require("fs");
 const opcua = require("node-opcua");
 const chalk = require("chalk");
+
+const readCertificate = require("node-opcua-crypto").readCertificate;
 
 const OPCUAClient = opcua.OPCUAClient;
 const StatusCodes = opcua.StatusCodes;
@@ -57,6 +60,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
 
     this.timeout(Math.max(20000, this._timeout));
+
 
 
     before(function (done) {
@@ -354,6 +358,16 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     // -----------------------------------------------------------------------------------------------------------------
     // Common Steps
     // -----------------------------------------------------------------------------------------------------------------
+
+    function trustClientCertificateOnServer(client,server,callback){
+
+        if (!server){ return callback(); }
+        const clientCertificateFilename = client.certificateFile;
+        fs.existsSync(clientCertificateFilename).should.eql(true," certificate must exist");
+        const certificate = readCertificate(clientCertificateFilename);
+        server.serverCertificateManager.trustCertificate(certificate, callback);
+    }
+
     function start_demo_server(done) {
 
         server = build_server_with_temperature_device({port: port}, function (err) {
@@ -496,14 +510,18 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             debugLog(chalk.whiteBright(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION LOST !!!!!!!!!!!!!!!!!!!"));
         });
 
-        client.connect(endpointUrl, function (err) {
-            if (!_options.doNotWaitForConnection) {
-                done(err);
+        trustClientCertificateOnServer(client, server,function() {
+
+            client.connect(endpointUrl, function (err) {
+                if (!_options.doNotWaitForConnection) {
+                    done(err);
+                }
+            });
+            if (_options.doNotWaitForConnection) {
+                done();
             }
-        });
-        if (_options.doNotWaitForConnection) {
-            done();
-        }
+
+        })
     }
 
     function disconnect_client(done) {
@@ -770,6 +788,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
 
     });
+
     it("TR4 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", function (done) {
         async.series([
             function (callback) {

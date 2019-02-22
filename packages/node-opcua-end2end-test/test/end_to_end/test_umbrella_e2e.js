@@ -71,7 +71,7 @@ describe("testing Client - Umbrella ", function () {
             setTimeout(function() {
 
                 test.server.engine.currentSessionCount.should.eql(0," expecting ZERO session on server when test is starting !");
-                console.log(" ..... done ".grey);
+                console.log(" ..... done ");
                 done(err);
 
             },1000);
@@ -80,7 +80,7 @@ describe("testing Client - Umbrella ", function () {
 
     before(function (done) {
 
-        console.log(" ..... starting server ".grey);
+        console.log(" ..... starting server ");
         if (process.env.TESTENDPOINT === "EXTERNAL") {
             start_external_server(done);
         } else if (process.env.TESTENDPOINT) {

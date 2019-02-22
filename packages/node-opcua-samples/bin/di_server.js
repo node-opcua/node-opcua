@@ -203,7 +203,7 @@ function dumpNode(node) {
         return tmp.substr(0,width);
     }
     return   _.map(node,function(value,key) {
-        return  "      " + w(key,30).green + "  : " + ((value === null)? null : value.toString());
+        return  "      " + w(key,30) + "  : " + ((value === null)? null : value.toString());
     }).join("\n");
 }
 

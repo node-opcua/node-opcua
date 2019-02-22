@@ -27,5 +27,6 @@ export interface RequestB {
 export type Request = RequestB | CloseSecureChannelRequest;
 
 export type ErrorCallback = (err?: Error) => void;
+export type Callback2<T> = (err: Error|null, result?: T ) => void;
 
 export { ICertificateKeyPairProvider } from "node-opcua-common";

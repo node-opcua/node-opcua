@@ -400,8 +400,10 @@ export class BaseUAObject {
             padding: " "
         };
 
-        data.lines.push("{" + chalk.cyan(" /*" + this.schema.name + "*/"));
-        applyOnAllSchemaFields(this, this.schema, data, _exploreObject, arguments);
+        data.lines.push("{" + chalk.cyan(" /*" + ( this.schema ? this.schema.name : "") + "*/"));
+        if (this.schema) {
+            applyOnAllSchemaFields(this, this.schema, data, _exploreObject, arguments);
+        }
         data.lines.push("};");
         return data.lines.join("\n");
     }
