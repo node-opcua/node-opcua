@@ -688,7 +688,7 @@ function reconstructFunctionalGroupType(extraInfo: any) {
         //    return "<-- " + referenceTd.browseName.toString() + " -- " + obj.browseName.toString();
         // }
         //
-        // console.log("xxxxx ========================================================".bgRed,
+        // console.log("xxxxx ========================================================",
         //    originalObject.browseName.toString(),
         //    organizedByArray.map(dumpRef).join("\n"));
         organizedByArray.forEach((ref: Reference) => {

@@ -1869,7 +1869,7 @@ function _Variable_bind_with_simple_get(
 
                 this.setValueFromSource(value, StatusCodes.Good);
             } else {
-                // XXXY console.log("YYYYYYYYYYYYYYYYYYYYYYYYYY".red,this.browseName.toString());
+                // XXXY console.log("YYYYYYYYYYYYYYYYYYYYYYYYYY",this.browseName.toString());
             }
             return this._dataValue;
         }

@@ -100,7 +100,6 @@ export {
 } from "node-opcua-address-space";
 
 module.exports.utils = require("node-opcua-utils");
-// xx module.exports.crypto_utils = require("node-opcua-crypto");
 module.exports.hexDump = require("node-opcua-debug").hexDump;
 
 // ----------------------------------------------------------------------------------------------------------
@@ -119,37 +118,13 @@ export * from "./server-stuff";
 export * from "node-opcua-service-filter";
 
 export * from "node-opcua-address-space";
-export {
-    construct_demo_alarm_in_address_space,
-    createBoilerType,
-    makeBoiler,
-    getAddressSpaceFixture
-} from "node-opcua-address-space";
 
-////
+// filtering tools
+export { constructEventFilter } from "node-opcua-service-filter";
 
-module.exports.perform_findServers = require("node-opcua-client").perform_findServers;
-module.exports.perform_findServersOnNetwork = require("node-opcua-client").perform_findServersOnNetwork;
-module.exports.readHistoryServerCapabilities = require("node-opcua-client").readHistoryServerCapabilities;
-
-module.exports.callConditionRefresh = require("node-opcua-client").callConditionRefresh;
-module.exports.readUAAnalogItem = require("node-opcua-client").readUAAnalogItem;
-
-module.exports.parseEndpointUrl = require("node-opcua-transport").parseEndpointUrl;
-
-module.exports.OPCUAServer = require("node-opcua-server").OPCUAServer;
-module.exports.RegisterServerMethod = require("node-opcua-server").RegisterServerMethod;
-
-module.exports.ServerEngine = require("node-opcua-server").ServerEngine;
-module.exports.MonitoredItem = require("node-opcua-server").MonitoredItem;
-module.exports.ServerSession = require("node-opcua-server").ServerSession;
-module.exports.Subscription = require("node-opcua-server").Subscription;
-
-// basic opcua NodeClass
+export * from "node-opcua-transport";
 
 module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
-// filtering tools
-module.exports.constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
 
 const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
 

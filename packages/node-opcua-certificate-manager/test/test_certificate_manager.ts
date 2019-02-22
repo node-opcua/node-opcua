@@ -45,6 +45,7 @@ describe("Testing OPCUA Client Certificate Manager", () => {
     });
 
     afterEach(async () => {
+        await certificateMgr.trustCertificate(certificate1);
         if (!fs.existsSync(temporaryFolder)) {
             await rimraf.sync(temporaryFolder);
         }

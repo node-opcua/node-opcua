@@ -75,6 +75,9 @@ describe("Testing Session with user certificate", () => {
     });
 
     afterEach(async () => {
+        await server.userCertificateManager.trustCertificate(clientCertificate);
+        await server.userCertificateManager.trustCertificate(invalidClientCertificate);
+        await server.userCertificateManager.trustCertificate(notActiveClientCertificate);
         await client!.disconnect();
         client = null;
     });

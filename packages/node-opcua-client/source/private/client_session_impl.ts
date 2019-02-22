@@ -106,6 +106,7 @@ import { Request, Response } from "../common";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import { OPCUAClientImpl } from "./opcua_client_impl";
+import { BrowseNextRequest, BrowseNextResponse } from "node-opcua-types";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
@@ -456,6 +457,60 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         });
     }
 
+    public browseNext(
+      continuationPoint: Buffer,
+      releaseContinuationPoints: boolean,
+      callback: ResponseCallback<BrowseResult>): void;
+
+    public browseNext(
+      continuationPoints: Buffer[],
+      releaseContinuationPoints: boolean,
+      callback: ResponseCallback<BrowseResult[]>): void;
+
+    public browseNext(
+      continuationPoint: Buffer,
+      releaseContinuationPoints: boolean
+    ): Promise<BrowseResult>;
+
+    public browseNext(
+      continuationPoints: Buffer[],
+      releaseContinuationPoints: boolean
+    ): Promise<BrowseResult[]>;
+    public browseNext(...args: any[]): any {
+        const arg0 = args[0];
+        const isArray = _.isArray(arg0);
+        const releaseContinuationPoints = args[1] as boolean;
+        const callback: any = args[2];
+        assert(_.isFunction(callback));
+
+        const continuationPoints: Buffer[] =
+          (isArray ? arg0 : [arg0 as Buffer]);
+
+        const request = new BrowseNextRequest({
+            continuationPoints,
+            releaseContinuationPoints
+        });
+
+        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+
+            if (err) {
+                return callback(err);
+            }
+
+            if (!response || !(response instanceof BrowseNextResponse)) {
+                return callback(new Error("Internal Error"));
+            }
+            const results: BrowseResult[] = response.results ? response.results : [];
+
+            for (const r of results) {
+                r.references = r.references || [];
+            }
+            assert(results[0] instanceof BrowseResult);
+            return callback(null, isArray ? results : results[0]);
+
+        });
+
+    }
     /**
      * @method readVariableValue
      * @async
@@ -2011,7 +2066,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 }
                 return callback(err, response);
             }
-            assert(response instanceof responseClass);
             callback(null, response);
 
         });

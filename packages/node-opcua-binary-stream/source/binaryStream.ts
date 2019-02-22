@@ -55,7 +55,7 @@ export class BinaryStream {
         if (data === undefined) {
             this.buffer = createFastUninitializedBuffer(1024);
         } else if (typeof data === "number") {
-            this.buffer = createFastUninitializedBuffer(data); // new Buffer(/*size=*/data);
+            this.buffer = createFastUninitializedBuffer(data);
         } else {
             assert(data instanceof Buffer);
             this.buffer = data;

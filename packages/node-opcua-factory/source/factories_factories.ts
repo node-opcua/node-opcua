@@ -73,7 +73,7 @@ export function getConstructor(expandedId: ExpandedNodeId): ConstructorFunc | nu
     return constructorMap[expandedId.value];
 }
 
-export function hasConstructor(expandedId: ExpandedNodeId) {
+export function hasConstructor(expandedId: ExpandedNodeId): boolean {
     if (!expandedId) {
         return false;
     }
@@ -91,7 +91,9 @@ export function hasConstructor(expandedId: ExpandedNodeId) {
 export function constructObject(expandedNodeId: ExpandedNodeId): BaseUAObject  {
     const constructor = getConstructor(expandedNodeId);
     if (!constructor) {
-        throw new Error("Cannot find constructor for " + expandedNodeId.toString());
+        console.log("Cannot find constructor for " + expandedNodeId.toString());
+        return new BaseUAObject();
+        // throw new Error("Cannot find constructor for " + expandedNodeId.toString());
     }
     return callConstructor(constructor);
 }

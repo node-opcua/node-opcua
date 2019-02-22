@@ -4,16 +4,16 @@
 // tslint:disable:object-literal-shorthand
 // tslint:disable:only-arrow-functions
 // tslint:disable:max-line-length
-import { assert } from "node-opcua-assert";
-import { makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant } from "node-opcua-variant";
 import * as  _ from "underscore";
-import { EventFilter, SimpleAttributeOperand } from "./imports";
 
+import { assert } from "node-opcua-assert";
 import { ObjectTypeIds } from "node-opcua-constants";
 import { AttributeIds, stringToQualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { DataType, Variant } from "node-opcua-variant";
+
+import { EventFilter, SimpleAttributeOperand } from "./imports";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -21,11 +21,7 @@ const doDebug = checkDebugFlag(__filename);
 /**
  * helper to construct event filters:
  * construct a simple event filter
- * @method constructEventFilter
  *
- * @param   arrayOfNames   {Array<string>}
- * @param   conditionTypes {Array<NodeId>}
- * @return  {EventFilter}
  *
  * @example
  *

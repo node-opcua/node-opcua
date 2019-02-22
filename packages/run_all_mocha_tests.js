@@ -1,7 +1,9 @@
 "use strict";
 
 require("source-map-support").install();
-require("ts-node").register();
+require("ts-node").register({
+    transpileOnly: true
+});
 
 Error.stackTraceLimit = Infinity;
 
@@ -27,6 +29,7 @@ let mocha = new Mocha({
     reporter: process.env.REPORTER || "spec", //"nyan", //"tap"
     slow: 1000,
 });
+
 
 let testFiles = [];
 
@@ -66,6 +69,19 @@ for (const file of fs.readdirSync(__dirname)) {
 
 testFiles = testFiles.sort();
 
+
+const suite = mocha.suite
+suite.on('pre-require', ( global, file, self) => {
+    //console.log("pre-require", file);
+});
+suite.on('require', (script, file, self) => {
+
+});
+suite.on('post-require', (global, file, self) => {
+  //  console.log("post   -require", file);
+
+});
+
 // Add each .js file to the mocha instance
 testFiles.filter((file) => {
     // Only keep the .js files
@@ -89,6 +105,7 @@ testFiles.filter((file) => {
 
 mocha.timeout(200000);
 mocha.bail(true);
+
 
 // Run the tests.
 mocha.run((failures) => {

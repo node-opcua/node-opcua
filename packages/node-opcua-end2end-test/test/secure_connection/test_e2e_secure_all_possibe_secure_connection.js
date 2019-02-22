@@ -34,7 +34,7 @@ const stop_simple_server = require("../../test_helpers/external_server_fixture")
 
 
 const g_defaultSecureTokenLifetime = 30 * 1000; // ms
-const g_tokenRenewalInterval = 50; // ms => renew token as fast as possible
+const g_tokenRenewalInterval = 50; // renew token as fast as possible
 const g_numberOfTokenRenewal = 3;
 
 let server, temperatureVariableId, endpointUrl, serverCertificate;
@@ -124,6 +124,13 @@ function stop_server1(data, callback) {
     stop_simple_server(data, callback);
 }
 
+const readCertificate = require("node-opcua-crypto").readCertificate;
+function trustCertificateOnServer(certificateFile,callback){
+    if (!certificateFile) { return setImmediate(callback); }
+    fs.existsSync(certificateFile).should.eql(true, " certificateFile must exist " + certificateFile);
+    const certificate = readCertificate(certificateFile);
+    server.serverCertificateManager.trustCertificate(certificate,callback);
+}
 function start_server(options, callback) {
     if (_.isFunction(options) && !callback) {
         callback = options;
@@ -275,13 +282,17 @@ function common_test(securityPolicy, securityMode, options, done) {
     let token_change = 0;
     const client = OPCUAClient.create(options);
 
-    perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+    trustCertificateOnServer(client.certificateFile,() => {
 
-        keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function (err) {
-            token_change.should.be.aboveOrEqual(2);
-            inner_done(err);
-        });
-    }, done);
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+            keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function (err) {
+                token_change.should.be.aboveOrEqual(2);
+                inner_done(err);
+            });
+        }, done);
+    });
+
 
     client.on("lifetime_75", function (token) {
         // check if we are late!
@@ -316,23 +327,26 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
     });
     const client = OPCUAClient.create(options);
 
-    client.on("backoff", function (number, delay) {
-        debugLog(" backoff attempt#", number, " retry in ", delay);
-    });
+    trustCertificateOnServer(client.clientCertificate,()=> {
 
-    client.connect(endpointUrl, function (err) {
+        client.on("backoff", function (number, delay) {
+            debugLog(" backoff attempt#", number, " retry in ", delay);
+        });
 
-        if (err) {
-            debugLog("Error = ", err.message);
-            client.disconnect(function () {
-                done();
-            });
+        client.connect(endpointUrl, function (err) {
 
-        } else {
-            client.disconnect(function () {
-                done(new Error("The connection's succeeded, but was expected to fail!"));
-            });
-        }
+            if (err) {
+                debugLog("Error = ", err.message);
+                client.disconnect(function () {
+                    done();
+                });
+
+            } else {
+                client.disconnect(function () {
+                    done(new Error("The connection's succeeded, but was expected to fail!"));
+                });
+            }
+        });
     });
 }
 
@@ -360,33 +374,35 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
     let token_change = 0;
     const client = OPCUAClient.create(options);
 
-    const after_reconnection_spy = new sinon.spy();
-    const start_reconnection_spy = new sinon.spy();
+    trustCertificateOnServer(client.clientCertificate, ()=> {
 
-    perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+        const after_reconnection_spy = new sinon.spy();
+        const start_reconnection_spy = new sinon.spy();
 
-        client.on("start_reconnection", start_reconnection_spy);
-        client.on("after_reconnection", after_reconnection_spy);
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-        keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function (err) {
-            console.log("err = ", err);
-            // inner_done(err);
+            client.on("start_reconnection", start_reconnection_spy);
+            client.on("after_reconnection", after_reconnection_spy);
+
+            keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function (err) {
+                console.log("err = ", err);
+                // inner_done(err);
+            });
+            client.on("close", function () {
+                debugLog("            connection has been closed");
+                inner_done();
+            });
+
+        }, function (err) {
+
+            debugLog(chalk.yellow.bold(" RECEIVED ERROR :"), err);
+            start_reconnection_spy.callCount.should.eql(1);
+            //xx after_reconnection_spy.callCount.should.eql(1);
+            should(err).be.instanceOf(Error);
+
+            done();
         });
-        client.on("close", function () {
-            debugLog("            connection has been closed");
-            inner_done();
-        });
-
-    }, function (err) {
-
-        debugLog(chalk.yellow.bold(" RECEIVED ERROR :"), err);
-        start_reconnection_spy.callCount.should.eql(1);
-        //xx after_reconnection_spy.callCount.should.eql(1);
-        should(err).be.instanceOf(Error);
-
-        done();
     });
-
     client.on("backoff", function (number, delay) {
         console.log(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
     });
@@ -500,10 +516,13 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         };
         client = OPCUAClient.create(options);
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+        trustCertificateOnServer(client.clientCertificate, () => {
 
-            inner_done();
-        }, done);
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+                inner_done();
+            }, done);
+        });
 
     });
 
@@ -523,9 +542,14 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         };
         client = OPCUAClient.create(options);
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-            inner_done();
-        }, done);
+
+        trustCertificateOnServer(client.certificateFile, () => {
+
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                inner_done();
+            }, done);
+
+        })
 
     });
 
@@ -546,9 +570,11 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         };
         client = OPCUAClient.create(options);
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-            inner_done();
-        }, done);
+        trustCertificateOnServer(client.certificateFile, () => {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                inner_done();
+            }, done);
+        });
 
     });
     it("QQQ3b a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 2048 bit client certificate", function (done) {
@@ -568,10 +594,11 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         };
         client = OPCUAClient.create(options);
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-            inner_done();
-        }, done);
-
+        trustCertificateOnServer(client.certificateFile, () => {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                inner_done();
+            }, done);
+        });
     });
 
     it("QQQ4 server shall reject secure connection when client provides a nonce with the wrong length", function (done) {
@@ -590,27 +617,28 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
         };
         client = OPCUAClient.create(options);
+        trustCertificateOnServer(client.certificateFile, () => {
 
-        const old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
-        ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
+            const old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
+            ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
 
-            // let's alter the client Nonce,
-            if (requestMessage.constructor.name === "OpenSecureChannelRequest") {
-                requestMessage.clientNonce.length.should.eql(16);
-                this.clientNonce = requestMessage.clientNonce = crypto.randomBytes(32);
-                ClientSecureChannelLayer.prototype._performMessageTransaction = old_performMessageTransaction;
-            }
-            old_performMessageTransaction.call(this, msgType, requestMessage, callback);
-        };
+                // let's alter the client Nonce,
+                if (requestMessage.constructor.name === "OpenSecureChannelRequest") {
+                    requestMessage.clientNonce.length.should.eql(16);
+                    this.clientNonce = requestMessage.clientNonce = crypto.randomBytes(32);
+                    ClientSecureChannelLayer.prototype._performMessageTransaction = old_performMessageTransaction;
+                }
+                old_performMessageTransaction.call(this, msgType, requestMessage, callback);
+            };
 
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-            inner_done();
-        }, function (err) {
-            console.log(err.message);
-            err.message.should.match(/BadSecurityModeRejected/);
-            done();
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                inner_done();
+            }, function (err) {
+                console.log(err.message);
+                err.message.should.match(/BadSecurityModeRejected/);
+                done();
+            });
         });
-
     });
 
     it("QQQ5 a token shall be updated on a regular basis", function (done) {
@@ -627,23 +655,25 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         let token_change = 0;
         client = OPCUAClient.create(options);
 
-        client.on("lifetime_75", function (token) {
-            //xx  console.log("received lifetime_75", JSON.stringify(token));
-        });
+        trustCertificateOnServer(client.certificateFile, () => {
 
-        client.on("security_token_renewed", function () {
-            token_change += 1;
-            //xx  console.log("security_token_renewed");
-        });
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-
-            keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal + 3, function (err) {
-                //xx console.log("end of Monitoring ")
-                token_change.should.be.aboveOrEqual(g_numberOfTokenRenewal);
-                inner_done(err);
+            client.on("lifetime_75", function (token) {
+                //xx  console.log("received lifetime_75", JSON.stringify(token));
             });
-        }, done);
 
+            client.on("security_token_renewed", function () {
+                token_change += 1;
+                //xx  console.log("security_token_renewed");
+            });
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+                keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal + 3, function (err) {
+                    //xx console.log("end of Monitoring ")
+                    token_change.should.be.aboveOrEqual(g_numberOfTokenRenewal);
+                    inner_done(err);
+                });
+            }, done);
+        });
 
     });
 });
@@ -702,28 +732,31 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 2000,
-            tokenRenewalInterval: 3000,
+            tokenRenewalInterval: 30000,
             connectionStrategy: no_reconnect_connectivity_strategy
         };
 
         let token_change = 0;
         const client = OPCUAClient.create(options);
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
-            client.once("close", function (err) {
-                token_change.should.be.eql(0);
-                inner_done();
-            });
-            setTimeout(function () {
-                // security token has now expired
-                //
-                // this request will fail as we haven't renewed the securityToken
-                // Server will close the connection when receiving this request
-                session.read([], function () {
+        trustCertificateOnServer(client.certificateFile,()=> {
 
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                client.once("close", function (err) {
+                    token_change.should.be.eql(0);
+                    inner_done();
                 });
-            }, 5000);
-        }, function (err) {
-            done();
+                setTimeout(function () {
+                    // security token has now expired
+                    //
+                    // this request will fail as we haven't renewed the securityToken
+                    // Server will close the connection when receiving this request
+                    session.read([], function () {
+
+                    });
+                }, 5000);
+            }, function (err) {
+                done();
+            });
         });
 
         client.on("lifetime_75", function (token) {

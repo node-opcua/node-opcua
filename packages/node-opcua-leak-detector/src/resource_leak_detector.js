@@ -255,7 +255,7 @@ ResourceLeakDetector.prototype.start = function (info) {
         };
 
         if (trace) {
-            console.log("setInterval \n", get_stack().red, "\n");
+            console.log("setInterval \n", get_stack(), "\n");
         }
 
         return key;
@@ -269,7 +269,7 @@ ResourceLeakDetector.prototype.start = function (info) {
         self.clearIntervalCallCount += 1;
 
         if (trace) {
-            console.log("clearInterval " + intervalId, get_stack().green);
+            console.log("clearInterval " + intervalId, get_stack());
         }
         const key = intervalId;
         assert(self.interval_map.hasOwnProperty(key));

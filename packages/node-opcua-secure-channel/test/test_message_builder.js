@@ -49,7 +49,7 @@ describe("MessageBuilder", function () {
      */
     function test_behavior_with_bad_packet(test_case_name, bad_packet, done) {
 
-        redirectToFile("MessageBuilder_" + test_case_name + ".log", function () {
+        //xx redirectToFile("MessageBuilder_" + test_case_name + ".log", function () {
 
             const messageBuilder = new MessageBuilder();
 
@@ -74,8 +74,7 @@ describe("MessageBuilder", function () {
 
 
             messageBuilder.feed(bad_packet); // OpenSecureChannel message
-        }, function () {
-        });
+        //}, function () {});
 
     }
 

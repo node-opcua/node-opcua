@@ -137,6 +137,26 @@ export interface ClientSession {
     browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
 
     browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
+
+    browseNext(
+      continuationPoint: Buffer,
+      releaseContinuationPoints: boolean,
+      callback: ResponseCallback<BrowseResult>): void;
+
+    browseNext(
+      continuationPoints: Buffer[],
+      releaseContinuationPoints: boolean,
+      callback: ResponseCallback<BrowseResult[]>): void;
+
+    browseNext(
+      continuationPoint: Buffer,
+      releaseContinuationPoints: boolean
+    ): Promise<BrowseResult>;
+
+    browseNext(
+      continuationPoints: Buffer[],
+      releaseContinuationPoints: boolean
+    ): Promise<BrowseResult[]>;
 }
 
 // translate browsePathTo NodeId services

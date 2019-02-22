@@ -40,7 +40,7 @@ import { get_clock_tick } from "node-opcua-utils";
 
 import { SecureMessageChunkManagerOptions, SecurityHeader } from "../secure_message_chunk_manager";
 
-import { ErrorCallback, ICertificateKeyPairProvider, Request, Response } from "../common";
+import { Callback2, ErrorCallback, ICertificateKeyPairProvider, Request, Response } from "../common";
 import { MessageBuilder, ObjectFactory } from "../message_builder";
 import { ChunkMessageOptions, MessageChunker } from "../message_chunker";
 import {
@@ -115,7 +115,7 @@ export interface Message {
     session_statusCode?: StatusCode;
 }
 
-export  interface ServerTransactionStatistics {
+export interface ServerTransactionStatistics {
     bytesRead: number;
     bytesWritten: number;
     lap_reception: number;
@@ -136,12 +136,12 @@ function _dump_transaction_statistics(stats?: ServerTransactionStatistics) {
 // istanbul ignore next
 function dump_request(request: Request, requestId: number, channelId: number) {
     console.log(
-        chalk.cyan("xxxx   <<<< ---------------------------------------- "),
-        chalk.yellow(request.schema.name),
-        "requestId",
-        requestId,
-        "channelId=",
-        channelId
+      chalk.cyan("xxxx   <<<< ---------------------------------------- "),
+      chalk.yellow(request.schema.name),
+      "requestId",
+      requestId,
+      "channelId=",
+      channelId
     );
     console.log(request.toString());
     console.log(chalk.cyan("xxxx   <<<< ---------------------------------------- \n"));
@@ -189,8 +189,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     /**
      * the number of bytes read so far by this channel
-     * @property bytesRead
-     * @type {Number}
      */
     public get bytesRead() {
         return this.transport ? this.transport.bytesRead : 0;
@@ -198,8 +196,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     /**
      * the number of bytes written so far by this channel
-     * @property bytesWritten
-     * @type {Number}
      */
     public get bytesWritten() {
         return this.transport ? this.transport.bytesWritten : 0;
@@ -211,8 +207,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     /**
      * true when the secure channel has been opened successfully
-     * @property isOpened
-     * @type {Boolean}
      *
      */
     public get isOpened() {
@@ -221,8 +215,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     /**
      * true when the secure channel is assigned to a active session
-     * @property hasSession
-     * @type {Boolean}
      */
     public get hasSession() {
         return Object.keys(this.sessionTokens).length > 0;
@@ -245,7 +237,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
     public sessionTokens: any;
     public channelId: number | null;
-    public readonly timeout: number;
+    public timeout: number;
     public readonly messageBuilder: MessageBuilder;
     public receiverCertificate: Buffer | null;
     public clientCertificate: Buffer | null;
@@ -335,6 +327,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.serverNonce = null; // will be created when needed
 
         this.messageBuilder = new MessageBuilder({
+            name: "server",
             objectFactory: options.objectFactory,
             privateKey: this.getPrivateKey()
         });
@@ -558,7 +551,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         };
 
         const securityOptions =
-            msgType === "OPN" ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
+          msgType === "OPN" ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
         options = _.extend(options, securityOptions);
 
         response.responseHeader.requestHandle = request.requestHeader.requestHandle;
@@ -572,9 +565,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
         /* istanbul ignore next */
         if (doTraceMessages) {
             console.log(
-                chalk.cyan.bold("xxxx   >>>> ---------------------------------------- "),
-                chalk.green.bold(response.schema.name),
-                requestId
+              chalk.cyan.bold("xxxx   >>>> ---------------------------------------- "),
+              chalk.green.bold(response.schema.name),
+              requestId
             );
             console.log(response.toString());
             console.log(chalk.cyan.bold("xxxx   >>>> ----------------------------------------|\n"));
@@ -586,12 +579,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this._transactionsCount += 1;
         this.messageChunker.chunkSecureMessage(
-            msgType,
-            options as ChunkMessageOptions,
-            response as any as BaseUAObject,
-            (messageChunk: Buffer | null) => {
-                return this._send_chunk(callback, messageChunk);
-            });
+          msgType,
+          options as ChunkMessageOptions,
+          response as any as BaseUAObject,
+          (messageChunk: Buffer | null) => {
+              return this._send_chunk(callback, messageChunk);
+          });
     }
 
     /**
@@ -616,7 +609,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         assert(_.isFunction(callback));
 
         const response = new ServiceFault({
-            responseHeader: {serviceResult: statusCode}
+            responseHeader: { serviceResult: statusCode }
         });
 
         response.responseHeader.stringTable = [description];
@@ -651,7 +644,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
     ): boolean {
 
         if (!this.parent) {
-            console.log("XXXXXXXX => CHECK HERE");
             return true;
         }
         const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy);
@@ -677,9 +669,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // install securityToken timeout watchdog
         this._securityTokenTimeout = setTimeout(() => {
             console.log(
-                " Security token has really expired and shall be discarded !!!! (lifetime is = ",
-                this.securityToken.revisedLifetime,
-                ")"
+              " Security token has really expired and shall be discarded !!!! (lifetime is = ",
+              this.securityToken.revisedLifetime,
+              ")"
             );
             console.log(" Server will now refuse message with token ", this.securityToken.tokenId);
             this._securityTokenTimeout = null;
@@ -774,11 +766,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _on_initial_open_secure_channel_request(
-        callback: ErrorCallback,
-        request: Request,
-        msgType: string,
-        requestId: number,
-        channelId: number) {
+      callback: ErrorCallback,
+      request: Request,
+      msgType: string,
+      requestId: number,
+      channelId: number) {
         /* istanbul ignore next */
         if (doTraceMessages) {
             dump_request(request, requestId, channelId);
@@ -815,10 +807,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private _wait_for_open_secure_channel_request(callback: ErrorCallback, timeout: number) {
         this._install_wait_for_open_secure_channel_request_timeout(callback, timeout);
         this.messageBuilder.once("message", (
-            request: Request,
-            msgType: string,
-            requestId: number,
-            channelId: number
+          request: Request,
+          msgType: string,
+          requestId: number,
+          channelId: number
         ) => {
             this._on_initial_open_secure_channel_request(callback, request, msgType, requestId, channelId);
         });
@@ -921,39 +913,52 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @private
      * @async
      */
-    private _process_certificates(message: Message, callback: ErrorCallback) {
+
+    private _process_certificates(message: Message, callback: Callback2<StatusCode>): void {
 
         const asymmSecurityHeader = message.securityHeader as AsymmetricAlgorithmSecurityHeader;
 
-        this.receiverPublicKey = null;
-        this.receiverPublicKeyLength = 0;
-        this.receiverCertificate = asymmSecurityHeader ? asymmSecurityHeader.senderCertificate : null;
-        // get the clientCertificate for convenience
-        this.clientCertificate = this.receiverCertificate;
+        // verify certificate
+        const certificate = asymmSecurityHeader ? asymmSecurityHeader.senderCertificate : null;
+        this.checkCertificateCallback(certificate!, (err: Error | null, statusCode?: StatusCode) => {
+            if (err) {
+                return callback(err);
+            }
+            assert(statusCode, "expecting status code");
+            if (statusCode !== StatusCodes.Good) {
+                return callback(null, statusCode!);
+            }
 
-        // ignore receiverCertificate that have a zero length
-        /* istanbul ignore next */
-        if (this.receiverCertificate && this.receiverCertificate.length === 0) {
-            this.receiverCertificate = null;
-        }
-
-        if (this.receiverCertificate) {
-            // extract public key
-            extractPublicKeyFromCertificate(this.receiverCertificate, (err, key) => {
-                if (!err) {
-                    if (key) {
-                        this.receiverPublicKey = key;
-                        this.receiverPublicKeyLength = rsa_length(key);
-                    }
-                    callback();
-                } else {
-                    callback(err);
-                }
-            });
-        } else {
             this.receiverPublicKey = null;
-            callback();
-        }
+            this.receiverPublicKeyLength = 0;
+            this.receiverCertificate = asymmSecurityHeader ? asymmSecurityHeader.senderCertificate : null;
+            // get the clientCertificate for convenience
+            this.clientCertificate = this.receiverCertificate;
+
+            // ignore receiverCertificate that have a zero length
+            /* istanbul ignore next */
+            if (this.receiverCertificate && this.receiverCertificate.length === 0) {
+                this.receiverCertificate = null;
+            }
+
+            if (this.receiverCertificate) {
+                // extract public key
+                extractPublicKeyFromCertificate(this.receiverCertificate, (err, key) => {
+                    if (!err) {
+                        if (key) {
+                            this.receiverPublicKey = key;
+                            this.receiverPublicKeyLength = rsa_length(key);
+                        }
+                        callback(null, StatusCodes.Good);
+                    } else {
+                        callback(err);
+                    }
+                });
+            } else {
+                this.receiverPublicKey = null;
+                callback(null, StatusCodes.Good);
+            }
+        });
     }
 
     /**
@@ -1009,12 +1014,15 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private checkCertificateCallback(
-        certificate: Certificate,
-        callback: (err: Error | null, statusCode?: StatusCode) => void
+      certificate: Certificate | null,
+      callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void {
     }
 
-    private async checkCertificate(certificate: Certificate): Promise<StatusCode> {
+    private async checkCertificate(certificate: Certificate | null): Promise<StatusCode> {
+        if (!certificate) {
+            return StatusCodes.Good;
+        }
         if (!this.certificateManager) {
             return checkCertificateValidity(certificate);
         }
@@ -1046,10 +1054,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
             if (this.clientNonce.length !== this.serverNonce.length) {
                 console.log(
-                    chalk.red("warning client Nonce length doesn't match server nonce length"),
-                    this.clientNonce.length,
-                    " !== ",
-                    this.serverNonce.length
+                  chalk.red("warning client Nonce length doesn't match server nonce length"),
+                  this.clientNonce.length,
+                  " !== ",
+                  this.serverNonce.length
                 );
                 // what can we do
                 // - just ignore it ?
@@ -1087,8 +1095,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
             derivedKeys: derivedServerKeys
         });
 
-        let response: Response = new OpenSecureChannelResponse({
-            responseHeader: {serviceResult},
+        const response: Response = new OpenSecureChannelResponse({
+            responseHeader: { serviceResult },
 
             securityToken: this.securityToken,
             serverNonce: this.serverNonce || undefined,
@@ -1105,47 +1113,24 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
             if (!this._check_receiverCertificateThumbprint(this.clientSecurityHeader)) {
                 description =
-                    "Server#OpenSecureChannelRequest : Invalid receiver certificate thumbprint : the thumbprint doesn't match server certificate !";
+                  "Server#OpenSecureChannelRequest : Invalid receiver certificate thumbprint : the thumbprint doesn't match server certificate !";
                 console.log(chalk.cyan(description));
                 response.responseHeader.serviceResult = StatusCodes.BadCertificateInvalid;
             }
         }
-        const second_step = (response: Response, callback: ErrorCallback) => {
-            this.send_response("OPN", response, message, (/*err*/) => {
+        this.send_response("OPN", response, message, (/*err*/) => {
 
-                const responseHeader = response.responseHeader;
+            const responseHeader = response.responseHeader;
 
-                if (responseHeader.serviceResult !== StatusCodes.Good) {
-                    console.log(
-                        "OpenSecureChannelRequest Closing communication ",
-                        responseHeader.serviceResult.toString()
-                    );
-                    this.close();
-                }
-                callback();
-            });
-        };
-
-        if (this.clientCertificate) {
-
-            this.checkCertificateCallback(this.clientCertificate, (err: Error | null, certificateStatus?: StatusCode) => {
-                if (err) {
-                    return callback(err);
-                }
-                certificateStatus = certificateStatus!;
-                if (StatusCodes.Good !== certificateStatus) {
-                    description = "Sender Certificate Error";
-                    console.log(chalk.cyan(description), chalk.bgRed.yellow(certificateStatus.toString()));
-                    // OPCUA specification v1.02 part 6 page 42 $6.7.4
-                    // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
-                    // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
-                    response = new ServiceFault({responseHeader: {serviceResult: certificateStatus}});
-                }
-                second_step(response, callback);
-            });
-        } else {
-            second_step(response, callback);
-        }
+            if (responseHeader.serviceResult !== StatusCodes.Good) {
+                console.log(
+                  "OpenSecureChannelRequest Closing communication ",
+                  responseHeader.serviceResult.toString()
+                );
+                this.close();
+            }
+            callback();
+        });
     }
 
     private _abort() {
@@ -1232,12 +1217,13 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
                 if (this.securityToken && channelId !== this.securityToken.channelId) {
                     // response = new ServiceFault({responseHeader: {serviceResult: certificate_status}});
+                    debugLog("Invalid channelId detected =", channelId, " <> ", this.securityToken.channelId);
                     return this.send_error_and_abort(
-                        StatusCodes.BadCommunicationError,
-                        "Invalid Channel Id specified",
-                        message, () => {
+                      StatusCodes.BadCommunicationError,
+                      "Invalid Channel Id specified " + this.securityToken.channelId,
+                      message, () => {
 
-                        });
+                      });
                 }
 
                 /**
@@ -1272,8 +1258,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
             const serverCertificateChain = this.getCertificateChain();
             const myCertificateThumbPrint = makeSHA1Thumbprint(serverCertificateChain);
             return (
-                myCertificateThumbPrint.toString("hex") ===
-                clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
+              myCertificateThumbPrint.toString("hex") ===
+              clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
             );
         }
         return true;
@@ -1327,8 +1313,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (!((request as any) instanceof OpenSecureChannelRequest)) {
             description = "Expecting OpenSecureChannelRequest";
             console.log(
-                chalk.red("ERROR"),
-                "BadCommunicationError: expecting a OpenChannelRequest as first communication message"
+              chalk.red("ERROR"),
+              "BadCommunicationError: expecting a OpenChannelRequest as first communication message"
             );
             return this._send_error(StatusCodes.BadCommunicationError, description, message, callback);
         }
@@ -1343,6 +1329,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             description = " Unsupported securityPolicyUri " + asymmetricSecurityHeader.securityPolicyUri;
             return this._send_error(securityPolicyStatus, description, message, callback);
         }
+        // check certificate
 
         this.securityMode = request.securityMode;
         this.messageBuilder.securityMode = this.securityMode;
@@ -1352,32 +1339,50 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (!hasEndpoint) {
             // there is no
             description =
-                " This server doesn't not support  " + securityPolicy.toString() + " " + this.securityMode.toString();
+              " This server doesn't not support  " + securityPolicy.toString() + " " + this.securityMode.toString();
             return this._send_error(StatusCodes.BadSecurityPolicyRejected, description, message, callback);
         }
 
         this.endpoint = this.getEndpointDescription(this.securityMode, securityPolicy)!;
 
         this.messageBuilder
-            .on("message", (request, msgType, requestId, channelId) => {
-                this._on_common_message(request, msgType, requestId, channelId);
-            })
-            .on("start_chunk", () => {
-                if (doPerfMonitoring) {
-                    // record tick 0: when the first chunk is received
-                    this._tick0 = get_clock_tick();
-                }
-            });
+          .on("message", (request, msgType, requestId, channelId) => {
+              this._on_common_message(request, msgType, requestId, channelId);
+          })
+          .on("start_chunk", () => {
+              if (doPerfMonitoring) {
+                  // record tick 0: when the first chunk is received
+                  this._tick0 = get_clock_tick();
+              }
+          });
 
         // handle initial OpenSecureChannelRequest
-        this._process_certificates(message, () => {
+        this._process_certificates(message, (err: Error | null, statusCode?: StatusCode) => {
+
+            if (err) {
+                description = "Internal Error " + err.message;
+                return this._send_error(StatusCodes.BadInternalError, description, message, callback);
+            }
+            if (!statusCode) {
+                assert(false);
+            }
+            if (statusCode !== StatusCodes.Good) {
+                const description = "Sender Certificate Error";
+                console.log(chalk.cyan(description), chalk.bgRed.yellow(statusCode!.toString()));
+                // OPCUA specification v1.02 part 6 page 42 $6.7.4
+                // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
+                // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
+                return this._send_error(statusCode!, "", message, callback);
+            }
+
             this._handle_OpenSecureChannelRequest(message, callback);
         });
     }
 }
 
 import { ObjectRegistry } from "node-opcua-object-registry";
+
 ServerSecureChannelLayer.registry = new ObjectRegistry({});
 
 (ServerSecureChannelLayer as any).prototype.checkCertificateCallback =
-    callbackify((ServerSecureChannelLayer as any).prototype.checkCertificate);
+  callbackify((ServerSecureChannelLayer as any).prototype.checkCertificate);

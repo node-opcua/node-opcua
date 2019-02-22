@@ -2,7 +2,12 @@
  * @module node-opcua-client
  */
 
-import { BrowseRequest, BrowseResponse } from "node-opcua-service-browse";
+import {
+    BrowseNextRequest,
+    BrowseNextResponse,
+    BrowseRequest,
+    BrowseResponse,
+} from "node-opcua-service-browse";
 import { CallRequest, CallResponse } from "node-opcua-service-call";
 import {
     FindServersOnNetworkRequest,
@@ -44,7 +49,7 @@ import { WriteRequest, WriteResponse } from "node-opcua-service-write";
 export type Request =
     CreateSessionRequest | ActivateSessionRequest | CloseSessionRequest |
     GetEndpointsRequest|
-    ReadRequest | BrowseRequest | WriteRequest | CallRequest | TranslateBrowsePathsToNodeIdsRequest |
+    ReadRequest | BrowseRequest | BrowseNextRequest | WriteRequest | CallRequest | TranslateBrowsePathsToNodeIdsRequest |
     CreateSubscriptionRequest | DeleteSubscriptionsRequest | TransferSubscriptionsRequest |
     CreateMonitoredItemsRequest | ModifyMonitoredItemsRequest | ModifySubscriptionRequest |
     SetMonitoringModeRequest | PublishRequest | RepublishRequest | DeleteMonitoredItemsRequest |
@@ -56,7 +61,7 @@ export type Request =
 export type Response =
     CreateSessionResponse | ActivateSessionResponse | CloseSessionResponse |
     GetEndpointsResponse|
-    ReadResponse | BrowseResponse | WriteResponse | CallResponse | TranslateBrowsePathsToNodeIdsResponse |
+    ReadResponse | BrowseResponse | BrowseNextResponse | WriteResponse | CallResponse | TranslateBrowsePathsToNodeIdsResponse |
     CreateSubscriptionResponse | DeleteSubscriptionsResponse | TransferSubscriptionsResponse |
     CreateMonitoredItemsResponse | ModifyMonitoredItemsResponse | ModifySubscriptionResponse |
     SetMonitoringModeResponse | PublishResponse | RepublishResponse | DeleteMonitoredItemsResponse |

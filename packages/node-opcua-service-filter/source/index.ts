@@ -1,4 +1,4 @@
-    /**
+/**
  * @module node-opcua-service-filter
  */
 export * from "./imports";

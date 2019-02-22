@@ -4,9 +4,8 @@
 import { EventEmitter } from "events";
 
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
-import { ErrorCallback } from "node-opcua-secure-channel";
 import { ReadValueIdOptions } from "node-opcua-service-read";
-import { StatusCode } from "node-opcua-status-code";
+import { Variant } from "node-opcua-variant";
 
 import { MonitoringMode, MonitoringParametersOptions } from "node-opcua-types";
 import { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./client_monitored_item_base";
@@ -16,6 +15,7 @@ import { ClientSubscription } from "./client_subscription";
 export interface ClientMonitoredItem extends ClientMonitoredItemBase , ClientMonitoredItemOrGroupAction, EventEmitter {
 
     on(event: "changed", eventHandler: (dataValue: DataValue) => void): this;
+    on(event: "changed", eventHandler: (values: Variant[]) => void): this;
 
     on(event: "terminated", eventHandler: () => void): this;
 

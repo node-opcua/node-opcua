@@ -444,7 +444,7 @@ async.series([
 
         const hexDump = opcua.hexDump;
         console.log(chalk.cyan("Server Certificate :"));
-        console.log(hexDump(serverCertificate).yellow);
+        console.log(chalk.yellow(hexDump(serverCertificate)));
 
         const options = {
             securityMode: securityMode,

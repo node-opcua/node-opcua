@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs");
 
 const opcua = require("node-opcua");
+const readCertificate = require("node-opcua-crypto").readCertificate;
 
 const OPCUAClient = opcua.OPCUAClient;
 const StatusCodes = opcua.StatusCodes;
@@ -439,6 +440,12 @@ module.exports = function (test) {
                         securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
                         serverCertificate: serverCertificate
                     });
+
+                    const certificate = readCertificate(certificateFile1);
+                    test.server.serverCertificateManager.trustCertificate(certificate,callback);
+
+                },
+                function (callback) {
                     client1.connect(test.endpointUrl, callback);
                 },
                 // create a session using client1
@@ -475,8 +482,12 @@ module.exports = function (test) {
                         securityPolicy: opcua.SecurityPolicy.Basic256,
                         serverCertificate: serverCertificate
                     });
-                    client2.connect(test.endpointUrl, callback);
+                    const certificate = readCertificate(certificateFile2);
+                    test.server.serverCertificateManager.trustCertificate(certificate,callback);
 
+                },
+                function (callback) {
+                    client2.connect(test.endpointUrl, callback);
                 },
                 function (callback) {
                     // reactivate session on second channel

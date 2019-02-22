@@ -26,10 +26,18 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const errorLog = debugLog;
 
+export async function callConditionRefresh(
+  subscription: ClientSubscription,
+): Promise<void>;
 export function callConditionRefresh(
     subscription: ClientSubscription,
     callback: ErrorCallback
-) {
+): void;
+export function callConditionRefresh(
+  subscription: ClientSubscription,
+  callback?: ErrorCallback
+): any
+{
 
     const subscriptionI = subscription as ClientSubscriptionImpl;
     const theSession = subscriptionI.publishEngine.session!;
@@ -89,7 +97,7 @@ export function callConditionRefresh(
         },
 
     ], (err) => {
-        callback(err!);
+        callback!(err || undefined);
     });
 }
 
@@ -237,3 +245,4 @@ ClientSessionImpl.prototype.addCommentCondition = thenify.withCallback(ClientSes
 ClientSessionImpl.prototype.findMethodId = thenify.withCallback(ClientSessionImpl.prototype.findMethodId, opts);
 ClientSessionImpl.prototype.confirmCondition = thenify.withCallback(ClientSessionImpl.prototype.confirmCondition, opts);
 ClientSessionImpl.prototype.acknowledgeCondition = thenify.withCallback(ClientSessionImpl.prototype.acknowledgeCondition, opts);
+(module as any).exports.callConditionRefresh =   thenify.withCallback((module as any).exports.callConditionRefresh, opts);

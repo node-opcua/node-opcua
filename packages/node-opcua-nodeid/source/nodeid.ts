@@ -140,7 +140,7 @@ export class NodeId {
                 // let use the provided address space to figure out the browseNode of this node.
                 // to make the message a little bit more useful.
                 const n = addressSpace.findNode(this);
-                str += " " + (n ? n.browseName.toString().green : " (????)");
+                str += " " + (n ? n.browseName.toString() : " (????)");
             }
         }
         return str;

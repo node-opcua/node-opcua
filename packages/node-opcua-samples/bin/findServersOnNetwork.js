@@ -20,7 +20,7 @@ const capabilities = argv.capabilities || "LDS";
 
 const discovery_server_endpointUrl = argv.discoveryServerURI || "opc.tcp://localhost:4840";
 
-opcua.perform_findServersOnNetwork(discovery_server_endpointUrl, function (err, servers) {
+opcua.findServersOnNetwork(discovery_server_endpointUrl, function (err, servers) {
     if(err) {
         console.log("Error : ", err.message);
         return;

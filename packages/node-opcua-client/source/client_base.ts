@@ -286,6 +286,7 @@ export interface OPCUAClientBase extends EventEmitter {
 export interface OPCUAClientBase {
     readonly endpoint?: EndpointDescription;
     readonly isReconnecting: boolean;
+    readonly transactionsPerformed: number;
     readonly knowsServerEndpoint: boolean;
     readonly reconnectOnFailure: boolean;
     readonly bytesRead: number;

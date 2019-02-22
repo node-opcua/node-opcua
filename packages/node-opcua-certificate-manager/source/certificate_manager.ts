@@ -2,14 +2,16 @@
  * @module node-opcua-certificate-manager
  */
 // tslint:disable:no-empty
+import chalk from "chalk";
 import * as envPaths from "env-paths";
 import * as fs from "fs";
-import assert from "node-opcua-assert";
+import * as mkdirp from "mkdirp";
 import * as path from "path";
 import { callbackify, promisify } from "util";
 
-import chalk from "chalk";
-import * as mkdirp from "mkdirp";
+import assert from "node-opcua-assert";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
 import { StatusCodes } from "node-opcua-constants";
 import { Certificate, exploreCertificateInfo, makeSHA1Thumbprint, readCertificate, toPem } from "node-opcua-crypto";
 import { StatusCode } from "node-opcua-status-code";
@@ -17,6 +19,9 @@ import { StatusCode } from "node-opcua-status-code";
 const paths = envPaths("node-opcua");
 
 type ErrorCallback = (err?: Error) => void;
+
+const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 interface ICertificateManager {
     isCertificateTrusted(serverCertificate: Certificate, callback: ErrorCallback): void;
@@ -53,6 +58,7 @@ export class CertificateManager implements ICertificateManager {
     public pkiTrustedFolder: string = "";
     public readonly rootFolder: string;
     public readonly name: string;
+    public untrustUnknownCertificate: boolean;
 
     constructor(options?: CertificateManagerOptions) {
 
@@ -60,6 +66,8 @@ export class CertificateManager implements ICertificateManager {
         this.rootFolder = options.rootFolder || paths.config;
         this.name = options.name || "PKI";
         this.constructPKI();
+        this.untrustUnknownCertificate = false;
+
     }
 
     public async checkCertificate(
@@ -170,14 +178,13 @@ export class CertificateManager implements ICertificateManager {
 
     }
 
-    private async privateIsCertificateTrusted(certificate: Certificate): Promise<StatusCode> {
+        private async privateIsCertificateTrusted(certificate: Certificate): Promise<StatusCode> {
 
         const thumbprint = makeSHA1Thumbprint(certificate);
 
         const certificateFilenameInTrusted = path.join(this.pkiTrustedFolder, thumbprint.toString("hex") + ".pem");
 
-        const fileExist: boolean = await
-            fsFileExists(certificateFilenameInTrusted);
+        const fileExist: boolean = await fsFileExists(certificateFilenameInTrusted);
 
         if (fileExist) {
             const content: Certificate = await readCertificate(certificateFilenameInTrusted);
@@ -187,9 +194,14 @@ export class CertificateManager implements ICertificateManager {
             return StatusCodes.Good;
         } else {
             const certificateFilename = path.join(this.pkiUntrustedFolder, thumbprint.toString("hex") + ".pem");
-            if (! await fsFileExists(certificateFilename)) {
-                await fsWriteFile(certificateFilename, toPem(certificate, "CERTIFICATE"));
+            if (! await fsFileExists(certificateFilename) ) {
+                if (this.untrustUnknownCertificate) {
+                    await fsWriteFile(certificateFilename, toPem(certificate, "CERTIFICATE"));
+                } else {
+                    return StatusCodes.Good;
+                }
             }
+            debugLog("certificate has never been seen before and is rejected untrusted ", certificateFilename);
             return StatusCodes.BadCertificateUntrusted;
         }
     }
@@ -207,6 +219,7 @@ export class CertificateManager implements ICertificateManager {
         const certificateFilenameInTrusted = path.join(this.pkiTrustedFolder, thumbprint.toString("hex") + ".pem");
         const certificateFilenameInUntrusted = path.join(this.pkiUntrustedFolder, thumbprint.toString("hex") + ".pem");
 
+        debugLog("trusting certificate ", certificateFilenameInTrusted);
         await fsWriteFile(certificateFilenameInTrusted, toPem(certificate, "CERTIFICATE"));
 
         // remove in UnTrusted
@@ -229,6 +242,7 @@ export class CertificateManager implements ICertificateManager {
         const certificateFilenameInTrusted = path.join(this.pkiTrustedFolder, thumbprint.toString("hex") + ".pem");
         const certificateFilenameInUntrusted = path.join(this.pkiUntrustedFolder, thumbprint.toString("hex") + ".pem");
 
+        debugLog("untrusting certificate ", certificateFilenameInUntrusted);
         await fsWriteFile(certificateFilenameInUntrusted, toPem(certificate, "CERTIFICATE"));
 
         // remove in UnTrusted

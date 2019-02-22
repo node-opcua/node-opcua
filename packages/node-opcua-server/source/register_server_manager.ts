@@ -557,7 +557,7 @@ export class RegisterServerManager
         const selectedEndpoint = this.selectedEndpoint;
 
         if (!selectedEndpoint) {
-            console.log("Warning : cannot register server - no endpoint avaialble");
+            console.log("Warning : cannot register server - no endpoint available");
             return outer_callback(new Error("Cannot registerServer"));
         }
 
