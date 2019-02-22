@@ -79,18 +79,12 @@ export class CacheNode {
 
     constructor(nodeId: NodeId) {
         /**
-         * @property nodeId
-         * @type NodeId
          */
         this.nodeId = nodeId;
         /**
-         * @property browseName
-         * @type     QualifiedName
          */
         this.browseName = pendingBrowseName;
         /**
-         * @property references
-         * @type ReferenceDescription[]
          */
         this.references = [];
 
@@ -299,6 +293,8 @@ export interface NodeCrawlerClientSession {
     read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
 
     browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
+
+    browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean, callback: ResponseCallback<BrowseResult[]>): void;
 }
 
 interface TaskBrowseNode {
@@ -306,6 +302,10 @@ interface TaskBrowseNode {
     cacheNode: CacheNode;
     nodeId: NodeId;
     referenceTypeId: NodeId;
+}
+
+interface TaskBrowseNext extends TaskBrowseNode {
+    continuationPoint: Buffer;
 }
 
 type ReadNodeAction = (value: any, dataValue: DataValue) => void;
@@ -360,12 +360,15 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     public startTime: Date = new Date();
     public readCounter: number = 0;
     public browseCounter: number = 0;
+    public browseNextCounter: number = 0;
     public transactionCounter: number = 0;
     private readonly session: NodeCrawlerClientSession;
     private readonly browseNameMap: any;
     private readonly taskQueue: async.AsyncQueue<Task>;
     private readonly pendingReadTasks: TaskReadNode[];
     private readonly pendingBrowseTasks: TaskBrowseNode[];
+    private readonly pendingBrowseNextTasks: TaskBrowseNext[];
+
     private readonly _objectCache: any;
     private readonly _objMap: any;
     private _crawled: any;
@@ -389,6 +392,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         this.pendingReadTasks = [];
         this.pendingBrowseTasks = [];
+        this.pendingBrowseNextTasks = [];
 
         this.taskQueue = async.queue((task: Task, callback: Callback) => {
             // use process next tick to relax the stack frame
@@ -398,6 +402,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
             setImmediate(() => {
                 (task.func as any).call(this, task, () => {
+                    this.resolve_deferred_browseNext();
                     this.resolve_deferred_browseNode();
                     this.resolve_deferred_readNode();
                     callback();
@@ -459,10 +464,14 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
     /**
      *
-     * @param nodeId
-     * @param callback
      */
-    public read(nodeId: NodeIdLike, callback: (err: Error | null, obj?: any) => void) {
+    public read(nodeId: NodeIdLike): Promise<any>;
+    public read(nodeId: NodeIdLike, callback: (err: Error | null, obj?: any) => void): void;
+    public read(nodeId: NodeIdLike, callback?: (err: Error | null, obj?: any) => void): any {
+
+        if (!callback) {
+            throw new Error("Invalid Error");
+        }
 
         try {
             nodeId = resolveNodeId(nodeId);
@@ -757,7 +766,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         }
         if (object.dataType) {
             obj.dataType = object.dataType.toString();
-            obj.dataTypeName = object.dataTypeName;
+            // xx obj.dataTypeName = object.dataTypeName;
         }
         if (object.dataValue) {
             if (object.dataValue instanceof Array || object.dataValue.length > 10) {
@@ -795,9 +804,10 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                   ref.nodeId.toString(), "in cache");
             }
 
-            // Extract nodeClass so it can be appended
-            reference.nodeClass = (ref as any).$nodeClass;
-
+            if (reference) {
+                // Extract nodeClass so it can be appended
+                reference.nodeClass = (ref as any).$nodeClass;
+            }
             if (referenceType) {
 
                 const refName = lowerFirstLetter(referenceType.browseName.name);
@@ -917,6 +927,51 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         });
     }
 
+    private _resolve_deferred_browseNext(callback: ErrorCallback): void {
+
+        if (this.pendingBrowseNextTasks.length === 0) {
+            callback();
+            return;
+        }
+
+        debugLog("_resolve_deferred_browseNext = ", this.pendingBrowseNextTasks.length);
+
+        const objectsToBrowse: TaskBrowseNext[] = _fetch_elements(this.pendingBrowseNextTasks, this.maxNodesPerBrowse);
+
+        const continuationPoints = objectsToBrowse.map((e: TaskBrowseNext) => {
+            return e.continuationPoint;
+        });
+
+        this.browseNextCounter += continuationPoints.length;
+        this.transactionCounter++;
+
+        this.session.browseNext(
+          continuationPoints,
+          true,
+          (err: Error | null, browseResults?: BrowseResult[]) => {
+
+              if (err) {
+                  debugLog("session.browse err:", err);
+                  return callback(err || undefined);
+              }
+
+              assert(browseResults!.length === continuationPoints.length);
+
+              browseResults = browseResults || [];
+
+              const task: TaskProcessBrowseResponse = {
+                  func: NodeCrawler.prototype._process_browse_response_task,
+                  param: {
+                      browseResults,
+                      objectsToBrowse
+                  }
+              };
+              this._unshift_task("process browseResults", task);
+              callback();
+          });
+
+    }
+
     /**
      * @method _unshift_task
      * add a task on top of the queue (high priority)
@@ -935,7 +990,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     /**
      * @method _push_task
      * add a task at the bottom of the queue (low priority)
-     * @param name {string}
+     * @param name
      * @param task
      * @private
      */
@@ -1185,6 +1240,10 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         this._resolve_deferred("browse_node", this.pendingBrowseTasks, this._resolve_deferred_browseNode);
     }
 
+    private resolve_deferred_browseNext() {
+        this._resolve_deferred("browse_next", this.pendingBrowseNextTasks, this._resolve_deferred_browseNext);
+    }
+
 // ---------------------------------------------------------------------------------------
 
     private _getCacheNode(nodeId: NodeIdLike): CacheNode {
@@ -1241,18 +1300,52 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         });
     }
 
+    private _defer_browse_next(
+      cacheNode: CacheNode,
+      continuationPoint: Buffer,
+      referenceTypeId: NodeId,
+      actionOnBrowse: (err: Error | null, cacheNode?: CacheNode) => void
+    ) {
+
+        this.pendingBrowseNextTasks.push({
+            action: (object: CacheNode) => {
+                assert(object === cacheNode);
+                assert(_.isArray(object.references));
+                assert(cacheNode.browseName.name !== "pending");
+                actionOnBrowse(null, cacheNode);
+            },
+            cacheNode,
+            continuationPoint,
+            nodeId: cacheNode.nodeId,
+            referenceTypeId
+        });
+    }
+
     /**
      * @method _process_single_browseResult
      * @param _objectToBrowse
-     * @param browseResult {BrowseResult}
+     * @param browseResult
      * @private
      */
     private _process_single_browseResult(
-      _objectToBrowse: any,
+      _objectToBrowse: TaskBrowseNode,
       browseResult: BrowseResult
     ) {
 
-        assert(browseResult.continuationPoint === null, "NodeCrawler doesn't support continuation point yet");
+        if (browseResult.continuationPoint) {
+            //
+            this._defer_browse_next(
+              _objectToBrowse.cacheNode,
+              browseResult.continuationPoint,
+              _objectToBrowse.referenceTypeId,
+              (err: Error | null, cacheNode1?: CacheNode) => {
+                  _objectToBrowse.action(cacheNode1!);
+              }
+            );
+        }
+
+//        assert(browseResult.continuationPoint === null,
+//          "NodeCrawler doesn't support continuation point yet");
 
         const cacheNode = _objectToBrowse.cacheNode as CacheNode;
 
@@ -1453,4 +1546,5 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
+NodeCrawler.prototype.read = thenify.withCallback(NodeCrawler.prototype.read);
 NodeCrawler.prototype.crawl = thenify.withCallback(NodeCrawler.prototype.crawl);
