@@ -1745,8 +1745,8 @@ ClientSession.prototype.readNamespaceArray = function(callback){
 
 ClientSession.prototype.getNamespaceIndex = function(namespaceUri){
     const session = this;
-    assert(session._namespaceArray,"please make sure that readNamespaceArray has been called");
-    return session._namespaceArray.findIndex(namespaceUri);
+    assert(session._namespaceArray, "please make sure that readNamespaceArray has been called");
+    return session._namespaceArray.indexOf(namespaceUri);
 };
 
 ClientSession.prototype.__defineGetter__("isReconnecting",function() {
