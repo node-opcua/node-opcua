@@ -2,7 +2,7 @@
  "name": "node-opcua-nodeid",
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
- "version": "2.0.0-alpha.11",
+ "version": "2.0.0-alpha.13",
  "description": "pure nodejs OPCUA SDK - module -nodeid",
  "scripts": {
   "build": "tsc",
