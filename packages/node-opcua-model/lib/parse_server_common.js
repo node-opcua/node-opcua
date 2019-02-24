@@ -70,7 +70,6 @@ function parse_opcua_common(session,callback)  {
                             assert(dataValue.value.dataType === opcua.DataType.ByteString);
                             strTypeDictionary = dataValue.value.value.toString("ascii");
 
-                            // console.log(strTypeDictionary.yellow);
                             parseBinaryXSD(strTypeDictionary,function(err,data){
                                 if (err) { return callback(err); }
 

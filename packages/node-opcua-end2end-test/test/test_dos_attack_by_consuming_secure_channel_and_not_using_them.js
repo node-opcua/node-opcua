@@ -14,6 +14,7 @@ const async = require("async");
 const path = require("path");
 const _ = require("underscore");
 const defer = require("delayed");
+const chalk = require("chalk");
 
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
@@ -438,7 +439,7 @@ describe("testing Server resilience to DDOS attacks", function () {
             server_exec.stdout.on("data", function (data) {
                 data = data.toString();
                 data.split("\n").forEach(function (data) {
-                    process.stdout.write("stdout:               " + data.yellow + "\n");
+                    process.stdout.write("stdout:               " + chalk.yellow(data) + "\n");
                 });
             });
         }
