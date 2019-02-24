@@ -1959,7 +1959,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
     public getNamespaceIndex(namespaceUri: string): number {
         assert(this._namespaceArray, "please make sure that readNamespaceArray has been called");
-        return this._namespaceArray.findIndex(namespaceUri);
+        return this._namespaceArray.indexOf(namespaceUri);
     }
 
     // tslint:disable:no-empty
