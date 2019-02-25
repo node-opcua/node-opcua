@@ -30,7 +30,7 @@ describe("Testing ClientSecureChannel 1", function () {
             client_has_received_close_event += 1;
         });
 
-        secureChannel.create("opc.tcp://no_server_at_this_address:1234/UA/Sample", function (err) {
+        secureChannel.create("opc.tcp://no_server_at_this_address.com:1234/UA/Sample", function (err) {
 
             should(err).be.instanceOf(Error);
             err.message.should.match(/getaddrinfo ENOTFOUND/);
