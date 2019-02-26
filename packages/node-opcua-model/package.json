@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-model",
-  "version": "2.0.0-alpha.14",
+  "version": "2.0.0-alpha.16",
   "description": "pure nodejs OPCUA SDK - module - model",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^2.4.2",
-    "node-opcua-address-space": "^2.0.0-alpha.13",
+    "node-opcua-address-space": "^2.0.0-alpha.16",
     "node-opcua-assert": "^2.0.0-alpha.10",
     "node-opcua-basic-types": "^2.0.0-alpha.13",
     "node-opcua-client": "^2.0.0-alpha.14",

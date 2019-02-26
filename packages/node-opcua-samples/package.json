@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-samples",
- "version": "2.0.0-alpha.15",
+ "version": "2.0.0-alpha.16",
  "description": "pure nodejs OPCUA SDK - module -samples",
  "bin": {
   "simple_client": "./bin/simple_client.ts",
@@ -21,7 +21,7 @@
   "easy-table": "^1.1.1",
   "exit": "^0.1.2",
   "hexy": "^0.3.0",
-  "node-opcua": "^2.0.0-alpha.14",
+  "node-opcua": "^2.0.0-alpha.16",
   "node-opcua-assert": "^2.0.0-alpha.10",
   "node-opcua-pki": "^1.0.3",
   "readline": "^1.3.0",
