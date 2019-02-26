@@ -19,10 +19,6 @@ import {
     UAVariableType
 } from "../source";
 
-import * as should from "should";
-
-const _should = should;
-
 function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
 
     const addressSpace = _addressSpace;
@@ -48,8 +44,6 @@ function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
 export function create_minimalist_address_space_nodeset(
   addressSpace: AddressSpace
 ) {
-    resolveNodeId(ObjectTypeIds.BaseObjectType).toString().should.eql("ns=0;i=58");
-
     const namespace0 = addressSpace.registerNamespace("http://opcfoundation.org/UA/");
     assert(namespace0.index === 0);
 
@@ -177,8 +171,8 @@ export function create_minimalist_address_space_nodeset(
                 organizedBy: rootFolder
             });
 
-            rootFolder.getFolderElementByName("Objects")!
-              .browseName.toString().should.eql("Objects");
+            assert(rootFolder.getFolderElementByName("Objects")!
+              .browseName.toString() === "Objects");
 
         }
         {
