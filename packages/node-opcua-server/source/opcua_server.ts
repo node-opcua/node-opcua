@@ -51,7 +51,9 @@ import {
     MessageSecurityMode,
     SecurityPolicy,
     ServerSecureChannelLayer, SignatureData,
-    verifySignature
+    verifySignature,
+    Response,
+    Request
 } from "node-opcua-secure-channel";
 import {
     BrowseNextRequest,
