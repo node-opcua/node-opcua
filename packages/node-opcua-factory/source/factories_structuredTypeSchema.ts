@@ -224,7 +224,7 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
     }
 
     // extract the possible fields from the schema.
-    const possibleFields = obj.constructor.possibleFields;
+    const possibleFields = obj.constructor.possibleFields || schema._possibleFields;
 
     // extracts the fields exposed by the option object
     const currentFields = Object.keys(options);

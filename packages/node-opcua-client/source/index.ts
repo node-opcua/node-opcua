@@ -57,3 +57,4 @@ export * from "node-opcua-service-subscription";
 export * from "node-opcua-service-translate-browse-path";
 export * from "node-opcua-service-write";
 export * from "node-opcua-service-filter";
+export { IBasicSession } from "node-opcua-pseudo-session";
