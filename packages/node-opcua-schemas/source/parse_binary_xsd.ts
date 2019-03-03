@@ -3,16 +3,19 @@
  */
 // tslint:disable:no-console
 // tslint:disable:object-literal-sort-keys
-// tslint:disable:max-line-length
-// tslint:disable:no-var-requires
 // tslint:disable:no-empty
 
 import chalk from "chalk";
-import * as fs from "fs";
-import { StructuredTypeField, StructuredTypeOptions, StructuredTypeSchema } from "node-opcua-factory";
-import { EnumeratedType, EnumeratedValue } from "./process_schema_file";
+import {
+    buildStructuredType,
+    StructuredTypeField,
+    StructuredTypeOptions,
+    StructuredTypeSchema
+} from "node-opcua-factory";
 
-const Xml2Json = require("node-opcua-xml2json").Xml2Json;
+import { Xml2Json } from "node-opcua-xml2json";
+import { prepareStructureType } from "./tools";
+
 const doDebug = false;
 
 function w(s: string, l: number): string {
@@ -229,8 +232,24 @@ export function parseBinaryXSD(
     };
 
     const parser = new Xml2Json(state0);
-    parser.typeDictionary = typeDictionary;
-    parser.parseString(xmlString, (err: Error | null) => {
-        callback(err, typeDictionary);
+    (parser as any).typeDictionary = typeDictionary;
+    parser.parseString(xmlString, (err?: Error | null) => {
+
+        for (const key in typeDictionary.structuredTypes) {
+
+            if (!typeDictionary.structuredTypes.hasOwnProperty(key)) {
+                continue;
+            }
+
+            const structuredType = typeDictionary.structuredTypes[key];
+
+            prepareStructureType(structuredType, typeDictionary);
+
+            const structuredTypeSchema: StructuredTypeSchema = buildStructuredType(structuredType);
+            typeDictionary.structuredTypes[key] = structuredTypeSchema;
+
+        }
+
+        callback(err!, typeDictionary);
     });
 }

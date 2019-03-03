@@ -162,7 +162,7 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
             field.fieldTypeConstructor = field.fieldTypeConstructor || getStructureTypeConstructor(fieldType);
             const fieldTypeConstructor = field.fieldTypeConstructor;
 
-            const _newDesc = fieldTypeConstructor.prototype.schema;
+            const _newDesc = fieldTypeConstructor.prototype.schema || (fieldTypeConstructor as any).schema;
 
             if (field.isArray) {
                 if (value === null) {
