@@ -3,7 +3,7 @@
  */
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
 import { BaseUAObject, constructObject, is_internal_id, registerBuiltInType } from "node-opcua-factory";
 import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
 
@@ -85,6 +85,26 @@ export function encodeExtensionObject(object: any, stream: OutputBinaryStream): 
     }
 }
 
+// tslint:disable:max-classes-per-file
+export class OpaqueStructure extends ExtensionObject {
+    public nodeId: NodeId;
+    public buffer: Buffer;
+    constructor(nodeId: NodeId, buffer: Buffer) {
+        super({});
+        this.nodeId = nodeId;
+        this.buffer = buffer;
+    }
+
+    public toString(): string {
+        const str =
+        "/* OpaqueStructure */ { \n" +
+        "nodeId " + this.nodeId.toString() + "\n" +
+        "buffer = \n" + hexDump(this.buffer) + "\n" +
+        "}";
+        return str;
+    }
+}
+
 export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | null {
 
     const nodeId = decodeNodeId(stream);
@@ -101,21 +121,34 @@ export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | n
         return {} as ExtensionObject;
     }
 
-    const object = constructEmptyExtensionObject(nodeId);
-
-    /* istanbul ignore next */
-    if (object === null) {
-        // this object is unknown to us ..
-        stream.length += length;
-        return {} as ExtensionObject;
-    }
     // let verify that  decode will use the expected number of bytes
     const streamLengthBefore = stream.length;
 
-    try {
-        object.decode(stream);
-    } catch (err) {
-        debugLog("Cannot decode object ", err.message);
+    let object: any;
+    if (nodeId.namespace !== 0 ) {
+        // this is a extension object define in a other namespace
+        // we can only threat it as an opaque object for the time being
+        // the caller that may now more about the namespace Array and type
+        // definition will be able to turn the opaque object into a meaningful
+        // structure
+        // lets rewind before the length
+        stream.length -= 4;
+        object = new OpaqueStructure(nodeId, stream.readByteStream()!);
+
+    }  else {
+        object = constructEmptyExtensionObject(nodeId);
+        /* istanbul ignore next */
+        if (object === null) {
+            // this object is unknown to us ..
+            stream.length += length;
+            object = {} as ExtensionObject;
+        } else {
+            try {
+                object.decode(stream);
+            } catch (err) {
+                debugLog("Cannot decode object ", err.message);
+            }
+        }
     }
 
     if (streamLengthBefore + length !== stream.length) {
@@ -127,7 +160,7 @@ export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | n
         // tslint:disable-next-line:no-console
         console.warn("WARNING => Extension object decoding error on ",
           object.constructor.name, " expected size was", length,
-          "actual size was ", stream.length - streamLengthBefore);
+          "but only this amount of bytes have been read :", stream.length - streamLengthBefore);
         stream.length = streamLengthBefore + length;
     }
     return object;

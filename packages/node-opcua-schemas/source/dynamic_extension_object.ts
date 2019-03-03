@@ -1,7 +1,9 @@
-// tslint:disable:no-console
+/**
+ * @module node-opcua-schemas
+ */
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { LocalizedText } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import {
     BaseUAObject,
@@ -11,23 +13,49 @@ import {
     FieldType, getStructureTypeConstructor, hasStructuredType,
     initialize_field,
     initialize_field_array,
-    parameters, registerFactory,
+    registerClassDefinition, registerFactory,
     StructuredTypeSchema
 } from "node-opcua-factory";
 import { ExpandedNodeId, NodeIdType } from "node-opcua-nodeid";
 import { TypeDictionary } from "./parse_binary_xsd";
 
-export function getOrCreateConstructor(fieldType: string, typeDictionary: TypeDictionary) {
+const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
+
+export function getOrCreateConstructor(
+  fieldType: string,
+  typeDictionary: TypeDictionary,
+  encodingDefaultBinary?: ExpandedNodeId,
+  encodingDefaultXml?: ExpandedNodeId
+) {
 
     if (hasStructuredType(fieldType)) {
         return getStructureTypeConstructor(fieldType);
     }
     const schema = typeDictionary.structuredTypes[fieldType];
+
+    // istanbul ignore next
     if (!schema) {
         throw new Error("Unknown type in dictionary" + fieldType);
     }
+
     const constructor = createDynamicObject(schema, typeDictionary);
-    registerFactory(fieldType, constructor as ConstructorFuncWithSchema);
+
+    if (encodingDefaultBinary && encodingDefaultBinary.value !== 0) {
+        schema.encodingDefaultBinary = encodingDefaultBinary;
+        schema.encodingDefaultXml = encodingDefaultXml;
+        (constructor as any).encodingDefaultBinary = encodingDefaultBinary;
+        (constructor as any).encodingDefaultXml = encodingDefaultXml;
+
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog("registering class definition , ", fieldType, encodingDefaultBinary.toString());
+        }
+
+        registerClassDefinition(fieldType, constructor as ConstructorFuncWithSchema);
+    } else {
+        registerFactory(fieldType, constructor as ConstructorFuncWithSchema);
+    }
     return constructor;
 }
 
@@ -106,8 +134,6 @@ class DynamicExtensionObject extends ExtensionObject {
         options = options || {};
         this.__schema = schema;
 
-        const ___toto = new LocalizedText();
-
         check_options_correctness_against_schema(this, this.schema, options);
 
         // finding fields that are in options but not in schema!
@@ -128,22 +154,16 @@ class DynamicExtensionObject extends ExtensionObject {
                     // xx processStructuredType(fieldSchema);
                     break;
                 }
-                case FieldCategory.enumeration: {
-                    const fieldSchema = typeDictionary.enumeratedTypes[field.fieldType];
-                    // xx processEnumeratedType(fieldSchema);
-                    break;
-                }
-                case FieldCategory.basic: {
+                case FieldCategory.enumeration:
+                case FieldCategory.basic:
                     if (field.isArray) {
                         (this as any)[name] = initialize_field_array(field, options[name]);
                     } else {
                         (this as any)[name] = initialize_field(field, options[name]);
                     }
                     break;
-                }
 
             }
-            console.log("field name", field.name, field.fieldType);
         }
     }
 
@@ -151,20 +171,14 @@ class DynamicExtensionObject extends ExtensionObject {
         super.encode(stream);
 
         for (const field of this.schema.fields) {
-
             switch (field.category) {
-
-                case FieldCategory.complex: {
+                case FieldCategory.complex:
                     encodeArrayOrElement(field, this as any, stream);
                     break;
-                }
-                case FieldCategory.enumeration: {
+                case FieldCategory.enumeration:
+                case FieldCategory.basic:
                     encodeArrayOrElement(field, this as any, stream, field.schema.encode);
                     break;
-                }
-                case FieldCategory.basic: {
-                    encodeArrayOrElement(field, this as any, stream, field.schema.encode);
-                }
             }
         }
     }
@@ -174,17 +188,13 @@ class DynamicExtensionObject extends ExtensionObject {
         for (const field of this.schema.fields) {
             switch (field.category) {
 
-                case FieldCategory.complex: {
+                case FieldCategory.complex:
                     decodeArrayOrElement(field, this as any, stream);
                     break;
-                }
-                case FieldCategory.enumeration: {
+                case FieldCategory.enumeration:
+                case FieldCategory.basic:
                     decodeArrayOrElement(field, this as any, stream, field.schema.decode);
                     break;
-                }
-                case FieldCategory.basic: {
-                    decodeArrayOrElement(field, this as any, stream, field.schema.decode);
-                }
             }
         }
     }
@@ -218,6 +228,7 @@ export function createDynamicObject(
             super(options, schema, typeDictionary);
             assert(this.schema === schema);
         }
+
         public toString(): string {
             return super.toString();
         }

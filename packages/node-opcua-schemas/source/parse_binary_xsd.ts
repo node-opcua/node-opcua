@@ -1,5 +1,5 @@
 /**
- * @module node-opcua-generator
+ * @module node-opcua-schemas
  */
 // tslint:disable:no-console
 // tslint:disable:object-literal-sort-keys
@@ -89,6 +89,9 @@ export interface EnumeratedType {
 }
 
 export interface TypeDictionary {
+    defaultByteOrder: "LittleEndian";
+    targetNamespace: string;
+    imports: string[];
     structuredTypes: { [key: string]: StructuredTypeSchema; };
     enumeratedTypes: { [key: string]: EnumeratedType; };
 }
@@ -100,120 +103,119 @@ const state0: any = {
     },
     parser: {
         TypeDictionary: {
-            init: function() {
-                const self = this as any;
-                self.typeDictionary = self.engine.typeDictionary;
+            init: function(this: any, name: string, attributes: any) {
+                this.typeDictionary = this.engine.typeDictionary;
+
+                this.typeDictionary.defaultByteOrder = attributes.DefaultByteOrder;
+                this.typeDictionary.targetNamespace  = attributes.TargetNamespace;
             },
             parser: {
                 Import: {
-                    finish: function() {
-                        const self = this as any;
+                    init: function(this: any, name: string, attributes: any) {
+                        this.parent.typeDictionary.imports.push(attributes.Namespace);
+                    },
+                    finish: function(this: any) {
                         // _register_namespace_uri(this.text);
-                        console.log("Import NameSpace = ", self.attrs.Namespace, " Location", self.attrs.Location);
+                        if (doDebug) {
+                            console.log("Import NameSpace = ", this.attrs.Namespace,
+                              " Location", this.attrs.Location);
+                        }
                     }
                 },
 
                 EnumeratedType: {
-                    init: function() {
-
-                        const self = this as any;
+                    init: function(this: any) {
 
                         if (doDebug) {
                             console.log(chalk.cyan("EnumeratedType Name="),
-                              w(self.attrs.Name, 40), "LengthInBits=", self.attrs.LengthInBits);
+                              w(this.attrs.Name, 40), "LengthInBits=", this.attrs.LengthInBits);
                         }
 
-                        self.enumeratedType = {
+                        this.enumeratedType = {
                             enumeratedValues: [] as EnumeratedValue[],
-                            lengthInBits: parseInt(self.attrs.LengthInBits, 10),
-                            name: self.attrs.Name
+                            lengthInBits: parseInt(this.attrs.LengthInBits, 10),
+                            name: this.attrs.Name
                         };
                     },
                     parser: {
                         Documentation: {
-                            finish: function() {
-                                const self = this as any;
-                                self.parent.enumeratedType.documentation = self.text;
+                            finish: function(this: any) {
+                                this.parent.enumeratedType.documentation = this.text;
                             }
                         },
                         EnumeratedValue: {
-                            finish: function() {
-                                const self = this as any;
+                            finish: function(this: any) {
                                 if (doDebug) {
                                     console.log(" EnumeratedValue Name=",
-                                      w(self.attrs.Name, 40), " Value=", self.attrs.Value);
+                                      w(this.attrs.Name, 40), " Value=", this.attrs.Value);
                                 }
-                                self.parent.enumeratedType.enumeratedValues.push({
-                                    name: self.attrs.Name,
-                                    value: parseInt(self.attrs.Value, 10)
+                                this.parent.enumeratedType.enumeratedValues.push({
+                                    name: this.attrs.Name,
+                                    value: parseInt(this.attrs.Value, 10)
                                 });
                             }
                         }
                     },
-                    finish: function() {
-                        const self = this as any;
-                        self.parent.typeDictionary.enumeratedTypes[self.attrs.Name] = self.enumeratedType;
+                    finish: function(this: any) {
+                        this.parent.typeDictionary.enumeratedTypes[this.attrs.Name] = this.enumeratedType;
                     }
                 },
                 StructuredType: {
-                    init: function() {
-                        const self = this as any;
+                    init: function(this: any) {
                         if (doDebug) {
                             console.log(chalk.cyan("StructureType Name="),
-                              self.attrs.Name.green, " BaseType=", self.attrs.BaseType);
+                              this.attrs.Name.green, " BaseType=", this.attrs.BaseType);
                         }
-                        const baseType = self.attrs.BaseType;
+                        const baseType = this.attrs.BaseType;
 
-                        const base = self.parent.typeDictionary.structuredTypes[baseType];
+                        const base = this.parent.typeDictionary.structuredTypes[baseType];
 
-                        self.structuredType = {
-                            name: self.attrs.Name,
+                        this.structuredType = {
+                            name: this.attrs.Name,
                             baseType: baseType,
                             fields: []
                         };
                         if (base) {
-                            self.structuredType.base = base;
+                            this.structuredType.base = base;
                         }
                     },
                     parser: {
                         Field: {
-                            finish: function() {
-                                const self = this as any;
+                            finish: function(this: any) {
 
-                                if (self.attrs.SourceType) {
+                                if (this.attrs.SourceType) {
                                     // ignore  this field, This is a repeatition of the base type field with same name
                                     return;
                                 }
                                 if (doDebug) {
                                     console.log(
-                                      chalk.yellow(" field Name="), w(self.attrs.Name, 40),
-                                      chalk.yellow(" field TypeName="), w(self.attrs.TypeName, 40),
-                                      chalk.yellow(" field LengthField="), w(self.attrs.LengthField, 40));
+                                      chalk.yellow(" field Name="), w(this.attrs.Name, 40),
+                                      chalk.yellow(" field TypeName="), w(this.attrs.TypeName, 40),
+                                      chalk.yellow(" field LengthField="), w(this.attrs.LengthField, 40));
                                 }
-                                resolveType(self.parent.typeDictionary, self.attrs.TypeName);
+                                resolveType(this.parent.typeDictionary, this.attrs.TypeName);
 
-                                const field: any = { name: self.attrs.Name, fieldType: self.attrs.TypeName };
+                                const field: any = { name: this.attrs.Name, fieldType: this.attrs.TypeName };
 
                                 if (field.fieldType === "opc:Bit") {
                                     // do something to collect bits but ignore them as field
-                                    self.parent.structuredType.flags = self.parent.structuredType.flags || [];
-                                    self.parent.structuredType.flags.push(field.name);
+                                    this.parent.structuredType.flags = this.parent.structuredType.flags || [];
+                                    this.parent.structuredType.flags.push(field.name);
                                     return;
                                 }
 
-                                if (self.attrs.LengthField) {
+                                if (this.attrs.LengthField) {
                                     field.isArray = true;
-                                    const n = self.parent.structuredType.fields.length - 1;
-                                    self.parent.structuredType.fields[n] = field;
+                                    const n = this.parent.structuredType.fields.length - 1;
+                                    this.parent.structuredType.fields[n] = field;
                                 } else {
-                                    self.parent.structuredType.fields.push(field);
+                                    this.parent.structuredType.fields.push(field);
                                 }
                             }
                         }
                     },
-                    finish: function() {
-                        const self = this as any;
-                        self.parent.typeDictionary.structuredTypes[self.attrs.Name] = self.structuredType;
+                    finish: function(this: any) {
+                        this.parent.typeDictionary.structuredTypes[this.attrs.Name] = this.structuredType;
                     }
                 }
             }
@@ -227,6 +229,9 @@ export function parseBinaryXSD(
   ) => void) {
 
     const typeDictionary: TypeDictionary = {
+        defaultByteOrder: "LittleEndian",
+        targetNamespace: "",
+        imports: [],
         structuredTypes: {},
         enumeratedTypes: {}
     };

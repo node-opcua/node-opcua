@@ -2,7 +2,7 @@
 const async = require("async");
 const opcua = require("node-opcua-client");
 const assert = require("assert");
-const parseBinaryXSD = require("node-opcua-generator").parseBinaryXSD;
+const parseBinaryXSD = require("node-opcua-schemas").parseBinaryXSD;
 const chalk = require("chalk");
 
 const doDebug = false;

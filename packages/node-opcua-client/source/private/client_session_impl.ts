@@ -1089,7 +1089,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
             response.results = response.results || [];
 
-            return callback(null, isArray ? response.results : response.results[0]);
+            // perform ExtensionObject resolution
+            response.results.map((dataValue) => {
+               //xx resolveDynamicExtensionObject(dataValue.value);
+            });
+
+            return callback(null,  isArray ? response.results : response.results[0]);
 
         });
     }
