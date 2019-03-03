@@ -15,6 +15,7 @@
   "node-opcua-data-model": "^2.0.0-alpha.13",
   "node-opcua-factory": "^2.0.0-alpha.13",
   "node-opcua-nodeid": "^2.0.0-alpha.13",
+  "node-opcua-debug": "^2.0.0-alpha.10",
   "node-opcua-xml2json": "^2.0.0-alpha.13"
  },
  "devDependencies": {

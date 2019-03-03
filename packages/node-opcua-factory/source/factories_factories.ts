@@ -1,23 +1,24 @@
 /**
  * @module node-opcua-factory
- * @class Factory
- * @static
  */
 // tslint:disable:no-console
 
 import chalk from "chalk";
-import assert from "node-opcua-assert";
-import { ExpandedNodeId } from "node-opcua-nodeid";
 import * as  _ from "underscore";
+
+import assert from "node-opcua-assert";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { ExpandedNodeId } from "node-opcua-nodeid";
 
 import { BaseUAObject } from "./factories_baseobject";
 import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
 
+const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
+
 const constructorMap: any = {};
 
-interface BaseUAObjectConstructable {
-    new(options?: any): BaseUAObject;
-}
+type BaseUAObjectConstructable = new(options?: any) => BaseUAObject;
 export type ConstructorFunc = BaseUAObjectConstructable;
 // new (...args: any[]) => BaseUAObjectConstructable;
 
@@ -61,41 +62,67 @@ export function callConstructor(constructor: ConstructorFunc): BaseUAObject {
     return new constructorFunc();
 }
 
-export function getConstructor(expandedId: ExpandedNodeId): ConstructorFunc | null {
+export function getConstructor(expandedNodeId: ExpandedNodeId): ConstructorFunc | null {
 
-    if (!(expandedId && (expandedId.value in constructorMap))) {
-        console.log(chalk.red("#getConstructor : cannot find constructor for expandedId "), expandedId.toString());
+    const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
+
+    if (!(expandedNodeId && (expandedNodeIdKey in constructorMap))) {
+        debugLog(chalk.red("#getConstructor : cannot find constructor for expandedId "), expandedNodeId.toString());
         return null;
     }
-    if (expandedId.value instanceof Buffer) {
-        throw new Error("getConstructor not implemented for opaque nodeId");
-    }
-    return constructorMap[expandedId.value];
+    return constructorMap[expandedNodeIdKey];
 }
 
-export function hasConstructor(expandedId: ExpandedNodeId): boolean {
-    if (!expandedId) {
+export function hasConstructor(expandedNodeId: ExpandedNodeId): boolean {
+    if (!expandedNodeId) {
         return false;
     }
-    assert(expandedId.hasOwnProperty("value"));
-    // only namespace 0 can be in constructorMap
-    if (expandedId.namespace !== 0) {
-        return false;
+    /* istanbul ignore next */
+    if (!verifyExpandedNodeId(expandedNodeId)) {
+        throw new Error("Invalid expandedNodeId");
     }
-    if (expandedId.value instanceof Buffer) {
-        throw new Error("getConstructor not implemented for opaque nodeId");
-    }
-    return !!constructorMap[expandedId.value];
+    const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
+    return !!constructorMap[expandedNodeIdKey];
 }
 
 export function constructObject(expandedNodeId: ExpandedNodeId): BaseUAObject  {
+
+    if (!verifyExpandedNodeId(expandedNodeId)) {
+        throw new Error(" constructObject : invalid expandedNodeId provided "+ expandedNodeId.toString());
+    }
     const constructor = getConstructor(expandedNodeId);
+
     if (!constructor) {
-        console.log("Cannot find constructor for " + expandedNodeId.toString());
+        debugLog("Cannot find constructor for " + expandedNodeId.toString());
         return new BaseUAObject();
         // throw new Error("Cannot find constructor for " + expandedNodeId.toString());
     }
     return callConstructor(constructor);
+
+}
+
+function verifyExpandedNodeId(expandedNodeId: ExpandedNodeId): boolean {
+    /* istanbul ignore next */
+    if (expandedNodeId.value instanceof Buffer) {
+        throw new Error("getConstructor not implemented for opaque nodeid");
+    }
+    if (expandedNodeId.namespace === 0) {
+        if (expandedNodeId.namespaceUri === "http://opcfoundation.org/UA/" || !expandedNodeId.namespaceUri ) {
+            return true;
+        }
+        // When namespace is ZERO, namepaceUri must be "http://opcfoundation.org/UA/"  or nothing
+        return false;
+    } else {
+        // expandedNodeId.namespace  !==0
+        // in this case a valid expandedNodeId.namespaceUri  must be provided
+        return !!expandedNodeId.namespaceUri && expandedNodeId.namespaceUri.length > 2;
+    }
+}
+function makeExpandedNodeIdKey(expandedNodeId: ExpandedNodeId): string {
+    if (expandedNodeId.namespace === 0) {
+        return expandedNodeId.value.toString();
+    }
+    return expandedNodeId.namespaceUri + "@" + expandedNodeId.value.toString();
 }
 
 export function registerClassDefinition(className: string, classConstructor: ConstructorFuncWithSchema): void {
@@ -104,16 +131,21 @@ export function registerClassDefinition(className: string, classConstructor: Con
 
     const expandedNodeId = classConstructor.encodingDefaultBinary;
 
-    /* istanbul ignore next */
-    if (expandedNodeId.value instanceof Buffer) {
-        throw new Error("getConstructor not implemented for opaque nodeid");
+    if (doDebug) {
+        debugLog(" registering ", className, expandedNodeId.toString());
     }
 
     /* istanbul ignore next */
-    if (expandedNodeId.value in constructorMap) {
+    if (!verifyExpandedNodeId(expandedNodeId)) {
+        throw new Error("Invalid expandedNodeId");
+    }
+    const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
+
+    /* istanbul ignore next */
+    if (expandedNodeIdKey in constructorMap) {
         throw new Error(" Class " + className + " with ID " + expandedNodeId +
-          "  already in constructorMap for  " + constructorMap[expandedNodeId.value].name);
+          "  already in constructorMap for  " + constructorMap[expandedNodeIdKey].name);
     }
 
-    constructorMap[expandedNodeId.value] = classConstructor;
+    constructorMap[expandedNodeIdKey] = classConstructor;
 }

@@ -12,7 +12,7 @@ import { parseBinaryXSD, TypeDictionary } from "../source";
 import { getOrCreateConstructor } from "../source/dynamic_extension_object";
 
 // ts-lint:disable:no-string-literal
-describe("Binary sSchemas Helper", () => {
+describe("Binary Schemas Helper", () => {
 
     let typeDictionary: TypeDictionary;
     before(async () => {
