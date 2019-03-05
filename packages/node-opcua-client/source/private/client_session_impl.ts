@@ -3,8 +3,8 @@
  */
 import chalk from "chalk";
 import { EventEmitter } from "events";
-import { callbackify } from "util";
 import * as _ from "underscore";
+import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { DateTime } from "node-opcua-basic-types";
@@ -108,6 +108,14 @@ import { Request, Response } from "../common";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import { OPCUAClientImpl } from "./opcua_client_impl";
+import { BrowseNextRequest, BrowseNextResponse } from "node-opcua-types";
+import { OpaqueStructure } from "node-opcua-extension-object";
+import { IBasicSession } from "node-opcua-pseudo-session";
+import {
+    extractNamespaceDataType,
+    ExtraDataTypeManager,
+    resolveDynamicExtensionObject
+} from "node-opcua-client-dynamic-extension-object";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
@@ -1087,14 +1095,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(new Error("Internal Error"));
             }
 
-            response.results = response.results || [];
-
             // perform ExtensionObject resolution
-            response.results.map((dataValue) => {
-               //xx resolveDynamicExtensionObject(dataValue.value);
+            promoteOpaqueStructureWithCallback(this, response.results!, () => {
+                response.results = response.results || [];
+                return callback(null,  isArray ? response.results : response.results[0]);
             });
-
-            return callback(null,  isArray ? response.results : response.results[0]);
 
         });
     }
@@ -2078,6 +2083,33 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     }
 
 }
+
+async function promoteOpaqueStructure(
+  session: IBasicSession,
+  dataValues: DataValue[]
+) {
+
+    // count number of Opaque Structures
+    const dataValuesToFix = dataValues.filter((dataValue: DataValue) =>
+      dataValue.value.dataType === DataType.ExtensionObject &&
+      dataValue.value.value instanceof OpaqueStructure);
+    if (dataValuesToFix.length === 0) {
+        return;
+    }
+
+    // construct dataTypeManager if not already present
+    const sessionPriv: any = session as any;
+    if (!sessionPriv.$$extraDataTypeManager) {
+        const extraDataTypeManager = new ExtraDataTypeManager();
+        await extractNamespaceDataType(session, extraDataTypeManager);
+        sessionPriv.$$extraDataTypeManager = extraDataTypeManager;
+    }
+    const promises = dataValuesToFix.map(async (dataValue: DataValue) => {
+        await resolveDynamicExtensionObject(dataValue.value, sessionPriv.$$extraDataTypeManager);
+    });
+    await Promise.all(promises);
+}
+const promoteOpaqueStructureWithCallback = callbackify(promoteOpaqueStructure);
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
