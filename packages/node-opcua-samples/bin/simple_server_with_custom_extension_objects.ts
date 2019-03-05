@@ -51,8 +51,28 @@ async function main() {
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
     server.on("post_initialize", () => {
-        const addressSpace = server.engine.addressSpace;
+
+        const addressSpace = server.engine.addressSpace!;
+
         // to do: expose new nodeid here
+        const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
+        const myStructureType = addressSpace.findVariableType("MyStructureType", ns);
+        if (!myStructureType) {
+           console.log(" ns = ", ns, "cannot find MyStructureDataType ");
+           return;
+        }
+
+        const namespace = addressSpace.getOwnNamespace();
+        const someObject =  namespace.addObject({
+            browseName: "SomeObject",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+
+        myStructureType.instantiate({
+            browseName: "MyVar",
+            componentOf: someObject
+        });
+
     });
 
     try {
