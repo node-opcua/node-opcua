@@ -105,6 +105,7 @@ registerBasicType({name: "UABoolean", subType: "Boolean"});
 registerBasicType({name: "UtcTime",  subType: "DateTime"});
 registerBasicType({name: "Int8",     subType: "SByte"});
 registerBasicType({name: "UInt8",    subType: "Byte"});
+registerBasicType({name: "Char",    subType: "Byte"});
 // xx registerBasicType({name:"XmlElement" ,subType:"String"  });
 registerBasicType({name: "Time",     subType: "String"});
 // string in the form "en-US" or "de-DE" or "fr" etc...

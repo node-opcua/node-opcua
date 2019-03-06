@@ -91,7 +91,9 @@ function parse_opcua_common(session,callback)  {
                             }
                             const nodeId = browseResult.references[0].nodeId;
                             session.read({ nodeId: nodeId, attributeId: 13},function(err,dataValue){
-                                console.log("namespaceUri =",dataValue.value.value.toString());
+                                if (doDebug) {
+                                    console.log("namespaceUri =",dataValue.value.value.toString());
+                                }
                                 const namespaceUri = dataValue.value.value.toString();
                                 callback();
                             });
@@ -111,11 +113,15 @@ function parse_opcua_common(session,callback)  {
                             if (err) {
                                 return callback(err);
                             }
-                            console.log(browseResult.constructor.name);
+                            if (doDebug){
+                                console.log(browseResult.constructor.name);
+                            }
 
                             assert(browseResult.constructor.name === "BrowseResult");
 
-                            console.log("--" ,browseResult.toString());
+                            if (doDebug) {
+                                console.log("--", browseResult.toString());
+                            }
 
                             if (doDebug) {
                                 browseResult.references = browseResult.references || [];
@@ -143,7 +149,11 @@ function parse_opcua_common(session,callback)  {
                                           return callback(err);
                                       }
                                       const nnn = browseResult.references[0].nodeId;
-                                      console.log(" ", nodeId.toString(), name, "nn=", nnn.toString());
+
+                                      if (doDebug){
+                                          console.log(" ", nodeId.toString(), name, "nn=", nnn.toString());
+                                      }
+
                                       callback();
                                   });
                               }, callback);

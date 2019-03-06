@@ -7,6 +7,7 @@ import * as util from "util";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
+import {checkDebugFlag, make_debugLog} from "node-opcua-debug";
 import {
     BaseUAObject, FieldCategory,
     findBuiltInType,
@@ -34,6 +35,9 @@ import {
 
 import { UADataType } from "./ua_data_type";
 import { UAVariable } from "./ua_variable";
+
+const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog(__filename);
 
 function makeStructure(dataType: UADataType, bForce?: boolean): any {
 
@@ -139,6 +143,10 @@ function buildConstructorFromDefinition(
   dataType: UADataType
 ) {
 
+    if (doDebug) {
+        debugLog("buildConstructorFromDefinition#", dataType.nodeId.toString());
+    }
+
     assert(dataType.definition && _.isArray(dataType.definition));
     const enumeration = addressSpace.findDataType("Enumeration");
 
@@ -154,7 +162,7 @@ function buildConstructorFromDefinition(
 
     (Constructor as any).definition = dataType.definition;
     (Constructor as any).dataType = dataType;
-    util.inherits(Constructor, BaseUAObject);
+    util.inherits(Constructor, ExtensionObject);
     Constructor.prototype.encode = _extensionobject_encode;
     Constructor.prototype.decode = _extensionobject_decode;
 
@@ -202,7 +210,6 @@ function buildConstructorFromDefinition(
             field.$$initialize$$ = initialize_array.bind(null, field.$$initialize$$);
             field.$$func_encode$$ = encode_array.bind(null, field.$$func_encode$$);
             field.$$func_decode$$ = decode_array.bind(null, field.$$func_decode$$);
-
         }
     }
 
@@ -217,10 +224,10 @@ function buildConstructorFromDefinition(
         if (field.$$isEnum$$) {
             data.category = FieldCategory.enumeration;
         } else if (field.$$isStructure$$) {
-            data.category = "complex";
+            data.category = FieldCategory.complex;
             data.fieldTypeConstructor = field.$$Constructor$$;
         } else {
-            data.category = "basic";
+            data.category = FieldCategory.basic;
         }
         fields.push(data);
     }

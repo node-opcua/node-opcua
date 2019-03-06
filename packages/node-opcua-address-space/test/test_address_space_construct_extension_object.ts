@@ -36,6 +36,7 @@ import {
     SessionContext,
     UAObject,
 } from "..";
+import { ExtensionObject } from "node-opcua-extension-object";
 
 // make sure all namespace 0 data type are properly loaded
 const context = SessionContext.defaultContext;
@@ -113,9 +114,10 @@ describe("testing address space namespace loading", function(this: any) {
         // ------------------------------------------------------------------------------
         // create an extension object
         // ------------------------------------------------------------------------------
-        const op = addressSpace.constructExtensionObject(myStructureDataType);
+        const op = addressSpace.constructExtensionObject(myStructureDataType) as any;
 
-        op.constructor.name.should.eql("MyStructure");
+        op.constructor.name.should.eql("MyStructureDataType");
+        op.should.be.instanceof(ExtensionObject);
 
         op.should.have.property("lowValue");
         op.lowValue.should.eql(0);
@@ -192,8 +194,8 @@ describe("testing address space namespace loading", function(this: any) {
         debugLog(myOtherStructureDataType.xmlEncodingDefinition.toString());
 
         const options = {
-            names: ["Hello", "World"],
-            values: [
+            listOfNames: ["Hello", "World"],
+            listOfValues: [
                 {
                     highValue: 100,
                     lowValue: 50,
@@ -204,12 +206,18 @@ describe("testing address space namespace loading", function(this: any) {
                 }
             ]
         };
-        const op = addressSpace.constructExtensionObject(myOtherStructureDataType, options);
+        const op = addressSpace.constructExtensionObject(myOtherStructureDataType, options) as any;
 
-        op.constructor.name.should.eql("MyOtherStructure");
+        op.constructor.name.should.eql("MyOtherStructureDataType");
         // xx console.log(op.toString());
 
-        op.names.should.eql(["Hello", "World"]);
+        op.listOfNames.should.eql(["Hello", "World"]);
+        op.listOfValues.length.should.eql(2);
+        op.listOfValues[0].highValue.should.eql(100);
+        op.listOfValues[0].lowValue.should.eql(50);
+        op.listOfValues[1].highValue.should.eql(101);
+        op.listOfValues[1].lowValue.should.eql(51);
+
     });
 
     it("should bind an xml-preloaded Extension Object Variable : ServerStatus ", async () => {

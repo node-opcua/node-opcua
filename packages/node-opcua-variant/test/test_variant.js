@@ -1,4 +1,5 @@
 "use strict";
+
 const should = require("should");
 const assert = require("node-opcua-assert").assert;
 const _ = require("underscore");
@@ -28,6 +29,7 @@ const factories = require("node-opcua-factory");
 
 const NumericRange = require("node-opcua-numeric-range").NumericRange;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
 
 describe("Variant", function () {
     it("should create a empty Variant", function () {
@@ -1676,10 +1678,16 @@ describe("testing sameVariant Performance", function () {
     });
 });
 
-describe("testing variant Clone & Copy Construct", function () {
-    function SomeExtensionObject(options) {
+
+class SomeExtensionObject extends ExtensionObject {
+
+    constructor(options) {
+        super();
         this.a = options.a;
     }
+}
+
+describe("testing variant Clone & Copy Construct", function () {
 
     function copy_construct(v) {
         return new Variant(v);

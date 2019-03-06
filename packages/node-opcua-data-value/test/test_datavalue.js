@@ -1,12 +1,14 @@
 "use strict";
 /* global describe,it*/
 Error.stackTraceLimit = 1000;
+const util = require("util");
 
 const Variant = require("node-opcua-variant").Variant;
 const DataType = require("node-opcua-variant").DataType;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
 const NumericRange = require("node-opcua-numeric-range").NumericRange;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
 
 const DataValue = require("..").DataValue;
 const extractRange = require("..").extractRange;
@@ -229,6 +231,7 @@ describe("DataValue", function () {
         function SomeExtensionObject(options) {
             this.a = options.a;
         }
+        util.inherits(SomeExtensionObject, ExtensionObject);
 
         function copy_construct(v) {
             return new DataValue(v);

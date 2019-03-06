@@ -233,6 +233,8 @@ export function createDynamicObject(
             return super.toString();
         }
     }
+    // to do : may be remove DataType suffix here ?
+    Object.defineProperty(EXTENSION, "name", { value: schema.name });
 
     return EXTENSION;
 }

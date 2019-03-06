@@ -1,6 +1,6 @@
 "use strict";
 require("should");
-const replaceBufferWithHexDump = require("../dist/replace_buffer_with_hex_dump").replaceBufferWithHexDump;
+const replaceBufferWithHexDump = require("..").replaceBufferWithHexDump;
 
 describe("replaceBufferWithHexDump", function() {
     it("replaceBufferWithHexDump", function() {

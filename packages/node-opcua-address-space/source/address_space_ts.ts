@@ -53,6 +53,7 @@ import { State, StateMachine, StateMachineType, Transition } from "./interfaces/
 import { PseudoSession } from "./pseudo_session";
 import { SessionContext } from "./session_context";
 
+import { ExtensionObject} from "node-opcua-extension-object";
 import { AddressSpacePrivate } from "../src/address_space_private";
 import { UAAcknowledgeableConditionBase } from "../src/alarms_and_conditions/ua_acknowledgeable_condition_base";
 import { UAAlarmConditionBase } from "../src/alarms_and_conditions/ua_alarm_condition_base";
@@ -1580,7 +1581,7 @@ export interface AddressSpace {
     inverseReferenceType(referenceType: string): string;
 
     // -------------- Extension Objects
-    constructExtensionObject(dataType: UADataType | NodeId, options?: any): any;
+    constructExtensionObject(dataType: UADataType | NodeId, options?: any): ExtensionObject;
 
     // -------------- Event helpers
 
@@ -1629,7 +1630,6 @@ export interface AddressSpace {
 
 }
 
-import { ExtensionObject } from "node-opcua-extension-object";
 import { AddressSpace as AddressSpaceImpl } from "../src/address_space";
 import { UAOffNormalAlarm } from "../src/alarms_and_conditions/ua_off_normal_alarm";
 import { UATwoStateDiscrete } from "./interfaces/data_access/ua_two_state_discrete";

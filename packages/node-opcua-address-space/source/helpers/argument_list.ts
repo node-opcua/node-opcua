@@ -239,7 +239,7 @@ export function verifyArguments_ArgumentList(
               "\n        expected : " + methodInputArguments.length + "" +
               "\n        actual   : " + inputArguments.length);
         }
-        return { statusCode: StatusCodes.BadInvalidArgument };
+        return { statusCode: StatusCodes.BadArgumentsMissing };
     }
 
     if (methodInputArguments.length < inputArguments.length) {

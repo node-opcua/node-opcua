@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-address-space.Private
  */
+import { ExtensionObject} from "node-opcua-extension-object";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { BrowsePath, ModelChangeStructureDataType } from "node-opcua-types";
 
 import { NodeClass } from "node-opcua-data-model";
@@ -14,7 +14,6 @@ import {
     UAView } from "../source";
 import { NamespacePrivate } from "./namespace_private";
 import { Reference } from "./reference";
-import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
 import { UAVariableType } from "./ua_variable_type";
 
@@ -52,7 +51,7 @@ export interface AddressSpacePrivate extends AddressSpace {
 
     getExtensionObjectConstructor(dataType: NodeId | UADataType): any;
 
-    constructExtensionObject(dataType: UADataType | NodeId, options?: any): any;
+    constructExtensionObject(dataType: UADataType | NodeId, options?: any): ExtensionObject;
 
     normalizeReferenceType(
       params: AddReferenceOpts | Reference

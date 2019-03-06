@@ -32,9 +32,10 @@ import {
     BrowseResult,
     ReferenceDescription,
 } from "node-opcua-service-browse";
+import { StatusCodes } from "node-opcua-status-code";
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 
-const doDebug = true;
+const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
 const extraDataTypeManager = new ExtraDataTypeManager();
@@ -120,7 +121,9 @@ export async function extractNamespaceDataType(
         attributeId: AttributeIds.Value,
         nodeId: resolveNodeId("Server_NamespaceArray")
     });
-    dataTypeManager.setNamespaceArray(dataValueNamespaceArray.value.value as string[]);
+    if (dataValueNamespaceArray.statusCode === StatusCodes.Good) {
+        dataTypeManager.setNamespaceArray(dataValueNamespaceArray.value.value as string[]);
+    }
 
     // DatType/OPCBinary => i=93 [OPCBinarySchema_TypeSystem]
     const opcBinaryNodeId = resolveNodeId("OPCBinarySchema_TypeSystem");
@@ -160,9 +163,9 @@ export async function getDataTypeDefinition(session: IBasicSession, dataTypeNode
     //                           +-- HasDescription -> "MyItemType"
     //                                                       +- ComponentOf -> Schema
     //
-    // Note that in 1.04 compliant server, DataType defintiion might be available
+    // Note that in 1.04 compliant server, DataType definition might be available
     //           in a DataTypeDefinition attributes of the DataType object
-    //           However this is a brand new aspect of the specificiation and is not widely implemented
+    //           However this is a brand new aspect of the specification and is not widely implemented
     //           it is also optional
     //           It will takes time for old opcua server to be refurbished and we may have to
     //           keep the current method to access type definition from embedded xsd.

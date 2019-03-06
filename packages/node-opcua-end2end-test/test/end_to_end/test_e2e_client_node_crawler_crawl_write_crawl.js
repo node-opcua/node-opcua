@@ -26,7 +26,7 @@ describe("NodeCrawler after write",function(){
     const namespaceIndex = 411;
     const port = 2555;
 
-    // this test could be particularly slow on RapsberryPi or BeagleBoneBlack
+    // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
     // so we set a big enough timeout
     this.timeout((process.arch === 'arm') ? 800000 : 200000);
 

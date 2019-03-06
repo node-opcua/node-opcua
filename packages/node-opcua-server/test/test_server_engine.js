@@ -1104,7 +1104,7 @@ describe("testing ServerEngine", () => {
                 nodesToRead: [
                     {
                         attributeId: AttributeIds.Value,
-                        dataEncoding: "DefaultBinary",
+                        dataEncoding: {name: "DefaultBinary"},
                         indexRange: null,
                         nodeId: nodeId
                     }

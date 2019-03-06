@@ -457,6 +457,32 @@ module.exports = function (test) {
 
         });
 
+        it("QA should succeed and return BadArgumentsMissing when CallRequest as a missing argument", function(done){
+            opcua.MethodIds.Server_GetMonitoredItems.should.eql(11492);
+
+            const subscriptionId = 100;
+            const methodToCalls = [{
+                objectId: coerceNodeId("ns=0;i=2253"),  // SERVER
+                methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                inputArguments: [
+                ]
+            }];
+
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+
+                session.call(methodToCalls, function (err, results) {
+                    exec_safely(function(){
+                        if (!err) {
+                            results.length.should.eql(1);
+                            results[0].statusCode.should.eql(StatusCodes.BadArgumentsMissing);
+                        }
+
+                        inner_done(err);
+                    },inner_done);
+                });
+            }, done);
+        });
+
         describe("GetMonitoredItems", function () {
 
             it("T1 A client should be able to call the GetMonitoredItems standard OPCUA command, and return BadSubscriptionId if input args subscriptionId is invalid ", function (done) {
