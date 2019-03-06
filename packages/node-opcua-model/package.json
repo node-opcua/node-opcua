@@ -21,6 +21,7 @@
     "node-opcua-nodeid": "^2.0.0-alpha.13",
     "node-opcua-nodesets": "^2.0.0-alpha.9",
     "node-opcua-service-browse": "^2.0.0-alpha.13",
+    "node-opcua-schemas": "^2.0.0-alpha.13",
     "node-opcua-status-code": "^2.0.0-alpha.13",
     "node-opcua-xml2json": "^2.0.0-alpha.13",
     "underscore": "^1.9.1"

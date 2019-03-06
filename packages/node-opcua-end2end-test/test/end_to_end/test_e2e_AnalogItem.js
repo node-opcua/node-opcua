@@ -129,7 +129,6 @@ describe("testing AnalogItem on client side", function () {
             }
 
             let tmp = _.filter(result.references, function (e) {
-                //xx console.log("     ", e.nodeId.toString(), e.browseName.name.yellow);
                 return e.browseName.name === browseName;
             });
             tmp = tmp.map(function (e) {
