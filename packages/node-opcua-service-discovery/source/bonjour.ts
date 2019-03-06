@@ -2,94 +2,106 @@
  * @module node-opcua-service-discovery
  */
 // tslint:disable:no-console
-import { assert } from "node-opcua-assert";
+import * as bonjour from "bonjour";
 import * as   _ from "underscore";
 
-// tslint:disable:no-var-requires
-const bonjourLib = require("bonjour");
+import { assert } from "node-opcua-assert";
 
-let gBonjour: any = null;
+let gBonjour: bonjour.Bonjour | undefined;
 let gBonjourRefCount = 0;
 
-export function acquireBonjour() {
+export function acquireBonjour(): bonjour.Bonjour {
     if (gBonjourRefCount === 0) {
-        // will start the BOnjour service
-        gBonjour = bonjourLib();
+        // will start the Bonjour service
+        gBonjour = bonjour();
     }
     gBonjourRefCount++;
-    return gBonjour;
+    return gBonjour!;
 }
 
 export function releaseBonjour() {
     gBonjourRefCount--;
     assert(gBonjourRefCount >= 0);
     if (gBonjourRefCount === 0) {
-        // will start the BOnjour service
-        gBonjour.destroy();
-        gBonjour = null;
+        // will start the Bonjour service
+        gBonjour!.destroy();
+        gBonjour = undefined;
     }
 }
 
-export function _announceServerOnMulticastSubnet(
-    bonjour: any,
-    options: { port: number, path: string, applicationUri: string, capabilities: string[] }
-) {
+export interface Announcement {
+    port: number;
+    path: string;
+    name: string;
+    capabilities: string[];
+}
 
+export function sameAnnouncement(a: Announcement, b: Announcement): boolean {
+    return a.port === b.port &&
+      a.path === b.path &&
+      a.name === b.name &&
+      a.capabilities.join(" ") === b.capabilities.join(" ");
+}
+
+export function _announceServerOnMulticastSubnet(
+  multicastDNS: bonjour.Bonjour,
+  options: Announcement
+): bonjour.Service {
     const port = options.port;
     assert(_.isNumber(port));
-    assert(bonjour, "bonjour must have been initialized?");
+    assert(multicastDNS, "bonjour must have been initialized?");
 
-    assert(typeof options.path === "string");
-    assert(typeof options.applicationUri === "string");
-    assert(_.isArray(options.capabilities));
-
-    const params = {
-        name: options.applicationUri,
+    const params: bonjour.ServiceOptions = {
+        name: options.name,
         port,
         protocol: "tcp",
         txt: {
             caps: options.capabilities.join(","),
-            path: options.path ,
+            path: options.path
         },
-        type: "opcua-tcp",
+        type: "opcua-tcp"
     };
-    const _bonjourPublish = bonjour.publish(params);
-    _bonjourPublish.on("error", (err: Error) => {
-        console.log(" bonjour ERROR received ! ", err.message);
-        console.log(" params = ", params);
+    const service: bonjour.Service = multicastDNS.publish(params);
+    service.on("error", (err: Error) => {
+        console.log("bonjour ERROR received ! ", err.message);
+        console.log("params = ", params);
     });
-    _bonjourPublish.start();
-    return _bonjourPublish;
+    service.start();
+    return service;
 }
 
-//
-/**
- *
- * @param options
- * @param options.port {number}
- * @param options.path {string}
- * @param options.applicationUri {string}
- * @param options.capabilities {string[]}
- * @private
- */
+export class BonjourHolder {
 
-export function _announcedOnMulticastSubnet(
-    self: any,
-    options: { port: number, path: string, applicationUri: string, capabilities: string[] }
-) {
+    public announcement?: Announcement;
 
-    assert(self, "must be call with call(this,options)");
-    assert(!self.bonjour, "already called ?");
-    self.bonjour = acquireBonjour();
-    self._bonjourPublish = _announceServerOnMulticastSubnet(self.bonjour, options);
-}
+    private _multicastDNS?: bonjour.Bonjour;
+    private _service?: bonjour.Service;
 
-export function _stop_announcedOnMulticastSubnet(self: any): void {
-    assert(self, "must be call with call(this,options)");
-    if (self._bonjourPublish) {
-        self._bonjourPublish.stop();
-        self._bonjourPublish = null;
-        self.bonjour = null;
-        releaseBonjour();
+    public _announcedOnMulticastSubnet(
+      options: Announcement
+    ): boolean {
+        if (this._service && this.announcement) {
+            // verify that Announcement has changed
+            if (sameAnnouncement(options, this.announcement!)) {
+                return false; // nothing changed
+            }
+        }
+        assert(!this._multicastDNS, "already called ?");
+        this._multicastDNS = acquireBonjour();
+        this._service = _announceServerOnMulticastSubnet(this._multicastDNS, options);
+        this.announcement = options;
+        return true;
+    }
+
+    public _stop_announcedOnMulticastSubnet(): void {
+        if (this._service) {
+            this._service.stop(() => {
+                /* empty */
+            });
+            this._service = undefined;
+            this._multicastDNS = undefined;
+            this.announcement = undefined;
+            releaseBonjour();
+        }
     }
 }

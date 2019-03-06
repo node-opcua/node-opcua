@@ -1,14 +1,16 @@
+/**
+ * @module node-opcua-server-discovery
+ */
 import chalk from "chalk";
 import * as fs from "fs";
-import { assert } from "node-opcua-assert";
 import * as path from "path";
 import * as _ from "underscore";
 import * as url from "url";
 
+import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
-import { CertificateManager } from "node-opcua-certificate-manager";
 import { makeApplicationUrn } from "node-opcua-common";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { get_fully_qualified_domain_name } from "node-opcua-hostname";
 import { Message, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import {
@@ -17,36 +19,43 @@ import {
     OPCUAServerEndPoint
 } from "node-opcua-server";
 import {
-    _announcedOnMulticastSubnet,
-    _announceServerOnMulticastSubnet,
-    _stop_announcedOnMulticastSubnet,
+    Announcement,
+    BonjourHolder,
     FindServersOnNetworkRequest,
     FindServersOnNetworkResponse,
+    MdnsDiscoveryConfiguration,
+    RegisteredServer,
     RegisterServer2Request,
     RegisterServer2Response,
     RegisterServerRequest,
-    RegisterServerResponse
+    RegisterServerResponse,
+    sameAnnouncement,
+    ServerOnNetwork,
 } from "node-opcua-service-discovery";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
 import {
+    ApplicationDescriptionOptions,
     ApplicationType
 } from "node-opcua-service-endpoints";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { MDNSResponser } from "./mdns_responder";
+
+import { MDNSResponder } from "./mdns_responder";
 
 const debugLog = make_debugLog(__filename);
-const doDebug = false;
+const doDebug = checkDebugFlag(__filename);
 
 function constructFilename(p: string): string {
     const filename = path.join(__dirname, "..", p);
-    // xx console.log("fi = ",filename);
     return filename;
 }
 
 function hasCapabilities(
-  serverCapabilities: string[],
+  serverCapabilities: UAString[] | null,
   serverCapabilityFilter: string
 ): boolean {
+    if (serverCapabilities == null) {
+        return true;  // filter is empty => no filtering should take place
+    }
     if (serverCapabilityFilter.length === 0) {
         return true; // filter is empty => no filtering should take place
     }
@@ -60,13 +69,21 @@ export interface OPCUADiscoveryServerOptions extends OPCUABaseServerOptions {
 
 }
 
+interface RegisteredServerExtended extends RegisteredServer {
+    bonjourHolder: BonjourHolder;
+    serverInfo: ApplicationDescriptionOptions;
+    discoveryConfiguration?: MdnsDiscoveryConfiguration[];
+}
+
+interface RegisterServerMap {
+    [key: string]: RegisteredServerExtended;
+}
+
 export class OPCUADiscoveryServer extends OPCUABaseServer {
 
-    public serverInfo: ApplicationDescription;
-    public capabilitiesForMDNS: string[];
-
-    private mDnsResponder: any;
-    private registered_servers: any;
+    private mDnsResponder?: MDNSResponder;
+    private readonly registeredServers: RegisterServerMap;
+    private bonjourHolder: BonjourHolder;
 
     constructor(options: OPCUADiscoveryServerOptions) {
 
@@ -81,6 +98,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         const defaultApplicationUri = makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-DiscoveryServer");
 
         super(options);
+
+        this.bonjourHolder = new BonjourHolder();
 
         const serverInfo = new ApplicationDescription(options.serverInfo);
 
@@ -97,7 +116,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         const port = options.port || 4840;
 
         this.capabilitiesForMDNS = ["LDS"];
-        this.registered_servers = {} as any;
+        this.registeredServers = {};
+
         // see OPC UA Spec 1.2 part 6 : 7.4 Well Known Addresses
         // opc.tcp://localhost:4840/UADiscovery
 
@@ -116,78 +136,91 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         this.endpoints.push(endPoint);
 
         endPoint.on("message", (message: Message, channel: ServerSecureChannelLayer) => {
+            if (doDebug) {
+                debugLog(" RECEIVE MESSAGE", message.request.constructor.name);
+            }
             this.on_request(message, channel);
         });
-        this.mDnsResponder = null;
+        this.mDnsResponder = undefined;
     }
 
     public start(done: (err?: Error) => void): void {
-        assert(this.mDnsResponder === null);
+
+        assert(!this.mDnsResponder);
         assert(_.isArray(this.capabilitiesForMDNS));
 
         super.start((err?: Error | null) => {
             if (!err) {
-                // declare server in bonjour
-                _announcedOnMulticastSubnet(this, {
-                    applicationUri: this.serverInfo.applicationUri!,
+                // declare discovery server in bonjour
+                this.bonjourHolder._announcedOnMulticastSubnet({
                     capabilities: this.capabilitiesForMDNS,
+                    name: this.serverInfo.applicationUri!,
                     path: "/DiscoveryServer",
                     port: this.endpoints[0].port
                 });
-                //
-                this.mDnsResponder = new MDNSResponser();
-
+                this.mDnsResponder = new MDNSResponder();
             }
             done(err!);
         });
     }
 
     public shutdown(done: (err?: Error) => void) {
-        _stop_announcedOnMulticastSubnet(this);
+
+        this.bonjourHolder._stop_announcedOnMulticastSubnet();
+
         if (this.mDnsResponder) {
             this.mDnsResponder.dispose();
-            this.mDnsResponder = null;
+            this.mDnsResponder = undefined;
         }
         super.shutdown(done);
     }
 
+    /**
+     * returns the number of registered servers
+     */
     public get registeredServerCount(): number {
-        return Object.keys(this.registered_servers).length;
+        return Object.keys(this.registeredServers).length;
     }
 
     public getServers(channel: ServerSecureChannelLayer): ApplicationDescription[] {
+
         this.serverInfo.discoveryUrls = this.getDiscoveryUrls();
 
         const servers: ApplicationDescription[] = [this.serverInfo];
 
-        for (const registered_server of Object.values(this.registered_servers)) {
-            servers.push((registered_server as any).serverInfo);
+        for (const registered_server of Object.values(this.registeredServers)) {
+            const serverInfo: ApplicationDescription = (registered_server as any).serverInfo;
+            servers.push(serverInfo);
         }
 
         return servers;
     }
 
-    public _announcedServerOnTheMulticastSubnet() {
-
-    }
-
     protected _on_RegisterServer2Request(message: Message, channel: ServerSecureChannelLayer) {
 
+        assert(message.request instanceof RegisterServer2Request);
         const request = message.request as RegisterServer2Request;
 
         assert(request.schema.name === "RegisterServer2Request");
-        assert(request instanceof RegisterServer2Request);
-        const response = __internalRegisterServer(RegisterServer2Response, this, request.server, request.discoveryConfiguration);
+
+        request.discoveryConfiguration = request.discoveryConfiguration || [];
+        const response = this.__internalRegisterServer(
+          RegisterServer2Response,
+          request.server,
+          request.discoveryConfiguration as MdnsDiscoveryConfiguration[]);
         assert(response instanceof RegisterServer2Response);
         channel.send_response("MSG", response, message);
     }
 
     protected _on_RegisterServerRequest(message: Message, channel: ServerSecureChannelLayer) {
 
+        assert(message.request instanceof RegisterServerRequest);
         const request = message.request as RegisterServerRequest;
         assert(request.schema.name === "RegisterServerRequest");
-        assert(request instanceof RegisterServerRequest);
-        const response = __internalRegisterServer(RegisterServerResponse, this, request.server, null);
+        const response = this.__internalRegisterServer(
+          RegisterServerResponse,
+          request.server
+        );
         assert(response instanceof RegisterServerResponse);
         channel.send_response("MSG", response, message);
     }
@@ -212,10 +245,10 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         // (DOS) attacks. A Server should minimize the amount of processing required to send the response
         // for this Service. This can be achieved by preparing the result in advance
 
+        assert(message.request instanceof FindServersOnNetworkRequest);
         const request = message.request as FindServersOnNetworkRequest;
 
         assert(request.schema.name === "FindServersOnNetworkRequest");
-        assert(request instanceof FindServersOnNetworkRequest);
 
         function sendError(statusCode: StatusCode) {
             const response1 = new FindServersOnNetworkResponse({ responseHeader: { serviceResult: statusCode } });
@@ -243,22 +276,26 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         // request. This list is empty if no Servers meet the criteria
         const servers = [];
 
-        const serverCapabilityFilter = request.serverCapabilityFilter!.map(
+        request.serverCapabilityFilter = request.serverCapabilityFilter || [];
+        const serverCapabilityFilter: string = request.serverCapabilityFilter.map(
           (x: UAString) => x!.toUpperCase()).sort().join(" ");
 
-        for (const server of this.mDnsResponder.registeredServers) {
-            if (server.recordId <= request.startingRecordId) {
-                continue;
-            }
-            if (!hasCapabilities(server.serverCapabilities, serverCapabilityFilter)) {
-                continue;
-            }
-            servers.push(server);
-            if (servers.length === request.maxRecordsToReturn) {
-                return;
+        debugLog(" startingRecordId = ", request.startingRecordId);
+
+        if (this.mDnsResponder) {
+            for (const server of this.mDnsResponder.registeredServers) {
+                if (server.recordId <= request.startingRecordId) {
+                    continue;
+                }
+                if (!hasCapabilities(server.serverCapabilities, serverCapabilityFilter)) {
+                    continue;
+                }
+                servers.push(server);
+                if (servers.length === request.maxRecordsToReturn) {
+                    break;
+                }
             }
         }
-
         const response = new FindServersOnNetworkResponse({
             lastCounterResetTime, //  UtcTime The last time the counters were reset
             servers
@@ -267,6 +304,191 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
     }
 
+    private __internalRegisterServer(
+      RegisterServerXResponse: any /* RegisterServer2Response | RegisterServerResponse */,
+      rawServer: RegisteredServer,
+      discoveryConfigurations?: MdnsDiscoveryConfiguration[]
+    ) {
+
+        const server = rawServer as any as RegisteredServerExtended;
+
+        if (!discoveryConfigurations) {
+            discoveryConfigurations = [new MdnsDiscoveryConfiguration({
+                mdnsServerName: undefined,
+                serverCapabilities: ["NA"]
+            })];
+        }
+
+        function sendError(statusCode: StatusCode) {
+            debugLog(chalk.red("_on_RegisterServer(2)Request error"), statusCode.toString());
+            const response1 = new RegisterServerXResponse({
+                responseHeader: { serviceResult: statusCode }
+            });
+            return response1;
+        }
+
+        function _stop_announcedOnMulticastSubnet(conf: MdnsDiscoveryConfiguration) {
+            const b = ((conf as any).bonjourHolder) as BonjourHolder;
+            b._stop_announcedOnMulticastSubnet();
+            (conf as any).bonjourHolder = undefined;
+        }
+
+        function _announcedOnMulticastSubnet(
+          conf: MdnsDiscoveryConfiguration,
+          announcement: Announcement
+        ) {
+
+            let b = ((conf as any).bonjourHolder) as BonjourHolder;
+            if (b) {
+                if (sameAnnouncement(b.announcement!, announcement)) {
+                    debugLog("Configuration ", conf.mdnsServerName, " has not changed !");
+                    // nothing to do
+                    return;
+                } else {
+                    debugLog("Configuration ", conf.mdnsServerName, " HAS changed !");
+                    debugLog(" Was ", b.announcement!);
+                    debugLog(" is  ", announcement);
+                }
+                _stop_announcedOnMulticastSubnet(conf);
+            }
+            b = new BonjourHolder();
+            ((conf as any).bonjourHolder) = b;
+            b._announcedOnMulticastSubnet(announcement);
+        }
+
+        function dealWithDiscoveryConfiguration(
+          previousConfMap: any,
+          server1: RegisteredServer,
+          serverInfo: ApplicationDescriptionOptions,
+          discoveryConfiguration: MdnsDiscoveryConfiguration
+        ): StatusCode {
+            // mdnsServerName     String     The name of the Server when it is announced via mDNS.
+            //                               See Part 12 for the details about mDNS. This string shall be less than 64 bytes.
+            //                               If not specified the first element of the serverNames array is used
+            //                               (truncated to 63 bytes if necessary).
+            // serverCapabilities [] String  The set of Server capabilities supported by the Server.
+            //                               A Server capability is a short identifier for a feature
+            //                               The set of allowed Server capabilities are defined in Part 12.
+            discoveryConfiguration.mdnsServerName = discoveryConfiguration.mdnsServerName || server1.serverNames![0].text;
+
+            serverInfo.discoveryUrls = serverInfo.discoveryUrls || [];
+
+            const endpointUrl = serverInfo.discoveryUrls[0]!;
+            const parsedUrl = url.parse(endpointUrl);
+
+            discoveryConfiguration.serverCapabilities = discoveryConfiguration.serverCapabilities || [];
+            const announcement = {
+                capabilities: discoveryConfiguration.serverCapabilities.map((x: UAString) => x!) || ["DA"],
+                name: discoveryConfiguration.mdnsServerName!,
+                path: parsedUrl.pathname || "/",
+                port: parseInt(parsedUrl.port!, 10)
+            };
+
+            if (previousConfMap[discoveryConfiguration.mdnsServerName!]) {
+                // configuration already exists
+                debugLog("Configuration ", discoveryConfiguration.mdnsServerName, " already exists !");
+                const prevConf = previousConfMap[discoveryConfiguration.mdnsServerName!];
+                delete previousConfMap[discoveryConfiguration.mdnsServerName!];
+                (discoveryConfiguration as any).bonjourHolder = prevConf.bonjourHolder;
+            }
+
+            // let's announce the server on the  multicast DNS
+            _announcedOnMulticastSubnet(discoveryConfiguration, announcement);
+            return StatusCodes.Good;
+        }
+
+        // check serverType is valid
+        if (!_isValidServerType(server.serverType)) {
+            return sendError(StatusCodes.BadInvalidArgument);
+        }
+
+        if (!server.serverUri) {
+            return sendError(StatusCodes.BadInvalidArgument);
+        }
+
+        // BadServerUriInvalid
+        // TODO
+        server.serverNames = server.serverNames || [];
+        // BadServerNameMissing
+        if (server.serverNames.length === 0) {
+            return sendError(StatusCodes.BadServerNameMissing);
+        }
+
+        // BadDiscoveryUrlMissing
+        server.discoveryUrls = server.discoveryUrls || [];
+        if (server.discoveryUrls.length === 0) {
+            return sendError(StatusCodes.BadDiscoveryUrlMissing);
+        }
+
+        const key = server.serverUri;
+        let configurationResults: StatusCode[] | null = null;
+
+        if (server.isOnline) {
+
+            debugLog(chalk.cyan(" registering server : "), chalk.yellow(server.serverUri));
+
+            // prepare serverInfo which will be used by FindServers
+            const serverInfo: ApplicationDescriptionOptions = {
+                applicationName: server.serverNames[0],  // which one shall we use ?
+                applicationType: server.serverType,
+                applicationUri: server.serverUri,
+                discoveryUrls: server.discoveryUrls,
+                gatewayServerUri: server.gatewayServerUri,
+                productUri: server.productUri
+                // XXX ?????? serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri;
+            };
+
+            const previousConfMap: any = [];
+            if (this.registeredServers[key]) {
+                // server already exists and must only be updated
+                const previousServer = this.registeredServers[key];
+
+                for (const conf of previousServer.discoveryConfiguration!) {
+                    previousConfMap[conf.mdnsServerName!] = conf;
+                }
+
+            }
+            this.registeredServers[key] = server;
+
+            // xx server.semaphoreFilePath = server.semaphoreFilePath;
+            // xx server.serverNames = server.serverNames;
+            server.serverInfo = serverInfo;
+            server.discoveryConfiguration = discoveryConfigurations;
+
+            assert(discoveryConfigurations);
+
+            configurationResults = [];
+            for (const conf of discoveryConfigurations) {
+                const statusCode = dealWithDiscoveryConfiguration(previousConfMap, server, serverInfo, conf);
+                configurationResults.push(statusCode);
+            }
+            // now also unregister unprocessed
+            if (Object.keys(previousConfMap).length !==  0) {
+                debugLog(" Warning some conf need to be removed !");
+            }
+
+        } else {
+            // server is announced offline
+            if (key in this.registeredServers) {
+                const server1 = this.registeredServers[key];
+                debugLog(chalk.cyan("unregistering server : "), chalk.yellow(server1.serverUri!));
+                configurationResults = [];
+
+                discoveryConfigurations = server1.discoveryConfiguration || [];
+
+                for (const conf of discoveryConfigurations) {
+                    _stop_announcedOnMulticastSubnet(conf);
+                    configurationResults.push(StatusCodes.Good);
+                }
+                delete this.registeredServers[key];
+            }
+        }
+
+        const response = new RegisterServerXResponse({
+            configurationResults
+        });
+        return response;
+    }
 }
 
 /*== private
@@ -286,101 +508,6 @@ function _isValidServerType(serverType: ApplicationType): boolean {
             return true;
     }
     return false;
-}
-
-function __internalRegisterServer(
-  RegisterServerXResponse: any,
-  discoveryServer: any,
-  server: any,
-  discoveryConfiguration: any
-) {
-
-    function sendError(statusCode: StatusCode) {
-        /// Xx console.log(chalk.red("_on_RegisterServerRequest error"), statusCode.toString());
-        const response1 = new RegisterServerXResponse({
-            responseHeader: { serviceResult: statusCode }
-        });
-        return response1;
-    }
-
-    // check serverType is valid
-    if (!_isValidServerType(server.serverType)) {
-        return sendError(StatusCodes.BadInvalidArgument);
-    }
-
-    // BadServerUriInvalid
-    // TODO
-
-    // BadServerNameMissing
-    if (server.serverNames.length === 0) {
-        return sendError(StatusCodes.BadServerNameMissing);
-    }
-
-    // BadDiscoveryUrlMissing
-    if (server.discoveryUrls.length === 0) {
-        return sendError(StatusCodes.BadDiscoveryUrlMissing);
-    }
-
-    const key = server.serverUri;
-    if (server.isOnline) {
-        debugLog(chalk.cyan(" registering server : "), server.serverUri.yellow);
-        discoveryServer.registered_servers[key] = server;
-
-        // prepare serverInfo which will be used by FindServers
-        const serverInfo = {
-            applicationUri: server.serverUri,
-            productUri: server.productUri,
-
-            applicationType: server.serverType,
-
-            applicationName: server.serverNames[0],  // which one shall we use ?
-            gatewayServerUri: server.gatewayServerUri,
-
-            // XXX ?????? serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri;
-            discoveryUrls: server.discoveryUrls
-
-        };
-        // xx server.semaphoreFilePath = server.semaphoreFilePath;
-        // xx server.serverNames = server.serverNames;
-        server.serverInfo = serverInfo;
-        server.discoveryConfiguration = discoveryConfiguration;
-
-        if (discoveryConfiguration) {
-
-            const endpointUrl = serverInfo.discoveryUrls[0];
-            const parsedUrl = url.parse(endpointUrl);
-
-            const options = {
-                applicationUri: serverInfo.applicationUri,
-
-                port: parseInt(parsedUrl.port!, 10),
-
-                path: parsedUrl.pathname || "/",
-
-                capabilities: server.discoveryConfiguration.serverCapabilities || ["DA"]
-            };
-            // let's announce the server on the  mutlicast DNS
-            server.bonjourEntry = _announceServerOnMulticastSubnet(discoveryServer.bonjour, options);
-        }
-        discoveryServer.registered_servers[key].serverInfo = serverInfo;
-
-    } else {
-        if (key in discoveryServer.registered_servers) {
-            const server1 = discoveryServer.registered_servers[key];
-            debugLog(chalk.cyan("unregistering server : "), server1.serverUri.yellow);
-            if (server1.bonjourEntry) {
-                server1.bonjourEntry.stop();
-                server1.bonjourEntry = null;
-            }
-            delete discoveryServer.registered_servers[key];
-        }
-
-    }
-
-    const response = new RegisterServerXResponse({});
-    response.configurationResults = null;
-
-    return response;
 }
 
 exports.OPCUADiscoveryServer = OPCUADiscoveryServer;
