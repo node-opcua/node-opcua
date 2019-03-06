@@ -12,10 +12,8 @@ import { assert } from "node-opcua-assert";
 import { decodeExpandedNodeId, decodeString } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import {
-    ComputeDerivedKeysOptions,
     decryptBufferWithDerivedKeys,
     DerivedKeys,
-    exploreCertificate,
     exploreCertificateInfo,
     makeSHA1Thumbprint,
     PrivateKeyPEM,
@@ -71,7 +69,7 @@ export interface MessageBuilderOptions {
     securityMode?: MessageSecurityMode;
     privateKey?: PrivateKeyPEM;
     objectFactory?: ObjectFactory;
-    signatureLength?: number
+    signatureLength?: number;
     name?: string;
 }
 
@@ -81,7 +79,7 @@ export interface SecurityTokenAndDerivedKeys {
 }
 
 const invalidPrivateKey = "<invalid>";
-let counter =0;
+let counter = 0;
 
 /**
  * @class MessageBuilder
@@ -109,7 +107,7 @@ export class MessageBuilder extends MessageBuilderBase {
         super(options);
         options = options || {};
 
-        this.id  = (options.name ? options.name : "Id") +  counter++;
+        this.id = (options.name ? options.name : "Id") + counter++;
 
         this.privateKey = options.privateKey || invalidPrivateKey;
 
@@ -155,8 +153,9 @@ export class MessageBuilder extends MessageBuilderBase {
             derivedKeys,
             securityToken
         });
+        /* istanbul ignore next */
         if (doDebug) {
-            debugLog("id=", this.id, chalk.cyan("Pushing new token with id "), securityToken.tokenId , this.tokenIds());
+            debugLog("id=", this.id, chalk.cyan("Pushing new token with id "), securityToken.tokenId, this.tokenIds());
         }
     }
 
@@ -178,6 +177,7 @@ export class MessageBuilder extends MessageBuilderBase {
             const errorCode = decodeStatusCode(binaryStream);
             const message = decodeString(binaryStream);
 
+            /* istanbul ignore next */
             if (doDebug) {
                 debugLog(chalk.red.bold(" ERROR RECEIVED FROM SENDER"), chalk.cyan(errorCode.toString()), message);
                 debugLog(hexDump(binaryStream.buffer));
@@ -253,6 +253,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
         } else {
 
+            /* istanbul ignore next */
             debugLog("message size =", this.totalMessageSize, " body size =", this.totalBodySize, objMessage.constructor.name);
 
             if (this._safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
@@ -274,6 +275,8 @@ export class MessageBuilder extends MessageBuilderBase {
                     // this code catches a uncaught exception somewhere in one of the event handler
                     // this indicates a bug in the code that uses this class
                     // please check the stack trace to find the problem
+
+                    /* istanbul ignore next */
                     if (doDebug) {
                         debugLog(err);
                     }
@@ -303,7 +306,9 @@ export class MessageBuilder extends MessageBuilderBase {
 
             if (expectedSequenceNumber !== sequenceNumber) {
                 const errMessage = "Invalid Sequence Number found ( expected " + expectedSequenceNumber + ", got " + sequenceNumber + ")";
-                debugLog(chalk.bold.red(errMessage));
+
+                /* istanbul ignore next */
+                debugLog(chalk.red.bold(errMessage));
                 /**
                  * notify the observers that a message with an invalid sequence number has been received.
                  * @event invalid_sequence_number
@@ -333,8 +338,8 @@ export class MessageBuilder extends MessageBuilderBase {
         /* istanbul ignore next */
         if (doDebug) {
             debugLog("securityHeader = {");
-            debugLog("             securityPolicyId: " , asymmetricAlgorithmSecurityHeader.securityPolicyUri);
-            debugLog("             senderCertificate: " ,
+            debugLog("             securityPolicyId: ", asymmetricAlgorithmSecurityHeader.securityPolicyUri);
+            debugLog("             senderCertificate: ",
               makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex"));
 
             debugLog("};");
@@ -404,6 +409,7 @@ export class MessageBuilder extends MessageBuilderBase {
         const signatureIsOK = asymmetricVerifyChunk(this.cryptoFactory, chunk, asymmetricAlgorithmSecurityHeader.senderCertificate);
 
         if (!signatureIsOK) {
+            /* istanbul ignore next */
             if (doDebug) {
                 debugLog(hexDump(binaryStream.buffer));
             }
@@ -422,13 +428,15 @@ export class MessageBuilder extends MessageBuilderBase {
         return true; // success
     }
 
-    private  tokenIds() {
+    private tokenIds() {
         return this._tokenStack.map((a) => a.securityToken.tokenId);
     }
+
     private _select_matching_token(tokenId: number): SecurityTokenAndDerivedKeys | null {
 
+        /* istanbul ignore next */
         if (doDebug) {
-            debugLog("id=",this.id, " ", chalk.yellow("_select_matching_token : searching token " ),
+            debugLog("id=", this.id, " ", chalk.yellow("_select_matching_token : searching token "),
               tokenId, "length = ", this._tokenStack.length, this.tokenIds());
         }
         // this method select the security token matching the provided tokenId
@@ -443,21 +451,26 @@ export class MessageBuilder extends MessageBuilderBase {
                 if (gotNewToken) {
                     this.emit("new_token", tokenId);
                 }
+
+                /* istanbul ignore next */
                 if (doDebug) {
-                    debugLog("id=",this.id, chalk.red(" found token"), gotNewToken, firstToken.securityToken.tokenId, this.tokenIds());
+                    debugLog("id=", this.id, chalk.red(" found token"), gotNewToken, firstToken.securityToken.tokenId, this.tokenIds());
                 }
                 return firstToken;
             }
             // remove first
             this._tokenStack.shift();
+
+            /* istanbul ignore next */
             if (doDebug) {
-                debugLog("id=",this.id, "Remove first token ",  firstToken.securityToken.tokenId, this.tokenIds());
+                debugLog("id=", this.id, "Remove first token ", firstToken.securityToken.tokenId, this.tokenIds());
             }
             gotNewToken = true;
         }
 
+        /* istanbul ignore next */
         if (doDebug) {
-            debugLog("id=",this.id, " Cannot find token ", tokenId);
+            debugLog("id=", this.id, " Cannot find token ", tokenId);
         }
         return null;
     }

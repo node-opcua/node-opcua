@@ -409,6 +409,9 @@ export class OPCUABaseServer extends OPCUASecureObject {
             const response = new FindServersResponse({
                 servers: servers.map(adapt)
             });
+
+            console.log(" response = ", response.toString() );
+
             channel.send_response("MSG", response, message, emptyCallback);
 
         }, shortDelay);
