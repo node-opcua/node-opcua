@@ -12,6 +12,7 @@
  "types": "./dist/index.d.ts",
  "dependencies": {
   "bonjour": "^3.5.0",
+  "@types/bonjour": "^3.5.5",
   "node-opcua-assert": "^2.0.0-alpha.10",
   "node-opcua-basic-types": "^2.0.0-alpha.13",
   "node-opcua-binary-stream": "^2.0.0-alpha.13",

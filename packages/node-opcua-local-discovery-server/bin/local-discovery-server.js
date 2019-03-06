@@ -27,7 +27,6 @@ discoveryServer.start(function(err) {
     console.log("CTRL+C to stop");
 
 
-// Add the command "foo", which logs "bar".
     const vorpal = new Vorpal();
     vorpal
         .command("info")
@@ -37,15 +36,26 @@ discoveryServer.start(function(err) {
             this.log(discoveryServer.serverInfo);
             // xx this.log(discoveryServer.endpoints[0]);
 
-            const servers = Object.keys(discoveryServer.registered_servers);
-            this.log("number of registered servers : ", servers.length);
+            {
+                const servers = Object.keys(discoveryServer.registeredServers);
+                this.log("number of registered servers : ", servers.length);
 
-            for (const serverKey of servers) {
-                const server = discoveryServer.registered_servers[serverKey];
-                this.log("key =" , serverKey);
-                this.log(server.toString());
-
+                for (const serverKey of servers) {
+                    const server = discoveryServer.registeredServers[serverKey];
+                    this.log("key =", serverKey);
+                    this.log(server.toString());
+                }
             }
+            {
+                const server2 = Object.keys(discoveryServer.mDnsResponder.registeredServers);
+                this.log("number of mNDS registered servers : ", server2.length);
+                for (const serverKey of server2) {
+                    const server = discoveryServer.mDnsResponder.registeredServers[serverKey];
+                    this.log("key =", serverKey);
+                    this.log(server.toString());
+                }
+            }
+
             callback();
         });
         vorpal.delimiter("local-discovery-server$").use(vorpal_repl).show();

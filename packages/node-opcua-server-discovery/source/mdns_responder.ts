@@ -1,34 +1,48 @@
-import assert from "node-opcua-assert";
-import { make_debugLog } from "node-opcua-debug";
+/**
+ * @module node-opcua-server-discovery
+ */
+import * as bonjour from "bonjour";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { acquireBonjour, releaseBonjour, ServerOnNetwork } from "node-opcua-service-discovery";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename) || true;
 
-const doDebug = false;
+export class MDNSResponder {
 
-export class MDNSResponser {
+    /**
+     * the list of servers that have been activated as mDNS service
+     */
+    public registeredServers: ServerOnNetwork[];
 
-    private bonjour: any;
+    private multicastDNS: bonjour.Bonjour;
     private recordId: number;
-    private registeredServers: any[];
-    private responser: any;
+    private responder: any;
     private lastUpdateDate: Date = new Date();
 
     constructor() {
 
         this.registeredServers = [];
 
-        this.bonjour = acquireBonjour();
+        this.multicastDNS = acquireBonjour();
         this.recordId = 0;
 
-        this.responser = this.bonjour.find({
+        this.responder = this.multicastDNS.find({
             protocol: "tcp",
-            type: "opcua-tcp",
+            type: "opcua-tcp"
         });
 
-        const addService = (service: any) => {
+        const findServiceIndex = (serverName: string) => {
+
+            const index = this.registeredServers.findIndex(
+              (server: ServerOnNetwork) => server.serverName === serverName);
+            return index;
+
+        };
+
+        const addService = (service: bonjour.Service) => {
             if (doDebug) {
-                debugLog(service);
+                debugLog("adding server ", service.name, "port =", service.port);
             }
             // example:
             // {
@@ -50,18 +64,23 @@ export class MDNSResponser {
             //     protocol: 'tcp',
             //  subtypes: []
             // },
-            debugLog("a new OPCUA server has been registered");
 
-            const recordId = ++this.recordId;
+            const existingIndex = findServiceIndex(service.name);
+            if (existingIndex >= 0) {
+                debugLog("Ignoring existing server ", service.name);
+                return;
+            }
+
+            this.recordId++;
+            const recordId = this.recordId;
             const serverName = service.name;
 
-            service.txt.caps = service.txt.caps || "";
-            const serverCapabilities = service.txt.caps.split(",").map(
-              (x: string) => x.toUpperCase()).sort();
+            service.txt = service.txt || {};
+            const service_txt =  service.txt as any;
+            service_txt.caps = service_txt.caps || "";
+            const serverCapabilities = service_txt.caps.split(",").map((x: string) => x.toUpperCase()).sort();
 
-            assert(serverCapabilities instanceof Array);
-
-            const path = service.txt.path || "";
+            const path = service_txt.path || "";
             const discoveryUrl = "opc.tcp://" + service.host + ":" + service.port + path;
 
             this.registeredServers.push(
@@ -69,34 +88,44 @@ export class MDNSResponser {
                   discoveryUrl,
                   recordId,
                   serverCapabilities,
-                  serverName,
+                  serverName
               }));
             this.lastUpdateDate = new Date(Date.now());
+
+            debugLog("a new OPCUA server has been registered on mDNS", service.name, recordId);
+
         };
 
-        const removeService = (service: any) => {
+        const removeService = (service: bonjour.Service) => {
             const serverName = service.name;
-            debugLog("a OPCUA server has been unregistered ", serverName);
-            const index = this.registeredServers.findIndex((server) => server.serverName = serverName);
+            debugLog("a OPCUA server has been unregistered in mDNS", serverName);
+            const index = findServiceIndex(serverName);
             if (index === -1) {
                 debugLog("Cannot find server with name ", serverName, " in registeredServers");
                 return;
             }
-            this.registeredServers.splice(index, 1); // reove element at index
-            this.lastUpdateDate = new Date(Date.now());
+            this.registeredServers.splice(index, 1); // remove element at index
+            this.lastUpdateDate = new Date();
         };
 
-        this.responser.on("up", (service: any) => {
-            // xx console.log("xxx responder up ",service);addService(service);
+        this.responder.on("up", (service: bonjour.Service) => {
+
+            if (doDebug) {
+                debugLog("service is up with  ", service.fqdn);
+            }
             addService(service);
         });
 
-        this.responser.on("down", (service: any) => {
+        this.responder.on("down", (service: bonjour.Service) => {
+            if (doDebug) {
+                debugLog("service is down with  ", service.fqdn);
+            }
             removeService(service);
         });
     }
+
     public dispose() {
-        this.bonjour = null;
+        delete this.multicastDNS;
         releaseBonjour();
     }
 }
