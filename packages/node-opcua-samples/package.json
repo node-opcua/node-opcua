@@ -15,7 +15,7 @@
   "clean": "node -e \"require('rimraf').sync('certificates');\""
  },
  "dependencies": {
-  "@types/yargs": "^12.0.9",
+  "@types/yargs": "^12.0.10",
   "async": "^2.6.2",
   "colors": "^1.3.3",
   "easy-table": "^1.1.1",

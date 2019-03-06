@@ -11,11 +11,11 @@ const should = require("should");
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing",function() {
+    describe("testing custom nodeset",function() {
 
     this.timeout(Math.max(30000, this._timeout));
 
-    it("should",function(done){
+    it("should parse a custom nodeset",function(done){
 
         function parse_xml(nodeset_files, callback) {
 
@@ -25,7 +25,7 @@ describe("testing",function() {
                 const pseudoSession = new PseudoSession(addressSpace);
                 parse_opcua_common(pseudoSession,function(err,data){
 
-                    console.log("data= ", data);
+                   //xx console.log("data= ", data);
 
                     addressSpace.dispose();
                     callback();

@@ -1,5 +1,5 @@
 import assert from "node-opcua-assert";
-import { FieldCategory, StructuredTypeSchema } from "node-opcua-factory";
+import { FieldCategory, hasBuiltInType, StructuredTypeSchema } from "node-opcua-factory";
 import { TypeDictionary } from "./parse_binary_xsd";
 
 function removeNamespacePart(str: string): string {
@@ -56,20 +56,24 @@ export function prepareStructureType(
                     break;
                 case "ua":
                     field.fieldType = fieldTypeName;
-                    field.category = FieldCategory.basic;
+                    if (hasBuiltInType(fieldTypeName)) {
+                        field.category = FieldCategory.basic;
+                    } else {
+                        // xx field.category = FieldCategory.complex;
+                    }
                     break;
                 case "opc":
-                    if (fieldTypeName === "UAString") {
-                        // xx console.log(" ", field.name);
-                    }
-                    if (fieldTypeName === "UAString" && field.name === "IndexRange") {
+                    if ((fieldTypeName === "UAString" || fieldTypeName === "String") && field.name === "IndexRange") {
                         field.fieldType = "NumericRange";
                         // xx console.log(" NumericRange detected here !");
                     } else {
                         field.fieldType = fieldTypeName;
                     }
+                    if (!hasBuiltInType(fieldTypeName)) {
+                        console.log(structuredType);
+                        throw new Error("Unknown basic type " + fieldTypeName);
+                    }
                     field.category = FieldCategory.basic;
-
                     break;
             }
         }

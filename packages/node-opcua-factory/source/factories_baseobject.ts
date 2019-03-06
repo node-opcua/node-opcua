@@ -80,7 +80,10 @@ function _arrayEllipsis(value: any[] | null) {
         const v = [];
         const m = Math.min(_nbElements, value.length);
         for (let i = 0; i < m; i++) {
-            const element = value[i];
+            let element = value[i];
+            if (element instanceof Buffer) {
+                element = hexDump(element, 32, 16);
+            }
             v.push(!utils.isNullOrUndefined(element) ? element.toString() : null);
         }
         return "[ " + v.join(",") + (value.length > 10 ? " ... " : "") + "] (l=" + value.length + ")";
@@ -127,7 +130,6 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
 
         let str = "";
         if (value instanceof Buffer) {
-
             const _hexDump = hexDump(value);
             data.lines.push(fieldNameF + " " + fieldTypeF);
             data.lines.push("BUFFER{" + _hexDump + "}");
@@ -448,15 +450,19 @@ export class BaseUAObject {
     }
 }
 
+/*
 // tslint:disable:max-classes-per-file
 export class ExtensionObject extends BaseUAObject {
     public static encodingDefaultBinary: ExpandedNodeId;
     public static encodingDefaultXml: ExpandedNodeId;
+    public encodingDefaultBinary: ExpandedNodeId = ExpandedNodeId.nullExpandedNodeId;
+    public encodingDefaultXml: ExpandedNodeId = ExpandedNodeId.nullExpandedNodeId;
 
-    constructor(options: any) {
+    constructor(otions: any) {
         super();
     }
 }
+*/
 
 function _visitSchemaChain(
   self: BaseUAObject,

@@ -51,15 +51,23 @@ function constructEmptyExtensionObject(expandedNodeId: NodeId): any {
 //                    |  string without any null terminator.
 //
 
-export function encodeExtensionObject(object: any, stream: OutputBinaryStream): void {
+export function encodeExtensionObject(object: ExtensionObject | null, stream: OutputBinaryStream): void {
 
     if (!object) {
         encodeNodeId(makeNodeId(0), stream);
         stream.writeUInt8(0x00); // no body is encoded
         // note : Length shall not hbe specified, end of the job!
     } else {
+        /* istanbul ignore next */
+        if (!((object as any) instanceof ExtensionObject)) {
+            throw new Error("Expecting a extension object");
+        }
         // ensure we have a valid encoding Default Binary ID !!!
-
+        /* istanbul ignore next */
+        if (!object.schema) {
+            debugLog(" object = ", object);
+            throw new Error("object has no schema " + object.constructor.name);
+        }
         const encodingDefaultBinary = object.schema.encodingDefaultBinary;
         /* istanbul ignore next */
         if (!encodingDefaultBinary) {
@@ -68,13 +76,13 @@ export function encodeExtensionObject(object: any, stream: OutputBinaryStream): 
         }
         /* istanbul ignore next */
         if (encodingDefaultBinary.isEmpty()) {
-            debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "), object.encodingDefaultBinary.toString());
+            debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "), (object.constructor as any).encodingDefaultBinary.toString());
             throw new Error("Cannot find encodingDefaultBinary for this object");
         }
         /* istanbul ignore next */
         if (is_internal_id(encodingDefaultBinary.value)) {
             debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "),
-              object.encodingDefaultBinary.toString(), object.schema.name);
+              (object.constructor as any).encodingDefaultBinary.toString(), object.schema.name);
             throw new Error("Cannot find valid OPCUA encodingDefaultBinary for this object");
         }
 
@@ -97,10 +105,10 @@ export class OpaqueStructure extends ExtensionObject {
 
     public toString(): string {
         const str =
-        "/* OpaqueStructure */ { \n" +
-        "nodeId " + this.nodeId.toString() + "\n" +
-        "buffer = \n" + hexDump(this.buffer) + "\n" +
-        "}";
+          "/* OpaqueStructure */ { \n" +
+          "nodeId " + this.nodeId.toString() + "\n" +
+          "buffer = \n" + hexDump(this.buffer) + "\n" +
+          "}";
         return str;
     }
 }
@@ -125,7 +133,7 @@ export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | n
     const streamLengthBefore = stream.length;
 
     let object: any;
-    if (nodeId.namespace !== 0 ) {
+    if (nodeId.namespace !== 0) {
         // this is a extension object define in a other namespace
         // we can only threat it as an opaque object for the time being
         // the caller that may now more about the namespace Array and type
@@ -135,7 +143,7 @@ export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | n
         stream.length -= 4;
         object = new OpaqueStructure(nodeId, stream.readByteStream()!);
 
-    }  else {
+    } else {
         object = constructEmptyExtensionObject(nodeId);
         /* istanbul ignore next */
         if (object === null) {

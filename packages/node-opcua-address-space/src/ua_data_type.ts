@@ -8,13 +8,13 @@ import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import {
     SessionContext,
-    UADataType as UADataTypePublic, UAVariable,
+    UADataType as UADataTypePublic, UAVariable
 } from "../source";
 import { BaseNode } from "./base_node";
 import { BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
@@ -86,7 +86,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
 
     public getEncodingNode(encoding_name: string): BaseNode | null {
 
-        assert(encoding_name === "Default Binary" || encoding_name === "Default XML");
+        assert(encoding_name === "Default Binary" || encoding_name === "Default Xml");
         // could be binary or xml
         const refs = this.findReferences("HasEncoding", true);
         const addressSpace = this.addressSpace;
@@ -106,7 +106,12 @@ export class UADataType extends BaseNode implements UADataTypePublic {
         const _cache = BaseNode._getCache(this);
         if (!_cache.binaryEncodingNodeId) {
             const encoding = this.getEncodingNode("Default Binary");
-            _cache.binaryEncodingNodeId = encoding ? encoding.nodeId : null;
+            if (encoding) {
+                const namespaceUri = this.addressSpace.getNamespaceUri(encoding.nodeId.namespace);
+                _cache.binaryEncodingNodeId = ExpandedNodeId.fromNodeId(encoding.nodeId, namespaceUri);
+            } else {
+                _cache.binaryEncodingNodeId = null;
+            }
         }
         return _cache.binaryEncodingNodeId;
     }
@@ -115,6 +120,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
         const _cache = BaseNode._getCache(this);
         if (!_cache.binaryEncodingNode) {
             _cache.binaryEncodingNode = this.__findReferenceWithBrowseName("HasEncoding", "Default Binary");
+            // also add namespaceUri
         }
         return _cache.binaryEncodingNode;
     }
@@ -141,8 +147,13 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     public get xmlEncodingNodeId(): NodeId {
         const _cache = BaseNode._getCache(this);
         if (!_cache.xmlEncodingNodeId) {
-            const encoding = this.getEncodingNode("Default Binary");
-            _cache.xmlEncodingNodeId = encoding ? encoding.nodeId : null;
+            const encoding = this.getEncodingNode("Default Xml");
+            if (encoding) {
+                const namespaceUri = this.addressSpace.getNamespaceUri(encoding.nodeId.namespace);
+                _cache.xmlEncodingNodeId = ExpandedNodeId.fromNodeId(encoding.nodeId, namespaceUri);
+            } else {
+                _cache.xmlEncodingNodeId = null;
+            }
         }
         return _cache.xmlEncodingNodeId;
     }

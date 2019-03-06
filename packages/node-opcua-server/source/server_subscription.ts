@@ -53,8 +53,8 @@ import {
     MonitoredItemCreateResult,
     MonitoredItemNotification
 } from "node-opcua-types";
+import { ExtensionObject } from "node-opcua-extension-object";
 
-import { ExtensionObject } from "node-opcua-factory";
 import { MonitoredItem, MonitoredItemOptions } from "./monitored_item";
 import { ServerSession } from "./server_session";
 import { validateFilter } from "./validate_filter";

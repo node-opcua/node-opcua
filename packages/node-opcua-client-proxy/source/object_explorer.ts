@@ -198,7 +198,10 @@ function add_method(
 
             obj[name].outputArguments = obj[name].outputArguments || [];
 
-            assert(callResult.outputArguments.length === obj[name].outputArguments.length);
+            if (callResult.outputArguments.length !== obj[name].outputArguments.length) {
+                return callback(new Error("Internal error callResult.outputArguments.length "
+                  + callResult.outputArguments.length + " " +  obj[name].outputArguments.length));
+            }
 
             const outputArgs: any = {};
 

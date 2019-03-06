@@ -8,12 +8,19 @@ import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { DateTime } from "node-opcua-basic-types";
+import {
+    extractNamespaceDataType,
+    ExtraDataTypeManager,
+    resolveDynamicExtensionObject
+} from "node-opcua-client-dynamic-extension-object";
 import { ReferenceTypeIds, StatusCodes } from "node-opcua-constants";
 import { Certificate, Nonce } from "node-opcua-crypto";
 import { attributeNameById, BrowseDirection, LocalizedTextLike, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { OpaqueStructure } from "node-opcua-extension-object";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { IBasicSession } from "node-opcua-pseudo-session";
 import { ErrorCallback, SignatureData } from "node-opcua-secure-channel";
 import {
     BrowseDescription,
@@ -77,10 +84,9 @@ import {
 } from "node-opcua-service-translate-browse-path";
 import { WriteRequest, WriteResponse, WriteValue } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
+import { BrowseNextRequest, BrowseNextResponse } from "node-opcua-types";
 import { getFunctionParameterNames, isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
-
-import { BrowseNextRequest, BrowseNextResponse } from "node-opcua-types";
 import {
     ArgumentDefinition,
     BrowseDescriptionLike,
@@ -108,14 +114,6 @@ import { Request, Response } from "../common";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import { OPCUAClientImpl } from "./opcua_client_impl";
-import { BrowseNextRequest, BrowseNextResponse } from "node-opcua-types";
-import { OpaqueStructure } from "node-opcua-extension-object";
-import { IBasicSession } from "node-opcua-pseudo-session";
-import {
-    extractNamespaceDataType,
-    ExtraDataTypeManager,
-    resolveDynamicExtensionObject
-} from "node-opcua-client-dynamic-extension-object";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 

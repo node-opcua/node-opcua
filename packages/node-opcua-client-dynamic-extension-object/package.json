@@ -19,6 +19,7 @@
     "node-opcua-variant": "^2.0.0-alpha.13",
     "node-opcua-pseudo-session": "^2.0.0-alpha.13",
     "node-opcua-extension-object": "^2.0.0-alpha.13",
+    "node-opcua-status-code": "^2.0.0-alpha.13",
     "node-opcua-schemas": "^2.0.0-alpha.13",
     "node-opcua-nodeid": "^2.0.0-alpha.13"
   },

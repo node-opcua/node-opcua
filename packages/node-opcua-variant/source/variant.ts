@@ -6,8 +6,10 @@ import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import {
-    coerceInt64, coerceUInt64,
-    decodeUInt32, decodeUInt8,
+    coerceInt64,
+    coerceUInt64,
+    decodeUInt32,
+    decodeUInt8,
     encodeUInt32,
     encodeUInt8,
     isValidBoolean,
@@ -20,18 +22,23 @@ import {
     isValidUInt16,
     isValidUInt32,
     isValidUInt64,
-    isValidUInt8,
+    isValidUInt8
 } from "node-opcua-basic-types";
 import { LocalizedText, QualifiedName } from "node-opcua-data-model";
 import {
-    BaseUAObject, buildStructuredType,
-    findBuiltInType, initialize_field,
-    initialize_field_array, registerSpecialVariantEncoder, StructuredTypeSchema,
+    BaseUAObject,
+    buildStructuredType,
+    findBuiltInType,
+    initialize_field,
+    initialize_field_array,
+    registerSpecialVariantEncoder,
+    StructuredTypeSchema
 } from "node-opcua-factory";
 
 import * as utils from "node-opcua-utils";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { ExtensionObject } from "node-opcua-extension-object";
 import { _enumerationDataType, DataType } from "./DataType_enum";
 import { _enumerationVariantArrayType, VariantArrayType } from "./VariantArrayType_enum";
 // tslint:disable:no-bitwise
@@ -110,7 +117,6 @@ export class Variant extends BaseUAObject {
 
         /**
          * @property value
-         * @type {Any}
          * @default  null
          */
         this.value = initialize_field(schema.fields[2], options.value);
@@ -125,6 +131,20 @@ export class Variant extends BaseUAObject {
             schema.fields[3],
             options.dimensions
         );
+
+        if ( options.dataType === DataType.ExtensionObject) {
+            if (this.arrayType === VariantArrayType.Scalar) {
+                if (this.value && !(this.value instanceof ExtensionObject)) {
+                    throw new Error("A variant with DataType.ExtensionObject must have a ExtensionObject value");
+                }
+            } else {
+                for (const e of this.value) {
+                    if (e && !(e instanceof ExtensionObject)) {
+                        throw new Error("A variant with DataType.ExtensionObject must have a ExtensionObject value");
+                    }
+                }
+            }
+        }
     }
 
     // Define Enumeration setters

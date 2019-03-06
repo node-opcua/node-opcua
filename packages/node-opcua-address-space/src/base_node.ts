@@ -1284,7 +1284,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     protected __findReferenceWithBrowseName(
       referenceType: any,
       browseName: any
-    ): any {
+    ): BaseNode {
 
         const refs = this.findReferencesAsObject(referenceType);
 

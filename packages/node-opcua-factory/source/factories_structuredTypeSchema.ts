@@ -1,6 +1,9 @@
 /**
  * @module node-opcua-factory
  */
+import chalk from "chalk";
+import * as  _ from "underscore";
+
 import {
     CommonInterface,
     FieldCategory,
@@ -12,16 +15,13 @@ import {
 
 import { getBuildInType, hasBuiltInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";
-import { getStructuredTypeSchema, getStructureTypeConstructor } from "./factories_factories";
+import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType } from "./factories_factories";
 import { parameters } from "./factories_schema_helpers";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { display_trace_from_this_projet_only } from "node-opcua-debug";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
-import { capitalizeFirstLetter, lowerFirstLetter } from "node-opcua-utils";
-
-import chalk from "chalk";
-import * as  _ from "underscore";
+import { lowerFirstLetter } from "node-opcua-utils";
+import assert from "node-opcua-assert";
 
 // export interface StructuredTypeSchemaInterface extends CommonInterface {
 //
@@ -41,23 +41,25 @@ import * as  _ from "underscore";
 //     decodeDebug?: (stream: BinaryStream, options: any) => any;
 //     constructHook?: (options: any) => any;
 // }
-
-export function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
+function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     const fieldType = field.fieldType;
+
     if (field.category) {
         return field.category;
     }
+
     if (hasEnumeration(fieldType)) {
         return FieldCategory.enumeration;
-    } else if (getStructureTypeConstructor(fieldType)) {
-        return FieldCategory.complex;
     } else if (hasBuiltInType(fieldType)) {
         return FieldCategory.basic;
+    } else if (hasStructuredType(fieldType)) {
+        assert(fieldType !==  "LocalizedText"); // LocalizedText should be treated as BasicType!!!
+        return FieldCategory.complex;
     }
     return FieldCategory.basic;
 }
 
-export function figureOutSchema(field: FieldInterfaceOptions, category: FieldCategory): CommonInterface {
+function figureOutSchema(field: FieldInterfaceOptions, category: FieldCategory): CommonInterface {
 
     if (field.schema) {
         return field.schema;
@@ -67,7 +69,12 @@ export function figureOutSchema(field: FieldInterfaceOptions, category: FieldCat
 
     switch (category) {
         case FieldCategory.complex:
-            returnValue = getStructuredTypeSchema(field.fieldType);
+            if (hasStructuredType(field.fieldType)) {
+                returnValue = getStructuredTypeSchema(field.fieldType);
+            } else {
+                // LocalizedText etc ...
+                returnValue = getBuildInType(field.fieldType);
+            }
             break;
         case FieldCategory.basic:
             returnValue = getBuildInType(field.fieldType);
@@ -86,6 +93,7 @@ function buildField(fieldLight: FieldInterfaceOptions): FieldType {
 
     const category = figureOutFieldCategory(fieldLight);
     const schema = figureOutSchema(fieldLight, category);
+
     return {
         name: lowerFirstLetter(fieldLight.name),
 

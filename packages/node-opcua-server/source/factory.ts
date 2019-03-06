@@ -17,6 +17,10 @@ export class Factory {
     }
 
     public constructObject(id: ExpandedNodeId): ExtensionObject {
-        return constructObject(id);
+        const obj = constructObject(id);
+        if (!(obj instanceof ExtensionObject)) {
+            throw new Error("Internal Error constructObject");
+        }
+        return obj as ExtensionObject;
     }
 }
