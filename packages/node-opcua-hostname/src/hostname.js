@@ -1,5 +1,5 @@
 "use strict";
-const os = require("os");
+const childProcess = require("child_process");
 
 const trim = function (str, length) {
     if (!length) {
@@ -24,18 +24,8 @@ function get_fully_qualified_domain_name(optional_max_length) {
 
     } else {
 
-        fqdn = null;
-        try {
-            fqdn = require("fqdn");
-            _fully_qualified_domain_name_cache = fqdn();
-            if (/sethostname/.test(_fully_qualified_domain_name_cache)) {
-                throw new Error("Detecting fqdn  on windows !!!");
-            }
-
-        } catch (err) {
-            // fall back to old method
-            _fully_qualified_domain_name_cache = os.hostname();
-        }
+        const hostname = childProcess.execSync("hostname", ["-f"]);
+        _fully_qualified_domain_name_cache = hostname.toString().trim();
 
     }
     return trim(_fully_qualified_domain_name_cache, optional_max_length);
