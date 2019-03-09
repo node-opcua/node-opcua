@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-server-discovery",
- "version": "0.5.8",
+ "version": "0.6.0",
  "description": "pure nodejs OPCUA SDK - module -server-discovery",
  "scripts": {
   "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
@@ -9,15 +9,15 @@
  "main": "index.js",
  "dependencies": {
   "bonjour": "^3.5.0",
-  "node-opcua-assert": "^0.5.0",
-  "node-opcua-common": "^0.5.8",
-  "node-opcua-debug": "^0.5.6",
-  "node-opcua-hostname": "^0.5.0",
+  "node-opcua-assert": "^0.6.0",
+  "node-opcua-common": "^0.6.0",
+  "node-opcua-debug": "^0.6.0",
+  "node-opcua-hostname": "^0.6.0",
   "node-opcua-pki": "1.0.3",
-  "node-opcua-server": "^0.5.8",
-  "node-opcua-service-discovery": "^0.5.6",
-  "node-opcua-service-endpoints": "^0.5.6",
-  "node-opcua-status-code": "^0.5.6",
+  "node-opcua-server": "^0.6.0",
+  "node-opcua-service-discovery": "^0.6.0",
+  "node-opcua-service-endpoints": "^0.6.0",
+  "node-opcua-status-code": "^0.6.0",
   "underscore": "^1.9.1"
  },
  "author": "Etienne Rossignon",

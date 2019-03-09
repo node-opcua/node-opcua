@@ -1,14 +1,14 @@
 {
  "name": "node-opcua-hostname",
  "main": "./src/hostname.js",
- "version": "0.5.0",
+ "version": "0.6.0",
  "description": "pure nodejs OPCUA SDK - module -hostname",
  "scripts": {
   "test": "mocha test"
  },
  "dependencies": {
   "node-fqdn": "^1.1.1",
-  "node-opcua-assert": "^0.5.0"
+  "node-opcua-assert": "^0.6.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

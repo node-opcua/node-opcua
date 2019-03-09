@@ -1,21 +1,21 @@
 {
  "name": "node-opcua-factory",
- "version": "0.5.6",
+ "version": "0.6.0",
  "description": "pure nodejs OPCUA SDK - module -factory",
  "main": "index.js",
  "scripts": {
   "test": "echo no test"
  },
  "dependencies": {
-  "node-opcua-assert": "^0.5.0",
-  "node-opcua-basic-types": "^0.5.6",
-  "node-opcua-binary-stream": "^0.5.6",
-  "node-opcua-debug": "^0.5.6",
-  "node-opcua-enum": "^0.5.6",
-  "node-opcua-guid": "^0.5.0",
-  "node-opcua-nodeid": "^0.5.6",
-  "node-opcua-status-code": "^0.5.6",
-  "node-opcua-utils": "^0.5.6",
+  "node-opcua-assert": "^0.6.0",
+  "node-opcua-basic-types": "^0.6.0",
+  "node-opcua-binary-stream": "^0.6.0",
+  "node-opcua-debug": "^0.6.0",
+  "node-opcua-enum": "^0.6.0",
+  "node-opcua-guid": "^0.6.0",
+  "node-opcua-nodeid": "^0.6.0",
+  "node-opcua-status-code": "^0.6.0",
+  "node-opcua-utils": "^0.6.0",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
