@@ -8,7 +8,7 @@
   "build": "tsc"
  },
  "dependencies": {
-  "async": "^2.6.1",
+  "async": "^2.6.2",
   "node-opcua-assert": "^0.5.0",
   "underscore": "^1.9.1"
  },
@@ -28,6 +28,6 @@
  ],
  "homepage": "http://node-opcua.github.io/",
  "devDependencies": {
-  "@types/underscore": "^1.8.9"
+  "@types/underscore": "^1.8.13"
  }
 }

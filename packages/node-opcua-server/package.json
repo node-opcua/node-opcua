@@ -10,7 +10,7 @@
  },
  "main": "index.js",
  "dependencies": {
-  "async": "^2.6.1",
+  "async": "^2.6.2",
   "bonjour": "^3.5.0",
   "colors": "^1.3.3",
   "dequeue": "^1.0.5",
@@ -32,7 +32,7 @@
   "node-opcua-nodesets": "^0.5.0",
   "node-opcua-numeric-range": "^0.5.6",
   "node-opcua-object-registry": "^0.5.6",
-  "node-opcua-pki": "1.0.1",
+  "node-opcua-pki": "1.0.3",
   "node-opcua-secure-channel": "^0.5.6",
   "node-opcua-service-browse": "^0.5.6",
   "node-opcua-service-call": "^0.5.6",
@@ -60,7 +60,7 @@
   "node-opcua-test-helpers": "^0.5.0",
   "node-opcua-transport": "^0.5.6",
   "should": "13.2.3",
-  "sinon": "^7.2.2"
+  "sinon": "^7.2.7"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

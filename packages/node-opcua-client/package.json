@@ -10,7 +10,7 @@
  },
  "main": "index.js",
  "dependencies": {
-  "async": "^2.6.1",
+  "async": "^2.6.2",
   "delayed": "^1.0.1",
   "node-opcua-assert": "^0.5.0",
   "node-opcua-buffer-utils": "^0.5.6",
@@ -23,7 +23,7 @@
   "node-opcua-hostname": "^0.5.0",
   "node-opcua-nodeid": "^0.5.6",
   "node-opcua-object-registry": "^0.5.6",
-  "node-opcua-pki": "1.0.1",
+  "node-opcua-pki": "1.0.3",
   "node-opcua-secure-channel": "^0.5.6",
   "node-opcua-service-browse": "^0.5.6",
   "node-opcua-service-call": "^0.5.6",
@@ -49,7 +49,7 @@
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^0.5.6",
   "should": "13.2.3",
-  "sinon": "^7.2.2"
+  "sinon": "^7.2.7"
  },
  "eslintConfig": {
   "env": {

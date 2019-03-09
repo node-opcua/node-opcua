@@ -71,7 +71,7 @@ export class BinaryStream {
     writeInt8(value: number): void {
         if (performCheck) assert(this._buffer.length >= this.length + 1, "not enough space in buffer");
         if (performCheck) assert(value >= -128 && value < 128);
-        this._buffer.writeInt8(value, this.length, noAssert);
+        this._buffer.writeInt8(value, this.length);
         this.length += 1;
     }
 
@@ -83,7 +83,7 @@ export class BinaryStream {
     writeUInt8(value: number): void {
         if (performCheck) assert(this._buffer.length >= this.length + 1, "not enough space in buffer");
         if (performCheck) assert(value >= 0 && value < 256, " writeUInt8 : out of bound ");
-        this._buffer.writeUInt8(value, this.length, noAssert);
+        this._buffer.writeUInt8(value, this.length);
         this.length += 1;
     }
 
@@ -94,7 +94,7 @@ export class BinaryStream {
      */
     writeInt16(value: number): void {
         if (performCheck) assert(this._buffer.length >= this.length + 2, "not enough space in buffer");
-        this._buffer.writeInt16LE(value, this.length, noAssert);
+        this._buffer.writeInt16LE(value, this.length);
         this.length += 2;
     }
 
@@ -105,7 +105,7 @@ export class BinaryStream {
      */
     writeUInt16(value: number): void {
         if (performCheck) assert(this._buffer.length >= this.length + 2, "not enough space in buffer");
-        this._buffer.writeUInt16LE(value, this.length, noAssert);
+        this._buffer.writeUInt16LE(value, this.length);
         this.length += 2;
     }
 
@@ -116,7 +116,7 @@ export class BinaryStream {
      */
     writeInteger(value: number): void {
         if (performCheck) assert(this._buffer.length >= this.length + 4, "not enough space in buffer");
-        this._buffer.writeInt32LE(value, this.length, noAssert);
+        this._buffer.writeInt32LE(value, this.length);
         this.length += 4;
     }
 
@@ -129,7 +129,7 @@ export class BinaryStream {
         if (performCheck) assert(this._buffer.length >= this.length + 4, "not enough space in buffer");
         if (performCheck) assert(isFinite(value));
         if (performCheck) assert(value >= 0 && value <= MAXUINT32);
-        this._buffer.writeUInt32LE(value, this.length, noAssert);
+        this._buffer.writeUInt32LE(value, this.length);
         this.length += 4;
         /*
           assert(this._buffer[this.length - 4] === value % 256);
@@ -146,7 +146,7 @@ export class BinaryStream {
      */
     writeFloat(value: number): void {
         if (performCheck) assert(this._buffer.length >= this.length + 4, "not enough space in buffer");
-        this._buffer.writeFloatLE(value, this.length, noAssert);
+        this._buffer.writeFloatLE(value, this.length);
         this.length += 4;
     }
 
@@ -157,7 +157,7 @@ export class BinaryStream {
      */
     writeDouble(value: number): void {
         if (performCheck) assert(this._buffer.length >= this.length + 8, "not enough space in buffer");
-        this._buffer.writeDoubleLE(value, this.length, noAssert);
+        this._buffer.writeDoubleLE(value, this.length);
         this.length += 8;
     }
 
@@ -194,7 +194,7 @@ export class BinaryStream {
      * @return {Number}
      */
     readByte(): number {
-        const retVal = this._buffer.readInt8(this.length, noAssert);
+        const retVal = this._buffer.readInt8(this.length);
         this.length += 1;
         return retVal;
     }
@@ -210,7 +210,7 @@ export class BinaryStream {
      */
     readUInt8(): number {
         if (performCheck) assert(this._buffer.length >= this.length + 1);
-        const retVal = this._buffer.readUInt8(this.length, noAssert);
+        const retVal = this._buffer.readUInt8(this.length);
         this.length += 1;
         return retVal;
     }
@@ -221,7 +221,7 @@ export class BinaryStream {
      * @return {Number}
      */
     readInt16(): number {
-        const retVal = this._buffer.readInt16LE(this.length, noAssert);
+        const retVal = this._buffer.readInt16LE(this.length);
         this.length += 2;
         return retVal;
     }
@@ -232,7 +232,7 @@ export class BinaryStream {
      * @return {Number}  q
      */
     readUInt16(): number {
-        const retVal = this._buffer.readUInt16LE(this.length, noAssert);
+        const retVal = this._buffer.readUInt16LE(this.length);
         this.length += 2;
         return retVal;
     }
@@ -243,7 +243,7 @@ export class BinaryStream {
      * @return {Number}
      */
     readInteger(): number {
-        const retVal = this._buffer.readInt32LE(this.length, noAssert);
+        const retVal = this._buffer.readInt32LE(this.length);
         this.length += 4;
         return retVal;
     }
@@ -254,7 +254,7 @@ export class BinaryStream {
      * @return {number} the value read from the stream
      */
     readUInt32(): number {
-        const retVal = this._buffer.readUInt32LE(this.length, noAssert);
+        const retVal = this._buffer.readUInt32LE(this.length);
         this.length += 4;
         return retVal;
     }
@@ -265,7 +265,7 @@ export class BinaryStream {
      * @return  the value read from the stream
      */
     readFloat(): number {
-        const retVal = this._buffer.readFloatLE(this.length, noAssert);
+        const retVal = this._buffer.readFloatLE(this.length);
         this.length += 4;
         return retVal;
     }
@@ -276,7 +276,7 @@ export class BinaryStream {
      * @return  the value read from the stream
      */
     readDouble(): number {
-        const retVal = this._buffer.readDoubleLE(this.length, noAssert);
+        const retVal = this._buffer.readDoubleLE(this.length);
         this.length += 8;
         return retVal;
     }
