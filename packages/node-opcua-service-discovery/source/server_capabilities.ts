@@ -2,6 +2,7 @@
  * @module node-opcua-service-discovery
  */
 
+// see most up to date version at http://www.opcfoundation.org/UA/schemas/1.04/ServerCapabilities.csv
 export const serverCapabilities = [
 
     "NA",  // No capability information is available. Cannot be used in combination with any other capability.
@@ -21,5 +22,6 @@ export const serverCapabilities = [
     // new in 1.04
     "RCP", // Supports the reverse connect capabilities defined in Part 6.
     "PUB", // Supports the Publisher capabilities defined in Part 14.
+    "SUB", // Supports the Publisher capabilities defined in Part 14.
 
 ];

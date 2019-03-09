@@ -17,6 +17,7 @@
   "node-opcua-basic-types": "^2.0.0-alpha.13",
   "node-opcua-binary-stream": "^2.0.0-alpha.13",
   "node-opcua-data-model": "^2.0.0-alpha.13",
+  "node-opcua-debug": "^2.0.0-alpha.10",
   "node-opcua-factory": "^2.0.0-alpha.13",
   "node-opcua-nodeid": "^2.0.0-alpha.13",
   "node-opcua-service-endpoints": "^2.0.0-alpha.13",
