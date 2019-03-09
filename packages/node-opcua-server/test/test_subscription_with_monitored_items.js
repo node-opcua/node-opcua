@@ -1245,7 +1245,7 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
 
         function changeEURange(analogItem, done) {
-            const dataValueOrg = analogItem.readAttribute(AttributeIds.Value);
+            const dataValueOrg = analogItem.readAttribute(SessionContext.defaultContext, AttributeIds.Value);
 
             const dataValue = {
                 value: {
