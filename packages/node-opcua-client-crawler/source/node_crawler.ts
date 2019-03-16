@@ -947,7 +947,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         this.session.browseNext(
           continuationPoints,
-          true,
+          false,
           (err: Error | null, browseResults?: BrowseResult[]) => {
 
               if (err) {
