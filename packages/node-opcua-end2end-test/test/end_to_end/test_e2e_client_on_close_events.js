@@ -143,9 +143,9 @@ describe("testing Client-Server - Event", function () {
         // note : client will  try to reconnect and eventually fail ..s
         const options = {
             connectionStrategy: {
-                maxRetry: 1,  // <= RETRY
                 initialDelay: 10,
                 maxDelay: 20,
+                maxRetry: 1,  // <= RETRY
                 randomisationFactor: 0
             }
         };
@@ -155,39 +155,55 @@ describe("testing Client-Server - Event", function () {
         const _client_received_close_event = sinon.spy();
         client.on("close", _client_received_close_event);
 
+        const _client_backoff_event = sinon.spy();
+        client.on("backoff", _client_backoff_event);
+        client.on("backoff", () => {
+          debugLog("client attempt to connect");
+        });
+
         async.series([
             function (callback) {
-                debugLog(" --> Starting server");
+                debugLog(" 1--> Starting server");
                 start_server(callback);
             },
             function (callback) {
-                debugLog(" --> Connecting Client");
+                debugLog(" 2--> Connecting Client");
                 client.connect(endpointUrl, callback);
             },
             function (callback) {
 
                 _client_received_close_event.callCount.should.eql(0);
 
-                client.once("close", function (err) {
-                    should.exist(err);
-                    callback();
+                client.once("connection_lost", function () {
+                    debugLog(" 4 or 5--> client has detected that server has shutdown abruptly");
+                    setTimeout(() => {
+                        debugLog(" 6--> disconnecting client");
+                        client.disconnect(() => {
+                            debugLog(" 8 --> client has been disconnected");
+                            callback();
+                        });
+                    }, 3000);
+                });
+                client.on("close", function (err) {
+                    debugLog(" 8 --> client has sent 'close' event", err ? err.message : null);
+                    //xx should.exist(err);
                 });
 
-                debugLog(" --> Stopping server");
+                debugLog(" 3--> Stopping server");
                 end_server(function () {
+                    debugLog(" 4 or 5 --> Server stopped");
                 });
             },
 
 
             function (callback) {
+                _client_backoff_event.callCount.should.be.greaterThan(1);
                 _client_received_close_event.callCount.should.eql(1);
-                _client_received_close_event.getCall(0).args[0].message.should.match(/CONNREFUSED/);
+                should.not.exist(_client_received_close_event.getCall(0).args[0]);
+                // _client_received_close_event.getCall(0).args[0].message.should.match(/CONNREFUSED/);
                 callback();
             },
 
-            function (callback) {
-                client.disconnect(callback);
-            }
 
         ], done);
     });

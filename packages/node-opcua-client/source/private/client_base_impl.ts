@@ -4,7 +4,6 @@
 // tslint:disable:no-unused-expression
 import * as async from "async";
 import chalk from "chalk";
-import { EventEmitter } from "events";
 import * as  fs from "fs";
 import * as  path from "path";
 import * as _ from "underscore";
@@ -12,7 +11,6 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     ClientSecureChannelLayer,
     coerceConnectionStrategy,
@@ -59,7 +57,7 @@ const doDebug = checkDebugFlag(__filename);
 const defaultConnectionStrategy: ConnectionStrategyOptions = {
     initialDelay: 1000,
     maxDelay: 20 * 1000, // 20 seconds
-    maxRetry: 10000000, // almost infinite
+    maxRetry: -1, // infinite
     randomisationFactor: 0.1
 };
 
@@ -379,7 +377,13 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
             assert(!this._secureChannel);
 
-            this._internal_create_secure_channel((err: Error | null) => {
+            const infiniteConnectionRetry: ConnectionStrategyOptions = {
+                initialDelay: this.connectionStrategy.initialDelay,
+                maxDelay: this.connectionStrategy.maxDelay,
+                maxRetry: -1,
+            };
+
+            this._internal_create_secure_channel(infiniteConnectionRetry,(err: Error | null) => {
 
                 if (err) {
                     debugLog(chalk.bgWhite.red("ClientBaseImpl: cannot reconnect .."));
@@ -402,7 +406,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         });
     }
 
-    public _internal_create_secure_channel(callback: CreateSecureChannelCallbackFunc) {
+    public _internal_create_secure_channel(
+      connectionStrategy: ConnectionStrategyOptions,
+      callback: CreateSecureChannelCallbackFunc
+    ) {
 
         let secureChannel: ClientSecureChannelLayer;
 
@@ -415,7 +422,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             (_innerCallback: ErrorCallback) => {
 
                 secureChannel = new ClientSecureChannelLayer({
-                    connectionStrategy: this.connectionStrategy,
+                    connectionStrategy,
                     defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
                     parent: this,
                     securityMode: this.securityMode,
@@ -580,7 +587,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         OPCUAClientBase.registry.register(this);
 
-        this._internal_create_secure_channel((err: Error | null /* secureChannel?: ClientSecureChannelLayer*/) => {
+        this._internal_create_secure_channel(this.connectionStrategy,(err: Error | null /* secureChannel?: ClientSecureChannelLayer*/) => {
             // xx secureChannel;
             if (!err) {
                 this.emit("connected");
@@ -1022,7 +1029,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
                         if (err1) {
                             // xx assert(!this._secureChannel);
-                            this.emit("close", err1);
+                            debugLog("_recreate_secure_channel has failed");
+                            // xx this.emit("close", err1);
                             return;
                         } else {
                             /**

@@ -420,6 +420,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         debugLog("ClientSubscription#recreateSubscriptionAndMonitoredItem");
 
+        if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID) {
+           debugLog("Subscription is not in a valid state");
+           return callback();
+        }
+
         const oldMonitoredItems = this.monitoredItems;
 
         this.publishEngine.unregisterSubscription(this.subscriptionId);

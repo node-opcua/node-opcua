@@ -3,6 +3,7 @@
  */
 import chalk from "chalk";
 import { EventEmitter } from "events";
+import { callbackify } from "util";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -79,6 +80,7 @@ import { StatusCode } from "node-opcua-status-code";
 import { getFunctionParameterNames, isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
+import { BrowseNextRequest, BrowseNextResponse } from "node-opcua-types";
 import {
     ArgumentDefinition,
     BrowseDescriptionLike,
@@ -106,7 +108,6 @@ import { Request, Response } from "../common";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import { OPCUAClientImpl } from "./opcua_client_impl";
-import { BrowseNextRequest, BrowseNextResponse } from "node-opcua-types";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 

@@ -1049,8 +1049,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.lastError = undefined;
 
-        if (this.connectionStrategy.maxRetry <= 0) {
-            debugLog(" No backoff required -> call the _connect function directly");
+        if (this.connectionStrategy.maxRetry === 0) {
+            debugLog(chalk.cyan("max Retry === 1 =>  No backoff required -> call the _connect function directly"));
             this.__call = 0;
             return this._connect(transport, endpointUrl, callback);
         }
@@ -1064,10 +1064,18 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.__call = backoff.call(connectFunc, completionFunc);
 
-        this.__call.failAfter(Math.max(this.connectionStrategy.maxRetry, 1));
+        if (this.connectionStrategy.maxRetry >= 0) {
+            const maxRetry = Math.max(this.connectionStrategy.maxRetry, 1);
+            debugLog(chalk.cyan("backoff will failed after "), maxRetry);
+            this.__call.failAfter(maxRetry);
+        } else {
+            // retry will be infinite
+            debugLog(chalk.cyan("backoff => starting a infinite retry"));
+        }
 
         const onBackoffFunc = (retryCount: number, delay: number) => {
-            debugLog(chalk.bgWhite.cyan(" Backoff #"), retryCount, "delay = ", delay, this.__call.maxNumberOfRetry_);
+            debugLog(chalk.bgWhite.cyan(" Backoff #"), retryCount, "delay = ", delay,
+              " ms" , " maxRetry ", this.connectionStrategy.maxRetry);
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
             /**
@@ -1140,7 +1148,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     /**
      * @method makeRequestId
-     * @return {Number} a newly generated request id
+     * @return  newly generated request id
      * @private
      */
     private makeRequestId(): number {

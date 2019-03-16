@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-empty
 import chalk from "chalk";
-import * as envPaths from "env-paths";
+import envPaths from "env-paths";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
