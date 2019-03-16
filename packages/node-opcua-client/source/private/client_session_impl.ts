@@ -481,7 +481,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const isArray = _.isArray(arg0);
         const releaseContinuationPoints = args[1] as boolean;
         const callback: any = args[2];
-        assert(_.isFunction(callback));
+        assert(_.isFunction(callback), "expecting a callback function here");
 
         const continuationPoints: Buffer[] =
           (isArray ? arg0 : [arg0 as Buffer]);
@@ -2079,6 +2079,7 @@ const thenify = require("thenify");
 const opts = { multiArgs: false };
 
 ClientSessionImpl.prototype.browse = thenify.withCallback(ClientSessionImpl.prototype.browse, opts);
+ClientSessionImpl.prototype.browseNext = thenify.withCallback(ClientSessionImpl.prototype.browseNext, opts);
 ClientSessionImpl.prototype.readVariableValue = thenify.withCallback(ClientSessionImpl.prototype.readVariableValue, opts);
 ClientSessionImpl.prototype.readHistoryValue = thenify.withCallback(ClientSessionImpl.prototype.readHistoryValue, opts);
 ClientSessionImpl.prototype.write = thenify.withCallback(ClientSessionImpl.prototype.write, opts);
