@@ -729,11 +729,10 @@ ClientSecureChannelLayer.prototype.create = function (endpointUrl, callback) {
         }
 
         // No backoff required -> call the _connect function directly
-        if (self.connectionStrategy.maxRetry <= 0) {
+        if (self.connectionStrategy.maxRetry === 0) {
             self.__call = 0;
             return _connect(callback);
         }
-
 
         function _backoff_completion(err) {
 
@@ -754,13 +753,19 @@ ClientSecureChannelLayer.prototype.create = function (endpointUrl, callback) {
 
         self.__call = backoff.call(_connect, _backoff_completion);
 
-        //xx self.__call._cancelBackoff = self.connectionStrategy.maxRetry <=0 ? true : false;
-        self.__call.failAfter(Math.max(self.connectionStrategy.maxRetry, 1));
+        if ( self.connectionStrategy.maxRetry >= 0){
+            const maxRetry = Math.max(self.connectionStrategy.maxRetry, 1);
+            self.__call.failAfter(maxRetry);
+            debugLog("backoff will failed after ".cyan, maxRetry);
+        } else {
+            // retry will be infinite
+            debugLog("backoff => starting a infinite retry".cyan, self.connectionStrategy.initialDelay);
+        }
 
 
         self.__call.on("backoff", function (number, delay) {
 
-            debugLog(" Backoff #".bgWhite.cyan, number, "delay = ", delay, self.__call.maxNumberOfRetry_);
+            debugLog(" Backoff #".bgWhite.cyan, number, "delay = ", delay, self.connectionStrategy.maxRetry);
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
             /**

@@ -32,9 +32,9 @@ const ClientSession = require("./client_session").ClientSession;
 
 
 const defaultConnectionStrategy = {
-    maxRetry: 10000000, // almost infinite
     initialDelay: 1000,
     maxDelay: 20*1000,// 20 seconds
+    maxRetry: -1, // infinite
     randomisationFactor: 0.1
 };
 
@@ -311,7 +311,13 @@ OPCUAClientBase.prototype._recreate_secure_channel = function (callback) {
 
         assert(!self._secureChannel);
 
-        self._internal_create_secure_channel(function (err) {
+        const infiniteConnectionRetry = {
+            initialDelay: self.connectionStrategy.initialDelay,
+            maxDelay: self.connectionStrategy.maxDelay,
+            maxRetry: -1,
+        };
+
+        self._internal_create_secure_channel(infiniteConnectionRetry, function (err) {
 
             if (err) {
                 debugLog("OPCUAClientBase: cannot reconnect ..".bgWhite.red);
@@ -359,8 +365,7 @@ function _verify_serverCertificate(serverCertificate, callback) {
 
 }
 
-
-OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) {
+OPCUAClientBase.prototype._internal_create_secure_channel = function (connectionStrategy, callback) {
 
     const self = this;
     let secureChannel;
@@ -379,7 +384,7 @@ OPCUAClientBase.prototype._internal_create_secure_channel = function (callback) 
                 serverCertificate: self.serverCertificate,
                 parent: self,
                 objectFactory: self.objectFactory,
-                connectionStrategy: self.connectionStrategy,
+                connectionStrategy,
                 tokenRenewalInterval: self.tokenRenewalInterval,
             });
 
@@ -541,7 +546,8 @@ function _install_secure_channel_event_handlers(self, secureChannel) {
 
                     if (err) {
                         //xx assert(!self._secureChannel);
-                        self.emit("close", err);
+                        debugLog("_recreate_secure_channel has failed , shall we emit clode ?");
+                        //xx self.emit("close", err);
                         return;
                     } else {
                         /**
@@ -667,7 +673,7 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
 
     OPCUAClientBase.registry.register(self);
 
-    self._internal_create_secure_channel(function (err, secureChannel) {
+    self._internal_create_secure_channel(self.connectionStrategy, function (err, secureChannel) {
         callback_od(err);
     });
 
@@ -949,7 +955,7 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
         debugLog("warning : disconnection : closing pending sessions");
         // disconnect has been called whereas living session exists
         // we need to close them first ....
-        self._close_pending_sessions(function (/*err*/) {
+        self._close_pending_sessions(function(/*err*/) {
             self.disconnect(callback);
         });
         return;
@@ -957,8 +963,8 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
 
     if (self._sessions.length ) {
         // transfer active session to  orphan and detach them from channel
-        _.forEach(self._sessions,function(session) {
-            self._removeSession(session)
+        _.forEach(self._sessions, function(session) {
+            self._removeSession(session);
         });
         self._sessions = [];
     }
@@ -982,7 +988,7 @@ OPCUAClientBase.prototype.disconnect = function (callback) {
             setImmediate(callback);
         });
     } else {
-        self.emit("close", null);
+        self.emit("close");
         callback();
     }
 };

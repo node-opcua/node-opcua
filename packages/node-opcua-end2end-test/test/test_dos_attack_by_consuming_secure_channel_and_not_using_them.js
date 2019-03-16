@@ -225,7 +225,6 @@ describe("testing Server resilience to DOS attacks", function () {
                         rejected_connections ++;
                         // ignore err here
                         callback();
-
                     }
                 });
             }

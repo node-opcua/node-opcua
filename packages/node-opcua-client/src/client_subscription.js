@@ -683,8 +683,12 @@ ClientSubscription.prototype.recreateSubscriptionAndMonitoredItem = function (ca
     debugLog("ClientSubscription#recreateSubscriptionAndMonitoredItem");
     const subscription = this;
 
-    const monitoredItems_old = subscription.monitoredItems;
+    if (typeof subscription.subscriptionId === "string") {
+        debugLog("Subscription is not in a valid state");
+        return callback();
+    }
 
+    const monitoredItems_old = subscription.monitoredItems;
     subscription.publish_engine.unregisterSubscription(subscription.subscriptionId);
 
     async.series([
