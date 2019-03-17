@@ -34,10 +34,10 @@ before_install:
        sudo sysctl -w kern.maxfiles=50000;
        sudo sysctl -w kern.maxfilesperproc=20000;
        sudo serverinfo --setperfmode true;
-       sudo ulimit -c unlimited;
-       sudo ulimit -n 1024;
-       sudo ulimit -l unlimited;
-       sudo ulimit -a;
+       sudo launchctl limit maxfiles 1000000 1000000;
+       ulimit -S -n 100000;
+       ulimit -S -l unlimited;
+       ulimit -a;
     fi;
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]]; then
       brew install libressl;
