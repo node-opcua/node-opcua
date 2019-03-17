@@ -4,5 +4,7 @@
     "rootDir": "source",
     "outDir": "dist"
   },
-
+  "files": [
+    "source/index.ts"
+  ]
 }

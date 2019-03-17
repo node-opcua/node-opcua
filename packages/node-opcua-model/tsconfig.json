@@ -5,7 +5,5 @@
     "outDir": "dist"
   },
   "files": [
-    "source/index.ts",
-    "source/opcua_code_generator.ts"
   ]
 }
