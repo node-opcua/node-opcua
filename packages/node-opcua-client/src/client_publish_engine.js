@@ -279,7 +279,7 @@ ClientSidePublishEngine.prototype.registerSubscription = function (subscription)
     self.activeSubscriptionCount += 1;
     self.subscriptionMap[subscription.subscriptionId] = subscription;
 
-    self.timeoutHint = Math.max(self.timeoutHint, subscription.timeoutHint);
+    self.timeoutHint = Math.min(Math.max(self.timeoutHint, subscription.timeoutHint), 0x7FFFFFF);
     debugLog("                       setting timeoutHint = ", self.timeoutHint, subscription.timeoutHint);
 
     self.replenish_publish_request_queue();
