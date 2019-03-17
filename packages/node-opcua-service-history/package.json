@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-history",
- "version": "0.6.0",
+ "version": "0.7.0",
  "description": "pure nodejs OPCUA SDK - module -service-history",
  "scripts": {
   "test": "mocha test",
@@ -9,21 +9,21 @@
  },
  "main": "index.js",
  "dependencies": {
-  "node-opcua-assert": "^0.6.0",
-  "node-opcua-basic-types": "^0.6.0",
-  "node-opcua-data-model": "^0.6.0",
-  "node-opcua-data-value": "^0.6.0",
-  "node-opcua-extension-object": "^0.6.0",
-  "node-opcua-factory": "^0.6.0",
-  "node-opcua-nodeid": "^0.6.0",
-  "node-opcua-service-filter": "^0.6.0",
-  "node-opcua-service-secure-channel": "^0.6.0",
+  "node-opcua-assert": "^0.7.0",
+  "node-opcua-basic-types": "^0.7.0",
+  "node-opcua-data-model": "^0.7.0",
+  "node-opcua-data-value": "^0.7.0",
+  "node-opcua-extension-object": "^0.7.0",
+  "node-opcua-factory": "^0.7.0",
+  "node-opcua-nodeid": "^0.7.0",
+  "node-opcua-service-filter": "^0.7.0",
+  "node-opcua-service-secure-channel": "^0.7.0",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.6.0",
-  "node-opcua-packet-analyzer": "^0.6.0",
-  "node-opcua-service-read": "^0.6.0"
+  "node-opcua-generator": "^0.7.0",
+  "node-opcua-packet-analyzer": "^0.7.0",
+  "node-opcua-service-read": "^0.7.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-numeric-range",
- "version": "0.6.0",
+ "version": "0.7.0",
  "description": "pure nodejs OPCUA SDK - module -numeric-range",
  "main": "src/numeric_range.js",
  "scripts": {
@@ -9,18 +9,18 @@
  "author": "Etienne Rossignon",
  "license": "MIT",
  "dependencies": {
-  "node-opcua-assert": "^0.6.0",
-  "node-opcua-basic-types": "^0.6.0",
-  "node-opcua-enum": "^0.6.0",
-  "node-opcua-factory": "^0.6.0",
-  "node-opcua-status-code": "^0.6.0",
+  "node-opcua-assert": "^0.7.0",
+  "node-opcua-basic-types": "^0.7.0",
+  "node-opcua-enum": "^0.7.0",
+  "node-opcua-factory": "^0.7.0",
+  "node-opcua-status-code": "^0.7.0",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.6.0",
-  "node-opcua-nodeid": "^0.6.0",
-  "node-opcua-packet-analyzer": "^0.6.0",
-  "node-opcua-test-helpers": "^0.6.0",
+  "node-opcua-generator": "^0.7.0",
+  "node-opcua-nodeid": "^0.7.0",
+  "node-opcua-packet-analyzer": "^0.7.0",
+  "node-opcua-test-helpers": "^0.7.0",
   "should": "13.2.3"
  },
  "repository": {
