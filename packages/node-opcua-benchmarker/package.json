@@ -10,7 +10,7 @@
 		"lint": "tslint source/**/*.ts"
 	},
 	"dependencies": {
-		"async": "^2.6.1",
+		"async": "^2.6.2",
 		"node-opcua-assert": "^2.0.0-alpha.10",
 		"underscore": "^1.9.1"
 	},
@@ -30,7 +30,7 @@
 	],
 	"homepage": "http://node-opcua.github.io/",
 	"devDependencies": {
-		"@types/underscore": "^1.8.9"
+		"@types/underscore": "^1.8.13"
 	},
 	"gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }

@@ -33,10 +33,10 @@
     "underscore": "^1.9.1"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.5",
+    "@types/mocha": "^5.2.6",
     "mocha-typescript": "^1.1.17",
     "should": "13.2.3",
-    "source-map-support": "^0.5.10"
+    "source-map-support": "^0.5.11"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

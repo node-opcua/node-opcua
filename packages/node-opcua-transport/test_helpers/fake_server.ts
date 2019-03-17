@@ -46,10 +46,7 @@ export class FakeServer extends EventEmitter {
 
     public initialize(done: () => void) {
 
-        this.tcpServer.listen(this.port, (err: Error) => {
-            if (err) {
-                throw new Error(" cannot listing to port " + this.port);
-            }
+        this.tcpServer.listen(this.port, () => {
             done();
         });
     }

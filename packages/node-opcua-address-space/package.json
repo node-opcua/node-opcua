@@ -14,7 +14,7 @@
   "clean": "node -e \"require('rimraf').sync('_generated_');\""
  },
  "dependencies": {
-  "async": "^2.6.1",
+  "async": "^2.6.2",
   "dequeue": "^1.0.5",
   "node-opcua-assert": "^2.0.0-alpha.10",
   "node-opcua-basic-types": "^2.0.0-alpha.13",
@@ -50,7 +50,7 @@
   "xml-writer": "^1.7.0"
  },
  "devDependencies": {
-  "@types/mocha": "^5.2.5",
+  "@types/mocha": "^5.2.6",
   "date-utils": "^1.2.21",
   "humanize": "0.0.9",
   "node-opcua-benchmarker": "^2.0.0-alpha.10",
@@ -64,8 +64,8 @@
   "node-opcua-packet-analyzer": "^2.0.0-alpha.13",
   "node-opcua-test-fixtures": "^2.0.0-alpha.13",
   "should": "13.2.3",
-  "sinon": "^7.2.3",
-  "source-map-support": "^0.5.10"
+  "sinon": "^7.2.7",
+  "source-map-support": "^0.5.11"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

@@ -14,10 +14,10 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
-  "@types/async": "^2.4.0",
+  "@types/async": "^2.4.1",
   "@types/once": "^1.4.0",
-  "@types/underscore": "^1.8.9",
-  "async": "^2.6.1",
+  "@types/underscore": "^1.8.13",
+  "async": "^2.6.2",
   "chalk": "^2.4.2",
   "delayed": "^1.0.1",
   "node-opcua-assert": "^2.0.0-alpha.10",
@@ -59,13 +59,13 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/mocha": "^5.2.5",
+  "@types/mocha": "^5.2.6",
   "dequeue": "^1.0.5",
   "node-opcua-binary-stream": "^2.0.0-alpha.13",
   "node-opcua-factory": "^2.0.0-alpha.13",
   "node-opcua-leak-detector": "^2.0.0-alpha.13",
   "should": "13.2.3",
-  "sinon": "^7.2.3"
+  "sinon": "^7.2.7"
  },
  "eslintConfig": {
   "env": {

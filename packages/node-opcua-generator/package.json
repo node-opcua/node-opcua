@@ -24,16 +24,16 @@
   "node-opcua-utils": "^2.0.0-alpha.13",
   "node-opcua-xml2json": "^2.0.0-alpha.13",
   "prettier": "^1.16.4",
-  "typescript": "^3.3.3",
+  "typescript": "^3.3.3333",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/prettier": "^1.15.2",
+  "@types/prettier": "^1.16.1",
   "node-opcua-binary-stream": "^2.0.0-alpha.13",
   "node-opcua-extension-object": "^2.0.0-alpha.13",
   "node-opcua-packet-analyzer": "^2.0.0-alpha.13",
   "should": "13.2.3",
-  "source-map-support": "^0.5.10"
+  "source-map-support": "^0.5.11"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

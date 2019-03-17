@@ -19,7 +19,7 @@
  "devDependencies": {
   "node-opcua-benchmarker": "^2.0.0-alpha.10",
   "should": "13.2.3",
-  "source-map-support": "^0.5.10"
+  "source-map-support": "^0.5.11"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
