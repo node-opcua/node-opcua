@@ -3,5 +3,8 @@
   "compilerOptions": {
     "rootDir": "source",
     "outDir": "dist"
-  }
+  },
+  "files": [
+    "source/opcua_status_code.ts"
+  ]
 }
