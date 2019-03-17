@@ -127,7 +127,7 @@ const DataValue_Schema = {
         // read sourceTimestamp
         cur = stream.length;
         if (check_flag(encoding_mask,DataValueEncodingByte.SourceTimestamp)) {
-            dataValue.sourceTimestamp  = ec.decodeHighPrecisionDateTime(stream);
+            dataValue.sourceTimestamp  = ec.decodeHighAccuracyDateTime(stream);
             dataValue.sourcePicoseconds= dataValue.sourceTimestamp.picoseconds;
             tracer.trace("member","sourceTimestamp", dataValue.sourceTimestamp,cur,stream.length,"DateTime");
         }
