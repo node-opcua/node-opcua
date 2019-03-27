@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-end2end-test",
- "version": "0.7.0",
+ "version": "0.7.1",
  "description": "pure nodejs OPCUA SDK - module -end2end-test",
  "scripts": {
   "pretest": "node test_helpers/create_certificates.js demo --dev -s",
@@ -14,7 +14,7 @@
   "async": "^2.6.2",
   "colors": "^1.3.3",
   "delayed": "^1.0.1",
-  "node-opcua": "^0.7.0",
+  "node-opcua": "^0.7.1",
   "node-opcua-address-space": "^0.7.0",
   "node-opcua-address-space-for-conformance-testing": "^0.7.0",
   "node-opcua-assert": "^0.7.0",

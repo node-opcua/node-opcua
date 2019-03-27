@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-local-discovery-server",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "pure nodejs OPCUA Local Discovery Server",
   "bin": {
     "lds": "./bin/local-discovery-server.js",
@@ -16,7 +16,7 @@
     "async": "^2.6.2",
     "bonjour": "^3.5.0",
     "colors": "^1.3.3",
-    "node-opcua": "^0.7.0",
+    "node-opcua": "^0.7.1",
     "vorpal": "^1.12.0",
     "vorpal-repl": "^1.1.8"
   },
