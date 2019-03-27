@@ -142,6 +142,8 @@ module.exports.MonitoredItem = require("node-opcua-server").MonitoredItem;
 
 module.exports.generate_address_space = require("node-opcua-address-space").generate_address_space;
 module.exports.AddressSpace = require("node-opcua-address-space").AddressSpace;
+module.exports.Namespace = require("node-opcua-address-space").Namespace;
+
 module.exports.SessionContext = require("node-opcua-address-space").SessionContext;
 // basic opcua NodeClass
 module.exports.UAObject = require("node-opcua-address-space").UAObject;
