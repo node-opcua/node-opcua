@@ -262,7 +262,6 @@ function fetch_from_github(version,file){
 
 }
 const version = "1.04";
-fetch_from_github(version, "Schema/Opc.Ua.StatusCodes.csv");
 fetch_from_github(version, "Schema/StatusCode.csv");
 fetch_from_github(version, "Schema/NodeIds.csv");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.xml");

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
- * Copyright (c) 2005-2018 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  * 
@@ -76,6 +76,126 @@
     <Alias Alias="HasEncoding">i=38</Alias>
     <Alias Alias="HasDescription">i=39</Alias>
   </Aliases>
+  <UAObject NodeId="ns=1;i=15001" BrowseName="1:http://opcfoundation.org/UA/ADI/" SymbolicName="OpcUaAdiNamespaceMetadata">
+    <DisplayName>http://opcfoundation.org/UA/ADI/</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty">ns=1;i=15002</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=15003</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=15004</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=15005</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=15006</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=15007</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=15008</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=15031</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=15032</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=15033</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+    </References>
+  </UAObject>
+  <UAVariable NodeId="ns=1;i=15002" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=15001" DataType="String">
+    <DisplayName>NamespaceUri</DisplayName>
+    <Description>The URI of the namespace.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+    <Value>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/ADI/</String>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=15003" BrowseName="NamespaceVersion" ParentNodeId="ns=1;i=15001" DataType="String">
+    <DisplayName>NamespaceVersion</DisplayName>
+    <Description>The human readable string representing version of the namespace.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+    <Value>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1.01</String>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=15004" BrowseName="NamespacePublicationDate" ParentNodeId="ns=1;i=15001" DataType="DateTime">
+    <DisplayName>NamespacePublicationDate</DisplayName>
+    <Description>The publication date for the namespace.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+    <Value>
+      <DateTime xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2013-07-31T00:00:00Z</DateTime>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=15005" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=15001" DataType="Boolean">
+    <DisplayName>IsNamespaceSubset</DisplayName>
+    <Description>If TRUE then the server only supports a subset of the namespace.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+    <Value>
+      <Boolean xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">false</Boolean>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=15006" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=15001" DataType="i=256" ValueRank="1">
+    <DisplayName>StaticNodeIdTypes</DisplayName>
+    <Description>A list of IdTypes for nodes which are the same in every server that exposes them.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+    <Value>
+      <ListOfInt32 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+        <Int32>0</Int32>
+      </ListOfInt32>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=15007" BrowseName="StaticNumericNodeIdRange" ParentNodeId="ns=1;i=15001" DataType="i=291" ValueRank="1">
+    <DisplayName>StaticNumericNodeIdRange</DisplayName>
+    <Description>A list of ranges for numeric node ids which are the same in every server that exposes them.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+    <Value>
+      <ListOfString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+        <String>1:65535</String>
+      </ListOfString>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=15008" BrowseName="StaticStringNodeIdPattern" ParentNodeId="ns=1;i=15001" DataType="String">
+    <DisplayName>StaticStringNodeIdPattern</DisplayName>
+    <Description>A regular expression which matches string node ids are the same in every server that exposes them.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+    <Value>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+      </String>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=15031" BrowseName="DefaultRolePermissions" ParentNodeId="ns=1;i=15001" DataType="i=96" ValueRank="1">
+    <DisplayName>DefaultRolePermissions</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=15032" BrowseName="DefaultUserRolePermissions" ParentNodeId="ns=1;i=15001" DataType="i=96" ValueRank="1">
+    <DisplayName>DefaultUserRolePermissions</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=15033" BrowseName="DefaultAccessRestrictions" ParentNodeId="ns=1;i=15001" DataType="i=95">
+    <DisplayName>DefaultAccessRestrictions</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
+    </References>
+  </UAVariable>
   <UAObjectType NodeId="ns=1;i=1001" BrowseName="1:AnalyserDeviceType" IsAbstract="true">
     <DisplayName>AnalyserDeviceType</DisplayName>
     <References>
@@ -523,7 +643,6 @@
     <DisplayName>MethodSet</DisplayName>
     <Description>Flat list of Methods</Description>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=9383</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9443</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9445</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9448</Reference>
@@ -539,14 +658,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=9383" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9382" MethodDeclarationId="ns=2;i=6018">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the topology element.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9382</Reference>
-    </References>
-  </UAMethod>
   <UAMethod NodeId="ns=1;i=9443" BrowseName="1:GetConfiguration" ParentNodeId="ns=1;i=9382">
     <DisplayName>GetConfiguration</DisplayName>
     <References>
@@ -801,7 +912,6 @@
     <DisplayName>Identification</DisplayName>
     <Description>Used to organize parameters for identification of this TopologyElement</Description>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15002</Reference>
       <Reference ReferenceType="Organizes">ns=2;i=6003</Reference>
       <Reference ReferenceType="Organizes">ns=2;i=6004</Reference>
       <Reference ReferenceType="Organizes">ns=2;i=6001</Reference>
@@ -810,67 +920,32 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15002" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9386" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9386</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9482" BrowseName="1:Configuration" ParentNodeId="ns=1;i=1001">
     <DisplayName>Configuration</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15005</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=9462</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15005" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9482" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9482</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9484" BrowseName="1:Status" ParentNodeId="ns=1;i=1001">
     <DisplayName>Status</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15006</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=9459</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15006" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9484" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9484</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9486" BrowseName="1:FactorySettings" ParentNodeId="ns=1;i=1001">
     <DisplayName>FactorySettings</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15007</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15007" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9486" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9486</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9488" BrowseName="1:AnalyserStateMachine" ParentNodeId="ns=1;i=1001">
     <DisplayName>AnalyserStateMachine</DisplayName>
     <References>
@@ -914,7 +989,6 @@
     <DisplayName>MethodSet</DisplayName>
     <Description>Flat list of Methods</Description>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=9504</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9521</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9522</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9523</Reference>
@@ -932,14 +1006,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9500</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=9504" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9503" MethodDeclarationId="ns=2;i=6018">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the topology element.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9503</Reference>
-    </References>
-  </UAMethod>
   <UAMethod NodeId="ns=1;i=9521" BrowseName="1:GotoOperating" ParentNodeId="ns=1;i=9503" MethodDeclarationId="ns=1;i=9699">
     <DisplayName>GotoOperating</DisplayName>
     <Description>Transitions the AnalyserChannel to Operating mode.</Description>
@@ -1099,37 +1165,19 @@
   <UAObject NodeId="ns=1;i=9546" BrowseName="1:Configuration" ParentNodeId="ns=1;i=9500">
     <DisplayName>Configuration</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15009</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9500</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15009" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9546" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9546</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9548" BrowseName="1:Status" ParentNodeId="ns=1;i=9500">
     <DisplayName>Status</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15010</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9500</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15010" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9548" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9548</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9550" BrowseName="1:ChannelStateMachine" ParentNodeId="ns=1;i=9500" EventNotifier="1">
     <DisplayName>ChannelStateMachine</DisplayName>
     <References>
@@ -1311,7 +1359,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9647</Reference>
     </References>
     <Value>
@@ -1337,7 +1385,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9649</Reference>
     </References>
     <Value>
@@ -1362,7 +1410,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9651</Reference>
     </References>
     <Value>
@@ -1387,7 +1435,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9653</Reference>
     </References>
     <Value>
@@ -1410,7 +1458,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9655</Reference>
     </References>
     <Value>
@@ -1699,7 +1747,6 @@
     <DisplayName>MethodSet</DisplayName>
     <Description>Flat list of Methods</Description>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=9680</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9699</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9700</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9701</Reference>
@@ -1717,14 +1764,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=9680" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9679" MethodDeclarationId="ns=2;i=6018">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the topology element.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9679</Reference>
-    </References>
-  </UAMethod>
   <UAMethod NodeId="ns=1;i=9699" BrowseName="1:GotoOperating" ParentNodeId="ns=1;i=9679">
     <DisplayName>GotoOperating</DisplayName>
     <Description>Transitions the AnalyserChannel to Operating mode.</Description>
@@ -1885,42 +1924,23 @@
     <DisplayName>&lt;GroupIdentifier&gt;</DisplayName>
     <Description>Group definition</Description>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15011</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15011" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9788" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9788</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9724" BrowseName="1:Configuration" ParentNodeId="ns=1;i=1003">
     <DisplayName>Configuration</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15013</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=9715</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15013" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9724" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9724</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9726" BrowseName="1:Status" ParentNodeId="ns=1;i=1003">
     <DisplayName>Status</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15014</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=9718</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=9721</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
@@ -1928,14 +1948,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15014" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9726" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9726</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9728" BrowseName="1:ChannelStateMachine" ParentNodeId="ns=1;i=1003" EventNotifier="1">
     <DisplayName>ChannelStateMachine</DisplayName>
     <References>
@@ -2035,122 +2047,59 @@
   <UAObject NodeId="ns=1;i=9902" BrowseName="1:Configuration" ParentNodeId="ns=1;i=9790">
     <DisplayName>Configuration</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15016</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9790</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15016" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9902" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9902</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9904" BrowseName="1:Status" ParentNodeId="ns=1;i=9790">
     <DisplayName>Status</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15017</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9790</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15017" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9904" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9904</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9906" BrowseName="1:AcquisitionSettings" ParentNodeId="ns=1;i=9790">
     <DisplayName>AcquisitionSettings</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15018</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9790</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15018" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9906" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9906</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9908" BrowseName="1:AcquisitionStatus" ParentNodeId="ns=1;i=9790">
     <DisplayName>AcquisitionStatus</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15019</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9790</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15019" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9908" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9908</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9910" BrowseName="1:AcquisitionData" ParentNodeId="ns=1;i=9790">
     <DisplayName>AcquisitionData</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15020</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9790</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15020" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9910" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9910</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9912" BrowseName="1:ChemometricModelSettings" ParentNodeId="ns=1;i=9790">
     <DisplayName>ChemometricModelSettings</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15021</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9790</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15021" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9912" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9912</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9914" BrowseName="1:Context" ParentNodeId="ns=1;i=9790">
     <DisplayName>Context</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15022</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9790</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15022" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=9914" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=9914</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=9916" BrowseName="1:&lt;AccessorySlotIdentifier&gt;" SymbolicName="AccessorySlotIdentifier" ParentNodeId="ns=1;i=1003">
     <DisplayName>&lt;AccessorySlotIdentifier&gt;</DisplayName>
     <Description>AccessorySlot definition</Description>
@@ -2385,7 +2334,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9996</Reference>
     </References>
     <Value>
@@ -2412,7 +2361,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9998</Reference>
     </References>
     <Value>
@@ -2438,7 +2387,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10000</Reference>
     </References>
     <Value>
@@ -2464,7 +2413,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10002</Reference>
     </References>
     <Value>
@@ -2814,7 +2763,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10048</Reference>
     </References>
     <Value>
@@ -2840,7 +2789,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10050</Reference>
     </References>
     <Value>
@@ -2864,7 +2813,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10052</Reference>
     </References>
     <Value>
@@ -2890,7 +2839,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10054</Reference>
     </References>
     <Value>
@@ -2919,7 +2868,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10056</Reference>
     </References>
     <Value>
@@ -2945,7 +2894,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10058</Reference>
     </References>
     <Value>
@@ -2969,7 +2918,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10060</Reference>
     </References>
     <Value>
@@ -2996,7 +2945,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10062</Reference>
     </References>
     <Value>
@@ -3020,7 +2969,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10064</Reference>
     </References>
     <Value>
@@ -3047,7 +2996,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10066</Reference>
     </References>
     <Value>
@@ -3074,7 +3023,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10068</Reference>
     </References>
     <Value>
@@ -3098,7 +3047,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10070</Reference>
     </References>
     <Value>
@@ -3125,7 +3074,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10072</Reference>
     </References>
     <Value>
@@ -3159,7 +3108,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10074</Reference>
     </References>
     <Value>
@@ -3194,7 +3143,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10076</Reference>
     </References>
     <Value>
@@ -3216,7 +3165,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10078</Reference>
     </References>
     <Value>
@@ -3238,7 +3187,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10080</Reference>
     </References>
     <Value>
@@ -4499,7 +4448,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10201</Reference>
     </References>
     <Value>
@@ -4521,7 +4470,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10203</Reference>
     </References>
     <Value>
@@ -4545,7 +4494,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10205</Reference>
     </References>
     <Value>
@@ -4569,7 +4518,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10207</Reference>
     </References>
     <Value>
@@ -4593,7 +4542,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10209</Reference>
     </References>
     <Value>
@@ -4615,7 +4564,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10211</Reference>
     </References>
     <Value>
@@ -4639,7 +4588,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10213</Reference>
     </References>
     <Value>
@@ -4663,7 +4612,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10215</Reference>
     </References>
     <Value>
@@ -4687,7 +4636,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10217</Reference>
     </References>
     <Value>
@@ -4709,7 +4658,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10219</Reference>
     </References>
     <Value>
@@ -4733,7 +4682,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10221</Reference>
     </References>
     <Value>
@@ -4757,7 +4706,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10223</Reference>
     </References>
     <Value>
@@ -4781,7 +4730,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10225</Reference>
     </References>
     <Value>
@@ -4803,7 +4752,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10227</Reference>
     </References>
     <Value>
@@ -4827,7 +4776,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10229</Reference>
     </References>
     <Value>
@@ -4849,7 +4798,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10231</Reference>
     </References>
     <Value>
@@ -4873,7 +4822,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10233</Reference>
     </References>
     <Value>
@@ -4900,7 +4849,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10235</Reference>
     </References>
     <Value>
@@ -4924,7 +4873,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10237</Reference>
     </References>
     <Value>
@@ -4949,7 +4898,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10239</Reference>
     </References>
     <Value>
@@ -6117,24 +6066,14 @@
     <DisplayName>&lt;GroupIdentifier&gt;</DisplayName>
     <Description>Group definition</Description>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15023</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1010</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15023" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10444" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10444</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10430" BrowseName="1:Configuration" ParentNodeId="ns=1;i=1010">
     <DisplayName>Configuration</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15025</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10339</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10342</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
@@ -6142,18 +6081,9 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1010</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15025" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10430" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10430</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10432" BrowseName="1:Status" ParentNodeId="ns=1;i=1010">
     <DisplayName>Status</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15026</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10345</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10348</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10351</Reference>
@@ -6163,36 +6093,18 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1010</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15026" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10432" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10432</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10434" BrowseName="1:AcquisitionSettings" ParentNodeId="ns=1;i=1010">
     <DisplayName>AcquisitionSettings</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15027</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10357</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1010</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15027" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10434" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10434</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10436" BrowseName="1:AcquisitionStatus" ParentNodeId="ns=1;i=1010">
     <DisplayName>AcquisitionStatus</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15028</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10363</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10366</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10369</Reference>
@@ -6202,18 +6114,9 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1010</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15028" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10436" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10436</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10438" BrowseName="1:AcquisitionData" ParentNodeId="ns=1;i=1010">
     <DisplayName>AcquisitionData</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15029</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10376</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10382</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10385</Reference>
@@ -6225,35 +6128,17 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1010</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15029" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10438" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10438</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10440" BrowseName="1:ChemometricModelSettings" ParentNodeId="ns=1;i=1010">
     <DisplayName>ChemometricModelSettings</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15030</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1010</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15030" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10440" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10440</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10442" BrowseName="1:Context" ParentNodeId="ns=1;i=1010">
     <DisplayName>Context</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15031</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10397</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10400</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10403</Reference>
@@ -6270,14 +6155,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1010</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15031" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10442" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10442</Reference>
-    </References>
-  </UAMethod>
   <UAObjectType NodeId="ns=1;i=1030" BrowseName="1:SpectrometerDeviceStreamType">
     <DisplayName>SpectrometerDeviceStreamType</DisplayName>
     <References>
@@ -6749,7 +6626,6 @@
   <UAObject NodeId="ns=1;i=10559" BrowseName="1:Configuration" ParentNodeId="ns=1;i=1030">
     <DisplayName>Configuration</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15034</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10575</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10584</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
@@ -6757,18 +6633,9 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1030</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15034" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10559" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10559</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10563" BrowseName="1:AcquisitionSettings" ParentNodeId="ns=1;i=1030">
     <DisplayName>AcquisitionSettings</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15036</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10593</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10596</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10599</Reference>
@@ -6780,36 +6647,18 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1030</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15036" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10563" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10563</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10565" BrowseName="1:AcquisitionStatus" ParentNodeId="ns=1;i=1030">
     <DisplayName>AcquisitionStatus</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15037</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10611</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1030</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15037" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10565" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10565</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10567" BrowseName="1:AcquisitionData" ParentNodeId="ns=1;i=1030">
     <DisplayName>AcquisitionData</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15038</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10614</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10617</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10620</Reference>
@@ -6819,14 +6668,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1030</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15038" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10567" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10567</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=10638" BrowseName="1:FactorySettings" ParentNodeId="ns=1;i=1030">
     <DisplayName>FactorySettings</DisplayName>
     <References>
@@ -7113,7 +6954,6 @@
   <UAObject NodeId="ns=1;i=10889" BrowseName="1:AcquisitionData" ParentNodeId="ns=1;i=1032">
     <DisplayName>AcquisitionData</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15056</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10897</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10906</Reference>
       <Reference ReferenceType="Organizes">ns=1;i=10915</Reference>
@@ -7122,14 +6962,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1032</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15056" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=10889" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10889</Reference>
-    </References>
-  </UAMethod>
   <UAObjectType NodeId="ns=1;i=1033" BrowseName="1:AcousticSpectrometerDeviceStreamType">
     <DisplayName>AcousticSpectrometerDeviceStreamType</DisplayName>
     <References>
@@ -7187,20 +7019,11 @@
   <UAObject NodeId="ns=1;i=11411" BrowseName="1:FactorySettings" ParentNodeId="ns=1;i=1011">
     <DisplayName>FactorySettings</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15092</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1011</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15092" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=11411" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=11411</Reference>
-    </References>
-  </UAMethod>
   <UAObjectType NodeId="ns=1;i=1012" BrowseName="1:ParticleSizeMonitorDeviceType">
     <DisplayName>ParticleSizeMonitorDeviceType</DisplayName>
     <References>
@@ -7303,54 +7126,27 @@
   <UAObject NodeId="ns=1;i=12821" BrowseName="1:Configuration" ParentNodeId="ns=1;i=12800">
     <DisplayName>Configuration</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15147</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=12800</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15147" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=12821" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=12821</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=12823" BrowseName="1:Status" ParentNodeId="ns=1;i=12800">
     <DisplayName>Status</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15148</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=12800</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15148" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=12823" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=12823</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=12825" BrowseName="1:FactorySettings" ParentNodeId="ns=1;i=12800">
     <DisplayName>FactorySettings</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15149</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=12800</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15149" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=12825" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=12825</Reference>
-    </References>
-  </UAMethod>
   <UAVariable NodeId="ns=1;i=12827" BrowseName="1:IsHotSwappable" ParentNodeId="ns=1;i=12800" DataType="Boolean">
     <DisplayName>IsHotSwappable</DisplayName>
     <Description>True if this accessory can be inserted in the accessory slot while it is powered</Description>
@@ -7408,7 +7204,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12840</Reference>
     </References>
     <Value>
@@ -7432,7 +7228,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12842</Reference>
     </References>
     <Value>
@@ -7458,7 +7254,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12844</Reference>
     </References>
     <Value>
@@ -7481,7 +7277,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12846</Reference>
     </References>
     <Value>
@@ -7507,7 +7303,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12848</Reference>
     </References>
     <Value>
@@ -7531,7 +7327,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12850</Reference>
     </References>
     <Value>
@@ -7804,54 +7600,27 @@
   <UAObject NodeId="ns=1;i=12898" BrowseName="1:Configuration" ParentNodeId="ns=1;i=1019">
     <DisplayName>Configuration</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15152</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1019</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15152" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=12898" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=12898</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=12900" BrowseName="1:Status" ParentNodeId="ns=1;i=1019">
     <DisplayName>Status</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15153</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1019</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15153" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=12900" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=12900</Reference>
-    </References>
-  </UAMethod>
   <UAObject NodeId="ns=1;i=12902" BrowseName="1:FactorySettings" ParentNodeId="ns=1;i=1019">
     <DisplayName>FactorySettings</DisplayName>
     <References>
-      <Reference ReferenceType="Organizes">ns=1;i=15154</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1019</Reference>
     </References>
   </UAObject>
-  <UAMethod NodeId="ns=1;i=15154" BrowseName="2:&lt;MethodIdentifier&gt;" SymbolicName="MethodIdentifier" ParentNodeId="ns=1;i=12902" MethodDeclarationId="ns=2;i=6029">
-    <DisplayName>&lt;MethodIdentifier&gt;</DisplayName>
-    <Description>A method which belongs to the group.</Description>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=12902</Reference>
-    </References>
-  </UAMethod>
   <UAVariable NodeId="ns=1;i=12904" BrowseName="1:IsHotSwappable" ParentNodeId="ns=1;i=1019" DataType="Boolean">
     <DisplayName>IsHotSwappable</DisplayName>
     <Description>True if this accessory can be inserted in the accessory slot while it is powered</Description>

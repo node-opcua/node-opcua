@@ -63,6 +63,7 @@
     "csv": "^5.1.1",
     "cucumber": "^5.1.0",
     "enum": "2.5.0",
+    "ersatz-node-expat": "^0.1.6",
     "eslint-cli": "^1.1.1",
     "eyes": "0.1.8",
     "jsdoc": "3.5.5",

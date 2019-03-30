@@ -10,9 +10,9 @@ export interface IStatusCodeDescription {
 }
 
 export const StatusCodes: any = {
-    Good: {name: "Good", value: 0, description: "No Error"}
+    Good: { name: "Good", value: 0, description: "No Error" }
     ,
-    BadUnexpectedError: {name: "BadUnexpectedError", value: 0x80010000, description: "An unexpected error occurred."}
+    BadUnexpectedError: { name: "BadUnexpectedError", value: 0x80010000, description: "An unexpected error occurred." }
     ,
     BadInternalError: {
         name: "BadInternalError",
@@ -74,7 +74,7 @@ export const StatusCodes: any = {
         description: "An unrecognized response was received from the server."
     }
     ,
-    BadTimeout: {name: "BadTimeout", value: 0x800a0000, description: "The operation timed out."}
+    BadTimeout: { name: "BadTimeout", value: 0x800a0000, description: "The operation timed out." }
     ,
     BadServiceUnsupported: {
         name: "BadServiceUnsupported",
@@ -136,70 +136,82 @@ export const StatusCodes: any = {
         description: "An error occurred verifying security."
     }
     ,
+    BadCertificatePolicyCheckFailed: {
+        name: "BadCertificatePolicyCheckFailed",
+        value: 0x81140000,
+        description: "The certificate does not meet the requirements of the security policy."
+    }
+    ,
     BadCertificateTimeInvalid: {
         name: "BadCertificateTimeInvalid",
         value: 0x80140000,
-        description: "The Certificate has expired or is not yet valid."
+        description: "The certificate has expired or is not yet valid."
     }
     ,
     BadCertificateIssuerTimeInvalid: {
         name: "BadCertificateIssuerTimeInvalid",
         value: 0x80150000,
-        description: "An Issuer Certificate has expired or is not yet valid."
+        description: "An issuer certificate has expired or is not yet valid."
     }
     ,
     BadCertificateHostNameInvalid: {
         name: "BadCertificateHostNameInvalid",
         value: 0x80160000,
-        description: "The HostName used to connect to a Server does not match a HostName in the Certificate."
+        description: "The HostName used to connect to a server does not match a HostName in the certificate."
     }
     ,
     BadCertificateUriInvalid: {
         name: "BadCertificateUriInvalid",
         value: 0x80170000,
-        description: "The URI specified in the ApplicationDescription does not match the URI in the Certificate."
+        description: "The URI specified in the ApplicationDescription does not match the URI in the certificate."
     }
     ,
     BadCertificateUseNotAllowed: {
         name: "BadCertificateUseNotAllowed",
         value: 0x80180000,
-        description: "The Certificate may not be used for the requested operation."
+        description: "The certificate may not be used for the requested operation."
     }
     ,
     BadCertificateIssuerUseNotAllowed: {
         name: "BadCertificateIssuerUseNotAllowed",
         value: 0x80190000,
-        description: "The Issuer Certificate may not be used for the requested operation."
+        description: "The issuer certificate may not be used for the requested operation."
     }
     ,
     BadCertificateUntrusted: {
         name: "BadCertificateUntrusted",
         value: 0x801a0000,
-        description: "The Certificate is not trusted."
+        description: "The certificate is not trusted."
     }
     ,
     BadCertificateRevocationUnknown: {
         name: "BadCertificateRevocationUnknown",
         value: 0x801b0000,
-        description: "It was not possible to determine if the Certificate has been revoked."
+        description: "It was not possible to determine if the certificate has been revoked."
     }
     ,
     BadCertificateIssuerRevocationUnknown: {
         name: "BadCertificateIssuerRevocationUnknown",
         value: 0x801c0000,
-        description: "It was not possible to determine if the Issuer Certificate has been revoked."
+        description: "It was not possible to determine if the issuer certificate has been revoked."
     }
     ,
     BadCertificateRevoked: {
         name: "BadCertificateRevoked",
         value: 0x801d0000,
-        description: "The Certificate has been revoked."
+        description: "The certificate has been revoked."
     }
     ,
     BadCertificateIssuerRevoked: {
         name: "BadCertificateIssuerRevoked",
         value: 0x801e0000,
-        description: "The Issuer Certificate has been revoked."
+        description: "The issuer certificate has been revoked."
+    }
+    ,
+    BadCertificateChainIncomplete: {
+        name: "BadCertificateChainIncomplete",
+        value: 0x810d0000,
+        description: "The certificate chain is incomplete."
     }
     ,
     BadUserAccessDenied: {
@@ -238,7 +250,7 @@ export const StatusCodes: any = {
         description: "The nonce does appear to be not a random value or it is not the correct length."
     }
     ,
-    BadSessionIdInvalid: {name: "BadSessionIdInvalid", value: 0x80250000, description: "The session id is not valid."}
+    BadSessionIdInvalid: { name: "BadSessionIdInvalid", value: 0x80250000, description: "The session id is not valid." }
     ,
     BadSessionClosed: {
         name: "BadSessionClosed",
@@ -276,6 +288,30 @@ export const StatusCodes: any = {
         description: "The request was cancelled by the client."
     }
     ,
+    BadTooManyArguments: {
+        name: "BadTooManyArguments",
+        value: 0x80e50000,
+        description: "Too many arguments were provided."
+    }
+    ,
+    BadLicenseExpired: {
+        name: "BadLicenseExpired",
+        value: 0x810e0000,
+        description: "The server requires a license to operate in general or to perform a service or operation, but existing license is expired."
+    }
+    ,
+    BadLicenseLimitsExceeded: {
+        name: "BadLicenseLimitsExceeded",
+        value: 0x810f0000,
+        description: "The server has limits on number of allowed operations / objects, based on installed licenses, and these limits where exceeded."
+    }
+    ,
+    BadLicenseNotAvailable: {
+        name: "BadLicenseNotAvailable",
+        value: 0x81100000,
+        description: "The server does not have a license which is required to operate in general or to perform a service or operation."
+    }
+    ,
     GoodSubscriptionTransferred: {
         name: "GoodSubscriptionTransferred",
         value: 0x2d0000,
@@ -294,12 +330,16 @@ export const StatusCodes: any = {
         description: "Sampling has slowed down due to resource limitations."
     }
     ,
-    GoodClamped: {name: "GoodClamped", value: 0x300000, description: "The value written was accepted but was clamped."}
+    GoodClamped: {
+        name: "GoodClamped",
+        value: 0x300000,
+        description: "The value written was accepted but was clamped."
+    }
     ,
     BadNoCommunication: {
         name: "BadNoCommunication",
         value: 0x80310000,
-        description: "Communication with the data source is defined"
+        description: "Communication with the data source is defined, but not established, and there is no last known value available."
     }
     ,
     BadWaitingForInitialData: {
@@ -362,7 +402,7 @@ export const StatusCodes: any = {
         description: "The access level does not allow writing to the Node."
     }
     ,
-    BadOutOfRange: {name: "BadOutOfRange", value: 0x803c0000, description: "The value was out of range."}
+    BadOutOfRange: { name: "BadOutOfRange", value: 0x803c0000, description: "The value was out of range." }
     ,
     BadNotSupported: {
         name: "BadNotSupported",
@@ -439,13 +479,13 @@ export const StatusCodes: any = {
     BadFilterOperatorInvalid: {
         name: "BadFilterOperatorInvalid",
         value: 0x80c10000,
-        description: "An unregognized operator was provided in a filter."
+        description: "An unrecognized operator was provided in a filter."
     }
     ,
     BadFilterOperatorUnsupported: {
         name: "BadFilterOperatorUnsupported",
         value: 0x80c20000,
-        description: "A valid operator was provided"
+        description: "A valid operator was provided, but the server does not provide support for this filter operator."
     }
     ,
     BadFilterOperandCountMismatch: {
@@ -487,7 +527,7 @@ export const StatusCodes: any = {
     BadReferenceTypeIdInvalid: {
         name: "BadReferenceTypeIdInvalid",
         value: 0x804c0000,
-        description: "The operation could not be processed because all continuation points have been allocated."
+        description: "The reference type id does not refer to a valid reference type node."
     }
     ,
     BadBrowseDirectionInvalid: {
@@ -496,7 +536,13 @@ export const StatusCodes: any = {
         description: "The browse direction is not valid."
     }
     ,
-    BadNodeNotInView: {name: "BadNodeNotInView", value: 0x804e0000, description: "The node is not part of the view."}
+    BadNodeNotInView: { name: "BadNodeNotInView", value: 0x804e0000, description: "The node is not part of the view." }
+    ,
+    BadNumericOverflow: {
+        name: "BadNumericOverflow",
+        value: 0x81120000,
+        description: "The number was not accepted because of a numeric overflow."
+    }
     ,
     BadServerUriInvalid: {
         name: "BadServerUriInvalid",
@@ -504,7 +550,11 @@ export const StatusCodes: any = {
         description: "The ServerUri is not a valid URI."
     }
     ,
-    BadServerNameMissing: {name: "BadServerNameMissing", value: 0x80500000, description: "No ServerName was specified."}
+    BadServerNameMissing: {
+        name: "BadServerNameMissing",
+        value: 0x80500000,
+        description: "No ServerName was specified."
+    }
     ,
     BadDiscoveryUrlMissing: {
         name: "BadDiscoveryUrlMissing",
@@ -527,13 +577,13 @@ export const StatusCodes: any = {
     BadSecurityModeRejected: {
         name: "BadSecurityModeRejected",
         value: 0x80540000,
-        description: "The security mode does not meet the requirements set by the Server."
+        description: "The security mode does not meet the requirements set by the server."
     }
     ,
     BadSecurityPolicyRejected: {
         name: "BadSecurityPolicyRejected",
         value: 0x80550000,
-        description: "The security policy does not meet the requirements set by the Server."
+        description: "The security policy does not meet the requirements set by the server."
     }
     ,
     BadTooManySessions: {
@@ -563,7 +613,7 @@ export const StatusCodes: any = {
     BadIdentityChangeNotSupported: {
         name: "BadIdentityChangeNotSupported",
         value: 0x80c60000,
-        description: "The Server does not support changing the user identity assigned to the session."
+        description: "The server does not support changing the user identity assigned to the session."
     }
     ,
     BadRequestCancelledByRequest: {
@@ -596,9 +646,13 @@ export const StatusCodes: any = {
         description: "The requested node id is already used by another node."
     }
     ,
-    BadNodeClassInvalid: {name: "BadNodeClassInvalid", value: 0x805f0000, description: "The node class is not valid."}
+    BadNodeClassInvalid: { name: "BadNodeClassInvalid", value: 0x805f0000, description: "The node class is not valid." }
     ,
-    BadBrowseNameInvalid: {name: "BadBrowseNameInvalid", value: 0x80600000, description: "The browse name is invalid."}
+    BadBrowseNameInvalid: {
+        name: "BadBrowseNameInvalid",
+        value: 0x80600000,
+        description: "The browse name is invalid."
+    }
     ,
     BadBrowseNameDuplicated: {
         name: "BadBrowseNameDuplicated",
@@ -726,9 +780,19 @@ export const StatusCodes: any = {
         description: "The requested operation requires too many resources in the server."
     }
     ,
-    BadNoMatch: {name: "BadNoMatch", value: 0x806f0000, description: "The requested operation has no match to return."}
+    BadNoMatch: {
+        name: "BadNoMatch",
+        value: 0x806f0000,
+        description: "The requested operation has no match to return."
+    }
     ,
-    BadMaxAgeInvalid: {name: "BadMaxAgeInvalid", value: 0x80700000, description: "The max age parameter is invalid."}
+    BadMaxAgeInvalid: { name: "BadMaxAgeInvalid", value: 0x80700000, description: "The max age parameter is invalid." }
+    ,
+    BadSecurityModeInsufficient: {
+        name: "BadSecurityModeInsufficient",
+        value: 0x80e60000,
+        description: "The operation is not permitted over the current secure channel."
+    }
     ,
     BadHistoryOperationInvalid: {
         name: "BadHistoryOperationInvalid",
@@ -751,13 +815,13 @@ export const StatusCodes: any = {
     BadWriteNotSupported: {
         name: "BadWriteNotSupported",
         value: 0x80730000,
-        description: "The server not does support writing the combination of value"
+        description: "The server does not support writing the combination of value, status and timestamps provided."
     }
     ,
     BadTypeMismatch: {
         name: "BadTypeMismatch",
         value: 0x80740000,
-        description: "The value supplied for the attribute is not of the same type as the attribute\'s value."
+        description: "The value supplied for the attribute is not of the same type as the attribute's value."
     }
     ,
     BadMethodInvalid: {
@@ -772,10 +836,16 @@ export const StatusCodes: any = {
         description: "The client did not specify all of the input arguments for the method."
     }
     ,
+    BadNotExecutable: {
+        name: "BadNotExecutable",
+        value: 0x81110000,
+        description: "The executable attribute does not allow the execution of the method."
+    }
+    ,
     BadTooManySubscriptions: {
         name: "BadTooManySubscriptions",
         value: 0x80770000,
-        description: "The server has reached its  maximum number of subscriptions."
+        description: "The server has reached its maximum number of subscriptions."
     }
     ,
     BadTooManyPublishRequests: {
@@ -805,7 +875,7 @@ export const StatusCodes: any = {
     BadInsufficientClientProfile: {
         name: "BadInsufficientClientProfile",
         value: 0x807c0000,
-        description: "The Client of the current Session does not support one or more Profiles that are necessary for the Subscription."
+        description: "The client of the current session does not support one or more Profiles that are necessary for the subscription."
     }
     ,
     BadStateNotActive: {
@@ -813,6 +883,8 @@ export const StatusCodes: any = {
         value: 0x80bf0000,
         description: "The sub-state machine is not currently active."
     }
+    ,
+    BadAlreadyExists: { name: "BadAlreadyExists", value: 0x81150000, description: "An equivalent rule already exists." }
     ,
     BadTcpServerTooBusy: {
         name: "BadTcpServerTooBusy",
@@ -844,12 +916,12 @@ export const StatusCodes: any = {
         description: "There are not enough resources to process the request."
     }
     ,
-    BadTcpInternalError: {name: "BadTcpInternalError", value: 0x80820000, description: "An internal error occurred."}
+    BadTcpInternalError: { name: "BadTcpInternalError", value: 0x80820000, description: "An internal error occurred." }
     ,
     BadTcpEndpointUrlInvalid: {
         name: "BadTcpEndpointUrlInvalid",
         value: 0x80830000,
-        description: "The Server does not recognize the QueryString specified."
+        description: "The server does not recognize the QueryString specified."
     }
     ,
     BadRequestInterrupted: {
@@ -897,7 +969,7 @@ export const StatusCodes: any = {
     BadNotConnected: {
         name: "BadNotConnected",
         value: 0x808a0000,
-        description: "The variable should receive its value from another variable"
+        description: "The variable should receive its value from another variable, but has never been configured to do so."
     }
     ,
     BadDeviceFailure: {
@@ -966,12 +1038,12 @@ export const StatusCodes: any = {
         description: "The value is derived from multiple sources and has less than the required number of Good sources."
     }
     ,
-    GoodLocalOverride: {name: "GoodLocalOverride", value: 0x960000, description: "The value has been overridden."}
+    GoodLocalOverride: { name: "GoodLocalOverride", value: 0x960000, description: "The value has been overridden." }
     ,
     BadRefreshInProgress: {
         name: "BadRefreshInProgress",
         value: 0x80970000,
-        description: "This Condition refresh failed"
+        description: "This Condition refresh failed, a Condition refresh operation is already in progress."
     }
     ,
     BadConditionAlreadyDisabled: {
@@ -986,7 +1058,11 @@ export const StatusCodes: any = {
         description: "This condition has already been enabled."
     }
     ,
-    BadConditionDisabled: {name: "BadConditionDisabled", value: 0x80990000, description: "Property not available"}
+    BadConditionDisabled: {
+        name: "BadConditionDisabled",
+        value: 0x80990000,
+        description: "Property not available, this condition is disabled."
+    }
     ,
     BadEventIdUnknown: {
         name: "BadEventIdUnknown",
@@ -1069,7 +1145,7 @@ export const StatusCodes: any = {
     BadDataUnavailable: {
         name: "BadDataUnavailable",
         value: 0x809e0000,
-        description: "Expected data is unavailable for the requested time range due to an un-mounted volume"
+        description: "Expected data is unavailable for the requested time range due to an un-mounted volume, an off-line archive or tape, or similar reason for temporary unavailability."
     }
     ,
     BadEntryExists: {
@@ -1147,7 +1223,61 @@ export const StatusCodes: any = {
     GoodDataIgnored: {
         name: "GoodDataIgnored",
         value: 0xd90000,
-        description: "The request pecifies fields which are not valid for the EventType or cannot be saved by the historian."
+        description: "The request specifies fields which are not valid for the EventType or cannot be saved by the historian."
+    }
+    ,
+    BadRequestNotAllowed: {
+        name: "BadRequestNotAllowed",
+        value: 0x80e40000,
+        description: "The request was rejected by the server because it did not meet the criteria set by the server."
+    }
+    ,
+    BadRequestNotComplete: {
+        name: "BadRequestNotComplete",
+        value: 0x81130000,
+        description: "The request has not been processed by the server yet."
+    }
+    ,
+    GoodEdited: {
+        name: "GoodEdited",
+        value: 0xdc0000,
+        description: "The value does not come from the real source and has been edited by the server."
+    }
+    ,
+    GoodPostActionFailed: {
+        name: "GoodPostActionFailed",
+        value: 0xdd0000,
+        description: "There was an error in execution of these post-actions."
+    }
+    ,
+    UncertainDominantValueChanged: {
+        name: "UncertainDominantValueChanged",
+        value: 0x40de0000,
+        description: "The related EngineeringUnit has been changed but the Variable Value is still provided based on the previous unit."
+    }
+    ,
+    GoodDependentValueChanged: {
+        name: "GoodDependentValueChanged",
+        value: 0xe00000,
+        description: "A dependent value has been changed but the change has not been applied to the device."
+    }
+    ,
+    BadDominantValueChanged: {
+        name: "BadDominantValueChanged",
+        value: 0x80e10000,
+        description: "The related EngineeringUnit has been changed but this change has not been applied to the device. The Variable Value is still dependent on the previous unit but its status is currently Bad."
+    }
+    ,
+    UncertainDependentValueChanged: {
+        name: "UncertainDependentValueChanged",
+        value: 0x40e20000,
+        description: "A dependent value has been changed but the change has not been applied to the device. The quality of the dominant variable is uncertain."
+    }
+    ,
+    BadDependentValueChanged: {
+        name: "BadDependentValueChanged",
+        value: 0x80e30000,
+        description: "A dependent value has been changed but the change has not been applied to the device. The quality of the dominant variable is Bad."
     }
     ,
     GoodCommunicationEvent: {
@@ -1156,7 +1286,7 @@ export const StatusCodes: any = {
         description: "The communication layer has raised an event."
     }
     ,
-    GoodShutdownEvent: {name: "GoodShutdownEvent", value: 0xa80000, description: "The system is shutting down."}
+    GoodShutdownEvent: { name: "GoodShutdownEvent", value: 0xa80000, description: "The system is shutting down." }
     ,
     GoodCallAgain: {
         name: "GoodCallAgain",
@@ -1197,10 +1327,10 @@ export const StatusCodes: any = {
     BadInvalidState: {
         name: "BadInvalidState",
         value: 0x80af0000,
-        description: "The operation cannot be completed because the object is closed"
+        description: "The operation cannot be completed because the object is closed, uninitialized or in some other invalid state."
     }
     ,
-    BadEndOfStream: {name: "BadEndOfStream", value: 0x80b00000, description: "Cannot move beyond end of the stream."}
+    BadEndOfStream: { name: "BadEndOfStream", value: 0x80b00000, description: "Cannot move beyond end of the stream." }
     ,
     BadNoDataAvailable: {
         name: "BadNoDataAvailable",
@@ -1232,7 +1362,7 @@ export const StatusCodes: any = {
         description: "Non blocking behaviour is required and the operation would block."
     }
     ,
-    BadSyntaxError: {name: "BadSyntaxError", value: 0x80b60000, description: "A value had an invalid syntax."}
+    BadSyntaxError: { name: "BadSyntaxError", value: 0x80b60000, description: "A value had an invalid syntax." }
     ,
     BadMaxConnectionsReached: {
         name: "BadMaxConnectionsReached",
