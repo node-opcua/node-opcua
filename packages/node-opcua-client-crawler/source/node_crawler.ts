@@ -9,6 +9,7 @@ import * as _ from "underscore";
 import { UAReferenceType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { BrowseDescriptionLike, ReadValueIdOptions, ResponseCallback } from "node-opcua-client";
+import { DataTypeDefinition } from "node-opcua-common";
 import { ReferenceTypeIds, VariableIds } from "node-opcua-constants";
 import {
     AccessLevelFlag,
@@ -26,6 +27,8 @@ import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId
 import { BrowseDescription, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
+
+import { DataType } from "node-opcua-variant";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -99,14 +102,14 @@ export class CacheNode {
         let str = w(this.nodeId.toString(), 20);
         str += " " + w(this.browseName.toString(), 30);
         str += " typeDef : " + w((this.typeDefinition ? this.typeDefinition.toString() : ""), 30);
-        str += " nodeClass : " + w((this.nodeClass ? this.nodeClass.toString() : ""), 12);
+        str += " nodeClass : " + w(NodeClass[this.nodeClass], 12);
         return str;
     }
 }
 
 export interface CacheNodeDataType extends CacheNode {
     nodeClass: NodeClass.DataType;
-    dataTypeDefinition: NodeId;
+    dataTypeDefinition: DataTypeDefinition;
 }
 
 export interface CacheNodeVariable extends CacheNode {
@@ -1180,6 +1183,11 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     ): void;
     private _defer_readNode(
       nodeId: NodeId,
+      attributeId: AttributeIds.DataTypeDefinition,
+      callback: (err: Error | null, value?: DataTypeDefinition) => void
+    ): void;
+    private _defer_readNode(
+      nodeId: NodeId,
       attributeId:
         AttributeIds.AccessLevel |
         AttributeIds.UserAccessLevel |
@@ -1207,7 +1215,6 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                         this.set_cache_NodeAttribute(nodeId, attributeId, value);
                         callback(null, value);
                     } else {
-                        // xx  console.log("xxxx ERROR", dataValue.toString(), nodeId.toString());
                         callback(new Error(
                           "Error "  + dataValue.statusCode.toString() + " while reading " + nodeId.toString() + " attributeIds " + AttributeIds[attributeId]));
                     }
@@ -1402,7 +1409,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                     AttributeIds.Description,
                     (err: Error | null, value?: LocalizedText) => {
                         if (err) {
-                            return callback(err);
+                            // description may not be defined and this is OK !
+                            return callback();
                         }
                         cacheNode.description = coerceLocalizedText(value)!;
                         callback();
@@ -1517,12 +1525,14 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                   if (cacheNode.nodeClass !== NodeClass.DataType) {
                       return callback();
                   }
+                  // dataTypeDefinition is new in 1.04
                   const cache = cacheNode as CacheNodeDataType;
-                  this._defer_readNode(cacheNode.nodeId, AttributeIds.DataType, (err, value?: NodeId) => {
+                  this._defer_readNode(cacheNode.nodeId, AttributeIds.DataTypeDefinition, (err, value?: DataTypeDefinition) => {
                       if (err) {
-                          return callback(err);
+                          // may be we are crawling a 1.03 server => DataTypeDefinition was not defined yet
+                          return callback();
                       }
-                      cache.dataTypeDefinition = value! as NodeId;
+                      cache.dataTypeDefinition = value!;
                       callback();
                   });
               }

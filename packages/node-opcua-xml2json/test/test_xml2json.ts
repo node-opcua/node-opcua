@@ -425,7 +425,7 @@ describe("It should parse XML doc into json", () => {
         // xx console.log("startElementCount", startElementCount);
         // xx console.log("endElementCount",   endElementCount);
         // xx console.log("result = ", result);
-        console.log("result = ", parser.result);
+        // console.log("result = ", parser.result);
     });
 });
 
@@ -589,6 +589,7 @@ const partials: { [key: string]: ReaderStateParserLike } = {
             this.parent.value = parseInt(this.text, 10);
         }
     },
+
     UInt16: {
         finish(this: any) {
             this.parent.value = parseInt(this.text, 10);
@@ -689,8 +690,7 @@ function getOrCreateReaderFromDefinition(
                 init(this: any) {
                     this.listData = [];
                 },
-                parser: {
-                },
+                parser: {},
                 finish(this: any) {
                     this.parent.value = this.listData;
                 },

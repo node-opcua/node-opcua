@@ -24,12 +24,14 @@ export function coerceLocalizedText(value: any): LocalizedText | null {
         return null;
     }
     if (typeof value === "string") {
-        return new LocalizedText({locale: null, text: value});
+        return new LocalizedText({ locale: null, text: value });
     }
     if (value instanceof LocalizedText) {
         return value;
     }
     if (!value.hasOwnProperty("text")) {
+        // tslint:disable:no-console
+        console.log("value = ", value);
         throw new Error("cannot coerce to coerceLocalizedText");
     }
     return new LocalizedText(value);
@@ -46,7 +48,7 @@ const schemaLocalizedText = buildStructuredType({
         {
             name: "locale",
 
-            fieldType: "LocaleId",
+            fieldType: "LocaleId"
         },
         {
             name: "text",
@@ -55,7 +57,7 @@ const schemaLocalizedText = buildStructuredType({
 
             defaultValue: () => null
         }
-    ],
+    ]
 });
 schemaLocalizedText.coerce = coerceLocalizedText;
 
@@ -84,6 +86,7 @@ export class LocalizedText extends BaseUAObject {
     public static coerce(value: any): LocalizedText | null {
         return coerceLocalizedText(value);
     }
+
     public locale: LocaleId;
     public text: UAString;
 
@@ -181,6 +184,7 @@ export class LocalizedText extends BaseUAObject {
         }
     }
 }
+
 // not an extension object registerClassDefinition("LocalizedText", LocalizedText);
 registerSpecialVariantEncoder(LocalizedText);
 
@@ -198,11 +202,15 @@ function getLocalizeText_EncodingByte(localizedText: LocalizedText): number {
 }
 
 const emptyLocalizedText = new LocalizedText({});
+
 export function encodeLocalizedText(value: LocalizedText, stream: OutputBinaryStream): void {
     if (value) {
         value.encode(stream);
-    } else { emptyLocalizedText.encode(stream); }
+    } else {
+        emptyLocalizedText.encode(stream);
+    }
 }
+
 export function decodeLocalizedText(stream: BinaryStream): LocalizedText {
     const value = new LocalizedText({});
     value.decode(stream);

@@ -13,6 +13,7 @@ export {
     ServiceCounterDataType,
     SessionDiagnosticsDataType,
     BuildInfo,
+    DataTypeDefinition,
     EnumValueType,
     TimeZoneDataType,
 } from "node-opcua-types";

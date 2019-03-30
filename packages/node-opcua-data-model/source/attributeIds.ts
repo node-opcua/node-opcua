@@ -33,6 +33,7 @@ export enum AttributeIds {
     UserRolePermissions = 25,
     AccessRestrictions = 26,
     AccessLevelEx = 27,
+    LAST = 27,
     INVALID = 999
 }
 
@@ -41,5 +42,5 @@ export const attributeNameById = _.invert(AttributeIds);
 
 export function isValidAttributeId(attributeId: any) {
     assert(_.isFinite(attributeId));
-    return attributeId >= 1 && attributeId <= 22;
+    return attributeId >= 1 && attributeId <= AttributeIds.LAST;
 }
