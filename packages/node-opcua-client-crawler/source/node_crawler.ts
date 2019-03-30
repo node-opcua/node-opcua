@@ -1202,8 +1202,15 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             this.browseNameMap[key] = "?";
             this.pendingReadTasks.push({
                 action: (value: any, dataValue: DataValue) => {
-                    this.set_cache_NodeAttribute(nodeId, attributeId, value);
-                    callback(null, value);
+                    if (dataValue.statusCode === StatusCodes.Good) {
+                        // xx  console.log("xxxx set_cache_NodeAttribute", nodeId, attributeId, value);
+                        this.set_cache_NodeAttribute(nodeId, attributeId, value);
+                        callback(null, value);
+                    } else {
+                        // xx  console.log("xxxx ERROR", dataValue.toString(), nodeId.toString());
+                        callback(new Error(
+                          "Error "  + dataValue.statusCode.toString() + " while reading " + nodeId.toString() + " attributeIds " + AttributeIds[attributeId]));
+                    }
                 },
                 nodeToRead: {
                     attributeId,
@@ -1397,7 +1404,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                         if (err) {
                             return callback(err);
                         }
-                        cacheNode.description = value!;
+                        cacheNode.description = coerceLocalizedText(value)!;
                         callback();
                     });
               },

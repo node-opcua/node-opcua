@@ -250,7 +250,7 @@ export function verifyArguments_ArgumentList(
               "\n        expected : " + methodInputArguments.length + "" +
               "\n        actual   : " + inputArguments.length);
         }
-        return { statusCode: StatusCodes.BadArgumentsMissing };
+        return { statusCode: StatusCodes.BadTooManyArguments };
     }
 
     let errorCount = 0;
