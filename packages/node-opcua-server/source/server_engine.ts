@@ -97,7 +97,7 @@ function getMonitoredItemsId(
 
     assert(context.hasOwnProperty("session"), " expecting a session id in the context object");
 
-    const session = context.session;
+    const session = context.session as ServerSession;
     if (!session) {
         return callback(null, { statusCode: StatusCodes.BadInternalError });
     }

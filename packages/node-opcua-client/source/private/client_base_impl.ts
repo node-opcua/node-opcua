@@ -380,10 +380,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             const infiniteConnectionRetry: ConnectionStrategyOptions = {
                 initialDelay: this.connectionStrategy.initialDelay,
                 maxDelay: this.connectionStrategy.maxDelay,
-                maxRetry: -1,
+                maxRetry: -1
             };
 
-            this._internal_create_secure_channel(infiniteConnectionRetry,(err: Error | null) => {
+            this._internal_create_secure_channel(infiniteConnectionRetry, (err: Error | null) => {
 
                 if (err) {
                     debugLog(chalk.bgWhite.red("ClientBaseImpl: cannot reconnect .."));
@@ -587,7 +587,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         OPCUAClientBase.registry.register(this);
 
-        this._internal_create_secure_channel(this.connectionStrategy,(err: Error | null /* secureChannel?: ClientSecureChannelLayer*/) => {
+        this._internal_create_secure_channel(this.connectionStrategy, (err: Error | null /* secureChannel?: ClientSecureChannelLayer*/) => {
             // xx secureChannel;
             if (!err) {
                 this.emit("connected");
@@ -918,7 +918,16 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         const sessions = _.clone(this._sessions);
         async.map(sessions, (session: ClientSessionImpl, next: () => void) => {
             assert(session._client === this);
+
+            // note: to prevent next to be call twice
+            let _next_already_call = false;
             session.close((err?: Error) => {
+
+                if (_next_already_call) {
+                    return;
+                }
+                _next_already_call = true;
+
                 // We should not bother if we have an error here
                 // Session may fail to close , if they haven't been activate and forcefully closed by server
                 // in a attempt to preserve resources in the case of a DDOS attack for instance.

@@ -8,7 +8,7 @@ import { CertificateInternals , exploreCertificate} from "node-opcua-crypto";
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
 import { AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 
-import { BaseNode, ISessionContext } from "./address_space_ts";
+import { BaseNode,  ISessionContext, UAObject } from "./address_space_ts";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -31,10 +31,19 @@ function getUserName(userIdentityToken: UserIdentityToken) {
     throw new Error("Invalid user identity token");
 }
 
+export interface ISessionBase {
+    userIdentityToken?: UserIdentityToken;
+}
+export interface IUserManager {
+    getUserRole?: (user: string) => string;
+}
+export interface IServerBase {
+    userManager?: IUserManager;
+}
 export interface SessionContextOptions {
-    session?: any;  /* ServerSession */
-    object?: any;
-    server?: any;   /* OPCUAServer*/
+    session?: ISessionBase;  /* ServerSession */
+    object?: UAObject;
+    server?: IServerBase;   /* OPCUAServer*/
 }
 
 export class SessionContext implements ISessionContext {
@@ -45,8 +54,8 @@ export class SessionContext implements ISessionContext {
     public currentTime?: Date;
     public continuationPoints: any = {};
     public userIdentity: any;
-    public readonly session: any;
-    public readonly server: any;
+    public readonly session?: ISessionBase;
+    public readonly server?: IServerBase;
 
     constructor(options?: SessionContextOptions) {
         options = options || {};

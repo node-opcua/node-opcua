@@ -10,7 +10,7 @@ import * as _ from "underscore";
 import {
     addElement,
     AddressSpace,
-    createExtObjArrayNode, removeElement, UADynamicVariableArray,
+    createExtObjArrayNode, ISessionBase, removeElement, UADynamicVariableArray,
     UAObject,
     UASessionDiagnostics
 } from "node-opcua-address-space";
@@ -82,7 +82,7 @@ function on_channel_abort(this: ServerSession) {
  *   SessionDiagnosticsArray Variable and notifies any other Clients who were subscribed to this entry.
  *
  */
-export class ServerSession  extends EventEmitter implements ISubscriber {
+export class ServerSession  extends EventEmitter implements ISubscriber , ISessionBase {
 
     public static registry = new ObjectRegistry();
     public static maxPublishRequestInQueue: number = 100;
@@ -297,7 +297,6 @@ export class ServerSession  extends EventEmitter implements ISubscriber {
         const server = this.addressSpace.rootFolder.objects.server;
         return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray;
     }
-
 
     /**
      * number of active subscriptions

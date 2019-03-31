@@ -20,7 +20,7 @@ import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { OpaqueStructure } from "node-opcua-extension-object";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { getArgumentDefinitionHelper, IBasicSession } from "node-opcua-pseudo-session";
 import { ErrorCallback, SignatureData } from "node-opcua-secure-channel";
 import {
     BrowseDescription,
@@ -518,6 +518,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         });
 
     }
+
     /**
      * @method readVariableValue
      * @async
@@ -1096,7 +1097,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             // perform ExtensionObject resolution
             promoteOpaqueStructureWithCallback(this, response.results!, () => {
                 response.results = response.results || [];
-                return callback(null,  isArray ? response.results : response.results[0]);
+                return callback(null, isArray ? response.results : response.results[0]);
             });
 
         });
@@ -1542,11 +1543,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
       methodToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
     public call(
       methodToCall: CallMethodRequestLike,
-      callback: (err: Error | null, result?: CallMethodResult) => void): void;
+      callback: ResponseCallback<CallMethodResult>
+    ): void;
     public call(
       methodsToCall: CallMethodRequestLike[],
-      callback: (err: Error | null, results?: CallMethodResult[]) => void): void;
-
+      callback: ResponseCallback<CallMethodResult[]>
+    ): void;
     /**
      * @internal
      * @param args
@@ -1595,7 +1597,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
       subscriptionId: SubscriptionId): Promise<MonitoredItemData>;
     public getMonitoredItems(
       subscriptionId: SubscriptionId,
-      callback: (err: Error | null, result?: MonitoredItemData) => void): void;
+      callback: ResponseCallback<MonitoredItemData>
+    ): void;
     public getMonitoredItems(...args: any[]): any {
         const subscriptionId = args[0] as SubscriptionId;
         const callback = args[1];
@@ -1658,96 +1661,18 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      *
      */
     public async getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
-    public getArgumentDefinition(methodId: MethodId,
-                                 callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
+    public getArgumentDefinition(
+      methodId: MethodId,
+      callback: ResponseCallback<ArgumentDefinition>
+    ): void;
     /**
      * @internal
      */
     public getArgumentDefinition(...args: any[]): any {
         const methodId = args[0] as MethodId;
-        const callback = args[1];
+        const callback = args[1] as ResponseCallback<ArgumentDefinition>;
         assert(_.isFunction(callback));
-
-        const browseDescription = new BrowseDescription({
-            browseDirection: BrowseDirection.Forward,
-            includeSubtypes: true,
-            nodeClassMask: 0, // makeNodeClassMask("Variable"),
-            nodeId: methodId,
-            referenceTypeId: resolveNodeId("HasProperty"),
-            resultMask: makeResultMask("BrowseName")
-        });
-
-        this.browse(browseDescription, (err: Error | null, browseResult?: BrowseResult) => {
-
-            /* istanbul ignore next */
-            if (err) {
-                return callback(err);
-            }
-            if (!browseResult) {
-                return callback(new Error("Invalid"));
-            }
-
-            browseResult.references = browseResult.references || [];
-
-            // xx console.log("xxxx results", util.inspect(results, {colors: true, depth: 10}));
-            const inputArgumentRefArray = browseResult.references.filter(
-              (r) => r.browseName.name === "InputArguments");
-
-            // note : InputArguments property is optional thus may be missing
-            const inputArgumentRef = (inputArgumentRefArray.length === 1) ? inputArgumentRefArray[0] : null;
-
-            const outputArgumentRefArray = browseResult.references.filter(
-              (r) => r.browseName.name === "OutputArguments");
-
-            // note : OutputArguments property is optional thus may be missing
-            const outputArgumentRef = (outputArgumentRefArray.length === 1) ? outputArgumentRefArray[0] : null;
-
-            let inputArguments: Variant[] = [];
-            let outputArguments: Variant[] = [];
-
-            const nodesToRead = [];
-            const actions: any[] = [];
-
-            if (inputArgumentRef) {
-                nodesToRead.push({
-                    attributeId: AttributeIds.Value,
-                    nodeId: inputArgumentRef.nodeId
-                });
-                actions.push((result: DataValue) => {
-                    inputArguments = result.value.value;
-                });
-            }
-            if (outputArgumentRef) {
-                nodesToRead.push({
-                    attributeId: AttributeIds.Value,
-                    nodeId: outputArgumentRef.nodeId
-                });
-                actions.push((result: DataValue) => {
-                    outputArguments = result.value.value;
-                });
-            }
-
-            if (nodesToRead.length === 0) {
-                return callback(null, { inputArguments, outputArguments });
-            }
-            // now read the variable
-            this.read(nodesToRead, (err1: Error | null, dataValues?: DataValue[]) => {
-
-                /* istanbul ignore next */
-                if (err1) {
-                    return callback(err1);
-                }
-                if (!dataValues) {
-                    return callback(new Error("Internal Errror"));
-                }
-
-                dataValues.forEach((dataValue, index) => {
-                    actions[index].call(null, dataValue);
-                });
-
-                callback(null, { inputArguments, outputArguments });
-            });
-        });
+        return getArgumentDefinitionHelper(this, methodId, callback);
     }
 
     public async registerNodes(nodesToRegister: NodeIdLike[]): Promise<NodeId[]>;
@@ -2107,6 +2032,7 @@ async function promoteOpaqueStructure(
     });
     await Promise.all(promises);
 }
+
 const promoteOpaqueStructureWithCallback = callbackify(promoteOpaqueStructure);
 
 // tslint:disable:no-var-requires

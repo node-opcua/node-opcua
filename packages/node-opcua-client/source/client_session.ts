@@ -89,16 +89,12 @@ export type CreateMonitoredItemsRequestLike = CreateMonitoredItemsRequestOptions
 export type ModifyMonitoredItemsRequestLike = ModifyMonitoredItemsRequestOptions | ModifyMonitoredItemsRequest;
 export type ModifySubscriptionRequestLike = ModifySubscriptionRequestOptions | ModifySubscriptionRequest;
 export type SetMonitoringModeRequestLike = SetMonitoringModeRequestOptions | SetMonitoringModeRequest;
-export type CallMethodRequestLike = CallMethodRequestOptions | CallMethodRequest;
 export type QueryFirstRequestLike = QueryFirstRequestOptions | QueryFirstRequest;
 
 export type SubscriptionId = number;
-export type MethodId = NodeIdLike ;
 
-export interface ArgumentDefinition {
-    inputArguments: Variant[];
-    outputArguments: Variant[];
-}
+import { ArgumentDefinition, CallMethodRequestLike , MethodId} from "node-opcua-pseudo-session";
+export { ArgumentDefinition, CallMethodRequestLike , MethodId} from "node-opcua-pseudo-session";
 
 export interface ClientSession {
 
