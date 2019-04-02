@@ -128,7 +128,7 @@
     "node-fqdn": "^1.1.1",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "^1.0.1",
-    "node-opcua-pki": "^1.1.0",
+    "node-opcua-pki": "^1.1.1",
     "object.values": "^1.1.0",
     "once": "^1.4.0",
     "progress": "^2.0.3",

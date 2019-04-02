@@ -29,7 +29,7 @@
   "node-opcua-constants": "^2.0.0-alpha.9",
   "node-opcua-crypto": "^1.0.1",
   "node-opcua-debug": "^2.0.0-alpha.18",
-  "node-opcua-pki": "^1.1.0",
+  "node-opcua-pki": "^1.1.1",
   "node-opcua-status-code": "^2.0.0-alpha.18",
   "node-opcua-utils": "^2.0.0-alpha.18",
   "once": "^1.4.0",
