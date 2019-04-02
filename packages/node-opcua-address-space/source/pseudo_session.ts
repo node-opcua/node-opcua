@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
+import * as async from "async";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -26,7 +27,7 @@ import { CallMethodRequest, CallMethodResult, CallMethodResultOptions } from "no
 import { StatusCodes } from "node-opcua-status-code";
 import { AddressSpace } from "./address_space_ts";
 import { callMethodHelper } from "./helpers/call_helpers";
-import { SessionContext } from "./session_context";
+import { IServerBase, ISessionBase, SessionContext } from "./session_context";
 
 /**
  * Pseudo session is an helper object that exposes the same async methods
@@ -42,10 +43,15 @@ import { SessionContext } from "./session_context";
  */
 export class PseudoSession implements IBasicSession {
 
-    private addressSpace: AddressSpace;
+    public server: IServerBase;
+    public session: ISessionBase;
 
-    constructor(addressSpace: AddressSpace) {
+    private readonly addressSpace: AddressSpace;
+
+    constructor(addressSpace: AddressSpace, server?: IServerBase, session?: ISessionBase) {
         this.addressSpace = addressSpace;
+        this.server =  server || {};
+        this.session = session || {};
     }
 
     public browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
@@ -149,28 +155,30 @@ export class PseudoSession implements IBasicSession {
         if (!isArray) {
             methodsToCall = [methodsToCall as CallMethodRequestLike];
         }
-        const callMethodResults: CallMethodResult[] = [];
-        for (const methodToCall of methodsToCall as CallMethodRequestLike[]) {
 
-            const server = {};
-            const session = {};
-            const callMethodRequest = new CallMethodRequest(methodToCall);
-            callMethodHelper(
-              server, session, this.addressSpace, callMethodRequest,
-              (err: Error | null, result?: CallMethodResultOptions) => {
-                  if (err) {
-                      const callMethodResult: CallMethodResult = new CallMethodResult({
-                          statusCode: StatusCodes.BadInternalError
-                      });
-                      callMethodResults.push(callMethodResult);
+        async.map(methodsToCall as CallMethodRequestLike[],
+          (methodToCall, innerCallback: (err: Error | null, result?: CallMethodResult) => void) => {
 
-                  } else {
-                      const callMethodResult: CallMethodResult = new CallMethodResult(result);
-                      callMethodResults.push(callMethodResult);
-                  }
-              });
-        }
-        callback!(null, isArray ? callMethodResults : callMethodResults[0]);
+              const callMethodRequest = new CallMethodRequest(methodToCall);
+
+              callMethodHelper(
+                this.server, this.session, this.addressSpace, callMethodRequest,
+                (err: Error | null, result?: CallMethodResultOptions) => {
+
+                    let callMethodResult: CallMethodResult;
+                    if (err) {
+                        callMethodResult = new CallMethodResult({
+                            statusCode: StatusCodes.BadInternalError
+                        });
+                    } else {
+                        callMethodResult = new CallMethodResult(result);
+                    }
+                    innerCallback(null, callMethodResult);
+                });
+
+          }, (err?: Error | null, callMethodResults?: any) => {
+              callback!(null, isArray ? callMethodResults! : callMethodResults![0]);
+          });
     }
 
     public getArgumentDefinition(

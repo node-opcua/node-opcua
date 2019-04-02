@@ -16,19 +16,19 @@ import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
 
 // Symbolic Id                   Description
 // ----------------------------  -----------------------------------------------------------------------------
-// Bad_NodeIdInvalid             Used to indicate that the specified object is not valid.
+// BadNodeIdInvalid              Used to indicate that the specified object is not valid.
 //
-// Bad_NodeIdUnknown             Used to indicate that the specified object is not valid.
+// BadNodeIdUnknown             Used to indicate that the specified object is not valid.
 //
-// Bad_ArgumentsMissing          The client did not specify all of the input arguments for the method.
-// Bad_UserAccessDenied
+// BadArgumentsMissing          The client did not specify all of the input arguments for the method.
+// BadUserAccessDenied
 //
-// Bad_MethodInvalid             The method id does not refer to a method for the specified object.
-// Bad_OutOfRange                Used to indicate that an input argument is outside the acceptable range.
-// Bad_TypeMismatch              Used to indicate that an input argument does not have the correct data type.
+// BadMethodInvalid             The method id does not refer to a method for the specified object.
+// BadOutOfRange                Used to indicate that an input argument is outside the acceptable range.
+// BadTypeMismatch              Used to indicate that an input argument does not have the correct data type.
 //                               A ByteString is structurally the same as a one dimensional array of Byte.
 //                               A server shall accept a ByteString if an array of Byte is expected.
-// Bad_NoCommunication
+// BadNoCommunication
 type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
 export function callMethodHelper(
