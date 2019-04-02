@@ -592,6 +592,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             if (!err) {
                 this.emit("connected");
             } else {
+                debugLog(chalk.red("SecureChannel creation has failed with error :", err.message));
+                debugLog(chalk.yellow("  - The client certificate may not be trusted by the server"));
+                err = new Error("The connection has been rejected by server," +
+                  " please check if client certificate is trusted by server");
                 this.emit("connection_failed", err);
             }
             callbackOnceDelayed(err!);
