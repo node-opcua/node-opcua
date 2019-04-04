@@ -63,7 +63,12 @@ const defaultConnectionStrategy: ConnectionStrategyOptions = {
 
 const warningLog = debugLog;
 
-function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callback: FindEndpointCallback) {
+function __findEndpoint(
+  masterClient: OPCUAClientBase,
+  endpointUrl: string,
+  params: FindEndpointOptions,
+  callback: FindEndpointCallback
+) {
 
     const securityMode = params.securityMode;
     const securityPolicy = params.securityPolicy;
@@ -84,11 +89,24 @@ function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callba
     const tasks = [
 
         (innerCallback: ErrorCallback) => {
-            client.on("backoff", () => {
-                debugLog("finding Endpoint => reconnecting ");
-            });
+
+            // rebind backoff handler
+            masterClient.listeners("backoff").forEach(
+              (handler: any) => client.on("backoff", handler));
+
+            if (doDebug) {
+                client.on("backoff", (retryCount: number, delay: number) => {
+                    debugLog("finding Endpoint => reconnecting ",
+                      " retry count", retryCount, " next attempt in ", delay / 1000, "seconds");
+                });
+            }
+
             client.connect(endpointUrl, (err?: Error) => {
                 if (err) {
+                    // let's improve the error message with meaningful info
+                    err.message = "Fail to connect to server at " + endpointUrl +
+                      " to collect certificate server (in findEndpoint) \n" +
+                      " (err =" + err.message + ")";
                     debugLog("Fail to connect to server ", endpointUrl, " to collect certificate server");
                 }
                 return innerCallback(err);
@@ -100,6 +118,7 @@ function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callba
             client.getEndpoints((err: Error | null, endpoints?: EndpointDescription[]) => {
 
                 if (err) {
+                    err.message = "error in getEndpoints \n" + err.message;
                     return innerCallback(err);
                 }
                 if (!endpoints) {
@@ -128,7 +147,7 @@ function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callba
         }
 
         if (!selectedEndpoints) {
-            callback(new Error(" Cannot find an Endpoint matching " +
+            callback(new Error("Cannot find an Endpoint matching " +
               " security mode: " + securityMode.toString() +
               " policy: " + securityPolicy.toString()));
         }
@@ -145,6 +164,10 @@ function __findEndpoint(endpointUrl: string, params: FindEndpointOptions, callba
  * check if certificate is trusted or untrusted
  */
 function _verify_serverCertificate(serverCertificate: Certificate, callback: ErrorCallback) {
+
+    // todo:
+    //  - use Certificate manager to deal with trusted/ untrusted certificate
+    //  - add certificate verification and validity check
 
     const pkiFolder = process.cwd() + "/pki";
 
@@ -532,8 +555,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             // if the certificate has been certified by an Certificate Authority we have to
             // verify that the certificates in the chain are valid and not revoked.
             //
-            const certificateFile = this.certificateFile || "certificates/client_selfsigned_cert_1024.pem";
-            const privateKeyFile = this.privateKeyFile || "certificates/client_key_1024.pem";
+            const certificateFile = this.certificateFile || "certificates/client_selfsigned_cert_2048.pem";
+            const privateKeyFile = this.privateKeyFile || "certificates/client_key_2048.pem";
             const applicationName = (this as any).applicationName || "NodeOPCUA-Client";
 
             const params = {
@@ -546,7 +569,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 certificateFile,
                 privateKeyFile
             };
-            return __findEndpoint(endpointUrl, params, (err: Error | null, result?: FindEndpointResult) => {
+            return __findEndpoint(this, endpointUrl, params, (err: Error | null, result?: FindEndpointResult) => {
                 if (err) {
                     this.emit("connection_failed", err);
                     return callback(err);
@@ -593,9 +616,18 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 this.emit("connected");
             } else {
                 debugLog(chalk.red("SecureChannel creation has failed with error :", err.message));
-                debugLog(chalk.yellow("  - The client certificate may not be trusted by the server"));
-                err = new Error("The connection has been rejected by server," +
-                  " please check if client certificate is trusted by server");
+                if (err.message.match(/ECONNREF/)) {
+                    debugLog(chalk.yellow("- The client cannot to :" + endpointUrl + ". Server is not reachable."));
+                    err = new Error("The connection cannot be established with server " + endpointUrl + " .\n" +
+                      "Please check that the server is up and running or your network configuration.\n" +
+                      "Err = (" + err.message + ")");
+
+                } else {
+                    debugLog(chalk.yellow("  - The client certificate may not be trusted by the server"));
+                    err = new Error("The connection has been rejected by server,\n" +
+                      "Please check that client certificate is trusted by server.\n" +
+                      "Err = (" + err.message + ")");
+                }
                 this.emit("connection_failed", err);
             }
             callbackOnceDelayed(err!);
