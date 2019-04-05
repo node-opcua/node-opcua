@@ -35,6 +35,7 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { EventFieldList, MonitoringFilter, SimpleAttributeOperand } from "node-opcua-types";
 import { sameVariant, Variant } from "node-opcua-variant";
 
+import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
 
 const defaultItemToMonitor = { indexRange: null, attributeId: AttributeIds.Value };
@@ -228,62 +229,6 @@ function apply_filter(
     // return true; // keep
 }
 
-const timers: any = {};
-type TimerKey = NodeJS.Timer;
-
-function appendToTimer(monitoredItem: MonitoredItem): string {
-
-    const samplingInterval = monitoredItem.samplingInterval;
-    const key = samplingInterval.toString();
-    assert(samplingInterval > 0);
-    let _t = timers[key];
-    if (!_t) {
-
-        _t = {
-            _samplingId: false,
-            monitoredItems: {},
-            monitoredItemsCount: 0
-        };
-
-        _t._samplingId = setInterval(() => {
-
-            _.forEach(_t.monitoredItems, (m: MonitoredItem) => {
-                setImmediate(() => {
-                    (m as any)._on_sampling_timer();
-                });
-            });
-
-        }, samplingInterval);
-        timers[key] = _t;
-    }
-    assert(!_t.monitoredItems[monitoredItem.monitoredItemId]);
-    _t.monitoredItems[monitoredItem.monitoredItemId] = monitoredItem;
-    _t.monitoredItemsCount++;
-    return key;
-}
-
-function removeFromTimer(monitoredItem: MonitoredItem) {
-
-    const samplingInterval = monitoredItem.samplingInterval;
-    assert(samplingInterval > 0);
-    assert(typeof monitoredItem._samplingId === "string");
-    const key = monitoredItem._samplingId as string;
-    const _t = timers[key];
-    if (!_t) {
-        console.log("cannot find common timer for samplingInterval", key);
-        return;
-    }
-    assert(_t);
-    assert(_t.monitoredItems[monitoredItem.monitoredItemId]);
-    delete _t.monitoredItems[monitoredItem.monitoredItemId];
-    _t.monitoredItemsCount--;
-    assert(_t.monitoredItemsCount >= 0);
-    if (_t.monitoredItemsCount === 0) {
-        clearInterval(_t._samplingId);
-        delete timers[key];
-    }
-}
-
 function setSemanticChangeBit(notification: any) {
     if (notification && notification.hasOwnProperty("value")) {
         notification.value.statusCode =
@@ -327,10 +272,13 @@ export interface BaseNode2 extends EventEmitter {
     nodeId: NodeId;
     browseName: QualifiedNameOptions;
     nodeClass: NodeClass;
-    readAttribute(context: SessionContext  | null, attributeId: AttributeIds): DataValue;
+
+    readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue;
 }
 
 export type QueueItem = MonitoredItemNotification | EventFieldList;
+
+type TimerKey = NodeJS.Timer;
 
 /**
  * a server side monitored item
@@ -434,8 +382,8 @@ export class MonitoredItem extends EventEmitter {
         assert(!this.node || this.node === node, "node already set");
         this._node = node;
         this._semantic_version = (node as any).semantic_version;
-        this._on_node_disposed_listener =  () => this._on_node_disposed(this._node!);
-        this._node.on("dispose", this._on_node_disposed_listener );
+        this._on_node_disposed_listener = () => this._on_node_disposed(this._node!);
+        this._node.on("dispose", this._on_node_disposed_listener);
     }
 
     public setMonitoringMode(monitoringMode: MonitoringMode) {
@@ -758,7 +706,7 @@ export class MonitoredItem extends EventEmitter {
 
     private _stop_sampling() {
 
-        debugLog("MonitoredItem#_stop_sampling");
+        // debugLog("MonitoredItem#_stop_sampling");
         if (!this.node) {
             throw new Error("Internal Error");
         }
@@ -1066,7 +1014,9 @@ export class MonitoredItem extends EventEmitter {
     }
 
     private _enqueue_event(eventFields: any[]) {
-        debugLog(" MonitoredItem#_enqueue_event");
+        if (doDebug) {
+            debugLog(" MonitoredItem#_enqueue_event");
+        }
         const notification = this._makeEventFieldList(eventFields);
         this._enqueue_notification(notification);
     }
