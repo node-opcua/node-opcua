@@ -1,5 +1,5 @@
 {
- "name": "node-opcua-server-configuation",
+ "name": "node-opcua-server-configuration",
  "version": "2.0.0-alpha.19",
  "description": "pure nodejs OPCUA SDK - module -server",
  "scripts": {
