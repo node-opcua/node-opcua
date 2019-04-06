@@ -2372,8 +2372,8 @@ export class OPCUAServer extends OPCUABaseServer {
                   }
               }
 
-              // ToDo: limit results to requestedMaxReferencesPerNode
-              const requestedMaxReferencesPerNode = request.requestedMaxReferencesPerNode;
+              // limit results to requestedMaxReferencesPerNode
+              const requestedMaxReferencesPerNode =  Math.min(9876, request.requestedMaxReferencesPerNode);
 
               let results: BrowseResult[] = [];
               assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
@@ -2411,7 +2411,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
         const request = message.request as BrowseNextRequest;
         assert(request instanceof BrowseNextRequest);
-
         this._apply_on_SessionObject(BrowseNextResponse, message, channel,
           (session: ServerSession, sendResponse: any, sendError: any) => {
 
