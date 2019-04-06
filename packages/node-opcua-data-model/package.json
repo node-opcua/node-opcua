@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-data-model",
- "version": "2.0.0-alpha.18",
+ "version": "2.0.0-alpha.19",
  "description": "pure nodejs OPCUA SDK - module -data-model",
  "scripts": {
   "build": "tsc",
@@ -11,17 +11,17 @@
  "types": "./dist/index.d.ts",
  "dependencies": {
   "node-opcua-assert": "^2.0.0-alpha.10",
-  "node-opcua-basic-types": "^2.0.0-alpha.18",
+  "node-opcua-basic-types": "^2.0.0-alpha.19",
   "node-opcua-binary-stream": "^2.0.0-alpha.18",
   "node-opcua-enum": "^2.0.0-alpha.18",
-  "node-opcua-factory": "^2.0.0-alpha.18",
-  "node-opcua-nodeid": "^2.0.0-alpha.18",
-  "node-opcua-status-code": "^2.0.0-alpha.18",
-  "node-opcua-utils": "^2.0.0-alpha.18",
+  "node-opcua-factory": "^2.0.0-alpha.19",
+  "node-opcua-nodeid": "^2.0.0-alpha.19",
+  "node-opcua-status-code": "^2.0.0-alpha.19",
+  "node-opcua-utils": "^2.0.0-alpha.19",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-packet-analyzer": "^2.0.0-alpha.18",
+  "node-opcua-packet-analyzer": "^2.0.0-alpha.19",
   "should": "13.2.3",
   "source-map-support": "^0.5.11"
  },

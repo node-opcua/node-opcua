@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-discovery",
- "version": "2.0.0-alpha.18",
+ "version": "2.0.0-alpha.19",
  "description": "pure nodejs OPCUA SDK - module -service-discovery",
  "scripts": {
   "build": "tsc",
@@ -14,19 +14,19 @@
   "@types/bonjour": "^3.5.5",
   "bonjour": "^3.5.0",
   "node-opcua-assert": "^2.0.0-alpha.10",
-  "node-opcua-basic-types": "^2.0.0-alpha.18",
+  "node-opcua-basic-types": "^2.0.0-alpha.19",
   "node-opcua-binary-stream": "^2.0.0-alpha.18",
-  "node-opcua-data-model": "^2.0.0-alpha.18",
+  "node-opcua-data-model": "^2.0.0-alpha.19",
   "node-opcua-debug": "^2.0.0-alpha.18",
-  "node-opcua-factory": "^2.0.0-alpha.18",
-  "node-opcua-nodeid": "^2.0.0-alpha.18",
-  "node-opcua-service-endpoints": "^2.0.0-alpha.18",
-  "node-opcua-service-secure-channel": "^2.0.0-alpha.18",
-  "node-opcua-types": "^2.0.0-alpha.18",
+  "node-opcua-factory": "^2.0.0-alpha.19",
+  "node-opcua-nodeid": "^2.0.0-alpha.19",
+  "node-opcua-service-endpoints": "^2.0.0-alpha.19",
+  "node-opcua-service-secure-channel": "^2.0.0-alpha.19",
+  "node-opcua-types": "^2.0.0-alpha.19",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-generator": "^2.0.0-alpha.18"
+  "node-opcua-generator": "^2.0.0-alpha.19"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

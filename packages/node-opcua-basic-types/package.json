@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-basic-types",
- "version": "2.0.0-alpha.18",
+ "version": "2.0.0-alpha.19",
  "description": "pure nodejs OPCUA SDK - module -basic-types",
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
@@ -17,9 +17,9 @@
   "node-opcua-date-time": "^2.0.0-alpha.18",
   "node-opcua-enum": "^2.0.0-alpha.18",
   "node-opcua-guid": "^2.0.0-alpha.18",
-  "node-opcua-nodeid": "^2.0.0-alpha.18",
-  "node-opcua-status-code": "^2.0.0-alpha.18",
-  "node-opcua-utils": "^2.0.0-alpha.18",
+  "node-opcua-nodeid": "^2.0.0-alpha.19",
+  "node-opcua-status-code": "^2.0.0-alpha.19",
+  "node-opcua-utils": "^2.0.0-alpha.19",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
