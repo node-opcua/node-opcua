@@ -1,34 +1,60 @@
+/**
+ * @module node-opcua-server-configuration
+ */
 import { ByteString } from "node-opcua-basic-types";
 import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { CallMethodRequestLike, IBasicSession } from "node-opcua-pseudo-session";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
 
-const serverConfigurationNodeId = resolveNodeId("i=12637"/* Server_ServerConfiguration*/);
-const createSigningRequestMethod = resolveNodeId("i=12737"/* Server_ServerConfiguration_CreateSigningRequest*/);
-const getRejectedListMethod = resolveNodeId("i=12777"/* Server_ServerConfiguration_GetRejectedListRequest*/);
-const updateCertificateMethod = resolveNodeId("i=13737"/* Server_ServerConfiguration_UpdateCertificate*/);
+import { AttributeIds } from "node-opcua-data-model";
+import {
+    CreateSigningRequestResult,
+    GetRejectedListResult,
+    PushCertificateManager,
+    UpdateCertificateResult
+} from "../push_certificate_manager";
 
-const certificateGroups = resolveNodeId("i=14053"/*Server_ServerConfiguration_CertificateGroups*/);
-const defaultApplicationGroup = resolveNodeId("i=14156"/*Server_ServerConfiguration_CertificateGroups_DefaultApplicationGroup"*/);
-const applyChangesMethod = resolveNodeId("i=12740" /* Server_ServerConfiguration_ApplyChanges*/);
+const serverConfigurationNodeId = resolveNodeId("ServerConfiguration");
+const createSigningRequestMethod = resolveNodeId("ServerConfiguration_CreateSigningRequest");
+const getRejectedListMethod = resolveNodeId("ServerConfiguration_GetRejectedList");
+const updateCertificateMethod = resolveNodeId("ServerConfiguration_UpdateCertificate");
+const certificateGroups = resolveNodeId("ServerConfiguration_CertificateGroups");
+const applyChangesMethod = resolveNodeId("ServerConfiguration_ApplyChanges");
+const supportedPrivateKeyFormatsNodeId = resolveNodeId("ServerConfiguration_SupportedPrivateKeyFormats");
 
-export interface CreateSigningRequestResult {
-    statusCode: StatusCode;
-    certificateSigningRequest?: Buffer;
+const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup");
+const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
+const defaultUserTokenGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultUserTokenGroup");
+
+function findCertificateGroupName(certificateGroupNodeId: NodeId): string {
+    return "todo";
 }
 
-export interface GetRejectedListResult {
-    statusCode: StatusCode;
-    certificates?: Buffer[];
+function findCertificateGroupNodeId(certificateGroup: NodeId | string): NodeId {
+
+    if (certificateGroup instanceof NodeId) {
+        return certificateGroup;
+    }
+    switch (certificateGroup) {
+        case "DefaultApplicationGroup":
+            return defaultApplicationGroup;
+        case "DefaultHttpsGroup":
+            return defaultHttpsGroup;
+        case "DefaultUserTokenGroup":
+            return defaultUserTokenGroup;
+        default:
+            return resolveNodeId(certificateGroup);
+    }
+}
+function findCertificateTypeIdNodeId(certificateTypeId: NodeId | string): NodeId {
+    if (certificateTypeId instanceof NodeId) {
+        return certificateTypeId;
+    }
+    return resolveNodeId(certificateTypeId);
 }
 
-export interface UpdateCertificateResult {
-    statusCode: StatusCode;
-    applyChangeRequired?: boolean;
-}
-
-export class ClientPullCertificateManagement {
+export class ClientPullCertificateManagement implements PushCertificateManager {
 
     public static rsaSha256ApplicationCertificateType: NodeId = resolveNodeId("i=12560");
 
@@ -77,16 +103,16 @@ export class ClientPullCertificateManagement {
      * BadUserAccessDenied          The current user does not have the rights required.
      */
     public async createSigningRequest(
-      certificateGroupId: NodeId,
-      certificateTypeId: NodeId,
+      certificateGroupId: NodeId | string,
+      certificateTypeId: NodeId | string,
       subjectName: string,
       regeneratePrivateKey?: boolean,
       nonce?: ByteString
     ): Promise<CreateSigningRequestResult> {
 
         const inputArguments = [
-            { dataType: DataType.NodeId, value: certificateGroupId },
-            { dataType: DataType.NodeId, value: certificateTypeId },
+            { dataType: DataType.NodeId, value: findCertificateGroupNodeId(certificateGroupId) },
+            { dataType: DataType.NodeId, value: findCertificateTypeIdNodeId(certificateTypeId) },
             { dataType: DataType.String, value: subjectName },
             { dataType: DataType.Boolean, value: !!regeneratePrivateKey },
             { dataType: nonce ? DataType.ByteString : DataType.Null, value: nonce }
@@ -168,32 +194,39 @@ export class ClientPullCertificateManagement {
      *                             the CertificateTypes Property belonging to the Certificate Group
      * @param certificate        - The DER encoded Certificate which replaces the existing Certificate.
      * @param issuerCertificates - The issuer Certificates needed to verify the signature on the new Certificate
-     * @param privateKeyFormat   - The format of the Private Key (PEM or PFX). If the privateKey is not specified
-     *                             the privateKeyFormat is null or empty
-     * @param privateKey         - The Private Key encoded in the privateKeyFormat
-     *
-     * @return applyChangeRequired - Indicates that the ApplyChanges Method shall be called before the new
+     * @return retVal.applyChangesRequired - Indicates that the ApplyChanges Method shall be called before the new
      *                               Certificate will be used.
      *
      *
      */
     public async updateCertificate(
-      certificateGroupId: NodeId,
-      certificateTypeId: NodeId,
+      certificateGroupId: NodeId | string,
+      certificateTypeId: NodeId | string,
       certificate: Buffer,
       issuerCertificates: Buffer[]
     ): Promise<UpdateCertificateResult>;
+    /**
+     *
+     * @param certificateGroupId
+     * @param certificateTypeId
+     * @param certificate
+     * @param issuerCertificates
+     * @param privateKeyFormat   - The format of the Private Key (PEM or PFX). If the privateKey is not specified
+     *                             the privateKeyFormat is null or empty
+     * @param privateKey         - The Private Key encoded in the privateKeyFormat
+     *
+     */
     public async updateCertificate(
-      certificateGroupId: NodeId,
-      certificateTypeId: NodeId,
+      certificateGroupId: NodeId | string,
+      certificateTypeId: NodeId | string,
       certificate: Buffer,
       issuerCertificates: Buffer[],
       privateKeyFormat: string,
       privateKey: Buffer
     ): Promise<UpdateCertificateResult>;
     public async updateCertificate(
-      certificateGroupId: NodeId,
-      certificateTypeId: NodeId,
+      certificateGroupId: NodeId | string,
+      certificateTypeId: NodeId | string,
       certificate: Buffer,
       issuerCertificates: Buffer[],
       privateKeyFormat?: string,
@@ -201,8 +234,8 @@ export class ClientPullCertificateManagement {
     ): Promise<UpdateCertificateResult> {
 
         const inputArguments: VariantLike[] = [
-            { dataType: DataType.NodeId, value: certificateGroupId },
-            { dataType: DataType.NodeId, value: certificateTypeId },
+            { dataType: DataType.NodeId, value: findCertificateGroupNodeId(certificateGroupId) },
+            { dataType: DataType.NodeId, value: findCertificateTypeIdNodeId(certificateTypeId) },
             { dataType: DataType.ByteString, value: certificate },
             { dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: issuerCertificates },
             privateKeyFormat
@@ -226,7 +259,7 @@ export class ClientPullCertificateManagement {
                 // throw Error("Internal Error, expecting 1 output result");
             }
             return {
-                applyChangeRequired: callMethodResult.outputArguments![0].value,
+                applyChangesRequired: callMethodResult.outputArguments![0].value,
                 statusCode: callMethodResult.statusCode
             };
         } else {
@@ -268,6 +301,15 @@ export class ClientPullCertificateManagement {
             throw new Error("Invalid  output arguments");
         }
         return callMethodResult.statusCode;
+    }
+
+    public async getSupportedPrivateKeyFormats(): Promise<string[]> {
+
+        const dataValue = await this.session.read({
+            attributeId: AttributeIds.Value,
+            nodeId: supportedPrivateKeyFormatsNodeId
+        });
+        return dataValue.value.value as string[];
     }
 
     public async getCertificateGroupId(certificateGroupName: string): Promise<NodeId> {

@@ -3,6 +3,22 @@
  */
 import { ByteString } from "node-opcua-basic-types";
 import { NodeId } from "node-opcua-nodeid";
+import { StatusCode } from "node-opcua-status-code";
+
+export interface CreateSigningRequestResult {
+    statusCode: StatusCode;
+    certificateSigningRequest?: Buffer;
+}
+
+export interface GetRejectedListResult {
+    statusCode: StatusCode;
+    certificates?: Buffer[];
+}
+
+export interface UpdateCertificateResult {
+    statusCode: StatusCode;
+    applyChangesRequired?: boolean;
+}
 
 export interface PushCertificateManager {
 
@@ -11,7 +27,7 @@ export interface PushCertificateManager {
      * Possible values include “PEM” (see RFC 5958) or “PFX” (see PKCS #12). The array is empty
      * if the Server does not allow external Clients to update the PrivateKey
      */
-    supportedPrivateKeyFormats: string[];
+    getSupportedPrivateKeyFormats(): Promise<string[]>;
 
     /**
      * UpdateCertificate is used to update a Certificate for a Server.
@@ -33,7 +49,7 @@ export interface PushCertificateManager {
      *                                the CertificateTypes Property belonging to the Certificate Group.
      * @param certificate           - The DER encoded Certificate which replaces the existing Certificate
      * @param issuerCertificates    - The issuer Certificates needed to verify the signature on the new Certificate
-     * @param privateKeyFormat      - The format of the Private Key (PEM or PFX). If the privateKey is not specifie
+     * @param privateKeyFormat      - The format of the Private Key (PEM or PFX). If the privateKey is not specified
      *                                the privateKeyFormat is null or empty
      * @param privateKey            - the Private Key encoded in the privateKeyFormat.
      * @return applyChangesRequired - Indicates that the ApplyChanges Method shall be called before the new
@@ -49,13 +65,13 @@ export interface PushCertificateManager {
      *
      */
     updateCertificate(
-      certificateGroupId: NodeId,
-      certificateTypeId: NodeId,
+      certificateGroupId: NodeId | string,
+      certificateTypeId: NodeId | string,
       certificate: ByteString,
       issuerCertificates: ByteString[],
       privateKeyFormat: string,
       privateKey: ByteString
-    ): Promise<boolean>;
+    ): Promise<UpdateCertificateResult>;
 
     /**
      * The ApplyChanges Method is used to apply any security related changes if the Server sets
@@ -86,7 +102,7 @@ export interface PushCertificateManager {
      * Result Code               Description
      * Bad_UserAccessDenied      The current user does not have the rights required.
      */
-    applyChange(): Promise<void>;
+    applyChanges(): Promise<StatusCode>;
 
     /**
      * The CreateSigningRequest Method asks the Server to create a PKCS #10 encoded Certificate
@@ -112,7 +128,7 @@ export interface PushCertificateManager {
      *                               Private Key.
      * @param nonce                - Additional entropy which the caller shall provide if regeneratePrivateKey is TRUE.
      *                               It shall be at least 32 bytes long
-     * @param certificateRequest   - The PKCS #10 DER encoded Certificate Request.
+     * @return certificateRequest   - The PKCS #10 DER encoded Certificate Request.
      *
      *
      * Result Code                   Description
@@ -120,13 +136,12 @@ export interface PushCertificateManager {
      * Bad_UserAccessDenied          The current user does not have the rights required.
      */
     createSigningRequest(
-      certificateGroupId: NodeId,
-      certificateTypeId: NodeId,
+      certificateGroupId: NodeId | string,
+      certificateTypeId: NodeId | string,
       subjectName: string,
-      regeneratePrivateKey: boolean,
-      nonce: ByteString,
-      certificateRequest: ByteString
-    ): Promise<ByteString>;
+      regeneratePrivateKey?: boolean,
+      nonce?: ByteString
+    ): Promise<CreateSigningRequestResult>;
 
     /**
      * GetRejectedList Method returns the list of Certificates that have been rejected by the Server.
@@ -144,6 +159,6 @@ export interface PushCertificateManager {
      *  Bad_UserAccessDenied  The current user does not have the rights required
      */
 
-    getRejectedList(): Promise</*certificates*/ByteString[]>;
+    getRejectedList(): Promise</*certificates*/GetRejectedListResult>;
 
 }

@@ -159,6 +159,10 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
               context,
               (err: Error | null, callMethodResult: CallMethodResultOptions) => {
 
+                  if (err) {
+                      console.log(err.message);
+                      console.log(err);
+                  }
                   callMethodResult = callMethodResult || {};
 
                   callMethodResult.statusCode = callMethodResult.statusCode || StatusCodes.Good;

@@ -1,3 +1,5 @@
+import * as path from "path";
+
 import {
     AddressSpace,
     generateAddressSpace,
@@ -8,14 +10,37 @@ import {
 import { NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
 
+import { CertificateManager } from "node-opcua-pki";
+
 import { NodeId } from "node-opcua-nodeid";
-import { ClientPullCertificateManagement, installPushCertificateManagement } from "../source";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserNameIdentityToken } from "node-opcua-types";
+import { ClientPullCertificateManagement, installPushCertificateManagement } from "../source";
 
 describe("ServerConfiguration", () => {
 
     let addressSpace: AddressSpace;
+
+    const opcuaServer: IServerBase = {
+        userManager: {
+            getUserRole(userName: string): string {
+                return "admin";
+            }
+        }
+    };
+    const session: ISessionBase = {
+        userIdentityToken: new UserNameIdentityToken({
+            userName: "joedoe"
+        })
+    };
+    const _tempFolder = path.join(__dirname, "../temp");
+
+    const applicationGroup = new CertificateManager({
+        location: path.join(_tempFolder, "application")
+    });
+    const userTokenGroup = new CertificateManager({
+        location: path.join(_tempFolder, "user")
+    });
 
     const xmlFiles = [
         nodesets.standard
@@ -28,7 +53,6 @@ describe("ServerConfiguration", () => {
     after(() => {
         addressSpace.dispose();
     });
-
 
     it("should expose a server configuration object", async () => {
         const server = addressSpace.rootFolder.objects.server;
@@ -99,12 +123,12 @@ describe("ServerConfiguration", () => {
 
         it("should implement createSigningRequest", async () => {
 
-            installPushCertificateManagement(addressSpace);
+            installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup });
 
             const server = addressSpace.rootFolder.objects.server;
             server.serverConfiguration.createSigningRequest.nodeClass.should.eql(NodeClass.Method);
 
-            const pseudoSession = new PseudoSession(addressSpace);
+            const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
             const clientPullCertificateManager = new ClientPullCertificateManagement(pseudoSession);
 
             const certificateGroupId = await clientPullCertificateManager.getCertificateGroupId("DefaultApplicationGroup");
@@ -125,22 +149,9 @@ describe("ServerConfiguration", () => {
         });
         it("should implement UpdateCertificate", async () => {
 
-            installPushCertificateManagement(addressSpace);
+            installPushCertificateManagement(addressSpace, {});
 
-            const server: IServerBase = {
-                userManager: {
-                    getUserRole(userName: string): string {
-                        return "admin";
-                    }
-                }
-            };
-            const session: ISessionBase = {
-                userIdentityToken: new UserNameIdentityToken({
-                    userName: "joedoe"
-                })
-            };
-
-            const pseudoSession = new PseudoSession(addressSpace, server, session);
+            const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
             const clientPullCertificateManager = new ClientPullCertificateManagement(pseudoSession);
 
             const certificateGroupId = NodeId.nullNodeId;
@@ -163,7 +174,7 @@ describe("ServerConfiguration", () => {
             );
 
             result.statusCode.should.eql(StatusCodes.Good);
-            result.applyChangeRequired!.should.eql(true);
+            result.applyChangesRequired!.should.eql(true);
 
         });
     });
