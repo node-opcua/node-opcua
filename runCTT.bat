@@ -1,5 +1,5 @@
 
-SET UACOMPLIANCETEST="C:\Program Files (x86)\OPC Foundation\UA 1.02\Compliance Test Tool\uacompliancetest.exe"
+SET UACOMPLIANCETEST="C:\Program Files (x86)\OPC Foundation\UA 1.03\Compliance Test Tool\uacompliancetest.exe"
 SET CTTFILE=".\CTT\Node-OPCUA-Server\Node-OPCUA-Server.ctt.xml"
 SET SELECTION=".\CTT\Node-OPCUA-Server\nano-profile.selection.xml"
 SET RESULT="tmp\nano-ctt-result.xml"
