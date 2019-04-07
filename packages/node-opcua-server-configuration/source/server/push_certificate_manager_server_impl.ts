@@ -2,11 +2,12 @@
  * @module node-opcua-server-configuration
  */
 import * as fs from "fs";
+import * as path from "path";
 import { promisify } from "util";
 
 import assert from "node-opcua-assert";
 import { ByteString, StatusCodes } from "node-opcua-basic-types";
-import { convertPEMtoDER } from "node-opcua-crypto";
+import { convertPEMtoDER, makeSHA1Thumbprint } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CertificateManager } from "node-opcua-pki";
@@ -133,8 +134,6 @@ export class PushCertificateManagerServerImpl implements PushCertificateManager 
         const csrfile = await certificateManager.createCertificateRequest(options);
         const csrPEM = await promisify(fs.readFile)(csrfile, "utf8");
         const certificateSigningRequest = convertPEMtoDER(csrPEM);
-
-        console.log(certificateSigningRequest.toString("base64"));
         return {
             certificateSigningRequest,
             statusCode: StatusCodes.Good
@@ -143,7 +142,61 @@ export class PushCertificateManagerServerImpl implements PushCertificateManager 
     }
 
     public async getRejectedList(): Promise<GetRejectedListResult> {
+
+        interface FileData {
+            filename: string;
+            stat: {
+                mtime: Date
+            };
+        }
+
+        // rejectedList comes from each group
+        async function extractRejectedList(
+          group: CertificateManager | undefined,
+          list: FileData[]
+        ): Promise<void> {
+            if (!group) {
+                return;
+            }
+            const rejectedFolder = path.join(group.rootDir, "rejected");
+            const files = await promisify(fs.readdir)(rejectedFolder);
+
+            const stat = promisify(fs.stat);
+            const promises: Promise<any>[] = [];
+            for (const certFile of files) {
+                // read date
+                promises.push(stat(path.join(rejectedFolder, certFile)));
+            }
+            const stats = await Promise.all(promises);
+
+            for (let i = 0; i < stats.length; i++) {
+                list.push({
+                    filename: path.join(rejectedFolder, files[i]),
+                    stat: stats[i]
+                });
+            }
+        }
+
+        const list: FileData[] = [];
+        await extractRejectedList(this.applicationGroup, list);
+        await extractRejectedList(this.userTokenGroup, list);
+        await extractRejectedList(this.httpsGroup, list);
+
+        // now sort list from newer file to older file
+        list.sort((a: FileData, b: FileData) =>
+          b.stat.mtime.getTime() - a.stat.mtime.getTime()
+        );
+
+        const readFile = promisify(fs.readFile);
+        const promises: Array<Promise<string>> = [];
+        for (const item of list) {
+            promises.push(readFile(item.filename, "utf8"));
+        }
+        const certificatesPEM: string[] = await Promise.all(promises);
+
+        const certificates: Buffer[] = certificatesPEM.map(convertPEMtoDER);
         return {
+            certificates,
             statusCode: StatusCodes.Good
         };
     }
