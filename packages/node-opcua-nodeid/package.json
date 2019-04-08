@@ -1,7 +1,7 @@
 {
  "name": "node-opcua-nodeid",
  "main": "./src/nodeid.js",
- "version": "0.7.0",
+ "version": "0.7.2",
  "description": "pure nodejs OPCUA SDK - module -nodeid",
  "scripts": {
   "test": "mocha test"
@@ -9,12 +9,12 @@
  "dependencies": {
   "node-opcua-assert": "^0.7.0",
   "node-opcua-constants": "^0.7.0",
-  "node-opcua-enum": "^0.7.0",
+  "node-opcua-enum": "^0.7.2",
   "node-opcua-guid": "^0.7.0",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-benchmarker": "^0.7.0",
+  "node-opcua-benchmarker": "^0.7.2",
   "should": "13.2.3"
  },
  "author": "Etienne Rossignon",

@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-benchmarker",
- "version": "0.7.0",
+ "version": "0.7.2",
  "description": "pure nodejs OPCUA SDK - module -benchmarker",
  "main": "dist/benchmarker.js",
  "types": "dist/benchmarker.d.ts",
