@@ -29,7 +29,7 @@
   "node-opcua-packet-analyzer": "^2.0.0-alpha.19",
   "node-opcua-status-code": "^2.0.0-alpha.19",
   "should": "13.2.3",
-  "source-map-support": "^0.5.11"
+  "source-map-support": "^0.5.12"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

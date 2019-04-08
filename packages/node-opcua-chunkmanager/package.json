@@ -21,11 +21,11 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/node": "^11.13.0",
-  "@types/underscore": "^1.8.13",
+  "@types/node": "^11.13.2",
+  "@types/underscore": "^1.8.14",
   "node-opcua-debug": "^2.0.0-alpha.18",
   "should": "13.2.3",
-  "source-map-support": "^0.5.11"
+  "source-map-support": "^0.5.12"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
