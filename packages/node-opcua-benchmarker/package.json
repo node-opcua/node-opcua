@@ -28,6 +28,6 @@
  ],
  "homepage": "http://node-opcua.github.io/",
  "devDependencies": {
-  "@types/underscore": "^1.8.13"
+  "@types/underscore": "^1.8.14"
  }
 }

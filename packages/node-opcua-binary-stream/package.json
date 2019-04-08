@@ -15,7 +15,7 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/underscore": "^1.8.13",
+  "@types/underscore": "^1.8.14",
   "node-opcua-benchmarker": "^0.7.0",
   "should": "13.2.3"
  },

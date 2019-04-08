@@ -16,14 +16,14 @@
   "node-opcua-buffer-utils": "^0.7.0",
   "node-opcua-common": "^0.7.0",
   "node-opcua-constants": "^0.7.0",
-  "node-opcua-crypto": "^1.0.1",
+  "node-opcua-crypto": "^1.0.3",
   "node-opcua-data-model": "^0.7.0",
   "node-opcua-data-value": "^0.7.0",
   "node-opcua-debug": "^0.7.0",
   "node-opcua-hostname": "^0.7.0",
   "node-opcua-nodeid": "^0.7.0",
   "node-opcua-object-registry": "^0.7.0",
-  "node-opcua-pki": "1.0.3",
+  "node-opcua-pki": "1.2.3",
   "node-opcua-secure-channel": "^0.7.0",
   "node-opcua-service-browse": "^0.7.0",
   "node-opcua-service-call": "^0.7.0",
@@ -49,7 +49,7 @@
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^0.7.0",
   "should": "13.2.3",
-  "sinon": "^7.2.7"
+  "sinon": "^7.3.1"
  },
  "eslintConfig": {
   "env": {
