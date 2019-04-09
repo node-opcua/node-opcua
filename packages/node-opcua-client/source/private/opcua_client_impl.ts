@@ -1008,17 +1008,21 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         return this.clientName + this.___sessionName_counter;
     }
 
-    /**
+     /**
      *
      * @private
      */
     private _getApplicationUri() {
-
         const certificate = this.getCertificate();
         let applicationUri;
         if (certificate) {
             const e = exploreCertificate(certificate);
-            applicationUri = e.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier[0];
+            if(e.tbsCertificate.extensions !== null){
+                applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
+            } else {
+                const hostname = get_fully_qualified_domain_name();
+                applicationUri = makeApplicationUrn(hostname, this.applicationName);
+            }
         } else {
             const hostname = get_fully_qualified_domain_name();
             applicationUri = makeApplicationUrn(hostname, this.applicationName);
@@ -1026,6 +1030,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         return applicationUri;
 
     }
+
 
     /**
      *
