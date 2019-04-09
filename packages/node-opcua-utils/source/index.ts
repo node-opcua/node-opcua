@@ -64,3 +64,4 @@ export { getFunctionParameterNames } from "./get_function_parameters_name";
 export * from "./watchdog";
 export { LineFile } from "./linefile";
 export { setDeprecated } from "./set_deprecated";
+export { replaceBufferWithHexDump } from "./replace_buffer_with_hex_dump";

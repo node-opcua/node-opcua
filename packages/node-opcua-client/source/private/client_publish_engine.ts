@@ -143,7 +143,8 @@ export class ClientSidePublishEngine {
         this.activeSubscriptionCount += 1;
         this.subscriptionMap[subscription.subscriptionId] = subscription;
 
-        this.timeoutHint = Math.max(this.timeoutHint, subscription.timeoutHint);
+        this.timeoutHint = Math.min(Math.max(this.timeoutHint, subscription.timeoutHint), 0x7FFFFFF);
+
         debugLog("                       setting timeoutHint = ", this.timeoutHint, subscription.timeoutHint);
 
         this.replenish_publish_request_queue();

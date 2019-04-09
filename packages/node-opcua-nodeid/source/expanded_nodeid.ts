@@ -43,13 +43,22 @@ import { coerceNodeId, NodeId, NodeIdType } from "./nodeid";
  */
 export class ExpandedNodeId extends NodeId {
 
+    public static nullExpandedNodeId = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
+
+    public static fromNodeId(nodeId: NodeId, namespaceUri?: string, serverIndex?: number): ExpandedNodeId {
+        return new ExpandedNodeId(
+          nodeId.identifierType, nodeId.value, nodeId.namespace,
+          namespaceUri, serverIndex);
+    }
+
     public namespaceUri: null | string;
     public serverIndex: number;
+
     constructor(
       identifierType: NodeIdType,
       value: number | string | Guid | Buffer,
       namespace: number,
-      namespaceUri?: null|string,
+      namespaceUri?: null | string,
       serverIndex?: number
     ) {
         super(identifierType, value, namespace);

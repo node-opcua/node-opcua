@@ -1,14 +1,12 @@
 // tslint:disable:no-bitwise
 import * as fs from "fs";
-import { AccessLevelFlag } from "node-opcua-data-model";
+import { AccessLevelFlag, AttributeIds } from "node-opcua-data-model";
 import * as nodesets from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
 import * as path from "path";
 import * as should from "should";
-import { generateAddressSpace } from "..";
-import { AddressSpace, UAVariable } from "..";
+import { AddressSpace, generateAddressSpace, UAVariable } from "..";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing NodeSet XML file loading", function(this: any) {
@@ -204,14 +202,14 @@ describe("testing NodeSet XML file loading", function(this: any) {
     it("#339 default ValueRank should be -1  for UAVariable and UAVariableType when loading nodeset2.xml files",
       async () => {
 
-        const xml_files = [
-            nodesets.standard_nodeset_file
-        ];
-        fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
-        await generateAddressSpace(addressSpace, xml_files);
-        addressSpace.rootFolder.objects.server.serverStatus.valueRank.should.eql(-1);
+          const xml_files = [
+              nodesets.standard_nodeset_file
+          ];
+          fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
+          await generateAddressSpace(addressSpace, xml_files);
+          addressSpace.rootFolder.objects.server.serverStatus.valueRank.should.eql(-1);
 
-    });
+      });
 
     it("VV1 should load a nodeset file with a Models section", async () => {
 
@@ -238,6 +236,18 @@ describe("testing NodeSet XML file loading", function(this: any) {
           const xml_file2 = path.join(__dirname, "../../../modeling/my_data_type.xml");
           const xml_files = [xml_file1, xml_file2];
           await generateAddressSpace(addressSpace, xml_files);
+
+          // now verify that Variable containing Extension Object defined as value in the XML file
+          // have been correctly processed
+
+          const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
+          console.log("namespace ", ns);
+
+          const variableType1 = addressSpace.findVariableType("MyStructureType", ns)!;
+          const value = variableType1.readAttribute(null, AttributeIds.Value);
+          console.log(value.toString());
+
+
       }
     );
 

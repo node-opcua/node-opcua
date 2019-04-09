@@ -107,7 +107,7 @@ module.exports = function (test) {
                             if (err) {
                                 return callback(err);
                             }
-                            console.log(browseResult[0].toString());
+                            // console.log(browseResult[0].toString());
                             callback();
                         });
                     },

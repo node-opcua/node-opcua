@@ -397,8 +397,8 @@ export class UAConditionBase extends BaseEventType {
     }
 
     /**
-     * @method setLocalTime
-     * @param time {Date}
+     * @method setLocalTime (optional)
+     * @param time
      */
     public setLocalTime(time: TimeZoneDataType) {
         return this._branch0.setLocalTime(time);
@@ -416,7 +416,6 @@ export class UAConditionBase extends BaseEventType {
         assert(this.receiveTime.readValue().value.dataType === DataType.DateTime);
         assert(this.receiveTime.readValue().value.value instanceof Date);
 
-        assert(this.localTime.readValue().value.dataType === DataType.ExtensionObject);
         assert(this.message.readValue().value.dataType === DataType.LocalizedText);
         assert(this.severity.readValue().value.dataType === DataType.UInt16);
 
@@ -426,6 +425,10 @@ export class UAConditionBase extends BaseEventType {
         assert(this.quality.readValue().value.dataType === DataType.StatusCode);
         assert(this.enabledState.readValue().value.dataType === DataType.LocalizedText);
         assert(this.branchId.readValue().value.dataType === DataType.NodeId);
+
+        // note localTime has been made optional in 1.04
+        assert(!this.localTime || this.localTime.readValue().value.dataType === DataType.ExtensionObject);
+
     }
 
     /**
@@ -524,12 +527,16 @@ export class UAConditionBase extends BaseEventType {
         // set the received Time
         branch.setTime(now);
         branch.setReceiveTime(now);
-        branch.setLocalTime(
-          new TimeZoneDataType({
-              daylightSavingInOffset: false,
-              offset: 0
-          })
-        );
+
+        // note : in 1.04 LocalTime property is optional
+        if (this.hasOwnProperty("localTime")) {
+            branch.setLocalTime(
+              new TimeZoneDataType({
+                  daylightSavingInOffset: false,
+                  offset: 0
+              })
+            );
+        }
 
         if (conditionInfo.hasOwnProperty("message") && conditionInfo.message) {
             branch.setMessage(conditionInfo.message);

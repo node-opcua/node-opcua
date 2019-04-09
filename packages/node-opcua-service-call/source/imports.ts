@@ -9,10 +9,14 @@ import {
 import { DataType } from "node-opcua-variant";
 
 export {
-    Argument, ArgumentOptions,
-    CallMethodRequest, CallMethodRequestOptions,
-    CallRequest, CallRequestOptions,
+    Argument,
+    ArgumentOptions,
+    CallMethodRequest,
+    CallMethodRequestOptions,
+    CallRequest,
+    CallRequestOptions,
     CallMethodResult,
+    CallMethodResultOptions,
     CallResponse
 } from "node-opcua-types";
 

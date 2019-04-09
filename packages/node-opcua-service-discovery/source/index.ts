@@ -27,8 +27,9 @@ export {
 export { serverCapabilities } from "./server_capabilities";
 export {
     acquireBonjour,
+    Announcement,
     releaseBonjour,
-    _stop_announcedOnMulticastSubnet,
-    _announcedOnMulticastSubnet,
+    BonjourHolder,
+    sameAnnouncement,
     _announceServerOnMulticastSubnet
 }from "./bonjour";

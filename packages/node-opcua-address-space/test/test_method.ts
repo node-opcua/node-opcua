@@ -1,7 +1,7 @@
 import * as should from "should";
 import * as _ from "underscore";
 
-import { AttributeIds } from "node-opcua-data-model";
+import {AttributeIds, LocalizedText} from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
@@ -82,6 +82,27 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", (
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.Boolean);
         value.value.value.should.equal(true);
+
+    });
+
+    it("should be possible to pass displayName when adding a method", () => {
+
+        const obj = namespace.addObject({ browseName: "object2" });
+
+        const method = namespace.addMethod(obj, {
+            browseName: "MyMethod2",
+            executable: true,
+            inputArguments: [],
+            outputArguments: [],
+            userExecutable: false,
+
+            displayName: "My Display Name"
+        });
+
+        let value = method.readAttribute(context, AttributeIds.DisplayName);
+        value.statusCode.should.eql(StatusCodes.Good);
+        value.value.dataType.should.eql(DataType.LocalizedText);
+        value.value.value.toString().should.equal(new LocalizedText({ locale: null, text: "My Display Name" }).toString());
 
     });
 

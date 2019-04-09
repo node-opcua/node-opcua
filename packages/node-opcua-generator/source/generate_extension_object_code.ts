@@ -2,6 +2,7 @@
  * @module node-opcua-generator
  */
 // tslint:disable:max-line-length
+// tslint:disable:no-inner-declarations
 //
 import * as fs from "fs";
 import { assert } from "node-opcua-assert";
@@ -9,7 +10,8 @@ import { buildStructuredType, FieldCategory, StructuredTypeSchema } from "node-o
 import { LineFile } from "node-opcua-utils";
 import { promisify } from "util";
 import { writeStructuredType } from "./factory_code_generator";
-import { EnumeratedType, parseBinaryXSD } from "./process_schema_file";
+
+import { EnumeratedType, parseBinaryXSD, TypeDictionary } from "node-opcua-schemas";
 // Xx import * as  prettier from "prettier";
 
 const readFile = promisify(fs.readFile);
@@ -19,17 +21,6 @@ const f = new LineFile();
 
 function write(...args: string[]) {
     f.write.apply(f, args);
-}
-
-function removeNamespacePart(str: string): string {
-    if (!str) {
-        return str;
-    }
-    return str.split(":")[1];
-}
-
-function getNamespacePart(str: string): string {
-    return str.split(":")[0];
 }
 
 function writeEnumeratedType(enumeratedType: EnumeratedType) {
@@ -124,18 +115,6 @@ function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
 
 }
 
-function adjustFieldTypeName(fieldTypeName: string): string {
-    // special cases
-    if (fieldTypeName === "String" || fieldTypeName === "CharArray") {
-        fieldTypeName = "UAString";
-    }
-    if (fieldTypeName === "Boolean") {
-        fieldTypeName = "UABoolean";
-    }
-
-    return fieldTypeName;
-}
-
 export async function generate(
   filename: string,
   generatedTypescriptFilename: string
@@ -152,62 +131,18 @@ export async function generate(
             if (!typeDictionary.structuredTypes.hasOwnProperty(key)) {
                 continue;
             }
-
             const structuredType = typeDictionary.structuredTypes[key];
 
-            structuredType.baseType = removeNamespacePart(structuredType.baseType);
+            /*
+                        prepareStructureType(structuredType, typeDictionary);
 
-            structuredType.baseType = structuredType.baseType ? structuredType.baseType : "BaseUAObject";
-
-            for (const field of structuredType.fields) {
-                const fieldType = field.fieldType;
-                if (!field.schema) {
-
-                    const prefix = getNamespacePart(fieldType);
-                    const fieldTypeName = adjustFieldTypeName(removeNamespacePart(fieldType));
-
-                    switch (prefix) {
-                        case "tns":
-                            // xx const structuredType = typeDictionary.structuredTypes[fieldTypeName];
-                            // xx const enumerationType = typeDictionary.enumeratedTypes[fieldTypeName];
-                            field.fieldType = fieldTypeName;
-                            if (typeDictionary.structuredTypes[fieldTypeName]) {
-                                field.category = FieldCategory.complex;
-                                field.schema = typeDictionary.structuredTypes[fieldTypeName];
-                            } else {
-                                assert(typeDictionary.enumeratedTypes[fieldTypeName]);
-                                field.category = FieldCategory.enumeration;
-                                field.schema = typeDictionary.enumeratedTypes[fieldTypeName];
-                            }
-                            break;
-                        case "ua":
-                            field.fieldType = fieldTypeName;
-                            field.category = FieldCategory.basic;
-                            break;
-                        case "opc":
-                            if (fieldTypeName === "UAString") {
-                                // xx console.log(" ", field.name);
-                            }
-                            if (fieldTypeName === "UAString" && field.name === "IndexRange") {
-                                field.fieldType = "NumericRange";
-                                // xx console.log(" NumericRange detected here !");
-                            } else {
-                                field.fieldType = fieldTypeName;
-                            }
-                            field.category = FieldCategory.basic;
-
-                            break;
-                    }
-                }
-            }
-
-            const structuredTypeSchema: StructuredTypeSchema = buildStructuredType(structuredType);
-            typeDictionary.structuredTypes[key] = structuredTypeSchema;
-
+                        const structuredTypeSchema: StructuredTypeSchema = buildStructuredType(structuredType);
+                        typeDictionary.structuredTypes[key] = structuredTypeSchema;
+            */
             // reapply recursive schema on field
             for (const field of structuredType.fields) {
                 if (field.category === FieldCategory.complex && field.fieldType === structuredType.name) {
-                    field.schema = structuredTypeSchema;
+                    field.schema = structuredType;
                 }
             }
         }

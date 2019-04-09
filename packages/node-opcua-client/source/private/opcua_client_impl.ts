@@ -1116,7 +1116,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         // istanbul ignore next
         if (!this._secureChannel) {
-            return callback(new Error("no channel"));
+            return callback(null);  // new Error("no channel"));
         }
         assert(this._secureChannel);
         if (!this._secureChannel.isValid()) {

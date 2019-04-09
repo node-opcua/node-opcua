@@ -1,0 +1,58 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:tns="http://www.unifiedautomation.com/DemoServer/"
+                    DefaultByteOrder="LittleEndian"
+                    xmlns:opc="http://opcfoundation.org/BinarySchema/"
+                    xmlns:ua="http://opcfoundation.org/UA/"
+                    TargetNamespace="http://www.unifiedautomation.com/DemoServer/">
+    <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="AccessRights">
+        <opc:Field TypeName="opc:ByteString" Name="Value"/>
+        <opc:Field TypeName="opc:ByteString" Name="ValidBits"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="StructureWithOptionalFields">
+        <opc:Field TypeName="opc:Bit" Name="OptionalInt32Specified"/>
+        <opc:Field TypeName="opc:Bit" Name="OptionalStringArraySpecified"/>
+        <opc:Field Length="30" TypeName="opc:Bit" Name="Reserved1"/>
+        <opc:Field TypeName="opc:Int32" Name="MandatoryInt32"/>
+        <opc:Field SwitchField="OptionalInt32Specified" TypeName="opc:Int32" Name="OptionalInt32"/>
+        <opc:Field TypeName="opc:Int32" Name="NoOfMandatoryStringArray"/>
+        <opc:Field LengthField="NoOfMandatoryStringArray" TypeName="opc:CharArray" Name="MandatoryStringArray"/>
+        <opc:Field SwitchField="OptionalStringArraySpecified" TypeName="opc:Int32" Name="NoOfOptionalStringArray"/>
+        <opc:Field LengthField="NoOfOptionalStringArray" SwitchField="OptionalStringArraySpecified" TypeName="opc:CharArray" Name="OptionalStringArray"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:Union" Name="UnionTest">
+        <opc:Field TypeName="opc:UInt32" Name="SwitchField"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:Int32" SwitchValue="1" Name="Int32"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:CharArray" SwitchValue="2" Name="String"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="Vector">
+        <opc:Field TypeName="opc:Double" Name="X"/>
+        <opc:Field TypeName="opc:Double" Name="Y"/>
+        <opc:Field TypeName="opc:Double" Name="Z"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="WorkOrderStatusType">
+        <opc:Field TypeName="opc:CharArray" Name="Actor"/>
+        <opc:Field TypeName="opc:DateTime" Name="Timestamp"/>
+        <opc:Field TypeName="ua:LocalizedText" Name="Comment"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="WorkOrderType">
+        <opc:Field TypeName="opc:Guid" Name="ID"/>
+        <opc:Field TypeName="opc:CharArray" Name="AssetID"/>
+        <opc:Field TypeName="opc:DateTime" Name="StartTime"/>
+        <opc:Field TypeName="opc:Int32" Name="NoOfStatusComments"/>
+        <opc:Field LengthField="NoOfStatusComments" TypeName="tns:WorkOrderStatusType" Name="StatusComments"/>
+    </opc:StructuredType>
+    <opc:EnumeratedType LengthInBits="32" Name="HeaterStatus">
+        <opc:EnumeratedValue Name="Off" Value="0"/>
+        <opc:EnumeratedValue Name="Heating" Value="1"/>
+        <opc:EnumeratedValue Name="Cooling" Value="2"/>
+    </opc:EnumeratedType>
+    <opc:EnumeratedType LengthInBits="32" Name="Priority">
+        <opc:Documentation>This enumerated value defines its possible values in an EnumValues property</opc:Documentation>
+        <opc:EnumeratedValue Name="Low" Value="10"/>
+        <opc:EnumeratedValue Name="Normal" Value="40"/>
+        <opc:EnumeratedValue Name="High" Value="70"/>
+        <opc:EnumeratedValue Name="Urgent" Value="90"/>
+        <opc:EnumeratedValue Name="Immediate" Value="100"/>
+    </opc:EnumeratedType>
+</opc:TypeDictionary>

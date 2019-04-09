@@ -5,6 +5,7 @@ import assert from "node-opcua-assert";
 import { make_debugLog } from "node-opcua-debug";
 import * as  _ from "underscore";
 import { FieldCategory, FieldType, StructuredTypeField } from "./types";
+
 const debugLog = make_debugLog(__filename);
 
 export const parameters = {
@@ -97,7 +98,9 @@ export function check_schema_correctness(schema: any) {
 export function initialize_field(field: StructuredTypeField, value: any) {
 
     const _t = field.schema;
-    assert(_.isObject(_t), "initialize_field: expecting field.schema to be set " + field.name);
+    if (!_.isObject(_t)) {
+        throw new Error("initialize_field: expecting field.schema to be set " + field.name + " type = " + field.fieldType);
+    }
     assert(_.isObject(field));
     assert(!field.isArray);
 

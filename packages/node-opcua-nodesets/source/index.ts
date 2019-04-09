@@ -31,10 +31,12 @@ path.join(__dirname, "nodesets/Opc.Ua.Adi.NodeSet2.xml");
 export const standardNodeSetFilename = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
 export const diNodeSetFilename = constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml");
 export const adiNodeSetFilename = constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml");
+export const gdsNodeSetFilename = constructNodesetFilename("Opc.Ua.Gds.NodeSet2.xml");
 
 export const standard_nodeset_file = standardNodeSetFilename;
 export const di_nodeset_filename = diNodeSetFilename;
 export const adi_nodeset_filename = adiNodeSetFilename;
+export const gds_nodeset_filename = gdsNodeSetFilename;
 
 export const nodesets = {
     adi: adiNodeSetFilename,
@@ -47,5 +49,10 @@ export const nodesets = {
 
     standard: standardNodeSetFilename,
     standardNodeSetFilename,
-    standard_nodeset_file: standardNodeSetFilename
+    standard_nodeset_file: standardNodeSetFilename,
+
+    gds: gdsNodeSetFilename,
+    gdsNodeSetFilename,
+    gds_nodeset_filename: gdsNodeSetFilename
+
 };

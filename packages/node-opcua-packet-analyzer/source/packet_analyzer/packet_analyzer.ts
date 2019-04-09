@@ -71,7 +71,7 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number) {
 
     const pad = () => "                                                       ".substr(0, padding);
 
-    function display(str: string, hexInfo?: string) {
+    function _display(str: string, hexInfo?: string) {
         hexInfo = hexInfo || "";
         // account for ESC codes for colors
         const nbColorAttributes = _.filter(str, (c) => {
@@ -79,6 +79,12 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number) {
         }).length;
         const extra = nbColorAttributes * 5;
         console.log((pad() + str + spaces).substr(0, 132 + extra) + "|" + hexInfo);
+    }
+    function display(str: string, hexInfo?: string) {
+        const lines = str.split("\n");
+        for (const line of lines) {
+            _display(line, hexInfo);
+        }
     }
 
     function display_encodeable(value: any, buffer1: Buffer, start: number, end: number) {
@@ -153,15 +159,16 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number) {
                             console.log(_hexDump);
                             value = "<BUFFER>";
                         }
-                        display(chalk.green(" " + value), hex_block(start, end, b));
 
                         if (value && value.encode) {
                             if (fieldType === "ExtensionObject") {
                                 display_encodeable(value, buffer, start, end);
                             } else {
                                 const str = value.toString() || "<empty>";
-                                display(chalk.green(str));
+                                display(str);
                             }
+                        } else {
+                            display(" " + value, hex_block(start, end, b));
                         }
                         break;
                 }
@@ -202,7 +209,11 @@ function _internalAnalyzePacket(buffer: Buffer, stream: BinaryStream, objMessage
     options.name = "message";
     options = _.extend(options, customOptions);
     try {
-        objMessage.decodeDebug(stream, options);
+        if (objMessage) {
+            objMessage.decodeDebug(stream, options);
+        } else {
+            console.log(" Invalid object", objMessage);
+        }
     } catch (err) {
         console.log(" Error in ", err);
         console.log(" Error in ", err.stack);

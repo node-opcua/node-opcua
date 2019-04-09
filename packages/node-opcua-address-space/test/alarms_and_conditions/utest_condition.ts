@@ -537,6 +537,7 @@ export function utest_condition(test: any) {
                     optionals: [
                         "EnabledState.EffectiveDisplayName",
                         "EnabledState.TransitionTime",
+                        "LocalTime",
                         "ConditionClassId",
                         "ConditionClassName",
                         "ConditionSubClassId",

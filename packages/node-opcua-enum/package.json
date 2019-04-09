@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-enum",
- "version": "2.0.0-alpha.10",
+ "version": "2.0.0-alpha.18",
  "description": "pure nodejs OPCUA SDK - module -enum",
  "scripts": {
   "build": "tsc",
@@ -13,7 +13,7 @@
  },
  "devDependencies": {
   "enum": "2.5.0",
-  "node-opcua-benchmarker": "^2.0.0-alpha.10",
+  "node-opcua-benchmarker": "^2.0.0-alpha.18",
   "should": "13.2.3",
   "underscore": "^1.9.1"
  },

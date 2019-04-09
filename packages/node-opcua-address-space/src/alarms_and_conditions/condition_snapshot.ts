@@ -160,6 +160,7 @@ const _varTable = {
     "enabledState.transitionTime": 1,
     "eventId": 1,
     "eventType": 1,
+    "localTime": 1,
     "sourceName": 1,
     "sourceNode": 1,
     "time": 1
@@ -209,14 +210,18 @@ export class ConditionSnapshot extends EventEmitter {
 
         const isDisabled = !this.condition.getEnabledState();
         const eventData = new EventData(this.condition);
-        Object.keys(this._map).forEach((key: string) => {
+        for (const key of Object.keys(this._map)) {
             const node = this._node_index[key];
+            if (!node) {
+                debugLog("cannot node for find key", key);
+                continue;
+            }
             if (isDisabled && !_varTable.hasOwnProperty(key)) {
                 eventData.setValue(key, node, disabledVar);
             } else {
                 eventData.setValue(key, node, this._map[key]);
             }
-        });
+        }
 
         return eventData;
     }
@@ -286,6 +291,11 @@ export class ConditionSnapshot extends EventEmitter {
 
         const variant = this._map[key];
         const node = this._node_index[key];
+        if (!node) {
+            // for instance localTime is optional
+            debugLog("Cannot serVar " + varName + " dataType " + DataType[dataType]);
+            return;
+        }
         assert(node.nodeClass === NodeClass.Variable);
         this.emit("value_changed", node, variant);
     }

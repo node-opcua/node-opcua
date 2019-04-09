@@ -528,6 +528,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         client.disconnect(done);
         client = null;
     }
+    function disconnect_client_while_reconnecting(done) {
+        client.disconnect(done);
+    }
 
     function reset_backoff_counter(done) {
         backoff_counter = 0;
@@ -658,7 +661,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(shutdown_server),
             //f(wait_a_little_while),
             f(verify_that_client_is_trying_to_reconnect),
-            f(wait_for_reconnection_to_be_completed),
+            f(disconnect_client_while_reconnecting),
             f(wait_a_little_while),
             f(verify_that_client_has_received_a_single_close_event),
             f(restart_server),

@@ -9,7 +9,7 @@ import { AddressSpace , generateAddressSpace, UAVariable } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing loading ExtensonObject value from NodeSet XML file", function(this: any) {
+describe("testing loading ExtensionObject value from NodeSet XML file", function(this: any) {
 
     this.timeout(20000); // could be slow on appveyor !
 

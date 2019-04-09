@@ -82,7 +82,7 @@ describe("DiagnosticInfo", function () {
         });
     });
 
-    it("should encode default DiagnosticInfo with an innerDiagnosticInfo  containing a 5 car string in 11-bytes", function () {
+    it("should encode DiagnosticInfo with an innerDiagnosticInfo  containing a 5 car string in 11-bytes", function () {
 
         const diag = new DiagnosticInfo({
             innerDiagnosticInfo: new DiagnosticInfo({additionalInfo: "Hello"})

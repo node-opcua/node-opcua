@@ -15,8 +15,12 @@ import * as utils from "node-opcua-utils";
 
 import {
     AddressSpace,
+    callMethodHelper,
     ContinuationPoint,
     getMethodDeclaration_ArgumentList,
+    IServerBase,
+    ISessionBase,
+    IUserManager,
     PseudoVariantBoolean,
     PseudoVariantByteString,
     PseudoVariantDateTime,
@@ -49,11 +53,11 @@ import {
     getCryptoFactory,
     Message,
     MessageSecurityMode,
-    SecurityPolicy,
-    ServerSecureChannelLayer, SignatureData,
-    verifySignature,
-    Response,
-    Request
+    Request,
+    Response, SecurityPolicy,
+    ServerSecureChannelLayer,
+    SignatureData,
+    verifySignature
 } from "node-opcua-secure-channel";
 import {
     BrowseNextRequest,
@@ -163,6 +167,8 @@ import { ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 
+declare type ResponseCallback<T> = (err: Error | null, result?: T) => void;
+
 export  type ValidUserFunc = (this: ServerSession, username: string, password: string) => boolean;
 export  type ValidUserAsyncFunc = (
   this: ServerSession,
@@ -171,7 +177,7 @@ export  type ValidUserAsyncFunc = (
   callback: (err: Error | null, isAuthorized?: boolean) => void) => void;
 export  type GetUserRoleFunc = (username: string) => string;
 
-export interface UserManagerOptions {
+export interface UserManagerOptions extends IUserManager {
     /** synchronous function to check the credentials - can be overruled by isValidUserAsync */
     isValidUser?: ValidUserFunc;
     /** asynchronous function to check if the credentials - overrules isValidUser */
@@ -521,92 +527,6 @@ function isMonitoringModeValid(monitoringMode: MonitoringMode): boolean {
     assert(MonitoringMode.Invalid !== undefined);
     return monitoringMode !== MonitoringMode.Invalid &&
       monitoringMode <= MonitoringMode.Reporting;
-}
-
-// Symbolic Id                   Description
-// ----------------------------  -----------------------------------------------------------------------------
-// Bad_NodeIdInvalid             Used to indicate that the specified object is not valid.
-//
-// Bad_NodeIdUnknown             Used to indicate that the specified object is not valid.
-//
-// Bad_ArgumentsMissing          The client did not specify all of the input arguments for the method.
-// Bad_UserAccessDenied
-//
-// Bad_MethodInvalid             The method id does not refer to a method for the specified object.
-// Bad_OutOfRange                Used to indicate that an input argument is outside the acceptable range.
-// Bad_TypeMismatch              Used to indicate that an input argument does not have the correct data type.
-//                               A ByteString is structurally the same as a one dimensional array of Byte.
-//                               A server shall accept a ByteString if an array of Byte is expected.
-// Bad_NoCommunication
-
-function callMethod(
-  this: OPCUAServer,
-  session: ServerSession,
-  callMethodRequest: CallMethodRequest,
-  callback: (err: Error | null, callMethodResult?: CallMethodResultOptions) => void
-): void {
-    /* jshint validthis: true */
-    const server = this;
-    const addressSpace = server.engine.addressSpace!;
-
-    const objectId = callMethodRequest.objectId;
-    const methodId = callMethodRequest.methodId;
-    const inputArguments = callMethodRequest.inputArguments || [];
-
-    assert(objectId instanceof NodeId);
-    assert(methodId instanceof NodeId);
-
-    let response = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
-
-    if (response.statusCode !== StatusCodes.Good) {
-        return callback(null, { statusCode: response.statusCode });
-    }
-    const methodDeclaration = response.methodDeclaration;
-
-    // verify input Parameters
-    const methodInputArguments = methodDeclaration.getInputArguments();
-
-    response = verifyArguments_ArgumentList(addressSpace, methodInputArguments, inputArguments);
-    if (response.statusCode !== StatusCodes.Good) {
-        return callback(null, response);
-    }
-
-    const methodObj = addressSpace.findNode(methodId) as UAMethod;
-    if (methodObj.nodeClass !== NodeClass.Method) {
-        return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
-    }
-
-    // invoke method on object
-    const context = new SessionContext({
-        object: addressSpace.findNode(objectId),
-        server,
-        session
-    });
-
-    methodObj.execute(inputArguments, context,
-      (err: Error | null, callMethodResponse?: CallMethodResultOptions) => {
-
-          /* istanbul ignore next */
-          if (err) {
-              return callback(err);
-          }
-          if (!callMethodResponse) {
-              return callback(new Error("internal Error"));
-          }
-
-          callMethodResponse.inputArgumentResults = response.inputArgumentResults || [];
-          assert(callMethodResponse.statusCode);
-
-          if (callMethodResponse.statusCode === StatusCodes.Good) {
-              assert(_.isArray(callMethodResponse.outputArguments));
-          }
-
-          assert(_.isArray(callMethodResponse.inputArgumentResults));
-          assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
-
-          return callback(null, callMethodResponse);
-      });
-
 }
 
 /**
@@ -2452,8 +2372,8 @@ export class OPCUAServer extends OPCUABaseServer {
                   }
               }
 
-              // ToDo: limit results to requestedMaxReferencesPerNode
-              const requestedMaxReferencesPerNode = request.requestedMaxReferencesPerNode;
+              // limit results to requestedMaxReferencesPerNode
+              const requestedMaxReferencesPerNode =  Math.min(9876, request.requestedMaxReferencesPerNode);
 
               let results: BrowseResult[] = [];
               assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
@@ -2491,7 +2411,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
         const request = message.request as BrowseNextRequest;
         assert(request instanceof BrowseNextRequest);
-
         this._apply_on_SessionObject(BrowseNextResponse, message, channel,
           (session: ServerSession, sendResponse: any, sendError: any) => {
 
@@ -3105,7 +3024,10 @@ export class OPCUAServer extends OPCUABaseServer {
                   return sendError(StatusCodes.BadTooManyOperations);
               }
 
-              async.map(request.methodsToCall, callMethod.bind(server, session),
+              /* jshint validthis: true */
+              const addressSpace = server.engine.addressSpace!;
+
+              async.map(request.methodsToCall, callMethodHelper.bind(null, server, session, addressSpace),
                 (err?: Error | null, results?: Array<CallMethodResultOptions | undefined>) => {
                     if (err) {
                         console.log("ERROR in method Call !! ", err);

@@ -16,6 +16,7 @@ export * from "./helpers/dump_tools";
 export * from "./helpers/make_optionals_map";
 export * from "./helpers/check_event_clause";
 export * from "./helpers/argument_list";
+export * from "./helpers/call_helpers";
 
 export * from "../src/alarms_and_conditions";
 export * from "../test_helpers";

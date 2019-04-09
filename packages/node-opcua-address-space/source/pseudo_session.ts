@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
+import * as async from "async";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -9,8 +10,9 @@ import {
     resolveNodeId
 } from "node-opcua-nodeid";
 import {
-    BrowseDescriptionLike,
-    IBasicSession,
+    ArgumentDefinition,
+    BrowseDescriptionLike, CallMethodRequestLike, getArgumentDefinitionHelper,
+    IBasicSession, MethodId,
     ReadValueIdLike,
     ResponseCallback
 } from "node-opcua-pseudo-session";
@@ -21,9 +23,11 @@ import {
     BrowseResponse,
     BrowseResult
 } from "node-opcua-service-browse";
+import { CallMethodRequest, CallMethodResult, CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { AddressSpace } from "./address_space_ts";
-import { SessionContext } from "./session_context";
+import { callMethodHelper } from "./helpers/call_helpers";
+import { IServerBase, ISessionBase, SessionContext } from "./session_context";
 
 /**
  * Pseudo session is an helper object that exposes the same async methods
@@ -39,30 +43,35 @@ import { SessionContext } from "./session_context";
  */
 export class PseudoSession implements IBasicSession {
 
-    private addressSpace: AddressSpace;
+    public server: IServerBase;
+    public session: ISessionBase;
 
-    constructor(addressSpace: AddressSpace) {
+    private readonly addressSpace: AddressSpace;
+
+    constructor(addressSpace: AddressSpace, server?: IServerBase, session?: ISessionBase) {
         this.addressSpace = addressSpace;
+        this.server =  server || {};
+        this.session = session || {};
     }
 
     public browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
     public browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
     public browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
     public browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
-    public browse(nodesToBrowse: any, callback?: ResponseCallback<any>): any {
+    public browse(nodesToBrowse: BrowseDescriptionLike | BrowseDescriptionLike[], callback?: ResponseCallback<any>): any {
 
         const isArray = _.isArray(nodesToBrowse);
         if (!isArray) {
-            nodesToBrowse = [nodesToBrowse];
+            nodesToBrowse = [nodesToBrowse as BrowseDescriptionLike];
         }
         const results: BrowseResult[] = [];
-        nodesToBrowse.forEach((browseDescription: BrowseDescription) => {
+        for (let browseDescription of nodesToBrowse as any[]) {
             browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId);
             browseDescription = new BrowseDescription(browseDescription);
             const nodeId = resolveNodeId(browseDescription.nodeId);
             const r = this.addressSpace.browseSingleNode(nodeId, browseDescription);
             results.push(r);
-        });
+        }
         callback!(null, isArray ? results : results[0]);
     }
 
@@ -121,6 +130,67 @@ export class PseudoSession implements IBasicSession {
     public browseNext(...args: [any?, ...any[]]): any {
         throw new Error("Not Implemented");
     }
+
+    // call service ----------------------------------------------------------------------------------------------------
+    public call(
+      methodToCall: CallMethodRequestLike,
+      callback: ResponseCallback<CallMethodResult>
+    ): void;
+    public call(
+      methodsToCall: CallMethodRequestLike[],
+      callback: ResponseCallback<CallMethodResult[]>
+    ): void;
+    public call(
+      methodToCall: CallMethodRequestLike
+    ): Promise<CallMethodResult>;
+    public call(
+      methodsToCall: CallMethodRequestLike[]
+    ): Promise<CallMethodResult[]>;
+    public call(
+      methodsToCall: CallMethodRequestLike | CallMethodRequestLike[],
+      callback?: ResponseCallback<any>
+    ): any {
+
+        const isArray = _.isArray(methodsToCall);
+        if (!isArray) {
+            methodsToCall = [methodsToCall as CallMethodRequestLike];
+        }
+
+        async.map(methodsToCall as CallMethodRequestLike[],
+          (methodToCall, innerCallback: (err: Error | null, result?: CallMethodResult) => void) => {
+
+              const callMethodRequest = new CallMethodRequest(methodToCall);
+
+              callMethodHelper(
+                this.server, this.session, this.addressSpace, callMethodRequest,
+                (err: Error | null, result?: CallMethodResultOptions) => {
+
+                    let callMethodResult: CallMethodResult;
+                    if (err) {
+                        callMethodResult = new CallMethodResult({
+                            statusCode: StatusCodes.BadInternalError
+                        });
+                    } else {
+                        callMethodResult = new CallMethodResult(result);
+                    }
+                    innerCallback(null, callMethodResult);
+                });
+
+          }, (err?: Error | null, callMethodResults?: any) => {
+              callback!(null, isArray ? callMethodResults! : callMethodResults![0]);
+          });
+    }
+
+    public getArgumentDefinition(
+      methodId: MethodId
+    ): Promise<ArgumentDefinition>;
+    public getArgumentDefinition(
+      methodId: MethodId, callback: ResponseCallback<ArgumentDefinition>
+    ): void;
+    public getArgumentDefinition(methodId: MethodId, callback?: ResponseCallback<ArgumentDefinition>): any {
+        return getArgumentDefinitionHelper(this, methodId, callback!);
+    }
+
 }
 
 // tslint:disable:no-var-requires
@@ -128,3 +198,6 @@ export class PseudoSession implements IBasicSession {
 const thenify = require("thenify");
 PseudoSession.prototype.read = thenify.withCallback(PseudoSession.prototype.read);
 PseudoSession.prototype.browse = thenify.withCallback(PseudoSession.prototype.browse);
+PseudoSession.prototype.browseNext = thenify.withCallback(PseudoSession.prototype.browseNext);
+PseudoSession.prototype.getArgumentDefinition = thenify.withCallback(PseudoSession.prototype.getArgumentDefinition);
+PseudoSession.prototype.call = thenify.withCallback(PseudoSession.prototype.call);

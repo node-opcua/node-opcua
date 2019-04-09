@@ -1,0 +1,7 @@
+--recursive
+--require ../../node_modules/source-map-support/register
+--require ../../node_modules/ts-node/register
+--require ../../node_modules/should
+--timeout 20000
+test/**/*.ts
+--bail

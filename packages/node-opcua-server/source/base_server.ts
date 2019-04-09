@@ -35,7 +35,6 @@ const debugLog = make_debugLog(__filename);
 
 function constructFilename(p: string): string {
     let filename = path.join(__dirname, "..", p);
-    // xx console.log("fi = ",filename);
     if (!fs.existsSync(filename)) {
         // try one level up
         filename = path.join(__dirname, p);
@@ -161,8 +160,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         async.forEach(this.endpoints, (endpoint: OPCUAServerEndPoint, callback: (err?: Error | null) => void) => {
 
-            // xx console.log("starting endpoint ", endpoint.toString());
-
             endpoint._on_new_channel = (channel: ServerSecureChannelLayer) => {
                 self.emit("newChannel", channel);
             };
@@ -189,8 +186,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
         assert(_.isFunction(done));
         async.forEach(this.endpoints,
           (endpoint: OPCUAServerEndPoint, callback: (err?: Error) => void) => {
-
-              // xx console.log("shutdown endpoint ", endpoint.toString());
               cleanupEndpoint(endpoint);
               endpoint.shutdown(callback);
           }, (err?: Error | null) => {
@@ -393,8 +388,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
             }
 
             function adapt(applicationDescription: ApplicationDescription): ApplicationDescription {
-                // Xx console.log(" xxxx",server);
-                // Xx console.log(" xxx ", (new ApplicationDescription()).toString());
                 return new ApplicationDescription({
                     applicationName: applicationDescription.applicationName,
                     applicationType: applicationDescription.applicationType,
@@ -409,6 +402,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
             const response = new FindServersResponse({
                 servers: servers.map(adapt)
             });
+
             channel.send_response("MSG", response, message, emptyCallback);
 
         }, shortDelay);

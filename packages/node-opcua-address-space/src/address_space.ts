@@ -8,6 +8,7 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { DataTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
+import { ExtensionObject } from "node-opcua-extension-object";
 import { coerceExpandedNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { BrowseResult } from "node-opcua-service-browse";
@@ -23,7 +24,6 @@ import {
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
-
 import {
     AddReferenceOpts,
     AddressSpace as AddressSpacePublic,
@@ -958,12 +958,14 @@ export class AddressSpace implements AddressSpacePrivate {
         if (dataType instanceof NodeId) {
             const tmp = this.findNode(dataType);
             if (!tmp) {
-                throw new Error("constructExtensionObject: cannot resolve dataType " + dataType);
+                throw new Error("getExtensionObjectConstructor: cannot resolve dataType " + dataType);
             }
             dataType = tmp as UADataType;
         }
         if (!(dataType instanceof UADataType)) {
-            throw new Error("constructExtensionObject: dataType has unexpectedtype" + dataType);
+            // may be dataType was the NodeId of the "Binary Encoding" node
+
+            throw new Error("getExtensionObjectConstructor: dataType has unexpected type" + dataType);
         }
         prepareDataType(dataType);
         const Constructor = (dataType as any)._extensionObjectConstructor;
@@ -988,7 +990,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *             var serverStatus  = addressSpace.constructExtensionObject(serverStatusDataType);
      *             serverStatus.constructor.name.should.eql("ServerStatusDataType");
      */
-    public constructExtensionObject(dataType: UADataType, options: any): any {
+    public constructExtensionObject(dataType: UADataType, options: any): ExtensionObject {
         const Constructor = this.getExtensionObjectConstructor(dataType);
         return new Constructor(options);
     }

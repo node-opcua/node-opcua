@@ -2,24 +2,20 @@
  * @module node-opcua-generator
  */
 // tslint:disable:max-line-length
+// tslint:disable:no-console
 import * as fs from "fs";
+import * as path from "path";
+import * as ts from "typescript";
+import { promisify } from "util";
+
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ConstructorFunc } from "node-opcua-factory";
-import { normalize_require_file } from "node-opcua-utils";
-import * as path from "path";
-import { promisify } from "util";
+
+import { get_class_tscript_filename, produce_tscript_code } from "./factory_code_generator";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-import chalk from "chalk";
-
-import * as prettier from "prettier";
-import * as ts from "typescript";
-
-import { get_class_jscript_filename, get_class_tscript_filename, produce_tscript_code } from "./factory_code_generator";
-
-// tslint:disable:no-console
 
 const fileExists = promisify(fs.exists);
 const mkdir = promisify(fs.mkdir);

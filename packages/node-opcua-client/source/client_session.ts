@@ -53,6 +53,7 @@ import { StatusCode } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { ClientSubscription } from "./client_subscription";
 import { ClientSessionImpl } from "./private/client_session_impl";
+import { IBasicSession } from "node-opcua-pseudo-session";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
@@ -88,16 +89,12 @@ export type CreateMonitoredItemsRequestLike = CreateMonitoredItemsRequestOptions
 export type ModifyMonitoredItemsRequestLike = ModifyMonitoredItemsRequestOptions | ModifyMonitoredItemsRequest;
 export type ModifySubscriptionRequestLike = ModifySubscriptionRequestOptions | ModifySubscriptionRequest;
 export type SetMonitoringModeRequestLike = SetMonitoringModeRequestOptions | SetMonitoringModeRequest;
-export type CallMethodRequestLike = CallMethodRequestOptions | CallMethodRequest;
 export type QueryFirstRequestLike = QueryFirstRequestOptions | QueryFirstRequest;
 
 export type SubscriptionId = number;
-export type MethodId = NodeIdLike ;
 
-export interface ArgumentDefinition {
-    inputArguments: Variant[];
-    outputArguments: Variant[];
-}
+import { ArgumentDefinition, CallMethodRequestLike , MethodId} from "node-opcua-pseudo-session";
+export { ArgumentDefinition, CallMethodRequestLike , MethodId} from "node-opcua-pseudo-session";
 
 export interface ClientSession {
 
@@ -129,7 +126,7 @@ export interface ClientSession extends EventEmitter {
 }
 
 // browse services
-export interface ClientSession {
+export interface ClientSession  extends IBasicSession {
     browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
 
     browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;

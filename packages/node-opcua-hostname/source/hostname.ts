@@ -2,6 +2,8 @@
  * @module node-opcua-hostname
  */
 import * as os from "os";
+// tslint:disable:no-var-requires
+const fqdn1 = require("node-fqdn");
 
 function trim(str: string, length?: number): string {
     if (!length) {
@@ -16,7 +18,7 @@ export function get_fully_qualified_domain_name(optionalMaxLength?: number): str
     if (_fullyQualifiedDomainNameInCache) {
         return trim(_fullyQualifiedDomainNameInCache, optionalMaxLength);
     }
-    let fqdn;
+    let fqdn: string;
     if (process.platform === "win32") {
 
         // http://serverfault.com/a/73643/251863
@@ -26,10 +28,8 @@ export function get_fully_qualified_domain_name(optionalMaxLength?: number): str
 
     } else {
 
-        fqdn = null;
         try {
-            fqdn = require("fqdn");
-            _fullyQualifiedDomainNameInCache = fqdn();
+            _fullyQualifiedDomainNameInCache = fqdn1();
             if (/sethostname/.test(_fullyQualifiedDomainNameInCache)) {
                 throw new Error("Detecting fqdn  on windows !!!");
             }

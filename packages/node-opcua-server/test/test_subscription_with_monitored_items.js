@@ -1555,13 +1555,17 @@ describe("SM2 - MonitoredItem advanced", function () {
             this.clock.tick(100);
             this.clock.tick(100);
             this.clock.tick(100);
+            // add an extra tick to allow all setImmediate call to be honoured
+            this.clock.tick(1);
+
 
             freeze_data_source();
 
-            monitoredItem1.queue.length.should.eql(5);
-            monitoredItem2.queue.length.should.eql(5);
-            monitoredItem3.queue.length.should.eql(5);
-            monitoredItem4.queue.length.should.eql(5);
+            // it should have initial value + 5 modification
+            monitoredItem1.queue.length.should.eql(6);
+            monitoredItem2.queue.length.should.eql(6);
+            monitoredItem3.queue.length.should.eql(6);
+            monitoredItem4.queue.length.should.eql(6);
 
             this.clock.tick(800);
 
@@ -1583,7 +1587,7 @@ describe("SM2 - MonitoredItem advanced", function () {
             publishResponse1.moreNotifications.should.eql(true);
 
 
-            spy_callback.callCount.should.eql(6);
+            spy_callback.callCount.should.eql(7);
 
             const publishResponse2 = spy_callback.getCall(2).args[1];
             numberOfnotifications(publishResponse2).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
@@ -1595,7 +1599,10 @@ describe("SM2 - MonitoredItem advanced", function () {
 
             const publishResponse4 = spy_callback.getCall(5).args[1];
             numberOfnotifications(publishResponse4).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
-            publishResponse4.moreNotifications.should.eql(false);
+
+            const publishResponse5 = spy_callback.getCall(6).args[1];
+            numberOfnotifications(publishResponse5).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            publishResponse5.moreNotifications.should.eql(false);
 
 
             subscription.terminate();
