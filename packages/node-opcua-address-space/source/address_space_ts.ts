@@ -379,7 +379,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *
      *  BadNodeIdInvalid            The syntax of the node id is not valid.
      *  BadNodeIdUnknown            The node id refers to a node that does not exist in the server address space.
-     *  BadAttributeIdInvalid       Bad_AttributeIdInvalid The attribute is not supported for the specified node.
+     *  BadAttributeIdInvalid       BadAttributeIdInvalid The attribute is not supported for the specified node.
      *  BadIndexRangeInvalid        The syntax of the index range parameter is invalid.
      *  BadIndexRangeNoData         No data exists within the range of indexes specified.
      *  BadDataEncodingInvalid      The data encoding is invalid.

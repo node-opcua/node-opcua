@@ -77,7 +77,7 @@ function on_channel_abort(this: ServerSession) {
  *
  * * Clients may explicitly terminate Sessions using the CloseSession Service.
  *
- * * When a Session is terminated, all outstanding requests on the Session are aborted and Bad_SessionClosed StatusCodes
+ * * When a Session is terminated, all outstanding requests on the Session are aborted and BadSessionClosed StatusCodes
  *   are returned to the Client. In addition, the Server deletes the entry for the Client from its
  *   SessionDiagnosticsArray Variable and notifies any other Clients who were subscribed to this entry.
  *

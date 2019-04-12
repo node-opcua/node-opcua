@@ -117,7 +117,7 @@ async function main() {
         await server.initialize();
 
         // post-initialize
-        const addressSpace = server.engine.addressSpace;
+        const addressSpace = server.engine.addressSpace!;
 
         const object = installObjectWithMethod(addressSpace);
 

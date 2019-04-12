@@ -72,7 +72,7 @@ export class ShelvingStateMachine extends StateMachine {
 // AddressSpace. Therefore all Servers shall also allow Clients to call the Unshelve Method by
 // specifying ConditionId as the ObjectId. The Method cannot be called with an ObjectId of the
 // ShelvedStateMachineType Node.
-// output => Bad_ConditionNotShelved
+// output => BadConditionNotShelved
 function _unshelve_method(
   inputArguments: VariantLike[],
   context: SessionContext,
@@ -175,9 +175,9 @@ function _start_timer_for_automatic_unshelve(
 //              If a MaxTimeShelved Property exist on the Alarm than the Shelving time shall be less than or equal
 //              to the value of this Property.
 // StatusCode :
-//               Bad_ConditionAlreadyShelved The Alarm is already in TimedShelved state and the system does not allow
+//               BadConditionAlreadyShelved The Alarm is already in TimedShelved state and the system does not allow
 //                                           a reset of the shelved timer.
-//               Bad_ShelvingTimeOutOfRange
+//               BadShelvingTimeOutOfRange
 
 function _timedShelve_method(
   inputArguments: VariantLike[],

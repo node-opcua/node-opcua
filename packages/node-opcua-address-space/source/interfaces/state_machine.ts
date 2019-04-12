@@ -337,7 +337,7 @@ export interface Transition extends TransitionB, UAObject {
  * generation of AuditEvents for Methods is defined in Part 4. A StateMachine may not be active.
  *
  * In this case, the CurrentState and LastTransition Variables shall have a status equal to
- * Bad_StateNotActive (see Table B.17).
+ * BadStateNotActive (see Table B.17).
  *
  * Subtypes may add components which are instances of StateMachineTypes. These components
  * are considered to be sub-states of the StateMachine. SubStateMachines are only active when

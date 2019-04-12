@@ -51,7 +51,7 @@ import {
  * of StateMachineType ObjectTypes. Each State shall have a HasSubStateMachine Reference
  * to the StateMachineType Object which represents the child States. The SubStateMachine is
  * not active if the parent State is not active. In this case the CurrentState and LastTransition
- * Variables of the SubStateMachine shall have a status equal to Bad_StateNotActive (see Table
+ * Variables of the SubStateMachine shall have a status equal to BadStateNotActive (see Table
  * B.17).
  */
 export interface FiniteStateMachineB extends StateMachineB {

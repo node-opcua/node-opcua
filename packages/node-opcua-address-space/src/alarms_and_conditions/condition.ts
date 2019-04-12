@@ -59,9 +59,9 @@ function prepare_date(sourceTimestamp: { value: Date } | null) {
  Variables will continue to have valid values even in the Disabled state; EventId, Event
  Type, Source Node, Source Name, Time, and EnabledState.
  Other properties may no longer provide current valid values.
- All Variables that are no longer provided shall return a status of Bad_ConditionDisabled.
+ All Variables that are no longer provided shall return a status of BadConditionDisabled.
  The Event that reports the Disabled state  should report the properties as NULL or with a status
- of Bad_ConditionDisabled.
+ of BadConditionDisabled.
  When enabled, changes to the following components shall cause a ConditionType Event Notification:
  - Quality
  - Severity (inherited from BaseEventType)

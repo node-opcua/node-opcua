@@ -675,7 +675,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             //    calculated for the lifetime of a Subscription based on the MaxKeepAliveCount parameter in the
             //    CreateSubscription Service (5.13.2), the Subscription is closed. Closing the Subscription causes
             //    its MonitoredItems to be deleted. In addition the Server shall issue a StatusChangeNotification
-            //    notificationMessage with the status code Bad_Timeout.
+            //    notificationMessage with the status code BadTimeout.
             //
             this.hasTimedOut = true;
             this.terminate(() => { /* empty */

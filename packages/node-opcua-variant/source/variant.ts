@@ -334,7 +334,7 @@ function decodeDebugVariant(self: Variant, stream: BinaryStream, options: any): 
     //    The lower rank dimensions appear first in the array.
     //    All dimensions shall be specified and shall be greater than zero.
     //    If ArrayDimensions are inconsistent with the ArrayLength then the decoder shall
-    //   stop and raise a Bad_DecodingError.
+    //   stop and raise a BadDecodingError.
     if (hasDimension) {
         self.dimensions = decodeDimension(stream);
         const verification = calculate_product(self.dimensions);

@@ -440,7 +440,7 @@ export class ConditionSnapshot extends EventEmitter {
      * This quality can also reflect the communication status associated with the system that this
      * value or resource is based on and from which this Alarm was received. For communication
      * errors to the underlying system, especially those that result in some unavailable Event fields,
-     * the quality shall be Bad_NoCommunication error.
+     * the quality shall be BadNoCommunication error.
      *
      * Quality refers to the quality of the data value(s) upon which this Condition is based. Since a
      * Condition is usually based on one or more Variables, the Condition inherits the quality of

@@ -236,8 +236,8 @@ export function utest_condition(test: any) {
                 //   Variables will continue to have valid values even in the Disabled state; EventId, Event
                 //   Type, Source Node, Source Name, Time, and EnabledState. Other properties may no
                 //   longer provide current valid values. All Variables that are no longer provided shall
-                //   return a status of Bad_ConditionDisabled. The Event that reports the Disabled state
-                //   should report the properties as NULL or with a status of Bad_ConditionDisabled.
+                //   return a status of BadConditionDisabled. The Event that reports the Disabled state
+                //   should report the properties as NULL or with a status of BadConditionDisabled.
 
                 const namespace = addressSpace.getOwnNamespace();
 
@@ -723,7 +723,8 @@ export function utest_condition(test: any) {
 
                     const context = new SessionContext({
                         object: conditionType,
-                        server: addressSpace.rootFolder.objects.server
+                        server: {},
+                        session: {},
                     });
 
                     // install the event catcher

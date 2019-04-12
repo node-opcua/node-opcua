@@ -8,7 +8,7 @@ import { CertificateInternals , exploreCertificate} from "node-opcua-crypto";
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
 import { AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 
-import { BaseNode,  ISessionContext, UAObject } from "./address_space_ts";
+import { BaseNode,  ISessionContext, UAObject , UAObjectType} from "./address_space_ts";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -42,7 +42,7 @@ export interface IServerBase {
 }
 export interface SessionContextOptions {
     session?: ISessionBase;  /* ServerSession */
-    object?: UAObject;
+    object?: UAObject | UAObjectType;
     server?: IServerBase;   /* OPCUAServer*/
 }
 
