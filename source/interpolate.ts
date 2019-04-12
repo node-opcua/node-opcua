@@ -16,7 +16,7 @@
 // Calculation                 Method Custom
 //                             Good if no  Bad values skipped and Good values are used,
 //                             Uncertain if Bad values skipped or if Uncertain values are used. If
-//                             no starting value then Bad_NoData.
+//                             no starting value then BadNoData.
 // Partial bit                 Not Set
 // Calculated bit              Not Set
 // Interpolated bit            Set Sometimes
@@ -26,10 +26,10 @@
 // Multi Value bit             Not Set
 //
 // Status Code Common Special Cases
-// Before Start of Data        Return Bad_NoData
+// Before Start of Data        Return BadNoData
 // After End of Data           Return extrapolated value (see 3.1.8) (sloped or stepped according to settings)
 //                             Status code is Uncertain_DataSubNormal.
-// Start Bound Not Found       Bad_NoData.
+// Start Bound Not Found       BadNoData.
 // End Bound Not Found         See “After End of Data”
 // Bound Bad                   Does not return a Bad bound except as noted above
 // Bound Uncertain             Returned Uncertain_DataSubNormal if any Bad value(s) was/were skipped to
