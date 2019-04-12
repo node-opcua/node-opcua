@@ -2,7 +2,7 @@
  * @module node-opcua-date-time
  */
 import * as  long from "long";
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 
 export class DateWithPicoseconds extends Date {
 

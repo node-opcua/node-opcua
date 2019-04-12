@@ -1,7 +1,7 @@
 /***
  * @module node-opcua-basic-types
  */
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream" ;
 import * as _ from "underscore";
 

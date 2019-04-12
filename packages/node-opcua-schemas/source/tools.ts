@@ -1,4 +1,4 @@
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { FieldCategory, hasBuiltInType, StructuredTypeSchema } from "node-opcua-factory";
 import { TypeDictionary } from "./parse_binary_xsd";
 

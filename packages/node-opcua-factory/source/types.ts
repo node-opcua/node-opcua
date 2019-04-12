@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-factory
  */
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Enum, EnumItem } from "node-opcua-enum";
 import { NodeId } from "node-opcua-nodeid";

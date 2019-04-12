@@ -21,7 +21,7 @@ import { parameters } from "./factories_schema_helpers";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { lowerFirstLetter } from "node-opcua-utils";
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 
 // export interface StructuredTypeSchemaInterface extends CommonInterface {
 //

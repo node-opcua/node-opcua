@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-data-model
  */
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,

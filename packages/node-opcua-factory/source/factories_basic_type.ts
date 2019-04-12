@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-factory
  */
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import * as  _ from "underscore";

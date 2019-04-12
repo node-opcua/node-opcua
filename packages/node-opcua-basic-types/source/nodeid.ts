@@ -1,7 +1,7 @@
 /***
  * @module node-opcua-basic-types
  */
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Guid } from "node-opcua-guid";
 import { ExpandedNodeId, makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";

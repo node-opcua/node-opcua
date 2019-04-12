@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-date-time
  */
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     bn_dateToHundredNanoSecondFrom1601,

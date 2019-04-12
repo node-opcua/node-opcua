@@ -4,7 +4,7 @@
 import { isFinite } from "underscore";
 import "util";
 
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
 const MAXUINT32 = 4294967295; // 2**32 -1;

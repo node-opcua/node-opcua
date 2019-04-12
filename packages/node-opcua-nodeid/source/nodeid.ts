@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-conditional-assignment
 import chalk from "chalk";
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import {
     DataTypeIds,
     MethodIds,
@@ -365,8 +365,8 @@ function reverse_map(nodeId: string) {
  * @class opcua
  * @method resolveNodeId
  * @static
- * @param nodeIdOrString {NodeId|String}
- * @return {NodeId}
+ * @param nodeIdOrString
+ * @return the nodeId
  */
 export function resolveNodeId(nodeIdOrString: NodeIdLike): NodeId {
 
