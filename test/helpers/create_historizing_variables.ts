@@ -10,7 +10,7 @@ function addHistory(node: any, time: string, value: number| boolean|null, status
 //  For the purposes of Historian 1 examples consider a source historian with the following data:
 //
 // Timestamp Value StatusCode Notes
-// 12:00:00 - Bad_NoData First archive entry, Point created
+// 12:00:00 - BadNoData First archive entry, Point created
 // 12:00:10 10 Raw, Good
 // 12:00:20 20 Raw, Good
 // 12:00:30 30 Raw, Good
@@ -59,7 +59,7 @@ export function createHistorian1(addressSpace: any) {
     addressSpace.installHistoricalDataNode(node, options);
     installAggregateConfigurationOptions(node, options);
 
-    // 12:00:00 - Bad_NoData First archive entry, Point created
+    // 12:00:00 - BadNoData First archive entry, Point created
     addHistory(node, "12:00:00", null, StatusCodes.BadNoData);
     // 12:00:10 10 Raw, Good
     addHistory(node, "12:00:10", 10, StatusCodes.Good);
