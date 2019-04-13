@@ -15,7 +15,7 @@ import { CertificateManager } from "node-opcua-pki";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserNameIdentityToken } from "node-opcua-types";
-import { ClientPullCertificateManagement, installPushCertificateManagement } from "../source";
+import { ClientPushCertificateManagement, installPushCertificateManagement } from "../source";
 
 describe("ServerConfiguration", () => {
 
@@ -129,7 +129,7 @@ describe("ServerConfiguration", () => {
             server.serverConfiguration.createSigningRequest.nodeClass.should.eql(NodeClass.Method);
 
             const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
-            const clientPullCertificateManager = new ClientPullCertificateManagement(pseudoSession);
+            const clientPullCertificateManager = new ClientPushCertificateManagement(pseudoSession);
 
             const certificateGroupId = await clientPullCertificateManager.getCertificateGroupId("DefaultApplicationGroup");
             const certificateTypeId = NodeId.nullNodeId;
@@ -152,7 +152,7 @@ describe("ServerConfiguration", () => {
             installPushCertificateManagement(addressSpace, {});
 
             const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
-            const clientPullCertificateManager = new ClientPullCertificateManagement(pseudoSession);
+            const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
 
             const certificateGroupId = NodeId.nullNodeId;
             const certificateTypeId = NodeId.nullNodeId;
@@ -164,17 +164,15 @@ describe("ServerConfiguration", () => {
             const privateKeyFormat = "PEM";
             const privateKey = Buffer.from("1234");
 
-            const result = await clientPullCertificateManager.updateCertificate(
+            const result = await clientPushCertificateManager.updateCertificate(
               certificateGroupId,
               certificateTypeId,
               certificate,
-              issuerCertificates,
-              privateKeyFormat,
-              privateKey
+              issuerCertificates
             );
 
-            result.statusCode.should.eql(StatusCodes.Good);
-            result.applyChangesRequired!.should.eql(true);
+            result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+//            result.applyChangesRequired!.should.eql(true);
 
         });
     });

@@ -147,6 +147,8 @@ async function _updateCertificate(
     const privateKeyFormat: string = inputArguments[4].value as string;
     const privateKey: Buffer = inputArguments[5].value as Buffer;
 
+    // This Method requires an encrypted channel and that the Client provides credentials with
+    // administrative rights on the Server
     if (!hasEncryptedChannel(context)) {
         return { statusCode: StatusCodes.BadSecurityModeInsufficient };
     }
@@ -172,6 +174,9 @@ async function _updateCertificate(
       privateKeyFormat,
       privateKey,
     );
+
+    // todo   raise a CertificateUpdatedAuditEventType
+
     if (result.statusCode !== StatusCodes.Good) {
         return { statusCode: result.statusCode };
     }
@@ -228,6 +233,8 @@ async function _applyChanges(
   context: SessionContext
 ): Promise<CallMethodResultOptions> {
 
+    // This Method requires an encrypted channel and that the Client provide credentials with
+    // administrative rights on the Server.
     if (!hasEncryptedChannel(context)) {
         return { statusCode: StatusCodes.BadSecurityModeInsufficient };
     }

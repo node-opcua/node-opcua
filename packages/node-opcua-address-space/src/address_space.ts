@@ -876,7 +876,7 @@ export class AddressSpace implements AddressSpacePrivate {
         //               The targetName shall be specified for all other elements.
         //               The current path cannot be followed any further if no targets with the specified
         //               BrowseName exist.
-        //   Let's detect null targetName which are not in last position and return Bad_BrowseNameInvalid if not
+        //   Let's detect null targetName which are not in last position and return BadBrowseNameInvalid if not
         //
         const empty_targetName_not_in_lastPos = browsePath.relativePath.elements.reduce(
           (prev, e, index) => {

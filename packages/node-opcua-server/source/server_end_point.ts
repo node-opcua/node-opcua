@@ -11,7 +11,7 @@ import * as path from "path";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { CertificateManager } from "node-opcua-certificate-manager";
+import { ICertificateManager } from "node-opcua-certificate-manager";
 import { Certificate, PrivateKeyPEM, split_der } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { get_fully_qualified_domain_name } from "node-opcua-hostname";
@@ -75,7 +75,7 @@ export interface OPCUAServerEndPointOptions {
      */
     privateKey: PrivateKeyPEM;
 
-    certificateManager: CertificateManager;
+    certificateManager: ICertificateManager;
 
     /**
      *  the default secureToken lifetime @default=60000
@@ -111,7 +111,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * the tcp port
      */
     public port: number;
-    public certificateManager: CertificateManager;
+    public certificateManager: ICertificateManager;
     public defaultSecureTokenLifetime: number;
     public maxConnections: number;
     public timeout: number;

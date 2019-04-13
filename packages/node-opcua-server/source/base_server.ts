@@ -9,7 +9,7 @@ import * as path from "path";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { CertificateManager } from "node-opcua-certificate-manager";
+import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
 import { LocalizedText } from "node-opcua-data-model";
 import { make_debugLog } from "node-opcua-debug";
@@ -82,7 +82,7 @@ function cleanupEndpoint(endpoint: OPCUAServerEndPoint) {
 export interface OPCUABaseServerOptions extends IOPCUASecureObjectOptions {
 
     serverInfo?: ApplicationDescriptionOptions;
-    serverCertificateManager?: CertificateManager;
+    serverCertificateManager?: ICertificateManager;
 }
 
 const emptyCallback = () => { /* empty */
@@ -116,7 +116,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
     public serverInfo: ApplicationDescription;
     public endpoints: OPCUAServerEndPoint[];
-    public serverCertificateManager: CertificateManager;
+    public serverCertificateManager: ICertificateManager;
     public capabilitiesForMDNS: string[];
 
     protected options: OPCUABaseServerOptions;
@@ -140,7 +140,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
         serverInfo.applicationName = new LocalizedText(serverInfo.applicationName);
         this.serverInfo = new ApplicationDescription(serverInfo);
 
-        this.serverCertificateManager = options.serverCertificateManager || new CertificateManager({
+        this.serverCertificateManager = options.serverCertificateManager
+          || new OPCUACertificateManager({
             name: "certificates"
         });
 

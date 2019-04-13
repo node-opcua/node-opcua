@@ -57,6 +57,7 @@ import { isNullOrUndefined } from "node-opcua-utils";
 import { ClientBaseImpl } from "./client_base_impl";
 
 import { UAString } from "node-opcua-basic-types";
+import { get_fully_qualified_domain_name } from "node-opcua-hostname";
 import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { ClientSession } from "../client_session";
 import { ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
@@ -1017,9 +1018,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         let applicationUri;
         if (certificate) {
             const e = exploreCertificate(certificate);
-            applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
+            applicationUri = e.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier[0];
         } else {
-            const hostname = require("node-opcua-hostname").get_fully_qualified_domain_name();
+            const hostname = get_fully_qualified_domain_name();
             applicationUri = makeApplicationUrn(hostname, this.applicationName);
         }
         return applicationUri;
@@ -1201,7 +1202,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     const userName = userIdentityInfo.userName || "";
                     const password = userIdentityInfo.password || "";
                     userIdentityToken = createUserNameIdentityToken(session, userName, password);
-                } break;
+                    break;
+                }
 
                 case UserTokenType.Certificate: {
                     const certificate = userIdentityInfo.certificateData;
@@ -1211,8 +1213,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                         userIdentityToken,
                         userTokenSignature
                     } = createX509IdentityToken(session, certificate, privateKey));
-
-                }  break;
+                    break;
+                }
 
                 default:
                     debugLog(" userIdentityInfo = ", userIdentityInfo);
