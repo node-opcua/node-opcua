@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-factory
  */
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import {
 
     coerceBoolean, coerceByte,

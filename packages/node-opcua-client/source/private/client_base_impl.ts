@@ -406,9 +406,26 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 maxRetry: -1
             };
 
-            this._internal_create_secure_channel(infiniteConnectionRetry, (err: Error | null) => {
+            this._internal_create_secure_channel(infiniteConnectionRetry, (err?: Error | null) => {
 
                 if (err) {
+
+                    if (err.message.match("BadCertificateInvalid")) {
+                        // the server may have shut down the channel because its certificate
+                        // has changed ....
+                        // let request the server certificate again ....
+                        debugLog(chalk.bgWhite.red("ClientBaseImpl: Server Certificate has changed." +
+                          " we need to retrieve server certificate again"));
+
+                        return this.fetchServerCertificate(this.endpointUrl, (err1?: Error |null) => {
+                            if (err1) {
+                                return callback(err1);
+                            }
+                            this._internal_create_secure_channel(infiniteConnectionRetry,
+                              (err3?: Error | null) => callback(err3!) );
+                        });
+
+                    }
                     debugLog(chalk.bgWhite.red("ClientBaseImpl: cannot reconnect .."));
                     callback(err);
                 } else {
@@ -541,64 +558,11 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         if (!this.serverCertificate && this.securityMode !== MessageSecurityMode.None) {
 
-            debugLog("OPCUAClientImpl : getting serverCertificate");
-            // we have not been given the serverCertificate but this certificate
-            // is required as the connection is to be secured.
-            //
-            // Let's explore the server endpoint that matches our security settings
-            // This will give us the missing Certificate as well from the server.
-            // todo :
-            // Once we have the certificate, we cannot trust it straight away
-            // we have to verify that the certificate is valid and not outdated and not revoked.
-            // if the certificate is this-signed the certificate must appear in the trust certificate
-            // list.
-            // if the certificate has been certified by an Certificate Authority we have to
-            // verify that the certificates in the chain are valid and not revoked.
-            //
-            const certificateFile = this.certificateFile || "certificates/client_selfsigned_cert_2048.pem";
-            const privateKeyFile = this.privateKeyFile || "certificates/client_key_2048.pem";
-            const applicationName = (this as any).applicationName || "NodeOPCUA-Client";
-
-            const params = {
-                connectionStrategy: this.connectionStrategy,
-                endpoint_must_exist: false,
-                securityMode: this.securityMode,
-                securityPolicy: this.securityPolicy,
-
-                applicationName,
-                certificateFile,
-                privateKeyFile
-            };
-            return __findEndpoint(this, endpointUrl, params, (err: Error | null, result?: FindEndpointResult) => {
+            return this.fetchServerCertificate(endpointUrl, (err?: Error) => {
                 if (err) {
-                    this.emit("connection_failed", err);
                     return callback(err);
                 }
-
-                if (!result) {
-                    const err1 = new Error("internal error");
-                    this.emit("connection_failed", err1);
-                    return callback(err1);
-                }
-
-                const endpoint = result.selectedEndpoint;
-                if (!endpoint) {
-                    // no matching end point can be found ...
-                    const err1 = new Error("cannot find endpoint");
-                    this.emit("connection_failed", err1);
-                    return callback(err1);
-                }
-
-                assert(endpoint);
-
-                _verify_serverCertificate(endpoint.serverCertificate, (err1?: Error) => {
-                    if (err1) {
-                        this.emit("connection_failed", err1);
-                        return callback(err1);
-                    }
-                    this.serverCertificate = endpoint.serverCertificate;
-                    return this.connect(endpointUrl, callback);
-                });
+                this.connect(endpointUrl, callback);
             });
         }
 
@@ -921,6 +885,69 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         if (this.keepSessionAlive) {
             session.startKeepAliveManager();
         }
+    }
+
+    private fetchServerCertificate(endpointUrl: string, callback: (err?: Error) => void): void {
+        debugLog("OPCUAClientImpl : getting serverCertificate");
+        // we have not been given the serverCertificate but this certificate
+        // is required as the connection is to be secured.
+        //
+        // Let's explore the server endpoint that matches our security settings
+        // This will give us the missing Certificate as well from the server.
+        // todo :
+        // Once we have the certificate, we cannot trust it straight away
+        // we have to verify that the certificate is valid and not outdated and not revoked.
+        // if the certificate is self-signed the certificate must appear in the trust certificate
+        // list.
+        // if the certificate has been certified by an Certificate Authority we have to
+        // verify that the certificates in the chain are valid and not revoked.
+        //
+        const certificateFile = this.certificateFile || "certificates/client_selfsigned_cert_2048.pem";
+        const privateKeyFile = this.privateKeyFile || "certificates/client_key_2048.pem";
+        const applicationName = (this as any).applicationName || "NodeOPCUA-Client";
+
+        const params = {
+            connectionStrategy: this.connectionStrategy,
+            endpoint_must_exist: false,
+            securityMode: this.securityMode,
+            securityPolicy: this.securityPolicy,
+
+            applicationName,
+            certificateFile,
+            privateKeyFile
+        };
+        return __findEndpoint(this, endpointUrl, params, (err: Error | null, result?: FindEndpointResult) => {
+            if (err) {
+                this.emit("connection_failed", err);
+                return callback(err);
+            }
+
+            if (!result) {
+                const err1 = new Error("internal error");
+                this.emit("connection_failed", err1);
+                return callback(err1);
+            }
+
+            const endpoint = result.selectedEndpoint;
+            if (!endpoint) {
+                // no matching end point can be found ...
+                const err1 = new Error("cannot find endpoint");
+                this.emit("connection_failed", err1);
+                return callback(err1);
+            }
+
+            assert(endpoint);
+
+            _verify_serverCertificate(endpoint.serverCertificate, (err1?: Error) => {
+                if (err1) {
+                    this.emit("connection_failed", err1);
+                    return callback(err1);
+                }
+                this.serverCertificate = endpoint.serverCertificate;
+                callback();
+            });
+        });
+
     }
 
     private _destroy_secure_channel() {

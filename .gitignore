@@ -68,3 +68,4 @@ test_fixtures/
 *.stackdump
 build/
 doc1/
+*.tsbuildinfo

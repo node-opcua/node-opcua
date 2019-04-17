@@ -47,6 +47,7 @@ function findCertificateGroupNodeId(certificateGroup: NodeId | string): NodeId {
             return resolveNodeId(certificateGroup);
     }
 }
+
 function findCertificateTypeIdNodeId(certificateTypeId: NodeId | string): NodeId {
     if (certificateTypeId instanceof NodeId) {
         return certificateTypeId;
@@ -54,7 +55,7 @@ function findCertificateTypeIdNodeId(certificateTypeId: NodeId | string): NodeId
     return resolveNodeId(certificateTypeId);
 }
 
-export class ClientPullCertificateManagement implements PushCertificateManager {
+export class ClientPushCertificateManagement implements PushCertificateManager {
 
     public static rsaSha256ApplicationCertificateType: NodeId = resolveNodeId("i=12560");
 
@@ -110,12 +111,14 @@ export class ClientPullCertificateManagement implements PushCertificateManager {
       nonce?: ByteString
     ): Promise<CreateSigningRequestResult> {
 
+        nonce = nonce || Buffer.alloc(0);
+
         const inputArguments = [
             { dataType: DataType.NodeId, value: findCertificateGroupNodeId(certificateGroupId) },
             { dataType: DataType.NodeId, value: findCertificateTypeIdNodeId(certificateTypeId) },
             { dataType: DataType.String, value: subjectName },
             { dataType: DataType.Boolean, value: !!regeneratePrivateKey },
-            { dataType: nonce ? DataType.ByteString : DataType.Null, value: nonce }
+            { dataType: DataType.ByteString, value: nonce }
         ];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
@@ -180,7 +183,7 @@ export class ClientPullCertificateManagement implements PushCertificateManager {
      *    In this case there is no privateKey provided.
      *
      * The Server will do all normal integrity checks on the Certificate and all of the issuer
-     * Certificates. If errors occur the Bad_SecurityChecksFailed error is returned.
+     * Certificates. If errors occur the BadSecurityChecksFailed error is returned.
      * The Server will report an error if the public key does not match the existing Certificate and
      * the privateKey was not provided.
      * If the Server returns applyChangesRequired=FALSE then it is indicating that it is able to
@@ -238,12 +241,8 @@ export class ClientPullCertificateManagement implements PushCertificateManager {
             { dataType: DataType.NodeId, value: findCertificateTypeIdNodeId(certificateTypeId) },
             { dataType: DataType.ByteString, value: certificate },
             { dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: issuerCertificates },
-            privateKeyFormat
-              ? { dataType: DataType.String, value: privateKeyFormat! }
-              : { dataType: DataType.Null },
-            privateKeyFormat
-              ? { dataType: DataType.ByteString, value: privateKey }
-              : { dataType: DataType.Null }
+            { dataType: DataType.String, value: privateKeyFormat || "" },
+            { dataType: DataType.ByteString, value:  privateKeyFormat ? privateKey : Buffer.alloc(0) }
         ];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
@@ -286,7 +285,7 @@ export class ClientPullCertificateManagement implements PushCertificateManager {
      * administrative rights on the Server.
      *
      * Result Code            Description
-     * Bad_UserAccessDenied   The current user does not have the rights required.
+     * BadUserAccessDenied   The current user does not have the rights required.
      */
     public async applyChanges(): Promise<StatusCode> {
 

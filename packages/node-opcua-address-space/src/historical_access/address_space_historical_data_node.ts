@@ -280,7 +280,7 @@ function _historyReadModify(
     // parameter for details on what updateTypes are available.
     // The purpose of this function is to read values from history that have been Modified. The
     // returnBounds parameter shall be set to FALSE for this case, otherwise the Server returns a
-    // Bad_InvalidArgument StatusCode.
+    // BadInvalidArgument StatusCode.
     // The domain of the request is defined by startTime, endTime, and numValuesPerNode; at least
     // two of these shall be specified. If endTime is less than startTime, or endTime and
     // numValuesPerNode alone are specified, then the data shall be returned in reverse order with
@@ -313,7 +313,7 @@ function _historyReadModify(
     // modification record whenever a Client uses the ReadModified call if the Server supports
     // multiple modification records per timestamp.
     // If the requested TimestampsToReturn is not supported for a Node then the operation shall
-    // return the Bad_TimestampNotSupported StatusCode.
+    // return the BadTimestampNotSupported StatusCode.
 
     // todo : provide correct implementation
     const result = new HistoryReadResult({

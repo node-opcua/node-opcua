@@ -206,7 +206,9 @@ function repair_client_session_by_recreating_a_new_session(
                 subscriptionIds: subscriptionsIds
             });
 
-            assert(newSession.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
+            if (newSession.getPublishEngine().nbPendingPublishRequests !== 0) {
+                console.log("Warning : we should not be publishing here");
+            }
             newSession.transferSubscriptions(subscriptionsToTransfer,
               (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
                   if (err) {
@@ -283,7 +285,7 @@ function repair_client_session_by_recreating_a_new_session(
             if (session.hasBeenClosed()) {
                 return innerCallback(new Error("Cannot complete subscription republish due to session termination"));
             }
-            assert(newSession.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
+            //  assert(newSession.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
             //      call Republish
             return _ask_for_subscription_republish(newSession, innerCallback);
         },

@@ -21,7 +21,7 @@ import { parameters } from "./factories_schema_helpers";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { lowerFirstLetter } from "node-opcua-utils";
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 
 // export interface StructuredTypeSchemaInterface extends CommonInterface {
 //
@@ -247,6 +247,7 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
         console.log(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
         console.log(chalk.red("current fields= "), currentFields.sort().join(" "));
         console.log(chalk.cyan("invalid_options_fields= "), invalidOptionsFields.sort().join(" "));
+        console.log("options = ", options);
     }
     if (invalidOptionsFields.length !== 0) {
         throw new Error(" invalid field found in option :" + JSON.stringify(invalidOptionsFields));

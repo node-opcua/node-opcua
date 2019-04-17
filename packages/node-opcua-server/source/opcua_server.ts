@@ -37,8 +37,7 @@ import {
     UAView,
     verifyArguments_ArgumentList
 } from "node-opcua-address-space";
-import { UAMethod } from "node-opcua-address-space";
-import { CertificateManager } from "node-opcua-certificate-manager";
+import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, Nonce } from "node-opcua-crypto";
 import { AttributeIds, DiagnosticInfo, NodeClass } from "node-opcua-data-model";
@@ -631,7 +630,7 @@ export enum RegisterServerMethod {
     LDS = 3 // the server registers itself to the LDS or LDS-ME (Local Discovery Server)
 }
 
-export interface OPCUAServerOptions extends OPCUABaseServerOptions {
+    export interface OPCUAServerOptions extends OPCUABaseServerOptions {
 
     /**
      * the server certificate full path filename
@@ -779,16 +778,16 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions {
     /**
      * user Certificate Manager
      * this certificate manager holds the X509 certificates used
-     * by client that uses X509 certitifact token to impersonate a user
+     * by client that uses X509 certificate token to impersonate a user
      */
-    userCertificateManager?: CertificateManager;
+    userCertificateManager?: OPCUACertificateManager;
     /**
      * Server Certificate Manager
      *
      * this certificate manager will be used by the server to access
      * and store certificates from the connecting clients
      */
-    serverCertificateManager?: CertificateManager;
+    serverCertificateManager?: OPCUACertificateManager;
 
     /**
      *  if Discovery Service on unsecure channel shall be disabled
@@ -943,11 +942,11 @@ export class OPCUAServer extends OPCUABaseServer {
      *
      */
     public capabilitiesForMDNS: string[];
-    public userCertificateManager: CertificateManager;
+    public userCertificateManager: OPCUACertificateManager;
 
     private nonce: Nonce;
     private protocolVersion: number;
-    private objectFactory: Factory;
+    private readonly objectFactory: Factory;
 
     constructor(options?: OPCUAServerOptions) {
 
@@ -1058,9 +1057,12 @@ export class OPCUAServer extends OPCUABaseServer {
         _installRegisterServerManager(this);
 
         if (!options.userCertificateManager) {
-            options.userCertificateManager = new CertificateManager({ name: "UserPKI" });
+            this.userCertificateManager = new OPCUACertificateManager({
+                name: "UserPKI"
+            });
+        } else {
+            this.userCertificateManager = options.userCertificateManager;
         }
-        this.userCertificateManager = options.userCertificateManager;
 
     }
 
@@ -1622,7 +1624,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 return true; // can't check
             }
             const e = exploreCertificate(clientCertificate);
-            const applicationUriFromCert = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
+            const applicationUriFromCert = e.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier[0];
             return applicationUriFromCert === applicationUri;
         }
 
@@ -1716,7 +1718,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // ToDo: Check that none of our unsecure endpoint has a a UserTokenPolicy that require encryption
             // and set hasEncryption = false under this condition
         }
-
+        
         const response = new CreateSessionResponse({
             // A identifier which uniquely identifies the session.
             sessionId: session.nodeId,

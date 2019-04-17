@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-server-configuration
  */
-import { ByteString } from "node-opcua-basic-types";
+import { ByteString, UAString } from "node-opcua-basic-types";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCode } from "node-opcua-status-code";
 
@@ -69,7 +69,7 @@ export interface PushCertificateManager {
       certificateTypeId: NodeId | string,
       certificate: ByteString,
       issuerCertificates: ByteString[],
-      privateKeyFormat: string,
+      privateKeyFormat: UAString,
       privateKey: ByteString
     ): Promise<UpdateCertificateResult>;
 

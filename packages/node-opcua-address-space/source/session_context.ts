@@ -8,17 +8,20 @@ import { CertificateInternals , exploreCertificate} from "node-opcua-crypto";
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
 import { AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 
-import { BaseNode,  ISessionContext, UAObject } from "./address_space_ts";
+import { BaseNode,  ISessionContext, UAObject , UAObjectType} from "./address_space_ts";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
-function getUserName(userIdentityToken: UserIdentityToken) {
+function getUserName(userIdentityToken: UserIdentityToken): string {
     if (userIdentityToken instanceof AnonymousIdentityToken) {
         return "anonymous";
     }
     if (userIdentityToken instanceof X509IdentityToken) {
         const certInfo: CertificateInternals = exploreCertificate(userIdentityToken.certificateData);
-        const userName = certInfo.tbsCertificate.subject.commonName;
+        const userName = certInfo.tbsCertificate.subject.commonName || "";
+        if (typeof userName !== "string") {
+            throw new Error("Invalid username");
+        }
         return userName;
     }
     if (userIdentityToken instanceof UserNameIdentityToken) {
@@ -26,7 +29,7 @@ function getUserName(userIdentityToken: UserIdentityToken) {
             return "anonymous";
         }
         assert(userIdentityToken.hasOwnProperty("userName"));
-        return userIdentityToken.userName;
+        return userIdentityToken.userName!;
     }
     throw new Error("Invalid user identity token");
 }
@@ -42,7 +45,7 @@ export interface IServerBase {
 }
 export interface SessionContextOptions {
     session?: ISessionBase;  /* ServerSession */
-    object?: UAObject;
+    object?: UAObject | UAObjectType;
     server?: IServerBase;   /* OPCUAServer*/
 }
 

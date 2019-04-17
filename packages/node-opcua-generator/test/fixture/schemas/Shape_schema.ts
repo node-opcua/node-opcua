@@ -7,24 +7,32 @@ export enum Color {
     GREEN= 300,
 }
 const schema_EnumColor = registerEnumeration({
+    enumValues: Color,
     name: "EnumColor",
-    enumValues: Color
 });
 
 export const schema_Shape: StructuredTypeOptions = {
+    baseType: "",
     name: "Shape",
     fields: [
         {
-            name: "name", fieldType: "String", defaultValue: () => "my shape"
+            defaultValue: () => "my shape",
+            fieldType: "String",
+            name: "name",
         },
         {
-            name: "shapeType", fieldType: "EnumShapeType"
+            fieldType: "EnumShapeType",
+            name: "shapeType",
         },
         {
-            name: "color", fieldType: "EnumColor", defaultValue: Color.GREEN
+            defaultValue: Color.GREEN,
+            fieldType: "EnumColor",
+            name: "color",
         },
         {
-            name: "inner_color", fieldType: "EnumColor", defaultValue: () => Color.BLUE
+            defaultValue: () => Color.BLUE,
+            fieldType: "EnumColor",
+            name: "inner_color",
         }
     ]
 };

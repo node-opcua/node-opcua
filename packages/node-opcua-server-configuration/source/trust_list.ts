@@ -20,8 +20,8 @@ export interface ITrustList {
      * @return applyChangesRequired - A flag indicating whether the ApplyChanges Method (see 7.7.5) shall be called
      *                                before the new Trust List will be used by the Server.
      * Result Code Description
-     * Bad_UserAccessDenied         The current user does not have the rights required.
-     * Bad_CertificateInvalid       The Server could not validate all Certificates in the Trust List.
+     * BadUserAccessDenied         The current user does not have the rights required.
+     * BadCertificateInvalid       The Server could not validate all Certificates in the Trust List.
      *                              The DiagnosticInfo shall specify which Certificate(s) are invalid and the specific
      *                              error.
      */
@@ -42,9 +42,9 @@ export interface ITrustList {
      * @param  isTrustedCertificate
      *
      * Result Code              Description
-     * Bad_UserAccessDenied     The current user does not have the rights required.
-     * Bad_CertificateInvalid   The certificate to add is invalid.
-     * Bad_InvalidState         The object is opened.
+     * BadUserAccessDenied     The current user does not have the rights required.
+     * BadCertificateInvalid   The certificate to add is invalid.
+     * BadInvalidState         The object is opened.
      */
     addCertificate(
       certificate: Buffer,
@@ -53,7 +53,7 @@ export interface ITrustList {
 
     /**
      * The RemoveCertificate Method allows a Client to remove a single Certificate from the Trust
-     * List. It returns Bad_InvalidArgument if the thumbprint does not match a Certificate in the Trust
+     * List. It returns BadInvalidArgument if the thumbprint does not match a Certificate in the Trust
      * List.
      * If the Certificate is a CA Certificate with associated CRLs then all CRLs are removed as well.
      * This method cannot be called if the file object is open.
@@ -63,9 +63,9 @@ export interface ITrustList {
      *                                If FALSE the Certificate is removed from the Issuer Certificates List.
      *
      * Result Code            Description
-     * Bad_UserAccessDenied   The current user does not have the rights required.
-     * Bad_InvalidArgument    The certificate to remove was not found.
-     * Bad_InvalidState       The object is opened.
+     * BadUserAccessDenied   The current user does not have the rights required.
+     * BadInvalidArgument    The certificate to remove was not found.
+     * BadInvalidState       The object is opened.
      */
     removeCertificate(
       thumbprint: string,

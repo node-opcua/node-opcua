@@ -59,7 +59,7 @@ async function main() {
             }
         });
         // post-initialize
-        const addressSpace = server.engine.addressSpace;
+        const addressSpace = server.engine.addressSpace!;
 
         addressSpace.installAlarmsAndConditionsService();
         const namespace = addressSpace.getOwnNamespace();

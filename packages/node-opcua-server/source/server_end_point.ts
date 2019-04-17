@@ -11,8 +11,17 @@ import * as path from "path";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { CertificateManager } from "node-opcua-certificate-manager";
-import { Certificate, PrivateKeyPEM, split_der } from "node-opcua-crypto";
+import {
+    ICertificateManager,
+    OPCUACertificateManager
+} from "node-opcua-certificate-manager";
+import {
+    Certificate,
+    convertPEMtoDER,
+    makeSHA1Thumbprint,
+    PrivateKeyPEM,
+    split_der
+} from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { get_fully_qualified_domain_name } from "node-opcua-hostname";
 import {
@@ -75,7 +84,7 @@ export interface OPCUAServerEndPointOptions {
      */
     privateKey: PrivateKeyPEM;
 
-    certificateManager: CertificateManager;
+    certificateManager: OPCUACertificateManager;
 
     /**
      *  the default secureToken lifetime @default=60000
@@ -111,7 +120,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * the tcp port
      */
     public port: number;
-    public certificateManager: CertificateManager;
+    public certificateManager: OPCUACertificateManager;
     public defaultSecureTokenLifetime: number;
     public maxConnections: number;
     public timeout: number;
@@ -197,7 +206,17 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public toString(): string {
-        return "EndPoints " + this._counter + " port = " + this.port + " l = " + this._endpoints.length;
+
+        const privateKey1 = convertPEMtoDER(this.getPrivateKey());
+
+
+        const txt =
+        " end point" + this._counter +
+        " port = " + this.port +
+        " l = " + this._endpoints.length +
+        " " + makeSHA1Thumbprint(this.getCertificateChain()).toString("hex") +
+        " " +  makeSHA1Thumbprint(privateKey1).toString("hex");
+        return txt;
     }
 
     public getChannels(): ServerSecureChannelLayer[] {
@@ -208,7 +227,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * Returns the X509 DER form of the server certificate
      */
     public getCertificate(): Certificate {
-        return split_der(this._certificateChain)[0];
+        return split_der(this.getCertificateChain())[0];
     }
 
     /**
@@ -362,7 +381,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
             const hacked_channel = channel as any;
             if (hacked_channel.transport && hacked_channel.transport._socket) {
-                hacked_channel.transport._socket.close();
+               // hacked_channel.transport._socket.close();
                 hacked_channel.transport._socket.destroy();
                 hacked_channel.transport._socket.emit("error", new Error("EPIPE"));
             }
@@ -794,7 +813,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
 
         if (options.allowUnsecurePassword) {
             userIdentityTokens.push({
-                policyId: "username_unè_secure",
+                policyId: "username_unsecure",
                 tokenType: UserTokenType.UserName,
 
                 issuedTokenType: null,

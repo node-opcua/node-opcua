@@ -183,7 +183,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
          * The value is expressed as duration. Systems can use this Property to prevent permanent Shelving of an Alarm.
          * If this Property is present it will be an upper limit on the duration passed into a TimedShelve Method call.
          * If a value that exceeds the value of this property is passed to the TimedShelve Method,
-         * than a Bad_ShelvingTimeOutOfRange error code is returned on the call. If this Property is present it will
+         * than a BadShelvingTimeOutOfRange error code is returned on the call. If this Property is present it will
          * also be enforced for the OneShotShelved state, in that an Alarm Condition will transition to the Unshelved
          * state from the OneShotShelved state if the duration specified in this Property expires following a
          * OneShotShelve operation without a change of any of the other items associated with the Condition.

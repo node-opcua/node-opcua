@@ -1,4 +1,4 @@
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import {
     checkDebugFlag, make_debugLog
 } from "node-opcua-debug";

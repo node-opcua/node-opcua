@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-shadowed-variable
 import chalk from "chalk";
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
 import * as utils from "node-opcua-utils";

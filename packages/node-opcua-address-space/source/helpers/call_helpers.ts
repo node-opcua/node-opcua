@@ -3,7 +3,7 @@
  */
 import _ = require("underscore");
 
-import assert from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { CallMethodRequest } from "node-opcua-service-call";

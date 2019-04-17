@@ -35,7 +35,7 @@ function server_stuff() {
     function stop_server(callback)  {
 
         console.log(chalk.red("---------------------------------- SHUTING DOWN SERVER"));
-        server.simulateCrash(callback);
+        server.shutdownChannels(callback);
         if (true) return;
 
         const chnls = _.values(server._channels);

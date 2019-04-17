@@ -96,7 +96,7 @@ describe("Testing Session with user certificate", () => {
 
     it("should fail to create a session with a valid client certificate which is untrusted", async () => {
 
-        await server.userCertificateManager.untrustCertificate(clientCertificate);
+        await server.userCertificateManager.rejectCertificate(clientCertificate);
 
         const userIdentity: UserIdentityInfoX509 = {
             certificateData: clientCertificate,

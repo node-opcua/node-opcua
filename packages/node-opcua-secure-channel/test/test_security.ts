@@ -3,7 +3,7 @@
 import * as async from "async";
 import * as fs from "fs";
 import { Socket } from "net";
-import { CertificateManager } from "node-opcua-certificate-manager";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {
     Certificate,
     PrivateKey,
@@ -58,7 +58,9 @@ describe("Testing secure client and server connection", () => {
 
         const parentS: ServerSecureChannelParent = {
 
-            certificateManager: new CertificateManager(),
+            certificateManager: new OPCUACertificateManager({
+
+            }),
 
             // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function() {
@@ -132,9 +134,9 @@ describe("Testing secure client and server connection", () => {
             (callback: SimpleCallback) => {
                 serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
                 if (param.clientCertificate) {
-                    const certMan = serverSChannel.certificateManager as CertificateManager;
+                    const certMan = serverSChannel.certificateManager;
                     certMan.trustCertificate(param.clientCertificate,
-                      (err: Error|null, statusCode?: StatusCode) => {
+                      (err?: Error|null) => {
                         callback(err!);
                     });
                 } else {

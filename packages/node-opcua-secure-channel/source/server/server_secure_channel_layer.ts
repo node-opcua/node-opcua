@@ -21,8 +21,6 @@ import {
     exploreCertificateInfo,
     extractPublicKeyFromCertificate,
     makeSHA1Thumbprint,
-    Nonce,
-    PrivateKey,
     PrivateKeyPEM, PublicKeyLength, rsa_length, split_der
 } from "node-opcua-crypto";
 
@@ -60,7 +58,7 @@ import {
     ServiceFault
 } from "../services";
 
-import { CertificateManager, checkCertificateValidity } from "node-opcua-certificate-manager";
+import { checkCertificateValidity, ICertificateManager } from "node-opcua-certificate-manager";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -78,7 +76,7 @@ const doPerfMonitoring = false;
 
 export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
 
-    certificateManager: CertificateManager;
+    certificateManager: ICertificateManager;
 
     getCertificate(): Certificate;
 
@@ -216,11 +214,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
     /**
      * true when the secure channel is assigned to a active session
      */
-    public get hasSession() {
+    public get hasSession(): boolean {
         return Object.keys(this.sessionTokens).length > 0;
     }
 
-    public get certificateManager() {
+    public get certificateManager(): ICertificateManager {
         return this.parent!.certificateManager!;
     }
 
@@ -1257,10 +1255,15 @@ export class ServerSecureChannelLayer extends EventEmitter {
             // check if the receiverCertificateThumbprint is my certificate thumbprint
             const serverCertificateChain = this.getCertificateChain();
             const myCertificateThumbPrint = makeSHA1Thumbprint(serverCertificateChain);
-            return (
+            const thisIsMyCertificate =
               myCertificateThumbPrint.toString("hex") ===
-              clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
-            );
+              clientSecurityHeader.receiverCertificateThumbprint.toString("hex");
+            if (doDebug && !thisIsMyCertificate) {
+                debugLog("receiverCertificateThumbprint do not match server certificate",
+                  myCertificateThumbPrint.toString("hex") + " <> "
+                  +  clientSecurityHeader.receiverCertificateThumbprint.toString("hex"));
+            }
+            return thisIsMyCertificate;
         }
         return true;
     }

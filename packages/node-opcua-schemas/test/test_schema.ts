@@ -15,12 +15,18 @@ import { getOrCreateConstructor } from "../source/dynamic_extension_object";
 describe("Binary Schemas Helper", () => {
 
     let typeDictionary: TypeDictionary;
+    let old_schema_helpers_doDebug = false;
     before(async () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type.xsd");
 
+        old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
         typeDictionary = await promisify(parseBinaryXSD)(sample);
+    });
+
+    after(() => {
+        parameters.debugSchemaHelper = old_schema_helpers_doDebug;
     });
 
     it("should parse some structure types", async () => {
