@@ -18,7 +18,7 @@ import { VariantArrayType } from "node-opcua-variant";
 
 import { NodeClass } from "node-opcua-data-model";
 import { ArgumentOptions } from "node-opcua-types";
-import { AddressSpace, UADataType, UAMethod, UAObject} from "../address_space_ts";
+import { AddressSpace, UADataType, UAMethod, UAObject } from "../address_space_ts";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -175,6 +175,8 @@ function isArgumentValid(
     }
     if (!argDataType) {
         console.log(" cannot find dataType ", arg.dataType);
+        console.log(" arg = ", arg.toString());
+        console.log(" def =", argDefinition.toString());
         return false;
     }
 

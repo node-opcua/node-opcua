@@ -55,7 +55,7 @@ function certificateMatchesPrivateKeyPEM(certificate: CertificatePEM, privateKey
     return initialBuffer.toString("ascii") === decryptedBuffer.toString("ascii");
 }
 
-function certificateMatchesPrivateKey(certificate: Certificate, privateKey: PrivateKey): boolean {
+export function certificateMatchesPrivateKey(certificate: Certificate, privateKey: PrivateKey): boolean {
 
     const certificatePEM = toPem(certificate, "CERTIFICATE");
     const privateKeyPEM = toPem(privateKey, "RSA PRIVATE KEY");
@@ -461,6 +461,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 debugLog(err);
             }
         }
+
         const promises: Array<Promise<void>> = [];
         const t = this._pendingTasks.splice(0);
         for (const task of t as any[]) {
@@ -476,5 +477,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             }
         }
         await Promise.all(promises);
+
+
     }
 }

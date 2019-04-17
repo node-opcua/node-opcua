@@ -1400,7 +1400,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
 
         assert(_.isFunction(callback));
-        assert(this._client);
+        if (!this._client) {
+            // session may have been closed by user ... but is still in used !!
+            return callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
+        }
 
         if (!this.isChannelValid()) {
             // the secure channel is broken, may be the server has crashed or the network cable has been disconnected

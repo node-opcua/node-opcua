@@ -630,7 +630,7 @@ export enum RegisterServerMethod {
     LDS = 3 // the server registers itself to the LDS or LDS-ME (Local Discovery Server)
 }
 
-export interface OPCUAServerOptions extends OPCUABaseServerOptions {
+    export interface OPCUAServerOptions extends OPCUABaseServerOptions {
 
     /**
      * the server certificate full path filename
@@ -780,14 +780,14 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions {
      * this certificate manager holds the X509 certificates used
      * by client that uses X509 certificate token to impersonate a user
      */
-    userCertificateManager?: ICertificateManager;
+    userCertificateManager?: OPCUACertificateManager;
     /**
      * Server Certificate Manager
      *
      * this certificate manager will be used by the server to access
      * and store certificates from the connecting clients
      */
-    serverCertificateManager?: ICertificateManager;
+    serverCertificateManager?: OPCUACertificateManager;
 
     /**
      *  if Discovery Service on unsecure channel shall be disabled
@@ -942,7 +942,7 @@ export class OPCUAServer extends OPCUABaseServer {
      *
      */
     public capabilitiesForMDNS: string[];
-    public userCertificateManager: ICertificateManager;
+    public userCertificateManager: OPCUACertificateManager;
 
     private nonce: Nonce;
     private protocolVersion: number;
@@ -1718,7 +1718,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // ToDo: Check that none of our unsecure endpoint has a a UserTokenPolicy that require encryption
             // and set hasEncryption = false under this condition
         }
-
+        
         const response = new CreateSessionResponse({
             // A identifier which uniquely identifies the session.
             sessionId: session.nodeId,

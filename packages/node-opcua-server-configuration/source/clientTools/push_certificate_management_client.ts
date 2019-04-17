@@ -47,6 +47,7 @@ function findCertificateGroupNodeId(certificateGroup: NodeId | string): NodeId {
             return resolveNodeId(certificateGroup);
     }
 }
+
 function findCertificateTypeIdNodeId(certificateTypeId: NodeId | string): NodeId {
     if (certificateTypeId instanceof NodeId) {
         return certificateTypeId;
@@ -110,12 +111,14 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
       nonce?: ByteString
     ): Promise<CreateSigningRequestResult> {
 
+        nonce = nonce || Buffer.alloc(0);
+
         const inputArguments = [
             { dataType: DataType.NodeId, value: findCertificateGroupNodeId(certificateGroupId) },
             { dataType: DataType.NodeId, value: findCertificateTypeIdNodeId(certificateTypeId) },
             { dataType: DataType.String, value: subjectName },
             { dataType: DataType.Boolean, value: !!regeneratePrivateKey },
-            { dataType: nonce ? DataType.ByteString : DataType.Null, value: nonce }
+            { dataType: DataType.ByteString, value: nonce }
         ];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
@@ -238,12 +241,8 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
             { dataType: DataType.NodeId, value: findCertificateTypeIdNodeId(certificateTypeId) },
             { dataType: DataType.ByteString, value: certificate },
             { dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: issuerCertificates },
-            privateKeyFormat
-              ? { dataType: DataType.String, value: privateKeyFormat! }
-              : { dataType: DataType.Null },
-            privateKeyFormat
-              ? { dataType: DataType.ByteString, value: privateKey }
-              : { dataType: DataType.Null }
+            { dataType: DataType.String, value: privateKeyFormat || "" },
+            { dataType: DataType.ByteString, value:  privateKeyFormat ? privateKey : Buffer.alloc(0) }
         ];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,

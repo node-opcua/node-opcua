@@ -15,7 +15,6 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
-  "@types/env-paths": "^2.1.0",
   "@types/mkdirp": "^0.5.2",
   "async": "^2.6.2",
   "chalk": "^2.4.2",
@@ -38,7 +37,6 @@
  },
  "devDependencies": {
   "@types/async": "^2.4.1",
-  "@types/env-paths": "^2.1.0",
   "@types/underscore": "^1.8.14",
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^2.0.0-alpha.18",

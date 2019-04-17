@@ -1255,10 +1255,15 @@ export class ServerSecureChannelLayer extends EventEmitter {
             // check if the receiverCertificateThumbprint is my certificate thumbprint
             const serverCertificateChain = this.getCertificateChain();
             const myCertificateThumbPrint = makeSHA1Thumbprint(serverCertificateChain);
-            return (
+            const thisIsMyCertificate =
               myCertificateThumbPrint.toString("hex") ===
-              clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
-            );
+              clientSecurityHeader.receiverCertificateThumbprint.toString("hex");
+            if (doDebug && !thisIsMyCertificate) {
+                debugLog("receiverCertificateThumbprint do not match server certificate",
+                  myCertificateThumbPrint.toString("hex") + " <> "
+                  +  clientSecurityHeader.receiverCertificateThumbprint.toString("hex"));
+            }
+            return thisIsMyCertificate;
         }
         return true;
     }

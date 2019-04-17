@@ -3,6 +3,9 @@
  */
 // tslint:disable:no-empty
 import chalk from "chalk";
+import * as fs from "fs";
+import * as mkdirp from "mkdirp";
+
 import envPaths from "env-paths";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
@@ -95,11 +98,15 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     constructor(options: OPCUACertificateManagerOptions) {
         options = options || {};
 
+        const location = options.rootFolder || paths.config;
+        if (!fs.existsSync(location)) {
+            mkdirp.sync(location);
+        }
+
         const _options: CertificateManagerOptions = {
             keySize: 2048,
-            location: options.rootFolder || paths.config,
+            location
         };
-
         super(_options);
     }
 

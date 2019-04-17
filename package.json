@@ -91,7 +91,6 @@
     "@babel/core": "^7.4.3",
     "@types/async": "^2.4.1",
     "@types/bonjour": "^3.5.5",
-    "@types/env-paths": "^2.1.0",
     "@types/long": "^4.0.0",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^11.13.2",

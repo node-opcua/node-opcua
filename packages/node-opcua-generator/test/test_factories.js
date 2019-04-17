@@ -155,7 +155,6 @@ xdescribe("Factories: testing object factory", function () {
         const schema_helpers =  require("node-opcua-factory").parameters;
 
         const old_schema_helpers_doDebug = schema_helpers.debugSchemaHelper;
-        old_schema_helpers_doDebug.should.equal(false);
         schema_helpers.debugSchemaHelper = true;
 
         // redirect stdout to null as test will be noisy
@@ -173,7 +172,7 @@ xdescribe("Factories: testing object factory", function () {
 
         }).should.throw();
 
-        schema_helpers.doDebug = old_schema_helpers_doDebug;
+        schema_helpers.debugSchemaHelper = old_schema_helpers_doDebug;
      });
 
 });

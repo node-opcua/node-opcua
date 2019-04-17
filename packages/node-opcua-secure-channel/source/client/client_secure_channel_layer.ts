@@ -1075,7 +1075,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         const onBackoffFunc = (retryCount: number, delay: number) => {
             debugLog(chalk.bgWhite.cyan(" Backoff #"), retryCount, "delay = ", delay,
-              " ms" , " maxRetry ", this.connectionStrategy.maxRetry);
+              " ms", " maxRetry ", this.connectionStrategy.maxRetry);
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
             /**

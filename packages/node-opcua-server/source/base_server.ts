@@ -12,7 +12,7 @@ import { assert } from "node-opcua-assert";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
 import { LocalizedText } from "node-opcua-data-model";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { display_trace_from_this_projet_only } from "node-opcua-debug";
 import { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import {
@@ -31,6 +31,7 @@ import { EndpointDescription } from "node-opcua-types";
 import { GetEndpointsRequest } from "node-opcua-types";
 import { OPCUAServerEndPoint } from "./server_end_point";
 
+const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
 function constructFilename(p: string): string {
@@ -82,7 +83,7 @@ function cleanupEndpoint(endpoint: OPCUAServerEndPoint) {
 export interface OPCUABaseServerOptions extends IOPCUASecureObjectOptions {
 
     serverInfo?: ApplicationDescriptionOptions;
-    serverCertificateManager?: ICertificateManager;
+    serverCertificateManager?: OPCUACertificateManager;
 }
 
 const emptyCallback = () => { /* empty */
@@ -116,7 +117,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
     public serverInfo: ApplicationDescription;
     public endpoints: OPCUAServerEndPoint[];
-    public serverCertificateManager: ICertificateManager;
+    public serverCertificateManager: OPCUACertificateManager;
     public capabilitiesForMDNS: string[];
 
     protected options: OPCUABaseServerOptions;
@@ -142,8 +143,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         this.serverCertificateManager = options.serverCertificateManager
           || new OPCUACertificateManager({
-            name: "certificates"
-        });
+              name: "certificates"
+          });
 
     }
 
@@ -195,15 +196,26 @@ export class OPCUABaseServer extends OPCUASecureObject {
           });
     }
 
-    public simulateCrash(callback: (err?: Error | null) => void) {
+    public async shutdownChannels(): Promise<void>;
+    public shutdownChannels(callback: (err?: Error | null) => void): void;
+    public shutdownChannels(callback?: (err?: Error | null) => void): Promise<void> | void {
 
         assert(_.isFunction(callback));
-        debugLog("OPCUABaseServer#simulateCrash");
+        debugLog("OPCUABaseServer#shutdownChannels");
         async.forEach(this.endpoints,
-          (endpoint: OPCUAServerEndPoint, inner_callback: (err?: Error) => void) => {
-              console.log(" crashing endpoint ", endpoint.endpointDescriptions()[0].endpointUrl);
-              endpoint.suspendConnection(emptyCallback);
-              endpoint.killClientSockets(inner_callback);
+          (endpoint: OPCUAServerEndPoint, inner_callback: (err?: Error | null) => void) => {
+              debugLog(" shutting down endpoint ", endpoint.endpointDescriptions()[0].endpointUrl);
+              async.series([
+// xx                  (callback2: (err?: Error| null) => void) => {
+// xx                      endpoint.suspendConnection(callback2);
+// xx                  },
+                  (callback2: (err?: Error| null) => void) => {
+                      endpoint.shutdown(callback2);
+                  },
+                  (callback2: (err?: Error| null) => void) => {
+                      endpoint.restoreConnection(callback2);
+                  }
+              ], inner_callback);
           }, callback);
     }
 
@@ -454,3 +466,4 @@ const opts = { multiArgs: false };
 OPCUABaseServer.prototype.resumeEndPoints = thenify.withCallback(OPCUABaseServer.prototype.resumeEndPoints, opts);
 OPCUABaseServer.prototype.suspendEndPoints = thenify.withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);
 OPCUABaseServer.prototype.suspendEndPoints = thenify.withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);
+OPCUABaseServer.prototype.shutdownChannels = thenify.withCallback(OPCUABaseServer.prototype.shutdownChannels, opts);

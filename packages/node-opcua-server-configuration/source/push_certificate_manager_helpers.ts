@@ -11,6 +11,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
+import { ByteString, UAString } from "node-opcua-basic-types";
 import { CreateSigningRequestResult, PushCertificateManager } from "./push_certificate_manager";
 import {
     PushCertificateManagerServerImpl,
@@ -28,7 +29,7 @@ function hasExpectedUserAccess(context: SessionContext) {
         return false;
     }
     const currentUserRole = context.getCurrentUserRole();
-    return currentUserRole === "admin";
+    return !!currentUserRole.match("SecurityAdmin");
 }
 
 function hasEncryptedChannel(context: SessionContext) {
@@ -55,10 +56,10 @@ function expected(
 
 function getPushCertificateManager(method: UAMethod): PushCertificateManager | null {
 
-    const server = method.addressSpace.rootFolder.objects.server;
-    const serverPriv = server as any;
-    if (serverPriv.$pushCertificateManager) {
-        return serverPriv.$pushCertificateManager;
+    const serverConfiguration = method.addressSpace.rootFolder.objects.server.serverConfiguration;
+    const serverConfigurationPriv = serverConfiguration as any;
+    if (serverConfigurationPriv.$pushCertificateManager) {
+        return serverConfigurationPriv.$pushCertificateManager;
     }
     // throw new Error("Cannot find pushCertificateManager object");
     return null;
@@ -144,8 +145,8 @@ async function _updateCertificate(
     const certificateTypeId: NodeId = inputArguments[1].value as NodeId;
     const certificate: Buffer = inputArguments[2].value as Buffer;
     const issuerCertificates: Buffer[] = inputArguments[3].value as Buffer[];
-    const privateKeyFormat: string = inputArguments[4].value as string;
-    const privateKey: Buffer = inputArguments[5].value as Buffer;
+    const privateKeyFormat: UAString = inputArguments[4].value as UAString;
+    const privateKey: Buffer = inputArguments[5].value as ByteString;
 
     // This Method requires an encrypted channel and that the Client provides credentials with
     // administrative rights on the Server
@@ -156,7 +157,7 @@ async function _updateCertificate(
         return { statusCode: StatusCodes.BadUserAccessDenied };
     }
 
-    if (privateKeyFormat.toLowerCase() !== "pem") {
+    if (privateKeyFormat && privateKeyFormat !== "" && privateKeyFormat.toLowerCase() !== "pem") {
         errorLog("_updateCertificate: Invalid PEM format requested " + privateKeyFormat);
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
@@ -184,7 +185,7 @@ async function _updateCertificate(
         outputArguments: [
             {
                 dataType: DataType.Boolean,
-                value: result.applyChangesRequired! }
+                value: !!result.applyChangesRequired! }
         ],
         statusCode: result.statusCode
     };
@@ -255,28 +256,29 @@ export function installPushCertificateManagement(
   options: PushCertificateManagerServerOptions
 ) {
 
-    const server = addressSpace.rootFolder.objects.server;
+    const serverConfiguration = addressSpace.rootFolder.objects.server.serverConfiguration;
 
-    const serverPriv = server as any;
-    if (serverPriv.$pushCertificateManager) {
-        return;
+    const serverConfigurationPriv = serverConfiguration as any;
+    if (serverConfigurationPriv.$pushCertificateManager) {
+       return;
+       throw new Error("PushCertificateManagement has already been installed");
     }
-    serverPriv.$pushCertificateManager = new PushCertificateManagerServerImpl(options);
+    serverConfigurationPriv.$pushCertificateManager = new PushCertificateManagerServerImpl(options);
 
-    server.serverConfiguration.supportedPrivateKeyFormats.setValueFromSource({
+    serverConfiguration.supportedPrivateKeyFormats.setValueFromSource({
         arrayType: VariantArrayType.Array,
         dataType: DataType.String,
         value: ["PEM"]
     });
 
-    server.serverConfiguration.createSigningRequest.bindMethod(callbackify(_createSigningRequest));
+    serverConfiguration.createSigningRequest.bindMethod(callbackify(_createSigningRequest));
 
-    server.serverConfiguration.updateCertificate.bindMethod(callbackify(_updateCertificate));
+    serverConfiguration.updateCertificate.bindMethod(callbackify(_updateCertificate));
 
-    server.serverConfiguration.getRejectedList.bindMethod(callbackify(_getRejectedList));
+    serverConfiguration.getRejectedList.bindMethod(callbackify(_getRejectedList));
 
-    if (server.serverConfiguration.applyChanges) {
-        server.serverConfiguration.applyChanges!.bindMethod(callbackify(_applyChanges));
+    if (serverConfiguration.applyChanges) {
+        serverConfiguration.applyChanges!.bindMethod(callbackify(_applyChanges));
     }
 
 }

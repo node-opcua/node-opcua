@@ -1,5 +1,4 @@
 import * as fs from "fs";
-import * as os from "os";
 import * as path from "path";
 import { promisify } from "util";
 
@@ -8,12 +7,15 @@ import { CertificateAuthority, CertificateManager, g_config } from "node-opcua-p
 import { StatusCodes } from "node-opcua-status-code";
 import { should } from "should";
 
-import { UpdateCertificateResult } from "../../source";
-import { PushCertificateManagerServerImpl } from "../../source/server/push_certificate_manager_server_impl";
+import { UpdateCertificateResult } from "../..";
+import { PushCertificateManagerServerImpl } from "../..";
+import {
+    _tempFolder,
+    createSomeCertificate,
+    produceCertificate,
+    produceOutdatedCertificate
+} from "../helpers/fake_certificate_authority";
 
-const _tempFolder = path.join(__dirname, "../../temp");
-
-let tmpGroup: CertificateManager;
 g_config.silent = true;
 
 async function getCertificateDER(manager: CertificateManager): Promise<Certificate> {
@@ -34,42 +36,9 @@ async function getCertificateDER(manager: CertificateManager): Promise<Certifica
     const certificate = convertPEMtoDER(certificatePEM);
     return certificate;
 }
-
-/**
- * createSomeCertificate create a certificate from a private key
- * @param certName
- */
-async function createSomeCertificate(certName: string): Promise<Buffer> {
-
-    if (!tmpGroup) {
-        tmpGroup = new CertificateManager({
-            location: path.join(_tempFolder, "tmp")
-        });
-        await tmpGroup.initialize();
-    }
-    const certFile = path.join(_tempFolder, certName);
-
-    const fileExists: boolean = await promisify(fs.exists)(certFile);
-    if (!fileExists) {
-
-        await tmpGroup.createSelfSignedCertificate({
-            applicationUri: "applicationUri",
-            subject: "CN=TOTO",
-
-            dns: [],
-
-            startDate: new Date(),
-            validity: 365,
-
-            outputFile: certFile
-        });
-    }
-
-    const content = await promisify(fs.readFile)(certFile, "ascii");
-    const certificate = convertPEMtoDER(content);
-    return certificate;
-}
-
+// make sure extra error checking is made on object constructions
+// tslint:disable-next-line:no-var-requires
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Server Side PushCertificateManager", () => {
 
     let pushManager: PushCertificateManagerServerImpl;
@@ -140,60 +109,6 @@ describe("Testing Server Side PushCertificateManager", () => {
         thumbprints[1].should.eql(certs[1]);
 
     });
-
-    async function _produceCertificate(
-      certificateSigningRequest: Buffer,
-      startDate: Date,
-      validity: number
-    ): Promise<Buffer> {
-        // Given a Certificate Authority
-        const certificateAuthority = new CertificateAuthority({
-            keySize: 2048,
-            location: path.join(_tempFolder, "CA")
-        });
-        await certificateAuthority.initialize();
-
-        // --- now write the certificate signing request to the disc
-        const csrFilename = "signing_request.csr";
-        const csrFile = path.join(certificateAuthority.rootDir, csrFilename);
-
-        await promisify(fs.writeFile)(csrFile,
-          toPem(certificateSigningRequest,
-            "CERTIFICATE REQUEST"), "utf8");
-
-        // --- generate the certificate
-
-        const certificate = path.join(certificateAuthority.rootDir, "newCertificate.pem");
-        if (fs.existsSync(certificate)) {
-            // delete existing file
-            await promisify(fs.unlink)(certificate);
-        }
-
-        await certificateAuthority.signCertificateRequest(
-          certificate,
-          csrFile, {
-              applicationUri: "urn:MACHINE:MyApplication",
-              dns: [os.hostname()],
-              startDate,
-              validity
-          });
-
-        const certificatePEM = await promisify(fs.readFile)(certificate, "utf8");
-        return convertPEMtoDER(certificatePEM);
-    }
-
-    async function produceOutdatedCertificate(certificateSigningRequest: Buffer): Promise<Buffer> {
-
-        const startDate = new Date(2010, 1, 1);
-        const validity = 10; //
-        return _produceCertificate(certificateSigningRequest, startDate, validity);
-    }
-
-    async function produceCertificate(certificateSigningRequest: Buffer): Promise<Buffer> {
-        const startDate = new Date(Date.now() - (3600 * 5) * 1000);
-        const validity = 365 * 10;
-        return _produceCertificate(certificateSigningRequest, startDate, validity);
-    }
 
     it("updateCertificate should return BadSecurityChecksFailed if certificate doesn't match private key ", async () => {
 

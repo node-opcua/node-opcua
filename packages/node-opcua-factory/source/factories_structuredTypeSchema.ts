@@ -247,6 +247,7 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
         console.log(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
         console.log(chalk.red("current fields= "), currentFields.sort().join(" "));
         console.log(chalk.cyan("invalid_options_fields= "), invalidOptionsFields.sort().join(" "));
+        console.log("options = ", options);
     }
     if (invalidOptionsFields.length !== 0) {
         throw new Error(" invalid field found in option :" + JSON.stringify(invalidOptionsFields));
