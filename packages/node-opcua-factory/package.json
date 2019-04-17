@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-factory",
- "version": "2.0.0-alpha.19",
+ "version": "2.0.0-alpha.21",
  "description": "pure nodejs OPCUA SDK - module -factory",
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
@@ -11,17 +11,17 @@
  "dependencies": {
   "chalk": "^2.4.2",
   "node-opcua-assert": "^2.0.0-alpha.10",
-  "node-opcua-basic-types": "^2.0.0-alpha.19",
-  "node-opcua-binary-stream": "^2.0.0-alpha.18",
-  "node-opcua-enum": "^2.0.0-alpha.18",
+  "node-opcua-basic-types": "^2.0.0-alpha.21",
+  "node-opcua-binary-stream": "^2.0.0-alpha.21",
+  "node-opcua-enum": "^2.0.0-alpha.21",
   "node-opcua-guid": "^2.0.0-alpha.18",
-  "node-opcua-nodeid": "^2.0.0-alpha.19",
-  "node-opcua-status-code": "^2.0.0-alpha.19",
-  "node-opcua-utils": "^2.0.0-alpha.19",
+  "node-opcua-nodeid": "^2.0.0-alpha.21",
+  "node-opcua-status-code": "^2.0.0-alpha.21",
+  "node-opcua-utils": "^2.0.0-alpha.21",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-debug": "^2.0.0-alpha.18"
+  "node-opcua-debug": "^2.0.0-alpha.21"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

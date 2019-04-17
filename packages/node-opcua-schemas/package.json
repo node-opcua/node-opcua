@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-schemas",
- "version": "2.0.0-alpha.19",
+ "version": "2.0.0-alpha.21",
  "description": "pure nodejs OPCUA SDK - module -schemas",
  "main": "dist/source/index.js",
  "types": "dist/source/index.d.ts",
@@ -10,16 +10,16 @@
  },
  "dependencies": {
   "node-opcua-assert": "^2.0.0-alpha.10",
-  "node-opcua-binary-stream": "^2.0.0-alpha.18",
-  "node-opcua-data-model": "^2.0.0-alpha.19",
-  "node-opcua-debug": "^2.0.0-alpha.18",
-  "node-opcua-extension-object": "^2.0.0-alpha.19",
-  "node-opcua-factory": "^2.0.0-alpha.19",
-  "node-opcua-nodeid": "^2.0.0-alpha.19",
-  "node-opcua-xml2json": "^2.0.0-alpha.19"
+  "node-opcua-binary-stream": "^2.0.0-alpha.21",
+  "node-opcua-data-model": "^2.0.0-alpha.21",
+  "node-opcua-debug": "^2.0.0-alpha.21",
+  "node-opcua-extension-object": "^2.0.0-alpha.21",
+  "node-opcua-factory": "^2.0.0-alpha.21",
+  "node-opcua-nodeid": "^2.0.0-alpha.21",
+  "node-opcua-xml2json": "^2.0.0-alpha.21"
  },
  "devDependencies": {
-  "node-opcua-packet-analyzer": "^2.0.0-alpha.19"
+  "node-opcua-packet-analyzer": "^2.0.0-alpha.21"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
