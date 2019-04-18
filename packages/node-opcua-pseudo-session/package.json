@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-pseudo-session",
- "version": "2.0.0-alpha.21",
+ "version": "2.0.0-alpha.22",
  "description": "pure nodejs OPCUA SDK - module -client-proxy",
  "scripts": {
   "clean": "node -e \"require('rimraf').sync('dist');\"",
@@ -12,15 +12,15 @@
  "types": "./dist/index.d.ts",
  "dependencies": {
   "async": "^2.6.2",
-  "node-opcua-data-model": "^2.0.0-alpha.21",
-  "node-opcua-data-value": "^2.0.0-alpha.21",
-  "node-opcua-nodeid": "^2.0.0-alpha.21",
-  "node-opcua-service-browse": "^2.0.0-alpha.21",
-  "node-opcua-service-call": "^2.0.0-alpha.21",
-  "node-opcua-service-read": "^2.0.0-alpha.21",
-  "node-opcua-status-code": "^2.0.0-alpha.21",
-  "node-opcua-utils": "^2.0.0-alpha.21",
-  "node-opcua-variant": "^2.0.0-alpha.21",
+  "node-opcua-data-model": "^2.0.0-alpha.22",
+  "node-opcua-data-value": "^2.0.0-alpha.22",
+  "node-opcua-nodeid": "^2.0.0-alpha.22",
+  "node-opcua-service-browse": "^2.0.0-alpha.22",
+  "node-opcua-service-call": "^2.0.0-alpha.22",
+  "node-opcua-service-read": "^2.0.0-alpha.22",
+  "node-opcua-status-code": "^2.0.0-alpha.22",
+  "node-opcua-utils": "^2.0.0-alpha.22",
+  "node-opcua-variant": "^2.0.0-alpha.22",
   "underscore": "^1.9.1"
  },
  "author": "Etienne Rossignon",
