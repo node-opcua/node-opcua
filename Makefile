@@ -2,7 +2,8 @@
 test-cov: istanbul coveralls codeclimate
 
 istanbul:
-	istanbul cover -x "tmp/**" packages/run_all_mocha_tests.js
+	npx nyc node packages/run_all_mocha_tests.js
+
 
 coveralls: istanbul
 	cat ./coverage/lcov.info | node ./node_modules/coveralls/bin/coveralls.js --exclude tmp
