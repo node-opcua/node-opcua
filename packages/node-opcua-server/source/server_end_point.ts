@@ -108,6 +108,30 @@ export interface OPCUAServerEndPointOptions {
     objectFactory?: any;
 }
 
+export interface EndpointDescriptionParams {
+
+    allowAnonymous?: boolean;
+    restricted?: boolean;
+
+    hostname?: string;
+    allowUnsecurePassword?: boolean;
+    resourcePath?: string;
+
+}
+
+export interface AddStandardEndpointDescriptionsParam {
+
+    securityModes?: MessageSecurityMode[];
+    securityPolicies?: SecurityPolicy[];
+    disableDiscovery?: boolean;
+
+    allowAnonymous?: boolean;
+    restricted?: boolean;
+    hostname?: string;
+    allowUnsecurePassword?: boolean;
+    resourcePath?: string;
+}
+
 /**
  * OPCUAServerEndPoint a Server EndPoint.
  * A sever end point is listening to one port
@@ -209,7 +233,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         const privateKey1 = convertPEMtoDER(this.getPrivateKey());
 
-
         const txt =
         " end point" + this._counter +
         " port = " + this.port +
@@ -271,9 +294,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public addEndpointDescription(
       securityMode: MessageSecurityMode,
       securityPolicy: SecurityPolicy,
-      options: any
+      options: EndpointDescriptionParams
     ) {
-        options = options || {};
         options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
 
         if (securityMode === MessageSecurityMode.None && securityPolicy !== SecurityPolicy.None) {
@@ -308,13 +330,13 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         }));
     }
 
-    public addRestrictedEndpointDescription(options: any) {
+    public addRestrictedEndpointDescription(options: EndpointDescriptionParams) {
         options = _.clone(options);
         options.restricted = true;
         return this.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
     }
 
-    public addStandardEndpointDescriptions(options?: any) {
+    public addStandardEndpointDescriptions(options?: AddStandardEndpointDescriptionsParam) {
 
         options = options || {};
 
