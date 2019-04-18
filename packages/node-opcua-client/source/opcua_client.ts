@@ -38,6 +38,7 @@ import { ByteString } from "node-opcua-basic-types";
 import { ClientSession, ResponseCallback } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
+import { OPCUASecureObject } from "node-opcua-common";
 
 export interface UserIdentityInfoUserName {
     type: UserTokenType.UserName;
@@ -116,7 +117,7 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
     clientName?: string;
 }
 
-export interface OPCUAClient extends OPCUAClientBase {
+export interface OPCUAClient extends OPCUAClientBase  {
 
     connect(endpointUrl: string): Promise<void>;
 

@@ -29,6 +29,7 @@ import {
 
 import { ResponseCallback } from "./client_session";
 import { Request, Response } from "./common";
+import { OPCUASecureObject } from "node-opcua-common";
 
 export type FindServersRequestLike = FindServersRequest | FindServersRequestOptions;
 export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequest | FindServersOnNetworkRequestOptions;
@@ -124,7 +125,7 @@ export interface GetEndpointsOptions {
     profileUris?: string[];
 }
 
-export interface OPCUAClientBase {
+export interface OPCUAClientBase extends OPCUASecureObject {
 
     /***
      *
