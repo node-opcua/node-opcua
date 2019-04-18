@@ -21,6 +21,7 @@ export function checkSelectClause(
     //
     const addressSpace = parentNode.addressSpace;
 
+    // istanbul ignore next
     if (selectClause.typeDefinitionId.isEmpty()) {
         return StatusCodes.Good;
     }
@@ -29,14 +30,17 @@ export function checkSelectClause(
     if (!eventTypeNode || !(eventTypeNode.nodeClass === NodeClass.ObjectType)) {
         // xx console.log("eventTypeNode = ",selectClause.typeDefinitionId.toString());
         // xx console.log("eventTypeNode = ",eventTypeNode);
+        // istanbul ignore next
         if (eventTypeNode) {
             console.log(eventTypeNode.toString());
         }
     }
 
+    // istanbul ignore next
     if (eventTypeNode.nodeClass !== NodeClass.ObjectType) {
         throw new Error("Expecting a ObjectType");
     }
+
     // navigate to the innerNode specified by the browsePath [ QualifiedName]
     const browsePath = constructBrowsePathFromQualifiedName(eventTypeNode, selectClause.browsePath);
     const browsePathResult = addressSpace.browsePath(browsePath);

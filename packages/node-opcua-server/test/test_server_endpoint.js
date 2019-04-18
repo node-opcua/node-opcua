@@ -21,7 +21,12 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
     let server_endpoint;
     beforeEach(function () {
 
-        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, certificateChain: null, privateKey: ""});
+        server_endpoint = new OPCUAServerEndPoint({
+            port: default_port,
+            serverInfo: {},
+            certificateChain: null,
+            privateKey: ""
+        });
     });
     afterEach(function () {
         server_endpoint = null;

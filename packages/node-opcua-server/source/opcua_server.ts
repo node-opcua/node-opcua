@@ -630,7 +630,7 @@ export enum RegisterServerMethod {
     LDS = 3 // the server registers itself to the LDS or LDS-ME (Local Discovery Server)
 }
 
-    export interface OPCUAServerOptions extends OPCUABaseServerOptions {
+export interface OPCUAServerOptions extends OPCUABaseServerOptions {
 
     /**
      * the server certificate full path filename
@@ -737,8 +737,9 @@ export enum RegisterServerMethod {
 
     /** resource Path is a string added at the end of the url such as "/UA/Server" */
     resourcePath?: string;
-    /** alternate hostname to use */
-    alternateHostname?: string;
+
+    /** alternate hostname  or IP to use */
+    alternateHostname?: string | string[];
     /**
      *
      */
@@ -1012,18 +1013,26 @@ export class OPCUAServer extends OPCUABaseServer {
 
             maxConnections: this.maxConnectionsPerEndpoint,
             objectFactory: this.objectFactory,
-            serverInfo: this.serverInfo,
+            serverInfo: this.serverInfo
         });
 
-        endPoint.addStandardEndpointDescriptions({
-            securityModes: options.securityModes,
-            securityPolicies: options.securityPolicies,
+        options.alternateHostname = options.alternateHostname || [""];
+        const alternateHostnames = (options.alternateHostname instanceof Array) ? options.alternateHostname : [options.alternateHostname];
 
-            allowAnonymous: !!options.allowAnonymous,
-            disableDiscovery: !!options.disableDiscovery,
-            hostname: options.alternateHostname,
-            resourcePath: options.resourcePath || ""
-        });
+        for (const alternateHostname of alternateHostnames) {
+
+            const hostname = (alternateHostname && alternateHostname.length > 0) ? alternateHostname : undefined;
+
+            endPoint.addStandardEndpointDescriptions({
+                securityModes: options.securityModes,
+                securityPolicies: options.securityPolicies,
+
+                allowAnonymous: !!options.allowAnonymous,
+                disableDiscovery: !!options.disableDiscovery,
+                hostname,
+                resourcePath: options.resourcePath || ""
+            });
+        }
 
         this.endpoints.push(endPoint);
 
@@ -1173,6 +1182,9 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(_.isFunction(callback));
         debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
 
+        if (!this.engine) {
+            return callback();
+        }
         assert(this.engine);
         if (!this.engine.serverStatus) {
             // server may have been shot down already  , or may have fail to start !!
@@ -1201,32 +1213,32 @@ export class OPCUAServer extends OPCUABaseServer {
 
     public dispose() {
 
-        const self = this;
-
-        for (const endpoint of self.endpoints) {
+        for (const endpoint of this.endpoints) {
             endpoint.dispose();
         }
-        self.endpoints = [];
+        this.endpoints = [];
 
-        self.removeAllListeners();
+        this.removeAllListeners();
 
-        if (self.registerServerManager) {
-            self.registerServerManager.dispose();
-            self.registerServerManager = undefined;
+        if (this.registerServerManager) {
+            this.registerServerManager.dispose();
+            this.registerServerManager = undefined;
         }
-        OPCUAServer.registry.unregister(self);
+        OPCUAServer.registry.unregister(this);
+
+        if (this.engine) {
+            this.engine.dispose();
+        }
     }
 
     public raiseEvent(eventType: any, options: any): void {
 
-        const self = this;
-
-        if (!self.engine.addressSpace) {
+        if (!this.engine.addressSpace) {
             console.log("addressSpace missing");
             return;
         }
 
-        const server = self.engine.addressSpace.findNode("Server") as UAObject;
+        const server = this.engine.addressSpace.findNode("Server") as UAObject;
 
         if (!server) {
             // xx throw new Error("OPCUAServer#raiseEvent : cannot find Server object");
@@ -1235,7 +1247,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         let eventTypeNode = eventType;
         if (typeof (eventType) === "string") {
-            eventTypeNode = self.engine.addressSpace.findEventType(eventType);
+            eventTypeNode = this.engine.addressSpace.findEventType(eventType);
         }
 
         if (eventTypeNode) {
@@ -1433,9 +1445,8 @@ export class OPCUAServer extends OPCUABaseServer {
       callback: (err: Error | null, isAuthorized?: boolean) => void
     ): void {
 
-        const self = this;
         assert(userIdentityToken instanceof UserNameIdentityToken);
-        // assert(self.isValidUserNameIdentityToken(channel, session, userTokenPolicy, userIdentityToken));
+        // assert(this.isValidUserNameIdentityToken(channel, session, userTokenPolicy, userIdentityToken));
 
         const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
 
@@ -1446,7 +1457,7 @@ export class OPCUAServer extends OPCUABaseServer {
         if (securityPolicy === SecurityPolicy.None) {
             password = password.toString();
         } else {
-            const serverPrivateKey = self.getPrivateKey();
+            const serverPrivateKey = this.getPrivateKey();
 
             const serverNonce = session.nonce!;
             assert(serverNonce instanceof Buffer);
@@ -1460,10 +1471,10 @@ export class OPCUAServer extends OPCUABaseServer {
             password = buff.slice(4, 4 + length).toString("utf-8");
         }
 
-        if (_.isFunction(self.userManager.isValidUserAsync)) {
-            self.userManager.isValidUserAsync.call(session, userName, password, callback);
+        if (_.isFunction(this.userManager.isValidUserAsync)) {
+            this.userManager.isValidUserAsync.call(session, userName, password, callback);
         } else {
-            const authorized = self.userManager.isValidUser!.call(session, userName, password);
+            const authorized = this.userManager.isValidUser!.call(session, userName, password);
             async.setImmediate(() => callback(null, authorized));
         }
     }
@@ -1480,8 +1491,6 @@ export class OPCUAServer extends OPCUABaseServer {
     ): void {
 
         assert(callback instanceof Function);
-
-        const self = this;
         if (!userIdentityToken) {
             throw new Error("Invalid token");
         }
@@ -1496,11 +1505,11 @@ export class OPCUAServer extends OPCUABaseServer {
         }
         //
         if (userIdentityToken instanceof UserNameIdentityToken) {
-            return self.isValidUserNameIdentityToken(
+            return this.isValidUserNameIdentityToken(
               channel, session, userTokenPolicy, userIdentityToken, userTokenSignature, callback);
         }
         if (userIdentityToken instanceof X509IdentityToken) {
-            return self.isValidX509IdentityToken(
+            return this.isValidX509IdentityToken(
               channel, session, userTokenPolicy, userIdentityToken, userTokenSignature, callback);
         }
 
@@ -1523,7 +1532,6 @@ export class OPCUAServer extends OPCUABaseServer {
       callback: (err: Error | null, isAuthorized?: boolean) => void
     ) {
 
-        const self = this;
         assert(userIdentityToken);
         assert(_.isFunction(callback));
 
@@ -1534,7 +1542,7 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(userTokenPolicy);
         // find if a userToken exists
         if (userIdentityToken instanceof UserNameIdentityToken) {
-            return self.userNameIdentityTokenAuthenticateUser(
+            return this.userNameIdentityTokenAuthenticateUser(
               channel, session, userTokenPolicy, userIdentityToken, callback);
         }
         async.setImmediate(callback.bind(null, null, true));
@@ -1718,7 +1726,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // ToDo: Check that none of our unsecure endpoint has a a UserTokenPolicy that require encryption
             // and set hasEncryption = false under this condition
         }
-        
+
         const response = new CreateSessionResponse({
             // A identifier which uniquely identifies the session.
             sessionId: session.nodeId,
@@ -2375,7 +2383,7 @@ export class OPCUAServer extends OPCUABaseServer {
               }
 
               // limit results to requestedMaxReferencesPerNode
-              const requestedMaxReferencesPerNode =  Math.min(9876, request.requestedMaxReferencesPerNode);
+              const requestedMaxReferencesPerNode = Math.min(9876, request.requestedMaxReferencesPerNode);
 
               let results: BrowseResult[] = [];
               assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");

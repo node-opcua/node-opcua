@@ -65,6 +65,8 @@ async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraDataType
 function findDataTypeNode(addressSpace: AddressSpace, encodingNodeId: NodeId): UADataType {
 
     const encodingNode = addressSpace.findNode(encodingNodeId)!;
+
+    // istanbul ignore next
     if (!encodingNode) {
         throw new Error("findDataTypeNode:  Cannot find " + encodingNodeId.toString());
     }
@@ -74,10 +76,14 @@ function findDataTypeNode(addressSpace: AddressSpace, encodingNodeId: NodeId): U
     const dataTypes = refs
       .map((ref) => addressSpace.findNode(ref.nodeId))
       .filter((obj: any) => obj !== null);
+
+    // istanbul ignore next
     if (dataTypes.length !== 1) {
         throw new Error("Internal Error");
     }
+
     const dataTypeNode = dataTypes[0] as UADataType;
+    // istanbul ignore next
     if (dataTypeNode.nodeClass !== NodeClass.DataType) {
         throw new Error("internal error: expecting a UADataType node here");
     }
@@ -163,6 +169,8 @@ export function generateAddressSpace(
 
     function _translateNamespaceIndex(innerIndex: number) {
         const namespaceIndex = namespace_uri_translation[innerIndex];
+
+        // istanbul ignore next
         if (namespaceIndex === undefined) {
             throw new Error("_translateNamespaceIndex! Cannot find namespace definition for index " + innerIndex);
         }
@@ -171,14 +179,18 @@ export function generateAddressSpace(
 
     function _internal_addReferenceType(params: AddReferenceTypeOptions) {
 
+        // istanbul ignore next
         if (!(params.nodeId instanceof NodeId)) {
             throw new Error("invalid param");
         } // already translated
+
         const namespace = addressSpace1.getNamespace(params.nodeId!.namespace);
         namespace.addReferenceType(params);
     }
 
     function _internal_createNode(params: CreateNodeOptions): BaseNode {
+
+        // istanbul ignore next
         if (!(params.nodeId instanceof NodeId)) {
             throw new Error("invalid param");
         } // already translated
@@ -709,6 +721,8 @@ export function generateAddressSpace(
                             await ensureDatatypeExtracted(addressSpace);
 
                             const dataTypeNode = findDataTypeNode(addressSpace2, typeDefinitionId);
+
+                            // istanbul ignore next
                             if (!dataTypeNode) {
                                 console.log(" cannot find ", typeDefinitionId.toString());
                                 return;
@@ -869,8 +883,9 @@ export function generateAddressSpace(
 
                     if (this.parser.ExtensionObject.extensionObject) {
                         // assert(element === "ExtensionObject");
-                        if (!(this.parser.ExtensionObject.extensionObject instanceof ExtensionObject)) {
 
+                        // istanbul ignore next
+                        if (!(this.parser.ExtensionObject.extensionObject instanceof ExtensionObject)) {
                             throw new Error("expecting an extension object");
                         }
                     }
@@ -918,9 +933,12 @@ export function generateAddressSpace(
                 },
                 parser: _extensionObject_inner_parser,
                 finish(this: any) {
+
+                    // istanbul ignore next
                     if (this.extensionObject && !(this.extensionObject instanceof ExtensionObject)) {
                         throw new Error("expecting an extension object");
                     }
+
                     this.parent.parent.obj.value = {
                         dataType: DataType.ExtensionObject,
                         value: this.extensionObject
@@ -1019,7 +1037,7 @@ export function generateAddressSpace(
         finish(this: any) {
             try {
                 _internal_createNode(this.obj);
-            } catch (err) {
+            } /* istanbul ignore next */ catch (err) {
                 this.obj.addressSpace = null;
                 console.warn(" Cannot create object", JSON.stringify(this.obj, null, " "));
                 throw err;
@@ -1147,9 +1165,12 @@ export function generateAddressSpace(
     addressSpace1.suspendBackReference = true;
 
     async.mapSeries(xmlFiles, (xmlFile: string, callback1: (err?: Error) => void) => {
+
+        // istanbul ignore next
         if (!fs.existsSync(xmlFile)) {
             throw new Error("generateAddressSpace : cannot file nodeset2 xml file at " + xmlFile);
         }
+
         debugLog(" parsing ", xmlFile);
         _reset_namespace_translation();
         parser.parse(xmlFile, callback1);
@@ -1163,7 +1184,9 @@ export function generateAddressSpace(
             for (const task of tasks) {
                 try {
                     await task(addressSpace1);
-                } catch (err) {
+                }
+                // istanbul ignore next
+                catch (err) {
                     console.log(" Err  => ", err.message);
                     console.log(err);
                 }

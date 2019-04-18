@@ -282,11 +282,12 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      */
     public getEndpointDescription(
       securityMode: MessageSecurityMode,
-      securityPolicy: SecurityPolicy
+      securityPolicy: SecurityPolicy,
+      endpointUrl?: string
     ): EndpointDescription | null {
 
         const endpoints = this.endpointDescriptions();
-        const arr = _.filter(endpoints, matching_endpoint.bind(this, securityMode, securityPolicy));
+        const arr = _.filter(endpoints, matching_endpoint.bind(this, securityMode, securityPolicy , endpointUrl ));
         assert(arr.length === 0 || arr.length === 1);
         return arr.length === 0 ? null : arr[0];
     }
@@ -294,27 +295,47 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public addEndpointDescription(
       securityMode: MessageSecurityMode,
       securityPolicy: SecurityPolicy,
-      options: EndpointDescriptionParams
+      options?: EndpointDescriptionParams
     ) {
+        options = options || {};
+
         options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
 
+        // istanbul ignore next
         if (securityMode === MessageSecurityMode.None && securityPolicy !== SecurityPolicy.None) {
             throw new Error(" invalid security ");
         }
+        // istanbul ignore next
         if (securityMode !== MessageSecurityMode.None && securityPolicy === SecurityPolicy.None) {
             throw new Error(" invalid security ");
         }
         //
-        const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy);
-        if (endpoint_desc) {
-            throw new Error(" endpoint already exist");
-        }
-        const port = this.port;
 
         options.hostname = options.hostname || get_fully_qualified_domain_name();
 
+        const port = this.port;
+
+        // now build endpointUrl
+
+        // resource Path is a string added at the end of the url such as "/UA/Server"
+        const resourcePath = options.resourcePath || "";
+        const endpointUrl = "opc.tcp://" + options.hostname + ":" +
+          path.join("" + port, resourcePath).replace(/\\/g, "/");
+
+        const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy, endpointUrl);
+
+        // istanbul ignore next
+        if (endpoint_desc) {
+            throw new Error(" endpoint already exist");
+        }
+
+
         this._endpoints.push(_makeEndpointDescription({
+
+            endpointUrl,
+            hostname: options.hostname,
             port,
+
             server: this.serverInfo,
             serverCertificateChain: this.getCertificateChain(),
 
@@ -325,7 +346,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             allowUnsecurePassword: options.allowUnsecurePassword,
             resourcePath: options.resourcePath,
 
-            hostname: options.hostname,
             restricted: !!options.restricted
         }));
     }
@@ -777,6 +797,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
 interface MakeEndpointDescriptionOptions {
     port: number;
+    hostname: string;
+    endpointUrl: string;
+
     serverCertificateChain: Certificate;
     securityMode: MessageSecurityMode;
     securityPolicy: SecurityPolicy;
@@ -798,7 +821,6 @@ interface MakeEndpointDescriptionOptions {
     /**
      * * @default get_fully_qualified_domain_name()  default hostname
      */
-    hostname: string;
     allowAnonymous?: boolean; // default true
 
     // allow unencrypted password in userNameIdentity
@@ -825,9 +847,6 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
     assert(_.isFinite(options.securityLevel), "expecting a valid securityLevel");
 
     const securityPolicyUri = toURI(options.securityPolicy);
-
-    // resource Path is a string added at the end of the url such as "/UA/Server"
-    const resourcePath = options.resourcePath || "";
 
     const userIdentityTokens = [];
 
@@ -954,12 +973,11 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
         });
     }
 
-    const endpointUrl = "opc.tcp://" + options.hostname + ":" +
-      path.join("" + options.port, resourcePath).replace(/\\/g, "/");
     // return the endpoint object
     const endpoint = new EndpointDescription({
 
-        endpointUrl,
+        endpointUrl: options.endpointUrl,
+
         server: options.server,
         serverCertificate: options.serverCertificateChain,
 
@@ -988,11 +1006,15 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
 function matching_endpoint(
   securityMode: MessageSecurityMode,
   securityPolicy: SecurityPolicy,
+  endpointUrl: string | undefined,
   endpoint: EndpointDescription
 ): boolean {
 
     assert(endpoint instanceof EndpointDescription);
     const endpoint_securityPolicy = fromURI(endpoint.securityPolicyUri);
+    if (endpointUrl && endpoint.endpointUrl! !== endpointUrl) {
+        return false;
+    }
     return (endpoint.securityMode === securityMode && endpoint_securityPolicy === securityPolicy);
 }
 
