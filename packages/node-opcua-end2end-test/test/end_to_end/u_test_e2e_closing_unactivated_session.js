@@ -162,6 +162,7 @@ module.exports = function (test) {
 
                 },callback)
             },
+            function(callback){ setTimeout(callback,1000); },
             function(callback){
                 test.server.maxAllowedSessionNumber = oldMaxAllowedSessionNumber;
                 test.server.engine.currentSessionCount.should.eql(0);

@@ -23,7 +23,7 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/node": "^11.13.2",
+  "@types/node": "^11.13.6",
   "@types/underscore": "^1.8.14",
   "node-opcua-debug": "^2.0.0-alpha.22",
   "should": "13.2.3"

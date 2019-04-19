@@ -8,6 +8,7 @@
         "sourceMap": true,
         "strict": true,
         "listFiles": false,
-        "outDir": "dist"
+        "outDir": "dist",
+        "incremental": true,
     }
 }

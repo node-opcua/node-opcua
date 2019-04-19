@@ -8,7 +8,7 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "declaration": true,
-    "removeComments": true,
+    "removeComments": false, /* to prevent Istanbul  ignore statement in comment to disapper */
     "importHelpers": true,
     "inlineSourceMap": true,
     "listFiles": false,

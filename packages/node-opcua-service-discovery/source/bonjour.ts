@@ -139,11 +139,12 @@ export class BonjourHolder {
             this._service = undefined;
             this._multicastDNS = undefined;
             this.announcement = undefined;
-            const stop = promisify((callback: (err: Error|null) => void)=>{
+            const proxy = (callback: (err?: Error) => void)=>{
                 this_service.stop(()=>{
-                    callback(null);
+                    callback();
                 })
-            });
+            };
+            const stop = promisify(proxy);
             await stop.call(this);
             releaseBonjour();
             debugLog("stop announcement completed");

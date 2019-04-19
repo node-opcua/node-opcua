@@ -1631,14 +1631,14 @@ module.exports = function (test) {
 
                 function setUnpublishing(session) {
                     // replace _send_publish_request so that it doesn't do anything for a little while
-                    // The publish engine is shared amongst all subscription and belongs to the  session object
+                    // The publish engine is shared amongst all subscriptions and belongs to the  session object
                     session.getPublishEngine()._send_publish_request.should.be.instanceOf(Function);
                     sinon.stub(session.getPublishEngine(), "_send_publish_request").returns();
                 }
 
                 /**
                  * restore the publishing mechanism on a unpublishing subscription
-                 * @param subscription
+                 * @param session
                  */
                 function repairUnpublishing(session) {
                     session.getPublishEngine()._send_publish_request.callCount.should.be.greaterThan(1);
