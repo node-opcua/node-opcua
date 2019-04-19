@@ -23,11 +23,11 @@ if (filterOpts) {
 }
 // Instantiate a Mocha instance.
 let mocha = new Mocha({
-    bail: false,
+    bail: true,
     fullTrace: true,
     grep: filterOpts,
     reporter: process.env.REPORTER || "spec", //"nyan", //"tap"
-    slow: 1000,
+    slow: 6000,
 });
 
 
@@ -69,8 +69,43 @@ for (const file of fs.readdirSync(__dirname)) {
 
 testFiles = testFiles.sort();
 
+// -------------------------------------------------
+// portion
+if (process.env.TESTPAGE) {
 
-const suite = mocha.suite
+    console.log("nb files with tests : ", testFiles.length);
+
+    const pageSize = 10;
+    const testPage = parseInt(process.env.TESTPAGE);
+    if (testPage== -1) {
+
+        // display test page
+        let i =0;
+        while( testFiles) {
+
+            console.log("\n --------------------------------- Page ",i);
+
+            const a = testFiles.slice(i*pageSize, (i+1)* pageSize);
+            if (a.length === 0){
+                return;
+            }
+            for (const f of a) {
+                console.log( "        " + f);
+            }
+
+            i++
+        }
+
+        exit(0);
+    }
+    testFiles = testFiles.slice(testPage*pageSize, (testPage+1)*pageSize );
+
+    console.log(" Testing with test page : "+ testPage);
+    console.log(testFiles[0]);
+    console.log(testFiles[testFiles.length -1 ]);
+}
+
+const suite = mocha.suite;
 suite.on('pre-require', ( global, file, self) => {
     //console.log("pre-require", file);
 });
@@ -81,6 +116,7 @@ suite.on('post-require', (global, file, self) => {
   //  console.log("post   -require", file);
 
 });
+
 
 // Add each .js file to the mocha instance
 testFiles.filter((file) => {
@@ -111,3 +147,4 @@ mocha.bail(true);
 mocha.run((failures) => {
     process.exit(failures);  // exit with non-zero status if there were failures
 });
+

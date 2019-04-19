@@ -82,7 +82,9 @@ after_success:
 
 script:
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]];
-    then  npm test;
+    then
+       export TESTPAGE=11;
+       npm test;
     else  npm test;
     fi ;
     # lerna run test-typescript

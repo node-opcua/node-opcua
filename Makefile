@@ -6,7 +6,7 @@ istanbul:
 
 
 coveralls: istanbul
-	cat ./coverage/lcov.info | node ./node_modules/coveralls/bin/coveralls.js --exclude tmp
+	npx nyc report --reporter=text-lcov | npx coveralls --exclude tmp
 
 # note a CODECLIMATE_REPO_TOKEN must be specified as an environment variable.
 codeclimate: istanbul
