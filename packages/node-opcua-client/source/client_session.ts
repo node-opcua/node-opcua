@@ -100,10 +100,28 @@ export interface ClientSession {
 
     // properties
     /** the session Id */
+    timeout: number;
+    authenticationToken?: NodeId;
     sessionId: NodeId;
     subscriptionCount: number;
     isReconnecting: boolean;
     endpoint: EndpointDescription;
+    /**
+     * the time of the latest request sent by the client to the server
+     */
+    lastRequestSentTime: Date;
+    /**
+     * the time of the latest response received by the client
+     */
+    lastResponseReceivedTime: Date;
+    /**
+     * the server certificate as provided by the server
+     */
+    serverCertificate: Certificate;
+    /**
+     * the session name
+     */
+    name: string;
 
     close(callback: ErrorCallback): void;
 
@@ -127,6 +145,14 @@ export interface ClientSession extends EventEmitter {
 
 // browse services
 export interface ClientSession  extends IBasicSession {
+
+    /**
+     * the maximum number of reference that the server should return per browseResult
+     * Continuous points will be return by server to allow retrieving remaining references
+     * with browseNext
+     */
+    requestedMaxReferencesPerNode: number;
+
     browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
 
     browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;

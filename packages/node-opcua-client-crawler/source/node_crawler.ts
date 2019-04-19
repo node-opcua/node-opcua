@@ -8,27 +8,36 @@ import * as _ from "underscore";
 
 import { UAReferenceType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
-import { BrowseDescriptionLike, ReadValueIdOptions, ResponseCallback } from "node-opcua-client";
-import { DataTypeDefinition } from "node-opcua-common";
-import { ReferenceTypeIds, VariableIds } from "node-opcua-constants";
+import {
+    BrowseDescriptionLike,
+    ReadValueIdOptions,
+    ResponseCallback
+} from "node-opcua-client";
+import { 
+    DataTypeDefinition
+ } from "node-opcua-common";
+import { 
+    ReferenceTypeIds, 
+    VariableIds 
+} from "node-opcua-constants";
 import {
     AccessLevelFlag,
     AttributeIds,
-    BrowseDirection,
     coerceLocalizedText,
     LocalizedText,
     makeResultMask,
     NodeClass,
-    QualifiedName
+    QualifiedName,
+    BrowseDirection
 } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import {
+     DataValue 
+    } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { BrowseDescription, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
-
-import { DataType } from "node-opcua-variant";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -166,6 +175,8 @@ function dedup_reference(references: ReferenceDescription[]) {
     const dedup: any = {};
     for (const reference of  references) {
         const key = reference.referenceTypeId.toString() + reference.nodeId.toString();
+
+        /* istanbul ignore next */
         if (dedup[key]) {
             debugLog(" Warning => Duplicated reference found  !!!! please contact the server vendor");
             debugLog(reference.toString());
@@ -325,8 +336,17 @@ function getReferenceTypeId(referenceType: undefined | string | NodeId | UARefer
     if (!referenceType) {
         return null;
     }
+    /* istanbul ignore next */
     if (referenceType.toString() === "i=45" || referenceType === "HasSubtype") {
         return NodeId.resolveNodeId("i=45");
+    } else if (referenceType.toString() === "i=35" || referenceType === "Organizes") {
+        return NodeId.resolveNodeId("i=35");
+    } else  if (referenceType.toString() === "i=47" || referenceType === "HasComponent") {
+        return NodeId.resolveNodeId("i=47");
+    } else  if (referenceType.toString() === "i=46" || referenceType === "HasProperty") {
+        return NodeId.resolveNodeId("i=46");
+    } else {
+        throw new Error("Invalid reference Type" +  referenceType.toString());
     }
     return NodeId.nullNodeId;
 }
@@ -343,15 +363,25 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
       crawler: NodeCrawler,
       cacheNode: CacheNode,
       userData: UserData,
-      referenceType?: string | UAReferenceType
+      referenceType?: string | UAReferenceType,
+      browseDirection?: BrowseDirection
     ) {
+
         const referenceTypeNodeId = getReferenceTypeId(referenceType);
 
         for (const reference of cacheNode.references) {
+
+            if (browseDirection! === BrowseDirection.Forward && !reference.isForward) {
+                continue;
+            }
+            if (browseDirection! === BrowseDirection.Inverse && reference.isForward) {
+                continue;
+            }
+
             if (!referenceTypeNodeId) {
                 crawler.followReference(cacheNode, reference, userData);
             } else {
-                if (NodeId.sameNodeId(referenceTypeNodeId, reference.referenceTypeId)) {
+                if (NodeId.sameNodeId(referenceTypeNodeId, reference.referenceTypeId)) {                   
                     crawler.followReference(cacheNode, reference, userData);
                 }
             }
@@ -399,6 +429,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         this.taskQueue = async.queue((task: Task, callback: Callback) => {
             // use process next tick to relax the stack frame
+
+            /* istanbul ignore next */
             if (doDebug) {
                 debugLog(" executing Task ", task.name); // JSON.stringify(task, null, " "));
             }
@@ -458,6 +490,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         nodeId = resolveNodeId(nodeId) as NodeId;
         assert(_.isFunction(endCallback));
         this._readOperationalLimits((err?: Error) => {
+            /* istanbul ignore next */
             if (err) {
                 return endCallback(err);
             }
@@ -472,13 +505,14 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     public read(nodeId: NodeIdLike, callback: (err: Error | null, obj?: any) => void): void;
     public read(nodeId: NodeIdLike, callback?: (err: Error | null, obj?: any) => void): any {
 
+        /* istanbul ignore next */
         if (!callback) {
             throw new Error("Invalid Error");
         }
 
         try {
             nodeId = resolveNodeId(nodeId);
-        } catch (err) {
+        } /* istanbul ignore next */ catch (err) {
             return callback(err);
         }
 
@@ -496,10 +530,12 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         this.crawl(nodeId, userData, (err) => {
 
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
 
+            /* istanbul ignore else */
             if (this._objectCache.hasOwnProperty(key)) {
 
                 const cacheNode = this._objectCache[key];
@@ -565,6 +601,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                   AttributeIds.BrowseName,
 
                   (err: Error | null, value?: any) => {
+
+                      /* istanbul ignore else */
                       if (err) {
                           return callback(err);
                       }
@@ -579,6 +617,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                   cacheNode.nodeId,
                   AttributeIds.NodeClass,
                   (err: Error | null, value?: any) => {
+                      /* istanbul ignore else */
                       if (err) {
                           return callback(err);
                       }
@@ -593,6 +632,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                   AttributeIds.DisplayName,
 
                   (err: Error | null, value?: any) => {
+                      /* istanbul ignore else */
                       if (err) {
                           return callback(err);
                       }
@@ -618,6 +658,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         assert(_.isObject(this._crawled));
 
         const key = cacheNode.nodeId.toString();
+
+        /* istanbul ignore else */
         if (this._crawled.hasOwnProperty(key)) {
             return;
         }
@@ -791,6 +833,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
             const referenceType = this._objectCache[refIndex];
 
+            /* istanbul ignore else */
             if (!referenceType) {
                 debugLog(chalk.red("Unknown reference type " + refIndex));
                 // debugLog(util.inspect(object, { colors: true, depth: 10 }));
@@ -798,6 +841,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                 // console.log(util.inspect(ref, { colors: true, depth: 10 }));
             }
             const reference = this._objectCache[ref.nodeId.toString()];
+
+            /* istanbul ignore else */
             if (!reference) {
                 debugLog(ref.nodeId.toString(),
                   "bn=", ref.browseName.toString(),
@@ -859,14 +904,18 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         this.session.read(nodesToRead, (err: Error | null, dataValues?: DataValue[]) => {
 
+            /* istanbul ignore else */
             if (err) {
                 return callback(err || undefined);
             }
+
             for (const pair of _.zip(selectedPendingReadTasks, dataValues)) {
                 const readTask: TaskReadNode = pair[0];
                 const dataValue: DataValue = pair[1];
                 assert(dataValue.hasOwnProperty("statusCode"));
                 if (dataValue.statusCode.equals(StatusCodes.Good)) {
+
+                    /* istanbul ignore else */
                     if (dataValue.value === null) {
                         readTask.action(null, dataValue);
                     } else {
@@ -909,6 +958,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         this.session.browse(nodesToBrowse, (err: Error | null, browseResults?: BrowseResult[]) => {
 
+            /* istanbul ignore else */
             if (err) {
                 debugLog("session.browse err:", err);
                 return callback(err || undefined);
@@ -932,6 +982,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
     private _resolve_deferred_browseNext(callback: ErrorCallback): void {
 
+        /* istanbul ignore else */
         if (this.pendingBrowseNextTasks.length === 0) {
             callback();
             return;
@@ -1085,6 +1136,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         //                  +->(hasSubtype) Organizes/OrganizedBy
         //                  +->(hasSubtype) HasEventSource/EventSourceOf
         appendPrepopulatedReference("HasSubtype");
+
+        /* istanbul ignore else */
         if (false) {
             appendPrepopulatedReference("HasTypeDefinition");
             appendPrepopulatedReference("HasChild");
@@ -1107,6 +1160,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         ];
         this.transactionCounter++;
         this.session.read(nodesToRead, (err: Error | null, dataValues?: DataValue[]): void => {
+
+            /* istanbul ignore else */
             if (err) {
                 return callback(err);
             }
@@ -1272,6 +1327,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     ): CacheNode {
         const key = resolveNodeId(nodeId).toString();
         let cacheNode: CacheNode = this._objectCache[key];
+
+        /* istanbul ignore else */
         if (cacheNode) {
             throw new Error("NodeCrawler#_createCacheNode :" +
               " cache node should not exist already : " + nodeId.toString());

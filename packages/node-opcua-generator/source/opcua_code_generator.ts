@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 /**
  * @module node-opcua-generator
  */

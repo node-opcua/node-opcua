@@ -5,7 +5,9 @@
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
+/* istanbul ignore next */
 export function setDeprecated(constructor: Function, methodName: string, helpString: string): void {
+
     const oldMethod = constructor.prototype[methodName];
 
     assert(oldMethod instanceof Function,

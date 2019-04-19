@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 // tslint:disable:no-console
 import * as os from "os";
 

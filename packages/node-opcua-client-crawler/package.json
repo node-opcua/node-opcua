@@ -17,6 +17,7 @@
 		"node-opcua-data-model": "^2.0.0-alpha.22",
 		"node-opcua-data-value": "^2.0.0-alpha.22",
 		"node-opcua-debug": "^2.0.0-alpha.22",
+		"node-opcua-factory": "^2.0.0-alpha.22",
 		"node-opcua-nodeid": "^2.0.0-alpha.22",
 		"node-opcua-service-browse": "^2.0.0-alpha.22",
 		"node-opcua-status-code": "^2.0.0-alpha.22",

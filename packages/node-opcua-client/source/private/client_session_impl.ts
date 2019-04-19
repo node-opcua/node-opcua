@@ -197,6 +197,7 @@ function composeResult(nodes: any[], nodesToRead: ReadValueIdLike[], dataValues:
             }
         }
 
+        /* istanbul ignore if */
         if (addedProperty > 0) {
             data.statusCode = StatusCodes.Good;
         } else {
@@ -214,6 +215,7 @@ function __findBasicDataType(
   callback: (err: Error | null, dataType?: DataType) => void
 ) {
 
+    /* istanbul ignore next */
     if (dataTypeId.identifierType !== NodeIdType.NUMERIC) {
         throw new Error("Invalid NodeId Identifier type => Numeric expected");
     }
@@ -236,15 +238,17 @@ function __findBasicDataType(
 
         session.browse(nodeToBrowse, (err: Error | null, browseResult?: BrowseResult) => {
 
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
 
+            /* istanbul ignore next */
             if (!browseResult) {
                 return callback(new Error("Internal Error"));
             }
 
-            browseResult.references = browseResult.references || [];
+            browseResult.references = browseResult.references || /* istanbul ignore next */ [];
             const baseDataType = browseResult.references[0].nodeId;
             return __findBasicDataType(session, baseDataType, callback);
         });
@@ -268,8 +272,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public lastRequestSentTime: Date;
     public lastResponseReceivedTime: Date;
     public serverCertificate: Certificate;
-    public serverNonce?: Nonce;
     public name = "";
+
+    public serverNonce?: Nonce;
     public serverSignature?: SignatureData; // todo : remove ?
     public serverEndpoints: any[] = [];
     public _client: any;
@@ -422,6 +427,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(err);
             }
 
+            /* istanbul ignore next */
             if (!response || !(response instanceof BrowseResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -445,11 +451,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 }
             }
             for (const r of results) {
-                r.references = r.references || [];
+                r.references = r.references || /* istanbul ignore next */ [];
             }
 
             // detect unsupported case :
             // todo implement proper support for r.continuationPoint
+            /* istanbul ignore next */
             for (const r of results) {
 
                 if (r.continuationPoint !== null) {
@@ -500,10 +507,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
 
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
 
+            /* istanbul ignore next */
             if (!response || !(response instanceof BrowseNextResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -585,14 +594,17 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(err);
             }
 
+            /* istanbul ignore next */
             if (!(response instanceof ReadResponse)) {
                 return callback(new Error("Internal Error"));
             }
 
+            /* istanbul ignore next */
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
+            /* istanbul ignore next */
             if (!response.results) {
                 response.results = [];
             }
@@ -697,9 +709,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         assert(nodes.length === request.nodesToRead.length);
         this.performMessageTransaction(request, (err: Error | null, response) => {
 
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
+
+            /* istanbul ignore next */
             if (!response || !(response instanceof HistoryReadResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -708,7 +723,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || [];
+            response.results = response.results || /* istanbul ignore next */ [];
 
             assert(nodes.length === response.results.length);
 
@@ -843,14 +858,17 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (err) {
                 return callback(err, response);
             }
+
+            /* istanbul ignore next */
             if (!response || !(response instanceof WriteResponse)) {
                 return callback(new Error("Internal Error"));
             }
 
+            /* istanbul ignore next */
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
-            response.results = response.results || [];
+            response.results = response.results ||     /* istanbul ignore next */ [];
             assert(nodesToWrite.length === response.results.length);
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -943,9 +961,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         for (const node of nodes) {
             const nodeId = resolveNodeId(node);
+
+            /* istanbul ignore next */
             if (!nodeId) {
                 throw new Error("cannot coerce " + node + " to a valid NodeId");
             }
+
             for (let attributeId = 1; attributeId <= 22; attributeId++) {
                 nodesToRead.push({
                     attributeId,
@@ -957,9 +978,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         }
 
         this.read(nodesToRead, (err: Error | null, dataValues?: DataValue[]) => {
+
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
+
+            /* istanbul ignore next */
             if (!dataValues) {
                 return callback(new Error("Internal Error"));
             }
@@ -1055,6 +1080,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const callback = args[2];
         assert(_.isFunction(callback));
 
+        /* istanbul ignore next */
         if (helpAPIChange) {
             // the read method deprecation detection and warning
             if (!(getFunctionParameterNames(callback)[1] === "dataValues"
@@ -1090,13 +1116,15 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (err) {
                 return callback(err, response);
             }
+
+            /* istanbul ignore next */
             if (!response || !(response instanceof ReadResponse)) {
                 return callback(new Error("Internal Error"));
             }
 
             // perform ExtensionObject resolution
             promoteOpaqueStructureWithCallback(this, response.results!, () => {
-                response.results = response.results || [];
+                response.results = response.results || /* istanbul ignore next */ [];
                 return callback(null, isArray ? response.results : response.results[0]);
             });
 
@@ -1332,10 +1360,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
               if (err) {
                   return callback(err);
               }
+              /* istanbul ignore next */
               if (!response) {
                   return callback(new Error("Internal Error"));
               }
-              response.results = response.results || [];
+              response.results = response.results ||    /* istanbul ignore next */[];
               callback(err, isArray ? response.results : response.results[0]);
           });
     }
@@ -1377,10 +1406,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (err) {
                 return callback(err, response);
             }
+            /* istanbul ignore next */
             if (!response || !(response instanceof TranslateBrowsePathsToNodeIdsResponse)) {
                 return callback(new Error("Internal Error"));
             }
-            response.results = response.results || [];
+            response.results = response.results || /* istanbul ignore next */[];
 
             callback(null, isArray ? response.results : response.results[0]);
 
@@ -1389,9 +1419,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     }
 
     public isChannelValid(): boolean {
+
+        /* istanbul ignore next */
         if (!this._client) {
             debugLog(chalk.red("Warning SessionClient is null ?"));
         }
+
         return (this._client !== null
           && this._client._secureChannel !== null
           && this._client._secureChannel.isOpened());
@@ -1400,6 +1433,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
 
         assert(_.isFunction(callback));
+
+        /* istanbul ignore next */
         if (!this._client) {
             // session may have been closed by user ... but is still in used !!
             return callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
@@ -1434,10 +1469,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 }
                 return callback(err);
             }
+            /* istanbul ignore next */
             if (!response) {
                 return callback(new Error("internal Error"));
             }
 
+            /* istanbul ignore next */
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
 
                 err = new Error(" ServiceResult is "
@@ -1521,6 +1558,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         assert(_.isFunction(callback));
         assert(_.isBoolean(deleteSubscription));
 
+        /* istanbul ignore next */
         if (!this._client) {
             debugLog("ClientSession#close : warning, client is already closed");
             return callback(); // already close ?
@@ -1578,6 +1616,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (err) {
                 return callback(err);
             }
+
+            /* istanbul ignore next */
             if (!response || !(response instanceof CallResponse)) {
                 return callback(new Error("internal error"));
             }
@@ -1625,10 +1665,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
               if (err) {
                   return callback(err);
               }
+
+              /* istanbul ignore next */
               if (!result) {
                   return callback(new Error("internal error"));
               }
 
+              /* istanbul ignore next */
               if (result.statusCode.isNot(StatusCodes.Good)) {
 
                   callback(new Error(result.statusCode.toString()));
@@ -1645,8 +1688,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
                   // Note some server might return null array
                   // let make sure we have Uint32Array and not a null pointer
-                  data.serverHandles = data.serverHandles || emptyUint32Array;
-                  data.clientHandles = data.clientHandles || emptyUint32Array;
+                  data.serverHandles = data.serverHandles || /* istanbul ignore next */ emptyUint32Array;
+                  data.clientHandles = data.clientHandles || /* istanbul ignore next */ emptyUint32Array;
 
                   assert(data.serverHandles instanceof Uint32Array);
                   assert(data.clientHandles instanceof Uint32Array);
@@ -1700,11 +1743,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (err) {
                 return callback(err);
             }
+            /* istanbul ignore next */
             if (!response || !(response instanceof RegisterNodesResponse)) {
                 return callback(new Error("Internal Error"));
             }
 
-            response.registeredNodeIds = response.registeredNodeIds || [];
+            response.registeredNodeIds = response.registeredNodeIds || /* istanbul ignore next */ [];
 
             callback(null, response.registeredNodeIds);
         });
@@ -1730,22 +1774,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (err) {
                 return callback(err);
             }
+            /* istanbul ignore next */
             if (!response || !(response instanceof UnregisterNodesResponse)) {
                 return callback(new Error("Internal Error"));
             }
             callback();
         });
     }
-
-    /**
-     * @method queryFirst
-     * @param queryFirstRequest {queryFirstRequest}
-     * @param callback {Function}
-     * @param callback.err {Error|null}
-     * @param callback.response {queryFirstResponse}
-     *
-     */
-
+    
     public async queryFirst(
       queryFirstRequest: QueryFirstRequestLike
     ): Promise<QueryFirstResponse>;
@@ -1767,6 +1803,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (err) {
                 return callback(err);
             }
+            /* istanbul ignore next */
             if (!response || !(response instanceof QueryFirstResponse)) {
                 return callback(new Error("internal error"));
             }
@@ -1843,9 +1880,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (err) {
                 return callback(err);
             }
+            /* istanbul ignore next */
             if (!dataValue) {
                 return callback(new Error("Internal Error"));
             }
+            /* istanbul ignore next */
             if (dataValue.statusCode.isNot(StatusCodes.Good)) {
                 return callback(new Error("cannot read DataType Attribute " + dataValue.statusCode.toString()));
             }
@@ -1863,12 +1902,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         }
     }
 
-    /**
-     *
-     * @param callback                [Function}
-     * @param callback.err            {null|Error}
-     * @param callback.namespaceArray {Array<String>}
-     */
     public async readNamespaceArray(): Promise<string[]>;
     public readNamespaceArray(callback: (err: Error | null, namespaceArray?: string[]) => void): void;
     public readNamespaceArray(...args: any[]): any {
@@ -1879,12 +1912,17 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             attributeId: AttributeIds.Value,
             nodeId: resolveNodeId("Server_NamespaceArray")
         }, (err: Error | null, dataValue?: DataValue) => {
+
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
+            /* istanbul ignore next */
             if (!dataValue) {
                 return callback(new Error("Internal Error"));
             }
+
+            /* istanbul ignore next */
             if (dataValue.statusCode !== StatusCodes.Good) {
                 return callback(new Error("readNamespaceArray : " + dataValue.statusCode.toString()));
             }
@@ -1958,6 +1996,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             request.trace = new Error("").stack;
         }
 
+        /* istanbul ignore next */
         if (this._closeEventHasBeenEmitted) {
             debugLog("ClientSession#_defaultRequest => session has been closed !!", request.toString());
             setImmediate(() => {
@@ -1979,6 +2018,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                     // probably due to timeout issue
                     // let's print some statistics
                     const now = Date.now();
+
+                    /* istanbul ignore next */
                     if (doDebug) {
                         debugLog(chalk.bgWhite.red(" server send BadSessionClosed !"));
                         debugLog(chalk.bgWhite.red(" request was               "), request.toString());

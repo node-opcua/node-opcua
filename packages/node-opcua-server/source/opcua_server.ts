@@ -560,6 +560,7 @@ function _installRegisterServerManager(self: OPCUAServer) {
     assert(self instanceof OPCUAServer);
     assert(!self.registerServerManager);
 
+    /* istanbul ignore next */
     if (!self.registerServerMethod) {
         throw new Error("Internal Error");
     }
@@ -581,6 +582,7 @@ function _installRegisterServerManager(self: OPCUAServer) {
                 server: self
             });
             break;
+        /* istanbul ignore next */
         default:
             throw new Error("Invalid switch");
     }
@@ -1182,6 +1184,7 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(_.isFunction(callback));
         debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
 
+        /* istanbul ignore next */
         if (!this.engine) {
             return callback();
         }
@@ -1233,6 +1236,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
     public raiseEvent(eventType: any, options: any): void {
 
+        /* istanbul ignore next */
         if (!this.engine.addressSpace) {
             console.log("addressSpace missing");
             return;
@@ -1240,6 +1244,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         const server = this.engine.addressSpace.findNode("Server") as UAObject;
 
+        /* istanbul ignore next */
         if (!server) {
             // xx throw new Error("OPCUAServer#raiseEvent : cannot find Server object");
             return;
@@ -1250,6 +1255,7 @@ export class OPCUAServer extends OPCUABaseServer {
             eventTypeNode = this.engine.addressSpace.findEventType(eventType);
         }
 
+        /* istanbul ignore else */
         if (eventTypeNode) {
             return server.raiseEvent(eventTypeNode, options);
         } else {
@@ -1353,10 +1359,13 @@ export class OPCUAServer extends OPCUABaseServer {
             return callback(null, StatusCodes.Good);
         }
         const cryptoFactory = getCryptoFactory(securityPolicy);
+
+        /* istanbul ignore next */
         if (!cryptoFactory) {
             return callback(null, StatusCodes.BadSecurityPolicyRejected);
         }
 
+        /* istanbul ignore next */
         if (userIdentityToken.encryptionAlgorithm !== cryptoFactory.asymmetricEncryptionAlgorithm) {
             console.log("invalid encryptionAlgorithm");
             console.log("userTokenPolicy", userTokenPolicy.toString());
@@ -1416,6 +1425,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         // verify if certificate is Valid
         this.userCertificateManager!.checkCertificate(certificate, (err, certificateStatus) => {
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
@@ -1463,6 +1473,7 @@ export class OPCUAServer extends OPCUABaseServer {
             assert(serverNonce instanceof Buffer);
 
             const cryptoFactory = getCryptoFactory(securityPolicy);
+            /* istanbul ignore next */
             if (!cryptoFactory) {
                 return callback(new Error(" Unsupported security Policy"));
             }
@@ -1491,6 +1502,7 @@ export class OPCUAServer extends OPCUABaseServer {
     ): void {
 
         assert(callback instanceof Function);
+        /* istanbul ignore next */
         if (!userIdentityToken) {
             throw new Error("Invalid token");
         }
@@ -1986,6 +1998,7 @@ export class OPCUAServer extends OPCUABaseServer {
           (err: Error | null, statusCode?: StatusCode) => {
 
               if (statusCode !== StatusCodes.Good) {
+                  /* istanbul ignore next */
                   if (!(statusCode && statusCode instanceof StatusCode)) {
                       const a = 23;
                   }
@@ -1998,6 +2011,7 @@ export class OPCUAServer extends OPCUABaseServer {
               server.isUserAuthorized(channel, session, request.userIdentityToken,
                 (err1: Error | null, authorized?: boolean) => {
 
+                    /* istanbul ignore next */
                     if (err1) {
                         return rejectConnection(StatusCodes.BadInternalError);
                     }
@@ -2281,6 +2295,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         this._apply_on_SubscriptionIds(ResponseClass, message, channel,
           (session: ServerSession, subscriptionId: number) => {
+              /* istanbul ignore next */
               if (subscriptionId <= 0) {
                   return StatusCodes.BadSubscriptionIdInvalid;
               }
@@ -2382,7 +2397,7 @@ export class OPCUAServer extends OPCUABaseServer {
                   }
               }
 
-              // limit results to requestedMaxReferencesPerNode
+              // limit results to requestedMaxReferencesPerNode further so it never exceed a too big number
               const requestedMaxReferencesPerNode = Math.min(9876, request.requestedMaxReferencesPerNode);
 
               let results: BrowseResult[] = [];
@@ -2814,6 +2829,8 @@ export class OPCUAServer extends OPCUABaseServer {
               if (!request.itemsToModify || request.itemsToModify.length === 0) {
                   return sendError(StatusCodes.BadNothingToDo);
               }
+
+              /* istanbul ignore next */
               if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
                   if (request.itemsToModify.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
                       return sendError(StatusCodes.BadTooManyOperations);
@@ -2881,9 +2898,12 @@ export class OPCUAServer extends OPCUABaseServer {
         this._apply_on_Subscription(DeleteMonitoredItemsResponse, message, channel,
           (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
 
+              /* istanbul ignore next */
               if (!request.monitoredItemIds || request.monitoredItemIds.length === 0) {
                   return sendError(StatusCodes.BadNothingToDo);
               }
+
+              /* istanbul ignore next */
               if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
                   if (request.monitoredItemIds.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
                       return sendError(StatusCodes.BadTooManyOperations);
@@ -2942,9 +2962,12 @@ export class OPCUAServer extends OPCUABaseServer {
         this._apply_on_Subscription(SetMonitoringModeResponse, message, channel,
           (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
 
+              /* istanbul ignore next */
               if (!request.monitoredItemIds || request.monitoredItemIds.length === 0) {
                   return sendError(StatusCodes.BadNothingToDo);
               }
+
+              /* istanbul ignore next */
               if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
                   if (request.monitoredItemIds.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
                       return sendError(StatusCodes.BadTooManyOperations);
@@ -3039,6 +3062,8 @@ export class OPCUAServer extends OPCUABaseServer {
 
               async.map(request.methodsToCall, callMethodHelper.bind(null, server, session, addressSpace),
                 (err?: Error | null, results?: Array<CallMethodResultOptions | undefined>) => {
+
+                    /* istanbul ignore next */
                     if (err) {
                         console.log("ERROR in method Call !! ", err);
                     }
@@ -3118,6 +3143,7 @@ export class OPCUAServer extends OPCUABaseServer {
           });
     }
 
+    /* istanbul ignore next */
     protected _on_Cancel(message: Message, channel: ServerSecureChannelLayer) {
         return g_sendError(channel, message, CancelResponse, StatusCodes.BadNotImplemented);
     }
@@ -3126,31 +3152,38 @@ export class OPCUAServer extends OPCUABaseServer {
     // This Service Set defines Services to add and delete AddressSpace Nodes and References between them. All added
     // Nodes continue to exist in the AddressSpace even if the Client that created them disconnects from the Server.
     //
+    /* istanbul ignore next */
     protected _on_AddNodes(message: Message, channel: ServerSecureChannelLayer) {
         return g_sendError(channel, message, AddNodesResponse, StatusCodes.BadNotImplemented);
     }
 
+    /* istanbul ignore next */
     protected _on_AddReferences(message: Message, channel: ServerSecureChannelLayer) {
         return g_sendError(channel, message, AddReferencesResponse, StatusCodes.BadNotImplemented);
     }
 
+    /* istanbul ignore next */
     protected _on_DeleteNodes(message: Message, channel: ServerSecureChannelLayer) {
         return g_sendError(channel, message, DeleteNodesResponse, StatusCodes.BadNotImplemented);
     }
 
+    /* istanbul ignore next */
     protected _on_DeleteReferences(message: Message, channel: ServerSecureChannelLayer) {
         return g_sendError(channel, message, DeleteReferencesResponse, StatusCodes.BadNotImplemented);
     }
 
     // Query Service
+    /* istanbul ignore next */
     protected _on_QueryFirst(message: Message, channel: ServerSecureChannelLayer) {
         return g_sendError(channel, message, QueryFirstResponse, StatusCodes.BadNotImplemented);
     }
 
+    /* istanbul ignore next */
     protected _on_QueryNext(message: Message, channel: ServerSecureChannelLayer) {
         return g_sendError(channel, message, QueryNextResponse, StatusCodes.BadNotImplemented);
     }
 
+    /* istanbul ignore next */
     protected _on_HistoryUpdate(message: Message, channel: ServerSecureChannelLayer) {
         return g_sendError(channel, message, HistoryUpdateResponse, StatusCodes.BadNotImplemented);
     }

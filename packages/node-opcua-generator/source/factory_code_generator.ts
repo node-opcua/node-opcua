@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 /**
  * @module node-opcua-generator
  */
@@ -716,7 +717,8 @@ export function produce_tscript_code(
     write("/**");
     write(" * @module node-opcua-address-space.types");
     write(" */");
-    write("import assert from \"node-opcua-assert\";");
+    write("/* istanbul ignore file */\n");
+    write("import { assert } from \"node-opcua-assert\";");
     write("import * as util from \"util\";");
     write("import * as _ from \"underscore\";");
     write("import { makeNodeId, makeExpandedNodeId } from \"node-opcua-nodeid\";");

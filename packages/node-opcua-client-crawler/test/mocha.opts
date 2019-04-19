@@ -1,4 +1,4 @@
---recursive
---bail
---require ../../node_modules/source-map-support/register
---timeout 20000
+-r ../../node_modules/source-map-support/register
+-r ../../node_modules/ts-node/register
+-r ../../node_modules/should
+test/*.js test/*.ts
