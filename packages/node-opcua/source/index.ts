@@ -10,6 +10,8 @@ import chalk from "chalk";
 
 const semver = require("semver");
 const minimumNodeVersionRequired = ">=8.0.0"; // minimum
+
+// istanbul ignore next
 if (!semver.satisfies(process.version, minimumNodeVersionRequired)) {
     console.log(
       chalk.cyan(`warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${

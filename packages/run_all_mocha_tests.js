@@ -1,4 +1,9 @@
+#!node
 "use strict";
+
+const Mocha = require("mocha");
+const fs = require("fs");
+const path = require("path");
 
 require("source-map-support").install();
 require("ts-node").register({
@@ -6,10 +11,6 @@ require("ts-node").register({
 });
 
 Error.stackTraceLimit = Infinity;
-
-const Mocha = require("mocha");
-const fs = require("fs");
-const path = require("path");
 
 require("mocha-clean");
 

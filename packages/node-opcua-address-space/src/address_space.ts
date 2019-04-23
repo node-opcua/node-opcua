@@ -91,6 +91,8 @@ function _extract_namespace_and_browse_name_as_string(
     } else if (typeof browseName === "number") {
         result = [addressSpace.getDefaultNamespace(), DataType[browseName]];
     }
+    
+    /* istanbul ignore next */
     if (!result || !result[0]) {
         throw new Error(` Cannot find namespace associated with ${browseName} ${namespaceIndex}`);
     }
@@ -195,6 +197,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @return  address space own namespace
      */
     public getOwnNamespace(): NamespacePrivate {
+        /* istanbul ignore next */
         if (this._private_namespaceIndex >= this._namespaceArray.length) {
             throw new Error("please create the private namespace");
         }
@@ -423,14 +426,16 @@ export class AddressSpace implements AddressSpacePrivate {
         if (dataTypeNode instanceof NodeId) {
             const _orig_dataTypeNode = dataTypeNode;
             dataTypeNode = this.findDataType(dataTypeNode)!;
+            /* istanbul ignore next */
             if (!dataTypeNode) {
                 throw Error("cannot find dataTypeNode " + _orig_dataTypeNode.toString());
             }
         }
+        /* istanbul ignore next */
         if (!(dataTypeNode instanceof UADataType)) {
             throw new Error("Expecting a UADataType");
         }
-
+        /* istanbul ignore next */
         if (typeof dataTypeNode!.nodeId!.value !== "number") {
             throw new Error("Internal Errror");
         }
@@ -496,7 +501,7 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         if (refType instanceof NodeId) {
             node = this.findNode(refType) as UAReferenceType;
-            // istanbul ignore next
+            /* istanbul ignore next */
             if (!(node && (node.nodeClass === NodeClass.ReferenceType))) {
                 // throw new Error("cannot resolve referenceId "+ refType.toString());
                 return null;
@@ -570,6 +575,8 @@ export class AddressSpace implements AddressSpacePrivate {
         }
 
         const baseEventType = this.findObjectType("BaseEventType");
+
+        /* istanbul ignore next */
         if (!baseEventType) {
             throw new Error("expecting BaseEventType - please check you nodeset xml file!");
         }
@@ -691,6 +698,7 @@ export class AddressSpace implements AddressSpacePrivate {
         // xx assert(eventTypeNode.isAbstract);
 
         const baseObjectType = addressSpace.findObjectType("BaseObjectType"); // i=58
+        /* istanbul ignore next */
         if (!baseObjectType) {
             throw new Error("BaseObjectType must be defined in the address space");
         }
@@ -739,6 +747,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 if (k === "$eventDataSource") {
                     return;
                 }
+                /* istanbul ignore next */
                 if (!visitedProperties.hasOwnProperty(k)) {
                     throw new Error(" cannot find property '" + k + "' in [ "
                       + Object.keys(visitedProperties).join(", ") + "] when filling " +
@@ -757,14 +766,14 @@ export class AddressSpace implements AddressSpacePrivate {
             }
 
             const baseTypeNodeId = self.subtypeOf;
-            // istanbul ignore next
+            /* istanbul ignore next */
             if (!baseTypeNodeId) {
                 throw new Error("Object " + self.browseName.toString() +
                   " with nodeId " + self.nodeId + " has no Type");
             }
 
             const baseType = addressSpace.findNode(baseTypeNodeId);
-            // istanbul ignore next
+            /* istanbul ignore next */
             if (!baseType) {
                 throw new Error(chalk.red("Cannot find object with nodeId ") + baseTypeNodeId);
             }
@@ -957,14 +966,16 @@ export class AddressSpace implements AddressSpacePrivate {
 
         if (dataType instanceof NodeId) {
             const tmp = this.findNode(dataType);
+            
+            /* istanbul ignore next */
             if (!tmp) {
                 throw new Error("getExtensionObjectConstructor: cannot resolve dataType " + dataType);
             }
             dataType = tmp as UADataType;
         }
+        /* istanbul ignore next */
         if (!(dataType instanceof UADataType)) {
             // may be dataType was the NodeId of the "Binary Encoding" node
-
             throw new Error("getExtensionObjectConstructor: dataType has unexpected type" + dataType);
         }
         prepareDataType(dataType);
@@ -1002,6 +1013,7 @@ export class AddressSpace implements AddressSpacePrivate {
     public dispose() {
         this._namespaceArray.map((namespace: NamespacePrivate) => namespace.dispose());
         AddressSpace.registry.unregister(this);
+        /* istanbul ignore next */
         if (this._shutdownTask && this._shutdownTask.length > 0) {
             throw new Error("AddressSpace#dispose : shutdown has not been called");
         }
@@ -1049,9 +1061,7 @@ export class AddressSpace implements AddressSpacePrivate {
         browseDescription.browseDirection =
           adjustBrowseDirection(browseDescription.browseDirection, BrowseDirection.Forward);
 
-        // xx console.log(util.inspect(browseDescription,{colors:true,depth:5}));
-        // browseDescription = browseDescription || {};
-
+        /* istanbul ignore next */
         if (typeof nodeId === "number") {
             throw new Error("Not Implemented");
         }
@@ -1106,7 +1116,7 @@ export class AddressSpace implements AddressSpacePrivate {
     public _coerceFolder(folder: UAObject): BaseNode | null {
 
         folder = this._coerceNode(folder) as UAObject;
-        // istanbul ignore next
+        /* istanbul ignore next */
         if (folder && !_isFolder(this, folder)) {
             throw new Error("Parent folder must be of FolderType " + folder.typeDefinition.toString());
         }
@@ -1303,7 +1313,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 _nodeId = (_nodeId as any).nodeId as NodeId;
             }
             _nodeId = resolveNodeId(_nodeId);
-            // istanbul ignore next
+            /* istanbul ignore next */
             if (!(_nodeId instanceof NodeId) || _nodeId.isEmpty()) {
                 // tslint:disable:no-console
                 console.log("xx =>", JSON.stringify(params, null, " "));
@@ -1411,7 +1421,7 @@ export class AddressSpace implements AddressSpacePrivate {
         assert(typeof topMostBaseType === "string");
         const topMostBaseTypeNode = this.findNode(topMostBaseType) as T;
 
-        // istanbul ignore next
+        /* istanbul ignore next */
         if (!topMostBaseTypeNode) {
             throw new Error("Cannot find topMostBaseTypeNode " + topMostBaseType.toString());
         }
@@ -1434,12 +1444,13 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!baseTypeNode) {
             throw new Error("Cannot find ObjectType or VariableType for " + baseType.toString());
         }
+        /* istanbul ignore next */
         if (!(baseTypeNode as any).isSupertypeOf) {
             throw new Error("Cannot find ObjectType or VariableType for " + baseType.toString());
         }
+        /* istanbul ignore next */
         if (!(baseTypeNode as any).isSupertypeOf(topMostBaseTypeNode)) {
             throw new Error("wrong type ");
-
         }
         return baseTypeNode;
     }
@@ -1492,6 +1503,7 @@ export class AddressSpace implements AddressSpacePrivate {
         } else {
             nodeId = resolveNodeId(dataType);
         }
+        /* istanbul ignore next */
         if (nodeId == null || !(nodeId instanceof NodeId)) {
             throw new Error("Expecting valid nodeId ");
         }
@@ -1525,6 +1537,7 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     private _build_new_NodeId(): NodeId {
+        /* istanbul ignore next */
         if (this._namespaceArray.length <= 1) {
             throw new Error("Please create a private namespace");
         }
