@@ -134,11 +134,13 @@ export class Variant extends BaseUAObject {
 
         if ( options.dataType === DataType.ExtensionObject) {
             if (this.arrayType === VariantArrayType.Scalar) {
+                /* istanbul ignore next */
                 if (this.value && !(this.value instanceof ExtensionObject)) {
                     throw new Error("A variant with DataType.ExtensionObject must have a ExtensionObject value");
                 }
             } else {
                 for (const e of this.value) {
+                    /* istanbul ignore next */
                     if (e && !(e instanceof ExtensionObject)) {
                         throw new Error("A variant with DataType.ExtensionObject must have a ExtensionObject value");
                     }
@@ -362,6 +364,7 @@ function internalDecodeVariant(self: Variant, stream: BinaryStream) {
     if (hasDimension) {
         self.dimensions = decodeDimension(stream);
         const verification = calculate_product(self.dimensions);
+        /* istanbul ignore next */
         if (verification !== self.value.length) {
             throw new Error("BadDecodingError");
         }
@@ -415,11 +418,12 @@ function constructHook(options: any): any {
     if (typeof options.dataType === "string") {
 
         const d = findBuiltInType(options.dataType);
+        /* istanbul ignore next */
         if (!d) {
             throw new Error("Cannot find data type buildIn");
         }
         const t = _enumerationDataType.get(d.name);
-        // istanbul ignore next
+        /* istanbul ignore next */
         if (t === null) {
             throw new Error("DataType: invalid " + options.dataType);
         }
@@ -430,7 +434,7 @@ function constructHook(options: any): any {
     if (typeof options.arrayType === "string") {
 
         const at  = VariantArrayType[options.arrayType];
-        // istanbul ignore next
+        /* istanbul ignore next */
         if (utils.isNullOrUndefined(at)) {
             throw new Error("ArrayType: invalid " + options.arrayType);
         }
@@ -439,6 +443,8 @@ function constructHook(options: any): any {
 
     if (isArrayTypeUnspecified && _.isArray(options.value)) {
         // when using UInt64 ou Int64 arrayType must be specified , as automatic detection cannot be made
+
+        /* istanbul ignore next */
         if ((options.dataType === DataType.UInt64 || options.dataType === DataType.Int64)) {
             // we do nothing here ....
             throw new Error("Variant#constructor : when using UInt64 ou Int64" +
@@ -464,9 +470,11 @@ function constructHook(options: any): any {
 
             options.value = coerceVariantArray(options.dataType, options.value);
 
+            /* istanbul ignore next */
             if (!options.dimensions) {
                 throw new Error("Matrix Variant : missing dimensions");
             }
+            /* istanbul ignore next */
             if (options.value.length !== calculate_product(options.dimensions)) {
                 throw new Error("Matrix Variant : invalid value size");
             }
@@ -491,6 +499,8 @@ function constructHook(options: any): any {
 }
 
 function calculate_product(array: number[] | null): number {
+
+    /* istanbul ignore next */
     if (!array) {
         return 0;
     }
@@ -635,6 +645,8 @@ function encodeVariantArray(dataType: DataType, stream: OutputBinaryStream, valu
 function decodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream: BinaryStream) {
 
     const length = decodeUInt32(stream);
+
+    /* istanbul ignore next */
     if (length === 0xFFFFFFFF) {
         return null;
     }
@@ -649,6 +661,7 @@ function decodeGeneralArray(dataType: DataType, stream: BinaryStream) {
 
     const length = decodeUInt32(stream);
 
+    /* istanbul ignore next */
     if (length === 0xFFFFFFFF) {
         return null;
     }
@@ -664,7 +677,7 @@ function decodeGeneralArray(dataType: DataType, stream: BinaryStream) {
 
 function decodeVariantArray(dataType: DataType, stream: BinaryStream) {
     const helper = _getHelper(dataType);
-    if (helper) {
+        if (helper) {
         return helper.decode(stream);
     } else {
         return decodeGeneralArray(dataType, stream);

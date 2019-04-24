@@ -23,6 +23,7 @@ export class ExtraDataTypeManager {
     }
 
     public registerTypeDictionary(nodeId: NodeId, typeDictionary: TypeDictionary) {
+        /* istanbul ignore next */
         if (this.hasDataTypeDictionary(nodeId)) {
             throw new Error("Dictionary already registered");
         }

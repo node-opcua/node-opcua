@@ -43,6 +43,8 @@ const extraDataTypeManager = new ExtraDataTypeManager();
 async function extractSchema(session: IBasicSession, nodeId: NodeId): Promise<TypeDictionary> {
     const rawSchemaDataValue = await session.read({ nodeId, attributeId: AttributeIds.Value });
     const rawSchema = rawSchemaDataValue.value.value.toString();
+
+    /* istanbul ignore next */
     if (doDebug) {
         debugLog("---------------------------------------------");
         debugLog(rawSchema.toString());
@@ -69,6 +71,8 @@ export async function exploreDataTypeDefinition(
     };
     const result = await session.browse(nodeToBrowse);
     const references = result.references || [];
+
+    /* istanbul ignore next */
     if (references.length === 0) {
         return;
     }
@@ -88,6 +92,8 @@ export async function exploreDataTypeDefinition(
 
     const binaryEncodingNodeIds = results2.map((br: BrowseResult) => {
         const defaultBin =  br.references!.filter((r: ReferenceDescription) => r.browseName.toString() === "Default Binary");
+
+        /* istanbul ignore next */
         if (defaultBin.length < 1) {
             return ExpandedNodeId;
         }
@@ -100,6 +106,7 @@ export async function exploreDataTypeDefinition(
         const name = ref.browseName!.name!.toString();
         const constructor = getOrCreateConstructor(name, typeDictionary, defaultBinary);
 
+        /* istanbul ignore next */
         if (doDebug) {
             try {
                 const testObject = new constructor();
@@ -121,6 +128,7 @@ export async function extractNamespaceDataType(
         attributeId: AttributeIds.Value,
         nodeId: resolveNodeId("Server_NamespaceArray")
     });
+
     if (dataValueNamespaceArray.statusCode === StatusCodes.Good) {
         dataTypeManager.setNamespaceArray(dataValueNamespaceArray.value.value as string[]);
     }
@@ -142,6 +150,7 @@ export async function extractNamespaceDataType(
     const references = result.references!.filter(
       (e: ReferenceDescription) => e.nodeId.namespace !== 0);
 
+    /* istanbul ignore next */
     if (references.length === 0) {
         return;
     }
