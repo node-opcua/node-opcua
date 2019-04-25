@@ -1397,6 +1397,37 @@ export interface UAServerDiagnostics extends UAObject {
 
 export interface UAFileType extends UAObject {
 
+    // properties
+    /**
+     * Size defines the size of the file in Bytes.
+     * When a file is opened for write the size might not be accurate.
+     */
+    size: UAVariableT<UInt64>;
+    /**
+     * Writable indicates whether the file is writable. It does not take any user
+     * access rights intoaccount, i.e. although the file is writable this may be
+     * restricted to a certain user / user group.
+     * The Property does not take into account whether the file is currently
+     * opened for writing by another client and thus currently locked and not
+     * writable by others.
+     */
+    writable: UAVariableT<UABoolean>;
+    /**
+     * UserWritable indicates whether the file is writable taking user access rights into account. The
+     * Property does not take into account whether the file is currently opened for writing by another
+     * client and thus currently locked and not writable by others.
+     */
+    userWritable: UAVariableT<UABoolean>;
+
+    /**
+     * OpenCount indicates the number of currently valid file handles on the file.
+     */
+    openCount: UAVariableT<UInt16>;
+    /**
+     * The optional Property MimeType contains the media type of the file based on RFC 2046.
+     */
+    mimeType: UAVariableT<UAString>;
+
     // methods
     open: UAMethod;
     close: UAMethod;
@@ -1404,13 +1435,6 @@ export interface UAFileType extends UAObject {
     write: UAMethod;
     getPosition: UAMethod;
     setPosition: UAMethod;
-
-    // properties
-    openCount: UAVariableT<UInt16>;
-    size: UAVariableT<UInt64>;
-    userWritable: UAVariableT<UABoolean>;
-    writable: UAVariableT<UABoolean>;
-    mimeType: UAVariableT<UAString>;
 
 }
 export interface UAAddressSpaceFileType extends UAFileType {

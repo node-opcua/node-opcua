@@ -19,6 +19,7 @@
   "node-opcua-service-call": "^2.0.0-alpha.23",
   "node-opcua-service-read": "^2.0.0-alpha.23",
   "node-opcua-status-code": "^2.0.0-alpha.22",
+  "node-opcua-service-translate-browse-path": "^2.0.0-alpha.23",
   "node-opcua-utils": "^2.0.0-alpha.23",
   "node-opcua-variant": "^2.0.0-alpha.23",
   "underscore": "^1.9.1"

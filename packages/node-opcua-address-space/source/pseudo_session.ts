@@ -28,6 +28,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { AddressSpace } from "./address_space_ts";
 import { callMethodHelper } from "./helpers/call_helpers";
 import { IServerBase, ISessionBase, SessionContext } from "./session_context";
+import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 
 /**
  * Pseudo session is an helper object that exposes the same async methods
@@ -50,7 +51,7 @@ export class PseudoSession implements IBasicSession {
 
     constructor(addressSpace: AddressSpace, server?: IServerBase, session?: ISessionBase) {
         this.addressSpace = addressSpace;
-        this.server =  server || {};
+        this.server = server || {};
         this.session = session || {};
     }
 
@@ -191,6 +192,25 @@ export class PseudoSession implements IBasicSession {
         return getArgumentDefinitionHelper(this, methodId, callback!);
     }
 
+    public translateBrowsePath(browsePaths: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
+    public translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
+    public translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
+    public translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
+    public translateBrowsePath(
+      browsePaths: BrowsePath[] | BrowsePath,
+      callback?: any
+    ): any {
+
+        const isArray = _.isArray(browsePaths);
+        if (!isArray) {
+            browsePaths = [browsePaths as BrowsePath];
+        }
+        // xx const context = new SessionContext({ session: null });
+        const browsePathResults = (browsePaths as BrowsePath[]).map((browsePath: BrowsePath) => {
+            return this.addressSpace.browsePath(browsePath);
+        });
+        callback!(null, isArray ? browsePathResults : browsePathResults[0]);
+    }
 }
 
 // tslint:disable:no-var-requires
@@ -201,3 +221,4 @@ PseudoSession.prototype.browse = thenify.withCallback(PseudoSession.prototype.br
 PseudoSession.prototype.browseNext = thenify.withCallback(PseudoSession.prototype.browseNext);
 PseudoSession.prototype.getArgumentDefinition = thenify.withCallback(PseudoSession.prototype.getArgumentDefinition);
 PseudoSession.prototype.call = thenify.withCallback(PseudoSession.prototype.call);
+PseudoSession.prototype.translateBrowsePath = thenify.withCallback(PseudoSession.prototype.translateBrowsePath);

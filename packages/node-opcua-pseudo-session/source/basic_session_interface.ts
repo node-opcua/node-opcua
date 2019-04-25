@@ -1,7 +1,11 @@
 /**
  * @module node-opcua-pseudo-session
  */
-import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
+import {
+    AttributeIds,
+    BrowseDirection,
+    makeResultMask
+} from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import {
@@ -20,6 +24,10 @@ import {
     ReadValueId,
     ReadValueIdOptions
 } from "node-opcua-service-read";
+import {
+    BrowsePath,
+    BrowsePathResult
+} from "node-opcua-service-translate-browse-path";
 import { Variant } from "node-opcua-variant";
 
 export type BrowseDescriptionLike = string | BrowseDescriptionOptions | BrowseDescription;
@@ -114,6 +122,17 @@ export interface IBasicSession {
 
     getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
 
+}
+
+export interface IBasicSession {
+
+    translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
+
+    translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
+
+    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
+
+    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
 }
 
 export function getArgumentDefinitionHelper(
