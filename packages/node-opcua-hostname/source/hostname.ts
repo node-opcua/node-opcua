@@ -2,8 +2,6 @@
  * @module node-opcua-hostname
  */
 import * as os from "os";
-// tslint:disable:no-var-requires
-const fqdn1 = require("node-fqdn");
 
 function trim(str: string, length?: number): string {
     if (!length) {
@@ -29,6 +27,9 @@ export function get_fully_qualified_domain_name(optionalMaxLength?: number): str
     } else {
 
         try {
+            // please make sure require is made here, instead at top level
+            // tslint:disable:no-var-requires
+            const fqdn1 = require("node-fqdn");
             _fullyQualifiedDomainNameInCache = fqdn1();
             if (/sethostname/.test(_fullyQualifiedDomainNameInCache)) {
                 throw new Error("Detecting fqdn  on windows !!!");
@@ -38,7 +39,6 @@ export function get_fully_qualified_domain_name(optionalMaxLength?: number): str
             // fall back to old method
             _fullyQualifiedDomainNameInCache = os.hostname();
         }
-
     }
     return trim(_fullyQualifiedDomainNameInCache, optionalMaxLength);
 }
