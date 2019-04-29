@@ -32,7 +32,6 @@ const DataType = opcua.DataType;
 
 const makeApplicationUrn = opcua.makeApplicationUrn;
 const standard_nodeset_file = opcua.nodesets.standard_nodeset_file;
-const get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
 
 const port = parseInt(argv.port) || 26543;
 
@@ -71,7 +70,7 @@ const server_options ={
     ],
 
     serverInfo: {
-        applicationUri : makeApplicationUrn(get_fully_qualified_domain_name(),"NodeOPCUA-Server"),
+        applicationUri : makeApplicationUrn("%FQDN%","NodeOPCUA-Server"),
         productUri:      "NodeOPCUA-SimpleADIDemoServer",
         applicationName: {text: "applicationName"},
         gatewayServerUri: null,

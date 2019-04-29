@@ -9,6 +9,9 @@ import chalk from "chalk";
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 import * as _ from "underscore";
+import { callbackify } from "util";
+
+import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
 
 import { assert } from "node-opcua-assert";
 import * as utils from "node-opcua-utils";
@@ -978,8 +981,9 @@ export class OPCUAServer extends OPCUABaseServer {
 
         // to check => this.serverInfo.applicationName = this.serverInfo.productName || buildInfo.productName;
 
+        // note: applicationUri is handled in a special way
         this.engine = new ServerEngine({
-            applicationUri: this.serverInfo.applicationUri!,
+            applicationUri: () => this.serverInfo.applicationUri!,
             buildInfo,
             isAuditing: options.isAuditing,
             serverCapabilities: options.serverCapabilities
@@ -1124,6 +1128,9 @@ export class OPCUAServer extends OPCUABaseServer {
         const done = args[0] as () => void;
         const self = this;
         const tasks: any[] = [];
+
+        tasks.push(callbackify(extractFullyQualifiedDomainName));
+
         if (!self.initialized) {
             tasks.push((callback: (err?: Error) => void) => {
                 self.initialize(callback);
@@ -2509,7 +2516,6 @@ export class OPCUAServer extends OPCUABaseServer {
               }
 
               assert(request.nodesToRead[0].schema.name === "ReadValueId");
-              assert(!!request.timestampsToReturn);
 
               // limit size of nodesToRead array to maxNodesPerRead
               if (server.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {

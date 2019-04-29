@@ -3,7 +3,6 @@ import chalk from "chalk";
 import * as path from "path";
 
 import {
-    get_fully_qualified_domain_name,
     makeApplicationUrn,
     mini_nodeset_filename,
     nodesets,
@@ -40,7 +39,7 @@ const server_options = {
     ],
 
     serverInfo: {
-        applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), "MiniNodeOPCUA-Server"),
+        applicationUri: makeApplicationUrn("%FQDN%", "MiniNodeOPCUA-Server"),
         productUri: "Mini NodeOPCUA-Server",
 
         applicationName: { text: "Mini NodeOPCUA Server", locale: "en" },

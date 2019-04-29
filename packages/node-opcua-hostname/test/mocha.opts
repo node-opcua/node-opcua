@@ -4,4 +4,4 @@
 --require ../../node_modules/should
 --timeout 20000
 test/**/*.ts
---bail
+

@@ -6,8 +6,7 @@ const opcua = require("node-opcua");
 const OPCUAServer = opcua.OPCUAServer;
 const OPCUAClient = opcua.OPCUAClient;
 
-const get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
-
+const getFullyQualifiedDomainName = require("node-opcua-hostname").getFullyQualifiedDomainName;
 const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
@@ -25,7 +24,7 @@ describe("Testing a simple server from Server side", function () {
 
         const e = opcua.parseEndpointUrl(endPoint.endpointDescriptions()[0].endpointUrl);
 
-        const expected_hostname = get_fully_qualified_domain_name();
+        const expected_hostname = getFullyQualifiedDomainName();
         e.hostname.should.be.match(new RegExp(expected_hostname));
 
         e.port.should.eql(6789);

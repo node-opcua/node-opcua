@@ -57,7 +57,7 @@ import { isNullOrUndefined } from "node-opcua-utils";
 import { ClientBaseImpl } from "./client_base_impl";
 
 import { UAString } from "node-opcua-basic-types";
-import { get_fully_qualified_domain_name } from "node-opcua-hostname";
+import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { ClientSession } from "../client_session";
 import { ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
@@ -1008,29 +1008,26 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         return this.clientName + this.___sessionName_counter;
     }
 
-     /**
+    /**
      *
      * @private
      */
     private _getApplicationUri() {
         const certificate = this.getCertificate();
-        let applicationUri;
+        let applicationUri: string;
         if (certificate) {
             const e = exploreCertificate(certificate);
-            if(e.tbsCertificate.extensions !== null){
+            if (e.tbsCertificate.extensions !== null) {
                 applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
             } else {
-                const hostname = get_fully_qualified_domain_name();
-                applicationUri = makeApplicationUrn(hostname, this.applicationName);
+                applicationUri = makeApplicationUrn(getFullyQualifiedDomainName(), this.applicationName);
             }
         } else {
-            const hostname = get_fully_qualified_domain_name();
-            applicationUri = makeApplicationUrn(hostname, this.applicationName);
+            applicationUri = makeApplicationUrn(getFullyQualifiedDomainName(), this.applicationName);
         }
-        return applicationUri;
+        return resolveFullyQualifiedDomainName(applicationUri);
 
     }
-
 
     /**
      *

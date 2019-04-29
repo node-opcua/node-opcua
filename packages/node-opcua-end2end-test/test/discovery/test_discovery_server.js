@@ -44,6 +44,9 @@ describe("DS1 - Discovery server", function () {
     beforeEach(function (done) {
         discovery_server = new OPCUADiscoveryServer({port: 1235});
         discovery_server_endpointUrl = discovery_server._get_endpoints()[0].endpointUrl;
+
+        debugLog(" discovery_server_endpointUrl = ", discovery_server_endpointUrl);
+
         discovery_server.start(done);
     });
 
@@ -213,14 +216,15 @@ describe("DS2 - DiscoveryServer2", function () {
             function (callback) {
                 findServers(discoveryServerEndpointUrl,  (err, data ) => {
 
+                    debugLog("data = ", data);
                     const { servers , endpoints } = data;
                     if(err) {
                         return callback(err);
                     }
                     initialServerCount = servers.length;
                     servers[0].discoveryUrls.length.should.eql(1);
-                    //xx debugLog(" initialServerCount = ", initialServerCount);
-                    //xx debugLog("servers[0].discoveryUrls", servers[0].discoveryUrls.join("\n"));
+                    debugLog(" initialServerCount = ", initialServerCount);
+                    debugLog("servers[0].discoveryUrls", servers[0].discoveryUrls.join("\n"));
                     callback(err);
                 });
             },

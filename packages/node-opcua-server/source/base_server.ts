@@ -7,14 +7,23 @@ import chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 import * as _ from "underscore";
+import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
-import { LocalizedText } from "node-opcua-data-model";
+import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { display_trace_from_this_projet_only } from "node-opcua-debug";
-import { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
+import { 
+    extractFullyQualifiedDomainName,
+    resolveFullyQualifiedDomainName
+ } from "node-opcua-hostname";
+import {
+    Message,
+    Response,
+    ServerSecureChannelLayer 
+} from "node-opcua-secure-channel";
 import {
     FindServersRequest,
     FindServersResponse
@@ -27,8 +36,7 @@ import { ApplicationDescription } from "node-opcua-service-endpoints";
 import { ServiceFault } from "node-opcua-service-secure-channel";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ApplicationDescriptionOptions } from "node-opcua-types";
-import { EndpointDescription } from "node-opcua-types";
-import { GetEndpointsRequest } from "node-opcua-types";
+import { EndpointDescription, GetEndpointsRequest } from "node-opcua-types";
 import { OPCUAServerEndPoint } from "./server_end_point";
 
 const doDebug = checkDebugFlag(__filename);
@@ -137,9 +145,15 @@ export class OPCUABaseServer extends OPCUASecureObject {
         this.endpoints = [];
         this.options = options;
 
-        const serverInfo: any = _.extend(_.clone(default_server_info), options.serverInfo);
-        serverInfo.applicationName = new LocalizedText(serverInfo.applicationName);
+        const serverInfo: ApplicationDescriptionOptions = _.extend(_.clone(default_server_info), options.serverInfo) as ApplicationDescriptionOptions;
+        serverInfo.applicationName =  coerceLocalizedText(serverInfo.applicationName);
+
         this.serverInfo = new ApplicationDescription(serverInfo);
+
+        const __applicationUri = serverInfo.applicationUri || "" ;
+        (this.serverInfo as any).__defineGetter__("applicationUri", function (this: any) {
+            return resolveFullyQualifiedDomainName(__applicationUri);
+        });
 
         this.serverCertificateManager = options.serverCertificateManager
           || new OPCUACertificateManager({
@@ -160,22 +174,24 @@ export class OPCUABaseServer extends OPCUASecureObject {
         assert(_.isFunction(done));
         assert(_.isArray(this.endpoints));
 
-        async.forEach(this.endpoints, (endpoint: OPCUAServerEndPoint, callback: (err?: Error | null) => void) => {
+        callbackify(extractFullyQualifiedDomainName)( (err: Error |null,fqdn: string) => {
+            async.forEach(this.endpoints, (endpoint: OPCUAServerEndPoint, callback: (err?: Error | null) => void) => {
 
-            endpoint._on_new_channel = (channel: ServerSecureChannelLayer) => {
-                self.emit("newChannel", channel);
-            };
-            endpoint.on("newChannel", endpoint._on_new_channel);
+                endpoint._on_new_channel = (channel: ServerSecureChannelLayer) => {
+                    self.emit("newChannel", channel);
+                };
+                endpoint.on("newChannel", endpoint._on_new_channel);
 
-            assert(!endpoint._on_close_channel);
-            endpoint._on_close_channel = (channel: ServerSecureChannelLayer) => {
-                self.emit("closeChannel", channel);
-            };
-            endpoint.on("closeChannel", endpoint._on_close_channel);
+                assert(!endpoint._on_close_channel);
+                endpoint._on_close_channel = (channel: ServerSecureChannelLayer) => {
+                    self.emit("closeChannel", channel);
+                };
+                endpoint.on("closeChannel", endpoint._on_close_channel);
 
-            endpoint.start(callback);
+                endpoint.start(callback);
 
-        }, done);
+            }, done);
+        });
     }
 
     /**

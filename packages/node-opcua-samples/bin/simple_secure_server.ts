@@ -6,7 +6,6 @@ import * as  path from "path";
 import * as yargs from "yargs";
 
 import {
-    get_fully_qualified_domain_name,
     makeApplicationUrn,
     MessageSecurityMode,
     nodesets,
@@ -88,7 +87,7 @@ const server_options = {
 
     serverInfo: {
         applicationName: {text: "NodeOPCUA", locale: "en"},
-        applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-Server"),
+        applicationUri: makeApplicationUrn("%FQDN%", "NodeOPCUA-Server"),
         productUri: "NodeOPCUA-Server",
 
         discoveryProfileUri: null,

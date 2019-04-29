@@ -57,7 +57,6 @@ const OPCUAServer = opcua.OPCUAServer;
 const Variant = opcua.Variant;
 const DataType = opcua.DataType;
 const DataValue = opcua.DataValue;
-const get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
 const makeApplicationUrn = opcua.makeApplicationUrn;
 
 const install_optional_cpu_and_memory_usage_node = opcua.install_optional_cpu_and_memory_usage_node;
@@ -111,7 +110,7 @@ const server_options = {
 
     serverInfo: {
         applicationName: {text: "NodeOPCUA" ,locale: "en"},
-        applicationUri: makeApplicationUrn(get_fully_qualified_domain_name(), productUri),
+        applicationUri: makeApplicationUrn("%FQDN%", productUri),
         gatewayServerUri: null,
         productUri: productUri,
         discoveryProfileUri: null,

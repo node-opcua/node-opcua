@@ -41,7 +41,6 @@ export * from "node-opcua-data-model";
 export * from "node-opcua-constants";
 export * from "node-opcua-secure-channel";
 export { makeApplicationUrn } from "node-opcua-common";
-export { get_fully_qualified_domain_name } from "node-opcua-hostname";
 
 export * from "node-opcua-service-endpoints";
 export * from "node-opcua-service-browse";

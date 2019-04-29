@@ -162,10 +162,10 @@ function _get_next_subscriptionId() {
     debugLog(" next_subscriptionId = ", next_subscriptionId);
     return next_subscriptionId++;
 }
-
+export type StringGetter = () => string;
 export interface ServerEngineOptions {
 
-    applicationUri: string;
+    applicationUri: string | StringGetter;
 
     buildInfo?: BuildInfoOptions;
     isAuditing?: boolean;
@@ -267,7 +267,12 @@ export class ServerEngine extends EventEmitter {
 
         this._shutdownTask = [];
 
-        this._applicationUri = options.applicationUri || "<unset _applicationUri>";
+        this._applicationUri = "";
+        if (typeof options.applicationUri === "function") {
+            (this as any).__defineGetter__("_applicationUri", options.applicationUri );
+        } else {
+            this._applicationUri = options.applicationUri || "<unset _applicationUri>";
+        }
 
         options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable")
           ? options.serverDiagnosticsEnabled : true;
@@ -1245,7 +1250,7 @@ export class ServerEngine extends EventEmitter {
      * @param  [options.clientDescription] {ApplicationDescription}
      * @return {ServerSession}
      */
-    public createSession(options: any) {
+    public createSession(options: any): ServerSession {
 
         options = options || {};
 

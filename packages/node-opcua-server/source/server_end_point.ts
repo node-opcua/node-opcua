@@ -23,7 +23,7 @@ import {
     split_der
 } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { get_fully_qualified_domain_name } from "node-opcua-hostname";
+import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
     fromURI,
     MessageSecurityMode,
@@ -234,11 +234,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         const privateKey1 = convertPEMtoDER(this.getPrivateKey());
 
         const txt =
-        " end point" + this._counter +
-        " port = " + this.port +
-        " l = " + this._endpoints.length +
-        " " + makeSHA1Thumbprint(this.getCertificateChain()).toString("hex") +
-        " " +  makeSHA1Thumbprint(privateKey1).toString("hex");
+          " end point" + this._counter +
+          " port = " + this.port +
+          " l = " + this._endpoints.length +
+          " " + makeSHA1Thumbprint(this.getCertificateChain()).toString("hex") +
+          " " + makeSHA1Thumbprint(privateKey1).toString("hex");
         return txt;
     }
 
@@ -287,7 +287,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     ): EndpointDescription | null {
 
         const endpoints = this.endpointDescriptions();
-        const arr = _.filter(endpoints, matching_endpoint.bind(this, securityMode, securityPolicy , endpointUrl ));
+        const arr = _.filter(endpoints, matching_endpoint.bind(this, securityMode, securityPolicy, endpointUrl));
         assert(arr.length === 0 || arr.length === 1);
         return arr.length === 0 ? null : arr[0];
     }
@@ -311,7 +311,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         }
         //
 
-        options.hostname = options.hostname || get_fully_qualified_domain_name();
+        options.hostname = options.hostname || getFullyQualifiedDomainName();
 
         const port = this.port;
 
@@ -328,7 +328,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         if (endpoint_desc) {
             throw new Error(" endpoint already exist");
         }
-
 
         this._endpoints.push(_makeEndpointDescription({
 
@@ -423,7 +422,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
             const hacked_channel = channel as any;
             if (hacked_channel.transport && hacked_channel.transport._socket) {
-               // hacked_channel.transport._socket.close();
+                // hacked_channel.transport._socket.close();
                 hacked_channel.transport._socket.destroy();
                 hacked_channel.transport._socket.emit("error", new Error("EPIPE"));
             }
@@ -462,12 +461,12 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                   (channel: ServerSecureChannelLayer, callback1: (err?: Error) => void) => {
                       this.shutdown_channel(channel, callback1);
                   }, (err?: Error | null) => {
-                    if (!(Object.keys(this._channels).length === 0)) {
-                        console.log(" Bad !");
-                    }
-                    assert(Object.keys(this._channels).length === 0, "channel must have unregistered themselves");
-                    callback(err || undefined);
-                });
+                      if (!(Object.keys(this._channels).length === 0)) {
+                          console.log(" Bad !");
+                      }
+                      assert(Object.keys(this._channels).length === 0, "channel must have unregistered themselves");
+                      callback(err || undefined);
+                  });
             });
         } else {
             callback();
@@ -796,7 +795,15 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 }
 
 interface MakeEndpointDescriptionOptions {
+
+    /**
+     * port number s
+     */
     port: number;
+
+    /**
+     * @default  default hostname (default value will be full qualified domain name)
+     */
     hostname: string;
     endpointUrl: string;
 
@@ -818,9 +825,6 @@ interface MakeEndpointDescriptionOptions {
         };
      */
     resourcePath?: string;
-    /**
-     * * @default get_fully_qualified_domain_name()  default hostname
-     */
     allowAnonymous?: boolean; // default true
 
     // allow unencrypted password in userNameIdentity
@@ -978,7 +982,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
 
         endpointUrl: options.endpointUrl,
 
-        server: options.server,
+        server: undefined,// options.server,
         serverCertificate: options.serverCertificateChain,
 
         securityMode: options.securityMode,
@@ -989,6 +993,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
         transportProfileUri: default_transportProfileUri
     });
 
+    endpoint.server = options.server;
     (endpoint as any).restricted = options.restricted;
 
     return endpoint;

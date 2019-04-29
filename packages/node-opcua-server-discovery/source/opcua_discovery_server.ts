@@ -12,7 +12,6 @@ import {assert} from "node-opcua-assert";
 import {UAString} from "node-opcua-basic-types";
 import {makeApplicationUrn} from "node-opcua-common";
 import {checkDebugFlag, make_debugLog} from "node-opcua-debug";
-import {get_fully_qualified_domain_name} from "node-opcua-hostname";
 import {Message, Response, ServerSecureChannelLayer} from "node-opcua-secure-channel";
 import {
     OPCUABaseServer,
@@ -41,6 +40,7 @@ import {
 import {StatusCode, StatusCodes} from "node-opcua-status-code";
 
 import {MDNSResponder} from "./mdns_responder";
+import { resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -96,23 +96,21 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         options.privateKeyFile = options.privateKeyFile || default_private_key_file;
         assert(fs.existsSync(options.certificateFile));
 
-        const defaultApplicationUri = makeApplicationUrn(get_fully_qualified_domain_name(), "NodeOPCUA-DiscoveryServer");
+        const defaultApplicationUri = makeApplicationUrn("%FQDN%", "NodeOPCUA-DiscoveryServer");
 
-        super(options);
-
-        this.bonjourHolder = new BonjourHolder();
-
-        const serverInfo = new ApplicationDescription(options.serverInfo);
-
+        options.serverInfo = options.serverInfo || {};
+        const serverInfo = options.serverInfo;
         serverInfo.applicationType = ApplicationType.DiscoveryServer;
         serverInfo.applicationUri = serverInfo.applicationUri || defaultApplicationUri;
-        serverInfo.productUri = serverInfo.productUri || "SampleDiscoveryServer";
-        serverInfo.applicationName = serverInfo.applicationName || {text: "SampleDiscoveryServer", locale: null};
+        serverInfo.productUri = serverInfo.productUri || "NodeOPCUA-DiscoveryServer";
+        serverInfo.applicationName = serverInfo.applicationName || {text: "NodeOPCUA-DiscoveryServer", locale: null};
         serverInfo.gatewayServerUri = serverInfo.gatewayServerUri || "";
         serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri || "";
         serverInfo.discoveryUrls = serverInfo.discoveryUrls || [];
 
-        this.serverInfo = serverInfo;
+        super(options);
+
+        this.bonjourHolder = new BonjourHolder();
 
         const port = options.port || 4840;
 
