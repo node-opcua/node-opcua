@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-server",
- "version": "2.0.0-alpha.24",
+ "version": "2.0.0-alpha.25",
  "description": "pure nodejs OPCUA SDK - module -server",
  "scripts": {
   "build": "tsc",
@@ -21,7 +21,7 @@
   "node-opcua-assert": "^2.0.0-alpha.24",
   "node-opcua-basic-types": "^2.0.0-alpha.24",
   "node-opcua-certificate-manager": "^2.0.0-alpha.24",
-  "node-opcua-client": "^2.0.0-alpha.24",
+  "node-opcua-client": "^2.0.0-alpha.25",
   "node-opcua-common": "^2.0.0-alpha.24",
   "node-opcua-constants": "^2.0.0-alpha.24",
   "node-opcua-crypto": "^1.0.3",
@@ -32,7 +32,7 @@
   "node-opcua-enum": "^2.0.0-alpha.24",
   "node-opcua-extension-object": "^2.0.0-alpha.24",
   "node-opcua-factory": "^2.0.0-alpha.24",
-  "node-opcua-hostname": "^2.0.0-alpha.24",
+  "node-opcua-hostname": "^2.0.0-alpha.25",
   "node-opcua-nodeid": "^2.0.0-alpha.24",
   "node-opcua-nodesets": "^2.0.0-alpha.24",
   "node-opcua-numeric-range": "^2.0.0-alpha.24",
