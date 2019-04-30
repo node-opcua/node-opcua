@@ -19,7 +19,7 @@
   "node-opcua-certificate-manager": "^2.0.0-alpha.24",
   "node-opcua-chunkmanager": "^2.0.0-alpha.24",
   "node-opcua-common": "^2.0.0-alpha.24",
-  "node-opcua-crypto": "^1.0.3",
+  "node-opcua-crypto": "^1.1.1",
   "node-opcua-debug": "^2.0.0-alpha.24",
   "node-opcua-enum": "^2.0.0-alpha.24",
   "node-opcua-factory": "^2.0.0-alpha.24",
@@ -34,7 +34,7 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/node": "^11.13.6",
+  "@types/node": "^11.13.8",
   "@types/underscore": "^1.8.14",
   "async": "^2.6.2",
   "node-opcua-buffer-utils": "^2.0.0-alpha.24",
