@@ -226,11 +226,12 @@ export class OPCUABaseServer extends OPCUASecureObject {
 // xx                      endpoint.suspendConnection(callback2);
 // xx                  },
                   (callback2: (err?: Error| null) => void) => {
+                      endpoint.abruptlyInterruptChannels();
                       endpoint.shutdown(callback2);
                   },
-                  (callback2: (err?: Error| null) => void) => {
-                      endpoint.restoreConnection(callback2);
-                  }
+// xx              (callback2: (err?: Error| null) => void) => {
+// xx                 endpoint.restoreConnection(callback2);
+// xx              }
               ], inner_callback);
           }, callback);
     }
@@ -328,10 +329,27 @@ export class OPCUABaseServer extends OPCUASecureObject {
      *     this method is useful for testing purpose
      *
      */
-    public suspendEndPoints(callback: (err?: Error) => void) {
-
+    public async suspendEndPoints(): Promise<void>;
+    public suspendEndPoints(callback: (err?: Error) => void): void;
+    public suspendEndPoints(callback?: (err?: Error) => void): void| Promise<void> {
+        if (!callback) {
+            throw new Error("Internal Error");
+        }
         async.forEach(this.endpoints, (ep: OPCUAServerEndPoint, _inner_callback) => {
-            ep.suspendConnection(_inner_callback);
+
+            /* istanbul ignore next */
+            if (doDebug){
+                debugLog("Suspending ", ep.endpointDescriptions()[0].endpointUrl);
+            }
+
+            ep.suspendConnection((err?: Error|null) => {
+
+                /* istanbul ignore next */
+                if (doDebug) {
+                    debugLog("Suspended ", ep.endpointDescriptions()[0].endpointUrl);
+                }
+                _inner_callback(err);
+            });
         }, (err?: Error | null) => callback(err!));
     }
 
@@ -340,10 +358,12 @@ export class OPCUABaseServer extends OPCUASecureObject {
      * note:
      *    this method is useful for testing purpose
      */
-    public resumeEndPoints(callback: (err?: Error) => void) {
+    public async resumeEndPoints(): Promise<void>;
+    public resumeEndPoints(callback: (err?: Error) => void): void;
+    public resumeEndPoints(callback?: (err?: Error) => void): void| Promise<void> {
         async.forEach(this.endpoints, (ep: OPCUAServerEndPoint, _inner_callback) => {
             ep.restoreConnection(_inner_callback);
-        }, (err?: Error | null) => callback(err!));
+        }, (err?: Error | null) => callback!(err!));
     }
 
     protected prepare(message: Message, channel: ServerSecureChannelLayer): void {
@@ -480,6 +500,5 @@ function makeServiceFault(
 const thenify = require("thenify");
 const opts = { multiArgs: false };
 OPCUABaseServer.prototype.resumeEndPoints = thenify.withCallback(OPCUABaseServer.prototype.resumeEndPoints, opts);
-OPCUABaseServer.prototype.suspendEndPoints = thenify.withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);
 OPCUABaseServer.prototype.suspendEndPoints = thenify.withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);
 OPCUABaseServer.prototype.shutdownChannels = thenify.withCallback(OPCUABaseServer.prototype.shutdownChannels, opts);

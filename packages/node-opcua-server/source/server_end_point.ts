@@ -22,7 +22,7 @@ import {
     PrivateKeyPEM,
     split_der
 } from "node-opcua-crypto";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
     fromURI,
@@ -36,6 +36,7 @@ import { EndpointDescription } from "node-opcua-service-endpoints";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
 
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 const default_transportProfileUri = "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary";
@@ -432,9 +433,19 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
     public suspendConnection(callback: (err?: Error) => void) {
 
-        assert(this._started);
+        if (!this._started) {
+            return callback(new Error("Connection already suspended !!"));
+        }
+
+        // Stops the server from accepting new connections and keeps existing connections.
+        // (note from nodejs doc: This function is asynchronous, the server is finally closed
+        // when all connections are ended and the server emits a 'close' event.
+        // The optional callback will be called once the 'close' event occurs.
+        // Unlike that event, it will be called with an Error as its only argument
+        // if the server was not open when it was closed.
         this._server!.close(() => {
             this._started = false;
+            debugLog("Connection has been closed !");
         });
         this._started = false;
         callback();
@@ -442,6 +453,13 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
     public restoreConnection(callback: (err?: Error) => void) {
         this.listen(callback);
+    }
+
+    public abruptlyInterruptChannels() {
+        const _channels = _.values(this._channels);
+        for (const channel of _channels) {
+            channel.abruptlyInterrupt();
+        }
     }
 
     /**
@@ -461,8 +479,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                   (channel: ServerSecureChannelLayer, callback1: (err?: Error) => void) => {
                       this.shutdown_channel(channel, callback1);
                   }, (err?: Error | null) => {
+
+                      /* istanbul ignore next */
                       if (!(Object.keys(this._channels).length === 0)) {
-                          console.log(" Bad !");
+                          errorLog(" Bad !");
                       }
                       assert(Object.keys(this._channels).length === 0, "channel must have unregistered themselves");
                       callback(err || undefined);

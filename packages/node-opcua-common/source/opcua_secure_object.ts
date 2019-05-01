@@ -81,7 +81,7 @@ export class OPCUASecureObject extends  EventEmitter implements ICertificateKeyP
 
     public getPrivateKey(): PrivateKeyPEM {
         if (!this.privateKeyPEM) {
-            // create fake certificate
+            assert(fs.existsSync(this.certificateFile), "private file must exist :" + this.certificateFile);
             this.privateKeyPEM = _load_private_key_pem(this.privateKeyFile);
         }
         return this.privateKeyPEM;

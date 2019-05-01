@@ -10,7 +10,7 @@ import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
     ClientSecureChannelLayer,
     coerceConnectionStrategy,
@@ -52,6 +52,7 @@ import { ClientSessionImpl } from "./client_session_impl";
 const once = require("once");
 
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 const defaultConnectionStrategy: ConnectionStrategyOptions = {
@@ -69,6 +70,8 @@ function __findEndpoint(
   params: FindEndpointOptions,
   callback: FindEndpointCallback
 ) {
+
+    debugLog("findEndpoint");
 
     const securityMode = params.securityMode;
     const securityPolicy = params.securityPolicy;
@@ -278,6 +281,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     private _timedOutRequestCount: number;
 
     private _transactionsPerformed: number;
+    private reconnectionIsCanceled: boolean;
 
     constructor(options?: OPCUAClientBaseOptions) {
 
@@ -301,6 +305,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         }
 
         super(options as IOPCUASecureObjectOptions);
+
+        this.reconnectionIsCanceled = false;
 
         this.endpointUrl = "";
 
@@ -363,13 +369,19 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
     public _cancel_reconnection(callback: ErrorCallback) {
 
+        assert(this.isReconnecting);
+
         // istanbul ignore next
+        this.reconnectionIsCanceled = true;
         if (!this._secureChannel) {
             return callback(); // nothing to do
         }
         this._secureChannel.abortConnection((/*err?: Error*/) => {
             this._secureChannel = null;
             callback();
+        });
+        (this as any).once("reconnection_canceled", () => {
+
         });
     }
 
@@ -383,7 +395,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         }
         assert(this.knowsServerEndpoint);
         assert(!this.isReconnecting);
-
         /**
          * notifies the observer that the OPCUA is now trying to reestablish the connection
          * after having received a connection break...
@@ -392,58 +403,90 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
          */
         this.emit("start_reconnection"); // send after callback
 
-        // create a secure channel
-        // a new secure channel must be established
-        setImmediate(() => {
+        this._destroy_secure_channel();
+        assert(!this._secureChannel);
 
-            this._destroy_secure_channel();
+        const infiniteConnectionRetry: ConnectionStrategyOptions = {
+            initialDelay: this.connectionStrategy.initialDelay,
+            maxDelay: this.connectionStrategy.maxDelay,
+            maxRetry: -1
+        };
 
-            assert(!this._secureChannel);
+        const failAndRetry = (err: Error, message: string) => {
 
-            const infiniteConnectionRetry: ConnectionStrategyOptions = {
-                initialDelay: this.connectionStrategy.initialDelay,
-                maxDelay: this.connectionStrategy.maxDelay,
-                maxRetry: -1
-            };
+            errorLog("client = ", this.clientName, message, err.message);
+
+            if(this.reconnectionIsCanceled) {
+                this.emit("reconnection_canceled");
+                return callback(new Error("Reconnection has been canceled - " + this.clientName));
+            }
+            // else
+            // let retry a little bit later
+            this.emit("reconnection_attempt_has_failed", err, message); // send after callback
+            setTimeout(_attempt_to_recreate_secure_channel, 100);
+        };
+
+        const _attempt_to_recreate_secure_channel = () => {
+
+            errorLog("_attempt_to_recreate_secure_channel !!! ", this.clientName);
+
+            if (this.reconnectionIsCanceled) {
+                this.emit("reconnection_canceled");
+                return callback(new Error("Reconnection has been canceled - " + this.clientName));
+            }
 
             this._internal_create_secure_channel(infiniteConnectionRetry, (err?: Error | null) => {
 
                 if (err) {
-
-                    if (err.message.match("BadCertificateInvalid")) {
+                    if (err.message.match("ECONNREFUSED")) {
+                       return callback(err);
+                    }
+                    if (true || err!.message.match("BadCertificateInvalid")) {
+                        errorLog(" _internal_create_secure_channel err = ", err.message);
                         // the server may have shut down the channel because its certificate
                         // has changed ....
                         // let request the server certificate again ....
                         debugLog(chalk.bgWhite.red("ClientBaseImpl: Server Certificate has changed." +
                           " we need to retrieve server certificate again"));
 
-                        return this.fetchServerCertificate(this.endpointUrl, (err1?: Error |null) => {
+                        return this.fetchServerCertificate(this.endpointUrl, (err1?: Error | null) => {
                             if (err1) {
-                                return callback(err1);
+                                return failAndRetry(err1, "trying to fetch new server certificate");
                             }
-                            this._internal_create_secure_channel(infiniteConnectionRetry,
-                              (err3?: Error | null) => callback(err3!) );
+                            this._internal_create_secure_channel(infiniteConnectionRetry, (err3?: Error | null) => {
+                                if (err3) {
+                                    return failAndRetry(err3, "trying to create new channel with new certificate");
+                                }
+                                callback();
+                            });
                         });
 
                     }
                     debugLog(chalk.bgWhite.red("ClientBaseImpl: cannot reconnect .."));
-                    callback(err);
+                    failAndRetry(err!, "cannot create secure channel");
+
                 } else {
+
+                    /**
+                     * notify the observers that the reconnection process has been completed
+                     * @event after_reconnection
+                     * @param err
+                     */
+                    this.emit("after_reconnection", err); // send after callback
                     assert(this._secureChannel, "expecting a secureChannel here ");
                     // a new channel has be created and a new connection is established
                     debugLog(chalk.bgWhite.red("ClientBaseImpl:  RECONNECTED                !!!"));
-                    callback();
+                    return callback();
                 }
-
-                /**
-                 * notify the observers that the reconnection process has been completed
-                 * @event after_reconnection
-                 * @param err
-                 */
-                this.emit("after_reconnection", err); // send after callback
-
             });
+        };
+
+        // create a secure channel
+        // a new secure channel must be established
+        setImmediate(() => {
+            _attempt_to_recreate_secure_channel();
         });
+
     }
 
     public _internal_create_secure_channel(
@@ -798,9 +841,14 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         debugLog("ClientBaseImpl#disconnect", this.endpointUrl);
 
         if (this.isReconnecting) {
+
             debugLog("ClientBaseImpl#disconnect called while reconnection is in progress");
+
             // let's abort the reconnection process
             return this._cancel_reconnection((err?: Error) => {
+
+                debugLog("ClientBaseImpl#disconnect reconnection has been canceled");
+
                 assert(!err, " why would this fail ?");
                 assert(!this.isReconnecting);
                 // sessions cannot be cancelled properly and must be discarded.

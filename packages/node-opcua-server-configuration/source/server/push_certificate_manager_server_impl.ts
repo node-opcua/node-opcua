@@ -23,7 +23,7 @@ import {
     PrivateKeyPEM,
     publicEncrypt_long
 } from "node-opcua-crypto";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CertificateManager } from "node-opcua-pki";
 import { StatusCode } from "node-opcua-status-code";
@@ -35,8 +35,9 @@ import {
     UpdateCertificateResult
 } from "../push_certificate_manager";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("ServerConfiguration");
+const errorLog = make_errorLog("ServerConfiguration");
+const doDebug = checkDebugFlag("ServerConfiguration");
 
 const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup");
 const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
@@ -86,28 +87,50 @@ export interface PushCertificateManagerServerOptions {
     httpsGroup?: CertificateManager;
 }
 
-interface Task {
-    date?: Date;
-    type: string;
+type Functor = () => Promise<void>;
 
+export async function copyFile(source: string, dest: string): Promise<void> {
+    try {
+        debugLog("copying file \n source ", source, "\n =>\n dest ", dest);
+        await promisify(fs.copyFile)(source, dest);
+    } catch (err) {
+        errorLog(err);
+    }
 }
 
-interface TaskCopy extends Task {
-    type: "copy";
-    from: string;
-    to: string;
+export async function deleteFile(file: string): Promise<void> {
+    try {
+        const exists = await promisify(fs.exists)(file);
+        if (exists) {
+            debugLog("deleting file ", file);
+            await promisify(fs.unlink)(file);
+        }
+    } catch (err) {
+        errorLog(err);
+    }
 }
 
-interface TaskMove extends Task {
-    type: "move";
-    from: string;
-    to: string;
+export async function moveFile(source: string, dest: string): Promise<void> {
+
+    debugLog("moving file file \n source ", source, "\n =>\n dest ", dest);
+    try {
+        await copyFile(source, dest);
+        await deleteFile(source);
+    } catch (err) {
+        errorLog(err);
+    }
 }
 
-interface TaskDelete extends Task {
-    type: "delete";
-    filename: string;
+export async function moveFileWithBackup(source: string, dest: string): Promise<void> {
+    // let make a copy of the destination file
+    debugLog("moveFileWithBackup file \n source ", source, "\n =>\n dest ", dest);
+    await copyFile(dest, dest + "_old");
+    await moveFile(source, dest);
 }
+
+let fileCounter = 0;
+
+export type ActionQueue = Array<() => Promise<void>>;
 
 export class PushCertificateManagerServerImpl extends EventEmitter implements PushCertificateManager {
 
@@ -116,7 +139,9 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     public httpsGroup?: CertificateManager;
 
     private readonly _map: { [key: string]: CertificateManager } = {};
-    private readonly _pendingTasks: Task[] = [];
+    private readonly _pendingTasks: Functor[] = [];
+
+    private $$actionQueue: ActionQueue = [];
 
     constructor(options?: PushCertificateManagerServerOptions) {
 
@@ -204,11 +229,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         const csrPEM = await promisify(fs.readFile)(csrfile, "utf8");
         const certificateSigningRequest = convertPEMtoDER(csrPEM);
 
-        this.addPendingChangeTask({
-            type: "delete",
+        this.addPendingTask(() => deleteFile(csrfile));
 
-            filename: csrfile
-        } as TaskDelete);
         return {
             certificateSigningRequest,
             statusCode: StatusCodes.Good
@@ -297,13 +319,49 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         // BadNotSupported           The PrivateKey is invalid or the format is not supported.
         // BadUserAccessDenied       The current user does not have the rights required.
         // BadSecurityChecksFailed   Some failure occurred verifying the integrity of the Certificate.
-        const certificateManager = this.getCertificateManager(certificateGroupId);
+        const certificateManager = this.getCertificateManager(certificateGroupId)!;
 
         if (!certificateManager) {
             debugLog(" cannot find group ", certificateGroupId);
             return {
                 statusCode: StatusCodes.BadInvalidArgument
             };
+        }
+
+        async function preinstallCertificate(self: PushCertificateManagerServerImpl) {
+
+            const certFolder = path.join(certificateManager.rootDir, "own/certs");
+            const certificateFileDER = path.join(certFolder, `_pending_certificate${fileCounter++}.der`);
+            const certificateFilePEM = path.join(certFolder, `_pending_certificate${fileCounter++}.pem`);
+
+            await promisify(fs.writeFile)(certificateFileDER, certificate, "binary");
+            await promisify(fs.writeFile)(certificateFilePEM, toPem(certificate, "CERTIFICATE"));
+
+            const destDER = path.join(certFolder, "certificate.der");
+            const destPEM = path.join(certFolder, "certificate.pem");
+
+            // put existing file in security by backing them up
+            self.addPendingTask(() => moveFileWithBackup(certificateFileDER, destDER));
+            self.addPendingTask(() => moveFileWithBackup(certificateFilePEM, destPEM));
+
+        }
+
+        async function preinstallPrivateKey(self: PushCertificateManagerServerImpl) {
+
+            assert(privateKeyFormat!.toUpperCase() === "PEM");
+            assert(privateKey! instanceof Buffer); // could be DER or PEM in a buffer ?
+
+            const ownPrivateFolder = path.join(certificateManager.rootDir, "own/private");
+            const privateKeyFilePEM = path.join(ownPrivateFolder, `_pending_private_key${fileCounter++}.pem`);
+
+            const privateKeyPEM = toPem(privateKey!, "RSA PRIVATE KEY");
+            await promisify(fs.writeFile)(privateKeyFilePEM, privateKeyPEM, "utf-8");
+
+            // console.log("KYKY ", privateKeyPEM);
+            // console.log("KYKY certificateManager.privateKey = ", certificateManager.privateKey);
+
+            self.addPendingTask(() => moveFileWithBackup(privateKeyFilePEM, certificateManager.privateKey));
+
         }
 
         // OPC Unified Architecture, Part 12 42 Release 1.04:
@@ -326,18 +384,13 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         const now = new Date();
         if (certInfo.tbsCertificate.validity.notBefore.getTime() > now.getTime()) {
             // certificate is not yet valid
+            debugLog("Certificate is not yet valid");
             return { statusCode: StatusCodes.BadSecurityChecksFailed };
 
         }
         if (certInfo.tbsCertificate.validity.notAfter.getTime() < now.getTime()) {
             // certificate is already out of date
-            return { statusCode: StatusCodes.BadSecurityChecksFailed };
-        }
-
-        // xx const publicKey = certInfo.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.toString("hex");
-        const privateKeyDER = readPrivateKey(certificateManager.privateKey);
-        if (!certificateMatchesPrivateKey(certificate, privateKeyDER)) {
-            // certificate does'nt match privateKey
+            debugLog("Certificate is already out of date");
             return { statusCode: StatusCodes.BadSecurityChecksFailed };
         }
 
@@ -350,41 +403,54 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
             // The Server shall report an error if the public key does not match the existing Certificate and
             // the privateKey was not provided.
-            // todo: if privateKey is not provided, check that the public key matches the existing certificate
-
+            // privateKey is not provided, so check that the public key matches the existing certificate
+            const privateKeyDER = readPrivateKey(certificateManager.privateKey);
+            if (!certificateMatchesPrivateKey(certificate, privateKeyDER)) {
+                // certificate doesn't match privateKey
+                debugLog("certificate doesn't match privateKey");
+                return { statusCode: StatusCodes.BadSecurityChecksFailed };
+            }
             // a new certificate is provided for us,
             // we keep our private key
             // we do this in two stages
-            const certFolder = path.join(certificateManager.rootDir, "own/certs");
-            const certificateFileDER = path.join(certFolder, "_pending_certificate.der");
-            const certificateFilePEM = path.join(certFolder, "_pending_certificate.pem");
+            await preinstallCertificate(this);
 
-            await promisify(fs.writeFile)(certificateFileDER, certificate, "binary");
-            await promisify(fs.writeFile)(certificateFilePEM, toPem(certificate, "CERTIFICATE"));
+            return {
+                statusCode: StatusCodes.Good
+            };
 
-            this.addPendingChangeTask({
-                type: "move",
+        } else if (privateKey) {
 
-                from: certificateFileDER,
-                to: path.join(certFolder, "certificate.der")
-            } as TaskMove);
+            // a private key has been provided by the caller !
+            if (!privateKeyFormat) {
+                debugLog("the privateKeyFormat must be specified " + privateKeyFormat);
+                return { statusCode: StatusCodes.BadNotSupported };
+            }
+            if (privateKeyFormat !== "PEM" && privateKeyFormat !== "PFX") {
+                debugLog(" the private key format is invalid privateKeyFormat =" + privateKeyFormat);
+                return { statusCode: StatusCodes.BadNotSupported };
+            }
+            if (privateKeyFormat !== "PEM") {
+                debugLog("in NodeOPCUA we only support PEM for the moment privateKeyFormat =" + privateKeyFormat);
+                return { statusCode: StatusCodes.BadNotSupported };
+            }
 
-            this.addPendingChangeTask({
-                type: "move",
+            // privateKey is  provided, so check that the public key matches provided private key
+            if (!certificateMatchesPrivateKey(certificate, privateKey)) {
+                // certificate doesn't match privateKey
+                debugLog("certificate doesn't match privateKey");
+                return { statusCode: StatusCodes.BadSecurityChecksFailed };
+            }
 
-                from: certificateFilePEM,
-                to: path.join(certFolder, "certificate.pem")
-            } as TaskMove);
+            await preinstallPrivateKey(this);
+
+            await preinstallCertificate(this);
 
             return {
                 statusCode: StatusCodes.Good
             };
 
         } else {
-            // a private key has been provided by the caller !
-            // this is not supported yet : we assume that node-opcua servers
-            // can generate their own private keys and do not need to receive
-            // one from an external client
             // todo !
             return {
                 statusCode: StatusCodes.BadNotSupported
@@ -401,14 +467,17 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         // If the Server Certificate has changed, Secure Channels using the old Certificate will
         // eventually be interrupted.
 
-        this.emit("CertificateAboutToChange");
+        this.emit("CertificateAboutToChange", this.$$actionQueue);
+        await this.flushActionQueue();
+
         try {
             await this.applyPendingTasks();
         } catch (err) {
             debugLog("err ", err);
             return StatusCodes.BadInternalError;
         }
-        this.emit("CertificateChanged");
+        this.emit("CertificateChanged", this.$$actionQueue);
+        await this.flushActionQueue();
 
         // The only leeway the Server has is with the timing.
         // In the best case, the Server can close the TransportConnections for the affected Endpoints and leave any
@@ -431,53 +500,27 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         return this._map[groupName] || null;
     }
 
-    private addPendingChangeTask(task: Task): void {
-        this._pendingTasks.push(task);
+    private addPendingTask(functor: () => Promise<void>): void {
+        this._pendingTasks.push(functor);
     }
 
     private async applyPendingTasks(): Promise<void> {
 
-        async function copyFile(source: string, dest: string) {
-            try {
-                return promisify(fs.copyFile)(source, dest);
-            } catch (err) {
-                debugLog(err);
-            }
-        }
-
-        async function deleteFile(file: string) {
-            try {
-                return promisify(fs.unlink)(file);
-            } catch (err) {
-                debugLog(err);
-            }
-        }
-        async function moveFile(source: string, dest: string) {
-
-            try {
-                await copyFile(source, dest);
-                await deleteFile(source);
-            } catch (err) {
-                debugLog(err);
-            }
-        }
-
+        debugLog("start applyPendingTasks");
         const promises: Array<Promise<void>> = [];
         const t = this._pendingTasks.splice(0);
-        for (const task of t as any[]) {
-            switch (task.type) {
-                case "move":
-                    promises.push(moveFile(task.from, task.to));
-                    break;
-                case "copy":
-                    promises.push(copyFile(task.from, task.to));
-                    break;
-                case "delete":
-                    promises.push(promisify(fs.unlink)(task.filename));
-            }
+        for await (const task of t) {
+            await task();
         }
         await Promise.all(promises);
-
-
+        debugLog("end applyPendingTasks");
     }
+
+    private async flushActionQueue(): Promise<void> {
+        while (this.$$actionQueue.length) {
+            const first = this.$$actionQueue.pop()!;
+            await first!();
+        }
+    }
+
 }

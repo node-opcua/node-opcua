@@ -1,6 +1,6 @@
 const chalk = require("chalk");
 
-var step_count = 0;
+let step_count = 0;
 
 function f(doDebug,func) {
 

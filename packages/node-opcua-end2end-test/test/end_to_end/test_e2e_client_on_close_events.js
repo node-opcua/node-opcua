@@ -10,6 +10,7 @@ const OPCUAClient = opcua.OPCUAClient;
 const OPCUAServer = opcua.OPCUAServer;
 const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -52,7 +53,6 @@ describe("testing Client-Server - Event", function () {
 
         const client = OPCUAClient.create();
         client.on("close", function (err) {
-
 
             should(err).eql(null, "No error shall be transmitted when client initiates the disconnection");
             close_counter++;
@@ -140,7 +140,7 @@ describe("testing Client-Server - Event", function () {
 
     it("TSC-3 client (reconnecting)  should raise a close event with an error when server initiates disconnection (after reconnecting has failed)", function (done) {
 
-        // note : client will  try to reconnect and eventually fail ..s
+        // note : client will  try to reconnect and eventually fail ...
         const options = {
             connectionStrategy: {
                 initialDelay: 10,
@@ -158,7 +158,7 @@ describe("testing Client-Server - Event", function () {
         const _client_backoff_event = sinon.spy();
         client.on("backoff", _client_backoff_event);
         client.on("backoff", () => {
-          debugLog("client attempt to connect");
+            debugLog("client attempt to connect");
         });
 
         async.series([
@@ -175,7 +175,10 @@ describe("testing Client-Server - Event", function () {
                 _client_received_close_event.callCount.should.eql(0);
 
                 client.once("connection_lost", function () {
+
                     debugLog(" 4 or 5--> client has detected that server has shutdown abruptly");
+                    debugLog("           and will try to reconnect");
+
                     setTimeout(() => {
                         debugLog(" 6--> disconnecting client");
                         client.disconnect(() => {
@@ -202,8 +205,7 @@ describe("testing Client-Server - Event", function () {
                 should.not.exist(_client_received_close_event.getCall(0).args[0]);
                 // _client_received_close_event.getCall(0).args[0].message.should.match(/CONNREFUSED/);
                 callback();
-            },
-
+            }
 
         ], done);
     });

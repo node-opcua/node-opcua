@@ -217,7 +217,7 @@ function build_server_with_temperature_device(options, done) {
         // add a variable that can be written asynchronously and that supports TimeStamps and StatusCodes
         const asyncWriteFullNodeId = "s=AsynchronousFullVariable";
         let asyncWriteFull_dataValue = {
-            statusCode: StatusCodes.BadWaitingForInitialData
+            statusCode: StatusCodes.UncertainInitialValue
         };
 
         server.asyncWriteNode = namespace.addVariable({

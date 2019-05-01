@@ -7,17 +7,61 @@ import {
     Certificate,
     convertPEMtoDER,
     makeSHA1Thumbprint,
+    PrivateKey,
     split_der,
     toPem
 } from "node-opcua-crypto";
+import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
     CertificateAuthority,
     CertificateManager,
     g_config
 } from "node-opcua-pki";
+import * as rimraf from "rimraf";
 import { should } from "should";
 
 export const _tempFolder = path.join(__dirname, "../../temp");
+
+export async function initializeHelpers() {
+    await promisify(rimraf)( path.join(_tempFolder, "tmpPKI"));
+}
+
+export async function produceCertificateAndPrivateKey()
+  : Promise<{ certificate: Certificate, privateKey: PrivateKey }> {
+
+    // Given a Certificate Authority
+    const certificateManager = new CertificateManager({
+        keySize: 2048,
+        location: path.join(_tempFolder, "tmpPKI")
+    });
+    await certificateManager.initialize();
+
+    const certFile = path.join(_tempFolder, "tmpPKI/certificate.pem");
+    const fileExists: boolean = await promisify(fs.exists)(certFile);
+
+    await certificateManager.createSelfSignedCertificate({
+        applicationUri: "applicationUri",
+        subject: "CN=TOTO",
+
+        dns: [
+            getFullyQualifiedDomainName()
+        ],
+
+        startDate: new Date(),
+        validity: 365,
+
+        outputFile: certFile
+    });
+
+    const content = await promisify(fs.readFile)(certFile, "ascii");
+    const certificate = convertPEMtoDER(content);
+
+    const privateKeyFile = certificateManager.privateKey;
+    const privateKeyPEM = await promisify(fs.readFile)(privateKeyFile, "ascii");
+    const privateKey = convertPEMtoDER(privateKeyPEM);
+
+    return { certificate, privateKey };
+}
 
 async function _produceCertificate(
   certificateSigningRequest: Buffer,
@@ -74,6 +118,7 @@ export async function produceCertificate(certificateSigningRequest: Buffer): Pro
 }
 
 let tmpGroup: CertificateManager;
+
 /**
  * createSomeCertificate create a certificate from a private key
  * @param certName

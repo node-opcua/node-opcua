@@ -201,6 +201,15 @@ export interface OPCUAClientBase extends EventEmitter {
     on(event: "start_reconnection", eventHandler: () => void): this;
 
     /**
+     * this event is raised when the client has failed one attempt to reconnect to the server
+     * This event will be raised if the socket has successfully being created to the server but
+     * if something went wrong during the reconnection process.
+     * @param event
+     * @param eventHandler
+     */
+    on(event: "reconnection_attempt_has_failed", eventHandler: (err: Error, message: string) => void): this;
+
+    /**
      * this event is raised after the client has successfully manage to re-establish the connection with
      * the remote OPCUA Server.
      * You can intercept start_reconnection event to resume your interaction with the remote

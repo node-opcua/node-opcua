@@ -400,6 +400,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.removeAllListeners();
     }
 
+    public abruptlyInterrupt() {
+        const clientSocket = this.transport._socket;
+        if (clientSocket) {
+            clientSocket.end();
+            clientSocket.destroy();
+        }
+    }
+
     /**
      * the endpoint associated with this secure channel
      *

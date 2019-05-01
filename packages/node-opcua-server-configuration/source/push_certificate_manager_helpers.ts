@@ -18,8 +18,8 @@ import {
     PushCertificateManagerServerOptions
 } from "./server/push_certificate_manager_server_impl";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("ServerConfiguration");
+const doDebug = checkDebugFlag("ServerConfiguration");
 const errorLog = debugLog;
 
 function hasExpectedUserAccess(context: SessionContext) {

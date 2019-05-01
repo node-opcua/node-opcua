@@ -584,7 +584,7 @@ describe("Testing numerical range", function () {
             const r = nr.set_values(array, [80, 90, 100]);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
         });
-        it("S11 - should return BadIndexRangeInvalid if range does'nt match new array size", function () {
+        it("S11 - should return BadIndexRangeInvalid if range doesn't match new array size", function () {
             const nr = new NumericRange("2:2");
             const r = nr.set_values(array, [80, 90, 100]);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);

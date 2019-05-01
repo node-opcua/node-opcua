@@ -96,11 +96,12 @@ export class MessageBuilder extends MessageBuilderBase {
     public securityMode: MessageSecurityMode;
     public cryptoFactory: CryptoFactory | null;
     public securityHeader?: SecurityHeader;
+
+    protected id: string;
     private readonly objectFactory: ObjectFactory;
     private _previousSequenceNumber: number;
     private _tokenStack: SecurityTokenAndDerivedKeys[];
     private privateKey: PrivateKeyPEM;
-    private id: string;
 
     constructor(options: MessageBuilderOptions) {
 
@@ -536,7 +537,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
         const signatureIsOK = verifyChunkSignatureWithDerivedKeys(chunk, derivedKeys);
         if (!signatureIsOK) {
-            this._report_error("Sign and Encrypt : Invalid packet signature");
+            this._report_error("_decrypt_MSG : Sign and Encrypt : Invalid packet signature");
             return false;
         }
 

@@ -7,17 +7,20 @@ import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { readMessageHeader, SequenceHeader } from "node-opcua-chunkmanager";
+import { make_errorLog } from "node-opcua-debug";
 import { PacketAssembler, PacketInfo } from "node-opcua-packet-assembler";
 import { get_clock_tick } from "node-opcua-utils";
 
 const doPerfMonitoring = false;
+
+const errorLog = make_errorLog("MessageBuilder");
 
 export function readRawMessageHeader(data: Buffer): PacketInfo {
     const messageHeader = readMessageHeader(new BinaryStream(data));
     return {
         extra: "",
         length: messageHeader.length,
-        messageHeader,
+        messageHeader
     };
 }
 
@@ -42,6 +45,8 @@ export class MessageBuilderBase extends EventEmitter {
     public _tick0: number;
     public _tick1: number;
 
+    protected id: string;
+
     protected totalBodySize: number;
     protected messageChunks: Buffer[];
     protected messageHeader: any;
@@ -49,12 +54,14 @@ export class MessageBuilderBase extends EventEmitter {
     private _securityDefeated: boolean;
     private _hasReceivedError: boolean;
     private blocks: Buffer[];
-    private _expectedChannelId: number;
+    private readonly _expectedChannelId: number;
     private offsetBodyStart: number;
 
     constructor(options?: { signatureLength?: number }) {
 
         super();
+
+        this.id = "";
 
         this._tick0 = 0;
         this._tick1 = 0;
@@ -71,7 +78,7 @@ export class MessageBuilderBase extends EventEmitter {
 
         this._packetAssembler = new PacketAssembler({
             minimumSizeInBytes: 0,
-            readMessageFunc: readRawMessageHeader,
+            readMessageFunc: readRawMessageHeader
         });
 
         this._packetAssembler.on("message", (messageChunk) => this._feed_messageChunk(messageChunk));
@@ -116,7 +123,7 @@ export class MessageBuilderBase extends EventEmitter {
         }
     }
 
-    protected  _decodeMessageBody(fullMessageBody: Buffer): boolean {
+    protected _decodeMessageBody(fullMessageBody: Buffer): boolean {
         return true;
     }
 
@@ -143,7 +150,8 @@ export class MessageBuilderBase extends EventEmitter {
          * @event error
          * @param error the error to raise
          */
-        console.log("xxxxx =", errorMessage);
+        errorLog("Error  ", this.id, errorMessage);
+        // xx errorLog(new Error());
         this.emit("error", new Error(errorMessage), this.sequenceHeader ? this.sequenceHeader.requestId : null);
         return false;
     }
@@ -156,6 +164,7 @@ export class MessageBuilderBase extends EventEmitter {
         this.blocks = [];
         this.messageChunks = [];
     }
+
     /**
      * append a message chunk
      * @method _append
@@ -184,7 +193,7 @@ export class MessageBuilderBase extends EventEmitter {
         if (this.messageHeader.length !== chunk.length) {
             // tslint:disable:max-line-length
             return this._report_error(
-                `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${this.messageHeader.length}`);
+              `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${this.messageHeader.length}`);
         }
 
         // the start of the message body block

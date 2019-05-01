@@ -64,7 +64,7 @@ module.exports = function (test) {
             ], function final(err) {
                 client1.disconnect(function () {
 
-                    if(test.server) {
+                    if (test.server) {
                         test.server.engine.currentSessionCount.should.eql(0);
                     }
                     done(err);
@@ -154,13 +154,25 @@ module.exports = function (test) {
                     //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
 
                     client1.createSession(function (err, session) {
-                        //console.log("adjusted session timeout =", session.timeout);
-                        session.timeout.should.eql(client1.requestedSessionTimeout);
                         if (err) {
+                            console.log("cannot create session  err= ", err.message);
                             return callback(err);
                         }
+                        console.log("adjusted session timeout =", session.timeout);
+                        session.timeout.should.eql(client1.requestedSessionTimeout);
+
                         the_session = session;
                         the_session.on("keepalive", keepalive_spy);
+                        the_session.on("keepalive", () => {
+                            console.log("What's going here ? We should not receive KEEPALIVE " +
+                              " as client is regularly communicating with server");
+                        });
+                        callback();
+                    });
+                },
+
+                function (callback) {
+                    the_session.read({ nodeId: "ns=1;i=54" }, function (err, dataValue) {
                         callback();
                     });
                 },
@@ -168,12 +180,12 @@ module.exports = function (test) {
                 // periodically send a request to the server , for a duration of 2000 ms
                 function (callback) {
 
-                    timerId = setInterval(function(){
-                        the_session.read({nodeId: "ns=1;i=54"},function(err,dataValue){
+                    timerId = setInterval(function () {
+                        the_session.read({ nodeId: "ns=1;i=54" }, function (err, dataValue) {
                         });
-                    },500);
+                    }, 500);
 
-                    setTimeout(function() {
+                    setTimeout(function () {
                         clearInterval(timerId);
                         callback();
                     }, 6000);
