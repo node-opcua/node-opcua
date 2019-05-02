@@ -14,9 +14,10 @@ const OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscove
 
 // add the tcp/ip endpoint with no security
 
-function f(func,callback) {
+function f(func, callback) {
     func(callback);
 }
+
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("DS6- Discovery server", function () {
 
@@ -26,7 +27,12 @@ describe("DS6- Discovery server", function () {
     let server;
 
     function start_discovery_server(callback) {
-        discoveryServer.start(callback);
+        discoveryServer.start((err) => {
+            discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
+            debugLog("discoveryServerEndpointUrl : ", discoveryServerEndpointUrl);
+            debugLog("discovery server started");
+            callback(err);
+        });
     }
 
     function stop_discovery_server(callback) {
@@ -36,8 +42,7 @@ describe("DS6- Discovery server", function () {
     before(function () {
         OPCUAServer.registry.count().should.eql(0);
 
-        discoveryServer = new OPCUADiscoveryServer({port: 1240});
-        discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
+        discoveryServer = new OPCUADiscoveryServer({ port: 1240 });
     });
     after(function (done) {
         OPCUAServer.registry.count().should.eql(0);
@@ -57,10 +62,11 @@ describe("DS6- Discovery server", function () {
             // given a up and running LDS
             start_discovery_server.bind(),
             function (callback) {
+
                 server = new OPCUAServer({
                     port: 1435,
                     registerServerMethod: opcua.RegisterServerMethod.LDS,
-                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
+                    discoveryServerEndpointUrl: discoveryServerEndpointUrl
                 });
                 server.registerServerManager.timeout = 100;
                 // when server starts
@@ -94,7 +100,7 @@ describe("DS6- Discovery server", function () {
                 server = new OPCUAServer({
                     port: 1435,
                     registerServerMethod: opcua.RegisterServerMethod.LDS,
-                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
+                    discoveryServerEndpointUrl: discoveryServerEndpointUrl
                 });
                 server.registerServerManager.timeout = 100;
                 // when server starts
@@ -141,7 +147,7 @@ describe("DS6- Discovery server", function () {
                 server = new OPCUAServer({
                     port: 1435,
                     registerServerMethod: opcua.RegisterServerMethod.LDS,
-                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
+                    discoveryServerEndpointUrl: discoveryServerEndpointUrl
                 });
                 server.registerServerManager.timeout = 100;
                 // when server starts
@@ -153,7 +159,7 @@ describe("DS6- Discovery server", function () {
                     callback();
                 });
             },
-            function(callback){
+            function (callback) {
                 server.once("serverRegistrationPending", function () {
                     //xx console.log("server serverRegistrationPending");
                     callback();
@@ -163,7 +169,7 @@ describe("DS6- Discovery server", function () {
             // when discovery server starts ....
             start_discovery_server.bind(),
 
-            function(callback){
+            function (callback) {
                 server.once("serverRegistered", function () {
                     //xx console.log("server serverRegistered");
                     callback();
@@ -197,13 +203,13 @@ describe("DS6- Discovery server", function () {
 
     });
 
-    it("a server shall be able not to register itself to the LDS if needed to be hidden", function(done){
+    it("a server shall be able not to register itself to the LDS if needed to be hidden", function (done) {
         async.series([
 
             function (callback) {
                 server = new OPCUAServer({
                     port: 1435,
-                    registerServerMethod: opcua.RegisterServerMethod.HIDDEN,
+                    registerServerMethod: opcua.RegisterServerMethod.HIDDEN
 
                 });
                 server.registerServerManager.timeout = 100;
@@ -215,20 +221,20 @@ describe("DS6- Discovery server", function () {
                 server.shutdown(function () {
                     callback();
                 });
-            },
+            }
         ], done);
 
     });
 
-    it("a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function(done){
-       this.timeout(5000);
-       async.series([
+    it("a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function (done) {
+        this.timeout(5000);
+        async.series([
 
             function (callback) {
                 server = new OPCUAServer({
                     port: 1435,
                     registerServerMethod: opcua.RegisterServerMethod.LDS,
-                    discoveryServerEndpointUrl:discoveryServerEndpointUrl
+                    discoveryServerEndpointUrl: discoveryServerEndpointUrl
 
                 });
                 server.registerServerManager.timeout = 100;
@@ -240,16 +246,16 @@ describe("DS6- Discovery server", function () {
                 server.shutdown(function () {
                     callback();
                 });
-            },
+            }
         ], done);
 
     });
 
 });
 
-describe("DS7- Discovery Server 2",function() {
+describe("DS7- Discovery Server 2", function () {
 
-    it("DS5-1 server shall not struggle to start if discovery server is not available",function(done){
+    it("DS5-1 server shall not struggle to start if discovery server is not available", function (done) {
 
         let discoveryServerEndpointUrl = "opc.tcp://localhost:12345";
 
@@ -259,7 +265,7 @@ describe("DS7- Discovery Server 2",function() {
             // in this test, there is no discovery server available
             // no discovery ...
 
-            function(callback){
+            function (callback) {
 
                 server = new OPCUAServer({
                     port: 1435,
@@ -278,10 +284,10 @@ describe("DS7- Discovery Server 2",function() {
                     callback();
                 });
             },
-            function(callback) {
+            function (callback) {
                 server.shutdown(callback);
             }
-        ],done);
+        ], done);
     });
 
 });

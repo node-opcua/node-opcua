@@ -337,7 +337,7 @@ _"extracting a DataValue"
 Let's write a helper function (```extract_value```) to extract a city weather variable as DataValue.
 Since the city weather data are read asynchronously at a very low rate, it is possible that the data doesn't exist
 yet when the client will send its request. We have to be careful to handle this case appropriately.
-In the absence of city data, I have chose to send a BadUncertainInitalValue status code.
+In the absence of city data, I have chose to send a StatusCodes.UncertainInitalValue status code.
 
 ```javascript
 function extract_value(city_name,property) {

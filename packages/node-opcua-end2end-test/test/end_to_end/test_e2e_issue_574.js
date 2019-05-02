@@ -26,29 +26,31 @@ describe("Testing bug #574", function () {
             }
         });
 
-        // note: Some OPCUA servers (such as Softing) allow user token policies that
-        //       send password in clear text on the TCP unencrypted channel.
-        //       This behavior is not recommended by the OPCUA specification but
-        //       exists in many server on the field.
-        //       On our side, node opcua doesn't allow password to be send unsecurely.
-        //       We need to tweak the server to allow this for the purpose
-        //       of this test.
-        //       Let's remove all but policy and add a single
-        //       userIdentityTokens policy for username and uncrypted password
-        let endpoints = server._get_endpoints();
-        endpoints = endpoints.filter((e) => e.securityMode === opcua.MessageSecurityMode.None);
-        endpoints.length.should.eql(1);
+        server.start((err)=> {
+            // note: Some OPCUA servers (such as Softing) allow user token policies that
+            //       send password in clear text on the TCP unencrypted channel.
+            //       This behavior is not recommended by the OPCUA specification but
+            //       exists in many server on the field.
+            //       On our side, node opcua doesn't allow password to be send unsecurely.
+            //       We need to tweak the server to allow this for the purpose
+            //       of this test.
+            //       Let's remove all but policy and add a single
+            //       userIdentityTokens policy for username and uncrypted password
+            let endpoints = server._get_endpoints();
+            endpoints = endpoints.filter((e) => e.securityMode === opcua.MessageSecurityMode.None);
+            endpoints.length.should.eql(1);
 
-        endpoints[0].userIdentityTokens = [];
-        endpoints[0].userIdentityTokens.push(new UserTokenPolicy({
-            policyId: "usernamePassword_unsecure",
-            tokenType: 1, /*UserTokenType.UserName,*/
-            issuedTokenType: null,
-            issuerEndpointUrl: null,
-            securityPolicyUri: null
-        }));
+            endpoints[0].userIdentityTokens = [];
+            endpoints[0].userIdentityTokens.push(new UserTokenPolicy({
+                policyId: "usernamePassword_unsecure",
+                tokenType: 1, /*UserTokenType.UserName,*/
+                issuedTokenType: null,
+                issuerEndpointUrl: null,
+                securityPolicyUri: null
+            }));
+            done(err)
+        });
 
-        server.start(done);
     });
     after(function(done) {
         server.shutdown(done);

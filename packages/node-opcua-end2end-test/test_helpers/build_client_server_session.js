@@ -48,18 +48,19 @@ function build_client_server_session(options,done) {
     options.port = options.port || 2001;
 
     server = new OPCUAServer(options);
-    // we will connect to first server end point
-    endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-
-    debugLog("endpointUrl", endpointUrl);
-
-    opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
 
     client = OPCUAClient.create({});
 
     function start(done) {
         server.start(function () {
+
+            // we will connect to first server end point
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            debugLog("endpointUrl", endpointUrl);
+            opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
+
+
             setImmediate(function () {
                 client.connect(endpointUrl, function (err) {
                     if (err) {

@@ -65,13 +65,14 @@ describe("testing Server resilience to DDOS attacks", function () {
             maxAllowedSessionNumber: maxAllowedSessionNumber
             //xx nodeset_filename: empty_nodeset_filename
         });
-        // we will connect to first server end point
-        endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        debugLog("endpointUrl", endpointUrl);
-        is_valid_endpointUrl(endpointUrl).should.equal(true);
 
-        server.start(function () {
-            done();
+        server.start(function (err) {
+            // we will connect to first server end point
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            debugLog("endpointUrl", endpointUrl);
+            is_valid_endpointUrl(endpointUrl).should.equal(true);
+
+            done(err);
         });
     });
 

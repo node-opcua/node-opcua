@@ -51,8 +51,10 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
             disableDiscovery: false
         });
 
-        endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        server.start(done);
+        server.start((err)=> {
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            done(err);
+        });
     });
 
     after(function (done) {

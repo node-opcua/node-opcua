@@ -1254,6 +1254,7 @@ export class ServerEngine extends EventEmitter {
 
         options = options || {};
 
+        debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
         this.serverDiagnosticsSummary.cumulatedSessionCount += 1;
         this.serverDiagnosticsSummary.currentSessionCount += 1;
 
@@ -1369,6 +1370,7 @@ export class ServerEngine extends EventEmitter {
 
         assert(session.status === "closed");
 
+        debugLog(" engine.serverDiagnosticsSummary.currentSessionCount -= 1;");
         engine.serverDiagnosticsSummary.currentSessionCount -= 1;
 
         // xx //TODO make sure _closedSessions gets cleaned at some point

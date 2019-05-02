@@ -428,8 +428,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         const _attempt_to_recreate_secure_channel = () => {
 
-            errorLog("_attempt_to_recreate_secure_channel !!! ", this.clientName);
-
             if (this.reconnectionIsCanceled) {
                 this.emit("reconnection_canceled");
                 return callback(new Error("Reconnection has been canceled - " + this.clientName));

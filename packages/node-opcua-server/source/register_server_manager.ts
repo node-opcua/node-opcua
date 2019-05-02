@@ -131,7 +131,7 @@ function constructRegisterServerRequest(
             discoveryUrls,
             gatewayServerUri: null,
             isOnline,
-            semaphoreFilePath: null,
+            semaphoreFilePath: null
         }
     });
 }
@@ -161,7 +161,7 @@ function constructRegisterServer2Request(
             discoveryUrls,
             gatewayServerUri: null,
             isOnline,
-            semaphoreFilePath: null,
+            semaphoreFilePath: null
         },
 
         discoveryConfiguration: [
@@ -266,7 +266,7 @@ export class RegisterServerManager
   implements IRegisterServerManager {
 
     public discoveryServerEndpointUrl: string;
-    private server: OPCUABaseServer |  null;
+    private server: OPCUABaseServer | null;
     private readonly timeout: number;
     private _registrationTimerId: NodeJS.Timer | null;
     private state: RegisterServerManagerStatus = RegisterServerManagerStatus.INACTIVE;
@@ -364,7 +364,7 @@ export class RegisterServerManager
             certificateFile: this.server.certificateFile,
             clientName: "RegistrationClient-1",
             connectionStrategy: infinite_connectivity_strategy,
-            privateKeyFile: this.server.privateKeyFile,
+            privateKeyFile: this.server.privateKeyFile
         });
 
         this._registration_client = client;
@@ -372,7 +372,8 @@ export class RegisterServerManager
         client.on("backoff", (nretry: number, delay: number) => {
             debugLog("RegisterServerManager - received backoff");
             console.log(
-              chalk.bgWhite.yellow("contacting discovery server backoff  attempt #"),
+              chalk.bgWhite.yellow("contacting discovery server backoff "),
+              this.discoveryServerEndpointUrl, " attempt #",
               nretry, " retrying in ", delay / 1000.0, " seconds");
             this._emitEvent("serverRegistrationPending");
         });
@@ -392,12 +393,14 @@ export class RegisterServerManager
             },
 
             // getEndpoints_on_discovery_server
-            (callback: EmptyCallback)  => {
-                client.getEndpoints((err: Error|null, endpoints?: EndpointDescription[]) => {
+            (callback: EmptyCallback) => {
+                client.getEndpoints((err: Error | null, endpoints?: EndpointDescription[]) => {
                     if (!err) {
                         const endpoint = findSecureEndpoint(endpoints!);
 
-                        if (!endpoint) { throw new Error("Cannot find Secure endpoint"); }
+                        if (!endpoint) {
+                            throw new Error("Cannot find Secure endpoint");
+                        }
 
                         if (endpoint.serverCertificate) {
                             assert(endpoint.serverCertificate);
@@ -419,7 +422,7 @@ export class RegisterServerManager
                 this._serverEndpoints = (client as any)._serverEndpoints;
 
                 client.disconnect((err?: Error) => {
-                   // client = null;
+                    // client = null;
                     callback(err);
                 });
             },
@@ -427,7 +430,7 @@ export class RegisterServerManager
             (callback: EmptyCallback) => {
                 setTimeout(callback, 100);
             }
-        ], (err?: Error|null) => {
+        ], (err?: Error | null) => {
 
             debugLog("-------------------------------", !!err);
 
@@ -492,7 +495,7 @@ export class RegisterServerManager
 
             debugLog("RegisterServerManager#_trigger_next : renewing RegisterServer");
             this._registerServer(true, (err?: Error) => {
-                if ( this.state !== RegisterServerManagerStatus.INACTIVE
+                if (this.state !== RegisterServerManagerStatus.INACTIVE
                   && this.state !== RegisterServerManagerStatus.UNREGISTERING) {
                     debugLog("RegisterServerManager#_trigger_next : renewed !", err);
                     this._setState(RegisterServerManagerStatus.WAITING);
@@ -527,7 +530,7 @@ export class RegisterServerManager
                 this._setState(RegisterServerManagerStatus.INACTIVE);
                 return outer_callback(err);
             }
-            this._registerServer(false, ()  => {
+            this._registerServer(false, () => {
                 this._setState(RegisterServerManagerStatus.INACTIVE);
                 this._emitEvent("serverUnregistered");
                 outer_callback(err);
@@ -570,7 +573,7 @@ export class RegisterServerManager
             privateKeyFile: server.privateKeyFile,
 
             clientName: "RegistrationClient-2",
-            connectionStrategy: no_reconnect_connectivity_strategy,
+            connectionStrategy: no_reconnect_connectivity_strategy
         };
 
         const client = OPCUAClientBase.create(options);
@@ -670,7 +673,7 @@ export class RegisterServerManager
             debugLog("RegisterServerManager#_cancel_pending_client_if_any " +
               "=> wee need to disconnect  _registration_client");
 
-            this._registration_client.disconnect(()  => {
+            this._registration_client.disconnect(() => {
                 this._registration_client = null;
                 this._cancel_pending_client_if_any(callback);
             });

@@ -23,7 +23,7 @@ import {
     split_der
 } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { getFullyQualifiedDomainName } from "node-opcua-hostname";
+import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
     fromURI,
     MessageSecurityMode,
@@ -1002,7 +1002,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
 
         endpointUrl: options.endpointUrl,
 
-        server: undefined,// options.server,
+        server: undefined, // options.server,
         serverCertificate: options.serverCertificateChain,
 
         securityMode: options.securityMode,
@@ -1011,6 +1011,10 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
 
         securityLevel: options.securityLevel,
         transportProfileUri: default_transportProfileUri
+    });
+
+    (endpoint as any).__defineGetter__("endpointUrl", () => {
+        return resolveFullyQualifiedDomainName(options.endpointUrl);
     });
 
     endpoint.server = options.server;

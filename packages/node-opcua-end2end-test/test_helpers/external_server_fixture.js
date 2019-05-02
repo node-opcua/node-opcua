@@ -38,13 +38,13 @@ function start_simple_server(options, callback) {
     }
     options = options || {};
 
-    var server_script = options.server_sourcefile || "./bin/simple_server.js";
+    const server_script = options.server_sourcefile || "./bin/simple_server.js";
 
     if (!fs.existsSync(server_script)) {
         throw new Error("start_simple_server : cannot find server script : "+ server_script);
 
     }
-    var port = options.port || "2222";
+    const port = options.port || "2222";
 
     delete options.server_sourcefile;
     delete options.port;
@@ -56,9 +56,9 @@ function start_simple_server(options, callback) {
 
     //xx options.env.DEBUG = "ALL";
 
-    var server_exec = spawn("node", [server_script, "-p", port], options);
+    const server_exec = spawn("node", [server_script, "-p", port], options);
 
-    var serverCertificateFilename = constructFilename("certificates/server_cert_1024.pem");
+    const serverCertificateFilename = constructFilename("certificates/server_cert_1024.pem");
 
     console.log(" node ", server_script);
 
@@ -67,9 +67,8 @@ function start_simple_server(options, callback) {
         callback(new Error("Process has terminated unexpectedly with code=" + code + " signal=" + signal));
     }
 
-    var callback_called = false;
-
-    var pid_collected = 0;
+    let callback_called = false;
+    let pid_collected = 0;
 
     function detect_ready_message(data) {
         if (!callback_called) {
@@ -78,7 +77,7 @@ function start_simple_server(options, callback) {
                 // note : on windows , when using nodist, the process.id might not correspond to the
                 //        actual process id of our server. We collect here the real PID of our process
                 //        as output by the server on the console.
-                var m = data.match(/([0-9]+)$/);
+                const m = data.match(/([0-9]+)$/);
                 pid_collected = parseInt(m[1]);
             }
             if (/server now waiting for connections./.test(data)) {

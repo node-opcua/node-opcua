@@ -46,8 +46,6 @@ async function main() {
 
     const server = new OPCUAServer(server_options);
 
-    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
-
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
     server.on("post_initialize", () => {
@@ -81,6 +79,9 @@ async function main() {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
+
+    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+
     console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
     console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));

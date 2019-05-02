@@ -1,7 +1,20 @@
 "use strict";
+
 const _ = require("underscore");
 const assert = require("node-opcua-assert").assert;
 require("should");
+const chalk = require("chalk");
+const {
+    prepareFQDN,
+    getFullyQualifiedDomainName
+} = require("node-opcua-hostname");
+const {
+    callbackify
+} = require("util");
+const {
+    checkDebugFlag,
+    make_debugLog
+} = require("node-opcua-debug");
 
 const opcua = require("node-opcua");
 
@@ -12,12 +25,11 @@ const DataType = opcua.DataType;
 const DataValue = opcua.DataValue;
 const is_valid_endpointUrl = opcua.is_valid_endpointUrl;
 
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog(__filename);
 
 const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
 const build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
-
-
 
 
 /**
@@ -40,13 +52,13 @@ function addTestUAAnalogItem(parentNode) {
         browseName: "TemperatureAnalogItem",
         definition: "(tempA -25) + tempB",
         valuePrecision: 0.5,
-        engineeringUnitsRange: {low: 100, high: 200},
-        instrumentRange: {low: -100, high: +200},
+        engineeringUnitsRange: { low: 100, high: 200 },
+        instrumentRange: { low: -100, high: +200 },
         engineeringUnits: opcua.standardUnits.degree_celsius,
         dataType: "Double",
         value: {
             get: function () {
-                return new Variant({dataType: DataType.Double, value: Math.random() + 19.0});
+                return new Variant({ dataType: DataType.Double, value: Math.random() + 19.0 });
             }
         }
     });
@@ -89,22 +101,34 @@ function build_server_with_temperature_device(options, done) {
     assert(_.isFunction(done, "expecting a callback function"));
     assert(typeof opcua.nodesets.standard_nodeset_file === "string");
 
-    //xx console.log("xxx building server with temperature device");
-
     // use mini_nodeset_filename for speed up if not otherwise specified
     options.nodeset_filename = options.nodeset_filename ||
-        [
-            opcua.nodesets.standard_nodeset_file
-        ];
+      [
+          opcua.nodesets.standard_nodeset_file
+      ];
 
     options.userManager = userManager;
 
     const server = new OPCUAServer(options);
     // we will connect to first server end point
 
+    callbackify(prepareFQDN)((err) => {
+
+        if (err) {
+            console.log(err);
+        }
+        _build_server_with_temperature_device(server, options, done);
+    });
+    return server;
+}
+
+function _build_server_with_temperature_device(server, options, done) {
+
+    //xx console.log("xxx building server with temperature device");
+
     server.on("session_closed", function (session, reason) {
-        //xx console.log(" server_with_temperature_device has closed a session :",reason);
-        //xx console.log(chalk.cyan("              session name: "),session.sessionName.toString());
+        debugLog(" server_with_temperature_device has closed a session :",reason);
+        debugLog(chalk.cyan("              session name: "),session.sessionName.toString());
     });
 
     server.on("post_initialize", function () {
@@ -113,7 +137,7 @@ function build_server_with_temperature_device(options, done) {
 
         const namespace = addressSpace.getOwnNamespace();
 
-        const myDevices = namespace.addFolder("ObjectsFolder", {browseName: "MyDevices"});
+        const myDevices = namespace.addFolder("ObjectsFolder", { browseName: "MyDevices" });
         assert(myDevices.browseName.toString() === "1:MyDevices");
 
         // create a variable with a string namepsace
@@ -122,7 +146,7 @@ function build_server_with_temperature_device(options, done) {
             browseName: "FanSpeed",
             nodeId: "s=FanSpeed",
             dataType: "Double",
-            value: new Variant({dataType: DataType.Double, value: 1000.0})
+            value: new Variant({ dataType: DataType.Double, value: 1000.0 })
         });
         assert(variable0.nodeId.toString() === "ns=1;s=FanSpeed");
 
@@ -135,7 +159,7 @@ function build_server_with_temperature_device(options, done) {
             dataType: "Double",
             value: {
                 get: function () {
-                    return new Variant({dataType: DataType.Double, value: server.set_point_temperature});
+                    return new Variant({ dataType: DataType.Double, value: server.set_point_temperature });
                 },
                 set: function (variant) {
                     // to do : test if variant can be coerce to Float or Double
@@ -156,18 +180,19 @@ function build_server_with_temperature_device(options, done) {
             value: {
                 get: function () {
                     const pump_speed = 200 + Math.random();
-                    return new Variant({dataType: DataType.Double, value: pump_speed});
+                    return new Variant({ dataType: DataType.Double, value: pump_speed });
                 },
                 set: function (variant) {
                     return StatusCodes.BadNotWritable;
                 }
             }
         });
-        assert(server.pumpSpeed.nodeId.toString() === "ns=1;"+pumpSpeedId);
+        assert(server.pumpSpeed.nodeId.toString() === "ns=1;" + pumpSpeedId);
 
         const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
         debugLog("endpointUrl", endpointUrl);
         is_valid_endpointUrl(endpointUrl).should.equal(true);
+
 
         if (options.add_simulation) {
             build_address_space_for_conformance_testing(server.engine.addressSpace);

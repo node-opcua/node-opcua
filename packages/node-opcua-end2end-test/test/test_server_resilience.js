@@ -30,14 +30,16 @@ describe("testing Server resilience to unsupported request", function () {
     before(function (done) {
 
         server = new OPCUAServer({port: 2000, nodeset_filename: empty_nodeset_filename});
-        // we will connect to first server end point
-        endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        debugLog("endpointUrl", endpointUrl);
-        opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
         client = OPCUAClient.create();
 
         server.start(function () {
+
+            // we will connect to first server end point
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            debugLog("endpointUrl", endpointUrl);
+            opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
+
             setImmediate(function () {
                 client.connect(endpointUrl, function (err) {
                     should.not.exist(err);
@@ -86,9 +88,10 @@ describe("testing Server resilience with bad internet connection", function () {
     before(function (done) {
 
         server = new OPCUAServer({port: 2000, nodeset_filename: empty_nodeset_filename});
-
-        endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        server.start(done);
+        server.start((err) => {
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            done(err);
+        });
     });
 
     after(function (done) {

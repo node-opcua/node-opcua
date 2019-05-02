@@ -96,7 +96,6 @@ server_options.alternateHostname = argv.alternateHostname;
 
 const server = new OPCUAServer(server_options);
 
-const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
 const hostname = require("os").hostname();
 
@@ -214,6 +213,9 @@ server.start(function (err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
+
+    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+
     console.log(chalk.yellow("  server on port      :"), server.endpoints[0].port.toString());
     console.log(chalk.yellow("  endpointUrl         :"), endpointUrl);
 

@@ -509,8 +509,17 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         debugLog("start applyPendingTasks");
         const promises: Array<Promise<void>> = [];
         const t = this._pendingTasks.splice(0);
-        for await (const task of t) {
-            await task();
+
+        if (false) {
+            // node 10.2 and above
+            for await (const task of t) {
+                await task();
+            }
+        } else {
+            while (t.length) {
+                const task = t.shift()!;
+                await task();
+            }
         }
         await Promise.all(promises);
         debugLog("end applyPendingTasks");

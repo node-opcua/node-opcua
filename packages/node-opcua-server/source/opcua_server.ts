@@ -585,7 +585,7 @@ function _installRegisterServerManager(self: OPCUAServer) {
                 server: self
             });
             break;
-        /* istanbul ignore next */
+      /* istanbul ignore next */
         default:
             throw new Error("Invalid switch");
     }
@@ -802,6 +802,33 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions {
     disableDiscovery?: boolean;
 }
 
+export interface OPCUAServer {
+    /**
+     *
+     */
+    engine: ServerEngine;
+    /**
+     *
+     */
+    registerServerMethod: RegisterServerMethod;
+    /**
+     *
+     */
+    discoveryServerEndpointUrl: string;
+    /**
+     *
+     */
+    registerServerManager?: IRegisterServerManager;
+    /**
+     *
+     */
+    capabilitiesForMDNS: string[];
+    /**
+     *
+     */
+    userCertificateManager: OPCUACertificateManager;
+
+}
 /**
  *
  */
@@ -864,35 +891,35 @@ export class OPCUAServer extends OPCUABaseServer {
      * the number of session activation requests that have been rejected
      */
     public get rejectedSessionCount(): number {
-        return this.engine.rejectedSessionCount;
+        return this.engine ? this.engine.rejectedSessionCount : 0;
     }
 
     /**
      * the number of request that have been rejected
      */
     public get rejectedRequestsCount(): number {
-        return this.engine.rejectedRequestsCount;
+        return this.engine ?  this.engine.rejectedRequestsCount : 0;
     }
 
     /**
      * the number of sessions that have been aborted
      */
     public get sessionAbortCount(): number {
-        return this.engine.sessionAbortCount;
+        return this.engine ?  this.engine.sessionAbortCount : 0;
     }
 
     /**
      * the publishing interval count
      */
     public get publishingIntervalCount(): number {
-        return this.engine.publishingIntervalCount;
+        return this.engine ?  this.engine.publishingIntervalCount : 0 ;
     }
 
     /**
      * the number of sessions currently active
      */
     public get currentSessionCount(): number {
-        return this.engine.currentSessionCount;
+        return this.engine ?  this.engine.currentSessionCount : 0 ;
     }
 
     /**
@@ -900,14 +927,14 @@ export class OPCUAServer extends OPCUABaseServer {
      *
      */
     public get initialized(): boolean {
-        return this.engine.addressSpace !== null;
+        return this.engine && this.engine.addressSpace !== null;
     }
 
     /**
      * is the server auditing ?
      */
     public get isAuditing(): boolean {
-        return this.engine.isAuditing;
+        return this.engine ? this.engine.isAuditing: false;
     }
 
     public static registry = new ObjectRegistry();
@@ -926,33 +953,20 @@ export class OPCUAServer extends OPCUABaseServer {
      */
     public maxConnectionsPerEndpoint: number;
 
-    public engine: ServerEngine;
     /**
      * false if anonymouse connection are not allowed
      */
     public allowAnonymous: boolean = false;
+
     /**
      * the user manager
      */
     public userManager: UserManagerOptions;
-    /**
-     *
-     */
-    public registerServerMethod: RegisterServerMethod;
-    /**
-     *
-     */
-    public discoveryServerEndpointUrl: string;
-    public registerServerManager?: IRegisterServerManager;
-    /**
-     *
-     */
-    public capabilitiesForMDNS: string[];
-    public userCertificateManager: OPCUACertificateManager;
 
+    private objectFactory?: Factory;
     private nonce: Nonce;
-    private protocolVersion: number;
-    private readonly objectFactory: Factory;
+    private protocolVersion: number = 0;
+    private _delayInit?: () => void;
 
     constructor(options?: OPCUAServerOptions) {
 
@@ -979,85 +993,6 @@ export class OPCUAServer extends OPCUABaseServer {
         buildInfo.productUri = buildInfo.productUri || this.serverInfo.productUri;
         this.serverInfo.productUri = this.serverInfo.productUri || buildInfo.productUri;
 
-        // to check => this.serverInfo.applicationName = this.serverInfo.productName || buildInfo.productName;
-
-        // note: applicationUri is handled in a special way
-        this.engine = new ServerEngine({
-            applicationUri: () => this.serverInfo.applicationUri!,
-            buildInfo,
-            isAuditing: options.isAuditing,
-            serverCapabilities: options.serverCapabilities
-        });
-
-        this.nonce = this.makeServerNonce();
-
-        this.protocolVersion = 0;
-
-        const port = options.port || 26543;
-        assert(_.isFinite(port));
-        this.objectFactory = new Factory(this.engine);
-        // todo  should self.serverInfo.productUri  match self.engine.buildInfo.productUri ?
-
-        /**
-         * @property allowAnonymous
-         */
-        options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
-
-        // xx console.log(" maxConnectionsPerEndpoint = ",self.maxConnectionsPerEndpoint);
-
-        // add the tcp/ip endpoint with no security
-        const endPoint = new OPCUAServerEndPoint({
-            port,
-
-            certificateManager: this.serverCertificateManager,
-
-            defaultSecureTokenLifetime: options.defaultSecureTokenLifetime || 600000,
-            timeout: options.timeout || 10000,
-
-            certificateChain: this.getCertificateChain(),
-            privateKey: this.getPrivateKey(),
-
-            maxConnections: this.maxConnectionsPerEndpoint,
-            objectFactory: this.objectFactory,
-            serverInfo: this.serverInfo
-        });
-
-        options.alternateHostname = options.alternateHostname || [""];
-        const alternateHostnames = (options.alternateHostname instanceof Array) ? options.alternateHostname : [options.alternateHostname];
-
-        for (const alternateHostname of alternateHostnames) {
-
-            const hostname = (alternateHostname && alternateHostname.length > 0) ? alternateHostname : undefined;
-
-            endPoint.addStandardEndpointDescriptions({
-                securityModes: options.securityModes,
-                securityPolicies: options.securityPolicies,
-
-                allowAnonymous: !!options.allowAnonymous,
-                disableDiscovery: !!options.disableDiscovery,
-                hostname,
-                resourcePath: options.resourcePath || ""
-            });
-        }
-
-        this.endpoints.push(endPoint);
-
-        endPoint.on("message", (message: Message, channel: ServerSecureChannelLayer) => {
-            this.on_request(message, channel);
-        });
-
-        endPoint.on("error", (err: Error) => {
-            console.log("OPCUAServer endpoint error", err);
-            // set serverState to ServerState.Failed;
-            this.engine.setServerState(ServerState.Failed);
-
-            this.shutdown(() => {
-                /* empty */
-            });
-        });
-
-        this.serverInfo.applicationType = ApplicationType.Server;
-
         this.userManager = options.userManager || {};
         if (!_.isFunction(this.userManager.isValidUser)) {
             this.userManager.isValidUser = (/*userName,password*/) => {
@@ -1065,8 +1000,19 @@ export class OPCUAServer extends OPCUABaseServer {
             };
         }
 
-        this.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://localhost:4840";
+        this.nonce = this.makeServerNonce();
+
+        this.protocolVersion = 0;
+
+        /**
+         * @property allowAnonymous
+         */
+        this.allowAnonymous = (options.allowAnonymous === undefined) ? true : !!options.allowAnonymous;
+
+        this.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://%FQDN%:4840";
         assert(typeof this.discoveryServerEndpointUrl === "string");
+
+        this.serverInfo.applicationType = ApplicationType.Server;
         this.capabilitiesForMDNS = options.capabilitiesForMDNS || ["NA"];
         this.registerServerMethod = options.registerServerMethod || RegisterServerMethod.HIDDEN;
         _installRegisterServerManager(this);
@@ -1078,6 +1024,82 @@ export class OPCUAServer extends OPCUABaseServer {
         } else {
             this.userCertificateManager = options.userCertificateManager;
         }
+
+        // note: we need to delay initialization of endpoint as certain resources
+        // such as %FQDN% might not be ready yet at this stage
+        this._delayInit = () => {
+
+            if (!options) {
+                throw new Error("Internal Error");
+            }
+            // to check => this.serverInfo.applicationName = this.serverInfo.productName || buildInfo.productName;
+
+            // note: applicationUri is handled in a special way
+            this.engine = new ServerEngine({
+                applicationUri: () => this.serverInfo.applicationUri!,
+                buildInfo,
+                isAuditing: options.isAuditing,
+                serverCapabilities: options.serverCapabilities
+            });
+
+            const port = options.port || 26543;
+            assert(_.isFinite(port));
+            this.objectFactory = new Factory(this.engine);
+            // todo  should self.serverInfo.productUri  match self.engine.buildInfo.productUri ?
+
+            // xx console.log(" maxConnectionsPerEndpoint = ",self.maxConnectionsPerEndpoint);
+
+            // add the tcp/ip endpoint with no security
+            const endPoint = new OPCUAServerEndPoint({
+                port,
+
+                certificateManager: this.serverCertificateManager,
+
+                defaultSecureTokenLifetime: options.defaultSecureTokenLifetime || 600000,
+                timeout: options.timeout || 10000,
+
+                certificateChain: this.getCertificateChain(),
+                privateKey: this.getPrivateKey(),
+
+                maxConnections: this.maxConnectionsPerEndpoint,
+                objectFactory: this.objectFactory,
+                serverInfo: this.serverInfo
+            });
+
+            options.alternateHostname = options.alternateHostname || [""];
+            const alternateHostnames = (options.alternateHostname instanceof Array) ? options.alternateHostname : [options.alternateHostname];
+
+            for (const alternateHostname of alternateHostnames) {
+
+                const hostname = (alternateHostname && alternateHostname.length > 0) ? alternateHostname : undefined;
+
+                endPoint.addStandardEndpointDescriptions({
+                    securityModes: options.securityModes,
+                    securityPolicies: options.securityPolicies,
+
+                    allowAnonymous: !!this.allowAnonymous,
+                    disableDiscovery: !!options.disableDiscovery,
+                    hostname,
+                    resourcePath: options.resourcePath || ""
+                });
+            }
+
+            this.endpoints.push(endPoint);
+
+            endPoint.on("message", (message: Message, channel: ServerSecureChannelLayer) => {
+                this.on_request(message, channel);
+            });
+
+            endPoint.on("error", (err: Error) => {
+                console.log("OPCUAServer endpoint error", err);
+                // set serverState to ServerState.Failed;
+                this.engine.setServerState(ServerState.Failed);
+
+                this.shutdown(() => {
+                    /* empty */
+                });
+            });
+        };
 
     }
 
@@ -1108,13 +1130,24 @@ export class OPCUAServer extends OPCUABaseServer {
     public initialize(...args: [any?, ...any[]]): any {
 
         const done = args[0] as () => void;
+
+        if (this._delayInit) {
+            this._delayInit();
+            this._delayInit = undefined;
+        }
         assert(!this.initialized, "server is already initialized"); // already initialized ?
 
-        OPCUAServer.registry.register(this);
+        callbackify(extractFullyQualifiedDomainName)((err?: Error) => {
 
-        this.engine.initialize(this.options, () => {
-            this.emit("post_initialize");
-            done();
+            OPCUAServer.registry.register(this);
+
+            this.engine.initialize(this.options, () => {
+
+                setImmediate(() => {
+                    this.emit("post_initialize");
+                    done();
+                });
+            });
         });
     }
 
@@ -1291,6 +1324,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * @internal
      */
     protected createSession(options: any): ServerSession {
+        if (!this.engine) { throw new Error("Internal Error"); }
         return this.engine.createSession(options);
     }
 
@@ -1302,7 +1336,7 @@ export class OPCUAServer extends OPCUABaseServer {
       authenticationToken: NodeId,
       activeOnly?: boolean
     ): ServerSession | null {
-        return this.engine.getSession(authenticationToken, activeOnly);
+        return this.engine ? this.engine.getSession(authenticationToken, activeOnly) : null;
     }
 
     /**

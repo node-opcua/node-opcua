@@ -53,8 +53,10 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function 
                     port: 1235,
                     serverInfo: { applicationUri: "urn:localhost:LDS-1235", productUri: "LDS-1235"},
                 });
-                discovery_server_endpointUrl1 = discovery_server1._get_endpoints()[0].endpointUrl;
-                discovery_server1.start(callback);
+                discovery_server1.start((err) => {
+                    discovery_server_endpointUrl1 = discovery_server1._get_endpoints()[0].endpointUrl;
+                    callback(err);
+                });
 
             },
             function (callback) {
@@ -63,8 +65,10 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function 
                     port: 1236,
                     serverInfo: { applicationUri: "urn:localhost:LDS-1236", productUri: "LDS-1236"},
                 });
-                discovery_server_endpointUrl2 = discovery_server2._get_endpoints()[0].endpointUrl;
-                discovery_server2.start(callback);
+                discovery_server2.start((err) => {
+                    discovery_server_endpointUrl2 = discovery_server2._get_endpoints()[0].endpointUrl;
+                    callback(err);
+                });
 
             },
             function (callback) {
@@ -73,8 +77,10 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function 
                     port: 1237,
                     serverInfo: { applicationUri: "urn:localhost:LDS-1237", productUri: "LDS-1237"},
                 });
-                discovery_server_endpointUrl3 = discovery_server3._get_endpoints()[0].endpointUrl;
-                discovery_server3.start(callback);
+                discovery_server3.start((err) => {
+                    discovery_server_endpointUrl3 = discovery_server3._get_endpoints()[0].endpointUrl;
+                    callback(err);
+                });
 
             }
 

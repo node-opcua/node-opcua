@@ -31,9 +31,9 @@ describe("NodeRed -  testing frequent server restart within same process", funct
     function startDiscoveryServer(callback) {
         // note : only one discovery server shall be run per machine
         discoveryServer = new opcua.OPCUADiscoveryServer({port: discoveryServerPort});
-        discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
         discoveryServer.start(function (err) {
             debugLog(" Discovery server listening on ", discoveryServerEndpointUrl);
+            discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
             callback(err);
         });
     }

@@ -112,7 +112,6 @@ async function main() {
 
     const server = new OPCUAServer(server_options);
 
-    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
 
     server.on("post_initialize", () => {
         /* empty */
@@ -123,6 +122,7 @@ async function main() {
 
     await server.start();
 
+    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
     console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
 

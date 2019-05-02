@@ -446,11 +446,11 @@ describe("Testing server configured with push certificate management", () => {
         const privateKey1PEM = await promisify(fs.readFile)(server.serverCertificateManager.privateKey, "utf8");
         const certificateBefore = server.getCertificate();
 
-        // Given the server connection endpoint
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
-
         // Given that the server is started
         await server.start();
+
+        // Given the server connection endpoint
+        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
 
         // Given that the sever has some client connected to it
         await startOnGoingConnection(endpointUrl);
@@ -565,11 +565,12 @@ describe("Testing server configured with push certificate management", () => {
         const certificateBefore = server.getCertificate();
         const privateKeyBefore = server.getPrivateKey();
 
-        // Given the server connection endpoint
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
 
         // Given that the server is started
         await server.start();
+
+        // Given the server connection endpoint
+        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
 
         // Given that the sever has some client connected to it
         await startOnGoingConnection(endpointUrl);

@@ -91,7 +91,7 @@ describe("OPCUAServer", () => {
 describe("OPCUAServer-2", () => {
 
     let server;
-    before( () => {
+    before( (done) => {
 
         fs.existsSync(mini_nodeset_filename).should.eql(true);
 
@@ -100,6 +100,7 @@ describe("OPCUAServer-2", () => {
             nodeset_filename: [mini_nodeset_filename]
         };
         server = new OPCUAServer(options);
+        server.start(done);
     });
     after((done) => {
         server.shutdown(function () {

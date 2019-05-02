@@ -18,18 +18,22 @@ describe("Testing a simple server from Server side", function () {
 
         const server = new OPCUAServer({port: 6789, nodeset_filename: empty_nodeset_filename});
 
-        server.endpoints.length.should.be.greaterThan(0);
+        server.start(()=>{
 
-        const endPoint = server.endpoints[0];
+            server.endpoints.length.should.be.greaterThan(0);
 
-        const e = opcua.parseEndpointUrl(endPoint.endpointDescriptions()[0].endpointUrl);
+            const endPoint = server.endpoints[0];
 
-        const expected_hostname = getFullyQualifiedDomainName();
-        e.hostname.should.be.match(new RegExp(expected_hostname));
+            const e = opcua.parseEndpointUrl(endPoint.endpointDescriptions()[0].endpointUrl);
 
-        e.port.should.eql(6789);
+            const expected_hostname = getFullyQualifiedDomainName();
+            e.hostname.should.be.match(new RegExp(expected_hostname));
 
-        server.shutdown(done);
+            e.port.should.eql(6789);
+
+            server.shutdown(done);
+
+        });
 
     });
     it("OPCUAServer#getChannels", function (done) {

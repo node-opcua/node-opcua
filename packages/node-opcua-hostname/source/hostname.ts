@@ -39,10 +39,11 @@ export async function extractFullyQualifiedDomainName(): Promise<string> {
     if (_fullyQualifiedDomainNameInCache) {
         return _fullyQualifiedDomainNameInCache;
     }
-    if (process.platform === "win32") {
+    if (false && process.platform === "win32") {
         // http://serverfault.com/a/73643/251863
         const env = process.env;
-        _fullyQualifiedDomainNameInCache = env.COMPUTERNAME + ((env.USERDNSDOMAIN && env.USERDNSDOMAIN.length > 0) ? "." + env.USERDNSDOMAIN : "");
+        _fullyQualifiedDomainNameInCache = env.COMPUTERNAME
+          + ((env.USERDNSDOMAIN && env.USERDNSDOMAIN!.length > 0) ? "." + env.USERDNSDOMAIN : "");
 
     } else {
 

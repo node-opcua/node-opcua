@@ -15,14 +15,14 @@ import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common"
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { display_trace_from_this_projet_only } from "node-opcua-debug";
-import { 
+import {
     extractFullyQualifiedDomainName,
     resolveFullyQualifiedDomainName
- } from "node-opcua-hostname";
+} from "node-opcua-hostname";
 import {
     Message,
     Response,
-    ServerSecureChannelLayer 
+    ServerSecureChannelLayer
 } from "node-opcua-secure-channel";
 import {
     FindServersRequest,
@@ -146,12 +146,12 @@ export class OPCUABaseServer extends OPCUASecureObject {
         this.options = options;
 
         const serverInfo: ApplicationDescriptionOptions = _.extend(_.clone(default_server_info), options.serverInfo) as ApplicationDescriptionOptions;
-        serverInfo.applicationName =  coerceLocalizedText(serverInfo.applicationName);
+        serverInfo.applicationName = coerceLocalizedText(serverInfo.applicationName);
 
         this.serverInfo = new ApplicationDescription(serverInfo);
 
-        const __applicationUri = serverInfo.applicationUri || "" ;
-        (this.serverInfo as any).__defineGetter__("applicationUri", function (this: any) {
+        const __applicationUri = serverInfo.applicationUri || "";
+        (this.serverInfo as any).__defineGetter__("applicationUri", function(this: any) {
             return resolveFullyQualifiedDomainName(__applicationUri);
         });
 
@@ -173,8 +173,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
         const self = this;
         assert(_.isFunction(done));
         assert(_.isArray(this.endpoints));
-
-        callbackify(extractFullyQualifiedDomainName)( (err: Error |null,fqdn: string) => {
+        assert(this.endpoints.length > 0, "We neeed at least one end point");
+        callbackify(extractFullyQualifiedDomainName)((err: Error | null, fqdn: string) => {
             async.forEach(this.endpoints, (endpoint: OPCUAServerEndPoint, callback: (err?: Error | null) => void) => {
 
                 endpoint._on_new_channel = (channel: ServerSecureChannelLayer) => {
@@ -225,10 +225,10 @@ export class OPCUABaseServer extends OPCUASecureObject {
 // xx                  (callback2: (err?: Error| null) => void) => {
 // xx                      endpoint.suspendConnection(callback2);
 // xx                  },
-                  (callback2: (err?: Error| null) => void) => {
+                  (callback2: (err?: Error | null) => void) => {
                       endpoint.abruptlyInterruptChannels();
                       endpoint.shutdown(callback2);
-                  },
+                  }
 // xx              (callback2: (err?: Error| null) => void) => {
 // xx                 endpoint.restoreConnection(callback2);
 // xx              }
@@ -331,18 +331,18 @@ export class OPCUABaseServer extends OPCUASecureObject {
      */
     public async suspendEndPoints(): Promise<void>;
     public suspendEndPoints(callback: (err?: Error) => void): void;
-    public suspendEndPoints(callback?: (err?: Error) => void): void| Promise<void> {
+    public suspendEndPoints(callback?: (err?: Error) => void): void | Promise<void> {
         if (!callback) {
             throw new Error("Internal Error");
         }
         async.forEach(this.endpoints, (ep: OPCUAServerEndPoint, _inner_callback) => {
 
             /* istanbul ignore next */
-            if (doDebug){
+            if (doDebug) {
                 debugLog("Suspending ", ep.endpointDescriptions()[0].endpointUrl);
             }
 
-            ep.suspendConnection((err?: Error|null) => {
+            ep.suspendConnection((err?: Error | null) => {
 
                 /* istanbul ignore next */
                 if (doDebug) {
@@ -360,7 +360,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
      */
     public async resumeEndPoints(): Promise<void>;
     public resumeEndPoints(callback: (err?: Error) => void): void;
-    public resumeEndPoints(callback?: (err?: Error) => void): void| Promise<void> {
+    public resumeEndPoints(callback?: (err?: Error) => void): void | Promise<void> {
         async.forEach(this.endpoints, (ep: OPCUAServerEndPoint, _inner_callback) => {
             ep.restoreConnection(_inner_callback);
         }, (err?: Error | null) => callback!(err!));

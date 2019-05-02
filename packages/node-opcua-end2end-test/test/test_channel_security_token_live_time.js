@@ -34,15 +34,18 @@ describe("Testing ChannelSecurityToken lifetime", function () {
         port += 1;
         server = new OPCUAServer({port: port, nodeset_filename: empty_nodeset_filename});
 
-        // we will connect to first server end point
-        endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        debugLog("endpointUrl", endpointUrl);
-        opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
         client = OPCUAClient.create({
             defaultSecureTokenLifetime: 100  // very short live time !
         });
+
         server.start(function () {
+
+            // we will connect to first server end point
+            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            debugLog("endpointUrl", endpointUrl);
+            opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
+
             setImmediate(done);
         });
     });
