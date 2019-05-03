@@ -42,10 +42,10 @@ import {
 } from "node-opcua-address-space";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
-import { Certificate, exploreCertificate, Nonce } from "node-opcua-crypto";
+import { Certificate, exploreCertificate, Nonce, toPem } from "node-opcua-crypto";
 import { AttributeIds, DiagnosticInfo, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { dump, make_debugLog } from "node-opcua-debug";
+import { dump, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
@@ -191,6 +191,7 @@ export interface UserManagerOptions extends IUserManager {
 // tslint:disable-next-line:no-var-requires
 const package_info = require("../package.json");
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 const default_maxAllowedSessionNumber = 10;
 const default_maxConnectionsPerEndpoint = 10;
 
@@ -1686,6 +1687,13 @@ export class OPCUAServer extends OPCUABaseServer {
             }
             const e = exploreCertificate(clientCertificate);
             const applicationUriFromCert = e.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier[0];
+            
+            if (applicationUriFromCert !== applicationUri) {
+                errorLog("BadCertificateUriInvalid!");
+                errorLog("applicationUri           = ", applicationUri);
+                errorLog("applicationUriFromCert   = ", applicationUriFromCert);
+            }
+            
             return applicationUriFromCert === applicationUri;
         }
 
