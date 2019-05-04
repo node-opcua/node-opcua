@@ -18,7 +18,7 @@
 		"node-opcua-common": "^2.0.0-alpha.24",
 		"node-opcua-debug": "^2.0.0-alpha.24",
 		"node-opcua-hostname": "^2.0.0-alpha.25",
-		"node-opcua-pki": "^1.4.0",
+		"node-opcua-pki": "^1.4.1",
 		"node-opcua-secure-channel": "^2.0.0-alpha.24",
 		"node-opcua-server": "^2.0.0-alpha.25",
 		"node-opcua-service-discovery": "^2.0.0-alpha.24",
