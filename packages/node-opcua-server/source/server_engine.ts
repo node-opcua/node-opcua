@@ -10,55 +10,68 @@ import * as _ from "underscore";
 
 import {
     addElement,
-    AddressSpace, BaseNode, bindExtObjArrayNode, Callback, DataValueCallback,
-    generateAddressSpace, MethodFunctor,
-    mini_nodeset_filename, removeElement,
-    SessionContext, UADynamicVariableArray, UAMethod, UAServerStatus, UAVariable
+    AddressSpace,
+    BaseNode,
+    bindExtObjArrayNode,
+    Callback,
+    DataValueCallback,
+    generateAddressSpace,
+    MethodFunctor,
+    mini_nodeset_filename,
+    removeElement,
+    SessionContext,
+    UADynamicVariableArray,
+    UAMethod,
+    UAServerDiagnosticsSummary,
+    UAServerStatus,
+    UAVariable
 } from "node-opcua-address-space";
-import { apply_timestamps } from "node-opcua-data-value";
+import { apply_timestamps, DataValue } from "node-opcua-data-value";
 
 import {
-    ServerDiagnosticsSummaryDataType, ServerState, ServerStatusDataType
+    ServerDiagnosticsSummaryDataType,
+    ServerState,
+    ServerStatusDataType,
+    SubscriptionDiagnosticsDataType
 } from "node-opcua-common";
-import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
-import { NodeClass } from "node-opcua-data-model";
-import { BrowseDirection } from "node-opcua-data-model";
-import { AttributeIds } from "node-opcua-data-model";
+import { AttributeIds, BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseResult } from "node-opcua-service-browse";
-import { ReadRequest, ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
+import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
 
 import { TransferResult } from "node-opcua-service-subscription";
 
-import { MethodIds, VariableIds } from "node-opcua-constants";
-import { DataValue } from "node-opcua-data-value";
-import { trace_from_this_projet_only } from "node-opcua-debug";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { CreateSubscriptionRequestLike } from "node-opcua-client";
+import { DataTypeIds, MethodIds, VariableIds } from "node-opcua-constants";
+import { minOPCUADate } from "node-opcua-date-time";
+import { checkDebugFlag, make_debugLog, make_errorLog, trace_from_this_projet_only } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
+import { ObjectRegistry } from "node-opcua-object-registry";
 import { CallMethodResult } from "node-opcua-service-call";
+import { ApplicationDescription } from "node-opcua-service-endpoints";
 import {
-    ApplicationDescription
-} from "node-opcua-service-endpoints";
-import {
-    HistoryReadDetails, HistoryReadRequest, HistoryReadResult, HistoryReadValueId
+    HistoryReadDetails,
+    HistoryReadRequest,
+    HistoryReadResult,
+    HistoryReadValueId
 } from "node-opcua-service-history";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
-
-import { UAServerDiagnosticsSummary } from "node-opcua-address-space";
-import { CreateSubscriptionRequestLike } from "node-opcua-client";
-import { ObjectRegistry } from "node-opcua-object-registry";
 import {
-    BrowseDescription, BrowsePath, BrowsePathResult,
+    BrowseDescription,
+    BrowsePath,
+    BrowsePathResult,
     BuildInfo,
     BuildInfoOptions,
     ReadAtTimeDetails,
     ReadEventDetails,
     ReadProcessedDetails,
-    ReadRawModifiedDetails, ReadValueIdOptions,
+    ReadRawModifiedDetails,
+    ReadValueIdOptions,
     SessionDiagnosticsDataType,
+    TimeZoneDataType,
     WriteValue
 } from "node-opcua-types";
+import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 import { HistoryServerCapabilities, HistoryServerCapabilitiesOptions } from "./history_server_capabilities";
 import { OperationLimits, ServerCapabilities, ServerCapabilitiesOptions } from "./server_capabilities";
 import { ServerSidePublishEngine } from "./server_publish_engine";
@@ -66,12 +79,17 @@ import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_e
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 
+import { DateTime } from "node-opcua-basic-types";
+import { getEnumeration } from "node-opcua-factory";
+import { MonitoredItem } from "./monitored_item";
+
 exports.standard_nodeset_file = nodesets.standard_nodeset_file;
 exports.di_nodeset_filename = nodesets.di_nodeset_filename;
 exports.adi_nodeset_filename = nodesets.adi_nodeset_filename;
 exports.mini_nodeset_filename = mini_nodeset_filename;
 
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 function shutdownAndDisposeAddressSpace(this: ServerEngine) {
@@ -162,7 +180,9 @@ function _get_next_subscriptionId() {
     debugLog(" next_subscriptionId = ", next_subscriptionId);
     return next_subscriptionId++;
 }
+
 export type StringGetter = () => string;
+
 export interface ServerEngineOptions {
 
     applicationUri: string | StringGetter;
@@ -239,6 +259,12 @@ export class ServerEngine extends EventEmitter {
         options.serverCapabilities.localeIdArray = options.serverCapabilities.localeIdArray || ["en-EN", "fr-FR"];
 
         this.serverCapabilities = new ServerCapabilities(options.serverCapabilities);
+
+        // make sure minSupportedSampleRate matches MonitoredItem.minimumSamplingInterval
+        (this.serverCapabilities as any).__defineGetter__("minSupportedSampleRate", () => {
+            return MonitoredItem.minimumSamplingInterval;
+        });
+
         this.historyServerCapabilities = new HistoryServerCapabilities(options.historyServerCapabilities);
 
         // --------------------------------------------------- serverDiagnosticsSummary extension Object
@@ -269,7 +295,7 @@ export class ServerEngine extends EventEmitter {
 
         this._applicationUri = "";
         if (typeof options.applicationUri === "function") {
-            (this as any).__defineGetter__("_applicationUri", options.applicationUri );
+            (this as any).__defineGetter__("_applicationUri", options.applicationUri);
         } else {
             this._applicationUri = options.applicationUri || "<unset _applicationUri>";
         }
@@ -575,7 +601,14 @@ export class ServerEngine extends EventEmitter {
 
                 // make sur the provided function returns a valid value for the variant type
                 // This test may not be exhaustive but it will detect obvious mistakes.
-                assert(isValidVariant(VariantArrayType.Scalar, dataType, func()));
+
+                /* istanbul ignore next */
+                if (!isValidVariant(VariantArrayType.Scalar, dataType, func())) {
+
+                    errorLog("func", func());
+                    throw new Error("bindStandardScalar : func doesn't provide an value of type " + DataType[dataType]);
+                }
+
                 return bindVariableIfPresent(nodeId, {
                     get() {
                         return new Variant({
@@ -618,6 +651,20 @@ export class ServerEngine extends EventEmitter {
                     set: null // read only
                 });
             }
+
+            bindStandardScalar(VariableIds.Server_EstimatedReturnTime,
+              DataType.DateTime, () => minOPCUADate);
+
+            // TimeZoneDataType
+            const timeZoneDataType = addressSpace.findDataType(resolveNodeId(DataTypeIds.TimeZoneDataType))!;
+            // xx console.log(timeZoneDataType.toString());
+
+            const timeZone = new TimeZoneDataType({
+                daylightSavingInOffset: /* boolean*/ false,
+                offset: /* int16 */ 0,
+            });
+            bindStandardScalar(VariableIds.Server_LocalTime,
+              DataType.ExtensionObject, () => { return timeZone; });
 
             bindStandardScalar(VariableIds.Server_ServiceLevel,
               DataType.Byte, () => {
@@ -868,23 +915,38 @@ export class ServerEngine extends EventEmitter {
                       return 0.0;
                   });
 
+                const nrt = addressSpace.findDataType(resolveNodeId(DataTypeIds.NamingRuleType))!;
+                // xx console.log(nrt.toString());
+
+                const namingRuleType = (nrt as any)._getDefinition().nameIndex; // getEnumeration("NamingRuleType");
+
                 // i=111
                 bindStandardScalar(VariableIds.ModellingRuleType_NamingRule,
                   DataType.UInt16, () => {
-                      return 0.0;
+                      return 0;
                   });
 
                 // i=112
                 bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule,
                   DataType.UInt16, () => {
-                      return 0.0;
+                      return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
                   });
 
                 // i=113
                 bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule,
                   DataType.UInt16, () => {
-                      return 0.0;
+                      return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
                   });
+                // i=114
+                bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule,
+                  DataType.UInt16, () => {
+                      return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
+                  });
+                bindStandardScalar(VariableIds.ModellingRule_MandatoryShared_NamingRule,
+                  DataType.UInt16, () => {
+                      return namingRuleType.MandatoryShared ? namingRuleType.MandatoryShared.value : 0;
+                  });
+
             }
 
             bindExtraStuff();
