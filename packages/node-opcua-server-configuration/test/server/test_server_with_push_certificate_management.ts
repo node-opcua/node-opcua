@@ -46,6 +46,7 @@ import { installPushCertificateManagementOnServer } from "../..";
 import { ClientPushCertificateManagement } from "../..";
 import { certificateMatchesPrivateKey } from "../..";
 import { OPCUAServerPartial } from "../../source";
+import rimraf = require("rimraf");
 
 const doDebug = checkDebugFlag("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");

@@ -12,8 +12,9 @@ import { PushCertificateManagerServerImpl } from "../..";
 import {
     _tempFolder,
     createSomeCertificate,
+    initializeHelpers,
     produceCertificate,
-    produceOutdatedCertificate
+    produceOutdatedCertificate,
 } from "../helpers/fake_certificate_authority";
 
 g_config.silent = true;
@@ -47,6 +48,7 @@ describe("Testing Server Side PushCertificateManager", () => {
     let cert2: Buffer;
 
     before(async () => {
+        await initializeHelpers();
         cert1 = await createSomeCertificate("cert1.pem");
         cert2 = await createSomeCertificate("cert2.pem");
     });

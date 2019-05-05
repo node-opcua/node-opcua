@@ -16,6 +16,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserNameIdentityToken } from "node-opcua-types";
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
+import { initializeHelpers } from "./helpers/fake_certificate_authority";
 
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
@@ -49,6 +50,11 @@ describe("ServerConfiguration", () => {
         nodesets.standard
     ];
     before(async () => {
+        await initializeHelpers();
+
+        await applicationGroup.initialize();        
+        await userTokenGroup.initialize();
+
         addressSpace = AddressSpace.create();
         await generateAddressSpace(addressSpace, xmlFiles);
 

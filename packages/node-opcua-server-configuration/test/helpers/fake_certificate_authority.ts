@@ -3,6 +3,10 @@ import * as os from "os";
 import * as path from "path";
 import { promisify } from "util";
 
+import * as mkdirp from "mkdirp";
+import * as rimraf from "rimraf";
+import { should } from "should";
+
 import {
     Certificate,
     convertPEMtoDER,
@@ -17,13 +21,12 @@ import {
     CertificateManager,
     g_config
 } from "node-opcua-pki";
-import * as rimraf from "rimraf";
-import { should } from "should";
 
 export const _tempFolder = path.join(__dirname, "../../temp");
 
 export async function initializeHelpers() {
-    await promisify(rimraf)( path.join(_tempFolder, "tmpPKI"));
+    await promisify(rimraf)( path.join(_tempFolder, "*"));
+    await promisify(mkdirp)(_tempFolder);
 }
 
 export async function produceCertificateAndPrivateKey()

@@ -92,7 +92,10 @@ type Functor = () => Promise<void>;
 export async function copyFile(source: string, dest: string): Promise<void> {
     try {
         debugLog("copying file \n source ", source, "\n =>\n dest ", dest);
-        await promisify(fs.copyFile)(source, dest);
+        const sourceExist = await promisify(fs.exists)(source);
+        if (sourceExist) {
+            await promisify(fs.copyFile)(source, dest);
+        }
     } catch (err) {
         errorLog(err);
     }
