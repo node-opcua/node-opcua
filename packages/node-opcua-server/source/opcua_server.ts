@@ -1975,7 +1975,7 @@ export class OPCUAServer extends OPCUABaseServer {
             debugLog(chalk.yellow.bold(" Bad Session in  _on_ActivateSessionRequest"),
               authenticationToken.value.toString("hex"));
 
-            return rejectConnection(StatusCodes.BadSessionNotActivated);
+            return rejectConnection(StatusCodes.BadSessionIdInvalid);
         }
 
         // OpcUA 1.02 part 3 $5.6.3.1 ActiveSession Set page 29
@@ -2241,7 +2241,7 @@ export class OPCUAServer extends OPCUABaseServer {
             message.session.status = "screwed";
 
             // note : use StatusCodes.BadSessionClosed , for pending message for this session
-            return sendError(StatusCodes.BadSessionNotActivated);
+            return sendError(StatusCodes.BadSessionIdInvalid);
         }
 
         // lets also reset the session watchdog so it doesn't
@@ -3101,7 +3101,7 @@ export class OPCUAServer extends OPCUABaseServer {
               // a Client calls the Call Service.
               let maxNodesPerMethodCall = server.engine.serverCapabilities.operationLimits.maxNodesPerMethodCall;
               maxNodesPerMethodCall = maxNodesPerMethodCall <= 0 ? 1000 : maxNodesPerMethodCall;
-              if (request.methodsToCall.length >= maxNodesPerMethodCall) {
+              if (request.methodsToCall.length > maxNodesPerMethodCall) {
                   return sendError(StatusCodes.BadTooManyOperations);
               }
 

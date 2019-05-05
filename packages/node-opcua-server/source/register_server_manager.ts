@@ -25,6 +25,7 @@ import {
 import { EndpointDescription, MdnsDiscoveryConfiguration } from "node-opcua-types";
 import { OPCUABaseServer } from "./base_server";
 import { IRegisterServerManager } from "./I_register_server_manager";
+import { resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 
 export type EmptyCallback = (err?: Error) => void;
 
@@ -314,6 +315,8 @@ export class RegisterServerManager
         if (this.state !== RegisterServerManagerStatus.INACTIVE) {
             return callback(new Error("RegisterServer process already started")); // already started
         }
+
+        this.discoveryServerEndpointUrl  = resolveFullyQualifiedDomainName(this.discoveryServerEndpointUrl);
 
         // perform initial registration + automatic renewal
         this._establish_initial_connection((err?: Error) => {

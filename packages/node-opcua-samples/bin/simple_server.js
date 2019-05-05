@@ -128,6 +128,7 @@ const server_options = {
             maxNodesPerWrite: 1000,
             maxNodesPerHistoryReadData: 100,
             maxNodesPerBrowse: 1000,
+            maxNodesPerMethodCall: 100,
         }
     },
     userManager: userManager,
@@ -448,7 +449,7 @@ server.on("response", function (response) {
         case "xxCreateSubscriptionResponse":
         case "xxTranslateBrowsePathsToNodeIdsResponse":
         case "xxSetPublishingModeResponse":
-        case "WriteResponse":
+        case "xxWriteResponse":
             console.log(response.toString());
             break;
         case "xxPublishResponse":
@@ -487,7 +488,7 @@ server.on("request", function (request, channel) {
             }
             console.log(str);
             break;
-        case "WriteRequest":
+        case "xxWriteRequest":
             console.log(request.toString());
            break;
            if (request.nodesToWrite) {
@@ -527,9 +528,7 @@ process.on("SIGINT", function () {
     });
 });
 
-const discovery_server_endpointUrl = "opc.tcp://" + hostname + ":4840/UADiscovery";
-
-console.log(chalk.yellow("\nregistering server to :") + discovery_server_endpointUrl);
+console.log(chalk.yellow("\nregistering server to :") + server.discoveryServerEndpointUrl);
 
 server.on("serverRegistered",function() {
     console.log("server has been registered");
