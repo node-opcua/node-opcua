@@ -27,7 +27,10 @@ import { WriteValue, WriteValueOptions } from "node-opcua-service-write";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     HistoryReadDetails,
-    HistoryReadResult, Range, ReadAtTimeDetails,
+    HistoryReadResult,
+    HistoryReadResultOptions,
+    Range, 
+    ReadAtTimeDetails,
     ReadEventDetails,
     ReadProcessedDetails,
     ReadRawModifiedDetails
@@ -346,7 +349,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
          */
         this.historizing = !!options.historizing; // coerced to boolean
 
-        this._dataValue = new DataValue({ statusCode: StatusCodes.BadWaitingForInitialData, value: {} });
+        this._dataValue = new DataValue({ statusCode: StatusCodes.UncertainInitialValue, value: {} });
 
         if (options.value) {
             this.bindVariable(options.value);
@@ -445,7 +448,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
 
         /* istanbul ignore next */
-        if (dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData)) {
+        if (dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData)
+        || dataValue.statusCode.equals(StatusCodes.UncertainInitialValue)
+        ) {
             debugLog(chalk.red(" Warning:  UAVariable#readValue ")
               + chalk.cyan(this.browseName.toString()) +
               " (" + chalk.yellow(this.nodeId.toString()) + ") exists but dataValue has not been defined");
@@ -625,14 +630,22 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
 
         if (!dataValue.sourceTimestamp) {
-            if (context.currentTime) {
-                dataValue.sourceTimestamp = context.currentTime;
-                dataValue.sourcePicoseconds = 0;
-            } else {
-                const clock = getCurrentClock();
-                dataValue.sourceTimestamp = clock.timestamp;
-                dataValue.sourcePicoseconds = clock.picoseconds;
+
+            dataValue.sourceTimestamp = this._dataValue.sourceTimestamp;
+            dataValue.sourcePicoseconds = this._dataValue.sourcePicoseconds;
+
+            /*          
+            if (false) {
+                if (context.currentTime) {
+                    dataValue.sourceTimestamp = context.currentTime;
+                    dataValue.sourcePicoseconds = 0;
+                } else {
+                    const clock = getCurrentClock();
+                    dataValue.sourceTimestamp = clock.timestamp;
+                    dataValue.sourcePicoseconds = clock.picoseconds;
+                }
             }
+            */
         }
 
         if (context.currentTime && !dataValue.serverTimestamp) {
@@ -1439,7 +1452,10 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
       continuationPoint: ContinuationPoint | null,
       callback: Callback<HistoryReadResult>
     ): any {
-        throw new Error("");
+        const result = new HistoryReadResult({
+             statusCode: StatusCodes.BadNotImplemented,
+        });
+        callback(null, result);
     }
 
     public _historyPush(newDataValue: DataValue): any {

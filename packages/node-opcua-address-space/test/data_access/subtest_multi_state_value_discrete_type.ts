@@ -199,6 +199,7 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
             const greenValue = obj.color.enumValues.readValue().value.value[2].value[1];
             // now change the value => verify that valueAsText will change accordingly
             const dataValue = new DataValue({
+                sourceTimestamp: new Date(),
                 value: new Variant({ dataType: DataType.UInt32, value: greenValue })// OK
             });
 

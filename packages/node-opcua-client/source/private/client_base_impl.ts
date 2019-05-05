@@ -439,6 +439,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                     if (err.message.match("ECONNREFUSED")) {
                        return callback(err);
                     }
+                    if (err.message.match("Backoff aborted.")) {
+                        return failAndRetry(err!, "cannot create secure channel");
+                    }
                     if (true || err!.message.match("BadCertificateInvalid")) {
                         errorLog(" _internal_create_secure_channel err = ", err.message);
                         // the server may have shut down the channel because its certificate

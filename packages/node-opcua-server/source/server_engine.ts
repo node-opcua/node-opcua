@@ -917,36 +917,36 @@ export class ServerEngine extends EventEmitter {
 
                 const nrt = addressSpace.findDataType(resolveNodeId(DataTypeIds.NamingRuleType))!;
                 // xx console.log(nrt.toString());
+                if (nrt) {
+                    const namingRuleType = (nrt as any)._getDefinition().nameIndex; // getEnumeration("NamingRuleType");
+                    // i=111
+                    bindStandardScalar(VariableIds.ModellingRuleType_NamingRule,
+                    DataType.UInt16, () => {
+                        return 0;
+                    });
 
-                const namingRuleType = (nrt as any)._getDefinition().nameIndex; // getEnumeration("NamingRuleType");
+                    // i=112
+                    bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule,
+                    DataType.UInt16, () => {
+                        return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
+                    });
 
-                // i=111
-                bindStandardScalar(VariableIds.ModellingRuleType_NamingRule,
-                  DataType.UInt16, () => {
-                      return 0;
-                  });
+                    // i=113
+                    bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule,
+                    DataType.UInt16, () => {
+                        return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
+                    });
+                    // i=114
+                    bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule,
+                    DataType.UInt16, () => {
+                        return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
+                    });
+                    bindStandardScalar(VariableIds.ModellingRule_MandatoryShared_NamingRule,
+                    DataType.UInt16, () => {
+                        return namingRuleType.MandatoryShared ? namingRuleType.MandatoryShared.value : 0;
+                    });
 
-                // i=112
-                bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule,
-                  DataType.UInt16, () => {
-                      return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
-                  });
-
-                // i=113
-                bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule,
-                  DataType.UInt16, () => {
-                      return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
-                  });
-                // i=114
-                bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule,
-                  DataType.UInt16, () => {
-                      return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
-                  });
-                bindStandardScalar(VariableIds.ModellingRule_MandatoryShared_NamingRule,
-                  DataType.UInt16, () => {
-                      return namingRuleType.MandatoryShared ? namingRuleType.MandatoryShared.value : 0;
-                  });
-
+                }
             }
 
             bindExtraStuff();

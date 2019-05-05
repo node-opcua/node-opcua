@@ -11,7 +11,9 @@ import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
+import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
+
 import {
     SessionContext,
     UADataType as UADataTypePublic, UAVariable
@@ -217,19 +219,38 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     }
 }
 
+function dataTypeDefinition_toString(
+  this: UADataType,
+  options: ToStringOption
+) {
+    const indexes = this._getDefinition();
+
+    const output = JSON.stringify(indexes, null, " ");
+
+    options.add(options.padding + chalk.yellow("                              :  definition "));
+    for (const str of output.split("\n")) {
+        options.add(options.padding + chalk.yellow("                              :   " + str));
+    }
+}
+
 export function DataType_toString(
   this: UADataType,
   options: ToStringOption
 ): void {
 
     BaseNode_toString.call(this, options);
+    options.add(options.padding + chalk.yellow("          isAbstract          : " + this.isAbstract));
+    options.add(options.padding + chalk.yellow("          definitionName      : " + this.definitionName));
+
     options.add(options.padding + chalk.yellow("          binaryEncodingNodeId: ") +
-      (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : ""));
+      (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>"));
     options.add(options.padding + chalk.yellow("          xmlEncodingNodeId   : ") +
-      (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : ""));
+      (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>"));
 
     if (this.subtypeOfObj) {
-        options.add(options.padding + chalk.yellow("          subtypeOfObj       : ") +
+        options.add(options.padding + chalk.yellow("          subtypeOfObj        : ") +
           (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : ""));
     }
+    dataTypeDefinition_toString.call(this, options);
+
 }

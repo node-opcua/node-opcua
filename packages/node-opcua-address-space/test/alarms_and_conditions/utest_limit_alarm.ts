@@ -116,7 +116,7 @@ export function utest_limit_alarm(test: any) {
             should(alarm.limitState.getCurrentState()).eql(null); // not alarmed !
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.BadStateNotActive);
             alarm.activeState.getValue().should.eql(false);
-            alarm.currentBranch().getMessage().text!.should.eql(" "); // initial message is empty
+            alarm.currentBranch().getMessage().text!.should.eql("Back to normal"); // initial message is empty
             spyOnEvent.callCount.should.eql(0);
 
             // InputNode goes very low - alarm becomes active - state change to LowLow - 1 event raised

@@ -127,13 +127,13 @@ export function BaseNode_toString(
     set_as_processed(options, this.nodeId);
 
     options.add("");
-    options.add(options.padding + chalk.yellow("          nodeId        : ") + this.nodeId.toString());
-    options.add(options.padding + chalk.yellow("          nodeClass     : ") + this.nodeClass.toString());
-    options.add(options.padding + chalk.yellow("          browseName    : ") + this.browseName.toString());
-    options.add(options.padding + chalk.yellow("          displayName   : ") + this.displayName
+    options.add(options.padding + chalk.yellow("          nodeId              : ") + this.nodeId.toString());
+    options.add(options.padding + chalk.yellow("          nodeClass           : ") + NodeClass[this.nodeClass]  + " (" + this.nodeClass + ")");
+    options.add(options.padding + chalk.yellow("          browseName          : ") + this.browseName.toString());
+    options.add(options.padding + chalk.yellow("          displayName         : ") + this.displayName
       .map((f) => f.locale + " " + f.text).join(" | "));
 
-    options.add(options.padding + chalk.yellow("          description   : ")
+    options.add(options.padding + chalk.yellow("          description         : ")
       + (this.description ? this.description.toString() : ""));
 }
 

@@ -13,7 +13,7 @@ import { UATwoStateVariable } from "../ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
 import { UAAlarmConditionBase } from "./ua_alarm_condition_base";
 
-export interface UALimitAlarm  extends UAAlarmConditionBase{
+export interface UALimitAlarm  extends UAAlarmConditionBase {
     highHighLimit?: UAVariable;
     highLimit?: UAVariable;
     lowLimit?: UAVariable;
@@ -133,8 +133,6 @@ export class UALimitAlarm extends UAAlarmConditionBase {
         return alarmNode;
     }
 
-
-
     public _dataType: any;
 
     /**
@@ -230,7 +228,8 @@ export class UALimitAlarm extends UAAlarmConditionBase {
 
         assert(dataValue instanceof DataValue);
 
-        if (dataValue.statusCode === StatusCodes.BadWaitingForInitialData) {
+        if (dataValue.statusCode === StatusCodes.BadWaitingForInitialData
+            && dataValue.statusCode === StatusCodes.UncertainInitialValue) {
             // we are not ready yet to use the input node value
             return;
         }

@@ -582,7 +582,7 @@ export function timestampHasChanged(
 ): boolean {
     // TODO:    timestampsToReturn = timestampsToReturn || { key: "Neither"};
     if (timestampsToReturn === undefined) {
-        return sourceTimestampHasChanged(dataValue1, dataValue2) || serverTimestampHasChanged(dataValue1, dataValue2);
+        return sourceTimestampHasChanged(dataValue1, dataValue2); // || serverTimestampHasChanged(dataValue1, dataValue2);
     }
     switch (timestampsToReturn) {
         case TimestampsToReturn.Neither:
@@ -596,6 +596,10 @@ export function timestampHasChanged(
             assert(timestampsToReturn === TimestampsToReturn.Server);
             return serverTimestampHasChanged(dataValue1, dataValue2);
     }
+}
+
+export function sameStatusCode(statusCode1: StatusCode, statusCode2: StatusCode) {
+    return statusCode1.value === statusCode2.value;
 }
 
 /**
@@ -616,9 +620,11 @@ export function sameDataValue(v1: DataValue, v2: DataValue, timestampsToReturn?:
     if (v2 && !v1) {
         return false;
     }
-    if (v1.statusCode !== v2.statusCode) {
+    if (!sameStatusCode(v1.statusCode,v2.statusCode)) {
         return false;
     }
+
+    /*
     //
     // For performance reason, sourceTimestamp is
     // used to determine if a dataValue has changed.
@@ -630,6 +636,7 @@ export function sameDataValue(v1: DataValue, v2: DataValue, timestampsToReturn?:
     if ((v1.sourceTimestamp && v2.sourceTimestamp) && !sourceTimestampHasChanged(v1, v2)) {
         return true;
     }
+    */
     if (timestampHasChanged(v1, v2, timestampsToReturn)) {
         return false;
     }

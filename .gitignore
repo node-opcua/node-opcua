@@ -69,3 +69,5 @@ test_fixtures/
 build/
 doc1/
 *.tsbuildinfo
+_packages_extra2/
+_packages_extra3/

@@ -1217,7 +1217,7 @@ function add_trigger_nodes(namespace, parentFolder) {
 
             const server = addressSpace.rootFolder.objects.server;
 
-            server.raiseEvent("1:MyEventType", {
+            server.raiseEvent("3:MyEventType", {
                 message: {
                     dataType: DataType.LocalizedText,
                     value: {text: "Hello World"}

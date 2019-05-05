@@ -244,15 +244,15 @@ module.exports = function (test) {
                         values[7].value.toString().should.eql("ns=0;i=2787"); // RefreshStartEventType
                         // dump_field_values(fields,values);
 
-                        //xxx values = test.spy_monitored_item1_changes.getCall(1).args[0];
-                        //xxx values[7].value.toString().should.eql("ns=0;i=9341"); //ExclusiveLimitAlarmType
-                        //xxx //xx dump_field_values(fields,values);
-
                         values = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        values[7].value.toString().should.eql("ns=0;i=9341"); //ExclusiveLimitAlarmType
+                        // xx dump_field_values(fields,values);
+
+                        values = test.spy_monitored_item1_changes.getCall(2).args[0];
                         values[7].value.toString().should.eql("ns=0;i=2788"); // RefreshEndEventType
                         // dump_field_values(fields,values);
 
-                        test.spy_monitored_item1_changes.callCount.should.eql(2);
+                        test.spy_monitored_item1_changes.callCount.should.eql(3);
 
                         test.spy_monitored_item1_changes.resetHistory();
                         callback();

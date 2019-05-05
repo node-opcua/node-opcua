@@ -897,7 +897,9 @@ export function AddressSpace_installHistoricalDataNode(
     node.$historicalDataConfiguration = historicalDataConfiguration;
 
     const dataValue = node.readValue();
-    if (dataValue.statusCode !== StatusCodes.BadWaitingForInitialData) {
+    if (
+        dataValue.statusCode !== StatusCodes.BadWaitingForInitialData
+        && dataValue.statusCode !== StatusCodes.UncertainInitialValue) {
         on_value_change.call(node, dataValue);
     }
     node.on("value_changed", on_value_change);
