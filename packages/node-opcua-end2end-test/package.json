@@ -8,7 +8,7 @@
   "test": "mocha --recursive test"
  },
  "dependencies": {
-  "node-opcua-pki": "1.2.3"
+  "node-opcua-pki": "1.5.0"
  },
  "devDependencies": {
   "async": "^2.6.2",
@@ -24,7 +24,7 @@
   "node-opcua-client": "^0.7.2",
   "node-opcua-client-proxy": "^0.7.2",
   "node-opcua-common": "^0.7.2",
-  "node-opcua-crypto": "^1.0.3",
+  "node-opcua-crypto": "^1.1.1",
   "node-opcua-debug": "^0.7.2",
   "node-opcua-extension-object": "^0.7.2",
   "node-opcua-factory": "^0.7.2",
@@ -40,7 +40,7 @@
   "node-opcua-service-secure-channel": "^0.7.2",
   "node-opcua-variant": "^0.7.2",
   "should": "13.2.3",
-  "sinon": "^7.3.1",
+  "sinon": "^7.3.2",
   "underscore": "^1.9.1",
   "yargs": "^13.2.2"
  },
