@@ -61,11 +61,12 @@ const argv = yargs(process.argv)
 
     .alias("d", "debug")
     .alias("h", "history")
-    .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
-    .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
+    .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Sha256 -s=SIGN")
+    .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=SIGN -u JoeDoe -p P@338@rd ")
     .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"")
 
     .argv;
+
 
 
 const securityMode = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
@@ -83,6 +84,12 @@ if (!securityPolicy) {
 const timeout = parseInt(argv.timeout) * 1000 || 20000;
 
 const monitored_node = argv.node || "ns=1;s=PumpSpeed"; //"ns=1;s=Temperature";
+
+function constructFilename(filename) {
+    return path.join(__dirname,"../",filename);
+}
+const certificate_file            = constructFilename("certificates/client_selfsigned_cert_2048.pem");
+const certificate_privatekey_file = constructFilename("certificates/client_key_2048.pem");
 
 console.log("securityMode        = ".cyan, securityMode.toString());
 console.log("securityPolicy      = ".cyan, securityPolicy.toString());
@@ -386,20 +393,26 @@ async.series([
     function (callback) {
 
         const options = {
+            
             endpoint_must_exist: false,
             keepSessionAlive: true,
             connectionStrategy: {
                 maxRetry: 10,
                 initialDelay: 2000,
                 maxDelay: 10*1000
-            }
+            },
+            certificateFile: certificate_file,
+            privateKeyFile: certificate_privatekey_file
+
         };
 
         client = new opcua.OPCUAClient(options);
 
-        console.log(" connecting to ", endpointUrl.cyan.bold);
-        console.log("    strategy", client.connectionStrategy);
-
+        console.log(" connecting to      = ".cyan, endpointUrl.cyan.bold);
+        console.log("    strategy        = ".cyan, client.connectionStrategy);
+        console.log("client certificate  = ".cyan, client.certificateFile);
+        console.log("client private key  = ".cyan, client.privateKeyFile);
+        
         client.connect(endpointUrl, callback);
 
         client.on("backoff", function (number, delay) {
@@ -487,7 +500,10 @@ async.series([
                 maxRetry: 10,
                 initialDelay: 2000,
                 maxDelay: 10*1000
-            }
+            },
+            certificateFile: certificate_file,
+            privateKeyFile: certificate_privatekey_file
+
         };
         console.log("Options = ", options.securityMode.toString(), options.securityPolicy.toString());
 

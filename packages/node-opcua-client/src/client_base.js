@@ -46,8 +46,8 @@ const defaultConnectionStrategy = {
  * @param [options.securityMode=MessageSecurityMode.None] {MessageSecurityMode} the default security mode.
  * @param [options.securityPolicy =SecurityPolicy.NONE] {SecurityPolicy} the security mode.
  * @param [options.serverCertificate=null] {Certificate} the server certificate.
- * @param [options.certificateFile="certificates/client_selfsigned_cert_1024.pem"] {String} client certificate pem file.
- * @param [options.privateKeyFile="certificates/client_key_1024.pem"] {String} client private key pem file.
+ * @param [options.certificateFile="certificates/client_selfsigned_cert_2048.pem"] {String} client certificate pem file.
+ * @param [options.privateKeyFile="certificates/client_key_2048.pem"] {String} client private key pem file.
  * @param [options.connectionStrategy] {Object}
  * @param [options.keepSessionAlive=false]{Boolean}
  * @param [options.tokenRenewalInterval =0] {Number} if not specify or set to 0 , token  renewal will happen around 75% of the defaultSecureTokenLifetime
@@ -65,7 +65,7 @@ function OPCUAClientBase(options) {
 
     this.clientName = options.clientName || "Session";
 
-    options.certificateFile = options.certificateFile || path.join(__dirname, "../certificates/client_selfsigned_cert_1024.pem");
+    options.certificateFile = options.certificateFile || path.join(__dirname, "../certificates/client_selfsigned_cert_2048.pem");
 
     options.privateKeyFile = options.privateKeyFile || path.join(__dirname, "../certificates/PKI/own/private/private_key.pem");
 
@@ -631,8 +631,8 @@ OPCUAClientBase.prototype.connect = function (endpointUrl, callback) {
         // if the certificate has been certified by an Certificate Authority we have to
         // verify that the certificates in the chain are valid and not revoked.
         //
-		const cert = self.certificateFile || 'certificates/client_selfsigned_cert_1024.pem';
-		const key = self.privateKeyFile || 'certificates/client_key_1024.pem';
+		const cert = self.certificateFile || 'certificates/client_selfsigned_cert_2048.pem';
+		const key = self.privateKeyFile || 'certificates/client_key_2048.pem';
 		const appName = self.applicationName || 'NodeOPCUA-Client';
         const params = {
             securityMode: this.securityMode,

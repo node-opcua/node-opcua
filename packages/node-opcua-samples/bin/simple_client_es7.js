@@ -58,7 +58,7 @@ const argv = yargs(process.argv)
 
     .alias("d", "debug")
     .alias("h", "history")
-    .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
+    .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Sha256 -s=SIGN")
     .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
     .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"")
 

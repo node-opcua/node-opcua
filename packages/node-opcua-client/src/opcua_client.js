@@ -63,8 +63,8 @@ function validateServerNonce(serverNonce) {
  * @param [options.applicationName="NodeOPCUA-Client"]        {string} the client application name
  * @param [options.endpoint_must_exist=true] {Boolean} set to false if the client should accept server endpoint mismatch
  * @param [options.keepSessionAlive=false]{Boolean}
- * @param [options.certificateFile="certificates/client_selfsigned_cert_1024.pem"] {String} client certificate pem file.
- * @param [options.privateKeyFile="certificates/client_key_1024.pem"] {String} client private key pem file.
+ * @param [options.certificateFile="certificates/client_selfsigned_cert_2048.pem"] {String} client certificate pem file.
+ * @param [options.privateKeyFile="certificates/client_key_2048.pem"] {String} client private key pem file.
  * @param [options.clientName=""] {String} a client name string that will be used to generate session names.
  * @constructor
  */
