@@ -4,11 +4,11 @@ node_js:
   # dropping support for node 0.10 - "0.10"
   # dropping support for node 0.12 - "0.12"
   # dropping support for node 4
-  - "6"
-  # dropped - "7"
+  # dropping support for node 6 
   - "8"
   - "9"
   - "10"
+  - "12"
 
 os:
   - linux
@@ -78,8 +78,8 @@ after_success:
 
 script:
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]];
-    then  npm test ;
-    else  npm test;
+    then  npm test;
+    else  npm test; 
     fi
 
 addons:

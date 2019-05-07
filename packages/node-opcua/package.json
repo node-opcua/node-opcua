@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {},
     "engines": {
-        "node": ">=6.10"
+        "node": ">=8.10"
     },
     "typings": "./node-opcua.d.ts",
     "dependencies": {

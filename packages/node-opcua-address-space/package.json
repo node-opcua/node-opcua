@@ -4,7 +4,7 @@
  "description": "pure nodejs OPCUA SDK - module -address-space",
  "main": "index.js",
  "engines": {
-  "node": ">=6.10"
+  "node": ">=8.10"
  },
  "scripts": {
   "test": "mocha test",
