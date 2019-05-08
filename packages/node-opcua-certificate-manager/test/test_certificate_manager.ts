@@ -21,7 +21,7 @@ describe("Testing OPCUA Client Certificate Manager", () => {
     const temporaryFolder =  path.join(os.tmpdir(), "testing_certificates");
     let certificateMgr: OPCUACertificateManager ;
 
-    const certificate1File = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_1024.pem");
+    const certificate1File = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
     let certificate1: Certificate;
     beforeEach(async () => {
 

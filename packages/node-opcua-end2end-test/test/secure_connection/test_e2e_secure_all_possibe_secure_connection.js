@@ -876,12 +876,12 @@ describe("ZZE- testing with various client certificates", function () {
         });
     });
 
-    const client_privatekey_file = path.join(certificate_store, "client_key_1024.pem");
+    const client_privatekey_file = path.join(certificate_store, "client_key_2048.pem");
 
-    const client_certificate_ok = path.join(certificate_store, "client_cert_1024.pem");
-    const client_certificate_out_of_date = path.join(certificate_store, "client_cert_1024_outofdate.pem");
-    const client_certificate_not_active_yet = path.join(certificate_store, "client_cert_1024_not_active_yet.pem");
-    const client_certificate_revoked = path.join(certificate_store, "client_cert_1024_revoked.pem");
+    const client_certificate_ok = path.join(certificate_store, "client_cert_2048.pem");
+    const client_certificate_out_of_date = path.join(certificate_store, "client_cert_2048_outofdate.pem");
+    const client_certificate_not_active_yet = path.join(certificate_store, "client_cert_2048_not_active_yet.pem");
+    const client_certificate_revoked = path.join(certificate_store, "client_cert_2048_revoked.pem");
 
     it("Server should allow a client with a valid certificate to connect", function (done) {
 

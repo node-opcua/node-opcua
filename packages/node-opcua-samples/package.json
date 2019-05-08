@@ -23,7 +23,7 @@
   "hexy": "^0.3.0",
   "node-opcua": "^2.0.0-alpha.25",
   "node-opcua-assert": "^2.0.0-alpha.24",
-  "node-opcua-pki": "^1.4.1",
+  "node-opcua-pki": "^1.5.1",
   "node-opcua-server-configuration": "^2.0.0-alpha.25",
   "readline": "^1.3.0",
   "sprintf-js": "^1.1.2",

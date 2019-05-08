@@ -101,13 +101,13 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
 
     /**
      * client certificate pem file.
-     * @default "certificates/client_self-signed_cert_1024.pem"
+     * @default "certificates/client_self-signed_cert_2048.pem"
      */
     certificateFile?: string;
 
     /**
      * client private key pem file.
-     * @default "certificates/client_key_1024.pem"
+     * @default "certificates/client_key_2048.pem"
      */
     privateKeyFile?: string;
 

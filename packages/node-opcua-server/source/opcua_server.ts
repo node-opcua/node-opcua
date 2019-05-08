@@ -1132,14 +1132,15 @@ export class OPCUAServer extends OPCUABaseServer {
 
         const done = args[0] as () => void;
 
-        if (this._delayInit) {
-            this._delayInit();
-            this._delayInit = undefined;
-        }
         assert(!this.initialized, "server is already initialized"); // already initialized ?
 
         callbackify(extractFullyQualifiedDomainName)((err?: Error) => {
 
+            if (this._delayInit) {
+                this._delayInit();
+                this._delayInit = undefined;
+            }
+      
             OPCUAServer.registry.register(this);
 
             this.engine.initialize(this.options, () => {

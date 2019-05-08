@@ -37,6 +37,27 @@ function getUserName(userIdentityToken: UserIdentityToken): string {
 export interface ISessionBase {
     userIdentityToken?: UserIdentityToken;
 }
+
+
+/**
+ * OPC Unified Architecture, Part 3 13 Release 1.04
+ * 4.8.2 Well Known Roles
+ * All Servers should support the well-known Roles which are defined in Table 2. The NodeIds
+ * for the well-known Roles are defined in Part 6.
+ * Table 2 – Well-Known Roles
+ * BrowseName           Suggested Permissions
+ * Anonymous            The Role has very limited access for use when a Session has anonymous credentials.
+ * AuthenticatedUser    The Role has limited access for use when a Session has valid non-anonymous credentials
+ *                      but has not been explicitly granted access to a Role.
+ * Observer             The Role is allowed to browse, read live data, read historical data/events or subscribe to data/events.
+ * Operator             The Role is allowed to browse, read live data, read historical data/events or subscribe to data/events.
+ *                      In addition, the Session is allowed to write some live data and call some Methods.
+ * Engineer             The Role is allowed to browse, read/write configuration data, read historical data/events,
+ *                      call Methods or subscribe to data/events.
+ * Supervisor           The Role is allowed to browse, read live data, read historical data/events, call Methods or
+ *                      subscribe to data/events.
+ * ConfigureAdmin       The Role is allowed to change the non-security related config
+ */
 export interface IUserManager {
     getUserRole?: (user: string) => string;
 }

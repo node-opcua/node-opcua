@@ -1112,6 +1112,148 @@ module.exports = function (test) {
             }, done);
         });
 
+        it("AZA2-K1 should not report notification if a monitored value & status are written but did not change", function (done){
+            // based on CTT : createMonitoredItems591060 - 009.js
+            // Description: 
+            //  - Create one monitored item. 
+            //  - call Publish(). 
+            //  - Write a status code to the Value  attribute (don’t change the value of the Value attribute). 
+            //  - call Publish().
+            //  - Write the existing value and status code to the Value attribute. 
+            //  - call Publish().
+            // Expected results: 
+            //   - All service and operation level results are Good. 
+            //   - The second Publish contains a DataChangeNotification with a value.statusCode matching 
+            //     the written value (and value.value matching the value before the write). 
+            //   - The third Publish contains no DataChangeNotifications. 
+            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+
+                const notificationMessageSpy = new sinon.spy();
+                subscription.on("raw_notification", notificationMessageSpy);
+                subscription.on("raw_notification", (notf)  => {
+                    // console.log(notf.toString());
+                });
+
+                const monitoredItemOnChangedSpy = new sinon.spy();
+
+                subscription.publishingInterval.should.eql(100);
+
+                const nodeId = "ns=2;s=Scalar_Static_Int32";
+
+                function create_monitored_item(callback) {
+
+                    const monitoredItem = opcua.ClientMonitoredItem.create(
+                      subscription,
+                      {
+                          nodeId: nodeId,
+                          attributeId: AttributeIds.Value,
+                      }, {
+                          samplingInterval: 100,
+                          discardOldest: true,
+                          queueSize: 100
+                      },
+                      opcua.TimestampsToReturn.Both
+                    );
+
+                    monitoredItem.on("err", function (statusMessage) {
+                        callback(new Error(statusMessage));
+                    });
+
+                    // subscription.on("item_added",function(monitoredItem){
+                    monitoredItem.on("initialized", function () {
+                        //xxconsole.log("Monitored Item Initialized")
+                        callback();
+                    });
+
+                    monitoredItem.on("changed", monitoredItemOnChangedSpy);
+                }
+
+
+                function wait(duration, callback) {
+                    setTimeout(callback, duration); // make sure we get inital data
+                }
+
+
+                function write(value, statusCode, callback) {
+
+                    const nodeToWrite = {
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.Value,
+                        value: /*new DataValue(*/{
+                            statusCode,
+                            value: {
+                                /* Variant */
+                                dataType: DataType.Int32,
+                                value: value
+                            },
+                            sourceTimestamp: null
+                        }
+                    };
+
+                    session.write(nodeToWrite, function (err, statusCode) {
+                        if (!err) {
+                            statusCode.should.eql(opcua.StatusCodes.Good);
+                        }
+                        session.read({
+                            attributeId: opcua.AttributeIds.Value,
+                            nodeId: nodeId
+                        }, function (err, dataValue) {
+                            should.exist(dataValue);
+                            // xx console.log(" written ",dataValue.toString());
+                            callback(err);
+                        });
+                    });
+
+                }
+
+                async.series([
+
+                    write.bind(null, 1, StatusCodes.Good),
+                    wait.bind(null, 300),
+     
+                    create_monitored_item.bind(null),
+                    wait.bind(null, 300),
+     
+                    write.bind(null, 1, StatusCodes.GoodWithOverflowBit),
+                    wait.bind(null, 300),
+     
+                    write.bind(null, 1, StatusCodes.GoodWithOverflowBit),
+                    wait.bind(null, 300),
+     
+                    function (callback) {
+                        // wait until next notification received;
+                        const lambda = (response) => {
+
+                            console.log("response: " , response.constructor.name )
+                            if (response.constructor.name === "PublishResponse") {
+                            
+                                client.removeListener("receive_response", lambda);
+                               // console.log(" xxxx ", response.toString());
+
+                                if (response.notificationMessage.notificationData.length !== 0) {
+                                    return callback(new Errro("Test has failed because PublishResponse has a unexpected notification data"))
+                                }   
+                                callback();
+                            }
+                        };
+                        client.on("receive_response", lambda);
+                    },
+                    //xx wait.bind(null, subscription.publishingInterval * subscription.maxKeepAliveCount + 500),
+                    function (callback) {
+
+                        monitoredItemOnChangedSpy.callCount.should.eql(2);
+                        monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
+                        monitoredItemOnChangedSpy.getCall(1).args[0].statusCode.should.eql(StatusCodes.GoodWithOverflowBit);
+
+                        callback();
+
+                    }
+                ], callback);
+
+            }, done);          
+
+        });
+
         xit("AZA2-L disabled monitored item", function (done) {
 
             //TO DO
@@ -1612,6 +1754,9 @@ module.exports = function (test) {
 
         it("AZA3-A A server should send a StatusChangeNotification (BadTimeout) if the client doesn't send PublishRequest within the expected interval", function (done) {
 
+            if (process.platform === "darwin") {
+                return done(); // skipping on MacOS
+            }
             //xx endpointUrl = "opc.tcp://localhost:2200/OPCUA/SimulationServer";
 
             const nb_keep_alive_received = 0;
@@ -1674,7 +1819,7 @@ module.exports = function (test) {
                                 return callback(err);
                             }
                             longlifeSubscription = subscription;
-                            callback();
+                            setImmediate(callback);
                         });
                     }),
 
@@ -1694,7 +1839,7 @@ module.exports = function (test) {
                                 return callback(err);
                             }
                             shortlifeSubscription = subscription;
-                            callback();
+                            setImmediate(callback);
                         });
 
                     }),
@@ -1721,7 +1866,7 @@ module.exports = function (test) {
 
                         shortlifeSubscription.once("status_changed", function (statusCode) {
                             statusCode.should.eql(StatusCodes.BadTimeout);
-                            callback();
+                            setImmediate(callback);
                         });
 
                     }),
@@ -1737,14 +1882,14 @@ module.exports = function (test) {
                         setTimeout(function () {
                             shortlifeSubscription.terminate(function (err) {
                                 shortlifeSubscription.nb_keep_alive_received.should.be.equal(0);
-                                callback();
+                                setImmediate(callback);
                             });
                         }, timeout);
 
                     }),
                     f(function terminate_long_life_subscription(callback) {
                         longlifeSubscription.terminate(function (err) {
-                            callback();
+                            setImmediate(callback);
                         });
                     })
                 ], inner_done);

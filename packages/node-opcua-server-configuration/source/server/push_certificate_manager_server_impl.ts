@@ -156,7 +156,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             this.httpsGroup = options.httpsGroup;
             if (this.userTokenGroup) {
                 this._map.DefaultUserTokenGroup = this.userTokenGroup;
-                assert(this.userTokenGroup instanceof CertificateManager);
+
+                // istanbul ignore next
+                if (!(this.userTokenGroup instanceof CertificateManager)) {
+                    errorLog("Expecting this.userTokenGroup to be instanceof CertificateManager :", (this.userTokenGroup as any).constructor.name);
+                    throw new Error("Expecting this.userTokenGroup to be instanceof CertificateManager ");
+                };
             }
             if (this.applicationGroup) {
                 this._map.DefaultApplicationGroup = this.applicationGroup;
