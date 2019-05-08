@@ -16,16 +16,22 @@ import { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
+import { 
+    OpenFileMode,
+    OpenFileModeMask
+} from "../open_mode";
+
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
 export interface FileOptions {
+    filename: string;
     maxSize?: number;
-    mineType?: string; 
+    mineType?: string;
 }
 
-class FileTypeData {
+export class FileTypeData {
     public filename: string = "";
     public maxSize: number = 0;
     public mimeType: string = "";
@@ -45,13 +51,42 @@ class FileTypeData {
         return this._fileSize;
     }
 
+    /**
+     * refresh position and size
+     * this method should be call by the server if the file
+     * is modified externally
+     * 
+     */
+    public async refresh(): Promise<void> {
+
+        // lauch an async request to update filesize
+        (async function extractFileSize(self: FileTypeData) {
+            try {
+                const stat = await promisify(fs.stat)(self.filename);
+                self._fileSize = stat.size;
+                debugLog("original file size ", self.filename, " size = ", self._fileSize);
+            } catch {
+                self._fileSize = 0; 
+                debugLog("Cannot access file ", self.filename);
+            }
+        })(this);
+        
+    }
+
     private file: UAFileType;
     private _openCount: number = 0;
     private _fileSize: number = 0;
 
-    constructor(file: UAFileType) {
+    constructor(options: FileOptions, file: UAFileType) {
+
         this.file = file;
 
+        this.filename = options.filename;
+        this.maxSize = options.maxSize!;
+        this.mimeType = options.mineType || "";
+        // openCount indicates the number of currently valid file handles on the file.
+        this._openCount = 0;
+    
         file.openCount.bindVariable({
             get: () => new Variant({ dataType: DataType.UInt16, value: this._openCount })
         }, true);
@@ -62,13 +97,19 @@ class FileTypeData {
         }, true);
         file.size.minimumSamplingInterval = 0; // changed immediatly
 
+        this.refresh();
+
     }
+}
+export function getFileData(opcuaFile2: UAFileType){
+    return (opcuaFile2 as any).$data as FileTypeData;
 }
 
 interface FileAccessData {
     handle: number;
     fd: number; // nodejs handler
     position: UInt64; // position in file
+    openMode: OpenFileMode;
 
 }
 interface FileTypeM {
@@ -84,7 +125,7 @@ function _prepare(addressSpace: AddressSpace, context: SessionContext): FileType
     return _context as FileTypeM;
 }
 
-function _addFile(addressSpace: AddressSpace, context: SessionContext): UInt32 {
+function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode: OpenFileMode): UInt32 {
     const _context = _prepare(addressSpace, context);
     _context.$$currentFileHandle++;
     const fileHandle: number = _context.$$currentFileHandle;
@@ -93,6 +134,7 @@ function _addFile(addressSpace: AddressSpace, context: SessionContext): UInt32 {
         handle: fileHandle,
         fd: -1,
         position: [0, 0],
+        openMode,
     };
     _context.$$files[fileHandle] = _fileData;
 
@@ -109,6 +151,31 @@ function _close(addressSpace: AddressSpace, context: SessionContext, fileData: F
     delete _context.$$files[fileData.fd];
 }
 
+
+function toNodeJSMode(opcuaMode: OpenFileMode): string {
+    let flags: string;
+    switch (opcuaMode) {
+        case OpenFileMode.Read:
+            flags = "r";
+            break;
+        case OpenFileMode.ReadWrite: 
+        case OpenFileMode.Write:
+            flags = "w+";
+            break;
+        case OpenFileMode.ReadWriteAppend:
+        case OpenFileMode.WriteAppend:
+            flags = "a+";
+            break;
+        case OpenFileMode.WriteEraseExisting:
+        case OpenFileMode.ReadWriteEraseExisting:
+            flags = "w+";
+            break;
+        default:
+            flags = "?";
+            break;
+    }
+    return flags;
+}
 /**
  * Open is used to open a file represented by an Object of FileType.
  * When a client opens a file it gets a file handle that is valid while the
@@ -161,38 +228,11 @@ async function _openFile(
      */
 
     // see https://nodejs.org/api/fs.html#fs_file_system_flags
-    let flags: string;
-    let modeNodejs: number;
-    switch (mode) {
-        case 1:
-            // r Open file for reading. An exception occurs if the file does not exist
-            flags = "r";
-            modeNodejs = fs.constants.O_RDONLY;
-            break;
-        case 2:
-            //  w Open file for writing. The file is created (if it does not exist) or truncated (if it exists).
-            flags = "w";
-            modeNodejs = fs.constants.O_WRONLY;
-            break;
-        case 1 + 2: // bit 0 & 1
-            // w+ Open file for reading and writing. The file is created (if it does not exist) or truncated (if it exists).
-            flags = "w+";
-            modeNodejs = fs.constants.O_RDWR;
-            break;
-        case 4: // bit 2
-            return { statusCode: StatusCodes.BadInvalidArgument };
-            break;
 
-        case 8: // bit 3 - Append
-            // 'a' - Open file for appending. The file is created if it does not exist.
-            // 'a+' Open file for reading and appending. The file is created if it does not exist.
-            return { statusCode: StatusCodes.BadInvalidArgument };
-            break;
-
-        default:
-            // this combination of flags is not supported
-            return { statusCode: StatusCodes.BadInvalidArgument };
-            break;
+    const flags = toNodeJSMode(mode);
+    if (flags === "?") {
+        errorLog("Invalid mode "+ OpenFileMode[mode] + " (" + mode + ")");
+        return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
     /**
@@ -203,7 +243,7 @@ async function _openFile(
      *            fileHandle to another Session but need to get a new fileHandle by calling
      *            the Open Method.
      */
-    const fileHandle = _addFile(addressSpace, context);
+    const fileHandle = _addFile(addressSpace, context, mode as OpenFileMode);
 
     const _fileData = _getFile(addressSpace, context, fileHandle);
 
@@ -211,11 +251,20 @@ async function _openFile(
     const filename = data.filename;
 
     try {
-        _fileData.fd = await promisify(fs.open)(filename, flags, modeNodejs);
-        _fileData.position = [0, 0];
-        data.openCount += 1;
+        _fileData.fd = await promisify(fs.open)(filename, flags);
 
+        // update position
+        _fileData.position = [0, 0];
+        
+        // tslint:disable-next:no-bitwise
+        if ((mode & OpenFileModeMask.AppendBit) === OpenFileModeMask.AppendBit) {
+            const p = (await promisify(fs.stat)(filename)).size;
+            _fileData.position[1] = p;
+        } 
+
+        data.openCount += 1;
     } catch (err) {
+        errorLog(err.message);
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
@@ -304,6 +353,11 @@ async function _readFile(
     if (!_fileData) {
         return { statusCode: StatusCodes.BadInvalidState };
     }
+    // tslint:disable-next:no-bitwise
+    if ( (_fileData.openMode & OpenFileModeMask.ReadBit) === 0x0) {
+        // open mode did not specify Read Flag
+        return { statusCode: StatusCodes.BadInvalidState}
+    }
 
     const data = Buffer.alloc(length);
 
@@ -312,6 +366,7 @@ async function _readFile(
         ret = await promisify(fs.read)(_fileData.fd, data, 0, length, _fileData.position[1]);
         _fileData.position[1] += ret.bytesRead;
     } catch (err) {
+        errorLog("Read error : ",err.message);
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
@@ -339,8 +394,29 @@ async function _writeFile(
     if (!_fileData) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
+    
+    // tslint:disable-next:no-bitwise
+    if ((_fileData.openMode & OpenFileModeMask.WriteBit) === 0x00) {
+        // File has not been open with write mode
+        return { statusCode: StatusCodes.BadInvalidState };
+    }
 
-    return { statusCode: StatusCodes.BadNotImplemented };
+    const data: Buffer = inputArguments[1].value as Buffer;
+    
+    let ret;
+    try {
+        ret = await promisify(fs.write)(_fileData.fd, data, 0, data.length, _fileData.position[1]);
+        _fileData.position[1] += ret.bytesWritten;
+    } catch (err) {
+        errorLog("Write error : ", err.message);
+        return { statusCode: StatusCodes.BadUnexpectedError };
+    }
+
+    return {
+        outputArguments: [],
+        statusCode: StatusCodes.Good
+    };
+
 }
 
 async function _setPositionFile(
@@ -391,31 +467,23 @@ export const defaultMaxSize = 100000000;
 
 export function installFileType(
     file: UAFileType,
-    filename: string,
-    options?: FileOptions
+    options: FileOptions
 ) {
 
     if ((file as any).$data) {
         errorLog("File already installed ", file.nodeId.toString(), file.browseName.toString());
         return;
     }
-    options = options || {};
 
     // to protect the server we setup a maximum limite in bytes on the file
     // if the client try to access or set the position above this limit
     // the server will return an error
     options.maxSize = (options.maxSize === undefined) ? defaultMaxSize : options.maxSize;
 
-    const $data = new FileTypeData(file);
-    $data.filename = filename;
-    $data.maxSize = options.maxSize!;
-    $data.mimeType = options.mineType || "";
-    // openCount indicates the number of currently valid file handles on the file.
-    $data.openCount = 0;
-
+    const $data = new FileTypeData(options, file);
     (file as any).$data = $data;
 
-    // ----- install size
+    // ----- install mime type
     if (options.mineType) {
         if (file.mimeType) {
             file.mimeType.bindVariable({

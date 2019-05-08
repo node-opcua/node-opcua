@@ -13,6 +13,9 @@ const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
+import { OpenFileMode } from "../open_mode";
+export { OpenFileMode } from "../open_mode";
+
 export class ClientFile {
 
     public fileHandle: number = 0;
@@ -34,8 +37,11 @@ export class ClientFile {
         this.fileNodeId = nodeId;
     }
 
-    public async open(mode: Byte): Promise<number> {
+    public async open(mode: OpenFileMode): Promise<number> {
 
+        if (mode === null || mode === undefined) {
+            throw new Error("expecting a validMode " + OpenFileMode[mode]);
+        }
         if (this.fileHandle) {
             throw new Error("File has already be opened");
         }
@@ -43,14 +49,14 @@ export class ClientFile {
 
         const result = await this.session.call({
             inputArguments: [
-                { dataType: DataType.Byte, value: mode }
+                { dataType: DataType.Byte, value: mode  as Byte}
             ],
             methodId: this.openMethodNodeId,
             objectId: this.fileNodeId
         });
         if (result.statusCode !== StatusCodes.Good) {
             debugLog("Cannot open file : ");
-            throw new Error("cannot open file statusCode = " + result.statusCode.toString());
+            throw new Error("cannot open file statusCode = " + result.statusCode.toString() + "mode = " + OpenFileMode[mode]);
         }
 
         this.fileHandle = result.outputArguments![0].value;
@@ -120,7 +126,7 @@ export class ClientFile {
         return;
     }
 
-    public async read(byteToRead: Int32): Promise<Buffer> {
+    public async read(bytesToRead: Int32): Promise<Buffer> {
         await this.ensureInitialized();
         if (!this.fileHandle) {
             throw new Error("File has node been opened yet");
@@ -131,7 +137,7 @@ export class ClientFile {
                 {
                     arrayType: VariantArrayType.Scalar,
                     dataType: DataType.Int32,
-                    value: byteToRead }
+                    value: bytesToRead }
             ],
             methodId: this.readNodeId,
             objectId: this.fileNodeId
@@ -144,6 +150,29 @@ export class ClientFile {
         }
         return result.outputArguments![0].value as Buffer;
     }
+
+    public async write(data: Buffer): Promise<void> {
+        await this.ensureInitialized();
+        if (!this.fileHandle) {
+            throw new Error("File has node been opened yet");
+        }
+        const result = await this.session.call({
+            inputArguments: [
+                { dataType: DataType.UInt32, value: this.fileHandle },
+                {
+                    arrayType: VariantArrayType.Scalar,
+                    dataType: DataType.ByteString,
+                    value: data }
+            ],
+            methodId: this.writeNodeId,
+            objectId: this.fileNodeId
+        });
+        if (result.statusCode !== StatusCodes.Good) {
+            throw new Error("Error " + result.statusCode.toString());
+        }
+        return;
+    }
+
     public async openCount(): Promise<UInt16> {
         await this.ensureInitialized();
         const nodeToRead: ReadValueIdOptions = { nodeId: this.openCountNodeId!, attributeId: AttributeIds.Value};
