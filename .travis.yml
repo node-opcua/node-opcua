@@ -11,7 +11,7 @@ node_js:
   - "9"
   - "10"
   # - "11" not used yet => Lerna stack overflows!
-
+  - "12"
 os:
   - linux
   - osx
