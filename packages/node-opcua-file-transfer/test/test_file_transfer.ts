@@ -1,6 +1,7 @@
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 import { promisify } from "util";
 
@@ -54,7 +55,11 @@ describe("FileTransfer", () => {
             organizedBy: addressSpace.rootFolder.objects.server
         }) as UAFileType;
 
-        const filename = path.join(__dirname, "../tempFile1.txt");
+        const tempFolder = await promisify(fs.mkdtemp)(path.join(os.tmpdir(), "test-"));
+
+        console.log("Temporary Folder = ",tempFolder);
+
+        const filename = path.join(tempFolder, "tempFile1.txt");
         await promisify(fs.writeFile)(filename, "content", "utf8");
 
         installFileType(opcuaFile, { filename });
@@ -64,7 +69,7 @@ describe("FileTransfer", () => {
             browseName: "FileTransferObj2",
             organizedBy: addressSpace.rootFolder.objects.server
         }) as UAFileType;
-        const filename2= path.join(__dirname, "../tempFile2.txt");
+        const filename2= path.join(tempFolder, "tempFile2.txt");
         installFileType(opcuaFile2, { filename: filename2 });
 
         
