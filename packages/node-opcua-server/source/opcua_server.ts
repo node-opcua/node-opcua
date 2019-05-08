@@ -935,7 +935,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * is the server auditing ?
      */
     public get isAuditing(): boolean {
-        return this.engine ? this.engine.isAuditing: false;
+        return this.engine ? this.engine.isAuditing : false;
     }
 
     public static registry = new ObjectRegistry();
@@ -1140,7 +1140,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 this._delayInit();
                 this._delayInit = undefined;
             }
-      
+
             OPCUAServer.registry.register(this);
 
             this.engine.initialize(this.options, () => {
@@ -1688,13 +1688,13 @@ export class OPCUAServer extends OPCUABaseServer {
             }
             const e = exploreCertificate(clientCertificate);
             const applicationUriFromCert = e.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier[0];
-            
+
             if (applicationUriFromCert !== applicationUri) {
                 errorLog("BadCertificateUriInvalid!");
                 errorLog("applicationUri           = ", applicationUri);
                 errorLog("applicationUriFromCert   = ", applicationUriFromCert);
             }
-            
+
             return applicationUriFromCert === applicationUri;
         }
 

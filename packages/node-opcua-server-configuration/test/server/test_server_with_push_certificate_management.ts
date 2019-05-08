@@ -46,6 +46,8 @@ import { installPushCertificateManagementOnServer } from "../..";
 import { ClientPushCertificateManagement } from "../..";
 import { certificateMatchesPrivateKey } from "../..";
 import { OPCUAServerPartial } from "../../source";
+
+//tslint:disable-next:no-var-requires
 import rimraf = require("rimraf");
 
 const doDebug = checkDebugFlag("ServerConfiguration");
@@ -565,7 +567,6 @@ describe("Testing server configured with push certificate management", () => {
         const privateKey1PEM = await promisify(fs.readFile)(server.serverCertificateManager.privateKey, "utf8");
         const certificateBefore = server.getCertificate();
         const privateKeyBefore = server.getPrivateKey();
-
 
         // Given that the server is started
         await server.start();

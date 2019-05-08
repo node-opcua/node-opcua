@@ -288,7 +288,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         options = options || {};
 
         if (!options.certificateFile) {
-            options.certificateFile = path.join(__dirname, "../../certificates/client_selfsigned_cert_1024.pem");
+            options.certificateFile = path.join(__dirname, "../../certificates/client_selfsigned_cert_2048.pem");
         }
         if (!options.privateKeyFile) {
             options.privateKeyFile = path.join(__dirname, "../../certificates/PKI/own/private/private_key.pem");
@@ -381,7 +381,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             callback();
         });
         (this as any).once("reconnection_canceled", () => {
-
+            /* empty */
         });
     }
 
@@ -416,7 +416,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
             errorLog("client = ", this.clientName, message, err.message);
 
-            if(this.reconnectionIsCanceled) {
+            if (this.reconnectionIsCanceled) {
                 this.emit("reconnection_canceled");
                 return callback(new Error("Reconnection has been canceled - " + this.clientName));
             }

@@ -12,14 +12,18 @@ import {
     UAFileType,
     UAMethod
 } from "node-opcua-address-space";
+import { UInt64 } from "node-opcua-basic-types";
 import { nodesets } from "node-opcua-nodesets";
 
-import { ClientFile,  OpenFileMode } from "../source/client/client_file";
-import { 
+import {
+    ClientFile,
+    OpenFileMode
+} from "../source/client/client_file";
+import {
     FileTypeData,
     getFileData,
-    installFileType, 
- } from "../source/server/file_type_helpers";
+    installFileType
+} from "../source/server/file_type_helpers";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -41,13 +45,12 @@ describe("FileTransfer", () => {
 
     let opcuaFile: UAFileType;
     let opcuaFile2: UAFileType;
-    
+
     before(async () => {
         const namespace = addressSpace.getOwnNamespace();
 
         const fileType = addressSpace.findObjectType("FileType")!;
         should.exists(fileType);
-
 
         // install file 1
         opcuaFile = fileType.instantiate({
@@ -57,7 +60,7 @@ describe("FileTransfer", () => {
 
         const tempFolder = await promisify(fs.mkdtemp)(path.join(os.tmpdir(), "test-"));
 
-        console.log("Temporary Folder = ",tempFolder);
+        debugLog("Temporary Folder = ", tempFolder);
 
         const filename = path.join(tempFolder, "tempFile1.txt");
         await promisify(fs.writeFile)(filename, "content", "utf8");
@@ -69,12 +72,12 @@ describe("FileTransfer", () => {
             browseName: "FileTransferObj2",
             organizedBy: addressSpace.rootFolder.objects.server
         }) as UAFileType;
-        const filename2= path.join(tempFolder, "tempFile2.txt");
+        const filename2 = path.join(tempFolder, "tempFile2.txt");
         installFileType(opcuaFile2, { filename: filename2 });
 
-        
     });
     after(() => {
+        /* empty */
     });
 
     it("should expose a File Transfer node and open/close", async () => {
@@ -151,7 +154,7 @@ describe("FileTransfer", () => {
         size.should.eql([0, 7]); // 7 bytes file
     });
 
-    it("should not be possible to write to a file if Write Bit is not set in open mode", async() => {
+    it("should not be possible to write to a file if Write Bit is not set in open mode", async () => {
 
         // Given a OCUA File
         const session = new PseudoSession(addressSpace);
@@ -166,7 +169,7 @@ describe("FileTransfer", () => {
         try {
             const buf = await clientFile.write(Buffer.from("This is Me !!!"));
             hasSucceeded = true;
-        } catch(err) {
+        } catch (err) {
             err.message.should.match(/BadInvalidState/);
             hasReceivedException = err;
         }
@@ -175,40 +178,39 @@ describe("FileTransfer", () => {
         // Then I should verify that the read method has failed
         should.exist(hasReceivedException);
         hasSucceeded.should.eql(false);
-    
-
+        
     });
 
-    it("should be possible to write a file - in create mode", async() => {
+    it("should be possible to write a file - in create mode", async () => {
 
         // Given a file on server side with some original content
         const data = getFileData(opcuaFile2);
         fs.writeFileSync(data.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
         await data.refresh();
-      
+
         // Given a client that open the file (ReadWrite Mode)
         const session = new PseudoSession(addressSpace);
         const clientFile = new ClientFile(session, opcuaFile2.nodeId);
         const handle = await clientFile.open(OpenFileMode.ReadWrite);
-        await clientFile.setPosition([0,0]);
+        await clientFile.setPosition([0, 0]);
 
         // When I write "#### REPLACE ####" at position 0
         await clientFile.write(Buffer.from("#### REPLACE ####"));
         await clientFile.close();
 
         // Then I should verify that the file now contains "#### REPLACE ####"
-        fs.readFileSync(data.filename,"utf-8").should.eql("#### REPLACE ####");
+        fs.readFileSync(data.filename, "utf-8").should.eql("#### REPLACE ####");
 
     });
 
-    it("should be possible to write to a file - in append mode", async() => {
+    it("should be possible to write to a file - in append mode", async () => {
 
         // Given a file on server side with some original content
         const data = getFileData(opcuaFile2);
         fs.writeFileSync(data.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
         await data.refresh();
 
-        // Given a client 
+        // Given a client
         const session = new PseudoSession(addressSpace);
         const clientFile = new ClientFile(session, opcuaFile2.nodeId);
 
@@ -225,17 +227,17 @@ describe("FileTransfer", () => {
 
         // then I should verify that the position has evolved accordingly
         const position1 = await clientFile.getPosition();
-        
-        position1.should.eql([0, 41 ], "expecting position to be at the end of the file");
+
+        position1.should.eql([0, 41], "expecting position to be at the end of the file");
 
         await clientFile.close();
 
         // and I should verify that the file on the server side contains the expected data
-        fs.readFileSync(data.filename,"utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
+        fs.readFileSync(data.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
 
     });
 
-    it("should not allow read method if Read bit is not set in open mode", async() => {
+    it("should not allow read method if Read bit is not set in open mode", async () => {
 
         // Given a OCUA File
         const session = new PseudoSession(addressSpace);
@@ -248,17 +250,17 @@ describe("FileTransfer", () => {
         let hasSucceeded = false;
         let hasReceivedException: any = null;
         try {
-            const numberOfByteToRead=1;
+            const numberOfByteToRead = 1;
             const buf = await clientFile.read(numberOfByteToRead);
             hasSucceeded = true;
-        } catch(err) {
+        } catch (err) {
             err.message.should.match(/BadInvalidState/);
             hasReceivedException = err;
         }
         await clientFile.close();
 
         // Then I should verify that the read method has failed
-        should.exist(hasReceivedException,"It should have received an exception");
+        should.exist(hasReceivedException, "It should have received an exception");
         hasSucceeded.should.eql(false);
 
     });

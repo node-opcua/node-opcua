@@ -16,7 +16,7 @@ import { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-import { 
+import {
     OpenFileMode,
     OpenFileModeMask
 } from "../open_mode";
@@ -35,6 +35,34 @@ export class FileTypeData {
     public filename: string = "";
     public maxSize: number = 0;
     public mimeType: string = "";
+
+    private file: UAFileType;
+    private _openCount: number = 0;
+    private _fileSize: number = 0;
+
+    constructor(options: FileOptions, file: UAFileType) {
+
+        this.file = file;
+
+        this.filename = options.filename;
+        this.maxSize = options.maxSize!;
+        this.mimeType = options.mineType || "";
+        // openCount indicates the number of currently valid file handles on the file.
+        this._openCount = 0;
+        file.openCount.bindVariable({
+            get: () => new Variant({ dataType: DataType.UInt16, value: this._openCount })
+        }, true);
+        file.openCount.minimumSamplingInterval = 0; // changed immediatly
+
+        file.size.bindVariable({
+            get: () => new Variant({ dataType: DataType.UInt64, value: this._fileSize })
+        }, true);
+
+        file.size.minimumSamplingInterval = 0; // changed immediatly
+
+        this.refresh();
+
+    }
 
     public set openCount(value: number) {
         this._openCount = value;
@@ -55,7 +83,7 @@ export class FileTypeData {
      * refresh position and size
      * this method should be call by the server if the file
      * is modified externally
-     * 
+     *
      */
     public async refresh(): Promise<void> {
 
@@ -66,42 +94,15 @@ export class FileTypeData {
                 self._fileSize = stat.size;
                 debugLog("original file size ", self.filename, " size = ", self._fileSize);
             } catch {
-                self._fileSize = 0; 
+                self._fileSize = 0;
                 debugLog("Cannot access file ", self.filename);
             }
         })(this);
-        
-    }
-
-    private file: UAFileType;
-    private _openCount: number = 0;
-    private _fileSize: number = 0;
-
-    constructor(options: FileOptions, file: UAFileType) {
-
-        this.file = file;
-
-        this.filename = options.filename;
-        this.maxSize = options.maxSize!;
-        this.mimeType = options.mineType || "";
-        // openCount indicates the number of currently valid file handles on the file.
-        this._openCount = 0;
-    
-        file.openCount.bindVariable({
-            get: () => new Variant({ dataType: DataType.UInt16, value: this._openCount })
-        }, true);
-        file.openCount.minimumSamplingInterval = 0; // changed immediatly
-
-        file.size.bindVariable({
-            get: () => new Variant({ dataType: DataType.UInt64, value: this._fileSize })
-        }, true);
-        file.size.minimumSamplingInterval = 0; // changed immediatly
-
-        this.refresh();
 
     }
+
 }
-export function getFileData(opcuaFile2: UAFileType){
+export function getFileData(opcuaFile2: UAFileType) {
     return (opcuaFile2 as any).$data as FileTypeData;
 }
 
@@ -131,10 +132,10 @@ function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode:
     const fileHandle: number = _context.$$currentFileHandle;
 
     const _fileData: FileAccessData = {
-        handle: fileHandle,
         fd: -1,
-        position: [0, 0],
+        handle: fileHandle,
         openMode,
+        position: [0, 0],
     };
     _context.$$files[fileHandle] = _fileData;
 
@@ -151,14 +152,13 @@ function _close(addressSpace: AddressSpace, context: SessionContext, fileData: F
     delete _context.$$files[fileData.fd];
 }
 
-
 function toNodeJSMode(opcuaMode: OpenFileMode): string {
     let flags: string;
     switch (opcuaMode) {
         case OpenFileMode.Read:
             flags = "r";
             break;
-        case OpenFileMode.ReadWrite: 
+        case OpenFileMode.ReadWrite:
         case OpenFileMode.Write:
             flags = "w+";
             break;
@@ -231,7 +231,7 @@ async function _openFile(
 
     const flags = toNodeJSMode(mode);
     if (flags === "?") {
-        errorLog("Invalid mode "+ OpenFileMode[mode] + " (" + mode + ")");
+        errorLog("Invalid mode " + OpenFileMode[mode] + " (" + mode + ")");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
@@ -255,12 +255,12 @@ async function _openFile(
 
         // update position
         _fileData.position = [0, 0];
-        
-        // tslint:disable-next:no-bitwise
+
+        // tslint:disable-next-line:no-bitwise
         if ((mode & OpenFileModeMask.AppendBit) === OpenFileModeMask.AppendBit) {
             const p = (await promisify(fs.stat)(filename)).size;
             _fileData.position[1] = p;
-        } 
+        }
 
         data.openCount += 1;
     } catch (err) {
@@ -296,7 +296,6 @@ async function _closeFile(
     inputArguments: Variant[],
     context: SessionContext
 ): Promise<CallMethodResultOptions> {
-
 
     const addressSpace = this.addressSpace;
 
@@ -353,10 +352,10 @@ async function _readFile(
     if (!_fileData) {
         return { statusCode: StatusCodes.BadInvalidState };
     }
-    // tslint:disable-next:no-bitwise
+    // tslint:disable-next-line:no-bitwise
     if ( (_fileData.openMode & OpenFileModeMask.ReadBit) === 0x0) {
         // open mode did not specify Read Flag
-        return { statusCode: StatusCodes.BadInvalidState}
+        return { statusCode: StatusCodes.BadInvalidState};
     }
 
     const data = Buffer.alloc(length);
@@ -366,7 +365,7 @@ async function _readFile(
         ret = await promisify(fs.read)(_fileData.fd, data, 0, length, _fileData.position[1]);
         _fileData.position[1] += ret.bytesRead;
     } catch (err) {
-        errorLog("Read error : ",err.message);
+        errorLog("Read error : ", err.message);
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
@@ -394,15 +393,15 @@ async function _writeFile(
     if (!_fileData) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
-    
-    // tslint:disable-next:no-bitwise
+
+    // tslint:disable-next-line:no-bitwise
     if ((_fileData.openMode & OpenFileModeMask.WriteBit) === 0x00) {
         // File has not been open with write mode
         return { statusCode: StatusCodes.BadInvalidState };
     }
 
     const data: Buffer = inputArguments[1].value as Buffer;
-    
+
     let ret;
     try {
         ret = await promisify(fs.write)(_fileData.fd, data, 0, data.length, _fileData.position[1]);

@@ -58,7 +58,7 @@ function start_simple_server(options, callback) {
 
     const server_exec = spawn("node", [server_script, "-p", port], options);
 
-    const serverCertificateFilename = constructFilename("certificates/server_cert_1024.pem");
+    const serverCertificateFilename = constructFilename("certificates/server_cert_2048.pem");
 
     console.log(" node ", server_script);
 

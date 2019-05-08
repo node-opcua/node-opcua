@@ -428,11 +428,11 @@ module.exports = function (test) {
             let session1;
             async.series([
 
-                // create a first channel (client1)
+                // create a first channel (client1) with
                 function (callback) {
                     //xx console.log(" creating initial channel with some certificate");
-                    const certificateFile1 = m("certificates/client_cert_1024.pem");
-                    const privateKeyFile1 = m("certificates/client_key_1024.pem");
+                    const certificateFile1 = m("certificates/client_cert_2048.pem");
+                    const privateKeyFile1 = m("certificates/client_key_2048.pem");
                     client1 = OPCUAClient.create({
                         certificateFile: certificateFile1,
                         privateKeyFile: privateKeyFile1,
@@ -473,8 +473,8 @@ module.exports = function (test) {
 
                     // creating second channel with different credential
                     console.log(" creating second channel with different certificate");
-                    const certificateFile2 = m("certificates/client_cert_2048.pem");
-                    const privateKeyFile2 = m("certificates/client_key_2048.pem");
+                    const certificateFile2 = m("certificates/client_cert_3072.pem");
+                    const privateKeyFile2 = m("certificates/client_key_3072.pem");
                     client2 = OPCUAClient.create({
                         certificateFile: certificateFile2,
                         privateKeyFile: privateKeyFile2,

@@ -89,8 +89,6 @@ script:
     fi ;
     # lerna run test-typescript
 
-addons:
-
 notifications:
   webhooks:
     urls: https://webhooks.gitter.im/e/4d51130aaea652dbc8f1

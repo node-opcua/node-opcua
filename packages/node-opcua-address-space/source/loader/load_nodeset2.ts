@@ -306,6 +306,12 @@ export function generateAddressSpace(
     //      [<Description>text</Description>]
     //   <Field>
     // </Definition>
+    //
+    // Or 
+    //
+    //  (IsOptionSet)
+    //
+    //
     const definition_parser = {
         init(this: any, name: string, attrs: XmlAttributes) {
             this.parent.obj.definition = [];

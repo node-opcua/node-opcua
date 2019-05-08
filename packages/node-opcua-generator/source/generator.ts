@@ -83,6 +83,7 @@ function get_caller_source_filename() {
 }
 
 export async function generateCode(schemaName: string, localSchemaFile: string, generatedCodeFolder?: string) {
+
     const schemaTypescriptFile = schemaName + "_Schema.ts";
 
     const currentFolder = process.cwd();

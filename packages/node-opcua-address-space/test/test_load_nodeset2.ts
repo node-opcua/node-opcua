@@ -241,14 +241,32 @@ describe("testing NodeSet XML file loading", function(this: any) {
           // have been correctly processed
 
           const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
-          console.log("namespace ", ns);
+          // xx console.log("namespace ", ns);
 
           const variableType1 = addressSpace.findVariableType("MyStructureType", ns)!;
           const value = variableType1.readAttribute(null, AttributeIds.Value);
-          console.log(value.toString());
-
-
+          // xx console.log(value.toString());
       }
     );
+
+    it("VV4 should parse a dataType made of bit sets", async () => {
+
+        /*
+         * <UADataType NodeId="i=95" BrowseName="AccessRestrictionType">
+         *   <Definition Name="AccessRestrictionType" IsOptionSet="true">
+         *     <Field Name="SigningRequired" Value="0" />
+         *     <Field Name="EncryptionRequired" Value="1" />
+         *     <Field Name="SessionRequired" Value="2" />
+         *   </Definition>
+         * </UADataType>
+         */
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_isOptionSet.xml");
+        const xml_files = [xml_file1];
+        await generateAddressSpace(addressSpace, xml_files);
+
+        const dataType = addressSpace.findNode("i=95")!;
+        console.log(dataType.toString());
+
+    });
 
 });

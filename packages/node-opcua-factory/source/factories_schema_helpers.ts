@@ -143,7 +143,11 @@ export function initialize_field_array(field: FieldType, valueArray: any) {
     }
 
     valueArray = valueArray || [];
-    const defaultValue = _t.computer_default_value(field.defaultValue);
+
+    let defaultValue: any = undefined;
+    if (_t.computer_default_value) {
+        defaultValue = _t.computer_default_value(field.defaultValue);
+    }
 
     const arr = [];
     for (i = 0; i < valueArray.length; i++) {

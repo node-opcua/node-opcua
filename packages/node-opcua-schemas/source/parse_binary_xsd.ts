@@ -103,32 +103,32 @@ const state0: any = {
     },
     parser: {
         TypeDictionary: {
-            init: function(this: any, name: string, attributes: any) {
+            init: function (this: any, name: string, attributes: any) {
                 this.typeDictionary = this.engine.typeDictionary;
 
                 this.typeDictionary.defaultByteOrder = attributes.DefaultByteOrder;
-                this.typeDictionary.targetNamespace  = attributes.TargetNamespace;
+                this.typeDictionary.targetNamespace = attributes.TargetNamespace;
             },
             parser: {
                 Import: {
-                    init: function(this: any, name: string, attributes: any) {
+                    init: function (this: any, name: string, attributes: any) {
                         this.parent.typeDictionary.imports.push(attributes.Namespace);
                     },
-                    finish: function(this: any) {
+                    finish: function (this: any) {
                         // _register_namespace_uri(this.text);
                         if (doDebug) {
                             console.log("Import NameSpace = ", this.attrs.Namespace,
-                              " Location", this.attrs.Location);
+                                " Location", this.attrs.Location);
                         }
                     }
                 },
 
                 EnumeratedType: {
-                    init: function(this: any) {
+                    init: function (this: any) {
 
                         if (doDebug) {
                             console.log(chalk.cyan("EnumeratedType Name="),
-                              w(this.attrs.Name, 40), "LengthInBits=", this.attrs.LengthInBits);
+                                w(this.attrs.Name, 40), "LengthInBits=", this.attrs.LengthInBits);
                         }
 
                         this.enumeratedType = {
@@ -139,15 +139,15 @@ const state0: any = {
                     },
                     parser: {
                         Documentation: {
-                            finish: function(this: any) {
+                            finish: function (this: any) {
                                 this.parent.enumeratedType.documentation = this.text;
                             }
                         },
                         EnumeratedValue: {
-                            finish: function(this: any) {
+                            finish: function (this: any) {
                                 if (doDebug) {
                                     console.log(" EnumeratedValue Name=",
-                                      w(this.attrs.Name, 40), " Value=", this.attrs.Value);
+                                        w(this.attrs.Name, 40), " Value=", this.attrs.Value);
                                 }
                                 this.parent.enumeratedType.enumeratedValues.push({
                                     name: this.attrs.Name,
@@ -156,15 +156,15 @@ const state0: any = {
                             }
                         }
                     },
-                    finish: function(this: any) {
+                    finish: function (this: any) {
                         this.parent.typeDictionary.enumeratedTypes[this.attrs.Name] = this.enumeratedType;
                     }
                 },
                 StructuredType: {
-                    init: function(this: any) {
+                    init: function (this: any) {
                         if (doDebug) {
                             console.log(chalk.cyan("StructureType Name="),
-                              this.attrs.Name.green, " BaseType=", this.attrs.BaseType);
+                                this.attrs.Name.green, " BaseType=", this.attrs.BaseType);
                         }
                         const baseType = this.attrs.BaseType;
 
@@ -181,7 +181,7 @@ const state0: any = {
                     },
                     parser: {
                         Field: {
-                            finish: function(this: any) {
+                            finish: function (this: any) {
 
                                 if (this.attrs.SourceType) {
                                     // ignore  this field, This is a repeatition of the base type field with same name
@@ -189,9 +189,9 @@ const state0: any = {
                                 }
                                 if (doDebug) {
                                     console.log(
-                                      chalk.yellow(" field Name="), w(this.attrs.Name, 40),
-                                      chalk.yellow(" field TypeName="), w(this.attrs.TypeName, 40),
-                                      chalk.yellow(" field LengthField="), w(this.attrs.LengthField, 40));
+                                        chalk.yellow(" field Name="), w(this.attrs.Name, 40),
+                                        chalk.yellow(" field TypeName="), w(this.attrs.TypeName, 40),
+                                        chalk.yellow(" field LengthField="), w(this.attrs.LengthField, 40));
                                 }
                                 resolveType(this.parent.typeDictionary, this.attrs.TypeName);
 
@@ -214,7 +214,7 @@ const state0: any = {
                             }
                         }
                     },
-                    finish: function(this: any) {
+                    finish: function (this: any) {
                         this.parent.typeDictionary.structuredTypes[this.attrs.Name] = this.structuredType;
                     }
                 }
@@ -224,9 +224,9 @@ const state0: any = {
 };
 
 export function parseBinaryXSD(
-  xmlString: string,
-  callback: (err: Error | null, typeDictionary: TypeDictionary
-  ) => void) {
+    xmlString: string,
+    callback: (err: Error | null, typeDictionary: TypeDictionary
+    ) => void) {
 
     const typeDictionary: TypeDictionary = {
         defaultByteOrder: "LittleEndian",
