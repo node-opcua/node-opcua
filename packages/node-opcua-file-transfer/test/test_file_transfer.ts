@@ -15,6 +15,7 @@ import { nodesets } from "node-opcua-nodesets";
 
 import { ClientFile } from "../source/client/client_file";
 import { installFileType } from "../source/server/file_type_helpers";
+import { K } from "handlebars";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -99,6 +100,25 @@ describe("FileTransfer", () => {
         await clientFile.close();
 
         buf.toString("ascii").should.eql("content");
+
+    });
+
+    it("should incread openCount when a file is opened and decrease it when it's closed", async() => {
+
+        const session = new PseudoSession(addressSpace);
+        const clientFile = new ClientFile(session, opcuaFile.nodeId);
+
+        const countBefore = await clientFile.openCount();
+
+        await clientFile.open(/*mode=*/1);
+        const buf = await clientFile.read(1000);
+
+        const countAfter = await clientFile.openCount();
+        countAfter.should.eql(countBefore+1);
+
+        await clientFile.close();
+        const countAfter2 = await clientFile.openCount();
+        countAfter2.should.eql(countBefore);
 
     });
 });

@@ -1,9 +1,17 @@
-import { Byte, Int32, UInt64 } from "node-opcua-basic-types";
+import { Byte, Int32, UInt16, UInt64 } from "node-opcua-basic-types";
+import { AttributeIds } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType } from "node-opcua-variant";
+import { ReadValueId, ReadValueIdOptions } from 'node-opcua-service-read';
+
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+
+const debugLog = make_debugLog("FileType");
+const errorLog = make_errorLog("FileType");
+const doDebug = checkDebugFlag("FileType");
 
 export class ClientFile {
 
@@ -18,6 +26,8 @@ export class ClientFile {
     private getPositionNodeId?: NodeId;
     private readNodeId?: NodeId;
     private writeNodeId?: NodeId;
+    private openCountNodeId?: NodeId;
+    private sizeNodeId?: NodeId;
 
     constructor(session: IBasicSession, nodeId: NodeId) {
         this.session = session;
@@ -29,9 +39,7 @@ export class ClientFile {
         if (this.fileHandle) {
             throw new Error("File has already be opened");
         }
-        if (!this.openMethodNodeId) {
-            await this.extractMethodsIds();
-        }
+        await this.ensureInitialized();
 
         const result = await this.session.call({
             inputArguments: [
@@ -41,6 +49,7 @@ export class ClientFile {
             objectId: this.fileNodeId
         });
         if (result.statusCode !== StatusCodes.Good) {
+            debugLog("Cannot open file : ");
             throw new Error("cannot open file statusCode = " + result.statusCode.toString());
         }
 
@@ -53,22 +62,29 @@ export class ClientFile {
         if (!this.fileHandle) {
             throw new Error("File has node been opened yet");
         }
+        await this.ensureInitialized();
 
         const result = await this.session.call({
             inputArguments: [
                 { dataType: DataType.UInt32, value: this.fileHandle }
             ],
-            methodId: this.openMethodNodeId,
+            methodId: this.closeMethodNodeId,
             objectId: this.fileNodeId
         });
+        if (result.statusCode !== StatusCodes.Good) {
+            debugLog("Cannot close file : ");
+            throw new Error("cannot close file statusCode = " + result.statusCode.toString());
+        }
 
         this.fileHandle = 0;
     }
 
     public async getPosition(): Promise<UInt64> {
+        await this.ensureInitialized();
         if (!this.fileHandle) {
             throw new Error("File has node been opened yet");
         }
+
         const result = await this.session.call({
             inputArguments: [
                 { dataType: DataType.UInt32, value: this.fileHandle }
@@ -83,6 +99,7 @@ export class ClientFile {
     }
 
     public async setPosition(position: UInt64): Promise<void> {
+        await this.ensureInitialized();
         if (!this.fileHandle) {
             throw new Error("File has node been opened yet");
         }
@@ -104,7 +121,7 @@ export class ClientFile {
     }
 
     public async read(byteToRead: Int32): Promise<Buffer> {
-
+        await this.ensureInitialized();
         if (!this.fileHandle) {
             throw new Error("File has node been opened yet");
         }
@@ -127,6 +144,23 @@ export class ClientFile {
         }
         return result.outputArguments![0].value as Buffer;
     }
+    public async openCount(): Promise<UInt16> {
+        await this.ensureInitialized();
+        const nodeToRead: ReadValueIdOptions = { nodeId: this.openCountNodeId!, attributeId: AttributeIds.Value};
+        const dataValue = await this.session.read(nodeToRead);
+
+        if (doDebug) {
+            debugLog(" OpenCount ", nodeToRead.nodeId!.toString(), dataValue.toString() );
+        }
+        return dataValue.value.value;
+    }
+
+    public async size(): Promise<UInt64> {
+        await this.ensureInitialized();
+        const nodeToRead = { nodeId: this.sizeNodeId, attributeId: AttributeIds.Value};
+        const dataValue = await this.session.read(nodeToRead);
+        return dataValue.value.value;
+    }
 
     private async extractMethodsIds(): Promise<void> {
         const browsePaths: BrowsePath[] = [
@@ -135,7 +169,9 @@ export class ClientFile {
             makeBrowsePath(this.fileNodeId, "/SetPosition"),
             makeBrowsePath(this.fileNodeId, "/GetPosition"),
             makeBrowsePath(this.fileNodeId, "/Write"),
-            makeBrowsePath(this.fileNodeId, "/Read")
+            makeBrowsePath(this.fileNodeId, "/Read"),
+            makeBrowsePath(this.fileNodeId, "/OpenCount"),
+            makeBrowsePath(this.fileNodeId, "/Size")
         ];
 
         const results = await this.session.translateBrowsePath(browsePaths);
@@ -155,15 +191,32 @@ export class ClientFile {
         if (results[4].statusCode !== StatusCodes.Good) {
             throw new Error("fileType object does not expose mandatory Write Method");
         }
-        if (results[4].statusCode !== StatusCodes.Good) {
+        if (results[5].statusCode !== StatusCodes.Good) {
             throw new Error("fileType object does not expose mandatory Read Method");
         }
+        if (results[6].statusCode !== StatusCodes.Good) {
+            throw new Error("fileType object does not expose mandatory OpenCount Variable");
+        }
+        if (results[7].statusCode !== StatusCodes.Good) {
+            throw new Error("fileType object does not expose mandatory Size Variable");
+        }
 
+        if (false && doDebug) {
+            results.map(x=>debugLog(x.toString()));
+        }
         this.openMethodNodeId = results[0].targets![0].targetId;
         this.closeMethodNodeId = results[1].targets![0].targetId;
         this.setPositionNodeId = results[2].targets![0].targetId;
         this.getPositionNodeId = results[3].targets![0].targetId;
         this.writeNodeId = results[4].targets![0].targetId;
         this.readNodeId = results[5].targets![0].targetId;
+        this.openCountNodeId = results[6].targets![0].targetId;
+        this.sizeNodeId = results[7].targets![0].targetId;
+    }
+
+    private async ensureInitialized() {
+        if (!this.openMethodNodeId) {
+            await this.extractMethodsIds();
+        }
     }
 }

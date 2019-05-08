@@ -11,13 +11,69 @@ import {
     UAMethod
 } from "node-opcua-address-space";
 import { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
+const debugLog = make_debugLog("FileType");
+const errorLog = make_errorLog("FileType");
+const doDebug = checkDebugFlag("FileType");
+
+export interface FileOptions {
+    maxSize?: number;
+    mineType?: string; 
+}
+
+class FileTypeData {
+    public filename: string = "";
+    public maxSize: number = 0;
+    public mimeType: string = "";
+
+    public set openCount(value: number) {
+        this._openCount = value;
+        this.file.openCount.touchValue();
+    }
+    public get openCount(): number {
+        return this._openCount;
+    }
+    public set fileSize(value: number) {
+        this._fileSize = value;
+        this.file.size.touchValue();
+    }
+    public get fileSize(): number {
+        return this._fileSize;
+    }
+
+    private file: UAFileType;
+    private _openCount: number = 0;
+    private _fileSize: number = 0;
+
+    constructor(file: UAFileType) {
+        this.file = file;
+
+        file.openCount.bindVariable({
+            get: () => new Variant({ dataType: DataType.UInt16, value: this._openCount })
+        }, true);
+        file.openCount.minimumSamplingInterval = 0; // changed immediatly
+
+        file.size.bindVariable({
+            get: () => new Variant({ dataType: DataType.UInt64, value: this._fileSize })
+        }, true);
+        file.size.minimumSamplingInterval = 0; // changed immediatly
+
+    }
+}
+
+interface FileAccessData {
+    handle: number;
+    fd: number; // nodejs handler
+    position: UInt64; // position in file
+
+}
 interface FileTypeM {
     $$currentFileHandle: number;
-    $$files: any;
+    $$files: { [key: number]: FileAccessData };
 }
 
 function _prepare(addressSpace: AddressSpace, context: SessionContext): FileTypeM {
@@ -31,24 +87,26 @@ function _prepare(addressSpace: AddressSpace, context: SessionContext): FileType
 function _addFile(addressSpace: AddressSpace, context: SessionContext): UInt32 {
     const _context = _prepare(addressSpace, context);
     _context.$$currentFileHandle++;
-    const fileHandle = _context.$$currentFileHandle;
+    const fileHandle: number = _context.$$currentFileHandle;
 
-    const _fileData = {
-        handle: fileHandle
+    const _fileData: FileAccessData = {
+        handle: fileHandle,
+        fd: -1,
+        position: [0, 0],
     };
     _context.$$files[fileHandle] = _fileData;
 
     return fileHandle;
 }
 
-function _getFile(addressSpace: AddressSpace, context: SessionContext, fileHandle: UInt32): any {
+function _getFile(addressSpace: AddressSpace, context: SessionContext, fileHandle: UInt32): FileAccessData {
     const _context = _prepare(addressSpace, context);
     return _context.$$files[fileHandle];
 }
 
-function _close(addressSpace: AddressSpace, context: SessionContext, fileHandle: UInt32) {
+function _close(addressSpace: AddressSpace, context: SessionContext, fileData: FileAccessData) {
     const _context = _prepare(addressSpace, context);
-    delete _context.$$files[fileHandle];
+    delete _context.$$files[fileData.fd];
 }
 
 /**
@@ -75,9 +133,9 @@ function _close(addressSpace: AddressSpace, context: SessionContext, fileHandle:
  */
 
 async function _openFile(
-  this: UAMethod,
-  inputArguments: Variant[],
-  context: SessionContext
+    this: UAMethod,
+    inputArguments: Variant[],
+    context: SessionContext
 ): Promise<CallMethodResultOptions> {
 
     const addressSpace = this.addressSpace;
@@ -102,7 +160,7 @@ async function _openFile(
      *      Reserved     4:7  Reserved for future use. Shall always be zero.
      */
 
-      // see https://nodejs.org/api/fs.html#fs_file_system_flags
+    // see https://nodejs.org/api/fs.html#fs_file_system_flags
     let flags: string;
     let modeNodejs: number;
     switch (mode) {
@@ -149,14 +207,19 @@ async function _openFile(
 
     const _fileData = _getFile(addressSpace, context, fileHandle);
 
-    const filename = (context.object as any).$filename;
+    const data = (context.object as any).$data as FileTypeData;
+    const filename = data.filename;
 
     try {
         _fileData.fd = await promisify(fs.open)(filename, flags, modeNodejs);
         _fileData.position = [0, 0];
+        data.openCount += 1;
+
     } catch (err) {
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
+
+    debugLog("Opening file handle ", fileHandle, "filename: ", data.filename, "openCount: ", data.openCount);
 
     const callMethodResult = {
         outputArguments: [
@@ -180,10 +243,11 @@ async function _openFile(
  * @private
  */
 async function _closeFile(
-  this: UAMethod,
-  inputArguments: Variant[],
-  context: SessionContext
+    this: UAMethod,
+    inputArguments: Variant[],
+    context: SessionContext
 ): Promise<CallMethodResultOptions> {
+
 
     const addressSpace = this.addressSpace;
 
@@ -193,9 +257,13 @@ async function _closeFile(
     if (!_fileData) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
+    const data = (context.object as any).$data as FileTypeData;
+
+    debugLog("Closing file handle ", fileHandle, "filename: ", data.filename, "openCount: ", data.openCount);
 
     await promisify(fs.close)(_fileData.fd);
     _close(addressSpace, context, _fileData);
+    data.openCount -= 1;
 
     return {
         statusCode: StatusCodes.Good
@@ -211,9 +279,9 @@ async function _closeFile(
  * @private
  */
 async function _readFile(
-  this: UAMethod,
-  inputArguments: Variant[],
-  context: SessionContext
+    this: UAMethod,
+    inputArguments: Variant[],
+    context: SessionContext
 ): Promise<CallMethodResultOptions> {
 
     const addressSpace = this.addressSpace;
@@ -241,8 +309,8 @@ async function _readFile(
 
     let ret;
     try {
-        ret = await promisify(fs.read)(_fileData.fd, data, 0, length, _fileData.position);
-        _fileData.position += ret.bytesRead;
+        ret = await promisify(fs.read)(_fileData.fd, data, 0, length, _fileData.position[1]);
+        _fileData.position[1] += ret.bytesRead;
     } catch (err) {
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
@@ -251,16 +319,16 @@ async function _readFile(
     //     of the file is reached.
     return {
         outputArguments: [
-            { dataType: DataType.ByteString, value: data.slice(0,ret.bytesRead) }
+            { dataType: DataType.ByteString, value: data.slice(0, ret.bytesRead) }
         ],
         statusCode: StatusCodes.Good
     };
 }
 
 async function _writeFile(
-  this: UAMethod,
-  inputArguments: Variant[],
-  context: SessionContext
+    this: UAMethod,
+    inputArguments: Variant[],
+    context: SessionContext
 ): Promise<CallMethodResultOptions> {
 
     const addressSpace = this.addressSpace;
@@ -276,9 +344,9 @@ async function _writeFile(
 }
 
 async function _setPositionFile(
-  this: UAMethod,
-  inputArguments: Variant[],
-  context: SessionContext
+    this: UAMethod,
+    inputArguments: Variant[],
+    context: SessionContext
 ): Promise<CallMethodResultOptions> {
 
     const addressSpace = this.addressSpace;
@@ -295,9 +363,9 @@ async function _setPositionFile(
 }
 
 async function _getPositionFile(
-  this: UAMethod,
-  inputArguments: Variant[],
-  context: SessionContext
+    this: UAMethod,
+    inputArguments: Variant[],
+    context: SessionContext
 ): Promise<CallMethodResultOptions> {
 
     const addressSpace = this.addressSpace;
@@ -319,10 +387,43 @@ async function _getPositionFile(
     };
 }
 
-export function installFileType(file: UAFileType, filename: string) {
+export const defaultMaxSize = 100000000;
 
-    //
-    (file as any).$filename = filename;
+export function installFileType(
+    file: UAFileType,
+    filename: string,
+    options?: FileOptions
+) {
+
+    if ((file as any).$data) {
+        errorLog("File already installed ", file.nodeId.toString(), file.browseName.toString());
+        return;
+    }
+    options = options || {};
+
+    // to protect the server we setup a maximum limite in bytes on the file
+    // if the client try to access or set the position above this limit
+    // the server will return an error
+    options.maxSize = (options.maxSize === undefined) ? defaultMaxSize : options.maxSize;
+
+    const $data = new FileTypeData(file);
+    $data.filename = filename;
+    $data.maxSize = options.maxSize!;
+    $data.mimeType = options.mineType || "";
+    // openCount indicates the number of currently valid file handles on the file.
+    $data.openCount = 0;
+
+    (file as any).$data = $data;
+
+    // ----- install size
+    if (options.mineType) {
+        if (file.mimeType) {
+            file.mimeType.bindVariable({
+                get: () => (file as any).$fileOptions.mineType
+            });
+        }
+    }
+
     file.open.bindMethod(callbackify(_openFile));
     file.close.bindMethod(callbackify(_closeFile));
     file.read.bindMethod(callbackify(_readFile));
