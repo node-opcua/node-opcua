@@ -60,8 +60,6 @@ describe("FileTransfer", () => {
 
         const tempFolder = await promisify(fs.mkdtemp)(path.join(os.tmpdir(), "test-"));
 
-        debugLog("Temporary Folder = ", tempFolder);
-
         const filename = path.join(tempFolder, "tempFile1.txt");
         await promisify(fs.writeFile)(filename, "content", "utf8");
 

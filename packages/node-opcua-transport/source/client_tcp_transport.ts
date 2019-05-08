@@ -26,11 +26,11 @@ export type ErrorCallback = (err?: Error) => void;
 function createClientSocket(endpointUrl: string): Socket {
     // create a socket based on Url
     const ep = parseEndpointUrl(endpointUrl);
-    const port = ep.port;
-    const hostname = ep.hostname;
+    const port = parseInt( ep.port!, 10);
+    const hostname = ep.hostname!;
     let socket: Socket;
     switch (ep.protocol) {
-        case "opc.tcp":
+        case "opc.tcp:":
 
             socket = createConnection({ host: hostname, port });
 
@@ -44,15 +44,15 @@ function createClientSocket(endpointUrl: string): Socket {
             });
 
             return socket;
-        case "fake":
+        case "fake:":
             socket = getFakeTransport();
-            assert(ep.protocol === "fake", " Unsupported transport protocol");
+            assert(ep.protocol === "fake:", " Unsupported transport protocol");
             process.nextTick(() => socket.emit("connect"));
             return socket;
 
-        case "websocket":
-        case "http":
-        case "https":
+        case "websocket:":
+        case "http:":
+        case "https:FF":
         default:
             throw new Error("this transport protocol is currently not supported :" + ep.protocol);
 

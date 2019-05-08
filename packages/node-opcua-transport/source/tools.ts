@@ -1,12 +1,15 @@
 /**
  * @module node-opcua-transport
  */
+import * as url from "url";
+
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import { BaseUAObject } from "node-opcua-factory";
 import { TCPErrorMessage } from "./TCPErrorMessage";
+import { UrlWithStringQuery } from "url";
 
 function is_valid_msg_type(msgType: string): boolean {
     assert(["HEL", "ACK", "ERR",   // Connection Layer
@@ -51,8 +54,13 @@ export function packTcpMessage(msgType: string, encodableObject: BaseUAObject): 
 }
 
 // opc.tcp://xleuri11022:51210/UA/SampleServer
-export function parseEndpointUrl(endpointUrl: string) {
-
+export function parseEndpointUrl(endpointUrl: string): url.Url {
+    const _url =  url.parse(endpointUrl);
+    if (!_url.protocol || !_url.hostname) {
+        throw new Error("Invalid endpoint url " + endpointUrl);
+    }
+    return _url;
+/*
     const r = /^([a-z.]*):\/\/([a-zA-Z_\-.\-0-9]*):([0-9]*)(\/.*){0,1}/;
 
     const matches = r.exec(endpointUrl);
@@ -69,6 +77,7 @@ export function parseEndpointUrl(endpointUrl: string) {
 
         address: matches[4] || ""
     };
+   */
 }
 
 export function is_valid_endpointUrl(endpointUrl: string): boolean {

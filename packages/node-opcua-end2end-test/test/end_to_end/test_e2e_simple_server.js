@@ -27,9 +27,9 @@ describe("Testing a simple server from Server side", function () {
             const e = opcua.parseEndpointUrl(endPoint.endpointDescriptions()[0].endpointUrl);
 
             const expected_hostname = getFullyQualifiedDomainName();
-            e.hostname.should.be.match(new RegExp(expected_hostname));
+            e.hostname.toLowerCase().should.be.match(new RegExp(expected_hostname.toLowerCase()));
 
-            e.port.should.eql(6789);
+            e.port.should.eql("6789");
 
             server.shutdown(done);
 

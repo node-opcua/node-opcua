@@ -34,6 +34,9 @@ function fqdn(callback: (err: Error | null, fqdn?: string) => void) {
 
 let _fullyQualifiedDomainNameInCache: string| undefined;
 
+/**
+ * extract FullyQualifiedDomainName of this computer
+ */
 export async function extractFullyQualifiedDomainName(): Promise<string> {
 
     if (_fullyQualifiedDomainNameInCache) {
