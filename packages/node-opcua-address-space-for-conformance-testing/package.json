@@ -1,11 +1,11 @@
 {
 	"name": "node-opcua-address-space-for-conformance-testing",
-	"version": "2.0.0-alpha.26",
+	"version": "2.0.0-alpha.27",
 	"description": "pure nodejs OPCUA SDK - module -address-space-for-conformance-testing",
 	"main": "index.js",
 	"scripts": {},
 	"dependencies": {
-		"node-opcua-address-space": "^2.0.0-alpha.26",
+		"node-opcua-address-space": "^2.0.0-alpha.27",
 		"node-opcua-assert": "^2.0.0-alpha.24",
 		"node-opcua-basic-types": "^2.0.0-alpha.26",
 		"node-opcua-data-access": "^2.0.0-alpha.26",
