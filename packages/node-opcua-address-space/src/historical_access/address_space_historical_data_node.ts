@@ -115,11 +115,11 @@ function filter_dequeue(
 
 export class VariableHistorian implements IVariableHistorian {
 
+    public readonly node: UAVariable;
     private readonly _timeline: any /* Dequeue */;
     private readonly _maxOnlineValues: number;
     private lastDate: Date;
     private lastDatePicoSeconds: number;
-    private readonly node: UAVariable;
 
     constructor(
       node: UAVariable,

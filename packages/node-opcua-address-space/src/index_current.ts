@@ -28,4 +28,4 @@ export * from "./data_access/ua_multistate_discrete";
 export * from "./data_access/ua_mutlistate_value_discrete";
 export * from "./alarms_and_conditions/condition_info";
 export * from "../test_helpers";
-
+export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
