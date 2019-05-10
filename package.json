@@ -124,7 +124,6 @@
     "ltx": "^2.8.1",
     "mocha-clean": "^1.0.0",
     "mocha-typescript": "^1.1.17",
-    "node-fqdn": "^1.1.1",
     "node-jsrsasign": "0.0.7",
     "node-opcua-crypto": "^1.1.1",
     "node-opcua-pki": "^1.5.2",
