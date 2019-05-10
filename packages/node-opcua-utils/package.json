@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-utils",
- "version": "2.0.0-alpha.24",
+ "version": "2.0.0-alpha.26",
  "description": "pure nodejs OPCUA SDK - module -utils",
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
