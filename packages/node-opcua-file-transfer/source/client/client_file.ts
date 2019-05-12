@@ -1,11 +1,11 @@
-import { Byte, Int32, UInt16, UInt64 } from "node-opcua-basic-types";
+import { Byte, Int32, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
+import { ReadValueId, ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType } from "node-opcua-variant";
-import { ReadValueId, ReadValueIdOptions } from 'node-opcua-service-read';
 
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
@@ -14,6 +14,7 @@ const errorLog = make_errorLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
 import { OpenFileMode } from "../open_mode";
+
 export { OpenFileMode } from "../open_mode";
 
 export class ClientFile {
@@ -49,7 +50,7 @@ export class ClientFile {
 
         const result = await this.session.call({
             inputArguments: [
-                { dataType: DataType.Byte, value: mode  as Byte}
+                { dataType: DataType.Byte, value: mode as Byte }
             ],
             methodId: this.openMethodNodeId,
             objectId: this.fileNodeId
@@ -104,10 +105,13 @@ export class ClientFile {
         return result.outputArguments![0].value as UInt64;
     }
 
-    public async setPosition(position: UInt64): Promise<void> {
+    public async setPosition(position: UInt64 | UInt32): Promise<void> {
         await this.ensureInitialized();
         if (!this.fileHandle) {
             throw new Error("File has node been opened yet");
+        }
+        if (typeof position === "number") {
+            position = [0, position];
         }
         const result = await this.session.call({
             inputArguments: [
@@ -115,7 +119,8 @@ export class ClientFile {
                 {
                     arrayType: VariantArrayType.Scalar,
                     dataType: DataType.UInt64,
-                    value: position }
+                    value: position
+                }
             ],
             methodId: this.setPositionNodeId,
             objectId: this.fileNodeId
@@ -137,7 +142,8 @@ export class ClientFile {
                 {
                     arrayType: VariantArrayType.Scalar,
                     dataType: DataType.Int32,
-                    value: bytesToRead }
+                    value: bytesToRead
+                }
             ],
             methodId: this.readNodeId,
             objectId: this.fileNodeId
@@ -162,7 +168,8 @@ export class ClientFile {
                 {
                     arrayType: VariantArrayType.Scalar,
                     dataType: DataType.ByteString,
-                    value: data }
+                    value: data
+                }
             ],
             methodId: this.writeNodeId,
             objectId: this.fileNodeId
@@ -175,18 +182,18 @@ export class ClientFile {
 
     public async openCount(): Promise<UInt16> {
         await this.ensureInitialized();
-        const nodeToRead: ReadValueIdOptions = { nodeId: this.openCountNodeId!, attributeId: AttributeIds.Value};
+        const nodeToRead: ReadValueIdOptions = { nodeId: this.openCountNodeId!, attributeId: AttributeIds.Value };
         const dataValue = await this.session.read(nodeToRead);
 
         if (doDebug) {
-            debugLog(" OpenCount ", nodeToRead.nodeId!.toString(), dataValue.toString() );
+            debugLog(" OpenCount ", nodeToRead.nodeId!.toString(), dataValue.toString());
         }
         return dataValue.value.value;
     }
 
     public async size(): Promise<UInt64> {
         await this.ensureInitialized();
-        const nodeToRead = { nodeId: this.sizeNodeId, attributeId: AttributeIds.Value};
+        const nodeToRead = { nodeId: this.sizeNodeId, attributeId: AttributeIds.Value };
         const dataValue = await this.session.read(nodeToRead);
         return dataValue.value.value;
     }
@@ -231,7 +238,7 @@ export class ClientFile {
         }
 
         if (false && doDebug) {
-            results.map(x=>debugLog(x.toString()));
+            results.map((x: any) => debugLog(x.toString()));
         }
         this.openMethodNodeId = results[0].targets![0].targetId;
         this.closeMethodNodeId = results[1].targets![0].targetId;
@@ -252,7 +259,7 @@ export class ClientFile {
 
 /**
  * 5.2.10 UserRolePermissions
- * 
+ *
  * The optional UserRolePermissions Attribute specifies the Permissions that apply to a Node for
  * all Roles granted to current Session. The value of the Attribute is an array of
  * RolePermissionType Structures (see Table 8).
@@ -265,8 +272,8 @@ export class ClientFile {
  * Metadata Object associated with the Node is used instead. If the NamespaceMetadata Object
  * does not define the Property or does not exist, then the Server does not publish any information
  * about Roles mapped to the current Session.
- * 
- * 
+ *
+ *
  * 5.2.11 AccessRestrictions
  * The optional AccessRestrictions Attribute specifies the AccessRestrictions that apply to a Node.
  * Its data type is defined in 8.56. If a Server supports AccessRestrictions for a particular
@@ -274,9 +281,9 @@ export class ClientFile {
  * for that Namespace (see Figure 8). If a particular Node in the Namespace needs to override
  * the default value the Server adds the AccessRestrictions Attribute to the Node.
  * If a Server implements a vendor specific access restriction model for a Namespace, it does not
- * add the DefaultAccessRestrictions Property to the NamespaceMetadata Object.  
- * 
- * 
+ * add the DefaultAccessRestrictions Property to the NamespaceMetadata Object.
+ *
+ *
  * DefaultAccessRestrictions
- * 
+ *
  */

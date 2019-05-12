@@ -3,6 +3,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as should from "should";
 import { promisify } from "util";
 
 import {
@@ -17,13 +18,12 @@ import { nodesets } from "node-opcua-nodesets";
 
 import {
     ClientFile,
-    OpenFileMode
-} from "../source/client/client_file";
-import {
     FileTypeData,
+
     getFileData,
-    installFileType
-} from "../source/server/file_type_helpers";
+    installFileType,
+    OpenFileMode
+} from "..";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -176,7 +176,6 @@ describe("FileTransfer", () => {
         // Then I should verify that the read method has failed
         should.exist(hasReceivedException);
         hasSucceeded.should.eql(false);
-        
     });
 
     it("should be possible to write a file - in create mode", async () => {
