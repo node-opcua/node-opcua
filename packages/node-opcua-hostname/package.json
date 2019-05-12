@@ -9,7 +9,6 @@
 		"test": "mocha test"
 	},
 	"dependencies": {
-		"node-fqdn": "^1.1.1",
 		"node-opcua-assert": "^2.0.0-alpha.24"
 	},
 	"author": "Etienne Rossignon",

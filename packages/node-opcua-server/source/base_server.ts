@@ -22,7 +22,7 @@ import {
 import {
     Message,
     Response,
-    ServerSecureChannelLayer
+    ServerSecureChannelLayer, ServerSecureChannelParent
 } from "node-opcua-secure-channel";
 import {
     FindServersRequest,
@@ -151,6 +151,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         this.serverInfo = new ApplicationDescription(serverInfo);
 
         const __applicationUri = serverInfo.applicationUri || "";
+
         (this.serverInfo as any).__defineGetter__("applicationUri", function(this: any) {
             return resolveFullyQualifiedDomainName(__applicationUri);
         });
@@ -175,6 +176,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         assert(_.isArray(this.endpoints));
         assert(this.endpoints.length > 0, "We neeed at least one end point");
         callbackify(extractFullyQualifiedDomainName)((err: Error | null, fqdn: string) => {
+
             async.forEach(this.endpoints, (endpoint: OPCUAServerEndPoint, callback: (err?: Error | null) => void) => {
 
                 endpoint._on_new_channel = (channel: ServerSecureChannelLayer) => {

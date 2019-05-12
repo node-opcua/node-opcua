@@ -113,10 +113,10 @@ export interface EndpointDescriptionParams {
 
     allowAnonymous?: boolean;
     restricted?: boolean;
-
-    hostname?: string;
     allowUnsecurePassword?: boolean;
     resourcePath?: string;
+    alternateHostname?: string[];
+    hostname: string;
 
 }
 
@@ -129,6 +129,7 @@ export interface AddStandardEndpointDescriptionsParam {
     allowAnonymous?: boolean;
     restricted?: boolean;
     hostname?: string;
+    alternateHostname?: string[];
     allowUnsecurePassword?: boolean;
     resourcePath?: string;
 }
@@ -289,7 +290,13 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         const endpoints = this.endpointDescriptions();
         const arr = _.filter(endpoints, matching_endpoint.bind(this, securityMode, securityPolicy, endpointUrl));
-        assert(arr.length === 0 || arr.length === 1);
+
+        if (!(arr.length === 0 || arr.length === 1)) {
+            errorLog("Several matching endpoints have been found : ");
+            for (const a of arr) {
+                errorLog("   ", a.endpointUrl, MessageSecurityMode[securityMode], securityPolicy);
+            }
+        }
         return arr.length === 0 ? null : arr[0];
     }
 
@@ -298,7 +305,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
       securityPolicy: SecurityPolicy,
       options?: EndpointDescriptionParams
     ) {
-        options = options || {};
+        if (!options) {
+            options = { hostname: getFullyQualifiedDomainName() };
+        }
 
         options.allowAnonymous = (options.allowAnonymous === undefined) ? true : options.allowAnonymous;
 
@@ -312,16 +321,15 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         }
         //
 
-        options.hostname = options.hostname || getFullyQualifiedDomainName();
-
         const port = this.port;
 
-        // now build endpointUrl
-
         // resource Path is a string added at the end of the url such as "/UA/Server"
-        const resourcePath = options.resourcePath || "";
-        const endpointUrl = "opc.tcp://" + options.hostname + ":" +
-          path.join("" + port, resourcePath).replace(/\\/g, "/");
+        const resourcePath = (options.resourcePath || "").replace(/\\/g, "/");
+
+        assert(resourcePath.length === 0 || resourcePath.charAt(0) === "/");
+
+        const hostname = options.hostname || getFullyQualifiedDomainName();
+        const endpointUrl = `opc.tcp://${hostname}:${port}${resourcePath}`;
 
         const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy, endpointUrl);
 
@@ -330,10 +338,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             throw new Error(" endpoint already exist");
         }
 
+        // now build endpointUrl
         this._endpoints.push(_makeEndpointDescription({
-
             endpointUrl,
-            hostname: options.hostname,
+            hostname,
             port,
 
             server: this.serverInfo,
@@ -363,22 +371,38 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         options.securityModes = options.securityModes || defaultSecurityModes;
         options.securityPolicies = options.securityPolicies || defaultSecurityPolicies;
 
-        if (options.securityModes.indexOf(MessageSecurityMode.None) >= 0) {
-            this.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
-        } else {
-            if (!options.disableDiscovery) {
-                this.addRestrictedEndpointDescription(options);
-            }
+        const defaultHostname = options.hostname || getFullyQualifiedDomainName();
+
+        let hostnames: string[] = [ defaultHostname ];
+
+        options.alternateHostname =  options.alternateHostname || [];
+        if (typeof options.alternateHostname === "string") {
+            options.alternateHostname = [ options.alternateHostname];
         }
-        for (const securityMode  of  options.securityModes) {
-            if (securityMode === MessageSecurityMode.None) {
-                continue;
+        hostnames = hostnames.concat(options.alternateHostname as string[]);
+
+        for (const alternateHostname of hostnames ) {
+
+            const optionsE = options as EndpointDescriptionParams;
+            optionsE.hostname = alternateHostname;
+
+            if (options.securityModes.indexOf(MessageSecurityMode.None) >= 0) {
+                this.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, optionsE);
+            } else {
+                if (!options.disableDiscovery) {
+                    this.addRestrictedEndpointDescription(optionsE);
+                }
             }
-            for (const securityPolicy of options.securityPolicies) {
-                if (securityPolicy === SecurityPolicy.None) {
+            for (const securityMode  of  options.securityModes) {
+                if (securityMode === MessageSecurityMode.None) {
                     continue;
                 }
-                this.addEndpointDescription(securityMode, securityPolicy, options);
+                for (const securityPolicy of options.securityPolicies) {
+                    if (securityPolicy === SecurityPolicy.None) {
+                        continue;
+                    }
+                    this.addEndpointDescription(securityMode, securityPolicy, optionsE);
+                }
             }
         }
     }
@@ -387,7 +411,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * returns the list of end point descriptions.
      */
     public endpointDescriptions(): EndpointDescription[] {
+
         return this._endpoints;
+
     }
 
     /**
@@ -853,10 +879,13 @@ interface MakeEndpointDescriptionOptions {
     restricted: boolean;
 }
 
+interface EndpointDescriptionEx extends EndpointDescription {
+    restricted: boolean;
+}
 /**
  * @private
  */
-function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
+function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): EndpointDescriptionEx {
 
     assert(_.isFinite(options.port), "expecting a valid port number");
     assert(options.hasOwnProperty("serverCertificateChain"));
@@ -1011,14 +1040,15 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions) {
 
         securityLevel: options.securityLevel,
         transportProfileUri: default_transportProfileUri
-    });
+    }) as EndpointDescriptionEx;
 
     (endpoint as any).__defineGetter__("endpointUrl", () => {
         return resolveFullyQualifiedDomainName(options.endpointUrl);
     });
 
     endpoint.server = options.server;
-    (endpoint as any).restricted = options.restricted;
+
+    endpoint.restricted = options.restricted;
 
     return endpoint;
 

@@ -240,10 +240,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public receiverCertificate: Buffer | null;
     public clientCertificate: Buffer | null;
     public clientNonce: Buffer | null;
-    public endpoint: any;
     public securityMode: MessageSecurityMode;
     public securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     public clientSecurityHeader?: SecurityHeader;
+    public endpoint: EndpointDescription | null;
 
     private readonly __hash: number;
     private parent: ServerSecureChannelParent | null;

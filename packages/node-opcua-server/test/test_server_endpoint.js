@@ -25,9 +25,13 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
             port: default_port,
             serverInfo: {},
             certificateChain: null,
-            privateKey: ""
+            privateKey: "",
         });
     });
+
+    const param = {
+
+    };
     afterEach(function () {
         server_endpoint = null;
     });

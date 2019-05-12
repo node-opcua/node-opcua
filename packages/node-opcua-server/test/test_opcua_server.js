@@ -91,6 +91,7 @@ describe("OPCUAServer", () => {
 describe("OPCUAServer-2", () => {
 
     let server;
+
     before( (done) => {
 
         fs.existsSync(mini_nodeset_filename).should.eql(true);
@@ -102,8 +103,9 @@ describe("OPCUAServer-2", () => {
         server = new OPCUAServer(options);
         server.start(done);
     });
+
     after((done) => {
-        server.shutdown(function () {
+        server.shutdown(()  => {
             server = null;
             done();
         });
@@ -130,3 +132,26 @@ describe("OPCUAServer-2", () => {
     });
 
 });
+describe("OPCUAServer-3", () => {
+
+    let server;
+    before((done)=>{
+
+        server = new OPCUAServer();
+        done();
+    });
+
+    it("checking IOPCUAServer properties before startup", () =>{
+        server.currentChannelCount.should.eql(0);
+        server.rejectedSessionCount.should.eql(0);
+        server.rejectedRequestsCount.should.eql(0);
+        server.currentSubscriptionCount.should.eql(0);
+        server.sessionAbortCount.should.eql(0);
+        server.publishingIntervalCount.should.eql(0);
+        server.currentSessionCount.should.eql(0);
+        server.isAuditing.should.eql(false);
+        should(server.getSession(NodeId.nullNodeId, true)).eql(null);
+
+    });
+});
+

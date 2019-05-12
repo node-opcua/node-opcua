@@ -192,6 +192,8 @@ export interface UserManagerOptions extends IUserManager {
 const package_info = require("../package.json");
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
+const warningLog = errorLog;
+
 const default_maxAllowedSessionNumber = 10;
 const default_maxConnectionsPerEndpoint = 10;
 
@@ -463,7 +465,7 @@ function build_scanning_node_function(
     /* istanbul ignore next */
     if (!node) {
 
-        console.log(" INVALID NODE ID  , ", itemToMonitor.nodeId.toString());
+        errorLog(" INVALID NODE ID  , ", itemToMonitor.nodeId.toString());
         dump(itemToMonitor);
         return (oldData: DataValue, callback: (err: Error | null, dataValue?: DataValue) => void) => {
             callback(null, new DataValue({
@@ -636,7 +638,42 @@ export enum RegisterServerMethod {
     LDS = 3 // the server registers itself to the LDS or LDS-ME (Local Discovery Server)
 }
 
-export interface OPCUAServerOptions extends OPCUABaseServerOptions {
+export interface OPCUAServerEndpointOptions {
+
+    /**
+     * the TCP port to listen to.
+     * @default 26543
+     */
+    port?: number;
+    /**
+     * the possible security policies that the server will expose
+     * @default  [SecurityPolicy.None, SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256Sha256]
+     */
+    securityPolicies?: SecurityPolicy[];
+    /**
+     * the possible security mode that the server will expose
+     * @default [MessageSecurityMode.None, MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt]
+     */
+    securityModes?: MessageSecurityMode[];
+    /**
+     * tells if the server default endpoints should allow anonymous connection.
+     * @default true
+     */
+    allowAnonymous?: boolean;
+
+    /** alternate hostname  or IP to use */
+    alternateHostname?: string | string[];
+
+    /**
+     *  true, if discovery service on unsecure channel shall be disabled
+     */
+    disableDiscovery?: boolean;
+
+}
+
+export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerEndpointOptions {
+
+    alternateEndpoints?: OPCUAServerEndpointOptions[];
 
     /**
      * the server certificate full path filename
@@ -666,11 +703,7 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions {
      * @default 10000
      */
     timeout?: number;
-    /**
-     * the TCP port to listen to.
-     * @default 26543
-     */
-    port?: number;
+
     /**
      * the maximum number of simultaneous sessions allowed.
      * @default 10
@@ -722,21 +755,6 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions {
     };
 
     /**
-     * the possible security policies that the server will expose
-     * @default  [SecurityPolicy.None, SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256Sha256]
-     */
-    securityPolicies?: SecurityPolicy[];
-    /**
-     * the possible security mode that the server will expose
-     * @default [MessageSecurityMode.None, MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt]
-     */
-    securityModes?: MessageSecurityMode[];
-    /**
-     * tells if the server default endpoints should allow anonymous connection.
-     * @default true
-     */
-    allowAnonymous?: boolean;
-    /**
      *  an object that implements user authentication methods
      */
     userManager?: UserManagerOptions;
@@ -744,8 +762,6 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions {
     /** resource Path is a string added at the end of the url such as "/UA/Server" */
     resourcePath?: string;
 
-    /** alternate hostname  or IP to use */
-    alternateHostname?: string | string[];
     /**
      *
      */
@@ -796,11 +812,6 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions {
      */
     serverCertificateManager?: OPCUACertificateManager;
 
-    /**
-     *  if Discovery Service on unsecure channel shall be disabled
-     *
-     */
-    disableDiscovery?: boolean;
 }
 
 export interface OPCUAServer {
@@ -830,6 +841,7 @@ export interface OPCUAServer {
     userCertificateManager: OPCUACertificateManager;
 
 }
+
 /**
  *
  */
@@ -884,8 +896,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * The number of active subscriptions from all sessions
      */
     public get currentSubscriptionCount(): number {
-        const self = this;
-        return self.engine.currentSubscriptionCount;
+        return this.engine ? this.engine.currentSubscriptionCount : 0;
     }
 
     /**
@@ -899,28 +910,28 @@ export class OPCUAServer extends OPCUABaseServer {
      * the number of request that have been rejected
      */
     public get rejectedRequestsCount(): number {
-        return this.engine ?  this.engine.rejectedRequestsCount : 0;
+        return this.engine ? this.engine.rejectedRequestsCount : 0;
     }
 
     /**
      * the number of sessions that have been aborted
      */
     public get sessionAbortCount(): number {
-        return this.engine ?  this.engine.sessionAbortCount : 0;
+        return this.engine ? this.engine.sessionAbortCount : 0;
     }
 
     /**
      * the publishing interval count
      */
     public get publishingIntervalCount(): number {
-        return this.engine ?  this.engine.publishingIntervalCount : 0 ;
+        return this.engine ? this.engine.publishingIntervalCount : 0;
     }
 
     /**
      * the number of sessions currently active
      */
     public get currentSessionCount(): number {
-        return this.engine ?  this.engine.currentSessionCount : 0 ;
+        return this.engine ? this.engine.currentSessionCount : 0;
     }
 
     /**
@@ -1005,10 +1016,11 @@ export class OPCUAServer extends OPCUABaseServer {
 
         this.protocolVersion = 0;
 
+        options.allowAnonymous = (options.allowAnonymous === undefined) ? true : !!options.allowAnonymous;
         /**
          * @property allowAnonymous
          */
-        this.allowAnonymous = (options.allowAnonymous === undefined) ? true : !!options.allowAnonymous;
+        this.allowAnonymous = options.allowAnonymous;
 
         this.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://%FQDN%:4840";
         assert(typeof this.discoveryServerEndpointUrl === "string");
@@ -1030,6 +1042,7 @@ export class OPCUAServer extends OPCUABaseServer {
         // such as %FQDN% might not be ready yet at this stage
         this._delayInit = () => {
 
+            /* istanbul ignore next */
             if (!options) {
                 throw new Error("Internal Error");
             }
@@ -1042,64 +1055,94 @@ export class OPCUAServer extends OPCUABaseServer {
                 isAuditing: options.isAuditing,
                 serverCapabilities: options.serverCapabilities
             });
-
-            const port = options.port || 26543;
-            assert(_.isFinite(port));
             this.objectFactory = new Factory(this.engine);
+
+            const endpointDefinitions = options.alternateEndpoints || [];
+
+            endpointDefinitions.push({
+                port: options.port || 26543,
+
+                allowAnonymous: options.allowAnonymous,
+                alternateHostname: options.alternateHostname,
+                disableDiscovery: options.disableDiscovery,
+                securityModes: options.securityModes,
+                securityPolicies: options.securityPolicies
+            });
+
             // todo  should self.serverInfo.productUri  match self.engine.buildInfo.productUri ?
 
-            // xx console.log(" maxConnectionsPerEndpoint = ",self.maxConnectionsPerEndpoint);
+            const createEndpoint = (port1: number, options1: OPCUAServerOptions): OPCUAServerEndPoint => {
+                // add the tcp/ip endpoint with no security
+                const endPoint = new OPCUAServerEndPoint({
 
-            // add the tcp/ip endpoint with no security
-            const endPoint = new OPCUAServerEndPoint({
-                port,
+                    port: port1,
 
-                certificateManager: this.serverCertificateManager,
+                    certificateManager: this.serverCertificateManager,
 
-                defaultSecureTokenLifetime: options.defaultSecureTokenLifetime || 600000,
-                timeout: options.timeout || 10000,
+                    certificateChain: this.getCertificateChain(),
+                    privateKey: this.getPrivateKey(),
 
-                certificateChain: this.getCertificateChain(),
-                privateKey: this.getPrivateKey(),
+                    defaultSecureTokenLifetime: options1.defaultSecureTokenLifetime || 600000,
+                    timeout: options1.timeout || 10000,
 
-                maxConnections: this.maxConnectionsPerEndpoint,
-                objectFactory: this.objectFactory,
-                serverInfo: this.serverInfo
-            });
+                    maxConnections: this.maxConnectionsPerEndpoint,
+                    objectFactory: this.objectFactory,
+                    serverInfo: this.serverInfo
+                });
+                return endPoint;
+            };
 
-            options.alternateHostname = options.alternateHostname || [""];
-            const alternateHostnames = (options.alternateHostname instanceof Array) ? options.alternateHostname : [options.alternateHostname];
+            function createEndpointDescriptions(options2: OPCUAServerEndpointOptions): OPCUAServerEndPoint {
 
-            for (const alternateHostname of alternateHostnames) {
+                /* istanbul ignore next */
+                if (!options) {
+                    throw new Error("internal error");
+                }
 
-                const hostname = (alternateHostname && alternateHostname.length > 0) ? alternateHostname : undefined;
+                /* istanbul ignore next */
+                if (!options2.hasOwnProperty("port") || !_.isFinite(options2.port!)) {
+                    throw new Error("expecting a valid port");
+                }
+
+                const port = options2.port! + 0;
+
+                const endPoint = createEndpoint(port, options);
+
+                options2.alternateHostname = options2.alternateHostname || [];
+                const alternateHostname = (options2.alternateHostname instanceof Array) ? options2.alternateHostname : [options2.alternateHostname];
+                const allowAnonymous = (options2.allowAnonymous === undefined) ? true : !!options2.allowAnonymous;
 
                 endPoint.addStandardEndpointDescriptions({
-                    securityModes: options.securityModes,
-                    securityPolicies: options.securityPolicies,
+                    allowAnonymous,
+                    securityModes: options2.securityModes,
+                    securityPolicies: options2.securityPolicies,
 
-                    allowAnonymous: !!this.allowAnonymous,
-                    disableDiscovery: !!options.disableDiscovery,
-                    hostname,
+                    alternateHostname,
+
+                    disableDiscovery: !!options2.disableDiscovery,
+// xx                hostname,
                     resourcePath: options.resourcePath || ""
                 });
+                return endPoint;
             }
 
-            this.endpoints.push(endPoint);
+            for (const eee of endpointDefinitions) {
 
-            endPoint.on("message", (message: Message, channel: ServerSecureChannelLayer) => {
-                this.on_request(message, channel);
-            });
-
-            endPoint.on("error", (err: Error) => {
-                console.log("OPCUAServer endpoint error", err);
-                // set serverState to ServerState.Failed;
-                this.engine.setServerState(ServerState.Failed);
-
-                this.shutdown(() => {
-                    /* empty */
+                const endPoint = createEndpointDescriptions(eee);
+                this.endpoints.push(endPoint);
+                endPoint.on("message", (message: Message, channel: ServerSecureChannelLayer) => {
+                    this.on_request(message, channel);
                 });
-            });
+
+                endPoint.on("error", (err: Error) => {
+                    errorLog("OPCUAServer endpoint error", err);
+                    // set serverState to ServerState.Failed;
+                    this.engine.setServerState(ServerState.Failed);
+                    this.shutdown(() => {
+                        /* empty */
+                    });
+                });
+            }
         };
 
     }
@@ -1136,6 +1179,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         callbackify(extractFullyQualifiedDomainName)((err?: Error) => {
 
+            /* istanbul ignore else */
             if (this._delayInit) {
                 this._delayInit();
                 this._delayInit = undefined;
@@ -1271,6 +1315,7 @@ export class OPCUAServer extends OPCUABaseServer {
         }
         OPCUAServer.registry.unregister(this);
 
+        /* istanbul ignore next */
         if (this.engine) {
             this.engine.dispose();
         }
@@ -1280,7 +1325,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         /* istanbul ignore next */
         if (!this.engine.addressSpace) {
-            console.log("addressSpace missing");
+            errorLog("addressSpace missing");
             return;
         }
 
@@ -1305,28 +1350,15 @@ export class OPCUAServer extends OPCUABaseServer {
         }
     }
 
-    public registerServer(
-      discoveryServerEndpointUrl: string,
-      callback: any
-    ) {
-        assert(!"registerServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
-        _registerServer.call(this, discoveryServerEndpointUrl, true, callback);
-    }
-
-    public unregisterServer(
-      discoveryServerEndpointUrl: string,
-      callback: any
-    ) {
-        assert(!"unregisterServer is DEPRECATED - please use registerServerMethod when creating the OPCUAServer");
-        _registerServer.call(this, discoveryServerEndpointUrl, false, callback);
-    }
-
     /**
      * create and register a new session
      * @internal
      */
     protected createSession(options: any): ServerSession {
-        if (!this.engine) { throw new Error("Internal Error"); }
+        /* istanbul ignore next */
+        if (!this.engine) {
+            throw new Error("Internal Error");
+        }
         return this.engine.createSession(options);
     }
 
@@ -1410,9 +1442,9 @@ export class OPCUAServer extends OPCUABaseServer {
 
         /* istanbul ignore next */
         if (userIdentityToken.encryptionAlgorithm !== cryptoFactory.asymmetricEncryptionAlgorithm) {
-            console.log("invalid encryptionAlgorithm");
-            console.log("userTokenPolicy", userTokenPolicy.toString());
-            console.log("userTokenPolicy", userIdentityToken.toString());
+            errorLog("invalid encryptionAlgorithm");
+            errorLog("userTokenPolicy", userTokenPolicy.toString());
+            errorLog("userTokenPolicy", userIdentityToken.toString());
             return callback(null, StatusCodes.BadIdentityTokenInvalid);
         }
         const userName = userIdentityToken.userName;
@@ -1438,6 +1470,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
 
         const cryptoFactory = getCryptoFactory(securityPolicy);
+        /* istanbul ignore next */
         if (!cryptoFactory) {
             return callback(null, StatusCodes.BadSecurityPolicyRejected);
         }
@@ -1447,9 +1480,9 @@ export class OPCUAServer extends OPCUABaseServer {
         }
 
         if (userIdentityToken.policyId !== userTokenPolicy.policyId) {
-            console.log("invalid encryptionAlgorithm");
-            console.log("userTokenPolicy", userTokenPolicy.toString());
-            console.log("userTokenPolicy", userIdentityToken.toString());
+            errorLog("invalid encryptionAlgorithm");
+            errorLog("userTokenPolicy", userTokenPolicy.toString());
+            errorLog("userTokenPolicy", userIdentityToken.toString());
             return callback(null, StatusCodes.BadSecurityPolicyRejected);
         }
         const certificate = userIdentityToken.certificateData/* as Certificate*/;
@@ -1550,7 +1583,7 @@ export class OPCUAServer extends OPCUABaseServer {
             throw new Error("Invalid token");
         }
 
-        const endpoint_desc = channel.endpoint;
+        const endpoint_desc = channel.endpoint!;
         assert(endpoint_desc instanceof EndpointDescription);
 
         const userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId!);
@@ -1590,7 +1623,7 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(userIdentityToken);
         assert(_.isFunction(callback));
 
-        const endpoint_desc = channel.endpoint;
+        const endpoint_desc = channel.endpoint!;
         assert(endpoint_desc instanceof EndpointDescription);
 
         const userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId!);
@@ -1667,7 +1700,7 @@ export class OPCUAServer extends OPCUABaseServer {
         if (!request.clientNonce || request.clientNonce.length < 32) {
             if (channel.securityMode !== MessageSecurityMode.None) {
 
-                console.log(chalk.red("SERVER with secure connection: Missing or invalid client Nonce "),
+                errorLog(chalk.red("SERVER with secure connection: Missing or invalid client Nonce "),
                   request.clientNonce && request.clientNonce.toString("hex"));
 
                 return rejectConnection(StatusCodes.BadNonceInvalid);
@@ -1689,6 +1722,7 @@ export class OPCUAServer extends OPCUABaseServer {
             const e = exploreCertificate(clientCertificate);
             const applicationUriFromCert = e.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier[0];
 
+            /* istanbul ignore next */
             if (applicationUriFromCert !== applicationUri) {
                 errorLog("BadCertificateUriInvalid!");
                 errorLog("applicationUri           = ", applicationUri);
@@ -1987,7 +2021,7 @@ export class OPCUAServer extends OPCUABaseServer {
             if (!channel_has_session(channel, session)) {
                 // it looks like session activation is being using a channel that is not the
                 // one that have been used to create the session
-                console.log(" channel.sessionTokens === " + Object.keys(channel.sessionTokens).join(" "));
+                errorLog(" channel.sessionTokens === " + Object.keys(channel.sessionTokens).join(" "));
                 return rejectConnection(StatusCodes.BadSessionNotActivated);
             }
         }
@@ -2000,8 +2034,7 @@ export class OPCUAServer extends OPCUABaseServer {
         if (session.status === "active") {
 
             if (session.channel!.channelId !== channel.channelId) {
-
-                console.log(" Session is being transferred from channel",
+                warningLog(" Session is being transferred from channel",
                   chalk.cyan(session.channel!.channelId!.toString()),
                   " to channel ", chalk.cyan(channel.channelId!.toString()));
 
@@ -2028,7 +2061,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // session has been used before being activated => this should be detected and session should be dismissed.
             return rejectConnection(StatusCodes.BadSessionClosed);
         } else if (session.status === "closed") {
-            console.log(
+            warningLog(
               chalk.yellow.bold(" Bad Session Closed in  _on_ActivateSessionRequest"),
               authenticationToken.value.toString("hex"));
             return rejectConnection(StatusCodes.BadSessionClosed);
@@ -2040,7 +2073,7 @@ export class OPCUAServer extends OPCUABaseServer {
         }
 
         // userIdentityToken may be missing , assume anonymous access then
-        request.userIdentityToken = request.userIdentityToken || createAnonymousIdentityToken(channel.endpoint);
+        request.userIdentityToken = request.userIdentityToken || createAnonymousIdentityToken(channel.endpoint!);
 
         // check request.userIdentityToken is correct ( expected type and correctly formed)
         server.isValidUserIdentityToken(
@@ -2160,7 +2193,7 @@ export class OPCUAServer extends OPCUABaseServer {
         // --- check that provided session matches session attached to channel
         if (channel.channelId !== session.channelId) {
             if (!(request instanceof ActivateSessionRequest)) {
-                console.log(chalk.red.bgWhite("ERROR: channel.channelId !== session.channelId"),
+                errorLog(chalk.red.bgWhite("ERROR: channel.channelId !== session.channelId"),
                   channel.channelId, session.channelId);
             }
             message.session_statusCode = StatusCodes.BadSecureChannelIdInvalid;
@@ -2424,8 +2457,6 @@ export class OPCUAServer extends OPCUABaseServer {
               let response: BrowseResponse;
               // test view
               if (request.view && !request.view.viewId.isEmpty()) {
-                  // xx console.log("xxxx ",request.view.toString());
-                  // xx console.log("xxxx NodeClas",View.prototype.nodeClass);
                   let theView: UAView | null = server.engine!.addressSpace!.findNode(request.view.viewId) as UAView;
                   if (theView && theView.nodeClass !== NodeClass.View) {
                       // Error: theView is not a View
@@ -3114,7 +3145,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
                     /* istanbul ignore next */
                     if (err) {
-                        console.log("ERROR in method Call !! ", err);
+                        errorLog("ERROR in method Call !! ", err);
                     }
                     assert(_.isArray(results));
                     response = new CallResponse({
@@ -3413,5 +3444,3 @@ const opts = { multiArgs: false };
 OPCUAServer.prototype.start = thenify.withCallback(OPCUAServer.prototype.start, opts);
 OPCUAServer.prototype.initialize = thenify.withCallback(OPCUAServer.prototype.initialize, opts);
 OPCUAServer.prototype.shutdown = thenify.withCallback(OPCUAServer.prototype.shutdown, opts);
-OPCUAServer.prototype.registerServer = thenify.withCallback(OPCUAServer.prototype.registerServer, opts);
-OPCUAServer.prototype.unregisterServer = thenify.withCallback(OPCUAServer.prototype.unregisterServer, opts);

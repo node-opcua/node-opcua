@@ -3,7 +3,7 @@ import { OPCUAServer } from "..";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("OPCUAServerEndpoint#addEndpointDescription", () => {
+describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
 
     it("should be possible to create endpoints on multiple host names", async () => {
         

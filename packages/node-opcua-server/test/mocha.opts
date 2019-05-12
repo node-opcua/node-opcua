@@ -1,1 +1,2 @@
 -r ../../node_modules/source-map-support/register
+-timeout 30000
