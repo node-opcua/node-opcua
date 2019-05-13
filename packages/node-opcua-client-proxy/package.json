@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-client-proxy",
- "version": "2.0.0-alpha.26",
+ "version": "2.0.0-alpha.28",
  "description": "pure nodejs OPCUA SDK - module -client-proxy",
  "scripts": {
   "clean": "node -e \"require('rimraf').sync('dist');\"",
@@ -13,7 +13,7 @@
  "dependencies": {
   "async": "^2.6.2",
   "node-opcua-assert": "^2.0.0-alpha.24",
-  "node-opcua-client": "^2.0.0-alpha.26",
+  "node-opcua-client": "^2.0.0-alpha.28",
   "node-opcua-constants": "^2.0.0-alpha.24",
   "node-opcua-data-model": "^2.0.0-alpha.26",
   "node-opcua-data-value": "^2.0.0-alpha.26",
@@ -21,7 +21,7 @@
   "node-opcua-service-browse": "^2.0.0-alpha.26",
   "node-opcua-service-call": "^2.0.0-alpha.26",
   "node-opcua-service-read": "^2.0.0-alpha.26",
-  "node-opcua-service-subscription": "^2.0.0-alpha.26",
+  "node-opcua-service-subscription": "^2.0.0-alpha.28",
   "node-opcua-service-write": "^2.0.0-alpha.26",
   "node-opcua-status-code": "^2.0.0-alpha.24",
   "node-opcua-utils": "^2.0.0-alpha.26",

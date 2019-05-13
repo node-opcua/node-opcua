@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-secure-channel",
- "version": "2.0.0-alpha.26",
+ "version": "2.0.0-alpha.28",
  "description": "pure nodejs OPCUA SDK - module -secure-channel",
  "main": "./dist/source/index.js",
  "types": "./dist/source/index.d.ts",
@@ -44,7 +44,7 @@
   "node-opcua-service-endpoints": "^2.0.0-alpha.26",
   "node-opcua-service-read": "^2.0.0-alpha.26",
   "node-opcua-service-session": "^2.0.0-alpha.26",
-  "node-opcua-test-fixtures": "^2.0.0-alpha.24",
+  "node-opcua-test-fixtures": "^2.0.0-alpha.28",
   "node-opcua-test-helpers": "^2.0.0-alpha.24",
   "should": "13.2.3",
   "sinon": "^7.3.2",

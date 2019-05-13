@@ -2,7 +2,7 @@
 	"name": "node-opcua-hostname",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
-	"version": "2.0.0-alpha.26",
+	"version": "2.0.0-alpha.28",
 	"description": "pure nodejs OPCUA SDK - module -hostname",
 	"scripts": {
 		"build": "tsc",
