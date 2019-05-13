@@ -76,6 +76,9 @@ export function getFullyQualifiedDomainName(optional_max_length?: number) {
 }
 
 export function resolveFullyQualifiedDomainName(str: string): string {
+    if (!str.match(/%FQDN%/)) {
+        return str;
+    }
     if (!_fullyQualifiedDomainNameInCache) {
         throw new Error("FullyQualifiedDomainName computation is not completed yet");
     }

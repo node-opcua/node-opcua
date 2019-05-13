@@ -1020,6 +1020,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             if (e.tbsCertificate.extensions !== null) {
                 applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
             } else {
+                errorLog("Certificate has no extension");
+                errorLog(toPem(certificate, "CERTIFICATE"));
                 applicationUri = makeApplicationUrn(getFullyQualifiedDomainName(), this.applicationName);
             }
         } else {
