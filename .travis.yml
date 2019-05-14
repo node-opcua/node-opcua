@@ -14,14 +14,12 @@ node_js:
   - "12"
 os:
   - linux
-  - osx
+  # - osx
   # - windows
 
 matrix:
   allow_failures:
-    - os:
-      - osx
-      - windows
+    - os: osx
 
 before_install:
   # make sure we have enough ephemeral port on MacOS
