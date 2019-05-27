@@ -14,6 +14,9 @@ import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { ByteString, UAString } from "node-opcua-basic-types";
 import { CreateSigningRequestResult, PushCertificateManager } from "./push_certificate_manager";
 import {
+    installCertificateExpirationAlarm
+} from "./server/install_CertificateAlarm";
+import {
     PushCertificateManagerServerImpl,
     PushCertificateManagerServerOptions
 } from "./server/push_certificate_manager_server_impl";
@@ -280,5 +283,7 @@ export function installPushCertificateManagement(
     if (serverConfiguration.applyChanges) {
         serverConfiguration.applyChanges!.bindMethod(callbackify(_applyChanges));
     }
+
+    installCertificateExpirationAlarm(addressSpace);
 
 }

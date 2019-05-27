@@ -10,11 +10,11 @@ import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import {
+    Namespace,
     UAEventType,
-    UAVariableT
+    UAVariableT,
 } from "../../source";
 import { BaseNode } from "../base_node";
-import { NamespacePrivate } from "../namespace_private";
 import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
 import { ConditionInfo } from "./condition_info";
@@ -63,7 +63,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
      * @param data
      */
     public static instantiate(
-      namespace: NamespacePrivate,
+      namespace: Namespace,
       alarmConditionTypeId: UAEventType | string | NodeId,
       options: any,
       data: any

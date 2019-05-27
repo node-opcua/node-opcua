@@ -3,8 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
-import { UAEventType } from "../../source";
-import { NamespacePrivate } from "../namespace_private";
+import { Namespace, UAEventType } from "../../source";
 import { UAAlarmConditionBase } from "./ua_alarm_condition_base";
 
 /*=
@@ -39,7 +38,7 @@ import { UAAlarmConditionBase } from "./ua_alarm_condition_base";
 export class UADiscreteAlarm extends  UAAlarmConditionBase {
 
     public static instantiate(
-      namespace: NamespacePrivate,
+      namespace: Namespace,
       discreteAlarmTypeId: UAEventType | NodeId | string,
       options: any,
       data: any

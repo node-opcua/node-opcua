@@ -9,6 +9,8 @@ describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
         
         // Given a server with two host names
         const server = new OPCUAServer({
+            port: 2011,
+
             nodeset_filename: [ nodesets.standard ],
 
             alternateHostname: [ "1.2.3.4" , "MyName"]

@@ -9,7 +9,15 @@ import { assert } from "node-opcua-assert";
 import { DataTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { coerceExpandedNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import {
+    coerceExpandedNodeId,
+    coerceNodeId,
+    makeNodeId,
+    NodeId,
+    NodeIdLike,
+    resolveNodeId,
+    sameNodeId
+} from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { BrowseResult } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
@@ -30,9 +38,6 @@ import {
     adjustBrowseDirection,
     EventData as EventDataPublic,
     IHistoricalDataNodeOptions,
-    IVariableHistorian,
-    IVariableHistorianOptions,
-    PseudoSession,
     RootFolder, SessionContext, UAEventType,
     UAEventType as UAEventTypePublic,
     UAObjectType as UAObjectTypePublic,
@@ -1365,7 +1370,7 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     // -- internal stuff -----------------------------------------------------------------------------------------------
-    public _coerceNode(node: string | BaseNode): BaseNode | null {
+    public _coerceNode(node: string| BaseNode | NodeId): BaseNode | null {
 
         function hasTypeDefinition(node1: BaseNode) {
             return node1.nodeClass === NodeClass.Variable ||
@@ -1374,22 +1379,21 @@ export class AddressSpace implements AddressSpacePrivate {
         }
 
         // coerce to BaseNode object
-        if (!(node instanceof BaseNode)) {
-
-            if (typeof node === "string") {
-                // coerce parent folder to an object
-                node = this.findNode(this.resolveNodeId(node)) || node;
-            }
-            /*
-                        if (!hasTypeDefinition(node as BaseNode)) {
-                            node = this.findNode(node.nodeId) || node;
-                            if (!node || !hasTypeDefinition(node)) {
-                                return null;
-                            }
-                        }
-            */
+        if (node instanceof BaseNode) {
+            return node;
         }
-        return node as BaseNode;
+        // it's a node id like
+        // coerce parent folder to an object
+        const returnValue = this.findNode(resolveNodeId(node));
+       /*
+        if (!hasTypeDefinition(node as BaseNode)) {
+            node = this.findNode(node.nodeId) || node;
+            if (!node || !hasTypeDefinition(node)) {
+                return null;
+            }
+        }
+        */
+        return returnValue;
     }
 
     public _coerce_DataType(dataType: NodeId | string | BaseNode): NodeId {

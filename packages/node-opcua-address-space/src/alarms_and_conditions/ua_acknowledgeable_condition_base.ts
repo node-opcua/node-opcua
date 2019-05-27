@@ -8,7 +8,7 @@ import { StatusCodes } from "node-opcua-constants";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, VariantLike } from "node-opcua-variant";
-import { RaiseEventData, SessionContext, UAEventType } from "../../source";
+import { Namespace, RaiseEventData, SessionContext, UAEventType } from "../../source";
 import { AddressSpacePrivate } from "../address_space_private";
 import { NamespacePrivate } from "../namespace_private";
 import { UAMethod } from "../ua_method";
@@ -48,7 +48,7 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
     /**
      */
     public static instantiate(
-      namespace: NamespacePrivate,
+      namespace: Namespace,
       conditionTypeId: UAEventType | NodeId | string,
       options: any,
       data: any

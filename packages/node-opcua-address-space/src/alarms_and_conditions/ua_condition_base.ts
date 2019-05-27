@@ -16,9 +16,9 @@ import {
     NodeClass
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { minDate } from "node-opcua-factory";
-import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { TimeZoneDataType } from "node-opcua-types";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
@@ -26,7 +26,6 @@ import { ConditionType, Namespace, SessionContext, UAEventType, UAMethod, UAVari
 import { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
 import { AddressSpacePrivate } from "../address_space_private";
 import { BaseNode } from "../base_node";
-import { NamespacePrivate } from "../namespace_private";
 import { UAObject } from "../ua_object";
 import { UAObjectType } from "../ua_object_type";
 import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../ua_two_state_variable";
@@ -36,6 +35,7 @@ import { ConditionInfo } from "./condition_info";
 import { ConditionSnapshot } from "./condition_snapshot";
 
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export interface UAConditionBase extends BaseEventType {
@@ -117,7 +117,7 @@ export class UAConditionBase extends BaseEventType {
     public static typeDefinition = resolveNodeId("ConditionType");
 
     public static instantiate(
-      namespace: NamespacePrivate,
+      namespace: Namespace,
       conditionTypeId: NodeId | string | UAEventType,
       options: any,
       data: any
@@ -718,7 +718,7 @@ export class UAConditionBase extends BaseEventType {
  * @return  a instantiated UAConditionBase
  */
 function UAConditionBase_instantiate(
-  namespace: NamespacePrivate,
+  namespace: Namespace,
   conditionTypeId: UAEventType | NodeId | string,
   options: any,
   data: any
@@ -920,7 +920,14 @@ function UAConditionBase_instantiate(
             //   outside the scope of this standard. If areas are available they shall be linked together and
             //   with the included ConditionSources using the HasNotifier and the HasEventSource Reference
             //   Types. The Server Object shall be the root of this hierarchy.
-            assert(conditionSourceNode.getEventSourceOfs().length >= 1, "conditionSourceNode must be an event source");
+            if (!sameNodeId(conditionSourceNode.nodeId, coerceNodeId("ns=0;i=2253"))) { // server object
+                /* istanbul ignore next */
+                if (conditionSourceNode.getEventSourceOfs().length ===0) {
+                    errorLog("conditionSourceNode = ", conditionSourceNode.browseName.toString());
+                    errorLog("conditionSourceNode = ", conditionSourceNode.nodeId.toString());
+                    throw new  Error("conditionSourceNode must be an event source " + conditionSourceNode.browseName.toString() + conditionSourceNode.nodeId.toString() ) ;
+                }
+            }
 
             const context = SessionContext.defaultContext;
             // set source Node (defined in UABaseEventType)

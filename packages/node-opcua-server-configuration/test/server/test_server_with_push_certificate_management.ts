@@ -325,6 +325,9 @@ describe("Testing server configured with push certificate management", () => {
         };
 
         const server = new OPCUAServer({
+
+            port: 2010,
+
             nodeset_filename: nodesets.standard,
             userManager: mockUserManager,
 

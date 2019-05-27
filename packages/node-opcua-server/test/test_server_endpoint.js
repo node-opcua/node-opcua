@@ -1,11 +1,13 @@
 "use strict";
 
+
 const should = require("should");
 
 
 const MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
 const SecurityPolicy = require("node-opcua-secure-channel").SecurityPolicy;
 const EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
+const extractFullyQualifiedDomainName = require("node-opcua-hostname").extractFullyQualifiedDomainName;
 
 const crypto_utils = require("node-opcua-crypto");
 const it_with_crypto = it;
@@ -19,19 +21,21 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
 
 
     let server_endpoint;
+    before(async () => {
+        await extractFullyQualifiedDomainName();
+    });
+
     beforeEach(function () {
 
         server_endpoint = new OPCUAServerEndPoint({
             port: default_port,
             serverInfo: {},
             certificateChain: null,
-            privateKey: "",
+            privateKey: ""
         });
     });
 
-    const param = {
-
-    };
+    const param = {};
     afterEach(function () {
         server_endpoint = null;
     });
@@ -71,8 +75,16 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
 describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
 
     let server_endpoint;
+    before(async () => {
+        await extractFullyQualifiedDomainName();
+    });
     beforeEach(function () {
-        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, certificateChain: null, privateKey: ""});
+        server_endpoint = new OPCUAServerEndPoint({
+            port: default_port,
+            serverInfo: {},
+            certificateChain: null,
+            privateKey: ""
+        });
         server_endpoint.addStandardEndpointDescriptions();
     });
     afterEach(function () {
@@ -146,7 +158,12 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
     let server_endpoint;
     beforeEach(function () {
 
-        server_endpoint = new OPCUAServerEndPoint({port: default_port, serverInfo: {}, certificateChain: null, privateKey: ""});
+        server_endpoint = new OPCUAServerEndPoint({
+            port: default_port,
+            serverInfo: {},
+            certificateChain: null,
+            privateKey: ""
+        });
     });
     afterEach(function () {
         server_endpoint = null;

@@ -8,8 +8,8 @@
 import * as async from "async";
 import chalk from "chalk";
 import * as crypto from "crypto";
-import { EventEmitter } from "events";
 import * as _ from "underscore";
+import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
@@ -25,6 +25,11 @@ import {
 } from "node-opcua-crypto";
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import {
+    extractFullyQualifiedDomainName,
+    getFullyQualifiedDomainName,
+    resolveFullyQualifiedDomainName
+} from "node-opcua-hostname";
 import {
     ClientSecureChannelLayer, computeSignature, ConnectionStrategyOptions,
     ErrorCallback,
@@ -47,18 +52,13 @@ import {
     CloseSessionRequest, CloseSessionResponse,
     CreateSessionRequest,
     CreateSessionResponse,
-    IssuedIdentityToken,
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-service-session";
 import { StatusCodes } from "node-opcua-status-code";
+import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { isNullOrUndefined } from "node-opcua-utils";
 
-import { ClientBaseImpl } from "./client_base_impl";
-
-import { UAString } from "node-opcua-basic-types";
-import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
-import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { ClientSession } from "../client_session";
 import { ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
 import { Response } from "../common";
@@ -73,6 +73,7 @@ import {
     WithSubscriptionFuncP
 } from "../opcua_client";
 import { repair_client_sessions } from "../reconnection";
+import { ClientBaseImpl } from "./client_base_impl";
 import { ClientSessionImpl } from "./client_session_impl";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 
@@ -465,10 +466,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      *
      * @method closeSession
      * @async
-     * @param session  {ClientSession} - the created client session
-     * @param deleteSubscriptions  {Boolean} - whether to delete subscriptions or not
-     * @param callback {Function} - the callback
-     * @param callback.err {Error|null}   - the Error if the async method has failed
+     * @param session - the created client session
+     * @param deleteSubscriptions  - whether to delete subscriptions or not
      */
     public closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
     public closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
@@ -787,6 +786,21 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
       callback: (err: Error | null, session?: ClientSessionImpl
       ) => void) {
 
+        callbackify(extractFullyQualifiedDomainName)(() => {
+            this.__createSession_step3(session, callback);
+        });
+    }
+
+    /**
+     *
+     * @internal
+     * @private
+     */
+    public __createSession_step3(
+      session: ClientSessionImpl,
+      callback: (err: Error | null, session?: ClientSessionImpl
+      ) => void) {
+
         assert(typeof callback === "function");
         assert(this._secureChannel);
         assert(this.serverUri !== undefined, " must have a valid server URI");
@@ -1025,6 +1039,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 applicationUri = makeApplicationUrn(getFullyQualifiedDomainName(), this.applicationName);
             }
         } else {
+            errorLog("client has no certificate");
             applicationUri = makeApplicationUrn(getFullyQualifiedDomainName(), this.applicationName);
         }
         return resolveFullyQualifiedDomainName(applicationUri);
@@ -1241,11 +1256,6 @@ OPCUAClientImpl.prototype.connect = thenify.withCallback(OPCUAClientImpl.prototy
 OPCUAClientImpl.prototype.disconnect = thenify.withCallback(OPCUAClientImpl.prototype.disconnect);
 /**
  * @method createSession
- * @param [userIdentityInfo {Object} ] optional
- * @param [userIdentityInfo.type {UserTokenType.UserName}
- * @param [userIdentityInfo.userName {String} ]
- * @param [userIdentityInfo.password {String} ]
- * @return {Promise}
  * @async
  *
  * @example
@@ -1261,17 +1271,11 @@ OPCUAClientImpl.prototype.disconnect = thenify.withCallback(OPCUAClientImpl.prot
 OPCUAClientImpl.prototype.createSession = thenify.withCallback(OPCUAClientImpl.prototype.createSession);
 /**
  * @method changeSessionIdentity
- * @param session
- * @param userIdentityInfo
- * @return {Promise<void>}
  * @async
  */
 OPCUAClientImpl.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClientImpl.prototype.changeSessionIdentity);
 /**
  * @method closeSession
- * @param session {ClientSession}
- * @param deleteSubscriptions  {Boolean} - whether to delete
- * @return {Promise<void>}
  * @async
  * @example
  *    const session  = await client.createSession();

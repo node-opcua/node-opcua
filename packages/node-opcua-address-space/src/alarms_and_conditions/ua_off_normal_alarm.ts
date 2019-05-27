@@ -7,7 +7,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
-import { BaseNode, UAVariable } from "../../source";
+import { Namespace, UAVariable  } from "../../source";
 import { NamespacePrivate } from "../namespace_private";
 import { UADiscreteAlarm } from "./ua_discrete_alarm";
 
@@ -45,12 +45,12 @@ export class UAOffNormalAlarm extends UADiscreteAlarm {
      *
      */
     public static instantiate(
-      namespace: NamespacePrivate,
+      namespace: Namespace,
       limitAlarmTypeId: string | NodeId,
       options: any,
       data: any
     ): UAOffNormalAlarm {
-        const addressSpace = namespace.addressSpace;
+        const addressSpace = (namespace as NamespacePrivate).addressSpace;
 
         const offNormalAlarmType = addressSpace.findEventType("OffNormalAlarmType");
         /* istanbul ignore next */
@@ -68,33 +68,37 @@ export class UAOffNormalAlarm extends UADiscreteAlarm {
         Object.setPrototypeOf(alarmNode, UAOffNormalAlarm.prototype);
 
         const inputNode = addressSpace._coerceNode(options.inputNode);
-        assert(inputNode, "Expecting a valid input node");
+ //       assert(inputNode, "Expecting a valid input node");
 
         const normalState = addressSpace._coerceNode(options.normalState)! as UAVariable;
-        assert(normalState, "Expecting a valid normalState node");
+ //       assert(normalState, "Expecting a valid normalState node");
 
-        alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalState.nodeId });
+        const normalStateNodeId = normalState  ? normalState.nodeId : NodeId.nullNodeId;
+        alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalStateNodeId });
 
-        // install inputNode Node monitoring for change
-        alarmNode._installInputNodeMonitoring(options.inputNode);
+        if (inputNode) {
+            // install inputNode Node monitoring for change
+            alarmNode._installInputNodeMonitoring(options.inputNode);
+        }
 
         alarmNode.normalState.on("value_changed", (newDataValue: DataValue/*, oldDataValue: DataValue*/) => {
             // The node that contains the normalState value has changed.
             //   we must remove the listener on current normalState and replace
+
             //   normalState with the new one and set listener again
             //   to do:
         });
 
-        // install normalState monitoring for change
-        normalState.on("value_changed", (newDataValue: DataValue/*, oldDataValue: DataValue*/) => {
-            alarmNode._onNormalStateDataValueChange(newDataValue);
-        });
-
+        if (normalState) {
+            // install normalState monitoring for change
+            normalState.on("value_changed", (newDataValue: DataValue/*, oldDataValue: DataValue*/) => {
+                alarmNode._onNormalStateDataValueChange(newDataValue);
+            });
+        }
         alarmNode._updateAlarmState();
 
         return alarmNode;
     }
-
 
     // HasProperty Variable NormalState NodeId PropertyType Mandatory
     // The NormalState Property is a Property that points to a Variable which has a value that

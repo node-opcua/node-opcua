@@ -2,7 +2,11 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { DataType } from "node-opcua-variant";
-import { UAVariableT } from "../../source";
+
+import {
+    Namespace,
+    UAVariableT
+} from "../../source";
 import { UASystemOffNormalAlarm } from "./ua_system_off_normal_alarm";
 
 /**
@@ -17,6 +21,17 @@ import { UASystemOffNormalAlarm } from "./ua_system_off_normal_alarm";
  *
  */
 export class UACertificateExpirationAlarm extends UASystemOffNormalAlarm {
+
+    public static instantiate(
+        namespace: Namespace,
+        options: any,
+        data: any
+    ): UACertificateExpirationAlarm {
+        return UASystemOffNormalAlarm.instantiate(
+          namespace,
+          "CertificateExpirationAlarmType",
+          options, data) as UACertificateExpirationAlarm;
+    }
 
     public getExpirationDate(): Date {
         return this.expirationDate.readValue().value.value;

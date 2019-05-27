@@ -52,11 +52,12 @@ describe("ServerConfiguration", () => {
     before(async () => {
         await initializeHelpers();
 
-        await applicationGroup.initialize();        
+        await applicationGroup.initialize();
         await userTokenGroup.initialize();
 
         addressSpace = AddressSpace.create();
         await generateAddressSpace(addressSpace, xmlFiles);
+        addressSpace.registerNamespace("Private");
 
     });
     after(() => {
