@@ -21,8 +21,8 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/node": "^12.0.0",
-  "@types/underscore": "^1.8.14",
+  "@types/node": "^12.0.2",
+  "@types/underscore": "^1.8.18",
   "node-opcua-debug": "^2.0.0-alpha.26",
   "should": "13.2.3",
   "source-map-support": "^0.5.12"
