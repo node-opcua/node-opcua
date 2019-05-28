@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-query",
- "version": "2.0.0-alpha.30",
+ "version": "2.0.0-alpha.31",
  "description": "pure nodejs OPCUA SDK - module -service-query",
  "scripts": {
   "build": "tsc",
@@ -21,7 +21,7 @@
   "node-opcua-service-browse": "^2.0.0-alpha.30",
   "node-opcua-service-filter": "^2.0.0-alpha.30",
   "node-opcua-service-secure-channel": "^2.0.0-alpha.30",
-  "node-opcua-service-subscription": "^2.0.0-alpha.30",
+  "node-opcua-service-subscription": "^2.0.0-alpha.31",
   "node-opcua-service-translate-browse-path": "^2.0.0-alpha.30",
   "node-opcua-types": "^2.0.0-alpha.30",
   "underscore": "^1.9.1"
