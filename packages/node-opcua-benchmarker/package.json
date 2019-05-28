@@ -10,7 +10,7 @@
 		"lint": "tslint source/**/*.ts"
 	},
 	"dependencies": {
-		"async": "^3.0.1",
+		"async": "2.6.2",
 		"node-opcua-assert": "^2.0.0-alpha.24",
 		"underscore": "^1.9.1"
 	},
