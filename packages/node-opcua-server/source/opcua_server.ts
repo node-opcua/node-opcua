@@ -752,6 +752,7 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
         manufacturerName?: string,
         softwareVersion?: string,
         buildNumber?: string;
+        buildDate?: Date;
     };
 
     /**

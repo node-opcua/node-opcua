@@ -33,11 +33,14 @@ import {
 import {
     coerceMessageSecurityMode, MessageSecurityMode
 } from "node-opcua-service-secure-channel";
+import {
+    IOPCUASecureObjectOptions,
+    OPCUASecureObject
+} from "node-opcua-common";
 
 import { ResponseCallback } from "../client_session";
 import { Request, Response } from "../common";
 
-import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
 import {
     CreateSecureChannelCallbackFunc, FindEndpointCallback,
     FindEndpointOptions,
@@ -178,15 +181,15 @@ function _verify_serverCertificate(serverCertificate: Certificate, callback: Err
     if (!fs.existsSync(pkiFolder)) {
         fs.mkdirSync(pkiFolder);
     }
-    const pkiUntrustedFolder = path.join(pkiFolder, "untrusted");
+    const pkiRejectedCertificateFolder = path.join(pkiFolder, "rejected");
 
     // istanbul ignore next
-    if (!fs.existsSync(pkiUntrustedFolder)) {
-        fs.mkdirSync(pkiUntrustedFolder);
+    if (!fs.existsSync(pkiRejectedCertificateFolder)) {
+        fs.mkdirSync(pkiRejectedCertificateFolder);
     }
     const thumbprint = makeSHA1Thumbprint(serverCertificate);
 
-    const certificateFilename = path.join(pkiUntrustedFolder, thumbprint.toString("hex") + ".pem");
+    const certificateFilename = path.join(pkiRejectedCertificateFolder, thumbprint.toString("hex") + ".pem");
     fs.writeFile(certificateFilename, toPem(serverCertificate, "CERTIFICATE"), () => {
         setImmediate(callback);
     });

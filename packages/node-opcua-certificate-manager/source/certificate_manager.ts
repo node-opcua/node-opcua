@@ -7,7 +7,7 @@ import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 
 import envPaths from "env-paths";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
 import { StatusCodes } from "node-opcua-constants";
 import {
@@ -29,6 +29,7 @@ const paths = envPaths("node-opcua");
 type ErrorCallback = (err?: Error) => void;
 
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 type CallbackT<T> = (err: Error | null, result?: T) => void;
@@ -85,6 +86,7 @@ export interface OPCUACertificateManagerOptions {
      */
     rootFolder?: null | string;
 
+    automaticallyAcceptUnknownCertificate?: boolean;
     /**
      * the name of the pki store( default value = "pki" )
      *
@@ -94,8 +96,11 @@ export interface OPCUACertificateManagerOptions {
 }
 
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager {
+
+    public automaticallyAcceptUnknownCertificate: boolean;
     /* */
     constructor(options: OPCUACertificateManagerOptions) {
+
         options = options || {};
 
         const location = options.rootFolder || paths.config;
@@ -108,20 +113,49 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             location
         };
         super(_options);
+
+        this.automaticallyAcceptUnknownCertificate = !!options.automaticallyAcceptUnknownCertificate;
     }
 
     public checkCertificate(certificate: Certificate): Promise<StatusCode>;
     public checkCertificate(certificate: Certificate, callback: StatusCodeCallback): void;
     public checkCertificate(certificate: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | void {
-        super.verifyCertificate(certificate, (err?: Error | null, status?: string) => {
-            if (err) {
-                return callback!(err);
+
+         const checkCertificateStep2 = (err?: Error | null) => {
+            if (err) { return callback!(err, StatusCodes.BadInternalError); }
+
+            super.verifyCertificate(certificate, (err1?: Error | null, status?: string) => {
+                if (err1) {
+                    return callback!(err1);
+                }
+                const statusCode = StatusCodes[status!];
+                if (!statusCode) {
+                    return callback!(new Error("Invalid statusCode " + status));
+                }
+                callback!(null, statusCode);
+            });
+         };
+
+         this._getCertificateStatus(certificate, (err: Error|null, status0?: "unknown" | "trusted" |  "rejected") => {
+
+            if (err) { return callback!(err); }
+
+            if (status0 === "unknown") {
+                const thumbprint = makeSHA1Thumbprint(certificate).toString("hex");
+                // certificate has not bee seen before
+                errorLog("Certificate with thumbprint " + thumbprint + "has not been seen before");
+                if (this.automaticallyAcceptUnknownCertificate) {
+                    errorLog("automaticallyAcceptUnknownCertificate = true");
+                    errorLog("certificate with thumbprint " + thumbprint + " is now trusted");
+                    this.trustCertificate(certificate, checkCertificateStep2);
+                } else {
+                    errorLog("automaticallyAcceptUnknownCertificate = false");
+                    errorLog("certificate with thumbprint " + thumbprint + " is now rejected");
+                    this.rejectCertificate(certificate, checkCertificateStep2);
+                }
+            } else {
+                checkCertificateStep2(null);
             }
-            const statusCode = StatusCodes[status!];
-            if (!statusCode) {
-                return callback!(new Error("Invalid statusCode " + status));
-            }
-            callback!(null, statusCode);
         });
     }
 

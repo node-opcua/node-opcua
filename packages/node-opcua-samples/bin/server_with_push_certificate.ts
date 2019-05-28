@@ -2,7 +2,12 @@
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
 import chalk from "chalk";
-import { nodesets, OPCUAServer } from "node-opcua";
+
+import {
+    nodesets,
+    OPCUACertificateManager,
+    OPCUAServer
+} from "node-opcua";
 import { CertificateManager } from "node-opcua-pki";
 import { installPushCertificateManagement } from "node-opcua-server-configuration";
 import * as  path from "path";
@@ -13,7 +18,7 @@ const argv = yargs
   .option("port", {
       alias: "p",
       default: "26543",
-      describe:  "port to listen",
+      describe: "port to listen"
   })
   .argv;
 
@@ -21,12 +26,20 @@ const rootFolder = path.join(__dirname, "../../..");
 
 const port = parseInt(argv.port, 10) || 26555;
 
+const certificateManager = new OPCUACertificateManager({
+    automaticallyAcceptUnknownCertificate: true,
+
+    rootFolder: path.join(__dirname, "certificate"),
+});
+
 const server_options = {
     port,
 
     nodeset_filename: [
-        nodesets.standard_nodeset_file,
-    ]
+        nodesets.standard_nodeset_file
+    ],
+
+    serverCertificateManager: certificateManager
 };
 
 process.title = "Node OPCUA Server on port : " + server_options.port;
@@ -44,7 +57,6 @@ async function main() {
 
     console.log(" Configuration rootdir =  ", server.serverCertificateManager.rootDir);
 
-
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
     server.on("post_initialize", () => {
@@ -56,7 +68,10 @@ async function main() {
         installPushCertificateManagement(addressSpace, {
             applicationGroup: server.serverCertificateManager,
             userTokenGroup: server.userCertificateManager
-        }); // , { applicationGroup });
+        });
+
+        console.log("Certificate rejected folder ", server.serverCertificateManager.rejectedFolder);
+
     });
 
     try {
@@ -79,4 +94,5 @@ async function main() {
         process.exit(-1);
     });
 }
+
 main();

@@ -1250,10 +1250,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * verify that the receiverCertificateThumbprint send by the client
      * matching the CertificateThumbPrint of the server
      * @param clientSecurityHeader
-     * @return {boolean}
+     * @return true if the receiver certificate thumbprint matches the server certificate
      * @private
      */
-    private _check_receiverCertificateThumbprint(clientSecurityHeader: SecurityHeader) {
+    private _check_receiverCertificateThumbprint(clientSecurityHeader: SecurityHeader): boolean {
 
         if (clientSecurityHeader instanceof SymmetricAlgorithmSecurityHeader) {
             return false;

@@ -13,23 +13,23 @@ const _should = should; // make sure should is not removed during tscript compil
 import {
     Certificate,
     readCertificate,
+    makeSHA1Thumbprint
 } from "node-opcua-crypto";
 import { OPCUACertificateManager } from "../source";
 
-describe("Testing OPCUA Client Certificate Manager", () => {
+describe("Testing OPCUA Client Certificate Manager", function (this: any){
 
-    const temporaryFolder =  path.join(os.tmpdir(), "testing_certificates");
-    let certificateMgr: OPCUACertificateManager ;
+    this.timeout(10000);
+
+    const temporaryFolder = path.join(os.tmpdir(), "testing_certificates");
+    let certificateMgr: OPCUACertificateManager;
 
     const certificate1File = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
     let certificate1: Certificate;
     beforeEach(async () => {
 
-        const pkiFolder = path.join(temporaryFolder, "pki");
-        if (fs.existsSync(pkiFolder)) {
-            await rimraf.sync(pkiFolder);
-        }
-        if (!fs.existsSync(temporaryFolder)) {
+        if (fs.existsSync(temporaryFolder)) {
+            await rimraf.sync(temporaryFolder);
             await fs.mkdirSync(temporaryFolder);
         }
 
@@ -37,15 +37,14 @@ describe("Testing OPCUA Client Certificate Manager", () => {
             // location: temporaryFolder,
             rootFolder: temporaryFolder
         });
+
+        await certificateMgr.initialize();
+
         certificate1 = await readCertificate(certificate1File);
 
     });
 
     afterEach(async () => {
-        await certificateMgr.trustCertificate(certificate1);
-        if (!fs.existsSync(temporaryFolder)) {
-            await rimraf.sync(temporaryFolder);
-        }
     });
 
     it("should handled an untrusted certificate", async () => {
@@ -73,4 +72,85 @@ describe("Testing OPCUA Client Certificate Manager", () => {
         statusCode.should.eql(StatusCodes.Good);
     });
 
+});
+
+describe("Testing OPCUA Certificate Manager with automatically acceptange of unknown certificate", function (this: any) {
+
+    this.timeout(10000);
+
+    const temporaryFolder1 = path.join(os.tmpdir(), "testing_certificates1");
+    const temporaryFolder2 = path.join(os.tmpdir(), "testing_certificates2");
+
+    let acceptingCertificateMgr: OPCUACertificateManager;
+    let rejectingCertificateMgr: OPCUACertificateManager;
+
+    const certificate1File = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+    let certificate: Certificate;
+    let certificateThumbprint: string;
+    beforeEach(async () => {
+
+        const pkiFolder = path.join(temporaryFolder1, "pki");
+        if (!fs.existsSync(pkiFolder)) {
+            await rimraf.sync(pkiFolder);
+        }
+        if (fs.existsSync(temporaryFolder1)) {
+            await rimraf.sync(temporaryFolder1);
+            await fs.mkdirSync(temporaryFolder1);
+        }
+        if (fs.existsSync(temporaryFolder2)) {
+            await rimraf.sync(temporaryFolder2);
+            await fs.mkdirSync(temporaryFolder2);
+        }
+
+        acceptingCertificateMgr = new OPCUACertificateManager({
+            automaticallyAcceptUnknownCertificate: true,
+            rootFolder: temporaryFolder1
+        });
+
+        rejectingCertificateMgr = new OPCUACertificateManager({
+            automaticallyAcceptUnknownCertificate: false,
+            rootFolder: temporaryFolder2
+        });
+
+        certificate = await readCertificate(certificate1File);
+
+        certificateThumbprint = makeSHA1Thumbprint(certificate).toString("hex");
+
+        await acceptingCertificateMgr.initialize();
+        await rejectingCertificateMgr.initialize();
+
+    });
+
+    afterEach(async () => {
+        /* */
+    });
+
+    it("should automatically accept 'unknown' certificate if  automaticallyAcceptUnknownCertificate is true", async () => {
+
+        const statusCode = await acceptingCertificateMgr.checkCertificate(certificate);
+        statusCode.should.eql(StatusCodes.Good);
+
+        const trusted = path.join(temporaryFolder1, "trusted/" + certificateThumbprint + ".pem");
+        const existsInTrustedFolder = fs.existsSync(trusted);
+        existsInTrustedFolder.should.eql(true, trusted);
+
+        const rejected = path.join(temporaryFolder1, "rejected/" + certificateThumbprint + ".pem");
+        const existsInRejectedFolder = fs.existsSync(rejected);
+        existsInRejectedFolder.should.eql(false, rejected);
+
+    });
+    it("should automatically reject 'unknown' certificate if  automaticallyAcceptUnknownCertificate is false", async () => {
+
+        const statusCode = await rejectingCertificateMgr.checkCertificate(certificate);
+        statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
+
+        const trusted = path.join(temporaryFolder2, "trusted/" + certificateThumbprint + ".pem");
+        const existsInTrustedFolder = fs.existsSync(trusted);
+        existsInTrustedFolder.should.eql(false, trusted);
+
+        const rejected = path.join(temporaryFolder2, "rejected/" + certificateThumbprint + ".pem");
+        const existsInRejectedFolder = fs.existsSync(rejected);
+        existsInRejectedFolder.should.eql(true, rejected);
+
+    });
 });

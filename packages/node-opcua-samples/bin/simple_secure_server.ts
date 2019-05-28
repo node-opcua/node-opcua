@@ -96,7 +96,8 @@ const server_options = {
     },
 
     buildInfo: {
-        buildNumber: "1234"
+        buildDate: new Date(),
+        buildNumber: "1234",
     },
 
     userManager,
@@ -111,7 +112,6 @@ process.title = "Node OPCUA Server on port : " + server_options.port;
 async function main() {
 
     const server = new OPCUAServer(server_options);
-
 
     server.on("post_initialize", () => {
         /* empty */

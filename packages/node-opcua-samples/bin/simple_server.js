@@ -388,6 +388,8 @@ server.start(function (err) {
         process.exit(-3);
     }
 
+    console.log(chalk.yellow("\nregistering server to :") + server.discoveryServerEndpointUrl);
+
     const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
 
     console.log(chalk.yellow("  server on port      :"), server.endpoints[0].port.toString());
@@ -528,7 +530,6 @@ process.on("SIGINT", function () {
     });
 });
 
-console.log(chalk.yellow("\nregistering server to :") + server.discoveryServerEndpointUrl);
 
 server.on("serverRegistered",function() {
     console.log("server has been registered");
