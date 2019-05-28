@@ -2,7 +2,7 @@
   "name": "node-opcua-data-access",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "version": "2.0.0-alpha.26",
+  "version": "2.0.0-alpha.29",
   "description": "pure nodejs OPCUA SDK - module -data-access",
   "scripts": {
     "build": "tsc",
@@ -12,16 +12,16 @@
   },
   "dependencies": {
     "node-opcua-assert": "^2.0.0-alpha.24",
-    "node-opcua-basic-types": "^2.0.0-alpha.26",
-    "node-opcua-binary-stream": "^2.0.0-alpha.24",
-    "node-opcua-data-model": "^2.0.0-alpha.26",
-    "node-opcua-factory": "^2.0.0-alpha.26",
-    "node-opcua-nodeid": "^2.0.0-alpha.24",
-    "node-opcua-types": "^2.0.0-alpha.26",
+    "node-opcua-basic-types": "^2.0.0-alpha.29",
+    "node-opcua-binary-stream": "^2.0.0-alpha.29",
+    "node-opcua-data-model": "^2.0.0-alpha.29",
+    "node-opcua-factory": "^2.0.0-alpha.29",
+    "node-opcua-nodeid": "^2.0.0-alpha.29",
+    "node-opcua-types": "^2.0.0-alpha.29",
     "underscore": "^1.9.1"
   },
   "devDependencies": {
-    "node-opcua-generator": "^2.0.0-alpha.26",
+    "node-opcua-generator": "^2.0.0-alpha.29",
     "should": "13.2.3"
   },
   "author": "Etienne Rossignon",

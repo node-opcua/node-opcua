@@ -1,6 +1,6 @@
 {
 	"name": "node-opcua-benchmarker",
-	"version": "2.0.0-alpha.24",
+	"version": "2.0.0-alpha.29",
 	"description": "pure nodejs OPCUA SDK - module -benchmarker",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
