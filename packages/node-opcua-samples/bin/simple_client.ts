@@ -331,7 +331,11 @@ async function getAllEventTypes(session: ClientSession) {
 }
 
 async function monitorAlarm(subscription: ClientSubscription, alarmNodeId: NodeId) {
-    await callConditionRefresh(subscription);
+   try {
+       await callConditionRefresh(subscription);
+   } catch (err) {
+       console.log(" monitorAlarm failed , may be your server doesn't support A&E", err.message);
+   }
 }
 
 function getTick() {
@@ -643,10 +647,14 @@ async function main() {
     }).on("terminated", () => { /* */
     });
 
+    try  {
+        const results1 = await the_session.getMonitoredItems(the_subscription.subscriptionId);
+        console.log("MonitoredItems clientHandles", results1.clientHandles);
+        console.log("MonitoredItems serverHandles", results1.serverHandles);
+    }  catch(err) {
+        console.log("Server doesn't seems to implement getMonitoredItems method ", err.message);
+    }
     // get_monitored_item
-    const results1 = await the_session.getMonitoredItems(the_subscription.subscriptionId);
-    console.log("MonitoredItems clientHandles", results1.clientHandles);
-    console.log("MonitoredItems serverHandles", results1.serverHandles);
 
     // monitor_a_variable_node_value
     console.log("Monitoring monitor_a_variable_node_value");
