@@ -7,6 +7,7 @@ import {
     AddressSpace,
     BaseNode,
     UAObject,
+    UAVariable,
     UAServerCapabilities,
     UAServerConfiguration
 } from "node-opcua-address-space";
