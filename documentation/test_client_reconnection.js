@@ -16,7 +16,7 @@ function server_stuff() {
             maxAllowedSessionNumber:  2,
             maxConnectionsPerEndpoint: 2,    
             nodeset_filename: [
-                opcua.mini_nodeset_filename
+                opcua.get_mini_nodeset_filename()
             ],
             isAuditing: false
         };

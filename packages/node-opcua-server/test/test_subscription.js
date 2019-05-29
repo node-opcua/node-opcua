@@ -18,7 +18,7 @@ const SubscriptionState = require("..").SubscriptionState;
 const MonitoredItem = require("..").MonitoredItem;
 const ServerEngine = require("..").ServerEngine;
 const ServerSidePublishEngine = require("..").ServerSidePublishEngine;
-const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
 
 let fake_publish_engine = {
 };

@@ -11,7 +11,7 @@ const MonitoredItemCreateRequest = require("node-opcua-service-subscription").Mo
 
 
 const ServerEngine = require("..").ServerEngine;
-const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
 const SubscriptionState = require("..").SubscriptionState;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

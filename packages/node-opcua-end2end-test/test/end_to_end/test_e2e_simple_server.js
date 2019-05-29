@@ -7,7 +7,7 @@ const OPCUAServer = opcua.OPCUAServer;
 const OPCUAClient = opcua.OPCUAClient;
 
 const getFullyQualifiedDomainName = require("node-opcua-hostname").getFullyQualifiedDomainName;
-const empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 

@@ -7,8 +7,11 @@ import * as path from "path";
 import { AddressSpace, generateAddressSpace } from "../source";
 import { getAddressSpaceFixture } from "./get_address_space_fixture";
 
-export const mini_nodeset_filename = getAddressSpaceFixture("mini.Node.Set2.xml");
-export const empty_nodeset_filename = getAddressSpaceFixture("fixture_empty_nodeset2.xml");
+export const mini_nodeset = "mini.Node.Set2.xml";
+export const empty_nodeset = "fixture_empty_nodeset2.xml";
+
+export const get_mini_nodeset_filename = () => getAddressSpaceFixture(mini_nodeset);
+export const get_empty_nodeset_filename = () => getAddressSpaceFixture(empty_nodeset);
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
@@ -26,7 +29,7 @@ export function getMiniAddressSpace(...args: any[]): any {
     const serverNamespace = addressSpace.registerNamespace("http://MYNAMESPACE");
     assert(serverNamespace.index === 1);
 
-    generateAddressSpace(addressSpace, mini_nodeset_filename, (err?: Error) => {
+    generateAddressSpace(addressSpace, get_mini_nodeset_filename(), (err?: Error) => {
         // istanbul ignore next
         if (err) {
             // tslint:disable:no-console

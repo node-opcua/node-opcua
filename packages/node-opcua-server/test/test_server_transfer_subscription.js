@@ -6,7 +6,7 @@ const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const PublishRequest = subscription_service.PublishRequest;
 
 const ServerEngine = require("..").ServerEngine;
-const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine Subscriptions Transfer", function () {

@@ -6,7 +6,7 @@ const NodeId = require("node-opcua-nodeid").NodeId;
 
 const OPCUAServer = require("..").OPCUAServer;
 
-const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
 
 fs.existsSync(mini_nodeset_filename).should.eql(true,
   " expecting " + mini_nodeset_filename + " to exist");

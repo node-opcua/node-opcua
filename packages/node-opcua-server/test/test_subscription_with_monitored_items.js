@@ -23,18 +23,15 @@ const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 const NodeId = require("node-opcua-nodeid").NodeId;
 const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-
-
 
 const Subscription = require("..").Subscription;
 const SubscriptionState = require("..").SubscriptionState;
 const ServerSidePublishEngine = require("..").ServerSidePublishEngine;
 const MonitoredItem = require("..").MonitoredItem;
 const ServerEngine = require("..").ServerEngine;
-const mini_nodeset_filename = require("..").mini_nodeset_filename;
-const nodeset_filename = require("..").nodeset_filename;
 
+const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
+const nodesets = require("node-opcua-nodesets").nodesets;
 
 const context = SessionContext.defaultContext;
 
@@ -110,7 +107,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
 
     before(function (done) {
         engine = new ServerEngine();
-        engine.initialize({nodeset_filename: nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: nodesets.standard_nodeset_file}, function () {
 
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();

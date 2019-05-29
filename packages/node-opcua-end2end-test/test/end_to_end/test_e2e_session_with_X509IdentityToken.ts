@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 import {
-    empty_nodeset_filename,
+    get_empty_nodeset_filename,
     OPCUAClient,
     OPCUAServer,
 } from "node-opcua";
@@ -15,6 +15,8 @@ import {
 const should = require("should");
 import * as  crypto_utils from "node-opcua-crypto";
 import { Certificate, PrivateKey, PrivateKeyPEM } from "node-opcua-crypto";
+
+const empty_nodeset_filename = get_empty_nodeset_filename();
 
 const port = 5000;
 

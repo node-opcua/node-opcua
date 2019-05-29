@@ -3,6 +3,7 @@
  */
 // tslint:disable:max-classes-per-file
 import { Certificate } from "node-opcua-crypto";
+import { SignedSoftwareCertificate } from "node-opcua-types";
 
 /**
  */
@@ -113,7 +114,7 @@ export interface ServerCapabilitiesOptions {
 
     serverProfileArray?: string[];
     localeIdArray?: string[];
-    softwareCertificates?: Buffer[];
+    softwareCertificates?: SignedSoftwareCertificate[];
 }
 
 /**
@@ -131,7 +132,7 @@ export class ServerCapabilities {
 
     public serverProfileArray: string[];
     public localeIdArray: string[];
-    public softwareCertificates: Certificate[];
+    public softwareCertificates: SignedSoftwareCertificate[];
 
     constructor(options: ServerCapabilitiesOptions) {
 

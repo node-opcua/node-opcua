@@ -8,7 +8,7 @@ const OPCUAClient = opcua.OPCUAClient;
 const SecurityPolicy = opcua.SecurityPolicy;
 const MessageSecurityMode = opcua.MessageSecurityMode;
 
-const empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 /*
 Discovery Endpoints shall not require any message security, but it may require transport layer
 security. In production systems, Administrators may disable discovery for security reasons and

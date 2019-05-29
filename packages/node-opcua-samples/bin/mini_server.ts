@@ -4,7 +4,7 @@ import * as path from "path";
 
 import {
     makeApplicationUrn,
-    mini_nodeset_filename,
+    get_mini_nodeset_filename,
     nodesets,
     OPCUAServer,
     ServerSession
@@ -35,7 +35,7 @@ const server_options = {
     maxConnectionsPerEndpoint: 2,
 
     nodeset_filename: [
-        mini_nodeset_filename
+        get_mini_nodeset_filename()
     ],
 
     serverInfo: {

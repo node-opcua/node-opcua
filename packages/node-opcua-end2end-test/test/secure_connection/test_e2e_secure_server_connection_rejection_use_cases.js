@@ -17,7 +17,7 @@ const SignatureData = require("node-opcua-service-secure-channel").SignatureData
 
 const port = 2000;
 
-const empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
 const crypto_utils = require("node-opcua-crypto");
 

@@ -12,7 +12,7 @@ const ObjectIds = opcua.ObjectIds;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-const empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
 
 

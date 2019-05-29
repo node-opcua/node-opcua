@@ -17,7 +17,6 @@ import {
     DataValueCallback,
     generateAddressSpace,
     MethodFunctor,
-    mini_nodeset_filename,
     removeElement,
     SessionContext,
     UADynamicVariableArray,
@@ -79,14 +78,7 @@ import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_e
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 
-import { DateTime } from "node-opcua-basic-types";
-import { getEnumeration } from "node-opcua-factory";
 import { MonitoredItem } from "./monitored_item";
-
-exports.standard_nodeset_file = nodesets.standard_nodeset_file;
-exports.di_nodeset_filename = nodesets.di_nodeset_filename;
-exports.adi_nodeset_filename = nodesets.adi_nodeset_filename;
-exports.mini_nodeset_filename = mini_nodeset_filename;
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -259,6 +251,13 @@ export class ServerEngine extends EventEmitter {
         options.serverCapabilities.localeIdArray = options.serverCapabilities.localeIdArray || ["en-EN", "fr-FR"];
 
         this.serverCapabilities = new ServerCapabilities(options.serverCapabilities);
+
+        // to do when spec is clear about what goes here!
+        // spec 1.04 says (in Part 4 7.33 SignedSoftwareCertificate
+        // Note: Details on SoftwareCertificates need to be defined in a future version.
+        this.serverCapabilities.softwareCertificates = [
+            // new SignedSoftwareCertificate({})
+        ];
 
         // make sure minSupportedSampleRate matches MonitoredItem.minimumSamplingInterval
         (this.serverCapabilities as any).__defineGetter__("minSupportedSampleRate", () => {
@@ -448,7 +447,7 @@ export class ServerEngine extends EventEmitter {
 
     /**
      * @method secondsTillShutdown
-     * @return {UInt32} the approximate number of seconds until the server will be shut down. The
+     * @return the approximate number of seconds until the server will be shut down. The
      * value is only relevant once the state changes into SHUTDOWN.
      */
     public secondsTillShutdown(): number {
@@ -661,10 +660,12 @@ export class ServerEngine extends EventEmitter {
 
             const timeZone = new TimeZoneDataType({
                 daylightSavingInOffset: /* boolean*/ false,
-                offset: /* int16 */ 0,
+                offset: /* int16 */ 0
             });
             bindStandardScalar(VariableIds.Server_LocalTime,
-              DataType.ExtensionObject, () => { return timeZone; });
+              DataType.ExtensionObject, () => {
+                  return timeZone;
+              });
 
             bindStandardScalar(VariableIds.Server_ServiceLevel,
               DataType.Byte, () => {
@@ -779,7 +780,7 @@ export class ServerEngine extends EventEmitter {
                 // TODO });
 
                 bindStandardArray(VariableIds.Server_ServerCapabilities_SoftwareCertificates,
-                  DataType.ByteString, "SoftwareCertificates", () => {
+                  DataType.ExtensionObject, "SoftwareCertificates", () => {
                       return engine.serverCapabilities.softwareCertificates;
                   });
 
@@ -921,30 +922,30 @@ export class ServerEngine extends EventEmitter {
                     const namingRuleType = (nrt as any)._getDefinition().nameIndex; // getEnumeration("NamingRuleType");
                     // i=111
                     bindStandardScalar(VariableIds.ModellingRuleType_NamingRule,
-                    DataType.UInt16, () => {
-                        return 0;
-                    });
+                      DataType.UInt16, () => {
+                          return 0;
+                      });
 
                     // i=112
                     bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule,
-                    DataType.UInt16, () => {
-                        return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
-                    });
+                      DataType.UInt16, () => {
+                          return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
+                      });
 
                     // i=113
                     bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule,
-                    DataType.UInt16, () => {
-                        return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
-                    });
+                      DataType.UInt16, () => {
+                          return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
+                      });
                     // i=114
                     bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule,
-                    DataType.UInt16, () => {
-                        return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
-                    });
+                      DataType.UInt16, () => {
+                          return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
+                      });
                     bindStandardScalar(VariableIds.ModellingRule_MandatoryShared_NamingRule,
-                    DataType.UInt16, () => {
-                        return namingRuleType.MandatoryShared ? namingRuleType.MandatoryShared.value : 0;
-                    });
+                      DataType.UInt16, () => {
+                          return namingRuleType.MandatoryShared ? namingRuleType.MandatoryShared.value : 0;
+                      });
 
                 }
             }

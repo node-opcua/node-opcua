@@ -30,9 +30,7 @@ const SessionContext = require("node-opcua-address-space").SessionContext;
 const MonitoredItem = require("..").MonitoredItem;
 const Subscription = require("..").Subscription;
 const ServerEngine = require("..").ServerEngine;
-const mini_nodeset_filename = require("..").mini_nodeset_filename;
-const nodeset_filename = require("..").nodeset_filename;
-
+const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
 
 const context = SessionContext.defaultContext;
 
@@ -95,7 +93,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
         engine = new ServerEngine();
 
-        engine.initialize({nodeset_filename: nodeset_filename}, function () {
+        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 

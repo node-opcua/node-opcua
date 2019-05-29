@@ -97,8 +97,8 @@ export { SecurityPolicy, ErrorCallback, MessageSecurityMode } from "node-opcua-s
 export { nodesets } from "node-opcua-nodesets";
 // an incomplete but sufficient nodeset file used during testing
 export {
-    empty_nodeset_filename,
-    mini_nodeset_filename
+    get_empty_nodeset_filename,
+    get_mini_nodeset_filename
 } from "node-opcua-address-space";
 
 module.exports.utils = require("node-opcua-utils");

@@ -8,7 +8,7 @@ const opcua = require("node-opcua");
 
 const OPCUAClient = opcua.OPCUAClient;
 const OPCUAServer = opcua.OPCUAServer;
-const empty_nodeset_filename = opcua.empty_nodeset_filename;
+const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);

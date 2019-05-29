@@ -3,8 +3,7 @@ import * as fs from "fs";
 import { LocalizedText } from "node-opcua-data-model";
 import * as should from "should";
 import { AddressSpace, generateAddressSpace, Namespace } from "..";
-import { mini_nodeset_filename } from "../";
-
+import { get_mini_nodeset_filename } from "../";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing display name in ObjectType and VariableType & Method #469 #466", () => {
@@ -14,7 +13,7 @@ describe("Testing display name in ObjectType and VariableType & Method #469 #466
     before(async () => {
 
         addressSpace = AddressSpace.create();
-        const xml_file = mini_nodeset_filename;
+        const xml_file = get_mini_nodeset_filename();
         fs.existsSync(xml_file).should.be.eql(true);
 
         await generateAddressSpace(addressSpace, xml_file);

@@ -18,7 +18,7 @@ const SessionContext = require("node-opcua-address-space").SessionContext;
 const translate_service = require("node-opcua-service-translate-browse-path");
 
 const ServerEngine = require("..").ServerEngine;
-const mini_nodeset_filename = require("..").mini_nodeset_filename;
+const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
