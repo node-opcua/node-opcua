@@ -804,6 +804,7 @@ export function AddressSpace_installHistoricalDataNode(
     node.userAccessLevel = node.userAccessLevel | AccessLevelFlag.CurrentRead | AccessLevelFlag.HistoryRead;
 
     const optionals = [
+        "Stepped",
         "Definition",
         "MaxTimeInterval",
         "MinTimeInterval",

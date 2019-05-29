@@ -603,12 +603,32 @@ function dumpUAObject(
 
     dumpAggregates(xw, node);
 
+    dumpElementInFolder(xw, node);
+
     xw.writeComment("Object - " + b(xw, node.browseName) + " }}}} ");
 }
 
 UAObject.prototype.dumpXML = function(xw) {
     dumpUAObject(xw, this);
 };
+
+function dumpElementInFolder(
+  xw: XmlWriter,
+  node: BaseNode
+) {
+
+    console.log("dumpElementInFolder");
+    const aggregates = node.getFolderElements().sort(
+      (x: BaseNode, y: BaseNode) =>
+        x.browseName.name!.toString() > y.browseName.name!.toString() ? 1 : -1
+    );
+    for (const aa of aggregates) {
+        if (!xw.visitedNode[_hash(aa)]) {
+            console.log(aa.browseName.toString());
+            aa.dumpXML(xw);
+        }
+    }
+}
 
 function dumpAggregates(
   xw: XmlWriter,

@@ -54,7 +54,8 @@ import {
     Range, RangeOptions,
     ReferenceDescription, ServerDiagnosticsSummaryDataType,
     ServerState,
-    ServerStatusDataType, SessionDiagnosticsDataType
+    ServerStatusDataType, SessionDiagnosticsDataType,
+    SignedSoftwareCertificate
 } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { MinimalistAddressSpace, Reference } from "../src/reference";
@@ -1437,15 +1438,17 @@ export interface UAFileType extends UAObject {
     setPosition: UAMethod;
 
 }
+
 export interface UAAddressSpaceFileType extends UAFileType {
 
     exportNamespace?: UAMethod;
 }
+
 /**
  * The Trust List file is a UA Binary encoded stream containing an instance of
  * TrustListDataType
  */
-export interface UATrustList extends UAFileType  {
+export interface UATrustList extends UAFileType {
 
     // methods
     addCertificate: UAMethod;
@@ -1529,6 +1532,7 @@ export interface UACertificateExpirationAlarmType extends UAEventType {
 export interface UATrustListOutOfDateAlarmType extends UAEventType {
 
 }
+
 export interface UACertificateGroupFolder extends Folder {
 
     /**
@@ -1564,6 +1568,7 @@ export interface UACertificateGroupFolder extends Folder {
 export interface UAKeyCredentialConfigurationFolder extends Folder {
 
 }
+
 export interface UAUserTokenPolicy {
 
 }
@@ -1687,9 +1692,10 @@ export interface UAServerConfiguration extends UAObject {
     supportedPrivateKeyFormats: UAVariableT<UAString[]>;
 }
 
-export interface UADirectoryType  {
+export interface UADirectoryType {
 
 }
+
 /**
  *
  */
@@ -1746,6 +1752,418 @@ export interface UACertificateDirectoryType extends UADirectoryType {
     getCertificateStatus: UAMethod;
 }
 
+export interface UAOperationLimits extends UAObject {
+
+    /**
+     * The MaxNodesPerRead Property indicates the maximum size of the nodesToRead array when
+     * a Client calls the Read Service.
+     */
+    maxNodesPerRead?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerHistoryReadData Property indicates the maximum size of the nodesToRead
+     * array when a Client calls the HistoryRead Service using the historyReadDetails RAW,
+     * PROCESSED, MODIFIED or ATTIME.
+     */
+    maxNodesPerHistoryReadData?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerHistoryReadEvents Property indicates the maximum size of the
+     * nodesToRead array when a Client calls the HistoryRead Service using the historyReadDetails
+     * EVENTS.
+     */
+    maxNodesPerHistoryReadEvents?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerWrite Property indicates the maximum size of the nodesToWrite array when
+     * a Client calls the Write Service.
+     */
+    maxNodesPerWrite?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerHistoryUpdateData Property indicates the maximum size of the
+     * historyUpdateDetails array supported by the Server when a Client calls the HistoryUpdate
+     * Service.
+     */
+    maxNodesPerHistoryUpdateData?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerHistoryUpdateEvents Property indicates the maximum size of the
+     * historyUpdateDetails array when a Client calls the HistoryUpdate Service.
+     */
+    maxNodesPerHistoryUpdateEvents?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerMethodCall Property indicates the maximum size of the methodsToCall array
+     * when a Client calls the Call Service.
+     */
+    maxNodesPerMethodCall?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerBrowse Property indicates the maximum size of the nodesToBrowse array
+     * when calling the Browse Service or the continuationPoints array when a Client calls the
+     * BrowseNext Service.
+     */
+    maxNodesPerBrowse?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerRegisterNodes Property indicates the maximum size of the nodesToRegister
+     *  array when a Client calls the RegisterNodes Service and the maximum size of the
+     * nodesToUnregister when calling the UnregisterNodes Service.
+     */
+    maxNodesPerRegisterNodes?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerTranslateBrowsePathsToNodeIds Property indicates the maximum size of
+     * the browsePaths array when a Client calls the TranslateBrowsePathsToNodeIds Service.
+     */
+    maxNodesPerTranslateBrowsePathsToNodeIds?: UAVariableT<UInt32>;
+    /**
+     * The MaxNodesPerNodeManagement Property indicates the maximum size of the nodesToAdd
+     * array when a Client calls the AddNodes Service, the maximum size of the referencesToAdd
+     * array when a Client calls the AddReferences Service, the maximum size of the nodesToDelete
+     * array when a Client calls the DeleteNodes Service, and the maximum size of the
+     * referencesToDelete array when a Client calls the DeleteReferences Service.
+     */
+    maxNodesPerNodeManagement?: UAVariableT<UInt32>;
+    /**
+     * The MaxMonitoredItemsPerCall Property indicates
+     *  • the maximum size of the itemsToCreate array when a Client calls the
+     *    CreateMonitoredItems Service,
+     *  • the maximum size of the itemsToModify array when a Client calls the
+     *    ModifyMonitoredItems Service,
+     *  • the maximum size of the monitoredItemIds array when a Client calls the
+     *    SetMonitoringMode Service or the DeleteMonitoredItems Service,
+     *  • the maximum size of the sum of the linksToAdd and linksToRemove arrays when a
+     *    Client calls the SetTriggering Service.
+     */
+    maxMonitoredItemsPerCall?: UAVariableT<UInt32>;
+}
+
+export interface IdentityMappingRuleType {
+
+}
+
+/**
+ * The Properties and Methods of the Role contain sensitive security related information and
+ * shall only be browseable, writeable and callable by authorized administrators through an
+ * encrypted channel.
+ */
+export interface Role extends UAObject {
+
+    /**
+     * The Identities Property specifies the currently configured rules for mapping a UserIdentityToken
+     * to the Role. If this Property is an empty array, then the Role cannot be granted to any Session.
+     */
+    identities: UAVariableT<IdentityMappingRuleType>;
+
+    /**
+     * The ApplicationsExclude Property defines the Applications Property as an include list or exclude
+     * list. If this Property is not provided or has a value of FALSE then only Application Instance
+     * Certificates included in the Applications Property shall be included in this Role. All other
+     * Application Instance Certificates shall not be included in this Role. If this Property has a value
+     * of TRUE then all Application Instance Certificates included in the Applications Property shall be
+     * excluded from this Role. All other Application Instance Certificates shall be included in this
+     * Role.
+     */
+    applicationsExclude?: UAVariableT<boolean>;
+
+    /**
+     * The Applications Property specifies the Application Instance Certificates of Clients which shall
+     * be included or excluded from this Role. Each element in the array is an ApplicationUri from a
+     * Client Certificate which is trusted by the Server.
+     */
+    applications?: UAVariableT<UAString>;
+
+    /**
+     * The EndpointsExclude Property defines the Endpoints Property as an include list or exclude list.
+     * If this Property is not provided or has a value of FALSE then only Endpoints included in the
+     * Endpoints Property shall be included in this Role. All other Endpoints shall not be include this
+     * Role. If this Property has a value of TRUE then all Endpoints included in the Endpoints Property
+     * shall be excluded from this Role. All other Endpoints shall be included in this Role.
+     */
+    endpointsExclude?: UAVariableT<boolean>;
+
+    /**
+     * The Endpoints Property specifies the Endpoints which shall be included or excluded from this
+     * Role. The value is an EndpointType array which contains one or more Endpoint descriptions.
+     * The EndpointType DataType is defined in 12.22.
+     */
+    endpoints?: UAVariable; // T<Endpoint>;
+
+    /**
+     * The AddIdentity Method adds a rule used to map a UserIdentityToken to the Role. If the Server
+     * does not allow changes to the mapping rules, then the Method is not present. A Server should
+     * prevent certain rules from being added to particular Roles. For example, a Server should refuse
+     * to allow an ANONYMOUS_5 (see F.3.2) mapping rule to be added to Roles with administrator
+     * privileges.
+     */
+    addIdentity?: UAMethod;
+    /**
+     * The RemoveIdentity Method removes a mapping rule used to map a UserIdentityToken to the
+     * Role. If the Server does not allow changes to the mapping rules, then the Method is not present
+     */
+    removeIdentity?: UAMethod;
+    /**
+     * The AddApplication Method adds an Application Instance Certificate to the list of. If the Server
+     * does not enforce application restrictions or does not allow changes to the mapping rules for the
+     * Role the Method is not present.
+     */
+    addApplication?: UAMethod
+    /**
+     * The RemoveApplication Method removes an Application Instance Certificate from the list of
+     * applications. If the Server does not enforce application restrictions or does not allow changes
+     * to the mapping rules for the Role the Method is not present.
+     */
+    removeApplication?: UAMethod;
+    addEndpoint?: UAMethod;
+    removeEndpoint?: UAMethod;
+
+}
+
+export interface UARoleSet extends UAObject {
+    /**
+     * The AddRole Method allows configuration Clients to add a new Role to the Server.
+     */
+    addRole: UAMethod;
+    /**
+     * The RemoveRole Method allows configuration Clients to remove a Role from the Server
+     */
+    removeRole: UAMethod;
+    // <roleName> Role;
+}
+
+type LocaleId = string;
+
+export interface UAServerCapabilities extends UAObject {
+
+    /**
+     * ServerProfileArray lists the Profiles that the Server supports. See Part 7 for the definitions of
+     * Server Profiles. This list should be limited to the Profiles the Server supports in its current
+     * configuration.
+     */
+    serverProfileArray: UAVariableT<UAString[]>;
+    /**
+     * LocaleIdArray is an array of LocaleIds that are known to be supported by the Server. The Server
+     * might not be aware of all LocaleIds that it supports because it may provide access to underlying
+     * servers, systems or devices that do not report the LocaleIds that they support.
+     */
+    localIdArray: UAVariableT<LocaleId[]>;
+    /**
+     * MinSupportedSampleRate defines the minimum supported sample rate, including 0, which is
+     * supported by the Server.
+     */
+    minSupportedSampleRate: UAVariableT<Duration>;
+    /**
+     * MaxBrowseContinuationPoints is an integer specifying the maximum number of parallel
+     * continuation points of the Browse Service that the Server can support per session. The value
+     * specifies the maximum the Server can support under normal circumstances, so there is no
+     * guarantee the Server can always support the maximum. The client should not open more
+     * Browse calls with open continuation points than exposed in this Variable. The value 0 indicates
+     * that the Server does not restrict the number of parallel continuation points the client should use
+     *
+     */
+    maxBrowseContinuationPoints: UAVariableT<UInt16>;
+    /**
+     * MaxQueryContinuationPoints is an integer specifying the maximum number of parallel
+     * continuation points of the QueryFirst Services that the Server can support per session. The
+     * value specifies the maximum the Server can support under normal circumstances, so there is
+     * no guarantee the Server can always support the maximum. The client should not open more
+     * QueryFirst calls with open continuation points than exposed in this Variable. The value 0
+     * indicates that the Server does not restrict the number of parallel continuation points the client
+     * should use.
+     */
+    maxQueryContinuationPoints: UAVariableT<UInt16>;
+    /**
+     * MaxHistoryContinuationPoints is an integer specifying the maximum number of parallel
+     * continuation points of the HistoryRead Services that the Server can support per session. The
+     * value specifies the maximum the Server can support under normal circumstances, so there is
+     * no guarantee the Server can always support the maximum. The client should not open more
+     * HistoryRead calls with open continuation points than exposed in this Variable. The value 0
+     * indicates that the Server does not restrict the number of parallel continuation points the client
+     * should use.
+     */
+    maxHistoryContinuationPoints: UAVariableT<UInt16>;
+
+    /**
+     * SoftwareCertificates is an array of SignedSoftwareCertificates containing all
+     * SoftwareCertificates supported by the Server. A SoftwareCertificate identifies capabilities of the
+     * Server. It contains the list of Profiles supported by the Server. Profiles are described in Part 7.
+     */
+    softwareCertificates: UAVariableT<SignedSoftwareCertificate[]>;
+
+    /**
+     * The MaxArrayLength Property indicates the maximum length of a one or multidimensional array
+     * supported by Variables of the Server. In a multidimensional array it indicates the overall length.
+     * For example, a three-dimensional array of 2x3x10 has the array length of 60. The Server might
+     * further restrict the length for individual Variables without notice to the client. Servers may use
+     * the Property MaxArrayLength defined in Part 3 on individual DataVariables to specify the size
+     * on individual values. The individual Property may have a larger or smaller value than
+     * MaxArrayLength.
+     */
+    maxArrayLength?: UAVariableT<UInt32>;
+    /**
+     * The MaxStringLength Property indicates the maximum number of bytes in Strings supported by
+     * Variables of the Server. Servers may override this setting by adding the MaxStringLength
+     * Property defined in Part 3 to an individual DataVariable. If a Server does not impose a maximum
+     * number of bytes or is not able to determine the maximum number of bytes this Property shall
+     * not be provided.
+     */
+    maxStringLength?: UAVariableT<UInt32>;
+    /**
+     * The MaxByteStringLength Property indicates the maximum number of bytes in a ByteString
+     * supported by Variables of the Server. It also specifies the default maximum size of a FileType
+     * Object’s read and write buffers. Servers may override this setting by adding the
+     * MaxByteStringLength Property defined in Part 3 to an individual DataVariable or FileType
+     * Object. If a Server does not impose a maximum number of bytes or is not able to determine the
+     * maximum number of bytes this Property shall not be provided.
+     */
+    maxByteStringLength?: UAVariableT<UInt32>;
+
+    /**
+     * OperationLimits is an entry point to access information on operation limits of the Server, for
+     * example the maximum length of an array in a read Service call.
+     */
+    operationLimits: UAOperationLimits;
+
+    /**
+     * ModellingRules is an entry point to browse to all ModellingRules supported by the Server. All
+     * ModellingRules supported by the Server should be able to be browsed starting from this Object.
+     */
+    modellingRules: Folder;
+
+    /**
+     * AggregateFunctions is an entry point to browse to all AggregateFunctions supported by the
+     * Server. All AggregateFunctions supported by the Server should be able to be browsed starting
+     * from this Object. AggregateFunctions are Objects of AggregateFunctionType.
+     */
+    aggregateFunctions: Folder;
+
+    /**
+     * The RoleSet Object is used to publish all Roles supported by the Server. The RoleSetType is
+     * specified in F.2
+     */
+    roleSet: UARoleSet;
+
+
+    // see part 11
+    historyServerCapabilities?: UAHistoryServerCapabilities;
+}
+
+// see part 11
+// All UA Servers that support Historical Access shall include the HistoryServerCapabilities as
+// part of its ServerCapabilities.
+export interface UAHistoryServerCapabilities extends UAObject {
+
+    /**
+     * The AccessHistoryDataCapability Variable defines if the Server supports access to historical
+     * data values. A value of True indicates the Server supports access to the history for
+     * HistoricalNodes, a value of False indicates the Server does not support access to the history
+     * for HistoricalNodes. The default value is False. At least one of AccessHistoryDataCapability
+     * or AccessHistoryEventsCapability shall have a value of True for the Server to be a valid OPC
+     * UA Server supporting Historical Access.
+     */
+    accessHistoryDataCapability: UAVariableT<boolean>;
+    /**
+     * The AccessHistoryEventCapability Variable defines if the server supports access to historical
+     * Events. A value of True indicates the server supports access to the history of Events, a value
+     * of False indicates the Server does not support access to the history of Events. The default
+     * value is False. At least one of AccessHistoryDataCapability or AccessHistoryEventsCapability
+     * shall have a value of True for the Server to be a valid OPC UA Server supporting Historical
+     * Access.
+     */
+    accessHistoryEventsCapability: UAVariableT<boolean>;
+    /**
+     * The MaxReturnDataValues Variable defines the maximum number of values that can be
+     * returned by the Server for each HistoricalNode accessed during a request. A value of 0
+     * indicates that the Server forces no limit on the number of values it can return. It is valid for a
+     * Server to limit the number of returned values and return a continuation point even if
+     * MaxReturnValues = 0. For example, it is possible that although the Server does not impose
+     * any restrictions, the underlying system may impose a limit that the Server is not aware of. The
+     * default value is 0.
+     */
+    maxReturnDataValues: UAVariableT<UInt32>;
+    /**
+     * Similarily, the MaxReturnEventValues specifies the maximum number of Events that a Server
+     * can return for a HistoricalEventNode.
+     */
+    maxReturnEventValues: UAVariableT<UInt32>;
+    /**
+     * The InsertDataCapability Variable indicates support for the Insert capability. A value of True
+     * indicates the Server supports the capability to insert new data values in history, but not
+     * overwrite existing values. The default value is False.
+     */
+    insertDataCapability: UAVariableT<boolean>;
+    /**
+     * The ReplaceDataCapability Variable indicates support for the Replace capability. A value of
+     * True indicates the Server supports the capability to replace existing data values in history, but
+     * will not insert new values. The default value is False.
+     */
+    replaceDataCapability: UAVariableT<boolean>;
+    /**
+     * The UpdateDataCapability Variable indicates support for the Update capability. A value of
+     * True indicates the Server supports the capability to insert new data values into history if none
+     * exists, and replace values that currently exist. The default value is False.
+     */
+    updateDataCapability: UAVariableT<boolean>;
+    /**
+     * The DeleteRawCapability Variable indicates support for the delete raw values capability. A
+     * value of True indicates the Server supports the capability to delete raw data values in history.
+     * The default value is False.
+     */
+    deleteRawCapability: UAVariableT<boolean>;
+    /**
+     * The DeleteAtTimeCapability Variable indicates support for the delete at time capability. A
+     * value of True indicates the Server supports the capability to delete a data value at a specified
+     * time. The default value is False.
+     */
+    deleteAtTimeCapability: UAVariableT<boolean>;
+    /**
+     * The InsertEventCapability Variable indicates support for the Insert capability. A value of True
+     * indicates the Server supports the capability to insert new Events in history. An insert is not a
+     * replace. The default value is False.
+     */
+    insertEventCapability: UAVariableT<boolean>;
+    /**
+     * The ReplaceEventCapability Variable indicates support for the Replace capability. A value of
+     * True indicates the Server supports the capability to replace existing Events in history. A
+     * replace is not an insert. The default value is False.
+     */
+    replaceEventCapability: UAVariableT<boolean>;
+    /**
+     * The UpdateEventCapability Variable indicates support for the Update capability. A value of
+     * True indicates the Server supports the capability to insert new Events into history if none
+     * exists, and replace values that currently exist. The default value is False.
+     */
+    updateEventCapability: UAVariableT<boolean>;
+    /**
+     * The DeleteEventCapability Variable indicates support for the deletion of Events capability. A
+     * value of True indicates the Server supports the capability to delete Events in history. The
+     * default value is False
+     */
+    deleteEventCapability: UAVariableT<boolean>;
+    /**
+     * The InsertAnnotationCapability Variable indicates support for Annotations. A value of True
+     * indicates the Server supports the capability to insert Annotations. Some Servers that support
+     * Inserting of Annotations will also support editing and deleting of Annotations. The default
+     * value is False.
+     */
+    insertAnnotationsCapability: UAVariableT<boolean>;
+
+    /**
+     * AggregateFunctions is an entry point to browse to all Aggregate capabilities supported by the
+     * Server for Historical Access. All HistoryAggregates supported by the Server should be able to
+     * be browsed starting from this Object. Aggregates are defined in Part 13. If the Server does not
+     * support Aggregates the Folder is left empty.
+     */
+    aggregateFunctions: Folder;
+    /**
+     * AggregateConfiguration Object represents the browse entry point for information on how the
+     * Server treats Aggregate specific functionality such as handling Uncertain data. This Object is
+     * listed as optional for backward compatability, but it is required to be present if Aggregates are
+     * supported (via Profiles)
+     */
+    aggregateConfiguration?: UAObject;
+    /**
+     * The ServerTimestampSupported Variable indicates support for the ServerTimestamp
+     * capability. A value of True indicates the Server supports ServerTimestamps in addition to
+     * SourceTimestamp. The default is False. This property is optional but it is expected all new
+     * Servers include this property.
+     */
+    serverTimestampSupported?: UAVariableT<boolean>;
+}
+
 export interface Server extends UAObject {
     serverStatus: UAServerStatus;
     auditing: UAVariable;
@@ -1753,7 +2171,7 @@ export interface Server extends UAObject {
     estimatedReturnTime: UAVariable;
     namespaceArray: UAVariable;
     namespaces: UAObject;
-    serverCapabilities: UAObject;
+    serverCapabilities: UAServerCapabilities;
     serverConfiguration: UAServerConfiguration;
     vendorServerInfo: UAObject;
     getMonitoredItems: UAMethod;
