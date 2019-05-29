@@ -1,20 +1,28 @@
+import { SessionContext, UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { HistoryData, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { getAggregateConfiguration } from "./aggregates";
-import { AggregateConfigurationOptions, getInterval, Interval } from "./interval";
+import { getInterval, Interval, AggregateConfigurationOptionsEx } from "./interval";
 
-// tslint:disable:no-var-requires
-const SessionContext = require("node-opcua-address-space").SessionContext;
-
-export function processAggregateData(
-    node: any,
+/**
+ * @internal
+ * @param node
+ * @param processingInterval
+ * @param startDate
+ * @param endDate
+ * @param dataValues
+ * @param lambda
+ * @param callback
+ */
+function processAggregateData(
+    node: UAVariable,
     processingInterval: number,
     startDate: Date,
     endDate: Date,
     dataValues: DataValue[],
-    lambda: (interval: Interval, aggregateConfiguration: AggregateConfigurationOptions) => DataValue,
+    lambda: (interval: Interval, aggregateConfiguration: AggregateConfigurationOptionsEx) => DataValue,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
 ) {
     const aggregateConfiguration = getAggregateConfiguration(node);
@@ -47,11 +55,11 @@ export function processAggregateData(
 }
 
 export function getAggregateData(
-    node: any,
+    node: UAVariable,
     processingInterval: number,
     startDate: Date,
     endDate: Date,
-    lambda: (interval: Interval, aggregateConfiguration: AggregateConfigurationOptions) => DataValue,
+    lambda: (interval: Interval, aggregateConfiguration: AggregateConfigurationOptionsEx) => DataValue,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
 ) {
 

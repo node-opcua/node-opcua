@@ -1,6 +1,11 @@
 import { DataValue } from "node-opcua-data-value";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { AggregateConfigurationOptions } from "node-opcua-types";
+export { AggregateConfigurationOptions } from "node-opcua-types";
 
+export interface AggregateConfigurationOptionsEx extends  AggregateConfigurationOptions {
+    stepped?: boolean;
+}
 export function isGoodish(statusCode: StatusCode): boolean {
     return statusCode.value < 0x40000000;
 }
@@ -27,34 +32,34 @@ interface DataValueWithIndex {
 }
 
 export function _findGoodDataValueBefore(
-    dataValues: DataValue[],
-    index: number,
-    bTreatUncertainAsBad: boolean
+  dataValues: DataValue[],
+  index: number,
+  bTreatUncertainAsBad: boolean
 ): DataValueWithIndex {
 
     index--;
     while (index >= 0) {
         const dataValue1 = dataValues[index];
         if (!bTreatUncertainAsBad && !isBad(dataValue1.statusCode)) {
-            return {index, dataValue: dataValue1};
+            return { index, dataValue: dataValue1 };
         }
         if (bTreatUncertainAsBad && isGood(dataValue1.statusCode)) {
-            return {index, dataValue: dataValue1};
+            return { index, dataValue: dataValue1 };
         }
         index -= 1;
     }
     // not found
     return {
-        dataValue: new DataValue({statusCode: StatusCodes.BadNoData}),
-        index: -1,
+        dataValue: new DataValue({ statusCode: StatusCodes.BadNoData }),
+        index: -1
     };
 
 }
 
 export function _findGoodDataValueAfter(
-    dataValues: DataValue[],
-    index: number,
-    bTreatUncertainAsBad: boolean
+  dataValues: DataValue[],
+  index: number,
+  bTreatUncertainAsBad: boolean
 ): DataValueWithIndex {
 
     while (index < dataValues.length) {
@@ -62,41 +67,34 @@ export function _findGoodDataValueAfter(
         if (!bTreatUncertainAsBad && !isBad(dataValue1.statusCode)) {
             return {
                 dataValue: dataValue1,
-                index,
+                index
             };
         }
         if (bTreatUncertainAsBad && isGood(dataValue1.statusCode)) {
             return {
                 dataValue: dataValue1,
-                index,
+                index
             };
         }
         index += 1;
     }
     // not found
     return {
-        dataValue: new DataValue({statusCode: StatusCodes.BadNoData}),
-        index: -1,
+        dataValue: new DataValue({ statusCode: StatusCodes.BadNoData }),
+        index: -1
     };
 }
 
-export interface AggregateConfigurationOptions {
-    treatUncertainAsBad?: boolean;
-    useSlopedExtrapolation?: boolean;
-    stepped?: boolean;
-    percentDataBad?: number;
-    percentDataGood?: number;
-}
 
 export function adjustProcessingOptions(
-    options: AggregateConfigurationOptions | null | any
-): AggregateConfigurationOptions {
+  options: AggregateConfigurationOptionsEx | null
+): AggregateConfigurationOptionsEx {
     options = options || {};
     options.treatUncertainAsBad = options.treatUncertainAsBad || false;
     options.useSlopedExtrapolation = options.useSlopedExtrapolation || false;
-    options.stepped = options.stepped || false;
-    options.percentDataBad = parseInt(options.percentDataBad, 10);
-    options.percentDataGood = parseInt(options.percentDataGood, 10);
+    options.stepped = options.stepped! || false;
+    options.percentDataBad = parseInt(options.percentDataBad as any, 10);
+    options.percentDataGood = parseInt(options.percentDataGood as any, 10);
     return options;
 }
 
@@ -158,8 +156,8 @@ export class Interval {
         if (this.index >= 0) {
             for (let i = this.index; i < this.index + this.count; i++) {
                 const dataValue = this.dataValues[i];
-                str += " " + dataValue.sourceTimestamp!.toUTCString() +  dataValue.statusCode.toString();
-                str += dataValue.value ? dataValue.value.toString() : "" ;
+                str += " " + dataValue.sourceTimestamp!.toUTCString() + dataValue.statusCode.toString();
+                str += dataValue.value ? dataValue.value.toString() : "";
                 str += "\n";
             }
         }
@@ -168,10 +166,10 @@ export class Interval {
 }
 
 export function getInterval(
-    startTime: Date,
-    duration: number,
-    indexHint: number,
-    dataValues: DataValue[]): Interval {
+  startTime: Date,
+  duration: number,
+  indexHint: number,
+  dataValues: DataValue[]): Interval {
 
     let count = 0;
     let index = -1;
@@ -195,7 +193,7 @@ export function getInterval(
     // check if interval is complete or partial (end or start)
     let isPartial = false;
     if (index + count >= dataValues.length &&
-        dataValues[dataValues.length - 1].sourceTimestamp!.getTime() < (startTime.getTime() + duration)) {
+      dataValues[dataValues.length - 1].sourceTimestamp!.getTime() < (startTime.getTime() + duration)) {
         isPartial = true;
     }
     if (index <= 0 && dataValues[0].sourceTimestamp!.getTime() > startTime.getTime()) {
@@ -207,6 +205,6 @@ export function getInterval(
         dataValues,
         index,
         isPartial,
-        startTime,
+        startTime
     });
 }

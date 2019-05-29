@@ -1,9 +1,16 @@
 import { ObjectIds } from "node-opcua-constants";
-import { makeNodeId } from "node-opcua-nodeid";
+import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 
-import { AggregateConfigurationOptions } from "./interval";
+import {
+    AddressSpace,
+    BaseNode,
+    UAObject,
+    UAServerCapabilities,
+    UAServerConfiguration
+} from "node-opcua-address-space";
+import { AggregateConfigurationOptionsEx } from "./interval";
 // import { HistoryServerCapabilities } from "node-opcua-server";
 
 /*
@@ -39,13 +46,24 @@ const historicalCapabilitiesDefaultProperties /*: HistoryServerCapabilities */ =
     updateEventCapability: false // Boolean PropertyType Mandatory
 };
 
-export function createHistoryServerCapabilities(addressSpace: any, serverCapabilities: any): any {
+export function createHistoryServerCapabilities(
+  addressSpace: AddressSpace,
+  serverCapabilities: UAServerCapabilities
+): UAObject {
+
+    /* istanbul ignore next */
     if (serverCapabilities.browseName.toString() !== "ServerCapabilities") {
         throw new Error("Expecting server Capabilities");
     }
 
-    const historyServerCapabilitiesType = addressSpace.getNamespace(0).findObjectType("HistoryServerCapabilitiesType");
+    const historyServerCapabilitiesType = addressSpace.getNamespace(0).findObjectType("HistoryServerCapabilitiesType")!;
+
+    /* istanbul ignore next */
+    if (!historyServerCapabilitiesType) {
+        throw new Error("Cannot find HistoryServerCapabilitiesType");
+    }
     const historyServerCapabilities = historyServerCapabilitiesType.instantiate({
+        browseName: "HistoryServerCapabilities",
         componentOf: serverCapabilities
     });
     return historyServerCapabilities;
@@ -100,14 +118,59 @@ function setHistoricalServerCapabilities(
     // xx setBoolean("InsertAnnotationsCapability");
 }
 
-function addAggregateFunctionSupport(addressSpace: any, functionName: any): any {
-    // AggregateFunction_Interpolative
-    // xx      assert(functionName === "Interpolative");
+export type AggregateFunctioName =
+  "AnnotationCount" |
+  "Average" |
+  "Count" |
+  "Delta" |
+  "DeltaBounds" |
+  "DurationBad" |
+  "DurationGood" |
+  "DurationInStateNonZero" |
+  "DurationInStateZero" |
+  "EndBound" |
+  "Interpolative" |
+  "Maximum" |
+  "Maximum2" |
+  "MaximumActualTime" |
+  "MaximumActualTime2" |
+  "Minimum" |
+  "Minimum2" |
+  "MinimumActualTime" |
+  "MinimumActualTime2" |
+  "NumberOfTransitions" |
+  "PercentBad" |
+  "PercentGood" |
+  "Range" |
+  "Range2" |
+  "StandardDeviationPopulation" |
+  "StandardDeviationSample" |
+  "Start" |
+  "StartBound" |
+  "TimeAverage" |
+  "TimeAverage2" |
+  "Total" |
+  "Total2" |
+  "VariancePopulation" |
+  "VarianceSample" |
+  "WorstQuality" |
+  "WorstQuality2";
+
+function addAggregateFunctionSupport(
+  addressSpace: AddressSpace, functionName: number): void {
     if (!functionName) {
         throw new Error("Invalid function name");
     }
+
     const serverCapabilities = addressSpace.rootFolder.objects.server.serverCapabilities;
+
+    /* istanbul ignore next */
+    if (!serverCapabilities.historyServerCapabilities) {
+        throw new Error("missing serverCapabilities.historyServerCapabilities");
+    }
+
     const aggregateFunctions = serverCapabilities.aggregateFunctions;
+
     const aggregateFunctionsInHist = serverCapabilities.historyServerCapabilities.aggregateFunctions;
 
     const functionNodeId = makeNodeId(functionName);
@@ -119,12 +182,10 @@ function addAggregateFunctionSupport(addressSpace: any, functionName: any): any 
         nodeId: functionNode.nodeId,
         referenceType: "Organizes"
     });
-
     aggregateFunctionsInHist.addReference({
         nodeId: functionNode.nodeId,
         referenceType: "Organizes"
     });
-
 }
 
 const enum AggregateFunction {
@@ -166,7 +227,7 @@ const enum AggregateFunction {
     WorstQuality2 = ObjectIds.AggregateFunction_WorstQuality2
 }
 
-export function addAggregateSupport(addressSpace: any) {
+export function addAggregateSupport(addressSpace: AddressSpace) {
     const aggregateConfigurationType = addressSpace.getNamespace(0).findObjectType("AggregateConfigurationType");
     if (!aggregateConfigurationType) {
         throw new Error("addressSpace do not expose AggregateConfigurationType");
@@ -183,8 +244,8 @@ export function addAggregateSupport(addressSpace: any) {
     }
     // xx serverObject.
 
-    const serverCapabilities = serverObject.getChildByName("ServerCapabilities");
-    //
+    const serverCapabilities = serverObject.getChildByName("ServerCapabilities")! as UAServerCapabilities;
+
     // Let see if HistoryServer Capabilities object exists
     let historyServerCapabilities = serverCapabilities.getChildByName("HistoryServerCapabilities");
     if (!historyServerCapabilities) {
@@ -201,7 +262,7 @@ export function addAggregateSupport(addressSpace: any) {
 
 export function installAggregateConfigurationOptions(
   node: any,
-  options: AggregateConfigurationOptions
+  options: AggregateConfigurationOptionsEx
 ) {
     const aggregateConfiguration = node.$historicalDataConfiguration.aggregateConfiguration;
     aggregateConfiguration.percentDataBad.setValueFromSource({ dataType: "Byte", value: options.percentDataBad });
@@ -221,12 +282,16 @@ export function installAggregateConfigurationOptions(
     });
 }
 
-export function getAggregateConfiguration(node: any): AggregateConfigurationOptions {
+export function getAggregateConfiguration(node: BaseNode): AggregateConfigurationOptionsEx {
 
-    const aggregateConfiguration = node.$historicalDataConfiguration.aggregateConfiguration;
+    const nodePriv = node as any;
+
+    /* istanbul ignore next */
+    if (!nodePriv.$historicalDataConfiguration) { throw new Error("internal error"); }
+    const aggregateConfiguration = nodePriv.$historicalDataConfiguration.aggregateConfiguration;
 
     // Beware ! Stepped value comes from Historical Configuration !
-    const stepped = node.$historicalDataConfiguration.stepped.readValue().value.value;
+    const stepped = nodePriv.$historicalDataConfiguration.stepped.readValue().value.value;
 
     return {
         percentDataBad: aggregateConfiguration.percentDataBad.readValue().value.value,

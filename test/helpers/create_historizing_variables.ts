@@ -1,9 +1,18 @@
+import { AddressSpace, IHistoricalDataNodeOptions, UAVariable } from "node-opcua-address-space";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+
 import { installAggregateConfigurationOptions } from "../../source/aggregates";
 import { makeDataValue } from "./helpers";
 
-function addHistory(node: any, time: string, value: number| boolean|null, statusCode: StatusCode): void {
-    node._historyPush(makeDataValue(time, value, statusCode));
+function addHistory(
+  node: UAVariable,
+  time: string,
+  value: number| boolean|null,
+  statusCode: StatusCode
+): void {
+
+    (node as any)._historyPush(makeDataValue(time, value, statusCode));
+
 }
 
 /// Example 1 : Example Aggregate data – Historian 1
@@ -39,7 +48,7 @@ function addHistory(node: any, time: string, value: number| boolean|null, status
 //
 // ----------------------------------------------------------------------------
 
-export function createHistorian1(addressSpace: any) {
+export function createHistorian1(addressSpace: AddressSpace): UAVariable {
 
     const node = addressSpace.getOwnNamespace().addVariable({
         browseName: "History1",
@@ -47,6 +56,8 @@ export function createHistorian1(addressSpace: any) {
     });
 
     const options = {
+
+        historian: undefined,
         percentDataBad: 100,
         percentDataGood: 100,  // Therefore if all values are Good then the
         // quality will be Good, or if all values are Bad then the quality will be Bad, but if there is
@@ -57,6 +68,7 @@ export function createHistorian1(addressSpace: any) {
     };
 
     addressSpace.installHistoricalDataNode(node, options);
+
     installAggregateConfigurationOptions(node, options);
 
     // 12:00:00 - BadNoData First archive entry, Point created

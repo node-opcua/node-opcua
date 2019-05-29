@@ -14,6 +14,7 @@ import { makeDate } from "./helpers/helpers";
 
 import * as should from "should";
 import { getMaxData, getMinData } from "../source";
+import { AddressSpace, UAVariable } from "node-opcua-address-space";
 
 const _should = should;
 
@@ -40,11 +41,11 @@ describe("Aggregates ", () => {
 
 describe("Aggregates - Function ", () => {
 
-    let addressSpace: any;
-    let h1: any;
-    let h2: any;
-    let h3: any;
-    let h4: any;
+    let addressSpace: AddressSpace;
+    let h1: UAVariable;
+    let h2: UAVariable;
+    let h3: UAVariable;
+    let h4: UAVariable;
 
     before((done: (err: Error | null) => void) => {
 

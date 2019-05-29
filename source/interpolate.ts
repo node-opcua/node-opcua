@@ -34,6 +34,7 @@
 // Bound Bad                   Does not return a Bad bound except as noted above
 // Bound Uncertain             Returned Uncertain_DataSubNormal if any Bad value(s) was/were skipped to
 //                             calculate the bounding value.
+import { UAVariable } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
@@ -42,7 +43,7 @@ import { getAggregateData, interpolateValue } from "./common";
 import {
     _findGoodDataValueBefore,
     adjustProcessingOptions,
-    AggregateConfigurationOptions,
+    AggregateConfigurationOptionsEx,
     Interval, isBad,
     isGood
 } from "./interval";
@@ -57,7 +58,7 @@ import {
  The StatusCode for the interval is Good if the ratio is greater than or equal to the PercentDataGood parameter.
  If for an interval neither ratio applies then that interval is Uncertain_DataSubNormal.
   */
-export function interpolatedValue(interval: Interval, options: AggregateConfigurationOptions): DataValue {
+export function interpolatedValue(interval: Interval, options: AggregateConfigurationOptionsEx): DataValue {
 
     options = adjustProcessingOptions(options);
 
@@ -185,7 +186,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
  * @param callback
  */
 export function getInterpolatedData(
-    node: any,
+    node: UAVariable,
     processingInterval: number,
     startDate: Date,
     endDate: Date,

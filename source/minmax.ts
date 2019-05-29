@@ -49,6 +49,7 @@
 // No End Bound             Not Applicable
 // Bound Bad                Not Applicable
 // Bound Uncertain          Not Applicable
+import { UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
@@ -134,7 +135,7 @@ function calculateIntervalMinOrMaxValue(
     return new DataValue({
         sourceTimestamp: interval.startTime,
         statusCode: statusCode as StatusCode,
-        value: selectedValue!,
+        value: selectedValue!
     });
 }
 
@@ -207,7 +208,7 @@ export function calculateIntervalMaxValue(interval: Interval, options: Aggregate
  * @param callback
  */
 export function getMinData(
-    node: any,
+    node: UAVariable,
     processingInterval: number,
     startDate: Date,
     endDate: Date,
@@ -217,7 +218,7 @@ export function getMinData(
 }
 
 export function getMaxData(
-    node: any,
+    node: UAVariable,
     processingInterval: number,
     startDate: Date,
     endDate: Date,
