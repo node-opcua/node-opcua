@@ -1,6 +1,14 @@
+import * as should from "should";
+
+import { AddressSpace, generateAddressSpace, UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
-import { getInterpolatedData } from "../source";
-import { addAggregateSupport, getAggregateConfiguration } from "../source/aggregates";
+import { nodesets } from "node-opcua-nodesets";
+
+import { getInterpolatedData } from "..";
+import { addAggregateSupport, getAggregateConfiguration } from "..";
+import { getMaxData, getMinData } from "..";
+
+const _should = should;
 
 import {
     createHistorian1,
@@ -8,29 +16,28 @@ import {
     createHistorian3,
     createHistorian4
 } from "./helpers/create_historizing_variables";
-
-import * as opcua from "node-opcua";
 import { makeDate } from "./helpers/helpers";
 
-import * as should from "should";
-import { getMaxData, getMinData } from "../source";
-import { AddressSpace, UAVariable } from "node-opcua-address-space";
-
-const _should = should;
+// tslint:disable-next-line:no-var-requires
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Aggregates ", () => {
 
-    let addressSpace: any;
+    let addressSpace: AddressSpace;
     beforeEach((done) => {
 
-        addressSpace = opcua.AddressSpace.create();
+        addressSpace = AddressSpace.create();
 
-        const nodesets: string[] = [
-            opcua.nodesets.standard_nodeset_file
+        const namespaces: string[] = [
+            nodesets.standard_nodeset_file
         ];
-        opcua.generateAddressSpace(addressSpace, nodesets, (err?: Error) => {
+        generateAddressSpace(addressSpace, namespaces, (err?: Error) => {
             done(err);
         });
+    });
+    after((done) => {
+        addressSpace.dispose();
+        done();
     });
 
     it("should augment the addressSpace with aggregate function support", (done) => {
@@ -49,12 +56,12 @@ describe("Aggregates - Function ", () => {
 
     before((done: (err: Error | null) => void) => {
 
-        addressSpace = opcua.AddressSpace.create();
+        addressSpace = AddressSpace.create();
 
-        const nodesets: string[] = [
-            opcua.nodesets.standard_nodeset_file
+        const namespaces: string[] = [
+            nodesets.standard_nodeset_file
         ];
-        opcua.generateAddressSpace(addressSpace, nodesets, (err?: Error) => {
+        generateAddressSpace(addressSpace, namespaces, (err?: Error) => {
 
             const namespace = addressSpace.registerNamespace("PRIVATENAMESPACE");
             namespace.index.should.eql(1);

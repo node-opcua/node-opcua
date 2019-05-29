@@ -1,4 +1,8 @@
-export { addAggregateSupport } from "./aggregates";
+export { 
+    addAggregateSupport,
+    installAggregateConfigurationOptions,
+    getAggregateConfiguration
+} from "./aggregates";
 export * from "./interpolate";
 export * from "./minmax";
 export * from "./interval";

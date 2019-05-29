@@ -1,7 +1,7 @@
 import { AddressSpace, IHistoricalDataNodeOptions, UAVariable } from "node-opcua-address-space";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { installAggregateConfigurationOptions } from "../../source/aggregates";
+import { installAggregateConfigurationOptions } from "../..";
 import { makeDataValue } from "./helpers";
 
 function addHistory(

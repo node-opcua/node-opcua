@@ -261,10 +261,11 @@ export function addAggregateSupport(addressSpace: AddressSpace) {
 }
 
 export function installAggregateConfigurationOptions(
-  node: any,
+  node: UAVariable,
   options: AggregateConfigurationOptionsEx
 ) {
-    const aggregateConfiguration = node.$historicalDataConfiguration.aggregateConfiguration;
+    const nodePriv = node as any;
+    const aggregateConfiguration = nodePriv.$historicalDataConfiguration.aggregateConfiguration;
     aggregateConfiguration.percentDataBad.setValueFromSource({ dataType: "Byte", value: options.percentDataBad });
     aggregateConfiguration.percentDataGood.setValueFromSource({ dataType: "Byte", value: options.percentDataGood });
     aggregateConfiguration.treatUncertainAsBad.setValueFromSource({
@@ -276,7 +277,7 @@ export function installAggregateConfigurationOptions(
         value: options.useSlopedExtrapolation
     });
 
-    node.$historicalDataConfiguration.stepped.setValueFromSource({
+    nodePriv.$historicalDataConfiguration.stepped.setValueFromSource({
         dataType: "Boolean",
         value: options.stepped
     });
