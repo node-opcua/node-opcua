@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-service-translate-browse-path",
-  "version": "2.0.0-alpha.30",
+  "version": "2.0.0",
   "description": "pure nodejs OPCUA SDK - module -service-translate-browse-path",
   "scripts": {
     "test": "mocha test",
@@ -10,19 +10,19 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "node-opcua-assert": "^2.0.0-alpha.24",
-    "node-opcua-basic-types": "^2.0.0-alpha.30",
-    "node-opcua-binary-stream": "^2.0.0-alpha.30",
-    "node-opcua-constants": "^2.0.0-alpha.24",
-    "node-opcua-data-model": "^2.0.0-alpha.30",
-    "node-opcua-factory": "^2.0.0-alpha.30",
-    "node-opcua-nodeid": "^2.0.0-alpha.30",
-    "node-opcua-service-secure-channel": "^2.0.0-alpha.30",
-    "node-opcua-types": "^2.0.0-alpha.30",
+    "node-opcua-assert": "^2.0.0",
+    "node-opcua-basic-types": "^2.0.0",
+    "node-opcua-binary-stream": "^2.0.0",
+    "node-opcua-constants": "^2.0.0",
+    "node-opcua-data-model": "^2.0.0",
+    "node-opcua-factory": "^2.0.0",
+    "node-opcua-nodeid": "^2.0.0",
+    "node-opcua-service-secure-channel": "^2.0.0",
+    "node-opcua-types": "^2.0.0",
     "underscore": "^1.9.1"
   },
   "devDependencies": {
-    "node-opcua-generator": "^2.0.0-alpha.30",
+    "node-opcua-generator": "^2.0.0",
     "should": "13.2.3",
     "sinon": "^7.3.2"
   },
