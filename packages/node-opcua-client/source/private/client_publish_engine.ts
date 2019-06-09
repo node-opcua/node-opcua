@@ -3,7 +3,6 @@
  */
 import * as async from "async";
 import chalk from "chalk";
-import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -458,7 +457,9 @@ export class ClientSidePublishEngine {
 
         setImmediate(() => {
             assert(_.isFunction(callback));
-            async.whilst(() => !isDone, sendRepublishFunc, (err) => {
+            (async as any).whilst(
+               (cb: any) => cb(null, !isDone),
+               sendRepublishFunc, (err: Error|null) => {
                 debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
                 debugLog(" _republish ends with ", err ? err.message : "null");
                 callback(err!);
@@ -481,7 +482,7 @@ export class ClientSidePublishEngine {
             debugLog("---------------------------------------------------- err =", err ? err.message : null);
 
             if (err && err.message.match(/BadSessionInvalid/)) {
-                // _republish failed because subscriptionId is not valid anymore on server side.
+                // _republish failed because session is not valid anymore on server side.
                 return callback(err);
             }
             if (err && err.message.match(/SubscriptionIdInvalid/)) {

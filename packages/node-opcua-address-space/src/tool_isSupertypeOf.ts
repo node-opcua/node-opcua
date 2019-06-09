@@ -75,7 +75,7 @@ function wrap_memoize<T, P, R>(
 ): MemberFuncValue<T, P, R> {
 
     if (undefined === hashFunc) {
-        hashFunc = (_p: T) => _p.toString();
+        hashFunc = (_p: T) => (_p as any).toString();
     }
 
     return function memoize(this: any, param: any) {

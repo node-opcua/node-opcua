@@ -59,12 +59,12 @@ export class ObjectRegistry {
         const className = this.getClassName();
         let str = " className :" + className + " found => " + this.count() + " object leaking\n";
 
-        _.forEach(this._cache, (obj/*,key*/) => {
+        _.forEach(this._cache, (obj: any/*,key*/) => {
             str += obj.constructor.name + " " + obj.toString() + "\n";
         });
 
         if (ObjectRegistry.doDebug) {
-            _.forEach(this._cache, (obj, key) => {
+            _.forEach(this._cache, (obj: any, key) => {
                 const cachedObject = this._cache[key];
                 assert(cachedObject.hasOwnProperty("_____trace"));
                 str += "   " + key + cachedObject._____trace + "\n";

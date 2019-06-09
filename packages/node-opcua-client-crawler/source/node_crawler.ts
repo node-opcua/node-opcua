@@ -568,7 +568,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         let hasEnded = false;
 
-        this.taskQueue.drain = () => {
+        this.taskQueue.drain(() => {
 
             debugLog("taskQueue is empty !!", this.taskQueue.length());
 
@@ -579,7 +579,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                 this.emit("end");
                 endCallback();
             }
-        };
+        });
 
         let cacheNode = this._getCacheNode(nodeId);
         if (!cacheNode) {
@@ -744,10 +744,10 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         });
 
         const key1 = object.nodeId.toString();
-        queue.drain = () => {
+        queue.drain(() => {
             const object1: any = this._objMap[key1];
             remove_cycle(object1, finalCallback);
-        };
+        });
     }
 
     private _add_for_reconstruction(

@@ -13,14 +13,15 @@ import * as _ from "underscore";
 import * as util from "util";
 
 import { AddressSpace, BaseNode, UAObjectType, UAVariable } from "node-opcua-address-space";
-import { SessionContext } from "node-opcua-address-space";
 import { checkSelectClauses } from "node-opcua-address-space";
+import { SessionContext } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { SessionDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { NodeClass } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { isValidDataEncoding } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { ExtensionObject } from "node-opcua-extension-object";
 import {
     NodeId
 } from "node-opcua-nodeid";
@@ -53,7 +54,6 @@ import {
     MonitoredItemCreateResult,
     MonitoredItemNotification
 } from "node-opcua-types";
-import { ExtensionObject } from "node-opcua-extension-object";
 
 import { MonitoredItem, MonitoredItemOptions } from "./monitored_item";
 import { ServerSession } from "./server_session";
@@ -334,6 +334,7 @@ function getNextMonitoredItemId() {
 }
 
 const INVALID_ID = -1;
+type Notification = DataChangeNotification|EventNotificationList|StatusChangeNotification;
 
 /**
  * The Subscription class used in the OPCUA server side.
@@ -364,9 +365,9 @@ export class Subscription extends EventEmitter {
     private _keep_alive_counter: number = 0;
     private _pending_notifications: any;
     private _sent_notifications: any[];
-    private _sequence_number_generator: SequenceNumberGenerator;
+    private readonly _sequence_number_generator: SequenceNumberGenerator;
     private publishIntervalCount: number;
-    private monitoredItems: any;
+    private readonly monitoredItems: any;
     private monitoredItemIdCounter: number;
     private _unacknowledgedMessageCount: number;
     private timerId: any;
@@ -393,7 +394,6 @@ export class Subscription extends EventEmitter {
         /**
          * the Subscription publishing interval
          * @property  publishingInterval
-         * @type {number}
          * @default 1000
          */
         this.publishingInterval = _adjust_publishing_interval(options.publishingInterval);
@@ -404,7 +404,6 @@ export class Subscription extends EventEmitter {
          * empty message.
          * OPCUA Spec says: a value of 0 is invalid.
          * @property  maxKeepAliveCount
-         * @type {number}
          * @default 10
          *
          */
@@ -421,7 +420,6 @@ export class Subscription extends EventEmitter {
          *
          * Note: this has to be interpreted as without having a PublishRequest available
          * @property  lifeTimeCount
-         * @type {Number}
          * @default 1
          */
         this.lifeTimeCount = _adjust_lifeTimeCount(
@@ -434,8 +432,7 @@ export class Subscription extends EventEmitter {
          * DataChangeNotification and events in the EventNotificationList.
          *
          * @property maxNotificationsPerPublish
-         * @type {Number}
-         * #default 0
+         * @default 0
          */
         this.maxNotificationsPerPublish = _adjust_maxNotificationsPerPublish(options.maxNotificationsPerPublish);
 
@@ -459,7 +456,6 @@ export class Subscription extends EventEmitter {
         /**
          *  number of monitored Item
          *  @property monitoredItemIdCounter
-         *  @type {Number}
          */
         this.monitoredItemIdCounter = 0;
 
@@ -560,7 +556,6 @@ export class Subscription extends EventEmitter {
     /**
      * @property keepAliveCounterHasExpired
      * @private
-     * @type {Boolean} true if the keep alive counter has reach its limit.
      */
     public get keepAliveCounterHasExpired(): boolean {
         return this._keep_alive_counter >= this.maxKeepAliveCount;
@@ -588,7 +583,6 @@ export class Subscription extends EventEmitter {
      *  True if the subscription life time has expired.
      *
      * @property lifeTimeHasExpired
-     * @type {boolean} - true if the subscription life time has expired.
      */
     public get lifeTimeHasExpired(): boolean {
         assert(this.lifeTimeCount > 0);
@@ -598,7 +592,6 @@ export class Subscription extends EventEmitter {
     /**
      * number of milliseconds before this subscription times out (lifeTimeHasExpired === true);
      * @property timeToExpiration
-     * @type {Number}
      */
     public get timeToExpiration(): number {
         return (this.lifeTimeCount - this._life_time_counter) * this.publishingInterval;
@@ -875,7 +868,7 @@ export class Subscription extends EventEmitter {
     /**
      * get a monitoredItem by Id.
      * @method getMonitoredItem
-     * @param monitoredItemId  {Number} the id of the monitored item to get.
+     * @param monitoredItemId : the id of the monitored item to get.
      * @return {MonitoredItem}
      */
     public getMonitoredItem(monitoredItemId: number | string): MonitoredItem {
@@ -886,7 +879,7 @@ export class Subscription extends EventEmitter {
     /**
      * remove a monitored Item from the subscription.
      * @method removeMonitoredItem
-     * @param monitoredItemId  {Number} the id of the monitored item to get.
+     * @param monitoredItemId : the id of the monitored item to get.
      */
     public removeMonitoredItem(monitoredItemId: number | string) {
 
@@ -919,9 +912,8 @@ export class Subscription extends EventEmitter {
 
     /**
      * @property hasMonitoredItemNotifications true if monitored Item have uncollected Notifications
-     * @type {Boolean}
      */
-    public get hasMonitoredItemNotifications() {
+    public get hasMonitoredItemNotifications(): boolean {
         if (this._hasMonitoredItemNotifications) {
             return true;
         }
@@ -961,7 +953,6 @@ export class Subscription extends EventEmitter {
      * returns true if the notification has expired
      * @method notificationHasExpired
      * @param notification
-     * @return {boolean}
      */
     public notificationHasExpired(notification: any): boolean {
         assert(notification.hasOwnProperty("start_tick"));
@@ -1226,7 +1217,6 @@ export class Subscription extends EventEmitter {
         }
     }
 
-
     private _stop_timer() {
         if (this.timerId) {
             debugLog(chalk.bgWhite.blue("Subscription#_stop_timer subscriptionId="), this.id);
@@ -1422,13 +1412,10 @@ export class Subscription extends EventEmitter {
         }
     }
 
-
     /**
-     * @method _addNotificationMessage
-     * @param notificationData {Array<DataChangeNotification|EventNotificationList|StatusChangeNotification>}
      */
     private _addNotificationMessage(
-      notificationData: ExtensionObject[]
+      notificationData: Notification[]
     ) {
 
         assert(_.isArray(notificationData));

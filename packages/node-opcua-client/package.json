@@ -14,10 +14,10 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
-  "@types/async": "^2.4.2",
+  "@types/async": "^3.0.0",
   "@types/once": "^1.4.0",
   "@types/underscore": "^1.8.18",
-  "async": "2.6.2",
+  "async": "^3.0.1",
   "chalk": "^2.4.2",
   "delayed": "^1.0.1",
   "node-opcua-assert": "^2.0.0",
