@@ -202,7 +202,7 @@ function __internalRegisterServer(RegisterServerXResponse, self, server, discove
 
             const options ={
                 applicationUri: serverInfo.applicationUri,
-                port: parseInt(parsedUrl.port,10),
+                port: parseInt(parsedUrl.port, 10),
                 path: parsedUrl.pathname || "/",
                 capabilities: server.discoveryConfiguration.serverCapabilities || [ "DA" ]
             };

@@ -88,7 +88,7 @@ const state_0 = {
                                 if (doDebug) {
                                     console.log(" EnumeratedValue Name=", w(this.attrs.Name, 40), " Value=", this.attrs.Value);
                                 }
-                                this.parent.enumeratedType[this.attrs.Name] = parseInt(this.attrs.Value);
+                                this.parent.enumeratedType[this.attrs.Name] = parseInt(this.attrs.Value, 10);
                             }
                         }
                     },

@@ -919,6 +919,7 @@ OPCUAClient.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClient.p
  */
 OPCUAClient.prototype.closeSession = thenify.withCallback(OPCUAClient.prototype.closeSession);
 
+OPCUAClient.prototype.reactivateSession = thenify.withCallback(OPCUAClient.prototype.reactivateSession);
 
 const ClientSubscription = require("./client_subscription").ClientSubscription;
 OPCUAClient.prototype.withSubscription = function (endpointUrl, subscriptionParameters, innerFunc, callback) {
@@ -947,9 +948,8 @@ OPCUAClient.prototype.withSubscription = function (endpointUrl, subscriptionPara
     }, callback);
 };
 
-
 //xx OPCUAClient.prototype.withSubscription = thenify(OPCUAClient.prototype.withSubscription);
-const nodeVersion = parseInt(process.version.match(/v([0-9]*)\./)[1]);
+const nodeVersion = parseInt(process.version.match(/v([0-9]*)\./)[1], 10);
 
 if (nodeVersion >= 8) {
     require("./opcua_client_es2017_extensions");

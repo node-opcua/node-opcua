@@ -223,7 +223,7 @@ exports.coerceUInt32 = function coerceUInt32(value) {
     }
     if(value.hasOwnProperty("value")) {
         assert(value.constructor.name === "EnumItem");
-        return parseInt(value.value);
+        return parseInt(value.value, 10);
     }
     return parseInt(value, 10);
 };

@@ -94,7 +94,7 @@ function makeQualifiedName(mm) {
     if (!strName || strName.length===0) {
         return new QualifiedName();
     }
-    const namespaceIndex = mm[11] ? parseInt(mm[11]) : 0;
+    const namespaceIndex = mm[11] ? parseInt(mm[11],10) : 0;
     const name = unescape(mm[12]);
     return  new QualifiedName({namespaceIndex: namespaceIndex,name: name});
 }
@@ -154,7 +154,7 @@ function makeRelativePath(str,addressSpace) {
             // match 5
             // namespace match 6 ( ns:)
             // name      match 7
-            const ns = matches[6] ? parseInt(matches[6]) :0;
+            const ns = matches[6] ? parseInt(matches[6], 10) :0;
             const name = matches[7];
             if ( !matches[6] ) {
                 //xx console.log( mm[6])

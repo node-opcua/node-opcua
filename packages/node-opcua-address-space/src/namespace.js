@@ -403,7 +403,7 @@ UANamespace.prototype._createNode = function (options) {
             console.log("   ", options.browseName, " will be replaced with " , correctedName);
             console.log(" Please update your code");
 
-            const indexVerif = parseInt(match[0]);
+            const indexVerif = parseInt(match[0], 10);
             if (indexVerif !== self.index) {
                 console.log(chalk.red.bold("Error: namespace index used at the front of the browseName " + indexVerif + " do not match the index of the current namespace ("+ self.index+ ")"));
                 console.log(" Please fix your code so that the created node is inserted in the correct namespace, please refer to the NodeOPCUA documentation");

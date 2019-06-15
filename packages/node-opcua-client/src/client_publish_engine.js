@@ -326,7 +326,7 @@ ClientSidePublishEngine.prototype.unregisterSubscription = function (subscriptio
 
 ClientSidePublishEngine.prototype.getSubscriptionIds = function() {
     const self = this;
-    return Object.keys(self.subscriptionMap).map(parseInt);
+    return Object.keys(self.subscriptionMap).map((value) => parseInt(value, 10));
 };
 
 

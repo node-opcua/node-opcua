@@ -18,7 +18,7 @@ describe("testing buffer utils",function() {
         const sizes = [];
         let i;
         for(i=0;i<n;i++) {
-            sizes.push(parseInt(""+Math.ceil(Math.random()*10000)));
+            sizes.push(parseInt(""+Math.ceil(Math.random()*10000),10 ));
         }
 //xx        console.log(sizes);
         let a;

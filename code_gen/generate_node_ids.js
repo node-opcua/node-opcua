@@ -47,7 +47,7 @@ function convert(data)
             if (codeMap.hasOwnProperty(name)) {
                 e = codeMap[name];
                 name = e[0];
-                id   = parseInt(e[1],10);
+                id   = parseInt(e[1], 10);
                 typeName = e[2];
 
                 outFile.write(sprintf("  %40s: { name: %40s , value: %6d }, \n",name,"'"+name+"'",id));
@@ -71,7 +71,7 @@ function convert(data)
                 if (typeMap.hasOwnProperty(name)) {
                     e = typeMap[name];
                     name = e[0];
-                    id   = parseInt(e[1],10);
+                    id   = parseInt(e[1], 10);
                     type = e[2];
                     if (i +1 <names.length) {
                         outFile.write(sprintf("  %80s: %6d , \n",name,id));

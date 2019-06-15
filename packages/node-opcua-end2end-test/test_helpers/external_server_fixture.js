@@ -79,7 +79,7 @@ function start_simple_server(options, callback) {
                 //        actual process id of our server. We collect here the real PID of our process
                 //        as output by the server on the console.
                 var m = data.match(/([0-9]+)$/);
-                pid_collected = parseInt(m[1]);
+                pid_collected = parseInt(m[1], 10);
             }
             if (/server now waiting for connections./.test(data)) {
 

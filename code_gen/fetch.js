@@ -41,7 +41,7 @@ function wget(dest_folder, file_url) {
         // handle the response
         let res_data = '';
         // console.log(response);
-        let fileBytes = parseInt(response.headers['content-length'], 10);
+        let fileBytes = parseInt(response.headers['content-length'],  10);
         if (!_.isFinite(fileBytes)) {
             fileBytes = 10000;
         }

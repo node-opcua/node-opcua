@@ -187,7 +187,7 @@ function apply_on_all_schema_fields(self, schema, data, functor , args) {
     }
 }
 
-const _nb_elements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH) : 10;
+const _nb_elements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH, 10) : 10;
 
 function _array_ellypsis(value) {
 

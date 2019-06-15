@@ -33,7 +33,7 @@ const makeApplicationUrn = opcua.makeApplicationUrn;
 const standard_nodeset_file = opcua.standard_nodeset_file;
 const get_fully_qualified_domain_name = opcua.get_fully_qualified_domain_name;
 
-const port = parseInt(argv.port) || 26543;
+const port = parseInt(argv.port, 10) || 26543;
 
 const userManager = {
     isValidUser: function (userName,password) {

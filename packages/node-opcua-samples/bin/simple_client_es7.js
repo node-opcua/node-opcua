@@ -77,7 +77,7 @@ if (!securityPolicy) {
 
 //xx argv.securityMode   = argv.securityMode || "SIGNANDENCRYPT";
 //xx argv.securityPolicy = argv.securityPolicy || "Basic128Rsa15";
-const timeout = parseInt(argv.timeout) * 1000 || 20000;
+const timeout = parseInt(argv.timeout, 10) * 1000 || 20000;
 
 const monitored_node = argv.node || "ns=1;s=PumpSpeed"; //"ns=1;s=Temperature";
 

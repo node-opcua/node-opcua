@@ -49,7 +49,7 @@ function make_back_references(addressSpace) {
 
 function stringToUInt32Array(str) {
     const array = str ? str.split(",").map(function (value) {
-        return parseInt(value);
+        return parseInt(value, 10);
     }) : null;
     return array;
 }
@@ -58,7 +58,7 @@ const makeAccessLevel = require("node-opcua-data-model").makeAccessLevel;
 
 function convertAccessLevel(accessLevel) {
 
-    accessLevel = parseInt(accessLevel || 1); // CurrentRead if not specified
+    accessLevel = parseInt(accessLevel || 1, 10); // CurrentRead if not specified
 
     return makeAccessLevel(accessLevel);
 
@@ -165,7 +165,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
 
         const m = nodeId.match(reg);
         if (m) {
-            const namespaceIndex = _translateNamespaceIndex(parseInt(m[1]));
+            const namespaceIndex = _translateNamespaceIndex(parseInt(m[1],10));
             nodeId = "ns=" + namespaceIndex + ";" + m[2];
         }
         return resolveNodeId(nodeId);
@@ -249,7 +249,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                         name: this.attrs.Name,
                         value: this.attrs.Value,
                         dataType: convertToNodeId(this.attrs.DataType),
-                        valueRank: parseInt(this.attrs.ValueRank || "-1"),
+                        valueRank: parseInt(this.attrs.ValueRank || "-1", 10),
                         description: this.description
                     });
                 }
@@ -409,7 +409,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             parser: {
                 "Value": {
                     finish: function () {
-                        this.parent.enumValueType.value = parseInt(this.text);
+                        this.parent.enumValueType.value = parseInt(this.text, 10);
                     }
                 },
                 "DisplayName": _.extend(_.clone(localizedText_parser.LocalizedText), {
@@ -451,7 +451,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                 },
                 "ValueRank": {
                     finish: function () {
-                        this.parent.argument.valueRank = parseInt(this.text.trim());
+                        this.parent.argument.valueRank = parseInt(this.text.trim(), 10);
                     }
                 },
                 "ArrayDimensions": {
@@ -526,7 +526,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
                 },
                 "UnitId": {
                     finish: function () {
-                        this.parent.euInformation.unitId = parseInt(this.text);
+                        this.parent.euInformation.unitId = parseInt(this.text, 10);
                     }
                 },
                 "DisplayName": _.extend(_.clone(localizedText_parser.LocalizedText), {
@@ -780,8 +780,8 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.valueRank = ec.coerceInt32(attrs.ValueRank) || -1;
             this.obj.arrayDimensions = this.obj.valueRank === -1 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
-            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval) : 0;
-            this.obj.minimumSamplingInterval = parseInt(this.obj.minimumSamplingInterval);
+            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
+            this.obj.minimumSamplingInterval = parseInt(this.obj.minimumSamplingInterval, 10);
 
 
             this.obj.historizing = false;
@@ -822,7 +822,7 @@ function generate_address_space(addressSpace, xmlFiles, callback) {
             this.obj.valueRank = ec.coerceInt32(attrs.ValueRank) || -1;
             this.obj.arrayDimensions = this.obj.valueRank === -1 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
-            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval) : 0;
+            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
 
             this.obj.historizing = false;
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;

@@ -483,8 +483,8 @@ describeWithLeakDetector("Subscriptions and MonitoredItems", function () {
 
         const result = subscription.getMonitoredItems({});
         result.statusCode.should.eql(StatusCodes.Good);
-        result.serverHandles.map(parseInt).should.eql([monitoredItem.monitoredItemId]);
-        result.clientHandles.map(parseInt).should.eql([monitoredItem.clientHandle]);
+        result.serverHandles.map((value) => parseInt(value, 10)).should.eql([monitoredItem.monitoredItemId]);
+        result.clientHandles.map((value) => parseInt(value, 10)).should.eql([monitoredItem.clientHandle]);
 
         subscription.terminate();
         subscription.dispose();

@@ -58,7 +58,7 @@ function _extract_namespace_and_browse_name_as_string(addressSpace,browseName,na
         // split
         if(browseName.indexOf(":")>=0) {
             const a = browseName.split(":");
-            namespaceIndex = a.length === 2 ? parseInt(a[0]) : namespaceIndex;
+            namespaceIndex = a.length === 2 ? parseInt(a[0], 10) : namespaceIndex;
             browseName   = a.length === 2 ? a[1] : browseName;
         }
         result =  [addressSpace.getNamespace(namespaceIndex||0),browseName];
@@ -259,7 +259,7 @@ AddressSpace.prototype.resolveNodeId = function (nodeId) {
 
         // split alias
         const a = nodeId.split(":");
-        const namespaceIndex = a.length === 2 ? parseInt(a[0]) : 0;
+        const namespaceIndex = a.length === 2 ? parseInt(a[0], 10) : 0;
 
         const namespace = this.getNamespace(namespaceIndex);
         // check if the string is a known alias
@@ -943,7 +943,7 @@ AddressSpace.prototype.modelChangeTransaction = function(func) {
 
 function _increase_version_number(node) {
     if (node && node.nodeVersion) {
-        const previousValue = parseInt(node.nodeVersion.readValue().value.value);
+        const previousValue = parseInt(node.nodeVersion.readValue().value.value, 10);
         node.nodeVersion.setValueFromSource({ dataType: "String", value: (previousValue+1).toString() });
         //xx console.log("xxx increasing version number of node ", node.browseName.toString(),previousValue);
     }

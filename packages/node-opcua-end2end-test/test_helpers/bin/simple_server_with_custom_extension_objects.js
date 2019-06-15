@@ -23,7 +23,7 @@ const OPCUAServer = opcua.OPCUAServer;
 const standard_nodeset_file = opcua.standard_nodeset_file;
 
 
-const port = parseInt(argv.port) || 26555;
+const port = parseInt(argv.port, 10) || 26555;
 
 const server_certificate_file            = constructFilename("certificates/server_cert_2048.pem");
 const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
