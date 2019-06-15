@@ -187,14 +187,11 @@ export class ClientSidePublishEngine {
     }
 
     public getSubscriptionIds(): SubscriptionId[] {
-        return Object.keys(this.subscriptionMap).map(parseInt);
+        return Object.keys(this.subscriptionMap).map((a) => parseInt(a, 10));
     }
 
     /***
      * get the client subscription from Id
-     * @method getSubscription
-     * @param subscriptionId {Number} the subscription Id
-     * @return {Subscription|null}
      */
     public getSubscription(subscriptionId: SubscriptionId): any {
         assert(_.isFinite(subscriptionId) && subscriptionId > 0);

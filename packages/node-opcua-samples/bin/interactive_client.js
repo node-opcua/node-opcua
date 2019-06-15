@@ -12,6 +12,7 @@ const _ = require("underscore");
 
 const opcua = require("node-opcua");
 const UAProxyManager = opcua.UAProxyManager;
+const DataType = opcua.DataType;
 
 
 
@@ -154,8 +155,8 @@ function toDate(str) {
         const year = now.getFullYear();
         const month = now.getMonth(); // 0  : jan , 1: feb etc ...
         const day  = now.getDate();
-        const hours = parseInt(tt[1]);
-        const minutes = parseInt(tt[2]);
+        const hours = parseInt(tt[1], 10);
+        const minutes = parseInt(tt[2], 10);
         const seconds = 0;
         const date = new Date(year,month,day,hours,minutes,seconds);
         return date;
@@ -164,7 +165,7 @@ function toDate(str) {
     const r = /([0-9]*)(day|days|d|hours|hour|h|minutes|minutes|m)\s?((ago)?)/;
     const m = str.match(r);
     if (m) {
-        let tvalue = parseInt(m[1]);
+        let tvalue = parseInt(m[1], 10);
         switch(m[2][0]) {
             case "d":
                 tvalue *= 24*3600;

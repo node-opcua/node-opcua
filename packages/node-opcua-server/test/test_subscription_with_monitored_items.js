@@ -18,7 +18,6 @@ const DataType = require("node-opcua-variant").DataType;
 const DataValue = require("node-opcua-data-value").DataValue;
 const Variant = require("node-opcua-variant").Variant;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-
 const AttributeIds = require("node-opcua-data-model").AttributeIds;
 
 const NodeId = require("node-opcua-nodeid").NodeId;
@@ -479,8 +478,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
 
         const result = subscription.getMonitoredItems({});
         result.statusCode.should.eql(StatusCodes.Good);
-        result.serverHandles.map(parseInt).should.eql([monitoredItem.monitoredItemId]);
-        result.clientHandles.map(parseInt).should.eql([monitoredItem.clientHandle]);
+        result.serverHandles.map((a) => parseInt(a, 10)).should.eql([monitoredItem.monitoredItemId]);
+        result.clientHandles.map((a) => parseInt(a, 10)).should.eql([monitoredItem.clientHandle]);
 
         subscription.terminate();
         subscription.dispose();
@@ -636,7 +635,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
 
         function add_monitoredItem(subscription) {
 
-            const nodeId = 'ns=1;s=Static_Float';
+            const nodeId = "ns=1;s=Static_Float";
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -650,7 +649,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
                 }
             });
 
-            const n = addressSpace.findNode('ns=100;s=Static_Float');
+            const n = addressSpace.findNode("ns=100;s=Static_Float");
             //xx console.log(n.toString());
 
             subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
