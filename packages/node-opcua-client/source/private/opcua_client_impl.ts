@@ -714,7 +714,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @param callback
      * @return {*}
      */
-    public reactivateSession(session: ClientSession, callback: (err?: Error) => void) {
+    public async reactivateSession(session: ClientSession): Promise<void>;
+    public reactivateSession(session: ClientSession, callback: (err?: Error) => void): void;
+    public reactivateSession(session: ClientSession, callback?: (err?: Error) => void): any {
 
         const internalSession = session as ClientSessionImpl;
 
@@ -723,7 +725,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         // istanbul ignore next
         if (!this.__resolveEndPoint() || !this.endpoint) {
-            return callback(new Error(" End point must exist " + this._secureChannel.endpointUrl));
+            return callback!(new Error(" End point must exist " + this._secureChannel.endpointUrl));
         }
 
         assert(!internalSession._client || internalSession._client.endpointUrl === this.endpointUrl,
@@ -748,7 +750,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     assert(!internalSession._closed, "session should not vbe closed");
                     assert(_.contains(this._sessions, internalSession));
                 }
-                callback();
+                callback!();
 
             } else {
 
@@ -756,7 +758,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 if (doDebug) {
                     debugLog(chalk.red.bgWhite("reactivateSession has failed !"), err.message);
                 }
-                callback(err);
+                callback!(err);
             }
         });
     }
@@ -1282,3 +1284,4 @@ OPCUAClientImpl.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClie
  *    await client.closeSession(session);
  */
 OPCUAClientImpl.prototype.closeSession = thenify.withCallback(OPCUAClientImpl.prototype.closeSession);
+OPCUAClientImpl.prototype.reactivateSession = thenify.withCallback(OPCUAClientImpl.prototype.reactivateSession);

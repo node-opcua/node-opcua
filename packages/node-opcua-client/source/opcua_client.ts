@@ -162,6 +162,10 @@ export interface OPCUAClient extends OPCUAClientBase  {
 
     closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
 
+    reactivateSession(session: ClientSession): Promise<void>;
+
+    reactivateSession(session: ClientSession, callback: (err?: Error) => void): void;
+
     withSessionAsync<T>(
       endpointUrl: string,
       inner_func: (session: ClientSession) => Promise<T>
