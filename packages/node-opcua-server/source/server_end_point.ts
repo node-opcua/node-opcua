@@ -381,7 +381,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         }
         hostnames = _.uniq(hostnames.concat(options.alternateHostname as string[]));
 
-
         for (const alternateHostname of hostnames ) {
 
             const optionsE = options as EndpointDescriptionParams;

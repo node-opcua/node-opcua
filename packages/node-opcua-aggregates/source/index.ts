@@ -1,3 +1,6 @@
+/**
+ * @module node-opca-aggregates
+ */
 export { 
     addAggregateSupport,
     installAggregateConfigurationOptions,

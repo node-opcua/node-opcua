@@ -1,5 +1,5 @@
 /**
- * @module node-opcua-server-configuration
+ * @module node-opcua-server-configuration-server
  */
 import { EventEmitter } from "events";
 import * as fs from "fs";

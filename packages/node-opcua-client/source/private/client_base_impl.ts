@@ -74,18 +74,20 @@ function __findEndpoint(
   callback: FindEndpointCallback
 ) {
 
-    debugLog("findEndpoint");
+    debugLog("findEndpoint : endpointUrl = ", endpointUrl);
 
     const securityMode = params.securityMode;
     const securityPolicy = params.securityPolicy;
 
-    const options = {
+    const options: OPCUAClientBaseOptions = {
         connectionStrategy: params.connectionStrategy,
-        endpoint_must_exist: false,
+
+        // endpoint_must_exist: false,
 
         applicationName: params.applicationName,
         certificateFile: params.certificateFile,
         privateKeyFile: params.privateKeyFile
+
     };
 
     const client = new ClientBaseImpl(options);
@@ -270,6 +272,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public connectionStrategy: ConnectionStrategy;
     public keepPendingSessionsOnDisconnect: boolean;
     public endpointUrl: string;
+    public discoveryUrl: string;
     public readonly applicationName: string;
 
     /// true if session shall periodically probe the server to keep the session alive and prevent timeout
@@ -368,6 +371,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         this.applicationName = options.applicationName || "NodeOPCUA-Client";
 
+        this.discoveryUrl = options.discoveryUrl || "";
     }
 
     public _cancel_reconnection(callback: ErrorCallback) {
@@ -940,6 +944,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     }
 
     private fetchServerCertificate(endpointUrl: string, callback: (err?: Error) => void): void {
+
+        const discoveryUrl = this.discoveryUrl.length > 0 ?  this.discoveryUrl : endpointUrl;
         debugLog("OPCUAClientImpl : getting serverCertificate");
         // we have not been given the serverCertificate but this certificate
         // is required as the connection is to be secured.
@@ -968,7 +974,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             certificateFile,
             privateKeyFile
         };
-        return __findEndpoint(this, endpointUrl, params, (err: Error | null, result?: FindEndpointResult) => {
+        return __findEndpoint(this, discoveryUrl, params, (err: Error | null, result?: FindEndpointResult) => {
             if (err) {
                 this.emit("connection_failed", err);
                 return callback(err);

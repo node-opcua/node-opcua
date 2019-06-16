@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-file-transfer
+ */
 import * as fs from "fs";
 import {
     callbackify,
@@ -25,12 +28,26 @@ const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
+/**
+ * 
+ */
 export interface FileOptions {
+    /**
+     * the filaname of the physical file which is managed by the OPCUA filetpye
+     */
     filename: string;
+    /**
+     * the maximum allowed size of the  phisical file.
+     */
     maxSize?: number;
+    /**
+     * an optional mimeType
+     */
     mineType?: string;
 }
 
+/**
+  */
 export class FileTypeData {
     public filename: string = "";
     public maxSize: number = 0;
@@ -464,6 +481,11 @@ async function _getPositionFile(
 
 export const defaultMaxSize = 100000000;
 
+/**
+ * bind all methods of a UAFileType OPCUA node
+ * @param file the OPCUA Node that has a typeDefinition of FileType
+ * @param options the options
+ */
 export function installFileType(
     file: UAFileType,
     options: FileOptions

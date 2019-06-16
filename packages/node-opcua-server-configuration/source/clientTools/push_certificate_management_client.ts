@@ -1,5 +1,5 @@
 /**
- * @module node-opcua-server-configuration
+ * @module node-opcua-server-configuration.client
  */
 import { ByteString } from "node-opcua-basic-types";
 import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";

@@ -72,23 +72,14 @@ function timeout_filter(publishData: PublishData): boolean {
 }
 
 /***
- * @class ServerSidePublishEngine
  *  a Publish Engine for a given session
- * @param options {Object}
- * @param [options.maxPublishRequestInQueue= 100] {Integer}
- * @constructor
  */
 export class ServerSidePublishEngine extends EventEmitter {
 
     public static registry = new ObjectRegistry();
 
     /**
-     * @method transferSubscriptionsToOrphan
-     * @param srcPublishEngine {ServerSidePublishEngine}
-     * @param destPublishEngine {ServerSidePublishEngine}
-     * @return void
      * @private
-     * @static
      */
     public static transferSubscriptionsToOrphan(
       srcPublishEngine: ServerSidePublishEngine,
@@ -117,8 +108,6 @@ export class ServerSidePublishEngine extends EventEmitter {
     }
 
     /**
-     * @method transferSubscription
-     *
      * @param subscription
      * @param destPublishEngine
      * @param sendInitialValues true if initial values should be sent
@@ -229,15 +218,12 @@ export class ServerSidePublishEngine extends EventEmitter {
 
     /**
      * get a array of subscription handled by the publish engine.
-     * @property subscription {Subscription[]}
      */
     public get subscriptions(): Subscription[] {
         return _.map(this._subscriptions, (x: Subscription) => x);
     }
 
     /**
-     * @method add_subscription
-     * @param subscription  {Subscription}
      */
     public add_subscription(
       subscription: Subscription
@@ -271,7 +257,6 @@ export class ServerSidePublishEngine extends EventEmitter {
     }
 
     /**
-     * @method shutdown
      */
     public shutdown() {
 
@@ -357,9 +342,8 @@ export class ServerSidePublishEngine extends EventEmitter {
 
     /**
      * retrieve a subscription by id.
-     * @method getSubscriptionById
      * @param subscriptionId
-     * @return {Subscription}
+     * @return Subscription
      */
     public getSubscriptionById(subscriptionId: number | string): Subscription {
         return this._subscriptions[subscriptionId.toString()];
@@ -656,13 +640,13 @@ export class ServerSidePublishEngine extends EventEmitter {
 
     /**
      * @method send_notification_message
-     * @param param                          {Object}
-     * @param param.subscriptionId           {Number}
-     * @param param.sequenceNumber           {Number}
-     * @param param.notificationData         {Object}
-     * @param param.availableSequenceNumbers {Array<Number>}
-     * @param param.moreNotifications        {Boolean}
-     * @param force                          {Boolean} push response in queue until next publish Request is received
+     * @param param
+     * @param param.subscriptionId
+     * @param param.sequenceNumber
+     * @param param.notificationData
+     * @param param.availableSequenceNumbers
+     * @param param.moreNotifications
+     * @param force                          push response in queue until next publish Request is received
      * @private
      */
     private send_notification_message(param: any, force: boolean) {

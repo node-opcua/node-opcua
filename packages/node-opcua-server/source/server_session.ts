@@ -381,7 +381,7 @@ export class ServerSession  extends EventEmitter implements ISubscriber , ISessi
      */
     public close(deleteSubscriptions: boolean, reason: string) {
 
-        debugLog(" closing session deleteSubscriptions = ", deleteSubscriptions)
+        debugLog(" closing session deleteSubscriptions = ", deleteSubscriptions);
         if (this.publishEngine) {
             this.publishEngine.onSessionClose();
         }

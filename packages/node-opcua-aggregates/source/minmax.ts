@@ -1,3 +1,6 @@
+/**
+ * @module node-opca-aggregates
+ */
 //  excert from OPC Unified Architecture, Part 13 21 Release 1.04
 // 5.4.3.10 Minimum
 // The Minimum Aggregate defined in Table 21 retrieves the minimum Good raw value within the

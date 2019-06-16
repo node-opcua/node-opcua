@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-server
+ */
 import { assert } from "node-opcua-assert";
 import {
     checkDebugFlag, make_debugLog

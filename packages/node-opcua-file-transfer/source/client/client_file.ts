@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-file-transfer-client
+ */
 import { Byte, Int32, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";

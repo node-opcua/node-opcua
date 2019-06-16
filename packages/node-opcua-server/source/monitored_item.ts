@@ -22,6 +22,7 @@ import { ObjectRegistry } from "node-opcua-object-registry";
 import { extractEventFields } from "node-opcua-service-filter";
 import { EventFilter } from "node-opcua-service-filter";
 import {
+    ReadValueId,
     TimestampsToReturn
 } from "node-opcua-service-read";
 import {
@@ -32,13 +33,16 @@ import {
     checkDeadBand, DataChangeFilter, DataChangeTrigger, DeadbandType
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { EventFieldList, MonitoringFilter, SimpleAttributeOperand } from "node-opcua-types";
+import {EventFieldList, MonitoringFilter, ReadValueIdOptions, SimpleAttributeOperand} from "node-opcua-types";
 import { sameVariant, Variant } from "node-opcua-variant";
 
 import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
 
-const defaultItemToMonitor = { indexRange: null, attributeId: AttributeIds.Value };
+const defaultItemToMonitor: ReadValueIdOptions = new ReadValueId({
+    attributeId: AttributeIds.Value,
+    indexRange: undefined,
+});
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -245,7 +249,7 @@ export interface MonitoredItemOptions extends MonitoringParameters {
      * the monitoredItem Id assigned by the server to this monitoredItem.
      */
     monitoredItemId: number;
-    itemToMonitor?: any;
+    itemToMonitor?: ReadValueIdOptions;
     timestampsToReturn?: TimestampsToReturn;
 
     // MonitoringParameters
@@ -272,6 +276,8 @@ export interface BaseNode2 extends EventEmitter {
     nodeId: NodeId;
     browseName: QualifiedNameOptions;
     nodeClass: NodeClass;
+    dataType: NodeId;
+    addressSpace: any;
 
     readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue;
 }
@@ -291,11 +297,11 @@ type TimerKey = NodeJS.Timer;
  */
 export class MonitoredItem extends EventEmitter {
 
-    public get node(): BaseNode2 | null {
+    public get node(): BaseNode | null {
         return this._node;
     }
 
-    public set node(someNode: BaseNode2 | null) {
+    public set node(someNode: BaseNode | null) {
         throw new Error("Unexpected way to set node");
     }
 
@@ -323,7 +329,7 @@ export class MonitoredItem extends EventEmitter {
       callback: (err: Error | null, dataValue?: DataValue) => void
     ) => void) | null = null;
 
-    private _node: BaseNode2 | null;
+    private _node: BaseNode | null;
     private queue: QueueItem[];
     private _semantic_version: number;
     private _is_sampling: boolean = false;
@@ -362,10 +368,6 @@ export class MonitoredItem extends EventEmitter {
 
         this.filter = options.filter as MonitoringFilter || null;
 
-        /**
-         * @property node the associated node object in the address space
-         * @type {BaseNode|null}
-         */
         this._node = null;
         this._semantic_version = 0;
 
@@ -616,7 +618,7 @@ export class MonitoredItem extends EventEmitter {
         this._adjust_sampling(old_samplingInterval);
 
         if (monitoringParameters.filter) {
-            const statusCodeFilter = validateFilter(monitoringParameters.filter, this.itemToMonitor, this.node);
+            const statusCodeFilter = validateFilter(monitoringParameters.filter, this.itemToMonitor, this.node!);
             if (statusCodeFilter.isNot(StatusCodes.Good)) {
                 return new MonitoredItemModifyResult({
                     statusCode: statusCodeFilter
@@ -1092,7 +1094,7 @@ export class MonitoredItem extends EventEmitter {
         }
     }
 
-    private _on_node_disposed(node: BaseNode2) {
+    private _on_node_disposed(node: BaseNode) {
         this._on_value_changed(new DataValue({
             sourceTimestamp: new Date(),
             statusCode: StatusCodes.BadNodeIdInvalid

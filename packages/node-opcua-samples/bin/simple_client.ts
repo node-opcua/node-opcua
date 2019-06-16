@@ -30,6 +30,7 @@ import {
     NodeId,
     ObjectTypeIds,
     OPCUAClient,
+    OPCUAClientOptions,
     QueryFirstRequestOptions,
     readHistoryServerCapabilities,
     resolveNodeId,
@@ -58,12 +59,12 @@ const argv = yargs(process.argv)
   .option("securityMode", {
       alias: "s",
       default: "None",
-      describe: "the security mode"
+      describe: "the security mode (  None Sign SignAndEncrypt )"
   })
   .option("securityPolicy", {
       alias: "P",
       default: "None",
-      describe: "the policy mode"
+      describe: "the policy mode : (" + Object.keys(SecurityPolicy).join(" - ") + ")"
   })
   .option("userName", {
       alias: "u",
@@ -94,8 +95,12 @@ const argv = yargs(process.argv)
       alias: "c",
       describe: "crawl"
   })
-  .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN", "")
-  .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ", "")
+  .option("discovery", {
+      alias: "D",
+      describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
+  })
+  .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Rsa256 -s=Sign", "")
+  .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=Sign -u JoeDoe -p P@338@rd ", "")
   .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"", "")
   .argv;
 
@@ -125,6 +130,7 @@ if (!endpointUrl) {
     yargs.showHelp();
     process.exit(0);
 }
+const discoveryUrl = argv.discovery ? argv.discovery as string : endpointUrl;
 
 const doCrawling = !!argv.crawl;
 const doHistory = !!argv.history;
@@ -331,11 +337,11 @@ async function getAllEventTypes(session: ClientSession) {
 }
 
 async function monitorAlarm(subscription: ClientSubscription, alarmNodeId: NodeId) {
-   try {
-       await callConditionRefresh(subscription);
-   } catch (err) {
-       console.log(" monitorAlarm failed , may be your server doesn't support A&E", err.message);
-   }
+    try {
+        await callConditionRefresh(subscription);
+    } catch (err) {
+        console.log(" monitorAlarm failed , may be your server doesn't support A&E", err.message);
+    }
 }
 
 function getTick() {
@@ -348,7 +354,11 @@ let client: OPCUAClient;
 
 async function main() {
 
-    const optionsInitial = {
+    const optionsInitial: OPCUAClientOptions = {
+
+        securityMode,
+        securityPolicy,
+
         endpoint_must_exist: false,
         keepSessionAlive: true,
 
@@ -356,7 +366,9 @@ async function main() {
             initialDelay: 2000,
             maxDelay: 10 * 1000,
             maxRetry: 10
-        }
+        },
+
+        discoveryUrl
     };
 
     client = OPCUAClient.create(optionsInitial);
@@ -368,7 +380,13 @@ async function main() {
     console.log(" connecting to ", chalk.cyan.bold(endpointUrl));
     console.log("    strategy", client.connectionStrategy);
 
-    await client.connect(endpointUrl);
+    try {
+        await client.connect(endpointUrl);
+    } catch (err) {
+        console.log(chalk.red(" Cannot connect to ") + endpointUrl);
+        console.log(" Error = ", err.message);
+        return;
+    }
 
     const endpoints = await client.getEndpoints();
 
@@ -379,7 +397,7 @@ async function main() {
 
     const table = new Table();
 
-    let serverCertificate: Certificate;
+    let serverCertificate: Certificate | undefined;
 
     let i = 0;
     for (const endpoint of endpoints) {
@@ -387,7 +405,7 @@ async function main() {
         table.cell("Application URI", endpoint.server.applicationUri);
         table.cell("Product URI", endpoint.server.productUri);
         table.cell("Application Name", endpoint.server.applicationName.text);
-        table.cell("Security Mode", endpoint.securityMode.toString());
+        table.cell("Security Mode", MessageSecurityMode[endpoint.securityMode].toString());
         table.cell("securityPolicyUri", endpoint.securityPolicyUri);
         table.cell("Type", ApplicationType[endpoint.server.applicationType]);
         table.cell("certificate", "..." /*endpoint.serverCertificate*/);
@@ -576,7 +594,7 @@ async function main() {
     // -----------------------------------------------------------------------------------------------------------------
     try {
         console.log(" ----------------------------------------------------------  Testing QueryFirst");
-        const queryFirstRequest: QueryFirstRequestOptions =  {
+        const queryFirstRequest: QueryFirstRequestOptions = {
             view: {
                 viewId: NodeId.nullNodeId
             },
@@ -593,12 +611,13 @@ async function main() {
                         relativePath: undefined
                     }]
                 }
-            ]};
+            ]
+        };
 
         const queryFirstResult = await the_session.queryFirst(queryFirstRequest);
         console.log(" -----------------------------------------------------------------------------------------------------------------");
     } catch (err) {
-        console.log(" Server is not supporting queryFirst err=",err.message);
+        console.log(" Server is not supporting queryFirst err=", err.message);
     }
     // create Read
     if (doHistory) {
@@ -647,11 +666,11 @@ async function main() {
     }).on("terminated", () => { /* */
     });
 
-    try  {
+    try {
         const results1 = await the_session.getMonitoredItems(the_subscription.subscriptionId);
         console.log("MonitoredItems clientHandles", results1.clientHandles);
         console.log("MonitoredItems serverHandles", results1.serverHandles);
-    }  catch(err) {
+    } catch (err) {
         console.log("Server doesn't seems to implement getMonitoredItems method ", err.message);
     }
     // get_monitored_item
@@ -832,7 +851,8 @@ process.on("SIGINT", async () => {
         console.log(chalk.red.bold(" Received client interruption from user "));
         console.log(chalk.red.bold(" shutting down ..."));
         const subscription = the_subscription;
-        the_subscription = null;;
+        the_subscription = null;
+        ;
         await subscription.terminate();
         await the_session.close();
         await client.disconnect();

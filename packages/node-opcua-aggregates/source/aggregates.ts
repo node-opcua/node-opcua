@@ -1,3 +1,6 @@
+/**
+ * @module node-opca-aggregates
+ */
 import { ObjectIds } from "node-opcua-constants";
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";

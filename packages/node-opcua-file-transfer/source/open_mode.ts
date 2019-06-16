@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-file-transfer-server
+ */
 export enum OpenFileModeMask {
     ReadBit = 0x01,
     WriteBit = 0x02,

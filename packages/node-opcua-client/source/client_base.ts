@@ -117,6 +117,11 @@ export interface OPCUAClientBaseOptions {
      * a client name string that will be used to generate session names.
      */
     clientName?: string;
+
+    /**
+     * discovery url:
+     */
+    discoveryUrl?: string;
 }
 
 export interface GetEndpointsOptions {

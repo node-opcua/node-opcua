@@ -1,3 +1,6 @@
+/**
+ * @module node-opca-aggregates
+ */
 import { SessionContext, UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { HistoryData, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";

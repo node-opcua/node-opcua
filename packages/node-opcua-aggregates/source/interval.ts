@@ -1,3 +1,6 @@
+/**
+ * @module node-opca-aggregates
+ */
 import { DataValue } from "node-opcua-data-value";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { AggregateConfigurationOptions } from "node-opcua-types";

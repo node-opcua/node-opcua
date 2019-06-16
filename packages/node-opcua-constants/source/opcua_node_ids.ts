@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-constants
+ */
 // this file has been automatically generated
 // using code_gen/generate_node_ids.js
  export enum DataTypeIds { 

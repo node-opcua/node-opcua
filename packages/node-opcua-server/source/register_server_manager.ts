@@ -11,6 +11,7 @@ import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
 import { OPCUAClientBase } from "node-opcua-client";
 import { make_debugLog } from "node-opcua-debug";
+import { resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
     coerceSecurityPolicy,
     MessageSecurityMode,
@@ -25,7 +26,6 @@ import {
 import { EndpointDescription, MdnsDiscoveryConfiguration } from "node-opcua-types";
 import { OPCUABaseServer } from "./base_server";
 import { IRegisterServerManager } from "./I_register_server_manager";
-import { resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 
 export type EmptyCallback = (err?: Error) => void;
 

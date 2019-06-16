@@ -1,8 +1,9 @@
 /**
- * @module opcua.server
+ * @module node-opcua-server
  */
 import { assert } from "node-opcua-assert";
 
+import {BaseNode, UAVariable} from "node-opcua-address-space";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
@@ -10,15 +11,16 @@ import { NodeId } from "node-opcua-nodeid";
 import { DataChangeFilter, EventFilter } from "node-opcua-service-filter";
 import { DeadbandType } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import {ReadValueIdOptions} from "node-opcua-types";
+import {BaseNode2} from "./monitored_item";
 
 function __validateDataChangeFilter(
   filter: DataChangeFilter,
-  itemToMonitor: any,
-  node: any
+  itemToMonitor: ReadValueIdOptions,
+  node: UAVariable
 ): StatusCode {
 
     assert(itemToMonitor.attributeId === AttributeIds.Value);
-    assert(filter instanceof DataChangeFilter);
 
     if ((node.nodeClass !== NodeClass.Variable)) {
         return StatusCodes.BadNodeIdInvalid;
@@ -28,9 +30,9 @@ function __validateDataChangeFilter(
 
     // if node is not Numerical=> DataChangeFilter
     assert(node.dataType instanceof NodeId);
-    const dataType = node.addressSpace.findDataType(node.dataType);
+    const dataType = node.addressSpace.findDataType(node.dataType)!;
 
-    const dataTypeNumber = node.addressSpace.findDataType("Number");
+    const dataTypeNumber = node.addressSpace.findDataType("Number")!;
     if (filter.deadbandType !== DeadbandType.None) {
         if (!dataType.isSupertypeOf(dataTypeNumber)) {
             return StatusCodes.BadFilterNotAllowed;
@@ -54,8 +56,8 @@ function __validateDataChangeFilter(
 
 export function validateFilter(
   filter: ExtensionObject | null,
-  itemToMonitor: any,
-  node: any
+  itemToMonitor: ReadValueIdOptions,
+  node: BaseNode
 ) {
 
     // handle filter information
@@ -77,8 +79,7 @@ export function validateFilter(
     }
 
     if (filter instanceof DataChangeFilter) {
-
-        return __validateDataChangeFilter(filter, itemToMonitor, node);
+        return __validateDataChangeFilter(filter, itemToMonitor, node as UAVariable);
     }
 
     return StatusCodes.Good;

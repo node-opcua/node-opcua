@@ -3,34 +3,35 @@
  */
 // tslint:disable:no-console
 
-import { TimestampsToReturn } from "node-opcua-data-value";
+import {TimestampsToReturn} from "node-opcua-data-value";
 
 // tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
 import chalk from "chalk";
-import { EventEmitter } from "events";
+import {EventEmitter} from "events";
 import * as _ from "underscore";
 import * as util from "util";
 
-import { AddressSpace, BaseNode, UAObjectType, UAVariable } from "node-opcua-address-space";
-import { checkSelectClauses } from "node-opcua-address-space";
-import { SessionContext } from "node-opcua-address-space";
-import { assert } from "node-opcua-assert";
-import { SessionDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
-import { NodeClass } from "node-opcua-data-model";
-import { AttributeIds } from "node-opcua-data-model";
-import { isValidDataEncoding } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { ExtensionObject } from "node-opcua-extension-object";
+import {AddressSpace, BaseNode, Duration, UAObjectType, UAVariable} from "node-opcua-address-space";
+import {checkSelectClauses} from "node-opcua-address-space";
+import {SessionContext} from "node-opcua-address-space";
+import {assert} from "node-opcua-assert";
+import {Byte} from "node-opcua-basic-types";
+import {SessionDiagnosticsDataType, SubscriptionDiagnosticsDataType} from "node-opcua-common";
+import {NodeClass} from "node-opcua-data-model";
+import {AttributeIds} from "node-opcua-data-model";
+import {isValidDataEncoding} from "node-opcua-data-model";
+import {checkDebugFlag, make_debugLog} from "node-opcua-debug";
+import {ExtensionObject} from "node-opcua-extension-object";
 import {
     NodeId
 } from "node-opcua-nodeid";
-import { ObjectRegistry } from "node-opcua-object-registry";
+import {ObjectRegistry} from "node-opcua-object-registry";
 import {
     SequenceNumberGenerator
 } from "node-opcua-secure-channel";
-import { EventFilter } from "node-opcua-service-filter";
-import { AggregateFilter } from "node-opcua-service-subscription";
+import {EventFilter} from "node-opcua-service-filter";
+import {AggregateFilter} from "node-opcua-service-subscription";
 import {
     DataChangeNotification,
     EventNotificationList,
@@ -52,17 +53,21 @@ import {
     EventFieldList,
     EventFilterResult,
     MonitoredItemCreateResult,
-    MonitoredItemNotification
+    MonitoredItemNotification,
+    SubscriptionDiagnosticsDataTypeOptions
 } from "node-opcua-types";
 
-import { MonitoredItem, MonitoredItemOptions } from "./monitored_item";
-import { ServerSession } from "./server_session";
-import { validateFilter } from "./validate_filter";
+import {MonitoredItem, MonitoredItemOptions} from "./monitored_item";
+import {ServerSession} from "./server_session";
+import {validateFilter} from "./validate_filter";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const maxNotificationMessagesInQueue = 100;
 
+export interface SubscriptionDiagnosticsDataTypePriv extends SubscriptionDiagnosticsDataType {
+    $subscription: Subscription;
+}
 export enum SubscriptionState {
     CLOSED = 1,   // The Subscription has not yet been created or has terminated.
     CREATING = 2, // The Subscription is being created
@@ -94,9 +99,9 @@ function _adjust_maxKeepAliveCount(maxKeepAliveCount?: number/*,publishingInterv
 }
 
 function _adjust_lifeTimeCount(
-  lifeTimeCount: number,
-  maxKeepAliveCount: number,
-  publishingInterval: number
+    lifeTimeCount: number,
+    maxKeepAliveCount: number,
+    publishingInterval: number
 ): number {
     lifeTimeCount = lifeTimeCount || 1;
 
@@ -112,13 +117,13 @@ function _adjust_lifeTimeCount(
 }
 
 function _adjust_publishinEnable(
-  publishingEnabled?: boolean | null
+    publishingEnabled?: boolean | null
 ): boolean {
     return (publishingEnabled === null || publishingEnabled === undefined) ? true : !!publishingEnabled;
 }
 
 function _adjust_maxNotificationsPerPublish(
-  maxNotificationsPerPublish?: number
+    maxNotificationsPerPublish?: number
 ): number {
     maxNotificationsPerPublish = maxNotificationsPerPublish === undefined ? 0 : maxNotificationsPerPublish;
     assert(_.isNumber(maxNotificationsPerPublish));
@@ -131,9 +136,9 @@ function w(s: string | number, length: number): string {
 
 function t(d: Date): string {
     return w(d.getHours(), 2) + ":"
-      + w(d.getMinutes(), 2) + ":"
-      + w(d.getSeconds(), 2) + ":"
-      + w(d.getMilliseconds(), 3);
+        + w(d.getMinutes(), 2) + ":"
+        + w(d.getSeconds(), 2) + ":"
+        + w(d.getMilliseconds(), 3);
 }
 
 // verify that the injected publishEngine provides the expected services
@@ -148,9 +153,9 @@ function _assert_valid_publish_engine(publishEngine: any) {
 
 function assert_validNotificationData(n: any) {
     assert(
-      n instanceof DataChangeNotification ||
-      n instanceof EventNotificationList ||
-      n instanceof StatusChangeNotification
+        n instanceof DataChangeNotification ||
+        n instanceof EventNotificationList ||
+        n instanceof StatusChangeNotification
     );
 }
 
@@ -161,8 +166,8 @@ function getSequenceNumbers(arr: any[]): number [] {
 }
 
 function analyseEventFilterResult(
-  node: BaseNode,
-  eventFilter: EventFilter
+    node: BaseNode,
+    eventFilter: EventFilter
 ): EventFilterResult {
 
     if (!(eventFilter instanceof EventFilter)) {
@@ -170,8 +175,8 @@ function analyseEventFilterResult(
     }
 
     const selectClauseResults = checkSelectClauses(
-      node as UAObjectType,
-      eventFilter.selectClauses || []
+        node as UAObjectType,
+        eventFilter.selectClauses || []
     );
 
     const whereClauseResult = new ContentFilterResult();
@@ -184,8 +189,8 @@ function analyseEventFilterResult(
 }
 
 function analyseDataChangeFilterResult(
-  node: BaseNode,
-  dataChangeFilter: DataChangeFilter
+    node: BaseNode,
+    dataChangeFilter: DataChangeFilter
 ): AggregateFilterResult | null {
     assert(dataChangeFilter instanceof DataChangeFilter);
     // the opcua specification doesn't provide dataChangeFilterResult
@@ -193,16 +198,16 @@ function analyseDataChangeFilterResult(
 }
 
 function analyseAggregateFilterResult(
-  node: BaseNode,
-  aggregateFilter: AggregateFilter
+    node: BaseNode,
+    aggregateFilter: AggregateFilter
 ): AggregateFilterResult {
     assert(aggregateFilter instanceof AggregateFilter);
     return new AggregateFilterResult({});
 }
 
 function _process_filter(
-  node: BaseNode,
-  filter: any
+    node: BaseNode,
+    filter: any
 ): any {
 
     if (!filter) {
@@ -220,45 +225,49 @@ function _process_filter(
     throw new Error("invalid filter");
 }
 
-function createSubscriptionDiagnostics(subscription: Subscription) {
+/**
+ * @private
+ */
+function createSubscriptionDiagnostics(subscription: Subscription): SubscriptionDiagnosticsDataTypePriv {
 
     assert(subscription instanceof Subscription);
 
-    subscription.subscriptionDiagnostics = new SubscriptionDiagnosticsDataType({});
-
-    subscription.subscriptionDiagnostics.$subscription = subscription;
+    const subscriptionDiagnostics = new SubscriptionDiagnosticsDataType({});
+    
+    const subscription_subscriptionDiagnostics = (subscriptionDiagnostics as any);
+    subscription_subscriptionDiagnostics.$subscription = subscription;
     // "sessionId"
-    subscription.subscriptionDiagnostics.__defineGetter__("sessionId", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("sessionId", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.getSessionId();
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("subscriptionId", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("subscriptionId", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.id;
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("priority", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("priority", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.priority;
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("publishingInterval", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("publishingInterval", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.publishingInterval;
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("maxLifetimeCount", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("maxLifetimeCount", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.lifeTimeCount;
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("maxKeepAliveCount", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("maxKeepAliveCount", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.maxKeepAliveCount;
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("maxNotificationsPerPublish", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("maxNotificationsPerPublish", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.maxNotificationsPerPublish;
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("publishingEnabled", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("publishingEnabled", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.publishingEnabled;
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("monitoredItemCount", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("monitoredItemCount", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.monitoredItemCount;
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("nextSequenceNumber", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("nextSequenceNumber", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription._get_future_sequence_number();
     });
-    subscription.subscriptionDiagnostics.__defineGetter__("disabledMonitoredItemCount", function(this: any) {
+    subscription_subscriptionDiagnostics.__defineGetter__("disabledMonitoredItemCount", function(this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.disabledMonitoredItemCount;
     });
 
@@ -291,6 +300,7 @@ function createSubscriptionDiagnostics(subscription: Subscription) {
      */
     // add object in Variable SubscriptionDiagnosticArray (i=2290) ( Array of SubscriptionDiagnostics)
     // add properties in Variable to reflect
+    return subscriptionDiagnostics as SubscriptionDiagnosticsDataTypePriv;
 }
 
 export interface SubscriptionOptions {
@@ -334,7 +344,47 @@ function getNextMonitoredItemId() {
 }
 
 const INVALID_ID = -1;
-type Notification = DataChangeNotification|EventNotificationList|StatusChangeNotification;
+
+export type Notification = DataChangeNotification | EventNotificationList | StatusChangeNotification;
+export type Counter = number;
+
+export interface ModifySubscriptionParameters {
+    /**
+     *     requestedPublishingInterval =0 means fastest possible
+     */
+    requestedPublishingInterval?: Duration;
+    /*
+     * requestedLifetimeCount=0 means no change
+     */
+    requestedLifetimeCount?: Counter;
+    /**
+     * requestedMaxKeepAliveCount  ===0 means no change
+     */
+    requestedMaxKeepAliveCount?: Counter;
+    maxNotificationsPerPublish?: Counter;
+    priority?: Byte;
+}
+
+export interface GetMonitoredItemsResult {
+    /**
+     * array of serverHandles for all MonitoredItems of the subscription
+     * identified by subscriptionId.
+     */
+    serverHandles: number[];
+    /**
+     *  array of clientHandles for all MonitoredItems of the subscription
+     *  identified by subscriptionId.
+     */
+    clientHandles: number[];
+    statusCode: StatusCode;
+}
+
+interface InternalNotification {
+    notification: NotificationMessage;
+    publishTime: Date;
+    sequenceNumber: number;
+    start_tick: number;
+}
 
 /**
  * The Subscription class used in the OPCUA server side.
@@ -350,12 +400,43 @@ export class Subscription extends EventEmitter {
     public publishEngine: IServerPublishEngine;
     public id: number;
     public priority: number;
+    /**
+     * the Subscription publishing interval
+     * @default 1000
+     */
     public publishingInterval: number;
+    /**
+     * The keep alive count defines how many times the publish interval need to
+     * expires without having notifications available before the server send an
+     * empty message.
+     * OPCUA Spec says: a value of 0 is invalid.
+     * @default 10
+     *
+     */
     public maxKeepAliveCount: number;
+    /**
+     * The life time count defines how many times the publish interval expires without
+     * having a connection to the client to deliver data.
+     * If the life time count reaches maxKeepAliveCount, the subscription will
+     * automatically terminate.
+     * OPCUA Spec: The life-time count shall be a minimum of three times the keep keep-alive count.
+     *
+     * Note: this has to be interpreted as without having a PublishRequest available
+     * @default 1
+     */
     public lifeTimeCount: number;
+    /**
+     * The maximum number of notifications that the Client wishes to receive in a
+     * single Publish response. A value of zero indicates that there is no limit.
+     * The number of notifications per Publish is the sum of monitoredItems in the
+     * DataChangeNotification and events in the EventNotificationList.
+     *
+     * @property maxNotificationsPerPublish
+     * @default 0
+     */
     public maxNotificationsPerPublish: number;
     public publishingEnabled: boolean;
-    public subscriptionDiagnostics: any;
+    public subscriptionDiagnostics: SubscriptionDiagnosticsDataTypePriv;
 
     public state: any;
     public messageSent: boolean;
@@ -363,11 +444,14 @@ export class Subscription extends EventEmitter {
 
     private _life_time_counter: number;
     private _keep_alive_counter: number = 0;
-    private _pending_notifications: any;
-    private _sent_notifications: any[];
+    private _pending_notifications: InternalNotification[];
+    private _sent_notifications: InternalNotification[];
     private readonly _sequence_number_generator: SequenceNumberGenerator;
     private publishIntervalCount: number;
     private readonly monitoredItems: any;
+    /**
+     *  number of monitored Item
+     */
     private monitoredItemIdCounter: number;
     private _unacknowledgedMessageCount: number;
     private timerId: any;
@@ -391,49 +475,15 @@ export class Subscription extends EventEmitter {
 
         this.priority = options.priority || 0;
 
-        /**
-         * the Subscription publishing interval
-         * @property  publishingInterval
-         * @default 1000
-         */
         this.publishingInterval = _adjust_publishing_interval(options.publishingInterval);
 
-        /**
-         * The keep alive count defines how many times the publish interval need to
-         * expires without having notifications available before the server send an
-         * empty message.
-         * OPCUA Spec says: a value of 0 is invalid.
-         * @property  maxKeepAliveCount
-         * @default 10
-         *
-         */
         this.maxKeepAliveCount = _adjust_maxKeepAliveCount(options.maxKeepAliveCount); // , this.publishingInterval);
 
         this.resetKeepAliveCounter();
 
-        /**
-         * The life time count defines how many times the publish interval expires without
-         * having a connection to the client to deliver data.
-         * If the life time count reaches maxKeepAliveCount, the subscription will
-         * automatically terminate.
-         * OPCUA Spec: The life-time count shall be a minimum of three times the keep keep-alive count.
-         *
-         * Note: this has to be interpreted as without having a PublishRequest available
-         * @property  lifeTimeCount
-         * @default 1
-         */
         this.lifeTimeCount = _adjust_lifeTimeCount(
-          options.lifeTimeCount || 0, this.maxKeepAliveCount, this.publishingInterval);
+            options.lifeTimeCount || 0, this.maxKeepAliveCount, this.publishingInterval);
 
-        /**
-         * The maximum number of notifications that the Client wishes to receive in a
-         * single Publish response. A value of zero indicates that there is no limit.
-         * The number of notifications per Publish is the sum of monitoredItems in the
-         * DataChangeNotification and events in the EventNotificationList.
-         *
-         * @property maxNotificationsPerPublish
-         * @default 0
-         */
         this.maxNotificationsPerPublish = _adjust_maxNotificationsPerPublish(options.maxNotificationsPerPublish);
 
         this._life_time_counter = 0;
@@ -453,16 +503,11 @@ export class Subscription extends EventEmitter {
 
         this.monitoredItems = {}; // monitored item map
 
-        /**
-         *  number of monitored Item
-         *  @property monitoredItemIdCounter
-         */
         this.monitoredItemIdCounter = 0;
 
         this.publishingEnabled = _adjust_publishinEnable(options.publishingEnabled);
 
-        this.subscriptionDiagnostics = null;
-        createSubscriptionDiagnostics(this);
+        this.subscriptionDiagnostics = createSubscriptionDiagnostics(this);
 
         // A boolean value that is set to TRUE to mean that either a NotificationMessage or a keep-alive
         // Message has been sent on the Subscription. It is a flag that is used to ensure that either a
@@ -496,16 +541,10 @@ export class Subscription extends EventEmitter {
     }
 
     /**
-     * @method modify
-     * @param param {Object}
-     * @param param.requestedPublishingInterval  {Duration}  requestedPublishingInterval =0 means fastest possible
-     * @param param.requestedLifetimeCount       {Counter}   requestedLifetimeCount      ===0 means no change
-     * @param param.requestedMaxKeepAliveCount   {Counter}   requestedMaxKeepAliveCount  ===0 means no change
-     * @param param.maxNotificationsPerPublish   {Counter}
-     * @param param.priority                     {Byte}
-     *
+     * modify subscription parameters
+     * @param param
      */
-    public modify(param: any) {
+    public modify(param: ModifySubscriptionParameters): void {
 
         // update diagnostic counter
         this.subscriptionDiagnostics.modifyCount += 1;
@@ -520,10 +559,10 @@ export class Subscription extends EventEmitter {
         this.maxKeepAliveCount = _adjust_maxKeepAliveCount(param.requestedMaxKeepAliveCount);
         // this.publishingInterval);
         this.lifeTimeCount = _adjust_lifeTimeCount(param.requestedLifetimeCount,
-          this.maxKeepAliveCount, this.publishingInterval);
+            this.maxKeepAliveCount, this.publishingInterval);
 
-        this.maxNotificationsPerPublish = param.maxNotificationsPerPublish;
-        this.priority = param.priority;
+        this.maxNotificationsPerPublish = param.maxNotificationsPerPublish || 0;
+        this.priority = param.priority || 0;
 
         this.resetLifeTimeAndKeepAliveCounters();
 
@@ -535,6 +574,10 @@ export class Subscription extends EventEmitter {
 
     }
 
+    /**
+     * set publishing mode
+     * @param publishingEnabled
+     */
     public setPublishingMode(publishingEnabled: boolean): StatusCode {
 
         this.publishingEnabled = !!publishingEnabled;
@@ -554,7 +597,6 @@ export class Subscription extends EventEmitter {
     }
 
     /**
-     * @property keepAliveCounterHasExpired
      * @private
      */
     public get keepAliveCounterHasExpired(): boolean {
@@ -564,7 +606,6 @@ export class Subscription extends EventEmitter {
     /**
      * Reset the Lifetime Counter Variable to the value specified for the lifetime of a Subscription in
      * the CreateSubscription Service( 5.13.2).
-     * @method resetLifeTimeCounter
      * @private
      */
     public resetLifeTimeCounter() {
@@ -572,7 +613,6 @@ export class Subscription extends EventEmitter {
     }
 
     /**
-     * @method increaseLifeTimeCounter
      * @private
      */
     public increaseLifeTimeCounter() {
@@ -582,7 +622,6 @@ export class Subscription extends EventEmitter {
     /**
      *  True if the subscription life time has expired.
      *
-     * @property lifeTimeHasExpired
      */
     public get lifeTimeHasExpired(): boolean {
         assert(this.lifeTimeCount > 0);
@@ -591,7 +630,6 @@ export class Subscription extends EventEmitter {
 
     /**
      * number of milliseconds before this subscription times out (lifeTimeHasExpired === true);
-     * @property timeToExpiration
      */
     public get timeToExpiration(): number {
         return (this.lifeTimeCount - this._life_time_counter) * this.publishingInterval;
@@ -603,8 +641,6 @@ export class Subscription extends EventEmitter {
 
     /**
      * Terminates the subscription.
-     * @method terminate
-     *
      * Calling this method will also remove any monitored items.
      *
      */
@@ -658,12 +694,11 @@ export class Subscription extends EventEmitter {
         assert(this.timerId === null, "Subscription timer haven't been terminated");
 
         if (this.subscriptionDiagnostics) {
-            this.subscriptionDiagnostics.$subscription = null;
-            this.subscriptionDiagnostics = null;
+            delete (this.subscriptionDiagnostics as SubscriptionDiagnosticsDataTypePriv).$subscription;
         }
 
         this.publishEngine = null;
-        this._pending_notifications = null;
+        this._pending_notifications = [];
         this._sent_notifications = [];
 
         this.sessionId = NodeId.nullNodeId;
@@ -752,7 +787,7 @@ export class Subscription extends EventEmitter {
             // sampling and reports data changes.
 
             const dataValueSamplingInterval = node.readAttribute(
-              SessionContext.defaultContext, AttributeIds.MinimumSamplingInterval);
+                SessionContext.defaultContext, AttributeIds.MinimumSamplingInterval);
 
             // TODO if attributeId === AttributeIds.Value : sampling interval required here
             if (dataValueSamplingInterval.statusCode === StatusCodes.Good) {
@@ -777,8 +812,8 @@ export class Subscription extends EventEmitter {
         }
 
         const node_minimumSamplingInterval =
-          (node && (node as any).minimumSamplingInterval)
-            ? (node as any).minimumSamplingInterval : 0;
+            (node && (node as any).minimumSamplingInterval)
+                ? (node as any).minimumSamplingInterval : 0;
 
         samplingInterval = Math.max(samplingInterval, node_minimumSamplingInterval);
 
@@ -792,16 +827,16 @@ export class Subscription extends EventEmitter {
      * @param monitoredItemCreateRequest - the parameters describing the monitored Item to create
      */
     public createMonitoredItem(
-      addressSpace: AddressSpace,
-      timestampsToReturn: TimestampsToReturn,
-      monitoredItemCreateRequest: MonitoredItemCreateRequest
+        addressSpace: AddressSpace,
+        timestampsToReturn: TimestampsToReturn,
+        monitoredItemCreateRequest: MonitoredItemCreateRequest
     ): MonitoredItemCreateResult {
 
         assert(addressSpace.constructor.name === "AddressSpace");
         assert(monitoredItemCreateRequest instanceof MonitoredItemCreateRequest);
 
         function handle_error(statusCode: StatusCode): MonitoredItemCreateResult {
-            return new MonitoredItemCreateResult({ statusCode });
+            return new MonitoredItemCreateResult({statusCode});
         }
 
         const itemToMonitor = monitoredItemCreateRequest.itemToMonitor;
@@ -847,7 +882,7 @@ export class Subscription extends EventEmitter {
         // xx var requestedParameters = monitoredItemCreateRequest.requestedParameters;
 
         const monitoredItemCreateResult =
-          this._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
+            this._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
 
         assert(monitoredItemCreateResult.statusCode === StatusCodes.Good);
 
@@ -867,9 +902,8 @@ export class Subscription extends EventEmitter {
 
     /**
      * get a monitoredItem by Id.
-     * @method getMonitoredItem
      * @param monitoredItemId : the id of the monitored item to get.
-     * @return {MonitoredItem}
+     * @return the monitored item matching monitoredItemId
      */
     public getMonitoredItem(monitoredItemId: number | string): MonitoredItem {
         assert(_.isFinite(monitoredItemId));
@@ -878,10 +912,9 @@ export class Subscription extends EventEmitter {
 
     /**
      * remove a monitored Item from the subscription.
-     * @method removeMonitoredItem
      * @param monitoredItemId : the id of the monitored item to get.
      */
-    public removeMonitoredItem(monitoredItemId: number | string) {
+    public removeMonitoredItem(monitoredItemId: number | string): StatusCode {
 
         debugLog("Removing monitoredIem ", monitoredItemId);
 
@@ -899,7 +932,6 @@ export class Subscription extends EventEmitter {
         /**
          *
          * notify that a monitored item has been removed from the subscription
-         * @event removeMonitoredItem
          * @param monitoredItem {MonitoredItem}
          */
         this.emit("removeMonitoredItem", monitoredItem);
@@ -911,7 +943,7 @@ export class Subscription extends EventEmitter {
     }
 
     /**
-     * @property hasMonitoredItemNotifications true if monitored Item have uncollected Notifications
+     * rue if monitored Item have uncollected Notifications
      */
     public get hasMonitoredItemNotifications(): boolean {
         if (this._hasMonitoredItemNotifications) {
@@ -951,7 +983,6 @@ export class Subscription extends EventEmitter {
 
     /**
      * returns true if the notification has expired
-     * @method notificationHasExpired
      * @param notification
      */
     public notificationHasExpired(notification: any): boolean {
@@ -984,13 +1015,13 @@ export class Subscription extends EventEmitter {
         if (foundIndex === -1) {
             if (doDebug) {
                 debugLog(chalk.red("acknowledging sequence FAILED !!! "),
-                  chalk.cyan(sequenceNumber.toString()));
+                    chalk.cyan(sequenceNumber.toString()));
             }
             return StatusCodes.BadSequenceNumberUnknown;
         } else {
             if (doDebug) {
                 debugLog(chalk.yellow("acknowledging sequence "),
-                  chalk.cyan(sequenceNumber.toString()));
+                    chalk.cyan(sequenceNumber.toString()));
             }
             this._sent_notifications.splice(foundIndex, 1);
             this._unacknowledgedMessageCount--;
@@ -1001,24 +1032,14 @@ export class Subscription extends EventEmitter {
     /**
      * getMonitoredItems is used to get information about monitored items of a subscription.Its intended
      * use is defined in Part 4. This method is the implementation of the Standard OPCUA GetMonitoredItems Method.
-     * @method getMonitoredItems
-     * @param  result.serverHandles  Array of serverHandles for all MonitoredItems of the subscription
-     *                               identified by subscriptionId.
-     *         result.clientHandles Array of clientHandles for all MonitoredItems of the subscription
-     *                              identified by subscriptionId.
-     *         result.statusCode    {StatusCode}
      * from spec:
      * This method can be used to get the  list of monitored items in a subscription if CreateMonitoredItems
      * failed due to a network interruption and the client does not know if the creation succeeded in the server.
      *
      */
-    public getMonitoredItems(): {
-        serverHandles: number[],
-        clientHandles: number[],
-        statusCode: StatusCode
-    } {
+    public getMonitoredItems(): GetMonitoredItemsResult {
 
-        const result = {
+        const result: GetMonitoredItemsResult = {
             clientHandles: [] as number[],
             serverHandles: [] as number[],
             statusCode: StatusCodes.Good
@@ -1038,13 +1059,19 @@ export class Subscription extends EventEmitter {
         return result;
     }
 
-    public resendInitialValues() {
+    /**
+     * @private
+     */
+    public resendInitialValues(): void {
         _.forEach(this.monitoredItems, (monitoredItem: MonitoredItem/*,monitoredItemId*/) => {
             monitoredItem.resendInitialValues();
         });
     }
 
-    public notifyTransfer() {
+    /**
+     * @private
+     */
+    public notifyTransfer(): void {
         // OPCUA UA Spec 1.0.3 : part 3 - page 82 - 5.13.7 TransferSubscriptions:
         // If the Server transfers the Subscription to the new Session, the Server shall issue
         // a StatusChangeNotification notificationMessage with the status code
@@ -1073,8 +1100,7 @@ export class Subscription extends EventEmitter {
      *  when the server  has send a Publish Response, so that the subscription
      *  can reset its life time counter.
      *
-     * @method resetLifeTimeAndKeepAliveCounters
-     *
+     * @private
      */
     public resetLifeTimeAndKeepAliveCounters() {
         this.resetLifeTimeCounter();
@@ -1084,7 +1110,6 @@ export class Subscription extends EventEmitter {
     /**
      *  _publish_pending_notifications send a "notification" event:
      *
-     * @method _publish_pending_notifications *
      * @private
      *
      */
@@ -1106,18 +1131,17 @@ export class Subscription extends EventEmitter {
 
         assert(_.isArray(notificationMessage.notificationData));
 
-        notificationMessage.notificationData.forEach(
-          (notifData: DataChangeNotification | EventNotificationList
-          ) => {
+        notificationMessage.notificationData!.forEach(
+            (notificationData: ExtensionObject | null) => {
 
-              if (notifData instanceof DataChangeNotification) {
-                  this.subscriptionDiagnostics.dataChangeNotificationsCount += 1;
-              } else if (notifData instanceof EventNotificationList) {
-                  this.subscriptionDiagnostics.eventNotificationsCount += 1;
-              } else {
-                  // TODO
-              }
-          });
+                if (notificationData instanceof DataChangeNotification) {
+                    this.subscriptionDiagnostics.dataChangeNotificationsCount += 1;
+                } else if (notificationData instanceof EventNotificationList) {
+                    this.subscriptionDiagnostics.eventNotificationsCount += 1;
+                } else {
+                    // TODO
+                }
+            });
 
         assert(notificationMessage.hasOwnProperty("sequenceNumber"));
         assert(notificationMessage.hasOwnProperty("notificationData"));
@@ -1143,12 +1167,12 @@ export class Subscription extends EventEmitter {
 
         if (doDebug) {
             debugLog("Subscription sending a notificationMessage subscriptionId=", subscriptionId,
-              "sequenceNumber = ", notificationMessage.sequenceNumber.toString());
+                "sequenceNumber = ", notificationMessage.sequenceNumber.toString());
             // debugLog(notificationMessage.toString());
         }
 
         if (this.state !== SubscriptionState.CLOSED) {
-            assert(notificationMessage.notificationData.length > 0, "We are not expecting a keep-alive message here");
+            assert(notificationMessage.notificationData!.length > 0, "We are not expecting a keep-alive message here");
             this.state = SubscriptionState.NORMAL;
             debugLog("subscription " + this.id + chalk.bgYellow(" set to NORMAL"));
         }
@@ -1180,7 +1204,7 @@ export class Subscription extends EventEmitter {
                 // istanbul ignore next
                 if (doDebug) {
                     debugLog("    -> pendingPublishRequestCount > 0 " +
-                      "&& normal state => re-trigger tick event immediately ");
+                        "&& normal state => re-trigger tick event immediately ");
                 }
 
                 // let process an new publish request
@@ -1192,8 +1216,7 @@ export class Subscription extends EventEmitter {
         }
     }
 
-    // counter
-    private _get_future_sequence_number(): number {
+    public _get_future_sequence_number(): number {
         return this._sequence_number_generator ? this._sequence_number_generator.future() : 0;
     }
 
@@ -1211,7 +1234,7 @@ export class Subscription extends EventEmitter {
 
             } else {
                 debugLog("     -> subscription.state === LATE , " +
-                  "because keepAlive Response cannot be send due to lack of PublishRequest");
+                    "because keepAlive Response cannot be send due to lack of PublishRequest");
                 this.state = SubscriptionState.LATE;
             }
         }
@@ -1228,7 +1251,7 @@ export class Subscription extends EventEmitter {
     private _start_timer() {
 
         debugLog(chalk.bgWhite.blue("Subscription#_start_timer  subscriptionId="),
-          this.id, " publishingInterval = ", this.publishingInterval);
+            this.id, " publishingInterval = ", this.publishingInterval);
 
         assert(this.timerId === null);
         // from the spec:
@@ -1253,7 +1276,6 @@ export class Subscription extends EventEmitter {
     }
 
     /**
-     * @method _tick
      * @private
      */
     private _tick() {
@@ -1277,10 +1299,10 @@ export class Subscription extends EventEmitter {
         // istanbul ignore next
         if (doDebug) {
             debugLog((t(new Date()) + "  " + this._life_time_counter + "/" + this.lifeTimeCount +
-              chalk.cyan("   Subscription#_tick")),
-              "  processing subscriptionId=", this.id,
-              "hasMonitoredItemNotifications = ", this.hasMonitoredItemNotifications,
-              " publishingIntervalCount =", this.publishIntervalCount);
+                chalk.cyan("   Subscription#_tick")),
+                "  processing subscriptionId=", this.id,
+                "hasMonitoredItemNotifications = ", this.hasMonitoredItemNotifications,
+                " publishingIntervalCount =", this.publishIntervalCount);
         }
         if (this.publishEngine._on_tick) {
             this.publishEngine._on_tick();
@@ -1295,7 +1317,7 @@ export class Subscription extends EventEmitter {
             /* istanbul ignore next */
             if (doDebug) {
                 debugLog(
-                  chalk.red.bold("Subscription " + this.id + " has expired !!!!! => Terminating"));
+                    chalk.red.bold("Subscription " + this.id + " has expired !!!!! => Terminating"));
             }
             /**
              * notify the subscription owner that the subscription has expired by exceeding its life time.
@@ -1307,7 +1329,7 @@ export class Subscription extends EventEmitter {
             // notify new terminated status only when subscription has timeout.
             debugLog("adding StatusChangeNotification notification message for BadTimeout subscription = ", this.id);
             this._addNotificationMessage([
-                new StatusChangeNotification({ status: StatusCodes.BadTimeout })
+                new StatusChangeNotification({status: StatusCodes.BadTimeout})
             ]);
 
             // kill timer and delete monitored items and transfer pending notification messages
@@ -1325,13 +1347,13 @@ export class Subscription extends EventEmitter {
         }
 
         if (publishEngine.pendingPublishRequestCount === 0 &&
-          (this.hasPendingNotifications || this.hasMonitoredItemNotifications)) {
+            (this.hasPendingNotifications || this.hasMonitoredItemNotifications)) {
 
             // istanbul ignore next
             if (doDebug) {
                 debugLog("subscription set to LATE  hasPendingNotifications = ",
-                  this.hasPendingNotifications, " hasMonitoredItemNotifications =",
-                  this.hasMonitoredItemNotifications);
+                    this.hasPendingNotifications, " hasMonitoredItemNotifications =",
+                    this.hasMonitoredItemNotifications);
             }
             this.state = SubscriptionState.LATE;
             return;
@@ -1355,7 +1377,6 @@ export class Subscription extends EventEmitter {
     }
 
     /**
-     * @method _sendKeepAliveResponse
      * @private
      */
     private _sendKeepAliveResponse(): boolean {
@@ -1382,10 +1403,9 @@ export class Subscription extends EventEmitter {
     }
 
     /**
-     * @method resetKeepAliveCounter
-     * @private
      * Reset the Lifetime Counter Variable to the value specified for the lifetime of a Subscription in
      * the CreateSubscription Service( 5.13.2).
+     * @private
      */
     private resetKeepAliveCounter(): void {
         this._keep_alive_counter = 0;
@@ -1393,13 +1413,12 @@ export class Subscription extends EventEmitter {
         // istanbul ignore next
         if (doDebug) {
             debugLog("     -> subscriptionId", this.id,
-              " Resetting keepAliveCounter = ", this._keep_alive_counter,
-              this.maxKeepAliveCount);
+                " Resetting keepAliveCounter = ", this._keep_alive_counter,
+                this.maxKeepAliveCount);
         }
     }
 
     /**
-     * @method increaseKeepAliveCounter
      * @private
      */
     private increaseKeepAliveCounter() {
@@ -1408,14 +1427,15 @@ export class Subscription extends EventEmitter {
         // istanbul ignore next
         if (doDebug) {
             debugLog("     -> subscriptionId", this.id, " Increasing keepAliveCounter = ",
-              this._keep_alive_counter, this.maxKeepAliveCount);
+                this._keep_alive_counter, this.maxKeepAliveCount);
         }
     }
 
     /**
+     * @private
      */
     private _addNotificationMessage(
-      notificationData: Notification[]
+        notificationData: Notification[]
     ) {
 
         assert(_.isArray(notificationData));
@@ -1424,7 +1444,7 @@ export class Subscription extends EventEmitter {
         // istanbul ignore next
         if (doDebug) {
             debugLog(chalk.yellow("Subscription#_addNotificationMessage"),
-              notificationData.toString());
+                notificationData.toString());
         }
         const subscription = this;
         assert(_.isObject(notificationData[0]));
@@ -1452,12 +1472,14 @@ export class Subscription extends EventEmitter {
 
     /**
      * Extract the next Notification that is ready to be sent to the client.
-     * @method _popNotificationToSend
-     * @return {NotificationMessage}  the Notification to send._pending_notifications
+     * @return the Notification to send._pending_notifications
      */
-    private _popNotificationToSend() {
+    private _popNotificationToSend(): InternalNotification {
         assert(this._pending_notifications.length > 0);
         const notification_message = this._pending_notifications.shift();
+        if (!notification_message) {
+            throw new Error("internal error");
+        }
         this._sent_notifications.push(notification_message);
         return notification_message;
     }
@@ -1465,7 +1487,6 @@ export class Subscription extends EventEmitter {
     /**
      * discardOldSentNotification find all sent notification message that have expired keep-alive
      * and destroy them.
-     * @method discardOldSentNotifications
      * @private
      *
      * Subscriptions maintain a retransmission queue of sent  NotificationMessages.
@@ -1497,15 +1518,15 @@ export class Subscription extends EventEmitter {
     }
 
     /**
-     * @method _createMonitoredItemStep2
      * @param timestampsToReturn
-     * @param node {BaseNode}
+     * @param monitoredItemCreateRequest
+     * @param node
      * @private
      */
     private _createMonitoredItemStep2(
-      timestampsToReturn: TimestampsToReturn,
-      monitoredItemCreateRequest: MonitoredItemCreateRequest,
-      node: BaseNode) {
+        timestampsToReturn: TimestampsToReturn,
+        monitoredItemCreateRequest: MonitoredItemCreateRequest,
+        node: BaseNode): MonitoredItemCreateResult {
 
         // note : most of the parameter inconsistencies shall have been handled by the caller
         // any error here will raise an assert here
@@ -1557,9 +1578,9 @@ export class Subscription extends EventEmitter {
      * @private
      */
     private _createMonitoredItemStep3(
-      monitoredItem: MonitoredItem,
-      monitoredItemCreateRequest: MonitoredItemCreateRequest
-    ) {
+        monitoredItem: MonitoredItem,
+        monitoredItemCreateRequest: MonitoredItemCreateRequest
+    ): void {
 
         assert(monitoredItem.monitoringMode === MonitoringMode.Invalid);
         assert(_.isFunction(monitoredItem.samplingFunc));
@@ -1598,12 +1619,12 @@ export class Subscription extends EventEmitter {
             // separate data for DataChangeNotification (MonitoredItemNotification) from data for
             // EventNotificationList(EventFieldList)
             const dataChangedNotificationData = notifications_chunk.filter(
-              filter_instanceof.bind(null, MonitoredItemNotification));
+                filter_instanceof.bind(null, MonitoredItemNotification));
             const eventNotificationListData = notifications_chunk.filter(
-              filter_instanceof.bind(null, EventFieldList));
+                filter_instanceof.bind(null, EventFieldList));
 
             assert(notifications_chunk.length ===
-              dataChangedNotificationData.length + eventNotificationListData.length);
+                dataChangedNotificationData.length + eventNotificationListData.length);
 
             notifications = [];
 
@@ -1653,22 +1674,20 @@ export class Subscription extends EventEmitter {
 }
 
 /**
- * @method extract_notifications_chunk
  * extract up to maxNotificationsPerPublish notifications
- * @param monitoredItems {Array<MonitoredItem>}
- * @param maxNotificationsPerPublish {Number} the maximum number of notification to extract
- * @return {Array<MonitoredItem>}
- * @static
+ * @param the full array of monitored items
+ * @param maxNotificationsPerPublish  the maximum number of notification to extract
+ * @return an extract of array of monitored item matching at most maxNotificationsPerPublish
  * @private
  */
 function extract_notifications_chunk(
-  monitoredItems: MonitoredItem[],
-  maxNotificationsPerPublish: number
+    monitoredItems: MonitoredItem[],
+    maxNotificationsPerPublish: number
 ): MonitoredItem[] {
 
     let n = maxNotificationsPerPublish === 0 ?
-      monitoredItems.length :
-      Math.min(monitoredItems.length, maxNotificationsPerPublish);
+        monitoredItems.length :
+        Math.min(monitoredItems.length, maxNotificationsPerPublish);
 
     const chunk_monitoredItems: MonitoredItem[] = [];
     while (n) {
@@ -1689,4 +1708,4 @@ function filter_instanceof(Class: any, e: any): boolean {
 }
 
 assert(Subscription.maximumPublishingInterval < 2147483647,
-  "maximumPublishingInterval cannot exceed (2**31-1) ms ");
+    "maximumPublishingInterval cannot exceed (2**31-1) ms ");

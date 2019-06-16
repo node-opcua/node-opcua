@@ -1,3 +1,6 @@
+/**
+ * @module node-opca-aggregates
+ */
 //  excerpt from OPC Unified Architecture, Part 13 21 Release 1.04
 //
 // 5.4.3.4 Interpolative

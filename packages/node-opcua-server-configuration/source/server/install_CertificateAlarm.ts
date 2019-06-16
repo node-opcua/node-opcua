@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-server-configuration-server
+ */
 import chalk from "chalk";
 import * as fs from "fs";
 import * as os from "os";

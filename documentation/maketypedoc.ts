@@ -1,5 +1,6 @@
 // to launch in the documentation folder
 import * as path from "path";
+import * as fs from "fs";
 import { Application } from "typedoc";
 
 // @ts-ignore
@@ -7,16 +8,17 @@ const app = new Application({
     experimentalDecorators: false,
     logger: "console",
     mode: "modules",
-    module: "commonjs",
-    target: "es2017",
+    module: "CommonJS",
+    target: "ES6",
 
     gaID: "UA-25438821-3",
     gaSite: "node-opcua.github.io"
 });
 
-const nodeopcuaModules = [
+let nodeopcuaModules = [
     "types",
     "address-space",
+    "aggregates",
     "assert",
     "basic-types",
     "benchmarker",
@@ -37,6 +39,7 @@ const nodeopcuaModules = [
     "enum",
     "extension-object",
     "factory",
+    "file-transfer",
     "generator",
     "guid",
     "hostname",
@@ -52,6 +55,7 @@ const nodeopcuaModules = [
     "pseudo-session",
     "secure-channel",
     "server",
+    "server-configuration",
     // "server-discovery",
     "service-browse",
     "service-call",
@@ -64,11 +68,15 @@ const nodeopcuaModules = [
     "service-write",
     "service-subscription",
     "variant",
-
 ];
 
-const sources = nodeopcuaModules.map((a: string) =>
-  path.join(__dirname, `../packages/node-opcua-${a}/source/index.ts`)
-);
+const sources = nodeopcuaModules.map((a: string) => {
+  
+    const index = path.join(__dirname, `../packages/node-opcua-${a}/source/index.ts`);
+    if (!fs.existsSync(index)) {
+       console.log(" Warning file ", index, " doesn't exist")
+    }
+    return index;
+});
 sources.unshift(path.join(__dirname, `../packages/node-opcua/source/index.ts`));
-app.generateDocs(sources, path.join(__dirname, "../../node-opcua.github.io/api_doc/next"));
+app.generateDocs(sources, path.join(__dirname, "../../node-opcua.github.io/api_doc/2.0.0"));

@@ -1664,11 +1664,10 @@ export class ServerEngine extends EventEmitter {
         debugLog("ServerEngine#_exposeSubscriptionDiagnostics");
         const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArray();
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-        assert(subscriptionDiagnostics.$subscription === subscription);
+        assert((subscriptionDiagnostics as any).$subscription === subscription);
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
 
         if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            // xx console.log("GGGGGGGGGGGGGGGG ServerEngine => Exposing subscription diagnostics =>",subscription.id);
             addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
         }
     }
@@ -1681,8 +1680,6 @@ export class ServerEngine extends EventEmitter {
         if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
 
             const node = (subscriptionDiagnosticsArray as any)[subscription.id];
-            // console.log("GG ServerEngine => ** Un-exposing** subscription diagnostics =>",
-            // subscription.id);
             removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
             assert(!(subscriptionDiagnosticsArray as any)[subscription.id],
               " subscription node must have been removed from subscriptionDiagnosticsArray");
