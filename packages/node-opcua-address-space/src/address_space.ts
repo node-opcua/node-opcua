@@ -69,6 +69,8 @@ const doDebug = false;
 // tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
 
+const regexNumberColumnString = /^([0-9]+):(.*)/;
+
 function _extract_namespace_and_browse_name_as_string(
   addressSpace: AddressSpace,
   browseName: NodeIdLike | QualifiedName,
@@ -296,15 +298,16 @@ export class AddressSpace implements AddressSpacePrivate {
 
         if (typeof nodeId === "string") {
 
-            // split alias
-            const a = nodeId.split(":");
-            const namespaceIndex = a.length === 2 ? parseInt(a[0], 10) : 0;
-
-            const namespace = this.getNamespace(namespaceIndex);
-            // check if the string is a known alias
-            const alias = namespace.resolveAlias(nodeId);
-            if (alias) {
-                return alias;
+            const m = nodeId.match(regexNumberColumnString);
+            if (m && m.length === 3) {
+                const namespaceIndex = parseInt(m[1], 10);
+                const aliasName = m[2];
+                const namespace = this.getNamespace(namespaceIndex);
+                // check if the string is a known alias
+                const aliasNodeId = namespace.resolveAlias(aliasName);
+                if (aliasNodeId !== null) {
+                    return aliasNodeId;
+                }
             }
         }
         return resolveNodeId(nodeId);

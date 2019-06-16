@@ -2,7 +2,7 @@ import * as should from "should";
 
 import { NodeClass } from "node-opcua-data-model";
 import { AddressSpace, Namespace } from "..";
-import { getMiniAddressSpace } from "..//"
+import { getMiniAddressSpace } from "../";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
