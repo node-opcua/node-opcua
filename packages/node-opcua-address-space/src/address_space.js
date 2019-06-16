@@ -246,6 +246,9 @@ AddressSpace.prototype.deleteNode = function (nodeOrNodeId) {
     _getNamespace(this,nodeOrNodeId).deleteNode(nodeOrNodeId);
 };
 
+
+const regexNumberColumnString = /^([0-9]+):(.*)/;
+
 /**
  * resolved a string or a nodeId to a nodeID
  *
@@ -257,15 +260,16 @@ AddressSpace.prototype.resolveNodeId = function (nodeId) {
 
     if (typeof nodeId === "string") {
 
-        // split alias
-        const a = nodeId.split(":");
-        const namespaceIndex = a.length === 2 ? parseInt(a[0], 10) : 0;
-
-        const namespace = this.getNamespace(namespaceIndex);
-        // check if the string is a known alias
-        const alias = namespace._aliases[nodeId];
-        if (alias !== undefined) {
-            return alias;
+        const m = nodeId.match(regexNumberColumnString);
+        if (m && m.length === 3) {
+            const namespaceIndex = parseInt(m[1], 10);
+            const aliasName = m[2];
+            const namespace = this.getNamespace(namespaceIndex);
+            // check if the string is a known alias
+            const aliasNodeId = namespace._aliases[aliasName] || null;
+            if (aliasNodeId !== null) {
+                return aliasNodeId;
+            }
         }
     }
     return resolveNodeId(nodeId);
