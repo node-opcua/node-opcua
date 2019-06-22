@@ -7,11 +7,11 @@ describe("#625 automatic string nodeid assignment", ()  => {
     let addressSpace = null;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const ns1 =addressSpace.registerNamespace("namespace0");
+        const ns1 = addressSpace.registerNamespace("namespace0");
         const ns2 = addressSpace.registerNamespace("namespace2");
         ns2.addAlias("MyAlias", coerceNodeId("ns=2;i=32"));
-
     });
+
     after(() => {
         addressSpace.dispose();
     });
