@@ -303,9 +303,9 @@ function enumerateAllAlarmAndConditionInstances(the_session,callback) {
         q.push({
             nodeId: nodeId
         });
-        q.drain = function( ) {
+        q.drain(function( ) {
             callback();
-        };
+        });
 
     }
     enumerateAllConditionTypes(the_session,function(err,map){
@@ -373,9 +373,9 @@ function getAllEventTypes(session,callback)
 
     q.push({nodeId: baseNodeId,tree: result});
 
-    q.drain = function( ) {
+    q.drain(function( ) {
         callback(null,result);
-    };
+    });
 
 }
 const callConditionRefresh = opcua.callConditionRefresh;

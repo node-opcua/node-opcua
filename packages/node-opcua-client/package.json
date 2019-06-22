@@ -10,7 +10,7 @@
  },
  "main": "index.js",
  "dependencies": {
-  "async": "^2.6.2",
+  "async": "^3.0.1",
   "delayed": "^1.0.1",
   "node-opcua-assert": "^0.7.0",
   "node-opcua-buffer-utils": "^0.7.3",
@@ -23,7 +23,7 @@
   "node-opcua-hostname": "^0.7.0",
   "node-opcua-nodeid": "^0.7.2",
   "node-opcua-object-registry": "^0.7.3",
-  "node-opcua-pki": "1.5.1",
+  "node-opcua-pki": "1.5.2",
   "node-opcua-secure-channel": "^0.7.3",
   "node-opcua-service-browse": "^0.7.3",
   "node-opcua-service-call": "^0.7.3",

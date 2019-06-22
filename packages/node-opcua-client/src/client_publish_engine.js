@@ -462,7 +462,7 @@ ClientSidePublishEngine.prototype.republish = function(callback) {
         setImmediate(function() {
 
             assert(_.isFunction(_i_callback));
-            async.whilst(function (){ return !is_done},_send_republish,function(err) {
+            async.whilst(function (callback){ callback(null,!is_done);},_send_republish,function(err) {
                 debugLog("nbPendingPublishRequest = ",self.nbPendingPublishRequests);
                 debugLog(" _republish ends with ",err ? err.message : "null");
                 _i_callback(err);

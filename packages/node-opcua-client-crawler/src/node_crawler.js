@@ -706,7 +706,7 @@ NodeCrawler.prototype._inner_crawl = function (nodeId, userData, end_callback) {
     self._crawled = {};
 
     let _has_ended = false;
-    self.q.drain = function () {
+    self.q.drain(function () {
 
         if (!_has_ended) {
 
@@ -718,7 +718,7 @@ NodeCrawler.prototype._inner_crawl = function (nodeId, userData, end_callback) {
             self.emit("end");
             end_callback();
         }
-    };
+    });
 
 
     let cacheNode = self._getCacheNode(nodeId);
@@ -1029,10 +1029,10 @@ NodeCrawler.prototype.read = function (nodeId, callback) {
         add_for_reconstruction(object, function () {
         });
 
-        queue.drain = function () {
+        queue.drain(function () {
             const object = self._objMap[key];
             remove_cycle(object, callback);
-        };
+        });
     }
 
     const key = nodeId.toString();

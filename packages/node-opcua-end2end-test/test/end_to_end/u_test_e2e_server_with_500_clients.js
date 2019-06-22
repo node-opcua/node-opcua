@@ -159,10 +159,10 @@ module.exports = function (test) {
                 q.push({index: i});
             }
 
-            q.drain = function () {
+            q.drain(function () {
                 //xx console.log("done");
                 done();
-            };
+            });
         });
 
     });

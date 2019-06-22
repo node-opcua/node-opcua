@@ -266,9 +266,9 @@ async function enumerateAllAlarmAndConditionInstances(the_session) {
         q.push({
             nodeId: nodeId
         });
-        q.drain = function () {
+        q.drain(function () {
             callback();
-        };
+        });
 
     }
 
@@ -338,9 +338,9 @@ async function getAllEventTypes(session, callback) {
 
     q.push({nodeId: baseNodeId, tree: result});
 
-    q.drain = function () {
+    q.drain(function () {
         callback(null, result);
-    };
+    });
 
 }
 

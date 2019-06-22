@@ -7,7 +7,7 @@
  },
  "main": "index.js",
  "dependencies": {
-  "async": "^2.6.2",
+  "async": "^3.0.1",
   "node-opcua-assert": "^0.7.0",
   "node-opcua-client": "^0.7.3",
   "node-opcua-constants": "^0.7.0",

@@ -12,7 +12,7 @@
   "generate": "node ./generate"
  },
  "dependencies": {
-  "async": "^2.6.2",
+  "async": "^3.0.1",
   "dequeue": "^1.0.5",
   "node-opcua-assert": "^0.7.0",
   "node-opcua-basic-types": "^0.7.3",

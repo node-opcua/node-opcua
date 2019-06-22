@@ -140,10 +140,10 @@ module.exports = function (test) {
             for (let i = 0; i < nb; i++) {
                 q.push({index: i});
             }
-            q.drain = function () {
+            q.drain(function () {
                 //xx console.log("done");
                 done();
-            }
+            });
         });
 
     });
