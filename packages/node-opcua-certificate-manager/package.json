@@ -37,7 +37,7 @@
  },
  "devDependencies": {
   "@types/async": "^3.0.0",
-  "@types/underscore": "^1.8.18",
+  "@types/underscore": "^1.9.0",
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^2.0.0",
   "should": "13.2.3",

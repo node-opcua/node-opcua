@@ -16,7 +16,7 @@
  "dependencies": {
   "@types/async": "^3.0.0",
   "@types/once": "^1.4.0",
-  "@types/underscore": "^1.8.18",
+  "@types/underscore": "^1.9.0",
   "async": "^3.0.1",
   "chalk": "^2.4.2",
   "delayed": "^1.0.1",
