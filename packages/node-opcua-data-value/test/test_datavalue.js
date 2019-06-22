@@ -135,6 +135,44 @@ describe("DataValue", function () {
         dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
 
     });
+
+    it("DataValue - extractRange on a String with StatusCode != Good - issue #635", function () {
+
+        const dataValue = new DataValue({
+            statusCode: StatusCodes.BadCertificateHostNameInvalid,
+            value: new Variant({
+                dataType: DataType.String,
+                arrayType: VariantArrayType.Scalar,
+                value: "1234567890"
+            })
+        });
+        const dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
+        dataValue1.value.value.length.should.eql(2);
+        dataValue1.value.value.should.eql("34");
+        dataValue1.value.dataType.should.eql(DataType.String);
+        dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
+
+        dataValue1.statusCode.should.eql(StatusCodes.BadCertificateHostNameInvalid);
+    });
+    it("DataValue - extractRange on a String with StatusCode != Good and invalid range - issue #635", function () {
+
+        const dataValue = new DataValue({
+            statusCode: StatusCodes.BadCertificateHostNameInvalid,
+            value: new Variant({
+                dataType: DataType.String,
+                arrayType: VariantArrayType.Scalar,
+                value: "1234567890"
+            })
+        });
+        const dataValue1 = extractRange(dataValue, new NumericRange("20:30"));
+        dataValue1.value.value.length.should.eql(0);
+        dataValue1.value.value.should.eql("");
+        dataValue1.value.dataType.should.eql(DataType.String);
+        dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
+
+        dataValue1.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+    });
+
     it("DataValue - extractRange on a ByteString", function () {
 
         const dataValue = new DataValue({

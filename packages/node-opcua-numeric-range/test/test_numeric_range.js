@@ -205,6 +205,25 @@ describe("Testing numerical range", function () {
             referenceString.length.should.eql(11);
         });
 
+        it("it should return a statusCode and empty string if numeric range is out of bound - issue #635", function () {
+            const nr = new NumericRange(20, 40);
+            referenceString.length.should.eql(11);
+            const r = nr.extract_values(referenceString);
+            r.array.should.eql("");
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+            referenceString.length.should.eql(11);
+
+        });
+        it("it should return a statusCode and empty string if numeric range (single element) is out of bound - issue #635", function () {
+            const nr = new NumericRange(20);
+            referenceString.length.should.eql(11);
+            const r = nr.extract_values(referenceString);
+            r.array.should.eql("");
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+            referenceString.length.should.eql(11);
+
+        });
+
         it("it should extract a sub matrix when indexRange is a NumericRange.Matrix", function () {
 
             const matrixString = [

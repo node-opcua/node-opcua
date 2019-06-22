@@ -385,6 +385,9 @@ function extract_empty(array, dimensions) {
 
 function extract_single_value(array, index) {
     if (index >= array.length) {
+        if (typeof array  === "string") {
+            return {array: "", statusCode: StatusCodes.BadIndexRangeNoData};
+        }
         return {array: [], statusCode: StatusCodes.BadIndexRangeNoData};
     }
     return {
@@ -398,6 +401,9 @@ function extract_array_range(array, low_index, high_index) {
     assert(low_index >= 0);
     assert(low_index <= high_index);
     if (low_index >= array.length) {
+        if (typeof array  === "string") {
+            return {array: "", statusCode: StatusCodes.BadIndexRangeNoData};
+        }
         return {array: [], statusCode: StatusCodes.BadIndexRangeNoData};
     }
     // clamp high index

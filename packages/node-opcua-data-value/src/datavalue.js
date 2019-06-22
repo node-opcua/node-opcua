@@ -8,6 +8,7 @@ const DataValue = exports.DataValue = require("../_generated_/_auto_generated_Da
 
 const DataType = require("node-opcua-variant").DataType;
 const VariantArrayType = require("node-opcua-variant").VariantArrayType;
+const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
 
 const TimestampsToReturn = require("../schemas/TimestampsToReturn_enum").TimestampsToReturn;
@@ -188,8 +189,12 @@ exports.apply_timestamps = apply_timestamps;
  */
 function _clone_with_array_replacement(dataValue, result) {
 
+    const statusCode = result.statusCode === StatusCodes.Good ? dataValue.statusCode : result.statusCode;
+
     const clonedDataValue = new DataValue({
-        statusCode: result.statusCode,
+
+        statusCode,
+
         serverTimestamp: dataValue.serverTimestamp,
         serverPicoseconds: dataValue.serverPicoseconds,
         sourceTimestamp: dataValue.sourceTimestamp,
