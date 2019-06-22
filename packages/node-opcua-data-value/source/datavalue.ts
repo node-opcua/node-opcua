@@ -499,8 +499,10 @@ function apply_timestamps2(
  */
 function _clone_with_array_replacement(dataValue: DataValue, result: any): DataValue {
 
+    const statusCode = result.statusCode === StatusCodes.Good ? dataValue.statusCode : result.statusCode;
+
     const clonedDataValue = new DataValue({
-        statusCode: result.statusCode,
+        statusCode,
 
         serverTimestamp: dataValue.serverTimestamp,
 
