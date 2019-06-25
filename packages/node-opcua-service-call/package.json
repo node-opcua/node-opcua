@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-call",
- "version": "0.7.3",
+ "version": "0.7.4",
  "description": "pure nodejs OPCUA SDK - module -service-call",
  "scripts": {
   "test": "mocha test",
@@ -10,17 +10,17 @@
  "main": "index.js",
  "dependencies": {
   "node-opcua-assert": "^0.7.0",
-  "node-opcua-basic-types": "^0.7.3",
-  "node-opcua-factory": "^0.7.3",
-  "node-opcua-nodeid": "^0.7.2",
-  "node-opcua-service-secure-channel": "^0.7.3",
-  "node-opcua-variant": "^0.7.3",
+  "node-opcua-basic-types": "^0.7.4",
+  "node-opcua-factory": "^0.7.4",
+  "node-opcua-nodeid": "^0.7.4",
+  "node-opcua-service-secure-channel": "^0.7.4",
+  "node-opcua-variant": "^0.7.4",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.7.3",
-  "node-opcua-packet-analyzer": "^0.7.3",
-  "node-opcua-status-code": "^0.7.3",
+  "node-opcua-generator": "^0.7.4",
+  "node-opcua-packet-analyzer": "^0.7.4",
+  "node-opcua-status-code": "^0.7.4",
   "should": "13.2.3"
  },
  "author": "Etienne Rossignon",

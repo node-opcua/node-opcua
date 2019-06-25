@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-enum",
- "version": "0.7.2",
+ "version": "0.7.4",
  "description": "pure nodejs OPCUA SDK - module -enum",
  "scripts": {
   "test": "mocha test"
@@ -11,7 +11,7 @@
  },
  "devDependencies": {
   "enum": "2.5.0",
-  "node-opcua-benchmarker": "^0.7.2",
+  "node-opcua-benchmarker": "^0.7.4",
   "should": "13.2.3",
   "underscore": "^1.9.1"
  },

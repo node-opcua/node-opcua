@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-service-discovery",
- "version": "0.7.3",
+ "version": "0.7.4",
  "description": "pure nodejs OPCUA SDK - module -service-discovery",
  "scripts": {
   "test": "mocha test",
@@ -11,16 +11,16 @@
  "dependencies": {
   "bonjour": "^3.5.0",
   "node-opcua-assert": "^0.7.0",
-  "node-opcua-basic-types": "^0.7.3",
-  "node-opcua-data-model": "^0.7.3",
-  "node-opcua-factory": "^0.7.3",
-  "node-opcua-nodeid": "^0.7.2",
-  "node-opcua-service-endpoints": "^0.7.3",
-  "node-opcua-service-secure-channel": "^0.7.3",
+  "node-opcua-basic-types": "^0.7.4",
+  "node-opcua-data-model": "^0.7.4",
+  "node-opcua-factory": "^0.7.4",
+  "node-opcua-nodeid": "^0.7.4",
+  "node-opcua-service-endpoints": "^0.7.4",
+  "node-opcua-service-secure-channel": "^0.7.4",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "node-opcua-generator": "^0.7.3"
+  "node-opcua-generator": "^0.7.4"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
