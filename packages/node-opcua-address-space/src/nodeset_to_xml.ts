@@ -385,6 +385,7 @@ function dumpReferencedNodes(
             assert(nodeChild instanceof BaseNode);
             if (nodeChild.nodeId.namespace === node.nodeId.namespace) {
                 if (!xw.visitedNode[_hash(nodeChild)]) {
+                    console.log(node.nodeId.toString(), " dumping child ", nodeChild.browseName.toString(), nodeChild.nodeId.toString());
                     nodeChild.dumpXML(xw);
                 }
             }
@@ -617,15 +618,18 @@ function dumpElementInFolder(
   node: BaseNode
 ) {
 
-    console.log("dumpElementInFolder");
     const aggregates = node.getFolderElements().sort(
       (x: BaseNode, y: BaseNode) =>
         x.browseName.name!.toString() > y.browseName.name!.toString() ? 1 : -1
     );
-    for (const aa of aggregates) {
-        if (!xw.visitedNode[_hash(aa)]) {
-            console.log(aa.browseName.toString());
-            aa.dumpXML(xw);
+    for (const aggregate of aggregates) {
+
+        // do not export node that do not belong to our namespace
+        if (node.nodeId.namespace != aggregate.nodeId.namespace)
+            return;
+
+        if (!xw.visitedNode[_hash(aggregate)]) {
+            aggregate.dumpXML(xw);
         }
     }
 }
@@ -640,9 +644,14 @@ function dumpAggregates(
       (x: BaseNode, y: BaseNode) =>
         x.browseName.name!.toString() > y.browseName.name!.toString() ? 1 : -1
     );
-    for (const aa of aggregates) {
-        if (!xw.visitedNode[_hash(aa)]) {
-            aa.dumpXML(xw);
+    for (const aggregate of aggregates) {
+
+        // do not export node that do not belong to our namespace
+        if (node.nodeId.namespace != aggregate.nodeId.namespace)
+            return;
+
+        if (!xw.visitedNode[_hash(aggregate)]) {
+            aggregate.dumpXML(xw);
         }
     }
     // Xx xw.writeComment("Aggregates }} ");

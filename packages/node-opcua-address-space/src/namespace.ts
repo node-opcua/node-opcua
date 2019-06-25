@@ -1808,7 +1808,11 @@ export class UANamespace implements NamespacePublic {
 
         const indexName = node.nodeId.toString();
         if (this._nodeid_index.hasOwnProperty(indexName)) {
-            throw new Error("nodeId " + node.nodeId.displayText() + " already registered " + node.nodeId.toString());
+            throw new Error("nodeId " + node.nodeId.displayText() + " already registered " + node.nodeId.toString()
+              + "\n"+
+              " in namespace " +  this.namespaceUri + " index = " + this.index
+              + "\n"+
+            " browseName = "+ node.browseName.toString());
         }
 
         this._nodeid_index[indexName] = node;

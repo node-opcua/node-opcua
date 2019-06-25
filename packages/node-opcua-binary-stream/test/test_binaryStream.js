@@ -211,7 +211,6 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
 
         const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20));
         const binStream2 = new BinaryStream(Buffer.alloc(n * 8 + 20));
-
         largeArray.byteLength.should.eql(n * 8);
         const bench = new Benchmarker();
         bench
