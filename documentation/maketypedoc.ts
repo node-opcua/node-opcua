@@ -65,8 +65,13 @@ let nodeopcuaModules = [
     "service-history",
     "service-node-management",
     "service-read",
-    "service-write",
+    "service-register-node",
+    "service-secure-channel",
+    "service-session",
     "service-subscription",
+    "service-translate-browse-path",
+    "service-write",
+    "status-code",
     "variant",
 ];
 
