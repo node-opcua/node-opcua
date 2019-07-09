@@ -42,6 +42,9 @@ function compare(objReloaded: any, obj: any) {
             if (isArrayOrTypedArray(obj[p])) {
                 assert_arrays_are_equal(objReloaded[p], obj[p]);
             } else {
+                if (objReloaded[p] === undefined || obj[p] === undefined ) {
+                    return;
+                }
                 (JSON.stringify(objReloaded[p]) as any).should.eql(JSON.stringify(obj[p]));
             }
         } catch (err) {
@@ -72,14 +75,20 @@ function redirectToNull(functor: () => void) {
     }
 }
 
+type encode_decode_round_trip_testCallback = (buffer: Buffer, encoding: any, options: any) => void;
+
 /**
  * @method encode_decode_round_trip_test
- * @param obj {Object} : object to test ( the object must provide a binaryStoreSize,encode,decode method
+ * @param obj  : object to test ( the object must provide a binaryStoreSize,encode,decode method
  * @param [options]
  * @param callback_buffer
  * @return {*}
  */
-export function encode_decode_round_trip_test(obj: any, options: any, callback_buffer?: any) {
+export function encode_decode_round_trip_test(
+    obj: any,
+    options?: any,
+    callback_buffer?: encode_decode_round_trip_testCallback
+): any {
 
     if (!callback_buffer && _.isFunction(options)) {
         callback_buffer = options;

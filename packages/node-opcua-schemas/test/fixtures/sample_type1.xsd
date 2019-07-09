@@ -1,0 +1,23 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:tns="http://opcfoundation.org/UA/MachineVision" DefaultByteOrder="LittleEndian"
+                    xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:ua="http://opcfoundation.org/UA/"
+                    TargetNamespace="http://opcfoundation.org/UA/MachineVision">
+    <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="SystemStateDescriptionDataType">
+        <opc:Field TypeName="opc:Bit" Name="stateDescriptionSpecified"/>
+        <opc:Field Length="31" TypeName="opc:Bit" Name="Reserved1"/>
+        <opc:Field TypeName="tns:SystemStateDataType" Name="state"/>
+        <opc:Field SwitchField="stateDescriptionSpecified" TypeName="opc:CharArray" Name="stateDescription"/>
+    </opc:StructuredType>
+
+    <opc:EnumeratedType LengthInBits="32" Name="SystemStateDataType">
+        <opc:EnumeratedValue Name="PRD_1" Value="1"/>
+        <opc:EnumeratedValue Name="SBY_2" Value="2"/>
+        <opc:EnumeratedValue Name="ENG_3" Value="3"/>
+        <opc:EnumeratedValue Name="SDT_4" Value="4"/>
+        <opc:EnumeratedValue Name="UDT_5" Value="5"/>
+        <opc:EnumeratedValue Name="NST_6" Value="6"/>
+    </opc:EnumeratedType>
+
+</opc:TypeDictionary>

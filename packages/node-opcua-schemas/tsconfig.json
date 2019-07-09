@@ -4,6 +4,7 @@
     "rootDir": ".",
     "outDir": "dist"
   },
+  "types": [ "mocha" ],
   "files": [ "source/index.ts"]
 
 }

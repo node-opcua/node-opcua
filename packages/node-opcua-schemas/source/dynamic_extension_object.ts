@@ -23,10 +23,10 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export function getOrCreateConstructor(
-  fieldType: string,
-  typeDictionary: TypeDictionary,
-  encodingDefaultBinary?: ExpandedNodeId,
-  encodingDefaultXml?: ExpandedNodeId
+    fieldType: string,
+    typeDictionary: TypeDictionary,
+    encodingDefaultBinary?: ExpandedNodeId,
+    encodingDefaultXml?: ExpandedNodeId
 ) {
 
     if (hasStructuredType(fieldType)) {
@@ -60,10 +60,10 @@ export function getOrCreateConstructor(
 }
 
 function encodeArrayOrElement(
-  field: FieldType,
-  obj: any,
-  stream: OutputBinaryStream,
-  encodeFunc?: (a: any, stream: OutputBinaryStream) => void
+    field: FieldType,
+    obj: any,
+    stream: OutputBinaryStream,
+    encodeFunc?: (a: any, stream: OutputBinaryStream) => void
 ) {
     if (field.isArray) {
         const array = obj[field.name];
@@ -83,16 +83,22 @@ function encodeArrayOrElement(
         if (encodeFunc) {
             encodeFunc(obj[field.name], stream);
         } else {
+            if (!obj[field.name].encode) {
+                // tslint:disable:no-console
+                console.log(obj.schema.fields, field);
+                throw new Error("encodeArrayOrElement: object field "
+                    + field.name + " has no encode method and encodeFunc is missing");
+            }
             obj[field.name].encode(stream);
         }
     }
 }
 
 function decodeArrayOrElement(
-  field: FieldType,
-  obj: any,
-  stream: BinaryStream,
-  decodeFunc?: (stream: BinaryStream) => any
+    field: FieldType,
+    obj: any,
+    stream: BinaryStream,
+    decodeFunc?: (stream: BinaryStream) => any
 ) {
     if (field.isArray) {
         const array = [];
@@ -104,7 +110,7 @@ function decodeArrayOrElement(
                 if (decodeFunc) {
                     array.push(decodeFunc(stream));
                 } else {
-                    // constuct an instance
+                    // construct an instance
                     const constructor = getStructureTypeConstructor(field.fieldType);
                     const element = new constructor({});
                     element.decode(stream);
@@ -141,12 +147,18 @@ class DynamicExtensionObject extends ExtensionObject {
 
             const name = field.name;
 
+            // dealing with optional fields
+            if (field.switchBit !== undefined && options[field.name] === undefined) {
+                (this as any)[name] = undefined;
+                continue;
+            }
+
             switch (field.category) {
                 case FieldCategory.complex: {
                     const constuctor = getOrCreateConstructor(field.fieldType, typeDictionary) || BaseUAObject;
                     if (field.isArray) {
                         (this as any)[name] = (options[name] || []).map((x: any) =>
-                          constuctor ? new constuctor(x) : null
+                            constuctor ? new constuctor(x) : null
                         );
                     } else {
                         (this as any)[name] = constuctor ? new constuctor(options[name]) : null;
@@ -170,7 +182,33 @@ class DynamicExtensionObject extends ExtensionObject {
     public encode(stream: OutputBinaryStream): void {
         super.encode(stream);
 
+        // ============ Deal with switchBits
+        if (this.schema.bitFields && this.schema.bitFields.length) {
+
+            let bitField = 0;
+
+            for (const field of this.schema.fields) {
+
+                if (field.switchBit === undefined) {
+                    continue;
+                }
+                if ((this as any)[field.name] === undefined) {
+                    continue;
+                }
+                // tslint:disable-next-line:no-bitwise
+                bitField |= (1 << field.switchBit);
+            }
+            // write
+            stream.writeUInt32(bitField);
+        }
+
         for (const field of this.schema.fields) {
+
+            // ignore
+            if (field.switchBit !== undefined && (this as any)[field.name] === undefined) {
+                continue;
+            }
+
             switch (field.category) {
                 case FieldCategory.complex:
                     encodeArrayOrElement(field, this as any, stream);
@@ -179,15 +217,35 @@ class DynamicExtensionObject extends ExtensionObject {
                 case FieldCategory.basic:
                     encodeArrayOrElement(field, this as any, stream, field.schema.encode);
                     break;
+                default:
+                    /* istanbul ignore next*/
+                    throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
             }
         }
     }
 
     public decode(stream: BinaryStream): void {
         super.decode(stream);
-        for (const field of this.schema.fields) {
-            switch (field.category) {
 
+        // ============ Deal with switchBits
+        let bitField = 0;
+        if (this.schema.bitFields && this.schema.bitFields.length) {
+            bitField = stream.readUInt32();
+        }
+
+        for (const field of this.schema.fields) {
+
+            // ignore fields that have a switch bit when bit is not set
+            if (field.switchBit !== undefined) {
+
+                // tslint:disable-next-line:no-bitwise
+                if ((bitField & (1 << field.switchBit)) === 0) {
+                    (this as any)[field.name] = undefined;
+                    continue;
+                }
+            }
+
+            switch (field.category) {
                 case FieldCategory.complex:
                     decodeArrayOrElement(field, this as any, stream);
                     break;
@@ -195,6 +253,9 @@ class DynamicExtensionObject extends ExtensionObject {
                 case FieldCategory.basic:
                     decodeArrayOrElement(field, this as any, stream, field.schema.decode);
                     break;
+                default:
+                    /* istanbul ignore next*/
+                    throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
             }
         }
     }
@@ -213,8 +274,8 @@ interface AnyConstructable {
 export type AnyConstructorFunc = AnyConstructable;
 
 export function createDynamicObject(
-  schema: StructuredTypeSchema,
-  typeDictionary: TypeDictionary
+    schema: StructuredTypeSchema,
+    typeDictionary: TypeDictionary
 ): AnyConstructorFunc {
 
     // tslint:disable-next-line:max-classes-per-file
@@ -233,6 +294,7 @@ export function createDynamicObject(
             return super.toString();
         }
     }
+
     // to do : may be remove DataType suffix here ?
     Object.defineProperty(EXTENSION, "name", { value: schema.name });
 

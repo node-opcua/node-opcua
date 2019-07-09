@@ -1,8 +1,13 @@
-import { assert } from "node-opcua-assert";
-import { FieldCategory, hasBuiltInType, StructuredTypeSchema } from "node-opcua-factory";
-import { TypeDictionary } from "./parse_binary_xsd";
+import {
+    buildStructuredType,
+    EnumerationDefinitionSchema,
+    FieldCategory,
+    hasBuiltInType, StructuredTypeOptions,
+    StructuredTypeSchema
+} from "node-opcua-factory";
+import { EnumeratedType, StructureTypeRaw, TypeDictionary } from "./parse_binary_xsd";
 
-function removeNamespacePart(str: string): string {
+function removeNamespacePart(str?: string): string | undefined {
     if (!str) {
         return str;
     }
@@ -25,10 +30,17 @@ function adjustFieldTypeName(fieldTypeName: string): string {
     return fieldTypeName;
 }
 
-export function prepareStructureType(
-  structuredType: any,
-  typeDictionary: TypeDictionary
-): StructuredTypeSchema {
+export function getOrCreateStructuredTypeSchema(name: string, typeDictionary: TypeDictionary): StructuredTypeSchema {
+    let structuredTypeSchema = typeDictionary.structuredTypes[name];
+    if (structuredTypeSchema) {
+        return structuredTypeSchema;
+    }
+
+    // construct it !
+    const structuredType = typeDictionary.structuredTypesRaw[name];
+    if (!structuredType) {
+        throw new Error("Cannot find structuredType" + name);
+    }
 
     structuredType.baseType = removeNamespacePart(structuredType.baseType);
     structuredType.baseType = structuredType.baseType ? structuredType.baseType : "BaseUAObject";
@@ -38,20 +50,25 @@ export function prepareStructureType(
         if (!field.schema) {
 
             const prefix = getNamespacePart(fieldType);
-            const fieldTypeName = adjustFieldTypeName(removeNamespacePart(fieldType));
+            const fieldTypeName = adjustFieldTypeName(removeNamespacePart(fieldType)!);
 
             switch (prefix) {
                 case "tns":
                     // xx const structuredType = typeDictionary.structuredTypes[fieldTypeName];
                     // xx const enumerationType = typeDictionary.enumeratedTypes[fieldTypeName];
                     field.fieldType = fieldTypeName;
-                    if (typeDictionary.structuredTypes[fieldTypeName]) {
-                        field.category = FieldCategory.complex;
-                        field.schema = typeDictionary.structuredTypes[fieldTypeName];
-                    } else {
-                        assert(typeDictionary.enumeratedTypes[fieldTypeName]);
+
+                    if (typeDictionary.enumeratedTypes[fieldTypeName]) {
+
                         field.category = FieldCategory.enumeration;
                         field.schema = typeDictionary.enumeratedTypes[fieldTypeName];
+
+                    } else {
+                        // must be a structure then ....
+
+                        field.category = FieldCategory.complex;
+                        field.schema = getOrCreateStructuredTypeSchema(fieldTypeName, typeDictionary);
+
                     }
                     break;
                 case "ua":
@@ -59,7 +76,8 @@ export function prepareStructureType(
                     if (hasBuiltInType(fieldTypeName)) {
                         field.category = FieldCategory.basic;
                     } else {
-                        // xx field.category = FieldCategory.complex;
+                        field.category = FieldCategory.basic;
+                        // console.log("What should I do ??", fieldTypeName);
                     }
                     break;
                 case "opc":
@@ -70,7 +88,6 @@ export function prepareStructureType(
                         field.fieldType = fieldTypeName;
                     }
                     if (!hasBuiltInType(fieldTypeName)) {
-                        console.log(structuredType);
                         throw new Error("Unknown basic type " + fieldTypeName);
                     }
                     field.category = FieldCategory.basic;
@@ -78,5 +95,34 @@ export function prepareStructureType(
             }
         }
     }
-    return structuredType;
+
+    structuredTypeSchema = buildStructuredType(structuredType as StructuredTypeOptions);
+    typeDictionary.structuredTypes[name] = structuredTypeSchema;
+
+    return structuredTypeSchema;
+
+}
+
+export function prepareStructureType(
+    structuredType: StructureTypeRaw,
+    typeDictionary: TypeDictionary
+): void {
+
+    const key = structuredType.name;
+    if (typeDictionary.structuredTypes[key]) {
+        return; // already done
+    }
+    typeDictionary.structuredTypes[key] = getOrCreateStructuredTypeSchema(key, typeDictionary);
+}
+
+export function prepareEnumeratedType(
+    enumeratedType: EnumeratedType,
+    typeDictionary: TypeDictionary
+): EnumerationDefinitionSchema {
+
+    const e = new EnumerationDefinitionSchema({
+        enumValues: enumeratedType.enumeratedValues,
+        name: enumeratedType.name
+    });
+    return e;
 }

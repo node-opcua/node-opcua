@@ -11,7 +11,6 @@ import * as util from "util";
 import { decodeByte, decodeExpandedNodeId, decodeNodeId, decodeUInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
-import { Enum } from "node-opcua-enum";
 import { BaseUAObject, constructObject } from "node-opcua-factory";
 import { buffer_ellipsis } from "node-opcua-utils";
 
@@ -22,19 +21,6 @@ function f(n: number, width: number): string {
     return (s + "      ").substr(0, Math.max(s.length, width));
 }
 
-function display_encoding_mask_withEnum(padding: string, encodingMask: any, encodingInfo: any) {
-    assert(encodingInfo instanceof Enum);
-    let bits = [];
-    encodingInfo.enumItems.forEach((enumValue: any) => {
-        const mask = enumValue.value;
-        const bit = Math.log(mask) / Math.log(2);
-        bits = [".", ".", ".", ".", ".", ".", ".", ".", "."];
-        bits[bit] = ((encodingMask & mask) === mask) ? "Y" : "n";
-
-        console.log(padding + " ", bits.join(""), " <- has " + enumValue.key);
-    });
-    // DataValueEncodingByte
-}
 
 function display_encoding_mask(padding: string, encodingMask: any, encodingInfo: any) {
 
