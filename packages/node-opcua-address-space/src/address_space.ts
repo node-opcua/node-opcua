@@ -443,6 +443,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!(dataTypeNode instanceof UADataType)) {
             throw new Error("Expecting a UADataType");
         }
+        dataTypeNode = dataTypeNode as UADataType;
         /* istanbul ignore next */
         if (typeof dataTypeNode!.nodeId!.value !== "number") {
             throw new Error("Internal Errror");
@@ -1289,7 +1290,8 @@ export class AddressSpace implements AddressSpacePrivate {
 
         // ----------------------------------------------- handle referenceType
         if (params.referenceType instanceof UAReferenceType) {
-            params._referenceType = params.referenceType as UAReferenceType;
+
+            params.referenceType = params.referenceType as UAReferenceType;
             params.referenceType = params.referenceType.nodeId;
 
         } else if (typeof params.referenceType === "string") {
@@ -1382,7 +1384,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         // coerce to BaseNode object
         if (node instanceof BaseNode) {
-            return node;
+            return node as BaseNode;
         }
         // it's a node id like
         // coerce parent folder to an object

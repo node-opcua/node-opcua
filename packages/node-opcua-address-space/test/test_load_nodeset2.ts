@@ -27,7 +27,6 @@ describe("testing NodeSet XML file loading", function(this: any) {
     });
 
     it("should load a nodeset xml file", async () => {
-
         const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
         fs.existsSync(xml_file).should.be.eql(true);
@@ -41,11 +40,9 @@ describe("testing NodeSet XML file loading", function(this: any) {
         Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
         Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(2);
         Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(1);
-
     });
 
     it("should load a large nodeset xml file", async () => {
-
         // set a large timeout ( loading the large nodeset xml file could be very slow on RPI)
         this.timeout(Math.max(400000, this._timeout));
 
@@ -63,15 +60,10 @@ describe("testing NodeSet XML file loading", function(this: any) {
         Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
         Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(10);
         Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(10);
-
     });
 
     it("should load the DI nodeset ", async () => {
-
-        const xml_files = [
-            nodesets.standard_nodeset_file,
-            nodesets.di_nodeset_filename
-        ];
+        const xml_files = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename];
         fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
         fs.existsSync(xml_files[1]).should.be.eql(true, " DI node set file shall exist");
 
@@ -96,19 +88,14 @@ describe("testing NodeSet XML file loading", function(this: any) {
         Object.keys(namespace1._referenceTypeMap).length.should.be.greaterThan(2);
         Object.keys(namespace1._dataTypeMap).length.should.be.greaterThan(4);
         Object.keys(namespace1._objectTypeMap).length.should.be.greaterThan(9);
-
     });
 
     it("should read accessLevel and userAccessLevel attributes", async () => {
-
         this.timeout(Math.max(400000, this._timeout));
 
         const xml_file = getFixture("fixture_node_with_various_access_level_nodeset.xml");
 
-        const xml_files = [
-            nodesets.standard_nodeset_file,
-            xml_file
-        ];
+        const xml_files = [nodesets.standard_nodeset_file, xml_file];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
@@ -125,19 +112,14 @@ describe("testing NodeSet XML file loading", function(this: any) {
         const readWriteVar = addressSpace.findNode("ns=1;i=4")! as UAVariable;
         readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
         readWriteVar.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-
     });
 
     it("should read predefined values for variables", async () => {
-
         this.timeout(Math.max(400000, this._timeout));
 
         const xml_file = getFixture("fixture_node_with_predefined_variable.xml");
 
-        const xml_files = [
-            nodesets.standard_nodeset_file,
-            xml_file
-        ];
+        const xml_files = [nodesets.standard_nodeset_file, xml_file];
 
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
@@ -162,17 +144,13 @@ describe("testing NodeSet XML file loading", function(this: any) {
         someDoubleVariable.browseName.toString().should.eql("1:SomeDoubleVariable");
         someDoubleVariable.readValue().value.dataType.should.equal(DataType.Double);
         someDoubleVariable.readValue().value.value.should.eql(0.0);
-
     });
 
     it("Q1 should read a VariableType with a default value", async () => {
-
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
         const xml_file2 = getFixture("fixture_variable_type_with_default_value.xml");
 
-        const xml_files = [
-            xml_file1, xml_file2
-        ];
+        const xml_files = [xml_file1, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
 
         const ns = addressSpace.getNamespaceIndex("MYNAMESPACE");
@@ -182,75 +160,68 @@ describe("testing NodeSet XML file loading", function(this: any) {
 
         my3x3MatrixType.browseName.toString().should.eql("1:My3x3MatrixType");
 
-        addressSpace.findDataType(my3x3MatrixType.dataType)!.browseName.toString().should.eql("Float");
+        addressSpace
+            .findDataType(my3x3MatrixType.dataType)!
+            .browseName.toString()
+            .should.eql("Float");
 
         my3x3MatrixType.valueRank.should.eql(2);
         my3x3MatrixType.arrayDimensions.should.eql([3, 3]);
-        (my3x3MatrixType as any).value.toString().should.eql(new Variant({
-            dataType: "Float", value: [11, 12, 13, 21, 22, 23, 31, 32, 33]
-        }).toString());
+        (my3x3MatrixType as any).value.toString().should.eql(
+            new Variant({
+                dataType: "Float",
+                value: [11, 12, 13, 21, 22, 23, 31, 32, 33]
+            }).toString()
+        );
 
         const myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType", ns)!;
         myDoubleArrayType.browseName.toString().should.eql("1:MyDoubleArrayType");
         myDoubleArrayType.valueRank.should.eql(1);
         myDoubleArrayType.arrayDimensions.should.eql([5]);
-        (myDoubleArrayType as any).value.toString().should.eql(
-          new Variant({ dataType: "Double", value: [1, 2, 3, 4, 5] }).toString());
-
+        (myDoubleArrayType as any).value
+            .toString()
+            .should.eql(new Variant({ dataType: "Double", value: [1, 2, 3, 4, 5] }).toString());
     });
 
-    it("#339 default ValueRank should be -1  for UAVariable and UAVariableType when loading nodeset2.xml files",
-      async () => {
-
-          const xml_files = [
-              nodesets.standard_nodeset_file
-          ];
-          fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
-          await generateAddressSpace(addressSpace, xml_files);
-          addressSpace.rootFolder.objects.server.serverStatus.valueRank.should.eql(-1);
-
-      });
+    it("#339 default ValueRank should be -1  for UAVariable and UAVariableType when loading nodeset2.xml files", async () => {
+        const xml_files = [nodesets.standard_nodeset_file];
+        fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
+        await generateAddressSpace(addressSpace, xml_files);
+        addressSpace.rootFolder.objects.server.serverStatus.valueRank.should.eql(-1);
+    });
 
     it("VV1 should load a nodeset file with a Models section", async () => {
-
-        const xml_file1 = path.join(__dirname,
-          "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
-        const xml_files = [
-            xml_file1
-        ];
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
+        const xml_files = [xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
     });
 
     it("VV2 should load a nodeset file with hierarchy of Models", async () => {
-          const xml_file1 = path.join(__dirname,
-            "../test_helpers/test_fixtures/minimalist_nodeset_with_models_more_complex.xml");
-          const xml_files = [
-              xml_file1
-          ];
-          await generateAddressSpace(addressSpace, xml_files);
-      }
-    );
+        const xml_file1 = path.join(
+            __dirname,
+            "../test_helpers/test_fixtures/minimalist_nodeset_with_models_more_complex.xml"
+        );
+        const xml_files = [xml_file1];
+        await generateAddressSpace(addressSpace, xml_files);
+    });
 
     it("VV3 should load a nodeset from UAModeler", async () => {
-          const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
-          const xml_file2 = path.join(__dirname, "../../../modeling/my_data_type.xml");
-          const xml_files = [xml_file1, xml_file2];
-          await generateAddressSpace(addressSpace, xml_files);
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        const xml_file2 = path.join(__dirname, "../../../modeling/my_data_type.xml");
+        const xml_files = [xml_file1, xml_file2];
+        await generateAddressSpace(addressSpace, xml_files);
 
-          // now verify that Variable containing Extension Object defined as value in the XML file
-          // have been correctly processed
+        // now verify that Variable containing Extension Object defined as value in the XML file
+        // have been correctly processed
 
-          const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
-          // xx console.log("namespace ", ns);
+        const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
 
-          const variableType1 = addressSpace.findVariableType("MyStructureType", ns)!;
-          const value = variableType1.readAttribute(null, AttributeIds.Value);
-          // xx console.log(value.toString());
-      }
-    );
+        const variableType1 = addressSpace.findVariableType("MyStructureType", ns)!;
+        const value = variableType1.readAttribute(null, AttributeIds.Value);
+        // xx console.log(value.toString());
+    });
 
     it("VV4 should parse a dataType made of bit sets", async () => {
-
         /*
          * <UADataType NodeId="i=95" BrowseName="AccessRestrictionType">
          *   <Definition Name="AccessRestrictionType" IsOptionSet="true">
@@ -265,8 +236,66 @@ describe("testing NodeSet XML file loading", function(this: any) {
         await generateAddressSpace(addressSpace, xml_files);
 
         const dataType = addressSpace.findNode("i=95")!;
-        console.log(dataType.toString());
+        // console.log(dataType.toString());
+    });
+});
+
+describe("Testing variables loading ", function(this: any) {
+    this.timeout(200000); // could be slow on appveyor !
+
+    let addressSpace: AddressSpace;
+    beforeEach(async () => {
+        addressSpace = AddressSpace.create();
+        const namespace0 = addressSpace.getDefaultNamespace() as any;
+        Object.keys(namespace0._aliases).length.should.equal(0);
+        Object.keys(namespace0._variableTypeMap).length.should.equal(0);
+        Object.keys(namespace0._referenceTypeMap).length.should.equal(0);
+        Object.keys(namespace0._dataTypeMap).length.should.equal(0);
+        Object.keys(namespace0._objectTypeMap).length.should.equal(0);
+
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+
+        const xml_file = path.join(
+            __dirname,
+            "../test_helpers/test_fixtures/mini.nodeset.withVariousVariables.xml"
+        );
+        fs.existsSync(xml_file).should.be.eql(true);
+
+        await generateAddressSpace(addressSpace, [
+            xml_file1,
+            xml_file
+        ]);
+
+        namespace0.addressSpace.should.eql(addressSpace);
+        Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
+        Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(3);
+        Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
+        Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(2);
+        Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(1);
 
     });
+    afterEach(() => {
+        addressSpace.dispose();
+    });
 
+    it("GG1 - should have a variable with pre-fetched values", () => {
+        const ns = addressSpace.getNamespaceIndex("mydemo/");
+
+        let variable = addressSpace.rootFolder.objects.getFolderElementByName("VarialbeTwoStateDiscrete", ns)!;
+        variable = variable || addressSpace.rootFolder.objects.variableTwoStateDiscrete;
+
+        should.exists(variable);
+
+        const trueState = variable.getChildByName("TrueState");
+        should.exists(trueState);
+
+        const falseState = variable.getChildByName("FalseState");
+        should.exists(falseState);
+
+        trueState.readValue().value.toString().should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=PoweredOn)");
+        falseState.readValue().value.toString().should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=PoweredOff)");
+
+        variable.readValue().value.toString().should.eql(new Variant({ dataType: "Boolean", value: false}).toString());
+
+    });
 });

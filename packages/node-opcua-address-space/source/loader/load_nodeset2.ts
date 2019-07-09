@@ -816,7 +816,18 @@ export function generateAddressSpace(
     }
 
     const state_Variant = {
+        init: () => { /* empty */},
         parser: {
+
+            LocalizedText: _.extend(_.clone(localizedText_parser.LocalizedText), {
+                finish(this: any) {
+                    this.parent.parent.obj.value = {
+                        dataType: DataType.LocalizedText,
+                        value: this.localizedText
+                    };
+                }
+            }),
+
             String: {
                 finish(this: any) {
                     this.parent.parent.obj.value = {
@@ -1002,7 +1013,7 @@ export function generateAddressSpace(
             this.obj.userAccessLevel = convertAccessLevel(attrs.UserAccessLevel);
         },
         finish(this: any) {
-            _internal_createNode(this.obj);
+            const variable = _internal_createNode(this.obj);
         },
         parser: {
             DisplayName: {
@@ -1017,6 +1028,7 @@ export function generateAddressSpace(
                 }
             },
             References: references_parser,
+
             Value: state_Variant
         }
     };
