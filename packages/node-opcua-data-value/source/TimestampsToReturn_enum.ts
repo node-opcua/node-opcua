@@ -30,4 +30,4 @@ export function decodeTimestampsToReturn(stream: BinaryStream): TimestampsToRetu
     return clamp(TimestampsToReturn.Source, stream.readUInt32(), TimestampsToReturn.Invalid) as TimestampsToReturn;
 }
 
-export const _enumerationTimestampsToReturn: Enum = registerEnumeration(schemaTimestampsToReturn);
+export const _enumerationTimestampsToReturn = registerEnumeration(schemaTimestampsToReturn);
