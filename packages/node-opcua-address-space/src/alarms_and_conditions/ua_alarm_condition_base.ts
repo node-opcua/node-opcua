@@ -59,7 +59,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
      * @param options
      * @param options.inputNode
      * @param options.optionals  could be "SuppressedState" , "ShelvingState"
-     * @param [options.maxTimeShelved {Number|null}] max TimeShelved duration (in ms)
+     * @param options.maxTimeShelved  max TimeShelved duration (in ms)
      * @param data
      */
     public static instantiate(
@@ -207,7 +207,6 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         assert(alarmNode instanceof UAAlarmConditionBase);
         return alarmNode;
     }
-
 
     public dispose() {
         if (this.shelvingState) {

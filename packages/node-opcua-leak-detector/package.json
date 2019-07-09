@@ -4,6 +4,7 @@
  "description": "pure nodejs OPCUA SDK - module -leak-detector",
  "main": "index.js",
  "scripts": {
+  "lint": "tslint source/**/*.ts",
   "test": "echo no test"
  },
  "author": "Etienne Rossignon",

@@ -4,9 +4,9 @@
  * @static
  */
 import { ReferenceTypeIds } from "node-opcua-constants";
+import { QualifiedName } from "node-opcua-data-model";
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { BrowsePath } from "./imports";
-import { QualifiedName } from "node-opcua-data-model";
 
 const hierarchicalReferencesId = makeNodeId(ReferenceTypeIds.HierarchicalReferences);
 export { stringToQualifiedName } from "node-opcua-data-model";

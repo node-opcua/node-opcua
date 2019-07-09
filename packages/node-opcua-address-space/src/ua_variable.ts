@@ -29,7 +29,7 @@ import {
     HistoryReadDetails,
     HistoryReadResult,
     HistoryReadResultOptions,
-    Range, 
+    Range,
     ReadAtTimeDetails,
     ReadEventDetails,
     ReadProcessedDetails,
@@ -634,7 +634,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             dataValue.sourceTimestamp = this._dataValue.sourceTimestamp;
             dataValue.sourcePicoseconds = this._dataValue.sourcePicoseconds;
 
-            /*          
+/*
             if (false) {
                 if (context.currentTime) {
                     dataValue.sourceTimestamp = context.currentTime;
@@ -1612,8 +1612,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         };
         return new DataValue(options);
     }
-
-
 }
 
 // tslint:disable:no-var-requires

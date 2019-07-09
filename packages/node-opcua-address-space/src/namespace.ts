@@ -32,7 +32,7 @@ import {
     AddObjectTypeOptions,
     AddReferenceOpts,
     AddReferenceTypeOptions,
-    AddressSpace as AddressSpacePublic, AddTwoStateVariableOptions,
+    AddTwoStateVariableOptions,
     AddVariableOptions,
     AddVariableTypeOptions,
     AddViewOptions, AddYArrayItemOptions,
@@ -58,6 +58,9 @@ import {
     UAView as UAViewPublic, YArrayItemVariable
 } from "../source";
 
+import { coerceEnumValues } from "../source/helpers/coerce_enum_value";
+import { UATwoStateDiscrete } from "../source/interfaces/data_access/ua_two_state_discrete";
+import { UAYArrayItem } from "../source/interfaces/data_access/ua_y_array_item";
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionBase } from "./alarms_and_conditions/ua_acknowledgeable_condition_base";
@@ -69,14 +72,12 @@ import { UAExclusiveLimitAlarm } from "./alarms_and_conditions/ua_exclusive_limi
 import { UALimitAlarm } from "./alarms_and_conditions/ua_limit_alarm";
 import { UANonExclusiveDeviationAlarm } from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm";
 import { UANonExclusiveLimitAlarm } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm";
+import { UAOffNormalAlarm } from "./alarms_and_conditions/ua_off_normal_alarm";
 import { BaseNode } from "./base_node";
-import { coerceEnumValues } from "../source/helpers/coerce_enum_value";
 import { UAAnalogItem } from "./data_access/ua_analog_item";
 import { add_dataItem_stuff, UADataItem } from "./data_access/ua_data_item";
 import { UAMultiStateDiscrete } from "./data_access/ua_multistate_discrete";
 import { UAMultiStateValueDiscrete } from "./data_access/ua_mutlistate_value_discrete";
-import { UATwoStateDiscrete } from "../source/interfaces/data_access/ua_two_state_discrete";
-import { UAYArrayItem } from "../source/interfaces/data_access/ua_y_array_item";
 import { UANamespace_process_modelling_rule } from "./namespace_private";
 import { Reference } from "./reference";
 import { UADataType } from "./ua_data_type";
@@ -88,7 +89,6 @@ import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "./ua_tw
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
-import { UAOffNormalAlarm } from "./alarms_and_conditions/ua_off_normal_alarm";
 
 const doDebug = false;
 
@@ -987,7 +987,6 @@ export class UANamespace implements NamespacePublic {
      *          ]
      *      });
      */
-
     public addMultiStateValueDiscrete(options: AddMultiStateValueDiscreteOptions): UAMultiStateValueDiscrete {
 
         assert(options.hasOwnProperty("enumValues"));
@@ -1809,10 +1808,10 @@ export class UANamespace implements NamespacePublic {
         const indexName = node.nodeId.toString();
         if (this._nodeid_index.hasOwnProperty(indexName)) {
             throw new Error("nodeId " + node.nodeId.displayText() + " already registered " + node.nodeId.toString()
-              + "\n"+
+              + "\n" +
               " in namespace " +  this.namespaceUri + " index = " + this.index
-              + "\n"+
-            " browseName = "+ node.browseName.toString());
+              + "\n" +
+            " browseName = " + node.browseName.toString());
         }
 
         this._nodeid_index[indexName] = node;
@@ -2209,7 +2208,7 @@ function __combineNodeId(parentNodeId: NodeId, name: string) {
  * convert a 'string' , NodeId or Object into a valid and existing object
  * @param addressSpace  {AddressSpace}
  * @param value
- * @param coerceFunc {Function}
+ * @param coerceFunc
  * @private
  */
 function _coerce_parent(

@@ -922,7 +922,7 @@ function UAConditionBase_instantiate(
             //   Types. The Server Object shall be the root of this hierarchy.
             if (!sameNodeId(conditionSourceNode.nodeId, coerceNodeId("ns=0;i=2253"))) { // server object
                 /* istanbul ignore next */
-                if (conditionSourceNode.getEventSourceOfs().length ===0) {
+                if (conditionSourceNode.getEventSourceOfs().length === 0) {
                     errorLog("conditionSourceNode = ", conditionSourceNode.browseName.toString());
                     errorLog("conditionSourceNode = ", conditionSourceNode.nodeId.toString());
                     throw new  Error("conditionSourceNode must be an event source " + conditionSourceNode.browseName.toString() + conditionSourceNode.nodeId.toString() ) ;

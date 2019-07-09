@@ -8,8 +8,6 @@ import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "no
 import { hexDump } from "node-opcua-debug";
 import * as utils from "node-opcua-utils";
 import * as  _ from "underscore";
-
-import { ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
 import { getBuildInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { callConstructor, getStructureTypeConstructor } from "./factories_factories";
@@ -60,7 +58,13 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
 
 type Func1 = (a: any, field: StructuredTypeField, data: any, args: any) => void;
 
-function applyOnAllSchemaFields(self: any, schema: StructuredTypeSchema, data: any, functor: Func1, args: any) {
+function applyOnAllSchemaFields(
+    self: any,
+    schema: StructuredTypeSchema,
+    data: any,
+    functor: Func1,
+    args: any
+) {
     for (const field of schema.fields) {
         functor(self, field, data, args);
     }
@@ -108,9 +112,20 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
 
     let str;
 
+    // decorate the field name with ?# if the field is optional
+    let opt = "    ";
+    if (field.switchBit !== undefined) {
+        opt = " ?" + field.switchBit + " ";
+    }
     const fieldNameF = chalk.yellow(r(padding + fieldName, 30));
-    const fieldTypeF = chalk.cyan(("/* " + r(fieldType, 10) + (field.isArray ? "[]" : "  ") + " */"));
+    const fieldTypeF = chalk.cyan(("/* " + r(fieldType + opt, 17) + (field.isArray ? "[]" : "  ") + " */"));
 
+    // detected when optional field is not specified in value
+    if (field.switchBit !== undefined && value === undefined) {
+        str = fieldNameF + " " + fieldTypeF + ": " + chalk.italic.grey("undefined") + " /* optional field not specified */";
+        data.lines.push(str);
+        return;
+    }
     // compact version of very usual objects
     if (fieldType === "QualifiedName" && !field.isArray && value) {
 
@@ -147,7 +162,7 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
                     value = value.toString.apply(value, args);
                 }
                 str = fieldNameF + " " + fieldTypeF + ": "
-                  + ((value === null || value === undefined) ? chalk.blue("null") : value.toString());
+                    + ((value === null || value === undefined) ? chalk.blue("null") : value.toString());
             }
             data.lines.push(str);
         }
@@ -208,6 +223,10 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
 
         case FieldCategory.enumeration:
             const s = field.schema as EnumerationDefinition;
+            if (!s.typedEnum) {
+                // tslint:disable:no-console
+                console.log("xxxx cannot find typeEnum", s);
+            }
             str = fieldNameF + " " + fieldTypeF + ": " + s.typedEnum.get(value) + " ( " + value + ")";
             data.lines.push(str);
             break;
@@ -274,16 +293,17 @@ export interface DecodeDebugOptions {
 
 /* tslint:disable:no-empty*/
 
+export interface BaseUAObject {
+    schema: StructuredTypeSchema;
+}
+
 /**
  * @class BaseUAObject
  * @constructor
  */
 export class BaseUAObject {
 
-    public schema: any;
-
     constructor() {
-
     }
 
     /**
@@ -322,7 +342,7 @@ export class BaseUAObject {
     public toString(...args: any[]): string {
 
         if (this.schema && this.schema.hasOwnProperty("toString")) {
-            return this.schema.toString.apply(this, arguments);
+            return this.schema.toString.apply(this, arguments as any);
         } else {
             if (!this.explore) {
                 // xx console.log(util.inspect(this));
@@ -402,7 +422,7 @@ export class BaseUAObject {
             padding: " "
         };
 
-        data.lines.push("{" + chalk.cyan(" /*" + ( this.schema ? this.schema.name : "") + "*/"));
+        data.lines.push("{" + chalk.cyan(" /*" + (this.schema ? this.schema.name : "") + "*/"));
         if (this.schema) {
             applyOnAllSchemaFields(this, this.schema, data, _exploreObject, arguments);
         }
@@ -414,7 +434,7 @@ export class BaseUAObject {
 
         assert(this.schema);
         if (this.schema.toJSON) {
-            return this.schema.toJSON.apply(this, arguments);
+            return this.schema.toJSON.apply(this, arguments as any);
         } else {
             assert(this.schema);
             const schema = this.schema;
@@ -450,26 +470,12 @@ export class BaseUAObject {
     }
 }
 
-/*
-// tslint:disable:max-classes-per-file
-export class ExtensionObject extends BaseUAObject {
-    public static encodingDefaultBinary: ExpandedNodeId;
-    public static encodingDefaultXml: ExpandedNodeId;
-    public encodingDefaultBinary: ExpandedNodeId = ExpandedNodeId.nullExpandedNodeId;
-    public encodingDefaultXml: ExpandedNodeId = ExpandedNodeId.nullExpandedNodeId;
-
-    constructor(otions: any) {
-        super();
-    }
-}
-*/
-
 function _visitSchemaChain(
-  self: BaseUAObject,
-  schema: StructuredTypeSchema,
-  options: any,
-  func: (self: BaseUAObject, schema: StructuredTypeSchema, options: any) => void,
-  extraData: any
+    self: BaseUAObject,
+    schema: StructuredTypeSchema,
+    options: any,
+    func: (self: BaseUAObject, schema: StructuredTypeSchema, options: any) => void,
+    extraData: any
 ) {
     assert(_.isFunction(func));
 

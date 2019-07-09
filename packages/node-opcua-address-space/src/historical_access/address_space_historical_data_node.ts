@@ -14,7 +14,6 @@ import { isMinDate } from "node-opcua-date-time";
 import { NumericRange } from "node-opcua-numeric-range";
 import {
     HistoryData,
-    HistoryReadDetails,
     HistoryReadResult, ReadAtTimeDetails, ReadEventDetails, ReadProcessedDetails,
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
@@ -29,10 +28,10 @@ import {
   IVariableHistorianOptions
 } from "../../source";
 import { AddressSpace } from "../address_space";
-import { AddressSpacePrivate } from "../address_space_private";
 import { SessionContext } from "../session_context";
 import { UAVariable } from "../ua_variable";
 
+// tslint:disable:no-var-requires
 const Dequeue = require("dequeue");
 
 /* interface Historian  */
@@ -66,12 +65,9 @@ function inInTimeRange2(
       dataValue.sourceTimestamp! > historyReadDetails.endTime) {
         return false;
     }
-    if (historyReadDetails.startTime &&
-      !isMinDate(historyReadDetails.startTime) &&
-      dataValue.sourceTimestamp! < historyReadDetails.startTime) {
-        return false;
-    }
-    return true;
+    return !(historyReadDetails.startTime &&
+        !isMinDate(historyReadDetails.startTime) &&
+        dataValue.sourceTimestamp! < historyReadDetails.startTime);
 }
 
 function filter_dequeue(
@@ -174,7 +170,6 @@ export class VariableHistorian implements IVariableHistorian {
       callback: Callback<DataValue[]>
     ) {
 
-        const node = this.node;
         assert(callback instanceof Function);
 
         let dataValues = filter_dequeue(
@@ -264,7 +259,6 @@ function _historyReadModify(
   continuationPoint: ContinuationPoint | null,
   callback: Callback<HistoryReadResult>
 ) {
-    const node = this;
 
     //
     // 6.4.3.3 Read modified functionality
@@ -772,8 +766,8 @@ export function AddressSpace_installHistoricalDataNode(
 ) {
 
     AddressSpacePublic.historizerFactory = AddressSpacePublic.historizerFactory || {
-        create(node: UAVariable, options: IVariableHistorianOptions) {
-            return new VariableHistorian(node, options);
+        create(node1: UAVariable, options1: IVariableHistorianOptions) {
+            return new VariableHistorian(node1, options1);
         }
     };
 

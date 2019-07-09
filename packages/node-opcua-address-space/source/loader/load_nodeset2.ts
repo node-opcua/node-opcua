@@ -307,7 +307,7 @@ export function generateAddressSpace(
     //   <Field>
     // </Definition>
     //
-    // Or 
+    // Or
     //
     //  (IsOptionSet)
     //
@@ -730,7 +730,7 @@ export function generateAddressSpace(
 
                             // istanbul ignore next
                             if (!dataTypeNode) {
-                                console.log(" cannot find ", typeDefinitionId.toString());
+                                debugLog(" cannot find ", typeDefinitionId.toString());
                                 return;
                             }
 
@@ -957,7 +957,7 @@ export function generateAddressSpace(
                     if (!data.variant) {
                         data.nodeId = this.parent.parent.obj.nodeId;
                         this.postTaskData = null;
-                        const task = async (addressSpace: AddressSpace) => {
+                        const task = async (addressSpace2: AddressSpace) => {
                             data.variant.value = data.postponedExtensionObject;
                             assert(data.nodeId, "expecting a nodeid");
                             const node = addressSpace.findNode(data.nodeId)!;
@@ -1045,6 +1045,7 @@ export function generateAddressSpace(
                 _internal_createNode(this.obj);
             } /* istanbul ignore next */ catch (err) {
                 this.obj.addressSpace = null;
+                // tslint:disable:no-console
                 console.warn(" Cannot create object", JSON.stringify(this.obj, null, " "));
                 throw err;
             }
@@ -1190,11 +1191,10 @@ export function generateAddressSpace(
             for (const task of tasks) {
                 try {
                     await task(addressSpace1);
-                }
-                // istanbul ignore next
-                catch (err) {
-                    console.log(" Err  => ", err.message);
-                    console.log(err);
+                } catch (err) {
+                    // istanbul ignore next
+                    // tslint:disable:no-console
+                    console.log(" Err  => ", err.message, "\n", err);
                 }
             }
         }

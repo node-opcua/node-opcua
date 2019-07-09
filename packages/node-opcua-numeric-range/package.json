@@ -14,7 +14,6 @@
   "node-opcua-assert": "^2.0.0",
   "node-opcua-basic-types": "^2.0.0",
   "node-opcua-binary-stream": "^2.0.0",
-  "node-opcua-enum": "^2.0.0",
   "node-opcua-factory": "^2.0.0",
   "node-opcua-status-code": "^2.0.0",
   "underscore": "^1.9.1"

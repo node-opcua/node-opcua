@@ -307,7 +307,7 @@ function _clone_collection_new(
             console.log(
               chalk.red("Warning : cannot clone node ") +
               node.browseName.toString() +
-              " of class " + node.nodeClass.toString() +
+              " of class " + NodeClass[node.nodeClass].toString() +
               " while cloning " + newParent.browseName.toString());
             continue;
         }

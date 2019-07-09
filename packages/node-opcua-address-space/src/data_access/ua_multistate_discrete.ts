@@ -13,11 +13,11 @@ import { UAVariable } from "../ua_variable";
 export interface UAMultiStateDiscrete {
     enumStrings: UAVariable;
 }
+
 /**
  * @class UAMultiStateDiscrete
  */
 export class UAMultiStateDiscrete extends UAVariable implements UAMultiStateDiscretePublic {
-
 
     public getValue(): number {
         return this.readValue().value.value;

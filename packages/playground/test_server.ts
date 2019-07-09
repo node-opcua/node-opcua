@@ -5,11 +5,11 @@ import {
     ActivateSessionRequest,
     BrowseRequest,
     BrowseResponse,
+    makeBoiler,
     OPCUAServer,
     RegisterServerMethod,
     Request,
-    Response,
-    makeBoiler,
+    Response
 } from "node-opcua";
 
 async function main() {
@@ -32,14 +32,13 @@ async function main() {
                 console.log(request.toString());
             }
 
-
             // ... or check its schema name
             switch (request.schema.name) {
-                case "BrowseRequest":
-                {
-                   const browseRequest = request as BrowseRequest;
-                } break;
-              // etc...
+                case "BrowseRequest": {
+                    const browseRequest = request as BrowseRequest;
+                    break;
+                }
+                // etc...
             }
 
         });
@@ -54,8 +53,9 @@ async function main() {
                 case "BrowseResponse": {
                     const browseRequest = response as BrowseResponse;
                     console.log("BrowseResponse.results.length =", browseRequest.results ? browseRequest.results.length : 0);
-                }  break;
-              // etc...
+                    break;
+                }
+                // etc...
             }
         });
         // post-initialize

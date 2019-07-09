@@ -83,7 +83,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
         this.userAccessLevel = 0;
         this.minimumSamplingInterval = 0;
 
-        this.historizing = isNullOrUndefined(options.historizing) ? false: options.historizing;
+        this.historizing = isNullOrUndefined(options.historizing) ? false : options.historizing;
         this.isAbstract = isNullOrUndefined(options.isAbstract) ? false : options.isAbstract;
 
         this.value = options.value;          // optional default value for instances of this UAVariableType

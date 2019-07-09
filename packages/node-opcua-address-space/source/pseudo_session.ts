@@ -23,12 +23,22 @@ import {
     BrowseResponse,
     BrowseResult
 } from "node-opcua-service-browse";
-import { CallMethodRequest, CallMethodResult, CallMethodResultOptions } from "node-opcua-service-call";
-import { StatusCodes } from "node-opcua-status-code";
+import {
+    CallMethodRequest,
+    CallMethodResult,
+    CallMethodResultOptions
+} from "node-opcua-service-call";
+import {
+    BrowsePath,
+    BrowsePathResult
+} from "node-opcua-service-translate-browse-path";
+import {
+    StatusCodes
+} from "node-opcua-status-code";
+
 import { AddressSpace } from "./address_space_ts";
 import { callMethodHelper } from "./helpers/call_helpers";
 import { IServerBase, ISessionBase, SessionContext } from "./session_context";
-import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 
 /**
  * Pseudo session is an helper object that exposes the same async methods

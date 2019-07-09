@@ -4,6 +4,7 @@
  "description": "pure nodejs OPCUA SDK - module -enum",
  "scripts": {
   "build": "tsc",
+  "lint": "tslint source/**/*.ts",
   "test": "mocha test"
  },
  "main": "./dist/index.js",

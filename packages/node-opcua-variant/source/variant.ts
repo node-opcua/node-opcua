@@ -677,7 +677,7 @@ function decodeGeneralArray(dataType: DataType, stream: BinaryStream) {
 
 function decodeVariantArray(dataType: DataType, stream: BinaryStream) {
     const helper = _getHelper(dataType);
-        if (helper) {
+    if (helper) {
         return helper.decode(stream);
     } else {
         return decodeGeneralArray(dataType, stream);

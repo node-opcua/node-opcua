@@ -274,7 +274,7 @@ export class StateMachine extends UAObject implements StateMachine {
             if (!state) {
                 throw new Error("Cannot find state with name " + toStateNode);
             }
-            assert(state.browseName.toString() === toStateNode);
+            assert(state.browseName.name!.toString() === toStateNode);
             toStateNode = state;
         }
         const fromStateNode = this.currentStateNode;

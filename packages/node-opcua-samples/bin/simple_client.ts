@@ -177,10 +177,12 @@ async function __dumpEvent(
 ) {
     console.log("-----------------------");
     let index = 0;
+    const promises = [];
     for (const variant of eventFields) {
-        await __dumpEvent1(session, fields, variant, index);
+        promises.push(__dumpEvent1(session, fields, variant, index));
         index++;
     }
+    await Promise.all(promises);
 }
 
 async function dumpEvent(session: ClientSession, fields: any, eventFields: any) {
@@ -236,10 +238,12 @@ async function enumerateAllConditionTypes(session: ClientSession) {
 
         tree1[browseName] = {};
         browseResults[0].references = browseResults[0].references || [];
+        const promises = [];
         for (const reference of browseResults[0].references) {
             conditionEventTypes[reference.nodeId.toString()] = reference.browseName.toString();
-            await findAllNodeOfType(tree1[browseName], reference.nodeId, reference.browseName.toString());
+            promises.push(findAllNodeOfType(tree1[browseName], reference.nodeId, reference.browseName.toString()));
         }
+        await Promise.all(promises);
     }
 
     const typeNodeId = resolveNodeId("ConditionType");
@@ -317,12 +321,15 @@ async function _getAllEventTypes(session: ClientSession, baseNodeId: NodeId, tre
         resultMask: 63
     };
     const browseResult = await session.browse(browseDesc1);
+
+    const promises = [];
     // to do continuation points
     for (const reference of  browseResult.references!) {
         const subtree = { nodeId: reference.nodeId.toString() };
         tree[reference.browseName.toString()] = subtree;
-        await _getAllEventTypes(session, reference.nodeId, subtree);
+        promises.push(_getAllEventTypes(session, reference.nodeId, subtree));
     }
+    await Promise.all(promises);
 }
 
 /**

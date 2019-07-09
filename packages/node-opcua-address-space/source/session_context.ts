@@ -38,7 +38,6 @@ export interface ISessionBase {
     userIdentityToken?: UserIdentityToken;
 }
 
-
 /**
  * OPC Unified Architecture, Part 3 13 Release 1.04
  * 4.8.2 Well Known Roles

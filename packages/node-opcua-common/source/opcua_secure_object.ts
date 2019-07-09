@@ -27,7 +27,7 @@ function _load_private_key_pem(privateKeyFilename: string): PrivateKeyPEM {
    return readKeyPem(privateKeyFilename);
 }
 
-export interface IOPCUASecureObjectOptions {
+export interface    IOPCUASecureObjectOptions {
     certificateFile?: string;
     privateKeyFile?: string;
 }

@@ -7,14 +7,12 @@ import {
     AttributeIds,
     BrowseResult,
     ConnectionStrategyOptions,
-    extractNamespaceDataType,
     ExtraDataTypeManager,
     getDataTypeDefinition,
     MessageSecurityMode,
     NodeId,
     OPCUAClient,
     OPCUAClientOptions,
-    resolveDynamicExtensionObject,
     SecurityPolicy,
     UserTokenType
 } from "node-opcua-client";

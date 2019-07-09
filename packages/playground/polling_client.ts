@@ -5,17 +5,13 @@ import * as os from "os";
 
 import {
     AttributeIds,
-    BrowseDescriptionLike,
     BrowseResult,
     ConnectionStrategyOptions,
-    DataType,
     MessageSecurityMode,
     OPCUAClient,
     OPCUAClientOptions,
     SecurityPolicy,
-    StatusCodes,
-    UserTokenType, Variant
-} from "node-opcua-client";
+    UserTokenType} from "node-opcua-client";
 
 // this test requires UA C++ Demo Server
 const addNodeMethodNodeId = "ns=2;s=Demo.Massfolder_Static.AddNodes";

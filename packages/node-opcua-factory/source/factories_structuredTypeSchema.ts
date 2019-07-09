@@ -13,15 +13,15 @@ import {
     TypeSchemaBase
 } from "./types";
 
+import { assert } from "node-opcua-assert";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+import { lowerFirstLetter } from "node-opcua-utils";
+
 import { getBuildInType, hasBuiltInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType } from "./factories_factories";
 import { parameters } from "./factories_schema_helpers";
-
-import { BinaryStream } from "node-opcua-binary-stream";
-import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
-import { lowerFirstLetter } from "node-opcua-utils";
-import { assert } from "node-opcua-assert";
 
 // export interface StructuredTypeSchemaInterface extends CommonInterface {
 //
@@ -103,6 +103,9 @@ function buildField(fieldLight: FieldInterfaceOptions): FieldType {
 
         documentation: fieldLight.documentation,
         fieldType: fieldLight.fieldType,
+
+        switchBit: fieldLight.switchBit,
+
         schema
     };
 }
@@ -124,9 +127,13 @@ export class StructuredTypeSchema extends TypeSchemaBase {
 
     public encodingDefaultBinary?: ExpandedNodeId;
     public encodingDefaultXml?: ExpandedNodeId;
+    public bitFields?: any[];
 
     constructor(options: StructuredTypeOptions) {
         super(options);
+
+        this.bitFields = options.bitFields;
+
         this.baseType = options.baseType;
         this.category = FieldCategory.complex;
         this.fields = options.fields.map(buildField);

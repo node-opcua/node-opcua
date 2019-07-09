@@ -98,7 +98,7 @@ function _extract_namespace_and_browse_name_as_string(
     } else if (typeof browseName === "number") {
         result = [addressSpace.getDefaultNamespace(), DataType[browseName]];
     }
-    
+
     /* istanbul ignore next */
     if (!result || !result[0]) {
         throw new Error(` Cannot find namespace associated with ${browseName} ${namespaceIndex}`);
@@ -974,7 +974,6 @@ export class AddressSpace implements AddressSpacePrivate {
 
         if (dataType instanceof NodeId) {
             const tmp = this.findNode(dataType);
-            
             /* istanbul ignore next */
             if (!tmp) {
                 throw new Error("getExtensionObjectConstructor: cannot resolve dataType " + dataType);

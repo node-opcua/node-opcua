@@ -29,7 +29,7 @@ const errorLog = make_errorLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
 /**
- * 
+ *
  */
 export interface FileOptions {
     /**
@@ -47,7 +47,8 @@ export interface FileOptions {
 }
 
 /**
-  */
+ *
+ */
 export class FileTypeData {
     public filename: string = "";
     public maxSize: number = 0;
@@ -85,13 +86,16 @@ export class FileTypeData {
         this._openCount = value;
         this.file.openCount.touchValue();
     }
+
     public get openCount(): number {
         return this._openCount;
     }
+
     public set fileSize(value: number) {
         this._fileSize = value;
         this.file.size.touchValue();
     }
+
     public get fileSize(): number {
         return this._fileSize;
     }
@@ -119,6 +123,7 @@ export class FileTypeData {
     }
 
 }
+
 export function getFileData(opcuaFile2: UAFileType) {
     return (opcuaFile2 as any).$data as FileTypeData;
 }
@@ -130,6 +135,7 @@ interface FileAccessData {
     openMode: OpenFileMode;
 
 }
+
 interface FileTypeM {
     $$currentFileHandle: number;
     $$files: { [key: number]: FileAccessData };
@@ -152,7 +158,7 @@ function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode:
         fd: -1,
         handle: fileHandle,
         openMode,
-        position: [0, 0],
+        position: [0, 0]
     };
     _context.$$files[fileHandle] = _fileData;
 
@@ -193,6 +199,7 @@ function toNodeJSMode(opcuaMode: OpenFileMode): string {
     }
     return flags;
 }
+
 /**
  * Open is used to open a file represented by an Object of FileType.
  * When a client opens a file it gets a file handle that is valid while the
@@ -244,7 +251,7 @@ async function _openFile(
      *      Reserved     4:7  Reserved for future use. Shall always be zero.
      */
 
-    // see https://nodejs.org/api/fs.html#fs_file_system_flags
+        // see https://nodejs.org/api/fs.html#fs_file_system_flags
 
     const flags = toNodeJSMode(mode);
     if (flags === "?") {
@@ -370,9 +377,9 @@ async function _readFile(
         return { statusCode: StatusCodes.BadInvalidState };
     }
     // tslint:disable-next-line:no-bitwise
-    if ( (_fileData.openMode & OpenFileModeMask.ReadBit) === 0x0) {
+    if ((_fileData.openMode & OpenFileModeMask.ReadBit) === 0x0) {
         // open mode did not specify Read Flag
-        return { statusCode: StatusCodes.BadInvalidState};
+        return { statusCode: StatusCodes.BadInvalidState };
     }
 
     const data = Buffer.alloc(length);

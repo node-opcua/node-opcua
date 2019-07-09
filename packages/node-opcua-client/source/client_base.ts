@@ -4,6 +4,7 @@
 // tslint:disable:no-unused-expression
 import { EventEmitter } from "events";
 import { LocaleId } from "node-opcua-basic-types";
+import { OPCUASecureObject } from "node-opcua-common";
 import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
@@ -17,7 +18,7 @@ import {
 import {
     FindServersOnNetworkRequest, FindServersOnNetworkRequestOptions,
     FindServersRequest,
-    FindServersRequestOptions, ServerOnNetwork,
+    FindServersRequestOptions, ServerOnNetwork
 } from "node-opcua-service-discovery";
 import {
     ApplicationDescription, EndpointDescription,
@@ -29,7 +30,6 @@ import {
 
 import { ResponseCallback } from "./client_session";
 import { Request, Response } from "./common";
-import { OPCUASecureObject } from "node-opcua-common";
 
 export type FindServersRequestLike = FindServersRequest | FindServersRequestOptions;
 export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequest | FindServersOnNetworkRequestOptions;
@@ -254,7 +254,9 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param eventHandler
      */
     on(event: "receive_chunk", eventHandler: (chunk: Buffer) => void): this;
+
     on(event: "send_request", eventHandler: (request: Request) => void): this;
+
     on(event: "receive_response", eventHandler: (response: Response) => void): this;
 
     /**
@@ -298,6 +300,7 @@ export interface OPCUAClientBase extends EventEmitter {
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 
 }
+
 export interface OPCUAClientBase {
     readonly endpoint?: EndpointDescription;
     readonly isReconnecting: boolean;
@@ -320,10 +323,12 @@ export interface OPCUAClientBase {
     readonly keepSessionAlive: boolean;
     readonly applicationName: string;
 }
+
 export class OPCUAClientBase {
 
     public static registry = new ObjectRegistry();
-    public static  create(options: OPCUAClientBaseOptions): OPCUAClientBase {
-       throw new Error("Not Implemented");
+
+    public static create(options: OPCUAClientBaseOptions): OPCUAClientBase {
+        throw new Error("Not Implemented");
     }
 }

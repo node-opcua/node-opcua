@@ -90,6 +90,7 @@ export function utest_condition(test: any) {
                 });
 
                 (condition as any).evaluateConditionsAfterEnabled = () => {
+                    /* empty */
                 };
 
                 condition.setEnabledState(true);
@@ -248,6 +249,7 @@ export function utest_condition(test: any) {
                 });
 
                 (condition as any).evaluateConditionsAfterEnabled = () => {
+                    /* empty */
                 };
 
                 condition.setEnabledState(true);

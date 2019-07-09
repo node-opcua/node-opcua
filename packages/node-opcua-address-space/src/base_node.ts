@@ -37,12 +37,12 @@ import {
     Namespace,
     SessionContext,
     UAMethod as UAMethodPublic,
+    UAObject as UAObjectPublic,
     UAObjectType as UAObjectTypePublic,
     UAReference,
     UAReference as UAReferencePublic,
     UAReferenceType as UAReferenceTypePublic,
     UAVariable as UAVariablePublic,
-    UAObject as UAObjectPublic,
     UAVariableType as UAVariableTypePublic,
     XmlWriter
 } from "../source";
@@ -391,7 +391,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * @method findReferences
      * @param   referenceType {String|NodeId|ReferenceType} the referenceType as a string.
      * @param  [isForward]  default=true
-     * @return {Array<Reference>}
+     * @return an array with references
      */
     public findReferences(
       referenceType: string | NodeId | UAReferenceTypePublic,
@@ -600,7 +600,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     /**
      * returns the list of methods that this object provides
      * @method getMethods
-     * @return {Array<UAObject>} returns an array wit"h Method objects.
+     * @return an array with Method objects.
      *
      *
      * Note: internally, methods are special types of components
@@ -731,13 +731,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     /**
      * @method browseNodeByTargetName
      *
-     * @param relativePathElement                           {RelativePathElement}
-     * @param relativePathElement.targetName                {QualifiedName}
-     * @param relativePathElement.targetName.name           {String}
-     * @param relativePathElement.targetName.namespaceIndex {UInt32}
-     * @param relativePathElement.referenceTypeId           {NodeId}
-     * @param relativePathElement.isInverse                 {Boolean}
-     * @param relativePathElement.includeSubtypes           {Boolean}
+     * @param relativePathElement
      * @param isLast
      * @return {NodeId[]}
      */
@@ -837,13 +831,9 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     /**
      * browse the node to extract information requested in browseDescription
      * @method browseNode
-     * @param browseDescription                 {BrowseDescription}
-     * @param browseDescription.referenceTypeId {NodeId}
-     * @param browseDescription.browseDirection {BrowseDirection}
-     * @param browseDescription.nodeClassMask   {NodeClassMask}
-     * @param browseDescription.resultMask      {UInt32}
-     * @param session                           {ServerSession}
-     * @return {ReferenceDescription[]}
+     * @param browseDescription
+     * @param context
+     * @return an array with reference descriptions
      */
     public browseNode(
       browseDescription: BrowseDescription,

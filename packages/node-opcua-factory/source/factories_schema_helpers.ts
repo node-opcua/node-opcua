@@ -25,70 +25,6 @@ export function check_schema_correctness(schema: any) {
     assert(schema.baseType === undefined || (typeof schema.baseType === "string"));
 }
 
-// function __field_category(field: FieldInterfaceOptions, extra?: any): FieldCategory {
-//
-//     const field2 = field as FieldType;
-//
-//     if (!field2.category) {
-//
-//         const fieldType = field.fieldType;
-//
-//         if (hasEnumeration(fieldType)) {
-//
-//             field2.category = FieldCategory.enumeration;
-//             field2.schema = getEnumeration(fieldType);
-//
-//         } else if (getStructureTypeConstructor(fieldType)) {
-//
-//             field2.category = FieldCategory.complex;
-//             field2.schema = getStructuredTypeSchema(fieldType);
-//
-//         } else if (hasBuiltInType(fieldType)) {
-//
-//             field.category = FieldCategory.basic;
-//             field2.schema = getBuildInType(fieldType);
-//
-//         } else if (extra) {
-//             if (extra[fieldType]) {
-//                 field2.category = FieldCategory.complex;
-//             }
-//         }
-//         // istanbul ignore next
-//         else {
-//             console.log(chalk.red("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ERROR !", field.name));
-//             dump();
-//             console.log("-------------------------------------------------------------");
-//             console.log(Object.keys(require.cache).sort().join(" "));
-//             throw new Error("Invalid field type : " + fieldType + " =( " +
-//             JSON.stringify(field) + ") is not a default type nor a registered complex struct");
-//         }
-//     }
-//     return field2.category;
-// }
-//
-// export function resolve_schema_field_types(schema: StructuredTypeOptions, generatedObjectSchema?: any): void {
-//
-//     if (schema._resolved) {
-//         return;
-//     }
-//
-//     function convert(field: FieldInterfaceOptions): FieldCategory {
-//         if (field.fieldType === schema.name) {
-//             // special case for structure recursion
-//             field.category = FieldCategory.complex;
-//             field.schema = schema;
-//             return field;
-//         } else {
-//             return __field_category(field, generatedObjectSchema);
-//         }
-//     }
-//
-//     for (const field of schema.fields) {
-//         convert(field);
-//     }
-//     schema._resolved = true;
-// }
-
 /**
  * @method initialize_field
  * @param field
@@ -99,21 +35,27 @@ export function initialize_field(field: StructuredTypeField, value: any) {
 
     const _t = field.schema;
     if (!_.isObject(_t)) {
-        throw new Error("initialize_field: expecting field.schema to be set " + field.name + " type = " + field.fieldType);
+        throw new Error("initialize_field: expecting field.schema to be set field.name = '" + field.name + "' type = " + field.fieldType);
     }
     assert(_.isObject(field));
     assert(!field.isArray);
 
-    if (field.category === FieldCategory.complex) {
-        if (field.fieldTypeConstructor) {
-            return new field.fieldTypeConstructor(value);
-        } else {
-            debugLog("xxxx => missing constructor for field type", field.fieldType);
-        }
-    }
-    const defaultValue = _t.computer_default_value(field.defaultValue);
+    try {
 
-    value = _t.initialize_value(value, defaultValue);
+        if (field.category === FieldCategory.complex) {
+            if (field.fieldTypeConstructor) {
+                return new field.fieldTypeConstructor(value);
+            } else {
+                debugLog("xxxx => missing constructor for field type", field.fieldType);
+            }
+        }
+
+        const defaultValue = _t.computer_default_value ? _t.computer_default_value(field.defaultValue) : field.defaultValue;
+
+        value = _t.initialize_value(value, defaultValue);
+    } catch (err) {
+        /* empty */
+    }
 
     if (field.validate) {
         if (!field.validate(value)) {
@@ -127,7 +69,7 @@ export function initialize_field(field: StructuredTypeField, value: any) {
  * @method initialize_field_array
  * @param field
  * @param valueArray
- * @return {Array}
+ * @return
  */
 export function initialize_field_array(field: FieldType, valueArray: any) {
 
@@ -144,7 +86,7 @@ export function initialize_field_array(field: FieldType, valueArray: any) {
 
     valueArray = valueArray || [];
 
-    let defaultValue: any = undefined;
+    let defaultValue: any;
     if (_t.computer_default_value) {
         defaultValue = _t.computer_default_value(field.defaultValue);
     }

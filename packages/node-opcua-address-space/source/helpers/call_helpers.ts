@@ -10,9 +10,9 @@ import { CallMethodRequest } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 
+import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
 import { IServerBase, ISessionBase, SessionContext } from "../session_context";
 import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list";
-import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
 
 // Symbolic Id                   Description
 // ----------------------------  -----------------------------------------------------------------------------

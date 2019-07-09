@@ -625,8 +625,9 @@ function dumpElementInFolder(
     for (const aggregate of aggregates) {
 
         // do not export node that do not belong to our namespace
-        if (node.nodeId.namespace != aggregate.nodeId.namespace)
+        if (node.nodeId.namespace !== aggregate.nodeId.namespace) {
             return;
+        }
 
         if (!xw.visitedNode[_hash(aggregate)]) {
             aggregate.dumpXML(xw);
@@ -647,8 +648,9 @@ function dumpAggregates(
     for (const aggregate of aggregates) {
 
         // do not export node that do not belong to our namespace
-        if (node.nodeId.namespace != aggregate.nodeId.namespace)
+        if (node.nodeId.namespace !== aggregate.nodeId.namespace) {
             return;
+        }
 
         if (!xw.visitedNode[_hash(aggregate)]) {
             aggregate.dumpXML(xw);

@@ -6,7 +6,9 @@ const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const NodeClass = require("node-opcua-data-model").NodeClass;
+const chalk = require("chalk");
 
+const doDebug = process.env["DEBUG"] ? true: false;
 
 describe("Testing Browse Service",function() {
 
@@ -17,7 +19,9 @@ describe("Testing Browse Service",function() {
     it("should create a BrowseResponse",function() {
         const browseResponse = new browse_service.BrowseResponse({});
         browseResponse.should.have.property("responseHeader");
-        console.log(browseResponse.toString());
+        if (doDebug) {
+            console.log(browseResponse.toString());
+        }
     });
 
 });

@@ -30,13 +30,13 @@ export interface UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm {
  * @extends UANonExclusiveLimitAlarm
  * @constructor
  */
-export class UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm implements DeviationStuff  {
+export class UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm implements DeviationStuff {
 
     public static instantiate(
-      namespace: NamespacePrivate,
-      type: string | NodeId,
-      options: any,
-      data: any): UANonExclusiveDeviationAlarm {
+        namespace: NamespacePrivate,
+        type: string | NodeId,
+        options: any,
+        data: any): UANonExclusiveDeviationAlarm {
 
         const addressSpace = namespace.addressSpace;
 
@@ -48,7 +48,7 @@ export class UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm imple
         assert(type === nonExclusiveDeviationAlarmType.browseName.toString());
 
         const alarm = UANonExclusiveLimitAlarm.instantiate(
-          namespace, type, options, data) as UANonExclusiveDeviationAlarm;
+            namespace, type, options, data) as UANonExclusiveDeviationAlarm;
         Object.setPrototypeOf(alarm, UANonExclusiveDeviationAlarm.prototype);
 
         assert(alarm instanceof UANonExclusiveDeviationAlarm);
@@ -59,7 +59,6 @@ export class UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm imple
 
         return alarm;
     }
-
 
     public _setStateBasedOnInputValue(value: number) {
         const setpointValue = this.getSetpointValue();
@@ -88,6 +87,7 @@ export class UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm imple
     }
 
 }
+
 /*
 UANonExclusiveDeviationAlarm.prototype.getSetpointNodeNode = DeviationAlarmHelper.getSetpointNodeNode;
 UANonExclusiveDeviationAlarm.prototype.getSetpointValue = DeviationAlarmHelper.getSetpointValue;

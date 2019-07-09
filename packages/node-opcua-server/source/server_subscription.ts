@@ -3,35 +3,35 @@
  */
 // tslint:disable:no-console
 
-import {TimestampsToReturn} from "node-opcua-data-value";
+import { TimestampsToReturn } from "node-opcua-data-value";
 
 // tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
 import chalk from "chalk";
-import {EventEmitter} from "events";
+import { EventEmitter } from "events";
 import * as _ from "underscore";
 import * as util from "util";
 
-import {AddressSpace, BaseNode, Duration, UAObjectType, UAVariable} from "node-opcua-address-space";
-import {checkSelectClauses} from "node-opcua-address-space";
-import {SessionContext} from "node-opcua-address-space";
-import {assert} from "node-opcua-assert";
-import {Byte} from "node-opcua-basic-types";
-import {SessionDiagnosticsDataType, SubscriptionDiagnosticsDataType} from "node-opcua-common";
-import {NodeClass} from "node-opcua-data-model";
-import {AttributeIds} from "node-opcua-data-model";
-import {isValidDataEncoding} from "node-opcua-data-model";
-import {checkDebugFlag, make_debugLog} from "node-opcua-debug";
-import {ExtensionObject} from "node-opcua-extension-object";
+import { AddressSpace, BaseNode, Duration, UAObjectType, UAVariable } from "node-opcua-address-space";
+import { checkSelectClauses } from "node-opcua-address-space";
+import { SessionContext } from "node-opcua-address-space";
+import { assert } from "node-opcua-assert";
+import { Byte } from "node-opcua-basic-types";
+import { SessionDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
+import { NodeClass } from "node-opcua-data-model";
+import { AttributeIds } from "node-opcua-data-model";
+import { isValidDataEncoding } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { ExtensionObject } from "node-opcua-extension-object";
 import {
     NodeId
 } from "node-opcua-nodeid";
-import {ObjectRegistry} from "node-opcua-object-registry";
+import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     SequenceNumberGenerator
 } from "node-opcua-secure-channel";
-import {EventFilter} from "node-opcua-service-filter";
-import {AggregateFilter} from "node-opcua-service-subscription";
+import { EventFilter } from "node-opcua-service-filter";
+import { AggregateFilter } from "node-opcua-service-subscription";
 import {
     DataChangeNotification,
     EventNotificationList,
@@ -57,9 +57,9 @@ import {
     SubscriptionDiagnosticsDataTypeOptions
 } from "node-opcua-types";
 
-import {MonitoredItem, MonitoredItemOptions} from "./monitored_item";
-import {ServerSession} from "./server_session";
-import {validateFilter} from "./validate_filter";
+import { MonitoredItem, MonitoredItemOptions } from "./monitored_item";
+import { ServerSession } from "./server_session";
+import { validateFilter } from "./validate_filter";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -68,6 +68,7 @@ const maxNotificationMessagesInQueue = 100;
 export interface SubscriptionDiagnosticsDataTypePriv extends SubscriptionDiagnosticsDataType {
     $subscription: Subscription;
 }
+
 export enum SubscriptionState {
     CLOSED = 1,   // The Subscription has not yet been created or has terminated.
     CREATING = 2, // The Subscription is being created
@@ -233,7 +234,7 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
     assert(subscription instanceof Subscription);
 
     const subscriptionDiagnostics = new SubscriptionDiagnosticsDataType({});
-    
+
     const subscription_subscriptionDiagnostics = (subscriptionDiagnostics as any);
     subscription_subscriptionDiagnostics.$subscription = subscription;
     // "sessionId"
@@ -836,7 +837,7 @@ export class Subscription extends EventEmitter {
         assert(monitoredItemCreateRequest instanceof MonitoredItemCreateRequest);
 
         function handle_error(statusCode: StatusCode): MonitoredItemCreateResult {
-            return new MonitoredItemCreateResult({statusCode});
+            return new MonitoredItemCreateResult({ statusCode });
         }
 
         const itemToMonitor = monitoredItemCreateRequest.itemToMonitor;
@@ -1329,7 +1330,7 @@ export class Subscription extends EventEmitter {
             // notify new terminated status only when subscription has timeout.
             debugLog("adding StatusChangeNotification notification message for BadTimeout subscription = ", this.id);
             this._addNotificationMessage([
-                new StatusChangeNotification({status: StatusCodes.BadTimeout})
+                new StatusChangeNotification({ status: StatusCodes.BadTimeout })
             ]);
 
             // kill timer and delete monitored items and transfer pending notification messages

@@ -88,9 +88,18 @@ function cleanupEndpoint(endpoint: OPCUAServerEndPoint) {
     }
 }
 
+/**
+ *
+ */
 export interface OPCUABaseServerOptions extends IOPCUASecureObjectOptions {
 
+    /**
+     * the information used in the end point description
+     */
     serverInfo?: ApplicationDescriptionOptions;
+    /**
+     * the server Certificate Manager
+     */
     serverCertificateManager?: OPCUACertificateManager;
 }
 
@@ -99,17 +108,6 @@ const emptyCallback = () => { /* empty */
 
 /**
  * @class OPCUABaseServer
- * @param options
- * @param options.certificateFile
- * @param options.privateKeyFile
- * @param [options.serverInfo = null]                   the information used in the end point description
- * @param [options.serverInfo.applicationUri = "urn:NodeOPCUA-SimpleDemoServer"] {String}
- * @param [options.serverInfo.productUri = "SimpleDemoServer"]{String}
- * @param [options.serverInfo.applicationName = {text: "applicationName"}]{LocalizedText}
- * @param [options.serverInfo.gatewayServerUri = null]{String}
- * @param [options.serverInfo.discoveryProfileUri= null]{String}
- * @param [options.serverInfo.discoveryUrls = []]{Array<String>}
- * @param [options.serverCertificateManager]
  * @constructor
  */
 export class OPCUABaseServer extends OPCUASecureObject {

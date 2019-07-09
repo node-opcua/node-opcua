@@ -54,6 +54,7 @@ export function redirectToFile(
         } catch (err) {
             console.log = oldConsoleLog;
 
+            console.log(" log file = ", logFile);
             console.log("redirectToFile  has intercepted an error :", err);
             // we don't want the callback anymore since we got an error
             // display file on screen  for investigation

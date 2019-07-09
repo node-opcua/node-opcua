@@ -35,7 +35,7 @@ export interface CommonInterface {
 }
 
 export enum FieldCategory {
-    enumeration = "Enumeration",
+    enumeration = "enumeration",
     complex = "complex",
     basic = "basic"
 }
@@ -55,6 +55,9 @@ export interface StructuredTypeField {
     defaultValue?: any;
     validate?: (value: any) => boolean;
     decode?: (stream: BinaryStream) => any;
+
+    switchBit?: number; // the bit number
+
 }
 
 // tslint:disable:no-empty-interface
@@ -82,6 +85,7 @@ export interface FieldInterfaceOptions {
     category?: FieldCategory;
     defaultValue?: any | DefaultValueFunc;
     schema?: any;
+    switchBit?: number; // the bit number
 }
 
 export interface StructuredTypeOptions {
@@ -92,6 +96,8 @@ export interface StructuredTypeOptions {
     documentation?: string;
     baseType: string;
     _resolved?: boolean;
+    bitFields?: any[];
+    base?: StructuredTypeOptions;
 }
 
 export interface TypeSchemaConstructorOptions {
@@ -147,7 +153,7 @@ export class TypeSchemaBase implements CommonInterface {
     public encode?: (value: any, stream: OutputBinaryStream) => void;
     public decode?: (stream: BinaryStream) => any;
     public coerce?: (value: any) => any;
-
+    public toJSON?: () => string;
     public category: FieldCategory;
 
     constructor(options: TypeSchemaConstructorOptions) {

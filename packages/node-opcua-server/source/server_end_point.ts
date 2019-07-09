@@ -326,7 +326,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // resource Path is a string added at the end of the url such as "/UA/Server"
         const resourcePath = (options.resourcePath || "").replace(/\\/g, "/");
 
-        assert(resourcePath.length === 0 || resourcePath.charAt(0) === "/");
+        assert(resourcePath.length === 0 || resourcePath.charAt(0) === "/", "resourcePath should start with /");
 
         const hostname = options.hostname || getFullyQualifiedDomainName();
         const endpointUrl = `opc.tcp://${hostname}:${port}${resourcePath}`;

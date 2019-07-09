@@ -2,7 +2,6 @@
  * @module node-opcua-data-value
  */
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { Enum } from "node-opcua-enum";
 import { registerEnumeration } from "node-opcua-factory";
 
 export enum TimestampsToReturn {

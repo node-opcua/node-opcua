@@ -4,15 +4,14 @@
 // tslint:disable:no-console
 import * as bonjour from "bonjour";
 import * as   _ from "underscore";
-import {callbackify} from "util";
-import {promisify} from "util";
+import { callbackify } from "util";
+import { promisify } from "util";
 
-import {assert} from "node-opcua-assert";
-import {checkDebugFlag, make_debugLog} from "node-opcua-debug";
+import { assert } from "node-opcua-assert";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-
 
 let gBonjour: bonjour.Bonjour | undefined;
 let gBonjourRefCount = 0;
@@ -76,9 +75,8 @@ export async function _announceServerOnMulticastSubnet(
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog("Announcing ", params.name , "on port ", port , " txt ", JSON.stringify(params.txt));
+        debugLog("Announcing ", params.name, "on port ", port, " txt ", JSON.stringify(params.txt));
     }
-
 
     service.start();
     return service;
@@ -95,9 +93,11 @@ interface ServiceFixed extends NodeJS.EventEmitter {
     txt: Object;
     published: boolean;
 
-    stop(callback: (err: Error|null) => void): void;
+    stop(callback: (err: Error | null) => void): void;
+
     start(): void;
 }
+
 export class BonjourHolder {
 
     public announcement?: Announcement;
@@ -139,10 +139,10 @@ export class BonjourHolder {
             this._service = undefined;
             this._multicastDNS = undefined;
             this.announcement = undefined;
-            const proxy = (callback: (err?: Error) => void)=>{
-                this_service.stop(()=>{
+            const proxy = (callback: (err?: Error) => void) => {
+                this_service.stop(() => {
                     callback();
-                })
+                });
             };
             const stop = promisify(proxy);
             await stop.call(this);

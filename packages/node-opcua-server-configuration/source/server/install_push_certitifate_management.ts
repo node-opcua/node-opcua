@@ -93,7 +93,7 @@ async function getIpAddresses(): Promise<string[]> {
 async function install(this: OPCUAServerPartial): Promise<void> {
     if (!this.$$privateKeyPEM) {
         this.$$privateKeyPEM =
-          await promisify(fs.readFile)(this.serverCertificateManager.privateKey, "utf8");
+            await promisify(fs.readFile)(this.serverCertificateManager.privateKey, "utf8");
     }
 
     if (!this.$$certificateChain) {
@@ -109,7 +109,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
             const ipAddresses = await getIpAddresses();
 
             const applicationUri =
-              (this.serverInfo ? this.serverInfo!.applicationUri! : null) || "uri:MISSING";
+                (this.serverInfo ? this.serverInfo!.applicationUri! : null) || "uri:MISSING";
 
             const options = {
 
@@ -134,7 +134,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
 
         }
         const certificatePEM =
-          await promisify(fs.readFile)(certificateFile, "utf8");
+            await promisify(fs.readFile)(certificateFile, "utf8");
         this.$$certificateChain = convertPEMtoDER(certificatePEM);
 
     }
@@ -154,7 +154,6 @@ function getPrivateKeyEP(this: OPCUAServerEndPoint): PrivateKeyPEM {
     const $$privateKeyPEM = fs.readFileSync(this.certificateManager.privateKey, "utf8");
     return $$privateKeyPEM;
 }
-
 
 async function onCertificateAboutToChange(server: OPCUAServer) {
     debugLog(chalk.yellow(" onCertificateAboutToChange => Suspending End points"));
@@ -214,7 +213,7 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
 
     if (!server.engine.addressSpace) {
         throw new Error("Server must have a valid address space." +
-          "you need to call installPushCertificateManagementOnServer after server has been initialized");
+            "you need to call installPushCertificateManagementOnServer after server has been initialized");
     }
     await install.call(server as any as OPCUAServerPartial);
 
@@ -240,10 +239,10 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     }
 
     await installPushCertificateManagement(
-      server.engine.addressSpace, {
-          applicationGroup: server.serverCertificateManager,
-          userTokenGroup: server.userCertificateManager
-      });
+        server.engine.addressSpace, {
+            applicationGroup: server.serverCertificateManager,
+            userTokenGroup: server.userCertificateManager
+        });
 
     const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.serverConfiguration;
     const serverConfigurationPriv = serverConfiguration as any;

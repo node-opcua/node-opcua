@@ -40,6 +40,10 @@ let counter = 0;
 export class TCP_transport extends EventEmitter {
 
     public timeout: number;
+    /**
+     * indicates the version number of the OPCUA protocol used
+     * @default  0
+     */
     public protocolVersion: number;
 
     public bytesWritten: number;
@@ -50,6 +54,10 @@ export class TCP_transport extends EventEmitter {
 
     public _socket: Socket | null;
 
+    /**
+     * the size of the header in bytes
+     * @default  8
+     */
     private readonly headerSize: 8;
     private _disconnecting: boolean;
     private _timerId: NodeJS.Timer | null;
@@ -70,17 +78,7 @@ export class TCP_transport extends EventEmitter {
         this._timerId = null;
         this.timeout = 30000; // 30 seconds timeout
         this._socket = null;
-        /**
-         * @property headerSize the size of the header in bytes
-         * @type {number}
-         * @default  8
-         */
         this.headerSize = 8;
-        /**
-         * @property protocolVersion indicates the version number of the OPCUA protocol used
-         * @type {number}
-         * @default  0
-         */
         this.protocolVersion = 0;
 
         this._disconnecting = false;
@@ -114,7 +112,7 @@ export class TCP_transport extends EventEmitter {
      * @param msgType
      * @param chunkType {String} chunk type. should be 'F' 'C' or 'A'
      * @param length
-     * @return {Buffer} a buffer object with the required length representing the chunk.
+     * @return a buffer object with the required length representing the chunk.
      *
      * Note:
      *  - only one chunk can be created at a time.
@@ -137,7 +135,7 @@ export class TCP_transport extends EventEmitter {
     /**
      * write the message_chunk on the socket.
      * @method write
-     * @param messageChunk {Buffer}
+     * @param messageChunk
      *
      * Notes:
      *  - the message chunk must have been created by ```createChunk```.
@@ -147,7 +145,7 @@ export class TCP_transport extends EventEmitter {
     public write(messageChunk: Buffer) {
 
         assert((this._pendingBuffer === undefined)
-          || this._pendingBuffer === messageChunk, " write should be used with buffer created by createChunk");
+            || this._pendingBuffer === messageChunk, " write should be used with buffer created by createChunk");
 
         const header = readRawMessageHeader(messageChunk);
         assert(header.length === messageChunk.length);
@@ -242,10 +240,10 @@ export class TCP_transport extends EventEmitter {
         this.packetAssembler.on("message", (messageChunk: Buffer) => this._on_message_received(messageChunk));
 
         this._socket
-          .on("data", (data: Buffer) => this._on_socket_data(data))
-          .on("close", (hadError) => this._on_socket_close(hadError))
-          .on("end", (err: Error) => this._on_socket_end(err))
-          .on("error", (err: Error) => this._on_socket_error(err));
+            .on("data", (data: Buffer) => this._on_socket_data(data))
+            .on("close", (hadError) => this._on_socket_close(hadError))
+            .on("end", (err: Error) => this._on_socket_end(err))
+            .on("error", (err: Error) => this._on_socket_error(err));
 
         const doDestroyOnTimeout = false;
         if (doDestroyOnTimeout) {
@@ -311,7 +309,7 @@ export class TCP_transport extends EventEmitter {
             /**
              * notify the observers that a message chunk has been received
              * @event message
-             * @param message_chunk {Buffer} the message chunk
+             * @param message_chunk the message chunk
              */
             this.emit("message", messageChunk);
         }
@@ -331,7 +329,7 @@ export class TCP_transport extends EventEmitter {
         this._timerId = setTimeout(() => {
             this._timerId = null;
             this._fulfill_pending_promises(
-              new Error(`Timeout in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
+                new Error(`Timeout in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
         }, this.timeout);
 
         // also monitored
@@ -339,7 +337,7 @@ export class TCP_transport extends EventEmitter {
             // to do = intercept socket error as well
             this._on_error_during_one_time_message_receiver = (err?: Error) => {
                 this._fulfill_pending_promises(
-                  new Error(`ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
+                    new Error(`ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
             };
             this._socket.on("close", this._on_error_during_one_time_message_receiver);
         }
@@ -374,11 +372,11 @@ export class TCP_transport extends EventEmitter {
         // istanbul ignore next
         if (doDebug) {
             debugLog(chalk.red(" SOCKET CLOSE : "),
-              chalk.yellow("had_error ="), chalk.cyan(hadError.toString()), this.name);
+                chalk.yellow("had_error ="), chalk.cyan(hadError.toString()), this.name);
         }
         if (this._socket) {
             debugLog("  remote address = ",
-              this._socket.remoteAddress, " ", this._socket.remoteFamily, " ", this._socket.remotePort);
+                this._socket.remoteAddress, " ", this._socket.remoteFamily, " ", this._socket.remotePort);
         }
         if (hadError) {
             if (this._socket) {

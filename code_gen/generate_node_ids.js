@@ -49,7 +49,7 @@ function convert(data) {
                 id = parseInt(e[1], 10);
                 typeName = e[2];
 
-                outFile.write(sprintf("  %40s: { name: %40s , value: %6d }, \n", name, "'" + name + "'", id));
+                outFile.write(sprintf("  %40s: { name: %40s , value: %6d },\n", name, "'" + name + "'", id));
             }
         }
         outFile.write("};\n");
@@ -60,7 +60,7 @@ function convert(data) {
     for (typeName in metaMap) {
         if (metaMap.hasOwnProperty(typeName)) {
             typeMap = metaMap[typeName];
-            outFile.write(" export enum " + typeName + "Ids { \n");
+            outFile.write(" export enum " + typeName + "Ids {\n");
 
             const names = Object.keys(typeMap);
 
@@ -73,13 +73,14 @@ function convert(data) {
                     id = parseInt(e[1], 10);
                     type = e[2];
                     if (i + 1 < names.length) {
-                        outFile.write(sprintf("  %80s= %6d , \n", name, id));
+                        outFile.write(sprintf("  %80s= %6d ,\n", name, id));
                     } else {
-                        outFile.write(sprintf("  %80s= %6d  \n", name, id));
+                        outFile.write(sprintf("  %80s= %6d\n", name, id));
                     }
                 }
             }
             outFile.write("}\n");
         }
     }
+    console.log("done");
 }

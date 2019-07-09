@@ -9,6 +9,10 @@ import * as  path from "path";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import {
+    IOPCUASecureObjectOptions,
+    OPCUASecureObject
+} from "node-opcua-common";
 import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
@@ -33,10 +37,6 @@ import {
 import {
     coerceMessageSecurityMode, MessageSecurityMode
 } from "node-opcua-service-secure-channel";
-import {
-    IOPCUASecureObjectOptions,
-    OPCUASecureObject
-} from "node-opcua-common";
 
 import { ResponseCallback } from "../client_session";
 import { Request, Response } from "../common";

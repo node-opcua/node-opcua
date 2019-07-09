@@ -9,6 +9,7 @@
   },
   "scripts": {
     "postinstall": "node bin/create_certificates.js  demo -s",
+    "lint": "tslint source/**/*.ts",
     "test": "echo no test",
     "clean": "node -e \"require('rimraf').sync('certificates');\""
   },

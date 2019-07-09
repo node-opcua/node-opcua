@@ -27,17 +27,16 @@ const doDebug = checkDebugFlag(__filename);
 const errorLog = debugLog;
 
 export async function callConditionRefresh(
-  subscription: ClientSubscription,
+    subscription: ClientSubscription
 ): Promise<void>;
 export function callConditionRefresh(
     subscription: ClientSubscription,
     callback: ErrorCallback
 ): void;
 export function callConditionRefresh(
-  subscription: ClientSubscription,
-  callback?: ErrorCallback
-): any
-{
+    subscription: ClientSubscription,
+    callback?: ErrorCallback
+): any {
 
     const subscriptionI = subscription as ClientSubscriptionImpl;
     const theSession = subscriptionI.publishEngine.session!;
@@ -53,7 +52,7 @@ export function callConditionRefresh(
 
     async.series([
         // find conditionRefreshId
-        (innerCallback: ErrorCallback ) => {
+        (innerCallback: ErrorCallback) => {
 
             const browsePath = makeBrowsePath(conditionTypeNodeId, ".ConditionRefresh");
             theSession.translateBrowsePath(browsePath, (err: Error | null, result?: BrowsePathResult) => {
@@ -76,10 +75,10 @@ export function callConditionRefresh(
 
             const methodToCall: CallMethodRequestLike = {
                 inputArguments: [
-                    new Variant({dataType: DataType.UInt32, value: subscriptionId})
+                    new Variant({ dataType: DataType.UInt32, value: subscriptionId })
                 ],
                 methodId: conditionRefreshId,
-                objectId: conditionTypeNodeId,
+                objectId: conditionTypeNodeId
             };
 
             theSession.call(methodToCall, (err: Error | null, result?: CallMethodResult) => {
@@ -94,7 +93,7 @@ export function callConditionRefresh(
                 }
                 innerCallback();
             });
-        },
+        }
 
     ], (err) => {
         callback!(err || undefined);
@@ -121,7 +120,7 @@ ClientSessionImpl.prototype.addCommentCondition = function(
 ClientSessionImpl.prototype.findMethodId = function(
     nodeId: NodeIdLike,
     methodName: string,
-    callback: ResponseCallback<NodeId>,
+    callback: ResponseCallback<NodeId>
 ) {
 
     const browsePath = makeBrowsePath(nodeId, "/" + methodName);
@@ -169,7 +168,7 @@ ClientSessionImpl.prototype._callMethodCondition = function(
     conditionId = coerceNodeId(conditionId);
     assert(conditionId instanceof NodeId);
     assert(eventId instanceof Buffer);
-    assert(typeof(comment) === "string" || comment instanceof LocalizedText);
+    assert(typeof (comment) === "string" || comment instanceof LocalizedText);
 
     comment = LocalizedText.coerce(comment) || new LocalizedText();
 
@@ -195,11 +194,11 @@ ClientSessionImpl.prototype._callMethodCondition = function(
 
             methodToCalls.push(new CallMethodRequest({
                 inputArguments: [
-                    /* eventId */ new Variant({dataType: "ByteString", value: eventId}),
-                    /* comment */ new Variant({dataType: "LocalizedText", value: comment})
+                    /* eventId */ new Variant({ dataType: "ByteString", value: eventId }),
+                    /* comment */ new Variant({ dataType: "LocalizedText", value: comment })
                 ],
                 methodId,
-                objectId: conditionId,
+                objectId: conditionId
             }));
 
             this.call(methodToCalls, (err: Error | null, results?: CallMethodResult[]) => {
@@ -240,9 +239,9 @@ ClientSessionImpl.prototype.acknowledgeCondition = function(
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
-const opts = {multiArgs: false};
+const opts = { multiArgs: false };
 ClientSessionImpl.prototype.addCommentCondition = thenify.withCallback(ClientSessionImpl.prototype.addCommentCondition, opts);
 ClientSessionImpl.prototype.findMethodId = thenify.withCallback(ClientSessionImpl.prototype.findMethodId, opts);
 ClientSessionImpl.prototype.confirmCondition = thenify.withCallback(ClientSessionImpl.prototype.confirmCondition, opts);
 ClientSessionImpl.prototype.acknowledgeCondition = thenify.withCallback(ClientSessionImpl.prototype.acknowledgeCondition, opts);
-(module as any).exports.callConditionRefresh =   thenify.withCallback((module as any).exports.callConditionRefresh, opts);
+(module as any).exports.callConditionRefresh = thenify.withCallback((module as any).exports.callConditionRefresh, opts);

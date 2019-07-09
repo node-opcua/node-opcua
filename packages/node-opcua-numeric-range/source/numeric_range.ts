@@ -9,8 +9,6 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
-// const Enum = require("node-opcua-enum").Enum;
-
 // OPC.UA Part 4 7.21 Numerical Range
 // The syntax for the string contains one of the following two constructs. The first construct is the string
 // representation of an individual integer. For example, '6' is   valid, but '6.0' and '3.2' are not. The

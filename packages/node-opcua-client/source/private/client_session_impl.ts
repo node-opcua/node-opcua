@@ -1781,7 +1781,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             callback();
         });
     }
-    
+
     public async queryFirst(
       queryFirstRequest: QueryFirstRequestLike
     ): Promise<QueryFirstResponse>;

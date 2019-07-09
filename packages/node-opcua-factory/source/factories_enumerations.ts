@@ -10,8 +10,20 @@ import { EnumerationDefinition, TypeSchemaBase, TypeSchemaConstructorOptions } f
 
 const _enumerations: Map<string, EnumerationDefinition> = new Map<string, EnumerationDefinition>();
 
-function _encode_enumeration(value: EnumItem, stream: OutputBinaryStream): void {
-    stream.writeInteger(value.value);
+function _encode_enumeration(typedEnum: Enum, value: number, stream: OutputBinaryStream): void {
+    assert(typeof value === "number", "Expecting a number here");
+    assert(typedEnum.get(value) !== undefined, "expecting a valid value");
+    stream.writeInteger(value);
+}
+
+function _decode_enumeration(typedEnum: Enum, stream: BinaryStream): number {
+    const value = stream.readInteger();
+    const e = typedEnum.get(value) as any as string;
+    // istanbul ignore next
+    if (!e) {
+        throw new Error("cannot  coerce value=" + value + " to " + typedEnum.constructor.name);
+    }
+    return value;
 }
 
 export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptions {
@@ -34,23 +46,14 @@ export class EnumerationDefinitionSchema extends TypeSchemaBase implements Enume
     constructor(options: EnumerationDefinitionOptions) {
 
         super(options);
-
         // create a new Enum
         const typedEnum = new Enum(options.enumValues);
         options.typedEnum = typedEnum;
 
         assert(!options.encode || _.isFunction(options.encode));
         assert(!options.decode || _.isFunction(options.decode));
-        this.encode = options.encode || _encode_enumeration;
-        this.decode = options.decode || function _decode_enumeration(stream: BinaryStream): EnumItem {
-            const value = stream.readInteger();
-            const e = typedEnum.get(value);
-            // istanbul ignore next
-            if (!e) {
-                throw new Error("cannot  coerce value=" + value + " to " + typedEnum.constructor.name);
-            }
-            return e;
-        };
+        this.encode = options.encode || _encode_enumeration.bind(null, typedEnum);
+        this.decode = options.decode || _decode_enumeration.bind(null, typedEnum);
 
         this.typedEnum = options.typedEnum;
         this.defaultValue = this.typedEnum.getDefaultValue().value;

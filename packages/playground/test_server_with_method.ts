@@ -1,20 +1,16 @@
 // tslint:disable:no-console
 import {
     AddressSpace,
-    BaseNode,
     DataType,
-    MonitoredItem,
-    MonitoredItemCreateRequest,
+    MethodFunctorCallback,
     NodeIdLike,
     nodesets,
     OPCUAServer,
-    RegisterServerMethod,
     SessionContext,
     StatusCodes,
     UAMethod,
     UAObject,
-    Variant,
-    MethodFunctorCallback
+    Variant
 } from "node-opcua";
 
 function installObjectWithMethod(addressSpace: AddressSpace): UAObject {

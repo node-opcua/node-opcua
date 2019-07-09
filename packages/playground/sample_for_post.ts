@@ -3,7 +3,6 @@ import {
     AttributeIds, OPCUAClient
 } from "node-opcua";
 
-
 async function main() {
 
     const client = OPCUAClient.create({
@@ -13,7 +12,7 @@ async function main() {
 
     client.on("backoff", (retry: number, delay: number) => {
         console.log(" cannot connect to endpoint retry = ", retry,
-          " next attempt in " , delay/1000, "seconds");
+            " next attempt in ", delay / 1000, "seconds");
     });
 
     // put the endpoint to your OPCUA Server here

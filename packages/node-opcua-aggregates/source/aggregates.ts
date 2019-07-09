@@ -2,18 +2,11 @@
  * @module node-opca-aggregates
  */
 import { ObjectIds } from "node-opcua-constants";
-import { makeNodeId, NodeId } from "node-opcua-nodeid";
+import { makeNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 
-import {
-    AddressSpace,
-    BaseNode,
-    UAObject,
-    UAVariable,
-    UAServerCapabilities,
-    UAServerConfiguration
-} from "node-opcua-address-space";
+import { AddressSpace, BaseNode, UAObject, UAServerCapabilities, UAVariable } from "node-opcua-address-space";
 import { AggregateConfigurationOptionsEx } from "./interval";
 // import { HistoryServerCapabilities } from "node-opcua-server";
 
@@ -66,11 +59,10 @@ export function createHistoryServerCapabilities(
     if (!historyServerCapabilitiesType) {
         throw new Error("Cannot find HistoryServerCapabilitiesType");
     }
-    const historyServerCapabilities = historyServerCapabilitiesType.instantiate({
+    return historyServerCapabilitiesType.instantiate({
         browseName: "HistoryServerCapabilities",
         componentOf: serverCapabilities
     });
-    return historyServerCapabilities;
 }
 
 function setHistoricalServerCapabilities(

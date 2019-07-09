@@ -6,11 +6,12 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
+
+import { UAEventType } from "../../source";
 import { NamespacePrivate } from "../namespace_private";
 import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../ua_two_state_variable";
 import { ConditionInfo } from "./condition_info";
 import { UALimitAlarm } from "./ua_limit_alarm";
-import { UAEventType } from "../../source";
 
 export interface UANonExclusiveLimitAlarm {
     /**
