@@ -85,7 +85,7 @@ export class MessageChunker {
         const stream = new BinaryStream(binSize);
         this._stream = stream;
 
-        encodeExpandedNodeId(message.schema.encodingDefaultBinary, stream);
+        encodeExpandedNodeId(message.schema.encodingDefaultBinary!, stream);
         message.encode(stream);
 
         let securityHeader;

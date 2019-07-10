@@ -4,7 +4,13 @@
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
-import { BaseUAObject, constructObject, is_internal_id, registerBuiltInType } from "node-opcua-factory";
+import {
+    BaseUAObject,
+    constructObject,
+    is_internal_id,
+    registerBuiltInType,
+    StructuredTypeSchema
+} from "node-opcua-factory";
 import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
@@ -19,7 +25,11 @@ export class ExtensionObject extends BaseUAObject {
 
 }
 
-ExtensionObject.prototype.schema = { name: "ExtensionObject" };
+ExtensionObject.prototype.schema = new StructuredTypeSchema({
+    baseType: "",
+    documentation: "",
+    fields: [],
+    name: "ExtensionObject"});
 
 function constructEmptyExtensionObject(expandedNodeId: NodeId): any {
     return constructObject(expandedNodeId as ExpandedNodeId);
@@ -68,7 +78,7 @@ export function encodeExtensionObject(object: ExtensionObject | null, stream: Ou
             debugLog(" object = ", object);
             throw new Error("object has no schema " + object.constructor.name);
         }
-        const encodingDefaultBinary = object.schema.encodingDefaultBinary;
+        const encodingDefaultBinary = object.schema.encodingDefaultBinary!;
         /* istanbul ignore next */
         if (!encodingDefaultBinary) {
             debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "), object);
@@ -80,7 +90,7 @@ export function encodeExtensionObject(object: ExtensionObject | null, stream: Ou
             throw new Error("Cannot find encodingDefaultBinary for this object");
         }
         /* istanbul ignore next */
-        if (is_internal_id(encodingDefaultBinary.value)) {
+        if (is_internal_id(encodingDefaultBinary.value as number)) {
             debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "),
               (object.constructor as any).encodingDefaultBinary.toString(), object.schema.name);
             throw new Error("Cannot find valid OPCUA encodingDefaultBinary for this object");

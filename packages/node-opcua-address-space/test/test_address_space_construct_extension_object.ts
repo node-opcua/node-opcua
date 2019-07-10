@@ -15,6 +15,7 @@ import * as fs from "fs";
 import * as utils from "node-opcua-utils";
 
 import { assert } from "node-opcua-assert";
+import { ExtensionObject } from "node-opcua-extension-object";
 import { makeNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import * as path from "path";
@@ -26,17 +27,18 @@ import { AttributeIds } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
+
 import { nodesets } from "node-opcua-nodesets";
 import {
     AddressSpace,
     BaseNode,
     generateAddressSpace,
     Namespace,
-    UAServerStatus,
     SessionContext,
     UAObject,
+    UAServerStatus,
 } from "..";
-import { ExtensionObject } from "node-opcua-extension-object";
+import {EUInformation} from "..";
 
 // make sure all namespace 0 data type are properly loaded
 const context = SessionContext.defaultContext;

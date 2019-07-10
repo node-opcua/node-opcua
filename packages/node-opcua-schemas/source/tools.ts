@@ -2,7 +2,11 @@ import {
     buildStructuredType,
     EnumerationDefinitionSchema,
     FieldCategory,
-    hasBuiltInType, StructuredTypeOptions,
+    getBuildInType,
+    getStructuredTypeSchema,
+    hasBuiltInType,
+    hasStructuredType,
+    StructuredTypeOptions,
     StructuredTypeSchema
 } from "node-opcua-factory";
 import { EnumeratedType, StructureTypeRaw, TypeDictionary } from "./parse_binary_xsd";
@@ -54,30 +58,42 @@ export function getOrCreateStructuredTypeSchema(name: string, typeDictionary: Ty
 
             switch (prefix) {
                 case "tns":
-                    // xx const structuredType = typeDictionary.structuredTypes[fieldTypeName];
-                    // xx const enumerationType = typeDictionary.enumeratedTypes[fieldTypeName];
+
                     field.fieldType = fieldTypeName;
-
-                    if (typeDictionary.enumeratedTypes[fieldTypeName]) {
-
+                    const enumeratedType = typeDictionary.enumeratedTypes[fieldTypeName];
+                    if (enumeratedType) {
                         field.category = FieldCategory.enumeration;
-                        field.schema = typeDictionary.enumeratedTypes[fieldTypeName];
+                        field.schema = enumeratedType;
 
                     } else {
                         // must be a structure then ....
 
                         field.category = FieldCategory.complex;
                         field.schema = getOrCreateStructuredTypeSchema(fieldTypeName, typeDictionary);
-
+                        if (!field.schema) {
+                            // tslint:disable-next-line:no-console
+                            console.log("cannot find schema for ", fieldTypeName);
+                        }
                     }
                     break;
                 case "ua":
                     field.fieldType = fieldTypeName;
                     if (hasBuiltInType(fieldTypeName)) {
                         field.category = FieldCategory.basic;
+                        field.schema = getBuildInType(fieldTypeName);
+                    } else if (hasStructuredType(fieldTypeName)) {
+                        field.category = FieldCategory.complex;
+                        field.schema = getStructuredTypeSchema(fieldTypeName);
                     } else {
                         field.category = FieldCategory.basic;
-                        // console.log("What should I do ??", fieldTypeName);
+                        // try in this
+                        field.schema = getOrCreateStructuredTypeSchema(fieldTypeName, typeDictionary);
+                        if (!field.schema) {
+                            // tslint:disable-next-line:no-console
+                            console.log("What should I do ??", fieldTypeName, " ", hasStructuredType(fieldTypeName));
+                        } else {
+                            field.category = FieldCategory.complex;
+                        }
                     }
                     break;
                 case "opc":
@@ -98,7 +114,6 @@ export function getOrCreateStructuredTypeSchema(name: string, typeDictionary: Ty
 
     structuredTypeSchema = buildStructuredType(structuredType as StructuredTypeOptions);
     typeDictionary.structuredTypes[name] = structuredTypeSchema;
-
     return structuredTypeSchema;
 
 }
@@ -118,11 +133,12 @@ export function prepareStructureType(
 export function prepareEnumeratedType(
     enumeratedType: EnumeratedType,
     typeDictionary: TypeDictionary
-): EnumerationDefinitionSchema {
+): void {
 
+    const key = enumeratedType.name;
     const e = new EnumerationDefinitionSchema({
         enumValues: enumeratedType.enumeratedValues,
-        name: enumeratedType.name
+        name: key
     });
-    return e;
+    typeDictionary.enumeratedTypes[key] = e;
 }

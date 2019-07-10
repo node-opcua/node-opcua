@@ -2,7 +2,6 @@
  * @module node-opcua-address-space.DataAccess
  */
 import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";

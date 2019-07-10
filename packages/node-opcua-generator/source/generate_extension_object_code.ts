@@ -27,16 +27,16 @@ function write(...args: string[]) {
 function writeEnumeratedType(enumeratedType: EnumeratedType) {
 
     // make sure there is a Invalid key in the enum => else insert one
-    const hasInvalid = enumeratedType.enumeratedValues.findIndex((a) => a.name === "Invalid") !== -1;
+    const hasInvalid = enumeratedType.enumeratedValues.findIndex((a: any) => a.name === "Invalid") !== -1;
     if (!hasInvalid) {
         // xx console.log("Adding Invalid Enum entry on ", enumeratedType.name);
         enumeratedType.enumeratedValues.push({ name: "Invalid", value: 0xFFFFFFFF });
     }
 
     const arrayValues = enumeratedType.enumeratedValues
-      .filter((a) => a.name !== "Invalid")
-      .map((a) => a.value)
-      .sort((a, b) => a - b);
+      .filter((a: any) => a.name !== "Invalid")
+      .map((a: any) => a.value)
+      .sort((a: any, b: any) => a - b);
 
     // determing if enum is of type FLAGS
     const isFlaggable = arrayValues.length > 2
@@ -238,15 +238,20 @@ import {
         /* tslint:disable:no-string-literal */
         alreadyDone["ExtensionObject"] = true;
         alreadyDone["NodeId"] = true;
+
+        
         alreadyDone["ExpandedNodeId"] = true;
         alreadyDone["Variant"] = true;
         alreadyDone["XmlElement"] = true;
+
+        alreadyDone["NodeIdType"] = true;
         alreadyDone["TwoByteNodeId"] = true;
         alreadyDone["FourByteNodeId"] = true;
         alreadyDone["NumericNodeId"] = true;
         alreadyDone["StringNodeId"] = true;
         alreadyDone["GuidNodeId"] = true;
         alreadyDone["ByteStringNodeId"] = true;
+        
         alreadyDone["DiagnosticInfo"] = true;
         alreadyDone["Variant"] = true;
         alreadyDone["DataValue"] = true;

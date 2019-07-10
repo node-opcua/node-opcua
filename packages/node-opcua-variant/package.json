@@ -24,7 +24,6 @@
   "node-opcua-benchmarker": "^2.0.0",
   "node-opcua-binary-stream": "^2.0.0",
   "node-opcua-debug": "^2.0.0",
-  "node-opcua-generator": "^2.0.0",
   "node-opcua-numeric-range": "^2.0.0",
   "node-opcua-packet-analyzer": "^2.0.0",
   "node-opcua-status-code": "^2.0.0",

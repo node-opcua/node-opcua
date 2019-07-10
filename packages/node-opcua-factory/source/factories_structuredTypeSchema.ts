@@ -59,10 +59,14 @@ function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     return FieldCategory.basic;
 }
 
-function figureOutSchema(field: FieldInterfaceOptions, category: FieldCategory): CommonInterface {
+function figureOutSchema(underConstructSchema: StructuredTypeSchema, field: FieldInterfaceOptions, category: FieldCategory): CommonInterface {
 
     if (field.schema) {
         return field.schema;
+    }
+
+    if (underConstructSchema.name == field.fieldType) {
+        return underConstructSchema;
     }
 
     let returnValue: any = null;
@@ -83,17 +87,24 @@ function figureOutSchema(field: FieldInterfaceOptions, category: FieldCategory):
             returnValue = getEnumeration(field.fieldType);
             break;
     }
-    if (null === returnValue) {
-        throw new Error("Cannot find Schema for " + field.name + category);
+    if (null === returnValue || undefined === returnValue) {
+        throw new Error("Cannot find Schema for field with name " + field.name + 
+         " with type " + field.fieldType + " category = " + category + JSON.stringify(field,null,"\t"));
     }
     return returnValue;
 }
 
-function buildField(fieldLight: FieldInterfaceOptions): FieldType {
+function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: FieldInterfaceOptions): FieldType {
 
     const category = figureOutFieldCategory(fieldLight);
-    const schema = figureOutSchema(fieldLight, category);
+    const schema = figureOutSchema(underConstructSchema, fieldLight, category);
 
+    /* istanbul ignore next */
+    if (!schema) {
+        throw new Error("expecting a valid schema for field with name "+ 
+                fieldLight.name + " with type " + fieldLight.fieldType + " category" + category);
+    } 
+ 
     return {
         name: lowerFirstLetter(fieldLight.name),
 
@@ -136,7 +147,7 @@ export class StructuredTypeSchema extends TypeSchemaBase {
 
         this.baseType = options.baseType;
         this.category = FieldCategory.complex;
-        this.fields = options.fields.map(buildField);
+        this.fields = options.fields.map(buildField.bind(null, this));
         this.id = NodeId.nullNodeId;
         this._possibleFields = this.fields.map((field) => field.name);
         this._baseSchema = null;

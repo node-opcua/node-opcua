@@ -140,7 +140,7 @@ describe("Binary Schemas Helper", () => {
 
 });
 
-describe("Binary Schemas Helper 2", () => {
+describe("Binary Schemas Helper 1", () => {
 
     let typeDictionary: TypeDictionary;
     let old_schema_helpers_doDebug = false;
@@ -214,7 +214,7 @@ describe("Binary Schemas Helper 2", () => {
 
 });
 
-describe("Binary Schemas Helper 3", () => {
+describe("Binary Schemas Helper 2", () => {
 
     let typeDictionary: TypeDictionary;
     let old_schema_helpers_doDebug = false;
@@ -327,6 +327,32 @@ describe("Binary Schemas Helper 3", () => {
         });
         console.log(reloaded.toString());
         console.log(reloaded.toJSON());
+
+    });
+});
+
+describe("Binary Schemas Helper 3", () => {
+
+    let typeDictionary: TypeDictionary;
+    let old_schema_helpers_doDebug = false;
+    before(async () => {
+        const sample_file = path.join(__dirname, "fixtures/sample_type3.xsd");
+
+        old_schema_helpers_doDebug = parameters.debugSchemaHelper;
+        parameters.debugSchemaHelper = true;
+        const sample = fs.readFileSync(sample_file, "ascii");
+        typeDictionary = await promisify(parseBinaryXSD)(sample);
+    });
+
+    after(() => {
+        parameters.debugSchemaHelper = old_schema_helpers_doDebug;
+    });
+
+    it("should parse NodeIdType structure types", async () => {
+        should.exists(typeDictionary.structuredTypes.NodeId);
+    });
+
+    it("should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
 
     });
 });

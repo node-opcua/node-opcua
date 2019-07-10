@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<opc:TypeDictionary
+        xmlns:opc="http://opcfoundation.org/BinarySchema/"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ua="http://opcfoundation.org/UA/"
+        xmlns:tns="http://opcfoundation.org/UA/"
+        DefaultByteOrder="LittleEndian"
+        TargetNamespace="http://opcfoundation.org/UA/"
+>
+
+
+    <opc:EnumeratedType Name="NodeIdType" LengthInBits="6">
+        <opc:Documentation>The possible encodings for a NodeId value.</opc:Documentation>
+        <opc:EnumeratedValue Name="TwoByte" Value="0"/>
+        <opc:EnumeratedValue Name="FourByte" Value="1"/>
+        <opc:EnumeratedValue Name="Numeric" Value="2"/>
+        <opc:EnumeratedValue Name="String" Value="3"/>
+        <opc:EnumeratedValue Name="Guid" Value="4"/>
+        <opc:EnumeratedValue Name="ByteString" Value="5"/>
+    </opc:EnumeratedType>
+
+    <opc:StructuredType Name="TwoByteNodeId">
+        <opc:Field Name="Identifier" TypeName="opc:Byte"/>
+    </opc:StructuredType>
+
+    <opc:StructuredType Name="FourByteNodeId">
+        <opc:Field Name="NamespaceIndex" TypeName="opc:Byte"/>
+        <opc:Field Name="Identifier" TypeName="opc:UInt16"/>
+    </opc:StructuredType>
+
+    <opc:StructuredType Name="NumericNodeId">
+        <opc:Field Name="NamespaceIndex" TypeName="opc:UInt16"/>
+        <opc:Field Name="Identifier" TypeName="opc:UInt32"/>
+    </opc:StructuredType>
+
+    <opc:StructuredType Name="StringNodeId">
+        <opc:Field Name="NamespaceIndex" TypeName="opc:UInt16"/>
+        <opc:Field Name="Identifier" TypeName="opc:CharArray"/>
+    </opc:StructuredType>
+
+    <opc:StructuredType Name="GuidNodeId">
+        <opc:Field Name="NamespaceIndex" TypeName="opc:UInt16"/>
+        <opc:Field Name="Identifier" TypeName="opc:Guid"/>
+    </opc:StructuredType>
+
+    <opc:StructuredType Name="ByteStringNodeId">
+        <opc:Field Name="NamespaceIndex" TypeName="opc:UInt16"/>
+        <opc:Field Name="Identifier" TypeName="opc:ByteString"/>
+    </opc:StructuredType>
+
+    <opc:StructuredType Name="NodeId">
+        <opc:Documentation>An identifier for a node in a UA server address space.</opc:Documentation>
+        <opc:Field Name="NodeIdType" TypeName="ua:NodeIdType"/>
+        <opc:Field Name="Reserved1" TypeName="opc:Bit" Length="2"/>
+        <opc:Field Name="TwoByte" TypeName="ua:TwoByteNodeId" SwitchField="NodeIdType" SwitchValue="0"/>
+        <opc:Field Name="FourByte" TypeName="ua:FourByteNodeId" SwitchField="NodeIdType" SwitchValue="1"/>
+        <opc:Field Name="Numeric" TypeName="ua:NumericNodeId" SwitchField="NodeIdType" SwitchValue="2"/>
+        <opc:Field Name="String" TypeName="ua:StringNodeId" SwitchField="NodeIdType" SwitchValue="3"/>
+        <opc:Field Name="Guid" TypeName="ua:GuidNodeId" SwitchField="NodeIdType" SwitchValue="4"/>
+        <opc:Field Name="ByteString" TypeName="ua:ByteStringNodeId" SwitchField="NodeIdType" SwitchValue="5"/>
+    </opc:StructuredType>
+
+</opc:TypeDictionary>

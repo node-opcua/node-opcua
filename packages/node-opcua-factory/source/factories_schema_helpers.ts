@@ -31,7 +31,7 @@ export function check_schema_correctness(schema: any) {
  * @param value
  * @return {*}
  */
-export function initialize_field(field: StructuredTypeField, value: any) {
+export function initialize_field(field: StructuredTypeField, value: any): any {
 
     const _t = field.schema;
     if (!_.isObject(_t)) {

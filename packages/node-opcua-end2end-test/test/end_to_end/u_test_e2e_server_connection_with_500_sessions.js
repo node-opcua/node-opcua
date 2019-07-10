@@ -5,6 +5,7 @@ const async = require("async");
 const should = require("should");
 
 const opcua = require("node-opcua");
+const chalk = require("chalk");
 
 const doDebug = false;
 
@@ -45,9 +46,9 @@ module.exports = function (test) {
                 func(function(err) {
                     if (doDebug) {
                         if (err) {
-                            console.log("   ", msg.red, err.message, r(getTick() - t));
+                            console.log("   ", chalk.red(msg), err.message, r(getTick() - t));
                         } else {
-                            console.log("   ", msg.green, r(getTick() - t));
+                            console.log("   ", chalk.green(msg), r(getTick() - t));
                         }
                     }
                     return callback(err);

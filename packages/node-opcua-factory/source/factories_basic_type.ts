@@ -126,3 +126,4 @@ registerBasicType({name: "ImageBMP", subType: "ByteString"});
 registerBasicType({name: "ImageJPG", subType: "ByteString"});
 registerBasicType({name: "ImagePNG", subType: "ByteString"});
 registerBasicType({name: "ImageGIF", subType: "ByteString"});
+registerBasicType({name: "NodeIdType", subType: "NodeId"});

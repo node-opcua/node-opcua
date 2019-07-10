@@ -13,10 +13,11 @@ import {
     StructuredTypeSchema
 } from "node-opcua-factory";
 
+import { checkDebugFlag } from "node-opcua-debug";
 import { Xml2Json } from "node-opcua-xml2json";
 import { prepareEnumeratedType, prepareStructureType } from "./tools";
 
-const doDebug = false;
+const doDebug = checkDebugFlag(__filename);
 
 function w(s: string, l: number): string {
     return (s + "                                                    ").substr(0, l);
@@ -176,10 +177,12 @@ const state0: any = {
                 },
                 StructuredType: {
                     init: function(this: any) {
+
                         if (doDebug) {
                             console.log(chalk.cyan("StructureType Name="),
-                                this.attrs.Name.green, " BaseType=", this.attrs.BaseType);
+                                chalk.green(this.attrs.Name), " BaseType=", this.attrs.BaseType);
                         }
+
                         const baseType = this.attrs.BaseType;
 
                         const base = this.parent.typeDictionary.structuredTypesRaw[baseType];
@@ -232,12 +235,18 @@ const state0: any = {
                                     structuredType.fields.push(field);
                                 }
                                 if (this.attrs.SwitchField) {
+
                                     // field is optional and can be omitted
                                     const switchField = this.attrs.SwitchField;
-                                    field.switchBit = structuredType.bitFields ?
-                                        structuredType.bitFields!.findIndex((x) => x.name === switchField) : -2;
-                                    if (doDebug) {
-                                        console.log("field", field.name, " is optional => ", switchField, "bit #", field.switchBit);
+
+                                    if (this.attrs.SwitchValue) {
+                                        field.switchValue = parseInt(this.attrs.SwitchValue, 10);
+                                    } else {
+                                        field.switchBit = structuredType.bitFields ?
+                                            structuredType.bitFields!.findIndex((x) => x.name === switchField) : -2;
+                                        if (doDebug) {
+                                            console.log("field", field.name, " is optional => ", switchField, "bit #", field.switchBit);
+                                        }
                                     }
                                 }
                             }
@@ -276,8 +285,7 @@ export function parseBinaryXSD(
                 continue;
             }
             const enumeratedType = typeDictionary.enumeratedTypesRaw[key];
-            const enumeratedTypee = prepareEnumeratedType(enumeratedType, typeDictionary);
-            typeDictionary.enumeratedTypes[key] = enumeratedTypee;
+            prepareEnumeratedType(enumeratedType, typeDictionary);
         }
         // resolve complex types
         for (const key in typeDictionary.structuredTypesRaw) {

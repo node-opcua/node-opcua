@@ -86,6 +86,7 @@ export interface FieldInterfaceOptions {
     defaultValue?: any | DefaultValueFunc;
     schema?: any;
     switchBit?: number; // the bit number
+    switchValue?: number;
 }
 
 export interface StructuredTypeOptions {
