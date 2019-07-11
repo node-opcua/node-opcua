@@ -275,5 +275,9 @@ export function coerceInt32(value: any): Int32 {
     if (value === null || value === undefined) {
         return value;
     }
+    if (value.length === 2 && (typeof value[0] === "number") && (typeof value[1] === "number")) {
+        // Int64 as a [high,low]
+        return value[1]  + value[0] * 0xFFFFFFFF;
+    }
     return parseInt(value, 10);
 }

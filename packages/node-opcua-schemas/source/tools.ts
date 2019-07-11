@@ -67,7 +67,6 @@ export function getOrCreateStructuredTypeSchema(name: string, typeDictionary: Ty
 
                     } else {
                         // must be a structure then ....
-
                         field.category = FieldCategory.complex;
                         field.schema = getOrCreateStructuredTypeSchema(fieldTypeName, typeDictionary);
                         if (!field.schema) {
@@ -84,6 +83,8 @@ export function getOrCreateStructuredTypeSchema(name: string, typeDictionary: Ty
                     } else if (hasStructuredType(fieldTypeName)) {
                         field.category = FieldCategory.complex;
                         field.schema = getStructuredTypeSchema(fieldTypeName);
+
+
                     } else {
                         field.category = FieldCategory.basic;
                         // try in this
@@ -92,7 +93,11 @@ export function getOrCreateStructuredTypeSchema(name: string, typeDictionary: Ty
                             // tslint:disable-next-line:no-console
                             console.log("What should I do ??", fieldTypeName, " ", hasStructuredType(fieldTypeName));
                         } else {
-                            field.category = FieldCategory.complex;
+                            if (hasBuiltInType(fieldTypeName)) {
+                                field.category = FieldCategory.basic;
+                            } else {
+                                field.category = FieldCategory.complex;
+                            }
                         }
                     }
                     break;

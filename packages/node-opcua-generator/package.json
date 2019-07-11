@@ -22,6 +22,7 @@
   "node-opcua-nodeid": "^2.0.0",
   "node-opcua-schemas": "^2.0.0",
   "node-opcua-status-code": "^2.0.0",
+  "node-opcua-numeric-range": "^2.0.0",
   "node-opcua-utils": "^2.0.0",
   "node-opcua-xml2json": "^2.0.0",
   "prettier": "^1.18.2",

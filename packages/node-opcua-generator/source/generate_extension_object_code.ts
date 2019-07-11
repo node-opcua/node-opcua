@@ -7,12 +7,16 @@
 //
 import * as fs from "fs";
 import { assert } from "node-opcua-assert";
-import { buildStructuredType, FieldCategory, StructuredTypeSchema } from "node-opcua-factory";
+import {
+    buildStructuredType,
+    EnumerationDefinitionSchema,
+    FieldCategory,
+    StructuredTypeSchema
+} from "node-opcua-factory";
+import { EnumeratedType, parseBinaryXSD, TypeDictionary } from "node-opcua-schemas";
 import { LineFile } from "node-opcua-utils";
 import { promisify } from "util";
 import { writeStructuredType } from "./factory_code_generator";
-
-import { EnumeratedType, parseBinaryXSD, TypeDictionary } from "node-opcua-schemas";
 // Xx import * as  prettier from "prettier";
 
 const readFile = promisify(fs.readFile);
@@ -24,68 +28,70 @@ function write(...args: string[]) {
     f.write.apply(f, args);
 }
 
-function writeEnumeratedType(enumeratedType: EnumeratedType) {
+function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
 
     // make sure there is a Invalid key in the enum => else insert one
-    const hasInvalid = enumeratedType.enumeratedValues.findIndex((a: any) => a.name === "Invalid") !== -1;
+    const hasInvalid = enumerationSchema.enumValues.hasOwnProperty("Invalid");
     if (!hasInvalid) {
         // xx console.log("Adding Invalid Enum entry on ", enumeratedType.name);
-        enumeratedType.enumeratedValues.push({ name: "Invalid", value: 0xFFFFFFFF });
+        enumerationSchema.enumValues[enumerationSchema.enumValues.Invalid = 0xFFFFFFFF] = "Invalid";
     }
 
-    const arrayValues = enumeratedType.enumeratedValues
-      .filter((a: any) => a.name !== "Invalid")
-      .map((a: any) => a.value)
-      .sort((a: any, b: any) => a - b);
+    const arrayValues = Object.keys(enumerationSchema.enumValues)
+        .filter((a: string) => a.match("[0-9]+"))
+        .map((a: string) => parseInt(a, 10))
+        .filter((a: number) => a !== 0xFFFFFFFF)
+        .sort((a: number, b: number) => a - b);
 
-    // determing if enum is of type FLAGS
+    // determining if enum is of type FLAGS
     const isFlaggable = arrayValues.length > 2
-      && arrayValues[2] === arrayValues[1] * 2
-      && arrayValues[3] === arrayValues[2] * 2
+        && arrayValues[2] === arrayValues[1] * 2
+        && arrayValues[3] === arrayValues[2] * 2
     ;
-    // find min and max valuees (excluding
+    // find min and max values (excluding
     const minEnumValue = Math.min.apply(null, arrayValues);
     const maxEnumValue = Math.max.apply(null, arrayValues);
-
-    // xx console.log(" isFala", arrayValues.join(" "), " - ", isFlaggable, minEnumValue, maxEnumValue);
 
     write("");
 
     write(`// --------------------------------------------------------------------------------------------`);
-    write(`export enum ${enumeratedType.name} {`);
+    write(`export enum ${enumerationSchema.name} {`);
 
     const str = [];
-    for (const enumeratedValue of enumeratedType.enumeratedValues) {
-        str.push(`    ${enumeratedValue.name} = ${enumeratedValue.value}`);
+
+    const values = Object.keys(enumerationSchema.enumValues).filter((a: any) => a.match("[0-9]+"));
+
+    for (const value of values) {
+        str.push(`    ${enumerationSchema.enumValues[value]} = ${value}`);
     }
     write(str.join(",\n"));
     write(`}`);
 
-    write(`const schema${enumeratedType.name} = {`);
-    write(`    documentation: "${enumeratedType.documentation}",`);
-    write(`    enumValues: ${enumeratedType.name},`);
+    write(`const schema${enumerationSchema.name} = {`);
+    //xx write(`    documentation: "${enumerationSchema.documentation}",`);
+    write(`    enumValues: ${enumerationSchema.name},`);
     write(`    flaggable: ${isFlaggable},`);
     if (!isFlaggable) {
         write(`    minValue: ${minEnumValue},`);
         write(`    maxValue: ${maxEnumValue},`);
     }
-    write(`    name: "${enumeratedType.name}"`);
+    write(`    name: "${enumerationSchema.name}"`);
 
     write(`};`);
-    write(`function decode${enumeratedType.name}(stream: BinaryStream): ${enumeratedType.name} {`);
+    write(`function decode${enumerationSchema.name}(stream: BinaryStream): ${enumerationSchema.name} {`);
     if (!isFlaggable) {
-        write(`    let value =  stream.readUInt32() as ${enumeratedType.name};`);
-        write(`    value = (value < schema${enumeratedType.name}.minValue || value > schema${enumeratedType.name}.maxValue) ? ${enumeratedType.name}.Invalid : value; `);
+        write(`    let value =  stream.readUInt32() as ${enumerationSchema.name};`);
+        write(`    value = (value < schema${enumerationSchema.name}.minValue || value > schema${enumerationSchema.name}.maxValue) ? ${enumerationSchema.name}.Invalid : value; `);
         write(`    return value;`);
     } else {
-        write(`    return  stream.readUInt32() as ${enumeratedType.name};`);
+        write(`    return  stream.readUInt32() as ${enumerationSchema.name};`);
     }
     write(`}`);
-    write(`function encode${enumeratedType.name}(value: ${enumeratedType.name}, stream: OutputBinaryStream): void {`);
+    write(`function encode${enumerationSchema.name}(value: ${enumerationSchema.name}, stream: OutputBinaryStream): void {`);
     write(`    stream.writeUInt32(value);`);
     write(`}`);
 
-    write(`export const _enumeration${enumeratedType.name} = registerEnumeration(schema${enumeratedType.name});`);
+    write(`export const _enumeration${enumerationSchema.name} = registerEnumeration(schema${enumerationSchema.name});`);
 
 }
 
@@ -116,16 +122,18 @@ function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
 
 }
 
+import * as n from "node-opcua-numeric-range";
+
 export async function generate(
-  filename: string,
-  generatedTypescriptFilename: string
+    filename: string,
+    generatedTypescriptFilename: string
 ) {
 
     try {
 
         const content = await readFile(filename, "ascii");
 
-        const typeDictionary: any = await parseBinaryXSD2(content);
+        const typeDictionary = await parseBinaryXSD2(content);
 
         for (const key in typeDictionary.structuredTypes) {
 
@@ -195,12 +203,15 @@ import { Enum, EnumItem } from "node-opcua-enum";
 import { BinaryStream , OutputBinaryStream} from "node-opcua-binary-stream";
 import {
     _enumerationBrowseDirection, BrowseDirection, decodeBrowseDirection, decodeDiagnosticInfo,
-    decodeLocalizedText, decodeQualifiedName, DiagnosticInfo, encodeBrowseDirection,
+    decodeLocalizedText, decodeQualifiedName,
+    DiagnosticInfo, DiagnosticInfoOptions,
+    encodeBrowseDirection,
     encodeDiagnosticInfo, encodeLocalizedText, encodeQualifiedName,
-    LocalizedText, LocalizedTextLike, QualifiedName, QualifiedNameLike
+    LocalizedText, LocalizedTextLike, QualifiedName, QualifiedNameLike,
+    LocalizedTextOptions,    QualifiedNameOptions,
 } from "node-opcua-data-model";
 import {
-    _enumerationTimestampsToReturn, DataValue, DataValueLike, decodeDataValue,
+    _enumerationTimestampsToReturn, DataValue, DataValueLike, DataValueOptions, decodeDataValue,
     decodeTimestampsToReturn, encodeDataValue, encodeTimestampsToReturn, TimestampsToReturn
 } from "node-opcua-data-value";
 import {
@@ -222,7 +233,8 @@ import {
     decodeStatusCode, encodeStatusCode, StatusCode
 } from "node-opcua-status-code";
 import {
-    decodeVariant, encodeVariant, Variant, VariantLike
+    decodeVariant, encodeVariant, Variant, VariantLike,
+    VariantOptions
 } from "node-opcua-variant";`);
 
         write(``);
@@ -239,7 +251,6 @@ import {
         alreadyDone["ExtensionObject"] = true;
         alreadyDone["NodeId"] = true;
 
-        
         alreadyDone["ExpandedNodeId"] = true;
         alreadyDone["Variant"] = true;
         alreadyDone["XmlElement"] = true;
@@ -251,7 +262,7 @@ import {
         alreadyDone["StringNodeId"] = true;
         alreadyDone["GuidNodeId"] = true;
         alreadyDone["ByteStringNodeId"] = true;
-        
+
         alreadyDone["DiagnosticInfo"] = true;
         alreadyDone["Variant"] = true;
         alreadyDone["DataValue"] = true;
@@ -260,12 +271,12 @@ import {
         alreadyDone["BrowseDirection"] = true;
         alreadyDone["TimestampsToReturn"] = true;
 
-        function processEnumeratedType(enumeratedType: EnumeratedType): void {
-            if (alreadyDone[enumeratedType.name]) {
+        function processEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): void {
+            if (alreadyDone[enumerationSchema.name]) {
                 return;
             }
-            alreadyDone[enumeratedType.name] = enumeratedType;
-            writeEnumeratedType(enumeratedType);
+            alreadyDone[enumerationSchema.name] = enumerationSchema;
+            writeEnumeratedType(enumerationSchema);
         }
 
         function processStructuredType(structuredType: StructuredTypeSchema): void {

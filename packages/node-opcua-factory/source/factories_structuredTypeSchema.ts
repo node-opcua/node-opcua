@@ -23,6 +23,7 @@ import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType } from "./factories_factories";
 import { parameters } from "./factories_schema_helpers";
 
+
 // export interface StructuredTypeSchemaInterface extends CommonInterface {
 //
 //     fields: FieldType[];
@@ -53,7 +54,7 @@ function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     } else if (hasBuiltInType(fieldType)) {
         return FieldCategory.basic;
     } else if (hasStructuredType(fieldType)) {
-        assert(fieldType !==  "LocalizedText"); // LocalizedText should be treated as BasicType!!!
+        assert(fieldType !== "LocalizedText"); // LocalizedText should be treated as BasicType!!!
         return FieldCategory.complex;
     }
     return FieldCategory.basic;
@@ -88,8 +89,8 @@ function figureOutSchema(underConstructSchema: StructuredTypeSchema, field: Fiel
             break;
     }
     if (null === returnValue || undefined === returnValue) {
-        throw new Error("Cannot find Schema for field with name " + field.name + 
-         " with type " + field.fieldType + " category = " + category + JSON.stringify(field,null,"\t"));
+        throw new Error("Cannot find Schema for field with name " + field.name +
+            " with type " + field.fieldType + " category = " + category + JSON.stringify(field, null, "\t"));
     }
     return returnValue;
 }
@@ -101,10 +102,10 @@ function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: Fiel
 
     /* istanbul ignore next */
     if (!schema) {
-        throw new Error("expecting a valid schema for field with name "+ 
-                fieldLight.name + " with type " + fieldLight.fieldType + " category" + category);
-    } 
- 
+        throw new Error("expecting a valid schema for field with name " +
+            fieldLight.name + " with type " + fieldLight.fieldType + " category" + category);
+    }
+
     return {
         name: lowerFirstLetter(fieldLight.name),
 
@@ -147,6 +148,10 @@ export class StructuredTypeSchema extends TypeSchemaBase {
 
         this.baseType = options.baseType;
         this.category = FieldCategory.complex;
+
+        if (hasBuiltInType(options.name)) {
+            this.category = FieldCategory.basic;
+        }
         this.fields = options.fields.map(buildField.bind(null, this));
         this.id = NodeId.nullNodeId;
         this._possibleFields = this.fields.map((field) => field.name);
@@ -232,9 +237,9 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
     options = options || {};
 
     // istanbul ignore next
-    if (!_.isObject(options) && !(typeof(options) === "object")) {
+    if (!_.isObject(options) && !(typeof (options) === "object")) {
         let message = chalk.red(" Invalid options specified while trying to construct a ")
-          + " " + chalk.yellow(schema.name);
+            + " " + chalk.yellow(schema.name);
         message += "\n";
         message += chalk.red(" expecting a ") + chalk.yellow(" Object ");
         message += "\n";

@@ -107,7 +107,7 @@ export class DiagnosticInfo extends BaseUAObject {
      * @extends BaseUAObject
      * @param  options {Object}
      */
-    constructor(options: any) {
+    constructor(options?: any) {
         options = options || {};
         super();
         const schema = schemaDiagnosticInfo;
@@ -139,6 +139,8 @@ export class DiagnosticInfo extends BaseUAObject {
 
 DiagnosticInfo.prototype.schema = DiagnosticInfo.schema;
 DiagnosticInfo.schema.fields[6].schema = DiagnosticInfo.schema;
+
+export type DiagnosticInfoOptions = any;
 
 export enum DiagnosticInfo_EncodingByte {
     SymbolicId = 0x01,

@@ -68,7 +68,7 @@ export class QualifiedName extends BaseUAObject {
      * @extends BaseUAObject
      * @param  options {Object}
      */
-    constructor(options: QualifiedNameOptions) {
+    constructor(options?: QualifiedNameOptions) {
 
         super();
 

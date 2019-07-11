@@ -146,9 +146,9 @@ function write_enumeration(
 function write_complex_fast_construct(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string) {
 
     if (field.isArray) {
-        write(`       this.${member} =  null; /* null array */`);
+        write(`         this.${member} =  null; /* null array */`);
     } else {
-        write(`       this.${member} =  new ${field.fieldType}();`);
+        write(`         this.${member} =  new ${field.fieldType}();`);
     }
 }
 
@@ -275,7 +275,7 @@ function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void
                 }
             }
         }
-        write("      }");
+        write("        }");
     }
 
     // -----------------------------------------------------------------------------------------------------------------
