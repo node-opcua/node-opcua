@@ -77,7 +77,10 @@ import { BaseNode } from "./base_node";
 import { UAAnalogItem } from "./data_access/ua_analog_item";
 import { add_dataItem_stuff, UADataItem } from "./data_access/ua_data_item";
 import { UAMultiStateDiscrete } from "./data_access/ua_multistate_discrete";
-import { UAMultiStateValueDiscrete } from "./data_access/ua_mutlistate_value_discrete";
+import {
+    promoteToMultiStateValueDiscrete,
+    UAMultiStateValueDiscrete
+} from "./data_access/ua_mutlistate_value_discrete";
 import { UANamespace_process_modelling_rule } from "./namespace_private";
 import { Reference } from "./reference";
 import { UADataType } from "./ua_data_type";
@@ -494,8 +497,8 @@ export class UANamespace implements NamespacePublic {
         if (!multiStateDiscreteType) {
             throw new Error("Cannot find MultiStateDiscreteType");
         }
-
         // todo : if options.typeDefinition is specified, check that type is SubTypeOf MultiStateDiscreteType
+
         options.value = (options.value === undefined) ? 0 : options.value;
 
         const variable = namespace.addVariable(_.extend(options, {
@@ -1040,36 +1043,6 @@ export class UANamespace implements NamespacePublic {
             })
         });
 
-        // construct an index to quickly find a EnumValue from a value
-        const enumValueIndex: any = {};
-        enumValues.forEach((e: any) => {
-            enumValueIndex[e.value[1]] = e;
-        });
-
-        (variable.enumValues as any)._index = enumValueIndex;
-
-        function findValueAsText(value?: number | Int64) {
-
-            if (value === undefined) {
-                throw new Error("Unexpected undefined value");
-            }
-            if (value instanceof Array) {
-                value = value[0];
-            }
-            assert(!((value as any) instanceof Variant));
-            let valueAsText1 = "Invalid";
-            if (enumValueIndex[value]) {
-                valueAsText1 = enumValueIndex[value].displayName;
-            }
-            const result = new Variant({
-                dataType: DataType.LocalizedText,
-                value: coerceLocalizedText(valueAsText1)
-            });
-            return result;
-        }
-
-        const valueAsText = findValueAsText(options.value);
-
         namespace.addVariable({
             accessLevel: "CurrentRead",
             browseName: { name: "ValueAsText", namespaceIndex: 0 },
@@ -1079,35 +1052,13 @@ export class UANamespace implements NamespacePublic {
             propertyOf: variable,
             typeDefinition: "PropertyType",
             userAccessLevel: "CurrentRead",
-            value: valueAsText
+           // value: valueAsText
         });
 
         // install additional helpers methods
         variable.install_extra_properties();
 
-        function install_synchronisation(variable1: UAMultiStateValueDiscrete) {
-            variable1.on("value_changed", (value: DataValue) => {
-                const valueAsText1 = findValueAsText(value.value.value);
-                variable1.valueAsText.setValueFromSource(valueAsText1);
-            });
-        }
-
-        install_synchronisation(variable);
-
-        // replace clone
-        const old_clone = variable.clone;
-        assert(_.isFunction(old_clone));
-
-        function new_clone(this: UAMultiStateValueDiscrete,
-                           options1: any,
-                           optionalFilter: any,
-                           extraInfo: any) {
-            const variable1 = old_clone.call(this, options1, optionalFilter, extraInfo);
-            install_synchronisation(variable1 as UAMultiStateValueDiscrete);
-            return variable1;
-        }
-
-        variable.clone = new_clone;
+        promoteToMultiStateValueDiscrete(variable);
 
         assert(variable.enumValues.browseName.toString() === "EnumValues");
         assert(variable.valueAsText.browseName.toString() === "ValueAsText");

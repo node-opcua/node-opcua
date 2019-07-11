@@ -2,9 +2,10 @@
  * @module node-opcua-address-space.DataAccess
  */
 import { assert } from "node-opcua-assert";
+import { coerceInt32 } from "node-opcua-basic-types";
 import { StatusCodes } from "node-opcua-constants";
 import { StatusCode } from "node-opcua-status-code";
-import { Range } from "node-opcua-types";
+import { EnumValueType, Range } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import { Property, UAAnalogItem as UAAnalogItemPublic } from "../../source";
 import { UAVariable } from "../ua_variable";
@@ -53,10 +54,10 @@ export class UAAnalogItem extends UADataItem  implements UAAnalogItemPublic {
         }
 
         // MultiStateValueDiscreteType
-        if (self.enumValues && self.enumValues._index) {
-
-            const e = self.enumValues._index[value.value];
-            if (!e) {
+        if (self.enumValues) {
+            const enumValues = self.enumValues.readValue().value.value as EnumValueType[];
+            const e = enumValues.findIndex((x: EnumValueType) => coerceInt32(x.value) === coerceInt32(value.value));
+            if (e === -1) {
                 return StatusCodes.BadOutOfRange;
             }
         }

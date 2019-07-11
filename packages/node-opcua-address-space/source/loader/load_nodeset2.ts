@@ -501,7 +501,7 @@ export function generateAddressSpace(
                 Value: {
                     finish(this: any) {
                         // Low part
-                        this.parent.enumValueType.value[0] = parseInt(this.text, 10);
+                        this.parent.enumValueType.value[1] = parseInt(this.text, 10);
                     }
                 },
 

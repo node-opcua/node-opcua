@@ -126,7 +126,7 @@ export function subtest_analog_item_type(maintest: any) {
                 value: new Variant({ dataType: DataType.Double, value: -1000.0 })// out of range
             });
 
-            const statusCode = await analogItem.writeValue(context, dataValue, null);
+            const statusCode = await analogItem.writeValue(context, dataValue);
             statusCode.should.eql(StatusCodes.BadOutOfRange);
 
         });
@@ -151,7 +151,7 @@ export function subtest_analog_item_type(maintest: any) {
                 value: new Variant({ dataType: DataType.Double, value: 150 })// in range
             });
 
-            const statusCode = await analogItem.writeValue(context, dataValue, null);
+            const statusCode = await analogItem.writeValue(context, dataValue);
             statusCode.should.eql(StatusCodes.Good);
 
         });

@@ -22,6 +22,7 @@ const context = new SessionContext();
 
 export function subtest_multi_state_value_discrete_type(maintest: any) {
 
+
     describe("MultiStateValueDiscreteType", () => {
 
         let addressSpace: AddressSpace;
@@ -103,12 +104,12 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
 
             });
 
-            it("writing a value not in the EnumValues mapshall return BadOutOfRange", async () => {
+            it("writing a value not in the EnumValues map shall return BadOutOfRange", async () => {
 
                 const dataValue = new DataValue({
                     value: new Variant({ dataType: DataType.UInt32, value: 100 })// out of range
                 });
-                const statusCode = await multiStateValue.writeValue(context, dataValue, null);
+                const statusCode = await multiStateValue.writeValue(context, dataValue);
                 statusCode.should.eql(StatusCodes.BadOutOfRange);
             });
 
@@ -118,7 +119,7 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
                     value: new Variant({ dataType: DataType.UInt32, value: 0x0000FF })// OK
                 });
 
-                const statusCode = await multiStateValue.writeValue(context, dataValue, null);
+                const statusCode = await multiStateValue.writeValue(context, dataValue);
 
                 statusCode.should.eql(StatusCodes.Good);
 
@@ -203,11 +204,12 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
                 value: new Variant({ dataType: DataType.UInt32, value: greenValue })// OK
             });
 
-            const statusCode = await obj.color.writeValue(context, dataValue, null);
+            const statusCode = await obj.color.writeValue(context, dataValue);
             statusCode.should.eql(StatusCodes.Good);
 
             // now verify that valueAsText has been updated accordingly...
             obj.color.valueAsText.readValue().value.value.text.should.eql("Green");
         });
+
     });
 }

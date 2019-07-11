@@ -1,12 +1,16 @@
 /**
  * @module node-opcua-address-space.DataAccess
  */
-import { DataType } from "node-opcua-variant";
+import { assert } from "node-opcua-assert";
+import { DataType, Variant } from "node-opcua-variant";
 
+import { coerceUInt64, Int64 } from "node-opcua-basic-types";
+import { coerceLocalizedText } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
 import {
     Property,
     UAMultiStateValueDiscrete as UAMultiStateValueDiscretePublic,
-
+    UAVariable as UAVariablePublic
 } from "../../source/address_space_ts";
 import { UAVariable } from "../ua_variable";
 
@@ -16,6 +20,108 @@ export interface UAMultiStateValueDiscrete {
 
 }
 
+function install_synchronisation(variable: UAMultiStateValueDiscrete) {
+
+    variable.on("value_changed", (value: DataValue) => {
+        const valueAsTextNode = variable.valueAsText || variable.getComponentByName("ValueAsText") as UAVariable;
+        if (!valueAsTextNode) {
+            return;
+        }
+        const valueAsText1 = variable._findValueAsText(value.value.value);
+        valueAsTextNode.setValueFromSource(valueAsText1);
+    });
+    variable.emit("value_changed", variable.readValue());
+
+}
+
 export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStateValueDiscretePublic {
 
+    public setValue(value: string | number | Int64): void {
+        if (typeof value === "string") {
+
+            const enumValues = this.enumValues.readValue().value.value;
+            const selected = enumValues.filter((a: any) => a.displayName.text === value)[0];
+            if (selected) {
+                this._setValue(selected.value);
+            } else {
+                throw new Error("cannot find enum string " + value + " in " + enumValues.toString());
+            }
+        } else {
+            this._setValue(coerceUInt64(value));
+        }
+    }
+
+    public getValueAsString(): string {
+        return this.valueAsText.readValue().value.value.text;
+    }
+
+    public getValueAsNumber(): number {
+        return this.readValue().value.value;
+    }
+
+    public _enumValueIndex(): any {
+        // construct an index to quickly find a EnumValue from a value
+        const enumValues = this.enumValues.readValue().value.value;
+        const enumValueIndex: any = {}; enumValues.forEach((e: any) => { enumValueIndex[e.value[1]] = e; });
+        return enumValueIndex;
+    }
+    public _setValue(value: Int64) {
+        const dataType = this._getDataType();
+        if (dataType === DataType.Int64 || dataType === DataType.UInt64) {
+            this.setValueFromSource({ dataType, value});
+        } else {
+            const valueN = value[1];
+            this.setValueFromSource({ dataType, value: valueN});
+        }
+    }
+
+    public _findValueAsText(value?: number | Int64): Variant {
+        const enumValueIndex = this._enumValueIndex();
+
+        if (value === undefined) {
+            throw new Error("Unexpected undefined value");
+        }
+        if (value instanceof Array) {
+            value = value[1];
+        }
+        assert(!((value as any) instanceof Variant));
+        let valueAsText1 = "Invalid";
+        if (enumValueIndex[value]) {
+            valueAsText1 = enumValueIndex[value].displayName;
+        }
+        const result = new Variant({
+            dataType: DataType.LocalizedText,
+            value: coerceLocalizedText(valueAsText1)
+        });
+        return result;
+    }
+    public _getDataType(): DataType {
+        const dataTypeStr  = DataType[this.dataType.value as number] as string;
+        return (DataType as any)[dataTypeStr] as DataType;
+    }
+
+    /**
+     *
+     * @private
+     */
+    public _post_initialize() {
+        // find the enum value type
+        install_synchronisation(this);
+    }
+
+    public clone(options1: any, optionalFilter: any, extraInfo: any): UAMultiStateValueDiscrete {
+
+        const variable1 = UAVariable.prototype.clone.call(this, options1, optionalFilter, extraInfo);
+        return promoteToMultiStateValueDiscrete(variable1);
+    }
+}
+
+export function promoteToMultiStateValueDiscrete(node: UAVariablePublic): UAMultiStateValueDiscrete {
+    if (node instanceof UAMultiStateValueDiscrete) {
+        return node; // already promoted
+    }
+    Object.setPrototypeOf(node, UAMultiStateValueDiscrete.prototype);
+    assert(node instanceof UAMultiStateValueDiscrete, "should now  be a State Machine");
+    (node as UAMultiStateValueDiscrete)._post_initialize();
+    return node as UAMultiStateValueDiscrete;
 }

@@ -71,7 +71,7 @@ export function subtest_multi_state_discrete_type(maintest: any) {
                 const dataValue = new DataValue({
                     value: new Variant({ dataType: DataType.UInt32, value: 100 })// out of range
                 });
-                const statusCode = await multiState.writeValue(SessionContext.defaultContext, dataValue, null);
+                const statusCode = await multiState.writeValue(SessionContext.defaultContext, dataValue);
                 statusCode.should.eql(StatusCodes.BadOutOfRange);
             });
 
@@ -79,7 +79,7 @@ export function subtest_multi_state_discrete_type(maintest: any) {
                 const dataValue = new DataValue({
                     value: new Variant({ dataType: DataType.UInt32, value: 2 })// OK
                 });
-                const statusCode = await  multiState.writeValue(SessionContext.defaultContext, dataValue, null);
+                const statusCode = await  multiState.writeValue(SessionContext.defaultContext, dataValue);
                 statusCode.should.eql(StatusCodes.Good);
             });
         });

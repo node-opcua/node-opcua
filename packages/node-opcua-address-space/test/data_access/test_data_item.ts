@@ -1,5 +1,7 @@
 import * as fs from "fs";
 
+import * as mocha from "mocha";
+
 import * as should from "should";
 
 import { standardUnits } from "node-opcua-data-access";

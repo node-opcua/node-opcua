@@ -52,5 +52,82 @@
     </UAVariable>
 
 
+
+    <UAVariable SymbolicName="VariableMultiStateValueDiscrete" DataType="Int32" NodeId="ns=1;i=16003" BrowseName="1:VariableMultiStateValueDiscrete" AccessLevel="3">
+        <DisplayName>VariableMultiStateValueDiscrete</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=11238</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=16004</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=16005</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6006</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="EnumValueType" ParentNodeId="ns=1;i=16003" ValueRank="1" NodeId="ns=1;i=16004" BrowseName="EnumValues">
+        <DisplayName>EnumValues</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=16003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=7616</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:EnumValueType>
+                            <uax:Value>0</uax:Value>
+                            <uax:DisplayName>
+                                <uax:Text>Orange</uax:Text>
+                            </uax:DisplayName>
+                            <uax:Description>
+                                <uax:Text>Color is orange</uax:Text>
+                            </uax:Description>
+                        </uax:EnumValueType>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=7616</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:EnumValueType>
+                            <uax:Value>1</uax:Value>
+                            <uax:DisplayName>
+                                <uax:Text>Blue</uax:Text>
+                            </uax:DisplayName>
+                            <uax:Description>
+                                <uax:Text>Color is Blue</uax:Text>
+                            </uax:Description>
+                        </uax:EnumValueType>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=7616</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:EnumValueType>
+                            <uax:Value>3</uax:Value>
+                            <uax:DisplayName>
+                                <uax:Text>Red</uax:Text>
+                            </uax:DisplayName>
+                            <uax:Description>
+                                <uax:Text>Color is Red</uax:Text>
+                            </uax:Description>
+                        </uax:EnumValueType>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=16003" NodeId="ns=1;i=16005" BrowseName="ValueAsText">
+        <DisplayName>ValueAsText</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=16003</Reference>
+        </References>
+    </UAVariable>
+
 </UANodeSet>
 

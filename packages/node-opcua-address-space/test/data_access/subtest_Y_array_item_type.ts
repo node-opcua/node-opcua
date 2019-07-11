@@ -3,11 +3,11 @@ import * as should from "should";
 import { AxisInformation, AxisScaleEnumeration, standardUnits } from "node-opcua-data-access";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
+import { AxisInformationOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 import { AddressSpace, Folder, Namespace  } from "../..";
-import { AxisInformationOptions } from "node-opcua-types";
 
 export function subtest_Y_array_item_type(maintest: any) {
 

@@ -39,7 +39,7 @@ export function subtest_data_item_PercentDeadband(maintest: any) {
 
             const dataValue = new DataValue({ value: new Variant({ dataType: DataType.Double, value: -1000.0 }) });
 
-            const statusCode = await analogItem.writeValue(SessionContext.defaultContext, dataValue, null);
+            const statusCode = await analogItem.writeValue(SessionContext.defaultContext, dataValue);
             statusCode.should.eql(StatusCodes.BadOutOfRange);
 
         });
