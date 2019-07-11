@@ -16,10 +16,10 @@
  "dependencies": {
   "@types/async": "^3.0.0",
   "@types/once": "^1.4.0",
-  "@types/underscore": "^1.9.0",
-  "async": "^3.0.1",
+  "@types/underscore": "^1.9.2",
+  "async": "^3.1.0",
   "chalk": "^2.4.2",
-  "delayed": "^1.0.1",
+  "delayed": "^2.0.0",
   "node-opcua-assert": "^2.0.0",
   "node-opcua-basic-types": "^2.0.0",
   "node-opcua-buffer-utils": "^2.0.0",

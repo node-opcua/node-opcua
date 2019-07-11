@@ -14,7 +14,7 @@
   "clean": "node -e \"require('rimraf').sync('_generated_');\""
  },
  "dependencies": {
-  "async": "^3.0.1",
+  "async": "^3.1.0",
   "dequeue": "^1.0.5",
   "node-opcua-assert": "^2.0.0",
   "node-opcua-basic-types": "^2.0.0",

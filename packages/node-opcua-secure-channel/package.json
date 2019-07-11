@@ -34,9 +34,9 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/node": "^12.0.10",
-  "@types/underscore": "^1.9.0",
-  "async": "^3.0.1",
+  "@types/node": "^12.6.2",
+  "@types/underscore": "^1.9.2",
+  "async": "^3.1.0",
   "node-opcua-buffer-utils": "^2.0.0",
   "node-opcua-leak-detector": "^2.0.0",
   "node-opcua-packet-analyzer": "^2.0.0-alpha.5",

@@ -16,9 +16,9 @@
  "types": "./dist/index.d.ts",
  "dependencies": {
   "@types/mkdirp": "^0.5.2",
-  "async": "^3.0.1",
+  "async": "^3.1.0",
   "chalk": "^2.4.2",
-  "delayed": "^1.0.1",
+  "delayed": "^2.0.0",
   "env-paths": "^2.2.0",
   "mkdirp": "^0.5.1",
   "node-opcua-assert": "^2.0.0",
@@ -37,7 +37,7 @@
  },
  "devDependencies": {
   "@types/async": "^3.0.0",
-  "@types/underscore": "^1.9.0",
+  "@types/underscore": "^1.9.2",
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^2.0.0",
   "should": "13.2.3",
