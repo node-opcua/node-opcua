@@ -91,8 +91,8 @@ export class StateMachine extends UAObject implements StateMachine {
 
     /**
      * @method getStateByName
-     * @param name  {string}
-     * @return {null|UAObject}
+     * @param name  the name of the state to get
+     * @return the state with the given name
      */
     public getStateByName(name: string): State | null {
         let states = this.getStates();
@@ -128,7 +128,6 @@ export class StateMachine extends UAObject implements StateMachine {
     /**
      * return the node InitialStateType
      * @property initialState
-     * @type  {UAObject}
      */
     get initialState(): UAObject {
         const addressSpace = this.addressSpace;
@@ -147,6 +146,11 @@ export class StateMachine extends UAObject implements StateMachine {
         return comp.length === 0 ? null : comp[0];
     }
 
+    /**
+     *
+     * @param node
+     * @private
+     */
     public _coerceNode(node: State | BaseNode | null | string | NodeId): BaseNode | null {
 
         if (node === null) {

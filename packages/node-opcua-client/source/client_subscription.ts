@@ -185,7 +185,8 @@ export interface ClientSubscription extends EventEmitter {
      * @param itemsToMonitor
      * @param requestedParameters
      * @param timestampsToReturn
-     * @param done
+     * @return a ClientMonitoredItemGroup
+     * @async
      */
     monitorItems(
         itemsToMonitor: ReadValueIdOptions[],
@@ -193,6 +194,14 @@ export interface ClientSubscription extends EventEmitter {
         timestampsToReturn: TimestampsToReturn
     ): Promise<ClientMonitoredItemGroup>;
 
+    /**
+     * @method monitorItems
+     * @param itemsToMonitor
+     * @param requestedParameters
+     * @param timestampsToReturn
+     * @param done
+     * @async
+     */
     monitorItems(
         itemsToMonitor: ReadValueIdOptions[],
         requestedParameters: MonitoringParametersOptions,

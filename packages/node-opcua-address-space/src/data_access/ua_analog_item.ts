@@ -28,8 +28,6 @@ export class UAAnalogItem extends UADataItem  implements UAAnalogItemPublic {
     // -- Data Item
     public isValueInRange(value: Variant): StatusCode {
 
-        const self = this as any;
-
         assert(value instanceof Variant);
         // test dataType
         if (!this._validate_DataType(value.dataType)) {
@@ -42,26 +40,6 @@ export class UAAnalogItem extends UADataItem  implements UAAnalogItemPublic {
                 return StatusCodes.BadOutOfRange;
             }
         }
-
-        // MultiStateDiscreteType
-        if (self.enumStrings) {
-            const arrayEnumStrings = self.enumStrings.readValue().value.value;
-            // MultiStateDiscreteType
-            assert(value.dataType === DataType.UInt32);
-            if (value.value >= arrayEnumStrings.length) {
-                return StatusCodes.BadOutOfRange;
-            }
-        }
-
-        // MultiStateValueDiscreteType
-        if (self.enumValues) {
-            const enumValues = self.enumValues.readValue().value.value as EnumValueType[];
-            const e = enumValues.findIndex((x: EnumValueType) => coerceInt32(x.value) === coerceInt32(value.value));
-            if (e === -1) {
-                return StatusCodes.BadOutOfRange;
-            }
-        }
-
         return StatusCodes.Good;
     }
 

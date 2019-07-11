@@ -129,5 +129,52 @@
         </References>
     </UAVariable>
 
+
+
+    <UAVariable DataType="UInt32" NodeId="ns=1;i=26001" BrowseName="1:VariableMultiStateDiscrete" AccessLevel="3">
+        <DisplayName>VariableMultiStateDiscrete</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=26009</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=26002</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=2376</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6006</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=26001" NodeId="ns=1;i=26009" BrowseName="Definition">
+        <DisplayName>Definition</DisplayName>
+        <Description>A vendor-specific, human readable string that specifies how the value of this DataItem is calculated.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=26001</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=26001" ValueRank="1" NodeId="ns=1;i=26002" BrowseName="EnumStrings">
+        <DisplayName>EnumStrings</DisplayName>
+        <Description>Enumeration string</Description>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=26001</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfLocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>Orange</uax:Text>
+                </uax:LocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>Blue</uax:Text>
+                </uax:LocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>Red</uax:Text>
+                </uax:LocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>Yellow</uax:Text>
+                </uax:LocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>Purple</uax:Text>
+                </uax:LocalizedText>
+            </uax:ListOfLocalizedText>
+        </Value>
+    </UAVariable>
+
 </UANodeSet>
 

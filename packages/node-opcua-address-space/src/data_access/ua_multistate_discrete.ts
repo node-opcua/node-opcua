@@ -1,13 +1,15 @@
 /**
  * @module node-opcua-address-space.DataAccess
  */
-import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
-import { UAMultiStateDiscrete as UAMultiStateDiscretePublic } from "../../source";
+import * as _ from "underscore";
+
+import { UAMultiStateDiscrete as UAMultiStateDiscretePublic, UAVariable as UAVariablePublic } from "../../source";
 import { UAVariable } from "../ua_variable";
+import { promoteToMultiStateValueDiscrete } from "./ua_mutlistate_value_discrete";
 
 export interface UAMultiStateDiscrete {
     enumStrings: UAVariable;
@@ -41,21 +43,48 @@ export class UAMultiStateDiscrete extends UAVariable implements UAMultiStateDisc
 
         if (typeof (value) === "string") {
             const index = this.getIndex(value);
-            assert(index >= 0, " invalid multi state value provided");
+            if (index < 0) {
+                throw new Error("UAMultiStateDiscrete#setValue invalid multi state value provided : " + value);
+            }
             return this.setValue(index);
+        }
+        const arrayEnumStrings = this.enumStrings.readValue().value.value;
+        if (value >= arrayEnumStrings.length) {
+            throw new Error("UAMultiStateDiscrete#setValue BadOutOfRange " + value);
         }
         assert(_.isFinite(value));
         return this.setValueFromSource(new Variant({ dataType: DataType.UInt32, value }));
     }
 
     public isValueInRange(value: Variant): StatusCode {
-        const arrayEnumStrings = this.enumStrings.readValue().value.value;
-        // MultiStateDiscreteType
-        assert(value.dataType === DataType.UInt32);
-        if (value.value >= arrayEnumStrings.length) {
-            return StatusCodes.BadOutOfRange;
+        if (this.enumStrings) {
+            const arrayEnumStrings = this.enumStrings.readValue().value.value;
+            // MultiStateDiscreteType
+            assert(value.dataType === DataType.UInt32);
+            if (value.value >= arrayEnumStrings.length) {
+                return StatusCodes.BadOutOfRange;
+            }
         }
         return StatusCodes.Good;
     }
 
+    public _post_initialize() {
+        /* empty */
+    }
+
+    public clone(options1: any, optionalFilter: any, extraInfo: any): UAMultiStateDiscrete {
+        const variable1 = UAVariable.prototype.clone.call(this, options1, optionalFilter, extraInfo);
+        return promoteToMultiStateDiscrete(variable1);
+    }
+
+}
+
+export function promoteToMultiStateDiscrete(node: UAVariablePublic): UAMultiStateDiscrete {
+    if (node instanceof UAMultiStateDiscrete) {
+        return node; // already promoted
+    }
+    Object.setPrototypeOf(node, UAMultiStateDiscrete.prototype);
+    assert(node instanceof UAMultiStateDiscrete, "should now  be a State Machine");
+    (node as UAMultiStateDiscrete)._post_initialize();
+    return node as UAMultiStateDiscrete;
 }

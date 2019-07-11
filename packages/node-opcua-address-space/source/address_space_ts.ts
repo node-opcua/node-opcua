@@ -572,6 +572,9 @@ export interface UAMultiStateValueDiscrete extends UAVariable {
     enumValues: Property<"EnumValueType">;
     valueAsText: Property<DataType.String>;
 
+    setValue(value: string | number | Int64): void;
+    getValueAsString(): string;
+    getValueAsNumber(): number;
 }
 
 // tslint:disable:no-empty-interface

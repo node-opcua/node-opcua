@@ -6,12 +6,13 @@ import * as should from "should";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, generateAddressSpace, UAVariable } from "../../source";
+import { promoteToMultiStateDiscrete } from "../../src/data_access/ua_multistate_discrete";
 import { promoteToMultiStateValueDiscrete } from "../../src/data_access/ua_mutlistate_value_discrete";
 
 describe("MultiStateValueDiscreteType - 2", () => {
 
     let addressSpace: AddressSpace;
-    const data  = { addressSpace: null as any  };
+    const data = { addressSpace: null as any };
     before(async () => {
         addressSpace = AddressSpace.create();
 
@@ -31,7 +32,7 @@ describe("MultiStateValueDiscreteType - 2", () => {
         addressSpace.dispose();
     });
 
-    it("ZYZ3 it should promoteToMultiStateValueDiscrete from an existing nodeset", async () => {
+    it("ZYZ-1 it should promoteToMultiStateValueDiscrete from an existing nodeset", async () => {
 
         const ns = addressSpace.getNamespaceIndex("mydemo/");
 
@@ -58,6 +59,66 @@ describe("MultiStateValueDiscreteType - 2", () => {
         msvd.setValue("Red");
         msvd.getValueAsNumber().should.eql(3);
         msvd.getValueAsString().should.eql("Red");
+
+        should(() => {
+            msvd.setValue("RedCRAP");
+        }).throw();
+        msvd.getValueAsNumber().should.eql(3);
+
+        should(() => {
+            msvd.setValue(12345);
+        }).throw();
+        msvd.getValueAsNumber().should.eql(3);
+
+    });
+
+    it("ZYZ-2 it should promoteToMultiStateDiscrete from an existing nodeset", async () => {
+
+        const ns = addressSpace.getNamespaceIndex("mydemo/");
+
+        const variable = addressSpace.findNode("ns=2;i=26001") as UAVariable;
+        variable.browseName.toString().should.eql("2:VariableMultiStateDiscrete");
+
+        const msd = promoteToMultiStateDiscrete(variable);
+
+        msd.setValue(1);
+        msd.getValueAsString().should.eql("Blue");
+        msd.getValue().should.eql(1);
+
+        msd.setValue(2);
+        msd.getValueAsString().should.eql("Red");
+        msd.getValue().should.eql(2);
+
+        msd.setValue(3);
+        msd.getValueAsString().should.eql("Yellow");
+        msd.getValue().should.eql(3);
+
+        msd.setValue("Purple");
+        msd.getValueAsString().should.eql("Purple");
+        msd.getValue().should.eql(4);
+
+        msd.setValue("Red");
+        msd.getValueAsString().should.eql("Red");
+        msd.getValue().should.eql(2);
+
+        msd.setValue("Blue");
+        msd.getValueAsString().should.eql("Blue");
+        msd.getValue().should.eql(1);
+
+        should(() => {
+            msd.setValue("Crap");
+        }).throw();
+        msd.getValue().should.eql(1);
+
+        should(() => {
+            msd.setValue("Crap");
+        }).throw();
+        msd.getValue().should.eql(1);
+
+        should(function not_be_possible_to_set_an_invalid_numeric_value() {
+            msd.setValue(42);
+        }).throw();
+        msd.getValue().should.eql(1);
 
     });
 });
