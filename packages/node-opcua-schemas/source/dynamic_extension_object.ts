@@ -36,10 +36,10 @@ export function getOrCreateConstructor(
 
     // istanbul ignore next
     if (!schema) {
-        throw new Error("Unknown type in dictionary" + fieldType);
+        throw new Error("Unknown type in dictionary " + fieldType);
     }
 
-    const constructor = createDynamicObject(schema, typeDictionary);
+    const constructor = createDynamicObjectConstructor(schema, typeDictionary);
 
     if (encodingDefaultBinary && encodingDefaultBinary.value !== 0) {
         schema.encodingDefaultBinary = encodingDefaultBinary;
@@ -54,6 +54,10 @@ export function getOrCreateConstructor(
 
         registerClassDefinition(fieldType, constructor as ConstructorFuncWithSchema);
     } else {
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog("registering factory , ", fieldType);
+        }
         registerFactory(fieldType, constructor as ConstructorFuncWithSchema);
     }
     return constructor;
@@ -273,11 +277,15 @@ interface AnyConstructable {
 
 export type AnyConstructorFunc = AnyConstructable;
 
-export function createDynamicObject(
+export function createDynamicObjectConstructor(
     schema: StructuredTypeSchema,
     typeDictionary: TypeDictionary
 ): AnyConstructorFunc {
 
+    const schemaPriv = schema as any;
+    if (schemaPriv.$Constructor) {
+        return schemaPriv.$Constructor;
+    }
     // tslint:disable-next-line:max-classes-per-file
     class EXTENSION extends DynamicExtensionObject {
         public static encodingDefaultXml = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
@@ -297,6 +305,8 @@ export function createDynamicObject(
 
     // to do : may be remove DataType suffix here ?
     Object.defineProperty(EXTENSION, "name", { value: schema.name });
+
+    schemaPriv.$Constructor = EXTENSION;
 
     return EXTENSION;
 }

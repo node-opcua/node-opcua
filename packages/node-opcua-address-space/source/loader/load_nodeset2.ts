@@ -8,6 +8,7 @@ import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
+import { extractNamespaceDataType, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { EnumValueType } from "node-opcua-common";
 import { EUInformation } from "node-opcua-data-access";
 import {
@@ -19,8 +20,10 @@ import {
     stringToQualifiedName
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
+import { Range } from "node-opcua-types";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { ParserLike, ReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } from "node-opcua-xml2json";
 
@@ -31,11 +34,6 @@ import {
     Namespace,
     PseudoSession
 } from "../../source";
-
-import { extractNamespaceDataType, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { Range } from "node-opcua-types";
-
 import { AddressSpace } from "../../src/address_space";
 import { BaseNode } from "../../src/base_node";
 import { NamespacePrivate } from "../../src/namespace_private";
@@ -46,7 +44,7 @@ import { UAVariableType } from "../../src/ua_variable_type";
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
-async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraDataTypeManager> {
+export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraDataTypeManager> {
     const addressSpacePriv: any = addressSpace as any;
     if (!addressSpacePriv.$$extraDataTypeManager) {
         const session = new PseudoSession(addressSpace);
@@ -61,6 +59,7 @@ async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraDataType
     }
     return addressSpacePriv.$$extraDataTypeManager;
 }
+export const ensureDatatypeExtractedWithCallback = callbackify(ensureDatatypeExtracted) as any;
 
 function findDataTypeNode(addressSpace: AddressSpace, encodingNodeId: NodeId): UADataType {
 
@@ -539,7 +538,7 @@ export function generateAddressSpace(
                     parser: {
                         Identifier: {
                             finish(this: any) {
-                                this.parent.parent.argument.dataType = resolveNodeId(this.text.trim());
+                                this.parent.parent.argument.dataType = _translateNodeId(resolveNodeId(this.text.trim()).toString());
                             }
                         }
                     }

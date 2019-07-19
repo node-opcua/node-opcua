@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-export {AddressSpace} from "./address_space";
+export { AddressSpace } from "./address_space";
 export * from "../source/session_context";
 export * from "../source/helpers/dump_tools";
 export * from "../source/helpers/adjust_browse_direction";
@@ -12,6 +12,7 @@ export * from "../source/helpers/argument_list";
 export * from "../source/helpers/call_helpers";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
 export { UACertificateExpirationAlarm }  from "./alarms_and_conditions";
+export { ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";
 
 export { generateAddressSpace } from "../source";
 export { promoteToStateMachine } from "./state_machine/finite_state_machine";

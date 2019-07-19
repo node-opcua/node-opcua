@@ -15,6 +15,7 @@ import {
     bindExtObjArrayNode,
     Callback,
     DataValueCallback,
+    ensureDatatypeExtractedWithCallback,
     generateAddressSpace,
     MethodFunctor,
     removeElement,
@@ -41,6 +42,7 @@ import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
 import { TransferResult } from "node-opcua-service-subscription";
 
 import { CreateSubscriptionRequestLike } from "node-opcua-client";
+import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeIds, MethodIds, VariableIds } from "node-opcua-constants";
 import { minOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, trace_from_this_projet_only } from "node-opcua-debug";
@@ -71,14 +73,14 @@ import {
     WriteValue
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
+
 import { HistoryServerCapabilities, HistoryServerCapabilitiesOptions } from "./history_server_capabilities";
+import { MonitoredItem } from "./monitored_item";
 import { OperationLimits, ServerCapabilities, ServerCapabilitiesOptions } from "./server_capabilities";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions";
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
-
-import { MonitoredItem } from "./monitored_item";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -1185,20 +1187,29 @@ export class ServerEngine extends EventEmitter {
 
         context.currentTime = new Date();
 
+        let l_extraDataTypeManager: ExtraDataTypeManager;
+
         function performWrite(
           writeValue: WriteValue,
           inner_callback: (err: Error | null, statusCode?: StatusCode) => void
         ) {
             assert(writeValue instanceof WriteValue);
+            resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager);
             engine.writeSingleNode(context, writeValue, inner_callback);
         }
 
-        // tslint:disable:array-type
-        async.map(nodesToWrite, performWrite,
-          (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
-              assert(_.isArray(statusCodes));
-              callback(err!, statusCodes as StatusCode[]);
-          });
+        ensureDatatypeExtractedWithCallback(this.addressSpace, (err2: Error|null, extraDataTypeManager: ExtraDataTypeManager) => {
+
+            l_extraDataTypeManager = extraDataTypeManager;
+
+            // tslint:disable:array-type
+            async.map(nodesToWrite, performWrite,
+                (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
+                    assert(_.isArray(statusCodes));
+                    callback(err!, statusCodes as StatusCode[]);
+                });
+
+        });
 
     }
 

@@ -84,7 +84,6 @@ export function getOrCreateStructuredTypeSchema(name: string, typeDictionary: Ty
                         field.category = FieldCategory.complex;
                         field.schema = getStructuredTypeSchema(fieldTypeName);
 
-
                     } else {
                         field.category = FieldCategory.basic;
                         // try in this

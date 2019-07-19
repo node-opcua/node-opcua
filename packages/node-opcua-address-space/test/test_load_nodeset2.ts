@@ -281,15 +281,15 @@ describe("Testing variables loading ", function(this: any) {
     it("GG1 - should have a variable with pre-fetched values", () => {
         const ns = addressSpace.getNamespaceIndex("mydemo/");
 
-        let variable = addressSpace.rootFolder.objects.getFolderElementByName("VarialbeTwoStateDiscrete", ns)!;
-        variable = variable || addressSpace.rootFolder.objects.variableTwoStateDiscrete;
+        let variable = addressSpace.rootFolder.objects.getFolderElementByName("VarialbeTwoStateDiscrete", ns)! as UAVariable;
+        variable = variable || (addressSpace.rootFolder.objects as any).variableTwoStateDiscrete as UAVariable;
 
         should.exists(variable);
 
-        const trueState = variable.getChildByName("TrueState");
+        const trueState = variable.getChildByName("TrueState")! as UAVariable;
         should.exists(trueState);
 
-        const falseState = variable.getChildByName("FalseState");
+        const falseState = variable.getChildByName("FalseState")! as UAVariable;
         should.exists(falseState);
 
         trueState.readValue().value.toString().should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=PoweredOn)");

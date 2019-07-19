@@ -22,8 +22,6 @@ import { getBuildInType, hasBuiltInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType } from "./factories_factories";
 import { parameters } from "./factories_schema_helpers";
-
-
 // export interface StructuredTypeSchemaInterface extends CommonInterface {
 //
 //     fields: FieldType[];
@@ -66,7 +64,7 @@ function figureOutSchema(underConstructSchema: StructuredTypeSchema, field: Fiel
         return field.schema;
     }
 
-    if (underConstructSchema.name == field.fieldType) {
+    if (underConstructSchema.name === field.fieldType) {
         return underConstructSchema;
     }
 

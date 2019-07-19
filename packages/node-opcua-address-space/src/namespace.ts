@@ -1712,6 +1712,11 @@ export class UANamespace implements NamespacePublic {
 
             for (const ref of options.references) {
                 ref._referenceType = addressSpace.findReferenceType(ref.referenceType);
+
+                /* istanbul ignore next */
+                if (!ref._referenceType) {
+                    throw new Error("Cannot find referenceType " + JSON.stringify(ref));
+                }
                 ref.referenceType = ref._referenceType.nodeId;
             }
             // find HasComponent, or has Property reverse

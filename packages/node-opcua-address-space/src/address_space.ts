@@ -388,7 +388,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *      const dataDouble = addressSpace.findDataType(resolveNodeId("ns=0;i=3"));
      */
     public findDataType(
-      dataType: string | NodeId | DataType,
+      dataType: number | string | NodeId | DataType,
       namespaceIndex?: number
     ): UADataType | null {
         // startingNode i=24  :
@@ -405,7 +405,11 @@ export class AddressSpace implements AddressSpacePrivate {
             return _find_by_node_id<UADataType>(this, dataType!, namespaceIndex);
         }
         if (typeof dataType === "number") {
-            dataType = DataType[dataType];
+            if (DataType[dataType] !== undefined) {
+                dataType = DataType[dataType];
+            } else {
+                return this.findDataType(resolveNodeId(dataType));
+            }
         }
         const res = _extract_namespace_and_browse_name_as_string(this, dataType, namespaceIndex);
         const namespace = res[0];

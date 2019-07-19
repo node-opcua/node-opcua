@@ -51,7 +51,9 @@ async function main() {
     console.log(" DataType =", dataValueDataType.value.value.toString());
     const dataTypeNodeId = dataValueDataType.value.value as NodeId;
 
-    await getDataTypeDefinition(session, dataTypeNodeId);
+    const extraDataTypeManager = await session.extractNamespaceDataType();
+
+    await getDataTypeDefinition(session, dataTypeNodeId, extraDataTypeManager);
 
     const dataValueDataTypeBrowseName = await session.read({
         attributeId: AttributeIds.BrowseName,

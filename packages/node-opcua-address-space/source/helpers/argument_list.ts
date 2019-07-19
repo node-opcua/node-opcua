@@ -9,7 +9,7 @@ import * as ec from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import * as factories from "node-opcua-factory";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant, VariantLike } from "node-opcua-variant";
@@ -167,11 +167,10 @@ function isArgumentValid(
     assert(arg instanceof Variant);
 
     const argDefDataType = addressSpace.findDataType(argDefinition.dataType);
-    const argDataType = addressSpace.findDataType(arg.dataType);
+    const argDataType = addressSpace.findDataType(resolveNodeId(arg.dataType));
 
     if (!argDefDataType) {
         return false;
-
     }
     if (!argDataType) {
         console.log(" cannot find dataType ", arg.dataType);

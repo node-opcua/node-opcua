@@ -28,7 +28,7 @@ function debugLog()
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function () {
 
-    this.timeout(10000);
+    this.timeout(30000);
 
     let discovery_server1, discovery_server_endpointUrl1;
     let discovery_server2, discovery_server_endpointUrl2;

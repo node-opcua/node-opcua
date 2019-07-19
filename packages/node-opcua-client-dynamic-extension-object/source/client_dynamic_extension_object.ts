@@ -8,18 +8,22 @@ import { assert } from "node-opcua-assert";
 import {
     AttributeIds,
     makeNodeClassMask,
-    makeResultMask,
+    makeResultMask, NodeClass
 } from "node-opcua-data-model";
 import {
     checkDebugFlag,
     make_debugLog
 } from "node-opcua-debug";
 import {
+    StructuredTypeSchema
+} from "node-opcua-factory";
+import {
     ExpandedNodeId,
     NodeId,
-    resolveNodeId,
+    resolveNodeId
 } from "node-opcua-nodeid";
 import {
+    BrowseDescriptionLike,
     IBasicSession
 } from "node-opcua-pseudo-session";
 import {
@@ -28,12 +32,17 @@ import {
     TypeDictionary
 } from "node-opcua-schemas";
 import {
+    BrowseDescription,
     BrowseDirection,
     BrowseResult,
-    ReferenceDescription,
+    ReferenceDescription
 } from "node-opcua-service-browse";
-import { StatusCodes } from "node-opcua-status-code";
-import { ExtraDataTypeManager } from "./extra_data_type_manager";
+import {
+    StatusCodes
+} from "node-opcua-status-code";
+import {
+    ExtraDataTypeManager
+} from "./extra_data_type_manager";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -55,10 +64,10 @@ async function extractSchema(session: IBasicSession, nodeId: NodeId): Promise<Ty
 }
 
 export async function exploreDataTypeDefinition(
-  session: IBasicSession,
-  dataTypeDictionaryTypeNode: NodeId,
-  typeDictionary: TypeDictionary,
-  namespaces: string[]
+    session: IBasicSession,
+    dataTypeDictionaryTypeNode: NodeId,
+    typeDictionary: TypeDictionary,
+    namespaces: string[]
 ) {
 
     const nodeToBrowse = {
@@ -77,7 +86,7 @@ export async function exploreDataTypeDefinition(
         return;
     }
 
-    // request the Definition of each not
+    // request the Definition of each nodes
     const nodesToBrowse2 = references.map((ref: ReferenceDescription) => {
         return {
             browseDirection: BrowseDirection.Inverse,
@@ -91,7 +100,7 @@ export async function exploreDataTypeDefinition(
     const results2 = await session.browse(nodesToBrowse2);
 
     const binaryEncodingNodeIds = results2.map((br: BrowseResult) => {
-        const defaultBin =  br.references!.filter((r: ReferenceDescription) => r.browseName.toString() === "Default Binary");
+        const defaultBin = br.references!.filter((r: ReferenceDescription) => r.browseName.toString() === "Default Binary");
 
         /* istanbul ignore next */
         if (defaultBin.length < 1) {
@@ -108,6 +117,7 @@ export async function exploreDataTypeDefinition(
 
         /* istanbul ignore next */
         if (doDebug) {
+            // let's verify that constructor is operational
             try {
                 const testObject = new constructor();
                 debugLog(testObject.toString());
@@ -118,9 +128,15 @@ export async function exploreDataTypeDefinition(
     }
 }
 
+/**
+ * Extract all custom dataType
+ * @param session
+ * @param dataTypeManager
+ * @async
+ */
 export async function extractNamespaceDataType(
-  session: IBasicSession,
-  dataTypeManager: ExtraDataTypeManager
+    session: IBasicSession,
+    dataTypeManager: ExtraDataTypeManager
 ) {
 
     // read namespace array
@@ -136,7 +152,9 @@ export async function extractNamespaceDataType(
     // DatType/OPCBinary => i=93 [OPCBinarySchema_TypeSystem]
     const opcBinaryNodeId = resolveNodeId("OPCBinarySchema_TypeSystem");
 
-    const nodeToBrowse = {
+    // let find all DataType dictionary node corresponding to a given namespace
+    // (have DataTypeDictionaryType)
+    const nodeToBrowse: BrowseDescriptionLike = {
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: false,
         nodeClassMask: makeNodeClassMask("Variable"),
@@ -147,22 +165,33 @@ export async function extractNamespaceDataType(
     const result = await session.browse(nodeToBrowse);
 
     // filter nodes that have the expected namespace Index
+    // ( more specifically we want to filter out DataStructure from namespace 0)
     const references = result.references!.filter(
-      (e: ReferenceDescription) => e.nodeId.namespace !== 0);
+        (e: ReferenceDescription) => e.nodeId.namespace !== 0);
 
-    /* istanbul ignore next */
-    if (references.length === 0) {
-        return;
-    }
-    for (const ref of references) {
+    const promises: Array<Promise<void>> = [];
+
+    const dataTypeDictionaryType = resolveNodeId("DataTypeDictionaryType");
+
+    async function processReference(ref: ReferenceDescription): Promise<void> {
+        assert(ref.typeDefinition.toString() === dataTypeDictionaryType.toString());
         const typeDictionary = await extractSchema(session, ref.nodeId);
         await exploreDataTypeDefinition(session, ref.nodeId, typeDictionary, dataTypeManager.namespaceArray);
         dataTypeManager.registerTypeDictionary(ref.nodeId, typeDictionary);
     }
 
+    for (const ref of references) {
+        promises.push(processReference(ref));
+    }
+
+    await Promise.all(promises);
 }
 
-export async function getDataTypeDefinition(session: IBasicSession, dataTypeNodeId: NodeId): Promise<void> {
+export async function getDataTypeDefinition(
+    session: IBasicSession,
+    dataTypeNodeId: NodeId,
+    extraDataTypeManager: ExtraDataTypeManager
+): Promise<StructuredTypeSchema> {
 
     // DataType
     //    | 1
@@ -188,7 +217,32 @@ export async function getDataTypeDefinition(session: IBasicSession, dataTypeNode
         resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
     };
     const result1 = await session.browse(nodeToBrowse1);
-    assert(result1.references && result1.references.length === 1);
+
+    if (result1.references && result1.references.length > 1) {
+        // we have more than one possible Encoding .... only keep "Default Binary"
+        result1.references = result1.references.filter((r: ReferenceDescription) =>
+            r.browseName.toString() === "Default Binary");
+    }
+
+    /* istanbul ignore next */
+    if (!(result1.references && result1.references.length === 1)) {
+
+        const nodeClass = await session.read({
+            attributeId: AttributeIds.NodeClass,
+            nodeId: dataTypeNodeId
+        });
+        const browseName = await session.read({
+            attributeId: AttributeIds.BrowseName,
+            nodeId: dataTypeNodeId
+        });
+
+        // tslint:disable:no-console
+        console.log("node-id    :", dataTypeNodeId.toString());
+        console.log("nodeClass  :", NodeClass[nodeClass.value.value]);
+        console.log("browseName :", browseName.value.value.toString());
+        console.log(result1.toString());
+        throw new Error("getDataTypeDefinition invalid HasEncoding reference");
+    }
 
     const encodingReference = result1.references![0]!;
     assert(encodingReference.browseName.toString() === "Default Binary");
@@ -228,6 +282,20 @@ export async function getDataTypeDefinition(session: IBasicSession, dataTypeNode
     const result3 = await session.browse(nodeToBrowse3);
     assert(result3.references && result3.references.length === 1);
     const schemaNode = result3.references![0]!.nodeId;
-    const typeDictionary = await extractSchema(session, schemaNode);
-    return (typeDictionary.structuredTypes as any)[name];
+
+    let schema: StructuredTypeSchema;
+    if (extraDataTypeManager) {
+        const typeDictionary = extraDataTypeManager.getTypeDictionaryForNamespace(schemaNode.namespace);
+        schema =  typeDictionary.structuredTypes[name];
+
+    } else {
+
+        const typeDictionary = await extractSchema(session, schemaNode);
+        schema =  typeDictionary.structuredTypes[name];
+    }
+    // associate DataTypeId with schema if not already done
+    if (schema.id.value === 0 ) {
+        schema.id = dataTypeNodeId;
+    }
+    return schema;
 }
