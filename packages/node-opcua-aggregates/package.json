@@ -31,7 +31,7 @@
   "should": "13.2.3",
   "sinon": "^7.3.2",
   "underscore": "^1.9.1",
-  "yargs": "^13.2.4"
+  "yargs": "^13.3.0"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

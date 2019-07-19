@@ -22,6 +22,7 @@
   "node-opcua-basic-types": "^2.1.0",
   "node-opcua-certificate-manager": "^2.1.0",
   "node-opcua-client": "^2.1.0",
+  "node-opcua-client-dynamic-extension-object": "^2.1.0",
   "node-opcua-common": "^2.1.0",
   "node-opcua-constants": "^2.1.0",
   "node-opcua-crypto": "^1.1.1",

@@ -13,6 +13,7 @@
     "node-opcua-assert": "^2.0.0",
     "node-opcua-binary-stream": "^2.1.0",
     "node-opcua-data-model": "^2.1.0",
+    "node-opcua-data-value": "^2.1.0",
     "node-opcua-debug": "^2.1.0",
     "node-opcua-extension-object": "^2.1.0",
     "node-opcua-factory": "^2.1.0",
