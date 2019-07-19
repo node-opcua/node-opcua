@@ -55,7 +55,7 @@ import {
     UAVariable as UAVariablePublic, UAVariableType
 } from "../source";
 import { BaseNode } from "./base_node";
-import { _clone, apply_condition_refresh } from "./base_node_private";
+import { _clone, apply_condition_refresh, BaseNode_toString, ToStringBuilder, UAVariable_toString } from "./base_node_private";
 import { SessionContext } from "./session_context";
 import { UADataType } from "./ua_data_type";
 
@@ -1397,6 +1397,12 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         return this.readValue().value.value;
     }
 
+    public toString() {
+        const options = new ToStringBuilder();
+        UAVariable_toString.call(this, options);
+        return options.toString();
+    }
+
     // ---------------------------------------------------------------------------------------------------
     // History
     // ---------------------------------------------------------------------------------------------------
@@ -1453,7 +1459,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
       callback: Callback<HistoryReadResult>
     ): any {
         const result = new HistoryReadResult({
-             statusCode: StatusCodes.BadNotImplemented,
+             statusCode: StatusCodes.BadNotImplemented
         });
         callback(null, result);
     }

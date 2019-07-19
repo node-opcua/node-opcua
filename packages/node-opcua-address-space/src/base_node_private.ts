@@ -19,7 +19,7 @@ import {
     AddressSpace,
     SessionContext, UAConditionBase,
     UADataType,
-    UAObjectType,
+    UAObjectType as UAObjectTypePublic,
     UAReferenceType as UAReferenceTypePublic
 } from "../source";
 import { BaseNode as BaseNodePublic } from "../source";
@@ -28,6 +28,7 @@ import { UANamespace_process_modelling_rule } from "./namespace_private";
 import { Reference } from "./reference";
 import { UAMethod } from "./ua_method";
 import { UAObject } from "./ua_object";
+import { UAObjectType } from "./ua_object_type";
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 
@@ -88,6 +89,7 @@ export class ToStringBuilder implements ToStringOption {
 
     constructor() {
         //
+        this.str = [];
     }
     public add(line: string): void {
         this.str.push(line);
@@ -150,6 +152,9 @@ export function BaseNode_References_toString(
 
     const addressSpace = this.addressSpace;
 
+    options.add(options.padding + chalk.yellow("          references    : ") + "  length =" +
+        Object.keys(_private._referenceIdx).length);
+
     function dump_reference(follow: boolean, reference: Reference | null) {
 
         if (!reference) {
@@ -188,8 +193,8 @@ export function BaseNode_References_toString(
     const br = _.map(_private._back_referenceIdx, (x: Reference) => x);
 
     options.add(options.padding +
-      chalk.yellow("         back_references: ") +
-      "  length =" + br.length +
+      chalk.yellow("          back_references     : ") +
+      chalk.cyan("  length =") + br.length +
       chalk.grey(" ( references held by other nodes involving this node)"));
     // backward reference
     br.forEach(dump_reference.bind(null, false));
@@ -199,84 +204,114 @@ export function BaseNode_References_toString(
 function _UAType_toString(
     this: UAReferenceTypePublic | UADataType | UAObjectType | UAVariableType,
     options: ToStringOption
-) {
+): void {
     if (this.subtypeOfObj) {
-        options.add(options.padding + chalk.yellow("               subtypeOf: ") + " " +
-          this.subtypeOfObj.nodeId.toString() + " " + this.subtypeOfObj.browseName.toString());
+        options.add(options.padding + chalk.yellow("          subtypeOf           : ")  +
+          this.subtypeOfObj.browseName.toString() + " (" + this.subtypeOfObj.nodeId.toString() + ")");
     }
 }
 
 function _UAInstance_toString(
   this: UAVariable | UAMethod | UAObject,
   options: ToStringOption
-) {
+): void {
 
     if (this.typeDefinitionObj) {
-        options.add(options.padding + chalk.yellow("          typeDefinition: ") + " " +
-          this.typeDefinitionObj.nodeId.toString() + " " + this.typeDefinitionObj.browseName.toString());
+        options.add(options.padding + chalk.yellow("          typeDefinition      : ")  +
+          this.typeDefinitionObj.browseName.toString() + " (" + this.typeDefinitionObj.nodeId.toString() + ")");
     }
 }
 
 export function UAVariableType_toString(
   this: UAVariableType,
   options: ToStringOption
-) {
+): void {
     BaseNode_toString.call(this, options);
     _UAType_toString.call(this, options);
     VariableOrVariableType_toString.call(this, options);
+    BaseNode_References_toString.call(this, options);
 }
 
 export function UAVariable_toString(
   this: UAVariable,
   options: ToStringOption
-) {
+): void {
     BaseNode_toString.call(this, options);
     _UAInstance_toString.call(this, options);
     VariableOrVariableType_toString.call(this, options);
+    BaseNode_References_toString.call(this, options);
+}
+
+export function UAObject_toString(
+    this: UAObject,
+    options: ToStringOption
+): void {
+    BaseNode_toString.call(this, options);
+    _UAInstance_toString.call(this, options);
+    BaseNode_References_toString.call(this, options);
+}
+
+export function UAObjectType_toString(
+    this: UAObjectType,
+    options: ToStringOption
+): void {
+    BaseNode_toString.call(this, options);
+    _UAType_toString.call(this, options);
+    BaseNode_References_toString.call(this, options);
+}
+
+function accessLevelFlagToString(flag: AccessLevelFlag): string {
+    const str: string[] = [];
+    if (flag & AccessLevelFlag.CurrentRead) { str.push("CurrentRead"); }
+    if (flag & AccessLevelFlag.CurrentWrite) { str.push("CurrentWrite"); }
+    if (flag & AccessLevelFlag.HistoryRead) { str.push("HistoryRead"); }
+    if (flag & AccessLevelFlag.HistoryWrite) { str.push("HistoryWrite"); }
+    if (flag & AccessLevelFlag.SemanticChange) { str.push("SemanticChange"); }
+    if (flag & AccessLevelFlag.StatusWrite) { str.push("StatusWrite"); }
+    if (flag & AccessLevelFlag.TimestampWrite) { str.push("TimestampWrite"); }
+    return str.join( " | ");
 }
 
 export function VariableOrVariableType_toString(
   this: UAVariableType | UAVariable,
   options: ToStringOption
 ) {
+    assert(options);
 
     const _private = BaseNode_getPrivate(this);
-    const add = options.add;
 
     if (this.dataType) {
 
         const addressSpace = this.addressSpace;
         const d = addressSpace.findNode(this.dataType);
         const n = d ? "(" + d.browseName.toString() + ")" : " (???)";
-        add(options.padding + chalk.yellow("                dataType: ") + this.dataType + "  " + n);
+        options.add(options.padding + chalk.yellow("          dataType            : ") + this.dataType + "  " + n);
     }
 
     if (this.nodeClass === NodeClass.Variable) {
         if (this._dataValue) {
-            add(options.padding + chalk.yellow("                   value: ") + "\n" +
+            options.add(options.padding + chalk.yellow("          value               : ") + "\n" +
               options.indent(this._dataValue.toString(), options.padding + "                        | "));
         }
     }
 
     if (this.accessLevel) {
-        add(options.padding + chalk.yellow("             accessLevel: ") + " " +
-          AccessLevelFlag[this.accessLevel]);
+        options.add(options.padding + chalk.yellow("          accessLevel         : ") + " " +
+          accessLevelFlagToString(this.accessLevel));
     }
     if (this.userAccessLevel) {
-        add(options.padding + chalk.yellow("         userAccessLevel: ") + " " +
-          AccessLevelFlag[this.userAccessLevel]);
+        options.add(options.padding + chalk.yellow("          userAccessLevel     : ") + " " +
+            accessLevelFlagToString(this.userAccessLevel));
     }
     if (this.hasOwnProperty("valueRank")) {
-        add(options.padding + chalk.yellow("               valueRank: ") + " " +
+        options.add(options.padding + chalk.yellow("          valueRank           : ") + " " +
           this.valueRank.toString());
     }
     if (this.minimumSamplingInterval !== undefined) {
-        add(options.padding + chalk.yellow(" minimumSamplingInterval: ") + " " +
+        options.add(options.padding + chalk.yellow(" minimumSamplingInterval      : ") + " " +
           this.minimumSamplingInterval.toString() + " ms");
     }
 
-    add(options.padding + chalk.yellow("          references    : ") + "  length =" +
-      Object.keys(_private._referenceIdx).length);
 }
 
 /**

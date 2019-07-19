@@ -202,4 +202,34 @@ describe("testing UAVariableType", () => {
 
         postInstantiateFunc.callCount.should.eql(1);
     });
+
+    // tslint:disable:no-console
+    it("UAVariableType#toString()", () => {
+
+        const variableType = addressSpace.getOwnNamespace().addVariableType({
+            arrayDimensions: [3, 3],
+            browseName: "My3x3MatrixVariableType1",
+            dataType: "Double",
+            isAbstract: false,
+            subtypeOf: "BaseVariableType",
+            valueRank: 2,
+        });
+        variableType.toString();
+        console.log(variableType.toString());
+
+        const variable = variableType.instantiate({
+            browseName: "My3x3MatrixVariable1"
+        });
+
+        variable.toString();
+        console.log(variable.toString());
+
+    });
+
+    it("UADataType#toString()", () => {
+        const doubleDataType = addressSpace.findDataType("Double")!;
+        doubleDataType.toString();
+        console.log(doubleDataType.toString());
+    });
+
 });

@@ -23,7 +23,12 @@ import {
 } from "../source";
 import { UAConditionBase } from "./alarms_and_conditions/ua_condition_base";
 import { BaseNode } from "./base_node";
-import { _clone, apply_condition_refresh } from "./base_node_private";
+import {
+    _clone,
+    apply_condition_refresh,
+    ToStringBuilder,
+    UAObject_toString
+} from "./base_node_private";
 
 export class UAObject extends BaseNode implements UAObjectPublic {
 
@@ -187,6 +192,12 @@ export class UAObject extends BaseNode implements UAObjectPublic {
     }
     public _conditionRefresh(_cache?: any) {
         apply_condition_refresh.call(this, _cache);
+    }
+
+    public toString(): string {
+        const options = new ToStringBuilder();
+        UAObject_toString.call(this, options);
+        return options.toString();
     }
 
 }

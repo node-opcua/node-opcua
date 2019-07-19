@@ -158,11 +158,13 @@ export class Reference implements UAReference {
         let refType = this.referenceType.toString();
 
         if (options && options.addressSpace) {
+
             const node = options.addressSpace.findNode(this.nodeId);
             infoNode = "[" + infoNode + "]" + _w(node.browseName.toString(), 40);
 
             const ref = options.addressSpace.findReferenceType(this.referenceType);
-            refType += "[" + ref.nodeId.toString() + "]";
+            const refNode = options.addressSpace.findNode(ref.nodeId);
+            refType = refNode.browseName.toString() + " (" + ref.nodeId.toString() + ")";
         }
         return _arrow(refType, 40, this.isForward) + infoNode;
     }

@@ -19,6 +19,8 @@ import {
     UAVariableType
 } from "../source";
 
+const doDebug = false;
+
 function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
 
     const addressSpace = _addressSpace;
@@ -94,6 +96,8 @@ export function create_minimalist_address_space_nodeset(
             const nonHierarchicalReferences = addReferenceType("NonHierarchicalReferences", true, references);
             {
                 const hasTypeDefinition = addReferenceType("HasTypeDefinition/TypeDefinitionOf", false, nonHierarchicalReferences);
+                const hasModellingRule  = addReferenceType("HasModellingRule/ModellingRuleOf", false, nonHierarchicalReferences);
+                const hasEncoding = addReferenceType("HasEncoding/EncodingOf", false, nonHierarchicalReferences);
             }
         }
         {
@@ -127,7 +131,9 @@ export function create_minimalist_address_space_nodeset(
         }
     }
 
-    dumpReferencesHierarchy(addressSpace);
+    if (doDebug) {
+        dumpReferencesHierarchy(addressSpace);
+    }
 
     const baseObjectType = namespace0._createNode({
         browseName: "BaseObjectType",
@@ -155,6 +161,18 @@ export function create_minimalist_address_space_nodeset(
         nodeId: resolveNodeId(VariableTypeIds.BaseDataVariableType),
         subtypeOf: baseVariableType.nodeId
     }) as any as UAVariableType;
+
+    const modellingRule_Optional = namespace0._createNode({
+        browseName: "Optional",
+        nodeClass: NodeClass.Object,
+        nodeId: resolveNodeId(ObjectIds.ModellingRule_Optional),
+    }) as any as UAObject;
+
+    const modellingRule_Mandatory = namespace0._createNode({
+        browseName: "Mandatory",
+        nodeClass: NodeClass.Object,
+        nodeId: resolveNodeId(ObjectIds.ModellingRule_Mandatory),
+    }) as any as UAObject;
 
     // add the root folder
     {

@@ -29,14 +29,14 @@ import {
     UAObjectType as UAObjectTypePublic,
     UAReference,
     UAVariable as UAVariablePublic,
-    UAVariableType as UAVariableTypePublic,
+    UAVariableType as UAVariableTypePublic
 
 } from "../source";
 import { makeOptionalsMap } from "../source";
 
 import { AddressSpacePrivate } from "./address_space_private";
 import { BaseNode } from "./base_node";
-import { _clone_children_references } from "./base_node_private";
+import { _clone_children_references, ToStringBuilder, UAVariable_toString, UAVariableType_toString } from "./base_node_private";
 import { Reference } from "./reference";
 import { SessionContext } from "./session_context";
 import * as tools from "./tool_isSupertypeOf";
@@ -146,6 +146,12 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
                 return super.readAttribute(context, attributeId);
         }
         return new DataValue(options);
+    }
+
+    public toString(): string {
+        const options = new ToStringBuilder();
+        UAVariableType_toString.call(this, options);
+        return options.toString();
     }
 
     /**

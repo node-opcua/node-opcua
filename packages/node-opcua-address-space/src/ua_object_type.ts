@@ -4,8 +4,8 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { AttributeIds } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
+import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
@@ -18,6 +18,7 @@ import {
     UAObjectType as UAObjectTypePublic,
 } from "../source";
 import { BaseNode } from "./base_node";
+import { ToStringBuilder, UAObjectType_toString } from "./base_node_private";
 import { Reference } from "./reference";
 import { SessionContext } from "./session_context";
 import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSupertypeOf";
@@ -145,6 +146,12 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
         }
 
         return instance;
+    }
+
+    public toString(): string {
+        const options = new ToStringBuilder();
+        UAObjectType_toString.call(this, options);
+        return options.toString();
     }
 
 }

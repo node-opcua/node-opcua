@@ -98,5 +98,22 @@ describe("testing UAObjectType", () => {
         obj.nodeId.toString().should.eql("ns=1;s=HelloWorld");
 
     });
+    it("UAObjectType#toString()", () => {
 
+        const namespace = addressSpace.getOwnNamespace();
+        const objType = namespace.addObjectType({
+            browseName: "MyObject5",
+            isAbstract: false,
+            subtypeOf: "BaseObjectType",
+        });
+        const variable = namespace.addVariable({
+            browseName: "Variable",
+            componentOf: objType,
+            dataType: "Double",
+            modellingRule: "Mandatory"
+        });
+        // tslint:disable:no-console
+        console.log(objType.toString());
+        console.log(variable.toString());
+    });
 });
