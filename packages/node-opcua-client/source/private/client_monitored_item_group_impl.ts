@@ -36,8 +36,8 @@ const warningLog = debugLog;
  */
 export class ClientMonitoredItemGroupImpl extends EventEmitter implements ClientMonitoredItemGroup  {
 
+    public readonly monitoredItems: ClientMonitoredItemBase[];
     private readonly subscription: ClientSubscription;
-    private readonly monitoredItems: ClientMonitoredItemBase[];
     private timestampsToReturn: TimestampsToReturn;
     private readonly monitoringMode: MonitoringMode;
 
