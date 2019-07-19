@@ -64,7 +64,7 @@ For a simple server, you just need to specify a TCP port.
 // Let's create an instance of OPCUAServer
 const server = new opcua.OPCUAServer({
     port: 4334, // the port of the listening socket of the server
-    resourcePath: "UA/MyLittleServer", // this path will be added to the endpoint resource name
+    resourcePath: "/UA/MyLittleServer", // this path will be added to the endpoint resource name
     _"setting server info"
 });
 ```
@@ -118,11 +118,11 @@ function construct_my_address_space(server) {
 
     const addressSpace = server.engine.addressSpace;
     const namespace = addressSpace.getOwnNamespace();
-    
+
     // declare a new object
     _"add a new object into the objects folder"
-    
-    // add some variables 
+
+    // add some variables
     _"add some variables"
 }
 construct_my_address_space(server);
@@ -173,15 +173,15 @@ Let's create a more comprehensive Read-Write variable with a fancy nodeId
 let variable2 = 10.0;
 
 namespace.addVariable({
-    
+
     componentOf: device,
-    
+
     nodeId: "ns=1;b=1020FFAA", // some opaque NodeId in namespace 4
-    
+
     browseName: "MyVariable2",
-    
+
     dataType: "Double",    
-    
+
     value: {
         get: function () {
             return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
@@ -217,9 +217,9 @@ Now let's expose our OPCUA Variable
 
 ```javascript
 namespace.addVariable({
-    
+
     componentOf: device,
-    
+
     nodeId: "s=free_memory", // a string nodeID
     browseName: "FreeMemory",
     dataType: "Double",    
@@ -257,4 +257,3 @@ console.log(" the primary server endpoint url is ", endpointUrl );
 ``` sh
 $ node sample_server.js
 ```
-

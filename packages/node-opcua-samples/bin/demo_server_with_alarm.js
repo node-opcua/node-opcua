@@ -16,7 +16,7 @@ const server = new opcua.OPCUAServer({
     privateKeyFile: server_certificate_privatekey_file,
 
     port: 4334, // the port of the listening socket of the server
-    resourcePath: "UA/MyLittleServer", // this path will be added to the endpoint resource name
+    resourcePath: "/UA/MyLittleServer", // this path will be added to the endpoint resource name
     buildInfo : {
         productName: "DemoAlarmServer",
         buildNumber: "1",
