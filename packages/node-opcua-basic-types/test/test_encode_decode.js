@@ -317,7 +317,8 @@ describe("testing built-in type encoding", function() {
         const nodeId = new NodeId(NodeIdType.BYTESTRING, crypto.randomBytes(16));
 
         const expectedLength = 1 + 2 + 4 + 16;
-        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, function(buffer) {});
+        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, function(buffer) {
+        });
     });
 
     it("should encode and decode a Expanded NodeId  - TwoBytes", function() {
@@ -419,6 +420,14 @@ describe("encoding and decoding arrays", function() {
 });
 
 describe("check isValid and random for various types", function() {
+
+    it("isValidDouble on string shall return false", () => {
+        ec.isValidDouble("Value").should.eql(false);
+    });
+    it("isValidFloat on string shall return false", () => {
+        ec.isValidFloat("Value").should.eql(false);
+    });
+
     it("should test isValid on Int32", function() {
         ec.isValidInt32(0).should.eql(true);
         ec.isValidInt32(-10).should.eql(true);
