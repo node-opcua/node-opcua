@@ -1,6 +1,5 @@
 "use strict";
 const should = require("should");
-const _ = require("underscore");
 
 const generator = require("..");
 const factories = require("node-opcua-factory");
@@ -14,7 +13,9 @@ const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").ana
 const compare_obj_by_encoding = require("node-opcua-packet-analyzer/dist/test_helpers").compare_obj_by_encoding;
 
 
-function initiliaze() {
+const typeDico = new TypeDictionnary();
+
+function initializeTest() {
 
     const Person_Schema = {
         id: factories.next_available_id(),
@@ -35,7 +36,6 @@ function initiliaze() {
         ]
     };
     exports.Role_Schema = Role_Schema;
-
     const Employee_Schema = {
         id: factories.next_available_id(),
         name: "Employee",
@@ -302,7 +302,8 @@ xdescribe("Factories: testing encodingDefaultBinary and constructObject", functi
 
 });
 
-xdescribe("PacketAnalyzer", function () {
+
+describe("PacketAnalyzer", function () {
 
     it("should analyse a encoded object", function (done) {
 

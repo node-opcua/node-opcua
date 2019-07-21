@@ -44,6 +44,7 @@ function processAggregateData(
 
         const dataValue = lambda(interval, aggregateConfiguration);
 
+        /* istanbul ignore next */
         if (!dataValue || !dataValue.sourceTimestamp) {
             // const dataValue = interval.interpolatedValue(aggregateConfiguration);
             throw Error("invalid DataValue");
@@ -66,10 +67,12 @@ export function getAggregateData(
     callback: (err: Error | null, dataValues?: DataValue[]) => void
 ) {
 
+    /* istanbul ignore next */
     if (!(node.constructor.name === "UAVariable")) {
         throw new Error("node must be UAVariable");
     }
 
+    /* istanbul ignore next */
     if (processingInterval <= 0) {
         throw new Error("Invalid processing interval, shall be greater than 0");
     }
@@ -84,6 +87,8 @@ export function getAggregateData(
     const continuationPoint = null;
     node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
         (err: Error | null, result?: HistoryReadResult) => {
+
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
