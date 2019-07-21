@@ -10,6 +10,7 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { StatusCodes } from "node-opcua-constants";
 
 function warnLog(...args: [any?, ...any[]]) {
+    /* istanbul ignore next */
     // tslint:disable-next-line:no-console
     console.warn.apply(console, args);
 }
@@ -184,6 +185,10 @@ export abstract class StatusCode {
     }
 
     public toJSON(): any {
+        return { value: this.value };
+    }
+
+    public toJSONFull(): any {
         return { value: this.value, name: this.name, description: this.description };
     }
 }
@@ -218,9 +223,6 @@ export class ConstantStatusCode extends StatusCode {
         return this._description;
     }
 
-    public toJSON(): any {
-        return { value: this.value };
-    }
 }
 
 Object.defineProperty(ConstantStatusCode.prototype, "_value", { enumerable: false, writable: true });
@@ -232,11 +234,6 @@ Object.defineProperty(ConstantStatusCode.prototype, "name", { enumerable: true }
 
 export function encodeStatusCode(statusCode: StatusCode | ConstantStatusCode, stream: OutputBinaryStream) {
     stream.writeUInt32(statusCode.value);
-}
-
-function b(c: number) {
-    const tmp = "0000000000000000000000" + (c >>> 0).toString(2);
-    return tmp.substr(-32);
 }
 
 /* construct status codes fast search indexes */
@@ -253,6 +250,8 @@ export function getStatusCodeFromCode(code: number) {
     const codeWithoutInfoBits = (code & 0xFFFF0000) >>> 0;
     const infoBits = code & 0x0000FFFF;
     let sc = statusCodesReversedMap[codeWithoutInfoBits];
+
+    /* istanbul ignore if */
     if (!sc) {
         sc = StatusCodes.Bad;
         warnLog("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16));
@@ -309,6 +308,8 @@ export class ModifiableStatusCode extends StatusCode {
                 return;
             }
             const tmp = extraStatusCodeBits[bit as string];
+
+            /* istanbul ignore next */
             if (!tmp) {
                 throw new Error("Invalid StatusCode Bit " + bit);
             }
@@ -329,6 +330,8 @@ export class ModifiableStatusCode extends StatusCode {
                 return;
             }
             const tmp = extraStatusCodeBits[bit];
+
+            /* istanbul ignore next */
             if (!tmp) {
                 throw new Error("Invalid StatusCode Bit " + bit);
             }
@@ -347,6 +350,8 @@ export class ModifiableStatusCode extends StatusCode {
                 str.push(key);
             }
         });
+
+        /* istanbul ignore next */
         if (str.length === 0) {
             return "";
         }
@@ -359,11 +364,8 @@ Object.defineProperty(ModifiableStatusCode.prototype, "_extraBits", { enumerable
 
 StatusCodes.GoodWithOverflowBit = StatusCodes.makeStatusCode(StatusCodes.Good, "Overflow | InfoTypeDataValue");
 
-export function coerceStatusCode(statusCode: any) {
+export function coerceStatusCode(statusCode: any): StatusCode {
     if (statusCode instanceof StatusCode) {
-        return statusCode;
-    }
-    if (statusCode instanceof ConstantStatusCode) {
         return statusCode;
     }
     if (statusCode.hasOwnProperty("value")) {
@@ -372,7 +374,7 @@ export function coerceStatusCode(statusCode: any) {
     if (typeof statusCode === "number") {
         return getStatusCodeFromCode(statusCode);
     }
-    return StatusCodes[statusCode.name];
+    return StatusCodes[statusCode as string];
 }
 
 export { StatusCodes } from "node-opcua-constants";
