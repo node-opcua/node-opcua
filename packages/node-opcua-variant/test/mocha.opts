@@ -1,0 +1,6 @@
+--require ../../node_modules/source-map-support/register
+--require ../../node_modules/ts-node/register/transpile-only
+--require ../../node_modules/should
+--timeout 20000
+test/*.ts test/*.js
+--bail

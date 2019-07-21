@@ -201,8 +201,6 @@ function variantToString(self: Variant, options?: any) {
 
     function toString(value: any): string {
         switch (self.dataType) {
-            case DataType.Null:
-                return "<null>";
             case DataType.ByteString:
                 return value ? "0x" + value.toString("hex") : "<null>";
             case DataType.Boolean:
@@ -553,6 +551,7 @@ function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstr
     if (arrayTypeConstructor && value instanceof arrayTypeConstructor) {
         const newArray = new value.constructor(value.length); // deep copy
 
+        /* istanbul ignore if */
         if (newArray instanceof Buffer) {
             // required for nodejs 4.x
             value.copy(newArray);
@@ -635,6 +634,7 @@ function encodeVariantArray(dataType: DataType, stream: OutputBinaryStream, valu
         try {
             return _getHelper(dataType).encode(stream, value);
         } catch (err) {
+            /* istanbul ignore next */
             // tslint:disable-next-line:no-console
             console.log("encodeVariantArray error : DATATYPE", dataType, "\nvalue", value.length);
         }
@@ -754,7 +754,7 @@ export function coerceVariantType(dataType: DataType, value: any): any {
         // OPCUA Specification 1.0.3 5.8.2 encoding rules for various dataType:
         // [...]Enumeration are always encoded as Int32 on the wire [...]
 
-        // istanbul ignore next
+        /* istanbul ignore next */
         if (dataType !== DataType.Int32) {
             throw new Error("expecting DataType.Int32 for enumeration values ;" +
                 " got DataType." + dataType.toString() + " instead");
@@ -789,10 +789,11 @@ export function coerceVariantType(dataType: DataType, value: any): any {
             } else {
                 value = parseInt(value, 10);
             }
+            /* istanbul ignore next */
             if (!_.isFinite(value)) {
                 // xx console.log("xxx ", value, ttt);
+                throw new Error("expecting a number " + value);
             }
-            assert(_.isFinite(value), "expecting a number");
             break;
         case DataType.UInt64:
             value = coerceUInt64(value);
