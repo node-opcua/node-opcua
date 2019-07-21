@@ -165,22 +165,26 @@ describe("testing status code manipulation", () => {
         StatusCodes.BadAggregateConfigurationRejected
             .equals(StatusCodes.BadAggregateConfigurationRejected).should.eql(true);
     });
+
     it("equals", () => {
         StatusCodes.BadAggregateConfigurationRejected
             .equals(StatusCodes.BadNoData).should.eql(false);
     });
+
     it("isNot", () => {
         StatusCodes.BadAggregateConfigurationRejected
             .isNot(StatusCodes.BadAggregateConfigurationRejected).should.eql(false);
     });
+
     it("isNot", () => {
         StatusCodes.BadAggregateConfigurationRejected
             .isNot(StatusCodes.BadNoData).should.eql(true);
     });
+
     it("valueOf", () => {
         StatusCodes.BadAggregateConfigurationRejected.valueOf.should.eql(2161770496);
 
-    })
+    });
 });
 
 describe("ModifiableStatusCode", () => {

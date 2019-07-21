@@ -117,6 +117,11 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
     if (field.switchBit !== undefined) {
         opt = " ?" + field.switchBit + " ";
     }
+
+    if (field.switchValue !== undefined) {
+        opt = " !" + field.switchValue + " ";
+    }
+
     const fieldNameF = chalk.yellow(r(padding + fieldName, 30));
     const fieldTypeF = chalk.cyan(("/* " + r(fieldType + opt, 17) + (field.isArray ? "[]" : "  ") + " */"));
 
@@ -126,6 +131,13 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
         data.lines.push(str);
         return;
     }
+    // detected when union field is not specified in value
+    if (field.switchValue !== undefined && value === undefined) {
+        str = fieldNameF + " " + fieldTypeF + ": " + chalk.italic.grey("undefined") + " /* union field not specified */";
+        data.lines.push(str);
+        return;
+    }
+
     // compact version of very usual objects
     if (fieldType === "QualifiedName" && !field.isArray && value) {
 

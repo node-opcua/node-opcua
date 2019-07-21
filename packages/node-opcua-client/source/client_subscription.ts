@@ -281,6 +281,7 @@ export declare interface ClientSubscription {
 
 export class ClientSubscription {
     public static create(clientSession: ClientSession, options: ClientSubscriptionOptions): ClientSubscription {
+        /* istanbul ignore next*/
         throw new Error("Not Implemented");
     }
 }

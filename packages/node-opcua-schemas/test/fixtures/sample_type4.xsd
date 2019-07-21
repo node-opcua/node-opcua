@@ -1,0 +1,36 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:tns="http://www.unifiedautomation.com/DemoServer/"
+                    DefaultByteOrder="LittleEndian"
+                    xmlns:opc="http://opcfoundation.org/BinarySchema/"
+                    xmlns:ua="http://opcfoundation.org/UA/"
+                    TargetNamespace="http://www.unifiedautomation.com/DemoServer/">
+    <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="ScanResult">
+        <opc:Field TypeName="opc:Bit" Name="LocationSpecified"/>
+        <opc:Field Length="31" TypeName="opc:Bit" Name="Reserved1"/>
+        <opc:Field TypeName="opc:CharArray" Name="CodeType"/>
+        <opc:Field TypeName="tns:ScanData" Name="ScanData"/>
+        <opc:Field TypeName="opc:DateTime" Name="Timestamp"/>
+        <opc:Field SwitchField="LocationSpecified" TypeName="opc:UInt32" Name="Location"/>
+    </opc:StructuredType>
+
+    <opc:StructuredType BaseType="tns:ScanResult" Name="RfidScanResult">
+        <opc:Field TypeName="opc:Bit" Name="LocationSpecified"/>
+        <opc:Field Length="31" TypeName="opc:Bit" Name="Reserved1"/>
+        <opc:Field SourceType="tns:ScanResult" TypeName="opc:CharArray" Name="CodeType"/>
+        <opc:Field SourceType="tns:ScanResult" TypeName="tns:ScanData" Name="ScanData"/>
+        <opc:Field SourceType="tns:ScanResult" TypeName="opc:DateTime" Name="Timestamp"/>
+        <opc:Field SwitchField="LocationSpecified" SourceType="tns:ScanResult" TypeName="tns:UInt32" Name="Location"/>
+        <opc:Field TypeName="opc:Int32" Name="NoOfValues"/>
+        <opc:Field LengthField="NoOfValues" TypeName="opc:UInt32" Name="Values"/>
+    </opc:StructuredType>
+
+    <opc:StructuredType BaseType="ua:Union" Name="ScanData">
+        <opc:Field TypeName="opc:UInt32" Name="SwitchField"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:ByteString" SwitchValue="1" Name="ByteString"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:CharArray" SwitchValue="2" Name="String"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:UInt32" SwitchValue="3" Name="Value"/>
+        <opc:Field SwitchField="SwitchField" TypeName="ua:Variant" SwitchValue="4" Name="Custom"/>
+    </opc:StructuredType>
+</opc:TypeDictionary>

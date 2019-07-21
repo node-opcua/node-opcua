@@ -329,6 +329,7 @@ export class OPCUAClientBase {
     public static registry = new ObjectRegistry();
 
     public static create(options: OPCUAClientBaseOptions): OPCUAClientBase {
+        /* istanbul ignore next*/
         throw new Error("Not Implemented");
     }
 }

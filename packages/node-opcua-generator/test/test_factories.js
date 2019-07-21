@@ -1,9 +1,11 @@
 "use strict";
 const should = require("should");
 const _ = require("underscore");
+const fs = require("fs");
 
 const generator = require("..");
 
+const utils = require("node-opcua-utils");
 const factories = require("node-opcua-factory");
 
 const compare_obj_by_encoding = require("node-opcua-packet-analyzer/dist/test_helpers").compare_obj_by_encoding;
@@ -374,8 +376,6 @@ xdescribe("factories testing advanced cases", function () {
 
     it("should accept all basic types as field scalar or field arrays", function () {
 
-        const utils = require("node-opcua-utils");
-        const fs = require("fs");
         // delete existing file if any
 
         //xx var filename = utils.getTempFilename("_Blob6.js");
