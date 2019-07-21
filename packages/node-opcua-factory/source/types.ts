@@ -57,6 +57,7 @@ export interface StructuredTypeField {
     decode?: (stream: BinaryStream) => any;
 
     switchBit?: number; // the bit number
+    switchValue?: number;
 
 }
 

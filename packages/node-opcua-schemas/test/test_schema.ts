@@ -356,3 +356,83 @@ describe("Binary Schemas Helper 3", () => {
 
     });
 });
+
+describe("Binary Schemas Helper 4", () => {
+
+    let typeDictionary: TypeDictionary;
+    let old_schema_helpers_doDebug = false;
+    before(async () => {
+        const sample_file = path.join(__dirname, "fixtures/sample_type4.xsd");
+
+        old_schema_helpers_doDebug = parameters.debugSchemaHelper;
+        parameters.debugSchemaHelper = true;
+        const sample = fs.readFileSync(sample_file, "ascii");
+        typeDictionary = await promisify(parseBinaryXSD)(sample);
+    });
+
+    after(() => {
+        parameters.debugSchemaHelper = old_schema_helpers_doDebug;
+    });
+
+    it("should parse ScanData union", async () => {
+
+        const ScanData = getOrCreateConstructor("ScanData", typeDictionary);
+
+        const scanData2a = new ScanData({ byteString: Buffer.allocUnsafe(10) });
+        const scanData2b = new ScanData({ switchField: 1, byteString: Buffer.allocUnsafe(10) });
+        const reloaded2b = encode_decode_round_trip_test(scanData2b, (buffer: Buffer) => {
+            buffer.length.should.eql(4 + 4 + 10);
+        });
+
+        const scanData4a = new ScanData({ string: "Hello" });
+        const scanData4b = new ScanData({ switchField: 2, string: "Hello" });
+        const reloaded4b = encode_decode_round_trip_test(scanData4b, (buffer: Buffer) => {
+             buffer.length.should.eql(4 + 4 + 5);
+        });
+
+        const scanData5a = new ScanData({  value: 36 });
+        const scanData5b = new ScanData({ switchField: 3, value: 36 });
+        const reloaded5b = encode_decode_round_trip_test(scanData5b, (buffer: Buffer) => {
+            buffer.length.should.eql(8);
+        });
+
+        const scanData6a = new ScanData({  custom: { dataType: "Double" , value: 36 }});
+        const scanData6b = new ScanData({ switchField: 4, custom: { dataType: "Double" , value: 36 }});
+        const reloaded6b = encode_decode_round_trip_test(scanData6b, (buffer: Buffer) => {
+            // buffer.length.should.eql(35);
+        });
+        console.log(reloaded6b.toString());
+        reloaded6b.switchField.should.eql(4);
+        reloaded6b.custom.dataType.should.eql(DataType.Double);
+        reloaded6b.custom.value.should.eql(36);
+
+        const scanData1 = new ScanData({}); // should throw
+        const reloaded1 = encode_decode_round_trip_test(scanData1, (buffer: Buffer) => {
+            buffer.length.should.eql(4);
+        });
+
+    });
+    it("should parse RfidScanResult structure types", async () => {
+        should.exists(typeDictionary.structuredTypes.RfidScanResult);
+
+        const RfidScanResult = getOrCreateConstructor("RfidScanResult", typeDictionary);
+
+        const result = new RfidScanResult({
+
+            scanData: {
+                value: 36
+            }
+        });
+        const reloaded = encode_decode_round_trip_test(result, (buffer: Buffer) => {
+            // buffer.length.should.eql(35);
+        });
+        console.log(reloaded.toString());
+        // xx console.log(reloaded.toJSON());
+    });
+
+    it("should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
+
+    });
+});
+
+

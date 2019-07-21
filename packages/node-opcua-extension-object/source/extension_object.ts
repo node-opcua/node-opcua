@@ -19,17 +19,21 @@ import chalk from "chalk";
 
 /* tslint:disable:no-empty */
 export class ExtensionObject extends BaseUAObject {
-    constructor(otions: any) {
+
+    public static schema: StructuredTypeSchema = new StructuredTypeSchema({
+        baseType: "",
+        documentation: "",
+        fields: [],
+        name: "ExtensionObject"
+    });
+
+    constructor(options: any) {
         super();
     }
 
 }
 
-ExtensionObject.prototype.schema = new StructuredTypeSchema({
-    baseType: "",
-    documentation: "",
-    fields: [],
-    name: "ExtensionObject"});
+ExtensionObject.prototype.schema = ExtensionObject.schema;
 
 function constructEmptyExtensionObject(expandedNodeId: NodeId): any {
     return constructObject(expandedNodeId as ExpandedNodeId);
@@ -92,7 +96,7 @@ export function encodeExtensionObject(object: ExtensionObject | null, stream: Ou
         /* istanbul ignore next */
         if (is_internal_id(encodingDefaultBinary.value as number)) {
             debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "),
-              (object.constructor as any).encodingDefaultBinary.toString(), object.schema.name);
+                (object.constructor as any).encodingDefaultBinary.toString(), object.schema.name);
             throw new Error("Cannot find valid OPCUA encodingDefaultBinary for this object");
         }
 
@@ -107,6 +111,7 @@ export function encodeExtensionObject(object: ExtensionObject | null, stream: Ou
 export class OpaqueStructure extends ExtensionObject {
     public nodeId: NodeId;
     public buffer: Buffer;
+
     constructor(nodeId: NodeId, buffer: Buffer) {
         super({});
         this.nodeId = nodeId;
@@ -115,10 +120,10 @@ export class OpaqueStructure extends ExtensionObject {
 
     public toString(): string {
         const str =
-          "/* OpaqueStructure */ { \n" +
-          "nodeId " + this.nodeId.toString() + "\n" +
-          "buffer = \n" + hexDump(this.buffer) + "\n" +
-          "}";
+            "/* OpaqueStructure */ { \n" +
+            "nodeId " + this.nodeId.toString() + "\n" +
+            "buffer = \n" + hexDump(this.buffer) + "\n" +
+            "}";
         return str;
     }
 }
@@ -177,8 +182,8 @@ export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | n
 
         // tslint:disable-next-line:no-console
         console.warn("WARNING => Extension object decoding error on ",
-          object.constructor.name, " expected size was", length,
-          "but only this amount of bytes have been read :", stream.length - streamLengthBefore);
+            object.constructor.name, " expected size was", length,
+            "but only this amount of bytes have been read :", stream.length - streamLengthBefore);
         stream.length = streamLengthBefore + length;
     }
     return object;

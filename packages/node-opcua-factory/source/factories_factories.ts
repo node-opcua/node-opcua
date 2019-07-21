@@ -24,13 +24,14 @@ export type ConstructorFunc = BaseUAObjectConstructable;
 
 export interface ConstructorFuncWithSchema  extends ConstructorFunc {
     schema: StructuredTypeSchema;
+    possibleFields: string[];
     encodingDefaultBinary: ExpandedNodeId;
     encodingDefaultXml: ExpandedNodeId;
 }
 
 const _globalStructuredTypeConstructors: { [ key: string ]: ConstructorFuncWithSchema } = {};
 
-export function getStructureTypeConstructor(typeName: string): ConstructorFunc {
+export function getStructureTypeConstructor(typeName: string): ConstructorFuncWithSchema {
     return _globalStructuredTypeConstructors[typeName];
 }
 export function hasStructuredType(typeName: string): boolean {

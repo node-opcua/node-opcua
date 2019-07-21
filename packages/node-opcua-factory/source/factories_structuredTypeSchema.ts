@@ -116,6 +116,8 @@ function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: Fiel
 
         switchBit: fieldLight.switchBit,
 
+        switchValue: fieldLight.switchValue,
+        
         schema
     };
 }
@@ -152,6 +154,7 @@ export class StructuredTypeSchema extends TypeSchemaBase {
         }
         this.fields = options.fields.map(buildField.bind(null, this));
         this.id = NodeId.nullNodeId;
+
         this._possibleFields = this.fields.map((field) => field.name);
         this._baseSchema = null;
     }

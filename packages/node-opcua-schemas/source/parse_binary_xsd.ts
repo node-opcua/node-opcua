@@ -240,7 +240,11 @@ const state0: any = {
                                     const switchField = this.attrs.SwitchField;
 
                                     if (this.attrs.SwitchValue) {
+                                        // we are in a union
                                         field.switchValue = parseInt(this.attrs.SwitchValue, 10);
+                                        if (doDebug) {
+                                            console.log("field", field.name, " is part of a union  => ", switchField, " value #", field.switchValue);
+                                        }
                                     } else {
                                         field.switchBit = structuredType.bitFields ?
                                             structuredType.bitFields!.findIndex((x) => x.name === switchField) : -2;

@@ -1194,7 +1194,7 @@ export class ServerEngine extends EventEmitter {
           inner_callback: (err: Error | null, statusCode?: StatusCode) => void
         ) {
             assert(writeValue instanceof WriteValue);
-            resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager);
+            const ignored_promise = resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager);
             engine.writeSingleNode(context, writeValue, inner_callback);
         }
 

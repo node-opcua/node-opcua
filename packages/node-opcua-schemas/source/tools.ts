@@ -15,7 +15,8 @@ function removeNamespacePart(str?: string): string | undefined {
     if (!str) {
         return str;
     }
-    return str.split(":")[1];
+    const data = str.split(":");
+    return data.length > 1 ? data[1] : str;
 }
 
 function getNamespacePart(str: string): string {
@@ -125,13 +126,14 @@ export function getOrCreateStructuredTypeSchema(name: string, typeDictionary: Ty
 export function prepareStructureType(
     structuredType: StructureTypeRaw,
     typeDictionary: TypeDictionary
-): void {
+): StructuredTypeSchema {
 
     const key = structuredType.name;
     if (typeDictionary.structuredTypes[key]) {
-        return; // already done
+        return typeDictionary.structuredTypes[key]; // already done
     }
     typeDictionary.structuredTypes[key] = getOrCreateStructuredTypeSchema(key, typeDictionary);
+    return typeDictionary.structuredTypes[key];
 }
 
 export function prepareEnumeratedType(

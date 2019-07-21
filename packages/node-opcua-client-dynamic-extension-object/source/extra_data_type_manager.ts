@@ -2,7 +2,7 @@
  * @module node-opcua-client-dynamic-extension-object
  */
 import assert from "node-opcua-assert";
-import { StructuredTypeSchema, TypeSchemaBase } from "node-opcua-factory";
+import { StructuredTypeSchema } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { AnyConstructorFunc, createDynamicObjectConstructor, TypeDictionary } from "node-opcua-schemas";
 
@@ -87,7 +87,8 @@ function findSchemaForDataType(
     throw new Error("findSchemaForDataType: Cannot find schema for " + dataTypeNodeId.toString()
         + " in " +
         Object.keys(typeDictionary.structuredTypes).map(
-            (a) => typeDictionary.structuredTypes[a].id.toString()).join("/"));
+            (a) => a + ":" +
+                typeDictionary.structuredTypes[a].id.toString()).join("\n"));
 }
 
 function findSchemaForBinaryEncoding(
