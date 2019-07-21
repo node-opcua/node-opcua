@@ -71,11 +71,15 @@ function setHistoricalServerCapabilities(
 ) {
     function setBoolean(propName: string) {
         const lowerCase = utils.lowerFirstLetter(propName);
+
+        /* istanbul ignore next */
         if (!defaultProperties.hasOwnProperty(lowerCase)) {
             throw new Error("cannot find " + lowerCase);
         }
         const value = defaultProperties[lowerCase];
         const prop = historyServerCapabilities.getChildByName(propName);
+
+        /* istanbul ignore next */
         if (!prop) {
             throw new Error(" Cannot find property " + propName);
         }
@@ -85,6 +89,7 @@ function setHistoricalServerCapabilities(
 
     function setUInt32(propName: string) {
         const lowerCase = utils.lowerFirstLetter(propName);
+        /* istanbul ignore next */
         if (!historyServerCapabilities.hasOwnProperty(lowerCase)) {
             throw new Error("cannot find " + lowerCase);
         }
@@ -154,6 +159,8 @@ export type AggregateFunctioName =
 
 function addAggregateFunctionSupport(
   addressSpace: AddressSpace, functionName: number): void {
+
+    /* istanbul ignore next */
     if (!functionName) {
         throw new Error("Invalid function name");
     }
@@ -171,9 +178,12 @@ function addAggregateFunctionSupport(
 
     const functionNodeId = makeNodeId(functionName);
     const functionNode = addressSpace.getNamespace(0).findNode(functionNodeId);
+
+    /* istanbul ignore next */
     if (!functionNode) {
         throw new Error("Cannot find node " + functionName + " in addressSpace");
     }
+
     aggregateFunctions.addReference({
         nodeId: functionNode.nodeId,
         referenceType: "Organizes"
@@ -225,16 +235,22 @@ const enum AggregateFunction {
 
 export function addAggregateSupport(addressSpace: AddressSpace) {
     const aggregateConfigurationType = addressSpace.getNamespace(0).findObjectType("AggregateConfigurationType");
+
+    /* istanbul ignore next */
     if (!aggregateConfigurationType) {
         throw new Error("addressSpace do not expose AggregateConfigurationType");
     }
 
     const aggregateFunctionType = addressSpace.getNamespace(0).findObjectType("AggregateFunctionType");
+
+    /* istanbul ignore next */
     if (!aggregateFunctionType) {
         throw new Error("addressSpace do not expose AggregateFunctionType");
     }
 
     const serverObject = addressSpace.rootFolder.objects.getFolderElementByName("Server");
+
+    /* istanbul ignore next */
     if (!serverObject) {
         throw new Error("addressSpace do not expose a ServerObject");
     }
@@ -244,6 +260,8 @@ export function addAggregateSupport(addressSpace: AddressSpace) {
 
     // Let see if HistoryServer Capabilities object exists
     let historyServerCapabilities = serverCapabilities.getChildByName("HistoryServerCapabilities");
+
+    /* istanbul ignore next */
     if (!historyServerCapabilities) {
         historyServerCapabilities = createHistoryServerCapabilities(addressSpace, serverCapabilities);
     }
