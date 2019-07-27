@@ -15,23 +15,23 @@ const server = new opcua.OPCUAServer({
 function post_initialize() {
     console.log("initialized");
     function construct_my_address_space(server) {
-
+    
         const addressSpace = server.engine.addressSpace;
         const namespace = addressSpace.getOwnNamespace();
-
+    
         // declare a new object
         const device = namespace.addObject({
             organizedBy: addressSpace.rootFolder.objects,
             browseName: "MyDevice"
         });
-
+    
         // add some variables
         // add a variable named MyVariable1 to the newly created folder "MyDevice"
         let variable1 = 1;
-
+        
         // emulate variable1 changing every 500 ms
         setInterval(function(){  variable1+=1; }, 500);
-
+        
         namespace.addVariable({
             componentOf: device,
             browseName: "MyVariable1",
@@ -42,20 +42,20 @@ function post_initialize() {
                 }
             }
         });
-
+        
         // add a variable named MyVariable2 to the newly created folder "MyDevice"
         let variable2 = 10.0;
-
+        
         namespace.addVariable({
-
+        
             componentOf: device,
-
+        
             nodeId: "ns=1;b=1020FFAA", // some opaque NodeId in namespace 4
-
+        
             browseName: "MyVariable2",
-
-            dataType: "Double",
-
+        
+            dataType: "Double",    
+        
             value: {
                 get: function () {
                     return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
@@ -77,12 +77,12 @@ function post_initialize() {
             return percentageMemUsed;
         }
         namespace.addVariable({
-
+        
             componentOf: device,
-
+        
             nodeId: "s=free_memory", // a string nodeID
             browseName: "FreeMemory",
-            dataType: "Double",
+            dataType: "Double",    
             value: {
                 get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: available_memory() });}
             }

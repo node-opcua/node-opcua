@@ -4,48 +4,62 @@ Now edit the [server_with_method.js](#creating-a-simple-server-with-method "save
 
 In this example, we will create a OPCUA Server that exposes an object with some methods.
 
-    _"creating the server"
+    _"program"
 
-### creating the server
+### program
 
 In this section, we create a very simple server.
 
 ``` javascript
 
 /* global console, require */
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-var server = new opcua.OPCUAServer({
+
+(async () => {
+
+    try {
+        _"creating the server"
+    }
+    catch(err) {
+        console.log(err);
+    }
+})();
+```
+
+### creating the server
+
+``` javascript
+const server = new opcua.OPCUAServer({
     port: 4334 // the port of the listening socket of the server
 });
 
-function post_initialize() {
 
-    var addressSpace = server.engine.addressSpace;
-    
-    var myDevice = addressSpace.addObject({
-        organizedBy: addressSpace.rootFolder.objects,
-        browseName: "MyDevice"
-    });
+await server.initialize();
 
-    _"adding a method on the device object"
+const addressSpace = server.engine.addressSpace;
+const namespace = addressSpace.getOwnNamespace();
 
-    _"binding the method with your own function"
-
-}
-
-server.initialize(post_initialize);
-
-server.start(function() {
-    console.log("Server is now listening ... ( press CTRL+C to stop)");
+const myDevice = namespace.addObject({
+    organizedBy: addressSpace.rootFolder.objects,
+    browseName: "MyDevice"
 });
+
+_"adding a method on the device object"
+
+_"binding the method with your own function"
+
+await server.start();
+console.log("Server is now listening ... ( press CTRL+C to stop)");
+const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+console.log(" the primary server endpoint url is ", endpointUrl );
 
 ```
 
 ### adding a method on the device object
 
 ``` javascript
-var method = addressSpace.addMethod(myDevice,{
+const method = namespace.addMethod(myDevice,{
 
     browseName: "Bark",
 
@@ -70,8 +84,8 @@ var method = addressSpace.addMethod(myDevice,{
 });
 
 // optionally, we can adjust userAccessLevel attribute 
-method.outputArguments.userAccessLevel = opcua.makeAccessLevel("CurrentRead");
-method.inputArguments.userAccessLevel = opcua.makeAccessLevel("CurrentRead");
+method.outputArguments.userAccessLevel = opcua.makeAccessLevelFlag("CurrentRead");
+method.inputArguments.userAccessLevel = opcua.makeAccessLevelFlag("CurrentRead");
 ```
 
 
@@ -80,18 +94,21 @@ method.inputArguments.userAccessLevel = opcua.makeAccessLevel("CurrentRead");
 
 ``` javascript
 
-method.bindMethod(function(inputArguments,context,callback) {
+method.bindMethod((inputArguments,context,callback) => {
 
-    var nbBarks = inputArguments[0].value;
-    var volume =  inputArguments[1].value;
+    const nbBarks = inputArguments[0].value;
+    const volume =  inputArguments[1].value;
 
     console.log("Hello World ! I will bark ",nbBarks," times");
     console.log("the requested volume is ",volume,"");
-    var sound_volume = Array(volume).join("!");
+    const sound_volume = Array(volume).join("!");
 
-    var barks = []; for(var i=0;i<nbBarks;i++){ barks.push("Whaff" + sound_volume);}
+    const barks = [];
+    for(let i=0; i < nbBarks; i++){
+        barks.push("Whaff" + sound_volume);
+    }
 
-    var callMethodResult = {
+    const callMethodResult = {
         statusCode: opcua.StatusCodes.Good,
         outputArguments: [{
                 dataType: opcua.DataType.String,

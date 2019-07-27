@@ -1,18 +1,24 @@
 /*global require,console,setTimeout */
-var opcua = require("node-opcua");
-var async = require("async");
+const opcua = require("node-opcua");
+const async = require("async");
 
-var client = opcua.OPCUAClient.create();
-var endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
+// const endpointUrl = "opc.tcp://<hostname>:4334/UA/MyLittleServer";
+const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
+const client = opcua.OPCUAClient.create({
+    endpoint_must_exist: false
+});
+client.on("backoff", (retry, delay) => 
+    console.log("still trying to connect to ", endpointUrl ,": retry =", retry, "next attempt in ", delay/1000, "seconds" )
+);
 
 
-var the_session, the_subscription;
+let the_session, the_subscription;
 
 async.series([
 
     // step 1 : connect to
     function(callback)  {
-        client.connect(endpointUrl,function (err) {
+        client.connect(endpointUrl, function (err) {
             if(err) {
                 console.log(" cannot connect to endpoint :" , endpointUrl );
             } else {
@@ -24,21 +30,23 @@ async.series([
 
     // step 2 : createSession
     function(callback) {
-        client.createSession( function(err,session) {
-            if(!err) {
-                the_session = session;
+        client.createSession( function(err, session) {
+            if(err) {
+                return callback(err);
             }
-            callback(err);
+            the_session = session;
+            callback();
         });
     },
-
+    
     // step 3 : browse
     function(callback) {
-       the_session.browse("RootFolder", function(err,browseResult){
+       the_session.browse("RootFolder", function(err, browseResult) {
            if(!err) {
-               browseResult.references.forEach(function(reference) {
-                   console.log( reference.browseName.toString());
-               });
+               console.log("Browsing rootfolder: ");
+               for(let reference of browseResult.references) {
+                   console.log( reference.browseName.toString(), reference.nodeId.toString());
+               }
            }
            callback(err);
        });
@@ -46,77 +54,84 @@ async.series([
 
     // step 4 : read a variable with readVariableValue
     function(callback) {
-       the_session.readVariableValue("ns=1;s=free_memory", function(err,dataValue) {
+       the_session.readVariableValue("ns=1;s=free_memory", function(err, dataValue) {
            if (!err) {
                console.log(" free mem % = " , dataValue.toString());
            }
            callback(err);
        });
-       
-       
     },
     
     // step 4' : read a variable with read
     function(callback) {
-       var maxAge = 0;
-       var nodeToRead = { nodeId: "ns=1;s=free_memory", attributeId: opcua.AttributeIds.Value };
-       the_session.read(nodeToRead, maxAge, function(err,dataValue) {
+       const maxAge = 0;
+       const nodeToRead = { nodeId: "ns=1;s=free_memory", attributeId: opcua.AttributeIds.Value };
+       
+       the_session.read(nodeToRead, maxAge, function(err, dataValue) {
            if (!err) {
-               console.log(" free mem % = " , dataValue.toString() );
+               console.log(" free mem % = " , dataValue.toString());
            }
            callback(err);
        });
-       
-       
     },
     
     // step 5: install a subscription and install a monitored item for 10 seconds
     function(callback) {
-       
-       the_subscription=opcua.ClientSubscription.create(the_session,{
-           requestedPublishingInterval: 1000,
-           requestedLifetimeCount: 10,
-           requestedMaxKeepAliveCount: 2,
-           maxNotificationsPerPublish: 10,
+       const subscriptionOptions = {
+           maxNotificationsPerPublish: 1000,
            publishingEnabled: true,
-           priority: 10
+           requestedLifetimeCount: 100,
+           requestedMaxKeepAliveCount: 10,
+           requestedPublishingInterval: 1000
+       };
+       the_session.createSubscription2(subscriptionOptions, (err, subscription) => {
+       
+           if(err) { return callback(err); }
+       
+           the_subscription = subscription;
+       
+           the_subscription.on("started", () => {
+               console.log("subscription started for 2 seconds - subscriptionId=", the_subscription.subscriptionId);
+           }).on("keepalive", function() {
+               console.log("subscription keepalive");
+           }).on("terminated", function() {
+              console.log("terminated");
+           });
+           callback();
        });
-       
-       the_subscription.on("started",function(){
-           console.log("subscription started for 2 seconds - subscriptionId=",the_subscription.subscriptionId);
-       }).on("keepalive",function(){
-           console.log("keepalive");
-       }).on("terminated",function(){
-       });
-       
-       setTimeout(function(){
-           the_subscription.terminate(callback);
-       },10000);
-       
+    },
+    function(callback) {
        // install monitored item
-       var monitoredItem  = opcua.ClientMonitoredItem.create(the_subscription, {
-           nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
-           attributeId: opcua.AttributeIds.Value
-       },
-       {
-           samplingInterval: 100,
-           discardOldest: true,
-           queueSize: 10
-       },
-       opcua.TimestampsToReturn.Both
+       const monitoredItem  = the_subscription.monitor({
+               nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
+               attributeId: opcua.AttributeIds.Value
+           },
+           {
+               samplingInterval: 100,
+               discardOldest: true,
+               queueSize: 10
+           },
+           opcua.TimestampsToReturn.Both
        );
        console.log("-------------------------------------");
        
-       monitoredItem.on("changed",function(dataValue){
-          console.log(" % free mem = ",dataValue.value.value);
+       monitoredItem.on("changed", function(dataValue) {
+          console.log("monitored item changed:  % free mem = ", dataValue.value.value);
        });
     },
-
+    function(callback) {
+        // wait a little bit : 10 seconds
+        setTimeout(()=>callback(), 10*1000); 
+    },
+    // terminate session
+    function(callback) {
+        the_subscription.terminate(callback);;
+    },
     // close session
     function(callback) {
-        the_session.close(function(err){
+        the_session.close( function(err) {
             if(err) {
-                console.log("session closed failed ?");
+                console.log("closing session failed ?");
             }
             callback();
         });

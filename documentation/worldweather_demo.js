@@ -1,46 +1,59 @@
-/*global require,console */
-/*jshint evil:true */
-// read the World Weather Online API key.
+
 const fs = require("fs");
-const key = fs.readFileSync("worldweatheronline.key");
-const request = require("request");
-function getCityWeather(city,callback) {
-    const api_url="http://api.worldweatheronline.com/free/v2/weather.ashx?q="+city+"+&format=json&key="+ key;
-    const options = {
-        url: api_url,
-        "content-type": "application-json",
-        json: ""
-    };
-    request(options, function (error, response, body) {
-      if (!error && response.statusCode === 200) {
-        const data  = perform_read(city,body);
-        callback(null,data);
-      } else {
-        callback(error);
-      }
+const key = fs.readFileSync("openweathermap.key");
+
+const unirest = require("unirest");
+async function getCityWeather(city) {
+
+    const result = await new Promise((resolve) => {
+        unirest.get(
+            "https://community-open-weather-map.p.rapidapi.com/weather?id=2172797"
+            + "&units=metric"
+            + "&mode=json"
+            + `&q=${city}`)
+        .header("X-RapidAPI-Host", "community-open-weather-map.p.rapidapi.com")
+        .header("X-RapidAPI-Key", key)
+        .end(
+            (response) => resolve(response)
+        );
     });
+    if (result.status !== 200) {
+        throw new Error("API error");
+    }
+    return result.body;
 }
-function perform_read(city,body) {
-    const obj = JSON.parse(body);
-    const current_condition = obj.data.current_condition[0];
-    const request = obj.data.request[0];
+
+
+function unixEpoqToDate(unixDate) {
+    const d = new Date(0);
+    d.setUTCSeconds(unixDate);
+    return d;
+}
+
+function extractUsefulData(data) {
     return  {
-        city:               request.query,
+        city:               data.city,
         date:               new Date(),
-        observation_time:   current_condition.observation_time,
-        temperature:        parseFloat(current_condition.temp_C),
-        humidity:           parseFloat(current_condition.humidity),
-        pressure:           parseFloat(current_condition.pressure),
-        weather:            current_condition.weatherDesc.value
+        observation_time:   unixEpoqToDate(data.dt),
+        temperature:        data.main.temp,
+        humidity:           data.main.humidity,
+        pressure:           data.main.pressure,
+        weather:            data.weather[0].main
     };
 }
 const city = "London";
-getCityWeather(city,function(err,data) {
-    if (!err) {
-    console.log("data = data",data);
+
+(async () => {
+
+    try  {
+        const data = await getCityWeather(city);
+        console.log("data = data",data);
         console.log(" city =",city);
-        console.log(" time =",data.observation_time);
-        console.log(" temperature =",    data.temperature);
-        console.log(" pressure    =",    data.pressure);
+        console.log(" time =",data.dt); // unix epoc ( nb of second since 1/1/1970
+        console.log(" temperature =",    data.main.temp);
+        console.log(" pressure    =",    data.main.pressure);
     }
-});
+    catch(err) {
+        console.log("Error = ", err);
+    }
+})();

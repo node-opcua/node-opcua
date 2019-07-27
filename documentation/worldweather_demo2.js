@@ -1,43 +1,56 @@
 /*global require,setInterval,console */
-const cities = [ 'London','Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
-// read the World Weather Online API key.
+const cities = [
+    'London', 'Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
+
+
 const fs = require("fs");
-const key = fs.readFileSync("worldweatheronline.key");
-const request = require("request");
-function getCityWeather(city,callback) {
-    const api_url="http://api.worldweatheronline.com/free/v2/weather.ashx?q="+city+"+&format=json&key="+ key;
-    const options = {
-        url: api_url,
-        "content-type": "application-json",
-        json: ""
-    };
-    request(options, function (error, response, body) {
-      if (!error && response.statusCode === 200) {
-        const data  = perform_read(city,body);
-        callback(null,data);
-      } else {
-        callback(error);
-      }
+const key = fs.readFileSync("openweathermap.key");
+
+const unirest = require("unirest");
+async function getCityWeather(city) {
+
+    const result = await new Promise((resolve) => {
+        unirest.get(
+            "https://community-open-weather-map.p.rapidapi.com/weather?id=2172797"
+            + "&units=metric"
+            + "&mode=json"
+            + `&q=${city}`)
+        .header("X-RapidAPI-Host", "community-open-weather-map.p.rapidapi.com")
+        .header("X-RapidAPI-Key", key)
+        .end(
+            (response) => resolve(response)
+        );
     });
+    if (result.status !== 200) {
+        throw new Error("API error");
+    }
+    return result.body;
 }
-function perform_read(city,body) {
-    const obj = JSON.parse(body);
-    const current_condition = obj.data.current_condition[0];
-    const request = obj.data.request[0];
+
+
+function unixEpoqToDate(unixDate) {
+    const d = new Date(0);
+    d.setUTCSeconds(unixDate);
+    return d;
+}
+
+function extractUsefulData(data) {
     return  {
-        city:               request.query,
+        city:               data.city,
         date:               new Date(),
-        observation_time:   current_condition.observation_time,
-        temperature:        parseFloat(current_condition.temp_C),
-        humidity:           parseFloat(current_condition.humidity),
-        pressure:           parseFloat(current_condition.pressure),
-        weather:            current_condition.weatherDesc.value
+        observation_time:   unixEpoqToDate(data.dt),
+        temperature:        data.main.temp,
+        humidity:           data.main.humidity,
+        pressure:           data.main.pressure,
+        weather:            data.weather[0].main
     };
 }
+
 const city_data_map = { };
+
 // a infinite round-robin iterator over the city array
-function next_city (arr) {
-   const counter = arr.length;
+const next_city  = ((arr) => {
+   let counter = arr.length;
    return function() {
       counter += 1;
       if (counter>=arr.length) {
@@ -45,20 +58,24 @@ function next_city (arr) {
       }
       return arr[counter];
    };
-}(cities);
-function update_city_data(city) {
-    getCityWeather(city,function(err,data) {
-         if (!err) {
-            city_data_map[city] = data;
-            console.log(city,JSON.stringify(data, null," "));
-         }  else {
-            console.log("error city",city , err);
-         }
-     });
+})(cities);
+
+async function update_city_data(city) {
+
+    try {
+        const data  = await getCityWeather(city);
+        city_data_map[city] = extractUsefulData(data);
+    }
+    catch(err) {
+        console.log("error city",city , err);
+        return ;
+    }
 }
+
 // make a API call every 10 seconds
-const interval = 10* 1000;
-setInterval(function() {
+const interval = 10 * 1000;
+setInterval(async () => {
      const city = next_city();
-     update_city_data(city);
+     console.log("updating city =",city);
+     await update_city_data(city);
 }, interval);
