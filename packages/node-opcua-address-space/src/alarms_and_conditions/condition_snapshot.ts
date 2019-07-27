@@ -202,7 +202,7 @@ export class ConditionSnapshot extends EventEmitter {
         }
     }
 
-    public _constructEventData() {
+    public _constructEventData(): EventData {
 
         if (this.branchId === NodeId.nullNodeId) {
             _ensure_condition_values_correctness(this, this.condition, "", []);

@@ -211,7 +211,7 @@ describe("testing Events  ", function () {
         const area1 = namespace.createNode({
             nodeClass: NodeClass.Object,
             browseName:  "Area1",
-            organisedBy: "Objects"
+            organizedBy: addressSpace.rootFolder.objects
         });
         area1.browseName.name.should.eql("Area1");
 

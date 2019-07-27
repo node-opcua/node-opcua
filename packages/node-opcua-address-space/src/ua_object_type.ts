@@ -27,6 +27,7 @@ import {
     assertUnusedChildBrowseName,
     initialize_properties_and_components
 } from "./ua_variable_type";
+import { Byte } from "node-opcua-basic-types";
 
 /*
 UAObjectType.prototype.isSupertypeOf = tools.construct_isSupertypeOf(UAObjectType);
@@ -127,6 +128,8 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
             typeDefinition: this.nodeId,
 
             nodeId: options.nodeId,
+
+            eventNotifier: options.eventNotifier === undefined ? 0 : options.eventNotifier,
 
             modellingRule : options.modellingRule
         };
