@@ -204,7 +204,7 @@ export function create_minimalist_address_space_nodeset(
                     browseName: "Double",
                     nodeClass: NodeClass.DataType,
                     nodeId: resolveNodeId(DataTypeIds.Double),
-                    organisedBy: dataTypeFolder
+                    organizedBy: dataTypeFolder
                 });
             }
         }

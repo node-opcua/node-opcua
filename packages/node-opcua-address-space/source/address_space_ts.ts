@@ -4,6 +4,7 @@
  */
 import { EventEmitter } from "events";
 import {
+    Byte,
     ByteString,
     DateTime, Int64,
     UABoolean,
@@ -850,6 +851,7 @@ export interface InstantiateVariableOptions extends InstantiateOptions {
 export interface InstantiateObjectOptions extends InstantiateOptions {
     //
     conditionSource?: NodeId | BaseNode;
+    eventNotifier?: Byte;
 }
 
 export declare interface UAObjectType extends BaseNode, IPropertyAndComponentHolder {
