@@ -1,4 +1,6 @@
 /*global module, require */
+
+// see https://leanpub.com/literate-programming-md/read
 module.exports = function(Folder, args) {
 
     if (args.file.length === 0) {

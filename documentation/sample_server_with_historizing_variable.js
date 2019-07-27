@@ -1,14 +1,6 @@
 const opcua = require("node-opcua");
 const path = require("path");
 
-// Let's create an instance of OPCUAServer
-const server = new opcua.OPCUAServer({
-    port: 26543, // the port of the listening socket of the server
-    resourcePath: "/UA/MyLittleServer", // this path will be added to the endpoint resource name
-    nodeset_filename: [
-        opcua.nodesets.standard_nodeset_file,
-    ]
-});
 function construct_address_space(server) {
   const addressSpace = server.engine.addressSpace;
   const namespace = addressSpace.getOwnNamespace();
@@ -16,7 +8,7 @@ function construct_address_space(server) {
       browseName: "Vessel",
       organizedBy: addressSpace.rootFolder.objects
   });
-
+  
   const vesselPressure = namespace.addAnalogDataItem({
       browseName: "Pressure",
       engineeringUnitsRange: {
@@ -34,19 +26,31 @@ function construct_address_space(server) {
     vesselPressure.setValueFromSource({dataType:"Double",value:value});
     t=t+1;
   }, 200);
+  
+};
 
-}
-function post_initialize() {
-    construct_address_space(server);
-    server.start(function(err) {
-        if (err) {
-            console.log(" Cannot start Server");
-            return;
-        }
-        console.log("Server is now listening ... ( press CTRL+C to stop)");
-        console.log("port ", server.endpoints[0].port);
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        console.log(" the primary server endpoint url is ", endpointUrl );
-    });
-}
-server.initialize(post_initialize);
+(async () => {
+
+    try {
+                // Let's create an instance of OPCUAServer
+                const server = new opcua.OPCUAServer({
+                    port: 26543, // the port of the listening socket of the server
+                    resourcePath: "/UA/MyLittleServer", // this path will be added to the endpoint resource name
+                    nodeset_filename: [
+                        opcua.standard_nodeset_file,
+                    ]
+                });
+        
+                await server.initialize();
+        
+                construct_address_space(server);
+        
+                await server.start();
+                console.log("Server is now listening ... ( press CTRL+C to stop)");
+                console.log("port ", server.endpoints[0].port);
+                const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+                console.log(" the primary server endpoint url is ", endpointUrl );
+    } catch(err) {
+        console.log("Error = ", error);
+    }
+})();

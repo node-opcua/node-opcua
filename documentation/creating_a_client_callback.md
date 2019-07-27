@@ -19,7 +19,7 @@ Let's create a node project for our client.
     $ npm install async --save
 ```
 
-Now create and edit the sample file [sample_client.js](#the-client-script "save:")
+Now create and edit the sample file [sample_client.js](#overview-of-the-client-script "save:")
 
 ### overview of the client script
 
@@ -45,17 +45,36 @@ const async = require("async");
 
 To connect to the server, the client must specify the exact URI of the server, comprising hostname, port and OPCUA-endpoint.
 ```
-opc.tcp://<hostname>:4334/UA/MyLittleServer
+// const endpointUrl = "opc.tcp://<hostname>:4334/UA/MyLittleServer";
+const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
 ```
+
 where `<hostname>` shall be replaced with the computer name or fully qualified domain name of the machine on which the
 server is running. `UA/MyLittleServer` is the endpoint defined by the server and also has to be replaced by an existing endpoint on that server.
 
-### OPCUA Client
+
 
 ```javascript
-const client = new opcua.OPCUAClient();
-const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
+const client = opcua.OPCUAClient.create({
+    endpoint_must_exist: false
+});
+_"adding some helpers to diagnose connection issues"
 ```
+
+> Note that by default, the `endpointUrl` must match the url exposed by the server, this means that `<hostname>` cannot be replaced by 
+an hostname alias or a straight ip address. To relax this restriction, one can use the  `endpoint_must_exist: false` 
+option when creating the OPUA Client
+
+### adding some helpers to diagnose connection issues
+
+It is possible to get a idea of the connection progress by adding a event handled on the "backoff".
+The backoff event is raised when the client failed to connect to the server and indicates that it will retry later.
+```javascript
+client.on("backoff", (retry, delay) => 
+    console.log("still trying to connect to ", endpointUrl ,": retry =", retry, "next attempt in ", delay/1000, "seconds" )
+);
+```
+ 
 
 ### setting up a series of asynchronous operations
 
@@ -78,7 +97,7 @@ async.series([
     function(callback) {
         _"create session"
     },
-
+    
     // step 3 : browse
     function(callback) {
        _"browsing the root folder"
@@ -98,7 +117,17 @@ async.series([
     function(callback) {
        _"install a subscription"
     },
-
+    function(callback) {
+       _"add some monitored items"
+    },
+    function(callback) {
+        // wait a little bit : 10 seconds
+        setTimeout(()=>callback(), 10*1000); 
+    },
+    // terminate session
+    function(callback) {
+        _"stopping subscription";
+    },
     // close session
     function(callback) {
         _"closing session"
@@ -133,10 +162,11 @@ client.connect(endpointUrl, function (err) {
 
 ```javascript
 client.createSession( function(err, session) {
-    if(!err) {
-        the_session = session;
+    if(err) {
+        return callback(err);
     }
-    callback(err);
+    the_session = session;
+    callback();
 });
 ```
 
@@ -158,9 +188,10 @@ We can browse the `RootFolder` to receive a list of all of it's child nodes. Wit
 ```javascript
 the_session.browse("RootFolder", function(err, browseResult) {
     if(!err) {
-        browseResult.references.forEach( function(reference) {
-            console.log( reference.browseName.toString());
-        });
+        console.log("Browsing rootfolder: ");
+        for(let reference of browseResult.references) {
+            console.log( reference.browseName.toString(), reference.nodeId.toString());
+        }
     }
     callback(err);
 });
@@ -219,45 +250,60 @@ the_session.translateBrowsePath(browsePath, function (err, results) {
 OPC-UA allows for subscriptions to it's objects instead of polling for changes. You'll create a subscription from `the_session` with a parameter object. Next you'll define a Timeout for the subscription to end and hook into several subscription events like `"started"`. When defining an actual monitor object you again use the `nodeId` as well as the `attributeId` you want to monitor. The monitor object again allows for hooks into it's event system.
 
 ```javascript
-
-the_subscription=new opcua.ClientSubscription(the_session, {
-    requestedPublishingInterval: 1000,
-    requestedLifetimeCount:     100,
-    requestedMaxKeepAliveCount: 10,
-    maxNotificationsPerPublish: 100,
+const subscriptionOptions = {
+    maxNotificationsPerPublish: 1000,
     publishingEnabled: true,
-    priority: 10
-});
+    requestedLifetimeCount: 100,
+    requestedMaxKeepAliveCount: 10,
+    requestedPublishingInterval: 1000
+};
+the_session.createSubscription2(subscriptionOptions, (err, subscription) => {
 
-the_subscription.on("started", function() {
-    console.log("subscription started for 2 seconds - subscriptionId=",the_subscription.subscriptionId);
-}).on("keepalive", function() {
-    console.log("keepalive");
-}).on("terminated", function() {
-   console.log("terminated");
-});
+    if(err) { return callback(err); }
 
-setTimeout( function() {
-    the_subscription.terminate(callback);
-}, 10000);
+    the_subscription = subscription;
+
+    the_subscription.on("started", () => {
+        console.log("subscription started for 2 seconds - subscriptionId=", the_subscription.subscriptionId);
+    }).on("keepalive", function() {
+        console.log("subscription keepalive");
+    }).on("terminated", function() {
+       console.log("terminated");
+    });
+    callback();
+});
+``` 
+### add some monitored items
+ 
+```javascript
 
 // install monitored item
-const monitoredItem  = the_subscription.monitor({
-        nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
-        attributeId: opcua.AttributeIds.Value
-    },
-    {
+const itemToMonitor = {
+  nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
+  attributeId: opcua.AttributeIds.Value
+};
+const monitoringParamaters = {
         samplingInterval: 100,
         discardOldest: true,
         queueSize: 10
-    },
+};
+
+const monitoredItem  = suor(
+    itemToMonitor,
+    monitoringParamaters,
     opcua.TimestampsToReturn.Both
 );
 console.log("-------------------------------------");
 
 monitoredItem.on("changed", function(dataValue) {
-   console.log(" % free mem = ", dataValue.value.value);
+   console.log("monitored item changed:  % free mem = ", dataValue.value.value);
 });
+```
+
+## stopping subscription 
+
+```javascript
+the_subscription.terminate(callback);
 ```
 
 ## Run the Client

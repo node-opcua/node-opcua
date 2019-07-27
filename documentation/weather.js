@@ -2,45 +2,58 @@
 Error.stackTraceLimit = Infinity;
 
 /*global require,setInterval,console */
-const cities = [ 'London','Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
-// read the World Weather Online API key.
+const cities = [
+    'London', 'Paris','New York','Moscow','Ho chi min','Benjing','Reykjavik' ,'Nouakchott','Ushuaia' ,'Longyearbyen'];
+
+
 const fs = require("fs");
-const key = fs.readFileSync("worldweatheronline.key");
-const request = require("request");
-function getCityWeather(city,callback) {
-    const api_url="http://api.worldweatheronline.com/free/v2/weather.ashx?q="+city+"+&format=json&key="+ key;
-    const options = {
-        url: api_url,
-        "content-type": "application-json",
-        json: ""
-    };
-    request(options, function (error, response, body) {
-      if (!error && response.statusCode === 200) {
-        const data  = perform_read(city,body);
-        callback(null,data);
-      } else {
-        callback(error);
-      }
+const key = fs.readFileSync("openweathermap.key");
+
+const unirest = require("unirest");
+async function getCityWeather(city) {
+
+    const result = await new Promise((resolve) => {
+        unirest.get(
+            "https://community-open-weather-map.p.rapidapi.com/weather?id=2172797"
+            + "&units=metric"
+            + "&mode=json"
+            + `&q=${city}`)
+        .header("X-RapidAPI-Host", "community-open-weather-map.p.rapidapi.com")
+        .header("X-RapidAPI-Key", key)
+        .end(
+            (response) => resolve(response)
+        );
     });
+    if (result.status !== 200) {
+        throw new Error("API error");
+    }
+    return result.body;
 }
-function perform_read(city,body) {
-    const obj = JSON.parse(body);
-    const current_condition = obj.data.current_condition[0];
-    const request = obj.data.request[0];
+
+
+function unixEpoqToDate(unixDate) {
+    const d = new Date(0);
+    d.setUTCSeconds(unixDate);
+    return d;
+}
+
+function extractUsefulData(data) {
     return  {
-        city:               request.query,
+        city:               data.city,
         date:               new Date(),
-        observation_time:   current_condition.observation_time,
-        temperature:        parseFloat(current_condition.temp_C),
-        humidity:           parseFloat(current_condition.humidity),
-        pressure:           parseFloat(current_condition.pressure),
-        weather:            current_condition.weatherDesc.value
+        observation_time:   unixEpoqToDate(data.dt),
+        temperature:        data.main.temp,
+        humidity:           data.main.humidity,
+        pressure:           data.main.pressure,
+        weather:            data.weather[0].main
     };
 }
+
 const city_data_map = { };
+
 // a infinite round-robin iterator over the city array
-function next_city (arr) {
-   const counter = arr.length;
+const next_city  = ((arr) => {
+   let counter = arr.length;
    return function() {
       counter += 1;
       if (counter>=arr.length) {
@@ -48,80 +61,109 @@ function next_city (arr) {
       }
       return arr[counter];
    };
-}(cities);
-function update_city_data(city) {
-    getCityWeather(city,function(err,data) {
-         if (!err) {
-            city_data_map[city] = data;
-            console.log(city,JSON.stringify(data, null," "));
-         }  else {
-            console.log("error city",city , err);
-         }
-     });
+})(cities);
+
+async function update_city_data(city) {
+
+    try {
+        const data  = await getCityWeather(city);
+        city_data_map[city] = extractUsefulData(data);
+    }
+    catch(err) {
+        console.log("error city",city , err);
+        return ;
+    }
 }
+
 // make a API call every 10 seconds
-const interval = 10* 1000;
-setInterval(function() {
+const interval = 10 * 1000;
+setInterval(async () => {
      const city = next_city();
-     update_city_data(city);
+     console.log("updating city =",city);
+     await update_city_data(city);
 }, interval);
 
 const opcua = require("node-opcua");
 
-const server = new opcua.OPCUAServer({
-   port: 4334 // the port of the listening socket of the servery
-});
 
-server.buildInfo.productName = "WeatherStation";
-server.buildInfo.buildNumber = "7658";
-server.buildInfo.buildDate = new Date(2014,5,2);
-function post_initialize() {
-    console.log("initialized");
-    function construct_my_address_space(server) {
-       // declare some folders
-       const addressSpace = server.engine.addressSpace;
-        const namespace = addressSpace.getOwnNamespace();
-       const citiesNode  = namespace.addFolder("ObjectsFolder",{ browseName: "Cities"});
-       function create_CityNode(city_name) {
-           // declare the city node
-           const cityNode = namespace.addFolder(citiesNode,{ browseName: city_name });
-           namespace.addVariable({
-               componentOf: cityNode,
-               browseName: "Temperature",
-               dataType: "Double",
-               value: {  get: function () { return extract_value(city_name,"temperature"); } }
-           });
-           namespace.addVariable({
-               componentOf: cityNode,
-               browseName: "Humidity",
-               dataType: "Double",
-               value: {  get: function () { return extract_value(city_name,"humidity"); } }
-           });
-           server.engine.addressSpace.addVariable({
-               componentOf: cityNode,
-               browseName: "Pressure",
-               dataType: "Double",
-               value: {  get: function () { return extract_value(city_name,"pressure"); } }
-           });
-       }
-       cities.forEach(function(city) {
-           create_CityNode(city);
-       });
-       function extract_value(city_name,property) {
-           const city = city_data_map[city_name];
-           if (!city) {
-               return opcua.StatusCodes.BadDataUnavailable
-           }
-           const value = city[property];
-           return new opcua.Variant({dataType: opcua.DataType.Double, value: value });
-       }
+function construct_my_address_space(server) {
+    // declare some folders
+    const addressSpace = server.engine.addressSpace;
+    const namespace = addressSpace.getOwnNamespace();
+    const objectsFolder = addressSpace.rootFolder.objects;
+
+    const citiesNode  = namespace.addFolder(objectsFolder,{ browseName: "Cities"});
+
+    for (let city_name of cities) {
+        // declare the city node
+        const cityNode = namespace.addFolder(citiesNode,{ browseName: city_name });
+        namespace.addVariable({
+            componentOf: cityNode,
+            browseName: "Temperature",
+            nodeId: `s=${city_name}-Temperature`,
+            dataType: "Double",
+            value: {  get: function () { return extract_value(opcua.DataType.Double, city_name,"temperature"); } }
+        });
+        namespace.addVariable({
+            componentOf: cityNode,
+            nodeId: `s=${city_name}-Humidity`,
+            browseName: "Humidity",
+            dataType: "Double",
+            value: {  get: function () { return extract_value(opcua.DataType.Double,city_name,"humidity"); } }
+        });
+        namespace.addVariable({
+            componentOf: cityNode,
+            nodeId: `s=${city_name}-Pressure`,
+            browseName: "Pressure",
+            dataType: "Double",
+            value: {  get: function () { return extract_value(opcua.DataType.Double,city_name,"pressure"); } }
+        });
+        namespace.addVariable({
+            componentOf: cityNode,
+            nodeId: `s=${city_name}-Weather`,
+            browseName: "Weather",
+            dataType: "String",
+            value: {  get: function () { return extract_value(opcua.DataType.String,city_name,"weather"); } }
+        });
     }
-    construct_my_address_space(server);
-    server.start(function() {
-        console.log("Server is now listening ... ( press CTRL+C to stop)");
-        console.log("port ", server.endpoints[0].port);
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        console.log(" the primary server endpoint url is ", endpointUrl );        
-    });
 }
-server.initialize(post_initialize);
+function extract_value(dataType,city_name,property) {
+    const city = city_data_map[city_name];
+    if (!city) {
+        return opcua.StatusCodes.BadDataUnavailable
+    }
+
+    const value = city[property];
+    return new opcua.Variant({dataType, value: value });
+}
+
+(async () => {
+
+    try {
+      
+      const server = new opcua.OPCUAServer({
+         port: 4334, // the port of the listening socket of the servery
+         buildInfo: {
+           productName: "WeatherStation",
+           buildNumber: "7658",
+           buildDate: new Date(2019,6,14),
+         }
+      });
+      
+      
+      await server.initialize();
+      
+      construct_my_address_space(server);
+      
+      await server.start();
+      
+      console.log("Server is now listening ... ( press CTRL+C to stop)");
+      console.log("port ", server.endpoints[0].port);
+      const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+      console.log(" the primary server endpoint url is ", endpointUrl );
+      
+    }
+    catch(err) {
+       console.log("Error = ",err);
+    }
+})();
