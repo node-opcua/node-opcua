@@ -36,7 +36,7 @@
   "node-opcua-service-history": "^2.1.1",
   "node-opcua-service-translate-browse-path": "^2.1.1",
   "node-opcua-status-code": "^2.1.1",
-  "node-opcua-variant": "^2.1.0",
+  "node-opcua-variant": "^2.1.1",
   "should": "13.2.3"
  },
  "author": "Etienne Rossignon",

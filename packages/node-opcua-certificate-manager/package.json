@@ -26,9 +26,9 @@
   "node-opcua-buffer-utils": "^2.1.0",
   "node-opcua-common": "^2.1.1",
   "node-opcua-constants": "^2.1.0",
-  "node-opcua-crypto": "^1.1.1",
+  "node-opcua-crypto": "^1.1.2",
   "node-opcua-debug": "^2.1.0",
-  "node-opcua-pki": "^1.5.2",
+  "node-opcua-pki": "^1.5.3",
   "node-opcua-status-code": "^2.1.1",
   "node-opcua-utils": "^2.1.1",
   "once": "^1.4.0",
@@ -36,7 +36,7 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/async": "^3.0.0",
+  "@types/async": "^3.0.1",
   "@types/underscore": "^1.9.2",
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^2.1.0",

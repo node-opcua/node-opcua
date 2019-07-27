@@ -9,7 +9,7 @@
   "test": "mocha -r ts-node/register test/*.ts"
  },
  "dependencies": {
-  "@types/async": "^3.0.0",
+  "@types/async": "^3.0.1",
   "node-opcua-address-space": "^2.1.1",
   "node-opcua-constants": "^2.1.0",
   "node-opcua-data-value": "^2.1.1",
