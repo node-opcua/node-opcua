@@ -25,6 +25,10 @@ import {
     SecurityPolicy,
     SecurityToken
 } from "node-opcua-secure-channel";
+import { 
+    installPeriodicClockAdjustmement, 
+    uninstallPeriodicClockAdjustmement 
+} from "node-opcua-date-time";
 import {
     FindServersOnNetworkRequest, FindServersOnNetworkRequestOptions,
     FindServersOnNetworkResponse, FindServersRequest,
@@ -591,6 +595,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public connect(endpointUrl: string, callback: ErrorCallback): void;
     public connect(...args: any[]): any {
 
+        
         const endpointUrl = args[0];
         const callback = args[1];
         assert(_.isFunction(callback), "expecting a callback");
@@ -623,6 +628,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         // make sure callback will only be call once regardless of outcome, and will be also deferred.
         const callbackOnceDelayed: any = once((err?: Error) => setImmediate(() => callback(err)));
 
+        installPeriodicClockAdjustmement();
         OPCUAClientBase.registry.register(this);
 
         this._internal_create_secure_channel(this.connectionStrategy, (err: Error | null /* secureChannel?: ClientSecureChannelLayer*/) => {
@@ -884,6 +890,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         assert(this._sessions.length === 0, " attempt to disconnect a client with live sessions ");
 
         OPCUAClientBase.registry.unregister(this);
+        uninstallPeriodicClockAdjustmement();
 
         if (this._secureChannel) {
 
