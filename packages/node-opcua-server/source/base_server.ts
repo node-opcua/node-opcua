@@ -24,6 +24,10 @@ import {
     Response,
     ServerSecureChannelLayer, ServerSecureChannelParent
 } from "node-opcua-secure-channel";
+import { 
+    installPeriodicClockAdjustmement,
+    uninstallPeriodicClockAdjustmement 
+} from "node-opcua-date-time";
 import {
     FindServersRequest,
     FindServersResponse
@@ -169,6 +173,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
      */
     public start(done: (err?: Error | null) => void) {
 
+        installPeriodicClockAdjustmement();
+        
         const self = this;
         assert(_.isFunction(done));
         assert(_.isArray(this.endpoints));
@@ -200,6 +206,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
      */
     public shutdown(done: (err?: Error) => void) {
 
+        uninstallPeriodicClockAdjustmement();
+        
         debugLog("OPCUABaseServer#shutdown starting");
         assert(_.isFunction(done));
         async.forEach(this.endpoints,

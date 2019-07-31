@@ -151,14 +151,41 @@ export function getCurrentClockWithJavascriptDate(): PreciseClock {
     };
 }
 
-const origin = process.hrtime();
-const refTime = Date.now();
+let origin = process.hrtime();
+let refTime = Date.now();
+
+// update refTime now and then to make sure that we don't miss
+// any system time adjustment here such as a NTP clock event
+// see #651
+let timerId: NodeJS.Timeout | null;
+let timerInstallationCount = 0;
+const g_setInterval = global.setInterval;
+const g_clearInterval = global.clearInterval;
+export function installPeriodicClockAdjustmement() {
+    timerInstallationCount++;
+    if (timerId) {
+        return;
+    }
+    timerId = g_setInterval(() => {
+        origin = process.hrtime();
+        refTime = Date.now();
+    }, 30000 /* every 30 seconds */);
+}
+export function uninstallPeriodicClockAdjustmement() {
+    timerInstallationCount--;
+    if (timerInstallationCount <= 0) {
+        g_clearInterval(timerId!);
+        timerId = null;
+    }
+}
+
 const gClock: PreciseClockEx = {
     tick: [0, 0],
     timestamp: new Date() as DateWithPicoseconds,
 
     picoseconds: 0
 };
+
 
 // make sure we get a pointer to the actual process.hrtime,
 // just in case it get overridden by some library (such as sinon)
