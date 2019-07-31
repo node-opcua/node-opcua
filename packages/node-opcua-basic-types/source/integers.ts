@@ -166,6 +166,17 @@ export function encodeUInt64(value: UInt64 | number, stream: OutputBinaryStream)
         stream.writeUInt32((value as number[])[0]);
     }
 }
+export function encodeInt64(value: Int64 | number, stream: OutputBinaryStream) {
+    if (_.isNumber(value)) {
+        const arr = coerceInt64(value);
+        stream.writeUInt32(arr[1]);
+        stream.writeUInt32(arr[0]);
+    } else {
+        stream.writeUInt32((value as number[])[1]);
+        stream.writeUInt32((value as number[])[0]);
+    }
+}
+
 
 export function decodeUInt64(stream: BinaryStream): UInt64 {
     const low = stream.readUInt32() as UInt32;
@@ -179,6 +190,12 @@ export function constructInt64(high: UInt32, low: UInt32) {
     return [high, low];
 }
 
+const FFFFFFFFFFFFFFFF = BigInt("0xFFFFFFFFFFFFFFFF");
+const FFFFFFFF00000000 = BigInt("0xFFFFFFFF00000000");
+const H100000000 = BigInt("0x100000000");
+const FFFFFFFF = BigInt("0xFFFFFFFF");
+
+// tslint:disable:no-bitwise
 export function coerceUInt64(value: any): UInt64 {
     let high;
     let low;
@@ -197,25 +214,33 @@ export function coerceUInt64(value: any): UInt64 {
         low = parseInt(v[1], 10);
         return constructInt64(high, low);
     }
-    if (value > 0xffffffff) {
-        // beware : as per javascript, value is a double here !
-        //          our conversion will suffer from some inacuracy
-
-        high = Math.floor(value / 0x100000000);
-        low = value - high * 0x100000000;
-        return constructInt64(high, low);
+    if (typeof value === "number" || (value && value.constructor && value.constructor.name === "BigInt")) {
+        const bnValue = BigInt(value);
+        if (bnValue < BigInt(0)) {
+            throw new Error("Value is negative and canno be coerced to UInt64 " + value);
+        }
+        const h = (bnValue & FFFFFFFF00000000 ) / H100000000;
+        const l = (bnValue & FFFFFFFF);
+        return [Number(h) , Number(l)];
     }
     return constructInt64(0, value);
 }
 
+export function coerceInt64(value: any): Int64 {
+    if (typeof value === "number" || (value && value.constructor && value.constructor.name === "BigInt")) {
+        const a = value < 0 ? FFFFFFFFFFFFFFFF  + BigInt(value)  + BigInt(1) : BigInt(value);
+        const h = (a & FFFFFFFF00000000 ) / H100000000;
+        const l = (a & FFFFFFFF);
+        return [Number(h) , Number(l)];
+    }
+    return coerceUInt64(value) as Int64;
+}
 export function randomInt64(): Int64 {
     // High, low
     return [getRandomInt(0, 0xffffffff), getRandomInt(0, 0xffffffff)];
 }
 
-export const coerceInt64 = coerceUInt64;
 export const isValidInt64 = isValidUInt64;
-export const encodeInt64 = encodeUInt64;
 export const decodeInt64 = decodeUInt64;
 
 export function coerceInt8(value: any): Int8 {

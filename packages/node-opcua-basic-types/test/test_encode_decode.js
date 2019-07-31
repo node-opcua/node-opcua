@@ -553,16 +553,50 @@ describe("check coerce various types", function() {
 });
 
 describe("UInt64", function() {
-    it("should coerce an Int32 into Int64", function() {
+    it("should coerce an UInt32 into UInt64", function() {
         ec.coerceUInt64(0xff1000).should.eql([0x0, 0xff1000]);
     });
-    it("should coerce an long number into Int64", function() {
+    it("should coerce an long number into UInt64", function() {
         ec.coerceUInt64(0x1020000000).should.eql([0x10, 0x20000000]);
     });
-    it("should coerce an long number into Int64", function() {
+    it("should coerce an long number into UInt64", () => {
         ec.coerceUInt64(0x100020000000).should.eql([0x1000, 0x20000000]);
     });
+    it("should coerce an BigInt number into UInt64", () => {
+        ec.coerceUInt64(BigInt(0xFF1200020000000)).should.eql([0xFF12000, 0x20000000]);
+    });
+
+    it("should raise an exception when trying to coerce a negative number to UInt64", () => {
+        should.throws(()=>{
+            ec.coerceUInt64(-1);
+        })
+    });
 });
+describe("Int64", function() {
+    it("should coerce an UInt32 into UInt64", function() {
+        ec.coerceInt64(0xff1000).should.eql([0x0, 0xff1000]);
+    });
+    it("should coerce -1 into Int64", function() {
+        ec.coerceInt64(-1).should.eql([0xffffffff, 0xffffffff]);
+    });
+    it("should coerce -16 into Int64", function() {
+        ec.coerceInt64(-16).should.eql([0xffffffff, 0xfffffff0]);
+    });
+    it("should coerce an long number into Int64", function() {
+        ec.coerceInt64(0x1020000000).should.eql([0x10, 0x20000000]);
+    });
+    it("should coerce an long number into Int64", () => {
+        ec.coerceInt64(0x100020000000).should.eql([0x1000, 0x20000000]);
+    });
+    it("should coerce an BigInt number into Int64", () => {
+        ec.coerceInt64(BigInt(0xFF1200020000000)).should.eql([0xFF12000, 0x20000000]);
+    });
+    it("should coerce an BigInt number into Int64", () => {
+        ec.coerceInt64(-BigInt(0xFF1200020000000)).should.eql([0xf00edfff, 0xe0000000]);
+    });
+
+});
+
 
 describe("DateTime", function() {
     it("converting 1491684476245", function() {

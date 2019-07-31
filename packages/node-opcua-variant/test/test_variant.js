@@ -64,10 +64,39 @@ describe("Variant", () => {
         var1.dataType.should.eql(DataType.UInt64);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
 
-        encode_decode_round_trip_test(var1, function(stream) {
+        const var2 = encode_decode_round_trip_test(var1, function(stream) {
             stream.length.should.equal(9);
         });
+        console.log("var2 ", var2.toString());
     });
+
+    it("should create a Scalar Int64 Variant (#650)", () => {
+
+        const var1 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64, value: -1 });
+        var1.dataType.should.eql(DataType.Int64);
+        var1.arrayType.should.eql(VariantArrayType.Scalar);
+
+        const var2 = encode_decode_round_trip_test(var1, function(stream) {
+            stream.length.should.equal(9);
+        });
+        var2.value[0].should.eql(0xFFFFFFFF);
+        var2.value[1].should.eql(0xFFFFFFFF);
+        //xx console.log("var2 ", var2.toString());
+    });
+    it("should create a Scalar Int64 Variant (#650)", () => {
+
+        const var1 = new Variant({ arrayType: VariantArrayType.Scalar, dataType: DataType.Int64, value: -10 });
+        var1.dataType.should.eql(DataType.Int64);
+        var1.arrayType.should.eql(VariantArrayType.Scalar);
+
+        const var2 = encode_decode_round_trip_test(var1, function(stream) {
+            stream.length.should.equal(9);
+        });
+        var2.value[0].should.eql(0xFFFFFFFF);
+        var2.value[1].should.eql(0xFFFFFFF6);
+        //xx console.log("var2 ", var2.toString());
+    });
+
 
     it("should create a Scalar LocalizedText Variant 1/2", () => {
 
