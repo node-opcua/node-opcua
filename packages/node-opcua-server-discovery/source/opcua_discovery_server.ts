@@ -159,8 +159,9 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
     }
 
-    public start(done: (err?: Error) => void): void {
-
+    public async start(): Promise<void>;
+    public start(done: (err?: Error) => void): void;
+    public start(done?: (err?: Error) => void): any {
         assert(!this.mDnsResponder);
         assert(_.isArray(this.capabilitiesForMDNS));
 
@@ -174,7 +175,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             super.start((err?: Error | null) => {
 
                 if (err) {
-                    return done(err);
+                    return done!(err);
                 }
                 this.mDnsResponder = new MDNSResponder();
                 // declare discovery server in bonjour
@@ -184,13 +185,15 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                     path: "/DiscoveryServer",
                     port: this.endpoints[0].port
                 }, (err2: Error | null) => {
-                    done(err2!);
+                    done!(err2!);
                 });
             });
         });
     }
 
-    public shutdown(done: (err?: Error) => void) {
+    public async shutdown(): Promise<void>;
+    public shutdown(done: (err?: Error) => void): void;
+    public shutdown(done?: (err?: Error) => void): any {
 
         if (this.mDnsResponder) {
             this.mDnsResponder.dispose();
@@ -201,9 +204,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
           () => {
               debugLog("stopping announcement of LDS on mDNS - DONE");
               debugLog("Shutting down Discovery Server");
-              super.shutdown(done);
+              super.shutdown(done!);
           });
-
     }
 
     /**
@@ -556,4 +558,9 @@ function _isValidServerType(serverType: ApplicationType): boolean {
 
 (OPCUADiscoveryServer as any).prototype.__internalRegisterServerWithCallback =
   callbackify((OPCUADiscoveryServer as any).prototype.__internalRegisterServer);
-exports.OPCUADiscoveryServer = OPCUADiscoveryServer;
+
+const thenify = require("thenify");
+const opts = { multiArgs: false };
+OPCUADiscoveryServer.prototype.start = thenify.withCallback(OPCUADiscoveryServer.prototype.start, opts);
+OPCUADiscoveryServer.prototype.shutdown = thenify.withCallback(OPCUADiscoveryServer.prototype.shutdown, opts);
+
