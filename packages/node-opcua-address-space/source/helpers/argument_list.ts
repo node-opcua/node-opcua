@@ -48,8 +48,6 @@ export function encode_ArgumentList(
         const value = args[i];
 
         const encodeFunc = myfindBuiltInType(def.dataType).encode;
-
-        // xx console.log(" cxxxxxxxxxxc ",def);
         // assert((def.valueRank === -1) || (def.valueRank === 0));
 
         // todo : handle -3 -2
@@ -104,7 +102,6 @@ export function binaryStoreSize_ArgumentList(description: any, args: any) {
     return stream.length;
 }
 
-// tslint:disable:no-console
 export function getMethodDeclaration_ArgumentList(
   addressSpace: AddressSpace,
   objectId: NodeId,
@@ -119,7 +116,7 @@ export function getMethodDeclaration_ArgumentList(
 
         // istanbul ignore next
         if (doDebug) {
-            console.warn("cannot find node ", objectId.toString());
+            debugLog("cannot find node ", objectId.toString());
         }
         return { statusCode: StatusCodes.BadNodeIdUnknown };
     }
@@ -148,11 +145,6 @@ export function getMethodDeclaration_ArgumentList(
 }
 
 /**
- * @method isArgumentValid
- * @param addressSpace  {AddressSpace}
- * @param argDefinition {Argument}
- * @param arg           {Variant}
- * @return              {Boolean}
  * @private
  */
 function isArgumentValid(
@@ -169,20 +161,23 @@ function isArgumentValid(
     const argDefDataType = addressSpace.findDataType(argDefinition.dataType);
     const argDataType = addressSpace.findDataType(resolveNodeId(arg.dataType));
 
+    // istanbul ignore next
     if (!argDefDataType) {
         return false;
     }
+
+    // istanbul ignore next
     if (!argDataType) {
-        console.log(" cannot find dataType ", arg.dataType);
-        console.log(" arg = ", arg.toString());
-        console.log(" def =", argDefinition.toString());
+        debugLog(" cannot find dataType ", arg.dataType, resolveNodeId(arg.dataType));
+        debugLog(" arg = ", arg.toString());
+        debugLog(" def =", argDefinition.toString());
         return false;
     }
 
     // istanbul ignore next
     if (doDebug) {
-        console.log(" checking argDefDataType ", argDefDataType.toString());
-        console.log(" checking argDataType ", argDataType.toString());
+        debugLog(" checking argDefDataType ", argDefDataType.toString());
+        debugLog(" checking argDataType ", argDataType.toString());
     }
 
     const isArray = (arg.arrayType === VariantArrayType.Array);
@@ -208,9 +203,9 @@ function isArgumentValid(
 
 /**
  * @method verifyArguments_ArgumentList
- * @param addressSpace {AddressSpace}
- * @param methodInputArguments {Argument[]}
- * @param inputArguments       {Variant[]}
+ * @param addressSpace
+ * @param methodInputArguments
+ * @param inputArguments
  * @return statusCode,inputArgumentResults
  */
 export function verifyArguments_ArgumentList(
@@ -235,7 +230,7 @@ export function verifyArguments_ArgumentList(
     if (methodInputArguments.length > inputArguments.length) {
         // istanbul ignore next
         if (doDebug) {
-            console.log("xxxxxxxx verifyArguments_ArgumentList " +
+            debugLog("verifyArguments_ArgumentList " +
               "\n       The client did  specify too many input arguments for the method.  " +
               "\n        expected : " + methodInputArguments.length + "" +
               "\n        actual   : " + inputArguments.length);
@@ -246,7 +241,7 @@ export function verifyArguments_ArgumentList(
     if (methodInputArguments.length < inputArguments.length) {
         // istanbul ignore next
         if (doDebug) {
-            console.log("xxxxxxxx verifyArguments_ArgumentList " +
+            debugLog(" verifyArguments_ArgumentList " +
               "\n        The client did not specify all of the input arguments for the method. " +
               "\n        expected : " + methodInputArguments.length + "" +
               "\n        actual   : " + inputArguments.length);
@@ -263,14 +258,14 @@ export function verifyArguments_ArgumentList(
 
         // istanbul ignore next
         if (doDebug) {
-            console.log("xxxxxxxx verifyArguments_ArgumentList checking argument " + i +
-              "\n        expected : " + JSON.stringify(argDefinition) +
-              "\n        actual:    " + JSON.stringify(arg));
+            debugLog("verifyArguments_ArgumentList checking argument " + i +
+              "\n        argDefinition is    : " + JSON.stringify(argDefinition) +
+              "\n        corresponding arg is: " + JSON.stringify(arg));
         }
         if (!isArgumentValid(addressSpace, argDefinition, arg)) {
             // istanbul ignore next
             if (doDebug) {
-                console.log("xxxxxxxx verifyArguments_ArgumentList \n" +
+                debugLog("verifyArguments_ArgumentList \n" +
                   "         The client did specify a argument with the wrong data type.\n" +
                   chalk.white("          expected : ") + argDefinition.dataType + "\n" +
                   chalk.cyan("          actual   :") + arg.dataType);
@@ -300,7 +295,7 @@ export function build_retrieveInputArgumentsDefinition(
 
         /* istanbul ignore next */
         if (response.statusCode !== StatusCodes.Good) {
-            console.log(" StatusCode  = " + response.statusCode.toString());
+            debugLog(" StatusCode  = " + response.statusCode.toString());
             throw new Error("Invalid Method " + response.statusCode.toString() +
               " ObjectId= " + objectId.toString() + "Method Id =" + methodId.toString());
         }
