@@ -28,7 +28,7 @@
   "node-opcua-packet-analyzer": "^2.1.2",
   "node-opcua-status-code": "^2.1.1",
   "should": "13.2.3",
-  "source-map-support": "^0.5.12"
+  "source-map-support": "^0.5.13"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",
