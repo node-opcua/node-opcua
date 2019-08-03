@@ -1,11 +1,11 @@
 ###########################
 # UaModeler Project File  #
-# Generated at 05.06.2018 #
+# Generated at 03.08.2019 #
 ###########################
 
 PROJECTNAME = my_data_type
 
-TEMPLATESET = ($TEMPLATES)/cpp/v1_4/t9/cpp_server.tt2set
+TEMPLATESET = ($TEMPLATES)/cpp/v1_6/t2/cpp_server.tt2set
 
 MODELS += ($MODELS)/Opc.Ua.NodeSet2.ua \
     my_data_type.ua
@@ -15,9 +15,11 @@ VARIABLES+= my_data_type.ua: CreateStringNodeIds=false; DllExportPrefix=my_data_
 COLORS = ($MODELS)/Opc.Ua.NodeSet2.ua: #c71585\
     my_data_type.ua: #008000
 
-OUTPUTPATH = ../tmp
+OUTPUTPATH = 
 
 GENERATE += my_data_type.ua
+
+LOCKEDMODELS += ($MODELS)/Opc.Ua.NodeSet2.ua
 
 NODEACCESSINFOROLES += Administrator \
     SecurityAdmin \
