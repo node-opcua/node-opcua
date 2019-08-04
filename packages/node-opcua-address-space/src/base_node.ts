@@ -266,7 +266,6 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         assert(options.addressSpace); // expecting an address space
         assert(options.browseName instanceof QualifiedName, "Expecting a valid QualifiedName");
         assert(options.nodeId instanceof NodeId, "Expecting a valid NodeId");
-        assert(options.addressSpace.constructor.name === "AddressSpace");
         options.references = options.references || [];
 
         _private.__address_space = options.addressSpace;

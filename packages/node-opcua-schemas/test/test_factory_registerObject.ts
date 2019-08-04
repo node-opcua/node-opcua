@@ -30,19 +30,7 @@ import { prepareStructureType } from "../source/tools";
 
 const temporary_folder = path.join(__dirname, "..", "_test_generated");
 
-const typeDictionary: TypeDictionary = {
-    defaultByteOrder: "LittleEndian",
-    targetNamespace: "",
-
-    imports: [],
-
-    structuredTypes: {},
-    structuredTypesRaw: {},
-
-    enumeratedTypes: {},
-    enumeratedTypesRaw: {}
-};
-
+const typeDictionary = new TypeDictionary([]);
 const Person_Schema = {
     baseType: "ExtensionObject",
 

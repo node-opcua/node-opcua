@@ -85,17 +85,17 @@ export function encodeExtensionObject(object: ExtensionObject | null, stream: Ou
         const encodingDefaultBinary = object.schema.encodingDefaultBinary!;
         /* istanbul ignore next */
         if (!encodingDefaultBinary) {
-            debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "), object);
+            debugLog(chalk.yellow("encoding ExtObj "), object);
             throw new Error("Cannot find encodingDefaultBinary for this object");
         }
         /* istanbul ignore next */
         if (encodingDefaultBinary.isEmpty()) {
-            debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "), (object.constructor as any).encodingDefaultBinary.toString());
+            debugLog(chalk.yellow("encoding ExtObj "), (object.constructor as any).encodingDefaultBinary.toString());
             throw new Error("Cannot find encodingDefaultBinary for this object");
         }
         /* istanbul ignore next */
         if (is_internal_id(encodingDefaultBinary.value as number)) {
-            debugLog(chalk.yellow("xxxxxxxxx encoding ExtObj "),
+            debugLog(chalk.yellow("encoding ExtObj "),
                 (object.constructor as any).encodingDefaultBinary.toString(), object.schema.name);
             throw new Error("Cannot find valid OPCUA encodingDefaultBinary for this object");
         }

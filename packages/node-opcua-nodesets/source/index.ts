@@ -10,6 +10,9 @@ export function constructNodesetFilename(filename: string) {
     const dirname = __dirname;
     let file = path.join(dirname, "../nodesets", filename);
     if (!fs.existsSync(file)) {
+        if (!process.argv[1]) {
+            throw new Error("Please make sure that nodeset can be found in " +  path.join(dirname, "../nodesets"));
+        }
         // let's find alternate places where to find the nodeset folder
         let appfolder = path.dirname(process.argv[1]);
         file = path.join(appfolder, "nodesets", filename);

@@ -11,10 +11,10 @@ import {checkDebugFlag, make_debugLog} from "node-opcua-debug";
 import {
     BaseUAObject, FieldCategory,
     findBuiltInType,
-    getEnumeration,
     initialize_field
 } from "node-opcua-factory";
-import { getConstructor, hasConstructor } from "node-opcua-factory";
+import { DataTypeFactory } from "node-opcua-factory";
+// import {     getEnumeration,getConstructor, hasConstructor } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
@@ -35,11 +35,16 @@ import {
 
 import { UADataType } from "./ua_data_type";
 import { UAVariable } from "./ua_variable";
+import { AddressSpacePrivate } from "./address_space_private";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
-function makeStructure(dataType: UADataType, bForce?: boolean): any {
+function makeStructure(
+    dataTypeFactory: DataTypeFactory,
+    dataType: UADataType,
+    bForce?: boolean
+): any {
 
     bForce = !!bForce;
     const addressSpace = dataType.addressSpace;
@@ -51,8 +56,13 @@ function makeStructure(dataType: UADataType, bForce?: boolean): any {
     }
 
     // if binaryEncodingNodeId is in the standard factory => no need to overwrite
-    if (!bForce && (hasConstructor(dataType.binaryEncodingNodeId) || dataType.binaryEncodingNodeId.namespace === 0)) {
-        return getConstructor(dataType.binaryEncodingNodeId);
+    if (!bForce && (dataTypeFactory.hasConstructor(dataType.binaryEncodingNodeId) || dataType.binaryEncodingNodeId.namespace === 0)) {
+        return dataTypeFactory.getConstructor(dataType.binaryEncodingNodeId);
+    }
+    
+    // istanbul ignore next
+    if (doDebug) {
+        debugLog("buildConstructorFromDefinition => ", dataType.browseName.toString());
     }
     // etc ..... please fix me
     const namespaceUri = addressSpace.getNamespaceUri(dataType.nodeId.namespace);
@@ -144,8 +154,11 @@ function buildConstructorFromDefinition(
 ) {
 
     if (doDebug) {
-        debugLog("buildConstructorFromDefinition#", dataType.nodeId.toString());
+        debugLog("buildConstructorFromDefinition nodeId=", dataType.nodeId.toString(), dataType.browseName.toString());
     }
+
+    const extraDataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
+    const dataTypeFactory = extraDataTypeManager.getDataTypeFactory(dataType.nodeId.namespace);
 
     assert(dataType.definition && _.isArray(dataType.definition));
     const enumeration = addressSpace.findDataType("Enumeration");
@@ -176,8 +189,9 @@ function buildConstructorFromDefinition(
         const dataTypeId = resolveNodeId(field.dataType);
         const fieldDataType = addressSpace.findDataType(dataTypeId) as UADataType;
         if (!fieldDataType) {
+            debugLog(field);
             throw new Error(" cannot find description for object " + dataTypeId +
-              ". Check that this node exists in the nodeset.xml file");
+              " => " + field.dataType + ". Check that this node exists in the nodeset.xml file");
         }
         // check if  dataType is an enumeration or a structure or  a basic type
         field.$$dataTypeId$$ = dataTypeId;
@@ -190,7 +204,7 @@ function buildConstructorFromDefinition(
             // makeEnumeration(fieldDataType);
         } else if (fieldDataType.isSupertypeOf(structure as any)) {
             field.$$isStructure$$ = true;
-            const FieldConstructor = makeStructure(fieldDataType);
+            const FieldConstructor = makeStructure(dataTypeFactory,fieldDataType);
             assert(_.isFunction(FieldConstructor));
             // xx field
             field.$$func_encode$$ = struct_encode;
@@ -300,9 +314,19 @@ function removeElementByIndex<T extends ExtensionObject>(
  * @private
  * @param dataType
  */
-export function prepareDataType(dataType: UADataType): void {
+export function prepareDataType(
+    addressSpace: AddressSpace,
+    dataType: UADataType
+): void {
+
     if (!dataType._extensionObjectConstructor) {
-        dataType._extensionObjectConstructor = makeStructure(dataType);
+
+        const extraDataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
+        const dataTypeFactory = extraDataTypeManager.getDataTypeFactory(dataType.nodeId.namespace);
+        if (doDebug) {
+            debugLog("prepareDataType ", dataType.nodeId.toString() , dataType.browseName.toString());
+        }
+        dataType._extensionObjectConstructor = makeStructure(dataTypeFactory,dataType);
         if (!dataType._extensionObjectConstructor) {
             // tslint:disable:no-console
             console.warn("AddressSpace#constructExtensionObject : cannot make structure for " + dataType.toString());
@@ -421,7 +445,7 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     uaArrayVariableNode.$$extensionObjectArray = [];
     uaArrayVariableNode.$$indexPropertyName = indexPropertyName;
 
-    prepareDataType(dataType as UADataType);
+    prepareDataType(addressSpace, dataType as UADataType);
 
     uaArrayVariableNode.$$getElementBrowseName = function(this: any, extObj: ExtensionObject) {
 

@@ -2,9 +2,17 @@
  * @module node-opcua-client-dynamic-extension-object
  */
 import assert from "node-opcua-assert";
-import { StructuredTypeSchema } from "node-opcua-factory";
+import { 
+    StructuredTypeSchema ,
+     getStandartDataTypeFactory, 
+     DataTypeFactory
+} from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
-import { AnyConstructorFunc, createDynamicObjectConstructor, TypeDictionary } from "node-opcua-schemas";
+import { 
+    AnyConstructorFunc, 
+    createDynamicObjectConstructor,
+    TypeDictionary 
+} from "node-opcua-schemas";
 
 export class ExtraDataTypeManager {
 
@@ -42,6 +50,12 @@ export class ExtraDataTypeManager {
     public getTypeDictionaryForNamespace(namespaceIndex: number): TypeDictionary {
         assert(namespaceIndex !== 0,
             "getTypeDictionaryForNamespace cannot be used for namespace 0");
+        return this.typeDictionariesByNamespace[namespaceIndex];
+    }
+    public getDataTypeFactory(namespaceIndex: number): DataTypeFactory {
+        if (namespaceIndex === 0) {
+            return getStandartDataTypeFactory();
+        }
         return this.typeDictionariesByNamespace[namespaceIndex];
     }
 

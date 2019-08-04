@@ -11,28 +11,23 @@ const should = require("should");
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-    describe("testing custom nodeset",function() {
+describe("testing custom nodeset",function() {
 
-    this.timeout(Math.max(30000, this._timeout));
+    this.timeout(Math.min(30000, this._timeout));
 
-    it("should parse a custom nodeset",function(done){
+    it("should parse a custom nodeset", async () =>{
 
-        function parse_xml(nodeset_files, callback) {
+        async function parse_xml(nodeset_files) {
 
             const addressSpace = new address_space.AddressSpace();
 
-            address_space.generateAddressSpace(addressSpace, nodeset_files, function (err) {
-                const pseudoSession = new PseudoSession(addressSpace);
-                parse_opcua_common(pseudoSession,function(err,data){
+            await address_space.generateAddressSpace(addressSpace, nodeset_files);
+               
+            const pseudoSession = new PseudoSession(addressSpace);
+            
+            const data =  await parse_opcua_common(pseudoSession);
 
-                   //xx console.log("data= ", data);
-
-                    addressSpace.dispose();
-                    callback();
-                });
-
-            });
-
+            addressSpace.dispose();
         }
         const nodeset_files = [
             nodesets.standard_nodeset_file,
@@ -41,9 +36,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
         fs.existsSync(nodeset_files[0]).should.eql(true);
         fs.existsSync(nodeset_files[1]).should.eql(true);
 
-        parse_xml(nodeset_files,function(err,a) {
-            done(err);
-        });
+        await parse_xml(nodeset_files);        
     });
 
 });

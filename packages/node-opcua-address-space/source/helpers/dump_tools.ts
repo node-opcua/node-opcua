@@ -50,7 +50,6 @@ export function dumpReferenceDescription(
   referenceDescription: ReferenceDescription
 ): void {
 
-    assert(addressSpace.constructor.name === "AddressSpace");
     assert(referenceDescription.referenceTypeId); // must be known;
 
     console.log(chalk.red("referenceDescription"));

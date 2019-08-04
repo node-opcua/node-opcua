@@ -15,7 +15,8 @@ import {
     make_debugLog
 } from "node-opcua-debug";
 import {
-    StructuredTypeSchema
+    StructuredTypeSchema, 
+    getStandartDataTypeFactory
 } from "node-opcua-factory";
 import {
     ExpandedNodeId,
@@ -59,7 +60,7 @@ async function extractSchema(session: IBasicSession, nodeId: NodeId): Promise<Ty
         debugLog(rawSchema.toString());
         debugLog("---------------------------------------------");
     }
-    const typeDictionary = await promisify(parseBinaryXSD)(rawSchema);
+    const typeDictionary = await promisify(parseBinaryXSD)(rawSchema, [ getStandartDataTypeFactory() ]);
     return typeDictionary;
 }
 

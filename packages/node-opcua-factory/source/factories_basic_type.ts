@@ -1,12 +1,14 @@
 /**
  * @module node-opcua-factory
  */
+import * as  _ from "underscore";
+import * as util from "util";
+
 import { assert } from "node-opcua-assert";
 import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import * as  _ from "underscore";
-import * as util from "util";
-import { findSimpleType, registerType } from "./factories_builtin_types";
+
+import { findSimpleType, registerType, hasBuiltInType } from "./factories_builtin_types";
 import { BasicTypeDefinition, BasicTypeDefinitionOptions } from "./types";
 
 export interface BasicTypeOptions {
@@ -48,6 +50,12 @@ export interface BasicTypeOptions {
  * @param [schema.toJSON]optional, a method to convert a value into the request type.
  */
 export function registerBasicType(schema: BasicTypeOptions) {
+
+    const exists: boolean = hasBuiltInType(schema.name);
+    if (exists) {
+        console.log(schema);
+        throw new Error(`Basic Type ${schema.name} already registered`);
+    }
 
     const name = schema.name;
 
@@ -103,8 +111,8 @@ registerBasicType({name: "Duration", subType: "Double"});
 registerBasicType({name: "UAString", subType: "String"});
 registerBasicType({name: "UABoolean", subType: "Boolean"});
 registerBasicType({name: "UtcTime",  subType: "DateTime"});
-registerBasicType({name: "Int8",     subType: "SByte"});
-registerBasicType({name: "UInt8",    subType: "Byte"});
+// already ? registerBasicType({name: "Int8",     subType: "SByte"});
+// already ? registerBasicType({name: "UInt8",    subType: "Byte"});
 registerBasicType({name: "Char",    subType: "Byte"});
 // xx registerBasicType({name:"XmlElement" ,subType:"String"  });
 registerBasicType({name: "Time",     subType: "String"});
@@ -122,8 +130,40 @@ registerBasicType({name: "LocaleId",
 
 registerBasicType({name: "ContinuationPoint", subType: "ByteString"});
 registerBasicType({name: "Image",    subType: "ByteString"});
-registerBasicType({name: "ImageBMP", subType: "ByteString"});
-registerBasicType({name: "ImageJPG", subType: "ByteString"});
-registerBasicType({name: "ImagePNG", subType: "ByteString"});
-registerBasicType({name: "ImageGIF", subType: "ByteString"});
 registerBasicType({name: "NodeIdType", subType: "NodeId"});
+
+registerBasicType({ name: "ImageBMP", subType: "Image" });
+registerBasicType({ name: "ImageGIF", subType: "Image" });
+registerBasicType({ name: "ImageJPG", subType: "Image" });
+registerBasicType({ name: "ImagePNG", subType: "Image" });
+registerBasicType({ name: "AudioDataType", subType: "ByteString" });
+registerBasicType({ name: "BitFieldMaskDataType", subType: "UInt64" });
+registerBasicType({ name: "DataSetFieldFlags", subType: "UInt16" });
+registerBasicType({ name: "DataSetFieldContentMask", subType: "UInt32" });
+registerBasicType({ name: "UadpNetworkMessageContentMask", subType: "UInt32" });
+registerBasicType({ name: "UadpDataSetMessageContentMask", subType: "UInt32" });
+registerBasicType({ name: "JsonNetworkMessageContentMask", subType: "UInt32" });
+registerBasicType({ name: "JsonDataSetMessageContentMask", subType: "UInt32" });
+registerBasicType({ name: "PermissionType", subType: "UInt32" });
+registerBasicType({ name: "AccessLevelType", subType: "Byte" });
+registerBasicType({ name: "AccessLevelExType", subType: "UInt32" });
+registerBasicType({ name: "EventNotifierType", subType: "Byte" });
+registerBasicType({ name: "AccessRestrictionType", subType: "UInt32" });
+registerBasicType({ name: "NormalizedString", subType: "String" });
+registerBasicType({ name: "DecimalString", subType: "String" });
+registerBasicType({ name: "DurationString", subType: "String" });
+registerBasicType({ name: "TimeString", subType: "String" });
+registerBasicType({ name: "DateString", subType: "String" });
+registerBasicType({ name: "Index", subType: "UInt32" });
+registerBasicType({ name: "VersionTime", subType: "UInt32" });
+registerBasicType({ name: "ApplicationInstanceCertificate", subType: "ByteString" });
+registerBasicType({ name: "AttributeWriteMask", subType: "UInt32" });
+registerBasicType({ name: "Date", subType: "DateTime" });
+// registerBasicType({ name: "Counter", subType: "UInt32" });
+// registerBasicType({ name: "IntegerId", subType: "UInt32" });
+// registerBasicType({ name: "UtcTime", subType: "DateTime" });
+// registerBasicType({ name: "Duration", subType: "Double" });
+// registerBasicType({ name: "LocaleId", subType: "String" });
+// registerBasicType({ name: "NumericRange", subType: "String" });
+// registerBasicType({ name: "Time", subType: "String" });
+// registerBasicType({ name: "SessionAuthenticationToken", subType: "NodeId" });

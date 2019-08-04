@@ -457,7 +457,6 @@ function build_scanning_node_function(
   ) => void {
 
     assert(context instanceof SessionContext);
-    assert(addressSpace.constructor.name === "AddressSpace");
     assert(itemToMonitor instanceof ReadValueId);
 
     const node = addressSpace.findNode(itemToMonitor.nodeId) as UAVariable;

@@ -833,7 +833,6 @@ export class Subscription extends EventEmitter {
         monitoredItemCreateRequest: MonitoredItemCreateRequest
     ): MonitoredItemCreateResult {
 
-        assert(addressSpace.constructor.name === "AddressSpace");
         assert(monitoredItemCreateRequest instanceof MonitoredItemCreateRequest);
 
         function handle_error(statusCode: StatusCode): MonitoredItemCreateResult {

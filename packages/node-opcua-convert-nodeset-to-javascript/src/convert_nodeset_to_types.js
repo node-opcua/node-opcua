@@ -214,8 +214,7 @@ function makeStructure(dataType, bForce, schema_folder) {
     assert(dataType.nodeClass === NodeClass.DataType);
 
     const addressSpace = dataType.addressSpace;
-    assert(addressSpace.constructor.name === "AddressSpace");
-
+  
     const namespaceUri = addressSpace.getNamespaceUri(dataType.nodeId.namespace);
 
     // istanbul ignore next

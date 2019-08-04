@@ -22,24 +22,7 @@ import { getBuildInType, hasBuiltInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType } from "./factories_factories";
 import { parameters } from "./factories_schema_helpers";
-// export interface StructuredTypeSchemaInterface extends CommonInterface {
-//
-//     fields: FieldType[];
-//
-//     baseType?: string;
-//     documentation?: string;
-//
-//     id: number | NodeId;
-//
-//     // caches
-//     _possibleFields?: any[];
-//     _baseSchema?: StructuredTypeSchemaInterface;
-//     _resolved?: boolean;
-//
-//     isValid?: (options: any) => boolean;
-//     decodeDebug?: (stream: BinaryStream, options: any) => any;
-//     constructHook?: (options: any) => any;
-// }
+
 function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     const fieldType = field.fieldType;
 
@@ -177,6 +160,9 @@ export function get_base_schema(schema: StructuredTypeSchema) {
     if (schema.baseType === "ExtensionObject") {
         return null;
     }
+    if (schema.baseType === "Union") {
+        return null;
+    }
 
     if (schema.baseType && schema.baseType !== "BaseUAObject") {
         const baseType = getStructureTypeConstructor(schema.baseType);
@@ -273,7 +259,11 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
         console.log(chalk.cyan("invalid_options_fields= "), invalidOptionsFields.sort().join(" "));
         console.log("options = ", options);
     }
+    /* istanbul ignore next */
     if (invalidOptionsFields.length !== 0) {
+        // tslint:disable:no-console
+        console.log(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
+        console.log(chalk.red("current fields= "), currentFields.sort().join(" "));
         throw new Error(" invalid field found in option :" + JSON.stringify(invalidOptionsFields));
     }
     return true;

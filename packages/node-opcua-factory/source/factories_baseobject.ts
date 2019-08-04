@@ -8,9 +8,11 @@ import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "no
 import { hexDump } from "node-opcua-debug";
 import * as utils from "node-opcua-utils";
 import * as  _ from "underscore";
+
 import { getBuildInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";
-import { callConstructor, getStructureTypeConstructor } from "./factories_factories";
+import { callConstructor, DataTypeFactory } from "./datatype_factory";
+import { getStructureTypeConstructor } from "./factories_factories";
 import { get_base_schema, StructuredTypeSchema } from "./factories_structuredTypeSchema";
 import { EnumerationDefinition, FieldCategory, StructuredTypeField } from "./types";
 
@@ -59,12 +61,18 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
 type Func1 = (a: any, field: StructuredTypeField, data: any, args: any) => void;
 
 function applyOnAllSchemaFields(
-    self: any,
+    self: BaseUAObject,
     schema: StructuredTypeSchema,
     data: any,
     functor: Func1,
     args: any
 ) {
+    
+    const baseSchema = get_base_schema(schema);
+    if (baseSchema) {
+        applyOnAllSchemaFields(self, baseSchema, data, functor, args);
+    }
+
     for (const field of schema.fields) {
         functor(self, field, data, args);
     }
@@ -94,7 +102,7 @@ function _arrayEllipsis(value: any[] | null) {
     }
 }
 
-function _exploreObject(self: any, field: StructuredTypeField, data: any, args: any) {
+function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: any, args: any) {
 
     if (!self) {
         return;
@@ -108,7 +116,7 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
 
     const padding = data.padding;
 
-    let value = self[fieldName];
+    let value = (self as any)[fieldName];
 
     let str;
 
@@ -153,7 +161,7 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
         return;
     }
 
-    function _dump_simple_value(self: any, field: StructuredTypeField, data: any, value: any, fieldType: string) {
+    function _dump_simple_value(self: BaseUAObject, field: StructuredTypeField, data: any, value: any, fieldType: string) {
 
         let str = "";
         if (value instanceof Buffer) {
@@ -167,7 +175,7 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
                 str = fieldNameF + " " + fieldTypeF + ": " + _arrayEllipsis(value);
             } else {
                 if (fieldType === "IntegerId" || fieldType === "UInt32") {
-                    value = "" + value + "               0x" + value.toString(16);
+                    value = "" + value + "               " + ((value !== undefined ) ? "0x"+value.toString(16) : "undefined");
                 } else if (fieldType === "DateTime" || fieldType === "UtcTime") {
                     value = (value && value.toISOString) ? value.toISOString() : value;
                 } else if (typeof value === "object" && value !== null && value !== undefined) {
@@ -180,7 +188,7 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
         }
     }
 
-    function _dump_complex_value(self: any, field: StructuredTypeField, data: any, value: any, fieldType: string) {
+    function _dump_complex_value(self: BaseUAObject, field: StructuredTypeField, data: any, value: any, fieldType: string) {
         if (field.subType) {
             // this is a synonymous
             fieldType = field.subType;
@@ -188,7 +196,12 @@ function _exploreObject(self: any, field: StructuredTypeField, data: any, args: 
 
         } else {
 
-            field.fieldTypeConstructor = field.fieldTypeConstructor || getStructureTypeConstructor(fieldType);
+            const typeDictionary = (self.schema as any).$typeDictionary as DataTypeFactory;
+            if (!typeDictionary) {
+                console.log(" No typeDictionary for ", self.schema);
+            }
+            field.fieldTypeConstructor = field.fieldTypeConstructor || 
+                (typeDictionary.getStructureTypeConstructor(fieldType));
             const fieldTypeConstructor = field.fieldTypeConstructor;
 
             const _newDesc = fieldTypeConstructor.prototype.schema || (fieldTypeConstructor as any).schema;

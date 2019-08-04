@@ -32,7 +32,7 @@ describe("Binary Schemas Helper", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample);
+        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
     });
 
     after(() => {
@@ -150,7 +150,7 @@ describe("Binary Schemas Helper 1", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample);
+        typeDictionary = await promisify(parseBinaryXSD)(sample,[]);
     });
 
     after(() => {
@@ -224,7 +224,7 @@ describe("Binary Schemas Helper 2", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample);
+        typeDictionary = await promisify(parseBinaryXSD)(sample,[]);
     });
 
     after(() => {
@@ -341,7 +341,7 @@ describe("Binary Schemas Helper 3", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample);
+        typeDictionary = await promisify(parseBinaryXSD)(sample,[]);
     });
 
     after(() => {
@@ -367,7 +367,7 @@ describe("Binary Schemas Helper 4", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample);
+        typeDictionary = await promisify(parseBinaryXSD)(sample,[]);
     });
 
     after(() => {
@@ -390,7 +390,7 @@ describe("Binary Schemas Helper 4", () => {
              buffer.length.should.eql(4 + 4 + 5);
         });
 
-        const scanData5a = new ScanData({  value: 36 });
+        const scanData5a = new ScanData({  string: "36" });
         const scanData5b = new ScanData({ switchField: 3, value: 36 });
         const reloaded5b = encode_decode_round_trip_test(scanData5b, (buffer: Buffer) => {
             buffer.length.should.eql(8);
@@ -412,15 +412,15 @@ describe("Binary Schemas Helper 4", () => {
         });
 
     });
-    it("should parse RfidScanResult structure types", async () => {
-        should.exists(typeDictionary.structuredTypes.RfidScanResult);
+    it("should parse MyScanResult structure types", async () => {
+        should.exists(typeDictionary.structuredTypes.MyScanResult);
 
-        const RfidScanResult = getOrCreateConstructor("RfidScanResult", typeDictionary);
+        const MyScanResult = getOrCreateConstructor("MyScanResult", typeDictionary);
 
-        const result = new RfidScanResult({
+        const result = new MyScanResult({
 
             scanData: {
-                value: 36
+                string: "36"
             }
         });
         const reloaded = encode_decode_round_trip_test(result, (buffer: Buffer) => {

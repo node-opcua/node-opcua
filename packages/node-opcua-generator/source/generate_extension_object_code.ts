@@ -8,10 +8,10 @@
 import * as fs from "fs";
 import { assert } from "node-opcua-assert";
 import {
-    buildStructuredType,
     EnumerationDefinitionSchema,
     FieldCategory,
-    StructuredTypeSchema
+    StructuredTypeSchema,
+    getStandartDataTypeFactory
 } from "node-opcua-factory";
 import { EnumeratedType, parseBinaryXSD, TypeDictionary } from "node-opcua-schemas";
 import { LineFile } from "node-opcua-utils";
@@ -133,7 +133,7 @@ export async function generate(
 
         const content = await readFile(filename, "ascii");
 
-        const typeDictionary = await parseBinaryXSD2(content);
+        const typeDictionary = await parseBinaryXSD2(content,[ getStandartDataTypeFactory() ]);
 
         for (const key in typeDictionary.structuredTypes) {
 

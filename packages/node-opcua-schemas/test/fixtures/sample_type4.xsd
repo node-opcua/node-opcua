@@ -1,9 +1,9 @@
 <opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xmlns:tns="http://www.unifiedautomation.com/DemoServer/"
+                    xmlns:tns="http://acme.com/DemoServer/"
                     DefaultByteOrder="LittleEndian"
                     xmlns:opc="http://opcfoundation.org/BinarySchema/"
                     xmlns:ua="http://opcfoundation.org/UA/"
-                    TargetNamespace="http://www.unifiedautomation.com/DemoServer/">
+                    TargetNamespace="http://acme.com/DemoServer/">
     <opc:Import Namespace="http://opcfoundation.org/UA/"/>
 
     <opc:StructuredType BaseType="ua:ExtensionObject" Name="ScanResult">
@@ -15,7 +15,7 @@
         <opc:Field SwitchField="LocationSpecified" TypeName="opc:UInt32" Name="Location"/>
     </opc:StructuredType>
 
-    <opc:StructuredType BaseType="tns:ScanResult" Name="RfidScanResult">
+    <opc:StructuredType BaseType="tns:ScanResult" Name="MyScanResult">
         <opc:Field TypeName="opc:Bit" Name="LocationSpecified"/>
         <opc:Field Length="31" TypeName="opc:Bit" Name="Reserved1"/>
         <opc:Field SourceType="tns:ScanResult" TypeName="opc:CharArray" Name="CodeType"/>

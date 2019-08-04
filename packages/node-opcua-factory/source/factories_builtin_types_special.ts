@@ -1,12 +1,13 @@
 /**
  * @module node-opcua-factory
  */
-import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import * as  _ from "underscore";
 
+import { assert } from "node-opcua-assert";
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+
 import { registerType } from "./factories_builtin_types";
-import { ConstructorFunc } from "./factories_factories";
+import { ConstructorFunc } from "./constructor_type";
 
 function _self_encode(constructor: any) {
     assert(_.isFunction(constructor));

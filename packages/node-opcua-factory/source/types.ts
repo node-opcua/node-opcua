@@ -6,7 +6,7 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Enum, EnumItem } from "node-opcua-enum";
 import { NodeId } from "node-opcua-nodeid";
 import * as _ from "underscore";
-import { ConstructorFunc } from "./factories_factories";
+import { ConstructorFunc } from "./constructor_type";
 import { FieldInterfaceOptions } from "./types";
 
 // ------------------
