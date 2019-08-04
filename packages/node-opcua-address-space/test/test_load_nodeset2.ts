@@ -7,6 +7,8 @@ import { DataType, Variant } from "node-opcua-variant";
 import * as path from "path";
 import * as should from "should";
 import { AddressSpace, generateAddressSpace, UAVariable } from "..";
+import { findBuiltInType } from "../../node-opcua-factory/dist";
+
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing NodeSet XML file loading", function(this: any) {
@@ -298,4 +300,53 @@ describe("Testing variables loading ", function(this: any) {
         variable.readValue().value.toString().should.eql(new Variant({ dataType: "Boolean", value: false}).toString());
 
     });
+});
+
+
+describe("@A@ Testing loading nodeset with custom basic types", function (this: any) {
+
+    this.timeout(200000); // could be slow on appveyor !
+
+    let addressSpace: AddressSpace;
+    before(async () => {
+        addressSpace = AddressSpace.create();
+        const namespace0 = addressSpace.getDefaultNamespace();
+        const xml_file = path.join(
+            __dirname,
+            "../../../modeling/model_with_custom_datatype.xml"
+        );
+        fs.existsSync(xml_file).should.be.eql(true, " should find " + xml_file);
+
+        await generateAddressSpace(addressSpace, [
+            nodesets.standardNodeSetFilename,
+            xml_file
+        ]);
+
+    });
+    after(() => {
+        addressSpace.dispose();
+    });
+
+    it("should register new basic type when loaded xml nodeset file",()=>{
+        const myIdenfifierDataType = findBuiltInType("MyIdentifierDataType");
+        should.exists(myIdenfifierDataType);
+    });
+    it("should load new Enumeration ", ()=>{
+            // MyEnumeration
+
+    });
+    it("should compose new  basic type ",()=>{
+        const myIdenfifierDataType = findBuiltInType("MyIdentifierDataType");
+        should.exists(myIdenfifierDataType);
+
+        const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/model_with_custom_datatype/")
+        const myStructDataTypeNode = addressSpace.findDataType("MyStruct", ns);
+        should.exists(myStructDataTypeNode);
+
+        const struct = addressSpace.constructExtensionObject(myStructDataTypeNode, {
+            id: "Hello"
+        });
+        console.log(struct.toString());
+    });
+
 });

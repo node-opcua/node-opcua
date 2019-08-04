@@ -13,6 +13,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { CallMethodRequest } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
+import { Variant } from "node-opcua-variant";
 
 import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
 import { IServerBase, ISessionBase, SessionContext } from "../session_context";
@@ -50,7 +51,7 @@ export function callMethodHelper(
 
     assert(objectId instanceof NodeId);
     assert(methodId instanceof NodeId);
-
+ 
     let response = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
 
     if (response.statusCode !== StatusCodes.Good) {
@@ -84,7 +85,7 @@ export function callMethodHelper(
 
         l_extraDataTypeManager = extraDataTypeManager;
 
-        // resolve opaque data structro from inputArguments
+        // resolve opaque data structure from inputArguments
         for (const variant of inputArguments) {
             resolveDynamicExtensionObject(variant, l_extraDataTypeManager);
         }
@@ -110,6 +111,13 @@ export function callMethodHelper(
                 assert(_.isArray(callMethodResponse.inputArgumentResults));
                 assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
 
+                if (callMethodResponse.outputArguments) {
+                    const outputArguments = callMethodResponse.outputArguments || [];
+                    for (const variant of outputArguments) {
+                        resolveDynamicExtensionObject(variant as Variant, l_extraDataTypeManager);
+                    }    
+                }
+        
                 return callback(null, callMethodResponse);
             });
     });

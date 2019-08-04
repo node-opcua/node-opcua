@@ -27,6 +27,7 @@ const argv = yargs(process.argv)
 
 const endpointUrl = argv.endpoint || "opc.tcp://localhost:48010";
 const parse_opcua_common = require("../lib/parse_server_common").parse_opcua_common;
+const callbackify = require("util").callbackify;
 
 
 function parse_opcua_server(endpoint, callback) {
@@ -43,7 +44,7 @@ function parse_opcua_server(endpoint, callback) {
 
     const client = opcua.OPCUAClient.create(options);
     client.withSession(endpointUrl, function (session, callback) {
-        parse_opcua_common(session, callback);
+        callbackify(parse_opcua_common)(session, callback);
     }, function (err) {
         callback(err);
     });

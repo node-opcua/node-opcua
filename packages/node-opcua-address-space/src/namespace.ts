@@ -139,7 +139,6 @@ export class UANamespace implements NamespacePublic {
     constructor(options: any) {
 
         assert(typeof options.namespaceUri === "string");
-        assert(options.addressSpace.constructor.name === "AddressSpace");
         assert(typeof options.index === "number");
 
         this.namespaceUri = options.namespaceUri;
@@ -557,7 +556,6 @@ export class UANamespace implements NamespacePublic {
      *
      */
     public createDataType(options: CreateDataTypeOptions): UADataType {
-        assert(!options.hasOwnProperty("addressSpace"));
         assert(options.hasOwnProperty("isAbstract"));
         assert(!options.hasOwnProperty("nodeClass"));
         assert(options.hasOwnProperty("browseName"), "must provide a browseName");
@@ -1828,8 +1826,8 @@ export class UANamespace implements NamespacePublic {
             if (match) {
                 const correctedName = match[1];
                 // the application is using an old scheme
-                console.log(chalk.green("Warning : since node-opcua 0.4.2" +
-                  "namespace should not be prepended to the browse name anymore"));
+                console.log(chalk.green("Warning : since node-opcua 0.4.2 " +
+                  "namespace index should not be prepended to the browse name anymore"));
                 console.log("   ", options.browseName, " will be replaced with ", correctedName);
                 console.log(" Please update your code");
 

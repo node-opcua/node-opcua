@@ -7,15 +7,18 @@
 
 import chalk from "chalk";
 import {
-    EnumerationDefinitionSchema, FieldInterfaceOptions,
+    EnumerationDefinitionSchema, 
+    FieldInterfaceOptions,
     StructuredTypeField,
     StructuredTypeOptions,
-    StructuredTypeSchema
+    StructuredTypeSchema,
+    ConstructorFuncWithSchema
 } from "node-opcua-factory";
 
 import { checkDebugFlag } from "node-opcua-debug";
 import { Xml2Json } from "node-opcua-xml2json";
 import { prepareEnumeratedType, prepareStructureType } from "./tools";
+import { DataTypeFactory } from "node-opcua-factory";
 
 const doDebug = checkDebugFlag(__filename);
 
@@ -91,8 +94,7 @@ export interface StructureTypeRaw {
     fields: any[];
 }
 
-export interface TypeDictionary {
-    defaultByteOrder: "LittleEndian";
+export interface ITypeDictionary {
     targetNamespace: string;
     imports: string[];
     structuredTypes: { [key: string]: StructuredTypeSchema; };
@@ -101,6 +103,31 @@ export interface TypeDictionary {
     structuredTypesRaw: { [key: string]: StructureTypeRaw };
     enumeratedTypesRaw: { [key: string]: EnumeratedType; };
 }
+
+
+export class TypeDictionary extends DataTypeFactory implements ITypeDictionary {
+    structuredTypes: {
+        [key: string]: StructuredTypeSchema;
+    };
+    enumeratedTypes: {
+        [key: string]: EnumerationDefinitionSchema;
+    };
+    structuredTypesRaw: {
+        [key: string]: StructureTypeRaw;
+    };
+    enumeratedTypesRaw: {
+        [key: string]: EnumeratedType;
+    };
+    constructor(baseDataFactories: DataTypeFactory[]) {
+        super(baseDataFactories);
+   
+        this.structuredTypes= {};
+        this.structuredTypesRaw= {};
+        this.enumeratedTypes= {};
+        this.enumeratedTypesRaw= {};  
+    }
+ }
+
 
 /* tslint:disable:object-literal-shorthand */
 const state0: any = {
@@ -265,20 +292,14 @@ const state0: any = {
     }
 };
 
+
 export function parseBinaryXSD(
     xmlString: string,
+    dataTypeFactories: DataTypeFactory[],
     callback: (err: Error | null, typeDictionary: TypeDictionary
     ) => void) {
 
-    const typeDictionary: TypeDictionary = {
-        defaultByteOrder: "LittleEndian",
-        targetNamespace: "",
-        imports: [],
-        structuredTypes: {},
-        structuredTypesRaw: {},
-        enumeratedTypes: {},
-        enumeratedTypesRaw: {}
-    };
+    const typeDictionary = new TypeDictionary(dataTypeFactories);
 
     const parser = new Xml2Json(state0);
     (parser as any).typeDictionary = typeDictionary;

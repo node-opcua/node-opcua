@@ -40,6 +40,7 @@ import { NamespacePrivate } from "../../src/namespace_private";
 import { UADataType } from "../../src/ua_data_type";
 import { UAVariable } from "../../src/ua_variable";
 import { UAVariableType } from "../../src/ua_variable_type";
+import { registerBuiltInType, registerBasicType } from "node-opcua-factory";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -446,8 +447,38 @@ export function generateAddressSpace(
             this.obj.description = "";
         },
         finish(this: any) {
-            _internal_createNode(this.obj);
+            const dataTypeNode = _internal_createNode(this.obj) as UADataType;
             assert(addressSpace1.findNode(this.obj.nodeId));
+            if (this.obj.nodeId.namespace !== 0 ) {
+
+                const processBasicDataType =    async (addressSpace: AddressSpace) => {
+                    const enumeration = addressSpace.findDataType("Enumeration")!;                
+                    const structure = addressSpace.findDataType("Structure")!;
+                    
+                    // we have a data type from a companion specification
+                    // let's see if this data type need to be registered
+                    if (!dataTypeNode.isSupertypeOf(enumeration) && !dataTypeNode.isSupertypeOf(structure)) {
+    
+                        const baseType = dataTypeNode.subtypeOfObj!;
+                        if (baseType) {
+                            // this is a basic type
+                            const typeName = dataTypeNode.browseName.name!;//.replace("DataType","");
+        
+                            /* istanbul ignore next */
+                            if (doDebug) {
+                                debugLog(`registerBasicType({ name: "${typeName}", subType: "${baseType.browseName.name!}" });`)
+                            }
+
+                            registerBasicType({ 
+                                name: typeName, 
+                                subType: baseType.browseName.name!
+                            });
+
+                        }
+                    }
+                }
+                postTasks.push(processBasicDataType);
+            }
         },
         parser: {
             DisplayName: {
@@ -1214,7 +1245,10 @@ export function generateAddressSpace(
             postTasks = [];
             debugLog("Post loading task done");
             assert(!addressSpace1.suspendBackReference);
-            callback!(err || undefined);
+            
+            ensureDatatypeExtractedWithCallback(addressSpace,()=> {
+                callback!(err || undefined);
+            });
         });
 
     });

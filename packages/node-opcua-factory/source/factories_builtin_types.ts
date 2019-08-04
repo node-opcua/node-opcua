@@ -311,7 +311,9 @@ export function unregisterType(typeName: string): void {
  */
 export function findSimpleType(name: string): BasicTypeDefinition {
     const typeSchema = _defaultTypeMap.get(name);
-    assert(typeSchema);
+    if(!typeSchema) {
+        throw new Error("Cannot find schema for simple type "+ name);
+    }
     assert(typeSchema instanceof TypeSchemaBase);
     return typeSchema as BasicTypeDefinition;
 }

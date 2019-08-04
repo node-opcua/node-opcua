@@ -48,10 +48,6 @@ import { UAVariable } from "./ua_variable";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-function prepareDataType(dataType: DataType): NodeId {
-    return coerceNodeId(dataType);
-}
-
 export class UAVariableType extends BaseNode implements UAVariableTypePublic {
     public readonly nodeClass = NodeClass.VariableType;
 
@@ -88,7 +84,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
 
         this.value = options.value;          // optional default value for instances of this UAVariableType
 
-        this.dataType = prepareDataType(options.dataType);    // DataType (NodeId)
+        this.dataType = coerceNodeId(options.dataType);    // DataType (NodeId)
 
         this.valueRank = options.valueRank || 0;  // Int32
 

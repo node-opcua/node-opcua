@@ -10,12 +10,12 @@ import {
     check_options_correctness_against_schema,
     ConstructorFuncWithSchema,
     FieldCategory,
-    FieldType, getStructureTypeConstructor, hasStructuredType,
+    FieldType, 
     initialize_field,
     initialize_field_array,
-    registerClassDefinition, registerFactory,
     StructuredTypeSchema
 } from "node-opcua-factory";
+
 import { ExpandedNodeId, NodeIdType } from "node-opcua-nodeid";
 import { TypeDictionary } from "./parse_binary_xsd";
 
@@ -29,8 +29,8 @@ export function getOrCreateConstructor(
     encodingDefaultXml?: ExpandedNodeId
 ): AnyConstructorFunc {
 
-    if (hasStructuredType(fieldType)) {
-        return getStructureTypeConstructor(fieldType);
+    if (typeDictionary.hasStructuredType(fieldType)) {
+        return typeDictionary.getStructureTypeConstructor(fieldType);
     }
     const schema = typeDictionary.structuredTypes[fieldType];
 
@@ -40,30 +40,30 @@ export function getOrCreateConstructor(
     }
 
     const constructor = createDynamicObjectConstructor(schema, typeDictionary);
+   
+    if (!constructor) {
+        return constructor;
+    }
+    // istanbul ignore next
+    if(!typeDictionary.hasStructuredType(fieldType)) {
+
+        typeDictionary.registerFactory(fieldType, constructor as ConstructorFuncWithSchema);
+        return constructor;
+        // hrow new Error("constructor should now be registered - " + fieldType);
+    }
 
     if (encodingDefaultBinary && encodingDefaultBinary.value !== 0) {
         schema.encodingDefaultBinary = encodingDefaultBinary;
         schema.encodingDefaultXml = encodingDefaultXml;
         (constructor as any).encodingDefaultBinary = encodingDefaultBinary;
         (constructor as any).encodingDefaultXml = encodingDefaultXml;
-
-        // istanbul ignore next
-        if (doDebug) {
-            debugLog("registering class definition , ", fieldType, encodingDefaultBinary.toString());
-        }
-
-        registerClassDefinition(fieldType, constructor as ConstructorFuncWithSchema);
-    } else {
-        // istanbul ignore next
-        if (doDebug) {
-            debugLog("registering factory , ", fieldType);
-        }
-        registerFactory(fieldType, constructor as ConstructorFuncWithSchema);
+        typeDictionary.associateWithBinaryEncoding(fieldType,encodingDefaultBinary);
     }
     return constructor;
 }
 
 function encodeArrayOrElement(
+    
     field: FieldType,
     obj: any,
     stream: OutputBinaryStream,
@@ -99,6 +99,7 @@ function encodeArrayOrElement(
 }
 
 function decodeArrayOrElement(
+    typeDictionary: TypeDictionary,
     field: FieldType,
     obj: any,
     stream: BinaryStream,
@@ -114,8 +115,9 @@ function decodeArrayOrElement(
                 if (decodeFunc) {
                     array.push(decodeFunc(stream));
                 } else {
+
                     // construct an instance
-                    const constructor = getStructureTypeConstructor(field.fieldType);
+                    const constructor = typeDictionary.getStructureTypeConstructor(field.fieldType);
                     const element = new constructor({});
                     element.decode(stream);
                     array.push(element);
@@ -127,11 +129,48 @@ function decodeArrayOrElement(
         if (decodeFunc) {
             obj[field.name] = decodeFunc(stream);
         } else {
+            if (!obj[field.name]) {
+                throw new Error(" cannot find field with name " + field.name);
+            }
             obj[field.name].decode(stream);
         }
     }
 }
 
+function initializeField(
+    field: FieldType, 
+    thisAny: any, 
+    options: any,
+     schema: StructuredTypeSchema,
+      typeDictionary: TypeDictionary
+) {
+
+    const name = field.name;
+
+    switch (field.category) {
+        case FieldCategory.complex: {
+            const constuctor = getOrCreateConstructor(field.fieldType, typeDictionary) || BaseUAObject;
+            if (field.isArray) {
+                (thisAny)[name] = (options[name] || []).map((x: any) =>
+                    constuctor ? new constuctor(x) : null
+                );
+            } else {
+                (thisAny)[name] = constuctor ? new constuctor(options[name]) : null;
+            }
+            // xx processStructuredType(fieldSchema);
+            break;
+        }
+        case FieldCategory.enumeration:
+        case FieldCategory.basic:
+            if (field.isArray) {
+                (thisAny)[name] = initialize_field_array(field, options[name]);
+            } else {
+                (thisAny)[name] = initialize_field(field, options[name]);
+            }
+            break;
+    }
+
+}
 /**
  * @private
  * @param thisAny
@@ -141,6 +180,7 @@ function decodeArrayOrElement(
  */
 function initializeFields(thisAny: any, options: any, schema: StructuredTypeSchema, typeDictionary: TypeDictionary) {
 
+    
     // initialize base class first
     if (schema._baseSchema && schema._baseSchema.fields.length) {
         initializeFields(thisAny, options, schema._baseSchema!, typeDictionary);
@@ -155,29 +195,7 @@ function initializeFields(thisAny: any, options: any, schema: StructuredTypeSche
             (thisAny)[name] = undefined;
             continue;
         }
-
-        switch (field.category) {
-            case FieldCategory.complex: {
-                const constuctor = getOrCreateConstructor(field.fieldType, typeDictionary) || BaseUAObject;
-                if (field.isArray) {
-                    (thisAny)[name] = (options[name] || []).map((x: any) =>
-                        constuctor ? new constuctor(x) : null
-                    );
-                } else {
-                    (thisAny)[name] = constuctor ? new constuctor(options[name]) : null;
-                }
-                // xx processStructuredType(fieldSchema);
-                break;
-            }
-            case FieldCategory.enumeration:
-            case FieldCategory.basic:
-                if (field.isArray) {
-                    (thisAny)[name] = initialize_field_array(field, options[name]);
-                } else {
-                    (thisAny)[name] = initialize_field(field, options[name]);
-                }
-                break;
-        }
+        initializeField(field, thisAny, options, schema, typeDictionary);
     }
 
 }
@@ -230,11 +248,16 @@ function encodeFields(thisAny: any, schema: StructuredTypeSchema, stream: Output
     }
 
 }
-function decodeFields(thisAny: any, schema: StructuredTypeSchema, stream: BinaryStream) {
+function decodeFields(
+    thisAny: any, 
+    schema: StructuredTypeSchema, 
+    stream: BinaryStream,
+    typeDictionary: TypeDictionary
+) {
 
     // encodeFields base class first
     if (schema._baseSchema && schema._baseSchema.fields.length) {
-        decodeFields(thisAny, schema._baseSchema!, stream);
+        decodeFields(thisAny, schema._baseSchema!, stream, typeDictionary);
     }
 
     // ============ Deal with switchBits
@@ -247,21 +270,25 @@ function decodeFields(thisAny: any, schema: StructuredTypeSchema, stream: Binary
 
         // ignore fields that have a switch bit when bit is not set
         if (field.switchBit !== undefined) {
-
             // tslint:disable-next-line:no-bitwise
             if ((bitField & (1 << field.switchBit)) === 0) {
                 (thisAny)[field.name] = undefined;
                 continue;
+            } else {
+                if (field.category === FieldCategory.complex &&   (thisAny)[field.name] === undefined) {
+                    // need to create empty structure for deserialisation
+                    initializeField(field, thisAny, {}, schema, typeDictionary);
+                }
             }
         }
 
         switch (field.category) {
             case FieldCategory.complex:
-                decodeArrayOrElement(field, thisAny, stream);
+                decodeArrayOrElement(typeDictionary, field, thisAny, stream);
                 break;
             case FieldCategory.enumeration:
             case FieldCategory.basic:
-                decodeArrayOrElement(field, thisAny, stream, field.schema.decode);
+                decodeArrayOrElement(typeDictionary, field, thisAny, stream, field.schema.decode);
                 break;
             default:
                 /* istanbul ignore next*/
@@ -274,6 +301,7 @@ class DynamicExtensionObject extends ExtensionObject {
 
     public static schema: StructuredTypeSchema = ExtensionObject.schema;
     public static possibleFields: string[] =  [];
+    private readonly _typeDictionary: TypeDictionary;
     private __schema?: StructuredTypeSchema;
 
     constructor(options: any, schema: StructuredTypeSchema, typeDictionary: TypeDictionary) {
@@ -283,6 +311,8 @@ class DynamicExtensionObject extends ExtensionObject {
         super(options);
         options = options || {};
         this.__schema = schema;
+
+        this._typeDictionary = typeDictionary;
 
         check_options_correctness_against_schema(this, this.schema, options);
 
@@ -296,7 +326,7 @@ class DynamicExtensionObject extends ExtensionObject {
 
     public decode(stream: BinaryStream): void {
         super.decode(stream);
-        decodeFields(this as any, this.schema, stream);
+        decodeFields(this as any, this.schema, stream, this._typeDictionary);
     }
 
     public get schema(): StructuredTypeSchema {
@@ -320,7 +350,6 @@ class UnionBaseClass extends BaseUAObject {
     private __schema?: StructuredTypeSchema;
 
     constructor(options: any, schema: StructuredTypeSchema, typeDictionary: TypeDictionary) {
-
         super();
 
         assert(schema, "expecting a schema here ");
@@ -336,32 +365,42 @@ class UnionBaseClass extends BaseUAObject {
         for (const field of this.schema.fields) {
 
             const name = field.name;
-
             if (field.switchValue === undefined) {
-                switchFieldName = field.name;
                 // this is the switch value field
+                switchFieldName = field.name;
                 continue;
             }
-            assert(switchFieldName.length > 0);
-            assert(field.switchValue !== undefined, "union must only have field with switchedValue");
+            assert(switchFieldName.length > 0, "It seems that there is no switch field in union schema");
+            assert(field.switchValue !== undefined, "union schema must only have one switched value field");
 
             // dealing with optional fields
-            if (uniqueFieldHasBeenFound && options[field.name] !== undefined) {
-                throw new Error("union must have only one choice");
+
+            /* istanbul ignore next */
+            if (uniqueFieldHasBeenFound && options[field.name] !== undefined)  {
+                // let try to be helpful for the developper by providing some hint
+                debugLog(this.schema);
+                throw new Error("union must have only one choice in "+ JSON.stringify(options) + 
+                "\n found while investigating " + field.name + 
+                "\n switchFieldName = " + switchFieldName);
             }
 
-            if (options[field.name] === undefined) {
-                continue;
-            }
-
-            uniqueFieldHasBeenFound = true;
+//Xx        // the field can be ignore
+//Xx        if (options[field.name] === undefined) {
+//Xx           continue;
+//Xx        }
             if (options[switchFieldName] !== undefined) {
-                // then options[switchFieldName] must equql
+                // then options[switchFieldName] must equal
                 if (options[switchFieldName] !== field.switchValue) {
-                    throw new Error("Invalid " + switchFieldName + " value : expecting " + field.switchValue);
+                    continue;
+                    //xx throw new Error("Invalid " + switchFieldName + " value : expecting " + field.switchValue);
+                }
+            } else {
+                // the is no switchFieldName , in this case the i
+                if (options[name] === undefined) {
+                    continue;
                 }
             }
-
+            uniqueFieldHasBeenFound = true;
             (this as any)[switchFieldName] = field.switchValue;
 
             switch (field.category) {
@@ -394,7 +433,15 @@ class UnionBaseClass extends BaseUAObject {
                 return;
             }
             const r = schema.fields.filter((f) => f.switchValue !== undefined).map((f) => f.name).join(" , ");
-            throw new Error(" At least one of " + r + " must be specified");
+            // it is possible also that the switchfield value do not correspond to a valid field
+            const foundFieldForSwitchValue = schema.fields.findIndex((f) => 
+                f.switchValue !== undefined && f.switchValue === options[switchFieldName]);
+            if (foundFieldForSwitchValue) {
+               //xx throw new Error(this.schema.name + ": cannot find field with value " +  options[switchFieldName]);
+            } else {
+                console.log(this.schema);
+                throw new Error(this.schema.name + ": At least one of [ " + r + " ] must be specified in " + JSON.stringify(options));
+            }
         }
     }
 
@@ -429,6 +476,8 @@ class UnionBaseClass extends BaseUAObject {
 
     public decode(stream: BinaryStream): void {
 
+        const typeDictionary : TypeDictionary = (this.schema as any).$typeDictionary;
+
         const switchValue = stream.readUInt32();
         const switchFieldName = this.schema.fields[0].name;
 
@@ -442,11 +491,11 @@ class UnionBaseClass extends BaseUAObject {
 
             switch (field.category) {
                 case FieldCategory.complex:
-                    decodeArrayOrElement(field, this as any, stream);
+                    decodeArrayOrElement(typeDictionary, field, this as any, stream);
                     break;
                 case FieldCategory.enumeration:
                 case FieldCategory.basic:
-                    decodeArrayOrElement(field, this as any, stream, field.schema.decode);
+                    decodeArrayOrElement(typeDictionary, field, this as any, stream, field.schema.decode);
                     break;
                 default:
                     /* istanbul ignore next*/
@@ -579,6 +628,8 @@ export function createDynamicObjectConstructor(
     Object.defineProperty(EXTENSION, "name", { value: schema.name });
 
     schemaPriv.$Constructor = EXTENSION;
+
+    typeDictionary.registerFactory(schema.name, EXTENSION as any);
 
     return EXTENSION;
 }

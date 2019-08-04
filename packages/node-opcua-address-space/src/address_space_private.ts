@@ -1,11 +1,12 @@
 /**
  * @module node-opcua-address-space.Private
  */
+import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+import { NodeClass } from "node-opcua-data-model";
 import { ExtensionObject} from "node-opcua-extension-object";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { BrowsePath, ModelChangeStructureDataType } from "node-opcua-types";
 
-import { NodeClass } from "node-opcua-data-model";
 import {
     AddReferenceOpts,
     AddressSpace,
@@ -17,12 +18,14 @@ import { Reference } from "./reference";
 import { UAObjectType } from "./ua_object_type";
 import { UAVariableType } from "./ua_variable_type";
 
+
 export interface AddressSpacePrivate extends AddressSpace {
 
     isFrugal: boolean;
     suspendBackReference: boolean;
 
     _condition_refresh_in_progress: boolean;
+
 
     _coerceNode(node: string | BaseNodePublic | NodeId ): BaseNodePublic | null;
 
@@ -70,5 +73,8 @@ export interface AddressSpacePrivate extends AddressSpace {
     _collectModelChange(view: UAView | null, data: ModelChangeStructureDataType): void;
 
     deleteNode(nodeId: NodeId): void;
+
+    getDataTypeManager(): ExtraDataTypeManager;
+
 
 }

@@ -64,6 +64,7 @@ import { UAReferenceType } from "./ua_reference_type";
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
+import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 
 const doDebug = false;
 // tslint:disable-next-line:no-var-requires
@@ -138,7 +139,17 @@ export class AddressSpace implements AddressSpacePrivate {
     public get rootFolder(): RootFolder {
         return this.findNode(this.resolveNodeId("RootFolder")) as any as RootFolder;
     }
+   /**
+     * @internal
+     */
+    public getDataTypeManager() : ExtraDataTypeManager
+    {
+        const addressSpacePriv: any = this as any;
+        assert(addressSpacePriv.$$extraDataTypeManager);
+        return addressSpacePriv.$$extraDataTypeManager;
+    }
 
+ 
     private static registry = new ObjectRegistry();
     /***
      * @internal
@@ -971,7 +982,7 @@ export class AddressSpace implements AddressSpacePrivate {
             targets: res
         });
     }
-
+    
     // - Extension Object ----------------------------------------------------------------------------------------------
     public getExtensionObjectConstructor(dataType: NodeId | UADataType): any {
 
@@ -990,7 +1001,9 @@ export class AddressSpace implements AddressSpacePrivate {
             // may be dataType was the NodeId of the "Binary Encoding" node
             throw new Error("getExtensionObjectConstructor: dataType has unexpected type" + dataType);
         }
-        prepareDataType(dataType);
+        
+        prepareDataType(this, dataType);
+
         const Constructor = (dataType as any)._extensionObjectConstructor;
         return Constructor;
     }
@@ -1569,6 +1582,8 @@ export class AddressSpace implements AddressSpacePrivate {
         options.nodeId = resolveNodeId(options.nodeId);
         return this.getNamespace(options.nodeId.namespace);
     }
+
+ 
 }
 
 function _getNamespace(addressSpace: AddressSpace, nodeOrNodId: BaseNode | NodeId): NamespacePrivate {

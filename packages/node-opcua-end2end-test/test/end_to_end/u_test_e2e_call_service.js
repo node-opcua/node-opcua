@@ -301,7 +301,7 @@ module.exports = function (test) {
 
 
             const methodToCalls = [{
-                objectId: coerceNodeId("ns=0;i=864"), //  Default Binary doesn't have methods
+                objectId: resolveNodeId("Server_ServerStatus_CurrentTime"), //  a Variable doesn't have methods
                 methodId: coerceNodeId("ns=0;i=11489"),
                 inputArguments: [{dataType: DataType.UInt32, value: [1]}]
             }];
@@ -313,7 +313,10 @@ module.exports = function (test) {
                         should.not.exist(err);
                         results.length.should.eql(1);
 
-                        results[0].statusCode.should.equalOneOf(StatusCodes.BadNodeIdInvalid,StatusCodes.BadMethodInvalid);
+                        results[0].statusCode.should.equalOneOf(
+                            StatusCodes.BadInvalidArgument,
+                            StatusCodes.BadNodeIdInvalid,
+                            StatusCodes.BadMethodInvalid);
 
                         inner_done();
                     },inner_done);

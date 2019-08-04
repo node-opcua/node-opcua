@@ -120,9 +120,6 @@ export function getMethodDeclaration_ArgumentList(
         }
         return { statusCode: StatusCodes.BadNodeIdUnknown };
     }
-    if (!obj.hasMethods) {
-        return { statusCode: StatusCodes.BadNodeIdInvalid };
-    }
     let objectMethod = obj.getMethodById(methodId) as UAMethod;
     if (!objectMethod) {
 

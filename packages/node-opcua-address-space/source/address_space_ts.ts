@@ -2575,7 +2575,7 @@ export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVar
     $$indexPropertyName: string;
 }
 
-export declare function prepareDataType(dataType: UADataType): void;
+export declare function prepareDataType(addressSpace: AddressSpace, dataType: UADataType): void;
 
 export declare function createExtObjArrayNode<T extends ExtensionObject>(
   parentFolder: UAObject,

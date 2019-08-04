@@ -38,7 +38,6 @@ import {
     UAObject,
     UAServerStatus,
 } from "..";
-import {EUInformation} from "..";
 
 // make sure all namespace 0 data type are properly loaded
 const context = SessionContext.defaultContext;

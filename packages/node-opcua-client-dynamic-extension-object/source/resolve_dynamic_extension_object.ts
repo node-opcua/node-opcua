@@ -12,7 +12,6 @@ function resolveDynamicExtensionObjectV(
 ): ExtensionObject {
 
     try {
-
         const namespaceUri = extraDataType.namespaceArray[opaque.nodeId.namespace];
         const expandedNodeId = ExpandedNodeId.fromNodeId(opaque.nodeId, namespaceUri);
 
