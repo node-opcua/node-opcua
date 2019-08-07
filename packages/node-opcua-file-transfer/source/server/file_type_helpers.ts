@@ -109,7 +109,7 @@ export class FileTypeData {
     public async refresh(): Promise<void> {
 
         // lauch an async request to update filesize
-        (async function extractFileSize(self: FileTypeData) {
+        await (async function extractFileSize(self: FileTypeData) {
             try {
                 const stat = await promisify(fs.stat)(self.filename);
                 self._fileSize = stat.size;
@@ -125,7 +125,7 @@ export class FileTypeData {
 }
 
 export function getFileData(opcuaFile2: UAFileType) {
-    return (opcuaFile2 as any).$data as FileTypeData;
+    return (opcuaFile2 as any).$fileData as FileTypeData;
 }
 
 interface FileAccessData {
@@ -165,7 +165,7 @@ function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode:
     return fileHandle;
 }
 
-function _getFile(addressSpace: AddressSpace, context: SessionContext, fileHandle: UInt32): FileAccessData {
+function _getFileInfo(addressSpace: AddressSpace, context: SessionContext, fileHandle: UInt32): FileAccessData {
     const _context = _prepare(addressSpace, context);
     return _context.$$files[fileHandle];
 }
@@ -269,30 +269,30 @@ async function _openFile(
      */
     const fileHandle = _addFile(addressSpace, context, mode as OpenFileMode);
 
-    const _fileData = _getFile(addressSpace, context, fileHandle);
+    const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
 
-    const data = (context.object as any).$data as FileTypeData;
-    const filename = data.filename;
+    const fileData = (context.object as any).$fileData as FileTypeData;
+    const filename = fileData.filename;
 
     try {
-        _fileData.fd = await promisify(fs.open)(filename, flags);
+        _fileInfo.fd = await promisify(fs.open)(filename, flags);
 
         // update position
-        _fileData.position = [0, 0];
+        _fileInfo.position = [0, 0];
 
         // tslint:disable-next-line:no-bitwise
         if ((mode & OpenFileModeMask.AppendBit) === OpenFileModeMask.AppendBit) {
             const p = (await promisify(fs.stat)(filename)).size;
-            _fileData.position[1] = p;
+            _fileInfo.position[1] = p;
         }
 
-        data.openCount += 1;
+        fileData.openCount += 1;
     } catch (err) {
         errorLog(err.message);
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
-    debugLog("Opening file handle ", fileHandle, "filename: ", data.filename, "openCount: ", data.openCount);
+    debugLog("Opening file handle ", fileHandle, "filename: ", fileData.filename, "openCount: ", fileData.openCount);
 
     const callMethodResult = {
         outputArguments: [
@@ -325,16 +325,16 @@ async function _closeFile(
 
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
 
-    const _fileData = _getFile(addressSpace, context, fileHandle);
-    if (!_fileData) {
+    const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
+    if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
-    const data = (context.object as any).$data as FileTypeData;
+    const data = (context.object as any).$fileData as FileTypeData;
 
     debugLog("Closing file handle ", fileHandle, "filename: ", data.filename, "openCount: ", data.openCount);
 
-    await promisify(fs.close)(_fileData.fd);
-    _close(addressSpace, context, _fileData);
+    await promisify(fs.close)(_fileInfo.fd);
+    _close(addressSpace, context, _fileInfo);
     data.openCount -= 1;
 
     return {
@@ -372,12 +372,12 @@ async function _readFile(
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
-    const _fileData = _getFile(addressSpace, context, fileHandle);
-    if (!_fileData) {
+    const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
+    if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidState };
     }
     // tslint:disable-next-line:no-bitwise
-    if ((_fileData.openMode & OpenFileModeMask.ReadBit) === 0x0) {
+    if ((_fileInfo.openMode & OpenFileModeMask.ReadBit) === 0x0) {
         // open mode did not specify Read Flag
         return { statusCode: StatusCodes.BadInvalidState };
     }
@@ -386,8 +386,8 @@ async function _readFile(
 
     let ret;
     try {
-        ret = await promisify(fs.read)(_fileData.fd, data, 0, length, _fileData.position[1]);
-        _fileData.position[1] += ret.bytesRead;
+        ret = await promisify(fs.read)(_fileInfo.fd, data, 0, length, _fileInfo.position[1]);
+        _fileInfo.position[1] += ret.bytesRead;
     } catch (err) {
         errorLog("Read error : ", err.message);
         return { statusCode: StatusCodes.BadUnexpectedError };
@@ -413,13 +413,13 @@ async function _writeFile(
 
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
 
-    const _fileData = _getFile(addressSpace, context, fileHandle);
-    if (!_fileData) {
+    const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
+    if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
     // tslint:disable-next-line:no-bitwise
-    if ((_fileData.openMode & OpenFileModeMask.WriteBit) === 0x00) {
+    if ((_fileInfo.openMode & OpenFileModeMask.WriteBit) === 0x00) {
         // File has not been open with write mode
         return { statusCode: StatusCodes.BadInvalidState };
     }
@@ -428,8 +428,14 @@ async function _writeFile(
 
     let ret;
     try {
-        ret = await promisify(fs.write)(_fileData.fd, data, 0, data.length, _fileData.position[1]);
-        _fileData.position[1] += ret.bytesWritten;
+        ret = await promisify(fs.write)(_fileInfo.fd, data, 0, data.length, _fileInfo.position[1]);
+        _fileInfo.position[1] += ret.bytesWritten;
+
+        const fileTypeData = (context.object as any).$fileData as FileTypeData;
+        debugLog(fileTypeData.fileSize);
+        fileTypeData.fileSize = Math.max(fileTypeData.fileSize, _fileInfo.position[1]);
+        debugLog(fileTypeData.fileSize);
+
     } catch (err) {
         errorLog("Write error : ", err.message);
         return { statusCode: StatusCodes.BadUnexpectedError };
@@ -453,11 +459,11 @@ async function _setPositionFile(
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
     const position: UInt64 = inputArguments[1].value as UInt64;
 
-    const _fileData = _getFile(addressSpace, context, fileHandle);
-    if (!_fileData) {
+    const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
+    if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
-    _fileData.position = position;
+    _fileInfo.position = position;
     return { statusCode: StatusCodes.Good };
 }
 
@@ -471,8 +477,8 @@ async function _getPositionFile(
 
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
 
-    const _fileData = _getFile(addressSpace, context, fileHandle);
-    if (!_fileData) {
+    const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
+    if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
@@ -480,7 +486,7 @@ async function _getPositionFile(
         outputArguments: [{
             arrayType: VariantArrayType.Scalar,
             dataType: DataType.UInt64,
-            value: _fileData.position
+            value: _fileInfo.position
         }],
         statusCode: StatusCodes.Good
     };
@@ -498,7 +504,7 @@ export function installFileType(
     options: FileOptions
 ) {
 
-    if ((file as any).$data) {
+    if ((file as any).$fileData) {
         errorLog("File already installed ", file.nodeId.toString(), file.browseName.toString());
         return;
     }
@@ -508,8 +514,8 @@ export function installFileType(
     // the server will return an error
     options.maxSize = (options.maxSize === undefined) ? defaultMaxSize : options.maxSize;
 
-    const $data = new FileTypeData(options, file);
-    (file as any).$data = $data;
+    const $fileData = new FileTypeData(options, file);
+    (file as any).$fileData = $fileData;
 
     // ----- install mime type
     if (options.mineType) {

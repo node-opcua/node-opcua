@@ -13,7 +13,7 @@ import {
     UAFileType,
     UAMethod
 } from "node-opcua-address-space";
-import { UInt64 } from "node-opcua-basic-types";
+import { UInt64, extraStatusCodeBits, coerceUInt64 } from "node-opcua-basic-types";
 import { nodesets } from "node-opcua-nodesets";
 
 import {
@@ -181,9 +181,9 @@ describe("FileTransfer", () => {
     it("should be possible to write a file - in create mode", async () => {
 
         // Given a file on server side with some original content
-        const data = getFileData(opcuaFile2);
-        fs.writeFileSync(data.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
-        await data.refresh();
+        const fileData = getFileData(opcuaFile2);
+        fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+        await fileData.refresh();
 
         // Given a client that open the file (ReadWrite Mode)
         const session = new PseudoSession(addressSpace);
@@ -196,16 +196,16 @@ describe("FileTransfer", () => {
         await clientFile.close();
 
         // Then I should verify that the file now contains "#### REPLACE ####"
-        fs.readFileSync(data.filename, "utf-8").should.eql("#### REPLACE ####");
+        fs.readFileSync(fileData.filename, "utf-8").should.eql("#### REPLACE ####");
 
     });
 
     it("should be possible to write to a file - in append mode", async () => {
 
         // Given a file on server side with some original content
-        const data = getFileData(opcuaFile2);
-        fs.writeFileSync(data.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
-        await data.refresh();
+        const fileData = getFileData(opcuaFile2);
+        fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+        await fileData.refresh();
 
         // Given a client
         const session = new PseudoSession(addressSpace);
@@ -230,7 +230,7 @@ describe("FileTransfer", () => {
         await clientFile.close();
 
         // and I should verify that the file on the server side contains the expected data
-        fs.readFileSync(data.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
+        fs.readFileSync(fileData.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
 
     });
 
@@ -262,4 +262,59 @@ describe("FileTransfer", () => {
 
     });
 
+    it("should allow file to grow", async () => {
+
+        const fileData = getFileData(opcuaFile2);
+        fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+        await fileData.refresh();
+
+ 
+        // Given a client
+        const session = new PseudoSession(addressSpace);
+        const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+
+        // When I open the file in (ReadWriteAppend Mode)
+        const handle = await clientFile.open(OpenFileMode.ReadWriteAppend);
+
+        // read original file size (UInt64!)
+        const originalFileSize = await clientFile.size();
+        const position0 = await clientFile.getPosition();
+        // console.log("position0 = ",position0, "originalFileSize", originalFileSize);
+        // then I should verify that position is set at the end of the file
+        position0.should.eql(originalFileSize, "expecting position to be at the end of the file after open in Append Mode");
+
+        // then When I write some more data
+        const extraData = "#### SOMM MORE DATA ####";
+        await clientFile.write(Buffer.from(extraData));
+        // and I should verify that the file on the server side contains the expected data
+        fs.readFileSync(fileData.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + extraData);
+
+        // When I re-read file size and check that it has grown accordingly
+        const newFileSize = await clientFile.size();
+
+        // I should verify that file size has changed accordingly
+        newFileSize[1].should.eql(originalFileSize[1] + extraData.length);
+ 
+        await clientFile.close();
+
+    });
+    it("file size must change on client size if file changes on server side", async () => {
+
+        const fileData = getFileData(opcuaFile2);
+        fs.writeFileSync(fileData.filename, "1", "utf-8");
+        await fileData.refresh();
+
+        // Given a client
+        const session = new PseudoSession(addressSpace);
+        const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+
+        const size1 = await clientFile.size();
+        size1.should.eql(coerceUInt64(1));
+
+        fs.writeFileSync(fileData.filename, "22", "utf-8");
+        await fileData.refresh();
+
+        const size2 = await clientFile.size();
+        size2.should.eql(coerceUInt64(2));
+    });
 });
