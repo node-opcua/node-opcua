@@ -23,5 +23,8 @@
   "opc ua",
   "internet of things"
  ],
- "homepage": "http://node-opcua.github.io/"
+ "homepage": "http://node-opcua.github.io/",
+ "dependencies": {
+  "node-opcua-debug": "^2.1.0"
+ }
 }

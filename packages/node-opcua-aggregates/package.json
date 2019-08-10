@@ -29,7 +29,7 @@
   "node-opcua-assert": "^2.0.0",
   "node-opcua-leak-detector": "^2.1.0",
   "should": "13.2.3",
-  "sinon": "^7.3.2",
+  "sinon": "^7.4.1",
   "underscore": "^1.9.1",
   "yargs": "^13.3.0"
  },
