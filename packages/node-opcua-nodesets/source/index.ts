@@ -8,7 +8,6 @@ import * as path from "path";
 export function constructNodesetFilename(filename: string) {
 
     const dirname = __dirname;
-    console.log("dirname = ", dirname);
     let file = path.join(dirname, "../nodesets", filename);
     if (!fs.existsSync(file)) {
         if (!process.argv[1]) {
