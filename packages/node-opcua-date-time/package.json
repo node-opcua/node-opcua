@@ -2,7 +2,7 @@
  "name": "node-opcua-date-time",
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
- "version": "2.1.0",
+ "version": "2.1.3",
  "description": "pure nodejs OPCUA SDK - module -date-time",
  "scripts": {
   "build": "tsc",
