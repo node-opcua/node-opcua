@@ -1,5 +1,6 @@
 #package-lock.json
 yarn.lock
+.vs/
 .DS_Store
 .idea/
 .vscode/
