@@ -173,7 +173,7 @@ const hasTypeDefinitionNodeId = resolveNodeId("HasTypeDefinition");
 function dedup_reference(references: ReferenceDescription[]) {
     const results = [];
     const dedup: any = {};
-    for (const reference of  references) {
+    for (const reference of references) {
         const key = reference.referenceTypeId.toString() + reference.nodeId.toString();
 
         /* istanbul ignore next */
@@ -1167,25 +1167,37 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             }
             dataValues = dataValues!;
 
-            if (dataValues[0].statusCode.equals(StatusCodes.Good)) {
-                this.maxNodesPerRead = dataValues[0].value.value;
-            }
-            // ensure we have a sensible maxNodesPerRead value in case the server doesn't specify one
-            this.maxNodesPerRead = this.maxNodesPerRead || 500;
+            const fix = (self: any,maxNodePerX: string, dataValue: DataValue) => {
 
-            if (dataValues[1].statusCode.equals(StatusCodes.Good)) {
-                this.maxNodesPerBrowse = dataValues[1].value.value;
-            }
-            // ensure we have a sensible maxNodesPerBrowse value in case the server doesn't specify one
-            this.maxNodesPerBrowse = this.maxNodesPerBrowse || 500;
+                if (dataValue.statusCode.equals(StatusCodes.Good)) {
+                    const value = dataValue.value.value;
+                    // if this.maxNodesPerRead has been set (<>0) by the user before call is made,
+                    // then it serve as a minimum
+                    if (self[maxNodePerX]) {
+                        if (value > 0) {
+                            self[maxNodePerX] = Math.min( self[maxNodePerX], value);
+                        }
+                    } else {
+                        self[maxNodePerX] = value;
+                    }
+                } else {
+                    debugLog("warning: server does not provide a valid dataValue for " + maxNodePerX,
+                        dataValue.statusCode.toString());
+                }
+                // ensure we have a sensible maxNodesPerRead value in case the server doesn't specify one
+                self[maxNodePerX] = self[maxNodePerX] || 100;
+                debugLog("maxNodesPerRead", self[maxNodePerX]);
 
+            };
+
+            fix(this, "maxNodesPerRead", dataValues[0]);
+            fix(this, "maxNodesPerBrowse", dataValues[1]);
             callback();
         });
     }
 
     private set_cache_NodeAttribute(nodeId: NodeId, attributeId: AttributeIds, value: any) {
         const key = make_node_attribute_key(nodeId, attributeId);
-        this.browseNameMap[key] = value;
     }
 
     private has_cache_NodeAttribute(nodeId: NodeId, attributeId: AttributeIds) {
@@ -1313,7 +1325,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         this._resolve_deferred("browse_next", this.pendingBrowseNextTasks, this._resolve_deferred_browseNext);
     }
 
-// ---------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------
 
     private _getCacheNode(nodeId: NodeIdLike): CacheNode {
         const key = resolveNodeId(nodeId).toString();
@@ -1415,8 +1427,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             );
         }
 
-//        assert(browseResult.continuationPoint === null,
-//          "NodeCrawler doesn't support continuation point yet");
+        //        assert(browseResult.continuationPoint === null,
+        //          "NodeCrawler doesn't support continuation point yet");
 
         const cacheNode = _objectToBrowse.cacheNode as CacheNode;
 
@@ -1433,170 +1445,170 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
         async.parallel({
 
-                task1_read_browseName: (callback: ErrorCallback) => {
-                    if (cacheNode.browseName !== pendingBrowseName) {
-                        return callback();
-                    }
-                    this._defer_readNode(
-                        cacheNode.nodeId,
-                        AttributeIds.BrowseName,
-                        (err: Error | null, browseName?: QualifiedName) => {
-                            cacheNode.browseName = browseName!;
-                            callback();
-                        });
-                },
-                task2_read_displayName: (callback: ErrorCallback) => {
-                    if (cacheNode.displayName) {
-                        return callback();
-                    }
-                    this._defer_readNode(
-                        cacheNode.nodeId,
-                        AttributeIds.DisplayName,
-                        (err: Error | null, value?: LocalizedText) => {
-                            if (err) {
-                                return callback(err);
-                            }
-                            cacheNode.displayName = value!;
-                            callback();
-                        });
-                },
-                task3_read_description: (callback: ErrorCallback) => {
-                    this._defer_readNode(
-                        cacheNode.nodeId,
-                        AttributeIds.Description,
-                        (err: Error | null, value?: LocalizedText) => {
-                            if (err) {
-                                // description may not be defined and this is OK !
-                                return callback();
-                            }
-                            cacheNode.description = coerceLocalizedText(value)!;
-                            callback();
-                        });
-                },
-                task4_variable_dataType: (callback: ErrorCallback) => {
-                    // only if nodeClass is Variable || VariableType
-                    if (cacheNode.nodeClass !== NodeClass.Variable
-                        && cacheNode.nodeClass !== NodeClass.VariableType
-                    ) {
-                        return callback();
-                    }
-                    const cache = cacheNode as CacheNodeWithDataTypeField;
-                    // read dataType and DataType if node is a variable
-                    this._defer_readNode(
-                        cacheNode.nodeId,
-                        AttributeIds.DataType,
-                        (err: Error | null, dataType?: any) => {
-
-                            if (!(dataType instanceof NodeId)) {
-                                return callback();
-                            }
-                            cache.dataType = dataType;
-                            callback();
-                        });
-                },
-                task5_variable_dataValue: (callback: ErrorCallback) => {
-                    // only if nodeClass is Variable || VariableType
-                    if (cacheNode.nodeClass !== NodeClass.Variable
-                        && cacheNode.nodeClass !== NodeClass.VariableType
-                    ) {
-                        return callback();
-                    }
-                    const cache = cacheNode as CacheNodeVariable | CacheNodeVariableType;
-                    this._defer_readNode(cacheNode.nodeId, AttributeIds.Value,
-                        (err: Error | null, value?: DataValue) => {
-                            cache.dataValue = value!;
-                            callback();
-                        });
-                },
-                task6_variable_arrayDimension: (callback: ErrorCallback) => {
-                    callback();
-                },
-                task7_variable_minimumSamplingInterval: (callback: ErrorCallback) => {
-                    if (cacheNode.nodeClass !== NodeClass.Variable) {
-                        return callback();
-                    }
-                    const cache = cacheNode as CacheNodeVariable;
-                    this._defer_readNode(cacheNode.nodeId, AttributeIds.MinimumSamplingInterval,
-                        (err: Error | null, value?: number) => {
-                            cache.minimumSamplingInterval = value!;
-                            callback();
-                        });
-                },
-                task8_variable_accessLevel: (callback: ErrorCallback) => {
-                    if (cacheNode.nodeClass !== NodeClass.Variable) {
-                        return callback();
-                    }
-                    const cache = cacheNode as CacheNodeWithAccessLevelField;
-                    this._defer_readNode(cacheNode.nodeId, AttributeIds.AccessLevel,
-                        (err: Error | null, value?: number) => {
-                            if (err) {
-                                return callback(err);
-                            }
-                            cache.accessLevel = value!;
-                            callback();
-                        });
-                },
-                task9_variable_userAccessLevel: (callback: ErrorCallback) => {
-                    if (cacheNode.nodeClass !== NodeClass.Variable) {
-                        return callback();
-                    }
-                    const cache = cacheNode as CacheNodeVariable;
-                    this._defer_readNode(cacheNode.nodeId, AttributeIds.UserAccessLevel,
-                        (err: Error | null, value?: number) => {
-                            if (err) {
-                                return callback(err);
-                            }
-                            cache.userAccessLevel = value!;
-                            callback();
-                        });
-                },
-                taskA_referenceType_inverseName: (callback: ErrorCallback) => {
-                    if (cacheNode.nodeClass !== NodeClass.ReferenceType) {
-                        return callback();
-                    }
-                    const cache = cacheNode as CacheNodeReferenceType;
-                    this._defer_readNode(cacheNode.nodeId, AttributeIds.InverseName,
-                        (err: Error | null, value?: LocalizedText) => {
-                            if (err) {
-                                return callback(err);
-                            }
-                            cache.inverseName = value!;
-                            callback();
-                        });
-                },
-                taskB_isAbstract: (callback: ErrorCallback) => {
-                    if (cacheNode.nodeClass !== NodeClass.ReferenceType) {
-                        return callback();
-                    }
-                    const cache = cacheNode as CacheNodeWithAbstractField;
-                    this._defer_readNode(cacheNode.nodeId, AttributeIds.IsAbstract,
-                        (err: Error | null, value?: boolean) => {
-                            if (err) {
-                                return callback(err);
-                            }
-                            cache.isAbstract = value!;
-                            callback();
-                        });
-                },
-                taskC_dataTypeDefinition: (callback: ErrorCallback) => {
-                    if (cacheNode.nodeClass !== NodeClass.DataType) {
-                        return callback();
-                    }
-                    // dataTypeDefinition is new in 1.04
-                    const cache = cacheNode as CacheNodeDataType;
-                    this._defer_readNode(cacheNode.nodeId, AttributeIds.DataTypeDefinition, (err, value?: DataTypeDefinition) => {
-                        if (err) {
-                            // may be we are crawling a 1.03 server => DataTypeDefinition was not defined yet
-                            return callback();
-                        }
-                        cache.dataTypeDefinition = value!;
+            task1_read_browseName: (callback: ErrorCallback) => {
+                if (cacheNode.browseName !== pendingBrowseName) {
+                    return callback();
+                }
+                this._defer_readNode(
+                    cacheNode.nodeId,
+                    AttributeIds.BrowseName,
+                    (err: Error | null, browseName?: QualifiedName) => {
+                        cacheNode.browseName = browseName!;
                         callback();
                     });
+            },
+            task2_read_displayName: (callback: ErrorCallback) => {
+                if (cacheNode.displayName) {
+                    return callback();
                 }
+                this._defer_readNode(
+                    cacheNode.nodeId,
+                    AttributeIds.DisplayName,
+                    (err: Error | null, value?: LocalizedText) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        cacheNode.displayName = value!;
+                        callback();
+                    });
+            },
+            task3_read_description: (callback: ErrorCallback) => {
+                this._defer_readNode(
+                    cacheNode.nodeId,
+                    AttributeIds.Description,
+                    (err: Error | null, value?: LocalizedText) => {
+                        if (err) {
+                            // description may not be defined and this is OK !
+                            return callback();
+                        }
+                        cacheNode.description = coerceLocalizedText(value)!;
+                        callback();
+                    });
+            },
+            task4_variable_dataType: (callback: ErrorCallback) => {
+                // only if nodeClass is Variable || VariableType
+                if (cacheNode.nodeClass !== NodeClass.Variable
+                    && cacheNode.nodeClass !== NodeClass.VariableType
+                ) {
+                    return callback();
+                }
+                const cache = cacheNode as CacheNodeWithDataTypeField;
+                // read dataType and DataType if node is a variable
+                this._defer_readNode(
+                    cacheNode.nodeId,
+                    AttributeIds.DataType,
+                    (err: Error | null, dataType?: any) => {
 
-            }, () => {
-                _objectToBrowse.action(cacheNode);
+                        if (!(dataType instanceof NodeId)) {
+                            return callback();
+                        }
+                        cache.dataType = dataType;
+                        callback();
+                    });
+            },
+            task5_variable_dataValue: (callback: ErrorCallback) => {
+                // only if nodeClass is Variable || VariableType
+                if (cacheNode.nodeClass !== NodeClass.Variable
+                    && cacheNode.nodeClass !== NodeClass.VariableType
+                ) {
+                    return callback();
+                }
+                const cache = cacheNode as CacheNodeVariable | CacheNodeVariableType;
+                this._defer_readNode(cacheNode.nodeId, AttributeIds.Value,
+                    (err: Error | null, value?: DataValue) => {
+                        cache.dataValue = value!;
+                        callback();
+                    });
+            },
+            task6_variable_arrayDimension: (callback: ErrorCallback) => {
+                callback();
+            },
+            task7_variable_minimumSamplingInterval: (callback: ErrorCallback) => {
+                if (cacheNode.nodeClass !== NodeClass.Variable) {
+                    return callback();
+                }
+                const cache = cacheNode as CacheNodeVariable;
+                this._defer_readNode(cacheNode.nodeId, AttributeIds.MinimumSamplingInterval,
+                    (err: Error | null, value?: number) => {
+                        cache.minimumSamplingInterval = value!;
+                        callback();
+                    });
+            },
+            task8_variable_accessLevel: (callback: ErrorCallback) => {
+                if (cacheNode.nodeClass !== NodeClass.Variable) {
+                    return callback();
+                }
+                const cache = cacheNode as CacheNodeWithAccessLevelField;
+                this._defer_readNode(cacheNode.nodeId, AttributeIds.AccessLevel,
+                    (err: Error | null, value?: number) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        cache.accessLevel = value!;
+                        callback();
+                    });
+            },
+            task9_variable_userAccessLevel: (callback: ErrorCallback) => {
+                if (cacheNode.nodeClass !== NodeClass.Variable) {
+                    return callback();
+                }
+                const cache = cacheNode as CacheNodeVariable;
+                this._defer_readNode(cacheNode.nodeId, AttributeIds.UserAccessLevel,
+                    (err: Error | null, value?: number) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        cache.userAccessLevel = value!;
+                        callback();
+                    });
+            },
+            taskA_referenceType_inverseName: (callback: ErrorCallback) => {
+                if (cacheNode.nodeClass !== NodeClass.ReferenceType) {
+                    return callback();
+                }
+                const cache = cacheNode as CacheNodeReferenceType;
+                this._defer_readNode(cacheNode.nodeId, AttributeIds.InverseName,
+                    (err: Error | null, value?: LocalizedText) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        cache.inverseName = value!;
+                        callback();
+                    });
+            },
+            taskB_isAbstract: (callback: ErrorCallback) => {
+                if (cacheNode.nodeClass !== NodeClass.ReferenceType) {
+                    return callback();
+                }
+                const cache = cacheNode as CacheNodeWithAbstractField;
+                this._defer_readNode(cacheNode.nodeId, AttributeIds.IsAbstract,
+                    (err: Error | null, value?: boolean) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        cache.isAbstract = value!;
+                        callback();
+                    });
+            },
+            taskC_dataTypeDefinition: (callback: ErrorCallback) => {
+                if (cacheNode.nodeClass !== NodeClass.DataType) {
+                    return callback();
+                }
+                // dataTypeDefinition is new in 1.04
+                const cache = cacheNode as CacheNodeDataType;
+                this._defer_readNode(cacheNode.nodeId, AttributeIds.DataTypeDefinition, (err, value?: DataTypeDefinition) => {
+                    if (err) {
+                        // may be we are crawling a 1.03 server => DataTypeDefinition was not defined yet
+                        return callback();
+                    }
+                    cache.dataTypeDefinition = value!;
+                    callback();
+                });
             }
+
+        }, () => {
+            _objectToBrowse.action(cacheNode);
+        }
         );
     }
 

@@ -4,7 +4,8 @@ import * as sinon from "sinon";
 import {
     AddressSpace,
     getMiniAddressSpace,
-    PseudoSession
+    PseudoSession,
+    UAVariable,
 } from "node-opcua-address-space";
 
 import {
@@ -21,6 +22,7 @@ import {
     NodeCrawler,
     UserData
 } from "..";
+import { DataType } from "node-opcua-client";
 
 describe("NodeCrawler", () => {
 
@@ -125,14 +127,113 @@ describe("NodeCrawler", () => {
         await crawler.crawl(groupNodeId, data);
 
         results.sort().join(" ").should.eql(
-          "1:Group 1:Object0 1:Object1 " + 
-          "1:Object2 1:Object3 1:Object4 "+ 
-          "1:Object5 1:Object6 1:Object7 "+ 
+          "1:Group 1:Object0 1:Object1 " +
+          "1:Object2 1:Object3 1:Object4 " +
+          "1:Object5 1:Object6 1:Object7 " +
           "1:Object8 1:Object9 Organizes");
 
         console.log("browseCounter = ",     crawler.browseCounter);
         console.log("browseNextCounter = ", crawler.browseNextCounter);
         console.log("readCounter = ",       crawler.readCounter);
         // crawler.browseNextCounter.should.be.greaterThan(0);
+    });
+
+    it("issue #655: it should used provided MaxNodePerRead/MaxNodePerBrowse as a minimum value when set <> 0 and server provide limits", async () => {
+
+        // Given a server that provides some limit for MaxNodesPerRead && MaxNodesPerBrowse
+        const maxNodesPerReadVar = addressSpace.findNode("Server_ServerCapabilities_OperationLimits_MaxNodesPerRead")! as UAVariable;
+        const maxNodesPerBrowseVar = addressSpace.findNode("Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse")! as UAVariable;
+
+        maxNodesPerReadVar.setValueFromSource({ dataType: DataType.UInt32, value: 251});
+        maxNodesPerBrowseVar.setValueFromSource({ dataType: DataType.UInt32, value: 252});
+       
+        maxNodesPerReadVar.readValue().value.value.should.eql(251);
+        maxNodesPerBrowseVar.readValue().value.value.should.eql(252);
+        
+        const session = new PseudoSession(addressSpace);
+
+        {
+            // Given that NodeCrawler doesn't specify minimum value for  maxNodesPerRead/Browse
+            const crawler = new NodeCrawler(session);
+            crawler.maxNodesPerRead = 0;
+            crawler.maxNodesPerBrowse = 0;
+            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+
+            // then NodeCrawler shall be set with value provided by server
+            crawler.maxNodesPerRead.should.eql(251);
+            crawler.maxNodesPerBrowse.should.eql(252);
+        }
+
+        {
+            // Given that NodeCrawler does  specify minimum value for  maxNodesPerRead/Browse
+            // which are below server provided limit
+            const crawler = new NodeCrawler(session);
+            crawler.maxNodesPerRead = 5;
+            crawler.maxNodesPerBrowse = 10;
+            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            // then NodeCrawler shall be set with value provided by itself
+            crawler.maxNodesPerRead.should.eql(5);
+            crawler.maxNodesPerBrowse.should.eql(10);
+        }
+        {
+            // Given that NodeCrawler does  specify minimum value for  maxNodesPerRead/Browse
+            // which are above server provided limit
+            const crawler = new NodeCrawler(session);
+            crawler.maxNodesPerRead = 501;
+            crawler.maxNodesPerBrowse = 502;
+            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            // then NodeCrawler shall be set with value provided by server
+            crawler.maxNodesPerRead.should.eql(251);
+            crawler.maxNodesPerBrowse.should.eql(252);
+        }
+
+    });
+    it("issue #655: it should used provided MaxNodePerRead/MaxNodePerBrowse as a minimum value when set <> 0 and server do not provide limits", async () => {
+
+        // Given a server that DOES NOT provide some limit for MaxNodesPerRead && MaxNodesPerBrowse
+        const maxNodesPerReadVar = addressSpace.findNode("Server_ServerCapabilities_OperationLimits_MaxNodesPerRead")! as UAVariable;
+        const maxNodesPerBrowseVar = addressSpace.findNode("Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse")! as UAVariable;
+
+        maxNodesPerReadVar.setValueFromSource({ dataType: DataType.UInt32, value: 0});
+        maxNodesPerBrowseVar.setValueFromSource({ dataType: DataType.UInt32, value: 0});
+
+        maxNodesPerReadVar.readValue().value.value.should.eql(0);
+        maxNodesPerBrowseVar.readValue().value.value.should.eql(0);
+
+        const session = new PseudoSession(addressSpace);
+
+        {
+            // Given that NodeCrawler doesn't specify minimum value for  maxNodesPerRead/Browse
+            const crawler = new NodeCrawler(session);
+            crawler.maxNodesPerRead = 0;
+            crawler.maxNodesPerBrowse = 0;
+            // then NodeCrawler shall be set with default value provided by NodeCrawler
+            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            crawler.maxNodesPerRead.should.eql(100);
+            crawler.maxNodesPerBrowse.should.eql(100);
+        }
+
+        {
+            const crawler = new NodeCrawler(session);
+            // Given that NodeCrawler doesn't specify minimum value for  maxNodesPerRead/Browse
+            crawler.maxNodesPerRead = 5;
+            crawler.maxNodesPerBrowse = 10;
+            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            // then NodeCrawler shall be set with value provided by itself
+            crawler.maxNodesPerRead.should.eql(5);
+            crawler.maxNodesPerBrowse.should.eql(10);
+        }
+        {
+            const crawler = new NodeCrawler(session);
+            // Given that NodeCrawler doesn't specify minimum value for  maxNodesPerRead/Browse
+            // and greater than default value
+            crawler.maxNodesPerRead = 501;
+            crawler.maxNodesPerBrowse = 502;
+            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            // then NodeCrawler shall be set with value provided by itself
+            crawler.maxNodesPerRead.should.eql(501);
+            crawler.maxNodesPerBrowse.should.eql(502);
+        }
+
     });
 });
