@@ -971,6 +971,8 @@ export function generateAddressSpace(
             ListOfUint16: ListOf("Uint16", parseInt),
 
             ListOfUint8: ListOf("Uint8", parseInt),
+			
+            ListOfString: ListOf("String", (value: string)=>value),
 
             ExtensionObject: {
                 init(this: any) {
