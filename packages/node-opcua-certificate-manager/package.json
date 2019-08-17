@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-certificate-manager",
- "version": "2.1.3",
+ "version": "2.1.5",
  "description": "pure nodejs OPCUA SDK - module -client",
  "scripts": {
   "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
@@ -22,15 +22,15 @@
   "env-paths": "^2.2.0",
   "mkdirp": "^0.5.1",
   "node-opcua-assert": "^2.0.0",
-  "node-opcua-basic-types": "^2.1.3",
+  "node-opcua-basic-types": "^2.1.5",
   "node-opcua-buffer-utils": "^2.1.0",
-  "node-opcua-common": "^2.1.3",
-  "node-opcua-constants": "^2.1.3",
+  "node-opcua-common": "^2.1.5",
+  "node-opcua-constants": "^2.1.5",
   "node-opcua-crypto": "^1.1.2",
   "node-opcua-debug": "^2.1.0",
   "node-opcua-pki": "^1.5.3",
-  "node-opcua-status-code": "^2.1.3",
-  "node-opcua-utils": "^2.1.3",
+  "node-opcua-status-code": "^2.1.5",
+  "node-opcua-utils": "^2.1.5",
   "once": "^1.4.0",
   "thenify": "^3.3.0",
   "underscore": "^1.9.1"
