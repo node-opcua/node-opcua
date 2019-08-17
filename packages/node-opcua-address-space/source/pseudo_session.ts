@@ -21,6 +21,7 @@ import {
     BrowseDescriptionOptions,
     BrowseRequest,
     BrowseResponse,
+    BrowseNextResponse,
     BrowseResult
 } from "node-opcua-service-browse";
 import {
@@ -39,7 +40,7 @@ import {
 import { AddressSpace } from "./address_space_ts";
 import { callMethodHelper } from "./helpers/call_helpers";
 import { IServerBase, ISessionBase, SessionContext } from "./session_context";
-
+import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 /**
  * Pseudo session is an helper object that exposes the same async methods
  * than the ClientSession. It can be used on a server address space.
@@ -56,13 +57,16 @@ export class PseudoSession implements IBasicSession {
 
     public server: IServerBase;
     public session: ISessionBase;
+    public requestedMaxReferencesPerNode: number = 0;
 
     private readonly addressSpace: AddressSpace;
+    private readonly continuationPointManager: ContinuationPointManager;
 
     constructor(addressSpace: AddressSpace, server?: IServerBase, session?: ISessionBase) {
         this.addressSpace = addressSpace;
         this.server = server || {};
         this.session = session || {};
+        this.continuationPointManager = new ContinuationPointManager();
     }
 
     public browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
@@ -71,19 +75,36 @@ export class PseudoSession implements IBasicSession {
     public browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
     public browse(nodesToBrowse: BrowseDescriptionLike | BrowseDescriptionLike[], callback?: ResponseCallback<any>): any {
 
-        const isArray = _.isArray(nodesToBrowse);
-        if (!isArray) {
-            nodesToBrowse = [nodesToBrowse as BrowseDescriptionLike];
-        }
-        const results: BrowseResult[] = [];
-        for (let browseDescription of nodesToBrowse as any[]) {
-            browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId);
-            browseDescription = new BrowseDescription(browseDescription);
-            const nodeId = resolveNodeId(browseDescription.nodeId);
-            const r = this.addressSpace.browseSingleNode(nodeId, browseDescription);
-            results.push(r);
-        }
-        callback!(null, isArray ? results : results[0]);
+        setImmediate(()=>{
+            const isArray = _.isArray(nodesToBrowse);
+            if (!isArray) {
+                nodesToBrowse = [nodesToBrowse as BrowseDescriptionLike];
+            }
+            let results: BrowseResult[] = [];
+            for (let browseDescription of nodesToBrowse as any[]) {
+                browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId);
+                browseDescription = new BrowseDescription(browseDescription);
+                const nodeId = resolveNodeId(browseDescription.nodeId);
+                const r = this.addressSpace.browseSingleNode(nodeId, browseDescription);
+                results.push(r);
+            }
+
+            // handle continuation points
+            results = results.map((result: BrowseResult) => {
+                assert(!result.continuationPoint);
+                const truncatedResult = this.continuationPointManager.register(
+                this.requestedMaxReferencesPerNode,
+                result.references || []
+                );
+                assert(truncatedResult.statusCode === StatusCodes.Good);
+                truncatedResult.statusCode = result.statusCode;
+                return new BrowseResult(truncatedResult);
+            });
+
+
+            callback!(null, isArray ? results : results[0]);
+            
+        });
     }
 
     public read(nodeToRead: ReadValueIdLike, callback: ResponseCallback<DataValue>): void;
@@ -97,26 +118,30 @@ export class PseudoSession implements IBasicSession {
             nodesToRead = [nodesToRead];
         }
 
-        // xx const context = new SessionContext({ session: null });
-        const dataValues = nodesToRead.map((nodeToRead: ReadValueIdLike) => {
+        setImmediate(()=> {
 
-            assert(!!nodeToRead.nodeId, "expecting a nodeId");
-            assert(!!nodeToRead.attributeId, "expecting a attributeId");
 
-            const nodeId = nodeToRead.nodeId!;
-            const attributeId = nodeToRead.attributeId!;
-            const indexRange = nodeToRead.indexRange;
-            const dataEncoding = nodeToRead.dataEncoding;
-            const obj = this.addressSpace.findNode(nodeId);
-            if (!obj) {
-                return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
-            }
-            const context = SessionContext.defaultContext;
-            const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
-            return dataValue;
+            // xx const context = new SessionContext({ session: null });
+            const dataValues = nodesToRead.map((nodeToRead: ReadValueIdLike) => {
+
+                assert(!!nodeToRead.nodeId, "expecting a nodeId");
+                assert(!!nodeToRead.attributeId, "expecting a attributeId");
+
+                const nodeId = nodeToRead.nodeId!;
+                const attributeId = nodeToRead.attributeId!;
+                const indexRange = nodeToRead.indexRange;
+                const dataEncoding = nodeToRead.dataEncoding;
+                const obj = this.addressSpace.findNode(nodeId);
+                if (!obj) {
+                    return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+                }
+                const context = SessionContext.defaultContext;
+                const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
+                return dataValue;
+            });
+
+            callback!(null, isArray ? dataValues : dataValues[0]);
         });
-
-        callback!(null, isArray ? dataValues : dataValues[0]);
     }
 
     public browseNext(
@@ -138,8 +163,48 @@ export class PseudoSession implements IBasicSession {
       continuationPoints: Buffer[],
       releaseContinuationPoints: boolean
     ): Promise<BrowseResult[]>;
-    public browseNext(...args: [any?, ...any[]]): any {
-        throw new Error("Not Implemented");
+    public browseNext(
+        continuationPoints: Buffer | Buffer[],
+        releaseContinuationPoints: boolean,
+        callback?: any
+    ): any {
+
+        setImmediate(()=>{ 
+
+            if (continuationPoints instanceof Buffer) {
+                return this.browseNext([continuationPoints],releaseContinuationPoints,
+                    (err, results) => {
+                    if (err) { return callback!(err);}
+                    callback!(null, results![0]);
+                });
+                return;
+            }
+            const session = this;
+            let results: any;
+            if (releaseContinuationPoints) {
+                // releaseContinuationPoints = TRUE
+                //   passed continuationPoints shall be reset to free resources in
+                //   the Server. The continuation points are released and the results
+                //   and diagnosticInfos arrays are empty.
+                results = continuationPoints.map((continuationPoint: any) => {
+                    return session.continuationPointManager.cancel(continuationPoint);
+                });
+
+            } else {
+                // let extract data from continuation points
+
+                // releaseContinuationPoints = FALSE
+                //   passed continuationPoints shall be used to get the next set of
+                //   browse information.
+                results = continuationPoints.map((continuationPoint: any) => {
+                    return session.continuationPointManager.getNext(continuationPoint);
+                });
+            }
+            results = results.map((r: any) => new BrowseResult(r));
+
+            callback!(null, results);
+        });
+
     }
 
     // call service ----------------------------------------------------------------------------------------------------

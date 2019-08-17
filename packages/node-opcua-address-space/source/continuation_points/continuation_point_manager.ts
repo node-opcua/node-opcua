@@ -1,13 +1,13 @@
 /**
  * @module node-opcua-server
  */
-import { ContinuationPoint } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     BrowseResultOptions,
     ReferenceDescription
 } from "node-opcua-types";
+import { ContinuationPoint } from "../address_space_ts";
 
 let counter = 0;
 

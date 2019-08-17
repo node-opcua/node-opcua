@@ -3,7 +3,6 @@
  */
 export * from "./base_server";
 export * from "./server_end_point";
-export * from "./continuation_point_manager";
 export * from "./register_server_manager";
 export * from "./register_server_manager_mdns_only";
 export * from "./server_publish_engine";

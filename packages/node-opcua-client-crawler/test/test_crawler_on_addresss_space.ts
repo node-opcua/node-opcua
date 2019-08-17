@@ -24,13 +24,18 @@ import {
 } from "..";
 import { DataType } from "node-opcua-client";
 
-describe("NodeCrawler", () => {
+describe("NodeCrawler", function (this: any) {
+
+    this.timeout(200000);
 
     let addressSpace: AddressSpace;
     let groupNodeId: NodeId;
+    let massVariablesNodeId: NodeId;
     before(async () => {
 
         addressSpace = await getMiniAddressSpace();
+
+        addressSpace.isFrugal = true;
 
         const group = addressSpace.getOwnNamespace().addObject({
             browseName: "Group",
@@ -44,6 +49,21 @@ describe("NodeCrawler", () => {
             });
         }
         groupNodeId = group.nodeId;
+
+        const massVariables = addressSpace.getOwnNamespace().addObject({
+            browseName: "MassVariables",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+        massVariablesNodeId = massVariables.nodeId;
+        for (let i = 0; i < 10000; i++) {
+            addressSpace.getOwnNamespace().addVariable({
+                browseName: "Variable" + i,
+                dataType: "Double",
+                value: { dataType: "Double", value: i},
+                organizedBy: massVariables
+            });
+        }
+
     });
     after(() => {
         if (addressSpace) {
@@ -113,7 +133,6 @@ describe("NodeCrawler", () => {
 
         const crawler = new NodeCrawler(session);
         crawler.maxNodesPerBrowse = 5;
-
         const results: string[] = [];
 
         const data = {
@@ -235,5 +254,50 @@ describe("NodeCrawler", () => {
             crawler.maxNodesPerBrowse.should.eql(502);
         }
 
+    });
+    
+    it("#655 it should send a browse event for each elements visited ", async () => {
+
+        addressSpace.rootFolder.objects.server.serverCapabilities.operationLimits.maxNodesPerBrowse!.setValueFromSource({
+            dataType: "UInt32", value: 100,
+        });
+        addressSpace.rootFolder.objects.server.serverCapabilities.operationLimits.maxNodesPerRead!.setValueFromSource({
+            dataType: "UInt32", value: 1000,
+        });
+
+        const session = new PseudoSession(addressSpace);
+        
+        session.requestedMaxReferencesPerNode = 1000;
+
+        (session as any).browse     = sinon.spy(session, "browse");
+        (session as any).browseNext = sinon.spy(session, "browseNext");
+        (session as any).read       = sinon.spy(session, "read");
+
+        const crawler = new NodeCrawler(session);
+        
+        const results: string[] = [];
+
+        let onBrowseCallCount = 0;
+        const data = {
+            onBrowse(this: UserData, crawler1: NodeCrawler, cacheNode: CacheNode) {
+                results.push(cacheNode.browseName.toString());
+                followForward(crawler1, cacheNode, this);
+                onBrowseCallCount +=1;
+            }
+        };
+
+        await crawler.crawl(massVariablesNodeId, data);
+
+        console.log("onBrowse(element) count ",onBrowseCallCount);
+        console.log("browse                  ", (session as any).browse.callCount);
+        console.log("browseNext              ", (session as any).browseNext.callCount);
+        console.log("read                    ", (session as any).read.callCount);
+
+        onBrowseCallCount.should.eql(1 + 10000 + 1);
+        (session as any).browse.callCount.should.eql(102); // 2 + 100*100
+        (session as any).browseNext.callCount.should.eql(10); // 10000*7 
+        (session as any).read.callCount.should.eql(64); // 64*1000 => 6 read per node in average ?
+            
+        
     });
 });

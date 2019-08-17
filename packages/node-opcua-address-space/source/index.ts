@@ -22,3 +22,4 @@ export * from "../src/alarms_and_conditions";
 export * from "../test_helpers";
 export { getAddressSpaceFixture }from "../test_helpers/get_address_space_fixture";
 export { ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";
+export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";

@@ -13,6 +13,7 @@ export * from "../source/helpers/call_helpers";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
 export { UACertificateExpirationAlarm }  from "./alarms_and_conditions";
 export { ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";
+export {ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";
 
 export { generateAddressSpace } from "../source";
 export { promoteToStateMachine } from "./state_machine/finite_state_machine";

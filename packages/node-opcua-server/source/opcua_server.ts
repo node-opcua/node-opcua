@@ -2480,7 +2480,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
               // limit results to requestedMaxReferencesPerNode further so it never exceed a too big number
               const requestedMaxReferencesPerNode = Math.min(9876, request.requestedMaxReferencesPerNode);
-
               let results: BrowseResult[] = [];
               assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
               results = server.engine.browse(request.nodesToBrowse);

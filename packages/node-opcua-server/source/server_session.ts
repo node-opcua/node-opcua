@@ -10,10 +10,15 @@ import * as _ from "underscore";
 import {
     addElement,
     AddressSpace,
-    createExtObjArrayNode, ISessionBase, removeElement, UADynamicVariableArray,
+    createExtObjArrayNode,
+    ContinuationPointManager,
+    ISessionBase,
+    removeElement,
+    UADynamicVariableArray,
     UAObject,
     UASessionDiagnostics
 } from "node-opcua-address-space";
+
 import { assert } from "node-opcua-assert";
 import { randomGuid } from "node-opcua-basic-types";
 import {
@@ -33,7 +38,6 @@ import { ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import { ApplicationDescription, UserIdentityToken } from "node-opcua-types";
 
 import { ISubscriber, IWatchdogData2 } from "node-opcua-utils";
-import { ContinuationPointManager } from "./continuation_point_manager";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { Subscription } from "./server_subscription";
 import { SubscriptionState } from "./server_subscription";
