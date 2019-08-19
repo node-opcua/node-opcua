@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { coerceInt32 } from "node-opcua-basic-types";
-import { StatusCodes } from "node-opcua-constants";
+import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 import { EnumValueType, Range } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";

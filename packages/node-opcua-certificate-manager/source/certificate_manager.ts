@@ -9,7 +9,7 @@ import * as mkdirp from "mkdirp";
 import envPaths from "env-paths";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
-import { StatusCodes } from "node-opcua-constants";
+import { StatusCodes } from "node-opcua-status-code";
 import {
     Certificate,
     exploreCertificateInfo,
@@ -128,7 +128,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                 if (err1) {
                     return callback!(err1);
                 }
-                const statusCode = StatusCodes[status!];
+                const statusCode = (StatusCodes as any)[status!];
                 if (!statusCode) {
                     return callback!(new Error("Invalid statusCode " + status));
                 }
@@ -172,7 +172,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     ): any {
         this.isCertificateTrusted(certificate, (err: Error | null, trustedStatus?: string) => {
             callback!(err,
-              err ? undefined : StatusCodes[trustedStatus!]);
+              err ? undefined : (StatusCodes as any)[trustedStatus!]);
         });
     }
 

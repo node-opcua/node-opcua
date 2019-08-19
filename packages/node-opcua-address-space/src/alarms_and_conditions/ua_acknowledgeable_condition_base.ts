@@ -4,7 +4,7 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-constants";
+import { StatusCodes } from "node-opcua-status-code";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, VariantLike } from "node-opcua-variant";
@@ -239,6 +239,7 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
          */
         conditionNode.emit("acknowledged", eventId, comment, branch);
 
+        return StatusCodes.Good;
     }
 
     /**

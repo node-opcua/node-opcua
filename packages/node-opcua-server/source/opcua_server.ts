@@ -1511,7 +1511,7 @@ export class OPCUAServer extends OPCUABaseServer {
             }
 
             // verify if certificate is truster or rejected
-            // todo: StatusCode.BadCertificateUntrusted
+            // todo: StatusCodes.BadCertificateUntrusted
 
             // store untrusted certificate to rejected folder
             // todo:

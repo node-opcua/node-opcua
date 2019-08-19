@@ -4,7 +4,7 @@
 import { SessionContext, UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { HistoryData, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode } from "node-opcua-status-code";
 
 import { getAggregateConfiguration } from "./aggregates";
 import { getInterval, Interval, AggregateConfigurationOptionsEx } from "./interval";
@@ -108,7 +108,7 @@ export function interpolateValue(dataValue1: DataValue, dataValue2: DataValue, d
     const coef2 = (t1 - t) / (t1 - t0);
     const value = dataValue1.value.clone();
     value.value = coef2 * dataValue1.value.value + coef1 * dataValue2.value.value;
-    const statusCode = StatusCodes.makeStatusCode(dataValue1.statusCode, "HistorianInterpolated");
+    const statusCode = StatusCode.makeStatusCode(dataValue1.statusCode, "HistorianInterpolated");
     return new DataValue({
         sourceTimestamp: date,
         statusCode,

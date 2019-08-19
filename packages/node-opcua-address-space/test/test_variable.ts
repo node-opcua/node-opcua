@@ -14,7 +14,6 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
-
 const nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
 import {
@@ -25,12 +24,13 @@ import {
     Namespace, RootFolder,
     SessionContext,
     StatusCodeCallBack,
-    UAVariable
+    UAVariable,
+    PseudoSession
 } from "..";
 
 import { NumericRange } from "node-opcua-numeric-range";
 import { WriteValue } from "node-opcua-types";
-import { create_minimalist_address_space_nodeset } from "../";
+import { create_minimalist_address_space_nodeset} from "../";
 
 const context = SessionContext.defaultContext;
 
@@ -1450,6 +1450,35 @@ describe("testing UAVariable ", () => {
 
         temperatureVar.setValueFromSource({ dataType: DataType.Double, value: 6.28 }, StatusCodes.Good);
         changeDetected.should.equal(3);
+
+    });
+
+    it("%%% should create a UAVariable with default value and be writable",async () => {
+
+        const objectsFolder = addressSpace.findNode("ObjectsFolder")!;
+
+        const temperatureVar = namespace.addVariable({
+            browseName: "TestingNoValue",
+            dataType: "Double",
+            organizedBy: objectsFolder,
+            value: undefined // undefined here !!!! {               dataType: DataType.Double, value: 0.0 }
+        });
+
+        const nodeId = temperatureVar.nodeId;
+ 
+        const dataValue = await temperatureVar.readAttribute(context, AttributeIds.Value);
+        dataValue.statusCode.should.eql(StatusCodes.UncertainInitialValue);
+
+        const writeValue = {
+            nodeId,
+            attributeId: AttributeIds.Value,
+            dataValue: {
+                dataType: "Double",
+                value: 32
+            }
+        }
+        const statusCode1 = await temperatureVar.writeAttribute(context, writeValue);
+        statusCode1.should.eql(StatusCodes.Good);
 
     });
 });

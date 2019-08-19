@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { DataType, Variant } from "node-opcua-variant";
 
 import { coerceInt32, coerceUInt64, Int64 } from "node-opcua-basic-types";
-import { StatusCodes } from "node-opcua-constants";
+import { StatusCodes } from "node-opcua-status-code";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { StatusCode } from "node-opcua-status-code";

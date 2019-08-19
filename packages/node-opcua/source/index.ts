@@ -35,10 +35,10 @@ export {
 } from "node-opcua-nodeid";
 
 export {
-    StatusCode
+    StatusCode,
+    StatusCodes
 } from "node-opcua-status-code";
 export {
-    StatusCodes,
     VariableTypeIds,
     VariableIds,
     MethodIds,

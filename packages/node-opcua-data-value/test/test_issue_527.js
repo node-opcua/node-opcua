@@ -2,10 +2,10 @@
 /* global describe,it*/
 Error.stackTraceLimit = 1000;
 
-const DataValue = require("..").DataValue;
-const Variant = require("node-opcua-variant").Variant;
-const DataType = require("node-opcua-variant").DataType;
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const { DataValue } = require("..");
+const { Variant } = require("node-opcua-variant");
+const { DataType } = require("node-opcua-variant");
+const { StatusCode, StatusCodes } =require("node-opcua-status-code");
 
 require("should");
 function debugLog() {
@@ -18,7 +18,7 @@ describe("DataValue with Limit bits", function () {
     it("should handle a DataValue with Overflow | InfoTypeDataValue ", function () {
 
         const dataValue = new DataValue({
-            statusCode: StatusCodes.makeStatusCode(StatusCodes.Good, "Overflow | InfoTypeDataValue")
+            statusCode: StatusCode.makeStatusCode(StatusCodes.Good, "Overflow | InfoTypeDataValue")
         });
         encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
             buffer.length.should.equal(5);
@@ -31,7 +31,7 @@ describe("DataValue with Limit bits", function () {
     it("should handle a DataValue with statusCode Good + LimitLow ", function () {
 
         const dataValue = new DataValue({
-            statusCode: StatusCodes.makeStatusCode(StatusCodes.Good, "LimitLow")
+            statusCode: StatusCode.makeStatusCode(StatusCodes.Good, "LimitLow")
         });
         encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
             buffer.length.should.equal(5);
@@ -45,7 +45,7 @@ describe("DataValue with Limit bits", function () {
     it("should handle a DataValue with statusCode Good + LimitHigh ", function () {
 
         const dataValue = new DataValue({
-            statusCode: StatusCodes.makeStatusCode(StatusCodes.Good, "LimitHigh")
+            statusCode: StatusCode.makeStatusCode(StatusCodes.Good, "LimitHigh")
         });
         encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
             buffer.length.should.equal(5);
@@ -62,7 +62,7 @@ describe("DataValue with Limit bits", function () {
     it("should handle a DataValue with statusCode Good + LimitConstant ", function () {
 
         const dataValue = new DataValue({
-            statusCode: StatusCodes.makeStatusCode(StatusCodes.Good, "LimitConstant")
+            statusCode: StatusCode.makeStatusCode(StatusCodes.Good, "LimitConstant")
         });
         encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
             buffer.length.should.equal(5);
@@ -76,7 +76,7 @@ describe("DataValue with Limit bits", function () {
     it("should handle a DataValue with statusCode Good + extra bits = 1024 ", function () {
 
         const dataValue = new DataValue({
-            statusCode: StatusCodes.makeStatusCode(StatusCodes.Good, 1024)
+            statusCode: StatusCode.makeStatusCode(StatusCodes.Good, 1024)
         });
         encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
             buffer.length.should.equal(5);
@@ -90,7 +90,7 @@ describe("DataValue with Limit bits", function () {
     xit("should handle a DataValue that has a undefined statusCode ", function () {
 
         const dataValue = new DataValue({
-            statusCode: StatusCodes.makeStatusCode(StatusCodes.Good, 1024)
+            statusCode: StatusCode.makeStatusCode(StatusCodes.Good, 1024)
         });
 
         dataValue.statusCode = undefined;

@@ -15,7 +15,7 @@ import {
     promoteOpaqueStructure,
     resolveDynamicExtensionObject,
 } from "node-opcua-client-dynamic-extension-object";
-import { ReferenceTypeIds, StatusCodes } from "node-opcua-constants";
+import { ReferenceTypeIds } from "node-opcua-constants";
 import { Certificate, Nonce } from "node-opcua-crypto";
 import { attributeNameById, BrowseDirection, LocalizedTextLike, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
@@ -107,7 +107,8 @@ import {
     WriteValue
 } from "node-opcua-service-write";
 import {
-    StatusCode
+    StatusCode,
+    StatusCodes
 } from "node-opcua-status-code";
 import {
     BrowseNextRequest,

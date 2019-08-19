@@ -236,7 +236,7 @@ function apply_filter(
 function setSemanticChangeBit(notification: any) {
     if (notification && notification.hasOwnProperty("value")) {
         notification.value.statusCode =
-          StatusCodes.makeStatusCode(notification.value.statusCode, "SemanticChanged");
+          StatusCode.makeStatusCode(notification.value.statusCode, "SemanticChanged");
     }
 }
 
@@ -903,7 +903,7 @@ export class MonitoredItem extends EventEmitter {
         if (notification.hasOwnProperty("value")) {
             assert(notification.value.statusCode.equals(StatusCodes.Good));
             notification.value.statusCode =
-              StatusCodes.makeStatusCode(notification.value.statusCode, "Overflow | InfoTypeDataValue");
+              StatusCode.makeStatusCode(notification.value.statusCode, "Overflow | InfoTypeDataValue");
             assert(_.isEqual(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
             assert(notification.value.statusCode.hasOverflowBit);
         }

@@ -270,86 +270,23 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         this.dataType = this.resolveNodeId(options.dataType);    // DataType (NodeId)
         assert(this.dataType instanceof NodeId);
 
-        /**
-         * @property valueRank
-         * @type {number} UInt32
-         * This Attribute indicates whether the Value Attribute of the Variable is an array and how many dimensions
-         * the array has.
-         * It may have the following values:
-         *  n > 1:                      the Value is an array with the specified number of dimensions.
-         *  OneDimension (1):           The value is an array with one dimension.
-         *  OneOrMoreDimensions (0):    The value is an array with one or more dimensions.
-         *  Scalar (?1):                The value is not an array.
-         *  Any (?2):                   The value can be a scalar or an array with any number of dimensions.
-         *  ScalarOrOneDimension (?3):  The value can be a scalar or a one dimensional array.
-         *  NOTE All DataTypes are considered to be scalar, even if they have array-like semantics
-         *  like ByteString and String.
-         */
         this.valueRank = options.valueRank || 0;  // UInt32
         assert(typeof this.valueRank === "number");
 
-        /**
-         * This Attribute specifies the length of each dimension for an array value. T
-         * @property arrayDimensions
-         * @type {number[]} UInt32
-         * The Attribute is intended to describe the capability of the Variable, not the current size.
-         * The number of elements shall be equal to the value of the ValueRank Attribute. Shall be null
-         * if ValueRank ? 0.
-         * A value of 0 for an individual dimension indicates that the dimension has a variable length.
-         * For example, if a Variable is defined by the following C array:
-         * Int32 myArray[346];
-         *     then this Variables DataType would point to an Int32, the Variable�s ValueRank has the
-         *     value 1 and the ArrayDimensions is an array with one entry having the value 346.
-         *     Note that the maximum length of an array transferred on the wire is 2147483647 (max Int32)
-         *     and a multidimentional array is encoded as a one dimensional array.
-         */
         this.arrayDimensions = options.arrayDimensions || null;
         assert(_.isNull(this.arrayDimensions) || _.isArray(this.arrayDimensions));
 
-        /**
-         * @property accessLevel
-         * @type {number}
-         * The AccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
-         * (read/write) and if it contains current and/or historic data. The AccessLevel does not take
-         * any user access rights into account, i.e. although the Variable is writable this may be
-         * restricted to a certain user / user group. The AccessLevelType is defined in 8.57.
-         */
         this.accessLevel = adjust_accessLevel(options.accessLevel);
 
-        /**
-         * @property userAccessLevel
-         * @type {number}
-         * The UserAccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
-         * (read/write) and if it contains current or historic data taking user access rights into account.
-         * The AccessLevelType is defined in 8.57.
-         */
         this.userAccessLevel = adjust_userAccessLevel(options.userAccessLevel, options.accessLevel);
 
-        /**
-         * The MinimumSamplingInterval Attribute indicates how 'current' the Value of the Variable will
-         * be kept.
-         * @property minimumSamplingInterval
-         * @type {number} [Optional]
-         *  It specifies (in milliseconds) how fast the Server can reasonably sample the value
-         * for changes (see Part 4 for a detailed description of sampling interval).
-         * A MinimumSamplingInterval of 0 indicates that the Server is to monitor the item continuously.
-         * A MinimumSamplingInterval of -1 means indeterminate.
-         */
         this.minimumSamplingInterval = adjust_samplingInterval(options.minimumSamplingInterval);
 
-        /**
-         * The Historizing Attribute indicates whether the Server is actively collecting data for the
-         * history of the Variable.
-         * @property historizing
-         * @type {Boolean}
-         *  This differs from the AccessLevel Attribute which identifies if the
-         * Variable has any historical data. A value of TRUE indicates that the Server is actively
-         * collecting data. A value of FALSE indicates the Server is not actively collecting data.
-         * Default value is FALSE.
-         */
         this.historizing = !!options.historizing; // coerced to boolean
 
         this._dataValue = new DataValue({ statusCode: StatusCodes.UncertainInitialValue, value: {} });
+
+        //xx options.value = options.value || { dataType: DataType.Null };
 
         if (options.value) {
             this.bindVariable(options.value);
@@ -688,14 +625,24 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             return callback!(null, statusCode);
         }
 
-        if (!this._timestamped_set_func) {
-            console.log(" warning " + this.nodeId.toString() + " has no _timestamped_set_func");
+        
+        let write_func = this._timestamped_set_func ||  ((
+            dataValue: DataValue,
+            indexRange: NumericRange,
+            callback: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null | undefined) => void
+          ) => {
+              // xx assert(!indexRange,"indexRange Not Implemented");
+              return _default_writable_timestamped_set_func.call(this, dataValue, callback);
+          });
+
+        if (!write_func) {
+            console.log(" warning " + this.nodeId.toString() + " " + this.browseName.toString() + " has no setter. \n");
+            console.log("Please make sure to bind the variable or to pass a valid value: new Variant({}) during construction time");
             return callback!(null, StatusCodes.BadNotWritable);
         }
+        assert(write_func);
 
-        assert(this._timestamped_set_func);
-
-        this._timestamped_set_func(dataValue, indexRange, (
+        write_func.call(this, dataValue, indexRange, (
           err: Error | null,
           statusCode1: StatusCode,
           correctedDataValue: DataValue) => {
@@ -996,9 +943,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
 
         options = options || {};
-
-        assert(!_.isFunction(this._timestamped_set_func), "UAVariable already bounded");
-        assert(!_.isFunction(this._timestamped_get_func), "UAVariable already bounded");
+ 
+        assert(!_.isFunction(this._timestamped_set_func), "UAVariable already bound");
+        assert(!_.isFunction(this._timestamped_get_func), "UAVariable already bound");
         bind_getter.call(this, options);
         bind_setter.call(this, options);
 
@@ -1179,7 +1126,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             assert(extensionObject_.constructor.name === Constructor.name);
             assert(this.$extensionObject.constructor.name === Constructor.name);
             return this.$extensionObject;
-            // throw new Error("Variable already bounded");
+            // throw new Error("Variable already bound");
         }
         this.$extensionObject = optionalExtensionObject;
 
@@ -1988,10 +1935,11 @@ function bind_getter(
         _Variable_bind_with_async_refresh.call(this, options);
 
     } else {
-
         assert(!options.set, "getter is missing : a getter must be provided if a setter is provided");
         // xx bind_variant.call(this,options);
-        this.setValueFromSource(options);
+        if (options.dataType !== undefined) {
+            this.setValueFromSource(options);
+        }
     }
 }
 

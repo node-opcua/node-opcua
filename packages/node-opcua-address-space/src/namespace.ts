@@ -6,7 +6,7 @@ import chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { Int64, StatusCodes } from "node-opcua-basic-types";
+import { Int64} from "node-opcua-basic-types";
 import { AxisScaleEnumeration } from "node-opcua-data-access";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
@@ -18,10 +18,10 @@ import { makeNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
 import { Argument, ArgumentOptions, AxisInformation, EnumValueType, EUInformation, Range } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-
 import {
     AddAnalogDataItemOptions,
     AddBaseNodeOptions,

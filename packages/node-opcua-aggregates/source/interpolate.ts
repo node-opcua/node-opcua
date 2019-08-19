@@ -40,7 +40,7 @@
 import { UAVariable } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { getAggregateData, interpolateValue } from "./common";
 import {
@@ -80,7 +80,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
             value: previousDataValue.value,
         });
         interpValue.statusCode =
-            StatusCodes.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianInterpolated");
+            StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianInterpolated");
         return interpValue;
     };
 
@@ -113,7 +113,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
             // some bad data exist in between = change status code
             const mask = 0x0000FFFFFF;
             const extraBits = interpVal.statusCode.value & mask;
-            interpVal.statusCode = StatusCodes.makeStatusCode(StatusCodes.UncertainDataSubNormal, extraBits);
+            interpVal.statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, extraBits);
         }
 
         return interpVal;
@@ -149,7 +149,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
         if (before.index + 1 === interval.index) {
             return new DataValue({
                 sourceTimestamp: interval.startTime,
-                statusCode: StatusCodes.makeStatusCode(before.dataValue.statusCode, "HistorianInterpolated"),
+                statusCode: StatusCode.makeStatusCode(before.dataValue.statusCode, "HistorianInterpolated"),
                 value: before.dataValue.value
             });
         }
@@ -175,7 +175,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
         const mask = 0x0000FFFFFF;
         const extraBits = interpolatedDataValue.statusCode.value & mask;
         interpolatedDataValue.statusCode =
-            StatusCodes.makeStatusCode(StatusCodes.UncertainDataSubNormal, extraBits);
+            StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, extraBits);
     }
     // check if uncertain or bad value exist between before/next
     // todo

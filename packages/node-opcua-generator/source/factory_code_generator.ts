@@ -505,7 +505,13 @@ function write_class_constructor_options(write: WriteFunc, schema: StructuredTyp
             case FieldCategory.basic: {
                 if (field.fieldType === "ExtensionObject") {
                     write(`    ${member}?: (${field.fieldType} | null)${arrayOpt};`);
-                } else if (field.fieldType === "Variant" || field.fieldType === "NodeId" || field.fieldType === "QualifiedName" || field.fieldType === "LocalizedText") {
+                } else if (
+                    field.fieldType === "Variant" || 
+                    field.fieldType === "DataValue" || 
+                    field.fieldType === "NodeId" || 
+                    field.fieldType === "QualifiedName" || 
+                    field.fieldType === "LocalizedText"
+                ) {
                     write(`    ${member}?: (${field.fieldType}Like | null)${arrayOpt};`);
                 } else {
                     write(`    ${member}?: ${field.fieldType} ${arrayOpt};`);
