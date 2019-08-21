@@ -10,6 +10,7 @@ export {
     SamplingIntervalDiagnosticsDataType, //  SamplingIntervalDiagnostics
     SemanticChangeStructureDataType, // SemanticChangeStructure
     ServerDiagnosticsSummaryDataType,
+    SessionSecurityDiagnosticsDataType,
     ServiceCounterDataType,
     SessionDiagnosticsDataType,
     BuildInfo,

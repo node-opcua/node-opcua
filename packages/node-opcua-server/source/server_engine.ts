@@ -23,6 +23,7 @@ import {
     UADynamicVariableArray,
     UAMethod,
     UAServerDiagnosticsSummary,
+    UASessionSecurityDiagnostics,
     UAServerStatus,
     UAVariable
 } from "node-opcua-address-space";
@@ -69,6 +70,7 @@ import {
     ReadRawModifiedDetails,
     ReadValueIdOptions,
     SessionDiagnosticsDataType,
+    SessionSecurityDiagnosticsDataType,
     TimeZoneDataType,
     WriteValue
 } from "node-opcua-types";
@@ -998,14 +1000,28 @@ export class ServerEngine extends EventEmitter {
                 bindExtObjArrayNode(subscriptionDiagnosticsArray,
                   "SubscriptionDiagnosticsType", "subscriptionId");
 
-                const sessionDiagnosticsArray =
-                  serverDiagnostics.getComponentByName("SessionsDiagnosticsSummary")!
-                    .getComponentByName("SessionDiagnosticsArray")! as
-                    UADynamicVariableArray<SessionDiagnosticsDataType>;
 
+                const sessionsDiagnosticsSummary = serverDiagnostics.getComponentByName("SessionsDiagnosticsSummary")!;
+
+                const sessionDiagnosticsArray =
+                    sessionsDiagnosticsSummary.getComponentByName("SessionDiagnosticsArray")! as
+                    UADynamicVariableArray<SessionDiagnosticsDataType>;
                 assert(sessionDiagnosticsArray.nodeClass === NodeClass.Variable);
-                bindExtObjArrayNode(sessionDiagnosticsArray,
-                  "SessionDiagnosticsVariableType", "sessionId");
+
+                bindExtObjArrayNode(sessionDiagnosticsArray, "SessionDiagnosticsVariableType", "sessionId");
+
+                const varType = addressSpace.findVariableType("SessionSecurityDiagnosticsType");
+                if (!varType) {
+                    
+                    console.log("Warning cannot find SessionSecurityDiagnosticsType variable Type");
+                } else {
+                    const sessionSecurityDiagnosticsArray =
+                    sessionsDiagnosticsSummary.getComponentByName("SessionSecurityDiagnosticsArray")! as
+                    UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
+                    assert(sessionSecurityDiagnosticsArray.nodeClass === NodeClass.Variable);
+                    bindExtObjArrayNode(sessionSecurityDiagnosticsArray, "SessionSecurityDiagnosticsType", "sessionId");
+                                            
+                }
             }
 
             prepareServerDiagnostics();

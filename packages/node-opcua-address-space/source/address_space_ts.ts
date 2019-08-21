@@ -55,7 +55,8 @@ import {
     ServerState,
     ServerStatusDataType,
     SessionDiagnosticsDataType,
-    SignedSoftwareCertificate
+    SignedSoftwareCertificate,
+    SessionSecurityDiagnosticsDataType
 } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { MinimalistAddressSpace, Reference } from "../src/reference";
@@ -1438,6 +1439,9 @@ export interface UAServerStatus extends UAVariable {
 export interface UASessionDiagnostics extends UAVariable {
     $extensionObject: SessionDiagnosticsDataType;
 }
+export interface UASessionSecurityDiagnostics extends UAVariable {
+    $extensionObject: SessionSecurityDiagnosticsDataType;
+}
 
 export interface UAServerDiagnosticsSummary extends UAVariable {
     $extensionObject: ServerDiagnosticsSummaryDataType;
@@ -1445,6 +1449,7 @@ export interface UAServerDiagnosticsSummary extends UAVariable {
 
 export interface UASessionDiagnosticsSummary extends UAObject {
     sessionDiagnosticsArray: UADynamicVariableArray<SessionDiagnosticsDataType>;
+    sessionSecurityDiagnosticsArray: UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
 }
 
 export interface UAServerDiagnostics extends UAObject {

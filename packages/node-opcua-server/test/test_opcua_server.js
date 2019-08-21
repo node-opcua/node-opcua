@@ -38,7 +38,7 @@ describe("OPCUAServer", () => {
         }
     });
 
-    it("should dismiss all existing session upon termination", (done) => {
+    it("should dismiss all existing sessions upon termination", (done) => {
 
         server.engine.currentSessionCount.should.equal(0);
 
