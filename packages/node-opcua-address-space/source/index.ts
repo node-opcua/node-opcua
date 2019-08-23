@@ -18,6 +18,8 @@ export * from "./helpers/check_event_clause";
 export * from "./helpers/argument_list";
 export * from "./helpers/call_helpers";
 
+export * from "./helpers/ensure_secure_access";
+
 export * from "../src/alarms_and_conditions";
 export * from "../test_helpers";
 export { getAddressSpaceFixture }from "../test_helpers/get_address_space_fixture";

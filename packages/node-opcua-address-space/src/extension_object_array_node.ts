@@ -502,10 +502,6 @@ export function addElement<T extends ExtensionObject>(
     assert(uaArrayVariableNode.$$dataType.nodeClass === NodeClass.DataType);
     assert((uaArrayVariableNode.$$dataType as any)._extensionObjectConstructor instanceof Function);
 
-    const checkValue = uaArrayVariableNode.readValue();
-    assert(checkValue.statusCode === StatusCodes.Good);
-    assert(checkValue.value.dataType === DataType.ExtensionObject);
-
     const addressSpace = uaArrayVariableNode.addressSpace;
 
     let extensionObject = null;

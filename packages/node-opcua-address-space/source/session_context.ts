@@ -4,9 +4,9 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { CertificateInternals , exploreCertificate} from "node-opcua-crypto";
+import { CertificateInternals , exploreCertificate, Certificate} from "node-opcua-crypto";
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
-import { AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
+import { AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken, MessageSecurityMode } from "node-opcua-types";
 
 import { BaseNode,  ISessionContext, UAObject , UAObjectType} from "./address_space_ts";
 
@@ -34,8 +34,18 @@ function getUserName(userIdentityToken: UserIdentityToken): string {
     throw new Error("Invalid user identity token");
 }
 
+export interface IChannelBase {
+    clientCertificate: Certificate | null;
+    // clientNonce: Buffer | null;
+    securityMode: MessageSecurityMode;
+    securityPolicy: string;
+}
+/**
+ * 
+ */
 export interface ISessionBase {
     userIdentityToken?: UserIdentityToken;
+    channel?: IChannelBase;
 }
 
 /**
@@ -56,6 +66,8 @@ export interface ISessionBase {
  * Supervisor           The Role is allowed to browse, read live data, read historical data/events, call Methods or
  *                      subscribe to data/events.
  * ConfigureAdmin       The Role is allowed to change the non-security related config
+ * SystemAdmin          The Role is allowed to read and modify security related config
+ *
  */
 export interface IUserManager {
     getUserRole?: (user: string) => string;

@@ -225,9 +225,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
     /**
      * The unique hash key to identify this secure channel
      * @property hashKey
-     * @type {String}
      */
-    public get hashKey() {
+    public get hashKey(): number {
         return this.__hash;
     }
 
@@ -240,7 +239,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public receiverCertificate: Buffer | null;
     public clientCertificate: Buffer | null;
     public clientNonce: Buffer | null;
+    /**
+     * the channel message security mode
+     */
     public securityMode: MessageSecurityMode;
+    /**
+     * the channel message security policy
+     */
+    public securityPolicy: SecurityPolicy = SecurityPolicy.Invalid;
     public securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     public clientSecurityHeader?: SecurityHeader;
     public endpoint: EndpointDescription | null;
@@ -1343,6 +1349,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // check certificate
 
         this.securityMode = request.securityMode;
+        this.securityPolicy = securityPolicy;
+
         this.messageBuilder.securityMode = this.securityMode;
 
         const hasEndpoint = this.has_endpoint_for_security_mode_and_policy(this.securityMode, securityPolicy);

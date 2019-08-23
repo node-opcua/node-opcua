@@ -10,6 +10,7 @@ export * from "../source/helpers/make_optionals_map";
 export * from "../source/helpers/check_event_clause";
 export * from "../source/helpers/argument_list";
 export * from "../source/helpers/call_helpers";
+export * from "../source/helpers/ensure_secure_access";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
 export { UACertificateExpirationAlarm }  from "./alarms_and_conditions";
 export { ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";

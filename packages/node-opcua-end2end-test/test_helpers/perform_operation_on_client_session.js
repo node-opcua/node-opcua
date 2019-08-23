@@ -1,13 +1,13 @@
 "use strict";
 
-var async = require("async");
-var should = require("should");
-var _ = require("underscore");
+const async = require("async");
+const should = require("should");
+const _ = require("underscore");
+const { promisify, callbackify } = require("util");
+const opcua = require("node-opcua");
 
-var opcua = require("node-opcua");
-var ClientSubscription = opcua.ClientSubscription;
-var resolveNodeId = opcua.resolveNodeId;
-var AttributeIds = opcua.AttributeIds;
+const { ClientSubscription, resolveNodeId, AttributeIds } = opcua;
+
 /**
  * @method perform_operation_on_client_session
  *
@@ -115,6 +115,25 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
 
 exports.perform_operation_on_subscription = perform_operation_on_subscription;
 
+async function perform_operation_on_subscription_async(
+    client, endpointUrl, inner_func /*async  (session, subscription) => */) {
+
+    let ret = undefined;
+
+    function f(callback1) {
+
+    perform_operation_on_subscription(client, endpointUrl, (session, subscription, callback) => {
+        callbackify(inner_func)(session, subscription, (err, retValue)=> {
+            ret = retValue;
+            callback(err);
+        });
+        }, callback1);
+    }
+    await promisify(f)(); 
+
+    return ret;
+}
+exports.perform_operation_on_subscription_async = perform_operation_on_subscription_async;
 
 function perform_operation_on_raw_subscription(client,endpointUrl,f,done) {
 

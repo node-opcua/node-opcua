@@ -10,14 +10,18 @@ import * as _ from "underscore";
 import {
     addElement,
     AddressSpace,
+    BaseNode,
     createExtObjArrayNode,
     ContinuationPointManager,
+    ensureObjectIsSecure,
+    IChannelBase,
     ISessionBase,
     removeElement,
     UADynamicVariableArray,
     UAObject,
     UASessionDiagnostics,
-    UASessionSecurityDiagnostics
+    UASessionSecurityDiagnostics,
+    SessionContext,
 } from "node-opcua-address-space";
 
 import { assert } from "node-opcua-assert";
@@ -37,12 +41,14 @@ import { WatchDog } from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 
 import { ServerSecureChannelLayer } from "node-opcua-secure-channel";
-import { ApplicationDescription, UserIdentityToken, ReferenceDescriptionOptions } from "node-opcua-types";
+import { ApplicationDescription, UserIdentityToken, ReferenceDescriptionOptions, MessageSecurityMode } from "node-opcua-types";
 
 import { ISubscriber, IWatchdogData2 } from "node-opcua-utils";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { Subscription } from "./server_subscription";
 import { SubscriptionState } from "./server_subscription";
+import { any } from "async";
+import { UAVariable } from "node-opcua-address-space/dist/src/ua_variable";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -784,14 +790,17 @@ export class ServerSession  extends EventEmitter implements ISubscriber , ISessi
                     minimumSamplingInterval: 2000 // 2 seconds
                 }) as UASessionSecurityDiagnostics;
     
+                ensureObjectIsSecure(this.sessionSecurityDiagnostics);
+
                 this._sessionSecurityDiagnostics = this.sessionSecurityDiagnostics.$extensionObject as SessionSecurityDiagnosticsDataTypeEx;
                 assert(this._sessionSecurityDiagnostics.$session === this);
     
                 const sessionSecurityDiagnosticsArray = this.getSessionSecurityDiagnosticsArray();
     
                 // add sessionDiagnostics into sessionDiagnosticsArray
-                addElement<SessionSecurityDiagnosticsDataType>(this._sessionSecurityDiagnostics, sessionSecurityDiagnosticsArray);
-    
+                const node = addElement<SessionSecurityDiagnosticsDataType>(this._sessionSecurityDiagnostics, sessionSecurityDiagnosticsArray);
+                ensureObjectIsSecure(node);
+
             }
     
         } 

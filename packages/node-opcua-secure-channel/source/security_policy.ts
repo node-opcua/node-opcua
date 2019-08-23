@@ -96,17 +96,20 @@ export enum SecurityPolicy {
     Invalid = "invalid",
     None = "http://opcfoundation.org/UA/SecurityPolicy#None",
     Basic128 = "http://opcfoundation.org/UA/SecurityPolicy#Basic128",
-    Basic128Rsa15 = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15", // Obsolete
     Basic192 = "http://opcfoundation.org/UA/SecurityPolicy#Basic192",
     Basic192Rsa15 = "http://opcfoundation.org/UA/SecurityPolicy#Basic192Rsa15",
-    Basic256 = "http://opcfoundation.org/UA/SecurityPolicy#Basic256",           // obsolete
     Basic256Rsa15 = "http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15",
     Basic256Sha256 = "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256",
 
     // new
     Aes128_Sha256_RsaOaep = "http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep",
     PubSub_Aes128_CTR = "http://opcfoundation.org/UA/SecurityPolicy#PubSub_Aes128_CTR",
-    PubSub_Aes256_CTR = "http://opcfoundation.org/UA/SecurityPolicy#PubSub_Aes256_CTR"
+    PubSub_Aes256_CTR = "http://opcfoundation.org/UA/SecurityPolicy#PubSub_Aes256_CTR",
+    
+    // obsoletes
+    Basic128Rsa15 = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15", // Obsolete
+    Basic256 = "http://opcfoundation.org/UA/SecurityPolicy#Basic256",           // obsolete
+
 }
 
 export function fromURI(uri: string | null): SecurityPolicy {

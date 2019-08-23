@@ -16,6 +16,7 @@ import {
     Callback,
     DataValueCallback,
     ensureDatatypeExtractedWithCallback,
+    ensureObjectIsSecure,
     generateAddressSpace,
     MethodFunctor,
     removeElement,
@@ -1020,6 +1021,9 @@ export class ServerEngine extends EventEmitter {
                     UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
                     assert(sessionSecurityDiagnosticsArray.nodeClass === NodeClass.Variable);
                     bindExtObjArrayNode(sessionSecurityDiagnosticsArray, "SessionSecurityDiagnosticsType", "sessionId");
+
+
+                    ensureObjectIsSecure(sessionSecurityDiagnosticsArray);
                                             
                 }
             }

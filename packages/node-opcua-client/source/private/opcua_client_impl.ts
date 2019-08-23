@@ -311,6 +311,11 @@ function createUserNameIdentityToken(
     return identityToken;
 }
 
+export interface EndpointWithUserIdentity {
+    endpointUrl: string;
+    userIdentity: UserIdentityInfo;
+}
+
 /***
  *
  * @class OPCUAClientImpl
@@ -513,14 +518,13 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     /**
      * @method withSession
      */
-
     public withSession<T>(
-      endpointUrl: string,
+      endpointUrl: string | EndpointWithUserIdentity,
       inner_func: (session: ClientSession) => Promise<T>
     ): Promise<T>;
 
     public withSession(
-      endpointUrl: string,
+      endpointUrl: string | EndpointWithUserIdentity,
       inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
       callback: (err?: Error) => void
     ): void;
@@ -529,11 +533,15 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @internal
      * @param args
      */
-    public withSession(...args: any[]): any {
+    public withSession(
+        connectionPoint: string | EndpointWithUserIdentity,
+        inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
+         ...args: any[]): any {
 
-        const endpointUrl = args[0];
-        const inner_func = args[1];
-        const callback = args[2];
+        const endpointUrl: string  = (typeof connectionPoint === "string" ) ? connectionPoint : connectionPoint.endpointUrl ;
+        const userIdentity : UserIdentityInfo = (typeof connectionPoint === "string" ) ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity ;
+
+        const callback = args[0];
 
         assert(_.isFunction(inner_func), "expecting inner function");
         assert(_.isFunction(callback), "expecting callback function");
@@ -557,7 +565,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
             // step 2 : createSession
             (innerCallback: ErrorCallback) => {
-                this.createSession((err: Error | null, session?: ClientSession) => {
+    
+                this.createSession(userIdentity, (err: Error | null, session?: ClientSession) => {
                     if (err) {
                         return innerCallback(err);
                     }
@@ -618,7 +627,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     public withSubscription(
-      endpointUrl: string,
+      endpointUrl: string | EndpointWithUserIdentity,
       subscriptionParameters: ClientSubscriptionOptions,
       innerFunc: (session: ClientSession, subscription: ClientSubscription, done: (err?: Error) => void) => void,
       callback: (err?: Error) => void
@@ -648,13 +657,16 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         }, callback);
     }
 
-    public async withSessionAsync(endpointUrl: string, func: WithSessionFuncP<any>): Promise<any> {
+    public async withSessionAsync(connectionPoint: string | EndpointWithUserIdentity, func: WithSessionFuncP<any>): Promise<any> {
         assert(_.isFunction(func));
         assert(func.length === 1, "expecting a single argument in func");
 
+        const endpointUrl: string  = (typeof connectionPoint === "string" ) ? connectionPoint : connectionPoint.endpointUrl ;
+        const userIdentity : UserIdentityInfo = (typeof connectionPoint === "string" ) ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity ;
+
         try {
             await this.connect(endpointUrl);
-            const session = await this.createSession({ type: UserTokenType.Anonymous });
+            const session = await this.createSession(userIdentity);
 
             let result;
             try {
@@ -671,26 +683,17 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     public async withSubscriptionAsync(
-      endpointUrl: string,
-      parameters: any, func: WithSubscriptionFuncP<any>
+      connectionPoint: string | EndpointWithUserIdentity,
+      parameters: ClientSubscriptionOptions, func: WithSubscriptionFuncP<any>
     ): Promise<any> {
 
-        await this.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+        await this.withSessionAsync(connectionPoint, async (session: ClientSession) => {
 
             assert(session, " session must exist");
             const subscription = new ClientSubscriptionImpl(session as ClientSessionImpl, parameters);
 
             // tslint:disable-next-line:no-empty
             subscription.on("started", () => {
-                // console.log("started subscription :", subscription.subscriptionId);
-                // console.log(" revised parameters ");
-                // console.log("  revised maxKeepAliveCount  ", subscription.maxKeepAliveCount,"
-                // ( requested ", parameters.requestedMaxKeepAliveCount + ")");
-                // console.log("  revised lifetimeCount      ", subscription.lifetimeCount, " (
-                // requested ", parametersequestedLifetimeCount + ")");
-                // console.log("  revised publishingInterval ", subscription.publishingInterval, "
-                // ( requested ", arameters.requestedPublishingInterval + ")");
-                // console.log("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);
             }).on("internal_error", (err: Error) => {
                 debugLog(" received internal error", err.message);
             }).on("keepalive", () => {
@@ -699,11 +702,15 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 // console.log(" terminated");
             });
 
-            const result = await func(session, subscription);
+            try {
+                const result = await func(session, subscription);
+                return result;
+            } catch {
+                return undefined;
+            } finally {
+                await subscription.terminate();
+            }
 
-            await subscription.terminate();
-
-            return result;
         });
     }
 

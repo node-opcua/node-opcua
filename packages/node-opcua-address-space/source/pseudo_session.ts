@@ -41,6 +41,7 @@ import { AddressSpace } from "./address_space_ts";
 import { callMethodHelper } from "./helpers/call_helpers";
 import { IServerBase, ISessionBase, SessionContext } from "./session_context";
 import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
+import { MessageSecurityMode } from "node-opcua-types";
 /**
  * Pseudo session is an helper object that exposes the same async methods
  * than the ClientSession. It can be used on a server address space.
@@ -65,7 +66,13 @@ export class PseudoSession implements IBasicSession {
     constructor(addressSpace: AddressSpace, server?: IServerBase, session?: ISessionBase) {
         this.addressSpace = addressSpace;
         this.server = server || {};
-        this.session = session || {};
+        this.session = session || { 
+            channel: { 
+                clientCertificate: null,
+                securityMode: MessageSecurityMode.None,
+                securityPolicy: "http://opcfoundation.org/UA/SecurityPolicy#None" // SecurityPolicy.None 
+            }
+        };
         this.continuationPointManager = new ContinuationPointManager();
     }
 
