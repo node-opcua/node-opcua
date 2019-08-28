@@ -8,6 +8,7 @@
 
     <Aliases>
         <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="String">i=12</Alias>
         <Alias Alias="NodeId">i=17</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
         <Alias Alias="HasSubtype">i=45</Alias>
@@ -173,6 +174,22 @@
                     <uax:Text>Purple</uax:Text>
                 </uax:LocalizedText>
             </uax:ListOfLocalizedText>
+        </Value>
+    </UAVariable>
+
+
+
+    <UAVariable DataType="String" ValueRank="1" NodeId="ns=1;s=ListOfString" ArrayDimensions="0" BrowseName="1:ListOfString" AccessLevel="3">
+        <DisplayName>ListOfString</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <uax:ListOfString>
+                <uax:String>StringOne</uax:String>
+                <uax:String>StringTwo</uax:String>
+                <uax:String></uax:String>
+            </uax:ListOfString>
         </Value>
     </UAVariable>
 
