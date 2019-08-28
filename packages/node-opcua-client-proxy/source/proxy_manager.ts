@@ -8,6 +8,7 @@ import * as _ from "underscore";
 
 import {
     AttributeIds, ClientMonitoredItemBase,
+    ClientSession,
     ClientSubscription, coerceAccessLevelFlag,
     coerceNodeId, NodeClass,
     NodeId,
@@ -18,7 +19,6 @@ import { NodeIdLike } from "node-opcua-nodeid";
 import { CreateSubscriptionRequestOptions } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
 
-import { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl";
 import { ErrorCallback } from "./common";
 import { readUAStructure } from "./object_explorer";
 import { makeRefId } from "./proxy";
@@ -160,11 +160,11 @@ function getObject(
 
 export class UAProxyManager {
 
-    public readonly session: ClientSessionImpl;
+    public readonly session: ClientSession;
     public subscription?: ClientSubscription;
     private _map: any;
 
-    constructor(session: ClientSessionImpl) {
+    constructor(session: ClientSession) {
 
         this.session = session;
         this._map = {};
