@@ -8,6 +8,7 @@ import * as path from "path";
 import * as should from "should";
 import { AddressSpace, generateAddressSpace, UAVariable } from "..";
 import { findBuiltInType } from "../../node-opcua-factory/dist";
+import { NodeId, NodeIdType } from "node-opcua-nodeid";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -300,6 +301,24 @@ describe("Testing variables loading ", function(this: any) {
         variable.readValue().value.toString().should.eql(new Variant({ dataType: "Boolean", value: false}).toString());
 
     });
+
+    it("should load ListOfString variables as an array of strings",()=>{
+        const ns = addressSpace.getNamespaceIndex("mydemo/");
+
+        let variable = addressSpace.findNode(new NodeId(NodeIdType.STRING,"ListOfString",ns)) as UAVariable
+
+        should.exists(variable);
+
+        let variant = variable.readValue().value;
+        let value = variant.value as Array<string>;
+        should.exists(value);
+        
+        value.should.instanceOf(Array);
+        value.length.should.greaterThan(0);
+        value.forEach((arrayElement)=>{
+            arrayElement.should.instanceOf(String);
+        });
+    })
 });
 
 
