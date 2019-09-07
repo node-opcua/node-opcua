@@ -70,7 +70,7 @@
   "node-opcua-factory": "^2.1.5",
   "node-opcua-leak-detector": "^2.1.0",
   "should": "13.2.3",
-  "sinon": "^7.4.1"
+  "sinon": "^7.4.2"
  },
  "eslintConfig": {
   "env": {

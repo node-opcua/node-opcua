@@ -34,7 +34,7 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/node": "^12.7.2",
+  "@types/node": "^12.7.4",
   "@types/underscore": "^1.9.2",
   "async": "^3.1.0",
   "node-opcua-buffer-utils": "^2.1.0",
@@ -47,7 +47,7 @@
   "node-opcua-test-fixtures": "^2.1.5",
   "node-opcua-test-helpers": "^2.0.0",
   "should": "13.2.3",
-  "sinon": "^7.4.1",
+  "sinon": "^7.4.2",
   "source-map-support": "^0.5.13",
   "sprintf-js": "^1.1.2"
  },
