@@ -33,7 +33,7 @@ export interface StateVariableB {
     // readonly valueRank: -1;
 
     // components
-    id: UAVariableT<UAString | UInt32>;
+    id: UAVariableT<UAString | UInt32 | NodeId | null>;
     name?: UAVariableT<QualifiedName>;
     /**
      * number is an integer which uniquely identifies the current state within the StateMachineType
@@ -79,7 +79,7 @@ export interface TransitionVariableB {
      *
      * A subtype may restrict the DataType.
      */
-    id: UAVariableT<UAString | UInt32>;
+    id: UAVariableT<UAString | NodeId| UInt32>;
 
     /**
      * Name is a QualifiedName which uniquely identifies a transition within the StateMachineType

@@ -454,7 +454,8 @@ export class UAConditionBase extends BaseEventType {
      * @method raiseConditionEvent
      * Raise a Instance Event
      * (see also UAObject#raiseEvent to raise a transient event)
-     * @param branch {ConditionSnapshot}
+     * @param branch the condition branch to raise
+     * @param renewEventId true if event Id of the condition branch should be renewed
      */
     public raiseConditionEvent(branch: ConditionSnapshot, renewEventId: boolean): void {
         assert(arguments.length === 2, "expecting 2 arguments");

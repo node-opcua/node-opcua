@@ -6,13 +6,11 @@ import chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { Int64} from "node-opcua-basic-types";
 import { AxisScaleEnumeration } from "node-opcua-data-access";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
 import { dumpIf } from "node-opcua-debug";
 import { makeNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
@@ -1121,7 +1119,7 @@ export class UANamespace implements NamespacePublic {
             componentOf: options.componentOf,
             dataType,
             optionals
-        }) as any as UAYArrayItem;
+        }) as YArrayItemVariable;
 
         function coerceAxisScale(value: any) {
             const ret = AxisScaleEnumeration[value];

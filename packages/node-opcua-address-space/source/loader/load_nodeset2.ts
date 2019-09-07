@@ -27,6 +27,7 @@ import { Range } from "node-opcua-types";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { ParserLike, ReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } from "node-opcua-xml2json";
 
+import { registerBasicType } from "node-opcua-factory";
 import {
     AddReferenceTypeOptions,
     AddressSpace as AddressSpacePublic,
@@ -40,7 +41,6 @@ import { NamespacePrivate } from "../../src/namespace_private";
 import { UADataType } from "../../src/ua_data_type";
 import { UAVariable } from "../../src/ua_variable";
 import { UAVariableType } from "../../src/ua_variable_type";
-import { registerBuiltInType, registerBasicType } from "node-opcua-factory";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -451,32 +451,32 @@ export function generateAddressSpace(
             assert(addressSpace1.findNode(this.obj.nodeId));
             if (this.obj.nodeId.namespace !== 0 ) {
 
-                const processBasicDataType =    async (addressSpace: AddressSpace) => {
-                    const enumeration = addressSpace.findDataType("Enumeration")!;                
-                    const structure = addressSpace.findDataType("Structure")!;
-                    
+                const processBasicDataType =    async (addressSpace2: AddressSpace) => {
+                    const enumeration = addressSpace2.findDataType("Enumeration")!;
+                    const structure = addressSpace2.findDataType("Structure")!;
+
                     // we have a data type from a companion specification
                     // let's see if this data type need to be registered
                     if (!dataTypeNode.isSupertypeOf(enumeration) && !dataTypeNode.isSupertypeOf(structure)) {
-    
+
                         const baseType = dataTypeNode.subtypeOfObj!;
                         if (baseType) {
                             // this is a basic type
-                            const typeName = dataTypeNode.browseName.name!;//.replace("DataType","");
-        
+                            const typeName = dataTypeNode.browseName.name!; // .replace("DataType","");
+
                             /* istanbul ignore next */
                             if (doDebug) {
-                                debugLog(`registerBasicType({ name: "${typeName}", subType: "${baseType.browseName.name!}" });`)
+                                debugLog(`registerBasicType({ name: "${typeName}", subType: "${baseType.browseName.name!}" });`);
                             }
 
-                            registerBasicType({ 
-                                name: typeName, 
+                            registerBasicType({
+                                name: typeName,
                                 subType: baseType.browseName.name!
                             });
 
                         }
                     }
-                }
+                };
                 postTasks.push(processBasicDataType);
             }
         },
@@ -971,8 +971,8 @@ export function generateAddressSpace(
             ListOfUint16: ListOf("Uint16", parseInt),
 
             ListOfUint8: ListOf("Uint8", parseInt),
-			
-            ListOfString: ListOf("String", (value: string)=>value),
+
+            ListOfString: ListOf("String", (value: string) => value),
 
             ExtensionObject: {
                 init(this: any) {
@@ -1247,8 +1247,8 @@ export function generateAddressSpace(
             postTasks = [];
             debugLog("Post loading task done");
             assert(!addressSpace1.suspendBackReference);
-            
-            ensureDatatypeExtractedWithCallback(addressSpace,()=> {
+
+            ensureDatatypeExtractedWithCallback(addressSpace, () => {
                 callback!(err || undefined);
             });
         });

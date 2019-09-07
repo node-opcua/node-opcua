@@ -6,12 +6,12 @@ import chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
 import {
     coerceExpandedNodeId,
-    coerceNodeId,
     makeNodeId,
     NodeId,
     NodeIdLike,
@@ -64,7 +64,6 @@ import { UAReferenceType } from "./ua_reference_type";
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
-import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 
 const doDebug = false;
 // tslint:disable-next-line:no-var-requires
@@ -129,6 +128,10 @@ type ShutdownTask = (this: AddressSpace) => void;
  */
 export class AddressSpace implements AddressSpacePrivate {
 
+    public get rootFolder(): RootFolder {
+        return this.findNode(this.resolveNodeId("RootFolder")) as any as RootFolder;
+    }
+
     public static isNonEmptyQualifiedName = isNonEmptyQualifiedName;
     public static historizerFactory?: any;
 
@@ -136,21 +139,8 @@ export class AddressSpace implements AddressSpacePrivate {
         return new AddressSpace();
     }
 
-    public get rootFolder(): RootFolder {
-        return this.findNode(this.resolveNodeId("RootFolder")) as any as RootFolder;
-    }
-   /**
-     * @internal
-     */
-    public getDataTypeManager() : ExtraDataTypeManager
-    {
-        const addressSpacePriv: any = this as any;
-        assert(addressSpacePriv.$$extraDataTypeManager);
-        return addressSpacePriv.$$extraDataTypeManager;
-    }
-
- 
     private static registry = new ObjectRegistry();
+
     /***
      * @internal
      * @private
@@ -172,6 +162,14 @@ export class AddressSpace implements AddressSpacePrivate {
         this._namespaceArray = [];
         this._constructNamespaceArray();
         AddressSpace.registry.register(this);
+    }
+    /**
+     * @internal
+     */
+    public getDataTypeManager(): ExtraDataTypeManager {
+        const addressSpacePriv: any = this as any;
+        assert(addressSpacePriv.$$extraDataTypeManager);
+        return addressSpacePriv.$$extraDataTypeManager;
     }
 
     public getNamespaceUri(namespaceIndex: number): string {
@@ -982,7 +980,7 @@ export class AddressSpace implements AddressSpacePrivate {
             targets: res
         });
     }
-    
+
     // - Extension Object ----------------------------------------------------------------------------------------------
     public getExtensionObjectConstructor(dataType: NodeId | UADataType): any {
 
@@ -1001,18 +999,17 @@ export class AddressSpace implements AddressSpacePrivate {
             // may be dataType was the NodeId of the "Binary Encoding" node
             throw new Error("getExtensionObjectConstructor: dataType has unexpected type" + dataType);
         }
-        
+
         prepareDataType(this, dataType);
 
-        const Constructor = (dataType as any)._extensionObjectConstructor;
+        const Constructor = (dataType as UADataType)._extensionObjectConstructor;
         return Constructor;
     }
 
     /**
-     * @method constructExtensionObject
-     * @param dataType {UADataType}
-     * @param [options {Object} =null]
-     * @return {Object}
+     * @param dataType
+     * @param [options]
+     * @return the constructed extension object
      *
      *
      * @example
@@ -1026,7 +1023,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *             var serverStatus  = addressSpace.constructExtensionObject(serverStatusDataType);
      *             serverStatus.constructor.name.should.eql("ServerStatusDataType");
      */
-    public constructExtensionObject(dataType: UADataType, options: any): ExtensionObject {
+    public constructExtensionObject(dataType: UADataType | NodeId, options: any): ExtensionObject {
         const Constructor = this.getExtensionObjectConstructor(dataType);
         return new Constructor(options);
     }
@@ -1583,7 +1580,6 @@ export class AddressSpace implements AddressSpacePrivate {
         return this.getNamespace(options.nodeId.namespace);
     }
 
- 
 }
 
 function _getNamespace(addressSpace: AddressSpace, nodeOrNodId: BaseNode | NodeId): NamespacePrivate {

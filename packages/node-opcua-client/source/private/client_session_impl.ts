@@ -149,7 +149,7 @@ import {
 } from "../client_session";
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
 import { ClientSubscription } from "../client_subscription";
-import { Request, Response } from "../common";
+import { Request, Response, Callback } from "../common";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import { OPCUAClientImpl } from "./opcua_client_impl";
@@ -1987,42 +1987,42 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     }
 
     public addCommentCondition(
-        conditionId: NodeIdLike,
-        eventId: Buffer,
-        comment: LocalizedTextLike,
-        callback?: ErrorCallback
+        _conditionId: NodeIdLike,
+        _eventId: Buffer,
+        _comment: LocalizedTextLike,
+        _callback?: Callback<StatusCode>
     ): any {
     }
 
     public confirmCondition(
-        conditionId: NodeIdLike,
-        eventId: Buffer,
-        comment: LocalizedTextLike,
-        callback?: ErrorCallback
+        _conditionId: NodeIdLike,
+        _eventId: Buffer,
+        _comment: LocalizedTextLike,
+        _callback?: Callback<StatusCode>
     ): any {
     }
 
     public acknowledgeCondition(
-        conditionId: NodeId,
-        eventId: Buffer,
-        comment: LocalizedTextLike,
-        callback?: ErrorCallback
+        _conditionId: NodeId,
+        _eventId: Buffer,
+        _comment: LocalizedTextLike,
+        _callback?: Callback<StatusCode>
     ): any {
     }
 
     public findMethodId(
-        nodeId: NodeIdLike,
-        methodName: string,
-        callback?: ResponseCallback<NodeId>
+        _nodeId: NodeIdLike,
+        _methodName: string,
+        _callback?: ResponseCallback<NodeId>
     ): any {
     }
 
     public _callMethodCondition(
-        methodName: string,
-        conditionId: NodeIdLike,
-        eventId: Buffer,
-        comment: LocalizedTextLike,
-        callback: (err?: Error) => void
+        _methodName: string,
+        _conditionId: NodeIdLike,
+        _eventId: Buffer,
+        _comment: LocalizedTextLike,
+        _callback: Callback<StatusCode>
     ): void {
     }
 
@@ -2068,7 +2068,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         return new Constructor(pojo);
     }
 
-    private _defaultRequest(requestClass: any, responseClass: any, options: any, callback: any) {
+    private _defaultRequest(requestClass: any, _responseClass: any, options: any, callback: any) {
 
         assert(_.isFunction(callback));
 

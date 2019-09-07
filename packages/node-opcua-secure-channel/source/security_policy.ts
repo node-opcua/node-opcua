@@ -105,7 +105,7 @@ export enum SecurityPolicy {
     Aes128_Sha256_RsaOaep = "http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep",
     PubSub_Aes128_CTR = "http://opcfoundation.org/UA/SecurityPolicy#PubSub_Aes128_CTR",
     PubSub_Aes256_CTR = "http://opcfoundation.org/UA/SecurityPolicy#PubSub_Aes256_CTR",
-    
+
     // obsoletes
     Basic128Rsa15 = "http://opcfoundation.org/UA/SecurityPolicy#Basic128Rsa15", // Obsolete
     Basic256 = "http://opcfoundation.org/UA/SecurityPolicy#Basic256",           // obsolete
@@ -117,21 +117,21 @@ export function fromURI(uri: string | null): SecurityPolicy {
     if (typeof uri !== "string") {
         return SecurityPolicy.Invalid;
     }
-    const a: any = uri.split("#");
+    const a: string[] = uri.split("#");
     // istanbul ignore next
     if (a.length < 2) {
         return SecurityPolicy.Invalid;
     }
-    const v = SecurityPolicy[a[1]];
+    const v = (SecurityPolicy as any)[ a[1] ];
     return v as SecurityPolicy || SecurityPolicy.Invalid;
 }
 
 export function toURI(value: SecurityPolicy | string): string {
     if (typeof value === "string") {
-        const a: any = value.split("#");
+        const a: string[] = value.split("#");
         // istanbul ignore next
         if (a.length < 2) {
-            return SecurityPolicy[value as any];
+            return (SecurityPolicy as any)[value as any];
         }
         return value;
 
@@ -149,7 +149,7 @@ export function coerceSecurityPolicy(value?: any): SecurityPolicy {
         return SecurityPolicy.None;
     }
     if (value === "Basic128Rsa15" || value === "Basic256" ||  value === "Basic192Rsa15" || value === "None" || value === "Basic256Sha256" || value === "Basic256Rsa15") {
-        return SecurityPolicy[value] as SecurityPolicy;
+        return (SecurityPolicy as any)[value as string] as SecurityPolicy;
     }
     if (!(
         value === SecurityPolicy.Basic128Rsa15 ||

@@ -18,14 +18,12 @@ import { Reference } from "./reference";
 import { UAObjectType } from "./ua_object_type";
 import { UAVariableType } from "./ua_variable_type";
 
-
 export interface AddressSpacePrivate extends AddressSpace {
 
     isFrugal: boolean;
     suspendBackReference: boolean;
 
     _condition_refresh_in_progress: boolean;
-
 
     _coerceNode(node: string | BaseNodePublic | NodeId ): BaseNodePublic | null;
 
@@ -75,6 +73,5 @@ export interface AddressSpacePrivate extends AddressSpace {
     deleteNode(nodeId: NodeId): void;
 
     getDataTypeManager(): ExtraDataTypeManager;
-
 
 }

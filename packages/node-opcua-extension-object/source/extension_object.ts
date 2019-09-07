@@ -35,7 +35,7 @@ export class ExtensionObject extends BaseUAObject {
 
 ExtensionObject.prototype.schema = ExtensionObject.schema;
 
-function constructEmptyExtensionObject(expandedNodeId: NodeId): any {
+function constructEmptyExtensionObject(expandedNodeId: NodeId): ExtensionObject {
     return constructObject(expandedNodeId as ExpandedNodeId);
 }
 

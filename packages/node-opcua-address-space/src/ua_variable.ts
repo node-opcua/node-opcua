@@ -286,7 +286,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         this._dataValue = new DataValue({ statusCode: StatusCodes.UncertainInitialValue, value: {} });
 
-        //xx options.value = options.value || { dataType: DataType.Null };
+        // xx options.value = options.value || { dataType: DataType.Null };
 
         if (options.value) {
             this.bindVariable(options.value);
@@ -625,14 +625,13 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             return callback!(null, statusCode);
         }
 
-        
-        let write_func = this._timestamped_set_func ||  ((
-            dataValue: DataValue,
-            indexRange: NumericRange,
-            callback: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null | undefined) => void
+        const write_func = this._timestamped_set_func ||  ((
+            dataValue1: DataValue,
+            indexRange1: NumericRange,
+            callback1: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null | undefined) => void
           ) => {
               // xx assert(!indexRange,"indexRange Not Implemented");
-              return _default_writable_timestamped_set_func.call(this, dataValue, callback);
+              return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
           });
 
         if (!write_func) {
@@ -943,7 +942,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
 
         options = options || {};
- 
+
         assert(!_.isFunction(this._timestamped_set_func), "UAVariable already bound");
         assert(!_.isFunction(this._timestamped_get_func), "UAVariable already bound");
         bind_getter.call(this, options);

@@ -96,7 +96,7 @@ export type SubscriptionId = number;
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
-
+import { Callback } from "./common";
 export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
@@ -570,14 +570,14 @@ export interface ClientSession {
         conditionId: NodeIdLike,
         eventId: Buffer,
         comment: LocalizedTextLike,
-        callback: ErrorCallback
+        callback: Callback<StatusCode>
     ): void;
 
     addCommentCondition(
         conditionId: NodeIdLike,
         eventId: Buffer,
         comment: LocalizedTextLike
-    ): Promise<void>;
+    ): Promise<StatusCode>;
 
     /**
      * helper to confirm a condition
@@ -603,14 +603,14 @@ export interface ClientSession {
         conditionId: NodeIdLike,
         eventId: Buffer,
         comment: LocalizedTextLike,
-        callback: (err?: Error) => void
+        callback: Callback<StatusCode>
     ): void;
 
     confirmCondition(
         conditionId: NodeIdLike,
         eventId: Buffer,
         comment: LocalizedTextLike
-    ): Promise<void>;
+    ): Promise<StatusCode>;
 
     /**
      * helper to acknowledge a condition
@@ -653,13 +653,13 @@ export interface ClientSession {
         conditionId: NodeId,
         eventId: Buffer,
         comment: LocalizedTextLike,
-        callback: ErrorCallback): void;
+        callback: Callback<StatusCode>): void;
 
     acknowledgeCondition(
         conditionId: NodeId,
         eventId: Buffer,
         comment: LocalizedTextLike
-    ): Promise<void>;
+    ): Promise<StatusCode>;
 
     /**
      * @method findMethodId

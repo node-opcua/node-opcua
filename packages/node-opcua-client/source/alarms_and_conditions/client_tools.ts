@@ -14,13 +14,14 @@ import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-node
 import { ErrorCallback } from "node-opcua-secure-channel";
 import { CallMethodRequest, CallMethodResult } from "node-opcua-service-call";
 import { BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCodes, StatusCode } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 
 import { CallMethodRequestLike, ResponseCallback } from "../client_session";
 import { ClientSubscription } from "../client_subscription";
 import { ClientSessionImpl } from "../private/client_session_impl";
 import { ClientSubscriptionImpl } from "../private/client_subscription_impl";
+import { Callback } from "../common";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -112,7 +113,7 @@ ClientSessionImpl.prototype.addCommentCondition = function(
     conditionId: NodeIdLike,
     eventId: Buffer,
     comment: LocalizedTextLike,
-    callback: ErrorCallback
+    callback: Callback<StatusCode>
 ) {
     this._callMethodCondition("AddComment", conditionId, eventId, comment, callback);
 };
@@ -162,7 +163,7 @@ ClientSessionImpl.prototype._callMethodCondition = function(
     methodName: string,
     conditionId: NodeIdLike,
     eventId: Buffer,
-    comment: LocalizedTextLike, callback: (err?: Error) => void
+    comment: LocalizedTextLike, callback: Callback<StatusCode>
 ) {
 
     conditionId = coerceNodeId(conditionId);
@@ -174,6 +175,7 @@ ClientSessionImpl.prototype._callMethodCondition = function(
 
     let methodId: NodeId;
 
+    let statusCode: StatusCode;
     async.series([
 
         (innerCallback: ErrorCallback) => {
@@ -205,6 +207,7 @@ ClientSessionImpl.prototype._callMethodCondition = function(
                 if (err) {
                     return innerCallback(err);
                 }
+                statusCode = results![0].statusCode;
                 innerCallback();
             });
         }
@@ -212,7 +215,7 @@ ClientSessionImpl.prototype._callMethodCondition = function(
         if (err) {
             return callback(err);
         }
-        callback();
+        callback(null, statusCode);
     });
 };
 
@@ -220,7 +223,7 @@ ClientSessionImpl.prototype.confirmCondition = function(
     conditionId: NodeId,
     eventId: Buffer,
     comment: LocalizedTextLike,
-    callback: (err?: Error) => void
+    callback: Callback<StatusCode>
 ) {
     // ns=0;i=9113 AcknowledgeableConditionType#Confirm
     // note that confirm method is Optionals on condition
@@ -231,7 +234,7 @@ ClientSessionImpl.prototype.acknowledgeCondition = function(
     conditionId: NodeId,
     eventId: Buffer,
     comment: LocalizedTextLike,
-    callback: ErrorCallback) {
+    callback: Callback<StatusCode>) {
     // ns=0;i=9111 AcknowledgeableConditionType#Acknowledge
     this._callMethodCondition("Acknowledge", conditionId, eventId, comment, callback);
 };

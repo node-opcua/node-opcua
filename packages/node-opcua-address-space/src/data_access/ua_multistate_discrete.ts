@@ -7,12 +7,17 @@ import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 import * as _ from "underscore";
 
-import { UAMultiStateDiscrete as UAMultiStateDiscretePublic, UAVariable as UAVariablePublic } from "../../source";
-import { UAVariable } from "../ua_variable";
-import { promoteToMultiStateValueDiscrete } from "./ua_mutlistate_value_discrete";
+import {
+    Property,
+    UAMultiStateDiscrete as UAMultiStateDiscretePublic,
+    UAVariable as UAVariablePublic
+} from "../../source";
+import {
+    UAVariable
+ } from "../ua_variable";
 
 export interface UAMultiStateDiscrete {
-    enumStrings: UAVariable;
+    enumStrings: Property<"StringArray">;
 }
 
 /**

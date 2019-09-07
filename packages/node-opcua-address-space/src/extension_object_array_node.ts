@@ -25,17 +25,14 @@ import { VariantArrayType } from "node-opcua-variant";
 import { ExtensionObject } from "node-opcua-extension-object";
 import {
     AddressSpace,
-    BaseNode,
     UADynamicVariableArray,
     UAObject,
     UAReferenceType,
-    UAVariable as UAVariablePublic,
-    UAVariableType
-} from "../source/address_space_ts";
+    UAVariable as UAVariablePublic} from "../source/address_space_ts";
 
+import { AddressSpacePrivate } from "./address_space_private";
 import { UADataType } from "./ua_data_type";
 import { UAVariable } from "./ua_variable";
-import { AddressSpacePrivate } from "./address_space_private";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -59,7 +56,7 @@ function makeStructure(
     if (!bForce && (dataTypeFactory.hasConstructor(dataType.binaryEncodingNodeId) || dataType.binaryEncodingNodeId.namespace === 0)) {
         return dataTypeFactory.getConstructor(dataType.binaryEncodingNodeId);
     }
-    
+
     // istanbul ignore next
     if (doDebug) {
         debugLog("buildConstructorFromDefinition => ", dataType.browseName.toString());
@@ -204,7 +201,7 @@ function buildConstructorFromDefinition(
             // makeEnumeration(fieldDataType);
         } else if (fieldDataType.isSupertypeOf(structure as any)) {
             field.$$isStructure$$ = true;
-            const FieldConstructor = makeStructure(dataTypeFactory,fieldDataType);
+            const FieldConstructor = makeStructure(dataTypeFactory, fieldDataType);
             assert(_.isFunction(FieldConstructor));
             // xx field
             field.$$func_encode$$ = struct_encode;
@@ -326,7 +323,7 @@ export function prepareDataType(
         if (doDebug) {
             debugLog("prepareDataType ", dataType.nodeId.toString() , dataType.browseName.toString());
         }
-        dataType._extensionObjectConstructor = makeStructure(dataTypeFactory,dataType);
+        dataType._extensionObjectConstructor = makeStructure(dataTypeFactory, dataType);
         if (!dataType._extensionObjectConstructor) {
             // tslint:disable:no-console
             console.warn("AddressSpace#constructExtensionObject : cannot make structure for " + dataType.toString());
@@ -441,7 +438,7 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     dataType = addressSpace.findDataType(variableType.dataType)! as UADataType;
     assert(dataType.isSupertypeOf(structure as any), "expecting a structure (= ExtensionObject) here ");
 
-    uaArrayVariableNode.$$dataType = dataType as any;
+    uaArrayVariableNode.$$dataType = dataType as UADataType;
     uaArrayVariableNode.$$extensionObjectArray = [];
     uaArrayVariableNode.$$indexPropertyName = indexPropertyName;
 
@@ -500,18 +497,18 @@ export function addElement<T extends ExtensionObject>(
     assert(!!uaArrayVariableNode.$$variableType && !!uaArrayVariableNode.$$dataType,
       "did you create the array Node with createExtObjArrayNode ?");
     assert(uaArrayVariableNode.$$dataType.nodeClass === NodeClass.DataType);
-    assert((uaArrayVariableNode.$$dataType as any)._extensionObjectConstructor instanceof Function);
+    assert((uaArrayVariableNode.$$dataType as UADataType)._extensionObjectConstructor instanceof Function);
 
     const addressSpace = uaArrayVariableNode.addressSpace;
 
-    let extensionObject = null;
+    let extensionObject: T;
     let elVar = null;
     let browseName;
 
     if (options instanceof UAVariable) {
         elVar = options;
         extensionObject = elVar.$extensionObject; // get shared extension object
-        assert(extensionObject instanceof (uaArrayVariableNode.$$dataType as any)._extensionObjectConstructor,
+        assert(extensionObject instanceof (uaArrayVariableNode.$$dataType as UADataType)._extensionObjectConstructor,
           "the provided variable must expose a Extension Object of the expected type ");
         // add a reference
         uaArrayVariableNode.addReference({
@@ -522,11 +519,11 @@ export function addElement<T extends ExtensionObject>(
         // xx elVar.bindExtensionObject();
 
     } else {
-        if (options instanceof (uaArrayVariableNode.$$dataType as any)._extensionObjectConstructor) {
+        if (options instanceof (uaArrayVariableNode.$$dataType as UADataType)._extensionObjectConstructor) {
             // extension object has already been created
-            extensionObject = options;
+            extensionObject = options as T;
         } else {
-            extensionObject = addressSpace.constructExtensionObject(uaArrayVariableNode.$$dataType, options);
+            extensionObject = addressSpace.constructExtensionObject(uaArrayVariableNode.$$dataType, options) as T;
         }
         browseName = uaArrayVariableNode.$$getElementBrowseName(extensionObject);
         elVar = uaArrayVariableNode.$$variableType.instantiate({

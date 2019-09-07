@@ -8,6 +8,7 @@ import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
+import { ExtensionObject } from "node-opcua-extension-object";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
@@ -24,8 +25,10 @@ import * as  tools from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 
+type ExtensionObjectConstructor =  new (options: any) => ExtensionObject;
+
 export interface UADataType {
-    _extensionObjectConstructor: any;
+    _extensionObjectConstructor: ExtensionObjectConstructor;
 }
 
 export class UADataType extends BaseNode implements UADataTypePublic {

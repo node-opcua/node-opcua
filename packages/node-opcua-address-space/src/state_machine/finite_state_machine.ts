@@ -15,7 +15,6 @@ import { DataType } from "node-opcua-variant";
 import {
     State,
     Transition,
-    UAMethod,
     UAObject as UAObjectPublic,
     UAVariable as UAVariablePublic
 } from "../../source";
