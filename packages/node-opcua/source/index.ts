@@ -21,6 +21,9 @@ if (!semver.satisfies(process.version, minimumNodeVersionRequired)) {
 
 export * from "node-opcua-common";
 
+export { assert } from "node-opcua-assert";
+export * from "node-opcua-utils";
+
 export {
     NodeId,
     NodeIdLike,

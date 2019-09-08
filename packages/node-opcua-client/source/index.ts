@@ -14,6 +14,9 @@ export * from "./tools/findservers";
 export * from "./tools/read_history_server_capabilities";
 export * from "./client_utils";
 
+export { assert } from "node-opcua-assert";
+export * from "node-opcua-utils";
+
 export { ClientSidePublishEngine } from "./private/client_publish_engine";
 
 export { ServerState, ServiceCounterDataType } from "node-opcua-common";
