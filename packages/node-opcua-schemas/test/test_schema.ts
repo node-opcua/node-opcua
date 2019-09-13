@@ -150,7 +150,7 @@ describe("Binary Schemas Helper 1", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample,[]);
+        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
     });
 
     after(() => {
@@ -224,7 +224,7 @@ describe("Binary Schemas Helper 2", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample,[]);
+        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
     });
 
     after(() => {
@@ -341,7 +341,7 @@ describe("Binary Schemas Helper 3", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample,[]);
+        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
     });
 
     after(() => {
@@ -367,7 +367,7 @@ describe("Binary Schemas Helper 4", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample,[]);
+        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
     });
 
     after(() => {
@@ -387,17 +387,17 @@ describe("Binary Schemas Helper 4", () => {
         const scanData4a = new ScanData({ string: "Hello" });
         const scanData4b = new ScanData({ switchField: 2, string: "Hello" });
         const reloaded4b = encode_decode_round_trip_test(scanData4b, (buffer: Buffer) => {
-             buffer.length.should.eql(4 + 4 + 5);
+            buffer.length.should.eql(4 + 4 + 5);
         });
 
-        const scanData5a = new ScanData({  string: "36" });
+        const scanData5a = new ScanData({ string: "36" });
         const scanData5b = new ScanData({ switchField: 3, value: 36 });
         const reloaded5b = encode_decode_round_trip_test(scanData5b, (buffer: Buffer) => {
             buffer.length.should.eql(8);
         });
 
-        const scanData6a = new ScanData({  custom: { dataType: "Double" , value: 36 }});
-        const scanData6b = new ScanData({ switchField: 4, custom: { dataType: "Double" , value: 36 }});
+        const scanData6a = new ScanData({ custom: { dataType: "Double", value: 36 } });
+        const scanData6b = new ScanData({ switchField: 4, custom: { dataType: "Double", value: 36 } });
         const reloaded6b = encode_decode_round_trip_test(scanData6b, (buffer: Buffer) => {
             // buffer.length.should.eql(35);
         });
@@ -431,8 +431,6 @@ describe("Binary Schemas Helper 4", () => {
     });
 
     it("should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
-
+        /* */
     });
 });
-
-

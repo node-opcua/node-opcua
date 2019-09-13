@@ -7,18 +7,17 @@
 
 import chalk from "chalk";
 import {
-    EnumerationDefinitionSchema, 
+    EnumerationDefinitionSchema,
     FieldInterfaceOptions,
     StructuredTypeField,
     StructuredTypeOptions,
-    StructuredTypeSchema,
-    ConstructorFuncWithSchema
+    StructuredTypeSchema
 } from "node-opcua-factory";
 
 import { checkDebugFlag } from "node-opcua-debug";
+import { DataTypeFactory } from "node-opcua-factory";
 import { Xml2Json } from "node-opcua-xml2json";
 import { prepareEnumeratedType, prepareStructureType } from "./tools";
-import { DataTypeFactory } from "node-opcua-factory";
 
 const doDebug = checkDebugFlag(__filename);
 
@@ -104,30 +103,27 @@ export interface ITypeDictionary {
     enumeratedTypesRaw: { [key: string]: EnumeratedType; };
 }
 
-
 export class TypeDictionary extends DataTypeFactory implements ITypeDictionary {
-    structuredTypes: {
+    public structuredTypes: {
         [key: string]: StructuredTypeSchema;
     };
-    enumeratedTypes: {
+    public enumeratedTypes: {
         [key: string]: EnumerationDefinitionSchema;
     };
-    structuredTypesRaw: {
+    public structuredTypesRaw: {
         [key: string]: StructureTypeRaw;
     };
-    enumeratedTypesRaw: {
+    public enumeratedTypesRaw: {
         [key: string]: EnumeratedType;
     };
     constructor(baseDataFactories: DataTypeFactory[]) {
         super(baseDataFactories);
-   
-        this.structuredTypes= {};
-        this.structuredTypesRaw= {};
-        this.enumeratedTypes= {};
-        this.enumeratedTypesRaw= {};  
+        this.structuredTypes = {};
+        this.structuredTypesRaw = {};
+        this.enumeratedTypes = {};
+        this.enumeratedTypesRaw = {};
     }
- }
-
+}
 
 /* tslint:disable:object-literal-shorthand */
 const state0: any = {
@@ -291,7 +287,6 @@ const state0: any = {
         }
     }
 };
-
 
 export function parseBinaryXSD(
     xmlString: string,

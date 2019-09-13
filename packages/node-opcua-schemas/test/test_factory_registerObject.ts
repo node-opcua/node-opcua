@@ -27,7 +27,6 @@ import {
 } from "../source";
 import { prepareStructureType } from "../source/tools";
 
-
 const temporary_folder = path.join(__dirname, "..", "_test_generated");
 
 const typeDictionary = new TypeDictionary([]);
@@ -330,7 +329,6 @@ xdescribe("Factories: testing encodingDefaultBinary and constructObject", () => 
     });
 
 });
-
 
 describe("PacketAnalyzer", () => {
 

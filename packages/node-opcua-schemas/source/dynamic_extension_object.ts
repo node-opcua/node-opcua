@@ -10,7 +10,7 @@ import {
     check_options_correctness_against_schema,
     ConstructorFuncWithSchema,
     FieldCategory,
-    FieldType, 
+    FieldType,
     initialize_field,
     initialize_field_array,
     StructuredTypeSchema
@@ -40,12 +40,12 @@ export function getOrCreateConstructor(
     }
 
     const constructor = createDynamicObjectConstructor(schema, typeDictionary);
-   
+
     if (!constructor) {
         return constructor;
     }
     // istanbul ignore next
-    if(!typeDictionary.hasStructuredType(fieldType)) {
+    if (!typeDictionary.hasStructuredType(fieldType)) {
 
         typeDictionary.registerFactory(fieldType, constructor as ConstructorFuncWithSchema);
         return constructor;
@@ -57,13 +57,13 @@ export function getOrCreateConstructor(
         schema.encodingDefaultXml = encodingDefaultXml;
         (constructor as any).encodingDefaultBinary = encodingDefaultBinary;
         (constructor as any).encodingDefaultXml = encodingDefaultXml;
-        typeDictionary.associateWithBinaryEncoding(fieldType,encodingDefaultBinary);
+        typeDictionary.associateWithBinaryEncoding(fieldType, encodingDefaultBinary);
     }
     return constructor;
 }
 
 function encodeArrayOrElement(
-    
+
     field: FieldType,
     obj: any,
     stream: OutputBinaryStream,
@@ -138,11 +138,11 @@ function decodeArrayOrElement(
 }
 
 function initializeField(
-    field: FieldType, 
-    thisAny: any, 
+    field: FieldType,
+    thisAny: any,
     options: any,
-     schema: StructuredTypeSchema,
-      typeDictionary: TypeDictionary
+    schema: StructuredTypeSchema,
+    typeDictionary: TypeDictionary
 ) {
 
     const name = field.name;
@@ -180,7 +180,6 @@ function initializeField(
  */
 function initializeFields(thisAny: any, options: any, schema: StructuredTypeSchema, typeDictionary: TypeDictionary) {
 
-    
     // initialize base class first
     if (schema._baseSchema && schema._baseSchema.fields.length) {
         initializeFields(thisAny, options, schema._baseSchema!, typeDictionary);
@@ -249,8 +248,8 @@ function encodeFields(thisAny: any, schema: StructuredTypeSchema, stream: Output
 
 }
 function decodeFields(
-    thisAny: any, 
-    schema: StructuredTypeSchema, 
+    thisAny: any,
+    schema: StructuredTypeSchema,
     stream: BinaryStream,
     typeDictionary: TypeDictionary
 ) {
@@ -275,7 +274,7 @@ function decodeFields(
                 (thisAny)[field.name] = undefined;
                 continue;
             } else {
-                if (field.category === FieldCategory.complex &&   (thisAny)[field.name] === undefined) {
+                if (field.category === FieldCategory.complex && (thisAny)[field.name] === undefined) {
                     // need to create empty structure for deserialisation
                     initializeField(field, thisAny, {}, schema, typeDictionary);
                 }
@@ -300,7 +299,7 @@ function decodeFields(
 class DynamicExtensionObject extends ExtensionObject {
 
     public static schema: StructuredTypeSchema = ExtensionObject.schema;
-    public static possibleFields: string[] =  [];
+    public static possibleFields: string[] = [];
     private readonly _typeDictionary: TypeDictionary;
     private __schema?: StructuredTypeSchema;
 
@@ -339,7 +338,7 @@ class DynamicExtensionObject extends ExtensionObject {
 interface AnyConstructable {
     schema: StructuredTypeSchema;
     possibleFields: string[];
-    new(options?: any,  schema?: StructuredTypeSchema, typeDictionary?: TypeDictionary): any;
+    new(options?: any, schema?: StructuredTypeSchema, typeDictionary?: TypeDictionary): any;
 }
 
 export type AnyConstructorFunc = AnyConstructable;
@@ -376,23 +375,18 @@ class UnionBaseClass extends BaseUAObject {
             // dealing with optional fields
 
             /* istanbul ignore next */
-            if (uniqueFieldHasBeenFound && options[field.name] !== undefined)  {
+            if (uniqueFieldHasBeenFound && options[field.name] !== undefined) {
                 // let try to be helpful for the developper by providing some hint
                 debugLog(this.schema);
-                throw new Error("union must have only one choice in "+ JSON.stringify(options) + 
-                "\n found while investigating " + field.name + 
-                "\n switchFieldName = " + switchFieldName);
+                throw new Error("union must have only one choice in " + JSON.stringify(options) +
+                    "\n found while investigating " + field.name +
+                    "\n switchFieldName = " + switchFieldName);
             }
 
-//Xx        // the field can be ignore
-//Xx        if (options[field.name] === undefined) {
-//Xx           continue;
-//Xx        }
             if (options[switchFieldName] !== undefined) {
                 // then options[switchFieldName] must equal
                 if (options[switchFieldName] !== field.switchValue) {
                     continue;
-                    //xx throw new Error("Invalid " + switchFieldName + " value : expecting " + field.switchValue);
                 }
             } else {
                 // the is no switchFieldName , in this case the i
@@ -434,10 +428,11 @@ class UnionBaseClass extends BaseUAObject {
             }
             const r = schema.fields.filter((f) => f.switchValue !== undefined).map((f) => f.name).join(" , ");
             // it is possible also that the switchfield value do not correspond to a valid field
-            const foundFieldForSwitchValue = schema.fields.findIndex((f) => 
+            const foundFieldForSwitchValue = schema.fields.findIndex((f) =>
                 f.switchValue !== undefined && f.switchValue === options[switchFieldName]);
             if (foundFieldForSwitchValue) {
-               //xx throw new Error(this.schema.name + ": cannot find field with value " +  options[switchFieldName]);
+                // throw new Error(this.schema.name + ": cannot find field with value "
+                // +  options[switchFieldName]);
             } else {
                 console.log(this.schema);
                 throw new Error(this.schema.name + ": At least one of [ " + r + " ] must be specified in " + JSON.stringify(options));
@@ -476,7 +471,7 @@ class UnionBaseClass extends BaseUAObject {
 
     public decode(stream: BinaryStream): void {
 
-        const typeDictionary : TypeDictionary = (this.schema as any).$typeDictionary;
+        const typeDictionary: TypeDictionary = (this.schema as any).$typeDictionary;
 
         const switchValue = stream.readUInt32();
         const switchFieldName = this.schema.fields[0].name;
