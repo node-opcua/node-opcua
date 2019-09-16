@@ -200,7 +200,7 @@ describe("testing Client-Server - Event", function () {
 
 
             function (callback) {
-                _client_backoff_event.callCount.should.be.greaterThan(1);
+                _client_backoff_event.callCount.should.be.greaterThan(0);
                 _client_received_close_event.callCount.should.eql(1);
                 should.not.exist(_client_received_close_event.getCall(0).args[0]);
                 // _client_received_close_event.getCall(0).args[0].message.should.match(/CONNREFUSED/);

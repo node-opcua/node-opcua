@@ -5,6 +5,6 @@
     "outDir": "dist"
   },
   "files": [
-    "source/index.ts",
+    "source/index.ts"
   ]
 }

@@ -14,6 +14,10 @@ import {
     OPCUASecureObject
 } from "node-opcua-common";
 import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
+import {
+    installPeriodicClockAdjustmement,
+    uninstallPeriodicClockAdjustmement
+} from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
     ClientSecureChannelLayer,
@@ -25,10 +29,6 @@ import {
     SecurityPolicy,
     SecurityToken
 } from "node-opcua-secure-channel";
-import { 
-    installPeriodicClockAdjustmement, 
-    uninstallPeriodicClockAdjustmement 
-} from "node-opcua-date-time";
 import {
     FindServersOnNetworkRequest, FindServersOnNetworkRequestOptions,
     FindServersOnNetworkResponse, FindServersRequest,
@@ -595,7 +595,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public connect(endpointUrl: string, callback: ErrorCallback): void;
     public connect(...args: any[]): any {
 
-        
         const endpointUrl = args[0];
         const callback = args[1];
         assert(_.isFunction(callback), "expecting a callback");

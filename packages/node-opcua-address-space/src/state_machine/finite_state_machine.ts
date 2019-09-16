@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-console
 import chalk from "chalk";
 import * as _ from "underscore";
 
@@ -339,6 +338,7 @@ export class StateMachine extends UAObject implements StateMachine {
                 if (doDebug) {
                     const f = fromStateNode.browseName.toString();
                     const t = toStateNode.browseName.toString();
+                    // tslint:disable-next-line:no-console
                     console.log(chalk.red("Warning"),
                       " cannot raise event :  transition " + f + " to " + t + " is missing");
                 }

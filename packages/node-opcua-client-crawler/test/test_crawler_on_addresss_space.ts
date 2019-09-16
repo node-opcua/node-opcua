@@ -17,14 +17,14 @@ import {
     NodeId
 } from "node-opcua-nodeid";
 
+import { DataType } from "node-opcua-client";
 import {
     CacheNode,
     NodeCrawler,
     UserData
 } from "..";
-import { DataType } from "node-opcua-client";
 
-describe("NodeCrawler", function (this: any) {
+describe("NodeCrawler", function(this: any) {
 
     this.timeout(200000);
 
@@ -59,8 +59,8 @@ describe("NodeCrawler", function (this: any) {
             addressSpace.getOwnNamespace().addVariable({
                 browseName: "Variable" + i,
                 dataType: "Double",
+                organizedBy: massVariables,
                 value: { dataType: "Double", value: i},
-                organizedBy: massVariables
             });
         }
 
@@ -106,7 +106,7 @@ describe("NodeCrawler", function (this: any) {
         results.sort().join(" ").should.eql(
           "HasComponent HasProperty " +
           "LocaleIdArray " +
-          "MaxMonitoredItemsPerCall "+
+          "MaxMonitoredItemsPerCall " +
           "MaxNodesPerBrowse " +
           "MaxNodesPerHistoryReadData " +
           "MaxNodesPerHistoryReadEvents " +
@@ -117,7 +117,7 @@ describe("NodeCrawler", function (this: any) {
           "MaxNodesPerRead " +
           "MaxNodesPerRegisterNodes " +
           "MaxNodesPerTranslateBrowsePathsToNodeIds " +
-          "MaxNodesPerWrite " + 
+          "MaxNodesPerWrite " +
           "OperationLimits " +
           "ServerCapabilities");
 
@@ -151,6 +151,7 @@ describe("NodeCrawler", function (this: any) {
           "1:Object5 1:Object6 1:Object7 " +
           "1:Object8 1:Object9 Organizes");
 
+        // tslint:disable: no-console
         console.log("browseCounter = ",     crawler.browseCounter);
         console.log("browseNextCounter = ", crawler.browseNextCounter);
         console.log("readCounter = ",       crawler.readCounter);
@@ -165,10 +166,9 @@ describe("NodeCrawler", function (this: any) {
 
         maxNodesPerReadVar.setValueFromSource({ dataType: DataType.UInt32, value: 251});
         maxNodesPerBrowseVar.setValueFromSource({ dataType: DataType.UInt32, value: 252});
-       
         maxNodesPerReadVar.readValue().value.value.should.eql(251);
         maxNodesPerBrowseVar.readValue().value.value.should.eql(252);
-        
+
         const session = new PseudoSession(addressSpace);
 
         {
@@ -176,7 +176,7 @@ describe("NodeCrawler", function (this: any) {
             const crawler = new NodeCrawler(session);
             crawler.maxNodesPerRead = 0;
             crawler.maxNodesPerBrowse = 0;
-            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */} });
 
             // then NodeCrawler shall be set with value provided by server
             crawler.maxNodesPerRead.should.eql(251);
@@ -189,7 +189,7 @@ describe("NodeCrawler", function (this: any) {
             const crawler = new NodeCrawler(session);
             crawler.maxNodesPerRead = 5;
             crawler.maxNodesPerBrowse = 10;
-            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */} });
             // then NodeCrawler shall be set with value provided by itself
             crawler.maxNodesPerRead.should.eql(5);
             crawler.maxNodesPerBrowse.should.eql(10);
@@ -200,7 +200,7 @@ describe("NodeCrawler", function (this: any) {
             const crawler = new NodeCrawler(session);
             crawler.maxNodesPerRead = 501;
             crawler.maxNodesPerBrowse = 502;
-            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */} });
             // then NodeCrawler shall be set with value provided by server
             crawler.maxNodesPerRead.should.eql(251);
             crawler.maxNodesPerBrowse.should.eql(252);
@@ -227,7 +227,7 @@ describe("NodeCrawler", function (this: any) {
             crawler.maxNodesPerRead = 0;
             crawler.maxNodesPerBrowse = 0;
             // then NodeCrawler shall be set with default value provided by NodeCrawler
-            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */} });
             crawler.maxNodesPerRead.should.eql(100);
             crawler.maxNodesPerBrowse.should.eql(100);
         }
@@ -237,7 +237,7 @@ describe("NodeCrawler", function (this: any) {
             // Given that NodeCrawler doesn't specify minimum value for  maxNodesPerRead/Browse
             crawler.maxNodesPerRead = 5;
             crawler.maxNodesPerBrowse = 10;
-            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */} });
             // then NodeCrawler shall be set with value provided by itself
             crawler.maxNodesPerRead.should.eql(5);
             crawler.maxNodesPerBrowse.should.eql(10);
@@ -248,14 +248,14 @@ describe("NodeCrawler", function (this: any) {
             // and greater than default value
             crawler.maxNodesPerRead = 501;
             crawler.maxNodesPerBrowse = 502;
-            await crawler.crawl(groupNodeId,{ onBrowse: () => {/* empty */} });
+            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */} });
             // then NodeCrawler shall be set with value provided by itself
             crawler.maxNodesPerRead.should.eql(501);
             crawler.maxNodesPerBrowse.should.eql(502);
         }
 
     });
-    
+
     it("#655 it should send a browse event for each elements visited ", async () => {
 
         addressSpace.rootFolder.objects.server.serverCapabilities.operationLimits.maxNodesPerBrowse!.setValueFromSource({
@@ -266,7 +266,7 @@ describe("NodeCrawler", function (this: any) {
         });
 
         const session = new PseudoSession(addressSpace);
-        
+
         session.requestedMaxReferencesPerNode = 1000;
 
         (session as any).browse     = sinon.spy(session, "browse");
@@ -274,7 +274,7 @@ describe("NodeCrawler", function (this: any) {
         (session as any).read       = sinon.spy(session, "read");
 
         const crawler = new NodeCrawler(session);
-        
+
         const results: string[] = [];
 
         let onBrowseCallCount = 0;
@@ -282,22 +282,21 @@ describe("NodeCrawler", function (this: any) {
             onBrowse(this: UserData, crawler1: NodeCrawler, cacheNode: CacheNode) {
                 results.push(cacheNode.browseName.toString());
                 followForward(crawler1, cacheNode, this);
-                onBrowseCallCount +=1;
+                onBrowseCallCount += 1;
             }
         };
 
         await crawler.crawl(massVariablesNodeId, data);
 
-        console.log("onBrowse(element) count ",onBrowseCallCount);
+        // tslint:disable: no-console
+        console.log("onBrowse(element) count ", onBrowseCallCount);
         console.log("browse                  ", (session as any).browse.callCount);
         console.log("browseNext              ", (session as any).browseNext.callCount);
         console.log("read                    ", (session as any).read.callCount);
 
         onBrowseCallCount.should.eql(1 + 10000 + 1);
         (session as any).browse.callCount.should.eql(102); // 2 + 100*100
-        (session as any).browseNext.callCount.should.eql(10); // 10000*7 
+        (session as any).browseNext.callCount.should.eql(10); // 10000*7
         (session as any).read.callCount.should.eql(64); // 64*1000 => 6 read per node in average ?
-            
-        
     });
 });

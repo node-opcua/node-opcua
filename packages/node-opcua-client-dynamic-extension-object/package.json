@@ -1,7 +1,7 @@
 {
   "name": "node-opcua-client-dynamic-extension-object",
   "version": "2.1.6",
-  "description": "pure nodejs OPCUA SDK - module -extension-object",
+  "description": "pure nodejs OPCUA SDK - module client-dynamic-extension-object",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {

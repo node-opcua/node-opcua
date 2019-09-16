@@ -2,7 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "dist",
+    "outDir": "dist"
   },
-  "files": [ "source/xml2json.ts" ],
+  "files": [ "source/xml2json.ts" ]
 }

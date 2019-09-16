@@ -4,9 +4,9 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-status-code";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantLike } from "node-opcua-variant";
 import { Namespace, RaiseEventData, SessionContext, UAEventType } from "../../source";
 import { AddressSpacePrivate } from "../address_space_private";
@@ -209,6 +209,11 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
 
         const conditionNode = this;
 
+        const statusCode = _setAckedState(branch, true, eventId, comment);
+        if (statusCode !== StatusCodes.Good) {
+            return statusCode;
+        }
+
         if (conditionNode.confirmedState) {
             // alarm has a confirmed state !
             // we should be waiting for confirmation now
@@ -216,11 +221,6 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
             branch.setRetain(true);
         } else {
             branch.setRetain(false);
-        }
-
-        const statusCode = _setAckedState(branch, true, eventId, comment);
-        if (statusCode !== StatusCodes.Good) {
-            return statusCode;
         }
 
         branch.setComment(comment);
@@ -264,8 +264,9 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
         // xx var eventId = branch.getEventId();
         assert(branch.getEventId().toString("hex") === eventId.toString("hex"));
         branch.setConfirmedState(true);
-        branch.setRetain(false);
 
+        // once confirmed a branch do not need to be retained
+        branch.setRetain(false);
         branch.setComment(comment);
 
         conditionNode._raiseAuditConditionCommentEvent(message, eventId, comment);

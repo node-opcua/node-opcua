@@ -53,16 +53,18 @@ function dumpEvent(
         }
     });
 }
-
+function ellipsis(a) {
+    return a.substr(a, 10) + "...";
+}
 function dumpSpy(spyOnEvent: any) {
     for (let i = 0; i < spyOnEvent.getCalls().length; i++) {
         console.log("call ", i);
         console.log("  time      ", spyOnEvent.getCalls()[i].args[0].time.toString());
         console.log("  eventId   ", spyOnEvent.getCalls()[i].args[0].eventId.toString());
-        console.log("  eventType ", spyOnEvent.getCalls()[i].args[0].eventType.toString());
+        console.log("  eventType ", ellipsis(spyOnEvent.getCalls()[i].args[0].eventType.toString()));
         console.log("  branchId  ", spyOnEvent.getCalls()[i].args[0].branchId.toString());
-        console.log("  message   ", spyOnEvent.getCalls()[i].args[0].message.toString());
-        console.log("  ack       ", spyOnEvent.getCalls()[i].args[0].ackedState.toString());
+        console.log("  message   ", ellipsis(spyOnEvent.getCalls()[i].args[0].message.toString()));
+        console.log("  acked     ", spyOnEvent.getCalls()[i].args[0].ackedState.toString());
     }
 
 }

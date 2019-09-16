@@ -19,9 +19,9 @@ import {
 import {
     BrowseDescription,
     BrowseDescriptionOptions,
+    BrowseNextResponse,
     BrowseRequest,
     BrowseResponse,
-    BrowseNextResponse,
     BrowseResult
 } from "node-opcua-service-browse";
 import {
@@ -37,11 +37,11 @@ import {
     StatusCodes
 } from "node-opcua-status-code";
 
+import { MessageSecurityMode } from "node-opcua-types";
 import { AddressSpace } from "./address_space_ts";
+import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 import { callMethodHelper } from "./helpers/call_helpers";
 import { IServerBase, ISessionBase, SessionContext } from "./session_context";
-import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
-import { MessageSecurityMode } from "node-opcua-types";
 /**
  * Pseudo session is an helper object that exposes the same async methods
  * than the ClientSession. It can be used on a server address space.
@@ -66,11 +66,11 @@ export class PseudoSession implements IBasicSession {
     constructor(addressSpace: AddressSpace, server?: IServerBase, session?: ISessionBase) {
         this.addressSpace = addressSpace;
         this.server = server || {};
-        this.session = session || { 
-            channel: { 
+        this.session = session || {
+            channel: {
                 clientCertificate: null,
                 securityMode: MessageSecurityMode.None,
-                securityPolicy: "http://opcfoundation.org/UA/SecurityPolicy#None" // SecurityPolicy.None 
+                securityPolicy: "http://opcfoundation.org/UA/SecurityPolicy#None" // SecurityPolicy.None
             }
         };
         this.continuationPointManager = new ContinuationPointManager();
@@ -82,7 +82,7 @@ export class PseudoSession implements IBasicSession {
     public browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
     public browse(nodesToBrowse: BrowseDescriptionLike | BrowseDescriptionLike[], callback?: ResponseCallback<any>): any {
 
-        setImmediate(()=>{
+        setImmediate(() => {
             const isArray = _.isArray(nodesToBrowse);
             if (!isArray) {
                 nodesToBrowse = [nodesToBrowse as BrowseDescriptionLike];
@@ -108,9 +108,8 @@ export class PseudoSession implements IBasicSession {
                 return new BrowseResult(truncatedResult);
             });
 
-
             callback!(null, isArray ? results : results[0]);
-            
+
         });
     }
 
@@ -125,8 +124,7 @@ export class PseudoSession implements IBasicSession {
             nodesToRead = [nodesToRead];
         }
 
-        setImmediate(()=> {
-
+        setImmediate(() => {
 
             // xx const context = new SessionContext({ session: null });
             const dataValues = nodesToRead.map((nodeToRead: ReadValueIdLike) => {
@@ -176,13 +174,13 @@ export class PseudoSession implements IBasicSession {
         callback?: any
     ): any {
 
-        setImmediate(()=>{ 
+        setImmediate(() => {
 
             if (continuationPoints instanceof Buffer) {
-                return this.browseNext([continuationPoints],releaseContinuationPoints,
-                    (err, results) => {
-                    if (err) { return callback!(err);}
-                    callback!(null, results![0]);
+                return this.browseNext([continuationPoints], releaseContinuationPoints,
+                    (err, _results) => {
+                    if (err) { return callback!(err); }
+                    callback!(null, _results![0]);
                 });
                 return;
             }

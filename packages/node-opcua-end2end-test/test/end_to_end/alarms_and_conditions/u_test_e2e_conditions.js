@@ -1,4 +1,4 @@
-    /*global xit,it,describe,before,after,beforeEach,afterEach*/
+/* global xit,it,describe,before,after,beforeEach,afterEach*/
 "use strict";
 
 const chalk = require("chalk");
@@ -126,7 +126,7 @@ module.exports = function (test) {
         ];
         const eventFilter = constructEventFilter(fields, conditionTypeId);
 
-        function given_and_install_event_monitored_item(subscription, callback) {
+        function given_an_install_event_monitored_item(subscription, callback) {
             const test = this;
             // A spy to detect event when they are raised by the sever
             test.spy_monitored_item1_changes = sinon.spy();
@@ -154,13 +154,13 @@ module.exports = function (test) {
             test.monitoredItem1.on("changed", test.spy_monitored_item1_changes);
         }
 
-        it("GGG2 -  Limit Alarm should trigger Event when ever the input node goes out of limit", function (done) {
+        it("GGG1 -  Limit Alarm should trigger Event when ever the input node goes out of limit", function (done) {
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
                 async.series([
 
-                    given_and_install_event_monitored_item.bind(test, subscription),
+                    given_an_install_event_monitored_item.bind(test, subscription),
 
                     function when_tank_level_is_overfilled(callback) {
 
@@ -209,33 +209,49 @@ module.exports = function (test) {
             }, done);
         });
 
-        it("GGG1 - ConditionRefresh", function (done) {
+        it("GGG2 - ConditionRefresh", function (done) {
+
+
+            function wait_until_refresh_end(callback) {
+                let alreadyCalled = false;
+                const lambda =  function (values) {
+                    console.log(values[7].value.toString());
+                    if (values[7].value.toString() === "ns=0;i=2788") {
+                        if (alreadyCalled) {
+                            return;
+                        }
+                        alreadyCalled = true;
+                        test.monitoredItem1.removeListener("changed",lambda);
+                        setImmediate(callback);
+                    }
+                }
+                // lets add a a event handler to detect when the Event has been
+                // raised we we will call ConditionRefresh
+                test.monitoredItem1.on("changed",lambda);
+            }
 
             perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
                 async.series([
 
-                    given_and_install_event_monitored_item.bind(test, subscription),
+                    function(callback) {
+                        test.tankLevel.setValueFromSource({ dataType: "Double", value:0.9});
+                        callback();
+                    },
+                    given_an_install_event_monitored_item.bind(test, subscription),
 
                     function when_client_calling_ConditionRefresh(callback) {
 
                         test.spy_monitored_item1_changes.resetHistory();
 
-                        // lets add a a event handler to detect when the Event has been
-                        // raised we we will call ConditionRefresh
-                        test.monitoredItem1.once("changed", function () {
-                            callback();
-                        });
-                        // now client send a condition refresh
+                        wait_until_refresh_end(callback);
 
+                        // now client send a condition refresh
                         // let's call condition refresh
                         callConditionRefresh(subscription, function (err) {
-                            // debugLog(" condition refresh has been called");
+                            // debugLog(" condition refresh has been send to server , now waiting for events");
                         });
 
-                    },
-                    function (callback) {
-                        setTimeout(callback, 100);
                     },
 
                     function then_we_should_check_that_event_is_raised_after_client_calling_ConditionRefresh(callback) {
@@ -260,9 +276,10 @@ module.exports = function (test) {
 
                     function then_when_server_raises_a_new_condition_event(callback) {
 
-                        test.monitoredItem1.once("changed", function () {
+                        test.monitoredItem1.once("changed", ()=> {
                             callback();
                         });
+
                         // ---------------------------
                         // create a retain condition
                         const tankLevelCondition = test.tankLevelCondition;
@@ -274,9 +291,7 @@ module.exports = function (test) {
                         });
 
                     },
-                    function (callback) {
-                        setTimeout(callback, 100);
-                    },
+
                     function (callback) {
                         test.spy_monitored_item1_changes.callCount.should.eql(1);
                         const values = test.spy_monitored_item1_changes.getCall(0).args[0];
@@ -289,9 +304,7 @@ module.exports = function (test) {
 
                     function when_client_calling_ConditionRefresh_again(callback) {
 
-                        test.monitoredItem1.once("changed", function () {
-                            callback();
-                        });
+                        wait_until_refresh_end(callback);
                         // now client send a condition refresh
                         callConditionRefresh(subscription, function (err) {
                             //  callback(err);
@@ -323,6 +336,9 @@ module.exports = function (test) {
 
 
                     function (callback) {
+                        const tankLevelCondition = test.tankLevelCondition;
+                        tankLevelCondition.currentBranch().setRetain(false);
+                        tankLevelCondition.raiseNewCondition();
                         callback();
                     }
 
@@ -333,7 +349,7 @@ module.exports = function (test) {
 
         });
 
-        describe("test on Disabled conditions", function () {
+        describe("test on Disabled conditons", function () {
 
             /*
              For any Condition that exists in the AddressSpace the Attributes and the following
@@ -356,7 +372,7 @@ module.exports = function (test) {
                             callback();
                         },
 
-                        given_and_install_event_monitored_item.bind(test, subscription),
+                        given_an_install_event_monitored_item.bind(test, subscription),
 
                         function when_the_condition_is_disabled_by_the_client(callback) {
                             //xx test.tankLevelCondition.enabledState.setValue(false);
@@ -460,9 +476,11 @@ module.exports = function (test) {
                         callback();
                     },
 
-                    given_and_install_event_monitored_item.bind(test, subscription),
+                    given_an_install_event_monitored_item.bind(test, subscription),
 
+                    wait_a_little_bit_to_let_events_to_be_processed,
                     function when_a_notification_event_is_raised_by_the_condition(callback) {
+                        test.spy_monitored_item1_changes.resetHistory();
                         levelNode.setValueFromSource({dataType: "Double", value: 1000});
                         callback();
                     },
@@ -470,11 +488,17 @@ module.exports = function (test) {
                     wait_a_little_bit_to_let_events_to_be_processed,
 
                     function then_we_should_verify_than_the_event_received_is_correct(callback) {
-                        test.spy_monitored_item1_changes.callCount.should.eql(1, "one event should have been raised");
+                        // let dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
+                        // dump_field_values(fields,dataValues);
+                        // dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        // dump_field_values(fields,dataValues);
+
+                        test.spy_monitored_item1_changes.callCount.should.eql(2, "one event should have been raised");
                         callback();
                     },
                     function when_we_set_a_comment(callback) {
 
+                        test.spy_monitored_item1_changes.resetHistory();
                         // The EventId is identifying a particular Event Notification where a state was reported for a Condition.
                         const eventId = alarmNode.eventId.readValue().value.value;
 
@@ -493,7 +517,7 @@ module.exports = function (test) {
                         //     Comment, severity and quality are important elements of Conditions and any change to them
                         //     will cause Event Notifications.
                         // * a AuditConditionCommentEventType
-                        test.spy_monitored_item1_changes.callCount.should.eql(3, "Two events should have been raised");
+                        test.spy_monitored_item1_changes.callCount.should.eql(2, "Two events should have been raised");
 
                         // lets extract the eventId on which the comment was added
                         // we can find in on firt event notificiation
@@ -504,7 +528,7 @@ module.exports = function (test) {
 
 
                         // let verify the AuditConditionCommentEventType data
-                        dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        dataValues = test.spy_monitored_item1_changes.getCall(0).args[0];
                         //xx dump_field_values(fields,dataValues);
                         const eventType = extract_value_for_field("EventType", dataValues).value.toString();
                         eventType.should.eql("ns=0;i=2829");// AuditConditionCommentEventType
@@ -513,11 +537,11 @@ module.exports = function (test) {
                         eventId_Step0.toString("hex").should.eql(eventId.toString("hex"));
 
                         // let verify the event raised by the condition, due to the comment update
-                        dataValues = test.spy_monitored_item1_changes.getCall(2).args[0];
-                        //xx dump_field_values(fields,dataValues);
+                        dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
+                        //  dump_field_values(fields,dataValues);
                         //xx The EventId field shall contain the id of the event for which the comment was added.
                         extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
-                        extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
+                        extract_value_for_field("ConditionName", dataValues).value.should.eql("TankLevelCondition");
                         extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
                         extract_value_for_field("Comment", dataValues).value.text.toString().should.eql("SomeComment!!!");
                         const eventId_New = extract_value_for_field("EventId", dataValues).value;
@@ -689,10 +713,18 @@ module.exports = function (test) {
 
                     alarmNode.currentBranch().setConfirmedState(true);
                     alarmNode.currentBranch().setAckedState(true);
+                    
+                    for(const b of alarmNode.getBranches()) {
+                        b.setConfirmedState(true);
+                        b.setAckedState(true);   
+                        alarmNode.deleteBranch(b); 
+                    }
 
                     alarmNode.activeState.getValue().should.eql(false);
                     alarmNode.confirmedState.getValue().should.eql(true, "confirmedState supposed to be set");
                     alarmNode.ackedState.getValue().should.eql(true, "ackedState supposed to be set");
+
+                    alarmNode.getBranchCount().should.eql(0);
 
                     callback();
                 }
@@ -766,13 +798,13 @@ module.exports = function (test) {
                     // a/ initial_state_of_condition
                     initial_state_of_condition,
 
-                    given_and_install_event_monitored_item.bind(test, subscription),
+                    given_an_install_event_monitored_item.bind(test, subscription),
 
                     wait_a_little_bit_to_let_events_to_be_processed,
                     function we_should_verify_that_no_event_has_been_raised_yet(callback) {
                         test.spy_monitored_item1_changes.callCount.should.eql(0);
-
                         alarmNode.confirmedState.getValue().should.eql(true, "confirmedState supposed to be set");
+                        alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
                         callback();
                     },
 

@@ -14,14 +14,14 @@ import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-node
 import { ErrorCallback } from "node-opcua-secure-channel";
 import { CallMethodRequest, CallMethodResult } from "node-opcua-service-call";
 import { BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 
 import { CallMethodRequestLike, ResponseCallback } from "../client_session";
 import { ClientSubscription } from "../client_subscription";
+import { Callback } from "../common";
 import { ClientSessionImpl } from "../private/client_session_impl";
 import { ClientSubscriptionImpl } from "../private/client_subscription_impl";
-import { Callback } from "../common";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);

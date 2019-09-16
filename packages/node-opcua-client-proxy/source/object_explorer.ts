@@ -6,15 +6,14 @@ import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection, makeNodeClassMask, makeResultMask } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { ReferenceDescription } from "node-opcua-service-browse";
+import { IBasicSession } from "node-opcua-pseudo-session";
+import { BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodResult } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-
-import { ClientSession, DataValue } from "node-opcua-client";
-import { BrowseResult } from "node-opcua-service-browse";
 import { Callback } from "./common";
 import { makeRefId } from "./proxy";
 import { UAProxyManager } from "./proxy_manager";
@@ -59,7 +58,7 @@ function convertNodeIdToDataType(dataTypeId: NodeId): DataType {
  * see also AddressSpace#findCorrespondingBasicDataType
  */
 function convertNodeIdToDataTypeAsync(
-    session: ClientSession,
+    session: IBasicSession,
     dataTypeId: NodeId,
     callback: Callback<DataType>
 ) {

@@ -193,26 +193,32 @@ function extractEventField(eventData: any, selectClause: SimpleAttributeOperand)
 
     if (selectClause.browsePath.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
 
+        const eventSource = eventData.$eventDataSource;
+        const addressSpace = eventSource.addressSpace;
+        const conditionTypeNodeId = resolveNodeId("ConditionType");
+        const conditionType = addressSpace.findObjectType(conditionTypeNodeId);
+
         // "ns=0;i=2782" => ConditionType
         // "ns=0;i=2041" => BaseEventType
         if (selectClause.typeDefinitionId.toString() !== "ns=0;i=2782") {
-            // not ConditionType
-            // tslint:disable-next-line:no-console
-            console.warn("this case is not handled yet : selectClause.typeDefinitionId = " + selectClause.typeDefinitionId.toString());
-            const eventSource1 = eventData.$eventDataSource;
-            return new Variant({ dataType: DataType.NodeId, value: eventSource1.nodeId });
+            // not a ConditionType
+            // but could be on of its derived type. for instance ns=0;i=2881 => AcknowledgeableConditionType
+            const typeDefinitionObj = addressSpace.findObjectType(selectClause.typeDefinitionId);
+            if (!typeDefinitionObj.isSupertypeOf(conditionType)) {
+                // tslint:disable-next-line:no-console
+                console.warn(" ", typeDefinitionObj ? typeDefinitionObj.browseName.toString() : "????");
+                // tslint:disable-next-line:no-console
+                console.warn("this case is not handled yet : selectClause.typeDefinitionId = " + selectClause.typeDefinitionId.toString());
+                const eventSource1 = eventData.$eventDataSource;
+                return new Variant({ dataType: DataType.NodeId, value: eventSource1.nodeId });
+            }
         }
-        const conditionTypeNodeId = resolveNodeId("ConditionType");
-        assert(sameNodeId(selectClause.typeDefinitionId, conditionTypeNodeId));
 
-        const eventSource = eventData.$eventDataSource;
         const eventSourceTypeDefinition = eventSource.typeDefinitionObj;
         if (!eventSourceTypeDefinition) {
             // eventSource is a EventType class
             return new Variant();
         }
-        const addressSpace = eventSource.addressSpace;
-        const conditionType = addressSpace.findObjectType(conditionTypeNodeId);
 
         if (!eventSourceTypeDefinition.isSupertypeOf(conditionType)) {
             return new Variant();

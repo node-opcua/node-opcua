@@ -4,10 +4,10 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-status-code";
 import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import {
     Namespace,
@@ -220,8 +220,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
      */
     public activateAlarm() {
         // will set acknowledgeable to false and retain to true
-        const self = this;
-        const branch = self.currentBranch();
+        const branch = this.currentBranch();
         branch.setRetain(true);
         branch.setActiveState(true);
         branch.setAckedState(false);
@@ -231,26 +230,23 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
      * @method desactivateAlarm
      */
     public desactivateAlarm() {
-        const self = this;
-        const branch = self.currentBranch();
+        const branch = this.currentBranch();
         branch.setRetain(true);
         branch.setActiveState(false);
     }
-
     /**
      * @method isSuppressedOrShelved
      * @return {boolean}
      */
     public isSuppressedOrShelved(): boolean {
 
-        const node = this;
         let suppressed = false;
-        if (node.suppressedState) {
-            suppressed = node.suppressedState.id!.readValue().value.value;
+        if (this.suppressedState) {
+            suppressed = this.suppressedState.id!.readValue().value.value;
         }
         let shelved = false;
-        if (node.shelvingState) {
-            const shelvedValue = node.shelvingState.currentState.readValue().value.value;
+        if (this.shelvingState) {
+            const shelvedValue = this.shelvingState.currentState.readValue().value.value;
             if (shelvedValue && shelvedValue.text !== "Unshelved") {
                 shelved = true;
             }
@@ -276,12 +272,10 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
      * note: duration must be greater than 10ms and lesser than 2**31 ms
      */
     public setMaxTimeShelved(duration: number) {
-
-        const self = this;
         if (duration < 10 || duration >= Math.pow(2, 31)) {
             throw new Error(" Invalid maxTimeShelved duration: " + duration + "  must be [10,2**31] ");
         }
-        self.maxTimeShelved.setValueFromSource({
+        this.maxTimeShelved.setValueFromSource({
             dataType: "Duration", // <= Duration is basic Type Double! ( milliseconds)
             value: duration
         });

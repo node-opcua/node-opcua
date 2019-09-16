@@ -4,8 +4,6 @@
  */
 "use strict";
 
-// import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-
 Error.stackTraceLimit = Infinity;
 
 const sinon = require("sinon");

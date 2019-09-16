@@ -536,10 +536,10 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     public withSession(
         connectionPoint: string | EndpointWithUserIdentity,
         inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
-         ...args: any[]): any {
+        ...args: any[]): any {
 
         const endpointUrl: string  = (typeof connectionPoint === "string" ) ? connectionPoint : connectionPoint.endpointUrl ;
-        const userIdentity : UserIdentityInfo = (typeof connectionPoint === "string" ) ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity ;
+        const userIdentity: UserIdentityInfo = (typeof connectionPoint === "string" ) ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity ;
 
         const callback = args[0];
 
@@ -565,7 +565,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
             // step 2 : createSession
             (innerCallback: ErrorCallback) => {
-    
                 this.createSession(userIdentity, (err: Error | null, session?: ClientSession) => {
                     if (err) {
                         return innerCallback(err);
@@ -662,7 +661,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         assert(func.length === 1, "expecting a single argument in func");
 
         const endpointUrl: string  = (typeof connectionPoint === "string" ) ? connectionPoint : connectionPoint.endpointUrl ;
-        const userIdentity : UserIdentityInfo = (typeof connectionPoint === "string" ) ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity ;
+        const userIdentity: UserIdentityInfo = (typeof connectionPoint === "string" ) ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity ;
 
         try {
             await this.connect(endpointUrl);

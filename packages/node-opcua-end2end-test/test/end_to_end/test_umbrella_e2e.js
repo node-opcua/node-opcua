@@ -249,10 +249,11 @@ describe("testing Client - Umbrella ", function () {
     require("./u_test_e2e_issue_455")(test);
     require("./u_test_e2e_issue_596")(test);
     require("./u_test_e2e_issue_610_timeoutHint_overflow")(test);
-    require("./alarms_and_conditions/u_test_e2e_conditions")(test);
     require("./u_test_e2e_sessionDiagnostics")(test);
     require("./u_test_e2e_sessionSecurityDiagnostics")(test);
     require("./u_test_e2e_issue_activate_an_expired_session")(test);
     require("./u_test_e2e_server_behavior_on_wrong_channel_id")(test);
+    require("./alarms_and_conditions/u_test_e2e_conditions")(test);
+    require("./alarms_and_conditions/u_test_e2e_alarm_client_side")(test);
 
 });

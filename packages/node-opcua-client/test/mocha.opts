@@ -1,4 +1,4 @@
 -r ../../node_modules/source-map-support/register
--r ../../node_modules/ts-node/register
+-r ../../node_modules/ts-node/register/transpile-only
 -r ../../node_modules/should
 test/*.js test/*.ts

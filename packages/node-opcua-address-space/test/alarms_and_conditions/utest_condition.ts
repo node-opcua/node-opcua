@@ -337,7 +337,7 @@ export function utest_condition(test: any) {
                 spyOnEvent.getCalls()[2].args[0].retain.toString().should.eql("Variant(Scalar<Boolean>, value: true)");
                 spyOnEvent.getCalls()[2].args[0].quality.value.should.eql(StatusCodes.Good);
                 spyOnEvent.getCalls()[2].args[0].message.value.text.should.eql("Hello Message");
-                spyOnEvent.getCalls()[2].args[0].comment.value.text.should.eql("Initialized");
+                spyOnEvent.getCalls()[2].args[0].comment.value.text.should.eql("");
 
                 condition.removeListener("on", spyOnEvent);
 

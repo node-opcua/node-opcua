@@ -149,7 +149,7 @@ import {
 } from "../client_session";
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
 import { ClientSubscription } from "../client_subscription";
-import { Request, Response, Callback } from "../common";
+import { Callback, Request, Response } from "../common";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import { OPCUAClientImpl } from "./opcua_client_impl";
@@ -2213,5 +2213,4 @@ ClientSessionImpl.prototype.registerNodes = thenify.withCallback(ClientSessionIm
 ClientSessionImpl.prototype.unregisterNodes = thenify.withCallback(ClientSessionImpl.prototype.unregisterNodes, opts);
 ClientSessionImpl.prototype.readNamespaceArray = thenify.withCallback(ClientSessionImpl.prototype.readNamespaceArray, opts);
 ClientSessionImpl.prototype.getBuiltInDataType = thenify.withCallback(ClientSessionImpl.prototype.getBuiltInDataType, opts);
-
 ClientSessionImpl.prototype.constructExtensionObject = callbackify(ClientSessionImpl.prototype.constructExtensionObject);

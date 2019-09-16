@@ -7,6 +7,9 @@ import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
 import {
+    PseudoSession
+} from "node-opcua-address-space";
+import {
     AttributeIds, ClientMonitoredItemBase,
     ClientSession,
     ClientSubscription, coerceAccessLevelFlag,

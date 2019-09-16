@@ -767,6 +767,14 @@ export class MonitoredItem extends EventEmitter {
 
     private _on_opcua_event(eventData: EventData) {
 
+        // TO DO : => Improve Filtering, bearing in mind that ....
+        // Release 1.04 8 OPC Unified Architecture, Part 9
+        // 4.5 Condition state synchronization
+        // To ensure a Client is always informed, the three special EventTypes
+        // (RefreshEndEventType, RefreshStartEventType and RefreshRequiredEventType)
+        // ignore the Event content filtering associated with a Subscription and will always be
+        // delivered to the Client.
+
         if (!this.filter || !(this.filter instanceof EventFilter)) {
             throw new Error("Internal Error");
         }

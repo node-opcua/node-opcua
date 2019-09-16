@@ -2,13 +2,28 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import { AddressSpace } from "../source";
+import { AddressSpace, UAVariable } from "../source/address_space_ts";
+import { UANonExclusiveLimitAlarm } from "../src/alarms_and_conditions";
+import { UAExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_exclusive_limit_alarm";
+
+export interface IAlarmTestData {
+    tankLevel: UAVariable;
+    tankLevelCondition: UAExclusiveLimitAlarm;
+    tankLevel2: UAVariable;
+    tankLevelCondition2: UANonExclusiveLimitAlarm;
+    tankTripCondition: null;
+}
 
 export function construct_demo_alarm_in_address_space(
-  test: any,
+  test: IAlarmTestData,
   addressSpace: AddressSpace
 ) {
 
+    const a = addressSpace as any;
+    if (a.construct_demo_alarm_in_address_space_called) {
+        return;
+    }
+    a.construct_demo_alarm_in_address_space_called = true;
     addressSpace.installAlarmsAndConditionsService();
 
     const namespace = addressSpace.getOwnNamespace();
@@ -26,7 +41,8 @@ export function construct_demo_alarm_in_address_space(
         dataType: "Double",
         description: "Fill level in percentage (0% to 100%) of the water tank",
         eventSourceOf: tank,
-        propertyOf: tank
+        propertyOf: tank,
+        value: { dataType: "Double",  value: 0.5}
     });
 //    assert(tank.getNotifiers().length === 1, "expecting a notifier now");
 
@@ -41,10 +57,10 @@ export function construct_demo_alarm_in_address_space(
     }
 
     const tankLevelCondition = namespace.instantiateExclusiveLimitAlarm(
-      exclusiveLimitAlarmType.nodeId, {
+      exclusiveLimitAlarmType, {
           browseName: "TankLevelCondition",
           componentOf: tank,
-          conditionName: "Test2",
+          conditionName: "TankLevelCondition",
           conditionSource: tankLevel,
 
           highHighLimit: 0.9,
@@ -62,7 +78,9 @@ export function construct_demo_alarm_in_address_space(
 
     assert(tankLevel.findReferences("HasCondition").length === 1);
     assert(tankLevel.findReferencesAsObject("HasCondition", true).length === 1);
+    // tslint:disable-next-line: no-console
     console.log(tankLevel.findReferencesAsObject("HasCondition", true)[0].browseName.toString());
+    // tslint:disable-next-line: no-console
     console.log(tankLevel.findReferencesAsObject("HasCondition", true)[0].constructor.name.toString());
 
     // ----------------------------------------------------------------
@@ -85,7 +103,8 @@ export function construct_demo_alarm_in_address_space(
         dataType: "Double",
         description: "Fill level in percentage (0% to 100%) of the water tank",
         eventSourceOf: tank,
-        propertyOf: tank
+        propertyOf: tank,
+        value: { dataType: "Double", value: 0.5}
     });
 
     const nonExclusiveLimitAlarmType = addressSpace.findEventType("NonExclusiveLimitAlarmType");
@@ -97,7 +116,7 @@ export function construct_demo_alarm_in_address_space(
       nonExclusiveLimitAlarmType, {
           browseName: "TankLevelCondition2",
           componentOf: tank,
-          conditionName: "Test",
+          conditionName: "TankLevel2",
           conditionSource: tankLevel2,
 
           highHighLimit: 0.9,
@@ -111,7 +130,9 @@ export function construct_demo_alarm_in_address_space(
               "ConfirmedState", "Confirm" // confirm state and confirm Method
           ]
       });
-
+    assert(tankLevel2.findReferences("HasCondition").length === 1);
+    assert(tankLevel2.findReferencesAsObject("HasCondition", true).length === 1);
+  
     test.tankLevel = tankLevel;
     test.tankLevelCondition = tankLevelCondition;
 

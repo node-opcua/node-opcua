@@ -5,12 +5,12 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-status-code";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
+import { StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { ClientSession,  ResponseCallback } from "./client_session";
 import { ClientSessionImpl } from "./private/client_session_impl";

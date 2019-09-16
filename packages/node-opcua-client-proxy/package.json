@@ -1,3 +1,4 @@
+
 {
  "name": "node-opcua-client-proxy",
  "version": "2.1.7",
@@ -12,11 +13,13 @@
  "types": "./dist/index.d.ts",
  "dependencies": {
   "async": "^3.1.0",
+  "node-opcua-address-space": "^2.1.6",
   "node-opcua-assert": "^2.0.0",
   "node-opcua-client": "^2.1.7",
   "node-opcua-constants": "^2.1.6",
   "node-opcua-data-model": "^2.1.6",
   "node-opcua-data-value": "^2.1.6",
+  "node-opcua-pseudo-session": "^2.1.6",
   "node-opcua-nodeid": "^2.1.6",
   "node-opcua-service-browse": "^2.1.6",
   "node-opcua-service-call": "^2.1.6",

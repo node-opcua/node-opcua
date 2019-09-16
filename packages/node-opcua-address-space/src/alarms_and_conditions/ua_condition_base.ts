@@ -13,7 +13,8 @@ import {
     coerceLocalizedText,
     LocalizedText,
     LocalizedTextLike, makeAccessLevelFlag,
-    NodeClass
+    NodeClass,
+    QualifiedName
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
@@ -342,7 +343,7 @@ export class UAConditionBase extends BaseEventType {
             this._previousRetainFlag = this.currentBranch().getRetain();
             this.currentBranch().setRetain(false);
 
-            // install the mechanism by which all condition values will be return
+            // todo: install the mechanism by which all condition values will be return
             // as Null | BadConditionDisabled;
             const statusCode = StatusCodes.BadConditionDisabled;
 
@@ -826,7 +827,7 @@ function UAConditionBase_instantiate(
     // -------------- fixing missing EnabledState.EffectiveDisplayName
     if (!conditionNode.enabledState.effectiveDisplayName) {
         namespace.addVariable({
-            browseName: "EffectiveDisplayName",
+            browseName: new QualifiedName({namespaceIndex: 0, name: "EffectiveDisplayName"}),
             dataType: "LocalizedText",
             propertyOf: conditionNode.enabledState
         });
@@ -1030,7 +1031,7 @@ function UAConditionBase_instantiate(
 
     const branch0 = conditionNode.currentBranch();
     branch0.setRetain(false);
-    branch0.setComment("Initialized");
+    branch0.setComment("");
     branch0.setQuality(StatusCodes.Good);
     branch0.setSeverity(0);
     branch0.setLocalTime(
@@ -1039,7 +1040,7 @@ function UAConditionBase_instantiate(
           offset: 0
       })
     );
-    branch0.setMessage(" ");
+    branch0.setMessage("");
 
     branch0.setReceiveTime(minDate);
     branch0.setTime(minDate);

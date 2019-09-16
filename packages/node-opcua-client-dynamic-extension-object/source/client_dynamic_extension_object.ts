@@ -15,8 +15,8 @@ import {
     make_debugLog
 } from "node-opcua-debug";
 import {
-    StructuredTypeSchema, 
-    getStandartDataTypeFactory
+    getStandartDataTypeFactory,
+    StructuredTypeSchema
 } from "node-opcua-factory";
 import {
     ExpandedNodeId,
@@ -191,6 +191,7 @@ export async function extractNamespaceDataType(
 export async function getDataTypeDefinition(
     session: IBasicSession,
     dataTypeNodeId: NodeId,
+    // tslint:disable-next-line: no-shadowed-variable
     extraDataTypeManager: ExtraDataTypeManager
 ): Promise<StructuredTypeSchema> {
 
