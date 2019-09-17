@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-schemas",
- "version": "2.1.6",
+ "version": "2.1.8",
  "description": "pure nodejs OPCUA SDK - module -schemas",
  "main": "dist/source/index.js",
  "types": "dist/source/index.d.ts",
@@ -18,7 +18,7 @@
   "node-opcua-factory": "^2.1.6",
   "node-opcua-nodeid": "^2.1.6",
   "node-opcua-variant": "^2.1.6",
-  "node-opcua-xml2json": "^2.1.6"
+  "node-opcua-xml2json": "^2.1.8"
  },
  "devDependencies": {
   "node-opcua-packet-analyzer": "^2.1.6"
