@@ -152,8 +152,11 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
     });
 
 
-    await callConditionRefresh(subscription);
-
+    try {
+        await callConditionRefresh(subscription);
+    } catch(err) {
+        console.log("Server may not implement condition refresh", err.message);
+    }
     _sessionPriv.$monitoredItemForAlarmList = event_monitoringItem;
     // also request updates
     return clientAlarmList;

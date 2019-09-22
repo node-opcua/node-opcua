@@ -131,7 +131,13 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
             }
         });
         // async call without waiting !
-        callConditionRefresh(subscription);
+        try  {
+            callConditionRefresh(subscription);
+        } catch(err) {
+            // it is possible that server do not implement conditionRefresh ...
+            console.log("Server may not implement conditionRefresh");
+            console.log(err.message);
+        }
     });
 
     await promise;
