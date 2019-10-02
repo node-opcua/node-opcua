@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-server",
- "version": "2.1.8",
+ "version": "2.1.9",
  "description": "pure nodejs OPCUA SDK - module -server",
  "scripts": {
   "build": "tsc",
@@ -21,7 +21,7 @@
   "node-opcua-assert": "^2.0.0",
   "node-opcua-basic-types": "^2.1.6",
   "node-opcua-certificate-manager": "^2.1.8",
-  "node-opcua-client": "^2.1.8",
+  "node-opcua-client": "^2.1.9",
   "node-opcua-client-dynamic-extension-object": "^2.1.8",
   "node-opcua-common": "^2.1.8",
   "node-opcua-constants": "^2.1.6",

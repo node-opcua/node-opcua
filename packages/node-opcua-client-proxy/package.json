@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-client-proxy",
- "version": "2.1.8",
+ "version": "2.1.9",
  "description": "pure nodejs OPCUA SDK - module -client-proxy",
  "scripts": {
   "clean": "node -e \"require('rimraf').sync('dist');\"",
@@ -14,7 +14,7 @@
   "async": "^3.1.0",
   "node-opcua-address-space": "^2.1.8",
   "node-opcua-assert": "^2.0.0",
-  "node-opcua-client": "^2.1.8",
+  "node-opcua-client": "^2.1.9",
   "node-opcua-constants": "^2.1.6",
   "node-opcua-data-model": "^2.1.6",
   "node-opcua-data-value": "^2.1.8",
