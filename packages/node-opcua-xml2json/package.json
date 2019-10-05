@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "bomstrip": "0.1.4",
-    "ltx": "^2.8.1",
+    "ltx": "^2.9.2",
     "node-opcua-assert": "^2.0.0",
     "node-opcua-debug": "^2.1.0",
     "node-opcua-utils": "^2.1.6",

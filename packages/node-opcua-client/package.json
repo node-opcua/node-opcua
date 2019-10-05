@@ -14,9 +14,9 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
-  "@types/async": "^3.0.1",
+  "@types/async": "^3.0.2",
   "@types/once": "^1.4.0",
-  "@types/underscore": "^1.9.2",
+  "@types/underscore": "^1.9.3",
   "async": "^3.1.0",
   "callbackify": "^1.1.0",
   "chalk": "^2.4.2",
@@ -72,7 +72,7 @@
   "node-opcua-leak-detector": "^2.1.0",
   "node-opcua-nodesets": "^2.1.5",
   "should": "13.2.3",
-  "sinon": "^7.4.2"
+  "sinon": "^7.5.0"
  },
  "eslintConfig": {
   "env": {
