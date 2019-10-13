@@ -2234,7 +2234,8 @@ export class OPCUAServer extends OPCUABaseServer {
         function sendResponse(response1: any) {
             assert(response1 instanceof ResponseClass);
             if (message.session) {
-                message.session.incrementRequestTotalCounter(ResponseClass.name.replace("Response", ""));
+                const counterName = ResponseClass.name.replace("Response", "");
+                message.session.incrementRequestTotalCounter(counterName);
             }
             return channel.send_response("MSG", response1, message);
         }

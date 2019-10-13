@@ -593,7 +593,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         // this sequence is only necessary on the top node being crawled,
         // as browseName,displayName,nodeClass will be provided by ReferenceDescription later on for child nodes
         //
-        async.parallel({
+        async.series({
 
             task1: (callback: ErrorCallback) => {
                 this._defer_readNode(
@@ -1451,7 +1451,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             cacheNode.typeDefinition = tmp[0].nodeId;
         }
 
-        async.parallel({
+        async.series({
                 task1_read_browseName: (callback: ErrorCallback) => {
                     if (cacheNode.browseName !== pendingBrowseName) {
                         return callback();

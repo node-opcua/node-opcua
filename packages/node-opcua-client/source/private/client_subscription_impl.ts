@@ -477,10 +477,12 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                         monitoredItemResults.forEach((monitoredItemResult, index) => {
 
                             const itemToCreate = itemsToCreate[index];
+                            // istanbul ignore next
                             if (!itemToCreate || !itemToCreate.requestedParameters) {
                                 throw new Error("Internal Error");
                             }
                             const clientHandle = itemToCreate.requestedParameters.clientHandle;
+                            // istanbul ignore next
                             if (!clientHandle) {
                                 throw new Error("Internal Error");
                             }

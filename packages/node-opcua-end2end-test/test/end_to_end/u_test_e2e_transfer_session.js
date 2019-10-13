@@ -116,7 +116,9 @@ module.exports = function (test) {
                 },
                 function (callback) {
                     session1.close(function (err) {
-                        err.message.should.match(/SessionIdInvalid/);
+                        // now session close do not return error if session in invalid
+                        // err.message.should.match(/SessionIdInvalid/);
+                        should.not.exist(err);
                         callback();
                     });
                 },

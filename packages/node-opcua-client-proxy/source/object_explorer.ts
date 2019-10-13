@@ -246,7 +246,7 @@ function add_method(
     obj.$methods[name] = methodObj;
 
     // tslint:disable:no-shadowed-variable
-    async.parallel([
+    async.series([
 
         (callback: ErrorCallback) => {
 
@@ -535,7 +535,7 @@ export function readUAStructure(
         // xx console.log("Components", t(results[0].references));
         // xx console.log("Properties", t(results[1].references));
         // xx console.log("Methods", t(results[2].references));
-        async.parallel([
+        async.series([
 
             (callback: ErrorCallback) => {
                 async.map(browseResults![0].references!,

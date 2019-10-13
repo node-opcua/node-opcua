@@ -591,7 +591,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
                 done(err);
             }
             done();
-        }, 10);
+        }, 1000);
     }
 
     function verify_that_client_is_trying_to_reconnect(done) {
