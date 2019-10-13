@@ -115,9 +115,10 @@ import {
     BrowseNextResponse
 } from "node-opcua-types";
 import {
+    buffer_ellipsis,
     getFunctionParameterNames,
     isNullOrUndefined,
-    lowerFirstLetter
+    lowerFirstLetter,
 } from "node-opcua-utils";
 import {
     DataType,
@@ -296,6 +297,8 @@ function __findBasicDataType(
 
 const emptyUint32Array = new Uint32Array(0);
 
+import { repair_client_session } from "../reconnection";
+
 /**
  * @class ClientSession
  * @param client {OPCUAClientImpl}
@@ -326,6 +329,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     private _publishEngine: ClientSidePublishEngine | null;
     private _keepAliveManager?: ClientSessionKeepAliveManager;
     private _namespaceArray?: any;
+    private recursive_repair_detector: number = 0;
 
     constructor(client: any) {
 
@@ -1468,8 +1472,84 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             && this._client._secureChannel !== null
             && this._client._secureChannel.isOpened());
     }
-
+/*
     public performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
+        this._performMessageTransaction(request, callback);
+    }
+*/
+    public performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
+
+        if (!this._client) {
+            // session may have been closed by user ... but is still in used !!
+            return callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
+        }
+
+        if (!this.isChannelValid()) {
+            // the secure channel is broken, may be the server has crashed or the network cable has been disconnected
+            // for a long time
+            // we may need to queue this transaction, as a secure token may be being reprocessed
+            debugLog(chalk.bgWhite.red("!!! Performing transaction on invalid channel !!! ", request.constructor.name));
+            return callback(new Error("Invalid Channel "));
+        }
+
+        const privateThis = this as any;
+        privateThis.pendingTransactions = privateThis.pendingTransactions || [];
+
+        const isPublishRequest = request instanceof PublishRequest;
+        if (isPublishRequest) {
+            return this._performMessageTransaction(request, callback);
+        }
+
+        privateThis.pendingTransactionsCount = privateThis.pendingTransactionsCount || 0;
+        if (privateThis.pendingTransactionsCount > 0) {
+            /* istanbul ignore next */
+            if (privateThis.pendingTransactions.length > 5) {
+                // tslint:disable-next-line: no-console
+                console.log("Pending transations: ", privateThis.pendingTransactions.map((a: any) => a.request.constructor.name).join(" "));
+                // tslint:disable-next-line: no-console
+                console.log(chalk.yellow("Warning : your client is sending multiple requests simultaneously to the server", request.constructor.name));
+                // tslint:disable-next-line: no-console
+                console.log(chalk.yellow("Warning : please fix your application code and node-opcua usage"));
+            } else if (privateThis.pendingTransactions.length > 0) {
+                debugLog(chalk.yellow("Warning : your client is sending multiple requests simultaneously to the server", request.constructor.name));
+            }
+            privateThis.pendingTransactions.push({request, callback});
+            return;
+        }
+        privateThis.pendingTransactions.push({request, callback});
+        this.processTransactionQueue();
+    }
+    public processTransactionQueue = () => {
+        const privateThis = this as any;
+        if (!privateThis.pendingTransactions || privateThis.pendingTransactions.length === 0) {
+            debugLog("processTransactionQueue => noTransaction left in queue");
+            return;
+        }
+        const { request, callback } = privateThis.pendingTransactions.shift();
+        privateThis.pendingTransactionsCount = privateThis.pendingTransactionsCount || 0;
+        privateThis.pendingTransactionsCount ++;
+
+        this._performMessageTransaction(request, (err: null | Error, response?: Response) => {
+            privateThis.pendingTransactionsCount --;
+
+            const requestHandleNotSetValue = 0xDEADBEEF;
+            if (err && err.message.match(/BadSessionIdInvalid/) && request.constructor.name !== "ActivateSessionRequest") {
+                debugLog("Transaction on Invalid Session ", request.constructor.name);
+                request.requestHeader.requestHandle = requestHandleNotSetValue;
+                this.recreate_session_and_reperform_transaction(request, callback);
+                return;
+            }
+ 
+            const length = privateThis.pendingTransactions.length; // record length before callback is called !
+            callback(err, response);
+            if (length > 0) {
+                debugLog("processTransactionQueue => ", privateThis.pendingTransactions.length , " transaction(s) left in queue");
+                this.processTransactionQueue();
+            }
+        });
+    }
+
+    public _performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
 
         assert(_.isFunction(callback));
 
@@ -1483,13 +1563,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             // the secure channel is broken, may be the server has crashed or the network cable has been disconnected
             // for a long time
             // we may need to queue this transaction, as a secure token may be being reprocessed
-            debugLog(chalk.bgWhite.red("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! "));
-            return callback(new Error("Invalid Channel "));
+            debugLog(chalk.bgWhite.red("!!! Performing transaction on invalid channel !!! ", request.constructor.name));
+            return callback(new Error("Invalid Channel BadConnectionClosed"));
         }
 
         // is this stuff useful?
         if (request.requestHeader) {
-            (request.requestHeader as any).authenticationToken = this.authenticationToken;
+            request.requestHeader.authenticationToken = this.authenticationToken!;
         }
 
         this.lastRequestSentTime = new Date();
@@ -1605,7 +1685,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         assert(this._client);
 
         this._terminatePublishEngine();
-        this._client.closeSession(this, deleteSubscription, callback);
+        this._client.closeSession(this, deleteSubscription, (err?: Error) => {
+            debugLog("session Close err ", err ? err.message: "null");
+            callback();
+        });
 
     }
 
@@ -1895,14 +1978,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         let str = "";
         str += " name..................... " + this.name;
-        str += " sessionId................ " + this.sessionId.toString();
-        str += " authenticationToken...... " + this.authenticationToken ? this.authenticationToken!.toString() : "";
-        str += " timeout.................. " + this.timeout + "ms";
-        str += " serverNonce.............. " + this.serverNonce ? this.serverNonce!.toString("hex") : "";
-        str += " serverCertificate........ " + this.serverCertificate.toString("base64");
+        str += "\n sessionId................ " + this.sessionId.toString();
+        str += "\n authenticationToken...... " + (this.authenticationToken ? this.authenticationToken!.toString() : "");
+        str += "\n timeout.................. " + this.timeout + "ms";
+        str += "\n serverNonce.............. " + (this.serverNonce ? this.serverNonce!.toString("hex") : "");
+        str += "\n serverCertificate........ " + buffer_ellipsis(this.serverCertificate);
         // xx console.log(" serverSignature.......... ", this.serverSignature);
-        str += " lastRequestSentTime...... " + new Date(this.lastRequestSentTime).toISOString() + lap1;
-        str += " lastResponseReceivedTime. " + new Date(this.lastResponseReceivedTime).toISOString() + lap2;
+        str += "\n lastRequestSentTime...... " + new Date(this.lastRequestSentTime).toISOString() + lap1;
+        str += "\n lastResponseReceivedTime. " + new Date(this.lastResponseReceivedTime).toISOString() + lap2;
 
         return str;
     }
@@ -2091,7 +2174,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
 
             if (this._closeEventHasBeenEmitted) {
-                debugLog("ClientSession#_defaultRequest ... err =", err, response ? response.toString() : " null");
+                debugLog("ClientSession#_defaultRequest ... err =", err ? err.message: "null", response ? response.toString() : " null");
             }
             /* istanbul ignore next */
             if (err) {
@@ -2132,6 +2215,23 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         });
     }
 
+    private recreate_session_and_reperform_transaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
+
+        if (this.recursive_repair_detector >= 1) {
+            console.log("recreate_session_and_reperform_transaction => Already in Progress");
+            return callback(new Error("Cannot recreate session"));
+        }
+        this.recursive_repair_detector += 1;
+        debugLog(chalk.red("----------------> Repairing Client Session as Server believes it is invalid now "));
+        repair_client_session(this._client, this, (err?: Error) => {
+            this.recursive_repair_detector -= 1;
+            if (err) {
+                return callback(err);
+            }
+            debugLog(chalk.red("----------------> session Repaired, now redoing original transaction "));
+            this._performMessageTransaction(request, callback);
+        });
+    }
 }
 
 type promoteOpaqueStructure3WithCallbackFunc = (

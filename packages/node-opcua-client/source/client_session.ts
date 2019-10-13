@@ -138,12 +138,14 @@ export interface ClientSession {
 // events
 export interface ClientSession extends EventEmitter {
     // tslint:disable:unified-signatures
-    on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): ClientSession;
+    on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): this;
 
-    on(event: "keepalive_failure", eventHandler: (state: any) => void): ClientSession;
+    on(event: "keepalive_failure", eventHandler: (state: any) => void): this;
 
-    on(event: "session_closed", eventHandler: (statusCode: StatusCode) => void): ClientSession;
+    on(event: "session_closed", eventHandler: (statusCode: StatusCode) => void): this;
 
+    on(event: "session_restored", eventHandler: () => void ): this;
+    
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 
 }

@@ -11,7 +11,7 @@ import { make_errorLog } from "node-opcua-debug";
 import { PacketAssembler, PacketInfo } from "node-opcua-packet-assembler";
 import { get_clock_tick } from "node-opcua-utils";
 
-const doPerfMonitoring = false;
+const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;;
 
 const errorLog = make_errorLog("MessageBuilder");
 

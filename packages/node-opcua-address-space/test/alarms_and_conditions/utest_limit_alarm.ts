@@ -53,7 +53,7 @@ function dumpEvent(
         }
     });
 }
-function ellipsis(a) {
+function ellipsis(a:string): string {
     return a.substr(a, 10) + "...";
 }
 function dumpSpy(spyOnEvent: any) {

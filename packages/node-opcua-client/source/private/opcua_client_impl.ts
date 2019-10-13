@@ -996,6 +996,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
                   if (!err1 && response && response.responseHeader.serviceResult === StatusCodes.Good) {
 
+                      /* istanbul ignore next */
                       if (!(response instanceof ActivateSessionResponse)) {
                           return callback(new Error("Internal Error"));
                       }
@@ -1008,6 +1009,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                       return callback(null, session);
 
                   } else {
+                      /* istanbul ignore next */
                       if (!err1 && response) {
                           err1 = new Error(response.responseHeader.serviceResult.toString());
                       }
@@ -1103,7 +1105,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         assert(this._secureChannel);
         if (!this.__resolveEndPoint() || !this.endpoint) {
 
-            if (this._serverEndpoints) {
+            /* istanbul ignore next */
+            if (doDebug && this._serverEndpoints) {
                 debugLog(this._serverEndpoints.map((endpoint) =>
                   endpoint.endpointUrl + " " + endpoint.securityMode.toString() + " " + endpoint.securityPolicyUri));
             }

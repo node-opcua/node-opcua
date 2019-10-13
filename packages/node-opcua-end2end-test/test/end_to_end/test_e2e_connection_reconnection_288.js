@@ -171,7 +171,11 @@ function start_active_client(connectionStrategy, callback) {
         function client_install_regular_activity(callback) {
 
             let counter = 0;
-            intervalId = setInterval(function () {
+
+            function writeValue() {
+                if (!intervalId) {
+                    return;
+                }
                 if (doDebug) {
 
                     console.log(" Session OK ? ", the_session.isChannelValid(),
@@ -196,7 +200,7 @@ function start_active_client(connectionStrategy, callback) {
                         }
                     }
                 };
-                the_session.write([nodeToWrite], function (err, statusCode) {
+                the_session.write(nodeToWrite, function (err, statusCode) {
                     if (err) {
                         if (doDebug) {
                             console.log(chalk.red("       writing Failed "), err.message);
@@ -208,9 +212,12 @@ function start_active_client(connectionStrategy, callback) {
                         counter += 1;
                     }
                     //xx statusCode && statusCode.length===1) ? statusCode[0].toString():"");
-                });
-
+                    setTimeout(writeValue,500);
+                });                
+            }
+            intervalId = setInterval(function () {
             }, 250);
+            writeValue();
 
             callback();
         },
@@ -271,7 +278,7 @@ describe("Testing client reconnection with crashing server", function () {
     }
 
     afterEach(function (done) {
-
+        console.log("------------------------- Terminating client ----------------------------");
         terminate_active_client(function () {
             crash_external_opcua_server(done);
         });

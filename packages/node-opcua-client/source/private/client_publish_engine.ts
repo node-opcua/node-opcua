@@ -78,7 +78,7 @@ export class ClientSidePublishEngine {
     }
 
     public suspend(suspendedState: boolean) {
-        assert(this.isSuspended !== !!suspendedState, "invalid state");
+        assert(this.isSuspended !== !!suspendedState, "pusblushEngine: invalid state");
         this.isSuspended = !!suspendedState;
         if (!this.isSuspended) {
             this.replenish_publish_request_queue();
@@ -208,7 +208,7 @@ export class ClientSidePublishEngine {
 
         // After re-establishing the connection the Client shall call Republish in a loop, starting with
         // the next expected sequence number and incrementing the sequence number until the Server returns
-        // the status Bad_MessageNotAvailable.
+        // the status BadMessageNotAvailable.
         // After receiving this status, the Client shall start sending Publish requests with the normal Publish
         // handling.
         // This sequence ensures that the lost NotificationMessages queued in the Server are not overwritten
@@ -244,7 +244,7 @@ export class ClientSidePublishEngine {
         // as started in the spec (Spec 1.02 part 4 page 81 5.13.2.2 Function DequeuePublishReq())
         // the server will dequeue the PublishRequest  in first-in first-out order
         // and will validate if the publish request is still valid by checking the timeoutHint in the RequestHeader.
-        // If the request timed out, the server will send a Bad_Timeout service result for the request and de-queue
+        // If the request timed out, the server will send a BadTimeout service result for the request and de-queue
         // another publish request.
         //
         // in Part 4. page 144 Request Header the timeoutHint is described this way.
@@ -252,11 +252,11 @@ export class ClientSidePublishEngine {
         //                    set the timeout on a per-call base.
         //                    For a Server this timeout is only a hint and can be used to cancel long running
         //                    operations to free resources. If the Server detects a timeout, he can cancel the
-        //                    operation by sending the Service result Bad_Timeout. The Server should wait
+        //                    operation by sending the Service result BadTimeout. The Server should wait
         //                    at minimum the timeout after he received the request before cancelling the operation.
         //                    The value of 0 indicates no timeout.
         // In issue#40 (MonitoredItem on changed not fired), we have found that some server might wrongly interpret
-        // the timeoutHint of the request header ( and will bang a Bad_Timeout regardless if client send timeoutHint=0)
+        // the timeoutHint of the request header ( and will bang a BadTimeout regardless if client send timeoutHint=0)
         // as a work around here , we force the timeoutHint to be set to a suitable value.
         //
         // see https://github.com/node-opcua/node-opcua/issues/141
@@ -265,7 +265,7 @@ export class ClientSidePublishEngine {
 
         // also ( part 3 - Release 1.03 page 140)
         // The Server shall check the timeoutHint parameter of a PublishRequest before processing a PublishResponse.
-        // If the request timed out, a Bad_Timeout Service result is sent and another PublishRequest is used.
+        // If the request timed out, a BadTimeout Service result is sent and another PublishRequest is used.
         // The value of 0 indicates no timeout
 
         // in our case:

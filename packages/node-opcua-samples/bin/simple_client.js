@@ -885,7 +885,7 @@ async.series([
     function (callback) {
         console.log(" closing session");
         the_session.close(function (err) {
-            console.log(" session closed", err);
+            // console.log(" session closed", err);
             callback();
         });
     },

@@ -254,13 +254,24 @@ export class MessageBuilder extends MessageBuilderBase {
 
         } else {
 
-            /* istanbul ignore next */
-            debugLog("message size =", this.totalMessageSize, " body size =", this.totalBodySize, objMessage.constructor.name);
-
             if (this._safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
 
+                /* istanbul ignore next */
                 if (!this.sequenceHeader) {
                     throw new Error("internal error");
+                }
+
+                /* istanbul ignore next */
+                if (doDebug) {
+
+                    const o = (objMessage as any);
+                    const requestHandle =  o.responseHeader ? o.responseHeader.requestHandle :
+                        (o.requestHeader ? o.requestHeader.requestHandle : "");
+
+                    debugLog(this.id, "message size =", ("" + this.totalMessageSize).padEnd(8),
+                    " body size   =", ("" + this.totalBodySize).padEnd(8),
+                    " requestHandle = ", requestHandle,
+                    objMessage.constructor.name);
                 }
                 try {
 
@@ -322,7 +333,7 @@ export class MessageBuilder extends MessageBuilderBase {
         }
         /* istanbul ignore next */
         if (doDebug) {
-            debugLog(chalk.yellow.bold(" Sequence Number = "), sequenceNumber);
+            debugLog(chalk.yellow.bold("" + this.id + " Sequence Number = "), sequenceNumber);
         }
         this._previousSequenceNumber = sequenceNumber;
     }

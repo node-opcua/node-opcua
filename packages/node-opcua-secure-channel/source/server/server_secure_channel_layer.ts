@@ -63,7 +63,7 @@ import { checkCertificateValidity, ICertificateManager } from "node-opcua-certif
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-const doTraceMessages = process.env.DEBUG && process.env.DEBUG.indexOf("TRACE") >= 0;
+const doTraceMessage = process.env.DEBUG && process.env.DEBUG.indexOf("SERVERTRACE") >= 0;
 
 let gLastChannelId = 0;
 
@@ -72,7 +72,7 @@ function getNextChannelId() {
     return gLastChannelId;
 }
 
-const doPerfMonitoring = false;
+const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;;
 
 export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
 
@@ -575,7 +575,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
 
         /* istanbul ignore next */
-        if (doTraceMessages) {
+        if (doTraceMessage) {
             console.log(
               chalk.cyan.bold("xxxx   >>>> ---------------------------------------- "),
               chalk.green.bold(response.schema.name),
@@ -784,7 +784,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
       requestId: number,
       channelId: number) {
         /* istanbul ignore next */
-        if (doTraceMessages) {
+        if (doTraceMessage) {
             dump_request(request, requestId, channelId);
         }
 
@@ -1195,7 +1195,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private _on_common_message(request: Request, msgType: string, requestId: number, channelId: number) {
 
         /* istanbul ignore next */
-        if (doTraceMessages) {
+        if (doTraceMessage) {
             dump_request(request, requestId, channelId);
         }
 

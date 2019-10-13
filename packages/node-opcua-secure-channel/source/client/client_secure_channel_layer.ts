@@ -68,14 +68,17 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const checkChunks = false;
 
-const doTraceMessage = process.env.DEBUG && (process.env.DEBUG.indexOf("TRACE")) >= 0;
-const doTraceStatistics = process.env.DEBUG && (process.env.DEBUG.indexOf("STATS")) >= 0;
-const doPerfMonitoring = false;
+const doTraceMessage = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("TRACE")) >= 0;
+const doTraceRequestContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("REQUEST")) >= 0;
+const doTraceResponseContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("RESPONSE")) >= 0;
+const doTraceStatistics = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("STATS")) >= 0;
+const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;;
 
 import { ErrorCallback, ICertificateKeyPairProvider, Request, Response } from "../common";
 
 const minTransactionTimeout = 30 * 1000;    // 30 sec
 const defaultTransactionTimeout = 60 * 1000; // 1 minute
+const requestHandleNotSetValue = 0xDEADBEEF;
 
 type PerformTransactionCallback = (err?: Error | null, response?: Response) => void;
 
@@ -109,21 +112,24 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
 
     assert(_.isFunction(requestData.callback));
 
+    const request = requestData.request;
+    
     if (!response && !err && requestData.msgType !== "CLO") {
         // this case happens when CLO is called and when some pending transactions
         // remains in the queue...
         err = new Error(" Connection has been closed by client , but this transaction cannot be honored");
     }
-    if (response && response instanceof ServiceFault) {
 
+    if (response && response instanceof ServiceFault) {
         response.responseHeader.stringTable = response.responseHeader.stringTable || [];
         response.responseHeader.stringTable = [response.responseHeader.stringTable.join("\n")];
-        err = new Error(" ServiceFault returned by server " + response.toString() + " request = " + requestData.request.toString());
+        err = new Error(" ServiceFault returned by server " + response.toString() + " request = " + request.toString());
         (err as any).response = response;
         response = undefined;
     }
 
     const theCallbackFunction = requestData.callback;
+    /* istanbul ignore next */
     if (!theCallbackFunction) {
         throw new Error("Internal error");
     }
@@ -157,8 +163,9 @@ function _dump_transaction_statistics(stats: ClientTransactionStatistics) {
 
     console.log(chalk.green.bold("--------------------------------------------------------------------->> Stats"));
     console.log("   request                   : ",
-      chalk.yellow(stats.request.schema.name.toString()), " / ",
+      chalk.yellow(stats.request.schema.name.toString()) , " / ",
       chalk.yellow(stats.response.schema.name.toString()), " - ",
+      stats.request.requestHeader.requestHandle , "/" , stats.response.responseHeader.requestHandle,
       stats.response.responseHeader.serviceResult.toString());
     console.log("   Bytes Read                : ", w(stats.bytesRead), " bytes");
     console.log("   Bytes Written             : ", w(stats.bytesWritten), " bytes");
@@ -253,6 +260,7 @@ export interface ClientSecureChannelLayerOptions {
      * @param [options.connectionStrategy.maxDelay      = 10000]
      */
     connectionStrategy: ConnectionStrategyOptions;
+    
 }
 
 /**
@@ -321,6 +329,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private receiverCertificate: Certificate | null;
     private securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     private lastError?: Error;
+    private _tick2: number = 0;
 
     constructor(options: ClientSecureChannelLayerOptions) {
         super();
@@ -375,13 +384,15 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._requests = {};
 
         this.messageBuilder
-          .on("message", (response: any, msgType: string, requestId: number) =>
-            this._on_message_received(response, msgType, requestId)
-          )
+          .on("message", (response: Response, msgType: string, requestId: number) => {
+              this._on_message_received(response, msgType, requestId);
+           })
           .on("start_chunk", () => {
-              // record tick2: when the first response chunk is received
-              // request_data._tick2 = get_clock_tick();
-          })
+              //
+              if (doPerfMonitoring) {
+                  this._tick2 =  get_clock_tick();
+              }
+            })
           .on("error", (err, requestId) => {
               //
               debugLog("request id = ", requestId, err);
@@ -394,7 +405,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
               if (!requestData) {
                   requestData = this._requests[requestId + 1];
-                  debugLog(" message was 2:", requestData ? requestData.request.toString() : "<null>");
+                  if (doTraceRequestContent) {
+                      debugLog(" message was 2:", requestData ? requestData.request.toString() : "<null>");
+                  }
               }
               // xx console.log(request_data.request.toString());
           });
@@ -474,6 +487,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     if (err) {
                         return callback(err);
                     }
+                    /* istanbul ignore next */
                     if (!publicKey) {
                         throw new Error("Internal Error");
                     }
@@ -647,6 +661,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _on_message_received(response: Response, msgType: string, requestId: number) {
 
         assert(msgType !== "ERR");
+    
+        /* istanbul ignore next */
+        if (response.responseHeader.requestHandle !== requestId) {
+            console.log(chalk.red.bgWhite.bold("xxxxx  <<<<<< _on_message_received  ERROR"),
+             "requestId=", requestId,
+             "response.responseHeader.requestHandle=", response.responseHeader.requestHandle,
+             response.schema.name);
+        }
 
         /* istanbul ignore next */
         if (doTraceMessage) {
@@ -654,23 +676,34 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
 
         const requestData = this._requests[requestId];
-
+        const request = requestData.request;
+        
+        /* istanbul ignore next */
         if (!requestData) {
             console.log(chalk.cyan.bold("xxxxx  <<<<<< _on_message_received "), requestId, response.schema.name);
             throw new Error(" =>  invalid requestId =" + requestId);
+        }
+
+        /* istanbul ignore next */
+        if (doPerfMonitoring) {
+            requestData._tick2 = this._tick2 ;
         }
 
         debugLog(" Deleting self._request_data", requestId);
         delete this._requests[requestId];
 
         /* istanbul ignore next */
-        if (response.responseHeader.requestHandle !== requestData.request.requestHeader.requestHandle) {
-            const expected = requestData.request.requestHeader.requestHandle;
+        if (response.responseHeader.requestHandle !== request.requestHeader.requestHandle) {
+            const expected = request.requestHeader.requestHandle;
             const actual = response.responseHeader.requestHandle;
             const moreInfo = "Class = " + response.schema.name;
-            console.log(chalk.red.bold(" WARNING SERVER responseHeader.requestHandle is invalid" +
-              ": expecting 0x" + expected.toString(16) +
-              "  but got 0x" + actual.toString(16) + " "), chalk.yellow(moreInfo));
+
+            const message =  " WARNING SERVER responseHeader.requestHandle is invalid" +
+            ": expecting 0x" + expected.toString(16) + "(" + expected + ")" +
+            "  but got 0x" + actual.toString(16) + "(" + actual + ")" + " ";
+
+            debugLog(chalk.red.bold(message), chalk.yellow(moreInfo));
+            console.log(chalk.red.bold(message), chalk.yellow(moreInfo));
         }
 
         requestData.response = response;
@@ -701,6 +734,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     private _record_transaction_statistics(requestData: RequestData) {
 
+        const request = requestData.request;
+        const response = requestData.response;
         // ---------------------------------------------------------------------------------------------------------|-
         //      _tick0                _tick1                         _tick2                       _tick3          _tick4
         //          sending request
@@ -716,8 +751,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
             lap_sending_request: requestData._tick1 - requestData._tick0,
             lap_transaction: requestData._tick4 - requestData._tick0,
             lap_waiting_response: requestData._tick2 - requestData._tick1,
-            request: requestData.request,
-            response: requestData.response
+            request,
+            response
         };
 
         if (doTraceStatistics) {
@@ -733,15 +768,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
               this._transport ? this._transport.name : "no transport");
         }
 
-        assert(err === null || err === undefined || _.isObject(err), "expecting valid error");
-
         if (this._requests) {
 
             Object.keys(this._requests).forEach((key: string) => {
                 const requestData = this._requests[key];
+                const request = requestData.request;
                 debugLog("Cancelling pending transaction ",
                   requestData.key, requestData.msgType,
-                  requestData.request.schema.name);
+                  request.schema.name);
                 process_request_callback(requestData, err);
             });
         }
@@ -1195,7 +1229,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             /* istanbul ignore next */
             if (doDebug) {
                 debugLog(chalk.cyan("------------------- client receiving response"), err);
-                if (response) {
+                if (response && doTraceResponseContent) {
                     debugLog(response.toString());
                 }
             }
@@ -1281,13 +1315,22 @@ export class ClientSecureChannelLayer extends EventEmitter {
         const request = transactionData.request;
 
         assert(msgType.length === 3);
-
         // get a new requestId
-        const requestId = this.makeRequestId();
+        const requestHandle = this.makeRequestId();
+
+        /* istanbul ignore next */
+        if (request.requestHeader.requestHandle !== requestHandleNotSetValue ) {
+            console.log(chalk.bgRed.white("xxxxx   >>>>>> request has already been set with a requestHandle"), requestHandle, request.requestHeader.requestHandle, request.constructor.name);
+            console.log(Object.keys(this._requests).join(" "));
+            console.log(new Error("Investigate me"));
+            process.exit(6);
+        }
+
+        request.requestHeader.requestHandle = requestHandle;
 
         /* istanbul ignore next */
         if (doTraceMessage) {
-            console.log(chalk.cyan("xxxxx   >>>>>>                     "), requestId, request.schema.name);
+            console.log(chalk.cyan("xxxxx   >>>>>>                     "), requestHandle, request.schema.name);
         }
 
         const requestData: RequestData = {
@@ -1310,14 +1353,16 @@ export class ClientSecureChannelLayer extends EventEmitter {
             chunk_count: 0
         };
 
-        this._requests[requestId] = requestData;
+        this._requests[requestHandle] = requestData;
+
+        /* istanbul ignore next */
         if (doPerfMonitoring) {
             const stats = requestData;
             // record tick0 : before request is being sent to server
             stats._tick0 = get_clock_tick();
         }
 
-        this._sendSecureOpcUARequest(msgType, request, requestId);
+        this._sendSecureOpcUARequest(msgType, request, requestHandle);
 
     }
 
@@ -1476,7 +1521,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
             options.chunkSize = this._transport.parameters.sendBufferSize;
         }
 
-        request.requestHeader.requestHandle = options.requestId;
+        /* istanbul ignore next */
+        if (request.requestHeader.requestHandle !== options.requestId) {
+            debugLog(chalk.red.bold("------------------------------------- Invalid request id"), request.requestHeader.requestHandle, options.requestId);
+        }
 
         request.requestHeader.returnDiagnostics = 0x0;
 
@@ -1484,7 +1532,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (doDebug) {
             debugLog(chalk.yellow.bold("------------------------------------- Client Sending a request"));
             debugLog(" CHANNEL ID ", this.channelId);
-            debugLog(request.toString());
+            if (doTraceRequestContent) {
+                debugLog(request.toString());
+            }
         }
 
         const security_options = (msgType === "OPN") ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
@@ -1497,8 +1547,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
          */
         this.emit("send_request", request);
 
-        this.messageChunker.chunkSecureMessage(msgType, options, request as BaseUAObject, (chunk: Buffer | null) =>
-          this._send_chunk(requestId, chunk));
+        this.messageChunker.chunkSecureMessage(msgType, options, request as BaseUAObject, 
+            (chunk: Buffer | null) =>
+                this._send_chunk(requestId, chunk));
 
     }
 }
