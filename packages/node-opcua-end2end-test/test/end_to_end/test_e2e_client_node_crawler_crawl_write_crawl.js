@@ -50,6 +50,9 @@ describe("NodeCrawler after write",function(){
         client = OPCUAClient.create({
             requestedSessionTimeout: 60*1000*4 // 4 minutes
         });
+        client.on("backoff", (count, delay) => {
+            console.log("Backoff ", endpointUrl);
+        })
         done();
     });
 
@@ -66,7 +69,6 @@ describe("NodeCrawler after write",function(){
     it("should crawl, write to node, and crawl again", function(done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, session_done) {
-
             async.series([
                 function(inner_done) {
                     const crawler = new NodeCrawler(session);

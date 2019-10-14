@@ -487,7 +487,7 @@ function constructHook(options: any): any {
         /* istanbul ignore next */
         if (!isValidVariant(options.arrayType, options.dataType, options.value, null)) {
             throw new Error("Invalid variant arrayType: " + options.arrayType.toString() +
-                "  dataType: " + options.dataType.toString() + " value:" + options.value);
+                "  dataType: " + options.dataType.toString() + " value:" + options.value  + " type= " + (typeof options.value));
         }
     }
     if (options.dimensions) {

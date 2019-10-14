@@ -1503,29 +1503,24 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         privateThis.pendingTransactionsCount = privateThis.pendingTransactionsCount || 0;
         if (privateThis.pendingTransactionsCount > 0) {
             /* istanbul ignore next */
-            if (privateThis.pendingTransactions.length > 5) {
+            if (privateThis.pendingTransactions.length > 1000) {
                 // tslint:disable-next-line: no-console
                 console.log("Pending transations: ", privateThis.pendingTransactions.map((a: any) => a.request.constructor.name).join(" "));
                 // tslint:disable-next-line: no-console
                 console.log(chalk.yellow("Warning : your client is sending multiple requests simultaneously to the server", request.constructor.name));
                 // tslint:disable-next-line: no-console
                 console.log(chalk.yellow("Warning : please fix your application code and node-opcua usage"));
-            } else if (privateThis.pendingTransactions.length > 0) {
+            } else if (privateThis.pendingTransactions.length > 2) {
                 debugLog(chalk.yellow("Warning : your client is sending multiple requests simultaneously to the server", request.constructor.name));
             }
             privateThis.pendingTransactions.push({request, callback});
             return;
         }
-        privateThis.pendingTransactions.push({request, callback});
-        this.processTransactionQueue();
+        this.processTransactionQueue(request, callback);
     }
-    public processTransactionQueue = () => {
+    public processTransactionQueue = (request: Request, callback: (err: Error | null, response?: Response) => void) => {
+
         const privateThis = this as any;
-        if (!privateThis.pendingTransactions || privateThis.pendingTransactions.length === 0) {
-            debugLog("processTransactionQueue => noTransaction left in queue");
-            return;
-        }
-        const { request, callback } = privateThis.pendingTransactions.shift();
         privateThis.pendingTransactionsCount = privateThis.pendingTransactionsCount || 0;
         privateThis.pendingTransactionsCount ++;
 
@@ -1539,12 +1534,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 this.recreate_session_and_reperform_transaction(request, callback);
                 return;
             }
- 
-            const length = privateThis.pendingTransactions.length; // record length before callback is called !
             callback(err, response);
+            const length = privateThis.pendingTransactions.length; // record length before callback is called !
             if (length > 0) {
                 debugLog("processTransactionQueue => ", privateThis.pendingTransactions.length , " transaction(s) left in queue");
-                this.processTransactionQueue();
+                // tslint:disable-next-line: no-shadowed-variable
+                const { request, callback } = privateThis.pendingTransactions.shift();
+                this.processTransactionQueue(request, callback);
             }
         });
     }

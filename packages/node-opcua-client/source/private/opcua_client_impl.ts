@@ -422,7 +422,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
                 this._activateSession(session as ClientSessionImpl,
                   (err1: Error | null, session2?: ClientSessionImpl) => {
-                      callback(err1, session2);
+                    callback(err1, session2);
                   });
             }
         });
@@ -566,7 +566,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             // step 2 : createSession
             (innerCallback: ErrorCallback) => {
                 this.createSession(userIdentity, (err: Error | null, session?: ClientSession) => {
-                    if (err) {
+                   if (err) {
                         return innerCallback(err);
                     }
                     if (!session) {
@@ -930,7 +930,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
           session,
           this.userIdentityInfo,
           (err: Error | null, data?: TokenAndSignature | null) => {
-
               if (err) {
                   session._client = _old_client;
                   return callback(err);
