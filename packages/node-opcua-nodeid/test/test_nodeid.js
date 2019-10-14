@@ -89,6 +89,17 @@ describe("testing coerceNodeId", function() {
             should.exist(err);
         }
     });
+    
+    it("should coerce a string of a form `ns=2;s=45QAZE2323||XC86@5`" , function() {
+        const ref_nodeId = new NodeId(NodeIdType.STRING, "45QAZE2323||XC86@5", 2);
+        coerceNodeId("ns=2;s=45QAZE2323||XC86@5").should.eql(ref_nodeId);
+        try {
+            makeNodeId("ns=2;s=45QAZE2323||XC86@5").should.eql(ref_nodeId);
+        } catch (err) {
+            should.exist(err);
+        }
+
+    });
 
     it("should coerce a integer", function() {
         coerceNodeId(1234).should.eql(makeNodeId(1234));
