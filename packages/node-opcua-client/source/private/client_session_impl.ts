@@ -163,6 +163,7 @@ const helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = debugLog;
+let pendingTransactionMessageDisplayed = false;
 
 function coerceBrowseDescription(data: any): BrowseDescription {
     if (typeof data === "string" || data instanceof NodeId) {
@@ -1472,11 +1473,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             && this._client._secureChannel !== null
             && this._client._secureChannel.isOpened());
     }
-/*
-    public performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
-        this._performMessageTransaction(request, callback);
-    }
-*/
+
     public performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
 
         if (!this._client) {
@@ -1503,14 +1500,17 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         privateThis.pendingTransactionsCount = privateThis.pendingTransactionsCount || 0;
         if (privateThis.pendingTransactionsCount > 0) {
             /* istanbul ignore next */
-            if (privateThis.pendingTransactions.length > 1000) {
-                // tslint:disable-next-line: no-console
-                console.log("Pending transations: ", privateThis.pendingTransactions.map((a: any) => a.request.constructor.name).join(" "));
-                // tslint:disable-next-line: no-console
-                console.log(chalk.yellow("Warning : your client is sending multiple requests simultaneously to the server", request.constructor.name));
-                // tslint:disable-next-line: no-console
-                console.log(chalk.yellow("Warning : please fix your application code and node-opcua usage"));
-            } else if (privateThis.pendingTransactions.length > 2) {
+            if (privateThis.pendingTransactions.length > 10) {
+                if (!pendingTransactionMessageDisplayed) {
+                    pendingTransactionMessageDisplayed = true;
+                    // tslint:disable-next-line: no-console
+                    console.log("Pending transations: ", privateThis.pendingTransactions.map((a: any) => a.request.constructor.name).join(" "));
+                    // tslint:disable-next-line: no-console
+                    console.log(chalk.yellow("Warning : your opcua client is sending multiple requests simultaneously to the server", request.constructor.name));
+                    // tslint:disable-next-line: no-console
+                    console.log(chalk.yellow("Warning : please fix your application code"));
+                }
+            } else if (privateThis.pendingTransactions.length > 3) {
                 debugLog(chalk.yellow("Warning : your client is sending multiple requests simultaneously to the server", request.constructor.name));
             }
             privateThis.pendingTransactions.push({request, callback});
