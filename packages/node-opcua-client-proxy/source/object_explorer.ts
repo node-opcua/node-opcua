@@ -266,10 +266,10 @@ function add_method(
 
                 async.series([
                     (callback: ErrorCallback) => {
-                        async.each(obj[name].inputArguments, extractDataType, (err) => callback(err!));
+                        async.eachSeries(obj[name].inputArguments, extractDataType, (err) => callback(err!));
                     },
                     (callback: ErrorCallback) => {
-                        async.each(obj[name].outputArguments, extractDataType, (err) => callback(err!));
+                        async.eachSeries(obj[name].outputArguments, extractDataType, (err) => callback(err!));
                     }
                 ], (err) => callback(err!));
             });
@@ -538,20 +538,20 @@ export function readUAStructure(
         async.series([
 
             (callback: ErrorCallback) => {
-                async.map(browseResults![0].references!,
+                async.mapSeries(browseResults![0].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
                         add_component(proxyManager, obj, reference, callback), (err) => callback(err!) );
             },
 
             (callback: ErrorCallback) => {
-                async.map(browseResults![1].references!,
+                async.mapSeries(browseResults![1].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
                         add_property(proxyManager, obj, reference, callback), (err) => callback(err!) );
             },
 
             // now enrich our object with nice callable async methods
             (callback: ErrorCallback) => {
-                async.map(browseResults![2].references!,
+                async.mapSeries(browseResults![2].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
                         add_method(proxyManager, obj, reference, callback), (err) => callback(err!) );
             },
@@ -585,7 +585,7 @@ export function readUAStructure(
 
             // Organizes
             (callback: ErrorCallback) => {
-                async.map(browseResults![6].references!,
+                async.mapSeries(browseResults![6].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
                         addFolderElement(proxyManager, obj, reference, callback), (err) => callback(err!) );
             }
