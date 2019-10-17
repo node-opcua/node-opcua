@@ -117,7 +117,10 @@ describe("Testing ClientSecureChannel 2", function () {
         secureChannel.protocolVersion.should.equal(0);
 
         secureChannel.on_transaction_completed = function (transaction_stat) {
-            console.log(transaction_stat);
+
+            should.exist(transaction_stat.request);
+            should.exist(transaction_stat.response);
+            // xx console.log(transaction_stat);
         };
 
         secureChannel.on("close", function (err) {

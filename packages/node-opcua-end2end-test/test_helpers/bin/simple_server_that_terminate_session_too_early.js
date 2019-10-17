@@ -56,8 +56,7 @@ process.title = "Node OPCUA Server on port : " + server_options.port;
 
 const server = new OPCUAServer(server_options);
 
-console.log("   Server with custom modeling ");
-console.log(chalk.yellow("  server PID          :"), process.pid);
+console.log("   Server that terminates session too early");
 
 server.on("post_initialize", function () {
 

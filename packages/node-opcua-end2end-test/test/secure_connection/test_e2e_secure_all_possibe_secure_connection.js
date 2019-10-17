@@ -18,7 +18,7 @@ const OPCUAClient = opcua.OPCUAClient;
 const ClientSecureChannelLayer = require("node-opcua-client").ClientSecureChannelLayer;
 
 
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 
 const certificate_store = path.join(__dirname, "../../certificates");
 fs.existsSync(certificate_store).should.eql(true, "expecting certificate store at " + certificate_store);
@@ -75,7 +75,7 @@ function stop_inner_server_local(data, callback) {
             // faulty client that do not renew token properly, causing server to abruptly drop the connection that
             // has become un-secured. We simply issue a warning rather than a exception if we find that currentSessionCount != 0
             if (server.engine.currentSessionCount !== 0) {
-                console.log(chalk.yellow("stop_inner_server_local:  Warning all sessions should have been closed"));
+                debugLog(chalk.yellow("stop_inner_server_local:  Warning all sessions should have been closed"));
             }
             //xxx server.engine.currentSessionCount.should.equal(0, " all sessions should have been closed");
             //xxx server.currentChannelCount.should.equal(0, "All channel should have been closed");
@@ -260,7 +260,7 @@ function common_test(securityPolicy, securityMode, options, done) {
         global.gc(true);
     }
 
-   //xx console.log("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
+   //xx debugLog("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
     opcua.coerceMessageSecurityMode(securityMode).should.not.eql(opcua.MessageSecurityMode.Invalid, "expecting supporting");
 
@@ -277,7 +277,7 @@ function common_test(securityPolicy, securityMode, options, done) {
     // make sure that securityToken renewal will happen very soon,
     options.tokenRenewalInterval = g_tokenRenewalInterval;
 
-    //xx console.log("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
+    //xx debugLog("xxxx options.defaultSecureTokenLifetime",options.defaultSecureTokenLifetime);
 
     let token_change = 0;
     const client = OPCUAClient.create(options);
@@ -300,7 +300,7 @@ function common_test(securityPolicy, securityMode, options, done) {
         const expectedExpiryTick = token.createdAt.getTime() + token.revisedLifetime;
         const delay = (expectedExpiryTick - Date.now());
         if (delay <= 100) {
-            console.log(chalk.red("WARNING : token renewal is happening too late !!"), delay);
+            debugLog(chalk.red("WARNING : token renewal is happening too late !!"), delay);
         }
         debugLog("received lifetime_75", JSON.stringify(token), delay);
     });
@@ -385,7 +385,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
             client.on("after_reconnection", after_reconnection_spy);
 
             keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function (err) {
-                console.log("err = ", err);
+                debugLog("err = ", err);
                 // inner_done(err);
             });
             client.on("close", function () {
@@ -404,7 +404,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
         });
     });
     client.on("backoff", function (number, delay) {
-        console.log(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
+        debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
     });
     client.on("lifetime_75", function (token) {
         debugLog("            received lifetime_75", JSON.stringify(token));
@@ -634,7 +634,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 inner_done();
             }, function (err) {
-                console.log(err.message);
+                debugLog(err.message);
                 err.message.should.match(/BadSecurityModeRejected/);
                 done();
             });
@@ -658,17 +658,17 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         trustCertificateOnServer(client.certificateFile, () => {
 
             client.on("lifetime_75", function (token) {
-                //xx  console.log("received lifetime_75", JSON.stringify(token));
+                //xx  debugLog("received lifetime_75", JSON.stringify(token));
             });
 
             client.on("security_token_renewed", function () {
                 token_change += 1;
-                //xx  console.log("security_token_renewed");
+                //xx  debugLog("security_token_renewed");
             });
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal + 3, function (err) {
-                    //xx console.log("end of Monitoring ")
+                    //xx debugLog("end of Monitoring ")
                     token_change.should.be.aboveOrEqual(g_numberOfTokenRenewal);
                     inner_done(err);
                 });
@@ -760,11 +760,11 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         });
 
         client.on("lifetime_75", function (token) {
-            //xx console.log("received lifetime_75", JSON.stringify(token));
+            //xx debugLog("received lifetime_75", JSON.stringify(token));
         });
         client.on("security_token_renewed", function () {
             token_change += 1;
-            //xx console.log("security_token_renewed");
+            //xx debugLog("security_token_renewed");
         });
 
         // common_test_expected_server_initiated_disconnection(opcua.SecurityPolicy.Basic128Rsa15, opcua.MessageSecurityMode.SIGN, done);

@@ -1,11 +1,18 @@
 /* eslint no-process-exit: 0 */
 "use strict";
 
+// simulate kepware server that sometime shutdown session too early
 const chalk = require("chalk");
 const path = require("path");
 const fs = require("fs");
 const opcua = require("node-opcua");
-
+const { 
+    UAMethod,
+    Variant,
+    SessionContext,
+    MethodFunctorCallback 
+} = require("node-opcua");
+const { callbackify } = require("util");
 
 Error.stackTraceLimit = Infinity;
 
@@ -49,7 +56,7 @@ process.title = "Node OPCUA Server on port : " + server_options.port;
 
 const server = new OPCUAServer(server_options);
 
-console.log("   Server that fails to TransferSubscription");
+console.log("   Server that fails to Republish ");
 
 server.on("post_initialize", function () {
 
@@ -68,15 +75,19 @@ server.on("post_initialize", function () {
         dataType: "Int32",
         value: new opcua.Variant({dataType: opcua.DataType.Int32, value: 1000.0})
     });
-
-    server._on_TransferSubscriptionsRequest =(message /* :Message*/, channel/*: ServerSecureChannelLayer*/) => {
-        const response = new opcua.TransferSubscriptionsResponse({
-            responseHeader: { serviceResult: opcua.StatusCodes.BadNotImplemented }
-        });
-        return channel.send_response("MSG", response, message);
-    }
-
+    server.on("response", (response, channel) => {
+        console.log(response.constructor.name.toString(), response.responseHeader.serviceResult.toString());
+    })
 });
+
+server._on_RepublishRequest =(message /* :Message*/, channel/*: ServerSecureChannelLayer*/) => {
+   
+    console.log("REPUBLISHED REQUEST !!!");
+    const response = new opcua.RepublishResponse({
+        responseHeader: { serviceResult: opcua.StatusCodes.BadNotImplemented }
+    });
+    return channel.send_response("MSG", response, message);
+}
 
 server.start(function (err) {
     if (err) {
@@ -90,9 +101,9 @@ server.start(function (err) {
     console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 });
 
-process.on('SIGINT', function () {
+process.on('SIGINT',  () => {
     // only work on linux apparently
-    server.shutdown(1000, function () {
+    server.shutdown(1000, ()=> {
         console.log(chalk.red.bold(" shutting down completed "));
         process.exit(-1);
     });
