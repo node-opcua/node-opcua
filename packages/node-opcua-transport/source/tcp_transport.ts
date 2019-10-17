@@ -234,6 +234,7 @@ export class TCP_transport extends EventEmitter {
             minimumSizeInBytes: this.headerSize
         });
 
+        /* istanbul ignore next */
         if (!this.packetAssembler) {
             throw new Error("Internal Error");
         }

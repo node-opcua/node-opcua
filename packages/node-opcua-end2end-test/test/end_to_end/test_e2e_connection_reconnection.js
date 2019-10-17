@@ -16,7 +16,7 @@ const ClientMonitoredItem = opcua.ClientMonitoredItem;
 
 const Variant = opcua.Variant;
 
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 const doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);
 
 const port = 2000;

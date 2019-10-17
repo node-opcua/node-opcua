@@ -476,7 +476,7 @@ export class ClientSidePublishEngine {
 
             assert(!err || err instanceof Error);
 
-            debugLog("---------------------------------------------------- err =", err ? err.message : null);
+            debugLog("__repairSubscription--------------------- err =", err ? err.message : null);
 
             if (err && err.message.match(/BadSessionInvalid/)) {
                 // _republish failed because session is not valid anymore on server side.

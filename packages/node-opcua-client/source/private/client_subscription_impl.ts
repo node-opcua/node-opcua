@@ -462,13 +462,18 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 if (!session) {
                     return innerCallback(new Error("no session"));
                 }
+
+                debugLog("Recreating ", itemsToCreate.length, " monitored items");
+
                 session.createMonitoredItems(
                     createMonitorItemsRequest,
                     (err: Error | null, response?: CreateMonitoredItemsResponse) => {
 
                         if (err) {
+                            debugLog("Recreating monitored item has failed with ", err.message);
                             return innerCallback(err);
                         }
+                        /* istanbul ignore next */
                         if (!response) {
                             return innerCallback(new Error("Internal Error"));
                         }
@@ -477,12 +482,12 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                         monitoredItemResults.forEach((monitoredItemResult, index) => {
 
                             const itemToCreate = itemsToCreate[index];
-                            // istanbul ignore next
+                            /* istanbul ignore next */
                             if (!itemToCreate || !itemToCreate.requestedParameters) {
                                 throw new Error("Internal Error");
                             }
                             const clientHandle = itemToCreate.requestedParameters.clientHandle;
-                            // istanbul ignore next
+                            /* istanbul ignore next */
                             if (!clientHandle) {
                                 throw new Error("Internal Error");
                             }

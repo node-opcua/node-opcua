@@ -115,12 +115,15 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
     //   "at this time, publish request queue shall still be empty");
 
     session.getPublishEngine().republish((err?: Error) => {
-
         debugLog("_ask_for_subscription_republish :  republish sent");
         if (session.hasBeenClosed()) {
             return callback(new Error("Cannot complete subscription republish due to session termination"));
         }
         debugLog(chalk.bgCyan.green.bold("_ask_for_subscription_republish done "), err ? err.message : "OK");
+        if (err) {
+            debugLog("_ask_for_subscription_republish has :  recreating subscription");
+            return repair_client_session_by_recreating_a_new_session(session._client, session, callback);
+        }
         // xx assert(session.getPublishEngine().nbPendingPublishRequests === 0);
         session.resumePublishEngine();
         callback(err);
@@ -291,7 +294,12 @@ function repair_client_session_by_recreating_a_new_session(
             }
             //  assert(newSession.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
             //      call Republish
-            return _ask_for_subscription_republish(newSession, innerCallback);
+            return _ask_for_subscription_republish(newSession, (err) => {
+                if (err) {
+                    console.log("warning: Subscription republished has failed ", err.message);
+                }
+                innerCallback(err);
+            });
         },
 
         function start_publishing_as_normal(innerCallback: ErrorCallback) {
@@ -315,6 +323,11 @@ function _repair_client_session(
     callback: (err?: Error) => void
 ): void {
 
+    const callback2 = (err2?: Error) => {
+        debugLog("Session is repaired ", session.sessionId.toString());
+        session.emit("session_repaired");
+        callback(err2);
+    };
     const self = client;
 
     if (doDebug) {
@@ -326,17 +339,17 @@ function _repair_client_session(
         // Note: current limitation :
         //  - The reconnection doesn't work yet, if connection break is caused by a server that crashes and restarts.
         //
-        debugLog("    ActivateSession : ", err ? err.message : " SUCCESS !!! ");
+        debugLog("    ActivateSession : ", err ? err.message : chalk.green(" SUCCESS !!! "));
         if (err) {
             //  activate old session has failed => let's  recreate a new Channel and transfer the subscription
-            return repair_client_session_by_recreating_a_new_session(client, session, callback);
+            return repair_client_session_by_recreating_a_new_session(client, session, callback2);
         } else {
             // activate old session has succeeded => let's call Republish
-            return _ask_for_subscription_republish(session, callback);
+            return _ask_for_subscription_republish(session, callback2);
         }
     });
 }
-type Callback =  (err?: Error) => void;
+type Callback = (err?: Error) => void;
 interface Reconnactable {
     _reconnecting: {
         reconnecting: boolean;
@@ -354,9 +367,11 @@ export function repair_client_session(
         debugLog("Aborting reactivation of old session because user requested session to be close");
         return callback();
     }
+
+    debugLog(chalk.yellow("Starting client session repair"));
     const privateSession = session as any as Reconnactable;
-    privateSession._reconnecting = privateSession._reconnecting  || { reconnecting: false, pending: [] };
-    if ( privateSession._reconnecting.reconnecting) {
+    privateSession._reconnecting = privateSession._reconnecting || { reconnecting: false, pending: [] };
+    if (privateSession._reconnecting.reconnecting) {
         debugLog(chalk.bgCyan("Reconnecting already happening for session"), session.sessionId.toString());
         privateSession._reconnecting.pending.push(callback);
         return;
@@ -374,16 +389,17 @@ export function repair_client_session(
         }
         debugLog(chalk.yellow("SESSION RESTORED"), session.sessionId.toString());
         session.emit("session_restored");
-        const otherCallbacks =  privateSession._reconnecting.pending;
+        const otherCallbacks = privateSession._reconnecting.pending;
         privateSession._reconnecting.pending = [];
 
         // reinject element in queue
+        debugLog(chalk.yellow("reinjecting transaction queue"), transactionQueue.length);
         transactionQueue.forEach((e: any) => privateSession.pendingTransactions.push(e));
-
         otherCallbacks.forEach((c: Callback) => c(err));
         callback(err);
     });
 }
+
 export function repair_client_sessions(client: OPCUAClientImpl, callback: (err?: Error) => void): void {
 
     const self = client;
@@ -393,6 +409,7 @@ export function repair_client_sessions(client: OPCUAClientImpl, callback: (err?:
     async.map(sessions, (session: ClientSessionImpl, next: (err?: Error) => void) => {
         repair_client_session(client, session, next);
     }, (err) => {
+        debugLog(chalk.red.bgWhite("sessions reactivation completed: err ", err ? err.message : "null"));
         return callback(err!);
     });
 }
