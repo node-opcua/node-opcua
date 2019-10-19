@@ -49,7 +49,7 @@ describe("Testing AutoID custom types", function (this: any) {
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/")
         nsAutoId.should.eql(2);
 
-        const scanSettingsDataTypeNode = addressSpace.findDataType("ScanSettings", nsAutoId);
+        const scanSettingsDataTypeNode = addressSpace.findDataType("ScanSettings", nsAutoId)!;
         should.exist(scanSettingsDataTypeNode);
 
         const settings = addressSpace.constructExtensionObject(scanSettingsDataTypeNode, {
@@ -88,7 +88,7 @@ describe("Testing AutoID custom types", function (this: any) {
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/")
         nsAutoId.should.eql(2);
 
-        const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId);
+        const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
         should.exist(rfidScanResultDataTypeNode);
         const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
             // ScanResult

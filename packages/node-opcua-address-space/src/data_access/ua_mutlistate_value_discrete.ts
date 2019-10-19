@@ -5,9 +5,9 @@ import { assert } from "node-opcua-assert";
 import { DataType, Variant } from "node-opcua-variant";
 
 import { coerceInt32, coerceUInt64, Int64 } from "node-opcua-basic-types";
-import { StatusCodes } from "node-opcua-status-code";
-import { coerceLocalizedText } from "node-opcua-data-model";
+import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 import { EnumValueType } from "node-opcua-types";
 import {
@@ -18,9 +18,8 @@ import {
 import { UAVariable } from "../ua_variable";
 
 export interface UAMultiStateValueDiscrete {
-    enumValues: Property<"EnumValueType">;
-    valueAsText: Property<DataType.String>;
-
+    enumValues: Property<EnumValueType[], DataType.ExtensionObject>;
+    valueAsText: Property<LocalizedText, DataType.LocalizedText>;
 }
 
 function install_synchronisation(variable: UAMultiStateValueDiscrete) {
@@ -55,7 +54,7 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
     }
 
     public getValueAsString(): string {
-        return this.valueAsText.readValue().value.value.text;
+        return this.valueAsText.readValue().value.value.text || "";
     }
 
     public getValueAsNumber(): number {

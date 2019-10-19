@@ -5,7 +5,7 @@ import chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { ByteString } from "node-opcua-basic-types";
+import { ByteString, DateTime } from "node-opcua-basic-types";
 import { randomGuid, UInt16 } from "node-opcua-basic-types";
 import {
     AttributeIds,
@@ -64,20 +64,20 @@ export interface UAConditionBase extends BaseEventType {
 
 export interface UAConditionBase {
     enabledState: UATwoStateVariable;
-    receiveTime: UAVariableT<Date>;
-    localTime: UAVariableT<DataType.ExtensionObject>;
-    message: UAVariableT<DataType.LocalizedText>;
-    severity: UAVariableT<DataType.UInt16>;
-    time: UAVariableT<DataType.DateTime>;
-    branchId: UAVariableT<DataType.NodeId>;
-    eventType: UAVariableT<NodeId>;
-    conditionClassId: UAVariableT<DataType.NodeId>;
-    conditionClassName: UAVariableT<DataType.LocalizedText>;
-    conditionName: UAVariableT<DataType.String>;
-    quality: UAConditionVariable<DataType.StatusCode>;
-    comment: UAConditionVariable<DataType.LocalizedText>;
-    lastSeverity: UAConditionVariable<DataType.StatusCode>;
-    retain: UAVariableT<DataType.Boolean>;
+    receiveTime: UAVariableT<Date, DataType.DateTime>;
+    localTime: UAVariableT<any, DataType.ExtensionObject>;
+    message: UAVariableT<LocalizedText, DataType.LocalizedText>;
+    severity: UAVariableT<UInt16, DataType.UInt16>;
+    time: UAVariableT<DateTime, DataType.DateTime>;
+    branchId: UAVariableT<NodeId, DataType.NodeId>;
+    eventType: UAVariableT<NodeId, DataType.NodeId>;
+    conditionClassId: UAVariableT<NodeId, DataType.NodeId>;
+    conditionClassName: UAVariableT<LocalizedText, DataType.LocalizedText>;
+    conditionName: UAVariableT<string, DataType.String>;
+    quality: UAConditionVariable<StatusCode, DataType.StatusCode>;
+    comment: UAConditionVariable<LocalizedText, DataType.LocalizedText>;
+    lastSeverity: UAConditionVariable<StatusCode, DataType.StatusCode>;
+    retain: UAVariableT<boolean, DataType.Boolean>;
 
     enable: UAMethod;
     disable: UAMethod;
@@ -1271,12 +1271,12 @@ function _create_new_branch_id() {
     return makeNodeId(randomGuid(), 1);
 }
 
-interface UAConditionVariable<T> extends UAVariableT<T> {
-    sourceTimestamp: UAVariableT<DataType.DateTime>;
+interface UAConditionVariable<T, DT extends DataType> extends UAVariableT<T, DT> {
+    sourceTimestamp: UAVariableT<DateTime, DataType.DateTime>;
 }
 
-function _update_sourceTimestamp<T>(
-  this: UAConditionVariable<T>,
+function _update_sourceTimestamp<T, DT extends DataType>(
+  this: UAConditionVariable<T, DT>,
   dataValue: DataValue /*, indexRange*/
 ) {
     this.sourceTimestamp.setValueFromSource({
@@ -1286,8 +1286,8 @@ function _update_sourceTimestamp<T>(
 }
 
 // tslint:disable:no-console
-function _install_condition_variable_type<T>(
-  node: UAConditionVariable<T>
+function _install_condition_variable_type<T, DT extends DataType>(
+  node: UAConditionVariable<T, DT>
 ) {
     assert(node instanceof BaseNode);
     // from spec 1.03 : 5.3 condition variables

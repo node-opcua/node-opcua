@@ -1,8 +1,9 @@
 import * as should from "should";
 
+import { Double } from "node-opcua-basic-types";
 import { DataTypeIds } from "node-opcua-constants";
 import { standardUnits } from "node-opcua-data-access";
-import { DataValue } from "node-opcua-data-value";
+import { DataValue, DataValueT } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { resolveNodeId } from "node-opcua-nodeid";
 import * as nodesets from "node-opcua-nodesets";
@@ -14,7 +15,7 @@ import {
     AddressSpace,
     generateAddressSpace,
     SessionContext,
-    UAAnalogItem
+    UAAnalogItem,
 } from "..";
 
 // tslint:disable-next-line:no-var-requires
@@ -60,9 +61,9 @@ describe("AnalogDataItem ValuePrecision issue #410", () => {
 
         const dataValue = new DataValue({
             value: new Variant({dataType: DataType.Double, value: 0.25})
-        });
+        }) as DataValueT<Double, DataType.Double>;
         const context = SessionContext.defaultContext;
-        const statusCode = await analogItem.valuePrecision!.writeValue(context, dataValue, null);
+        const statusCode = await analogItem.valuePrecision!.writeValue(context, dataValue);
         statusCode.should.eql(StatusCodes.Good);
     });
 });

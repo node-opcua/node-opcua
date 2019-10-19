@@ -6,6 +6,7 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import { UInt32 } from "node-opcua-basic-types";
 import {
     AttributeIds,
     attributeNameById,
@@ -43,6 +44,7 @@ import {
     UAReference as UAReferencePublic,
     UAReferenceType as UAReferenceTypePublic,
     UAVariable as UAVariablePublic,
+    UAVariableT,
     UAVariableType as UAVariableTypePublic,
     XmlWriter
 } from "../source";
@@ -98,7 +100,13 @@ function _is_valid_BrowseDirection(browseDirection: any) {
 }
 
 export interface BaseNode {
-    nodeVersion?: number;
+    /**
+     * NodeVersion (Optional) String The NodeVersion Property is used to indicate the version of a Node.
+     * The NodeVersion Property is updated each time a Reference is added or deleted to the Node the Property
+     * belongs to. Attribute value changes do not cause the NodeVersion to change.
+     * Clients may read the NodeVersion Property or subscribe to it to determine when the structure of a Node has changed.
+     */
+    nodeVersion?: UAVariableT<string, DataType.String>;
 }
 
 export function makeAttributeEventName(attributeId: AttributeIds) {

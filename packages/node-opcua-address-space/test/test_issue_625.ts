@@ -4,7 +4,7 @@ import { AddressSpace } from "..";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("#625 automatic string nodeid assignment", ()  => {
-    let addressSpace = null;
+    let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
         const ns1 = addressSpace.registerNamespace("namespace0");
@@ -15,7 +15,7 @@ describe("#625 automatic string nodeid assignment", ()  => {
     after(() => {
         addressSpace.dispose();
     });
-    
+
     it("should resolve nodeId provided in issue #625", () => {
         const a = addressSpace.resolveNodeId("ns=1;s=5cef44f09c31dc004c8ae25a_s[test2]_Meta:O0/O0:0");
         a.toString().should.eql("ns=1;s=5cef44f09c31dc004c8ae25a_s[test2]_Meta:O0/O0:0");
@@ -24,7 +24,7 @@ describe("#625 automatic string nodeid assignment", ()  => {
         b.toString().should.eql("ns=1;s=5cef44f09c31dc004c8ae25a_s[test2]_Meta:O0");
 
     });
-    
+
     it("should resolve simple node id strings", () => {
         const a = addressSpace.resolveNodeId("ns=1;s=sometext");
         a.toString().should.eql("ns=1;s=sometext");
@@ -38,7 +38,7 @@ describe("#625 automatic string nodeid assignment", ()  => {
         const a = addressSpace.resolveNodeId("ns=1;s=hello;world@:1/2:3");
         a.toString().should.eql("ns=1;s=hello;world@:1/2:3");
     });
-    it("should resolve a alias", () =>{
+    it("should resolve a alias", () => {
         const a = addressSpace.resolveNodeId("2:MyAlias");
         a.toString().should.eql("ns=2;i=32");
     });

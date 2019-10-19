@@ -14,7 +14,7 @@ import {
 } from "..";
 
 interface UAObjectWithVersion extends UAObject {
-    nodeVersion: UAVariableT<DataType.String>;
+    nodeVersion: UAVariableT<string, DataType.String>;
 }
 
 function createNodeWithNodeVersion(

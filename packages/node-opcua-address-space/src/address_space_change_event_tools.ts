@@ -51,7 +51,7 @@ export function _handle_add_reference_change_event(
 
     const node2 = addressSpace.findNode(node2id)! as BaseNode;
 
-    if (node1.nodeVersion || (node2 && (node2 as any).nodeVersion)) {
+    if (node1.nodeVersion || (node2 && node2.nodeVersion)) {
         // a event has to be send
         addressSpace.modelChangeTransaction(() => {
 

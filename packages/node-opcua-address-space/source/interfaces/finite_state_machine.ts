@@ -3,6 +3,8 @@
  */
 import { LocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
+import { DataType } from "node-opcua-variant";
+
 import { InstantiateObjectOptions, UAVariableT } from "../address_space_ts";
 import {
     State,
@@ -68,10 +70,10 @@ export interface FiniteStateVariableB extends StateVariableB {
      * the required DataType.
      * This value shall be the NodeId of one of the Transition Objects of the FiniteStateMachineType.
      */
-    id: UAVariableT<NodeId>;
+    id: UAVariableT<NodeId, DataType.NodeId>;
 }
 
-export interface FiniteStateVariable extends FiniteStateVariableB, UAVariableT<LocalizedText> {
+export interface FiniteStateVariable extends FiniteStateVariableB, UAVariableT<LocalizedText, DataType.LocalizedText> {
 }
 
 export interface FiniteTransitionVariableB extends TransitionVariableB {
@@ -80,7 +82,7 @@ export interface FiniteTransitionVariableB extends TransitionVariableB {
      * the required DataType.
      * This value shall be the NodeId of one of the Transition Objects of the FiniteStateMachineType.
      */
-    id: UAVariableT<NodeId>;
+    id: UAVariableT<NodeId, DataType.NodeId>;
     /*
     The Name Property is inherited from the TransitionVariableType. Its Value shall be the
     BrowseName of one of the Transition Objects of the FiniteStateMachineType.
@@ -89,7 +91,7 @@ export interface FiniteTransitionVariableB extends TransitionVariableB {
      */
 }
 
-export interface FiniteTransitionVariable extends FiniteTransitionVariableB, UAVariableT<LocalizedText> {
+export interface FiniteTransitionVariable extends FiniteTransitionVariableB, UAVariableT<LocalizedText, DataType.LocalizedText> {
 }
 
 // tslint:disable-next-line:no-empty-interface

@@ -15,15 +15,16 @@ import { SimpleAttributeOperand, TimeZoneDataType } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { UtcTime, UAAcknowledgeableConditionBase } from "../../source";
+import {
+    UAAcknowledgeableConditionBase,
+    UtcTime
+ } from "../../source";
 import { BaseNode } from "../base_node";
 import { EventData } from "../event_data";
 import { UATwoStateVariable } from "../ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
 import { _setAckedState } from "./condition";
 import { UAConditionBase } from "./ua_condition_base";
-import { UAObject } from "../ua_object";
-import { thisExpression } from "babel-types";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -90,7 +91,7 @@ function _installOnChangeEventHandlers(self: any, node: BaseNode, prefix: string
                 debugLog("adding key =", key);
             }
 
-            aggregate.on("value_changed", (newDataValue: DataValue, oldDataValue: DataValue) => {
+            aggregate.on("value_changed", (newDataValue: DataValue) => {
                 self._map[key] = newDataValue.value;
                 self._node_index[key] = aggregate;
             });
@@ -177,7 +178,6 @@ export class ConditionSnapshot extends EventEmitter {
     public branchId: NodeId | null = null;
     private _map: any = null;
     private _node_index: any = null;
-    private _need_event_raise: boolean = false;
 
     /**
      * @class ConditionSnapshot
@@ -254,7 +254,7 @@ export class ConditionSnapshot extends EventEmitter {
         return variant;
     }
 
-    public _get_var(varName: string, dataType: DataType): any {
+    public _get_var(varName: string): any {
 
         if (!this.condition.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
             // xx console.log("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
@@ -304,7 +304,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {NodeId}
      */
     public getBranchId(): NodeId {
-        return this._get_var("branchId", DataType.NodeId) as NodeId;
+        return this._get_var("branchId") as NodeId;
     }
 
     /**
@@ -312,7 +312,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {ByteString}
      */
     public getEventId(): Buffer {
-        return this._get_var("eventId", DataType.ByteString) as Buffer;
+        return this._get_var("eventId") as Buffer;
     }
 
     /**
@@ -320,7 +320,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {Boolean}
      */
     public getRetain(): boolean {
-        return this._get_var("retain", DataType.Boolean) as boolean;
+        return this._get_var("retain") as boolean;
     }
 
     /**
@@ -371,7 +371,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {String}
      */
     public getEnabledStateAsString(): string {
-        return this._get_var("enabledState", DataType.LocalizedText).text;
+        return this._get_var("enabledState").text;
     }
 
     /**
@@ -379,7 +379,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {LocalizedText}
      */
     public getComment(): LocalizedText {
-        return this._get_var("comment", DataType.LocalizedText);
+        return this._get_var("comment");
     }
 
     /**
@@ -397,13 +397,6 @@ export class ConditionSnapshot extends EventEmitter {
     public setComment(txtMessage: LocalizedTextLike): void {
         const txtMessage1 = coerceLocalizedText(txtMessage);
         this._set_var("comment", DataType.LocalizedText, txtMessage1);
-        /*
-         * OPCUA Spec 1.0.3 - Part 9:
-         * Comment, severity and quality are important elements of Conditions and any change
-         * to them will cause Event Notifications.
-         *
-         */
-        this._need_event_raise = true;
     }
 
     /**
@@ -456,13 +449,6 @@ export class ConditionSnapshot extends EventEmitter {
      */
     public setQuality(quality: StatusCode): void {
         this._set_var("quality", DataType.StatusCode, quality);
-        /*
-         * OPCUA Spec 1.0.3 - Part 9:
-         * Comment, severity and quality are important elements of Conditions and any change
-         * to them will cause Event Notifications.
-         *
-         */
-        this._need_event_raise = true;
     }
 
     /**
@@ -470,7 +456,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {StatusCode}
      */
     public getQuality(): StatusCode {
-        return this._get_var("quality", DataType.StatusCode) as StatusCode;
+        return this._get_var("quality") as StatusCode;
     }
 
     /*
@@ -514,13 +500,6 @@ export class ConditionSnapshot extends EventEmitter {
         const lastSeverity = this.getSeverity();
         this.setLastSeverity(lastSeverity);
         this._set_var("severity", DataType.UInt16, severity);
-        /*
-         * OPCUA Spec 1.0.3 - Part 9:
-         * Comment, severity and quality are important elements of Conditions and any change
-         * to them will cause Event Notifications.
-         *
-         */
-        this._need_event_raise = true;
     }
 
     /**
@@ -529,7 +508,7 @@ export class ConditionSnapshot extends EventEmitter {
      */
     public getSeverity(): UInt16 {
         assert(this.condition.getEnabledState(), "condition must be enabled");
-        const value = this._get_var("severity", DataType.UInt16);
+        const value = this._get_var("severity");
         return +value;
     }
 
@@ -554,7 +533,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {UInt16}
      */
     public getLastSeverity(): UInt16 {
-        const value = this._get_var("lastSeverity", DataType.UInt16);
+        const value = this._get_var("lastSeverity");
         return +value;
     }
 
@@ -613,7 +592,7 @@ export class ConditionSnapshot extends EventEmitter {
 
     // read only !
     public getSourceName(): LocalizedText {
-        return this._get_var("sourceName", DataType.LocalizedText);
+        return this._get_var("sourceName");
     }
 
     /**
@@ -621,7 +600,7 @@ export class ConditionSnapshot extends EventEmitter {
      * return {NodeId}
      */
     public getSourceNode(): NodeId {
-        return this._get_var("sourceNode", DataType.NodeId);
+        return this._get_var("sourceNode");
     }
 
     /**
@@ -629,15 +608,15 @@ export class ConditionSnapshot extends EventEmitter {
      * return {NodeId}
      */
     public getEventType(): NodeId {
-        return this._get_var("eventType", DataType.NodeId);
+        return this._get_var("eventType");
     }
 
     public getMessage(): LocalizedText {
-        return this._get_var("message", DataType.LocalizedText);
+        return this._get_var("message");
     }
 
     public isCurrentBranch(): boolean {
-        return this._get_var("branchId", DataType.NodeId) === NodeId.nullNodeId;
+        return this._get_var("branchId") === NodeId.nullNodeId;
     }
 
     // -- ACKNOWLEDGEABLE -------------------------------------------------------------------
@@ -719,7 +698,7 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     // tslint:disable:no-empty
-    public setShelvingState(state: any) {
+    public setShelvingState() {
         // todo
     }
 

@@ -2,6 +2,8 @@ import * as should from "should";
 import * as sinon from "sinon";
 
 import { DateTime, Double, UAString, UInt32 } from "node-opcua-basic-types";
+import { LocalizedText , LocalizedTextLike } from "node-opcua-data-model";
+import { NodeIdLike } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import {
     ApplicationDescription,
@@ -15,40 +17,38 @@ import {
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, RootFolder , UAVariable , UAVariableT } from "..";
 import { getMiniAddressSpace } from "../";
-import { LocalizedTextLike } from "node-opcua-data-model";
-import { NodeIdLike } from "node-opcua-nodeid";
 
 interface ServiceCounterVariable extends UAVariable {
-    totalCount: UAVariableT<DataType.UInt32>;
-    errorCount: UAVariableT<DataType.UInt32>;
+    totalCount: UAVariableT<UInt32, DataType.UInt32>;
+    errorCount: UAVariableT<UInt32, DataType.UInt32>;
 }
 
 interface ServerStatusVariable extends UAVariable {
-    startTime: UAVariableT<DataType.DateTime>;
-    currentTime: UAVariableT<DataType.DateTime>;
-    state: UAVariableT<DataType.ExtensionObject>; // ServerState
-    buildInfo: UAVariableT<DataType.ExtensionObject>; // BuildInfoOptions
-    secondsTillShutdown: UAVariableT<DataType.UInt32>;
-    shutdownReason: UAVariableT<DataType.LocalizedText>;
+    startTime: UAVariableT<DateTime, DataType.DateTime>;
+    currentTime: UAVariableT<DateTime, DataType.DateTime>;
+    state: UAVariableT<any, DataType.ExtensionObject>; // ServerState
+    buildInfo: UAVariableT<any, DataType.ExtensionObject>; // BuildInfoOptions
+    secondsTillShutdown: UAVariableT<UInt32, DataType.UInt32>;
+    shutdownReason: UAVariableT<LocalizedText, DataType.LocalizedText>;
 }
 
 interface SessionDiagnosticsVariable extends UAVariable {
 
     $extensionObject: SessionDiagnosticsDataType;
 
-    sessionId: UAVariableT<NodeIdLike>;
-    sessionName: UAVariableT<UAString>;
-    clientDescription: UAVariableT<ApplicationDescription>;
-    serverUri: UAVariableT<UAString>;
-    endpointUrl: UAVariableT<UAString>;
-    localeIds: UAVariableT<UAString>;
-    actualSessionTimeout: UAVariableT<Double>;
-    maxResponseMessageSize: UAVariableT<UInt32>;
-    clientConnectionTime: UAVariableT<DateTime>;
-    clientLastContactTime: UAVariableT<DateTime>;
-    currentSubscriptionsCount: UAVariableT<UInt32>;
-    currentMonitoredItemsCount: UAVariableT<UInt32>;
-    currentPublishRequestsInQueue: UAVariableT<UInt32>;
+    sessionId: UAVariableT<NodeIdLike, DataType.NodeId>;
+    sessionName: UAVariableT<UAString, DataType.String>;
+    clientDescription: UAVariableT<ApplicationDescription, DataType.ExtensionObject>;
+    serverUri: UAVariableT<UAString, DataType.String>;
+    endpointUrl: UAVariableT<UAString, DataType.String>;
+    localeIds: UAVariableT<UAString, DataType.String>;
+    actualSessionTimeout: UAVariableT<Double, DataType.Double>;
+    maxResponseMessageSize: UAVariableT<UInt32, DataType.UInt32>;
+    clientConnectionTime: UAVariableT<DateTime, DataType.DateTime>;
+    clientLastContactTime: UAVariableT<DateTime, DataType.DateTime>;
+    currentSubscriptionsCount: UAVariableT<UInt32, DataType.UInt32>;
+    currentMonitoredItemsCount: UAVariableT<UInt32, DataType.UInt32>;
+    currentPublishRequestsInQueue: UAVariableT<UInt32, DataType.UInt32>;
     totalRequestCount: ServiceCounterVariable;
     unauthorizedRequestCount: ServiceCounterVariable;
     readCount: ServiceCounterVariable;

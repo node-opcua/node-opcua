@@ -53,8 +53,8 @@ function dumpEvent(
         }
     });
 }
-function ellipsis(a:string): string {
-    return a.substr(a, 10) + "...";
+function ellipsis(a: string): string {
+    return a.substr(0, 10) + "...";
 }
 function dumpSpy(spyOnEvent: any) {
     for (let i = 0; i < spyOnEvent.getCalls().length; i++) {
@@ -478,4 +478,3 @@ export function utest_limit_alarm(test: any) {
         });
     });
 }
-

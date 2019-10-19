@@ -17,7 +17,7 @@ import {
     QualifiedName,
     QualifiedNameLike
 } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import { DataValue, DataValueOptions, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
 import { PreciseClock } from "node-opcua-date-time";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
@@ -38,6 +38,7 @@ import {
     BrowsePathResult,
     BuildInfo,
     CallMethodResultOptions,
+    EnumValueType,
     EUInformation,
     EUInformationOptions,
     Range,
@@ -50,7 +51,13 @@ import {
     SessionSecurityDiagnosticsDataType,
     SignedSoftwareCertificate
 } from "node-opcua-types";
-import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
+import {
+    DataType,
+    Variant,
+    VariantArrayType,
+    VariantByteString,
+    VariantLike
+} from "node-opcua-variant";
 import { MinimalistAddressSpace, Reference } from "../src/reference";
 import { State, StateMachine, StateMachineType, Transition, UtcTime } from "./interfaces/state_machine";
 import { SessionContext } from "./session_context";
@@ -468,16 +475,16 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValue,
+        dataValue: DataValueOptions,
         indexRange: string | NumericRange | null,
         callback: StatusCodeCallBack
     ): void;
 
-    writeValue(context: SessionContext, dataValue: DataValue, callback: StatusCodeCallBack): void;
+    writeValue(context: SessionContext, dataValue: DataValueOptions, callback: StatusCodeCallBack): void;
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValue,
+        dataValue: DataValueOptions,
         indexRange?: string | NumericRange | null
     ): Promise<StatusCode>;
 
@@ -588,8 +595,8 @@ export interface AddDataItemOptions extends AddVariableOptions {
 }
 
 export interface UADataItem extends UAVariable {
-    definition?: Property<DataType.String>;
-    valuePrecision?: Property<DataType.Double>;
+    definition?: Property<string, DataType.String>;
+    valuePrecision?: Property<number, DataType.Double>;
 }
 
 export interface AddAnalogDataItemOptions extends AddDataItemOptions {
@@ -610,13 +617,21 @@ export interface UAAnalogItem extends UADataItem {
     // HasProperty  Variable  InstrumentRange  Range  PropertyType  Optional
     // HasProperty  Variable  EURange  Range  PropertyType  Mandatory
     // HasProperty  Variable  EngineeringUnits  EUInformation  PropertyType  Optional
-    engineeringUnits: Property<"EUInformation">;
-    instrumentRange?: Property<"Range">;
-    euRange: Property<"Range">;
+    engineeringUnits: Property<EUInformation, DataType.ExtensionObject>;
+    instrumentRange?: Property<Range, DataType.ExtensionObject>;
+    euRange: Property<Range, DataType.ExtensionObject>;
 }
 
 export interface UAMultiStateDiscrete extends UAVariable {
-    enumStrings: Property<"StringArray">;
+    /**
+     * The EnumStrings Property only applies for Enumeration DataTypes.
+     * It shall not be applied for other DataTypes. If the EnumValues
+     * Property is provided, the EnumStrings Property shall not be provided.
+     * Each entry of the array of LocalizedText in this Property represents
+     * the human-readable representation of an enumerated value. The
+     * Integer representation of the enumeration value points to a position of the array.
+     */
+    enumStrings: Property<LocalizedText[], DataType.LocalizedText>;
 
     getValue(): number;
 
@@ -639,8 +654,8 @@ export interface AddMultiStateValueDiscreteOptions extends AddVariableOptions {
 }
 
 export interface UAMultiStateValueDiscrete extends UAVariable {
-    enumValues: Property<"EnumValueType">;
-    valueAsText: Property<DataType.String>;
+    enumValues: Property< EnumValueType[], DataType.ExtensionObject>;
+    valueAsText: Property<LocalizedText, DataType.LocalizedText>;
 
     setValue(value: string | number | Int64): void;
     getValueAsString(): string;
@@ -1221,22 +1236,22 @@ export interface AddYArrayItemOptions extends AddVariableOptions {
 }
 
 export interface RangeVariable extends UAVariable {
-    low: UAVariableT<DataType.Double>;
-    high: UAVariableT<DataType.Double>;
+    low: UAVariableT<number, DataType.Double>;
+    high: UAVariableT<number, DataType.Double>;
 }
 
 export interface XAxisDefinitionVariable extends UAVariable {
-    engineeringUnits: UAVariableT<UAString>;
-    title: UAVariableT<UAString>;
+    engineeringUnits: UAVariableT<UAString, DataType.String>;
+    title: UAVariableT<UAString, DataType.String>;
     euRange: RangeVariable;
 }
 
 export interface YArrayItemVariable extends UAVariable {
-    euRange: UAVariableT<Range>;
-    title: UAVariableT<DataType.String>;
-    xAxisDefinition: UAVariableT<DataType.ExtensionObject>; // AxisInformationOptions
-    instrumentRange: UAVariableT<Range>;
-    axisScaleType: UAVariableT<AxisScaleEnumeration>;
+    euRange: UAVariableT<Range, DataType.ExtensionObject>;
+    title: UAVariableT<string, DataType.String>;
+    xAxisDefinition: UAVariableT<AxisInformationOptions, DataType.ExtensionObject>; // AxisInformationOptions
+    instrumentRange: UAVariableT<Range, DataType.ExtensionObject>;
+    axisScaleType: UAVariableT<number, DataType.UInt32>; // AxisScaleEnumeration
 }
 
 export type CreateNodeOptions = any;
@@ -1407,21 +1422,21 @@ export interface TypesFolder extends Folder {
 }
 
 export interface BuildInfo1 extends UAVariable {
-    productUri: UAVariableT<UAString>;
-    manufacturerName: UAVariableT<UAString>;
-    productName: UAVariableT<UAString>;
-    softwareVersion: UAVariableT<UAString>;
-    buildNumber: UAVariableT<UAString>;
-    buildDate: UAVariableT<DateTime>;
+    productUri: UAVariableT<UAString, DataType.String>;
+    manufacturerName: UAVariableT<UAString, DataType.String>;
+    productName: UAVariableT<UAString, DataType.String>;
+    softwareVersion: UAVariableT<UAString, DataType.String>;
+    buildNumber: UAVariableT<UAString, DataType.String>;
+    buildDate: UAVariableT<DateTime, DataType.DateTime>;
     $extensionObject: BuildInfo;
 }
 
 export interface UAServerStatus extends UAVariable {
-    startTime: UAVariableT<DataType.DateTime>;
-    currentTime: UAVariableT<DataType.DateTime>;
-    state: UAVariableT<ServerState>; // Enumeration
-    secondsTillShutdown: UAVariableT<DataType.UInt32>;
-    shutdownReason: UAVariableT<DataType.LocalizedText>;
+    startTime: UAVariableT<DateTime, DataType.DateTime>;
+    currentTime: UAVariableT<DateTime, DataType.DateTime>;
+    state: UAVariableT<ServerState, DataType.ExtensionObject>; // Enumeration
+    secondsTillShutdown: UAVariableT<UInt32, DataType.UInt32>;
+    shutdownReason: UAVariableT<LocalizedText, DataType.LocalizedText>;
     buildInfo: BuildInfo1;
 
     $extensionObject: ServerStatusDataType;
@@ -1455,7 +1470,7 @@ export interface UAFileType extends UAObject {
      * Size defines the size of the file in Bytes.
      * When a file is opened for write the size might not be accurate.
      */
-    size: UAVariableT<UInt64>;
+    size: UAVariableT<UInt64, DataType.UInt64>;
     /**
      * Writable indicates whether the file is writable. It does not take any user
      * access rights intoaccount, i.e. although the file is writable this may be
@@ -1464,22 +1479,22 @@ export interface UAFileType extends UAObject {
      * opened for writing by another client and thus currently locked and not
      * writable by others.
      */
-    writable: UAVariableT<UABoolean>;
+    writable: UAVariableT<UABoolean, DataType.Boolean>;
     /**
      * UserWritable indicates whether the file is writable taking user access rights into account. The
      * Property does not take into account whether the file is currently opened for writing by another
      * client and thus currently locked and not writable by others.
      */
-    userWritable: UAVariableT<UABoolean>;
+    userWritable: UAVariableT<UABoolean, DataType.Boolean>;
 
     /**
      * OpenCount indicates the number of currently valid file handles on the file.
      */
-    openCount: UAVariableT<UInt16>;
+    openCount: UAVariableT<UInt16, DataType.UInt16>;
     /**
      * The optional Property MimeType contains the media type of the file based on RFC 2046.
      */
-    mimeType: UAVariableT<UAString>;
+    mimeType: UAVariableT<UAString, DataType.String>;
 
     // methods
     open: UAMethod;
@@ -1512,7 +1527,7 @@ export interface UATrustList extends UAFileType {
      * Methods. This can be used to determine if a device has an up to date Trust List or to detect
      * unexpected modifications. Out of band changes are not necessarily reported by this value.
      */
-    lastUpdateTime: UAVariableT<UtcTime>; // mandatory
+    lastUpdateTime: UAVariableT<UtcTime, DataType.DateTime>; // mandatory
 
     /**
      * The UpdateFrequency Property specifies how often the Trust List needs to be checked for
@@ -1522,7 +1537,7 @@ export interface UATrustList extends UAFileType {
      * ServerConfiguration Object then this value specifies how frequently the Server expects the
      * Trust List to be updated.
      */
-    updateFrequency?: UAVariableT<Duration>; // optional
+    updateFrequency?: UAVariableT<Duration, DataType.Double>; // optional
 
     // event
     // If auditing is supported, the CertificateManager shall generate the
@@ -1543,7 +1558,7 @@ export interface UACertificateGroup extends UAObject {
      * Group shall be subtypes of a single common type which shall be either
      * ApplicationCertificateType or HttpsCertificateType
      */
-    certificateTypes: UAVariableT<NodeId[]>;
+    certificateTypes: UAVariableT<NodeId[], DataType.NodeId>;
 
     /**
      * The TrustList Object is the Trust List associated with the Certificate Group.
@@ -1617,12 +1632,12 @@ export interface UAAuthorizationService extends UAObject {
      * The ServiceUri is a globally unique identifier that allows a Client to correlate an instance of
      * AuthorizationServiceType with instances of AuthorizationServiceConfigurationType (see
      */
-    serviceUri: UAVariableT<UAString>;
+    serviceUri: UAVariableT<UAString, DataType.String>;
 
     /**
      * The ServiceCertificate is the complete chain of Certificates needed to validate the AccessTokens
      */
-    serviceCertificate: UAVariableT<ByteString>;
+    serviceCertificate: UAVariableT<ByteString, DataType.ByteString>;
 
     /**
      * The GetServiceDescription Method is used read the metadata needed to request AccessTokens
@@ -1633,7 +1648,7 @@ export interface UAAuthorizationService extends UAObject {
      * The UserTokenPolicies Property specifies the UserIdentityTokens which are accepted by the
      * RequestAccessToken Method
      */
-    userTokenPolicy?: UAVariableT<UAUserTokenPolicy[]>;
+    userTokenPolicy?: UAVariableT<UAUserTokenPolicy[], DataType.ExtensionObject>;
 
     /**
      * The RequestAccessToken Method is used to request an Access Token from the Authorization Service
@@ -1703,27 +1718,27 @@ export interface UAServerConfiguration extends UAObject {
      * The MaxTrustListSize is the maximum size of the Trust List in bytes. 0 means no limit.
      * The default is 65 535 bytes.
      */
-    maxTrustListSize: UAVariableT<UInt32>;
+    maxTrustListSize: UAVariableT<UInt32, DataType.UInt32>;
 
     /**
      * If MulticastDnsEnabled is TRUE then the Server announces itself using multicast DNS. It can
      * be changed by writing to the Variable.
      */
-    multicastDnsEnabled: UAVariableT<UABoolean>;
+    multicastDnsEnabled: UAVariableT<UABoolean, DataType.Boolean>;
 
     /**
      * The ServerCapabilities Property specifies the capabilities from Annex D which the Server
      * supports. The value is the same as the value  reported to the LocalDiscoveryServer when the
      * Server calls the RegisterServer2 Service
      */
-    serverCapabilities: UAVariableT<UAString[]>;
+    serverCapabilities: UAVariableT<UAString[], DataType.String>;
 
     /**
      * The SupportedPrivateKeyFormats specifies the PrivateKey formats supported by the Server.
      * Possible values include “PEM” (see RFC 5958) or “PFX” (see PKCS #12). The array is empty
      * if the Server does not allow external Clients to update the PrivateKey
      */
-    supportedPrivateKeyFormats: UAVariableT<UAString[]>;
+    supportedPrivateKeyFormats: UAVariableT<UAString[], DataType.String>;
 }
 
 export interface UADirectoryType {}
@@ -1788,57 +1803,57 @@ export interface UAOperationLimits extends UAObject {
      * The MaxNodesPerRead Property indicates the maximum size of the nodesToRead array when
      * a Client calls the Read Service.
      */
-    maxNodesPerRead?: UAVariableT<UInt32>;
+    maxNodesPerRead?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerHistoryReadData Property indicates the maximum size of the nodesToRead
      * array when a Client calls the HistoryRead Service using the historyReadDetails RAW,
      * PROCESSED, MODIFIED or ATTIME.
      */
-    maxNodesPerHistoryReadData?: UAVariableT<UInt32>;
+    maxNodesPerHistoryReadData?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerHistoryReadEvents Property indicates the maximum size of the
      * nodesToRead array when a Client calls the HistoryRead Service using the historyReadDetails
      * EVENTS.
      */
-    maxNodesPerHistoryReadEvents?: UAVariableT<UInt32>;
+    maxNodesPerHistoryReadEvents?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerWrite Property indicates the maximum size of the nodesToWrite array when
      * a Client calls the Write Service.
      */
-    maxNodesPerWrite?: UAVariableT<UInt32>;
+    maxNodesPerWrite?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerHistoryUpdateData Property indicates the maximum size of the
      * historyUpdateDetails array supported by the Server when a Client calls the HistoryUpdate
      * Service.
      */
-    maxNodesPerHistoryUpdateData?: UAVariableT<UInt32>;
+    maxNodesPerHistoryUpdateData?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerHistoryUpdateEvents Property indicates the maximum size of the
      * historyUpdateDetails array when a Client calls the HistoryUpdate Service.
      */
-    maxNodesPerHistoryUpdateEvents?: UAVariableT<UInt32>;
+    maxNodesPerHistoryUpdateEvents?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerMethodCall Property indicates the maximum size of the methodsToCall array
      * when a Client calls the Call Service.
      */
-    maxNodesPerMethodCall?: UAVariableT<UInt32>;
+    maxNodesPerMethodCall?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerBrowse Property indicates the maximum size of the nodesToBrowse array
      * when calling the Browse Service or the continuationPoints array when a Client calls the
      * BrowseNext Service.
      */
-    maxNodesPerBrowse?: UAVariableT<UInt32>;
+    maxNodesPerBrowse?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerRegisterNodes Property indicates the maximum size of the nodesToRegister
      *  array when a Client calls the RegisterNodes Service and the maximum size of the
      * nodesToUnregister when calling the UnregisterNodes Service.
      */
-    maxNodesPerRegisterNodes?: UAVariableT<UInt32>;
+    maxNodesPerRegisterNodes?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerTranslateBrowsePathsToNodeIds Property indicates the maximum size of
      * the browsePaths array when a Client calls the TranslateBrowsePathsToNodeIds Service.
      */
-    maxNodesPerTranslateBrowsePathsToNodeIds?: UAVariableT<UInt32>;
+    maxNodesPerTranslateBrowsePathsToNodeIds?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerNodeManagement Property indicates the maximum size of the nodesToAdd
      * array when a Client calls the AddNodes Service, the maximum size of the referencesToAdd
@@ -1846,7 +1861,7 @@ export interface UAOperationLimits extends UAObject {
      * array when a Client calls the DeleteNodes Service, and the maximum size of the
      * referencesToDelete array when a Client calls the DeleteReferences Service.
      */
-    maxNodesPerNodeManagement?: UAVariableT<UInt32>;
+    maxNodesPerNodeManagement?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxMonitoredItemsPerCall Property indicates
      *  • the maximum size of the itemsToCreate array when a Client calls the
@@ -1858,7 +1873,7 @@ export interface UAOperationLimits extends UAObject {
      *  • the maximum size of the sum of the linksToAdd and linksToRemove arrays when a
      *    Client calls the SetTriggering Service.
      */
-    maxMonitoredItemsPerCall?: UAVariableT<UInt32>;
+    maxMonitoredItemsPerCall?: UAVariableT<UInt32, DataType.UInt32>;
 }
 
 export interface IdentityMappingRuleType {}
@@ -1873,7 +1888,7 @@ export interface Role extends UAObject {
      * The Identities Property specifies the currently configured rules for mapping a UserIdentityToken
      * to the Role. If this Property is an empty array, then the Role cannot be granted to any Session.
      */
-    identities: UAVariableT<IdentityMappingRuleType>;
+    identities: UAVariableT<IdentityMappingRuleType, DataType.ExtensionObject>;
 
     /**
      * The ApplicationsExclude Property defines the Applications Property as an include list or exclude
@@ -1884,14 +1899,14 @@ export interface Role extends UAObject {
      * excluded from this Role. All other Application Instance Certificates shall be included in this
      * Role.
      */
-    applicationsExclude?: UAVariableT<boolean>;
+    applicationsExclude?: UAVariableT<boolean, DataType.Boolean>;
 
     /**
      * The Applications Property specifies the Application Instance Certificates of Clients which shall
      * be included or excluded from this Role. Each element in the array is an ApplicationUri from a
      * Client Certificate which is trusted by the Server.
      */
-    applications?: UAVariableT<UAString>;
+    applications?: UAVariableT<UAString, DataType.String>;
 
     /**
      * The EndpointsExclude Property defines the Endpoints Property as an include list or exclude list.
@@ -1900,7 +1915,7 @@ export interface Role extends UAObject {
      * Role. If this Property has a value of TRUE then all Endpoints included in the Endpoints Property
      * shall be excluded from this Role. All other Endpoints shall be included in this Role.
      */
-    endpointsExclude?: UAVariableT<boolean>;
+    endpointsExclude?: UAVariableT<boolean, DataType.Boolean>;
 
     /**
      * The Endpoints Property specifies the Endpoints which shall be included or excluded from this
@@ -1958,18 +1973,18 @@ export interface UAServerCapabilities extends UAObject {
      * Server Profiles. This list should be limited to the Profiles the Server supports in its current
      * configuration.
      */
-    serverProfileArray: UAVariableT<UAString[]>;
+    serverProfileArray: UAVariableT<UAString[], DataType.String>;
     /**
      * LocaleIdArray is an array of LocaleIds that are known to be supported by the Server. The Server
      * might not be aware of all LocaleIds that it supports because it may provide access to underlying
      * servers, systems or devices that do not report the LocaleIds that they support.
      */
-    localIdArray: UAVariableT<LocaleId[]>;
+    localIdArray: UAVariableT<LocaleId[], DataType.String>;
     /**
      * MinSupportedSampleRate defines the minimum supported sample rate, including 0, which is
      * supported by the Server.
      */
-    minSupportedSampleRate: UAVariableT<Duration>;
+    minSupportedSampleRate: UAVariableT<Duration, DataType.Double>;
     /**
      * MaxBrowseContinuationPoints is an integer specifying the maximum number of parallel
      * continuation points of the Browse Service that the Server can support per session. The value
@@ -1979,7 +1994,7 @@ export interface UAServerCapabilities extends UAObject {
      * that the Server does not restrict the number of parallel continuation points the client should use
      *
      */
-    maxBrowseContinuationPoints: UAVariableT<UInt16>;
+    maxBrowseContinuationPoints: UAVariableT<UInt16, DataType.UInt16>;
     /**
      * MaxQueryContinuationPoints is an integer specifying the maximum number of parallel
      * continuation points of the QueryFirst Services that the Server can support per session. The
@@ -1989,7 +2004,7 @@ export interface UAServerCapabilities extends UAObject {
      * indicates that the Server does not restrict the number of parallel continuation points the client
      * should use.
      */
-    maxQueryContinuationPoints: UAVariableT<UInt16>;
+    maxQueryContinuationPoints: UAVariableT<UInt16, DataType.UInt16>;
     /**
      * MaxHistoryContinuationPoints is an integer specifying the maximum number of parallel
      * continuation points of the HistoryRead Services that the Server can support per session. The
@@ -1999,14 +2014,14 @@ export interface UAServerCapabilities extends UAObject {
      * indicates that the Server does not restrict the number of parallel continuation points the client
      * should use.
      */
-    maxHistoryContinuationPoints: UAVariableT<UInt16>;
+    maxHistoryContinuationPoints: UAVariableT<UInt16, DataType.UInt16>;
 
     /**
      * SoftwareCertificates is an array of SignedSoftwareCertificates containing all
      * SoftwareCertificates supported by the Server. A SoftwareCertificate identifies capabilities of the
      * Server. It contains the list of Profiles supported by the Server. Profiles are described in Part 7.
      */
-    softwareCertificates: UAVariableT<SignedSoftwareCertificate[]>;
+    softwareCertificates: UAVariableT<SignedSoftwareCertificate[], DataType.ExtensionObject>;
 
     /**
      * The MaxArrayLength Property indicates the maximum length of a one or multidimensional array
@@ -2017,7 +2032,7 @@ export interface UAServerCapabilities extends UAObject {
      * on individual values. The individual Property may have a larger or smaller value than
      * MaxArrayLength.
      */
-    maxArrayLength?: UAVariableT<UInt32>;
+    maxArrayLength?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxStringLength Property indicates the maximum number of bytes in Strings supported by
      * Variables of the Server. Servers may override this setting by adding the MaxStringLength
@@ -2025,7 +2040,7 @@ export interface UAServerCapabilities extends UAObject {
      * number of bytes or is not able to determine the maximum number of bytes this Property shall
      * not be provided.
      */
-    maxStringLength?: UAVariableT<UInt32>;
+    maxStringLength?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxByteStringLength Property indicates the maximum number of bytes in a ByteString
      * supported by Variables of the Server. It also specifies the default maximum size of a FileType
@@ -2034,7 +2049,7 @@ export interface UAServerCapabilities extends UAObject {
      * Object. If a Server does not impose a maximum number of bytes or is not able to determine the
      * maximum number of bytes this Property shall not be provided.
      */
-    maxByteStringLength?: UAVariableT<UInt32>;
+    maxByteStringLength?: UAVariableT<UInt32, DataType.UInt32>;
 
     /**
      * OperationLimits is an entry point to access information on operation limits of the Server, for
@@ -2077,7 +2092,7 @@ export interface UAHistoryServerCapabilities extends UAObject {
      * or AccessHistoryEventsCapability shall have a value of True for the Server to be a valid OPC
      * UA Server supporting Historical Access.
      */
-    accessHistoryDataCapability: UAVariableT<boolean>;
+    accessHistoryDataCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The AccessHistoryEventCapability Variable defines if the server supports access to historical
      * Events. A value of True indicates the server supports access to the history of Events, a value
@@ -2086,7 +2101,7 @@ export interface UAHistoryServerCapabilities extends UAObject {
      * shall have a value of True for the Server to be a valid OPC UA Server supporting Historical
      * Access.
      */
-    accessHistoryEventsCapability: UAVariableT<boolean>;
+    accessHistoryEventsCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The MaxReturnDataValues Variable defines the maximum number of values that can be
      * returned by the Server for each HistoricalNode accessed during a request. A value of 0
@@ -2096,73 +2111,73 @@ export interface UAHistoryServerCapabilities extends UAObject {
      * any restrictions, the underlying system may impose a limit that the Server is not aware of. The
      * default value is 0.
      */
-    maxReturnDataValues: UAVariableT<UInt32>;
+    maxReturnDataValues: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * Similarily, the MaxReturnEventValues specifies the maximum number of Events that a Server
      * can return for a HistoricalEventNode.
      */
-    maxReturnEventValues: UAVariableT<UInt32>;
+    maxReturnEventValues: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The InsertDataCapability Variable indicates support for the Insert capability. A value of True
      * indicates the Server supports the capability to insert new data values in history, but not
      * overwrite existing values. The default value is False.
      */
-    insertDataCapability: UAVariableT<boolean>;
+    insertDataCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The ReplaceDataCapability Variable indicates support for the Replace capability. A value of
      * True indicates the Server supports the capability to replace existing data values in history, but
      * will not insert new values. The default value is False.
      */
-    replaceDataCapability: UAVariableT<boolean>;
+    replaceDataCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The UpdateDataCapability Variable indicates support for the Update capability. A value of
      * True indicates the Server supports the capability to insert new data values into history if none
      * exists, and replace values that currently exist. The default value is False.
      */
-    updateDataCapability: UAVariableT<boolean>;
+    updateDataCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The DeleteRawCapability Variable indicates support for the delete raw values capability. A
      * value of True indicates the Server supports the capability to delete raw data values in history.
      * The default value is False.
      */
-    deleteRawCapability: UAVariableT<boolean>;
+    deleteRawCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The DeleteAtTimeCapability Variable indicates support for the delete at time capability. A
      * value of True indicates the Server supports the capability to delete a data value at a specified
      * time. The default value is False.
      */
-    deleteAtTimeCapability: UAVariableT<boolean>;
+    deleteAtTimeCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The InsertEventCapability Variable indicates support for the Insert capability. A value of True
      * indicates the Server supports the capability to insert new Events in history. An insert is not a
      * replace. The default value is False.
      */
-    insertEventCapability: UAVariableT<boolean>;
+    insertEventCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The ReplaceEventCapability Variable indicates support for the Replace capability. A value of
      * True indicates the Server supports the capability to replace existing Events in history. A
      * replace is not an insert. The default value is False.
      */
-    replaceEventCapability: UAVariableT<boolean>;
+    replaceEventCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The UpdateEventCapability Variable indicates support for the Update capability. A value of
      * True indicates the Server supports the capability to insert new Events into history if none
      * exists, and replace values that currently exist. The default value is False.
      */
-    updateEventCapability: UAVariableT<boolean>;
+    updateEventCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The DeleteEventCapability Variable indicates support for the deletion of Events capability. A
      * value of True indicates the Server supports the capability to delete Events in history. The
      * default value is False
      */
-    deleteEventCapability: UAVariableT<boolean>;
+    deleteEventCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The InsertAnnotationCapability Variable indicates support for Annotations. A value of True
      * indicates the Server supports the capability to insert Annotations. Some Servers that support
      * Inserting of Annotations will also support editing and deleting of Annotations. The default
      * value is False.
      */
-    insertAnnotationsCapability: UAVariableT<boolean>;
+    insertAnnotationsCapability: UAVariableT<boolean, DataType.Boolean>;
 
     /**
      * AggregateFunctions is an entry point to browse to all Aggregate capabilities supported by the
@@ -2184,7 +2199,7 @@ export interface UAHistoryServerCapabilities extends UAObject {
      * SourceTimestamp. The default is False. This property is optional but it is expected all new
      * Servers include this property.
      */
-    serverTimestampSupported?: UAVariableT<boolean>;
+    serverTimestampSupported?: UAVariableT<boolean, DataType.Boolean>;
 }
 
 export interface Server extends UAObject {
@@ -2271,6 +2286,8 @@ export interface AddressSpace {
      * member of the UAObject/UAVariable node
      */
     isFrugal: boolean;
+
+    resolveNodeId(nodeIdLike: NodeIdLike): NodeId;
 
     findNode(node: NodeIdLike): BaseNode | null;
 
@@ -2432,7 +2449,7 @@ export interface AddressSpace {
     /**
      * EventId is generated by the Server to uniquely identify a particular Event Notification.
      */
-    generateEventId(): VariantT<DataType.ByteString>;
+    generateEventId(): VariantByteString;
 
 }
 
@@ -2484,60 +2501,52 @@ export declare class VariableHistorian implements IVariableHistorian {
     ): void;
 }
 
-export interface VariantT<T> extends Variant {
-    value: T;
-}
-
-export interface DataValueT<T> extends DataValue {
-    variant: VariantT<T>;
-}
-
-export interface UAVariableT<T> extends UAVariable {
+export interface UAVariableT<T, DT extends DataType> extends UAVariable {
     readValue(
         context?: SessionContext,
         indexRange?: NumericRange,
         dataEncoding?: QualifiedNameLike | null
-    ): DataValueT<T>;
+    ): DataValueT<T, DT>;
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValueT<T>,
+        dataValue: DataValueOptionsT<T, DT>,
         indexRange: NumericRange | null,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void;
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValueT<T>,
+        dataValue: DataValueOptionsT<T, DT>,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void;
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValueT<T>,
+        dataValue: DataValueOptionsT<T, DT>,
         indexRange?: NumericRange | null
     ): Promise<StatusCode>;
 }
 
-export interface UAVariableTypeT<T> extends UAVariableType {
-    instantiate(options: InstantiateVariableOptions): UAVariableT<T>;
+export interface UAVariableTypeT<T, DT extends DataType> extends UAVariableType {
+    instantiate(options: InstantiateVariableOptions): UAVariableT<T, DT>;
 }
 
-export interface Property<T> extends UAVariableT<T> {
+export interface Property<T, DT extends DataType> extends UAVariableT<T, DT> {
 }
 
 export interface UAAggregateConfiguration extends UAObject {
-    treatUncertainAsBad: UAVariableT<DataType.Boolean>;
-    percentDataBad: UAVariableT<DataType.Byte>;
-    percentDataGood: UAVariableT<DataType.Byte>;
+    treatUncertainAsBad: UAVariableT<boolean, DataType.Boolean>;
+    percentDataBad: UAVariableT<number, DataType.Byte>;
+    percentDataGood: UAVariableT<number, DataType.Byte>;
 }
 
 export interface HistoricalDataConfiguration extends UAObject {
-    startOfArchive: UAVariableT<DataType.DateTime>;
-    startOfOnlineArchive: UAVariableT<DataType.DateTime>;
-    stepped: UAVariableT<DataType.Boolean>;
-    maxTimeInterval: UAVariableT<"Duration">;
-    minTimeInterval: UAVariableT<"Duration">;
+    startOfArchive: UAVariableT<Date, DataType.DateTime>;
+    startOfOnlineArchive: UAVariableT<Date, DataType.DateTime>;
+    stepped: UAVariableT<boolean, DataType.Boolean>;
+    maxTimeInterval: UAVariableT<number, DataType.Double>; // Duration
+    minTimeInterval: UAVariableT<number, DataType.Double>; // Duration
     aggregateConfiguration: UAAggregateConfiguration;
 }
 

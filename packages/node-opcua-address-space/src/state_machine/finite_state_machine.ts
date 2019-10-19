@@ -185,6 +185,7 @@ export class StateMachine extends UAObject implements StateMachine {
 
             // istanbul ignore next
             if (doDebug) {
+                // tslint:disable-next-line: no-console
                 console.log(" No transition from ",
                   this.currentStateNode.browseName.toString(), " to ", toStateNode.toString());
             }
