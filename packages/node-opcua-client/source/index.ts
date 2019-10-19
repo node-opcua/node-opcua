@@ -43,7 +43,7 @@ export {
     NodeId, resolveNodeId, makeNodeId, coerceNodeId, sameNodeId,
     ExpandedNodeId, makeExpandedNodeId, coerceExpandedNodeId
 } from "node-opcua-nodeid";
-export { StatusCode } from "node-opcua-status-code";
+export { StatusCode , StatusCodes} from "node-opcua-status-code";
 export * from "node-opcua-variant";
 export * from "node-opcua-data-value";
 export * from "node-opcua-data-model";
