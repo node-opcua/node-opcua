@@ -1041,3 +1041,17 @@ export function sameVariant(v1: Variant, v2: Variant): boolean {
 
 // ---------------------------------------------------------------------------------------------------------
 registerSpecialVariantEncoder(Variant);
+
+export interface VariantOptionsT<T, DT extends DataType> extends VariantOptions {
+    dataType: DT;
+    arrayType?: VariantArrayType | string;
+    value: T;
+    dimensions?: number[] | null;
+}
+
+export interface VariantT<T, DT extends DataType> extends Variant {
+    value: T;
+    dataType: DT;
+}
+export declare type VariantByteString = VariantT<Buffer, DataType.ByteString>;
+export declare type VariantDouble = VariantT<number, DataType.Double>;
