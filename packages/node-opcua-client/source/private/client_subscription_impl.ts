@@ -41,7 +41,6 @@ import {
     ClientSubscriptionOptions
 } from "../client_subscription";
 import { Callback, ErrorCallback } from "../common";
-import { ClientMonitoredItemBaseImpl } from "./client_monitored_item_base_impl";
 import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import { ClientSidePublishEngine } from "./client_publish_engine";
@@ -491,7 +490,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                             if (!clientHandle) {
                                 throw new Error("Internal Error");
                             }
-                            const monitoredItem = this.monitoredItems[clientHandle] as ClientMonitoredItemBaseImpl;
+                            const monitoredItem = this.monitoredItems[clientHandle] as ClientMonitoredItemImpl;
                             monitoredItem._applyResult(monitoredItemResult);
 
                         });
@@ -644,7 +643,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                         chalk.yellow(". This notification will be ignored."));
                 } else {
 
-                    const monitoredItemImpl = monitorItemObj as ClientMonitoredItemBaseImpl;
+                    const monitoredItemImpl = monitorItemObj as ClientMonitoredItemImpl;
                     monitoredItemImpl._notify_value_change(monitoredItem.value);
                 }
             }
@@ -704,7 +703,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             const monitorItemObj = this.monitoredItems[event.clientHandle];
             assert(monitorItemObj, "Expecting a monitored item");
 
-            const monitoredItemImpl = monitorItemObj as ClientMonitoredItemBaseImpl;
+            const monitoredItemImpl = monitorItemObj as ClientMonitoredItemImpl;
             monitoredItemImpl._notify_event(event.eventFields || []);
         }
     }

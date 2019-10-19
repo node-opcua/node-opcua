@@ -9,7 +9,7 @@ import { DiagnosticInfo } from "node-opcua-data-model";
 import { ErrorCallback } from "node-opcua-secure-channel";
 import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import {
-     MonitoringParametersOptions,
+    MonitoringParametersOptions,
     NotificationMessage
 } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
