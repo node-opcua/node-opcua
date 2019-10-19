@@ -13,7 +13,15 @@ import {
     StructuredTypeSchema
 } from "node-opcua-factory";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, sameVariant, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
+import {
+    DataType,
+    sameVariant,
+    Variant,
+    VariantArrayType,
+    VariantOptions,
+    VariantOptionsT,
+    VariantT,
+} from "node-opcua-variant";
 import * as _ from "underscore";
 import { DataValueEncodingByte } from "./DataValueEncodingByte_enum";
 import { TimestampsToReturn } from "./TimestampsToReturn_enum";
@@ -340,11 +348,11 @@ export class DataValue extends BaseUAObject {
 
         function toMicroNanoPico(picoseconds: number): string {
             return ""
-              + w((picoseconds / 1000000) >> 0)
-              + "."
-              + w(((picoseconds % 1000000) / 1000) >> 0)
-              + "."
-              + w((picoseconds % 1000) >> 0);
+                + w((picoseconds / 1000000) >> 0)
+                + "."
+                + w(((picoseconds % 1000000) / 1000) >> 0)
+                + "."
+                + w((picoseconds % 1000) >> 0);
             //    + " (" + picoseconds+ ")";
         }
 
@@ -356,11 +364,11 @@ export class DataValue extends BaseUAObject {
         }
         str += "\n   statusCode:      " + (this.statusCode ? this.statusCode.toString() : "null");
         str += "\n   serverTimestamp: " + (this.serverTimestamp ? this.serverTimestamp.toISOString()
-          + " $ " + toMicroNanoPico(this.serverPicoseconds)
-          : "null"); // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
+            + " $ " + toMicroNanoPico(this.serverPicoseconds)
+            : "null"); // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
         str += "\n   sourceTimestamp: " + (this.sourceTimestamp ? this.sourceTimestamp.toISOString()
-          + " $ " + toMicroNanoPico(this.sourcePicoseconds)
-          : "null"); // + "  " + (this.sourceTimestamp ? this.sourceTimestamp.getTime() :"-");
+            + " $ " + toMicroNanoPico(this.sourcePicoseconds)
+            : "null"); // + "  " + (this.sourceTimestamp ? this.sourceTimestamp.getTime() :"-");
         return str;
     }
 
@@ -393,9 +401,9 @@ function _partial_clone(dataValue: DataValue): DataValue {
 }
 
 export function apply_timestamps(
-  dataValue: DataValue,
-  timestampsToReturn: TimestampsToReturn,
-  attributeId: AttributeIds
+    dataValue: DataValue,
+    timestampsToReturn: TimestampsToReturn,
+    attributeId: AttributeIds
 ): DataValue {
 
     assert(attributeId > 0);
@@ -447,9 +455,9 @@ export function apply_timestamps(
 }
 
 function apply_timestamps2(
-  dataValue: DataValue,
-  timestampsToReturn: TimestampsToReturn,
-  attributeId: AttributeIds
+    dataValue: DataValue,
+    timestampsToReturn: TimestampsToReturn,
+    attributeId: AttributeIds
 ): DataValue {
 
     assert(attributeId > 0);
@@ -525,9 +533,9 @@ function _clone_with_array_replacement(dataValue: DataValue, result: any): DataV
 
 function canRange(dataValue: DataValue): boolean {
     return dataValue.value && ((dataValue.value.arrayType !== VariantArrayType.Scalar) ||
-      ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.ByteString))
-      ||
-      ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.String)));
+        ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.ByteString))
+        ||
+        ((dataValue.value.arrayType === VariantArrayType.Scalar) && (dataValue.value.dataType === DataType.String)));
 }
 
 /**
@@ -569,18 +577,18 @@ function sameDate(date1: DateTime, date2: DateTime): boolean {
 
 export function sourceTimestampHasChanged(dataValue1: DataValue, dataValue2: DataValue): boolean {
     return !sameDate(dataValue1.sourceTimestamp, dataValue2.sourceTimestamp)
-      || (dataValue1.sourcePicoseconds !== dataValue2.sourcePicoseconds);
+        || (dataValue1.sourcePicoseconds !== dataValue2.sourcePicoseconds);
 }
 
 export function serverTimestampHasChanged(dataValue1: DataValue, dataValue2: DataValue): boolean {
     return !sameDate(dataValue1.serverTimestamp, dataValue2.serverTimestamp)
-      || (dataValue1.serverPicoseconds !== dataValue2.serverPicoseconds);
+        || (dataValue1.serverPicoseconds !== dataValue2.serverPicoseconds);
 }
 
 export function timestampHasChanged(
-  dataValue1: DataValue,
-  dataValue2: DataValue,
-  timestampsToReturn?: TimestampsToReturn
+    dataValue1: DataValue,
+    dataValue2: DataValue,
+    timestampsToReturn?: TimestampsToReturn
 ): boolean {
     // TODO:    timestampsToReturn = timestampsToReturn || { key: "Neither"};
     if (timestampsToReturn === undefined) {
@@ -591,7 +599,7 @@ export function timestampHasChanged(
             return false;
         case TimestampsToReturn.Both:
             return sourceTimestampHasChanged(dataValue1, dataValue2) ||
-              serverTimestampHasChanged(dataValue1, dataValue2);
+                serverTimestampHasChanged(dataValue1, dataValue2);
         case TimestampsToReturn.Source:
             return sourceTimestampHasChanged(dataValue1, dataValue2);
         default:
@@ -622,7 +630,7 @@ export function sameDataValue(v1: DataValue, v2: DataValue, timestampsToReturn?:
     if (v2 && !v1) {
         return false;
     }
-    if (!sameStatusCode(v1.statusCode,v2.statusCode)) {
+    if (!sameStatusCode(v1.statusCode, v2.statusCode)) {
         return false;
     }
 
@@ -643,4 +651,12 @@ export function sameDataValue(v1: DataValue, v2: DataValue, timestampsToReturn?:
         return false;
     }
     return sameVariant(v1.value, v2.value);
+}
+
+export interface DataValueT<T, DT extends DataType> extends DataValue {
+    value: VariantT<T, DT>;
+}
+
+export interface DataValueOptionsT<T, DT extends DataType> extends DataValueOptions {
+    value: VariantOptionsT<T, DT>;
 }
