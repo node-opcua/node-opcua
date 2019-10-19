@@ -10,8 +10,8 @@ import { UAObject } from "../ua_object";
 import { UAObjectType } from "../ua_object_type";
 
 export interface BaseEventType extends UAObject {
-    sourceName: UAVariableT<string>;
-    sourceNode: UAVariableT<NodeId>;
+    sourceName: UAVariableT<string, DataType.String>;
+    sourceNode: UAVariableT<NodeId, DataType.NodeId>;
 }
 /**
  * @class BaseEventType

@@ -31,7 +31,7 @@ import {
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { DataType, Variant } from "node-opcua-variant";
+import { DataType, Variant, VariantT } from "node-opcua-variant";
 import {
     AddReferenceOpts,
     AddressSpace as AddressSpacePublic,
@@ -43,7 +43,7 @@ import {
     UAObjectType as UAObjectTypePublic,
     UAReference,
     UAReferenceType as UAReferenceTypePublic,
-    UAVariableType as UAVariableTypePublic, VariantT
+    UAVariableType as UAVariableTypePublic,
 } from "../source";
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionBase } from "./alarms_and_conditions";
@@ -619,7 +619,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @method generateEventId
      * @return {Variant}  dataType: "ByteString"
      */
-    public generateEventId(): VariantT<DataType.ByteString> {
+    public generateEventId(): VariantT<Buffer, DataType.ByteString> {
         /*
          * OpcUA 1.02 part 5 : 6.4.2 BaseEventType
          * The Server is responsible to ensure that each Event has its unique EventId.
@@ -638,9 +638,9 @@ export class AddressSpace implements AddressSpacePrivate {
         self._eventIdCounter.writeInt32BE(self._eventIdCounter.readInt32BE(offset) + 1, offset);
 
         return new Variant({
-            dataType: "ByteString",
+            dataType: DataType.ByteString,
             value: Buffer.from(self._eventIdCounter)
-        });
+        }) as VariantT<Buffer, DataType.ByteString>;
     }
 
     /*=
@@ -1612,40 +1612,13 @@ function _isFolder(addressSpace: AddressSpace, folder: UAObject): boolean {
     return folder.typeDefinitionObj.isSupertypeOf(folderType);
 }
 
-function _increase_version_number(node: any) {
+function _increase_version_number(node: BaseNode | null) {
     if (node && node.nodeVersion) {
         const previousValue = parseInt(node.nodeVersion.readValue().value.value, 10);
-        node.nodeVersion.setValueFromSource({ dataType: "String", value: (previousValue + 1).toString() });
+        node.nodeVersion.setValueFromSource({
+            dataType: DataType.String,
+            value: (previousValue + 1).toString()
+        });
         // xx console.log("xxx increasing version number of node ", node.browseName.toString(),previousValue);
     }
 }
-
-/*
-// xx require("./address_space_add_event_type").install(AddressSpace);
-// xx require("./address_space_browse").install(AddressSpace);
-if (false) {
-
-    require("./address_space_construct_extension_object").install(AddressSpace);
-    require("./ua_two_state_variable").install(AddressSpace);
-
-// State Machines
-    require("./state_machine/address_space_state_machine").install(AddressSpace);
-
-// DI
-    require("./address_space_add_enumeration_type").install(AddressSpace);
-
-    require("./data_access/address_space_add_AnalogItem").install(AddressSpace);
-    require("./data_access/address_space_add_MultiStateDiscrete").install(AddressSpace);
-    require("./data_access/address_space_add_TwoStateDiscrete").install(AddressSpace);
-    require("./data_access/address_space_add_MultiStateValueDiscrete").install(AddressSpace);
-    require("./data_access/address_space_add_YArrayItem").install(AddressSpace);
-
-    require("./historical_access/address_space_historical_data_node").install(AddressSpace);
-
-//
-// Alarms & Conditions
-//
-    require("./alarms_and_conditions/install").install(AddressSpace);
-
-}
-*/

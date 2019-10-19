@@ -35,7 +35,7 @@ export interface UAAlarmConditionBase {
     suppressedState: UATwoStateVariable;
     suppressedOrShelved: UAVariable;
     maxTimeShelved: UAVariable;
-    inputNode: UAVariableT<NodeId>;
+    inputNode: UAVariableT<NodeId, DataType.NodeId>;
 }
 /**
  * @class UAAlarmConditionBase

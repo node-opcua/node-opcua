@@ -9,8 +9,8 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-status-code";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 import { MethodFunctorCallback, SessionContext, UAMethod } from "../../source";

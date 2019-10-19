@@ -33,12 +33,12 @@ export interface StateVariableB {
     // readonly valueRank: -1;
 
     // components
-    id: UAVariableT<UAString | UInt32 | NodeId | null>;
-    name?: UAVariableT<QualifiedName>;
+    id: UAVariableT<UAString | UInt32 | NodeId | null, DataType>;
+    name?: UAVariableT<QualifiedName, DataType.QualifiedName>;
     /**
      * number is an integer which uniquely identifies the current state within the StateMachineType
      */
-    number?: UAVariableT<UInt32>;
+    number?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      *  effective display name
      *
@@ -47,16 +47,16 @@ export interface StateVariableB {
      *  for which state or sub-state should be used. It is up to the Server and will depend on the
      *  semantics of the StateMachineType
      */
-    effectiveDisplayName?: UAVariableT<LocalizedText>;
+    effectiveDisplayName?: UAVariableT<LocalizedText, DataType.LocalizedText>;
 
 }
 
-export interface StateVariableType extends UAVariableTypeT<DataType.LocalizedText>, StateVariableB {
+export interface StateVariableType extends UAVariableTypeT<LocalizedText, DataType.LocalizedText>, StateVariableB {
      // attributes
      isAbstract: false;
 }
 
-export interface StateVariable extends UAVariableT<LocalizedText>, StateVariableB {
+export interface StateVariable extends UAVariableT<LocalizedText, DataType.LocalizedText>, StateVariableB {
 //
 }
 
@@ -79,21 +79,21 @@ export interface TransitionVariableB {
      *
      * A subtype may restrict the DataType.
      */
-    id: UAVariableT<UAString | NodeId| UInt32>;
+    id: UAVariableT<UAString | NodeId| UInt32, DataType.String |  DataType.NodeId | DataType.UInt32>;
 
     /**
      * Name is a QualifiedName which uniquely identifies a transition within the StateMachineType
      */
-    name?: UAVariableT<QualifiedName>;
+    name?: UAVariableT<QualifiedName, DataType.QualifiedName>;
     /**
      * Number is an integer which uniquely identifies a transition within the StateMachineType.
      */
-    number?: UAVariableT<UInt32>;
+    number?: UAVariableT<UInt32, DataType.UInt32>;
 
     /**
      * TransitionTime specifies when the transition occurred.
      */
-    transitionTime?: UAVariableT<UtcTime>;
+    transitionTime?: UAVariableT<UtcTime, DataType.DateTime>;
 
     /**
      * Effective Transition time
@@ -103,16 +103,16 @@ export interface TransitionVariableB {
      * its substates SubA and SubB, then the TransitionTime stays at the point in time where StateA
      * became active whereas the EffectiveTransitionTime changes with each change of a substate.
      */
-    effectiveTransitionTime?: UAVariableT<UtcTime>;
+    effectiveTransitionTime?: UAVariableT<UtcTime, DataType.DateTime>;
 }
 
-export interface TransitionVariable extends UAVariableT<LocalizedText>, TransitionVariableB {
+export interface TransitionVariable extends UAVariableT<LocalizedText, DataType.LocalizedText>, TransitionVariableB {
 //
 }
 
 // ----------------
 export interface StateB {
-    stateNumber: Property<UInt32>;
+    stateNumber: Property<UInt32, DataType.UInt32>;
 }
 
 export interface StateType extends StateB, UAObjectType {
@@ -123,7 +123,7 @@ export interface State extends StateB, UAObject {
 
 // ----------------
 export interface TransitionB {
-    transitionNumber: Property<UInt32>;
+    transitionNumber: Property<UInt32, DataType.UInt32>;
 }
 
 export interface TransitionType extends TransitionB, UAObjectType {
@@ -294,7 +294,7 @@ export interface TransitionEventType extends UABaseEventType {
  */
 export interface TransitionB {
 
-    transitionNumber: Property<UInt32>;
+    transitionNumber: Property<UInt32, DataType.UInt32>;
 
     // nde-opcua specific:
     /**

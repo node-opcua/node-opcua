@@ -359,12 +359,13 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
         should.exists(myIdenfifierDataType);
 
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/model_with_custom_datatype/")
-        const myStructDataTypeNode = addressSpace.findDataType("MyStruct", ns);
+        const myStructDataTypeNode = addressSpace.findDataType("MyStruct", ns)!;
         should.exists(myStructDataTypeNode);
 
         const struct = addressSpace.constructExtensionObject(myStructDataTypeNode, {
             id: "Hello"
         });
+        // tslint:disable-next-line: no-console
         console.log(struct.toString());
     });
 

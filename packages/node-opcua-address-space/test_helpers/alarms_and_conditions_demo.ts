@@ -132,7 +132,6 @@ export function construct_demo_alarm_in_address_space(
       });
     assert(tankLevel2.findReferences("HasCondition").length === 1);
     assert(tankLevel2.findReferencesAsObject("HasCondition", true).length === 1);
-  
     test.tankLevel = tankLevel;
     test.tankLevelCondition = tankLevelCondition;
 
