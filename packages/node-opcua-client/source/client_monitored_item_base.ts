@@ -18,39 +18,12 @@ import { DataValue } from "node-opcua-data-value";
 import { ClientSubscription } from "./client_subscription";
 import { Callback, ErrorCallback } from "./common";
 
-export interface ClientMonitoredItemBase extends EventEmitter {
-
-    itemToMonitor: ReadValueId;
-    monitoringParameters: MonitoringParameters;
-    subscription: ClientSubscription;
-    monitoringMode: MonitoringMode;
-    statusCode: StatusCode;
-    monitoredItemId?: any;
-    result?: MonitoredItemCreateResult;
-    filterResult?: ExtensionObject;
-
-}
-
 // tslint:disable:unified-signatures
-export interface ClientMonitoredItemBase {
-
-    on(event: "changed", eventHandler: (dataValue: DataValue) => void): this;
-
-    on(event: "err", eventHandler: (message: string) => void): this;
-
-    on(event: "terminated", eventHandler: () => void): this;
-
-    on(event: "initialized", eventHandler: () => void): this;
-}
-
 export interface ClientMonitoredItemOrGroupAction  {
 
     modify(
-        parameters: MonitoringParametersOptions
-    ): Promise<StatusCode>;
-    modify(
         parameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
+        timestampsToReturn?: TimestampsToReturn
     ): Promise<StatusCode>;
     modify(
         parameters: MonitoringParametersOptions,
@@ -68,4 +41,30 @@ export interface ClientMonitoredItemOrGroupAction  {
     terminate(): Promise<void>;
     terminate(done: ErrorCallback): void;
     terminate(...args: any[]): any;
+}
+
+// tslint:disable:unified-signatures
+export interface ClientMonitoredItemBase  extends EventEmitter, ClientMonitoredItemOrGroupAction {
+
+    on(event: "changed", eventHandler: (dataValue: DataValue) => void): this;
+
+    on(event: "err", eventHandler: (message: string) => void): this;
+
+    on(event: "terminated", eventHandler: () => void): this;
+
+    on(event: "initialized", eventHandler: () => void): this;
+
+}
+
+export interface ClientMonitoredItemBase  {
+
+    itemToMonitor: ReadValueId;
+    monitoringParameters: MonitoringParameters;
+    subscription: ClientSubscription;
+    monitoringMode: MonitoringMode;
+    statusCode: StatusCode;
+    monitoredItemId?: any;
+    result?: MonitoredItemCreateResult;
+    filterResult?: ExtensionObject;
+
 }

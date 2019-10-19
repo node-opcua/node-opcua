@@ -1682,7 +1682,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         this._terminatePublishEngine();
         this._client.closeSession(this, deleteSubscription, (err?: Error) => {
-            debugLog("session Close err ", err ? err.message: "null");
+            debugLog("session Close err ", err ? err.message : "null");
             callback();
         });
 
@@ -2170,7 +2170,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
 
             if (this._closeEventHasBeenEmitted) {
-                debugLog("ClientSession#_defaultRequest ... err =", err ? err.message: "null", response ? response.toString() : " null");
+                debugLog("ClientSession#_defaultRequest ... err =", err ? err.message : "null", response ? response.toString() : " null");
             }
             /* istanbul ignore next */
             if (err) {
@@ -2212,10 +2212,17 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     }
 
     private recreate_session_and_reperform_transaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
+        if (this.recursive_repair_detector >= 1) {
+            // tslint:disable-next-line: no-console
+            console.log("recreate_session_and_reperform_transaction => Already in Progress");
+            return callback(new Error("Cannot recreate session"));
+        }
+        this.recursive_repair_detector += 1;
         debugLog(chalk.red("----------------> Repairing Client Session as Server believes it is invalid now "));
         repair_client_session(this._client, this, (err?: Error) => {
+            this.recursive_repair_detector -= 1;
             if (err) {
-                debugLog(chalk.red("----------------> session Repaired has failed with error",err.message));
+                debugLog(chalk.red("----------------> session Repaired has failed with error", err.message));
                 return callback(err);
             }
             debugLog(chalk.red("----------------> session Repaired, now redoing original transaction "));

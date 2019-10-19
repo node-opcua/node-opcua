@@ -145,7 +145,7 @@ export interface ClientSession extends EventEmitter {
     on(event: "session_closed", eventHandler: (statusCode: StatusCode) => void): this;
 
     on(event: "session_restored", eventHandler: () => void ): this;
-    
+
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 
 }

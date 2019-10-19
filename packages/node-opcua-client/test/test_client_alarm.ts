@@ -2,26 +2,33 @@ import {should } from "should";
 import {
     ClientAlarm,
     ClientAlarmList,
+    DataType,
     EventStuff,
     NodeId,
     resolveNodeId,
+    TVariant,
     Variant
 } from "../source/index";
 
+class VariantId extends Variant {
+    public id: TVariant<boolean>;
+    constructor(value: boolean, valueString: string) {
+        super({ value: valueString, dataType: DataType.String });
+        this.id = new Variant({ dataType: "Boolean", value });
+    }
+}
 describe("Testing client alarm", () => {
 
     it("should update a client alarm list #CAL", () => {
 
         const clientAlarm = new ClientAlarm({
-            ackedState: {
-                id: new Variant({ value: true })
-            },
+            ackedState: new VariantId(true, "Acknowledged"),
+            activeState: new VariantId(true, "Active"),
             conditionId: new Variant({ value: NodeId.nullNodeId }),
-            confirmedState: {
-                id: new Variant({ value: true })
-            },
+            confirmedState: new VariantId(true, "Confirmed"),
             eventId: new Variant({ value: Buffer.alloc(10) }),
             eventType: new Variant({ value: NodeId.nullNodeId }),
+            retain: new Variant({value: false}),
         });
 
         const alarmList = new ClientAlarmList();
@@ -36,25 +43,31 @@ describe("Testing client alarm", () => {
         });
 
         const alarm1_event1: EventStuff = {
-             ackedState: { id: new Variant({ dataType: "Boolean" , value: false}) },
+            ackedState: new VariantId(false, "Unack"),
+            activeState: new VariantId(true, "Active"),
              conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition1")}),
-             confirmedState: { id: new Variant({ dataType: "Boolean" , value: false})},
+             confirmedState: new VariantId(false, "Unconfirmed"),
              eventId: new Variant({ dataType: "ByteString", value: Buffer.from("1")}),
              eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1")}),
-        };
+             retain: new Variant({value: false}),
+         };
         const alarm1_event2: EventStuff = {
-            ackedState: { id: new Variant({ dataType: "Boolean" , value: true}) },
+            ackedState: new VariantId(true, "Ack"),
+            activeState: new VariantId(true, "Active"),
             conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition1")}),
-            confirmedState: { id: new Variant({ dataType: "Boolean" , value: false})},
+            confirmedState: new VariantId(false, "Unconfirmed"),
             eventId: new Variant({ dataType: "ByteString", value: Buffer.from("2")}),
             eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1")}),
+            retain: new Variant({value: false}),
         };
         const alarm2_event1: EventStuff = {
-            ackedState: { id: new Variant({ dataType: "Boolean" , value: false}) },
+            ackedState: new VariantId(false, "Unack"),
+            activeState: new VariantId(true, "Active"),
             conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition2")}),
-            confirmedState: { id: new Variant({ dataType: "Boolean" , value: false})},
+            confirmedState: new VariantId(false, "Unconfirmed"),
             eventId: new Variant({ dataType: "ByteString", value: Buffer.from("1")}),
             eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1")}),
+            retain: new Variant({value: false}),
         };
 
         alarmList.length.should.eql(0);
