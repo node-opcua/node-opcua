@@ -40,9 +40,12 @@ import {
     ModifyMonitoredItemsRequestOptions, ModifyMonitoredItemsResponse,
     ModifySubscriptionRequest,
     ModifySubscriptionRequestOptions, ModifySubscriptionResponse,
-    SetMonitoringModeRequest,
-    SetMonitoringModeRequestOptions, SetMonitoringModeResponse,
-    TransferSubscriptionsRequest, TransferSubscriptionsRequestOptions, TransferSubscriptionsResponse
+    PublishRequest, PublishResponse,
+    RepublishRequest, RepublishResponse,
+    SetMonitoringModeRequest, SetMonitoringModeRequestOptions,
+    SetMonitoringModeResponse,
+    TransferSubscriptionsRequest,
+    TransferSubscriptionsRequestOptions, TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
 import {
     BrowsePath, BrowsePathResult
@@ -53,7 +56,6 @@ import {
 import { StatusCode } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { ClientSubscription } from "./client_subscription";
-import { ClientSessionImpl } from "./private/client_session_impl";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
@@ -101,7 +103,7 @@ export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object
 export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 
-export interface ClientSession {
+export interface ClientSessionBase {
 
     // properties
     /** the session Id */
@@ -136,7 +138,7 @@ export interface ClientSession {
 }
 
 // events
-export interface ClientSession extends EventEmitter {
+export interface ClientSession extends EventEmitter, ClientSessionBase {
     // tslint:disable:unified-signatures
     on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): this;
 
@@ -144,6 +146,10 @@ export interface ClientSession extends EventEmitter {
 
     on(event: "session_closed", eventHandler: (statusCode: StatusCode) => void): this;
 
+    /**
+     *  session_restored is raised when the session and realted subscription
+     *  have been fullt repaired after a reconnection.
+     */
     on(event: "session_restored", eventHandler: () => void ): this;
 
     on(event: string | symbol, listener: (...args: any[]) => void): this;
@@ -151,7 +157,7 @@ export interface ClientSession extends EventEmitter {
 }
 
 // browse services
-export interface ClientSession extends IBasicSession {
+export interface ClientSessionBrowseService {
 
     /**
      * the maximum number of reference that the server should return per browseResult
@@ -190,7 +196,7 @@ export interface ClientSession extends IBasicSession {
 }
 
 // translate browsePathTo NodeId services
-export interface ClientSession {
+export interface ClientSessionTranslateBrowsePathService {
     translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
 
     translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
@@ -202,7 +208,7 @@ export interface ClientSession {
 }
 
 // query services
-export interface ClientSession {
+export interface ClientSessionQueryService {
     queryFirst(
         queryFirstRequest: QueryFirstRequestLike
     ): Promise<QueryFirstResponse>;
@@ -214,7 +220,7 @@ export interface ClientSession {
 }
 
 // call services
-export interface ClientSession {
+export interface ClientSessionCallService {
 
     /**
      *
@@ -293,7 +299,7 @@ export interface ClientSession {
 }
 
 // register services
-export interface ClientSession {
+export interface ClientSessionRegisterService {
 
     registerNodes(nodesToRegister: NodeIdLike[]): Promise<NodeId[]>;
 
@@ -312,7 +318,7 @@ export interface ClientSession {
 }
 
 // read services
-export interface ClientSession {
+export interface ClientSessionReadService {
 
     read(nodeToRead: ReadValueIdLike, maxAge: number, callback: ResponseCallback<DataValue>): void;
 
@@ -337,7 +343,7 @@ export interface ClientSession {
 }
 
 // write services
-export interface ClientSession {
+export interface ClientSessionWriteService {
     write(nodeToWrite: WriteValueLike, callback: ResponseCallback<StatusCode>): void;
 
     write(nodesToWrite: WriteValueLike[], callback: ResponseCallback<StatusCode[]>): void;
@@ -353,7 +359,7 @@ export interface ClientSession {
 }
 
 // raw subscription services
-export interface ClientSession {
+export interface ClientSessionRawSubscriptionService {
 
     /**
      * @method createSubscription
@@ -441,15 +447,6 @@ export interface ClientSession {
         options: ModifyMonitoredItemsRequestLike)
         : Promise<ModifyMonitoredItemsResponse>;
 
-    createSubscription2(
-        createSubscriptionRequest: CreateSubscriptionRequestLike
-    ): Promise<ClientSubscription>;
-
-    createSubscription2(
-        createSubscriptionRequest: CreateSubscriptionRequestLike,
-        callback: ResponseCallback<ClientSubscription>
-    ): void;
-
     getMonitoredItems(
         subscriptionId: SubscriptionId
     ): Promise<MonitoredItemData>;
@@ -460,8 +457,20 @@ export interface ClientSession {
     ): void;
 }
 
+// subscription service
+export interface ClientSessionSubscriptionService {
+    createSubscription2(
+        createSubscriptionRequest: CreateSubscriptionRequestLike
+    ): Promise<ClientSubscription>;
+
+    createSubscription2(
+        createSubscriptionRequest: CreateSubscriptionRequestLike,
+        callback: ResponseCallback<ClientSubscription>
+    ): void;
+}
+
 // history services
-export interface ClientSession {
+export interface ClientSessionReadHistoryService {
 
     readHistoryValue(
         nodes: ReadValueIdOptions[],
@@ -491,7 +500,7 @@ export interface ClientSession {
 
 }
 
-export interface ClientSession {
+export interface ClientSessionDataTypeService {
 
     /**
      * retrieve the built-in DataType of a Variable, from its DataType attribute.
@@ -522,7 +531,7 @@ export interface ClientSession {
 
 }
 
-export interface ClientSession {
+export interface ClientSessionNamespaceService {
 
     getNamespaceIndex(namespaceUri: string): number;
 
@@ -532,7 +541,7 @@ export interface ClientSession {
 
 }
 
-export interface ClientSession {
+export interface ClientSessionExtensionObjectService {
 
     constructExtensionObject(
         dataType: NodeId,
@@ -542,7 +551,7 @@ export interface ClientSession {
     extractNamespaceDataType(): Promise<ExtraDataTypeManager>;
 }
 
-export interface ClientSession {
+export interface ClientSessionConditionService {
 
     disableCondition(): void;
 
@@ -680,5 +689,35 @@ export interface ClientSession {
         nodeId: NodeIdLike,
         methodName: string
     ): Promise<NodeId>;
+
+}
+
+// publish Server
+export interface ClientSessionPublishService {
+    publish(
+        options: PublishRequest,
+        callback: ResponseCallback<PublishResponse>
+    ): void;
+    republish(
+        options: RepublishRequest,
+        callback: ResponseCallback<RepublishResponse>): void;
+}
+
+export interface ClientSession extends
+ ClientSessionTranslateBrowsePathService,
+ ClientSessionQueryService,
+ ClientSessionBrowseService,
+ // ClientSessionRawSubscriptionService,
+ ClientSessionSubscriptionService,
+ ClientSessionCallService,
+ ClientSessionRegisterService,
+ ClientSessionReadService,
+ ClientSessionWriteService,
+ ClientSessionReadHistoryService,
+ ClientSessionConditionService,
+ ClientSessionExtensionObjectService,
+ ClientSessionNamespaceService,
+ ClientSessionDataTypeService,
+ IBasicSession {
 
 }
