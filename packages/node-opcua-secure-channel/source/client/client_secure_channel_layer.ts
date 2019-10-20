@@ -72,7 +72,7 @@ const doTraceMessage = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG
 const doTraceRequestContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("REQUEST")) >= 0;
 const doTraceResponseContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("RESPONSE")) >= 0;
 const doTraceStatistics = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("STATS")) >= 0;
-const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;;
+const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;
 
 import { ErrorCallback, ICertificateKeyPairProvider, Request, Response } from "../common";
 
@@ -113,7 +113,7 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
     assert(_.isFunction(requestData.callback));
 
     const request = requestData.request;
-    
+
     if (!response && !err && requestData.msgType !== "CLO") {
         // this case happens when CLO is called and when some pending transactions
         // remains in the queue...
@@ -260,7 +260,7 @@ export interface ClientSecureChannelLayerOptions {
      * @param [options.connectionStrategy.maxDelay      = 10000]
      */
     connectionStrategy: ConnectionStrategyOptions;
-    
+
 }
 
 /**
@@ -661,7 +661,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _on_message_received(response: Response, msgType: string, requestId: number) {
 
         assert(msgType !== "ERR");
-    
+
         /* istanbul ignore next */
         if (response.responseHeader.requestHandle !== requestId) {
             console.log(chalk.red.bgWhite.bold("xxxxx  <<<<<< _on_message_received  ERROR"),
@@ -677,7 +677,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         const requestData = this._requests[requestId];
         const request = requestData.request;
-        
+
         /* istanbul ignore next */
         if (!requestData) {
             console.log(chalk.cyan.bold("xxxxx  <<<<<< _on_message_received "), requestId, response.schema.name);
@@ -1266,7 +1266,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         timerId = setTimeout(() => {
             timerId = null;
-            console.log(" Timeout .... waiting for response for ", request.constructor.name, request.requestHeader.toString());
+            debugLog(" Timeout .... waiting for response for ", request.constructor.name, request.requestHeader.toString());
             hasTimedOut = true;
             modified_callback(new Error("Transaction has timed out ( timeout = " + timeout + " ms)"));
             this._timedout_request_count += 1;
@@ -1547,7 +1547,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
          */
         this.emit("send_request", request);
 
-        this.messageChunker.chunkSecureMessage(msgType, options, request as BaseUAObject, 
+        this.messageChunker.chunkSecureMessage(msgType, options, request as BaseUAObject,
             (chunk: Buffer | null) =>
                 this._send_chunk(requestId, chunk));
 
