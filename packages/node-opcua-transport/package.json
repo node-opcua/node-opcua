@@ -26,7 +26,7 @@
   "underscore": "^1.9.1"
  },
  "devDependencies": {
-  "@types/node": "^12.7.11",
+  "@types/node": "^12.11.2",
   "@types/underscore": "^1.9.3",
   "colors": "^1.4.0",
   "node-opcua-debug": "^2.1.0",

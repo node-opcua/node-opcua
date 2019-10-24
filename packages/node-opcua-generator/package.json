@@ -26,7 +26,7 @@
   "node-opcua-utils": "^2.1.6",
   "node-opcua-xml2json": "^2.1.8",
   "prettier": "^1.18.2",
-  "typescript": "^3.6.3",
+  "typescript": "^3.6.4",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
