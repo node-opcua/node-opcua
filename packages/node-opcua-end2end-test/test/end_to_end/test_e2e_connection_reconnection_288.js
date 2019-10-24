@@ -17,6 +17,7 @@ function start_external_opcua_server(callback) {
 
     start_simple_server(options, function (err, data) {
         if (err) {
+            console.log("Cannot start simple server", options);
             return callback(err);
         }
         debugLog("data", data.endpointUrl);
@@ -265,17 +266,17 @@ function terminate_active_client(callback) {
     ], callback);
 }
 
+function f(func) {
+    return function (callback) {
+        debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
+        return func(callback);
+    };
+}
+
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing client reconnection with crashing server", function () {
 
     this.timeout(100000);
-
-    function f(func) {
-        return function (callback) {
-            debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
-            return func(callback);
-        };
-    }
 
     afterEach(function (done) {
         debugLog("------------------------- Terminating client ----------------------------");

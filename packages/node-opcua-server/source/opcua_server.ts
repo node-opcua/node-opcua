@@ -171,13 +171,13 @@ import { Subscription } from "./server_subscription";
 
 declare type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
-export  type ValidUserFunc = (this: ServerSession, username: string, password: string) => boolean;
-export  type ValidUserAsyncFunc = (
-  this: ServerSession,
-  username: string,
-  password: string,
-  callback: (err: Error | null, isAuthorized?: boolean) => void) => void;
-export  type GetUserRoleFunc = (username: string) => string;
+export type ValidUserFunc = (this: ServerSession, username: string, password: string) => boolean;
+export type ValidUserAsyncFunc = (
+    this: ServerSession,
+    username: string,
+    password: string,
+    callback: (err: Error | null, isAuthorized?: boolean) => void) => void;
+export type GetUserRoleFunc = (username: string) => string;
 
 export interface UserManagerOptions extends IUserManager {
     /** synchronous function to check the credentials - can be overruled by isValidUserAsync */
@@ -198,10 +198,10 @@ const default_maxAllowedSessionNumber = 10;
 const default_maxConnectionsPerEndpoint = 10;
 
 function g_sendError(
-  channel: ServerSecureChannelLayer,
-  message: Message,
-  ResponseClass: any,
-  statusCode: StatusCode
+    channel: ServerSecureChannelLayer,
+    message: Message,
+    ResponseClass: any,
+    statusCode: StatusCode
 ): void {
     const response = new ResponseClass({
         responseHeader: { serviceResult: statusCode }
@@ -237,12 +237,12 @@ function channel_has_session(channel: ServerSecureChannelLayer, session: ServerS
 }
 
 function moveSessionToChannel(
-  session: ServerSession,
-  channel: ServerSecureChannelLayer
+    session: ServerSession,
+    channel: ServerSecureChannelLayer
 ) {
 
     debugLog("moveSessionToChannel sessionId",
-      session.nodeId, " channelId=", channel.channelId);
+        session.nodeId, " channelId=", channel.channelId);
     if (session.publishEngine) {
         session.publishEngine.cancelPendingPublishRequestBeforeChannelChange();
     }
@@ -255,7 +255,7 @@ function moveSessionToChannel(
 }
 
 function _attempt_to_close_some_old_unactivated_session(
-  server: OPCUAServer
+    server: OPCUAServer
 ) {
     const session = server.engine!.getOldestUnactivatedSession();
     if (session) {
@@ -289,8 +289,8 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
 //            underlying Server. The type EndpointDescription is defined in 7.10.
 
 function _serverEndpointsForCreateSessionResponse(
-  server: OPCUAServer,
-  serverUri?: string
+    server: OPCUAServer,
+    serverUri?: string
 ) {
 
     serverUri = ""; // unused then
@@ -300,13 +300,13 @@ function _serverEndpointsForCreateSessionResponse(
     // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all other parameters
     // set to null. Only the recommended parameters shall be verified by the client.
     return server._get_endpoints()
-    // xx .filter(onlyforUri.bind(null,serverUri)
-      .map(getRequiredEndpointInfo);
+        // xx .filter(onlyforUri.bind(null,serverUri)
+        .map(getRequiredEndpointInfo);
 }
 
 function adjustSecurityPolicy(
-  channel: ServerSecureChannelLayer,
-  userTokenPolicy_securityPolicyUri: SecurityPolicy
+    channel: ServerSecureChannelLayer,
+    userTokenPolicy_securityPolicyUri: SecurityPolicy
 ): SecurityPolicy {
     // check that userIdentityToken
     let securityPolicy = fromURI(userTokenPolicy_securityPolicyUri);
@@ -320,8 +320,8 @@ function adjustSecurityPolicy(
 }
 
 function findUserTokenByPolicy(
-  endpoint_description: EndpointDescription,
-  policyId: SecurityPolicy | string
+    endpoint_description: EndpointDescription,
+    policyId: SecurityPolicy | string
 ): UserTokenPolicy | null {
     assert(endpoint_description instanceof EndpointDescription);
     const r = _.filter(endpoint_description.userIdentityTokens!, (userIdentity: UserTokenPolicy) => {
@@ -332,8 +332,8 @@ function findUserTokenByPolicy(
 }
 
 function findUserTokenPolicy(
-  endpoint_description: EndpointDescription,
-  userTokenType: UserTokenType
+    endpoint_description: EndpointDescription,
+    userTokenType: UserTokenType
 ): UserTokenPolicy | null {
     assert(endpoint_description instanceof EndpointDescription);
     const r = _.filter(endpoint_description.userIdentityTokens!, (userIdentity: UserTokenPolicy) => {
@@ -344,7 +344,7 @@ function findUserTokenPolicy(
 }
 
 function createAnonymousIdentityToken(
-  endpoint_desc: EndpointDescription
+    endpoint_desc: EndpointDescription
 ) {
     assert(endpoint_desc instanceof EndpointDescription);
     const userTokenPolicy = findUserTokenPolicy(endpoint_desc, UserTokenType.Anonymous);
@@ -397,12 +397,12 @@ function thumbprint(certificate?: Certificate): string {
  * @private
  */
 function monitoredItem_read_and_record_value(
-  self: MonitoredItem,
-  context: SessionContext | null,
-  oldValue: DataValue,
-  node: UAVariable,
-  itemToMonitor: any,
-  callback: (err: Error | null, dataValue?: DataValue) => void
+    self: MonitoredItem,
+    context: SessionContext | null,
+    oldValue: DataValue,
+    node: UAVariable,
+    itemToMonitor: any,
+    callback: (err: Error | null, dataValue?: DataValue) => void
 ) {
 
     assert(self instanceof MonitoredItem);
@@ -410,7 +410,7 @@ function monitoredItem_read_and_record_value(
     assert(itemToMonitor.attributeId === AttributeIds.Value);
 
     const dataValue = node.readAttribute(
-      context, itemToMonitor.attributeId, itemToMonitor.indexRange, itemToMonitor.dataEncoding);
+        context, itemToMonitor.attributeId, itemToMonitor.indexRange, itemToMonitor.dataEncoding);
 
     callback(null, dataValue);
 }
@@ -425,12 +425,12 @@ function monitoredItem_read_and_record_value(
  * @private
  */
 function monitoredItem_read_and_record_value_async(
-  self: MonitoredItem,
-  context: SessionContext,
-  oldValue: DataValue,
-  node: UAVariable,
-  itemToMonitor: any,
-  callback: (err: Error | null, dataValue?: DataValue) => void
+    self: MonitoredItem,
+    context: SessionContext,
+    oldValue: DataValue,
+    node: UAVariable,
+    itemToMonitor: any,
+    callback: (err: Error | null, dataValue?: DataValue) => void
 ) {
 
     assert(context instanceof SessionContext);
@@ -446,15 +446,15 @@ function monitoredItem_read_and_record_value_async(
 }
 
 function build_scanning_node_function(
-  context: SessionContext,
-  addressSpace: AddressSpace,
-  monitoredItem: MonitoredItem,
-  itemToMonitor: any
+    context: SessionContext,
+    addressSpace: AddressSpace,
+    monitoredItem: MonitoredItem,
+    itemToMonitor: any
 ):
-  (
-    dataValue: DataValue,
-    callback: (err: Error | null, dataValue?: DataValue) => void
-  ) => void {
+    (
+        dataValue: DataValue,
+        callback: (err: Error | null, dataValue?: DataValue) => void
+    ) => void {
 
     assert(context instanceof SessionContext);
     assert(itemToMonitor instanceof ReadValueId);
@@ -479,20 +479,20 @@ function build_scanning_node_function(
     if (itemToMonitor.attributeId === AttributeIds.Value) {
 
         const monitoredItem_read_and_record_value_func =
-          (itemToMonitor.attributeId === AttributeIds.Value && _.isFunction(node.readValueAsync)) ?
-            monitoredItem_read_and_record_value_async :
-            monitoredItem_read_and_record_value;
+            (itemToMonitor.attributeId === AttributeIds.Value && _.isFunction(node.readValueAsync)) ?
+                monitoredItem_read_and_record_value_async :
+                monitoredItem_read_and_record_value;
 
-        return function(
-          this: MonitoredItem,
-          oldDataValue: DataValue,
-          callback: (err: Error | null, dataValue?: DataValue) => void
+        return function func(
+            this: MonitoredItem,
+            oldDataValue: DataValue,
+            callback: (err: Error | null, dataValue?: DataValue) => void
         ) {
             assert(this instanceof MonitoredItem);
             assert(oldDataValue instanceof DataValue);
             assert(_.isFunction(callback));
             monitoredItem_read_and_record_value_func(
-              this, context, oldDataValue, node, itemToMonitor, callback);
+                this, context, oldDataValue, node, itemToMonitor, callback);
         };
 
     } else {
@@ -501,10 +501,10 @@ function build_scanning_node_function(
         // causes a  Notification  to be  generated.
 
         // only record value when it has changed
-        return function(
-          this: MonitoredItem,
-          oldDataValue: DataValue,
-          callback: (err: Error | null, dataValue?: DataValue) => void
+        return function func(
+            this: MonitoredItem,
+            oldDataValue: DataValue,
+            callback: (err: Error | null, dataValue?: DataValue) => void
         ) {
 
             const self = this;
@@ -518,9 +518,9 @@ function build_scanning_node_function(
 }
 
 function prepareMonitoredItem(
-  context: SessionContext,
-  addressSpace: AddressSpace,
-  monitoredItem: MonitoredItem
+    context: SessionContext,
+    addressSpace: AddressSpace,
+    monitoredItem: MonitoredItem
 ) {
     const itemToMonitor = monitoredItem.itemToMonitor;
     const readNodeFunc = build_scanning_node_function(context, addressSpace, monitoredItem, itemToMonitor);
@@ -530,7 +530,7 @@ function prepareMonitoredItem(
 function isMonitoringModeValid(monitoringMode: MonitoringMode): boolean {
     assert(MonitoringMode.Invalid !== undefined);
     return monitoringMode !== MonitoringMode.Invalid &&
-      monitoringMode <= MonitoringMode.Reporting;
+        monitoringMode <= MonitoringMode.Reporting;
 }
 
 /**
@@ -541,10 +541,10 @@ function isMonitoringModeValid(monitoringMode: MonitoringMode): boolean {
  * @param outer_callback
  */
 function _registerServer(
-  this: OPCUAServer,
-  discoveryServerEndpointUrl: string,
-  isOnline: boolean,
-  outer_callback: (err?: Error) => void
+    this: OPCUAServer,
+    discoveryServerEndpointUrl: string,
+    isOnline: boolean,
+    outer_callback: (err?: Error) => void
 ) {
 
     assert(typeof discoveryServerEndpointUrl === "string");
@@ -587,7 +587,7 @@ function _installRegisterServerManager(self: OPCUAServer) {
                 server: self
             });
             break;
-      /* istanbul ignore next */
+        /* istanbul ignore next */
         default:
             throw new Error("Invalid switch");
     }
@@ -1120,7 +1120,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     alternateHostname,
 
                     disableDiscovery: !!options2.disableDiscovery,
-// xx                hostname,
+                    // xx                hostname,
                     resourcePath: options.resourcePath || ""
                 });
                 return endPoint;
@@ -1201,8 +1201,8 @@ export class OPCUAServer extends OPCUABaseServer {
      * Initiate the server by starting all its endpoints
      * @async
      */
-    public start(): Promise<void> ;
-    public start(done: () => void): void ;
+    public start(): Promise<void>;
+    public start(done: () => void): void;
     public start(...args: [any?, ...any[]]): any {
         const done = args[0] as () => void;
         const self = this;
@@ -1367,8 +1367,8 @@ export class OPCUAServer extends OPCUABaseServer {
      * @internal
      */
     protected getSession(
-      authenticationToken: NodeId,
-      activeOnly?: boolean
+        authenticationToken: NodeId,
+        activeOnly?: boolean
     ): ServerSession | null {
         return this.engine ? this.engine.getSession(authenticationToken, activeOnly) : null;
     }
@@ -1381,14 +1381,14 @@ export class OPCUAServer extends OPCUABaseServer {
      * @internal
      */
     protected computeServerSignature(
-      channel: ServerSecureChannelLayer,
-      clientCertificate: Certificate,
-      clientNonce: Nonce
+        channel: ServerSecureChannelLayer,
+        clientCertificate: Certificate,
+        clientNonce: Nonce
     ): SignatureData | undefined {
         return computeSignature(
-          clientCertificate, clientNonce,
-          this.getPrivateKey(),
-          channel.messageBuilder.securityPolicy);
+            clientCertificate, clientNonce,
+            this.getPrivateKey(),
+            channel.messageBuilder.securityPolicy);
     }
 
     /**
@@ -1399,9 +1399,9 @@ export class OPCUAServer extends OPCUABaseServer {
      * @internal
      */
     protected verifyClientSignature(
-      session: ServerSession,
-      channel: ServerSecureChannelLayer,
-      clientSignature: SignatureData
+        session: ServerSession,
+        channel: ServerSecureChannelLayer,
+        clientSignature: SignatureData
     ): boolean {
 
         const clientCertificate = channel.receiverCertificate!;
@@ -1409,22 +1409,22 @@ export class OPCUAServer extends OPCUABaseServer {
         const serverCertificateChain = this.getCertificateChain();
 
         const result = verifySignature(
-          serverCertificateChain,
-          session.nonce!,
-          clientSignature,
-          clientCertificate,
-          securityPolicy);
+            serverCertificateChain,
+            session.nonce!,
+            clientSignature,
+            clientCertificate,
+            securityPolicy);
 
         return result;
     }
 
     protected isValidUserNameIdentityToken(
-      channel: ServerSecureChannelLayer,
-      session: ServerSession,
-      userTokenPolicy: any,
-      userIdentityToken: UserNameIdentityToken,
-      userTokenSignature: any,
-      callback: (err: Error | null, statusCode?: StatusCode) => void
+        channel: ServerSecureChannelLayer,
+        session: ServerSession,
+        userTokenPolicy: any,
+        userIdentityToken: UserNameIdentityToken,
+        userTokenSignature: any,
+        callback: (err: Error | null, statusCode?: StatusCode) => void
     ) {
 
         assert(userIdentityToken instanceof UserNameIdentityToken);
@@ -1456,12 +1456,12 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     protected isValidX509IdentityToken(
-      channel: ServerSecureChannelLayer,
-      session: ServerSession,
-      userTokenPolicy: any,
-      userIdentityToken: X509IdentityToken,
-      userTokenSignature: any,
-      callback: (err: Error | null, statusCode?: StatusCode) => void
+        channel: ServerSecureChannelLayer,
+        session: ServerSession,
+        userTokenPolicy: any,
+        userIdentityToken: X509IdentityToken,
+        userTokenSignature: any,
+        callback: (err: Error | null, statusCode?: StatusCode) => void
     ) {
 
         assert(userIdentityToken instanceof X509IdentityToken);
@@ -1524,11 +1524,11 @@ export class OPCUAServer extends OPCUABaseServer {
      * @internal
      */
     protected userNameIdentityTokenAuthenticateUser(
-      channel: ServerSecureChannelLayer,
-      session: ServerSession,
-      userTokenPolicy: any,
-      userIdentityToken: UserNameIdentityToken,
-      callback: (err: Error | null, isAuthorized?: boolean) => void
+        channel: ServerSecureChannelLayer,
+        session: ServerSession,
+        userTokenPolicy: any,
+        userIdentityToken: UserNameIdentityToken,
+        callback: (err: Error | null, isAuthorized?: boolean) => void
     ): void {
 
         assert(userIdentityToken instanceof UserNameIdentityToken);
@@ -1570,11 +1570,11 @@ export class OPCUAServer extends OPCUABaseServer {
      * @internal
      */
     protected isValidUserIdentityToken(
-      channel: ServerSecureChannelLayer,
-      session: ServerSession,
-      userIdentityToken: UserIdentityToken,
-      userTokenSignature: any,
-      callback: (err: Error | null, statusCode?: StatusCode) => void
+        channel: ServerSecureChannelLayer,
+        session: ServerSession,
+        userIdentityToken: UserIdentityToken,
+        userTokenSignature: any,
+        callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void {
 
         assert(callback instanceof Function);
@@ -1594,11 +1594,11 @@ export class OPCUAServer extends OPCUABaseServer {
         //
         if (userIdentityToken instanceof UserNameIdentityToken) {
             return this.isValidUserNameIdentityToken(
-              channel, session, userTokenPolicy, userIdentityToken, userTokenSignature, callback);
+                channel, session, userTokenPolicy, userIdentityToken, userTokenSignature, callback);
         }
         if (userIdentityToken instanceof X509IdentityToken) {
             return this.isValidX509IdentityToken(
-              channel, session, userTokenPolicy, userIdentityToken, userTokenSignature, callback);
+                channel, session, userTokenPolicy, userIdentityToken, userTokenSignature, callback);
         }
 
         return callback(null, StatusCodes.Good);
@@ -1614,10 +1614,10 @@ export class OPCUAServer extends OPCUABaseServer {
      * @returns {*}
      */
     protected isUserAuthorized(
-      channel: ServerSecureChannelLayer,
-      session: ServerSession,
-      userIdentityToken: UserIdentityToken,
-      callback: (err: Error | null, isAuthorized?: boolean) => void
+        channel: ServerSecureChannelLayer,
+        session: ServerSession,
+        userIdentityToken: UserIdentityToken,
+        callback: (err: Error | null, isAuthorized?: boolean) => void
     ) {
 
         assert(userIdentityToken);
@@ -1631,7 +1631,7 @@ export class OPCUAServer extends OPCUABaseServer {
         // find if a userToken exists
         if (userIdentityToken instanceof UserNameIdentityToken) {
             return this.userNameIdentityTokenAuthenticateUser(
-              channel, session, userTokenPolicy, userIdentityToken, callback);
+                channel, session, userTokenPolicy, userIdentityToken, callback);
         }
         async.setImmediate(callback.bind(null, null, true));
     }
@@ -1683,7 +1683,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // let's the server assign a sessionName for this lazy client.
 
             debugLog("assigning OPCUAServer.fallbackSessionName because client's sessionName is null ",
-              OPCUAServer.fallbackSessionName);
+                OPCUAServer.fallbackSessionName);
 
             request.sessionName = OPCUAServer.fallbackSessionName;
         }
@@ -1701,15 +1701,15 @@ export class OPCUAServer extends OPCUABaseServer {
             if (channel.securityMode !== MessageSecurityMode.None) {
 
                 errorLog(chalk.red("SERVER with secure connection: Missing or invalid client Nonce "),
-                  request.clientNonce && request.clientNonce.toString("hex"));
+                    request.clientNonce && request.clientNonce.toString("hex"));
 
                 return rejectConnection(StatusCodes.BadNonceInvalid);
             }
         }
 
         function validate_applicationUri(
-          applicationUri: string,
-          clientCertificate: Certificate
+            applicationUri: string,
+            clientCertificate: Certificate
         ): boolean {
 
             // if session is insecure there is no need to check certificate information
@@ -1755,9 +1755,9 @@ export class OPCUAServer extends OPCUABaseServer {
                 return StatusCodes.BadSecurityModeRejected;
             }
             const endpoints_matching_security_policy =
-              endpoints_matching_security_mode.filter((e: EndpointDescription) => {
-                  return e.securityPolicyUri === channel1.securityHeader!.securityPolicyUri;
-              });
+                endpoints_matching_security_mode.filter((e: EndpointDescription) => {
+                    return e.securityPolicyUri === channel1.securityHeader!.securityPolicyUri;
+                });
 
             if (endpoints_matching_security_policy.length === 0) {
                 return StatusCodes.BadSecurityPolicyRejected;
@@ -1884,9 +1884,9 @@ export class OPCUAServer extends OPCUABaseServer {
             if (server.isAuditing) {
 
                 assert(reason === "Timeout" ||
-                  reason === "Terminated" ||
-                  reason === "CloseSession" ||
-                  reason === "Forcing");
+                    reason === "Terminated" ||
+                    reason === "CloseSession" ||
+                    reason === "Forcing");
                 const sourceName = "Session/" + reason;
 
                 server.raiseEvent("AuditSessionEventType", {
@@ -2008,7 +2008,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // this may happen when the server has been restarted and a client tries to reconnect, thinking
             // that the previous session may still be active
             debugLog(chalk.yellow.bold(" Bad Session in  _on_ActivateSessionRequest"),
-              authenticationToken.value.toString("hex"));
+                authenticationToken.toString());
 
             return rejectConnection(StatusCodes.BadSessionIdInvalid);
         }
@@ -2035,8 +2035,8 @@ export class OPCUAServer extends OPCUABaseServer {
 
             if (session.channel!.channelId !== channel.channelId) {
                 warningLog(" Session is being transferred from channel",
-                  chalk.cyan(session.channel!.channelId!.toString()),
-                  " to channel ", chalk.cyan(channel.channelId!.toString()));
+                    chalk.cyan(session.channel!.channelId!.toString()),
+                    " to channel ", chalk.cyan(channel.channelId!.toString()));
 
                 // session is being reassigned to a new Channel,
                 // we shall verify that the certificate used to create the Session is the same as the current
@@ -2062,8 +2062,8 @@ export class OPCUAServer extends OPCUABaseServer {
             return rejectConnection(StatusCodes.BadSessionClosed);
         } else if (session.status === "closed") {
             warningLog(
-              chalk.yellow.bold(" Bad Session Closed in  _on_ActivateSessionRequest"),
-              authenticationToken.value.toString("hex"));
+                chalk.yellow.bold(" Bad Session Closed in  _on_ActivateSessionRequest"),
+                authenticationToken.value.toString("hex"));
             return rejectConnection(StatusCodes.BadSessionClosed);
         }
 
@@ -2077,102 +2077,102 @@ export class OPCUAServer extends OPCUABaseServer {
 
         // check request.userIdentityToken is correct ( expected type and correctly formed)
         server.isValidUserIdentityToken(
-          channel, session, request.userIdentityToken, request.userTokenSignature,
-          (err: Error | null, statusCode?: StatusCode) => {
+            channel, session, request.userIdentityToken, request.userTokenSignature,
+            (err: Error | null, statusCode?: StatusCode) => {
 
-              if (statusCode !== StatusCodes.Good) {
-                  /* istanbul ignore next */
-                  if (!(statusCode && statusCode instanceof StatusCode)) {
-                      const a = 23;
-                  }
-                  assert(statusCode && statusCode instanceof StatusCode, "expecting statusCode");
-                  return rejectConnection(statusCode!);
-              }
-              session.userIdentityToken = request.userIdentityToken;
-
-              // check if user access is granted
-              server.isUserAuthorized(channel, session, request.userIdentityToken,
-                (err1: Error | null, authorized?: boolean) => {
-
+                if (statusCode !== StatusCodes.Good) {
                     /* istanbul ignore next */
-                    if (err1) {
-                        return rejectConnection(StatusCodes.BadInternalError);
+                    if (!(statusCode && statusCode instanceof StatusCode)) {
+                        const a = 23;
                     }
+                    assert(statusCode && statusCode instanceof StatusCode, "expecting statusCode");
+                    return rejectConnection(statusCode!);
+                }
+                session.userIdentityToken = request.userIdentityToken;
 
-                    if (!authorized) {
-                        return rejectConnection(StatusCodes.BadUserAccessDenied);
-                    } else {
-                        // extract : OPC UA part 4 - 5.6.3
-                        // Once used, a serverNonce cannot be used again. For that reason, the Server returns a new
-                        // serverNonce each time the ActivateSession Service is called.
-                        session.nonce = server.makeServerNonce();
+                // check if user access is granted
+                server.isUserAuthorized(channel, session, request.userIdentityToken,
+                    (err1: Error | null, authorized?: boolean) => {
 
-                        session.status = "active";
-
-                        response = new ActivateSessionResponse({ serverNonce: session.nonce });
-                        channel.send_response("MSG", response, message);
-
-                        const userIdentityTokenPasswordRemoved = (userIdentityToken: any) => {
-                            const a = userIdentityToken.clone();
-                            // remove password
-                            a.password = "*************";
-                            return a;
-                        };
-
-                        // send OPCUA Event Notification
-                        // see part 5 : 6.4.3 AuditEventType
-                        //              6.4.7 AuditSessionEventType
-                        //              6.4.10 AuditActivateSessionEventType
-                        assert(session.nodeId); // sessionId
-                        // xx assert(session.channel.clientCertificate instanceof Buffer);
-                        assert(session.sessionTimeout > 0);
-
-                        if (server.isAuditing) {
-                            server.raiseEvent("AuditActivateSessionEventType", {
-
-                                /* part 5 -  6.4.3 AuditEventType */
-                                actionTimeStamp: { dataType: "DateTime", value: new Date() },
-                                status: { dataType: "Boolean", value: true },
-
-                                serverId: { dataType: "String", value: "" },
-
-                                // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
-                                clientAuditEntryId: { dataType: "String", value: "" },
-
-                                // The ClientUserId identifies the user of the client requesting an action.
-                                // The ClientUserId can be obtained from the UserIdentityToken passed in the
-                                // ActivateSession call.
-                                clientUserId: { dataType: "String", value: "cc" },
-
-                                sourceName: { dataType: "String", value: "Session/ActivateSession" },
-
-                                /* part 5 - 6.4.7 AuditSessionEventType */
-                                sessionId: { dataType: "NodeId", value: session.nodeId },
-
-                                /* part 5 - 6.4.10 AuditActivateSessionEventType */
-                                clientSoftwareCertificates: {
-                                    arrayType: VariantArrayType.Array,
-                                    dataType: "ExtensionObject" /* SignedSoftwareCertificate */,
-                                    value: []
-                                },
-                                // UserIdentityToken reflects the userIdentityToken parameter of the ActivateSession
-                                // Service call.
-                                // For Username/Password tokens the password should NOT be included.
-                                userIdentityToken: {
-                                    dataType: "ExtensionObject" /*  UserIdentityToken */,
-                                    value: userIdentityTokenPasswordRemoved(session.userIdentityToken)
-                                },
-
-                                // SecureChannelId shall uniquely identify the SecureChannel. The application shall
-                                // use the same identifier in all AuditEvents related to the Session Service Set
-                                // (AuditCreateSessionEventType, AuditActivateSessionEventType and their subtypes) and
-                                // the SecureChannel Service Set (AuditChannelEventType and its subtypes).
-                                secureChannelId: { dataType: "String", value: session.channel!.channelId!.toString() }
-                            });
+                        /* istanbul ignore next */
+                        if (err1) {
+                            return rejectConnection(StatusCodes.BadInternalError);
                         }
-                    }
-                });
-          });
+
+                        if (!authorized) {
+                            return rejectConnection(StatusCodes.BadUserAccessDenied);
+                        } else {
+                            // extract : OPC UA part 4 - 5.6.3
+                            // Once used, a serverNonce cannot be used again. For that reason, the Server returns a new
+                            // serverNonce each time the ActivateSession Service is called.
+                            session.nonce = server.makeServerNonce();
+
+                            session.status = "active";
+
+                            response = new ActivateSessionResponse({ serverNonce: session.nonce });
+                            channel.send_response("MSG", response, message);
+
+                            const userIdentityTokenPasswordRemoved = (userIdentityToken: any) => {
+                                const a = userIdentityToken.clone();
+                                // remove password
+                                a.password = "*************";
+                                return a;
+                            };
+
+                            // send OPCUA Event Notification
+                            // see part 5 : 6.4.3 AuditEventType
+                            //              6.4.7 AuditSessionEventType
+                            //              6.4.10 AuditActivateSessionEventType
+                            assert(session.nodeId); // sessionId
+                            // xx assert(session.channel.clientCertificate instanceof Buffer);
+                            assert(session.sessionTimeout > 0);
+
+                            if (server.isAuditing) {
+                                server.raiseEvent("AuditActivateSessionEventType", {
+
+                                    /* part 5 -  6.4.3 AuditEventType */
+                                    actionTimeStamp: { dataType: "DateTime", value: new Date() },
+                                    status: { dataType: "Boolean", value: true },
+
+                                    serverId: { dataType: "String", value: "" },
+
+                                    // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
+                                    clientAuditEntryId: { dataType: "String", value: "" },
+
+                                    // The ClientUserId identifies the user of the client requesting an action.
+                                    // The ClientUserId can be obtained from the UserIdentityToken passed in the
+                                    // ActivateSession call.
+                                    clientUserId: { dataType: "String", value: "cc" },
+
+                                    sourceName: { dataType: "String", value: "Session/ActivateSession" },
+
+                                    /* part 5 - 6.4.7 AuditSessionEventType */
+                                    sessionId: { dataType: "NodeId", value: session.nodeId },
+
+                                    /* part 5 - 6.4.10 AuditActivateSessionEventType */
+                                    clientSoftwareCertificates: {
+                                        arrayType: VariantArrayType.Array,
+                                        dataType: "ExtensionObject" /* SignedSoftwareCertificate */,
+                                        value: []
+                                    },
+                                    // UserIdentityToken reflects the userIdentityToken parameter of the ActivateSession
+                                    // Service call.
+                                    // For Username/Password tokens the password should NOT be included.
+                                    userIdentityToken: {
+                                        dataType: "ExtensionObject" /*  UserIdentityToken */,
+                                        value: userIdentityTokenPasswordRemoved(session.userIdentityToken)
+                                    },
+
+                                    // SecureChannelId shall uniquely identify the SecureChannel. The application shall
+                                    // use the same identifier in all AuditEvents related to the Session Service Set
+                                    // (AuditCreateSessionEventType, AuditActivateSessionEventType and their subtypes) and
+                                    // the SecureChannel Service Set (AuditChannelEventType and its subtypes).
+                                    secureChannelId: { dataType: "String", value: session.channel!.channelId!.toString() }
+                                });
+                            }
+                        }
+                    });
+            });
 
     }
 
@@ -2194,7 +2194,7 @@ export class OPCUAServer extends OPCUABaseServer {
         if (channel.channelId !== session.channelId) {
             if (!(request instanceof ActivateSessionRequest)) {
                 errorLog(chalk.red.bgWhite("ERROR: channel.channelId !== session.channelId"),
-                  channel.channelId, session.channelId);
+                    channel.channelId, session.channelId);
             }
             message.session_statusCode = StatusCodes.BadSecureChannelIdInvalid;
 
@@ -2223,10 +2223,10 @@ export class OPCUAServer extends OPCUABaseServer {
      * @private
      */
     protected _apply_on_SessionObject(
-      ResponseClass: any,
-      message: any,
-      channel: ServerSecureChannelLayer,
-      action_to_perform: any
+        ResponseClass: any,
+        message: any,
+        channel: ServerSecureChannelLayer,
+        action_to_perform: any
     ) {
 
         assert(_.isFunction(action_to_perform));
@@ -2254,7 +2254,7 @@ export class OPCUAServer extends OPCUABaseServer {
             const errMessage = "INVALID SESSION  !! ";
             response = new ResponseClass({ responseHeader: { serviceResult: message.session_statusCode } });
             debugLog(chalk.red.bold(errMessage),
-              chalk.yellow(message.session_statusCode.toString()), response.constructor.name);
+                chalk.yellow(message.session_statusCode.toString()), response.constructor.name);
             return sendResponse(response);
         }
 
@@ -2300,10 +2300,10 @@ export class OPCUAServer extends OPCUABaseServer {
      * @private
      */
     protected _apply_on_Subscription(
-      ResponseClass: any,
-      message: any,
-      channel: ServerSecureChannelLayer,
-      action_to_perform: any
+        ResponseClass: any,
+        message: any,
+        channel: ServerSecureChannelLayer,
+        action_to_perform: any
     ) {
 
         assert(_.isFunction(action_to_perform));
@@ -2311,15 +2311,14 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request.hasOwnProperty("subscriptionId"));
 
         this._apply_on_SessionObject(ResponseClass, message, channel,
-          (session: ServerSession,
-           sendResponse: any, sendError: any) => {
-              const subscription = session.getSubscription(request.subscriptionId);
-              if (!subscription) {
-                  return sendError(StatusCodes.BadSubscriptionIdInvalid);
-              }
-              subscription.resetLifeTimeAndKeepAliveCounters();
-              action_to_perform(session, subscription, sendResponse, sendError);
-          });
+            (session: ServerSession, sendResponse: any, sendError: any) => {
+                const subscription = session.getSubscription(request.subscriptionId);
+                if (!subscription) {
+                    return sendError(StatusCodes.BadSubscriptionIdInvalid);
+                }
+                subscription.resetLifeTimeAndKeepAliveCounters();
+                action_to_perform(session, subscription, sendResponse, sendError);
+            });
     }
 
     /**
@@ -2331,10 +2330,10 @@ export class OPCUAServer extends OPCUABaseServer {
      * @private
      */
     protected _apply_on_SubscriptionIds(
-      ResponseClass: any,
-      message: any,
-      channel: ServerSecureChannelLayer,
-      action_to_perform: any
+        ResponseClass: any,
+        message: any,
+        channel: ServerSecureChannelLayer,
+        action_to_perform: any
     ) {
 
         assert(_.isFunction(action_to_perform));
@@ -2342,24 +2341,24 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request.hasOwnProperty("subscriptionIds"));
 
         this._apply_on_SessionObject(ResponseClass, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              const subscriptionIds = request.subscriptionIds;
+                const subscriptionIds = request.subscriptionIds;
 
-              if (!request.subscriptionIds || request.subscriptionIds.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                if (!request.subscriptionIds || request.subscriptionIds.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              const results = subscriptionIds.map((subscriptionId: number) => {
-                  return action_to_perform(session, subscriptionId);
-              });
+                const results = subscriptionIds.map((subscriptionId: number) => {
+                    return action_to_perform(session, subscriptionId);
+                });
 
-              const response = new ResponseClass({
-                  results
-              });
-              sendResponse(response);
+                const response = new ResponseClass({
+                    results
+                });
+                sendResponse(response);
 
-          });
+            });
     }
 
     /**
@@ -2371,24 +2370,24 @@ export class OPCUAServer extends OPCUABaseServer {
      * @private
      */
     protected _apply_on_Subscriptions(
-      ResponseClass: any,
-      message: any,
-      channel: ServerSecureChannelLayer,
-      action_to_perform: (session: ServerSession, subscription: Subscription) => void
+        ResponseClass: any,
+        message: any,
+        channel: ServerSecureChannelLayer,
+        action_to_perform: (session: ServerSession, subscription: Subscription) => void
     ) {
 
         this._apply_on_SubscriptionIds(ResponseClass, message, channel,
-          (session: ServerSession, subscriptionId: number) => {
-              /* istanbul ignore next */
-              if (subscriptionId <= 0) {
-                  return StatusCodes.BadSubscriptionIdInvalid;
-              }
-              const subscription = session.getSubscription(subscriptionId);
-              if (!subscription) {
-                  return StatusCodes.BadSubscriptionIdInvalid;
-              }
-              return action_to_perform(session, subscription);
-          });
+            (session: ServerSession, subscriptionId: number) => {
+                /* istanbul ignore next */
+                if (subscriptionId <= 0) {
+                    return StatusCodes.BadSubscriptionIdInvalid;
+                }
+                const subscription = session.getSubscription(subscriptionId);
+                if (!subscription) {
+                    return StatusCodes.BadSubscriptionIdInvalid;
+                }
+                return action_to_perform(session, subscription);
+            });
     }
 
     /**
@@ -2429,8 +2428,8 @@ export class OPCUAServer extends OPCUABaseServer {
         const wasNotActivated = (session.status === "new");
 
         server.engine.closeSession(
-          request.requestHeader.authenticationToken,
-          request.deleteSubscriptions, "CloseSession");
+            request.requestHeader.authenticationToken,
+            request.deleteSubscriptions, "CloseSession");
 
         if (wasNotActivated) {
             return sendError(StatusCodes.BadSessionNotActivated);
@@ -2453,58 +2452,58 @@ export class OPCUAServer extends OPCUABaseServer {
         const diagnostic: any = {};
 
         this._apply_on_SessionObject(BrowseResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              let response: BrowseResponse;
-              // test view
-              if (request.view && !request.view.viewId.isEmpty()) {
-                  let theView: UAView | null = server.engine!.addressSpace!.findNode(request.view.viewId) as UAView;
-                  if (theView && theView.nodeClass !== NodeClass.View) {
-                      // Error: theView is not a View
-                      diagnostic.localizedText = { text: "Expecting a view here" };
-                      theView = null;
-                  }
-                  if (!theView) {
-                      return sendError(StatusCodes.BadViewIdUnknown, diagnostic);
-                  }
-              }
+                let response: BrowseResponse;
+                // test view
+                if (request.view && !request.view.viewId.isEmpty()) {
+                    let theView: UAView | null = server.engine!.addressSpace!.findNode(request.view.viewId) as UAView;
+                    if (theView && theView.nodeClass !== NodeClass.View) {
+                        // Error: theView is not a View
+                        diagnostic.localizedText = { text: "Expecting a view here" };
+                        theView = null;
+                    }
+                    if (!theView) {
+                        return sendError(StatusCodes.BadViewIdUnknown, diagnostic);
+                    }
+                }
 
-              if (!request.nodesToBrowse || request.nodesToBrowse.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                if (!request.nodesToBrowse || request.nodesToBrowse.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              if (server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse > 0) {
-                  if (request.nodesToBrowse.length > server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
+                if (server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse > 0) {
+                    if (request.nodesToBrowse.length > server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
 
-              // limit results to requestedMaxReferencesPerNode further so it never exceed a too big number
-              const requestedMaxReferencesPerNode = Math.min(9876, request.requestedMaxReferencesPerNode);
-              let results: BrowseResult[] = [];
-              assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
-              results = server.engine.browse(request.nodesToBrowse);
+                // limit results to requestedMaxReferencesPerNode further so it never exceed a too big number
+                const requestedMaxReferencesPerNode = Math.min(9876, request.requestedMaxReferencesPerNode);
+                let results: BrowseResult[] = [];
+                assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
+                results = server.engine.browse(request.nodesToBrowse);
 
-              assert(results[0].schema.name === "BrowseResult");
+                assert(results[0].schema.name === "BrowseResult");
 
-              // handle continuation point and requestedMaxReferencesPerNode
-              results = results.map((result: BrowseResult) => {
-                  assert(!result.continuationPoint);
-                  const truncatedResult = session.continuationPointManager.register(
-                    requestedMaxReferencesPerNode,
-                    result.references || []
-                  );
-                  assert(truncatedResult.statusCode === StatusCodes.Good);
-                  truncatedResult.statusCode = result.statusCode;
-                  return new BrowseResult(truncatedResult);
-              });
+                // handle continuation point and requestedMaxReferencesPerNode
+                results = results.map((result: BrowseResult) => {
+                    assert(!result.continuationPoint);
+                    const truncatedResult = session.continuationPointManager.register(
+                        requestedMaxReferencesPerNode,
+                        result.references || []
+                    );
+                    assert(truncatedResult.statusCode === StatusCodes.Good);
+                    truncatedResult.statusCode = result.statusCode;
+                    return new BrowseResult(truncatedResult);
+                });
 
-              response = new BrowseResponse({
-                  diagnosticInfos: undefined,
-                  results
-              });
-              sendResponse(response);
-          });
+                response = new BrowseResponse({
+                    diagnosticInfos: undefined,
+                    results
+                });
+                sendResponse(response);
+            });
     }
 
     /**
@@ -2518,43 +2517,43 @@ export class OPCUAServer extends OPCUABaseServer {
         const request = message.request as BrowseNextRequest;
         assert(request instanceof BrowseNextRequest);
         this._apply_on_SessionObject(BrowseNextResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              let response;
+                let response;
 
-              if (!request.continuationPoints || request.continuationPoints.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                if (!request.continuationPoints || request.continuationPoints.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              // A Boolean parameter with the following values:
+                // A Boolean parameter with the following values:
 
-              let results;
-              if (request.releaseContinuationPoints) {
-                  // releaseContinuationPoints = TRUE
-                  //   passed continuationPoints shall be reset to free resources in
-                  //   the Server. The continuation points are released and the results
-                  //   and diagnosticInfos arrays are empty.
-                  results = request.continuationPoints.map((continuationPoint: ContinuationPoint) => {
-                      return session.continuationPointManager.cancel(continuationPoint);
-                  });
+                let results;
+                if (request.releaseContinuationPoints) {
+                    // releaseContinuationPoints = TRUE
+                    //   passed continuationPoints shall be reset to free resources in
+                    //   the Server. The continuation points are released and the results
+                    //   and diagnosticInfos arrays are empty.
+                    results = request.continuationPoints.map((continuationPoint: ContinuationPoint) => {
+                        return session.continuationPointManager.cancel(continuationPoint);
+                    });
 
-              } else {
-                  // let extract data from continuation points
+                } else {
+                    // let extract data from continuation points
 
-                  // releaseContinuationPoints = FALSE
-                  //   passed continuationPoints shall be used to get the next set of
-                  //   browse information.
-                  results = request.continuationPoints.map((continuationPoint: ContinuationPoint) => {
-                      return session.continuationPointManager.getNext(continuationPoint);
-                  });
-              }
+                    // releaseContinuationPoints = FALSE
+                    //   passed continuationPoints shall be used to get the next set of
+                    //   browse information.
+                    results = request.continuationPoints.map((continuationPoint: ContinuationPoint) => {
+                        return session.continuationPointManager.getNext(continuationPoint);
+                    });
+                }
 
-              response = new BrowseNextResponse({
-                  diagnosticInfos: undefined,
-                  results
-              });
-              sendResponse(response);
-          });
+                response = new BrowseNextResponse({
+                    diagnosticInfos: undefined,
+                    results
+                });
+                sendResponse(response);
+            });
     }
 
     // read services
@@ -2565,63 +2564,63 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof ReadRequest);
 
         this._apply_on_SessionObject(ReadResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server });
 
-              let response;
+                let response;
 
-              let results = [];
+                let results = [];
 
-              const timestampsToReturn = request.timestampsToReturn;
+                const timestampsToReturn = request.timestampsToReturn;
 
-              if (timestampsToReturn === TimestampsToReturn.Invalid) {
-                  return sendError(StatusCodes.BadTimestampsToReturnInvalid);
-              }
+                if (timestampsToReturn === TimestampsToReturn.Invalid) {
+                    return sendError(StatusCodes.BadTimestampsToReturnInvalid);
+                }
 
-              if (request.maxAge < 0) {
-                  return sendError(StatusCodes.BadMaxAgeInvalid);
-              }
+                if (request.maxAge < 0) {
+                    return sendError(StatusCodes.BadMaxAgeInvalid);
+                }
 
-              request.nodesToRead = request.nodesToRead || [];
+                request.nodesToRead = request.nodesToRead || [];
 
-              if (!request.nodesToRead || request.nodesToRead.length <= 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                if (!request.nodesToRead || request.nodesToRead.length <= 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              assert(request.nodesToRead[0].schema.name === "ReadValueId");
+                assert(request.nodesToRead[0].schema.name === "ReadValueId");
 
-              // limit size of nodesToRead array to maxNodesPerRead
-              if (server.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
-                  if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRead) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
+                // limit size of nodesToRead array to maxNodesPerRead
+                if (server.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
+                    if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRead) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
 
-              // proceed with registered nodes alias resolution
-              for (const nodeToRead of request.nodesToRead) {
-                  nodeToRead.nodeId = session.resolveRegisteredNode(nodeToRead.nodeId);
-              }
+                // proceed with registered nodes alias resolution
+                for (const nodeToRead of request.nodesToRead) {
+                    nodeToRead.nodeId = session.resolveRegisteredNode(nodeToRead.nodeId);
+                }
 
-              // ask for a refresh of asynchronous variables
-              server.engine.refreshValues(request.nodesToRead, (err?: Error | null) => {
-                  assert(!err, " error not handled here , fix me");
+                // ask for a refresh of asynchronous variables
+                server.engine.refreshValues(request.nodesToRead, (err?: Error | null) => {
+                    assert(!err, " error not handled here , fix me");
 
-                  results = server.engine.read(context, request);
+                    results = server.engine.read(context, request);
 
-                  assert(results[0].schema.name === "DataValue");
-                  assert(results.length === request.nodesToRead!.length);
+                    assert(results[0].schema.name === "DataValue");
+                    assert(results.length === request.nodesToRead!.length);
 
-                  response = new ReadResponse({
-                      diagnosticInfos: undefined,
-                      results: undefined
-                  });
-                  // set it here for performance
-                  response.results = results;
-                  assert(response.diagnosticInfos!.length === 0);
-                  sendResponse(response);
-              });
-          });
+                    response = new ReadResponse({
+                        diagnosticInfos: undefined,
+                        results: undefined
+                    });
+                    // set it here for performance
+                    response.results = results;
+                    assert(response.diagnosticInfos!.length === 0);
+                    sendResponse(response);
+                });
+            });
     }
 
     // read services
@@ -2633,71 +2632,71 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof HistoryReadRequest);
 
         this._apply_on_SessionObject(HistoryReadResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              let response;
+                let response;
 
-              const timestampsToReturn = request.timestampsToReturn;
+                const timestampsToReturn = request.timestampsToReturn;
 
-              if (timestampsToReturn === TimestampsToReturn.Invalid) {
-                  return sendError(StatusCodes.BadTimestampsToReturnInvalid);
-              }
+                if (timestampsToReturn === TimestampsToReturn.Invalid) {
+                    return sendError(StatusCodes.BadTimestampsToReturnInvalid);
+                }
 
-              request.nodesToRead = request.nodesToRead || [];
+                request.nodesToRead = request.nodesToRead || [];
 
-              if (!request.nodesToRead || request.nodesToRead.length <= 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                if (!request.nodesToRead || request.nodesToRead.length <= 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              assert(request.nodesToRead[0].schema.name === "HistoryReadValueId");
+                assert(request.nodesToRead[0].schema.name === "HistoryReadValueId");
 
-              // limit size of nodesToRead array to maxNodesPerRead
-              if (server.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
-                  if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRead) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
-              // todo : handle
-              if (server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadData > 0) {
-                  if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadData) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
-              if (server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadEvents > 0) {
-                  if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadEvents) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
+                // limit size of nodesToRead array to maxNodesPerRead
+                if (server.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
+                    if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRead) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
+                // todo : handle
+                if (server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadData > 0) {
+                    if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadData) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
+                if (server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadEvents > 0) {
+                    if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadEvents) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
 
-              const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server });
 
-              // ask for a refresh of asynchronous variables
-              server.engine.refreshValues(request.nodesToRead, (err?: Error | null) => {
+                // ask for a refresh of asynchronous variables
+                server.engine.refreshValues(request.nodesToRead, (err?: Error | null) => {
 
-                  assert(!err, " error not handled here , fix me"); // TODO
+                    assert(!err, " error not handled here , fix me"); // TODO
 
-                  server.engine.historyRead(context, request, (err1: Error | null, results?: HistoryReadResult[]) => {
+                    server.engine.historyRead(context, request, (err1: Error | null, results?: HistoryReadResult[]) => {
 
-                      if (err1) {
-                          return sendError(StatusCodes.BadInternalError);
-                      }
-                      if (!results) {
-                          return sendError(StatusCodes.BadInternalError);
-                      }
+                        if (err1) {
+                            return sendError(StatusCodes.BadInternalError);
+                        }
+                        if (!results) {
+                            return sendError(StatusCodes.BadInternalError);
+                        }
 
-                      assert(results[0].schema.name === "HistoryReadResult");
-                      assert(results.length === request.nodesToRead!.length);
+                        assert(results[0].schema.name === "HistoryReadResult");
+                        assert(results.length === request.nodesToRead!.length);
 
-                      response = new HistoryReadResponse({
-                          diagnosticInfos: undefined,
-                          results
-                      });
+                        response = new HistoryReadResponse({
+                            diagnosticInfos: undefined,
+                            results
+                        });
 
-                      assert(response.diagnosticInfos!.length === 0);
-                      sendResponse(response);
-                  });
-              });
-          });
+                        assert(response.diagnosticInfos!.length === 0);
+                        sendResponse(response);
+                    });
+                });
+            });
     }
 
     /*
@@ -2722,38 +2721,38 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(!request.nodesToWrite || _.isArray(request.nodesToWrite));
 
         this._apply_on_SessionObject(WriteResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
-              let response;
+            (session: ServerSession, sendResponse: any, sendError: any) => {
+                let response;
 
-              if (!request.nodesToWrite || request.nodesToWrite.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                if (!request.nodesToWrite || request.nodesToWrite.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              if (server.engine.serverCapabilities.operationLimits.maxNodesPerWrite > 0) {
-                  if (request.nodesToWrite.length > server.engine.serverCapabilities.operationLimits.maxNodesPerWrite) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
+                if (server.engine.serverCapabilities.operationLimits.maxNodesPerWrite > 0) {
+                    if (request.nodesToWrite.length > server.engine.serverCapabilities.operationLimits.maxNodesPerWrite) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
 
-              // proceed with registered nodes alias resolution
-              for (const nodeToWrite of request.nodesToWrite) {
-                  nodeToWrite.nodeId = session.resolveRegisteredNode(nodeToWrite.nodeId);
-              }
+                // proceed with registered nodes alias resolution
+                for (const nodeToWrite of request.nodesToWrite) {
+                    nodeToWrite.nodeId = session.resolveRegisteredNode(nodeToWrite.nodeId);
+                }
 
-              const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server });
 
-              assert(request.nodesToWrite[0].schema.name === "WriteValue");
-              server.engine.write(context, request.nodesToWrite, (err: Error | null, results?: StatusCode[]) => {
-                  assert(!err);
-                  assert(_.isArray(results));
-                  assert(results!.length === request.nodesToWrite!.length);
-                  response = new WriteResponse({
-                      diagnosticInfos: undefined,
-                      results
-                  });
-                  sendResponse(response);
-              });
-          });
+                assert(request.nodesToWrite[0].schema.name === "WriteValue");
+                server.engine.write(context, request.nodesToWrite, (err: Error | null, results?: StatusCode[]) => {
+                    assert(!err);
+                    assert(_.isArray(results));
+                    assert(results!.length === request.nodesToWrite!.length);
+                    response = new WriteResponse({
+                        diagnosticInfos: undefined,
+                        results
+                    });
+                    sendResponse(response);
+                });
+            });
     }
 
     // subscription services
@@ -2767,28 +2766,28 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof CreateSubscriptionRequest);
 
         this._apply_on_SessionObject(CreateSubscriptionResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server });
 
-              if (session.currentSubscriptionCount >= OPCUAServer.MAX_SUBSCRIPTION) {
-                  return sendError(StatusCodes.BadTooManySubscriptions);
-              }
+                if (session.currentSubscriptionCount >= OPCUAServer.MAX_SUBSCRIPTION) {
+                    return sendError(StatusCodes.BadTooManySubscriptions);
+                }
 
-              const subscription = session.createSubscription(request);
+                const subscription = session.createSubscription(request);
 
-              subscription.on("monitoredItem", (monitoredItem: MonitoredItem) => {
-                  prepareMonitoredItem(context, addressSpace, monitoredItem);
-              });
+                subscription.on("monitoredItem", (monitoredItem: MonitoredItem) => {
+                    prepareMonitoredItem(context, addressSpace, monitoredItem);
+                });
 
-              const response = new CreateSubscriptionResponse({
-                  revisedLifetimeCount: subscription.lifeTimeCount,
-                  revisedMaxKeepAliveCount: subscription.maxKeepAliveCount,
-                  revisedPublishingInterval: subscription.publishingInterval,
-                  subscriptionId: subscription.id
-              });
-              sendResponse(response);
-          });
+                const response = new CreateSubscriptionResponse({
+                    revisedLifetimeCount: subscription.lifeTimeCount,
+                    revisedMaxKeepAliveCount: subscription.maxKeepAliveCount,
+                    revisedPublishingInterval: subscription.publishingInterval,
+                    subscriptionId: subscription.id
+                });
+                sendResponse(response);
+            });
     }
 
     protected _on_DeleteSubscriptionsRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -2797,15 +2796,15 @@ export class OPCUAServer extends OPCUABaseServer {
         const request = message.request as DeleteSubscriptionsRequest;
         assert(request instanceof DeleteSubscriptionsRequest);
         this._apply_on_SubscriptionIds(DeleteSubscriptionsResponse, message, channel,
-          (session: ServerSession, subscriptionId: number) => {
+            (session: ServerSession, subscriptionId: number) => {
 
-              const subscription = server.engine.findOrphanSubscription(subscriptionId);
-              if (subscription) {
-                  return server.engine.deleteOrphanSubscription(subscription);
-              }
+                const subscription = server.engine.findOrphanSubscription(subscriptionId);
+                if (subscription) {
+                    return server.engine.deleteOrphanSubscription(subscription);
+                }
 
-              return session.deleteSubscription(subscriptionId);
-          });
+                return session.deleteSubscription(subscriptionId);
+            });
     }
 
     protected _on_TransferSubscriptionsRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -2827,9 +2826,9 @@ export class OPCUAServer extends OPCUABaseServer {
         const request = message.request as TransferSubscriptionsRequest;
         assert(request instanceof TransferSubscriptionsRequest);
         this._apply_on_SubscriptionIds(TransferSubscriptionsResponse, message, channel,
-          (session: ServerSession, subscriptionId: number) => {
-              return engine.transferSubscription(session, subscriptionId, request.sendInitialValues);
-          });
+            (session: ServerSession, subscriptionId: number) => {
+                return engine.transferSubscription(session, subscriptionId, request.sendInitialValues);
+            });
     }
 
     protected _on_CreateMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -2842,34 +2841,34 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof CreateMonitoredItemsRequest);
 
         this._apply_on_Subscription(CreateMonitoredItemsResponse, message, channel,
-          (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
+            (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
 
-              const timestampsToReturn = request.timestampsToReturn;
-              if (timestampsToReturn === TimestampsToReturn.Invalid) {
-                  return sendError(StatusCodes.BadTimestampsToReturnInvalid);
-              }
+                const timestampsToReturn = request.timestampsToReturn;
+                if (timestampsToReturn === TimestampsToReturn.Invalid) {
+                    return sendError(StatusCodes.BadTimestampsToReturnInvalid);
+                }
 
-              if (!request.itemsToCreate || request.itemsToCreate.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
-              if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
-                  if (request.itemsToCreate.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
+                if (!request.itemsToCreate || request.itemsToCreate.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
+                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (request.itemsToCreate.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
 
-              const results = request.itemsToCreate.map(
-                subscription.createMonitoredItem.bind(subscription, addressSpace, timestampsToReturn));
+                const results = request.itemsToCreate.map(
+                    subscription.createMonitoredItem.bind(subscription, addressSpace, timestampsToReturn));
 
-              const response = new CreateMonitoredItemsResponse({
-                  responseHeader: { serviceResult: StatusCodes.Good },
-                  results
-                  // ,diagnosticInfos: []
-              });
+                const response = new CreateMonitoredItemsResponse({
+                    responseHeader: { serviceResult: StatusCodes.Good },
+                    results
+                    // ,diagnosticInfos: []
+                });
 
-              sendResponse(response);
+                sendResponse(response);
 
-          });
+            });
 
     }
 
@@ -2879,18 +2878,18 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof ModifySubscriptionRequest);
 
         this._apply_on_Subscription(ModifySubscriptionResponse, message, channel,
-          (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
+            (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
 
-              subscription.modify(request);
+                subscription.modify(request);
 
-              const response = new ModifySubscriptionResponse({
-                  revisedLifetimeCount: subscription.lifeTimeCount,
-                  revisedMaxKeepAliveCount: subscription.maxKeepAliveCount,
-                  revisedPublishingInterval: subscription.publishingInterval
-              });
+                const response = new ModifySubscriptionResponse({
+                    revisedLifetimeCount: subscription.lifeTimeCount,
+                    revisedMaxKeepAliveCount: subscription.maxKeepAliveCount,
+                    revisedPublishingInterval: subscription.publishingInterval
+                });
 
-              sendResponse(response);
-          });
+                sendResponse(response);
+            });
     }
 
     protected _on_ModifyMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -2899,48 +2898,48 @@ export class OPCUAServer extends OPCUABaseServer {
 
         assert(request instanceof ModifyMonitoredItemsRequest);
         this._apply_on_Subscription(ModifyMonitoredItemsResponse, message, channel,
-          (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
+            (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
 
-              const timestampsToReturn = request.timestampsToReturn;
-              if (timestampsToReturn === TimestampsToReturn.Invalid) {
-                  return sendError(StatusCodes.BadTimestampsToReturnInvalid);
-              }
+                const timestampsToReturn = request.timestampsToReturn;
+                if (timestampsToReturn === TimestampsToReturn.Invalid) {
+                    return sendError(StatusCodes.BadTimestampsToReturnInvalid);
+                }
 
-              if (!request.itemsToModify || request.itemsToModify.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                if (!request.itemsToModify || request.itemsToModify.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              /* istanbul ignore next */
-              if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
-                  if (request.itemsToModify.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
+                /* istanbul ignore next */
+                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (request.itemsToModify.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
 
-              const itemsToModify = request.itemsToModify; // MonitoredItemModifyRequest
+                const itemsToModify = request.itemsToModify; // MonitoredItemModifyRequest
 
-              function modifyMonitoredItem(item: MonitoredItemModifyRequest) {
+                function modifyMonitoredItem(item: MonitoredItemModifyRequest) {
 
-                  const monitoredItemId = item.monitoredItemId;
-                  const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
-                  if (!monitoredItem) {
-                      return new MonitoredItemModifyResult({ statusCode: StatusCodes.BadMonitoredItemIdInvalid });
-                  }
+                    const monitoredItemId = item.monitoredItemId;
+                    const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
+                    if (!monitoredItem) {
+                        return new MonitoredItemModifyResult({ statusCode: StatusCodes.BadMonitoredItemIdInvalid });
+                    }
 
-                  // adjust samplingInterval if === -1
-                  if (item.requestedParameters.samplingInterval === -1) {
-                      item.requestedParameters.samplingInterval = subscription.publishingInterval;
-                  }
-                  return monitoredItem.modify(timestampsToReturn, item.requestedParameters);
-              }
+                    // adjust samplingInterval if === -1
+                    if (item.requestedParameters.samplingInterval === -1) {
+                        item.requestedParameters.samplingInterval = subscription.publishingInterval;
+                    }
+                    return monitoredItem.modify(timestampsToReturn, item.requestedParameters);
+                }
 
-              const results = itemsToModify.map(modifyMonitoredItem);
+                const results = itemsToModify.map(modifyMonitoredItem);
 
-              const response = new ModifyMonitoredItemsResponse({
-                  results
-              });
-              sendResponse(response);
-          });
+                const response = new ModifyMonitoredItemsResponse({
+                    results
+                });
+                sendResponse(response);
+            });
 
     }
 
@@ -2950,13 +2949,13 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof PublishRequest);
 
         this._apply_on_SessionObject(PublishResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
-              assert(session);
-              assert(session.publishEngine); // server.publishEngine doesn't exists, OPCUAServer has probably shut down already
-              session.publishEngine._on_PublishRequest(request, (request1: any, response: any) => {
-                  sendResponse(response);
-              });
-          });
+            (session: ServerSession, sendResponse: any, sendError: any) => {
+                assert(session);
+                assert(session.publishEngine); // server.publishEngine doesn't exists, OPCUAServer has probably shut down already
+                session.publishEngine._on_PublishRequest(request, (request1: any, response: any) => {
+                    sendResponse(response);
+                });
+            });
     }
 
     protected _on_SetPublishingModeRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -2965,9 +2964,9 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof SetPublishingModeRequest);
         const publishingEnabled = request.publishingEnabled;
         this._apply_on_Subscriptions(SetPublishingModeResponse, message, channel,
-          (session: ServerSession, subscription: Subscription) => {
-              return subscription.setPublishingMode(publishingEnabled);
-          });
+            (session: ServerSession, subscription: Subscription) => {
+                return subscription.setPublishingMode(publishingEnabled);
+            });
     }
 
     protected _on_DeleteMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -2976,30 +2975,30 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof DeleteMonitoredItemsRequest);
 
         this._apply_on_Subscription(DeleteMonitoredItemsResponse, message, channel,
-          (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
+            (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
 
-              /* istanbul ignore next */
-              if (!request.monitoredItemIds || request.monitoredItemIds.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                /* istanbul ignore next */
+                if (!request.monitoredItemIds || request.monitoredItemIds.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              /* istanbul ignore next */
-              if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
-                  if (request.monitoredItemIds.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
-              const results = request.monitoredItemIds.map((monitoredItemId: number) => {
-                  return subscription.removeMonitoredItem(monitoredItemId);
-              });
+                /* istanbul ignore next */
+                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (request.monitoredItemIds.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
+                const results = request.monitoredItemIds.map((monitoredItemId: number) => {
+                    return subscription.removeMonitoredItem(monitoredItemId);
+                });
 
-              const response = new DeleteMonitoredItemsResponse({
-                  diagnosticInfos: undefined,
-                  results
-              });
+                const response = new DeleteMonitoredItemsResponse({
+                    diagnosticInfos: undefined,
+                    results
+                });
 
-              sendResponse(response);
-          });
+                sendResponse(response);
+            });
     }
 
     protected _on_RepublishRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -3008,26 +3007,26 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof RepublishRequest);
 
         this._apply_on_Subscription(RepublishResponse, message, channel,
-          (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
+            (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
 
-              // update diagnostic counter
-              subscription.subscriptionDiagnostics.republishRequestCount += 1;
+                // update diagnostic counter
+                subscription.subscriptionDiagnostics.republishRequestCount += 1;
 
-              const retransmitSequenceNumber = request.retransmitSequenceNumber;
-              const msgSequence = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
+                const retransmitSequenceNumber = request.retransmitSequenceNumber;
+                const msgSequence = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
 
-              if (!msgSequence) {
-                  return sendError(StatusCodes.BadMessageNotAvailable);
-              }
-              const response = new RepublishResponse({
-                  notificationMessage: msgSequence.notification,
-                  responseHeader: {
-                      serviceResult: StatusCodes.Good
-                  }
-              });
+                if (!msgSequence) {
+                    return sendError(StatusCodes.BadMessageNotAvailable);
+                }
+                const response = new RepublishResponse({
+                    notificationMessage: msgSequence.notification,
+                    responseHeader: {
+                        serviceResult: StatusCodes.Good
+                    }
+                });
 
-              sendResponse(response);
-          });
+                sendResponse(response);
+            });
     }
 
     // Bad_NothingToDo
@@ -3040,40 +3039,40 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof SetMonitoringModeRequest);
 
         this._apply_on_Subscription(SetMonitoringModeResponse, message, channel,
-          (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
+            (session: ServerSession, subscription: Subscription, sendResponse: any, sendError: any) => {
 
-              /* istanbul ignore next */
-              if (!request.monitoredItemIds || request.monitoredItemIds.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                /* istanbul ignore next */
+                if (!request.monitoredItemIds || request.monitoredItemIds.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              /* istanbul ignore next */
-              if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
-                  if (request.monitoredItemIds.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
-              const monitoringMode = request.monitoringMode;
+                /* istanbul ignore next */
+                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (request.monitoredItemIds.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
+                const monitoringMode = request.monitoringMode;
 
-              if (!isMonitoringModeValid(monitoringMode)) {
-                  return sendError(StatusCodes.BadMonitoringModeInvalid);
-              }
+                if (!isMonitoringModeValid(monitoringMode)) {
+                    return sendError(StatusCodes.BadMonitoringModeInvalid);
+                }
 
-              const results = request.monitoredItemIds.map((monitoredItemId) => {
+                const results = request.monitoredItemIds.map((monitoredItemId) => {
 
-                  const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
-                  if (!monitoredItem) {
-                      return StatusCodes.BadMonitoredItemIdInvalid;
-                  }
-                  monitoredItem.setMonitoringMode(monitoringMode);
-                  return StatusCodes.Good;
-              });
+                    const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
+                    if (!monitoredItem) {
+                        return StatusCodes.BadMonitoredItemIdInvalid;
+                    }
+                    monitoredItem.setMonitoringMode(monitoringMode);
+                    return StatusCodes.Good;
+                });
 
-              const response = new SetMonitoringModeResponse({
-                  results
-              });
-              sendResponse(response);
-          });
+                const response = new SetMonitoringModeResponse({
+                    results
+                });
+                sendResponse(response);
+            });
 
     }
 
@@ -3085,27 +3084,27 @@ export class OPCUAServer extends OPCUABaseServer {
         const server = this;
 
         this._apply_on_SessionObject(TranslateBrowsePathsToNodeIdsResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              if (!request.browsePaths || request.browsePaths.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
-              if (server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds > 0) {
-                  if (request.browsePaths.length > server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
+                if (!request.browsePaths || request.browsePaths.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
+                if (server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds > 0) {
+                    if (request.browsePaths.length > server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
 
-              const browsePathsResults = request.browsePaths.map((browsePath) => server.engine.browsePath(browsePath));
+                const browsePathsResults = request.browsePaths.map((browsePath) => server.engine.browsePath(browsePath));
 
-              const response = new TranslateBrowsePathsToNodeIdsResponse({
-                  diagnosticInfos: null,
-                  results: browsePathsResults
-              });
+                const response = new TranslateBrowsePathsToNodeIdsResponse({
+                    diagnosticInfos: null,
+                    results: browsePathsResults
+                });
 
-              sendResponse(response);
+                sendResponse(response);
 
-          });
+            });
 
     }
 
@@ -3121,39 +3120,39 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof CallRequest);
 
         this._apply_on_SessionObject(CallResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              let response;
+                let response;
 
-              if (!request.methodsToCall || request.methodsToCall.length === 0) {
-                  return sendError(StatusCodes.BadNothingToDo);
-              }
+                if (!request.methodsToCall || request.methodsToCall.length === 0) {
+                    return sendError(StatusCodes.BadNothingToDo);
+                }
 
-              // the MaxNodesPerMethodCall Property indicates the maximum size of the methodsToCall array when
-              // a Client calls the Call Service.
-              let maxNodesPerMethodCall = server.engine.serverCapabilities.operationLimits.maxNodesPerMethodCall;
-              maxNodesPerMethodCall = maxNodesPerMethodCall <= 0 ? 1000 : maxNodesPerMethodCall;
-              if (request.methodsToCall.length > maxNodesPerMethodCall) {
-                  return sendError(StatusCodes.BadTooManyOperations);
-              }
+                // the MaxNodesPerMethodCall Property indicates the maximum size of the methodsToCall array when
+                // a Client calls the Call Service.
+                let maxNodesPerMethodCall = server.engine.serverCapabilities.operationLimits.maxNodesPerMethodCall;
+                maxNodesPerMethodCall = maxNodesPerMethodCall <= 0 ? 1000 : maxNodesPerMethodCall;
+                if (request.methodsToCall.length > maxNodesPerMethodCall) {
+                    return sendError(StatusCodes.BadTooManyOperations);
+                }
 
-              /* jshint validthis: true */
-              const addressSpace = server.engine.addressSpace!;
+                /* jshint validthis: true */
+                const addressSpace = server.engine.addressSpace!;
 
-              async.map(request.methodsToCall, callMethodHelper.bind(null, server, session, addressSpace),
-                (err?: Error | null, results?: Array<CallMethodResultOptions | undefined>) => {
+                async.map(request.methodsToCall, callMethodHelper.bind(null, server, session, addressSpace),
+                    (err?: Error | null, results?: Array<CallMethodResultOptions | undefined>) => {
 
-                    /* istanbul ignore next */
-                    if (err) {
-                        errorLog("ERROR in method Call !! ", err);
-                    }
-                    assert(_.isArray(results));
-                    response = new CallResponse({
-                        results: results as CallMethodResultOptions[]
+                        /* istanbul ignore next */
+                        if (err) {
+                            errorLog("ERROR in method Call !! ", err);
+                        }
+                        assert(_.isArray(results));
+                        response = new CallResponse({
+                            results: results as CallMethodResultOptions[]
+                        });
+                        sendResponse(response);
                     });
-                    sendResponse(response);
-                });
-          });
+            });
     }
 
     protected _on_RegisterNodesRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -3162,33 +3161,33 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof RegisterNodesRequest);
 
         this._apply_on_SessionObject(RegisterNodesResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              let response;
+                let response;
 
-              if (!request.nodesToRegister || request.nodesToRegister.length === 0) {
-                  response = new RegisterNodesResponse({ responseHeader: { serviceResult: StatusCodes.BadNothingToDo } });
-                  return sendResponse(response);
-              }
-              if (server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
-                  if (request.nodesToRegister.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
-              // A list of NodeIds which the Client shall use for subsequent access operations. The
-              // size and order of this list matches the size and order of the nodesToRegister
-              // request parameter.
-              // The Server may return the NodeId from the request or a new (an alias) NodeId. It
-              // is recommended that the Server return a numeric NodeIds for aliasing.
-              // In case no optimization is supported for a Node, the Server shall return the
-              // NodeId from the request.
-              const registeredNodeIds = request.nodesToRegister.map((nodeId) => session.registerNode(nodeId));
+                if (!request.nodesToRegister || request.nodesToRegister.length === 0) {
+                    response = new RegisterNodesResponse({ responseHeader: { serviceResult: StatusCodes.BadNothingToDo } });
+                    return sendResponse(response);
+                }
+                if (server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
+                    if (request.nodesToRegister.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
+                // A list of NodeIds which the Client shall use for subsequent access operations. The
+                // size and order of this list matches the size and order of the nodesToRegister
+                // request parameter.
+                // The Server may return the NodeId from the request or a new (an alias) NodeId. It
+                // is recommended that the Server return a numeric NodeIds for aliasing.
+                // In case no optimization is supported for a Node, the Server shall return the
+                // NodeId from the request.
+                const registeredNodeIds = request.nodesToRegister.map((nodeId) => session.registerNode(nodeId));
 
-              response = new RegisterNodesResponse({
-                  registeredNodeIds
-              });
-              sendResponse(response);
-          });
+                response = new RegisterNodesResponse({
+                    registeredNodeIds
+                });
+                sendResponse(response);
+            });
     }
 
     protected _on_UnregisterNodesRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -3198,29 +3197,29 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof UnregisterNodesRequest);
 
         this._apply_on_SessionObject(UnregisterNodesResponse, message, channel,
-          (session: ServerSession, sendResponse: any, sendError: any) => {
+            (session: ServerSession, sendResponse: any, sendError: any) => {
 
-              let response;
+                let response;
 
-              request.nodesToUnregister = request.nodesToUnregister || [];
+                request.nodesToUnregister = request.nodesToUnregister || [];
 
-              if (!request.nodesToUnregister || request.nodesToUnregister.length === 0) {
-                  response = new UnregisterNodesResponse({ responseHeader: { serviceResult: StatusCodes.BadNothingToDo } });
-                  return sendResponse(response);
-              }
+                if (!request.nodesToUnregister || request.nodesToUnregister.length === 0) {
+                    response = new UnregisterNodesResponse({ responseHeader: { serviceResult: StatusCodes.BadNothingToDo } });
+                    return sendResponse(response);
+                }
 
-              if (server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
-                  if (request.nodesToUnregister.length >
-                    server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes) {
-                      return sendError(StatusCodes.BadTooManyOperations);
-                  }
-              }
+                if (server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
+                    if (request.nodesToUnregister.length >
+                        server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
 
-              request.nodesToUnregister.map((nodeId: NodeId) => session.unRegisterNode(nodeId));
+                request.nodesToUnregister.map((nodeId: NodeId) => session.unRegisterNode(nodeId));
 
-              response = new UnregisterNodesResponse({});
-              sendResponse(response);
-          });
+                response = new UnregisterNodesResponse({});
+                sendResponse(response);
+            });
     }
 
     /* istanbul ignore next */
@@ -3353,23 +3352,23 @@ export interface OPCUAServer {
      * @param options
      */
     raiseEvent(
-      eventType: "AuditSessionEventType", options: RaiseEventAuditSessionEventData): void;
+        eventType: "AuditSessionEventType", options: RaiseEventAuditSessionEventData): void;
 
     raiseEvent(
-      eventType: "AuditCreateSessionEventType", options: RaiseEventAuditCreateSessionEventData): void;
+        eventType: "AuditCreateSessionEventType", options: RaiseEventAuditCreateSessionEventData): void;
 
     raiseEvent(
-      eventType: "AuditActivateSessionEventType", options: RaiseEventAuditActivateSessionEventData): void;
+        eventType: "AuditActivateSessionEventType", options: RaiseEventAuditActivateSessionEventData): void;
 
     raiseEvent(
-      eventType: "AuditCreateSessionEventType", options: RaiseEventData
+        eventType: "AuditCreateSessionEventType", options: RaiseEventData
     ): void;
 
     raiseEvent(
-      eventType: "AuditConditionCommentEventType", options: RaiseEventAuditConditionCommentEventData): void;
+        eventType: "AuditConditionCommentEventType", options: RaiseEventAuditConditionCommentEventData): void;
 
     raiseEvent(
-      eventType: "TransitionEventType", options: RaiseEventTransitionEventData): void;
+        eventType: "TransitionEventType", options: RaiseEventTransitionEventData): void;
 
 }
 

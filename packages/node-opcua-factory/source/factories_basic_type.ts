@@ -8,7 +8,7 @@ import { assert } from "node-opcua-assert";
 import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-import { findSimpleType, registerType, hasBuiltInType } from "./factories_builtin_types";
+import { findSimpleType, hasBuiltInType, registerType } from "./factories_builtin_types";
 import { BasicTypeDefinition, BasicTypeDefinitionOptions } from "./types";
 
 export interface BasicTypeOptions {
@@ -53,6 +53,7 @@ export function registerBasicType(schema: BasicTypeOptions) {
 
     const exists: boolean = hasBuiltInType(schema.name);
     if (exists) {
+        // tslint:disable-next-line: no-console
         console.log(schema);
         throw new Error(`Basic Type ${schema.name} already registered`);
     }

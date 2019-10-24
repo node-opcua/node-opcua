@@ -22,7 +22,7 @@ function w(str: string, l: number): string {
 
 export function setDebugFlag(scriptFullPath: string, flag: boolean) {
     const filename = extractBasename(scriptFullPath);
-    if (process.env.DEBUG) {
+    if (process.env.DEBUG && process.env.DEBUG.length > 1) {
         const decoratedFilename = chalk.yellow(w(filename, 60));
         console.log(
           " Setting debug for ",
