@@ -79,7 +79,7 @@ export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream
         }
         if (!dataValue.value.encode) {
             // tslint:disable-next-line:no-console
-            console.log(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELP", dataValue.toString());
+            console.log(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELP", JSON.stringify(dataValue, null, " "));
         }
         dataValue.value.encode(stream);
     }
