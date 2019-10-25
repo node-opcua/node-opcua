@@ -29,6 +29,7 @@ import {
 } from "node-opcua-schemas";
 import {
     ErrorCallback,
+    requestHandleNotSetValue,
     SignatureData
 } from "node-opcua-secure-channel";
 import {
@@ -116,6 +117,7 @@ import {
 } from "node-opcua-types";
 import {
     buffer_ellipsis,
+    check_flag,
     getFunctionParameterNames,
     isNullOrUndefined,
     lowerFirstLetter,
@@ -289,7 +291,7 @@ function __findBasicDataType(
                 return callback(new Error("Internal Error"));
             }
 
-            browseResult.references = browseResult.references || /* istanbul ignore next */ [];
+            browseResult.references = browseResult.references || /* istanbul ignore next */[];
             const baseDataType = browseResult.references[0].nodeId;
             return __findBasicDataType(session, baseDataType, callback);
         });
@@ -495,7 +497,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 }
             }
             for (const r of results) {
-                r.references = r.references || /* istanbul ignore next */ [];
+                r.references = r.references || /* istanbul ignore next */[];
             }
 
             // detect unsupported case :
@@ -615,7 +617,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * @internal
      * @param args
      */
-    public readVariableValue(...args: any []): any {
+    public readVariableValue(...args: any[]): any {
 
         const callback = args[1];
         assert(_.isFunction(callback));
@@ -767,7 +769,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* istanbul ignore next */ [];
+            response.results = response.results || /* istanbul ignore next */[];
 
             assert(nodes.length === response.results.length);
 
@@ -912,7 +914,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
-            response.results = response.results ||     /* istanbul ignore next */ [];
+            response.results = response.results ||     /* istanbul ignore next */[];
             assert(nodesToWrite.length === response.results.length);
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1168,7 +1170,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
             // perform ExtensionObject resolution
             promoteOpaqueStructureWithCallback(this, response.results!, () => {
-                response.results = response.results || /* istanbul ignore next */ [];
+                response.results = response.results || /* istanbul ignore next */[];
                 return callback(null, isArray ? response.results : response.results[0]);
             });
 
@@ -1363,16 +1365,16 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public setPublishingMode(
         publishingEnabled: boolean,
         subscriptionId: SubscriptionId
-    ): Promise<StatusCode> ;
+    ): Promise<StatusCode>;
     public setPublishingMode(
         publishingEnabled: boolean,
         subscriptionIds: SubscriptionId[]
-    ): Promise<StatusCode[]> ;
+    ): Promise<StatusCode[]>;
     public setPublishingMode(
         publishingEnabled: boolean,
         subscriptionId: SubscriptionId,
         callback: (err: Error | null, statusCode?: StatusCode) => void
-    ): void ;
+    ): void;
     public setPublishingMode(
         publishingEnabled: boolean,
         subscriptionIds: SubscriptionId[],
@@ -1462,6 +1464,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
     }
 
+    public channelId(): number {
+        return (this._client !== null
+            && this._client._secureChannel !== null
+            && this._client._secureChannel.isOpened()) ? this._client._secureChannel!.channelId : "-1";
+
+    }
     public isChannelValid(): boolean {
 
         /* istanbul ignore next */
@@ -1513,7 +1521,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             } else if (privateThis.pendingTransactions.length > 3) {
                 debugLog(chalk.yellow("Warning : your client is sending multiple requests simultaneously to the server", request.constructor.name));
             }
-            privateThis.pendingTransactions.push({request, callback});
+            privateThis.pendingTransactions.push({ request, callback });
             return;
         }
         this.processTransactionQueue(request, callback);
@@ -1522,12 +1530,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         const privateThis = this as any;
         privateThis.pendingTransactionsCount = privateThis.pendingTransactionsCount || 0;
-        privateThis.pendingTransactionsCount ++;
+        privateThis.pendingTransactionsCount++;
 
         this._performMessageTransaction(request, (err: null | Error, response?: Response) => {
-            privateThis.pendingTransactionsCount --;
+            privateThis.pendingTransactionsCount--;
 
-            const requestHandleNotSetValue = 0xDEADBEEF;
             if (err && err.message.match(/BadSessionIdInvalid/) && request.constructor.name !== "ActivateSessionRequest") {
                 debugLog("Transaction on Invalid Session ", request.constructor.name);
                 request.requestHeader.requestHandle = requestHandleNotSetValue;
@@ -1537,7 +1544,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             callback(err, response);
             const length = privateThis.pendingTransactions.length; // record length before callback is called !
             if (length > 0) {
-                debugLog("processTransactionQueue => ", privateThis.pendingTransactions.length , " transaction(s) left in queue");
+                debugLog("processTransactionQueue => ", privateThis.pendingTransactions.length, " transaction(s) left in queue");
                 // tslint:disable-next-line: no-shadowed-variable
                 const { request, callback } = privateThis.pendingTransactions.shift();
                 this.processTransactionQueue(request, callback);
@@ -1654,7 +1661,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      */
     public close(callback: ErrorCallback): void;
 
-    public close(deleteSubscription: boolean, callback: ErrorCallback): void ;
+    public close(deleteSubscription: boolean, callback: ErrorCallback): void;
 
     public async close(deleteSubscription?: boolean): Promise<void>;
 
@@ -1781,41 +1788,41 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         this.call(methodsToCall, (err?: Error | null, result?: CallMethodResult) => {
 
-                /* istanbul ignore next */
-                if (err) {
-                    return callback(err);
-                }
-
-                /* istanbul ignore next */
-                if (!result) {
-                    return callback(new Error("internal error"));
-                }
-
-                /* istanbul ignore next */
-                if (result.statusCode.isNot(StatusCodes.Good)) {
-
-                    callback(new Error(result.statusCode.toString()));
-
-                } else {
-
-                    result.outputArguments = result.outputArguments || [];
-
-                    assert(result.outputArguments.length === 2);
-                    const data = {
-                        clientHandles: result.outputArguments[1].value,
-                        serverHandles: result.outputArguments[0].value //
-                    };
-
-                    // Note some server might return null array
-                    // let make sure we have Uint32Array and not a null pointer
-                    data.serverHandles = data.serverHandles || /* istanbul ignore next */ emptyUint32Array;
-                    data.clientHandles = data.clientHandles || /* istanbul ignore next */ emptyUint32Array;
-
-                    assert(data.serverHandles instanceof Uint32Array);
-                    assert(data.clientHandles instanceof Uint32Array);
-                    callback(null, data);
-                }
+            /* istanbul ignore next */
+            if (err) {
+                return callback(err);
             }
+
+            /* istanbul ignore next */
+            if (!result) {
+                return callback(new Error("internal error"));
+            }
+
+            /* istanbul ignore next */
+            if (result.statusCode.isNot(StatusCodes.Good)) {
+
+                callback(new Error(result.statusCode.toString()));
+
+            } else {
+
+                result.outputArguments = result.outputArguments || [];
+
+                assert(result.outputArguments.length === 2);
+                const data = {
+                    clientHandles: result.outputArguments[1].value,
+                    serverHandles: result.outputArguments[0].value //
+                };
+
+                // Note some server might return null array
+                // let make sure we have Uint32Array and not a null pointer
+                data.serverHandles = data.serverHandles || /* istanbul ignore next */ emptyUint32Array;
+                data.clientHandles = data.clientHandles || /* istanbul ignore next */ emptyUint32Array;
+
+                assert(data.serverHandles instanceof Uint32Array);
+                assert(data.clientHandles instanceof Uint32Array);
+                callback(null, data);
+            }
+        }
         );
     }
 
@@ -1868,7 +1875,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(new Error("Internal Error"));
             }
 
-            response.registeredNodeIds = response.registeredNodeIds || /* istanbul ignore next */ [];
+            response.registeredNodeIds = response.registeredNodeIds || /* istanbul ignore next */[];
 
             callback(null, response.registeredNodeIds);
         });
@@ -1936,7 +1943,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this._keepAliveManager = new ClientSessionKeepAliveManager(this);
 
         this._keepAliveManager.on("failure", () => {
-            this.stopKeepAliveManager();
             /**
              * raised when a keep-alive request has failed on the session, may be the session has timeout
              * unexpectidaly on the server side, may be the connection is broken.
@@ -1971,18 +1977,32 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const now = Date.now();
         const lap1 = (now - this.lastRequestSentTime.getTime());
         const lap2 = now - this.lastResponseReceivedTime.getTime();
+        const timeoutDelai = this.timeout - lap1;
+
+        const timeoutInfo = timeoutDelai < 0
+            ? chalk.red(" expired since " + (-timeoutDelai / 1000) + " seconds")
+            : chalk.green(" timeout in " + timeoutDelai / 1000 + " seconds");
 
         let str = "";
         str += " name..................... " + this.name;
         str += "\n sessionId................ " + this.sessionId.toString();
         str += "\n authenticationToken...... " + (this.authenticationToken ? this.authenticationToken!.toString() : "");
-        str += "\n timeout.................. " + this.timeout + "ms";
+        str += "\n timeout.................. " + this.timeout + "ms" + timeoutInfo;
         str += "\n serverNonce.............. " + (this.serverNonce ? this.serverNonce!.toString("hex") : "");
         str += "\n serverCertificate........ " + buffer_ellipsis(this.serverCertificate);
         // xx console.log(" serverSignature.......... ", this.serverSignature);
-        str += "\n lastRequestSentTime...... " + new Date(this.lastRequestSentTime).toISOString() + lap1;
-        str += "\n lastResponseReceivedTime. " + new Date(this.lastResponseReceivedTime).toISOString() + lap2;
-
+        str += "\n lastRequestSentTime...... " + new Date(this.lastRequestSentTime).toISOString() + "  (" + lap1 + ")";
+        str += "\n lastResponseReceivedTime. " + new Date(this.lastResponseReceivedTime).toISOString() + " (" + lap2 + ")";
+        str += "\n isReconnecting........... " + this.isReconnecting;
+        str += "\n isValidChannel........... " + this.isChannelValid() + " has been closed  " + this.hasBeenClosed();
+        str += "\n channelId................ " + this.channelId();
+        str += "\n remaining life time...... " + this.evaluateRemainingLifetime();
+        if (this._client && this._client._secureChannel) {
+            if (this._client._secureChannel.securityToken) {
+                str += "\n reviseTokenLifetime...... " +
+                    this._client._secureChannel.securityToken.revisedLifetime;
+            }
+        }
         return str;
     }
 
@@ -2174,6 +2194,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             }
             /* istanbul ignore next */
             if (err) {
+                debugLog("Client session : performMessageTransaction error = ", err.message);
                 // let intercept interesting error message
                 if (err.message.match(/BadSessionClosed/)) {
                     // the session has been closed by Server
@@ -2197,11 +2218,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                     //  DO NOT TERMINATE SESSION, as we will need a publishEngine when we
                     //  reconnect this._terminatePublishEngine();
 
-                    /**
-                     * send when the session has been closed by the server ( probably due to inactivity and timeout)
-                     * @event session_closed
-                     */
-                    this.emitCloseEvent(StatusCodes.BadSessionClosed);
+                    if (false) { // ER 10.2019
+                        /**
+                         * send when the session has been closed by the server ( probably due to inactivity and timeout)
+                         * @event session_closed
+                         */
+                        this.emitCloseEvent(StatusCodes.BadSessionClosed);
+                    }
 
                 }
                 return callback(err, response);

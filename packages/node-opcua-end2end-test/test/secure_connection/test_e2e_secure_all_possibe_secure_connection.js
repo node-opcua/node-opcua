@@ -34,7 +34,7 @@ const stop_simple_server = require("../../test_helpers/external_server_fixture")
 
 
 const g_defaultSecureTokenLifetime = 30 * 1000; // ms
-const g_tokenRenewalInterval = 50; // renew token as fast as possible
+const g_tokenRenewalInterval = 400; // renew token as fast as possible
 const g_numberOfTokenRenewal = 3;
 
 let server, temperatureVariableId, endpointUrl, serverCertificate;
@@ -125,11 +125,11 @@ function stop_server1(data, callback) {
 }
 
 const readCertificate = require("node-opcua-crypto").readCertificate;
-function trustCertificateOnServer(certificateFile,callback){
+function trustCertificateOnServer(certificateFile, callback) {
     if (!certificateFile) { return setImmediate(callback); }
     fs.existsSync(certificateFile).should.eql(true, " certificateFile must exist " + certificateFile);
     const certificate = readCertificate(certificateFile);
-    server.serverCertificateManager.trustCertificate(certificate,callback);
+    server.serverCertificateManager.trustCertificate(certificate, callback);
 }
 function start_server(options, callback) {
     if (_.isFunction(options) && !callback) {
@@ -223,7 +223,7 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
                     debugLog("        subscription terminated ");
                     if (!the_error) {
                         const nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
-                        nbTokenId.should.be.aboveOrEqual(security_token_renewed_limit-1);
+                        nbTokenId.should.be.aboveOrEqual(security_token_renewed_limit - 1);
                     }
                     done(the_error);
                 });
@@ -260,7 +260,7 @@ function common_test(securityPolicy, securityMode, options, done) {
         global.gc(true);
     }
 
-   //xx debugLog("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
+    //xx debugLog("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
     opcua.coerceMessageSecurityMode(securityMode).should.not.eql(opcua.MessageSecurityMode.Invalid, "expecting supporting");
 
@@ -282,7 +282,7 @@ function common_test(securityPolicy, securityMode, options, done) {
     let token_change = 0;
     const client = OPCUAClient.create(options);
 
-    trustCertificateOnServer(client.certificateFile,() => {
+    trustCertificateOnServer(client.certificateFile, () => {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
@@ -327,7 +327,7 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
     });
     const client = OPCUAClient.create(options);
 
-    trustCertificateOnServer(client.clientCertificate,()=> {
+    trustCertificateOnServer(client.clientCertificate, () => {
 
         client.on("backoff", function (number, delay) {
             debugLog(" backoff attempt#", number, " retry in ", delay);
@@ -374,7 +374,7 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
     let token_change = 0;
     const client = OPCUAClient.create(options);
 
-    trustCertificateOnServer(client.clientCertificate, ()=> {
+    trustCertificateOnServer(client.clientCertificate, () => {
 
         const after_reconnection_spy = new sinon.spy();
         const start_reconnection_spy = new sinon.spy();
@@ -658,7 +658,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         trustCertificateOnServer(client.certificateFile, () => {
 
             client.on("lifetime_75", function (token) {
-                //xx  debugLog("received lifetime_75", JSON.stringify(token));
+                debugLog("received lifetime_75", JSON.stringify(token));
             });
 
             client.on("security_token_renewed", function () {
@@ -738,7 +738,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
 
         let token_change = 0;
         const client = OPCUAClient.create(options);
-        trustCertificateOnServer(client.certificateFile,()=> {
+        trustCertificateOnServer(client.certificateFile, () => {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 client.once("close", function (err) {

@@ -12,7 +12,7 @@ import { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./cli
 import { ClientSubscription } from "./client_subscription";
 
 // tslint:disable:unified-signatures
-export interface ClientMonitoredItem extends ClientMonitoredItemBase , ClientMonitoredItemOrGroupAction, EventEmitter {
+export interface ClientMonitoredItem extends ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction, EventEmitter {
 
     on(event: "changed", eventHandler: (dataValue: DataValue) => void): this;
     on(event: "changed", eventHandler: (values: Variant[]) => void): this;

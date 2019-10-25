@@ -186,7 +186,9 @@ function repair_client_session_by_recreating_a_new_session(
             debugLog(chalk.bgWhite.red("    => activating a new session ...."));
 
             client._activateSession(newSession, (err: Error | null, session1?: ClientSessionImpl) => {
-                debugLog(chalk.bgWhite.cyan("    =>  activating a new session .... Done"));
+
+                debugLog(chalk.bgWhite.cyan("    =>  activating a new session .... Done err=",
+                    err ? err.message : "null"));
                 innerCallback(err ? err : undefined);
             });
         },
@@ -296,6 +298,7 @@ function repair_client_session_by_recreating_a_new_session(
             //      call Republish
             return _ask_for_subscription_republish(newSession, (err) => {
                 if (err) {
+                    // tslint:disable-next-line: no-console
                     console.log("warning: Subscription republished has failed ", err.message);
                 }
                 innerCallback(err);
@@ -324,22 +327,21 @@ function _repair_client_session(
 ): void {
 
     const callback2 = (err2?: Error) => {
-        debugLog("Session is repaired ", session.sessionId.toString());
+        debugLog("Session is repaired ", err2 ? err2.message : "<no error>", session.sessionId.toString());
         session.emit("session_repaired");
         callback(err2);
     };
-    const self = client;
 
     if (doDebug) {
         debugLog(chalk.yellow("  TRYING TO REACTIVATE EXISTING SESSION"), session.sessionId.toString());
-        debugLog("     SubscriptionIds :", session.getPublishEngine().getSubscriptionIds());
+        debugLog("   SubscriptionIds :", session.getPublishEngine().getSubscriptionIds());
     }
-    self._activateSession(session, (err: Error | null, session2?: ClientSessionImpl) => {
+    client._activateSession(session, (err: Error | null, session2?: ClientSessionImpl) => {
         //
         // Note: current limitation :
         //  - The reconnection doesn't work yet, if connection break is caused by a server that crashes and restarts.
         //
-        debugLog("    ActivateSession : ", err ? err.message : chalk.green(" SUCCESS !!! "));
+        debugLog("   ActivateSession : ", err ? chalk.red(err.message) : chalk.green(" SUCCESS !!! "));
         if (err) {
             //  activate old session has failed => let's  recreate a new Channel and transfer the subscription
             return repair_client_session_by_recreating_a_new_session(client, session, callback2);

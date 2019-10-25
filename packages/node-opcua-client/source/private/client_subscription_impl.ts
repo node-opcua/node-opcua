@@ -8,7 +8,7 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { AttributeIds} from "node-opcua-data-model";
+import { AttributeIds } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 
@@ -33,7 +33,7 @@ import * as utils from "node-opcua-utils";
 
 import { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
-import { ClientSession, SubscriptionId } from "../client_session";
+import { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
 import {
     ClientHandle,
     ClientMonitoredItemBaseMap,
@@ -333,6 +333,13 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 callback(null, StatusCodes.Good);
             });
     }
+
+    public getMonitoredItems(): Promise<MonitoredItemData>;
+    public getMonitoredItems(callback: Callback<MonitoredItemData>): void;
+    public getMonitoredItems(...args: any[]): any {
+        this.session.getMonitoredItems(this.subscriptionId, args[0]);
+    }
+
     //
     // /**
     //  * @internal
@@ -420,8 +427,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         debugLog("ClientSubscription#recreateSubscriptionAndMonitoredItem");
 
         if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID) {
-           debugLog("Subscription is not in a valid state");
-           return callback();
+            debugLog("Subscription is not in a valid state");
+            return callback();
         }
 
         const oldMonitoredItems = this.monitoredItems;
@@ -794,7 +801,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
-const opts = {multiArgs: false};
+const opts = { multiArgs: false };
 
 ClientSubscriptionImpl.prototype.setPublishingMode = thenify.withCallback(ClientSubscriptionImpl.prototype.setPublishingMode);
 ClientSubscriptionImpl.prototype.monitor = thenify.withCallback(ClientSubscriptionImpl.prototype.monitor);
@@ -802,6 +809,7 @@ ClientSubscriptionImpl.prototype.monitorItems = thenify.withCallback(ClientSubsc
 ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem =
     thenify.withCallback(ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem);
 ClientSubscriptionImpl.prototype.terminate = thenify.withCallback(ClientSubscriptionImpl.prototype.terminate);
+ClientSubscriptionImpl.prototype.getMonitoredItems = thenify.withCallback(ClientSubscriptionImpl.prototype.getMonitoredItems);
 
 ClientSubscription.create = (clientSession: ClientSession, options: ClientSubscriptionOptions) => {
     return new ClientSubscriptionImpl(clientSession, options);

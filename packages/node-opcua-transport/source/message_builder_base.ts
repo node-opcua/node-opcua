@@ -11,7 +11,7 @@ import { make_errorLog } from "node-opcua-debug";
 import { PacketAssembler, PacketInfo } from "node-opcua-packet-assembler";
 import { get_clock_tick } from "node-opcua-utils";
 
-const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;;
+const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;
 
 const errorLog = make_errorLog("MessageBuilder");
 
@@ -193,7 +193,7 @@ export class MessageBuilderBase extends EventEmitter {
         if (this.messageHeader.length !== chunk.length) {
             // tslint:disable:max-line-length
             return this._report_error(
-              `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${this.messageHeader.length}`);
+                `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${this.messageHeader.length}`);
         }
 
         // the start of the message body block

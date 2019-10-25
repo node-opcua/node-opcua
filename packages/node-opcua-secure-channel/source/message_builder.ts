@@ -265,13 +265,13 @@ export class MessageBuilder extends MessageBuilderBase {
                 if (doDebug) {
 
                     const o = (objMessage as any);
-                    const requestHandle =  o.responseHeader ? o.responseHeader.requestHandle :
+                    const requestHandle = o.responseHeader ? o.responseHeader.requestHandle :
                         (o.requestHeader ? o.requestHeader.requestHandle : "");
 
                     debugLog(this.id, "message size =", ("" + this.totalMessageSize).padEnd(8),
-                    " body size   =", ("" + this.totalBodySize).padEnd(8),
-                    " requestHandle = ", requestHandle,
-                    objMessage.constructor.name);
+                        " body size   =", ("" + this.totalBodySize).padEnd(8),
+                        " requestHandle = ", requestHandle,
+                        objMessage.constructor.name);
                 }
                 try {
 
@@ -292,8 +292,8 @@ export class MessageBuilder extends MessageBuilderBase {
                     if (doDebug) {
                         debugLog(err);
                     }
-                    console.log(chalk.red("MessageBuilder : ERROR DETECTED IN event handler"));
-                    console.log(err.stack);
+                    debugLog(chalk.red("MessageBuilder : ERROR DETECTED IN event handler"));
+                    debugLog(err.stack);
                 }
             } else {
                 const message = "cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name;
@@ -352,7 +352,7 @@ export class MessageBuilder extends MessageBuilderBase {
             debugLog("securityHeader = {");
             debugLog("             securityPolicyId: ", asymmetricAlgorithmSecurityHeader.securityPolicyUri);
             debugLog("             senderCertificate: ",
-              makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex"));
+                makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex"));
 
             debugLog("};");
         }
@@ -412,9 +412,9 @@ export class MessageBuilder extends MessageBuilderBase {
         // then verify the signature
         const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
         assert(signatureLength === 128 ||
-          signatureLength === 256 ||
-          signatureLength === 384 ||
-          signatureLength === 512);
+            signatureLength === 256 ||
+            signatureLength === 384 ||
+            signatureLength === 512);
 
         const chunk = binaryStream.buffer;
 
@@ -449,7 +449,7 @@ export class MessageBuilder extends MessageBuilderBase {
         /* istanbul ignore next */
         if (doDebug) {
             debugLog("id=", this.id, " ", chalk.yellow("_select_matching_token : searching token "),
-              tokenId, "length = ", this._tokenStack.length, this.tokenIds());
+                tokenId, "length = ", this._tokenStack.length, this.tokenIds());
         }
         // this method select the security token matching the provided tokenId
         // it also get rid of older security token

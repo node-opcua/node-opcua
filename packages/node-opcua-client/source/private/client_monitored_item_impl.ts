@@ -35,7 +35,7 @@ import { ClientSubscriptionImpl } from "./client_subscription_impl";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-export type PrepareForMonitoringResult  = { error: string } | {
+export type PrepareForMonitoringResult = { error: string } | {
     error?: null;
     itemToMonitor: ReadValueIdOptions;
     monitoringMode: MonitoringMode;
@@ -54,7 +54,7 @@ export type PrepareForMonitoringResult  = { error: string } | {
  *
  *  note: this.monitoringMode = subscription_service.MonitoringMode.Reporting;
  */
-export class ClientMonitoredItemImpl extends EventEmitter  implements ClientMonitoredItem {
+export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonitoredItem {
 
     public itemToMonitor: ReadValueId;
     public monitoringParameters: MonitoringParameters;

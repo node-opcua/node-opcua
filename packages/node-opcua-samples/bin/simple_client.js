@@ -718,7 +718,7 @@ async.series([
 
     function get_monitored_item(callback) {
 
-        the_session.getMonitoredItems(the_subscription.subscriptionId, function (err, results) {
+        the_subscription.getMonitoredItems(function (err, results) {
             if (!err) {
                 console.log("MonitoredItems clientHandles", results.clientHandles);
                 console.log("MonitoredItems serverHandles", results.serverHandles);

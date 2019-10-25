@@ -1083,7 +1083,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     privateKey: this.getPrivateKey(),
 
                     defaultSecureTokenLifetime: options1.defaultSecureTokenLifetime || 600000,
-                    timeout: options1.timeout || 10000,
+                    timeout: options1.timeout || 3 * 60 * 1000,
 
                     maxConnections: this.maxConnectionsPerEndpoint,
                     objectFactory: this.objectFactory,
@@ -2034,7 +2034,7 @@ export class OPCUAServer extends OPCUABaseServer {
         if (session.status === "active") {
 
             if (session.channel!.channelId !== channel.channelId) {
-                warningLog(" Session is being transferred from channel",
+                warningLog(" Session ", session.sessionName, " is being transferred from channel",
                     chalk.cyan(session.channel!.channelId!.toString()),
                     " to channel ", chalk.cyan(channel.channelId!.toString()));
 

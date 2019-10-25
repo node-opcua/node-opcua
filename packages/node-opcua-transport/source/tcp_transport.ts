@@ -39,7 +39,6 @@ let counter = 0;
 // tslint:disable:class-name
 export class TCP_transport extends EventEmitter {
 
-    public timeout: number;
     /**
      * indicates the version number of the OPCUA protocol used
      * @default  0
@@ -67,6 +66,7 @@ export class TCP_transport extends EventEmitter {
     private _on_error_during_one_time_message_receiver: any;
     private _pendingBuffer?: any;
     private packetAssembler?: PacketAssembler;
+    private _timeout: number;
 
     constructor() {
 
@@ -76,7 +76,7 @@ export class TCP_transport extends EventEmitter {
         counter += 1;
 
         this._timerId = null;
-        this.timeout = 30000; // 30 seconds timeout
+        this._timeout = 30000; // 30 seconds timeout
         this._socket = null;
         this.headerSize = 8;
         this.protocolVersion = 0;
@@ -95,6 +95,13 @@ export class TCP_transport extends EventEmitter {
         this._onSocketEndedHasBeenCalled = false;
     }
 
+    public get timeout(): number {
+        return this._timeout;
+    }
+    public set timeout(value: number) {
+        debugLog("Setting socket " + this.name + " timeout = ", value);
+        this._timeout = value;
+    }
     public dispose() {
         assert(!this._timerId);
         if (this._socket) {
@@ -184,8 +191,8 @@ export class TCP_transport extends EventEmitter {
             // xx this._socket.removeAllListeners();
             this._socket = null;
         }
+        this.on_socket_ended(null);
         setImmediate(() => {
-            this.on_socket_ended(null);
             callback();
         });
     }
@@ -246,20 +253,18 @@ export class TCP_transport extends EventEmitter {
             .on("end", (err: Error) => this._on_socket_end(err))
             .on("error", (err: Error) => this._on_socket_error(err));
 
-        const doDestroyOnTimeout = false;
-        if (doDestroyOnTimeout) {
-            // set socket timeout
-            debugLog("setting _socket.setTimeout to ", this.timeout);
-            this._socket.setTimeout(this.timeout, () => {
-                debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
-                if (this._socket) {
-                    this._socket.destroy();
-                    // 08/2008 shall we do this ?
-                    this._socket.removeAllListeners();
-                    this._socket = null;
-                }
-            });
-        }
+        // set socket timeout
+        debugLog("setting " + this.name + " _socket.setTimeout to ", this.timeout);
+        this._socket.setTimeout(this.timeout, () => {
+            debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
+            if (this._socket) {
+                // we consider this as an error
+                this._socket.emit("error", new Error("INTERNAL_EPIPE timeout=" + this.timeout));
+                this._socket.destroy(); // new Error("Socket has timed out"));
+                this._socket.removeAllListeners();
+                this._socket = null;
+            }
+        });
     }
 
     /**
@@ -411,7 +416,7 @@ export class TCP_transport extends EventEmitter {
     private _on_socket_end(err: Error) {
         // istanbul ignore next
         if (doDebug) {
-            debugLog(chalk.red(" SOCKET END : "), err ? chalk.yellow(err.message) : "null", this.name);
+            debugLog(chalk.red(" SOCKET END : err="), chalk.yellow(err ? err.message : "null"), this.name);
         }
         this._on_socket_ended_message(err);
     }

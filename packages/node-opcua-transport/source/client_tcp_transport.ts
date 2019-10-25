@@ -26,7 +26,7 @@ export type ErrorCallback = (err?: Error) => void;
 function createClientSocket(endpointUrl: string): Socket {
     // create a socket based on Url
     const ep = parseEndpointUrl(endpointUrl);
-    const port = parseInt( ep.port!, 10);
+    const port = parseInt(ep.port!, 10);
     const hostname = ep.hostname!;
     let socket: Socket;
     switch (ep.protocol) {
@@ -34,14 +34,8 @@ function createClientSocket(endpointUrl: string): Socket {
 
             socket = createConnection({ host: hostname, port });
 
-            // Setting true for noDelay will immediately fire off data each time socket.write() is called.
-            socket.setNoDelay(true);
-
-            socket.setTimeout(0);
-
-            socket.on("timeout", () => {
-                debugLog("Socket has timed out");
-            });
+            //        // Setting true for noDelay will immediately fire off data each time socket.write() is called.
+            //       socket.setNoDelay(true);
 
             return socket;
         case "fake:":
@@ -72,7 +66,7 @@ function createClientSocket(endpointUrl: string): Socket {
  *    ```javascript
  *    const transport = ClientTCP_transport(url);
  *
- *    transport.timeout = 1000;
+ *    transport.timeout = 10000;
  *
  *    transport.connect(function(err)) {
  *         if (err) {
@@ -116,6 +110,7 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     public dispose() {
+        /* istanbul ignore next */
         if (doDebug) {
             debugLog(" ClientTCP_transport disposed");
         }
@@ -132,12 +127,14 @@ export class ClientTCP_transport extends TCP_transport {
         this.endpointUrl = endpointUrl;
 
         this.serverUri = "urn:" + gHostname + ":Sample";
+        /* istanbul ignore next */
         if (doDebug) {
-            debugLog("endpointUrl =", endpointUrl, "ep", ep);
+            debugLog("endpointUrl =", endpointUrl);
         }
         try {
             this._socket = createClientSocket(endpointUrl);
         } catch (err) {
+            /* istanbul ignore next */
             if (doDebug) {
                 debugLog("CreateClientSocket has failed");
             }
@@ -147,6 +144,7 @@ export class ClientTCP_transport extends TCP_transport {
         this._install_socket(this._socket);
 
         const _on_socket_error_after_connection = (err: Error) => {
+            /* istanbul ignore next */
             if (doDebug) {
                 debugLog(" _on_socket_error_after_connection ClientTCP_transport Socket Error", err.message);
             }
@@ -168,12 +166,14 @@ export class ClientTCP_transport extends TCP_transport {
 
         const _on_socket_connect = () => {
 
+            /* istanbul ignore next */
             if (doDebug) {
                 debugLog("entering _on_socket_connect");
             }
             _remove_connect_listeners();
             this._perform_HEL_ACK_transaction((err?: Error) => {
                 if (!err) {
+                    /* istanbul ignore next */
                     if (!this._socket) {
                         throw new Error("internal error");
                     }
@@ -197,6 +197,7 @@ export class ClientTCP_transport extends TCP_transport {
 
         const _on_socket_error_for_connect = (err: Error) => {
             // this handler will catch attempt to connect to an inaccessible address.
+            /* istanbul ignore next */
             if (doDebug) {
                 debugLog(" _on_socket_error_for_connect", err.message);
             }
@@ -205,13 +206,15 @@ export class ClientTCP_transport extends TCP_transport {
             callback(err);
         };
 
-        const  _on_socket_end_for_connect = (err: Error | null) => {
+        const _on_socket_end_for_connect = (err: Error | null) => {
+            /* istanbul ignore next */
             if (doDebug) {
                 debugLog("_on_socket_end_for_connect Socket has been closed by server", err);
             }
         };
 
-        const  _remove_connect_listeners = () => {
+        const _remove_connect_listeners = () => {
+            /* istanbul ignore next */
             if (!this._socket) {
                 return;
             }
@@ -239,6 +242,7 @@ export class ClientTCP_transport extends TCP_transport {
         const _stream = new BinaryStream(messageChunk);
         const messageHeader = readMessageHeader(_stream);
         let err;
+        /* istanbul ignore next */
         if (messageHeader.isFinal !== "F") {
             err = new Error(" invalid ACK message");
             return callback(err);
@@ -268,6 +272,7 @@ export class ClientTCP_transport extends TCP_transport {
 
     private _send_HELLO_request() {
 
+        /* istanbul ignore next */
         if (doDebug) {
             debugLog("entering _send_HELLO_request");
         }
@@ -295,6 +300,7 @@ export class ClientTCP_transport extends TCP_transport {
 
     private _on_ACK_response(externalCallback: ErrorCallback, err: Error | null, data?: Buffer) {
 
+        /* istanbul ignore next */
         if (doDebug) {
             debugLog("entering _on_ACK_response");
         }
@@ -318,16 +324,19 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     private _perform_HEL_ACK_transaction(callback: ErrorCallback) {
+        /* istanbul ignore next */
         if (!this._socket) {
             return callback(new Error("No socket available to perform HEL/ACK transaction"));
         }
         assert(this._socket, "expecting a valid socket to send a message");
         assert(_.isFunction(callback));
         this._counter = 0;
+        /* istanbul ignore next */
         if (doDebug) {
             debugLog("entering _perform_HEL_ACK_transaction");
         }
         this._install_one_time_message_receiver((err: Error | null, data?: Buffer) => {
+            /* istanbul ignore next */
             if (doDebug) {
                 debugLog("before  _on_ACK_response");
             }

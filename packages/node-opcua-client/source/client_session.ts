@@ -137,8 +137,12 @@ export interface ClientSessionBase {
     close(deleteSubscription?: boolean): Promise<void>;
 }
 
+// tslint:disable-next-line: no-empty-interface
+export interface ClientSession extends ClientSessionBase {
+    /* */
+}
 // events
-export interface ClientSession extends EventEmitter, ClientSessionBase {
+export interface ClientSession extends EventEmitter {
     // tslint:disable:unified-signatures
     on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): this;
 
@@ -150,7 +154,7 @@ export interface ClientSession extends EventEmitter, ClientSessionBase {
      *  session_restored is raised when the session and realted subscription
      *  have been fullt repaired after a reconnection.
      */
-    on(event: "session_restored", eventHandler: () => void ): this;
+    on(event: "session_restored", eventHandler: () => void): this;
 
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 
@@ -704,20 +708,20 @@ export interface ClientSessionPublishService {
 }
 
 export interface ClientSession extends
- ClientSessionTranslateBrowsePathService,
- ClientSessionQueryService,
- ClientSessionBrowseService,
- // ClientSessionRawSubscriptionService,
- ClientSessionSubscriptionService,
- ClientSessionCallService,
- ClientSessionRegisterService,
- ClientSessionReadService,
- ClientSessionWriteService,
- ClientSessionReadHistoryService,
- ClientSessionConditionService,
- ClientSessionExtensionObjectService,
- ClientSessionNamespaceService,
- ClientSessionDataTypeService,
- IBasicSession {
+    ClientSessionTranslateBrowsePathService,
+    ClientSessionQueryService,
+    ClientSessionBrowseService,
+    // ClientSessionRawSubscriptionService,
+    ClientSessionSubscriptionService,
+    ClientSessionCallService,
+    ClientSessionRegisterService,
+    ClientSessionReadService,
+    ClientSessionWriteService,
+    ClientSessionReadHistoryService,
+    ClientSessionConditionService,
+    ClientSessionExtensionObjectService,
+    ClientSessionNamespaceService,
+    ClientSessionDataTypeService,
+    IBasicSession {
 
 }

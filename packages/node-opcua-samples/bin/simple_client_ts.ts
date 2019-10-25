@@ -8,8 +8,8 @@ import * as util from "util";
 import * as yargs from "yargs";
 
 import {
-    assert,
     ApplicationType,
+    assert,
     AttributeIds,
     BrowseDirection,
     callConditionRefresh,
@@ -22,6 +22,7 @@ import {
     constructEventFilter,
     DataType,
     DataValue,
+    dumpEvent,
     hexDump,
     makeExpandedNodeId,
     makeNodeId,
@@ -38,7 +39,6 @@ import {
     SecurityPolicy,
     VariableIds,
     Variant,
-    dumpEvent,
 } from "node-opcua";
 import { Certificate, toPem } from "node-opcua-crypto";
 
@@ -48,61 +48,61 @@ const treeify = require("treeify");
 
 // ts-node bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
 const argv = yargs(process.argv)
-  .wrap(132)
-  // .usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
+    .wrap(132)
+    // .usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
 
-  .option("endpoint", {
-      alias: "e",
-      demandOption: true,
-      describe: "the end point to connect to "
-  })
-  .option("securityMode", {
-      alias: "s",
-      default: "None",
-      describe: "the security mode (  None Sign SignAndEncrypt )"
-  })
-  .option("securityPolicy", {
-      alias: "P",
-      default: "None",
-      describe: "the policy mode : (" + Object.keys(SecurityPolicy).join(" - ") + ")"
-  })
-  .option("userName", {
-      alias: "u",
-      describe: "specify the user name of a UserNameIdentityToken"
-  })
-  .option("password", {
-      alias: "p",
-      describe: "specify the password of a UserNameIdentityToken"
-  })
-  .option("node", {
-      alias: "n",
-      describe: "the nodeId of the value to monitor"
-  })
-  .option("timeout", {
-      alias: "t",
-      describe: " the timeout of the session in second =>  (-1 for infinity)"
-  })
-  .option("debug", {
-      alias: "d",
-      boolean: true,
-      describe: " display more verbose information"
-  })
-  .option("history", {
-      alias: "h",
-      describe: "make an historical read"
-  })
-  .option("crawl", {
-      alias: "c",
-      describe: "crawl"
-  })
-  .option("discovery", {
-      alias: "D",
-      describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
-  })
-  .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Rsa256 -s=Sign", "")
-  .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=Sign -u JoeDoe -p P@338@rd ", "")
-  .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"", "")
-  .argv;
+    .option("endpoint", {
+        alias: "e",
+        demandOption: true,
+        describe: "the end point to connect to "
+    })
+    .option("securityMode", {
+        alias: "s",
+        default: "None",
+        describe: "the security mode (  None Sign SignAndEncrypt )"
+    })
+    .option("securityPolicy", {
+        alias: "P",
+        default: "None",
+        describe: "the policy mode : (" + Object.keys(SecurityPolicy).join(" - ") + ")"
+    })
+    .option("userName", {
+        alias: "u",
+        describe: "specify the user name of a UserNameIdentityToken"
+    })
+    .option("password", {
+        alias: "p",
+        describe: "specify the password of a UserNameIdentityToken"
+    })
+    .option("node", {
+        alias: "n",
+        describe: "the nodeId of the value to monitor"
+    })
+    .option("timeout", {
+        alias: "t",
+        describe: " the timeout of the session in second =>  (-1 for infinity)"
+    })
+    .option("debug", {
+        alias: "d",
+        boolean: true,
+        describe: " display more verbose information"
+    })
+    .option("history", {
+        alias: "h",
+        describe: "make an historical read"
+    })
+    .option("crawl", {
+        alias: "c",
+        describe: "crawl"
+    })
+    .option("discovery", {
+        alias: "D",
+        describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
+    })
+    .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Rsa256 -s=Sign", "")
+    .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=Sign -u JoeDoe -p P@338@rd ", "")
+    .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"", "")
+    .argv;
 
 const securityMode = coerceMessageSecurityMode(argv.securityMode!);
 if (securityMode === MessageSecurityMode.Invalid) {
@@ -117,7 +117,7 @@ if (securityPolicy === SecurityPolicy.Invalid) {
 const timeout = argv.timeout as number * 1000 || 20000;
 
 const monitored_node: NodeId = coerceNodeId(argv.node as string ||
-  makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
+    makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
 
 console.log(chalk.cyan("securityMode        = "), securityMode.toString());
 console.log(chalk.cyan("securityPolicy      = "), securityPolicy.toString());
@@ -146,9 +146,9 @@ async function enumerateAllConditionTypes(session: ClientSession) {
     const conditionEventTypes: any = {};
 
     async function findAllNodeOfType(
-      tree1: any,
-      typeNodeId1: NodeId,
-      browseName: string) {
+        tree1: any,
+        typeNodeId1: NodeId,
+        browseName: string) {
 
         const browseDesc1 = {
             nodeId: typeNodeId1,
@@ -273,7 +273,7 @@ async function _getAllEventTypes(session: ClientSession, baseNodeId: NodeId, tre
 
     const promises = [];
     // to do continuation points
-    for (const reference of  browseResult.references!) {
+    for (const reference of browseResult.references!) {
         const subtree = { nodeId: reference.nodeId.toString() };
         tree[reference.browseName.toString()] = subtree;
         promises.push(_getAllEventTypes(session, reference.nodeId, subtree));
@@ -478,7 +478,7 @@ async function main() {
     function print_stat() {
         t2 = Date.now();
         const str = util.format("R= %d W= %d T=%d t= %d",
-          client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
+            client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
         console.log(chalk.yellow.bold(str));
     }
 
@@ -535,12 +535,12 @@ async function main() {
     console.log(" -------------------------------------------------------------- Alarms & Conditions ------------------------");
     for (const alarm of alarms) {
         console.log(
-          "parent = ",
-          chalk.cyan(w(alarm.parent.toString(), 30)),
-          chalk.green.bold(w(alarm.typeDefinitionName, 30)),
-          "alarmName = ",
-          chalk.cyan(w(alarm.browseName.toString(), 30)),
-          chalk.yellow(w(alarm.alarmNodeId.toString(), 40))
+            "parent = ",
+            chalk.cyan(w(alarm.parent.toString(), 30)),
+            chalk.green.bold(w(alarm.typeDefinitionName, 30)),
+            "alarmName = ",
+            chalk.cyan(w(alarm.browseName.toString(), 30)),
+            chalk.yellow(w(alarm.alarmNodeId.toString(), 40))
         );
     }
     console.log(" -----------------------------------------------------------------------------------------------------------------");
@@ -617,13 +617,13 @@ async function main() {
         const span = t4 - t;
         t = t4;
         console.log("keepalive ", span / 1000, "sec",
-          " pending request on server = ", (the_subscription as any).getPublishEngine().nbPendingPublishRequests);
+            " pending request on server = ", (the_subscription as any).getPublishEngine().nbPendingPublishRequests);
 
     }).on("terminated", () => { /* */
     });
 
     try {
-        const results1 = await the_session.getMonitoredItems(the_subscription.subscriptionId);
+        const results1 = await the_subscription.getMonitoredItems();
         console.log("MonitoredItems clientHandles", results1.clientHandles);
         console.log("MonitoredItems serverHandles", results1.serverHandles);
     } catch (err) {
@@ -639,17 +639,17 @@ async function main() {
     // ---------------------------------------------------------------
     console.log(" Monitoring node ", monitored_node.toString());
     const monitoredItem = ClientMonitoredItem.create(
-      the_subscription,
-      {
-          attributeId: AttributeIds.Value,
-          nodeId: monitored_node
-      },
-      {
-          discardOldest: true,
-          queueSize: 10000,
-          samplingInterval: 1000
-          // xx filter:  { parameterTypeId: "ns=0;i=0",  encodingMask: 0 },
-      }
+        the_subscription,
+        {
+            attributeId: AttributeIds.Value,
+            nodeId: monitored_node
+        },
+        {
+            discardOldest: true,
+            queueSize: 10000,
+            samplingInterval: 1000
+            // xx filter:  { parameterTypeId: "ns=0;i=0",  encodingMask: 0 },
+        }
     );
     monitoredItem.on("initialized", () => {
         console.log("monitoredItem initialized");
@@ -661,10 +661,9 @@ async function main() {
         console.log(monitoredItem.itemToMonitor.nodeId.toString(), chalk.red(" ERROR"), err_message);
     });
 
-    const results = await the_session.getMonitoredItems(the_subscription.subscriptionId);
+    const results = await the_subscription.getMonitoredItems();
     console.log("MonitoredItems clientHandles", results.clientHandles);
     console.log("MonitoredItems serverHandles", results.serverHandles);
-
 
     console.log("Monitoring monitor_the_object_events");
 
@@ -719,16 +718,16 @@ async function main() {
     ]);
 
     const event_monitoringItem = ClientMonitoredItem.create(
-      the_subscription,
-      {
-          attributeId: AttributeIds.EventNotifier,
-          nodeId: serverObjectId
-      },
-      {
-          discardOldest: true,
-          filter: eventFilter,
-          queueSize: 100000
-      }
+        the_subscription,
+        {
+            attributeId: AttributeIds.EventNotifier,
+            nodeId: serverObjectId
+        },
+        {
+            discardOldest: true,
+            filter: eventFilter,
+            queueSize: 100000
+        }
     );
 
     event_monitoringItem.on("initialized", () => {
@@ -808,7 +807,7 @@ process.on("SIGINT", async () => {
         console.log(chalk.red.bold(" shutting down ..."));
         const subscription = the_subscription;
         the_subscription = null;
-        ;
+
         await subscription.terminate();
         await the_session.close();
         await client.disconnect();
