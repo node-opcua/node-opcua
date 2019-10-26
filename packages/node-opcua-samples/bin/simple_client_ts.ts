@@ -514,6 +514,7 @@ async function main() {
                 console.log(line);
             });
         }
+        crawler.dispose();
     }
     client.removeListener("receive_response", print_stat);
 

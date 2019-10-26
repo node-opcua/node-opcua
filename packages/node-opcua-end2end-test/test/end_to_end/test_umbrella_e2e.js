@@ -36,7 +36,7 @@ describe("testing Client - Umbrella ", function () {
         port: port,
         maxConnectionsPerEndpoint: 500,
         silent: true,
-        nodeset_filename: [ opcua.nodesets.standard_nodeset_file ]
+        nodeset_filename: [opcua.nodesets.standard_nodeset_file]
     };
 
     function start_external_server(done) {
@@ -63,18 +63,18 @@ describe("testing Client - Umbrella ", function () {
             }
             test.server.engine.addressSpace.should.be.instanceOf(opcua.AddressSpace);
 
-            build_address_space_for_conformance_testing(test.server.engine.addressSpace, {mass_variables: false});
+            build_address_space_for_conformance_testing(test.server.engine.addressSpace, { mass_variables: false });
 
             test.endpointUrl = test.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             test.temperatureVariableId = test.server.temperatureVariableId;
 
-            setTimeout(function() {
+            setTimeout(function () {
 
-                test.server.engine.currentSessionCount.should.eql(0," expecting ZERO session on server when test is starting !");
+                test.server.engine.currentSessionCount.should.eql(0, " expecting ZERO session on server when test is starting !");
                 console.log(" ..... done ");
                 done(err);
 
-            },1000);
+            }, 1000);
         });
     }
 
@@ -95,8 +95,8 @@ describe("testing Client - Umbrella ", function () {
     beforeEach(function (done) {
         // make sure that test has closed all sessions
         if (test.server) {
-           // test.nb_backgroundsession = test.server.engine.currentSessionCount;
-            test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession," expecting ZERO session o server when test is starting !");
+            // test.nb_backgroundsession = test.server.engine.currentSessionCount;
+            test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession, " expecting ZERO session o server when test is starting !");
         }
         done();
     });
@@ -145,10 +145,9 @@ describe("testing Client - Umbrella ", function () {
 
     afterEach(function (done) {
 
-        const extra_session = (test.server.engine.currentSessionCount !== test.nb_backgroundsession);
+        const extraSessionCount = (test.server.engine.currentSessionCount !== test.nb_backgroundsession);
 
-
-        if (extra_session && test.server) {
+        if (extraSessionCount && test.server) {
             console.log(" currentChannelCount          = ", test.server.currentChannelCount);
             console.log(" bytesWritten                 = ", test.server.bytesWritten);
             console.log(" bytesRead                    = ", test.server.bytesRead);
@@ -172,7 +171,7 @@ describe("testing Client - Umbrella ", function () {
 
 
         // make sure that test has closed all sessions
-        test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession," Test must have deleted all created session");
+        test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession, " Test must have deleted all created session");
         return done();
 
     });

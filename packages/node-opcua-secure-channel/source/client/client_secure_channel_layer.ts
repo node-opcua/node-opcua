@@ -544,6 +544,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._cancel_security_token_watchdog();
         if (this.__call) {
             this.__call.abort();
+            this.__call = null;
+        }
+        if (this._transport) {
+            this._transport.dispose();
+            this._transport = null;
         }
     }
 

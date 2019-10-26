@@ -401,6 +401,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this.messageChunker.dispose();
             // xx this.messageChunker = null;
         }
+        if (this.transport) {
+            this.transport.dispose();
+            (this as any).transport = null;
+        }
         this.channelId = 0xdeadbeef;
         this.timeoutId = null;
         this.sessionTokens = null;
@@ -1403,8 +1407,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
 }
 
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { thisExpression } from "babel-types";
-
 ServerSecureChannelLayer.registry = new ObjectRegistry({});
 
 (ServerSecureChannelLayer as any).prototype.checkCertificateCallback =

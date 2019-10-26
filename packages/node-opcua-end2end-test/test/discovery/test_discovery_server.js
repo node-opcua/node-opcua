@@ -32,13 +32,12 @@ describe("DS1 - Discovery server", function () {
     let server;
 
     before(function () {
-        OPCUAServer.registry.count().should.eql(0);
         server = new OPCUAServer({ port: 1235 });
     });
 
     after(function (done) {
-        OPCUAServer.registry.count().should.eql(0);
         server.shutdown(done);
+        server = null;
     });
 
     beforeEach(function (done) {
@@ -50,18 +49,21 @@ describe("DS1 - Discovery server", function () {
 
             discovery_server_endpointUrl = discovery_server._get_endpoints()[0].endpointUrl;
             debugLog(" discovery_server_endpointUrl = ", discovery_server_endpointUrl);
-            done();
+            setImmediate(done);
         });
     });
 
     afterEach(function (done) {
         discovery_server.shutdown(done);
+        discovery_server = null;
     });
 
     function send_registered_server_request(discovery_server_endpointUrl, registerServerRequest, externalFunc, done) {
 
 
-        const client = OPCUAClient.create({});
+        const client = OPCUAClient.create({
+            endpoint_must_exist: false,
+        });
         async.series([
             function (callback) {
                 client.connect(discovery_server_endpointUrl, callback);
@@ -78,7 +80,7 @@ describe("DS1 - Discovery server", function () {
                 });
             },
             function (callback) {
-                client.disconnect(callback);
+                setImmediate(() => client.disconnect(callback));
             }
         ], done);
     }
@@ -170,7 +172,6 @@ describe("DS1 - Discovery server", function () {
 
         function check_response(err, response) {
             should.not.exist(err);
-            //xx debugLog(response.toString());
             response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadServerNameMissing);
         }
 

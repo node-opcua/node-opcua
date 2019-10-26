@@ -53,8 +53,11 @@ describe("testing Client-Server - Event", function () {
 
         const client = OPCUAClient.create();
         client.on("close", function (err) {
-
-            should(err).eql(null, "No error shall be transmitted when client initiates the disconnection");
+            /*
+                        console.log(err);
+                        console.log(new Error("Here I am"));
+            */
+            should.not.exist(err, "No error shall be transmitted when client initiates the disconnection");
             close_counter++;
         });
 

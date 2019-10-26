@@ -111,9 +111,9 @@ const crypto_utils = opcua.crypto_utils;
 
 
 async function getBrowseName(session, nodeId) {
-   const dataValue =  await session.read({nodeId: nodeId, attributeId: AttributeIds.BrowseName});
+    const dataValue = await session.read({ nodeId: nodeId, attributeId: AttributeIds.BrowseName });
     if (dataValue.statusCode === opcua.StatusCodes.Good) {
-        return  dataValue.value.value.name;
+        return dataValue.value.value.name;
     }
     return null;
 }
@@ -130,7 +130,7 @@ async function __dumpEvent(session, fields, eventFields) {
     for (let variant of eventFields) {
 
         if (variant.dataType === DataType.Null) {
-             continue;
+            continue;
         }
         if (variant.dataType === DataType.NodeId) {
 
@@ -139,7 +139,7 @@ async function __dumpEvent(session, fields, eventFields) {
             console.log(
                 chalk.yellow(w(name, 20), w(fields[index], 15)),
                 chalk.cyan(w(DataType[variant.dataType], 10).toString()),
-              chalk.cyan.bold(name), "(", w(variant.value, 20), ")");
+                chalk.cyan.bold(name), "(", w(variant.value, 20), ")");
 
         } else {
             console.log(chalk.yellow(w("", 20), w(fields[index], 15)),
@@ -257,7 +257,7 @@ async function enumerateAllAlarmAndConditionInstances(the_session) {
                             found.push(alarm);
 
                         } else {
-                            q.push({nodeId: ref.nodeId});
+                            q.push({ nodeId: ref.nodeId });
                         }
                     });
                 }
@@ -325,9 +325,9 @@ async function getAllEventTypes(session, callback) {
             } else {
                 // to do continuation points
                 browseResult.references.forEach(function (reference) {
-                    const subtree = {nodeId: reference.nodeId.toString()};
+                    const subtree = { nodeId: reference.nodeId.toString() };
                     tree[reference.browseName.toString()] = subtree;
-                    q.push({nodeId: reference.nodeId, tree: subtree});
+                    q.push({ nodeId: reference.nodeId, tree: subtree });
                 });
 
             }
@@ -338,7 +338,7 @@ async function getAllEventTypes(session, callback) {
 
     const result = {};
 
-    q.push({nodeId: baseNodeId, tree: result});
+    q.push({ nodeId: baseNodeId, tree: result });
 
     q.drain(() => {
         callback(null, result);
@@ -372,7 +372,7 @@ async.series([
 
         client = opcua.OPCUAClient.create(options);
 
-        console.log(" connecting to ",chalk.cyan.bold(endpointUrl));
+        console.log(" connecting to ", chalk.cyan.bold(endpointUrl));
         console.log("    strategy", client.connectionStrategy);
 
         client.connect(endpointUrl, callback);
@@ -453,7 +453,7 @@ async.series([
 
             defaultSecureTokenLifetime: 40000,
 
-            endpoint_must_exist:false,
+            endpoint_must_exist: false,
 
             connectionStrategy: {
                 maxRetry: 10,
@@ -465,7 +465,7 @@ async.series([
 
         client = opcua.OPCUAClient.create(options);
 
-        console.log(" reconnecting to ",chalk.cyan.bold(endpointUrl));
+        console.log(" reconnecting to ", chalk.cyan.bold(endpointUrl));
         client.connect(endpointUrl, callback);
     },
 
@@ -580,10 +580,11 @@ async.series([
                             console.log(line);
                         });
                     } else {
-                        process.exit(1);
+                      //  process.exit(1);
                     }
                 }
                 client.removeListener("receive_response", print_stat);
+                crawler.dispose();
                 callback(err);
             });
 
@@ -656,7 +657,7 @@ async.series([
         }
         const now = Date.now();
         const start = now - 1000; // read 1 seconds of history
-        the_session.readHistoryValue(monitored_node,start,now,function(err,historicalReadResult) {
+        the_session.readHistoryValue(monitored_node, start, now, function (err, historicalReadResult) {
 
             if (!err) {
                 console.log(" historicalReadResult =", historicalReadResult.toString());
@@ -862,7 +863,7 @@ async.series([
                 the_subscription.once("terminated", function () {
                     callback();
                 });
-                the_subscription.terminate(function(){});
+                the_subscription.terminate(function () { });
             }, timeout);
 
             // simulate a connection break at t =timeout/2
@@ -933,7 +934,7 @@ process.on("SIGINT", function () {
         console.log(chalk.red.bold(" Received client interruption from user "));
         console.log(chalk.red.bold(" shutting down ..."));
 
-        the_subscription.terminate(function() {});
+        the_subscription.terminate(function () { });
         the_subscription = null;
     }
 });

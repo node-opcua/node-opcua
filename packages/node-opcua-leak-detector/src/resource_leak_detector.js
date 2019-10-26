@@ -31,8 +31,8 @@ function ResourceLeakDetector() {
     self.honoredTimeoutFuncCallCount = 0;
     self.setTimeoutCallPendingCount = 0;
 
-    self.interval_map ={};
-    self.timeout_map ={};
+    self.interval_map = {};
+    self.timeout_map = {};
 }
 
 /**
@@ -41,25 +41,25 @@ function ResourceLeakDetector() {
  * @param info
  * @return {boolean}
  */
-ResourceLeakDetector.prototype.verify_registry_counts = function (info) {
+ResourceLeakDetector.prototype.verify_registry_counts = function(info) {
     const errorMessages = [];
 
     const self = this;
 
     if (self.clearIntervalCallCount !== self.setIntervalCallCount) {
         errorMessages.push(" setInterval doesn't match number of clearInterval calls : \n      " +
-                           " setIntervalCallCount = "  + self.setIntervalCallCount +
-                           " clearIntervalCallCount = " + self.clearIntervalCallCount);
+            " setIntervalCallCount = " + self.setIntervalCallCount +
+            " clearIntervalCallCount = " + self.clearIntervalCallCount);
     }
-    if ((self.clearTimeoutCallCount +self.honoredTimeoutFuncCallCount) !== self.setTimeoutCallCount) {
-          errorMessages.push(" setTimeout doesn't match number of clearTimeout or achieved timer calls : \n     " +
-                             " setTimeoutCallCount = " + self.setTimeoutCallCount +
-                             " clearTimeoutCallCount = " + self.clearTimeoutCallCount +
-                             " honoredTimeoutFuncCallCount = " + self.honoredTimeoutFuncCallCount);
+    if ((self.clearTimeoutCallCount + self.honoredTimeoutFuncCallCount) !== self.setTimeoutCallCount) {
+        errorMessages.push(" setTimeout doesn't match number of clearTimeout or achieved timer calls : \n     " +
+            " setTimeoutCallCount = " + self.setTimeoutCallCount +
+            " clearTimeoutCallCount = " + self.clearTimeoutCallCount +
+            " honoredTimeoutFuncCallCount = " + self.honoredTimeoutFuncCallCount);
     }
     if (self.setTimeoutCallPendingCount !== 0) {
         errorMessages.push(" setTimeoutCallPendingCount is not zero: some timer are still pending " +
-          self.setTimeoutCallPendingCount);
+            self.setTimeoutCallPendingCount);
     }
 
     const monitoredResource = ObjectRegistry.registries;
@@ -73,14 +73,14 @@ ResourceLeakDetector.prototype.verify_registry_counts = function (info) {
 
     if (errorMessages.length) {
 
-//xx        if (info) {
-//xx            console.log(" TRACE : ", info);
-//xx        }
+        //xx        if (info) {
+        //xx            console.log(" TRACE : ", info);
+        //xx        }
         console.log(errorMessages.join("\n"));
         console.log("----------------------------------------------- more info");
 
         console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setInterval/clearInterval");
-        _.forEach(self.interval_map, function (value, key) {
+        _.forEach(self.interval_map, function(value, key) {
             if (value && !value.disposed) {
                 console.log("key =", key, "value.disposed = ", value.disposed);
                 console.log(value.stack);//.split("\n"));
@@ -89,7 +89,7 @@ ResourceLeakDetector.prototype.verify_registry_counts = function (info) {
 
 
         console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setTimeout/clearTimeout");
-        _.forEach(self.timeout_map, function (value, key) {
+        _.forEach(self.timeout_map, function(value, key) {
             if (value && !value.disposed) {
                 console.log("setTimeout key =", key, "value.disposed = ", value.disposed);
                 console.log(value.stack);//.split("\n"));
@@ -104,7 +104,7 @@ ResourceLeakDetector.prototype.verify_registry_counts = function (info) {
 };
 
 global.hasResourceLeakDetector = true;
-ResourceLeakDetector.prototype.start = function (info) {
+ResourceLeakDetector.prototype.start = function(info) {
 
     global.ResourceLeakDetectorStarted = true;
 
@@ -136,7 +136,7 @@ ResourceLeakDetector.prototype.start = function (info) {
     self.verify_registry_counts(self, info);
 
     if (monitor_intervals) {
-        global.setTimeout = function (func, delay) {
+        global.setTimeout = function(func, delay) {
 
             assert(arguments.length === 2, "current limitation:  setTimeout must be called with 2 arguments");
             // detect invalid delays
@@ -155,7 +155,7 @@ ResourceLeakDetector.prototype.start = function (info) {
 
             const key = self.setTimeoutCallCount;
 
-            const timeoutId = self.setTimeout_old(function () {
+            const timeoutId = self.setTimeout_old(function() {
 
                 if (!self.timeout_map[key] || self.timeout_map[key].isCleared) {
                     // throw new Error("Invalid timeoutId, timer has already been cleared - " + key);
@@ -163,7 +163,7 @@ ResourceLeakDetector.prototype.start = function (info) {
                     return;
                 }
                 if (self.timeout_map[key].hasBeenHonored) {
-                    throw new Error("setTimeout:  "+ key + " time out has already been honored");
+                    throw new Error("setTimeout:  " + key + " time out has already been honored");
                 }
                 self.honoredTimeoutFuncCallCount += 1;
                 self.setTimeoutCallPendingCount -= 1;
@@ -182,14 +182,14 @@ ResourceLeakDetector.prototype.start = function (info) {
             return key + 100000;
         };
 
-        global.clearTimeout = function (timeoutId) {
+        global.clearTimeout = function(timeoutId) {
             // workaround for a bug in 'backoff' module, which call clearTimeout with -1 ( invalid ide)
             if (timeoutId === -1) {
                 console.log("warning clearTimeout is called with illegal timeoutId === 1, this call will be ignored ( backoff module bug?)");
                 return;
             }
 
-            if (timeoutId>=0 && timeoutId< 100000) {
+            if (timeoutId >= 0 && timeoutId < 100000) {
                 throw new Error("clearTimeout has been called instead of clearInterval");
             }
             timeoutId -= 100000;
@@ -226,7 +226,7 @@ ResourceLeakDetector.prototype.start = function (info) {
 
     }
 
-    global.setInterval = function (func, delay) {
+    global.setInterval = function(func, delay) {
         assert(arguments.length === 2);
         assert(delay !== undefined);
         assert(_.isFinite(delay));
@@ -245,7 +245,7 @@ ResourceLeakDetector.prototype.start = function (info) {
         try {
             stack = get_stack();
         }
-        catch(err) {
+        catch (err) {
 
         }
         self.interval_map[key] = {
@@ -261,9 +261,9 @@ ResourceLeakDetector.prototype.start = function (info) {
         return key;
     };
 
-    global.clearInterval = function (intervalId) {
+    global.clearInterval = function(intervalId) {
 
-        if ( intervalId>= 100000) {
+        if (intervalId >= 100000) {
             throw new Error("clearInterval has been called instead of clearTimeout");
         }
         self.clearIntervalCallCount += 1;
@@ -280,22 +280,22 @@ ResourceLeakDetector.prototype.start = function (info) {
         delete self.interval_map[key];
 
         data.disposed = true;
-        const retValue =  self.clearInterval_old(data.intervalId);
+        const retValue = self.clearInterval_old(data.intervalId);
 
         return retValue;
     };
 
 };
 
-ResourceLeakDetector.prototype.check = function () {
+ResourceLeakDetector.prototype.check = function() {
 
 };
 
-ResourceLeakDetector.prototype.stop = function (info) {
-    if(!global.ResourceLeakDetectorStarted) {
+ResourceLeakDetector.prototype.stop = function(info) {
+    if (!global.ResourceLeakDetectorStarted) {
         return;
     }
-    global.ResourceLeakDetectorStarted =false;
+    global.ResourceLeakDetectorStarted = false;
 
     const self = ResourceLeakDetector.singleton;
     if (trace) {
@@ -316,7 +316,7 @@ ResourceLeakDetector.prototype.stop = function (info) {
     self.clearTimeout_old = null;
 
 
-    const results=  self.verify_registry_counts(info);
+    const results = self.verify_registry_counts(info);
 
     self.interval_map = {};
     self.timeout_map = {};
@@ -327,7 +327,7 @@ ResourceLeakDetector.prototype.stop = function (info) {
         global.gc(true);
     }
 
-    const doHeapdump =false;
+    const doHeapdump = false;
     if (doHeapdump) {
         const heapdump = require('heapdump');
         heapdump.writeSnapshot(function(err, filename) {
@@ -343,12 +343,12 @@ const resourceLeakDetector = ResourceLeakDetector.singleton;
 
 const trace_from_this_project_only = require("node-opcua-debug").trace_from_this_projet_only;
 
-exports.installResourceLeakDetector = function (isGlobal, func) {
+exports.installResourceLeakDetector = function(isGlobal, func) {
 
     const trace = trace_from_this_project_only();
 
     if (isGlobal) {
-        before(function () {
+        before(function() {
             const self = this;
             resourceLeakDetector.ctx = self.test.ctx;
             resourceLeakDetector.start();
@@ -366,7 +366,7 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
         if (func) {
             func.call(this);
         }
-        after(function () {
+        after(function() {
             resourceLeakDetector.stop(null);
             resourceLeakDetector.ctx = false;
             // make sure we start with a garbage collected situation
@@ -376,7 +376,7 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
         });
 
     } else {
-        beforeEach(function () {
+        beforeEach(function() {
 
             if (global.gc) {
                 global.gc(true);
@@ -386,7 +386,7 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
             resourceLeakDetector.ctx = self.test.ctx;
             resourceLeakDetector.start();
         });
-        afterEach(function () {
+        afterEach(function() {
             resourceLeakDetector.stop(trace);
             resourceLeakDetector.ctx = false;
             // make sure we start with a garbage collected situation
@@ -399,16 +399,16 @@ exports.installResourceLeakDetector = function (isGlobal, func) {
 };
 
 const global_describe = describe;
-assert(_.isFunction(global_describe)," expecting mocha to be defined");
+assert(_.isFunction(global_describe), " expecting mocha to be defined");
 
 let g_indescribeWithLeakDetector = false;
-exports.describeWithLeakDetector = function (message, func) {
+exports.describeWithLeakDetector = function(message, func) {
     if (g_indescribeWithLeakDetector) {
-        return global_describe(message,func);
+        return global_describe(message, func);
     }
     g_indescribeWithLeakDetector = true;
-    global_describe.call(this, message, function () {
-        exports.installResourceLeakDetector.call(this, true,func);
+    global_describe.call(this, message, function() {
+        exports.installResourceLeakDetector.call(this, true, func);
         g_indescribeWithLeakDetector = false;
     });
 };

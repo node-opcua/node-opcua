@@ -37,7 +37,7 @@ const g_defaultSecureTokenLifetime = 30 * 1000; // ms
 const g_tokenRenewalInterval = 400; // renew token as fast as possible
 const g_numberOfTokenRenewal = 3;
 
-let server, temperatureVariableId, endpointUrl, serverCertificate;
+let server, endpointUrl, serverCertificate, temperatureVariableId;
 
 const no_reconnect_connectivity_strategy = {
     maxRetry: 0, // NO RETRY !!!
@@ -196,6 +196,11 @@ const start_server_with_4096bits_certificate = function (callback) {
 function stop_server(data, callback) {
 
     stop_inner_server_local(data, callback);
+    temperatureVariableId = null;
+    endpointUrl = null;
+    serverCertificate = null;
+
+
 }
 
 //xx start_server=start_server1;
@@ -490,7 +495,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
 
     this.timeout(Math.max(this._timeout, 20001));
 
-    let serverHandle, client;
+    let serverHandle;
     before(function (done) {
         start_server(function (err, handle) {
             serverHandle = handle;
@@ -499,6 +504,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
     });
     after(function (done) {
         stop_server(serverHandle, function () {
+            serverHandle = null;
             done();
         });
     });
@@ -515,7 +521,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = OPCUAClient.create(options);
+        const client = OPCUAClient.create(options);
         trustCertificateOnServer(client.clientCertificate, () => {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
@@ -541,7 +547,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = OPCUAClient.create(options);
+        const client = OPCUAClient.create(options);
 
         trustCertificateOnServer(client.certificateFile, () => {
 
@@ -569,7 +575,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = OPCUAClient.create(options);
+        const client = OPCUAClient.create(options);
         trustCertificateOnServer(client.certificateFile, () => {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 inner_done();
@@ -593,7 +599,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = OPCUAClient.create(options);
+        const client = OPCUAClient.create(options);
         trustCertificateOnServer(client.certificateFile, () => {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 inner_done();
@@ -616,7 +622,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
             connectionStrategy: no_reconnect_connectivity_strategy
 
         };
-        client = OPCUAClient.create(options);
+        const client = OPCUAClient.create(options);
         trustCertificateOnServer(client.certificateFile, () => {
 
             const old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
@@ -653,7 +659,7 @@ describe("ZZA- testing Secure Client-Server communication", function () {
         };
 
         let token_change = 0;
-        client = OPCUAClient.create(options);
+        const client = OPCUAClient.create(options);
 
         trustCertificateOnServer(client.certificateFile, () => {
 
