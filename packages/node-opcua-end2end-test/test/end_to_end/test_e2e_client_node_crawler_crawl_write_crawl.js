@@ -6,22 +6,22 @@ const async = require("async");
 const _ = require("underscore");
 
 const opcua = require("node-opcua");
-const DataType    = opcua.DataType;
+const DataType = opcua.DataType;
 const OPCUAClient = opcua.OPCUAClient;
 const NodeCrawler = opcua.NodeCrawler;
 
-const debugLog  = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-const address_space_for_conformance_testing  = require("node-opcua-address-space-for-conformance-testing");
+const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
 const build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-describe("NodeCrawler after write",function(){
+describe("NodeCrawler after write", function () {
 
     const namespaceIndex = 411;
     const port = 2555;
@@ -32,13 +32,13 @@ describe("NodeCrawler after write",function(){
 
     let server, client, temperatureVariableId, endpointUrl;
 
-    before(function(done){
+    before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         //port+=1;
-        server = build_server_with_temperature_device({ port:port},function(err) {
+        server = build_server_with_temperature_device({ port: port }, function (err) {
 
-            build_address_space_for_conformance_testing(server.engine.addressSpace, {mass_variables: false});
+            build_address_space_for_conformance_testing(server.engine.addressSpace, { mass_variables: false });
 
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -46,9 +46,9 @@ describe("NodeCrawler after write",function(){
         });
     });
 
-    beforeEach(function(done){
+    beforeEach(function (done) {
         client = OPCUAClient.create({
-            requestedSessionTimeout: 60*1000*4 // 4 minutes
+            requestedSessionTimeout: 60 * 1000 * 4 // 4 minutes
         });
         client.on("backoff", (count, delay) => {
             console.log("Backoff ", endpointUrl);
@@ -56,21 +56,21 @@ describe("NodeCrawler after write",function(){
         done();
     });
 
-    afterEach(function(done){
+    afterEach(function (done) {
         client = null;
         done();
     });
 
-    after(function(done){
+    after(function (done) {
         server.shutdown(done);
     });
 
 
-    it("should crawl, write to node, and crawl again", function(done) {
+    it("should crawl, write to node, and crawl again", function (done) {
 
         perform_operation_on_client_session(client, endpointUrl, function (session, session_done) {
             async.series([
-                function(inner_done) {
+                function (inner_done) {
                     const crawler = new NodeCrawler(session);
 
                     const nodeId = "RootFolder";
@@ -85,11 +85,12 @@ describe("NodeCrawler after write",function(){
                             obj.organizes[2].browseName.toString().should.eql("Views");
                             obj.typeDefinition.should.eql("FolderType");
                         }
+                        crawler.dispose();
                         inner_done(err);
                     });
                 },
 
-                function(inner_done) {
+                function (inner_done) {
 
                     const nodeId = "ns=2;s=Scalar_Static_Boolean";// opcua.coerceNodeId(2294);
 
@@ -98,7 +99,7 @@ describe("NodeCrawler after write",function(){
                         value: true
                     };
 
-                    session.writeSingleNode(nodeId, dataValue,function(err, results){
+                    session.writeSingleNode(nodeId, dataValue, function (err, results) {
 
 
                         if (err) {
@@ -112,7 +113,7 @@ describe("NodeCrawler after write",function(){
                     });
                 },
 
-                function(inner_done) {
+                function (inner_done) {
                     const crawler = new NodeCrawler(session);
 
                     const nodeId = "RootFolder";
@@ -126,6 +127,7 @@ describe("NodeCrawler after write",function(){
                             obj.organizes[2].browseName.toString().should.eql("Views");
                             obj.typeDefinition.should.eql("FolderType");
                         }
+                        crawler.dispose();
                         inner_done(err);
                     });
                 }
