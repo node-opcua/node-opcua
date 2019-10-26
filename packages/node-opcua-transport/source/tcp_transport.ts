@@ -9,6 +9,7 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import * as  debug from "node-opcua-debug";
+import { ObjectRegistry } from "node-opcua-object-registry";
 import { PacketAssembler } from "node-opcua-packet-assembler";
 
 import { readRawMessageHeader } from "./message_builder_base";
@@ -38,6 +39,8 @@ let counter = 0;
 
 // tslint:disable:class-name
 export class TCP_transport extends EventEmitter {
+
+    private static registry = new ObjectRegistry();
 
     /**
      * indicates the version number of the OPCUA protocol used
@@ -93,6 +96,9 @@ export class TCP_transport extends EventEmitter {
 
         this._onSocketClosedHasBeenCalled = false;
         this._onSocketEndedHasBeenCalled = false;
+
+        TCP_transport.registry.register(this);
+
     }
 
     public get timeout(): number {
@@ -103,12 +109,14 @@ export class TCP_transport extends EventEmitter {
         this._timeout = value;
     }
     public dispose() {
+        this._cleanup_timers();
         assert(!this._timerId);
         if (this._socket) {
             this._socket.destroy();
             this._socket.removeAllListeners();
             this._socket = null;
         }
+        TCP_transport.registry.unregister(this);
     }
 
     /**
@@ -252,6 +260,8 @@ export class TCP_transport extends EventEmitter {
             .on("close", (hadError) => this._on_socket_close(hadError))
             .on("end", (err: Error) => this._on_socket_end(err))
             .on("error", (err: Error) => this._on_socket_error(err));
+
+        this._socket.once("close", () => this.dispose());
 
         // set socket timeout
         debugLog("setting " + this.name + " _socket.setTimeout to ", this.timeout);
