@@ -44,8 +44,6 @@ let mocha = new Mocha({
     slow: 6000,
 });
 
-const doHeapSnapshot = !!process.env["HEAPSNAPSHOT"];
-const doHeapSnapshotGlobal = true;
 
 let testFiles = [];
 
@@ -165,7 +163,15 @@ function forceGC() {
     }
 }
 
-var heapdump = require('heapdump');
+const doHeapSnapshot = !!process.env["HEAPSNAPSHOT"];
+const doHeapSnapshotGlobal = true;
+var heapdump = null;
+try {
+    heapdump = require("heapdump");
+}
+catch (err) {
+
+}
 
 function checkMemoryConsumption() {
     forceGC();
@@ -191,6 +197,12 @@ const symbols = {
     comma: ',',
     bang: '!'
 }
+if (process.platform === 'win32') {
+    symbols.ok = '\u221A';
+    symbols.err = '\u00D7';
+    symbols.dot = '.';
+}
+
 class MyReporter {
     constructor(runner) {
         this._indents = 0;
@@ -203,12 +215,14 @@ class MyReporter {
             .once(EVENT_RUN_BEGIN, () => {
                 console.log('start');
 
-                if (doHeapSnapshotGlobal)
+                if (doHeapSnapshotGlobal && heapdump)
                     heapdump.writeSnapshot('./' + heapsnapshot + '.start.heapsnapshot');
             })
             .on(EVENT_SUITE_BEGIN, test => {
-                process.stdout.clearLine();  // clear current text
-                process.stdout.cursorTo(0);  // move cursor to beginning of line
+                if (process.stdout.cursorTo && process.stdout.clearLine) {
+                    process.stdout.clearLine();  // clear current text
+                    process.stdout.cursorTo(0);  // move cursor to beginning of line
+                }
                 console.log("                  " + this.indent() + chalk.yellow(test.title));
                 this.increaseIndent();
             })
@@ -218,7 +232,7 @@ class MyReporter {
                 this.memBefore = mem;
                 let memInfo = mem.toPrecision(5);
                 this.displayStatus(test, chalk.cyan(symbols.dot), chalk.grey(memInfo), "", "\r");
-                if (doHeapSnapshot)
+                if (doHeapSnapshot && heapdump)
                     heapdump.writeSnapshot('./' + Date.now() + '.start.' + this.counter + '.heapsnapshot');
 
                 this.old_console = console.log;
@@ -246,7 +260,7 @@ class MyReporter {
                     memInfo = chalk.grey(memInfo);
                 }
                 this.displayStatus(test, chalk.greenBright(symbols.ok), memInfo, extra, "\n");
-                if (doHeapSnapshot)
+                if (doHeapSnapshot && heapdump)
                     heapdump.writeSnapshot('./' + Date.now() + '.end.' + this.counter + '.heapsnapshot');
             })
             .on(EVENT_TEST_SKIPPED, (test) => {
@@ -257,7 +271,7 @@ class MyReporter {
 
                 console.log = oldConsole;
 
-                this.displayStatus(test, chalk.red(symbols.fail), "     ", "", "\n");
+                this.displayStatus(test, chalk.red(symbols.err), "     ", "", "\n");
                 console.log(err);
             })
             .once(EVENT_RUN_END, () => {
@@ -267,17 +281,18 @@ class MyReporter {
                 console.log(`end: ${stats.passes} / ${stats.passes + stats.failures} ok   (mem = ${memInfo} MB)`);
                 console.log(`total test: ${this.total}`);
                 console.log("max mem =", this.maxMem.toPrecision(5), "MB");
-                if (doHeapSnapshotGlobal)
+                if (doHeapSnapshotGlobal && heapdump)
                     heapdump.writeSnapshot('./' + heapsnapshot + '.end.heapsnapshot');
             });
     }
     displayStatus(test, status, mem, extra, ending) {
         extra = extra || "";
         try {
-            process.stdout.cursorTo(0);  // move cursor to beginning of line
-            process.stdout.clearLine();  // clear current text
-
-            process.stdout.cursorTo(0);  // move cursor to beginning of line
+            if (process.stdout.cursorTo && process.stdout.clearLine) {
+                process.stdout.cursorTo(0);  // move cursor to beginning of line
+                process.stdout.clearLine();  // clear current text
+                process.stdout.cursorTo(0);  // move cursor to beginning of line
+            }
             const title = this.indent() + status + " " + test.title;
             const progress = this.counter.toString().padStart(4, " ") + "/" + this.total;
             process.stdout.write(mem + " " + progress + " " + title + extra + ending);
