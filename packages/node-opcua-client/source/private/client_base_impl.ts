@@ -890,22 +890,18 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         if (this._secureChannel) {
 
-            const tmpChannel = this._secureChannel;
-
-            this._destroy_secure_channel();
+            let tmpChannel: any = this._secureChannel;
+            this._secureChannel = null;
 
             tmpChannel.close(() => {
-
-                debugLog(" EMIT NORMAL CLOSE");
-                /**
-                 * @event close
-                 */
-                this.emit("close", null);
+                this._secureChannel = tmpChannel;
+                tmpChannel = null;
+                this._destroy_secure_channel();
                 setImmediate(callback);
             });
         } else {
             this.emit("close", null);
-            callback();
+            setImmediate(callback);
         }
     }
 
@@ -1014,29 +1010,35 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         });
 
     }
-
-    private _destroy_secure_channel() {
-
+    private _acculumate_statistics() {
         if (this._secureChannel) {
-
-            if (doDebug) {
-                debugLog(" DESTROYING SECURE CHANNEL ", this._secureChannel.isTransactionInProgress());
-            }
             // keep accumulated statistics
             this._byteWritten += this._secureChannel.bytesWritten;
             this._byteRead += this._secureChannel.bytesRead;
             this._transactionsPerformed += this._secureChannel.transactionsPerformed;
             this._timedOutRequestCount += this._secureChannel.timedOutRequestCount;
-
-            this._secureChannel.dispose();
-
-            this._secureChannel.removeAllListeners();
-            this._secureChannel = null;
-
             if (doDebug) {
                 debugLog("byteWritten  = ", this._byteWritten);
                 debugLog("byteRead     = ", this._byteRead);
+                debugLog("transactions = ", this._transactionsPerformed);
             }
+
+        }
+    }
+    private _destroy_secure_channel() {
+
+        if (this._secureChannel) {
+
+            if (doDebug) {
+                debugLog(" DESTROYING SECURE CHANNEL (isTransactionInProgress ?", this._secureChannel.isTransactionInProgress(), ")");
+            }
+
+            this._acculumate_statistics();
+
+            this._secureChannel.dispose();
+            this._secureChannel.removeAllListeners();
+            this._secureChannel = null;
+
         }
     }
 

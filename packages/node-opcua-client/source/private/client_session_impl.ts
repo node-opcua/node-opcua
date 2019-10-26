@@ -1971,6 +1971,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this._terminatePublishEngine();
         this.stopKeepAliveManager();
         this.removeAllListeners();
+        //
+        const privateThis = this as any;
+        assert(!privateThis.pendingTransactions || privateThis.pendingTransactions.length === 0);
     }
 
     public toString(): string {

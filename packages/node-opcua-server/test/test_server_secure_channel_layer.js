@@ -15,30 +15,32 @@ describe("testing ServerSecureChannelLayer ", function () {
 
     it("KK1 should create a ServerSecureChannelLayer", function () {
 
-        let server_secure_channel = new ServerSecureChannelLayer({});
-        server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
-        server_secure_channel.timeout.should.be.greaterThan(100);
+        let serverSecureChannel = new ServerSecureChannelLayer({});
+        serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
+        serverSecureChannel.timeout.should.be.greaterThan(100);
 
-        server_secure_channel.dispose();
+        serverSecureChannel.dispose();
     });
 
     it("KK2 should end with a timeout if no message is received from client", function (done) {
 
         const node = new DirectTransport();
-        const server_secure_channel = new ServerSecureChannelLayer({
-             timeout:50,
+        const serverSecureChannel = new ServerSecureChannelLayer({
+            timeout: 50,
 
         });
 
-        server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
-        server_secure_channel.timeout = 50;
+        serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
+        serverSecureChannel.timeout = 50;
 
-        server_secure_channel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, function (err) {
             err.message.should.match(/Timeout/);
+
+            serverSecureChannel.dispose();
             done();
         });
 
-        server_secure_channel.on("abort", function () {
+        serverSecureChannel.on("abort", function () {
             console.log("Abort");
         });
     });
@@ -49,19 +51,21 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         let server_has_emitted_the_abort_message = false;
 
-        const server_secure_channel = new ServerSecureChannelLayer({});
-        server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
-        server_secure_channel.timeout = 50;
+        const serverSecureChannel = new ServerSecureChannelLayer({});
+        serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
+        serverSecureChannel.timeout = 50;
 
-        server_secure_channel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, function (err) {
 
             err.message.should.match(/Timeout waiting for OpenChannelRequest/);
             server_has_emitted_the_abort_message.should.eql(true);
+
+            serverSecureChannel.dispose();
             done();
 
         });
 
-        server_secure_channel.on("abort", function () {
+        serverSecureChannel.on("abort", function () {
             server_has_emitted_the_abort_message = true;
         });
 
@@ -76,26 +80,26 @@ describe("testing ServerSecureChannelLayer ", function () {
         const node = new DirectTransport();
 
         let server_has_emitted_the_abort_message = false;
-        let server_secure_channel = new ServerSecureChannelLayer({});
-        server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
+        let serverSecureChannel = new ServerSecureChannelLayer({});
+        serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
 
-        server_secure_channel.timeout = 1000;
+        serverSecureChannel.timeout = 1000;
 
-        server_secure_channel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, function (err) {
 
             err.message.should.match(/Expecting OpenSecureChannelRequest/);
 
 
-            server_secure_channel.close(function () {
-                server_secure_channel.dispose();
-                server_secure_channel = null;
+            serverSecureChannel.close(function () {
+                serverSecureChannel.dispose();
+                serverSecureChannel = null;
                 server_has_emitted_the_abort_message.should.equal(true);
                 done();
             });
         });
 
-        server_secure_channel.on("abort", function () {
+        serverSecureChannel.on("abort", function () {
             server_has_emitted_the_abort_message = true;
         });
 
@@ -112,13 +116,13 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         const node = new DirectTransport();
 
-        let server_secure_channel = new ServerSecureChannelLayer({});
-        server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
-        server_secure_channel.timeout = 50; // milliseconds !
-        server_secure_channel.init(node.server, function (err) {
+        let serverSecureChannel = new ServerSecureChannelLayer({});
+        serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
+        serverSecureChannel.timeout = 50; // milliseconds !
+        serverSecureChannel.init(node.server, function (err) {
             should.not.exist(err);
-            server_secure_channel.close(function() {
-                server_secure_channel.dispose();
+            serverSecureChannel.close(function () {
+                serverSecureChannel.dispose();
                 done();
             });
         });
@@ -129,9 +133,9 @@ describe("testing ServerSecureChannelLayer ", function () {
         const fake_OpenSecureChannelRequest = require("node-opcua-transport/dist/test-fixtures").packet_cs_2; // OPN
         node.client.write(fake_OpenSecureChannelRequest);
 
-        ///     server_secure_channel.close(function () {
-        ///            server_secure_channel.dispose();
-        ///      server_secure_channel = null;
+        ///     serverSecureChannel.close(function () {
+        ///            serverSecureChannel.dispose();
+        ///      serverSecureChannel = null;
         /// });
     });
 
@@ -139,26 +143,26 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         const node = new DirectTransport();
 
-        const server_secure_channel = new ServerSecureChannelLayer({});
-        server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
-        server_secure_channel.timeout = 50;
+        const serverSecureChannel = new ServerSecureChannelLayer({});
+        serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
+        serverSecureChannel.timeout = 50;
 
-        server_secure_channel.channelId = 8;
+        serverSecureChannel.channelId = 8;
 
-        server_secure_channel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, function (err) {
             should.not.exist(err);
 
             setImmediate(() => {
                 const fake_GetEndpointsRequest = require("node-opcua-transport/dist/test-fixtures").packet_cs_3; // GetEndPoints
-                fake_GetEndpointsRequest.writeInt16LE(server_secure_channel.channelId, 8);
+                fake_GetEndpointsRequest.writeInt16LE(serverSecureChannel.channelId, 8);
                 node.client.write(fake_GetEndpointsRequest);
             })
         });
-        server_secure_channel.on("message", function (message) {
+        serverSecureChannel.on("message", function (message) {
             message.request.schema.name.should.equal("GetEndpointsRequest");
             setImmediate(function () {
-                server_secure_channel.close(function () {
-                    server_secure_channel.dispose();
+                serverSecureChannel.close(function () {
+                    serverSecureChannel.dispose();
                     done();
                 });
             });
@@ -171,9 +175,9 @@ describe("testing ServerSecureChannelLayer ", function () {
         node.client.write(fake_OpenSecureChannelRequest);
 
 
-        // server_secure_channel.close(function() {
-        //     server_secure_channel.dispose();
-        //     server_secure_channel= null;
+        // serverSecureChannel.close(function() {
+        //     serverSecureChannel.dispose();
+        //     serverSecureChannel= null;
         //     done();
         // });
     });
@@ -182,15 +186,15 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         const node = new DirectTransport();
 
-        let server_secure_channel = new ServerSecureChannelLayer({});
-        server_secure_channel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
-        server_secure_channel.timeout = 50;
-        server_secure_channel.init(node.server, function (err) {
+        let serverSecureChannel = new ServerSecureChannelLayer({});
+        serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
+        serverSecureChannel.timeout = 50;
+        serverSecureChannel.init(node.server, function (err) {
             should.not.exist(err);
         });
 
         let nb_on_message_calls = 0;
-        server_secure_channel.on("message", function (message) {
+        serverSecureChannel.on("message", function (message) {
 
             message.request.schema.name.should.not.equal("CloseSecureChannelRequest");
             nb_on_message_calls.should.equal(0);
@@ -199,10 +203,10 @@ describe("testing ServerSecureChannelLayer ", function () {
             message.request.schema.name.should.equal("GetEndpointsRequest");
         });
 
-        server_secure_channel.on("abort", function () {
+        serverSecureChannel.on("abort", function () {
 
-            server_secure_channel.dispose();
-            server_secure_channel = null;
+            serverSecureChannel.dispose();
+            serverSecureChannel = null;
             done();
         });
 
@@ -213,12 +217,12 @@ describe("testing ServerSecureChannelLayer ", function () {
         node.client.write(fake_OpenSecureChannelRequest);
 
         const fake_GetEndpointsRequest = require("node-opcua-transport/dist/test-fixtures").packet_cs_3; // GEP
-        fake_GetEndpointsRequest.writeInt16LE(server_secure_channel.channelId, 8);
+        fake_GetEndpointsRequest.writeInt16LE(serverSecureChannel.channelId, 8);
 
         node.client.write(fake_GetEndpointsRequest);
 
         const fake_CloseSecureChannelRequest = require("node-opcua-transport/dist/test-fixtures").packet_cs_4; // CLO
-        fake_CloseSecureChannelRequest.writeInt16LE(server_secure_channel.channelId,8);
+        fake_CloseSecureChannelRequest.writeInt16LE(serverSecureChannel.channelId, 8);
 
         node.client.write(fake_CloseSecureChannelRequest);
 
