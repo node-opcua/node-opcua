@@ -65,7 +65,9 @@ export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
 }
 
 export function BaseNode_removePrivate(self: BaseNode): void {
-    g_weakMap.delete(self);
+    // there is no need to delete object from weakmap
+    // the GC will take care of this in due course
+    // g_weakMap.delete(self);
 }
 
 export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
