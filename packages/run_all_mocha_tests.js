@@ -314,7 +314,10 @@ class MyReporter {
         this._indents--;
     }
 }
-mocha.reporter(MyReporter);
+
+// mocha.reporter(MyReporter);
+
+
 // Run the tests.
 mocha.run((failures) => {
     process.exit(failures);  // exit with non-zero status if there were failures

@@ -21,9 +21,11 @@ function ellipsys(a) {
     if(!a) { return ""; }
     return truncate(a,10,{ position: "middle"});
 }
+let count = 0;
 function displayAlarms(alarms/*: ClientAlarmList*/) {
 
-    console.log("-----");
+    count++;
+    console.log("-----", count);
 
     const table = new Table({
         head: ["EventType", "ConditionId", "BranchId", "EventId",  "Enabled?", "Active?", "Message", "Severity", "Comment", "Acked?", "Confirmed?", "Retain"]
@@ -56,18 +58,19 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function (test) {
 
 
-    describe("A&C3 client side alarm monitoring", async () => {
+    describe("A&C3 client side alarm monitoring",  () => {
 
         let client;
-        before(function (done) {
-
+        before( () => {
 
             // add a condition to the server
             // Server - HasNotifier -> Tank -> HasEventSource -> TankLevel -> HasCondition -> TankLevelCondition
 
             const addressSpace = test.server.engine.addressSpace;
             construct_demo_alarm_in_address_space(test, addressSpace);
-            client = OPCUAClient.create({});
+            client = OPCUAClient.create({
+                keepSessionAlive: true
+            });
 
             function resetConditions(test) {
                 // set alarms to a known state
@@ -81,21 +84,19 @@ module.exports = function (test) {
                 test.tankLevelCondition2.currentBranch().setAckedState(false);
                 test.tankLevelCondition2.currentBranch().setConfirmedState(false);
     
+                // put the level value at non alarming position
                 test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.5 });
                 test.tankLevel2.setValueFromSource({ dataType: "Double", value: 0.5 })
     
-                console.log(test.tankLevelCondition.currentBranch().toString());
-                console.log(test.tankLevelCondition2.currentBranch().toString());
+                // xx console.log(test.tankLevelCondition.currentBranch().toString());
+                // xx console.log(test.tankLevelCondition2.currentBranch().toString());
 
             }
 
             resetConditions(test);
-
-            done();
         });
-        after(function (done) {
+        after(()=> {
             client = null;
-            done();
         });
 
         function setAlarmHighHigh() {
@@ -126,7 +127,7 @@ module.exports = function (test) {
 
         
                     // make sure no alarm exists anymore
-
+                    try {
 
                     /**
                      * @param alarms {ClientAlarm[]}
@@ -151,7 +152,7 @@ module.exports = function (test) {
                     const addressSpace = test.server.engine.addressSpace;
                     const server = addressSpace.findNode("Server");
                     server.on("event", (eventData/*: RaiseEventData*/) => {
-                        return;
+                         return;
                         console.log("qqqqqqqqqqqqqqqqqqqqqq");
                         console.log(eventData.eventId.value.toString("hex"));
                         console.log(eventData.eventType.value);
@@ -170,6 +171,7 @@ module.exports = function (test) {
                     // we should have no alarm  to start with
                     alarms.length.should.eql(0);
 
+                    // When tankLevel goes to 0.1 then alarm should switcj to LowLow 
                     test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.1 });
                     await pause();
                     displayAlarms(alarms);
@@ -179,6 +181,7 @@ module.exports = function (test) {
                     alarms.alarms()[0].fields.retain.value.should.eql(true);
                     alarms.alarms()[0].fields.activeState.id.value.should.eql(true);
 
+                    // When tankLevel2 goes to 0.1 then alarm should switch to LowLow 
                     test.tankLevel2.setValueFromSource({ dataType: "Double", value: 0.1 });
                     await pause();
                     displayAlarms(alarms);
@@ -196,6 +199,7 @@ module.exports = function (test) {
                     alarms.alarms()[1].fields.activeState.id.value.should.eql(true);
 
 
+                    // When tankLevel goes back to  0.5  (normals)
                     test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.5 });
                     await pause();
                     displayAlarms(alarms);
@@ -239,7 +243,9 @@ module.exports = function (test) {
                     alarms.length.should.eql(0);
 
                     await uninstallAlarmMonitoring(session);
-
+                } catch(err) {
+                    console.log(err);
+                }
                 });
 
         })

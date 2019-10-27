@@ -52,7 +52,7 @@ export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraD
         const extraDataTypeManager = new ExtraDataTypeManager();
 
         extraDataTypeManager.setNamespaceArray(
-          addressSpace.getNamespaceArray().map((n: Namespace) => n.namespaceUri)
+            addressSpace.getNamespaceArray().map((n: Namespace) => n.namespaceUri)
         );
 
         await extractNamespaceDataType(session, extraDataTypeManager);
@@ -74,8 +74,8 @@ function findDataTypeNode(addressSpace: AddressSpace, encodingNodeId: NodeId): U
 
     const refs = encodingNode.findReferences("HasEncoding", false);
     const dataTypes = refs
-      .map((ref) => addressSpace.findNode(ref.nodeId))
-      .filter((obj: any) => obj !== null);
+        .map((ref) => addressSpace.findNode(ref.nodeId))
+        .filter((obj: any) => obj !== null);
 
     // istanbul ignore next
     if (dataTypes.length !== 1) {
@@ -123,18 +123,18 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
 type Task = (addressSpace: AddressSpace) => Promise<void>;
 
 export function generateAddressSpace(
-  addressSpace: AddressSpacePublic,
-  xmlFiles: string | string[],
-  callback: (err?: Error) => void
+    addressSpace: AddressSpacePublic,
+    xmlFiles: string | string[],
+    callback: (err?: Error) => void
 ): void;
 export function generateAddressSpace(
-  addressSpace: AddressSpacePublic,
-  xmlFiles: string | string[]
+    addressSpace: AddressSpacePublic,
+    xmlFiles: string | string[]
 ): Promise<void>;
 export function generateAddressSpace(
-  addressSpace: AddressSpacePublic,
-  xmlFiles: string | string[],
-  callback?: (err?: Error) => void
+    addressSpace: AddressSpacePublic,
+    xmlFiles: string | string[],
+    callback?: (err?: Error) => void
 ): any {
 
     const addressSpace1 = addressSpace as AddressSpace;
@@ -213,8 +213,8 @@ export function generateAddressSpace(
         namespace_uri_translation[index_in_xml] = namespace.index;
 
         debugLog(" _register_namespace_uri = ", namespaceUri,
-          "index in Xml=", index_in_xml,
-          " index in addressSpace", namespace.index);
+            "index in Xml=", index_in_xml,
+            " index in addressSpace", namespace.index);
         return namespace;
     }
 
@@ -291,8 +291,8 @@ export function generateAddressSpace(
                 finish(this: any) {
                     this.parent.array.push({
                         isForward: (this.attrs.IsForward === undefined)
-                          ? true
-                          : (this.attrs.IsForward === "false" ? false : true),
+                            ? true
+                            : (this.attrs.IsForward === "false" ? false : true),
                         nodeId: convertToNodeId(this.text),
                         referenceType: _translateReferenceType(this.attrs.ReferenceType)
                     });
@@ -449,9 +449,9 @@ export function generateAddressSpace(
         finish(this: any) {
             const dataTypeNode = _internal_createNode(this.obj) as UADataType;
             assert(addressSpace1.findNode(this.obj.nodeId));
-            if (this.obj.nodeId.namespace !== 0 ) {
+            if (this.obj.nodeId.namespace !== 0) {
 
-                const processBasicDataType =    async (addressSpace2: AddressSpace) => {
+                const processBasicDataType = async (addressSpace2: AddressSpace) => {
                     const enumeration = addressSpace2.findDataType("Enumeration")!;
                     const structure = addressSpace2.findDataType("Structure")!;
 
@@ -800,8 +800,8 @@ export function generateAddressSpace(
     };
 
     function BasicType_parser(
-      dataType: string,
-      parseFunc: (this: any, text: string) => any
+        dataType: string,
+        parseFunc: (this: any, text: string) => any
     ): ParserLike {
 
         const _parser: ParserLike = {};
@@ -821,8 +821,8 @@ export function generateAddressSpace(
     }
 
     function ListOf(
-      dataType: string,
-      parseFunc: any
+        dataType: string,
+        parseFunc: any
     ) {
         return {
             init(this: any) {
@@ -846,7 +846,7 @@ export function generateAddressSpace(
     }
 
     const state_Variant = {
-        init: () => { /* empty */},
+        init: () => { /* empty */ },
         parser: {
 
             LocalizedText: _.extend(_.clone(localizedText_parser.LocalizedText), {
@@ -1035,7 +1035,7 @@ export function generateAddressSpace(
             this.obj.arrayDimensions = this.obj.valueRank === -1 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
             this.obj.minimumSamplingInterval =
-              attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
+                attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
             this.obj.minimumSamplingInterval = parseInt(this.obj.minimumSamplingInterval, 10);
 
             this.obj.historizing = false;
@@ -1079,7 +1079,7 @@ export function generateAddressSpace(
             this.obj.arrayDimensions = this.obj.valueRank === -1 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
             this.obj.minimumSamplingInterval =
-              attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
+                attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
 
             this.obj.historizing = false;
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;

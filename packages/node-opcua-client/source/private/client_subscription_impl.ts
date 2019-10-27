@@ -155,12 +155,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         });
     }
 
-    public async terminate(): Promise<void>;
-    public terminate(callback: ErrorCallback): void;
     public terminate(...args: any[]): any {
 
         const callback = args[0];
         assert(_.isFunction(callback), "expecting a callback function");
+
 
         if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID
             || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
@@ -199,6 +198,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             });
 
         } else {
+            debugLog("subscriptionId is not value ", this.subscriptionId);
             assert(this.subscriptionId === PENDING_SUBSCRIPTON_ID);
             this._terminate_step2(callback);
         }
