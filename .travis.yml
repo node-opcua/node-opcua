@@ -77,16 +77,21 @@ after_success:
   # only run code coverage on linux and latest nodejs version
   - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; then
       if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
-        make test-cov;
       fi;
     fi;
 
 script:
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]];
     then
-       export TESTPAGE=11;
-       npm test;
-    else  npm test;
+      export TESTPAGE=11;
+      npm test;
+    else  
+      if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
+        npm run pretest;
+        make test-cov;
+      else  
+        npm test;
+      fi ;
     fi ;
     # lerna run test-typescript
 
