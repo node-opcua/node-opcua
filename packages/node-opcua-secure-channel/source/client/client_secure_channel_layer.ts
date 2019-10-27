@@ -165,11 +165,14 @@ function _dump_transaction_statistics(stats: ClientTransactionStatistics) {
         stats.response.responseHeader.serviceResult.toString());
     console.log("   Bytes Read                : ", w(stats.bytesRead), " bytes");
     console.log("   Bytes Written             : ", w(stats.bytesWritten), " bytes");
-    console.log("   transaction duration      : ", w(stats.lap_transaction.toFixed(3)), " milliseconds");
-    console.log("   time to send request      : ", w((stats.lap_sending_request).toFixed(3)), " milliseconds");
-    console.log("   time waiting for response : ", w((stats.lap_waiting_response).toFixed(3)), " milliseconds");
-    console.log("   time to receive response  : ", w((stats.lap_receiving_response).toFixed(3)), " milliseconds");
-    console.log("   time processing response  : ", w((stats.lap_processing_response).toFixed(3)), " milliseconds");
+    if (doPerfMonitoring) {
+        console.log("   transaction duration      : ", w(stats.lap_transaction.toFixed(3)), " milliseconds");
+        console.log("   time to send request      : ", w((stats.lap_sending_request).toFixed(3)), " milliseconds");
+        console.log("   time waiting for response : ", w((stats.lap_waiting_response).toFixed(3)), " milliseconds");
+        console.log("   time to receive response  : ", w((stats.lap_receiving_response).toFixed(3)), " milliseconds");
+        console.log("   time processing response  : ", w((stats.lap_processing_response).toFixed(3)), " milliseconds");
+
+    }
     console.log(chalk.green.bold("---------------------------------------------------------------------<< Stats"));
 
 }
@@ -405,7 +408,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 if (!requestData) {
                     requestData = this._requests[requestId + 1];
                     if (doTraceRequestContent) {
-                        debugLog(" message was 2:", requestData ? requestData.request.toString() : "<null>");
+                        console.log(" message was 2:", requestData ? requestData.request.toString() : "<null>");
                     }
                 }
                 // xx console.log(request_data.request.toString());
@@ -672,9 +675,16 @@ export class ClientSecureChannelLayer extends EventEmitter {
         });
     }
 
+    public closeWithError(err: Error, callback: ErrorCallback): void {
+        if (this._transport) {
+            this._transport.prematureTerminate(err);
+        }
+        callback();
+    }
+
     private on_transaction_completed(transactionStatistics: ClientTransactionStatistics) {
         /* istanbul ignore next */
-        if (doDebug && doTraceStatistics) {
+        if (doTraceStatistics) {
             // dump some statistics about transaction ( time and sizes )
             _dump_transaction_statistics(transactionStatistics);
         }
@@ -823,8 +833,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
          * @param err
          */
         this.emit("close", err);
-        this._cancel_pending_transactions(err);
+        this._transport.dispose();
         this._transport = null;
+        this._cancel_pending_transactions(err);
+        this._cancel_security_token_watchdog();
+        this.dispose();
     }
 
     private _on_security_token_about_to_expire() {
@@ -1189,6 +1202,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
             } else {
                 debugLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", err);
+                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECHK ME !!!
+                this.closeWithError(new Error("Restarting because Request has timed out during OpenSecureChannel"), () => { });
             }
         });
     }
@@ -1249,6 +1264,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
         // adjust request timeout
         request.requestHeader.timeoutHint = timeout;
 
+        /* istanbul ignore next */
+        if (doDebug) {
+            debugLog("Ajusted timeout = ", request.requestHeader.timeoutHint);
+        }
         let timerId: any = null;
 
         let hasTimedOut = false;
@@ -1262,9 +1281,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     request.requestHeader.requestHandle,
                     (response ? response.constructor.name : "null"), "err=", (err ? err.message : "null"),
                     "securityTokenId=", this.securityToken ? this.securityToken!.tokenId : "x");
-                if (response && doTraceResponseContent) {
-                    debugLog(response.toString());
-                }
+            }
+            if (response && doTraceResponseContent) {
+                console.log(response.toString());
             }
 
             if (!localCallback) {
@@ -1301,6 +1320,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         timerId = setTimeout(() => {
             timerId = null;
             debugLog(" Timeout .... waiting for response for ", request.constructor.name, request.requestHeader.toString());
+            debugLog(" Timeout was ", timeout, "ms");
             hasTimedOut = true;
             modified_callback(new Error("Transaction has timed out ( timeout = " + timeout + " ms)"));
             this._timedout_request_count += 1;
@@ -1311,6 +1331,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
              * @param message_chunk {Object}  the message chunk
              */
             this.emit("timed_out_request", request);
+
+            //xx // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECHK ME !!!
+            //xx this.closeWithError(new Error("Restarting because Request has timed out (1)"), () => { });
 
         }, timeout);
 
@@ -1570,7 +1593,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 " channel id ", this.channelId,
                 " securityToken=", this.securityToken! ? this.securityToken!.tokenId : "x");
             if (doTraceRequestContent) {
-                debugLog(request.toString());
+                console.log(request.toString());
             }
         }
 

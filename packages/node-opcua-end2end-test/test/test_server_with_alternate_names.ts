@@ -156,10 +156,10 @@ async function startMultiHeadServer() {
 function dumpEndpoints(endpoints: EndpointDescription[]): void {
     for (const e of endpoints) {
         console.log(
-          e.endpointUrl,
-          e.securityLevel,
-          MessageSecurityMode[e.securityMode],
-          e.securityPolicyUri
+            e.endpointUrl,
+            e.securityLevel,
+            MessageSecurityMode[e.securityMode],
+            e.securityPolicyUri
         );
         // console.log(e.toString());
     }

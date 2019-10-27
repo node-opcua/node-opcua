@@ -2192,8 +2192,11 @@ module.exports = function (test) {
                 });
 
                 async.series([
+                    function(callback) {
+                        setTimeout(callback, 1500);
+                    },
                     function (callback) {
-                        // let's wait for for notification to be received
+                        // let's wait for first notification to be received
                         monitoredItem.once("changed", function () {
                             // we reset change count,
                             change_count = 0;

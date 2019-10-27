@@ -14,7 +14,8 @@ const {
 const chalk = require("chalk");
 
 // const endpointUri = "opc.tcp://DESKTOP-S6DI4HV:49320";
-const endpointUri = "opc.tcp://opcuademo.sterfive.com:26543";
+// const endpointUri = "opc.tcp://opcuademo.sterfive.com:26544";
+const endpointUri = "opc.tcp://localhost:48010";
 (async () => {
 
     try {
@@ -26,8 +27,8 @@ const endpointUri = "opc.tcp://opcuademo.sterfive.com:26543";
             endpoint_must_exist: false,
             keepSessionAlive: true,
             requestedSessionTimeout: 60 * 1000,
-            securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256,
+//            securityMode: MessageSecurityMode.SignAndEncrypt,
+//            securityPolicy: SecurityPolicy.Basic256,
             connectionStrategy: {
                 maxRetry: -1,
                 maxDelay: 500,
@@ -94,10 +95,12 @@ const endpointUri = "opc.tcp://opcuademo.sterfive.com:26543";
         const subscription = await session.createSubscription2({
             maxNotificationsPerPublish: 9000,
             publishingEnabled: true,
-            requestedLifetimeCount: 10000,
+            requestedLifetimeCount: 10,
             requestedMaxKeepAliveCount: 10,
             requestedPublishingInterval: 1000
         });
+
+        console.log(subscription.toString());
 
         subscription.on("raw_notification", (n) => {
             //console.log(n.toString());
@@ -110,8 +113,8 @@ const endpointUri = "opc.tcp://opcuademo.sterfive.com:26543";
 
         const parameters = {
             discardOldest: true,
-            queueSize: 1,
-            samplingInterval: 8000
+            queueSize: 10,
+            samplingInterval: 2000
         };
 
         const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, parameters, TimestampsToReturn.Both);
@@ -128,7 +131,6 @@ const endpointUri = "opc.tcp://opcuademo.sterfive.com:26543";
         const nodeToRead = { nodeId: "i=2258", attributeId: AttributeIds.Value };
 
         const timer = setInterval(async () => {
-
             try {
                 const dv = await session.read(nodeToRead);
                 console.log("dv =", session.sessionId.toString(), session.timeout, dv.statusCode.toString());

@@ -229,6 +229,7 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     protected on_socket_ended(err: Error | null) {
+        debugLog("on_socket_ended", this.name, err ? err.message : "");
         if (this.connected) {
             super.on_socket_ended(err);
         }

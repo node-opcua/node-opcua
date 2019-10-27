@@ -2865,7 +2865,6 @@ export class OPCUAServer extends OPCUABaseServer {
                     results
                     // ,diagnosticInfos: []
                 });
-
                 sendResponse(response);
 
             });

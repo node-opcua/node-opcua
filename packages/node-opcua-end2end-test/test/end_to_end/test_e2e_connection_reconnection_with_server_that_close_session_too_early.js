@@ -1,8 +1,10 @@
 const async = require("async");
 const chalk = require("chalk");
 const path = require("path");
-const start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
-const stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
+const { 
+  start_simple_server,
+  stop_simple_server 
+} = require("../../test_helpers/external_server_fixture");
 
 const doDebug = false;
 const debugLog = require("node-opcua-debug").make_debugLog("TEST");

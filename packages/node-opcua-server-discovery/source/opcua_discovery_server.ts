@@ -242,7 +242,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             request.server,
             request.discoveryConfiguration as MdnsDiscoveryConfiguration[],
             (err: Error | null, response?: Response) => {
-                assert(response instanceof RegisterServer2Response);
                 channel.send_response("MSG", response!, message);
             });
     }
@@ -257,7 +256,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             request.server,
             undefined,
             (err: Error | null, response?: Response) => {
-                assert(response instanceof RegisterServerResponse);
                 channel.send_response("MSG", response!, message);
             });
     }

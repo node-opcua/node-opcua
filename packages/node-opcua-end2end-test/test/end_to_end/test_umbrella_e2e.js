@@ -16,9 +16,11 @@ const address_space_for_conformance_testing = require("node-opcua-address-space-
 const build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 
-const start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
-const stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
-
+const { 
+    start_simple_server,
+    stop_simple_server 
+  } = require("../../test_helpers/external_server_fixture");
+  
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client - Umbrella ", function () {

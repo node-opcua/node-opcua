@@ -622,6 +622,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 debugLog(chalk.yellow.bold("maxKeepAliveCount                "), this.maxKeepAliveCount);
                 debugLog(chalk.yellow.bold("publish request timeout hint =   "), this.timeoutHint);
                 debugLog(chalk.yellow.bold("hasTimedOut                      "), this.hasTimedOut);
+                debugLog(chalk.yellow.bold("timeoutHint for publish request  "), this.timeoutHint);
             }
 
             this.publishEngine.registerSubscription(this);

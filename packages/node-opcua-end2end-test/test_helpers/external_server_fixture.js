@@ -54,7 +54,7 @@ function start_simple_server(options, callback) {
     options.env = options.env || {};
     _.extend(options.env, process.env);
 
-    options.env.DEBUG = options.env.DEBUG2;
+    options.env.DEBUG = options.env.DEBUG2 || "";
     options.env.NODEOPCUADEBUG = "";
     
     //xx options.env.DEBUG = "ALL";

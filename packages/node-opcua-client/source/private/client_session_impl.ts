@@ -1973,7 +1973,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this.removeAllListeners();
         //
         const privateThis = this as any;
-        assert(!privateThis.pendingTransactions || privateThis.pendingTransactions.length === 0);
+        if (!(!privateThis.pendingTransactions || privateThis.pendingTransactions.length === 0)) {
+            console.log("dispose when pendingTransactions is not empty ");
+        };
     }
 
     public toString(): string {

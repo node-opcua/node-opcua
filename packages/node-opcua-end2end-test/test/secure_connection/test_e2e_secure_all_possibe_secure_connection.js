@@ -29,9 +29,11 @@ const build_server_with_temperature_device = require("../../test_helpers/build_s
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-const start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
-const stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
-
+const { 
+    start_simple_server,
+    stop_simple_server 
+  } = require("../../test_helpers/external_server_fixture");
+  
 
 const g_defaultSecureTokenLifetime = 30 * 1000; // ms
 const g_tokenRenewalInterval = 400; // renew token as fast as possible

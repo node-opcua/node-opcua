@@ -28,7 +28,7 @@ export function setDebugFlag(scriptFullPath: string, flag: boolean) {
             " Setting debug for ",
             decoratedFilename,
             " to ",
-            (flag ? chalk.cyan : chalk.red)(flag.toString())
+            (flag ? chalk.cyan : chalk.red)(flag.toString(), process.env.DEBUG)
         );
     }
     debugFlags[filename] = flag;

@@ -20,8 +20,15 @@ module.exports = function (test) {
         let client, endpointUrl;
 
         beforeEach(function (done) {
+            if (process.gc) { process.gc(); }
             client = OPCUAClient.create();
             endpointUrl = test.endpointUrl;
+
+            console.log("client.tokenRenewalInterval = ", client.tokenRenewalInterval);
+            client.on("lifetime_75",() => console.log("token about to expire"));
+            client.on("send_chunk", (buf) => console.log("chunk =>", buf.length));
+            client.on("receive_chunk",(buf) =>  console.log("chunk <= ", buf.length));
+
             done();
         });
 
@@ -176,7 +183,7 @@ module.exports = function (test) {
                             itemsToCreate: itemsToCreate
                         });
 
-                        //Xx console.log(createMonitorItemsRequest.toString());
+                     console.log(createMonitorItemsRequest.toString());
                      session.createMonitoredItems(createMonitorItemsRequest, function (err, response) {
 
                             if(err){
