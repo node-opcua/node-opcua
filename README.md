@@ -71,7 +71,7 @@ Because nodeJs is a great framework to design asynchronous application.
 
  * [create a server](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md)
  
- * [create a client](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client.md)
+ * [create a client](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client_typescript.md)
    
 
 ### API Documentation
