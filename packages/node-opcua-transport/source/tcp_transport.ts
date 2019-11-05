@@ -270,9 +270,11 @@ export class TCP_transport extends EventEmitter {
             if (this._socket) {
                 // we consider this as an error
                 this._socket.emit("error", new Error("INTERNAL_EPIPE timeout=" + this.timeout));
-                this._socket.destroy(); // new Error("Socket has timed out"));
-                this._socket.removeAllListeners();
-                this._socket = null;
+                if (this._socket) { // this._socket can be cleared by "error" event handler
+                    this._socket.destroy(); // new Error("Socket has timed out"));
+                    this._socket.removeAllListeners();
+                    this._socket = null;   
+                }
             }
         });
     }
