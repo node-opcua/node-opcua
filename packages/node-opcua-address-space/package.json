@@ -21,7 +21,7 @@
   "node-opcua-client-dynamic-extension-object": "^2.2.0",
   "node-opcua-common": "^2.2.0",
   "node-opcua-constants": "^2.1.6",
-  "node-opcua-crypto": "^1.1.2",
+  "node-opcua-crypto": "^1.1.4",
   "node-opcua-data-access": "^2.2.0",
   "node-opcua-data-model": "^2.2.0",
   "node-opcua-data-value": "^2.2.0",
@@ -67,7 +67,7 @@
   "node-opcua-test-fixtures": "^2.2.0",
   "should": "13.2.3",
   "sinon": "^7.5.0",
-  "source-map-support": "^0.5.13"
+  "source-map-support": "^0.5.16"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

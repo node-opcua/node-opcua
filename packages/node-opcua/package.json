@@ -11,7 +11,7 @@
         "node": ">=8.10"
     },
     "dependencies": {
-        "chalk": "^2.4.2",
+        "chalk": "^3.0.0",
         "node-opcua-address-space": "^2.2.0",
         "node-opcua-address-space-for-conformance-testing": "^2.2.0",
         "node-opcua-assert": "^2.0.0",
@@ -22,7 +22,7 @@
         "node-opcua-client-proxy": "^2.2.0",
         "node-opcua-common": "^2.2.0",
         "node-opcua-constants": "^2.1.6",
-        "node-opcua-crypto": "^1.1.2",
+        "node-opcua-crypto": "^1.1.4",
         "node-opcua-data-access": "^2.2.0",
         "node-opcua-data-model": "^2.2.0",
         "node-opcua-data-value": "^2.2.0",

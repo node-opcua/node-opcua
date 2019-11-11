@@ -37,7 +37,7 @@
     "@types/mocha": "^5.2.7",
     "mocha-typescript": "^1.1.17",
     "should": "13.2.3",
-    "source-map-support": "^0.5.13"
+    "source-map-support": "^0.5.16"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

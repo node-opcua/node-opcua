@@ -9,7 +9,7 @@
     "test": "echo no test"
   },
   "dependencies": {
-    "chalk": "^2.4.2",
+    "chalk": "^3.0.0",
     "node-opcua-assert": "^2.0.0",
     "node-opcua-binary-stream": "^2.2.0",
     "node-opcua-data-model": "^2.2.0",
