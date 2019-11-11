@@ -8,7 +8,7 @@
         "build": "tsc"
     },
     "engines": {
-        "node": ">=6.10"
+        "node": ">=8.10"
     },
     "dependencies": {
         "chalk": "^2.4.2",
@@ -77,6 +77,9 @@
         "opc ua",
         "internet of things"
     ],
+    "funding": {
+       "url": "https://github.com/sponsors/erossignon"
+    },
     "homepage": "http://node-opcua.github.io/",
     "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }
