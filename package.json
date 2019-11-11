@@ -156,5 +156,8 @@
         "vorpal-repl": "^1.1.8",
         "xml-writer": "^1.7.0",
         "yargs": "^14.2.0"
-    }
+    },
+    "funding": {
+       "url": "https://github.com/sponsors/erossignon"
+    },
 }
