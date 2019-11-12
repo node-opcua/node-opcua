@@ -5,7 +5,7 @@
 // tslint:disable:max-line-length
 // tslint:disable:unified-signatures
 import * as async from "async";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 import * as _ from "underscore";

@@ -2,7 +2,7 @@
  * @module node-opcua-client-private
  */
 import * as async from "async";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";

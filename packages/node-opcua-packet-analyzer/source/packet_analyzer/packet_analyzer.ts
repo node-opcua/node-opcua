@@ -3,7 +3,7 @@
 // tslint:disable:max-line-length
 // tslint:disable:no-empty-interface
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import * as  _ from "underscore";
 import * as util from "util";

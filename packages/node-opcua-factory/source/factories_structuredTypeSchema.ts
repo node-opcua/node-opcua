@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-factory
  */
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as  _ from "underscore";
 
 import {

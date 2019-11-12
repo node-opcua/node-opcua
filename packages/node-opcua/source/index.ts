@@ -6,7 +6,7 @@
 // tslint:disable:no-console
 // tslint:disable:variable-name
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 const semver = require("semver");
 const minimumNodeVersionRequired = ">=8.0.0"; // minimum

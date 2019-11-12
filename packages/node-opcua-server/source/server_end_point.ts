@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 import * as async from "async";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import * as net from "net";
 import { Server, Socket } from "net";

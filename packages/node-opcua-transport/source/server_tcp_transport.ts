@@ -3,7 +3,7 @@
  */
 // tslint:disable:class-name
 // system
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { Socket } from "net";
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";

@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 // tslint:disable:max-statements
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as should from "should";
 import * as sinon from "sinon";
 

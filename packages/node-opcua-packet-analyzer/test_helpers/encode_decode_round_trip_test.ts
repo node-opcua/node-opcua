@@ -1,5 +1,5 @@
 // @ts-check
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
 import { BaseUAObject, constructObject } from "node-opcua-factory";

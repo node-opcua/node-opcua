@@ -8,7 +8,7 @@
 // tslint:disable:no-shadowed-variable
 // tslint:disable:no-var-requires
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 import { Socket } from "net";

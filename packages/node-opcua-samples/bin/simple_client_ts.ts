@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as  fs from "fs";
 import * as path from "path";
 import * as _ from "underscore";

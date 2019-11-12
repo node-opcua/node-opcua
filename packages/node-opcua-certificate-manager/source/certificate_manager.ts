@@ -2,7 +2,7 @@
  * @module node-opcua-certificate-manager
  */
 // tslint:disable:no-empty
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 

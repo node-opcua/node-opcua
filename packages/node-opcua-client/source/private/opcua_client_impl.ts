@@ -6,7 +6,7 @@
 // tslint:disable:no-empty
 
 import * as async from "async";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as crypto from "crypto";
 import * as _ from "underscore";
 import { callbackify } from "util";

@@ -4,7 +4,7 @@
 // tslint:disable:no-bitwise
 // tslint:disable:no-console
 // tslint:disable:max-line-length
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 

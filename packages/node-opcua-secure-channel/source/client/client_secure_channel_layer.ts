@@ -6,7 +6,7 @@
 // tslint:disable:no-console
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
 import * as  _ from "underscore";

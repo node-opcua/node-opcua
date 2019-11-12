@@ -4,7 +4,7 @@
 // tslint:disable:no-console
 // tslint:disable:max-line-length
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { DataTypeIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";

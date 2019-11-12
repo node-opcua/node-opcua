@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-transport
  */
-import { default as chalk } from "chalk";
+import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import { Socket } from "net";
 import * as _ from "underscore";

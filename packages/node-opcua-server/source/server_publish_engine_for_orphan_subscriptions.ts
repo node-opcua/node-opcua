@@ -2,7 +2,7 @@
  * @module node-opcua-server
  */
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 

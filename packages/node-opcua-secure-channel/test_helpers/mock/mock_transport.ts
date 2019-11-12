@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { display_trace_from_this_projet_only, hexDump, make_debugLog } from "node-opcua-debug";

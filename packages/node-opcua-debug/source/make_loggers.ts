@@ -2,7 +2,7 @@
  * @module node-opcua-debug
  */
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as path from "path";
 import * as _ from "underscore";
 import { format } from "util";
@@ -10,7 +10,7 @@ import { format } from "util";
 const debugFlags: { [id: string]: boolean } = {};
 
 const maxLines = (process.env && process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE) ?
-  parseInt(process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10) : 25;
+    parseInt(process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10) : 25;
 
 function extractBasename(name: string) {
     return path.basename(name).replace(/\.(js|ts)$/, "");
@@ -25,10 +25,10 @@ export function setDebugFlag(scriptFullPath: string, flag: boolean) {
     if (process.env.DEBUG && process.env.DEBUG.length > 1) {
         const decoratedFilename = chalk.yellow(w(filename, 60));
         console.log(
-          " Setting debug for ",
-          decoratedFilename,
-          " to ",
-          (flag ? chalk.cyan : chalk.red)(flag.toString())
+            " Setting debug for ",
+            decoratedFilename,
+            " to ",
+            (flag ? chalk.cyan : chalk.red)(flag.toString())
         );
     }
     debugFlags[filename] = flag;

@@ -2,7 +2,7 @@
  * @module node-opcua-utils
  */
 // tslint:disable:ban-types
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
 /* istanbul ignore next */

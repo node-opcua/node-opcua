@@ -5,7 +5,7 @@
 // tslint:disable:object-literal-sort-keys
 // tslint:disable:no-empty
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 import {
     EnumerationDefinitionSchema,
     FieldInterfaceOptions,
@@ -132,7 +132,7 @@ const state0: any = {
     },
     parser: {
         TypeDictionary: {
-            init: function(this: any, name: string, attributes: any) {
+            init: function (this: any, name: string, attributes: any) {
 
                 this.typeDictionary = this.engine.typeDictionary as TypeDictionary;
                 this.typeDictionary.defaultByteOrder = attributes.DefaultByteOrder;
@@ -141,10 +141,10 @@ const state0: any = {
             },
             parser: {
                 Import: {
-                    init: function(this: any, name: string, attributes: any) {
+                    init: function (this: any, name: string, attributes: any) {
                         this.parent.typeDictionary.imports.push(attributes.Namespace);
                     },
-                    finish: function(this: any) {
+                    finish: function (this: any) {
                         // _register_namespace_uri(this.text);
                         if (doDebug) {
                             console.log("Import NameSpace = ", this.attrs.Namespace,
@@ -154,7 +154,7 @@ const state0: any = {
                 },
 
                 EnumeratedType: {
-                    init: function(this: any) {
+                    init: function (this: any) {
 
                         this.typescriptDefinition = "";
                         if (doDebug) {
@@ -172,12 +172,12 @@ const state0: any = {
                     },
                     parser: {
                         Documentation: {
-                            finish: function(this: any) {
+                            finish: function (this: any) {
                                 this.parent.enumeratedType.documentation = this.text;
                             }
                         },
                         EnumeratedValue: {
-                            finish: function(this: any) {
+                            finish: function (this: any) {
                                 if (doDebug) {
                                     console.log(" EnumeratedValue Name=",
                                         w(this.attrs.Name, 40), " Value=", this.attrs.Value);
@@ -190,7 +190,7 @@ const state0: any = {
                             }
                         }
                     },
-                    finish: function(this: any) {
+                    finish: function (this: any) {
                         this.typescriptDefinition += `\n}`;
                         this.parent.typeDictionary.enumeratedTypesRaw[this.attrs.Name] = this.enumeratedType;
                         if (doDebug) {
@@ -199,7 +199,7 @@ const state0: any = {
                     }
                 },
                 StructuredType: {
-                    init: function(this: any) {
+                    init: function (this: any) {
 
                         if (doDebug) {
                             console.log(chalk.cyan("StructureType Name="),
@@ -222,7 +222,7 @@ const state0: any = {
                     },
                     parser: {
                         Field: {
-                            finish: function(this: any) {
+                            finish: function (this: any) {
 
                                 if (this.attrs.SourceType) {
                                     // ignore  this field, This is a repetition of the base type field with same name
@@ -279,7 +279,7 @@ const state0: any = {
                             }
                         }
                     },
-                    finish: function(this: any) {
+                    finish: function (this: any) {
                         this.parent.typeDictionary.structuredTypesRaw[this.attrs.Name] = this.structuredType;
                     }
                 }

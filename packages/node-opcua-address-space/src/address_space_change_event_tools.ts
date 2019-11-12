@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { ModelChangeStructureDataType } from "node-opcua-common";

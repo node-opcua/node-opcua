@@ -7,7 +7,7 @@ import { TimestampsToReturn } from "node-opcua-data-value";
 
 // tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import * as _ from "underscore";
 import * as util from "util";

@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as path from "path";
 
 import {

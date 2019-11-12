@@ -2,7 +2,7 @@
  * @module node-opcua-nodeid
  */
 // tslint:disable:no-conditional-assignment
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import {
     DataTypeIds,

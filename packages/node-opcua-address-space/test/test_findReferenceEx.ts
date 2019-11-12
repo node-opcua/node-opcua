@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as nodesets from "node-opcua-nodesets";
 import * as should from "should";
 import { generateAddressSpace } from "..";

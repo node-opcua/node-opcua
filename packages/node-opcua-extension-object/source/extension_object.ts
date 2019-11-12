@@ -15,7 +15,7 @@ import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 /* tslint:disable:no-empty */
 export class ExtensionObject extends BaseUAObject {

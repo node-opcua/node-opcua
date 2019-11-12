@@ -2,7 +2,7 @@
  * @module node-opcua-server
  */
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";

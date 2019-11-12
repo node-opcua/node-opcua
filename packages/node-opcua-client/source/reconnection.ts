@@ -4,7 +4,7 @@
 
 // tslint:disable:only-arrow-functions
 import * as async from "async";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ErrorCallback } from "node-opcua-secure-channel";
