@@ -636,7 +636,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             // xx secureChannel;
             if (!err) {
                 this.emit("connected");
+                callbackOnceDelayed(err!);
             } else {
+
+                OPCUAClientBase.registry.unregister(this);
+                uninstallPeriodicClockAdjustmement();
+
                 debugLog(chalk.red("SecureChannel creation has failed with error :", err.message));
                 if (err.message.match(/ECONNREF/)) {
                     debugLog(chalk.yellow("- The client cannot to :" + endpointUrl + ". Server is not reachable."));
@@ -651,8 +656,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                         "Err = (" + err.message + ")");
                 }
                 this.emit("connection_failed", err);
+                callbackOnceDelayed(err!);
             }
-            callbackOnceDelayed(err!);
         });
 
     }
