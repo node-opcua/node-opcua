@@ -14,7 +14,7 @@ const OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscove
 const findServers = opcua.findServers;
 const findServersOnNetwork = opcua.findServersOnNetwork;
 
-const doDebug = false;
+const doDebug = true;
 
 function debugLog() {
     if (doDebug) {
@@ -203,7 +203,6 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function(
             function(callback) {
                 findServers(discovery_server_endpointUrl1, function(err, data) {
                     const { servers, endpoints } = data;
-
                     servers.length.should.eql(2);
                     servers[0].applicationUri.should.eql("urn:localhost:LDS-1235");
                     servers[1].applicationUri.should.eql("A1");
@@ -224,11 +223,9 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function(
                 });
             },
             function(callback) {
-                debugLog("xxxxxxx Let bonjour stuff to propagate");
                 setTimeout(callback, 1000);
             },
             function(callback) {
-                debugLog("xxxxxxx Let bonjour stuff to propagate => DOne");
                 findServers(discovery_server_endpointUrl3, function(err, data) {
                     const { servers, endpoints } = data;
                     servers.length.should.eql(2);
@@ -237,15 +234,14 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function(
                     callback(err);
                 });
             },
-
-
+            function(callback) {
+                setTimeout(callback, 1000);
+            },
             function query_discovery_server_for_available_servers_on_network(callback) {
                 findServersOnNetwork(discovery_server_endpointUrl1, function(err, servers) {
 
                     if (doDebug) {
-                        for (const s of servers) {
-                            debugLog(s.toString());
-                        }
+                        debugLog(servers.map(x=>x.discoveryUrl).join("\n"));
                     }
                     servers.length.should.eql(6);
                     debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -255,9 +251,7 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function(
             function query_discovery_server_for_available_servers_on_network(callback) {
                 findServersOnNetwork(discovery_server_endpointUrl2, function(err, servers) {
                     if (doDebug) {
-                        for (const s of servers) {
-                            debugLog(s.toString());
-                        }
+                        debugLog(servers.map(x=>x.discoveryUrl).join("\n"));
                     }
                     servers.length.should.eql(6);
                     debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -267,9 +261,7 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function(
             function query_discovery_server_for_available_servers_on_network(callback) {
                 findServersOnNetwork(discovery_server_endpointUrl3, function(err, servers) {
                     if (doDebug) {
-                        for (const s of servers) {
-                            debugLog(s.toString());
-                        }
+                        debugLog(servers.map(x=>x.discoveryUrl).join("\n"));
                     }
                     //xxservers.length.should.eql(6);
                     debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
