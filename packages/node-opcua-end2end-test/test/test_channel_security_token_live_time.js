@@ -95,17 +95,27 @@ describe("Testing ChannelSecurityToken lifetime", function () {
 
         await client.connect(endpointUrl);
 
+        let waitingTime = (client.defaultSecureTokenLifetime + 1000) * 10;
+        console.log("waiting time = ", waitingTime);
+ 
         let security_token_renewed_counter = 0;
-        client._secureChannel.on("security_token_renewed", function () {
-            debugLog(" received security_token_renewed");
-            security_token_renewed_counter += 1;
+        await new Promise((resolve, reject) => {
+            
+            const id = setTimeout(() => 
+                reject(new Error("security token not renewed"))
+                , waitingTime);
+
+            client._secureChannel.on("security_token_renewed", function () {
+                debugLog(" received security_token_renewed");
+                security_token_renewed_counter += 1;
+                if (security_token_renewed_counter >3) {
+                    resolve();
+                    resolve = null;
+                    clearTimeout(id);
+                }
+            });
+            
         });
-        let waitingTime = 5000;
-        if (os.arch() === "arm") {
-            // give more time for slow raspberry to react */
-            waitingTime += 8000;
-        }
-        await new Promise((resolve) => setTimeout(resolve, waitingTime));
 
         security_token_renewed_counter.should.be.greaterThan(3);
 
