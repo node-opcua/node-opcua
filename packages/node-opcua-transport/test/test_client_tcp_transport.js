@@ -21,11 +21,14 @@ const packTcpMessage = require("..").packTcpMessage;
 
 describe("testing ClientTCP_transport", function () {
 
+
+    this.timeout(5000);
+
     let transport;
     let spyOnClose, spyOnConnect, spyOnConnectionBreak;
 
     let fakeServer;
-    let url;
+    let endpointUrl;
 
     beforeEach(function (done) {
 
@@ -42,7 +45,7 @@ describe("testing ClientTCP_transport", function () {
 
         fakeServer = new FakeServer();
         fakeServer.initialize((err) => {
-            url = fakeServer.url;
+            endpointUrl = fakeServer.url;
             done(err);
         });
     });
@@ -50,6 +53,7 @@ describe("testing ClientTCP_transport", function () {
     afterEach(function (done) {
 
         transport.disconnect(function (err) {
+            transport.removeAllListeners();
             transport = null;
             fakeServer.shutdown(function (err) {
                 fakeServer = null;
@@ -66,7 +70,7 @@ describe("testing ClientTCP_transport", function () {
         maxChunkCount: 600000
     });
 
-    it("should create and connect to a client TCP", function (done) {
+    it("TCS1 should create and connect to a client TCP", function (done) {
 
         const spyOnServerWrite = sinon.spy(function (socket, data) {
             assert(data);
@@ -78,7 +82,7 @@ describe("testing ClientTCP_transport", function () {
 
         fakeServer.pushResponse(spyOnServerWrite);
 
-        transport.connect(url, function (err) {
+        transport.connect(endpointUrl, function (err) {
 
             spyOnConnect.callCount.should.eql(1);
             spyOnClose.callCount.should.eql(0);
@@ -99,16 +103,16 @@ describe("testing ClientTCP_transport", function () {
 
     });
 
-    it("should report a time out error if trying to connect to a non responding server", function (done) {
+    it("TCS2 should report a time out error if trying to connect to a non responding server", function (done) {
 
         const spyOnServerWrite = sinon.spy(function (socket, data) {
             // DO NOTHING !!
         });
         fakeServer.pushResponse(spyOnServerWrite);
 
-        transport.timeout = 10; // very short timeout;
+        transport.timeout = 500; // very short timeout;
 
-        transport.connect(url, function (err) {
+        transport.connect(endpointUrl, function (err) {
 
             if (err) {
                 err.message.should.containEql("Timeout");
@@ -138,7 +142,7 @@ describe("testing ClientTCP_transport", function () {
 
         transport.timeout = 1000; // very short timeout;
 
-        transport.connect(url, function (err) {
+        transport.connect(endpointUrl, function (err) {
 
             if (err) {
 
@@ -180,7 +184,7 @@ describe("testing ClientTCP_transport", function () {
 
         transport.timeout = 1000; // very short timeout;
 
-        transport.connect(url, function (err) {
+        transport.connect(endpointUrl, function (err) {
             if (err) {
                 err.message.should.match(/The applications do not have compatible protocol versions/);
 
@@ -248,7 +252,7 @@ describe("testing ClientTCP_transport", function () {
             done();
         });
 
-        transport.connect(url, function (err) {
+        transport.connect(endpointUrl, function (err) {
             if (err) {
                 console.log(chalk.bgWhite.red(" err = "), err.message);
             }
@@ -294,7 +298,7 @@ describe("testing ClientTCP_transport", function () {
             should(err).be.eql(null, "close event shall have err===null, when disconnection is initiated by the client itself");
         });
 
-        transport.connect(url, function (err) {
+        transport.connect(endpointUrl, function (err) {
             if (err) {
                 console.log(chalk.bgWhite.red(" err = "), err.message);
             }
@@ -365,7 +369,7 @@ describe("testing ClientTCP_transport", function () {
 
         });
 
-        transport.connect(url, function (err) {
+        transport.connect(endpointUrl, function (err) {
             assert(!err);
         });
 

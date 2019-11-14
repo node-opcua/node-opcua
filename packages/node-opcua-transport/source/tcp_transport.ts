@@ -261,17 +261,18 @@ export class TCP_transport extends EventEmitter {
             .on("end", (err: Error) => this._on_socket_end(err))
             .on("error", (err: Error) => this._on_socket_error(err));
 
-        this._socket.once("close", () => this.dispose());
-
         // set socket timeout
         debugLog("setting " + this.name + " _socket.setTimeout to ", this.timeout);
-        this._socket.setTimeout(this.timeout, () => {
+
+        // let use a large timeout here to make sure that we not conflict with our internal timeout
+        this._socket.setTimeout(this.timeout + 2000, () => {
             debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
             this.prematureTerminate(new Error("INTERNAL_EPIPE timeout=" + this.timeout));
         });
     }
 
     public prematureTerminate(err: Error) {
+        debugLog("prematureTerminate", err ? err.message : "");
         if (this._socket) {
             err.message = "EPIPE_" + err.message;
             // we consider this as an error
@@ -279,9 +280,9 @@ export class TCP_transport extends EventEmitter {
             _s.end();
             _s.destroy(); // new Error("Socket has timed out"));
             _s.emit("error", err);
-            _s.removeAllListeners();
             this._socket = null;
             this.dispose();
+            _s.removeAllListeners();
         }
     }
     /**
@@ -408,6 +409,7 @@ export class TCP_transport extends EventEmitter {
         }
         const err = hadError ? new Error("ERROR IN SOCKET  " + hadError.toString()) : undefined;
         this.on_socket_closed(err);
+        this.dispose();
 
     }
 

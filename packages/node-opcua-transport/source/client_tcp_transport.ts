@@ -141,7 +141,6 @@ export class ClientTCP_transport extends TCP_transport {
             return callback(err);
         }
 
-        this._install_socket(this._socket);
 
         const _on_socket_error_after_connection = (err: Error) => {
             /* istanbul ignore next */
@@ -225,6 +224,7 @@ export class ClientTCP_transport extends TCP_transport {
         this._socket.once("error", _on_socket_error_for_connect);
         this._socket.once("end", _on_socket_end_for_connect);
         this._socket.once("connect", _on_socket_connect);
+        this._install_socket(this._socket);
 
     }
 
@@ -310,16 +310,13 @@ export class ClientTCP_transport extends TCP_transport {
         assert(this._counter === 0, "Ack response should only be received once !");
         this._counter += 1;
 
-        if (err) {
-            externalCallback(err);
+        if (err || !data) {
+            externalCallback(err || new Error("no data"));
             if (this._socket) {
                 this._socket.end();
                 // Xx this._socket.removeAllListeners();
             }
         } else {
-            if (!data) {
-                return;
-            }
             this._handle_ACK_response(data, externalCallback);
         }
     }
@@ -339,7 +336,7 @@ export class ClientTCP_transport extends TCP_transport {
         this._install_one_time_message_receiver((err: Error | null, data?: Buffer) => {
             /* istanbul ignore next */
             if (doDebug) {
-                debugLog("before  _on_ACK_response");
+                debugLog("before  _on_ACK_response ", err ? err.message : "");
             }
             this._on_ACK_response(callback, err, data);
         });
