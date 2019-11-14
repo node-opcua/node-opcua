@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-enum",
- "version": "2.2.0",
+ "version": "2.3.0",
  "description": "pure nodejs OPCUA SDK - module -enum",
  "scripts": {
   "build": "tsc",
@@ -10,11 +10,11 @@
  "main": "./dist/index.js",
  "@types": "./dist/index.d.ts",
  "dependencies": {
-  "node-opcua-assert": "^2.0.0"
+  "node-opcua-assert": "^2.3.0"
  },
  "devDependencies": {
   "enum": "2.5.0",
-  "node-opcua-benchmarker": "^2.2.0",
+  "node-opcua-benchmarker": "^2.3.0",
   "should": "13.2.3",
   "underscore": "^1.9.1"
  },

@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-common",
- "version": "2.2.0",
+ "version": "2.3.0",
  "description": "pure nodejs OPCUA SDK - module -common",
  "scripts": {
   "test-typescript": "npx mocha",
@@ -11,21 +11,21 @@
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
  "dependencies": {
-  "node-opcua-assert": "^2.0.0",
-  "node-opcua-basic-types": "^2.2.0",
+  "node-opcua-assert": "^2.3.0",
+  "node-opcua-basic-types": "^2.3.0",
   "node-opcua-crypto": "^1.1.4",
-  "node-opcua-data-model": "^2.2.0",
-  "node-opcua-factory": "^2.2.0",
-  "node-opcua-nodeid": "^2.2.0",
-  "node-opcua-service-endpoints": "^2.2.0",
-  "node-opcua-service-secure-channel": "^2.2.0",
-  "node-opcua-types": "^2.2.0",
+  "node-opcua-data-model": "^2.3.0",
+  "node-opcua-factory": "^2.3.0",
+  "node-opcua-nodeid": "^2.3.0",
+  "node-opcua-service-endpoints": "^2.3.0",
+  "node-opcua-service-secure-channel": "^2.3.0",
+  "node-opcua-types": "^2.3.0",
   "underscore": "^1.9.1"
  },
  "devDependencies": {
   "@types/mocha": "^5.2.7",
   "@types/node": "^12.12.7",
-  "node-opcua-generator": "^2.2.0",
+  "node-opcua-generator": "^2.3.0",
   "should": "13.2.3"
  },
  "author": "Etienne Rossignon",
