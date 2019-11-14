@@ -318,7 +318,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             const res = await promisify(secureChannel.performMessageTransaction).call(secureChannel, request);
             console.log(res.toString());    
         }
-        await sendTransaction().should.be.rejectedWith(/Connection Break/);
+        await sendTransaction().should.be.rejectedWith(/Connection Break|Transaction has timed out/);
 
         await pause(10000);
 
@@ -330,6 +330,8 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         await promisify(stopServer)(holder);
  
+        console.log("DONE! ");
+
     });
     it("MMM2 testing if client SecureChannel could  sabotage itself when connection problem",async() => {
  
@@ -352,13 +354,19 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         const holder = {};       
         await promisify(startServer)(holder);
 
-        const endpoint  = "opc.tcp://localhost:1234/UA/Sample";
-        await promisify(secureChannel.create).call(secureChannel,endpoint);
-
-        await promisify(secureChannel.closeWithError).call(secureChannel,new Error("Sabotage"));
+        try  {
+            const endpoint  = "opc.tcp://localhost:1234/UA/Sample";
+            await promisify(secureChannel.create).call(secureChannel,endpoint);
+    
+            await promisify(secureChannel.closeWithError).call(secureChannel,new Error("Sabotage"));
+    
+        } catch(err) {
+            throw err;
+        } finally {
+            console.log("Done ");
+            await promisify(stopServer)(holder);    
+        }
         
-        console.log("Done ");
-        await promisify(stopServer)(holder);
 
     });
 });
