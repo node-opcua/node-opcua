@@ -105,7 +105,7 @@ export class DataTypeFactory {
     
         /* istanbul ignore next */
         if (!verifyExpandedNodeId(expandedNodeId)) {
-            throw new Error("Invalid expandedNodeId");
+            throw new Error("Invalid expandedNodeId " + expandedNodeId.toString());
         }
         const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
     
