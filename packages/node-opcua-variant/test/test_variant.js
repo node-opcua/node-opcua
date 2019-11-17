@@ -315,6 +315,34 @@ describe("Variant", () => {
         var1.toString().should.eql("Variant(Matrix[ 2,3 ]<UInt32>, l= 6, value=[0,1,2,16,17,18])");
     });
 
+    it("should create a Variant as a Matrix (empty) of UInt32 (edge case)", () => {
+        const var1 = new Variant({
+            dataType: DataType.UInt32,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [],
+            value: []
+        });
+        var1.arrayType.should.eql(VariantArrayType.Matrix);
+        var1.dimensions.should.eql([]);
+        var1.value.length.should.eql(0);
+        var1.dataType.should.eql(DataType.UInt32);
+
+        encode_decode_round_trip_test(var1, function(stream) {
+            // 1  encoding byte          1
+            // 1  UInt32 => ArrayLength  4
+            // 0  UInt32                 0
+            // 1  Uint32                 4
+            // 0  Uint32 (dimension)     0
+            //                           ----
+            //                           9
+            stream.length.should.equal(9);
+        });
+
+
+        var1.toString().should.eql("Variant(Matrix[  ]<UInt32>, l= 0, value=[])");
+    
+    });
+
     xit("not supported - should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a Array of Array", () => {
         const var1 = new Variant({
             dataType: DataType.UInt32,
