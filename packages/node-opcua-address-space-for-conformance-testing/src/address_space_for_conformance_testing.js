@@ -12,29 +12,32 @@ const path = require("path");
 const fs = require("fs");
 
 
-const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const address_space = require("node-opcua-address-space");
-const AddressSpace = address_space.AddressSpace;
-const Namespace = address_space.Namespace;
+const { coerceNodeId, makeNodeId } = require("node-opcua-nodeid");
+const { StatusCodes } = require("node-opcua-status-code");
+const { AddressSpace, Namespace } = require("node-opcua-address-space");
 
-const Variant = require("node-opcua-variant").Variant;
-const DataType = require("node-opcua-variant").DataType;
-const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-const buildVariantArray = require("node-opcua-variant").buildVariantArray;
+const {
+    Variant,
+    DataType,
+    VariantArrayType,
+    buildVariantArray
+} = require("node-opcua-variant");
 
-const findBuiltInType = require("node-opcua-factory").findBuiltInType;
-const DataValue = require("node-opcua-data-value").DataValue;
+const { findBuiltInType } = require("node-opcua-factory");
+const { DataValue } = require("node-opcua-data-value");
 
 
 const ec = require("node-opcua-basic-types");
-const QualifiedName = require("node-opcua-data-model").QualifiedName;
-const LocalizedText = require("node-opcua-data-model").LocalizedText;
+const {
+    QualifiedName,
+    LocalizedText
+} = require("node-opcua-data-model");
 
-const standardUnits = require("node-opcua-data-access").standardUnits;
+const {
+    standardUnits
+} = require("node-opcua-data-access");
 
-const add_eventGeneratorObject = require("node-opcua-address-space").add_eventGeneratorObject;
+const { add_eventGeneratorObject } = require("node-opcua-address-space");
 
 function defaultValidator(/*value*/) {
     return true;
@@ -59,19 +62,19 @@ function getRandomFuncForType(dataType) {
     //xx console.log("xxxx dataType  ",dataType);
     switch (dataTypeName) {
         case "Variant":
-            return function () {
+            return function() {
                 return new Variant();
             };
         case "QualifiedName":
-            return function () {
-                return new QualifiedName({name: ec.randomString()});
+            return function() {
+                return new QualifiedName({ name: ec.randomString() });
             };
         case "LocalizedText":
-            return function () {
-                return new LocalizedText({text: ec.randomString()});
+            return function() {
+                return new LocalizedText({ text: ec.randomString() });
             };
-        case "XmlElement" :
-            return function () {
+        case "XmlElement":
+            return function() {
                 const element = ec.randomString();
                 const content = ec.randomString();
                 return "<" + element + ">" + content + "</" + element + ">";
@@ -159,7 +162,7 @@ function _add_variable(namespace, parent, varName, dataTypeName, current_value, 
     const variable = namespace.addVariable({
         componentOf: parent,
         browseName: name,
-        description: {locale: "en", text: name},
+        description: { locale: "en", text: name },
         nodeId: nodeId,
         dataType: varName,
         valueRank: isArray ? 1 : -1,
@@ -170,7 +173,7 @@ function _add_variable(namespace, parent, varName, dataTypeName, current_value, 
 }
 
 const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
-const coerceAccessLevelFlag =require("node-opcua-data-model").coerceAccessLevelFlag;
+const coerceAccessLevelFlag = require("node-opcua-data-model").coerceAccessLevelFlag;
 
 function add_variable(namespace, parent, name, realType, default_value, extra_name) {
 
@@ -238,7 +241,7 @@ function add_mass_variables(namespace, scalarFolder) {
         nodeId: "s=Scalar_Mass"
     });
 
-    typeAndDefaultValue.forEach(function (e) {
+    typeAndDefaultValue.forEach(function(e) {
         const dataType = e.type;
         const realType = e.realType || dataType;
         add_mass_variables_of_type(namespace, scalarMass, dataType, e.defaultValue, realType);
@@ -256,56 +259,56 @@ let build_address_space_for_conformance_testing;
 
 const DateTime_Min = new Date();
 const typeAndDefaultValue = [
-    {type: "Boolean", defaultValue: false},
-    {type: "ByteString", defaultValue: Buffer.from("OPCUA")},
-    {type: "DateTime", defaultValue: DateTime_Min},
-    {type: "Double", defaultValue: 0.0},
-    {type: "Float", defaultValue: 0.0},
-    {type: "Guid", defaultValue: ec.emptyGuid},
-    {type: "SByte", defaultValue: 0},
-    {type: "Int16", defaultValue: 0},
-    {type: "Int32", defaultValue: 0},
+    { type: "Boolean", defaultValue: false },
+    { type: "ByteString", defaultValue: Buffer.from("OPCUA") },
+    { type: "DateTime", defaultValue: DateTime_Min },
+    { type: "Double", defaultValue: 0.0 },
+    { type: "Float", defaultValue: 0.0 },
+    { type: "Guid", defaultValue: ec.emptyGuid },
+    { type: "SByte", defaultValue: 0 },
+    { type: "Int16", defaultValue: 0 },
+    { type: "Int32", defaultValue: 0 },
     {
-        type: "NodeId", defaultValue: function () {
-            return coerceNodeId("ns=" + 3+ ";g=00000000-0000-0000-0000-000000000023");
+        type: "NodeId", defaultValue: function() {
+            return coerceNodeId("ns=" + 3 + ";g=00000000-0000-0000-0000-000000000023");
         }
     },
-    {type: "String", defaultValue: "OPCUA"},
-    {type: "Byte", defaultValue: 0},
-    {type: "UInt16", defaultValue: 0},
-    {type: "UInt32", defaultValue: 0},
-    {type: "Duration", realType: "Double", defaultValue: 0.0},
-    {type: "Number", realType: "UInt16", defaultValue: 0},// Number is abstract
-    {type: "Integer", realType: "Int64", defaultValue: 0},// because Integer is abstract , we choose Int32
-    {type: "UInteger", realType: "UInt64", defaultValue: 0},
+    { type: "String", defaultValue: "OPCUA" },
+    { type: "Byte", defaultValue: 0 },
+    { type: "UInt16", defaultValue: 0 },
+    { type: "UInt32", defaultValue: 0 },
+    { type: "Duration", realType: "Double", defaultValue: 0.0 },
+    { type: "Number", realType: "UInt16", defaultValue: 0 },// Number is abstract
+    { type: "Integer", realType: "Int64", defaultValue: 0 },// because Integer is abstract , we choose Int32
+    { type: "UInteger", realType: "UInt64", defaultValue: 0 },
     {
-        type: "UtcTime", realType: "DateTime", defaultValue: function () {
+        type: "UtcTime", realType: "DateTime", defaultValue: function() {
             return new Date();
         }
     },
-//xx        {  type: "Int64",         defaultValue:  0},
-    {type: "LocaleId", realType: "String", defaultValue: ""},
+    //xx        {  type: "Int64",         defaultValue:  0},
+    { type: "LocaleId", realType: "String", defaultValue: "" },
     {
-        type: "LocalizedText", defaultValue: function () {
+        type: "LocalizedText", defaultValue: function() {
             return new LocalizedText({});
         }
     },
 
 
     {
-        type: "QualifiedName", defaultValue: function () {
+        type: "QualifiedName", defaultValue: function() {
             return new QualifiedName();
         }
     },
-    {type: "Time", realType: "String", defaultValue: "00:00:00"},
-    {type: "UInt64", defaultValue: [0, 0]},
-    {type: "Int64", defaultValue: [0, 0]},
+    { type: "Time", realType: "String", defaultValue: "00:00:00" },
+    { type: "UInt64", defaultValue: [0, 0] },
+    { type: "Int64", defaultValue: [0, 0] },
     //xx {type: "Variant",   realType:   "Variant", defaultValue:  {} },
-    {type: "XmlElement", defaultValue: "<string1>OPCUA</string1>"},
-    {type: "ImageBMP", realType: "ByteString", defaultValue: null},
-    {type: "ImageGIF", realType: "ByteString", defaultValue: null},
-    {type: "ImageJPG", realType: "ByteString", defaultValue: null},
-    {type: "ImagePNG", realType: "ByteString", defaultValue: null},
+    { type: "XmlElement", defaultValue: "<string1>OPCUA</string1>" },
+    { type: "ImageBMP", realType: "ByteString", defaultValue: null },
+    { type: "ImageGIF", realType: "ByteString", defaultValue: null },
+    { type: "ImageJPG", realType: "ByteString", defaultValue: null },
+    { type: "ImagePNG", realType: "ByteString", defaultValue: null },
     // {type: "Enumeration", realType: "UInt32" , defaultValue:0}
 ];
 
@@ -350,7 +353,7 @@ function add_simulation_variables(namespace, scalarFolder) {
 
 
     // add simulation variables
-    typeAndDefaultValue.forEach(function (e) {
+    typeAndDefaultValue.forEach(function(e) {
         const dataType = e.type;
         const defaultValue = _.isFunction(e.defaultValue) ? e.defaultValue() : e.defaultValue;
         const realType = e.realType || dataType;
@@ -366,7 +369,7 @@ function add_simulation_variables(namespace, scalarFolder) {
 
     function change_randomly() {
 
-        values_to_change.forEach(function (element) {
+        values_to_change.forEach(function(element) {
 
             const variant = element.variable._backdoor_placeholder.variant;
             variant.value = element.randomFunc();
@@ -387,7 +390,7 @@ function add_simulation_variables(namespace, scalarFolder) {
         delete_Timer();
         assert(!timer);
         if (enabled) {
-            timer = setInterval(function () {
+            timer = setInterval(function() {
                 change_randomly();
             }, interval);
         }
@@ -401,7 +404,7 @@ function add_simulation_variables(namespace, scalarFolder) {
     const intervalVariable = namespace.addVariable({
         componentOf: simulation,
         browseName: "Interval",
-        description: {locale: "en", text: "The rate (in msec) of change for all Simulated items."},
+        description: { locale: "en", text: "The rate (in msec) of change for all Simulated items." },
         nodeId: "s=Scalar_Simulation_Interval",
         dataType: "UInt16",
         value: new Variant({
@@ -411,7 +414,7 @@ function add_simulation_variables(namespace, scalarFolder) {
         })
     });
 
-    intervalVariable.on("value_changed", function (dataValue/*,indexRange*/) {
+    intervalVariable.on("value_changed", function(dataValue/*,indexRange*/) {
         const variant = dataValue.value;
         assert(variant instanceof Variant);
         assert(ec.isValidUInt16(variant.value) && " value must be valid for dataType");
@@ -423,7 +426,7 @@ function add_simulation_variables(namespace, scalarFolder) {
     const enabledVariable = namespace.addVariable({
         componentOf: simulation,
         browseName: "Enabled",
-        description: {locale: "en", text: "Enabled"},
+        description: { locale: "en", text: "Enabled" },
         nodeId: "s=Scalar_Simulation_Enabled",
         dataType: "Boolean",
         value: new Variant({
@@ -432,7 +435,7 @@ function add_simulation_variables(namespace, scalarFolder) {
             value: enabled
         })
     });
-    enabledVariable.on("value_changed", function (dataValue/*,indexRange*/) {
+    enabledVariable.on("value_changed", function(dataValue/*,indexRange*/) {
         const variant = dataValue.value;
         assert(variant instanceof Variant);
         assert(ec.isValidBoolean(variant.value) && " value must be valid for dataType");
@@ -456,7 +459,7 @@ function add_scalar_static_variables(namespace, scalarFolder) {
     });
 
     // add statics scalar Variables
-    typeAndDefaultValue.forEach(function (e) {
+    typeAndDefaultValue.forEach(function(e) {
         const dataType = e.type;
         const realType = e.realType || dataType;
 
@@ -469,17 +472,17 @@ function add_scalar_static_variables(namespace, scalarFolder) {
         const imageNode = namespace.findNode("s=Scalar_Static_Image" + imageType);
 
         const options = {
-            refreshFunc: function (callback) {
-                fs.readFile(fullpath, function (err, data) {
+            refreshFunc: function(callback) {
+                fs.readFile(fullpath, function(err, data) {
                     if (err) {
                         return callback(null, new DataValue({
                             statusCode: StatusCodes.BadInternalError,
-                            value: {dataType: "ByteString", value: null}
+                            value: { dataType: "ByteString", value: null }
                         }));
 
                     }
                     assert(data instanceof Buffer);
-                    callback(null, new DataValue({value: {dataType: "ByteString", value: data}}));
+                    callback(null, new DataValue({ value: { dataType: "ByteString", value: data } }));
                 });
             }
         };
@@ -490,10 +493,10 @@ function add_scalar_static_variables(namespace, scalarFolder) {
     function setImage(imageType, filename) {
         const fullpath = path.join(__dirname, "../data", filename);
         const imageNode = namespace.findNode("s=Scalar_Static_Image" + imageType);
-        fs.readFile(fullpath, function (err, data) {
+        fs.readFile(fullpath, function(err, data) {
             if (!err) {
                 assert(data instanceof Buffer);
-                imageNode.setValueFromSource(new Variant({dataType: DataType.ByteString, value: data}));
+                imageNode.setValueFromSource(new Variant({ dataType: DataType.ByteString, value: data }));
             } else {
                 console.log("cannot load file =", fullpath);
             }
@@ -514,7 +517,7 @@ function add_scalar_static_variables(namespace, scalarFolder) {
         nodeId: "s=Scalar_Static_Array"
     });
     // add static Array
-    typeAndDefaultValue.forEach(function (e) {
+    typeAndDefaultValue.forEach(function(e) {
         const dataType = e.type;
         const realType = e.realType || dataType;
         add_variable_array(namespace, scalarStaticArray, dataType, e.defaultValue, realType, 10, "");
@@ -545,7 +548,7 @@ function add_access_right_variables(namespace, parentFolder) {
     namespace.addVariable({
         componentOf: accessLevel_All_Folder,
         browseName: name,
-        description: {locale: "en", text: name},
+        description: { locale: "en", text: name },
         nodeId: "s=" + name,
         dataType: "Int32",
         valueRank: -1,
@@ -564,7 +567,7 @@ function add_access_right_variables(namespace, parentFolder) {
     namespace.addVariable({
         componentOf: accessLevel_All_Folder,
         browseName: name,
-        description: {locale: "en", text: name},
+        description: { locale: "en", text: name },
         nodeId: "s=" + name,
         dataType: "Int32",
         valueRank: -1,
@@ -578,7 +581,7 @@ function add_access_right_variables(namespace, parentFolder) {
     namespace.addVariable({
         componentOf: accessLevel_All_Folder,
         browseName: name,
-        description: {locale: "en", text: name},
+        description: { locale: "en", text: name },
         nodeId: "s=" + name,
         dataType: "Int32",
         valueRank: -1,
@@ -598,7 +601,7 @@ function add_access_right_variables(namespace, parentFolder) {
     namespace.addVariable({
         componentOf: accessLevel_All_Folder,
         browseName: name,
-        description: {locale: "en", text: name},
+        description: { locale: "en", text: name },
         nodeId: "s=" + name,
         dataType: "Int32",
         valueRank: -1,
@@ -618,7 +621,7 @@ function add_access_right_variables(namespace, parentFolder) {
     namespace.addVariable({
         componentOf: accessLevel_All_Folder,
         browseName: name,
-        description: {locale: "en", text: name},
+        description: { locale: "en", text: name },
         nodeId: "s=" + name,
         dataType: "Int32",
         valueRank: -1,
@@ -639,7 +642,7 @@ function add_access_right_variables(namespace, parentFolder) {
     namespace.addVariable({
         componentOf: accessLevel_All_Folder,
         browseName: name,
-        description: {locale: "en", text: name},
+        description: { locale: "en", text: name },
         nodeId: "s=" + name,
         dataType: "Int32",
         valueRank: -1,
@@ -659,7 +662,7 @@ function add_access_right_variables(namespace, parentFolder) {
     namespace.addVariable({
         componentOf: accessLevel_All_Folder,
         browseName: name,
-        description: {locale: "en", text: name},
+        description: { locale: "en", text: name },
         nodeId: "s=" + name,
         dataType: "Int32",
         valueRank: -1,
@@ -677,10 +680,173 @@ function add_access_right_variables(namespace, parentFolder) {
 
 }
 
+function add_node_with_references(namespace, simulation_folder) {
+
+    let parent = simulation_folder;
+    const referenceFolder = namespace.addObject({
+        browseName: "References",
+        nodeId: "s=Demo.CTT.References",
+        organizedBy: parent,
+        typeDefinition: "FolderType"
+    });
+
+    (() => {
+        const has3ForwardReferences1 = namespace.addObject({
+            browseName: "Has3ForwardReferences1",
+            nodeId: "s=Demo.CTT.References.Has3ForwardReferences1",
+            componentOf: referenceFolder,
+            typeDefinition: "FolderType"
+        });
+        const referenceNode1 = namespace.addVariable({
+            browseName: "ReferenceNode1",
+            componentOf: has3ForwardReferences1,
+            dataType: "UInt32"
+        });
+        const referenceNode2 = namespace.addVariable({
+            browseName: "ReferenceNode2",
+            componentOf: has3ForwardReferences1,
+            dataType: "UInt32"
+        });
+        const referenceNode3 = namespace.addVariable({
+            browseName: "ReferenceNode3",
+            componentOf: has3ForwardReferences1,
+            dataType: "UInt32"
+        });
+
+
+    })();
+
+    (() => {
+        const has3ForwardReferences2 = namespace.addObject({
+            browseName: "Has3ForwardReferences2",
+            nodeId: "s=Demo.CTT.References.Has3ForwardReferences2",
+            componentOf: referenceFolder,
+            typeDefinition: "FolderType"
+        });
+        const baseDataVariable = namespace.addVariable({
+            browseName: "BaseDataVariable",
+            componentOf: has3ForwardReferences2,
+            dataType: "UInt32"
+        })
+        const method1 = namespace.addMethod(has3ForwardReferences2, {
+            browseName: "Method1",
+        });
+        const method2 = namespace.addMethod(has3ForwardReferences2, {
+            browseName: "Method2",
+        });
+        const method3 = namespace.addMethod(has3ForwardReferences2, {
+            browseName: "Method3",
+        });
+        const property = namespace.addVariable({
+            browseName: "Property",
+            propertyOf: has3ForwardReferences2,
+            dataType: "UInt32"
+        });
+    })();
+
+    (() => {
+        const has3ForwardReferences3 = namespace.addObject({
+            browseName: "Has3ForwardReferences3",
+            nodeId: "s=Demo.CTT.References.Has3ForwardReferences3",
+            componentOf: referenceFolder,
+            typeDefinition: "FolderType"
+        });
+        const referencedNode1 = namespace.addFolder(has3ForwardReferences3, "ReferencedNode1");
+        const referencedNode2 = namespace.addFolder(has3ForwardReferences3, "ReferencedNode2");
+        const referencedNode3 = namespace.addFolder(has3ForwardReferences3, "ReferencedNode3");
+
+        const has3InverseReferences = namespace.addObject({
+            browseName: "Has3InverseReferences",
+            nodeId: "s=Demo.CTT.References.Has3InverseReferences",
+            componentOf: referenceFolder,
+            typeDefinition: "FolderType"
+        });
+
+        referencedNode1.addReference({
+            referenceType: "Organizes",
+            nodeId: has3InverseReferences
+        });
+        referencedNode2.addReference({
+            referenceType: "Organizes",
+            nodeId: has3InverseReferences
+        });
+        referencedNode3.addReference({
+            referenceType: "Organizes",
+            nodeId: has3InverseReferences
+        });
+
+    })();
+
+    (() => {
+        const has3ForwardReferences4 = namespace.addObject({
+            browseName: "Has3ForwardReferences4",
+            nodeId: "s=Demo.CTT.References.Has3ForwardReferences4",
+            componentOf: referenceFolder,
+            typeDefinition: "FolderType"
+        });
+        const prop1 = namespace.addVariable({
+            browseName: "ReferenceNode1",
+            propertyOf: has3ForwardReferences4,
+            dataType: "UInt32"
+        });
+        const prop2 = namespace.addVariable({
+            browseName: "ReferenceNode2",
+            propertyOf: has3ForwardReferences4,
+            dataType: "UInt32"
+        });
+        const prop3 = namespace.addVariable({
+            browseName: "ReferenceNode3",
+            propertyOf: has3ForwardReferences4,
+            dataType: "UInt32"
+        });
+
+    })();
+    (() => {
+        const has3ForwardReferences5 = namespace.addObject({
+            browseName: "Has3ForwardReferences5",
+            nodeId: "s=Demo.CTT.References.Has3ForwardReferences5",
+            componentOf: referenceFolder,
+            typeDefinition: "FolderType"
+        });
+
+        namespace.addFolder(has3ForwardReferences5, {
+            browseName: "ReferenceNode1"
+        });
+        namespace.addVariable({
+            browseName: "ReferenceNode2",
+            propertyOf: has3ForwardReferences5,
+            dataType: "UInt32"
+        });
+        const method3 = namespace.addMethod(has3ForwardReferences5, {
+            browseName: "ReferenceNode3",
+        });
+
+    })();
+
+    (() => {
+        const hasInverseAndForwardReferences = namespace.addObject({
+            browseName: "HasInverseAndForwardReferences",
+            nodeId: "s=Demo.CTT.References.HasInverseAndForwardReferences",
+            componentOf: referenceFolder,
+            typeDefinition: "FolderType"
+        });
+        namespace.addFolder(hasInverseAndForwardReferences, {
+            browseName: "ReferenceNode1"
+        });
+
+    })();
+
+    const hasReferencesWithDifferentParentTypes = namespace.addObject({
+        browseName: "HasReferencesWithDifferentParentTypes",
+        nodeId: "s=Demo.CTT.References.HasReferencesWithDifferentParentTypes",
+        componentOf: referenceFolder,
+        typeDefinition: "FolderType"
+    });
+}
 function add_path_10deep(namespace, simulation_folder) {
 
     let parent = simulation_folder;
-    for (let i = 1; i < 15; i++) {
+    for (let i = 1; i <= 10; i++) {
         const name = "Path_" + i.toString() + "Deep";
 
         const child = namespace.addObject({
@@ -703,7 +869,7 @@ function add_very_large_array_variables(namespace, objectsFolder) {
         description: "Single dimension, suggested size of 100k-elements per array.",
         nodeId: "s=Scalar_Static_Large_Array"
     });
-    typeAndDefaultValue.forEach(function (e) {
+    typeAndDefaultValue.forEach(function(e) {
         const dataType = e.type;
         const realType = e.realType || dataType;
         add_variable_array(namespace, scalarStaticLargeArray, dataType, e.defaultValue, realType, 50 * 1024, "");
@@ -771,8 +937,8 @@ function add_analog_data_items(namespace, parentFolder) {
             browseName: name,
             definition: "(tempA -25) + tempB",
             valuePrecision: 0.5,
-            engineeringUnitsRange: {low: -200, high: 200},
-            instrumentRange: {low: -200, high: 200},
+            engineeringUnitsRange: { low: -200, high: 200 },
+            instrumentRange: { low: -200, high: 200 },
             engineeringUnits: standardUnits.degree_celsius,
             dataType: dataType,
             value: new Variant({
@@ -800,8 +966,8 @@ function add_analog_data_items(namespace, parentFolder) {
             browseName: name,
             definition: "(tempA -25) + tempB",
             valuePrecision: 0.5,
-            engineeringUnitsRange: {low: -200, high: 200},
-            instrumentRange: {low: -200, high: 200},
+            engineeringUnitsRange: { low: -200, high: 200 },
+            instrumentRange: { low: -200, high: 200 },
             engineeringUnits: standardUnits.degree_celsius,
             dataType: dataType,
             value: new Variant({
@@ -831,8 +997,8 @@ function add_analog_data_items(namespace, parentFolder) {
         browseName: name,
         definition: "(tempA -25) + tempB",
         valuePrecision: 0.5,
-        engineeringUnitsRange: {low: 100, high: 200},
-        instrumentRange: {low: -100, high: +200},
+        engineeringUnitsRange: { low: 100, high: 200 },
+        instrumentRange: { low: -100, high: +200 },
         engineeringUnits: standardUnits.degree_celsius,
         dataType: "Double",
 
@@ -844,27 +1010,27 @@ function add_analog_data_items(namespace, parentFolder) {
 
 
     const data = [
-        {dataType: "Double", value: 3.14},
-        {dataType: "Float", value: 3.14},
-        {dataType: "Int16", value: -10},
-        {dataType: "UInt16", value: 10},
-        {dataType: "Int32", value: -100},
-        {dataType: "UInt32", value: 100},
-        {dataType: "Int64", value: [0, 0]},
-        {dataType: "UInt64", value: [0, 0]},
-        {dataType: "Byte", value: 120},
-        {dataType: "SByte", value: -123},
-        {dataType: "String", value: "some string"},
-        {dataType: "DateTime", value: new Date()}
+        { dataType: "Double", value: 3.14 },
+        { dataType: "Float", value: 3.14 },
+        { dataType: "Int16", value: -10 },
+        { dataType: "UInt16", value: 10 },
+        { dataType: "Int32", value: -100 },
+        { dataType: "UInt32", value: 100 },
+        { dataType: "Int64", value: [0, 0] },
+        { dataType: "UInt64", value: [0, 0] },
+        { dataType: "Byte", value: 120 },
+        { dataType: "SByte", value: -123 },
+        { dataType: "String", value: "some string" },
+        { dataType: "DateTime", value: new Date() }
     ];
 
-    data.forEach(function (e) {
+    data.forEach(function(e) {
         _addAnalogDataItem(analogItemFolder, e.dataType, e.value);
     });
-    data.forEach(function (e) {
+    data.forEach(function(e) {
         _addDataItem(analogItemFolder, e.dataType, e.value);
     });
-    data.forEach(function (e) {
+    data.forEach(function(e) {
         _addArrayAnalogDataItem(analogItemFolder, e.dataType, e.value);
     });
 
@@ -934,11 +1100,11 @@ function add_two_state_discrete_variables(namespace, parentFolder) {
         falseState: "Stopped"
     });
 
-    twoStateDiscrete001.setValueFromSource({dataType: "Boolean", value: false});
-    twoStateDiscrete002.setValueFromSource({dataType: "Boolean", value: false});
-    twoStateDiscrete003.setValueFromSource({dataType: "Boolean", value: false});
-    twoStateDiscrete004.setValueFromSource({dataType: "Boolean", value: false});
-    twoStateDiscrete005.setValueFromSource({dataType: "Boolean", value: false});
+    twoStateDiscrete001.setValueFromSource({ dataType: "Boolean", value: false });
+    twoStateDiscrete002.setValueFromSource({ dataType: "Boolean", value: false });
+    twoStateDiscrete003.setValueFromSource({ dataType: "Boolean", value: false });
+    twoStateDiscrete004.setValueFromSource({ dataType: "Boolean", value: false });
+    twoStateDiscrete005.setValueFromSource({ dataType: "Boolean", value: false });
 
 }
 
@@ -1014,23 +1180,23 @@ function add_multi_state_value_discrete_variables(namespaceDemo, parentFolder) {
             browseName: name,
             nodeId: nodeId,
             dataType: dataType,
-            enumValues: {"Red": 0xFF0000, "Orange": 0xFF9933, "Green": 0x00FF00, "Blue": 0x0000FF},
+            enumValues: { "Red": 0xFF0000, "Orange": 0xFF9933, "Green": 0x00FF00, "Blue": 0x0000FF },
             value: 0xFF0000 // Red
         });
 
     }
 
     const data = [
-        {dataType: "Int16", value: -10},
-        {dataType: "UInt16", value: 10},
-        {dataType: "Int32", value: -100},
-        {dataType: "UInt32", value: 100},
-        {dataType: "Int64", value: [0, 0]},
-        {dataType: "UInt64", value: [0, 0]},
-        {dataType: "Byte", value: 120},
-        {dataType: "SByte", value: -123}
+        { dataType: "Int16", value: -10 },
+        { dataType: "UInt16", value: 10 },
+        { dataType: "Int32", value: -100 },
+        { dataType: "UInt32", value: 100 },
+        { dataType: "Int64", value: [0, 0] },
+        { dataType: "UInt64", value: [0, 0] },
+        { dataType: "Byte", value: 120 },
+        { dataType: "SByte", value: -123 }
     ];
-    data.forEach(function (e) {
+    data.forEach(function(e) {
         _add_multi_state_variable(multistateValueDiscreteTypeFolder, e.dataType);
     });
 
@@ -1054,7 +1220,7 @@ function add_ObjectWithMethod(namespace, parentFolder) {
     assert(makeNodeId("MethodNoArgs", namespace.index).toString().match(/s=MethodNoArgs/));
     assert(methodNoArgs.nodeId.toString().match(/s=MethodNoArgs/));
 
-    methodNoArgs.bindMethod(function (inputArguments, context, callback) {
+    methodNoArgs.bindMethod(function(inputArguments, context, callback) {
         // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
             statusCode: StatusCodes.Good,
@@ -1074,7 +1240,7 @@ function add_ObjectWithMethod(namespace, parentFolder) {
         inputArguments: [
             {
                 name: "ShutterLag",
-                description: {text: "specifies the number of seconds to wait before the picture is taken "},
+                description: { text: "specifies the number of seconds to wait before the picture is taken " },
                 dataType: DataType.UInt32
             }
         ],
@@ -1082,12 +1248,12 @@ function add_ObjectWithMethod(namespace, parentFolder) {
         outputArguments: [
             {
                 name: "Result",
-                description: {text: "the result"},
+                description: { text: "the result" },
                 dataType: "Int32"
             }
         ]
     });
-    methodIO.bindMethod(function (inputArguments, context, callback) {
+    methodIO.bindMethod(function(inputArguments, context, callback) {
         // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
             statusCode: StatusCodes.Good,
@@ -1111,14 +1277,14 @@ function add_ObjectWithMethod(namespace, parentFolder) {
         inputArguments: [
             {
                 name: "ShutterLag",
-                description: {text: "specifies the number of seconds to wait before the picture is taken "},
+                description: { text: "specifies the number of seconds to wait before the picture is taken " },
                 dataType: DataType.UInt32
             }
         ],
         //xx outputArguments: []
 
     });
-    methodI.bindMethod(function (inputArguments, context, callback) {
+    methodI.bindMethod(function(inputArguments, context, callback) {
         // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
             statusCode: StatusCodes.Good,
@@ -1138,13 +1304,13 @@ function add_ObjectWithMethod(namespace, parentFolder) {
         outputArguments: [
             {
                 name: "Result",
-                description: {text: "the result"},
+                description: { text: "the result" },
                 dataType: "Int32"
             }
         ]
 
     });
-    methodO.bindMethod(function (inputArguments, context, callback) {
+    methodO.bindMethod(function(inputArguments, context, callback) {
         // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
             statusCode: StatusCodes.Good,
@@ -1168,10 +1334,10 @@ function add_enumeration_variable(namespaceDemo, parentFolder) {
     const myEnumType = namespaceDemo.addEnumerationType({
         browseName: "SimulationEnumerationType",
         enumeration: [
-            {value: 1, displayName: "RUNNING"},
-            {value: 2, displayName: "BLOCKED"},
-            {value: 3, displayName: "IDLE"},
-            {value: 4, displayName: "UNDER MAINTENANCE"}
+            { value: 1, displayName: "RUNNING" },
+            { value: 2, displayName: "BLOCKED" },
+            { value: 3, displayName: "IDLE" },
+            { value: 4, displayName: "UNDER MAINTENANCE" }
         ]
     });
 
@@ -1182,8 +1348,8 @@ function add_enumeration_variable(namespaceDemo, parentFolder) {
         dataType: myEnumType,
         browseName: "RunningState",
         value: {
-            get: function () {
-                return new Variant({dataType: DataType.Int32, value: 1})
+            get: function() {
+                return new Variant({ dataType: DataType.Int32, value: 1 })
             }
         }
     });
@@ -1205,13 +1371,13 @@ function add_trigger_nodes(namespace, parentFolder) {
         });
 
         let value = 100.0;
-        const getFunc = function () {
+        const getFunc = function() {
             return new Variant({
                 dataType: DataType.Double,
                 value: value
             });
         };
-        const setFunc = function (variant) {
+        const setFunc = function(variant) {
 
             value = variant.value;
 
@@ -1220,7 +1386,7 @@ function add_trigger_nodes(namespace, parentFolder) {
             server.raiseEvent("3:MyEventType", {
                 message: {
                     dataType: DataType.LocalizedText,
-                    value: {text: "Hello World"}
+                    value: { text: "Hello World" }
                 },
                 severity: {
                     dataType: DataType.UInt32,
@@ -1282,6 +1448,8 @@ build_address_space_for_conformance_testing = function build_address_space_for_c
     add_analog_data_items(namespace, simulationFolder);
 
     add_path_10deep(namespace, simulationFolder);
+
+    add_node_with_references(namespace, simulationFolder);
 
     add_ObjectWithMethod(namespace, simulationFolder);
 
