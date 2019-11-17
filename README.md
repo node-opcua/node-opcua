@@ -96,7 +96,7 @@ Because nodeJs is a great framework to design asynchronous application.
 
 ## Supporting the project
 
-If you like the project, please consider [to sponsor :beer: the author](https://github.com/sponsors/erossignon), 
+If you like the project, please consider [sponsoring the author :beer: :tada: ](https://github.com/sponsors/erossignon), 
 
 This will give us full of motivation to carry on and keep working on the roadmap.
 
