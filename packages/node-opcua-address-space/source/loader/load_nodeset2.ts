@@ -21,13 +21,16 @@ import {
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
+import {
+    findSimpleType,
+    registerBasicType
+} from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { Range } from "node-opcua-types";
-import { DataType, VariantArrayType } from "node-opcua-variant";
+import { DataType, VariantArrayType, VariantOptions } from "node-opcua-variant";
 import { ParserLike, ReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } from "node-opcua-xml2json";
 
-import { registerBasicType } from "node-opcua-factory";
 import {
     AddReferenceTypeOptions,
     AddressSpace as AddressSpacePublic,
@@ -51,10 +54,12 @@ export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraD
         const session = new PseudoSession(addressSpace);
         const extraDataTypeManager = new ExtraDataTypeManager();
 
-        extraDataTypeManager.setNamespaceArray(
-            addressSpace.getNamespaceArray().map((n: Namespace) => n.namespaceUri)
-        );
+        const namespaceArray =
+            addressSpace.getNamespaceArray().map((n: Namespace) => n.namespaceUri);
 
+        debugLog("Namespace Array = ", namespaceArray);
+
+        extraDataTypeManager.setNamespaceArray(namespaceArray);
         await extractNamespaceDataType(session, extraDataTypeManager);
         addressSpacePriv.$$extraDataTypeManager = extraDataTypeManager;
     }
@@ -121,6 +126,55 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
 }
 
 type Task = (addressSpace: AddressSpace) => Promise<void>;
+
+function makeDefaultVariant(
+    addressSpace: AddressSpacePublic,
+    dataTypeNode: NodeId,
+    valueRank: number
+): VariantOptions | undefined {
+    let variant: VariantOptions = { dataType: DataType.Null };
+    const nodeDataType = addressSpace.findNode(dataTypeNode);
+
+    if (nodeDataType) {
+        const dataType = addressSpace.findCorrespondingBasicDataType(dataTypeNode);
+        if (dataType === DataType.ExtensionObject) {
+            // console.log("xxxxxxxxxx ", dataTypeNode.toString(addressSpace as any));
+            return variant;
+        }
+        const dv = findSimpleType(DataType[dataType]).defaultValue;
+
+        let arrayType: VariantArrayType = VariantArrayType.Scalar;
+        const value = (typeof dv === "function") ? dv() : dv;
+        //  if (dataType === DataType.ByteString ) { value = Buffer.alloc(0) }
+        /*
+        *  * n > 1                     : the Value is an array with the specified number of dimensions.
+        *  * OneDimension (1):           The value is an array with one dimension.
+        *  * OneOrMoreDimensions (0):    The value is an array with one or more dimensions.
+        *  * Scalar (-1):                The value is not an array.
+        *  * Any (-2):                   The value can be a scalar or an array with any number of dimensions.
+        *  * ScalarOrOneDimension (-3):  The value can be a scalar or a one dimensional array.
+        */
+        switch (valueRank) {
+            case -3: //  ScalarOrOneDimension (-3):
+            case -2: // any
+            case -1:
+                arrayType = VariantArrayType.Scalar;
+                variant = { dataType, value, arrayType };
+                break;
+            case 0: // one or more dimension
+            case 1: // one dimension
+                arrayType = VariantArrayType.Array;
+                variant = { dataType, value: [], arrayType };
+                break;
+            default:
+                arrayType = VariantArrayType.Matrix;
+                variant = { dataType, value: [], arrayType, dimensions: [] };
+                break;
+        }
+        // console.log(variant, DataType[dataType], valueRank);
+    }
+    return variant;
+}
 
 export function generateAddressSpace(
     addressSpace: AddressSpacePublic,
@@ -192,7 +246,7 @@ export function generateAddressSpace(
 
         // istanbul ignore next
         if (!(params.nodeId instanceof NodeId)) {
-            throw new Error("invalid param");
+            throw new Error("invalid param expecting a valid nodeId");
         } // already translated
 
         const namespace = addressSpace1.getNamespace(params.nodeId.namespace);
@@ -754,7 +808,7 @@ export function generateAddressSpace(
                         const postTaskData = self.postTaskData;
                         const task = async (addressSpace2: AddressSpace) => {
 
-                            await ensureDatatypeExtracted(addressSpace);
+                            await ensureDatatypeExtracted(addressSpace2);
 
                             const dataTypeNode = findDataTypeNode(addressSpace2, typeDefinitionId);
 
@@ -768,6 +822,7 @@ export function generateAddressSpace(
                             // must have been found and object can be constructed
                             const userDefinedExtensionObject = addressSpace2.constructExtensionObject(dataTypeNode, pojo);
 
+                            // istanbul ignore next
                             if (doDebug) {
                                 debugLog("userDefinedExtensionObject", userDefinedExtensionObject.toString());
                             }
@@ -1016,7 +1071,6 @@ export function generateAddressSpace(
                         };
                         postTasks.push(task);
                     }
-
                 }
             }
         }
@@ -1043,8 +1097,15 @@ export function generateAddressSpace(
 
             this.obj.accessLevel = convertAccessLevel(attrs.AccessLevel);
             this.obj.userAccessLevel = convertAccessLevel(attrs.UserAccessLevel);
+
         },
         finish(this: any) {
+            // set default value based on obj data Type
+            if (this.obj.value === undefined) {
+                const dataTypeNode = this.obj.dataType;
+                const valueRank = this.obj.valueRank;
+                this.obj.value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
+            }
             const variable = _internal_createNode(this.obj);
         },
         parser: {
@@ -1239,6 +1300,7 @@ export function generateAddressSpace(
                     // istanbul ignore next
                     // tslint:disable:no-console
                     console.log(" Err  => ", err.message, "\n", err);
+                    await task(addressSpace1);
                 }
             }
         }

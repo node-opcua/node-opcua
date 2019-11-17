@@ -372,7 +372,9 @@ export class StateMachine extends UAObject implements StateMachine {
         if (d.statusCode !== StatusCodes.Good) {
             this.setState(null);
         } else {
-            this.currentStateNode = this.getStateByName(d.value.value.text.toString());
+            
+            this.currentStateNode = this.getStateByName
+            (d.value.value.text ? d.value.value.text.toString() : d.value.value.toString());
         }
     }
 }

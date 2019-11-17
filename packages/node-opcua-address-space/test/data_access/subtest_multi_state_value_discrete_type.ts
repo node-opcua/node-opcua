@@ -66,7 +66,7 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
             prop.readValue().value.toString().should.eql("Variant(Scalar<UInt32>, value: 16711680)");
             prop.readValue().value.dataType.should.eql(DataType.UInt32);
 
-            prop.valueAsText.readValue().value.value.text.should.eql("Red");
+            prop.valueAsText.readValue().value.value.text!.should.eql("Red");
 
         });
         it("should add a MultiStateValueDiscreteType variable - form 2", () => {
@@ -126,7 +126,7 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
                 // Xx console.log(  multiStateValue.readValue().toString());
                 // Xx console.log(  multiStateValue.valueAsText.readValue().toString());
 
-                multiStateValue.valueAsText.readValue().value.value.text.should.eql("Blue");
+                multiStateValue.valueAsText.readValue().value.value.text!.should.eql("Blue");
 
             });
 
@@ -150,7 +150,7 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
                 // await new Promise((resolve) => setTimeout(resolve, 100));
 
                 statusCode.should.eql(StatusCodes.Good);
-                multiStateValue.valueAsText.readValue().value.value.text.should.eql("Green");
+                multiStateValue.valueAsText.readValue().value.value.text!.should.eql("Green");
             });
         });
 
@@ -189,13 +189,13 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
 
             // verification
             obj.color.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-            obj.color.valueAsText.readValue().value.value.text.should.eql("Red");
+            obj.color.valueAsText.readValue().value.value.text!.should.eql("Red");
             obj.color.readValue().value.value.should.eql(0xFF0000);
 
-            obj.color.enumValues.readValue().value.value[0].displayName.text.should.eql("Red");
-            obj.color.enumValues.readValue().value.value[1].displayName.text.should.eql("Orange");
-            obj.color.enumValues.readValue().value.value[2].displayName.text.should.eql("Green");
-            obj.color.enumValues.readValue().value.value[3].displayName.text.should.eql("Blue");
+            obj.color.enumValues.readValue().value.value[0].displayName.text!.should.eql("Red");
+            obj.color.enumValues.readValue().value.value[1].displayName.text!.should.eql("Orange");
+            obj.color.enumValues.readValue().value.value[2].displayName.text!.should.eql("Green");
+            obj.color.enumValues.readValue().value.value[3].displayName.text!.should.eql("Blue");
 
             const greenValue = obj.color.enumValues.readValue().value.value[2].value[1];
             // now change the value => verify that valueAsText will change accordingly
@@ -208,7 +208,7 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
             statusCode.should.eql(StatusCodes.Good);
 
             // now verify that valueAsText has been updated accordingly...
-            obj.color.valueAsText.readValue().value.value.text.should.eql("Green");
+            obj.color.valueAsText.readValue().value.value.text!.should.eql("Green");
         });
 
     });

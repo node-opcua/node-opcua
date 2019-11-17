@@ -92,11 +92,11 @@ function is_Variant(v: any): boolean {
 
 function is_StatusCode(v: any): boolean {
     return v && v.constructor &&
-      (
-        v.constructor.name === "ConstantStatusCode" ||
-        v.constructor.name === "StatusCode" ||
-        v.constructor.name === "ModifiableStatusCode"
-      );
+        (
+            v.constructor.name === "ConstantStatusCode" ||
+            v.constructor.name === "StatusCode" ||
+            v.constructor.name === "ModifiableStatusCode"
+        );
 }
 
 function is_Variant_or_StatusCode(v: any): boolean {
@@ -107,8 +107,8 @@ function is_Variant_or_StatusCode(v: any): boolean {
 }
 
 function _dataType_toUADataType(
-  addressSpace: AddressSpace,
-  dataType: DataType
+    addressSpace: AddressSpace,
+    dataType: DataType
 ): UADataType {
 
     assert(addressSpace);
@@ -131,10 +131,10 @@ function _dataType_toUADataType(
  * @return {boolean} true if the variant dataType is compatible with the Variable DataType
  */
 function validateDataType(
-  addressSpace: AddressSpace,
-  dataTypeNodeId: NodeId,
-  variantDataType: DataType,
-  nodeId: NodeId
+    addressSpace: AddressSpace,
+    dataTypeNodeId: NodeId,
+    variantDataType: DataType,
+    nodeId: NodeId
 ): boolean {
 
     if (variantDataType === DataType.ExtensionObject) {
@@ -386,11 +386,11 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         /* istanbul ignore next */
         if (dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData)
-        || dataValue.statusCode.equals(StatusCodes.UncertainInitialValue)
+            || dataValue.statusCode.equals(StatusCodes.UncertainInitialValue)
         ) {
             debugLog(chalk.red(" Warning:  UAVariable#readValue ")
-              + chalk.cyan(this.browseName.toString()) +
-              " (" + chalk.yellow(this.nodeId.toString()) + ") exists but dataValue has not been defined");
+                + chalk.cyan(this.browseName.toString()) +
+                " (" + chalk.yellow(this.nodeId.toString()) + ") exists but dataValue has not been defined");
         }
         return dataValue;
     }
@@ -462,10 +462,10 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public readAttribute(
-      context: SessionContext | null,
-      attributeId: AttributeIds,
-      indexRange?: NumericRange,
-      dataEncoding?: string
+        context: SessionContext | null,
+        attributeId: AttributeIds,
+        indexRange?: NumericRange,
+        dataEncoding?: string
     ): DataValue {
 
         if (!context) {
@@ -526,9 +526,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
      * @param [sourceTimestamp= Now]
      */
     public setValueFromSource(
-      variant: VariantLike,
-      statusCode?: StatusCode,
-      sourceTimestamp?: Date
+        variant: VariantLike,
+        statusCode?: StatusCode,
+        sourceTimestamp?: Date
     ) {
 
         // istanbul ignore next
@@ -571,18 +571,18 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             dataValue.sourceTimestamp = this._dataValue.sourceTimestamp;
             dataValue.sourcePicoseconds = this._dataValue.sourcePicoseconds;
 
-/*
-            if (false) {
-                if (context.currentTime) {
-                    dataValue.sourceTimestamp = context.currentTime;
-                    dataValue.sourcePicoseconds = 0;
-                } else {
-                    const clock = getCurrentClock();
-                    dataValue.sourceTimestamp = clock.timestamp;
-                    dataValue.sourcePicoseconds = clock.picoseconds;
-                }
-            }
-            */
+            /*
+                        if (false) {
+                            if (context.currentTime) {
+                                dataValue.sourceTimestamp = context.currentTime;
+                                dataValue.sourcePicoseconds = 0;
+                            } else {
+                                const clock = getCurrentClock();
+                                dataValue.sourceTimestamp = clock.timestamp;
+                                dataValue.sourcePicoseconds = clock.picoseconds;
+                            }
+                        }
+                        */
         }
 
         if (context.currentTime && !dataValue.serverTimestamp) {
@@ -625,14 +625,14 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             return callback!(null, statusCode);
         }
 
-        const write_func = this._timestamped_set_func ||  ((
+        const write_func = this._timestamped_set_func || ((
             dataValue1: DataValue,
             indexRange1: NumericRange,
             callback1: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null | undefined) => void
-          ) => {
-              // xx assert(!indexRange,"indexRange Not Implemented");
-              return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
-          });
+        ) => {
+            // xx assert(!indexRange,"indexRange Not Implemented");
+            return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
+        });
 
         if (!write_func) {
             console.log(" warning " + this.nodeId.toString() + " " + this.browseName.toString() + " has no setter. \n");
@@ -642,9 +642,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         assert(write_func);
 
         write_func.call(this, dataValue, indexRange, (
-          err: Error | null,
-          statusCode1: StatusCode,
-          correctedDataValue: DataValue) => {
+            err: Error | null,
+            statusCode1: StatusCode,
+            correctedDataValue: DataValue) => {
 
             if (!err) {
 
@@ -685,17 +685,17 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public writeAttribute(
-      context: SessionContext,
-      writeValueOptions: WriteValueOptions | WriteValue,
-      callback?: (err: Error | null, statusCode?: StatusCode) => void
+        context: SessionContext,
+        writeValueOptions: WriteValueOptions | WriteValue,
+        callback?: (err: Error | null, statusCode?: StatusCode) => void
     ): any {
 
         if (!callback) {
             throw new Error("Internal error");
         }
         const writeValue: WriteValue = writeValueOptions instanceof WriteValue
-          ? writeValueOptions as WriteValue
-          : new WriteValue(writeValueOptions);
+            ? writeValueOptions as WriteValue
+            : new WriteValue(writeValueOptions);
 
         assert(context instanceof SessionContext);
         assert(writeValue instanceof WriteValue);
@@ -928,8 +928,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
      *
      */
     public bindVariable(
-      options?: BindVariableOptions,
-      overwrite?: boolean
+        options?: BindVariableOptions,
+        overwrite?: boolean
     ): void {
 
         if (overwrite) {
@@ -950,7 +950,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         if (options.historyRead) {
             assert(!_.isFunction(this._historyRead) ||
-              this._historyRead === UAVariable.prototype._historyRead);
+                this._historyRead === UAVariable.prototype._historyRead);
             assert(_.isFunction(options.historyRead));
 
             this._historyRead = options.historyRead;
@@ -970,8 +970,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
      * @async
      */
     public readValueAsync(
-      context?: SessionContext | null,
-      callback?: any
+        context?: SessionContext | null,
+        callback?: any
     ): any {
 
         if (!context) {
@@ -989,7 +989,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
 
         const readImmediate = (
-          innerCallback: (err: Error | null, dataValue: DataValue) => void
+            innerCallback: (err: Error | null, dataValue: DataValue) => void
         ) => {
             assert(this._dataValue instanceof DataValue);
             const dataValue = this.readValue();
@@ -1042,9 +1042,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public clone(
-      options?: any,
-      optionalFilter?: any,
-      extraInfo?: any): UAVariable {
+        options?: any,
+        optionalFilter?: any,
+        extraInfo?: any): UAVariable {
 
         options = options || {};
         options = _.extend(_.clone(options), {
@@ -1107,7 +1107,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             console.log(" ------------------------------ binding ", this.browseName.toString(), this.nodeId.toString());
         }
         assert(structure && structure.browseName.toString() === "Structure",
-          "expecting DataType Structure to be in AddressSpace");
+            "expecting DataType Structure to be in AddressSpace");
 
         const dt = this.getDataTypeNode();
         if (!dt.isSupertypeOf(structure)) {
@@ -1142,10 +1142,10 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
 
         const bindProperty = (
-          propertyNode: UAVariable,
-          name: any,
-          extensionObject: any,
-          dataTypeNodeId: any
+            propertyNode: UAVariable,
+            name: any,
+            extensionObject: any,
+            dataTypeNodeId: any
         ) => {
 
             const dataTypeAsString = DataType[dataTypeNodeId];
@@ -1223,7 +1223,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         // ------------------------------------------------------
         // now bind each member
         // ------------------------------------------------------
-        for (const field  of dt.definition) {
+        for (const field of dt.definition) {
 
             camelCaseName = lowerFirstLetter(field.name);
             const component = components.filter((f) => f.browseName.name!.toString() === field.name);
@@ -1252,12 +1252,12 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 const x = addressSpace.findNode(field.dataType)!.browseName.toString();
                 const basicType = addressSpace.findCorrespondingBasicDataType(field.dataType);
                 console.log(chalk.cyan("xxx"), " dataType",
-                  w(field.dataType.toString(), 8),
-                  w(field.name, 35),
-                  "valueRank", chalk.cyan(w(field.valueRank, 3)),
-                  chalk.green(w(x, 25)),
-                  "basicType = ", chalk.yellow(w(basicType.toString(), 20)),
-                  property.nodeId.toString(), property.readValue().statusCode.toString());
+                    w(field.dataType.toString(), 8),
+                    w(field.name, 35),
+                    "valueRank", chalk.cyan(w(field.valueRank, 3)),
+                    chalk.green(w(x, 25)),
+                    "basicType = ", chalk.yellow(w(basicType.toString(), 20)),
+                    property.nodeId.toString(), property.readValue().statusCode.toString());
             }
 
             if (dataTypeNodeId === DataType.ExtensionObject) {
@@ -1353,12 +1353,12 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     // History
     // ---------------------------------------------------------------------------------------------------
     public historyRead(
-      context: SessionContext,
-      historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
-      indexRange: NumericRange | null,
-      dataEncoding: QualifiedNameLike | null,
-      continuationPoint?: ContinuationPoint | null,
-      callback?: Callback<HistoryReadResult>
+        context: SessionContext,
+        historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+        indexRange: NumericRange | null,
+        dataEncoding: QualifiedNameLike | null,
+        continuationPoint?: ContinuationPoint | null,
+        callback?: Callback<HistoryReadResult>
     ): any {
 
         if (!callback) {
@@ -1374,38 +1374,38 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public _historyReadRaw(
-      context: SessionContext,
-      historyReadRawModifiedDetails: ReadRawModifiedDetails,
-      indexRange: NumericRange | null,
-      dataEncoding: QualifiedNameLike | null,
-      continuationPoint: ContinuationPoint | null,
-      callback: Callback<HistoryReadResult>
+        context: SessionContext,
+        historyReadRawModifiedDetails: ReadRawModifiedDetails,
+        indexRange: NumericRange | null,
+        dataEncoding: QualifiedNameLike | null,
+        continuationPoint: ContinuationPoint | null,
+        callback: Callback<HistoryReadResult>
     ): void {
         throw new Error("");
     }
 
     public _historyReadRawModify(
-      context: SessionContext,
-      historyReadRawModifiedDetails: ReadRawModifiedDetails,
-      indexRange: NumericRange | null,
-      dataEncoding: QualifiedNameLike | null,
-      continuationPoint?: ContinuationPoint | null,
-      callback?: Callback<HistoryReadResult>
+        context: SessionContext,
+        historyReadRawModifiedDetails: ReadRawModifiedDetails,
+        indexRange: NumericRange | null,
+        dataEncoding: QualifiedNameLike | null,
+        continuationPoint?: ContinuationPoint | null,
+        callback?: Callback<HistoryReadResult>
     ): any {
         throw new Error("");
     }
 
     public _historyRead(
-      context: SessionContext,
-      historyReadDetails:
-        ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
-      indexRange: NumericRange | null,
-      dataEncoding: QualifiedNameLike | null,
-      continuationPoint: ContinuationPoint | null,
-      callback: Callback<HistoryReadResult>
+        context: SessionContext,
+        historyReadDetails:
+            ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+        indexRange: NumericRange | null,
+        dataEncoding: QualifiedNameLike | null,
+        continuationPoint: ContinuationPoint | null,
+        callback: Callback<HistoryReadResult>
     ): any {
         const result = new HistoryReadResult({
-             statusCode: StatusCodes.BadNotImplemented
+            statusCode: StatusCodes.BadHistoryOperationUnsupported
         });
         callback(null, result);
     }
@@ -1415,22 +1415,22 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public _historyReadRawAsync(
-      historyReadRawModifiedDetails: ReadRawModifiedDetails,
-      maxNumberToExtract: number,
-      isReversed: boolean,
-      reverseDataValue: boolean,
-      callback: Callback<DataValue[]>
+        historyReadRawModifiedDetails: ReadRawModifiedDetails,
+        maxNumberToExtract: number,
+        isReversed: boolean,
+        reverseDataValue: boolean,
+        callback: Callback<DataValue[]>
     ): any {
         throw new Error("");
     }
 
     public _historyReadModify(
-      context: SessionContext,
-      historyReadRawModifiedDetails: any,
-      indexRange: NumericRange | null,
-      dataEncoding: QualifiedNameLike | null,
-      continuationPoint: ContinuationPoint | null,
-      callback: Callback<HistoryReadResult>
+        context: SessionContext,
+        historyReadRawModifiedDetails: any,
+        indexRange: NumericRange | null,
+        dataEncoding: QualifiedNameLike | null,
+        continuationPoint: ContinuationPoint | null,
+        callback: Callback<HistoryReadResult>
     ): any {
         throw new Error("");
     }
@@ -1449,8 +1449,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public _internal_set_dataValue(
-      dataValue: DataValue,
-      indexRange?: NumericRange | null
+        dataValue: DataValue,
+        indexRange?: NumericRange | null
     ) {
         assert(dataValue, "expecting a dataValue");
         assert(dataValue instanceof DataValue, "expecting dataValue to be a DataValue");
@@ -1529,9 +1529,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         assert(context instanceof SessionContext);
 
         const effectiveUserAccessLevel = _calculateEffectiveUserAccessLevelFromPermission(
-          this,
-          context,
-          this.userAccessLevel
+            this,
+            context,
+            this.userAccessLevel
         );
 
         const options = {
@@ -1623,9 +1623,9 @@ function _apply_default_timestamps(dataValue: DataValue): void {
 }
 
 function _calculateEffectiveUserAccessLevelFromPermission(
-  node: BaseNode,
-  context: SessionContext,
-  userAccessLevel: AccessLevelFlag
+    node: BaseNode,
+    context: SessionContext,
+    userAccessLevel: AccessLevelFlag
 ) {
 
     function __adjustFlag(flagName: string, userAccessLevel1: AccessLevelFlag): AccessLevelFlag {
@@ -1687,16 +1687,16 @@ function adjustVariant(this: UAVariable, variant: Variant): Variant {
 }
 
 function _not_writable_timestamped_set_func(
-  dataValue: DataValue,
-  callback: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null) => void
+    dataValue: DataValue,
+    callback: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null) => void
 ) {
     assert(dataValue instanceof DataValue);
     callback(null, StatusCodes.BadNotWritable, null);
 }
 
 function _default_writable_timestamped_set_func(
-  dataValue: DataValue,
-  callback: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null) => void
+    dataValue: DataValue,
+    callback: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null) => void
 ) {
     /* jshint validthis: true */
     assert(dataValue instanceof DataValue);
@@ -1704,14 +1704,14 @@ function _default_writable_timestamped_set_func(
 }
 
 function turn_sync_to_async<T, D, R>(
-  f: (this: T, data: D) => R,
-  numberOfArgs: number
+    f: (this: T, data: D) => R,
+    numberOfArgs: number
 ) {
     if (f.length <= numberOfArgs) {
-        return function(
-          this: T,
-          data: D,
-          callback: (err: Error | null, r?: R) => void
+        return function (
+            this: T,
+            data: D,
+            callback: (err: Error | null, r?: R) => void
         ) {
             const r = f.call(this, data);
             setImmediate(() => {
@@ -1761,8 +1761,8 @@ function _Variable_bind_with_async_refresh(this: UAVariable, options: any) {
 
 // variation 2
 function _Variable_bind_with_timestamped_get(
-  this: UAVariable,
-  options: any
+    this: UAVariable,
+    options: any
 ) {
     /* jshint validthis: true */
     assert(this instanceof UAVariable);
@@ -1783,12 +1783,12 @@ function _Variable_bind_with_timestamped_get(
         /* istanbul ignore next */
         if (!(dataValue_verify instanceof DataValue)) {
             console.log(
-              chalk.red(" Bind variable error: "),
-              " the timestamped_get function must return a DataValue");
+                chalk.red(" Bind variable error: "),
+                " the timestamped_get function must return a DataValue");
             console.log("value_check.constructor.name ", dataValue_verify ? dataValue_verify.constructor.name : "null");
             throw new Error(
-              " Bind variable error: " +
-              " the timestamped_get function must return a DataValue");
+                " Bind variable error: " +
+                " the timestamped_get function must return a DataValue");
         }
         _Variable_bind_with_async_refresh.call(this, { refreshFunc: async_refresh_func });
 
@@ -1804,8 +1804,8 @@ function _Variable_bind_with_timestamped_get(
 
 // variation 1
 function _Variable_bind_with_simple_get(
-  this: UAVariable,
-  options: any
+    this: UAVariable,
+    options: any
 ) {
     /* jshint validthis: true */
     assert(this instanceof UAVariable);
@@ -1845,8 +1845,8 @@ function _Variable_bind_with_simple_get(
 }
 
 function _Variable_bind_with_simple_set(
-  this: UAVariable,
-  options: any
+    this: UAVariable,
+    options: any
 ) {
     assert(this instanceof UAVariable);
     assert(_.isFunction(options.set), "should specify set function");
@@ -1859,9 +1859,9 @@ function _Variable_bind_with_simple_set(
     assert(this._set_func.length === 2, " set function must have 2 arguments ( variant, callback)");
 
     this._timestamped_set_func = (
-      timestamped_value: DataValue,
-      indexRange: NumericRange,
-      callback: (err: Error | null, statusCode: StatusCode, dataValue: DataValue) => void
+        timestamped_value: DataValue,
+        indexRange: NumericRange,
+        callback: (err: Error | null, statusCode: StatusCode, dataValue: DataValue) => void
     ) => {
         assert(timestamped_value instanceof DataValue);
         this._set_func(timestamped_value.value, (err: Error | null, statusCode: StatusCode) => {
@@ -1876,17 +1876,17 @@ function _Variable_bind_with_simple_set(
 }
 
 function _Variable_bind_with_timestamped_set(
-  this: UAVariable,
-  options: any
+    this: UAVariable,
+    options: any
 ) {
     assert(this instanceof UAVariable);
     assert(_.isFunction(options.timestamped_set));
     assert(options.timestamped_set.length === 2, "timestamped_set must have 2 parameters  timestamped_set: function(dataValue,callback){}");
     assert(!options.set, "should not specify set when timestamped_set_func exists ");
     this._timestamped_set_func = (
-      dataValue: DataValue,
-      indexRange: NumericRange,
-      callback: (err: Error | null, statusCode: StatusCode, dataValue: DataValue) => void
+        dataValue: DataValue,
+        indexRange: NumericRange,
+        callback: (err: Error | null, statusCode: StatusCode, dataValue: DataValue) => void
     ) => {
         // xx assert(!indexRange,"indexRange Not Implemented");
         return options.timestamped_set.call(this, dataValue, callback);
@@ -1894,8 +1894,8 @@ function _Variable_bind_with_timestamped_set(
 }
 
 function bind_setter(
-  this: UAVariable,
-  options: any
+    this: UAVariable,
+    options: any
 ) {
 
     if (_.isFunction(options.set)) {                                    // variation 1
@@ -1920,8 +1920,8 @@ function bind_setter(
 }
 
 function bind_getter(
-  this: UAVariable,
-  options: any
+    this: UAVariable,
+    options: any
 ) {
 
     if (_.isFunction(options.get)) {                                   // variation 1
@@ -1947,8 +1947,8 @@ function w(str: string, n: number): string {
 }
 
 function _getter(
-  target: any,
-  key: string/*, receiver*/
+    target: any,
+    key: string/*, receiver*/
 ) {
     if (target[key] === undefined) {
         return undefined;
@@ -1957,10 +1957,10 @@ function _getter(
 }
 
 function _setter(
-  variable: any,
-  target: any,
-  key: string,
-  value: any/*, receiver*/
+    variable: any,
+    target: any,
+    key: string,
+    value: any/*, receiver*/
 ) {
     target[key] = value;
     if (variable[key] && variable[key].touchValue) {
@@ -1978,8 +1978,8 @@ function makeHandler(variable: UAVariable) {
 }
 
 function setExtensionObjectValue(
-  node: UAVariable,
-  partialObject: any
+    node: UAVariable,
+    partialObject: any
 ) {
 
     const extensionObject = node.$extensionObject;
@@ -1989,7 +1989,7 @@ function setExtensionObjectValue(
 
     function _update_extension_object(extObject: any, partialObject1: any) {
         const keys = Object.keys(partialObject1);
-        for (const prop  of keys) {
+        for (const prop of keys) {
             if (extObject[prop] instanceof Object) {
                 _update_extension_object(extObject[prop], partialObject1[prop]);
             } else {

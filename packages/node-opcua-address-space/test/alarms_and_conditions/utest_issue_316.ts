@@ -47,12 +47,12 @@ export function utest_issue_316(test: any) {
             const processConditionClassType = addressSpace.findObjectType("ProcessConditionClassType")!;
             condition.conditionClassId.readValue().value.dataType.should.equal(DataType.NodeId);
             condition.conditionClassId.readValue().value.value.toString().should.equal(
-              processConditionClassType.nodeId.toString());
+                processConditionClassType.nodeId.toString());
 
             // ConditionClassName provides the display name of the ConditionClassType.
             condition.conditionClassName.readValue().value.dataType.should.equal(DataType.LocalizedText);
-            condition.conditionClassName.readValue().value.value.text.toString().should.equal(
-              processConditionClassType.displayName[0].text);
+            condition.conditionClassName.readValue().value.value.text!.toString().should.equal(
+                processConditionClassType.displayName[0].text);
 
             // ConditionName identifies the Condition instance that the Event originated from. It can be used
             // together with the SourceName in a user display to distinguish between different Condition

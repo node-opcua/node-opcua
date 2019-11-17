@@ -644,11 +644,22 @@ describe("testing ServerEngine", () => {
 
     it("should handle a BrowseRequest and set StatusCode if node doesn't exist", () => {
 
-        const browseResult = engine.browseSingleNode("ns=46;i=123456");
-
+        const browseDescription = {
+            browseDirection: BrowseDirection.Forward,
+            nodeClassMask: 0, // 0 = all nodes
+            referenceTypeId: "Organizes",
+            resultMask: 0x3F
+        };
+        const browseResult = engine.browseSingleNode("ns=46;i=123456", browseDescription);
         browseResult.statusCode.should.equal(StatusCodes.BadNodeIdUnknown);
         browseResult.references.length.should.equal(0);
+    });
 
+    it("should handle a BrowseRequest and set StatusCode if browseDescription is not provided", () => {
+
+        const browseResult = engine.browseSingleNode("ns=46;i=123456");
+        browseResult.statusCode.should.equal(StatusCodes.BadBrowseDirectionInvalid);
+        browseResult.references.length.should.equal(0);
     });
 
     it("should handle a BrowseRequest with multiple nodes to browse", () => {

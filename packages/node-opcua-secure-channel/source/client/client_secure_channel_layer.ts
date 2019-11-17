@@ -1332,8 +1332,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
              */
             this.emit("timed_out_request", request);
 
-            //xx // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECHK ME !!!
-            //xx this.closeWithError(new Error("Restarting because Request has timed out (1)"), () => { });
+            // xx // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECHK ME !!!
+            // xx this.closeWithError(new Error("Restarting because Request has timed out (1)"), () => { });
 
         }, timeout);
 

@@ -440,12 +440,17 @@ export class AddressSpace implements AddressSpacePrivate {
      */
     public findCorrespondingBasicDataType(dataTypeNode: NodeIdLike | UADataType): DataType {
 
+        const _orig_dataTypeNode = dataTypeNode;
         if (typeof dataTypeNode === "string") {
-            dataTypeNode = this.resolveNodeId(dataTypeNode);
+            const resolvedDataType =   this.resolveNodeId(dataTypeNode);
+            /* istanbul ignore next */
+            if (!resolvedDataType) {
+                throw new Error("Cannot reseolve " + _orig_dataTypeNode.toString());
+            }
+            dataTypeNode = resolvedDataType;        
         }
 
         if (dataTypeNode instanceof NodeId) {
-            const _orig_dataTypeNode = dataTypeNode;
             dataTypeNode = this.findDataType(dataTypeNode)!;
             /* istanbul ignore next */
             if (!dataTypeNode) {
@@ -454,7 +459,7 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         /* istanbul ignore next */
         if (!(dataTypeNode instanceof UADataType)) {
-            throw new Error("Expecting a UADataType");
+            throw new Error("Expecting a UADataType" + _orig_dataTypeNode.toString());
         }
         dataTypeNode = dataTypeNode as UADataType;
         /* istanbul ignore next */
@@ -1079,7 +1084,18 @@ export class AddressSpace implements AddressSpacePrivate {
       context?: SessionContext
     ): BrowseResult {
 
-        browseDescription = browseDescription || new BrowseDescription();
+        const browseResult: BrowseResultOptions = {
+            continuationPoint: undefined,
+            references: null,
+            statusCode: StatusCodes.Good
+        };
+
+ 
+        if (!browseDescription || browseDescription.browseDirection === BrowseDirection.Invalid) {
+            browseResult.statusCode = StatusCodes.BadBrowseDirectionInvalid;
+            return new BrowseResult(browseResult);
+        }
+
         browseDescription.browseDirection =
           adjustBrowseDirection(browseDescription.browseDirection, BrowseDirection.Forward);
 
@@ -1093,17 +1109,6 @@ export class AddressSpace implements AddressSpacePrivate {
             if (node) {
                 nodeId = node.nodeId;
             }
-        }
-
-        const browseResult: BrowseResultOptions = {
-            continuationPoint: undefined,
-            references: null,
-            statusCode: StatusCodes.Good
-        };
-
-        if (browseDescription.browseDirection === BrowseDirection.Invalid) {
-            browseResult.statusCode = StatusCodes.BadBrowseDirectionInvalid;
-            return new BrowseResult(browseResult);
         }
 
         // check if referenceTypeId is correct

@@ -48,8 +48,6 @@ import {
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
-const extraDataTypeManager = new ExtraDataTypeManager();
-
 async function extractSchema(session: IBasicSession, nodeId: NodeId): Promise<TypeDictionary> {
     const rawSchemaDataValue = await session.read({ nodeId, attributeId: AttributeIds.Value });
     const rawSchema = rawSchemaDataValue.value.value.toString();
@@ -60,7 +58,7 @@ async function extractSchema(session: IBasicSession, nodeId: NodeId): Promise<Ty
         debugLog(rawSchema.toString());
         debugLog("---------------------------------------------");
     }
-    const typeDictionary = await promisify(parseBinaryXSD)(rawSchema, [ getStandartDataTypeFactory() ]);
+    const typeDictionary = await promisify(parseBinaryXSD)(rawSchema, [getStandartDataTypeFactory()]);
     return typeDictionary;
 }
 
@@ -146,7 +144,7 @@ export async function extractNamespaceDataType(
         nodeId: resolveNodeId("Server_NamespaceArray")
     });
 
-    if (dataValueNamespaceArray.statusCode === StatusCodes.Good) {
+    if (dataValueNamespaceArray.statusCode === StatusCodes.Good && dataValueNamespaceArray.value.value.length > 0) {
         dataTypeManager.setNamespaceArray(dataValueNamespaceArray.value.value as string[]);
     }
 
@@ -288,15 +286,15 @@ export async function getDataTypeDefinition(
     let schema: StructuredTypeSchema;
     if (extraDataTypeManager) {
         const typeDictionary = extraDataTypeManager.getTypeDictionaryForNamespace(schemaNode.namespace);
-        schema =  typeDictionary.structuredTypes[name];
+        schema = typeDictionary.structuredTypes[name];
 
     } else {
 
         const typeDictionary = await extractSchema(session, schemaNode);
-        schema =  typeDictionary.structuredTypes[name];
+        schema = typeDictionary.structuredTypes[name];
     }
     // associate DataTypeId with schema if not already done
-    if (schema.id.value === 0 ) {
+    if (schema.id.value === 0) {
         schema.id = dataTypeNodeId;
     }
     return schema;

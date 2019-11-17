@@ -24,8 +24,8 @@ import {
     UADynamicVariableArray,
     UAMethod,
     UAServerDiagnosticsSummary,
-    UASessionSecurityDiagnostics,
     UAServerStatus,
+    UASessionSecurityDiagnostics,
     UAVariable
 } from "node-opcua-address-space";
 import { apply_timestamps, DataValue } from "node-opcua-data-value";
@@ -37,7 +37,7 @@ import {
     SubscriptionDiagnosticsDataType
 } from "node-opcua-common";
 import { AttributeIds, BrowseDirection, NodeClass } from "node-opcua-data-model";
-import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
 import { BrowseResult } from "node-opcua-service-browse";
 import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
 
@@ -45,7 +45,7 @@ import { TransferResult } from "node-opcua-service-subscription";
 
 import { CreateSubscriptionRequestLike } from "node-opcua-client";
 import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
-import { DataTypeIds, MethodIds, VariableIds } from "node-opcua-constants";
+import { DataTypeIds, MethodIds, VariableIds, ObjectIds } from "node-opcua-constants";
 import { minOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, trace_from_this_projet_only } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
@@ -73,7 +73,9 @@ import {
     SessionDiagnosticsDataType,
     SessionSecurityDiagnosticsDataType,
     TimeZoneDataType,
-    WriteValue
+    WriteValue,
+    ProgramDiagnosticDataType,
+    ProgramDiagnostic2DataType
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -84,6 +86,7 @@ import { ServerSidePublishEngine } from "./server_publish_engine";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions";
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
+import { UAObject } from "node-opcua-address-space/dist/src/ua_object";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -99,10 +102,10 @@ function shutdownAndDisposeAddressSpace(this: ServerEngine) {
 
 // binding methods
 function getMonitoredItemsId(
-  this: ServerEngine,
-  inputArguments: any,
-  context: SessionContext,
-  callback: any
+    this: ServerEngine,
+    inputArguments: any,
+    context: SessionContext,
+    callback: any
 ) {
 
     const engine = this; // ServerEngine
@@ -146,9 +149,9 @@ function getMonitoredItemsId(
 }
 
 function __bindVariable(
-  self: ServerEngine,
-  nodeId: NodeIdLike,
-  options?: any
+    self: ServerEngine,
+    nodeId: NodeIdLike,
+    options?: any
 ) {
     options = options || {};
     // must have a get and a set property
@@ -156,12 +159,12 @@ function __bindVariable(
 
     const variable = self.addressSpace!.findNode(nodeId) as UAVariable;
     if (variable && variable.bindVariable) {
-        variable.bindVariable(options);
+        variable.bindVariable(options, true);
         assert(_.isFunction(variable.asyncRefresh));
         assert(_.isFunction((variable as any).refreshFunc));
     } else {
         console.log("Warning: cannot bind object with id ", nodeId.toString(),
-          " please check your nodeset.xml file or add this node programmatically");
+            " please check your nodeset.xml file or add this node programmatically");
     }
 }
 
@@ -305,7 +308,7 @@ export class ServerEngine extends EventEmitter {
         }
 
         options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable")
-          ? options.serverDiagnosticsEnabled : true;
+            ? options.serverDiagnosticsEnabled : true;
 
         this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled!;
 
@@ -504,8 +507,8 @@ export class ServerEngine extends EventEmitter {
      * @param callback
      */
     public initialize(
-      options: any,
-      callback: any
+        options: any,
+        callback: any
     ) {
 
         const engine = this;
@@ -537,7 +540,7 @@ export class ServerEngine extends EventEmitter {
 
             const endTime = new Date();
             debugLog("Loading ", options.nodeset_filename, " done : ",
-              endTime.getTime() - startTime.getTime(), " ms");
+                endTime.getTime() - startTime.getTime(), " ms");
 
             engine.setServerState(ServerState.Running);
 
@@ -580,11 +583,22 @@ export class ServerEngine extends EventEmitter {
                 set: null // read only
             });
 
+            // fix DefaultUserRolePermissions and DefaultUserRolePermissions
+            // of namespaces
+            const namespaces = makeNodeId(ObjectIds.Server_Namespaces);
+            const namespacesNode = addressSpace.findNode(namespaces) as UAObject;
+            if (namespacesNode) {
+                for (const ns of namespacesNode.getComponents()) {
+                    (ns as any).defaultUserRolePermissions.setValueFromSource({ dataType: DataType.Null });
+                    (ns as any).defaultRolePermissions.setValueFromSource({ dataType: DataType.Null });
+                }    
+            }
+
             function bindStandardScalar(
-              id: number,
-              dataType: DataType,
-              func: () => any,
-              setter_func?: (value: any) => void
+                id: number,
+                dataType: DataType,
+                func: () => any,
+                setter_func?: (value: any) => void
             ) {
 
                 assert(_.isNumber(id), "expecting id to be a number");
@@ -627,10 +641,10 @@ export class ServerEngine extends EventEmitter {
             }
 
             function bindStandardArray(
-              id: number,
-              variantDataType: DataType,
-              dataType: any,
-              func: () => any[]
+                id: number,
+                variantDataType: DataType,
+                dataType: any,
+                func: () => any[]
             ) {
 
                 assert(_.isFunction(func));
@@ -657,7 +671,7 @@ export class ServerEngine extends EventEmitter {
             }
 
             bindStandardScalar(VariableIds.Server_EstimatedReturnTime,
-              DataType.DateTime, () => minOPCUADate);
+                DataType.DateTime, () => minOPCUADate);
 
             // TimeZoneDataType
             const timeZoneDataType = addressSpace.findDataType(resolveNodeId(DataTypeIds.TimeZoneDataType))!;
@@ -668,28 +682,28 @@ export class ServerEngine extends EventEmitter {
                 offset: /* int16 */ 0
             });
             bindStandardScalar(VariableIds.Server_LocalTime,
-              DataType.ExtensionObject, () => {
-                  return timeZone;
-              });
+                DataType.ExtensionObject, () => {
+                    return timeZone;
+                });
 
             bindStandardScalar(VariableIds.Server_ServiceLevel,
-              DataType.Byte, () => {
-                  return 255;
-              });
+                DataType.Byte, () => {
+                    return 255;
+                });
 
             bindStandardScalar(VariableIds.Server_Auditing,
-              DataType.Boolean, () => {
-                  return engine.isAuditing;
-              });
+                DataType.Boolean, () => {
+                    return engine.isAuditing;
+                });
 
             function bindServerDiagnostics() {
 
                 bindStandardScalar(VariableIds.Server_ServerDiagnostics_EnabledFlag,
-                  DataType.Boolean, () => {
-                      return engine.serverDiagnosticsEnabled;
-                  }, (newFlag: boolean) => {
-                      engine.serverDiagnosticsEnabled = newFlag;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.serverDiagnosticsEnabled;
+                    }, (newFlag: boolean) => {
+                        engine.serverDiagnosticsEnabled = newFlag;
+                    });
 
                 const nodeId = makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary);
                 const serverDiagnosticsSummary = addressSpace.findNode(nodeId) as UAServerDiagnosticsSummary;
@@ -704,7 +718,7 @@ export class ServerEngine extends EventEmitter {
             function bindServerStatus() {
 
                 const serverStatusNode =
-                  addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus)) as UAServerStatus;
+                    addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus)) as UAServerStatus;
 
                 if (!serverStatusNode) {
                     return;
@@ -717,13 +731,13 @@ export class ServerEngine extends EventEmitter {
                 }
 
                 const currentTimeNode =
-                  addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)) as UAVariable;
+                    addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)) as UAVariable;
 
                 if (currentTimeNode) {
                     currentTimeNode.minimumSamplingInterval = 1000;
                 }
                 const secondsTillShutdown =
-                  addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_SecondsTillShutdown)) as UAVariable;
+                    addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_SecondsTillShutdown)) as UAVariable;
 
                 if (secondsTillShutdown) {
                     secondsTillShutdown.minimumSamplingInterval = 1000;
@@ -749,34 +763,34 @@ export class ServerEngine extends EventEmitter {
             function bindServerCapabilities() {
 
                 bindStandardArray(VariableIds.Server_ServerCapabilities_ServerProfileArray,
-                  DataType.String, DataType.String, () => {
-                      return engine.serverCapabilities.serverProfileArray;
-                  });
+                    DataType.String, DataType.String, () => {
+                        return engine.serverCapabilities.serverProfileArray;
+                    });
 
                 bindStandardArray(VariableIds.Server_ServerCapabilities_LocaleIdArray,
-                  DataType.String, "LocaleId", () => {
-                      return engine.serverCapabilities.localeIdArray;
-                  });
+                    DataType.String, "LocaleId", () => {
+                        return engine.serverCapabilities.localeIdArray;
+                    });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate,
-                  DataType.Double, () => {
-                      return engine.serverCapabilities.minSupportedSampleRate;
-                  });
+                    DataType.Double, () => {
+                        return engine.serverCapabilities.minSupportedSampleRate;
+                    });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints,
-                  DataType.UInt16, () => {
-                      return engine.serverCapabilities.maxBrowseContinuationPoints;
-                  });
+                    DataType.UInt16, () => {
+                        return engine.serverCapabilities.maxBrowseContinuationPoints;
+                    });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints,
-                  DataType.UInt16, () => {
-                      return engine.serverCapabilities.maxQueryContinuationPoints;
-                  });
+                    DataType.UInt16, () => {
+                        return engine.serverCapabilities.maxQueryContinuationPoints;
+                    });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
-                  DataType.UInt16, () => {
-                      return engine.serverCapabilities.maxHistoryContinuationPoints;
-                  });
+                    DataType.UInt16, () => {
+                        return engine.serverCapabilities.maxHistoryContinuationPoints;
+                    });
 
                 // added by DI : Server-specific period of time in milliseconds until the Server will revoke a lock.
                 // TODO bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxInactiveLockTime,
@@ -785,24 +799,24 @@ export class ServerEngine extends EventEmitter {
                 // TODO });
 
                 bindStandardArray(VariableIds.Server_ServerCapabilities_SoftwareCertificates,
-                  DataType.ExtensionObject, "SoftwareCertificates", () => {
-                      return engine.serverCapabilities.softwareCertificates;
-                  });
+                    DataType.ExtensionObject, "SoftwareCertificates", () => {
+                        return engine.serverCapabilities.softwareCertificates;
+                    });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxArrayLength,
-                  DataType.UInt32, () => {
-                      return engine.serverCapabilities.maxArrayLength;
-                  });
+                    DataType.UInt32, () => {
+                        return engine.serverCapabilities.maxArrayLength;
+                    });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxStringLength,
-                  DataType.UInt32, () => {
-                      return engine.serverCapabilities.maxStringLength;
-                  });
+                    DataType.UInt32, () => {
+                        return engine.serverCapabilities.maxStringLength;
+                    });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength,
-                  DataType.UInt32, () => {
-                      return engine.serverCapabilities.maxByteStringLength;
-                  });
+                    DataType.UInt32, () => {
+                        return engine.serverCapabilities.maxByteStringLength;
+                    });
 
                 function bindOperationLimits(operationLimits: OperationLimits) {
 
@@ -820,87 +834,98 @@ export class ServerEngine extends EventEmitter {
 
                         const uid = "Server_ServerCapabilities_OperationLimits_" + upperCaseFirst(key);
                         const nodeId = makeNodeId((VariableIds as any)[uid]);
-                        // xx console.log("xxx Binding ",uid,nodeId.toString());
                         assert(!nodeId.isEmpty());
 
                         bindStandardScalar((VariableIds as any)[uid],
-                          DataType.UInt32, () => {
-                              return (operationLimits as any)[key];
-                          });
+                            DataType.UInt32, () => {
+                                return (operationLimits as any)[key];
+                            });
                     });
                 }
 
                 bindOperationLimits(engine.serverCapabilities.operationLimits);
 
+                // i=2399 [ProgramStateMachineType_ProgramDiagnostics];
+                function fix_ProgramStateMachineType_ProgramDiagnostics() {
+                    const nodeId = coerceNodeId("i=2399"); // ProgramStateMachineType_ProgramDiagnostics
+                    const variable = addressSpace.findNode(nodeId) as UAVariable;
+                    if (variable) {
+                        variable.setValueFromSource({
+                            dataType: DataType.ExtensionObject,
+                            value: new ProgramDiagnostic2DataType()
+                        });    
+                    }
+                }
+                fix_ProgramStateMachineType_ProgramDiagnostics();
             }
 
             function bindHistoryServerCapabilities() {
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnDataValues,
-                  DataType.UInt32, () => {
-                      return engine.historyServerCapabilities.maxReturnDataValues;
-                  });
+                    DataType.UInt32, () => {
+                        return engine.historyServerCapabilities.maxReturnDataValues;
+                    });
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnEventValues,
-                  DataType.UInt32, () => {
-                      return engine.historyServerCapabilities.maxReturnEventValues;
-                  });
+                    DataType.UInt32, () => {
+                        return engine.historyServerCapabilities.maxReturnEventValues;
+                    });
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryDataCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.accessHistoryDataCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.accessHistoryDataCapability;
+                    });
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryEventsCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.accessHistoryEventsCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.accessHistoryEventsCapability;
+                    });
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertDataCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.insertDataCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.insertDataCapability;
+                    });
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceDataCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.replaceDataCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.replaceDataCapability;
+                    });
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateDataCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.updateDataCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.updateDataCapability;
+                    });
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertEventCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.insertEventCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.insertEventCapability;
+                    });
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceEventCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.replaceEventCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.replaceEventCapability;
+                    });
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateEventCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.updateEventCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.updateEventCapability;
+                    });
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteEventCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.deleteEventCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.deleteEventCapability;
+                    });
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteRawCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.deleteRawCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.deleteRawCapability;
+                    });
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteAtTimeCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.deleteAtTimeCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.deleteAtTimeCapability;
+                    });
 
                 bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertAnnotationCapability,
-                  DataType.Boolean, () => {
-                      return engine.historyServerCapabilities.insertAnnotationCapability;
-                  });
+                    DataType.Boolean, () => {
+                        return engine.historyServerCapabilities.insertAnnotationCapability;
+                    });
 
             }
 
@@ -917,9 +942,9 @@ export class ServerEngine extends EventEmitter {
 
                 // The version number for the data type description. i=104
                 bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion,
-                  DataType.UInt16, () => {
-                      return 0.0;
-                  });
+                    DataType.UInt16, () => {
+                        return 0.0;
+                    });
 
                 const nrt = addressSpace.findDataType(resolveNodeId(DataTypeIds.NamingRuleType))!;
                 // xx console.log(nrt.toString());
@@ -927,30 +952,30 @@ export class ServerEngine extends EventEmitter {
                     const namingRuleType = (nrt as any)._getDefinition().nameIndex; // getEnumeration("NamingRuleType");
                     // i=111
                     bindStandardScalar(VariableIds.ModellingRuleType_NamingRule,
-                      DataType.UInt16, () => {
-                          return 0;
-                      });
+                        DataType.UInt16, () => {
+                            return 0;
+                        });
 
                     // i=112
                     bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule,
-                      DataType.UInt16, () => {
-                          return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
-                      });
+                        DataType.UInt16, () => {
+                            return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
+                        });
 
                     // i=113
                     bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule,
-                      DataType.UInt16, () => {
-                          return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
-                      });
+                        DataType.UInt16, () => {
+                            return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
+                        });
                     // i=114
                     bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule,
-                      DataType.UInt16, () => {
-                          return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
-                      });
+                        DataType.UInt16, () => {
+                            return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
+                        });
                     bindStandardScalar(VariableIds.ModellingRule_MandatoryShared_NamingRule,
-                      DataType.UInt16, () => {
-                          return namingRuleType.MandatoryShared ? namingRuleType.MandatoryShared.value : 0;
-                      });
+                        DataType.UInt16, () => {
+                            return namingRuleType.MandatoryShared ? namingRuleType.MandatoryShared.value : 0;
+                        });
 
                 }
             }
@@ -958,8 +983,8 @@ export class ServerEngine extends EventEmitter {
             bindExtraStuff();
 
             engine.__internal_bindMethod(
-              makeNodeId(MethodIds.Server_GetMonitoredItems),
-              getMonitoredItemsId.bind(engine));
+                makeNodeId(MethodIds.Server_GetMonitoredItems),
+                getMonitoredItemsId.bind(engine));
 
             // fix getMonitoredItems.outputArguments arrayDimensions
             (function fixGetMonitoredItemArgs() {
@@ -970,9 +995,9 @@ export class ServerEngine extends EventEmitter {
                 const outputArguments = objects.server.getMonitoredItems.outputArguments!;
                 const dataValue = outputArguments.readValue();
                 assert(dataValue.value.value[0].arrayDimensions.length === 1
-                  && dataValue.value.value[0].arrayDimensions[0] === 0);
+                    && dataValue.value.value[0].arrayDimensions[0] === 0);
                 assert(dataValue.value.value[1].arrayDimensions.length === 1
-                  && dataValue.value.value[1].arrayDimensions[0] === 0);
+                    && dataValue.value.value[1].arrayDimensions[0] === 0);
             })();
 
             function prepareServerDiagnostics() {
@@ -995,12 +1020,11 @@ export class ServerEngine extends EventEmitter {
                 }
 
                 const subscriptionDiagnosticsArray =
-                  serverDiagnostics.getComponentByName("SubscriptionDiagnosticsArray")! as
+                    serverDiagnostics.getComponentByName("SubscriptionDiagnosticsArray")! as
                     UADynamicVariableArray<SessionDiagnosticsDataType>;
                 assert(subscriptionDiagnosticsArray.nodeClass === NodeClass.Variable);
                 bindExtObjArrayNode(subscriptionDiagnosticsArray,
-                  "SubscriptionDiagnosticsType", "subscriptionId");
-
+                    "SubscriptionDiagnosticsType", "subscriptionId");
 
                 const sessionsDiagnosticsSummary = serverDiagnostics.getComponentByName("SessionsDiagnosticsSummary")!;
 
@@ -1013,18 +1037,14 @@ export class ServerEngine extends EventEmitter {
 
                 const varType = addressSpace.findVariableType("SessionSecurityDiagnosticsType");
                 if (!varType) {
-                    
                     console.log("Warning cannot find SessionSecurityDiagnosticsType variable Type");
                 } else {
                     const sessionSecurityDiagnosticsArray =
-                    sessionsDiagnosticsSummary.getComponentByName("SessionSecurityDiagnosticsArray")! as
-                    UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
+                        sessionsDiagnosticsSummary.getComponentByName("SessionSecurityDiagnosticsArray")! as
+                        UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
                     assert(sessionSecurityDiagnosticsArray.nodeClass === NodeClass.Variable);
                     bindExtObjArrayNode(sessionSecurityDiagnosticsArray, "SessionSecurityDiagnosticsType", "sessionId");
-
-
                     ensureObjectIsSecure(sessionSecurityDiagnosticsArray);
-                                            
                 }
             }
 
@@ -1046,9 +1066,9 @@ export class ServerEngine extends EventEmitter {
      * @return  the browse result
      */
     public browseSingleNode(
-      nodeId: NodeIdLike,
-      browseDescription: BrowseDescription,
-      context?: SessionContext
+        nodeId: NodeIdLike,
+        browseDescription: BrowseDescription,
+        context?: SessionContext
     ): BrowseResult {
         const engine = this;
         const addressSpace = engine.addressSpace!;
@@ -1059,8 +1079,8 @@ export class ServerEngine extends EventEmitter {
      *
      */
     public browse(
-      nodesToBrowse: BrowseDescription[],
-      context?: SessionContext
+        nodesToBrowse: BrowseDescription[],
+        context?: SessionContext
     ): BrowseResult[] {
         const engine = this;
         assert(_.isArray(nodesToBrowse));
@@ -1086,19 +1106,19 @@ export class ServerEngine extends EventEmitter {
      * @return DataValue
      */
     public readSingleNode(
-      context: SessionContext,
-      nodeId: NodeId,
-      attributeId: AttributeIds,
-      timestampsToReturn?: TimestampsToReturn
+        context: SessionContext,
+        nodeId: NodeId,
+        attributeId: AttributeIds,
+        timestampsToReturn?: TimestampsToReturn
     ): DataValue {
         const engine = this;
 
         return engine._readSingleNode(context,
-          {
-              attributeId,
-              nodeId
-          },
-          timestampsToReturn);
+            {
+                attributeId,
+                nodeId
+            },
+            timestampsToReturn);
     }
 
     /**
@@ -1157,9 +1177,9 @@ export class ServerEngine extends EventEmitter {
      * @async
      */
     public writeSingleNode(
-      context: SessionContext,
-      writeValue: WriteValue,
-      callback: (err: Error | null, statusCode?: StatusCode) => void
+        context: SessionContext,
+        writeValue: WriteValue,
+        callback: (err: Error | null, statusCode?: StatusCode) => void
     ) {
 
         const engine = this;
@@ -1195,9 +1215,9 @@ export class ServerEngine extends EventEmitter {
      * @async
      */
     public write(
-      context: SessionContext,
-      nodesToWrite: WriteValue[],
-      callback: (err: Error | null, statusCodes?: StatusCode[]) => void
+        context: SessionContext,
+        nodesToWrite: WriteValue[],
+        callback: (err: Error | null, statusCodes?: StatusCode[]) => void
     ) {
 
         assert(context instanceof SessionContext);
@@ -1210,15 +1230,15 @@ export class ServerEngine extends EventEmitter {
         let l_extraDataTypeManager: ExtraDataTypeManager;
 
         function performWrite(
-          writeValue: WriteValue,
-          inner_callback: (err: Error | null, statusCode?: StatusCode) => void
+            writeValue: WriteValue,
+            inner_callback: (err: Error | null, statusCode?: StatusCode) => void
         ) {
             assert(writeValue instanceof WriteValue);
             const ignored_promise = resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager);
             engine.writeSingleNode(context, writeValue, inner_callback);
         }
 
-        ensureDatatypeExtractedWithCallback(this.addressSpace, (err2: Error|null, extraDataTypeManager: ExtraDataTypeManager) => {
+        ensureDatatypeExtractedWithCallback(this.addressSpace, (err2: Error | null, extraDataTypeManager: ExtraDataTypeManager) => {
 
             l_extraDataTypeManager = extraDataTypeManager;
 
@@ -1228,7 +1248,6 @@ export class ServerEngine extends EventEmitter {
                     assert(_.isArray(statusCodes));
                     callback(err!, statusCodes as StatusCode[]);
                 });
-
         });
 
     }
@@ -1237,27 +1256,27 @@ export class ServerEngine extends EventEmitter {
      *
      */
     public historyReadSingleNode(
-      context: SessionContext,
-      nodeId: NodeId,
-      attributeId: AttributeIds,
-      historyReadDetails:
-        ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
-      timestampsToReturn: TimestampsToReturn,
-      callback: (err: Error | null, results?: HistoryReadResult) => void
+        context: SessionContext,
+        nodeId: NodeId,
+        attributeId: AttributeIds,
+        historyReadDetails:
+            ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+        timestampsToReturn: TimestampsToReturn,
+        callback: (err: Error | null, results?: HistoryReadResult) => void
     ): void {
 
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
             callback(null,
-              new HistoryReadResult({
-                  statusCode: StatusCodes.BadTimestampsToReturnInvalid
-              }));
+                new HistoryReadResult({
+                    statusCode: StatusCodes.BadTimestampsToReturnInvalid
+                }));
             return;
         }
         assert(context instanceof SessionContext);
         this._historyReadSingleNode(context,
-          new HistoryReadValueId({
-              nodeId
-          }), historyReadDetails, timestampsToReturn, callback);
+            new HistoryReadValueId({
+                nodeId
+            }), historyReadDetails, timestampsToReturn, callback);
     }
 
     /**
@@ -1275,9 +1294,9 @@ export class ServerEngine extends EventEmitter {
      *  @param callback.results {HistoryReadResult[]}
      */
     public historyRead(
-      context: SessionContext,
-      historyReadRequest: HistoryReadRequest,
-      callback: (err: Error | null, results: HistoryReadResult[]) => void
+        context: SessionContext,
+        historyReadRequest: HistoryReadRequest,
+        callback: (err: Error | null, results: HistoryReadResult[]) => void
     ) {
 
         assert(context instanceof SessionContext);
@@ -1295,26 +1314,26 @@ export class ServerEngine extends EventEmitter {
 
         const historyData: HistoryReadResult[] = [];
         async.eachSeries(
-          nodesToRead,
-          (historyReadValueId: HistoryReadValueId, cbNode: () => void) => {
-              engine._historyReadSingleNode(
-                context,
-                historyReadValueId,
-                historyReadDetails,
-                timestampsToReturn,
-                (err: Error | null, result?: any) => {
+            nodesToRead,
+            (historyReadValueId: HistoryReadValueId, cbNode: () => void) => {
+                engine._historyReadSingleNode(
+                    context,
+                    historyReadValueId,
+                    historyReadDetails,
+                    timestampsToReturn,
+                    (err: Error | null, result?: any) => {
 
-                    if (err && !result) {
-                        result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
-                    }
-                    historyData.push(result);
-                    async.setImmediate(cbNode);
-                    // it's not guaranteed that the historical read process is really asynchronous
-                });
-          }, (err?: Error | null) => {
-              assert(historyData.length === nodesToRead.length);
-              callback(err || null, historyData);
-          });
+                        if (err && !result) {
+                            result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
+                        }
+                        historyData.push(result);
+                        async.setImmediate(cbNode);
+                        // it's not guaranteed that the historical read process is really asynchronous
+                    });
+            }, (err?: Error | null) => {
+                assert(historyData.length === nodesToRead.length);
+                callback(err || null, historyData);
+            });
     }
 
     public getOldestUnactivatedSession(): ServerSession | null {
@@ -1392,10 +1411,10 @@ export class ServerEngine extends EventEmitter {
             session.sessionName = session.sessionName || "";
 
             console.log(
-              chalk.cyan("Server: closing SESSION "),
-              session.status, chalk.yellow(session.sessionName),
-              chalk.cyan(" because of timeout = "), session.sessionTimeout,
-              chalk.cyan(" has expired without a keep alive"));
+                chalk.cyan("Server: closing SESSION "),
+                session.status, chalk.yellow(session.sessionName),
+                chalk.cyan(" because of timeout = "), session.sessionTimeout,
+                chalk.cyan(" has expired without a keep alive"));
 
             const channel = session.channel;
             if (channel) {
@@ -1428,8 +1447,8 @@ export class ServerEngine extends EventEmitter {
      * another Client before its lifetime expires.
      */
     public closeSession(
-      authenticationToken: NodeId,
-      deleteSubscriptions: boolean, reason: string) {
+        authenticationToken: NodeId,
+        deleteSubscriptions: boolean, reason: string) {
 
         const engine = this;
 
@@ -1451,13 +1470,13 @@ export class ServerEngine extends EventEmitter {
             if (!engine._orphanPublishEngine) {
 
                 engine._orphanPublishEngine = new ServerSidePublishEngineForOrphanSubscription(
-                  { maxPublishRequestInQueue: 0 });
+                    { maxPublishRequestInQueue: 0 });
 
             }
 
             debugLog("transferring remaining live subscription to orphanPublishEngine !");
             ServerSidePublishEngine.transferSubscriptionsToOrphan(
-              session.publishEngine, engine._orphanPublishEngine);
+                session.publishEngine, engine._orphanPublishEngine);
         }
 
         session.close(deleteSubscriptions, reason);
@@ -1527,9 +1546,9 @@ export class ServerEngine extends EventEmitter {
      * @return                  {TransferResult}
      */
     public transferSubscription(
-      session: ServerSession,
-      subscriptionId: number,
-      sendInitialValues: boolean): TransferResult {
+        session: ServerSession,
+        subscriptionId: number,
+        sendInitialValues: boolean): TransferResult {
 
         assert(session instanceof ServerSession);
         assert(_.isNumber(subscriptionId));
@@ -1599,14 +1618,14 @@ export class ServerEngine extends EventEmitter {
      * @return {ServerSession}
      */
     public getSession(
-      authenticationToken: NodeId,
-      activeOnly?: boolean
+        authenticationToken: NodeId,
+        activeOnly?: boolean
     ): ServerSession | null {
 
         const engine = this;
         if (!authenticationToken ||
-          (authenticationToken.identifierType &&
-            (authenticationToken.identifierType !== NodeIdType.BYTESTRING))) {
+            (authenticationToken.identifierType &&
+                (authenticationToken.identifierType !== NodeIdType.BYTESTRING))) {
             return null;     // wrong type !
         }
         const key = authenticationToken.toString();
@@ -1639,8 +1658,8 @@ export class ServerEngine extends EventEmitter {
      * @async
      */
     public refreshValues(
-      nodesToRefresh: any,
-      callback: (err: Error | null, dataValues?: DataValue[]) => void
+        nodesToRefresh: any,
+        callback: (err: Error | null, dataValues?: DataValue[]) => void
     ): void {
 
         assert(callback instanceof Function);
@@ -1713,7 +1732,7 @@ export class ServerEngine extends EventEmitter {
             const node = (subscriptionDiagnosticsArray as any)[subscription.id];
             removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
             assert(!(subscriptionDiagnosticsArray as any)[subscription.id],
-              " subscription node must have been removed from subscriptionDiagnosticsArray");
+                " subscription node must have been removed from subscriptionDiagnosticsArray");
         }
         debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
     }
@@ -1723,8 +1742,8 @@ export class ServerEngine extends EventEmitter {
      * @return {Subscription}
      */
     private _createSubscriptionOnSession(
-      session: ServerSession,
-      request: CreateSubscriptionRequestLike
+        session: ServerSession,
+        request: CreateSubscriptionRequestLike
     ) {
 
         assert(request.hasOwnProperty("requestedPublishingInterval")); // Duration
@@ -1754,7 +1773,7 @@ export class ServerEngine extends EventEmitter {
         session.publishEngine.add_subscription(subscription);
 
         const engine = this;
-        subscription.once("terminated", function(this: Subscription) {
+        subscription.once("terminated", function (this: Subscription) {
             engine._unexposeSubscriptionDiagnostics(this);
         });
 
@@ -1769,9 +1788,9 @@ export class ServerEngine extends EventEmitter {
     }
 
     private _readSingleNode(
-      context: SessionContext,
-      nodeToRead: ReadValueIdOptions,
-      timestampsToReturn?: TimestampsToReturn
+        context: SessionContext,
+        nodeToRead: ReadValueIdOptions,
+        timestampsToReturn?: TimestampsToReturn
     ): DataValue {
 
         assert(context instanceof SessionContext);
@@ -1825,11 +1844,11 @@ export class ServerEngine extends EventEmitter {
     }
 
     private _historyReadSingleNode(
-      context: SessionContext,
-      nodeToRead: HistoryReadValueId,
-      historyReadDetails: HistoryReadDetails,
-      timestampsToReturn: TimestampsToReturn,
-      callback: Callback<HistoryReadResult>
+        context: SessionContext,
+        nodeToRead: HistoryReadValueId,
+        historyReadDetails: HistoryReadDetails,
+        timestampsToReturn: TimestampsToReturn,
+        callback: Callback<HistoryReadResult>
     ): void {
 
         assert(context instanceof SessionContext);
@@ -1856,12 +1875,12 @@ export class ServerEngine extends EventEmitter {
                 // note : Object and View may also support historyRead to provide Event historical data
                 //        todo implement historyRead for Object and View
                 const msg = " this node doesn't provide historyRead! probably not a UAVariable\n "
-                  + obj.nodeId.toString() + " " + obj.browseName.toString() + "\n"
-                  + "with " + nodeToRead.toString() + "\n"
-                  + "HistoryReadDetails " + historyReadDetails.toString();
+                    + obj.nodeId.toString() + " " + obj.browseName.toString() + "\n"
+                    + "with " + nodeToRead.toString() + "\n"
+                    + "HistoryReadDetails " + historyReadDetails.toString();
                 if (doDebug) {
                     console.log(chalk.cyan("ServerEngine#_historyReadSingleNode "),
-                      chalk.white.bold(msg));
+                        chalk.white.bold(msg));
                 }
                 const err = new Error(msg);
                 // object has no historyRead method
@@ -1874,28 +1893,28 @@ export class ServerEngine extends EventEmitter {
             //    invalid attributes : BadNodeAttributesInvalid
             //    invalid range      : BadIndexRangeInvalid
             obj.historyRead(
-              context,
-              historyReadDetails,
-              indexRange,
-              dataEncoding,
-              continuationPoint,
-              (err: Error | null, result?: HistoryReadResult) => {
-                  if (err || !result) {
-                      return callback(err);
-                  }
-                  assert(result!.statusCode instanceof StatusCode);
-                  assert(result!.isValid());
-                  // result = apply_timestamps(result, timestampsToReturn, attributeId);
-                  callback(err, result);
-              });
+                context,
+                historyReadDetails,
+                indexRange,
+                dataEncoding,
+                continuationPoint,
+                (err: Error | null, result?: HistoryReadResult) => {
+                    if (err || !result) {
+                        return callback(err);
+                    }
+                    assert(result!.statusCode instanceof StatusCode);
+                    assert(result!.isValid());
+                    // result = apply_timestamps(result, timestampsToReturn, attributeId);
+                    callback(err, result);
+                });
         }
     }
 
     /**
      */
     private __internal_bindMethod(
-      nodeId: NodeId,
-      func: MethodFunctor
+        nodeId: NodeId,
+        func: MethodFunctor
     ) {
 
         const engine = this;
@@ -1910,16 +1929,16 @@ export class ServerEngine extends EventEmitter {
             methodNode.bindMethod(func);
         } else {
             console.log(
-              chalk.yellow("WARNING:  cannot bind a method with id ") +
-              chalk.cyan(nodeId.toString()) +
-              chalk.yellow(". please check your nodeset.xml file or add this node programmatically"));
+                chalk.yellow("WARNING:  cannot bind a method with id ") +
+                chalk.cyan(nodeId.toString()) +
+                chalk.yellow(". please check your nodeset.xml file or add this node programmatically"));
 
             console.log(trace_from_this_projet_only());
         }
     }
 
     private _getServerSubscriptionDiagnosticsArray()
-      : UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
+        : UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
 
         if (!this.addressSpace) {
             if (doDebug) {
@@ -1931,13 +1950,13 @@ export class ServerEngine extends EventEmitter {
         if (!subscriptionDiagnosticsType) {
             if (doDebug) {
                 console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray " +
-                  ": cannot find SubscriptionDiagnosticsType");
+                    ": cannot find SubscriptionDiagnosticsType");
             }
         }
 
         // SubscriptionDiagnosticsArray = i=2290
         const subscriptionDiagnosticsArray = this.addressSpace.findNode(
-          makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray))!;
+            makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray))!;
 
         return subscriptionDiagnosticsArray as UADynamicVariableArray<SubscriptionDiagnosticsDataType>;
     }

@@ -7,7 +7,7 @@ import { AxisInformationOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
-import { AddressSpace, Folder, Namespace  } from "../..";
+import { AddressSpace, Folder, Namespace } from "../..";
 
 export function subtest_Y_array_item_type(maintest: any) {
 
@@ -80,7 +80,7 @@ export function subtest_Y_array_item_type(maintest: any) {
             yArrayItem.euRange.readValue().value.value.low.should.eql(100);
             yArrayItem.euRange.readValue().value.value.high.should.eql(200);
 
-            yArrayItem.title.readValue().value.value.text.should.eql("My Little YArray Item");
+            yArrayItem.title.readValue().value.value.text!.should.eql("My Little YArray Item");
 
             // access xAxisDefinition from extension object
             const x = yArrayItem.xAxisDefinition.readValue().value.value as AxisInformation;
