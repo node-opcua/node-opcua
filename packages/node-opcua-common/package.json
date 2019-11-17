@@ -24,7 +24,7 @@
  },
  "devDependencies": {
   "@types/mocha": "^5.2.7",
-  "@types/node": "^12.12.7",
+  "@types/node": "^12.12.8",
   "node-opcua-generator": "^2.3.0",
   "should": "13.2.3"
  },
