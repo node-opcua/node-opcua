@@ -259,8 +259,8 @@ export interface BindVariableOptionsVariation3 {
 
 export type BindVariableOptions =
     | {
-          historyRead?: any;
-      }
+        historyRead?: any;
+    }
     | BindVariableOptionsVariation1
     | BindVariableOptionsVariation2
     | BindVariableOptionsVariation3;
@@ -654,7 +654,7 @@ export interface AddMultiStateValueDiscreteOptions extends AddVariableOptions {
 }
 
 export interface UAMultiStateValueDiscrete extends UAVariable {
-    enumValues: Property< EnumValueType[], DataType.ExtensionObject>;
+    enumValues: Property<EnumValueType[], DataType.ExtensionObject>;
     valueAsText: Property<LocalizedText, DataType.LocalizedText>;
 
     setValue(value: string | number | Int64): void;
@@ -663,7 +663,7 @@ export interface UAMultiStateValueDiscrete extends UAVariable {
 }
 
 // tslint:disable:no-empty-interface
-export interface UAEventType extends UAObjectType {}
+export interface UAEventType extends UAObjectType { }
 
 export type EventTypeLike = string | NodeId | UAEventType;
 
@@ -1242,13 +1242,13 @@ export interface RangeVariable extends UAVariable {
 
 export interface XAxisDefinitionVariable extends UAVariable {
     engineeringUnits: UAVariableT<UAString, DataType.String>;
-    title: UAVariableT<UAString, DataType.String>;
+    title: UAVariableT<LocalizedText, DataType.LocalizedText>;
     euRange: RangeVariable;
 }
 
 export interface YArrayItemVariable extends UAVariable {
     euRange: UAVariableT<Range, DataType.ExtensionObject>;
-    title: UAVariableT<string, DataType.String>;
+    title: UAVariableT<LocalizedText, DataType.LocalizedText>;
     xAxisDefinition: UAVariableT<AxisInformationOptions, DataType.ExtensionObject>; // AxisInformationOptions
     instrumentRange: UAVariableT<Range, DataType.ExtensionObject>;
     axisScaleType: UAVariableT<number, DataType.UInt32>; // AxisScaleEnumeration
@@ -1409,7 +1409,7 @@ export declare interface Namespace {
 }
 
 // tslint:disable:no-empty-interface
-export interface Folder extends UAObject {}
+export interface Folder extends UAObject { }
 
 export type FolderType = UAObjectType;
 
@@ -1581,7 +1581,7 @@ export interface UACertificateGroup extends UAObject {
     trustListOutOfDate?: UATrustListOutOfDateAlarmType;
 }
 
-export interface UACertificateExpirationAlarmType extends UAEventType {}
+export interface UACertificateExpirationAlarmType extends UAEventType { }
 
 /**
  * This event is raised when a Trust List is changed.
@@ -1589,7 +1589,7 @@ export interface UACertificateExpirationAlarmType extends UAEventType {}
  * It shall also be raised when the AddCertificate or RemoveCertificate Method causes an
  * update to the Trust List.
  */
-export interface UATrustListOutOfDateAlarmType extends UAEventType {}
+export interface UATrustListOutOfDateAlarmType extends UAEventType { }
 
 export interface UACertificateGroupFolder extends Folder {
     /**
@@ -1621,9 +1621,9 @@ export interface UACertificateGroupFolder extends Folder {
     // <AdditionalGroup>
 }
 
-export interface UAKeyCredentialConfigurationFolder extends Folder {}
+export interface UAKeyCredentialConfigurationFolder extends Folder { }
 
-export interface UAUserTokenPolicy {}
+export interface UAUserTokenPolicy { }
 
 export interface UAAuthorizationService extends UAObject {
     // found in authorizationServices
@@ -1656,7 +1656,7 @@ export interface UAAuthorizationService extends UAObject {
     requestAccessToken?: UAMethod;
 }
 
-export interface UAAutorizationServicesFolder extends Folder {}
+export interface UAAutorizationServicesFolder extends Folder { }
 
 // partial UAServerConfiguration related to authorization service
 export interface UAServerConfiguration extends UAObject {
@@ -1741,7 +1741,7 @@ export interface UAServerConfiguration extends UAObject {
     supportedPrivateKeyFormats: UAVariableT<UAString[], DataType.String>;
 }
 
-export interface UADirectoryType {}
+export interface UADirectoryType { }
 
 /**
  *
@@ -1876,7 +1876,7 @@ export interface UAOperationLimits extends UAObject {
     maxMonitoredItemsPerCall?: UAVariableT<UInt32, DataType.UInt32>;
 }
 
-export interface IdentityMappingRuleType {}
+export interface IdentityMappingRuleType { }
 
 /**
  * The Properties and Methods of the Role contain sensitive security related information and
@@ -2576,7 +2576,7 @@ export interface ConditionType extends UAObjectType {
     addComment: UAMethod;
 }
 
-export interface Enumeration extends UAVariable {}
+export interface Enumeration extends UAVariable { }
 
 // {{ Dynamic Array Variable
 export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVariable {
