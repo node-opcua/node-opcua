@@ -63,7 +63,7 @@ import { checkCertificateValidity, ICertificateManager } from "node-opcua-certif
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-const doTraceMessage = process.env.DEBUG && process.env.DEBUG.indexOf("SERVERTRACE") >= 0;
+const doTraceMessage = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("SERVERTRACE") >= 0);
 
 let gLastChannelId = 0;
 
@@ -72,7 +72,7 @@ function getNextChannelId() {
     return gLastChannelId;
 }
 
-const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;
+const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0);
 
 export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
 
@@ -157,6 +157,29 @@ function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
         default:
             return StatusCodes.BadSecurityPolicyRejected;
     }
+}
+
+/**
+ * returns trus if the nonce is null or zero (all bytes set to 0)
+ */
+export function isEmptyNonce(nonce: Buffer): boolean {
+    const countZero = nonce.reduce(
+        (accumulator: number, currentValue: number) => accumulator + (currentValue === 0 ? 1 : 0), 0);
+    return (countZero === nonce.length);
+}
+const g_alreadyUsedNonce: any = {};
+export function nonceAlreadyBeenUsed(nonce?: Buffer): boolean {
+    if (!nonce || isEmptyNonce(nonce)) {
+        return false;
+    }
+    const hash = nonce.toString("base64");
+    if (g_alreadyUsedNonce.hasOwnProperty(hash)) {
+        return true;
+    }
+    g_alreadyUsedNonce[hash] = {
+        time: new Date()
+    };
+    return false;
 }
 
 /**
@@ -649,6 +672,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @param callback
      */
     public close(callback?: ErrorCallback) {
+        if (!this.transport) {
+            if (_.isFunction(callback)) {
+                callback();
+            }
+            return;
+        }
         debugLog("ServerSecureChannelLayer#close");
         // close socket
         this.transport.disconnect(() => {
@@ -1060,6 +1089,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this.clientNonce = request.clientNonce;
 
+        if (nonceAlreadyBeenUsed(this.clientNonce)) {
+            console.log(chalk.red("SERVER with secure connection: Nonee has already been used"),
+                this.clientNonce.toString("hex"));
+            return this._sendOpenSecureChannelResponseError(StatusCodes.BadNonceInvalid, message, callback);
+        }
+
         this._set_lifetime(request.requestedLifetime);
 
         this._prepare_security_token(request);
@@ -1102,7 +1137,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // let prepare self.securityHeader;
         this.securityHeader = this._prepare_security_header(request, message);
 
-        // xx const asymmHeader = this.securityHeader as AsymmetricAlgorithmSecurityHeader;
+        if (!this.securityHeader) {
+            return this._sendOpenSecureChannelResponseError(StatusCodes.BadCertificateInvalid, message, callback);
+        }
 
         assert(this.securityHeader);
 
@@ -1130,6 +1167,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // If the SecurityMode is not None then the Server shall verify that a SenderCertificate and a
         // ReceiverCertificateThumbprint were specified in the SecurityHeader.
         if (this.securityMode !== MessageSecurityMode.None) {
+
+            /* istanbul ignore next */
             if (!this.clientSecurityHeader) {
                 throw new Error("Internal Error");
             }
@@ -1141,9 +1180,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
         }
         this.send_response("OPN", response, message, (/*err*/) => {
-
             const responseHeader = response.responseHeader;
-
             if (responseHeader.serviceResult !== StatusCodes.Good) {
                 console.log(
                     "OpenSecureChannelRequest Closing communication ",
@@ -1151,6 +1188,20 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 );
                 this.close();
             }
+            callback();
+        });
+    }
+
+    private _sendOpenSecureChannelResponseError(serviceResult: StatusCode, message: Message, callback: ErrorCallback) {
+        const response: Response = new OpenSecureChannelResponse({
+            responseHeader: { serviceResult },
+            securityToken: this.securityToken,
+            serverNonce: this.serverNonce || undefined,
+            serverProtocolVersion: this.protocolVersion
+        });
+        response.responseHeader.serviceResult = serviceResult;
+        this.send_response("OPN", response, message, (/*err*/) => {
+            this.close();
             callback();
         });
     }
@@ -1410,6 +1461,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 }
 
 import { ObjectRegistry } from "node-opcua-object-registry";
+import { NodeClass } from "../../../node-opcua-data-model/dist";
 ServerSecureChannelLayer.registry = new ObjectRegistry({});
 
 (ServerSecureChannelLayer as any).prototype.checkCertificateCallback =

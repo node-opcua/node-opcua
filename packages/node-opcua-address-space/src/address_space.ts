@@ -72,9 +72,9 @@ const Dequeue = require("dequeue");
 const regexNumberColumnString = /^([0-9]+):(.*)/;
 
 function _extract_namespace_and_browse_name_as_string(
-  addressSpace: AddressSpace,
-  browseName: NodeIdLike | QualifiedName,
-  namespaceIndex?: number
+    addressSpace: AddressSpace,
+    browseName: NodeIdLike | QualifiedName,
+    namespaceIndex?: number
 ): [NamespacePrivate, string] {
     assert(!namespaceIndex || namespaceIndex >= 0);
 
@@ -187,7 +187,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (typeof namespaceIndexOrName === "number") {
             const namespaceIndex = namespaceIndexOrName;
             assert(namespaceIndex >= 0 && namespaceIndex < this._namespaceArray.length,
-              "invalid namespace index ( out of bound)");
+                "invalid namespace index ( out of bound)");
             return this._namespaceArray[namespaceIndex];
         } else {
             const namespaceUri = namespaceIndexOrName;
@@ -378,7 +378,7 @@ export class AddressSpace implements AddressSpacePrivate {
             return _find_by_node_id<UAVariableType>(this, variableType, namespaceIndex);
         }
         const [namespace, browseName] = _extract_namespace_and_browse_name_as_string(
-          this, variableType, namespaceIndex);
+            this, variableType, namespaceIndex);
         return namespace.findVariableType(browseName);
     }
 
@@ -397,8 +397,8 @@ export class AddressSpace implements AddressSpacePrivate {
      *      const dataDouble = addressSpace.findDataType(resolveNodeId("ns=0;i=3"));
      */
     public findDataType(
-      dataType: number | string | NodeId | DataType,
-      namespaceIndex?: number
+        dataType: number | string | NodeId | DataType,
+        namespaceIndex?: number
     ): UADataType | null {
         // startingNode i=24  :
         // BaseDataType
@@ -442,12 +442,12 @@ export class AddressSpace implements AddressSpacePrivate {
 
         const _orig_dataTypeNode = dataTypeNode;
         if (typeof dataTypeNode === "string") {
-            const resolvedDataType =   this.resolveNodeId(dataTypeNode);
+            const resolvedDataType = this.resolveNodeId(dataTypeNode);
             /* istanbul ignore next */
             if (!resolvedDataType) {
                 throw new Error("Cannot reseolve " + _orig_dataTypeNode.toString());
             }
-            dataTypeNode = resolvedDataType;        
+            dataTypeNode = resolvedDataType;
         }
 
         if (dataTypeNode instanceof NodeId) {
@@ -504,8 +504,8 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      */
     public findReferenceType(
-      refType: NodeIdLike,
-      namespaceIndex?: number
+        refType: NodeIdLike,
+        namespaceIndex?: number
     ): UAReferenceType | null {
 
         // startingNode ns=0;i=31 : References
@@ -586,8 +586,8 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      */
     public findEventType(
-      eventTypeId: NodeIdLike | UAEventType,
-      namespaceIndex?: number
+        eventTypeId: NodeIdLike | UAEventType,
+        namespaceIndex?: number
     ): UAEventType | null {
 
         let eventType: UAEventType;
@@ -733,9 +733,9 @@ export class AddressSpace implements AddressSpacePrivate {
         const visitedProperties: { [key: string]: any } = {};
 
         function _process_var(
-          self: BaseNode,
-          prefix: string,
-          node: BaseNode
+            self: BaseNode,
+            prefix: string,
+            node: BaseNode
         ) {
             const lowerName = prefix + lowerFirstLetter(node.browseName!.name!);
             // istanbul ignore next
@@ -755,12 +755,12 @@ export class AddressSpace implements AddressSpacePrivate {
                     if (node.modellingRule === "Mandatory") {
                         // tslint:disable:no-console
                         console.log(chalk.red("ERROR : AddressSpace#constructEventData(eventType,options) " +
-                          "cannot find property ")
-                          + self.browseName.toString() + " => " + chalk.cyan(lowerName));
+                            "cannot find property ")
+                            + self.browseName.toString() + " => " + chalk.cyan(lowerName));
                     } else {
                         console.log(chalk.yellow("Warning : AddressSpace#constructEventData(eventType,options)" +
-                          " cannot find property ")
-                          + self.browseName.toString() + " => " + chalk.cyan(lowerName));
+                            " cannot find property ")
+                            + self.browseName.toString() + " => " + chalk.cyan(lowerName));
                     }
                 }
             }
@@ -768,7 +768,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         // verify that all elements of data are valid
         function verify_data_is_valid(
-          data1: { [key: string]: any }
+            data1: { [key: string]: any }
         ) {
             Object.keys(data1).map((k: string) => {
                 if (k === "$eventDataSource") {
@@ -777,15 +777,15 @@ export class AddressSpace implements AddressSpacePrivate {
                 /* istanbul ignore next */
                 if (!visitedProperties.hasOwnProperty(k)) {
                     throw new Error(" cannot find property '" + k + "' in [ "
-                      + Object.keys(visitedProperties).join(", ") + "] when filling " +
-                      eventTypeNode.browseName.toString());
+                        + Object.keys(visitedProperties).join(", ") + "] when filling " +
+                        eventTypeNode.browseName.toString());
                 }
             });
         }
 
         function populate_data(
-          self: any,
-          eventData1: any
+            self: any,
+            eventData1: any
         ) {
 
             if (sameNodeId(baseObjectType!.nodeId, self.nodeId)) {
@@ -796,7 +796,7 @@ export class AddressSpace implements AddressSpacePrivate {
             /* istanbul ignore next */
             if (!baseTypeNodeId) {
                 throw new Error("Object " + self.browseName.toString() +
-                  " with nodeId " + self.nodeId + " has no Type");
+                    " with nodeId " + self.nodeId + " has no Type");
             }
 
             const baseType = addressSpace.findNode(baseTypeNodeId);
@@ -915,11 +915,11 @@ export class AddressSpace implements AddressSpacePrivate {
         //   Let's detect null targetName which are not in last position and return BadBrowseNameInvalid if not
         //
         const empty_targetName_not_in_lastPos = browsePath.relativePath.elements.reduce(
-          (prev, e, index) => {
-              const is_last = ((index + 1) === elements_length);
-              const isBad = (!is_last && (!e.targetName || e.targetName.isEmpty()));
-              return prev + ((!is_last && (!e.targetName || e.targetName.isEmpty())) ? 1 : 0);
-          }, 0);
+            (prev, e, index) => {
+                const is_last = ((index + 1) === elements_length);
+                const isBad = (!is_last && (!e.targetName || e.targetName.isEmpty()));
+                return prev + ((!is_last && (!e.targetName || e.targetName.isEmpty())) ? 1 : 0);
+            }, 0);
         if (empty_targetName_not_in_lastPos) {
             return new BrowsePathResult({ statusCode: StatusCodes.BadBrowseNameInvalid });
         }
@@ -935,12 +935,12 @@ export class AddressSpace implements AddressSpacePrivate {
         const res: BrowsePathTargetOptions[] = [];
 
         const explore_element = (
-          curNodeObject: BaseNode,
-          elements: RelativePathElement[],
-          index: number
+            curNodeObject: BaseNode,
+            elements: RelativePathElement[],
+            index: number
         ) => {
 
-            const element = elements[index] as RelativePathElement;
+            const element = elements[index];
             assert(element instanceof RelativePathElement);
 
             const is_last = ((index + 1) === elements.length);
@@ -1079,9 +1079,9 @@ export class AddressSpace implements AddressSpacePrivate {
      * @return {BrowseResult}
      */
     public browseSingleNode(
-      nodeId: NodeIdLike,
-      browseDescription: BrowseDescription,
-      context?: SessionContext
+        nodeId: NodeIdLike,
+        browseDescription: BrowseDescription,
+        context?: SessionContext
     ): BrowseResult {
 
         const browseResult: BrowseResultOptions = {
@@ -1090,14 +1090,13 @@ export class AddressSpace implements AddressSpacePrivate {
             statusCode: StatusCodes.Good
         };
 
- 
         if (!browseDescription || browseDescription.browseDirection === BrowseDirection.Invalid) {
             browseResult.statusCode = StatusCodes.BadBrowseDirectionInvalid;
             return new BrowseResult(browseResult);
         }
 
         browseDescription.browseDirection =
-          adjustBrowseDirection(browseDescription.browseDirection, BrowseDirection.Forward);
+            adjustBrowseDirection(browseDescription.browseDirection, BrowseDirection.Forward);
 
         /* istanbul ignore next */
         if (typeof nodeId === "number") {
@@ -1196,7 +1195,7 @@ export class AddressSpace implements AddressSpacePrivate {
             const references = node.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse);
 
             const parentNodes = references.map(
-              (r: UAReference) => Reference.resolveReferenceNode(addressSpace, r) as BaseNode);
+                (r: UAReference) => Reference.resolveReferenceNode(addressSpace, r) as BaseNode);
 
             for (const parent of parentNodes) {
 
@@ -1291,7 +1290,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @return {Object} a new reference object  with the normalized name { referenceType: <value>, isForward: <flag>}
      */
     public normalizeReferenceType(
-      params: AddReferenceOpts | Reference
+        params: AddReferenceOpts | Reference
     ): Reference {
 
         if (params instanceof Reference) {
@@ -1357,7 +1356,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param references
      */
     public normalizeReferenceTypes(
-      references: AddReferenceOpts[] | Reference[] | null
+        references: AddReferenceOpts[] | Reference[] | null
     ): Reference[] {
         if (!references || references.length === 0) {
             return [];
@@ -1366,7 +1365,7 @@ export class AddressSpace implements AddressSpacePrivate {
         assert(_.isArray(references));
 
         return (references as any).map(
-          (el: Reference | AddReferenceOpts) => this.normalizeReferenceType(el));
+            (el: Reference | AddReferenceOpts) => this.normalizeReferenceType(el));
     }
 
     // -- Historycall Node  -----------------------------------------------------------------------------------------
@@ -1376,8 +1375,8 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param options
      */
     public installHistoricalDataNode(
-      node: UAVariable,
-      options?: IHistoricalDataNodeOptions
+        node: UAVariable,
+        options?: IHistoricalDataNodeOptions
     ): void {
 
         AddressSpace_installHistoricalDataNode.call(this, node, options);
@@ -1393,12 +1392,12 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     // -- internal stuff -----------------------------------------------------------------------------------------------
-    public _coerceNode(node: string| BaseNode | NodeId): BaseNode | null {
+    public _coerceNode(node: string | BaseNode | NodeId): BaseNode | null {
 
         function hasTypeDefinition(node1: BaseNode) {
             return node1.nodeClass === NodeClass.Variable ||
-              node1.nodeClass === NodeClass.Object ||
-              node1.nodeClass === NodeClass.Method;
+                node1.nodeClass === NodeClass.Object ||
+                node1.nodeClass === NodeClass.Method;
         }
 
         // coerce to BaseNode object
@@ -1408,14 +1407,14 @@ export class AddressSpace implements AddressSpacePrivate {
         // it's a node id like
         // coerce parent folder to an object
         const returnValue = this.findNode(resolveNodeId(node));
-       /*
-        if (!hasTypeDefinition(node as BaseNode)) {
-            node = this.findNode(node.nodeId) || node;
-            if (!node || !hasTypeDefinition(node)) {
-                return null;
-            }
-        }
-        */
+        /*
+         if (!hasTypeDefinition(node as BaseNode)) {
+             node = this.findNode(node.nodeId) || node;
+             if (!node || !hasTypeDefinition(node)) {
+                 return null;
+             }
+         }
+         */
         return returnValue;
     }
 
@@ -1425,7 +1424,7 @@ export class AddressSpace implements AddressSpacePrivate {
             return dataType;
         }
         return this._coerce_Type(
-          dataType, DataTypeIds, "DataTypeIds", AddressSpace.prototype.findDataType);
+            dataType, DataTypeIds, "DataTypeIds", AddressSpace.prototype.findDataType);
     }
 
     public _coerceTypeDefinition(typeDefinition: string | NodeId): NodeId {
@@ -1440,9 +1439,9 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     public _coerceType<T extends BaseNode>(
-      baseType: string | NodeId | BaseNode,
-      topMostBaseType: string,
-      nodeClass: NodeClass
+        baseType: string | NodeId | BaseNode,
+        topMostBaseType: string,
+        nodeClass: NodeClass
     ): T {
 
         assert(typeof topMostBaseType === "string");
@@ -1484,9 +1483,9 @@ export class AddressSpace implements AddressSpacePrivate {
 
     public _coerce_VariableTypeIds(dataType: NodeId | string | BaseNode): NodeId {
         return this._coerce_Type(
-          dataType, VariableTypeIds,
-          "VariableTypeIds",
-          AddressSpace.prototype.findVariableType);
+            dataType, VariableTypeIds,
+            "VariableTypeIds",
+            AddressSpace.prototype.findVariableType);
     }
 
     public _register(node: BaseNode): void {
@@ -1500,10 +1499,10 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     private _coerce_Type(
-      dataType: BaseNode | string | NodeId,
-      typeMap: any,
-      typeMapName: any,
-      finderMethod: any
+        dataType: BaseNode | string | NodeId,
+        typeMap: any,
+        typeMapName: any,
+        finderMethod: any
     ): NodeId {
 
         if (dataType instanceof BaseNode) {
@@ -1542,7 +1541,7 @@ export class AddressSpace implements AddressSpacePrivate {
             /* istanbul ignore next */
             if (find.length !== 1) {
                 throw new Error(" cannot find " + dataType.toString() +
-                  " in typeMap " + typeMapName + " L = " + find.length);
+                    " in typeMap " + typeMapName + " L = " + find.length);
             }
         }
         return nodeId;
@@ -1593,9 +1592,9 @@ function _getNamespace(addressSpace: AddressSpace, nodeOrNodId: BaseNode | NodeI
 }
 
 function _find_by_node_id<T extends BaseNode>(
-  addressSpace: AddressSpace,
-  nodeId: NodeIdLike,
-  namespaceIndex?: number
+    addressSpace: AddressSpace,
+    nodeId: NodeIdLike,
+    namespaceIndex?: number
 ): T {
     assert(nodeId instanceof NodeId);
     const obj = addressSpace.findNode(nodeId);

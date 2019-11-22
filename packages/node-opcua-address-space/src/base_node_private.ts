@@ -567,7 +567,7 @@ export function BaseNode_remove_backward_reference(this: BaseNode, reference: Re
     _remove_HierarchicalReference(this, reference);
     const h = reference.hash;
 
-    if (_private._back_referenceIdx[h]) {
+    if (_private._back_referenceIdx && _private._back_referenceIdx[h]) {
         // note : h may not exist in _back_referenceIdx since we are not indexing
         //        _back_referenceIdx to UAObjectType and UAVariableType for performance reasons
         _private._back_referenceIdx[h].dispose();

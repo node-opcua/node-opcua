@@ -917,7 +917,17 @@ function add_analog_data_items(namespace, parentFolder) {
             })
         });
     }
-
+    function makeRange(dataTypeStr) {
+        assert(typeof dataTypeStr === "string");
+        const dataType = DataType[dataTypeStr];
+        let engineeringUnitsRange = { low: 0, high: 60 };
+        let instrumentRange = { low: 0, high: 60 };
+        if (DataType[dataType][0] === "U" || dataType === DataType.Byte) {
+            engineeringUnitsRange = { low: 0, high: 60 };
+            instrumentRange = { low: 0, high: 60 };
+        }
+        return { engineeringUnitsRange, instrumentRange };
+    }
     function _addAnalogDataItem(localParentFolder, dataType, initialValue) {
 
         // istanbul ignore next
@@ -925,6 +935,7 @@ function add_analog_data_items(namespace, parentFolder) {
             throw new Error(" Invalid dataType " + dataType);
         }
 
+        const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
         const name = dataType + "AnalogDataItem";
         const nodeId = "s=" + name;
         // UAAnalogItem
@@ -937,8 +948,8 @@ function add_analog_data_items(namespace, parentFolder) {
             browseName: name,
             definition: "(tempA -25) + tempB",
             valuePrecision: 0.5,
-            engineeringUnitsRange: { low: -200, high: 200 },
-            instrumentRange: { low: -200, high: 200 },
+            engineeringUnitsRange,
+            instrumentRange,
             engineeringUnits: standardUnits.degree_celsius,
             dataType: dataType,
             value: new Variant({
@@ -957,6 +968,7 @@ function add_analog_data_items(namespace, parentFolder) {
         const name = dataType + "ArrayAnalogDataItem";
         const nodeId = "s=" + name;
         // UAAnalogItem
+        const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
         // add a UAAnalogItem
         namespace.addAnalogDataItem({
 
@@ -966,8 +978,8 @@ function add_analog_data_items(namespace, parentFolder) {
             browseName: name,
             definition: "(tempA -25) + tempB",
             valuePrecision: 0.5,
-            engineeringUnitsRange: { low: -200, high: 200 },
-            instrumentRange: { low: -200, high: 200 },
+            engineeringUnitsRange,
+            instrumentRange,
             engineeringUnits: standardUnits.degree_celsius,
             dataType: dataType,
             value: new Variant({
@@ -990,6 +1002,7 @@ function add_analog_data_items(namespace, parentFolder) {
     const name = "DoubleAnalogDataItemWithEU";
     const nodeId = "s=" + name;
 
+    const { engineeringUnitsRange, instrumentRange } = makeRange("Double");
     namespace.addAnalogDataItem({
 
         componentOf: analogItemFolder,
@@ -997,10 +1010,10 @@ function add_analog_data_items(namespace, parentFolder) {
         browseName: name,
         definition: "(tempA -25) + tempB",
         valuePrecision: 0.5,
-        engineeringUnitsRange: { low: 100, high: 200 },
-        instrumentRange: { low: -100, high: +200 },
+        engineeringUnitsRange,
+        instrumentRange,
         engineeringUnits: standardUnits.degree_celsius,
-        dataType: "Double",
+        dataType: DataType.Double,
 
         value: new Variant({
             dataType: DataType.Double,
@@ -1018,8 +1031,8 @@ function add_analog_data_items(namespace, parentFolder) {
         { dataType: "UInt32", value: 100 },
         { dataType: "Int64", value: [0, 0] },
         { dataType: "UInt64", value: [0, 0] },
-        { dataType: "Byte", value: 120 },
-        { dataType: "SByte", value: -123 },
+        { dataType: "Byte", value: 65 },
+        { dataType: "SByte", value: -23 },
         { dataType: "String", value: "some string" },
         { dataType: "DateTime", value: new Date() }
     ];

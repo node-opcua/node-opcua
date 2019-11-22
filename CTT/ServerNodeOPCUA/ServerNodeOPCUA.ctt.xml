@@ -421,7 +421,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="100"/>
+           <Value typename="QString" type="10" data="50"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -3675,7 +3675,7 @@
                   </Column>
                   <Column column="1">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="ns=3;s=SByteDataItem"/>
+                    <Value typename="QString" type="10" data="ns=3;s=SByteAnalogDataItem"/>
                    </ItemData>
                    <ChildRows size="0"/>
                   </Column>
@@ -7969,7 +7969,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=3;s=ByteAnalogDataItem"/>
+              <Value typename="QString" type="10" data="ns=3;s=Demo.CTT.References.Has3ForwardReferences1"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8007,7 +8007,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=3;s=ByteArrayAnalogDataItem"/>
+              <Value typename="QString" type="10" data="ns=3;s=Demo.CTT.References.Has3ForwardReferences2"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8045,7 +8045,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=3;s=DateTimeAnalogDataItem"/>
+              <Value typename="QString" type="10" data="ns=3;s=Demo.CTT.References.Has3ForwardReferences3"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8083,7 +8083,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=3;s=ByteDataItem"/>
+              <Value typename="QString" type="10" data="ns=3;s=Demo.CTT.References.Has3ForwardReferences4"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8121,7 +8121,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=3;s=ByteDataItem"/>
+              <Value typename="QString" type="10" data="ns=3;s=Demo.CTT.References.Has3ForwardReferences5"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8159,7 +8159,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data="ns=3;s=ByteDataItem"/>
+              <Value typename="QString" type="10" data="ns=3;s=Demo.CTT.References.HasInverseAndForwardReferences"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -8235,7 +8235,7 @@
             </Column>
             <Column column="1">
              <ItemData role="0" rolename="DisplayRole">
-              <Value typename="QString" type="10" data=""/>
+              <Value typename="QString" type="10" data="ns=3;s=Demo.CTT.References.Has3InverseReferences"/>
              </ItemData>
              <ChildRows size="0"/>
             </Column>
@@ -19649,7 +19649,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="0"/>
+           <Value typename="QString" type="10" data="2"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -19687,7 +19687,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="0"/>
+           <Value typename="QString" type="10" data="2"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -19725,7 +19725,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="0"/>
+           <Value typename="QString" type="10" data="2"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -19763,7 +19763,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="0"/>
+           <Value typename="QString" type="10" data="2"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>

@@ -10,8 +10,8 @@ import { assert } from "node-opcua-assert";
 import {
     EnumerationDefinitionSchema,
     FieldCategory,
+    getStandartDataTypeFactory,
     StructuredTypeSchema,
-    getStandartDataTypeFactory
 } from "node-opcua-factory";
 import { EnumeratedType, parseBinaryXSD, TypeDictionary } from "node-opcua-schemas";
 import { LineFile } from "node-opcua-utils";
@@ -47,7 +47,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     const isFlaggable = arrayValues.length > 2
         && arrayValues[2] === arrayValues[1] * 2
         && arrayValues[3] === arrayValues[2] * 2
-    ;
+        ;
     // find min and max values (excluding
     const minEnumValue = Math.min.apply(null, arrayValues);
     const maxEnumValue = Math.max.apply(null, arrayValues);
@@ -68,7 +68,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     write(`}`);
 
     write(`const schema${enumerationSchema.name} = {`);
-    //xx write(`    documentation: "${enumerationSchema.documentation}",`);
+    // xx write(`    documentation: "${enumerationSchema.documentation}",`);
     write(`    enumValues: ${enumerationSchema.name},`);
     write(`    flaggable: ${isFlaggable},`);
     if (!isFlaggable) {
@@ -133,7 +133,7 @@ export async function generate(
 
         const content = await readFile(filename, "ascii");
 
-        const typeDictionary = await parseBinaryXSD2(content,[ getStandartDataTypeFactory() ]);
+        const typeDictionary = await parseBinaryXSD2(content, [getStandartDataTypeFactory()]);
 
         for (const key in typeDictionary.structuredTypes) {
 

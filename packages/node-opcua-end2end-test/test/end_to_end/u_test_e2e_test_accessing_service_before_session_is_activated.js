@@ -27,6 +27,7 @@ module.exports = function(test) {
 
             let session1;
             let last_response;
+            let activate_error;
             async.series([
 
                 function(callback) {
@@ -58,6 +59,15 @@ module.exports = function(test) {
                         callback();
                     });
                 },
+                // verify the session can no longer be used
+                function(callback) {
+                    client._activateSession(session1,(err) => {
+                        activate_error = err;
+                        // BadSessionIdInvalid, BadSessionClosed
+                        callback();
+                    });
+                },
+
                 function(callback) {
                     client.closeSession(session1, true, callback);
                 },
@@ -70,6 +80,9 @@ module.exports = function(test) {
                     return done(err);
                 }
                 last_response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionNotActivated);
+                should.exist(activate_error, 
+                    "Activate Session should return an error if there has been an attempt to use it before being activated");
+                activate_error.message.should.match(/BadSessionIdInvalid|BadSessionClosed/);
                 done();
             });
         });
