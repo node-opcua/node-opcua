@@ -814,6 +814,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
             }
 
             if (_.isEqual(obj.browseName, relativePathElement.targetName)) { // compare QualifiedName
+
                 const key = obj.nodeId.toString();
                 if (!nodeIdsMap.hasOwnProperty(key)) {
                     nodeIds.push(obj.nodeId);
@@ -822,7 +823,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
             }
         }
 
-        if (this.nodeClass === NodeClass.ObjectType || this.nodeClass === NodeClass.VariableType) {
+        if (nodeIds.length === 0 && (this.nodeClass === NodeClass.ObjectType || this.nodeClass === NodeClass.VariableType)) {
 
             const nodeType = this as any as UAVariableTypePublic;
 

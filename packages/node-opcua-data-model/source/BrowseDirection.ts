@@ -32,7 +32,11 @@ export function encodeBrowseDirection(value: BrowseDirection, stream: OutputBina
 
 export function decodeBrowseDirection(stream: BinaryStream): BrowseDirection {
 
-    return stream.readUInt32() as BrowseDirection;
+    let value = stream.readUInt32();
+    if (value < 0 || value > 3 || Number.isNaN(value)) {
+        value = BrowseDirection.Invalid;
+    }
+    return value as BrowseDirection;
 }
 
 export const _enumerationBrowseDirection: Enum = registerEnumeration(schemaBrowseDirection);

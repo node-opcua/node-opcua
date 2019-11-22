@@ -855,10 +855,12 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
 
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
 
+            /* istanbul ignore next */
             if (!response || !(response instanceof CreateSessionResponse)) {
                 return callback(new Error("internal error"));
             }

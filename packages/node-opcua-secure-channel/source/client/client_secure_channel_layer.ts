@@ -66,11 +66,11 @@ const doDebug = checkDebugFlag(__filename);
 const checkChunks = false;
 const doDebug1 = false;
 
-const doTraceMessage = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("TRACE")) >= 0;
-const doTraceRequestContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("REQUEST")) >= 0;
-const doTraceResponseContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("RESPONSE")) >= 0;
-const doTraceStatistics = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("STATS")) >= 0;
-const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;
+const doTraceMessage = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("TRACE") >= 0);
+const doTraceRequestContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("REQUEST") >= 0);
+const doTraceResponseContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("RESPONSE") >= 0);
+const doTraceStatistics = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("STATS") >= 0);
+const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0);
 
 import { ErrorCallback, ICertificateKeyPairProvider, Request, Response } from "../common";
 
