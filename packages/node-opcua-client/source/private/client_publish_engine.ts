@@ -86,7 +86,7 @@ export class ClientSidePublishEngine {
     }
 
     public acknowledge_notification(subscriptionId: SubscriptionId, sequenceNumber: number) {
-        this.subscriptionAcknowledgements.push({subscriptionId, sequenceNumber});
+        this.subscriptionAcknowledgements.push({ subscriptionId, sequenceNumber });
     }
 
     public cleanup_acknowledgment_for_subscription(subscriptionId: SubscriptionId) {
@@ -119,7 +119,7 @@ export class ClientSidePublishEngine {
                     // session has been terminated or suspended
                     return;
                 }
-                this._send_publish_request();
+                this.internalSendPublishRequest();
             });
 
         }
@@ -229,10 +229,9 @@ export class ClientSidePublishEngine {
         async.forEachOf(this.subscriptionMap, repairSubscription, callback);
     }
 
-    private _send_publish_request() {
+    public internalSendPublishRequest() {
 
         assert(this.session, "ClientSidePublishEngine terminated ?");
-        assert(!this.isSuspended, "should not be suspended");
 
         this.nbPendingPublishRequests += 1;
 
@@ -274,7 +273,7 @@ export class ClientSidePublishEngine {
         const calculatedTimeout = this.nbPendingPublishRequests * this.timeoutHint;
 
         const publishRequest = new PublishRequest({
-            requestHeader: {timeoutHint: calculatedTimeout}, // see note
+            requestHeader: { timeoutHint: calculatedTimeout }, // see note
             subscriptionAcknowledgements
         });
 
@@ -286,7 +285,7 @@ export class ClientSidePublishEngine {
             this.nbPendingPublishRequests -= 1;
 
             if (err) {
-                debugLog(chalk.cyan("ClientSidePublishEngine.prototype._send_publish_request callback : "),
+                debugLog(chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback : "),
                     chalk.yellow(err.message));
                 debugLog("'" + err.message + "'");
 
@@ -345,13 +344,13 @@ export class ClientSidePublishEngine {
                 }
             } else {
                 if (doDebug) {
-                    debugLog(chalk.cyan("ClientSidePublishEngine.prototype._send_publish_request callback "));
+                    debugLog(chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback "));
                 }
                 this._receive_publish_response(response!);
             }
 
             // feed the server with a new publish Request to the server
-            if (active && this.activeSubscriptionCount > 0) {
+            if (!this.isSuspended && active && this.activeSubscriptionCount > 0) {
                 this.send_publish_request();
             }
         });
@@ -455,12 +454,12 @@ export class ClientSidePublishEngine {
         setImmediate(() => {
             assert(_.isFunction(callback));
             (async as any).whilst(
-               (cb: any) => cb(null, !isDone),
-               sendRepublishFunc, (err: Error|null) => {
-                debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
-                debugLog(" _republish ends with ", err ? err.message : "null");
-                callback(err!);
-            });
+                (cb: any) => cb(null, !isDone),
+                sendRepublishFunc, (err: Error | null) => {
+                    debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
+                    debugLog(" _republish ends with ", err ? err.message : "null");
+                    callback(err!);
+                });
         });
     }
 

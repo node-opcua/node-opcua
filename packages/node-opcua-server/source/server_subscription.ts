@@ -192,7 +192,7 @@ function analyseEventFilterResult(
 function analyseDataChangeFilterResult(
   node: BaseNode,
   dataChangeFilter: DataChangeFilter
-): AggregateFilterResult | null {
+): null {
   assert(dataChangeFilter instanceof DataChangeFilter);
   // the opcua specification doesn't provide dataChangeFilterResult
   return null;
@@ -209,7 +209,7 @@ function analyseAggregateFilterResult(
 function _process_filter(
   node: BaseNode,
   filter: any
-): any {
+): EventFilterResult | AggregateFilterResult | null {
 
   if (!filter) {
     return null;

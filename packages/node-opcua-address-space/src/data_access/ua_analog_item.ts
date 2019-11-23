@@ -23,10 +23,10 @@ export interface UAAnalogItem {
     instrumentRange?: Property<Range, DataType.ExtensionObject>;
     euRange: Property<Range, DataType.ExtensionObject>;
 }
-export class UAAnalogItem extends UADataItem  implements UAAnalogItemPublic {
+export class UAAnalogItem extends UADataItem implements UAAnalogItemPublic {
 
     // -- Data Item
-    public isValueInRange(value: Variant): StatusCode {
+    public checkVariantCompatibility(value: Variant): StatusCode {
 
         assert(value instanceof Variant);
         // test dataType
@@ -45,4 +45,4 @@ export class UAAnalogItem extends UADataItem  implements UAAnalogItemPublic {
 
 }
 
-UAVariable.prototype.isValueInRange =  UAAnalogItem.prototype.isValueInRange;
+UAVariable.prototype.checkVariantCompatibility = UAAnalogItem.prototype.checkVariantCompatibility;

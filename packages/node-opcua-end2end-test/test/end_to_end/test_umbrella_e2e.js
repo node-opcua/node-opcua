@@ -15,7 +15,6 @@ const build_server_with_temperature_device = require("../../test_helpers/build_s
 const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
 const build_address_space_for_conformance_testing = address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
-
 const {
     start_simple_server,
     stop_simple_server
@@ -257,6 +256,7 @@ describe("testing Client - Umbrella ", function() {
     require("./u_test_e2e_test_accessing_service_before_session_is_activated")(test);
     require("./alarms_and_conditions/u_test_e2e_conditions")(test);
     require("./alarms_and_conditions/u_test_e2e_alarm_client_side")(test);
-
-
+    // typescripts tests starts here...
+    
+    require("./u_test_e2e_deadband_filter").t(test);
 });
