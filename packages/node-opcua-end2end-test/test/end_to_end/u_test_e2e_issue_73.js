@@ -20,9 +20,9 @@ const securityPolicy = opcua.SecurityPolicy.None;
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Testing bug #73 -  Server resets sequence number after secure channel renewal ", function () {
+    describe("Testing bug #73 -  Server resets sequence number after secure channel renewal ", function() {
 
         const options = {
             securityMode: securityMode,
@@ -35,18 +35,18 @@ module.exports = function (test) {
 
         let client, endpointUrl;
 
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             client = OPCUAClient.create(options);
             endpointUrl = test.endpointUrl;
             done();
         });
 
-        afterEach(function (done) {
+        afterEach(function(done) {
             client.disconnect(done);
             client = null;
         });
 
-        it("should not reset sequence number after secure channel renewal ", function (done) {
+        it("should not reset sequence number after secure channel renewal ", function(done) {
 
 
             const old_client_connect = client.connect;
@@ -56,10 +56,10 @@ module.exports = function (test) {
 
             function new_client_connect(endpointUrl, callback) {
                 const self = this;
-                old_client_connect.call(this, endpointUrl, function (err) {
+                old_client_connect.call(this, endpointUrl, function(err) {
 
 
-                    self._secureChannel.messageBuilder.on("message", function (msg) {
+                    self._secureChannel.messageBuilder.on("message", function(msg) {
 
                         messages.push(msg.constructor.name);
 
@@ -76,13 +76,13 @@ module.exports = function (test) {
 
             client.connect = new_client_connect;
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
-                setTimeout(function () {
+                setTimeout(function() {
 
                     // verify that Token has been renewed ...
                     // ( i.e we have received multiple OpenSecureChannel
-                    _.filter(messages, function (a) {
+                    _.filter(messages, function(a) {
                         return a === "OpenSecureChannelResponse"
                     }).length.should.be.greaterThan(2, "number of security token renewal");
 

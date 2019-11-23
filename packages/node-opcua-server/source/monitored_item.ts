@@ -30,7 +30,9 @@ import {
   MonitoringParameters
 } from "node-opcua-service-subscription";
 import {
-  checkDeadBand, DataChangeFilter, DataChangeTrigger, DeadbandType
+  DataChangeFilter, DataChangeTrigger, DeadbandType,
+  isOutsideDeadbandAbsolute, isOutsideDeadbandNone, isOutsideDeadbandPercent,
+  PseudoRange
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { EventFieldList, MonitoringFilter, ReadValueIdOptions, SimpleAttributeOperand } from "node-opcua-types";
@@ -110,10 +112,10 @@ function valueHasChanged(
       assert(newDataValue.value instanceof Variant);
       assert(newDataValue.value instanceof Variant);
       // No Deadband calculation should be applied.
-      return checkDeadBand(oldDataValue.value, newDataValue.value, DeadbandType.None);
+      return isOutsideDeadbandNone(oldDataValue.value, newDataValue.value);
     case DeadbandType.Absolute:
       // AbsoluteDeadband
-      return checkDeadBand(oldDataValue.value, newDataValue.value, DeadbandType.Absolute, deadbandValue);
+      return isOutsideDeadbandAbsolute(oldDataValue.value, newDataValue.value, deadbandValue);
     default:
       // Percent_2    PercentDeadband (This type is specified in Part 8).
       assert(deadbandType === DeadbandType.Percent);
@@ -137,16 +139,16 @@ function valueHasChanged(
       // deadband checking is necessary and the entire array shall be returned.
       assert(this.node !== null, "expecting a valid address_space object here to get access the the EURange");
 
-      if ((this.node! as any).euRange) {
+      const euRangeNode = this.node!.getChildByName("EURange") as UAVariable;
+      if (euRangeNode && euRangeNode.nodeClass === NodeClass.Variable) {
         // double,double
-        const rangeVariant = (this.node! as any).euRange.readValue().value;
-        const range = rangeVariant.value.high - rangeVariant.value.high;
-        assert(_.isFinite(range));
-        return checkDeadBand(
+        const rangeVariant = euRangeNode.readValue().value;
+        return isOutsideDeadbandPercent(
           oldDataValue.value,
           newDataValue.value,
-          DeadbandType.Percent, deadbandValue, range);
-
+          deadbandValue, rangeVariant.value as PseudoRange);
+      } else {
+        console.log("EURange is not of type Variable");
       }
       return true;
   }
@@ -170,7 +172,7 @@ function apply_datachange_filter(
   this: MonitoredItem,
   newDataValue: DataValue, oldDataValue: DataValue
 ): boolean {
-
+  /* istanbul ignore next */
   if (!this.filter || !(this.filter instanceof DataChangeFilter)) {
     throw new Error("Internal Error");
   }
@@ -350,6 +352,7 @@ export class MonitoredItem extends EventEmitter {
 
     this._samplingId = undefined;
 
+    this.filter = null;
     this._set_parameters(options);
 
     this.monitoredItemId = options.monitoredItemId; // ( known as serverHandle)
@@ -365,8 +368,6 @@ export class MonitoredItem extends EventEmitter {
     this.timestampsToReturn = options.timestampsToReturn || TimestampsToReturn.Neither;
 
     this.itemToMonitor = options.itemToMonitor;
-
-    this.filter = options.filter as MonitoringFilter || null;
 
     this._node = null;
     this._semantic_version = 0;
@@ -550,6 +551,7 @@ export class MonitoredItem extends EventEmitter {
     }
 
     if (!apply_filter.call(this, dataValue)) {
+      debugLog("filter did not pass");
       return;
     }
 
@@ -904,6 +906,10 @@ export class MonitoredItem extends EventEmitter {
     }
     this.discardOldest = monitoredParameters.discardOldest;
     this.queueSize = _adjust_queue_size(monitoredParameters.queueSize);
+
+    // change filter
+    this.filter = monitoredParameters.filter as MonitoringFilter || null;
+
   }
 
   private _setOverflowBit(notification: any) {

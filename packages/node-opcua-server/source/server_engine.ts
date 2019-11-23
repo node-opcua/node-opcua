@@ -1027,7 +1027,7 @@ export class ServerEngine extends EventEmitter {
         if (samplingIntervalDiagnosticsArray) {
           addressSpace.deleteNode(samplingIntervalDiagnosticsArray);
           const s = serverDiagnostics.getComponents();
-          console.log(s.map((x) => x.browseName.toString()).join(" "));
+          // xx console.log(s.map((x) => x.browseName.toString()).join(" "));
         }
 
         const subscriptionDiagnosticsArray =

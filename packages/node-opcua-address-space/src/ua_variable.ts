@@ -620,7 +620,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         // adjust special case
         const variant = adjustVariant.call(this, dataValue.value);
 
-        const statusCode = this.isValueInRange(variant);
+        const statusCode = this.checkVariantCompatibility(variant);
         if (statusCode.isNot(StatusCodes.Good)) {
             return callback!(null, statusCode);
         }
@@ -734,16 +734,14 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     /**
-     * @method isValueInRange
+     * @method checkVariantCompatibility
      * note:
      *     this method is overridden in address-space-data-access
      * @return {StatusCode}
      */
-    public isValueInRange(value: Variant): StatusCode {
-        assert(value instanceof Variant);
-        const self = this;
+    public checkVariantCompatibility(value: Variant): StatusCode {
         // test dataType
-        if (!self._validate_DataType(value.dataType)) {
+        if (!this._validate_DataType(value.dataType)) {
             return StatusCodes.BadTypeMismatch;
         }
         return StatusCodes.Good;
@@ -1283,7 +1281,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
                 const self = this;
                 property.camelCaseName = camelCaseName;
-                property.setValueFromSource = function(this: any, variant: VariantLike) {
+                property.setValueFromSource = function (this: any, variant: VariantLike) {
                     const inner_this = this;
                     variant = Variant.coerce(variant);
                     // xx console.log("PropertySetValueFromSource this", inner_this.nodeId.toString(), inner_this.browseName.toString(), variant.toString(), inner_this.dataType.toString());
@@ -1444,7 +1442,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         throw new Error("");
     }
 
-    public _validate_DataType(variantDataType: any): any {
+    public _validate_DataType(variantDataType: DataType): boolean {
         return validateDataType(this.addressSpace, this.dataType, variantDataType, this.nodeId);
     }
 

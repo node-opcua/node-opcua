@@ -25,7 +25,7 @@ import {
     UAReferenceType,
     UAVariable
 } from "../source";
-import {  promoteToStateMachine } from "../src/state_machine/finite_state_machine";
+import { promoteToStateMachine } from "../src/state_machine/finite_state_machine";
 
 export interface FlowToReference extends UAReferenceType {
 }
@@ -44,7 +44,7 @@ export interface CustomControllerB {
     input2: UAVariable;
     input3: UAVariable;
     controlOut: UAVariable;
-// conflict here !    description: UAVariable;
+    // conflict here !    description: UAVariable;
 }
 
 export interface CustomControllerType extends CustomControllerB, UAObjectType {
@@ -197,30 +197,30 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
         }
         assert(method.nodeClass === NodeClass.Method);
 
-        method._getExecutableFlag = function(/* sessionContext: SessionContext */) {
+        method._getExecutableFlag = function (/* sessionContext: SessionContext */) {
             // must use  a function here to capture 'this'
             return MygetExecutableFlag(this as UAMethod, toState, methodName);
         };
 
         method.bindMethod(
-          function(
-            this: UAMethod,
-            inputArguments: VariantLike[],
-            context: SessionContext,
-            callback: (err: Error | null, callMethodResult: CallMethodResultOptions) => void
-          ) {
-              const stateMachineW = this.parent! as StateMachine;
-              // tslint:disable-next-line:no-console
-              console.log("Boiler System :  " + methodName + " about to process");
-              stateMachineW.setState(toState);
-              callback(null, {
-                  outputArguments: [],
-                  statusCode: StatusCodes.Good,
-              });
-          });
+            function (
+                this: UAMethod,
+                inputArguments: VariantLike[],
+                context: SessionContext,
+                callback: (err: Error | null, callMethodResult: CallMethodResultOptions) => void
+            ) {
+                const stateMachineW = this.parent! as StateMachine;
+                // tslint:disable-next-line:no-console
+                console.log("Boiler System :  " + methodName + " about to process");
+                stateMachineW.setState(toState);
+                callback(null, {
+                    outputArguments: [],
+                    statusCode: StatusCodes.Good,
+                });
+            });
 
         assert(programStateMachine.getMethodByName(methodName) !== null,
-          "Method " + methodName + " should be added to parent object (checked with getMethodByName)");
+            "Method " + methodName + " should be added to parent object (checked with getMethodByName)");
         const lc_name = lowerFirstLetter(methodName);
     }
 
@@ -232,9 +232,9 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
 }
 
 function addRelation(
-  srcNode: BaseNode,
-  referenceType: UAReferenceType | string,
-  targetNode: BaseNode
+    srcNode: BaseNode,
+    referenceType: UAReferenceType | string,
+    targetNode: BaseNode
 ) {
     assert(srcNode, "expecting srcNode !== null");
     assert(targetNode, "expecting targetNode !== null");
@@ -496,7 +496,7 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
     }) as LevelIndicator;
 
     const programFiniteStateMachineType: ProgramFiniteStateMachineType =
-      addressSpace.findObjectType("ProgramStateMachineType")! as ProgramFiniteStateMachineType;
+        addressSpace.findObjectType("ProgramStateMachineType")! as ProgramFiniteStateMachineType;
 
     // --------------------------------------------------------
     // define boiler State Machine
@@ -510,9 +510,9 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
     // programStateMachineType has Optional placeHolder for method "Halt", "Reset","Start","Suspend","Resume")
 
     function addMethod(
-      baseType: UAObjectType,
-      objectType: UAObjectType,
-      methodName: string
+        baseType: UAObjectType,
+        objectType: UAObjectType,
+        methodName: string
     ) {
         assert(!objectType.getMethodByName(methodName));
         const method = baseType.getMethodByName(methodName)!;
@@ -614,11 +614,11 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
 }
 
 export function makeBoiler(
-  addressSpace: AddressSpace,
-  options: {
-      browseName: string,
-      organizedBy: BaseNode
-  }
+    addressSpace: AddressSpace,
+    options: {
+        browseName: string,
+        organizedBy: BaseNode
+    }
 ): Boiler {
 
     const namespace = addressSpace.getOwnNamespace();

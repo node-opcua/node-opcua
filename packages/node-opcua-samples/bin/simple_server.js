@@ -124,11 +124,11 @@ const server_options = {
     maxHistoryContinuationPoints: 10,
     // maxInactiveLockTime
     operationLimits: {
-      maxNodesPerRead: 1000,
-      maxNodesPerWrite: 1000,
-      maxNodesPerHistoryReadData: 100,
-      maxNodesPerBrowse: 1000,
-      maxNodesPerMethodCall: 100,
+      maxNodesPerRead: 0,
+      maxNodesPerWrite: 0,
+      maxNodesPerHistoryReadData: 0,
+      maxNodesPerBrowse: 0,
+      maxNodesPerMethodCall: 0,
     }
   },
   userManager: userManager,
@@ -448,6 +448,7 @@ server.on("response", function(response) {
     case "xxActivateSessionResponse":
     case "xxCloseSessionResponse":
     case "xxBrowseResponse":
+    case "PublishResponse":
     case "xxCreateSubscriptionResponse":
     case "xxTranslateBrowsePathsToNodeIdsResponse":
     case "xxSetPublishingModeResponse":
@@ -490,7 +491,7 @@ server.on("request", function(request, channel) {
       }
       console.log(str);
       break;
-    case "xxWriteRequest":
+    case "WriteRequest":
       console.log(request.toString());
       break;
       if (request.nodesToWrite) {

@@ -61,9 +61,9 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
         return this.readValue().value.value;
     }
 
-    public isValueInRange(value: Variant): StatusCode {
+    public checkVariantCompatibility(value: Variant): StatusCode {
         if (this.enumValues) {
-            if (!this._isValueInRange( coerceInt32(value.value))) {
+            if (!this._isValueInRange(coerceInt32(value.value))) {
                 return StatusCodes.BadOutOfRange;
             }
         }
@@ -104,15 +104,15 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
 
         // check that value is in bound
         if (!this._isValueInRange(coerceInt32(value))) {
-            throw new Error("UAMultiStateValueDiscrete#_setValue out of range " +  value);
+            throw new Error("UAMultiStateValueDiscrete#_setValue out of range " + value);
         }
 
         const dataType = this._getDataType();
         if (dataType === DataType.Int64 || dataType === DataType.UInt64) {
-            this.setValueFromSource({ dataType, value});
+            this.setValueFromSource({ dataType, value });
         } else {
             const valueN = value[1];
-            this.setValueFromSource({ dataType, value: valueN});
+            this.setValueFromSource({ dataType, value: valueN });
         }
     }
 
@@ -141,7 +141,7 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
         return result;
     }
     public _getDataType(): DataType {
-        const dataTypeStr  = DataType[this.dataType.value as number] as string;
+        const dataTypeStr = DataType[this.dataType.value as number] as string;
         return (DataType as any)[dataTypeStr] as DataType;
     }
 

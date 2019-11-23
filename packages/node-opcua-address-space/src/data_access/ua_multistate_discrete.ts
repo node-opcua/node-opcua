@@ -15,7 +15,7 @@ import {
 } from "../../source";
 import {
     UAVariable
- } from "../ua_variable";
+} from "../ua_variable";
 
 export interface UAMultiStateDiscrete {
     enumStrings: Property<LocalizedText[], DataType.LocalizedText>;
@@ -62,7 +62,10 @@ export class UAMultiStateDiscrete extends UAVariable implements UAMultiStateDisc
         return this.setValueFromSource(new Variant({ dataType: DataType.UInt32, value }));
     }
 
-    public isValueInRange(value: Variant): StatusCode {
+    public checkVariantCompatibility(value: Variant): StatusCode {
+        if (!this._validate_DataType(value.dataType)) {
+            return StatusCodes.BadTypeMismatch;
+        }
         if (this.enumStrings) {
             const arrayEnumStrings = this.enumStrings.readValue().value.value;
             // MultiStateDiscreteType

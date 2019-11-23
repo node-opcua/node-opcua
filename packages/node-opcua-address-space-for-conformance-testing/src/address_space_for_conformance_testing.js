@@ -920,11 +920,11 @@ function add_analog_data_items(namespace, parentFolder) {
     function makeRange(dataTypeStr) {
         assert(typeof dataTypeStr === "string");
         const dataType = DataType[dataTypeStr];
-        let engineeringUnitsRange = { low: 0, high: 60 };
-        let instrumentRange = { low: 0, high: 60 };
+        let engineeringUnitsRange = { low: -200, high: 200 };
+        let instrumentRange = { low: -200, high: 200 };
         if (DataType[dataType][0] === "U" || dataType === DataType.Byte) {
-            engineeringUnitsRange = { low: 0, high: 60 };
-            instrumentRange = { low: 0, high: 60 };
+            engineeringUnitsRange = { low: 10, high: 250 };
+            instrumentRange = { low: 10, high: 250 };
         }
         return { engineeringUnitsRange, instrumentRange };
     }
@@ -936,6 +936,8 @@ function add_analog_data_items(namespace, parentFolder) {
         }
 
         const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
+        console.log("=initialValue", initialValue, engineeringUnitsRange);
+        assert(_.isArray(initialValue) || (initialValue >= engineeringUnitsRange.low && initialValue <= engineeringUnitsRange.high));
         const name = dataType + "AnalogDataItem";
         const nodeId = "s=" + name;
         // UAAnalogItem
@@ -985,7 +987,7 @@ function add_analog_data_items(namespace, parentFolder) {
             value: new Variant({
                 arrayType: VariantArrayType.Array,
                 dataType: DataType[dataType],
-                value: [initialValue, initialValue]
+                value: [initialValue, initialValue, initialValue, initialValue, initialValue    ]
             })
         });
 
@@ -1033,16 +1035,18 @@ function add_analog_data_items(namespace, parentFolder) {
         { dataType: "UInt64", value: [0, 0] },
         { dataType: "Byte", value: 65 },
         { dataType: "SByte", value: -23 },
-        { dataType: "String", value: "some string" },
-        { dataType: "DateTime", value: new Date() }
     ];
 
     data.forEach(function(e) {
         _addAnalogDataItem(analogItemFolder, e.dataType, e.value);
     });
+
     data.forEach(function(e) {
         _addDataItem(analogItemFolder, e.dataType, e.value);
     });
+    _addDataItem(analogItemFolder, "String", "some string");
+    _addDataItem(analogItemFolder, "DateTime", new Date());
+
     data.forEach(function(e) {
         _addArrayAnalogDataItem(analogItemFolder, e.dataType, e.value);
     });
