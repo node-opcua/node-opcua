@@ -171,7 +171,7 @@ export class StateMachine extends UAObject implements StateMachine {
      * @param toStateNode
      * @return {boolean}
      */
-    public isValidTransition(toStateNode: State| string): boolean {
+    public isValidTransition(toStateNode: State | string): boolean {
 
         // is it legal to go from state currentState to toStateNode;
         if (!this.currentStateNode) {
@@ -187,7 +187,7 @@ export class StateMachine extends UAObject implements StateMachine {
             if (doDebug) {
                 // tslint:disable-next-line: no-console
                 console.log(" No transition from ",
-                  this.currentStateNode.browseName.toString(), " to ", toStateNode.toString());
+                    this.currentStateNode.browseName.toString(), " to ", toStateNode.toString());
             }
             return false;
         }
@@ -197,8 +197,8 @@ export class StateMachine extends UAObject implements StateMachine {
     /**
      */
     public findTransitionNode(
-      fromStateNode: NodeId | State | string | null,
-      toStateNode: NodeId | State | string | null
+        fromStateNode: NodeId | State | string | null,
+        toStateNode: NodeId | State | string | null
     ): Transition | null {
 
         const addressSpace = this.addressSpace;
@@ -233,7 +233,12 @@ export class StateMachine extends UAObject implements StateMachine {
             // cannot find a transition from fromState to toState
             return null;
         }
-        assert(transitions.length === 1);
+        if (transitions.length > 1) {
+            // tslint:disable-next-line: no-console
+            console.log("warning: a duplicated FromState Reference to the same target has been found.\nPlease check your model.");
+            // tslint:disable-next-line: no-console
+            console.log("fromStateNode: ", _fromStateNode.toString());
+        }
         return transitions[0] as any as Transition;
     }
 
@@ -341,7 +346,7 @@ export class StateMachine extends UAObject implements StateMachine {
                     const t = toStateNode.browseName.toString();
                     // tslint:disable-next-line:no-console
                     console.log(chalk.red("Warning"),
-                      " cannot raise event :  transition " + f + " to " + t + " is missing");
+                        " cannot raise event :  transition " + f + " to " + t + " is missing");
                 }
             }
         }
@@ -372,14 +377,14 @@ export class StateMachine extends UAObject implements StateMachine {
         if (d.statusCode !== StatusCodes.Good) {
             this.setState(null);
         } else {
-            
+
             this.currentStateNode = this.getStateByName
-            (d.value.value.text ? d.value.value.text.toString() : d.value.value.toString());
+                (d.value.value.text ? d.value.value.text.toString() : d.value.value.toString());
         }
     }
 }
 
-export function promoteToStateMachine(node: UAObjectPublic ): StateMachine {
+export function promoteToStateMachine(node: UAObjectPublic): StateMachine {
     if (node instanceof StateMachine) {
         return node; // already promoted
     }
