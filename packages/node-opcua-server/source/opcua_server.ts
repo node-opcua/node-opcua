@@ -1100,11 +1100,11 @@ export class OPCUAServer extends OPCUABaseServer {
         }
 
         /* istanbul ignore next */
-        if (!options2.hasOwnProperty("port") || !_.isFinite(options2.port!)) {
-          throw new Error("expecting a valid port");
+        if (!options2.hasOwnProperty("port") || !_.isFinite(options2.port!) || typeof options.port !== "number") {
+          throw new Error("expecting a valid port (number)");
         }
 
-        const port = options2.port! + 0;
+        const port = Number(options2.port || 0);
 
         const endPoint = createEndpoint(port, options);
 
