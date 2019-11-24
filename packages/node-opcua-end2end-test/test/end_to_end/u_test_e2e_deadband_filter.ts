@@ -210,7 +210,7 @@ export function t(test: any) {
 
             for (const value of values) {
                 await writeValue(value);
-                await pause(100);
+                await pause(200);
             }
 
             async function waitForRawNotifications(): Promise<ExtensionObject[]> {
@@ -257,7 +257,7 @@ export function t(test: any) {
             const valuesInside = makeValuesInsideDeadBand(currentValue1, range, percent, 5);
             for (const value of valuesInside) {
                 await writeValue(value);
-                await pause(100);
+                await pause(200);
             }
             // we should receive a empty notification when 
             const notifiedValues2 = await waitForNotificationsValues();
