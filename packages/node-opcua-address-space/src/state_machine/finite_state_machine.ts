@@ -233,6 +233,7 @@ export class StateMachine extends UAObject implements StateMachine {
             // cannot find a transition from fromState to toState
             return null;
         }
+        // istanbul ignore next
         if (transitions.length > 1) {
             // tslint:disable-next-line: no-console
             console.log("warning: a duplicated FromState Reference to the same target has been found.\nPlease check your model.");
