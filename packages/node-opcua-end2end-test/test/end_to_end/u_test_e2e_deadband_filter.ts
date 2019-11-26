@@ -60,8 +60,7 @@ function makeValuesInsideDeadBand(
 
     const span = (range.high - range.low) * percent / 100.0 - 2.01;
     for (let i = 0; i < count; i++) {
-        value = value + Math.ceil((Math.random() - 0.5) * span * 100) / 100;
-        result.push(value);
+        value = currentValue + Math.ceil((Math.random() - 0.5) * span * 10) / 10;
     }
     debugLog("cv = ", currentValue, result, range, span);
     return result;
@@ -201,17 +200,6 @@ export function t(test: any) {
         }
 
         it("DBF1 - check dead band filter 1", async () => {
-            const publishEngine = (session as any).getPublishEngine();
-
-            // read dataValue
-            const currentValue = await readCurrentValue();
-            // tslint:disable-next-line: no-console
-            const values = makeValuesOutsideDeadBand(currentValue, range, percent, 5);
-
-            for (const value of values) {
-                await writeValue(value);
-                await pause(200);
-            }
 
             async function waitForRawNotifications(): Promise<ExtensionObject[]> {
                 publishEngine.internalSendPublishRequest();
@@ -240,6 +228,20 @@ export function t(test: any) {
                     return [];
                 }
             }
+
+            const publishEngine = (session as any).getPublishEngine();
+
+            // read dataValue
+            const currentValue = await readCurrentValue();
+            // tslint:disable-next-line: no-console
+            const values = makeValuesOutsideDeadBand(currentValue, range, percent, 5);
+
+            console.log("currentValue", currentValue, values);
+            for (const value of values) {
+                await writeValue(value);
+                await pause(200);
+            }
+
             const notifiedValues1 = await waitForNotificationsValues();
             notifiedValues1[0].value = values[1];
             notifiedValues1[1].value = values[2];
@@ -255,11 +257,12 @@ export function t(test: any) {
             // now send value that are within dead band
             const currentValue1 = await readCurrentValue();
             const valuesInside = makeValuesInsideDeadBand(currentValue1, range, percent, 5);
+            console.log("currentValue", currentValue1, valuesInside);
             for (const value of valuesInside) {
                 await writeValue(value);
                 await pause(200);
             }
-            // we should receive a empty notification when 
+            // we should receive a empty notification
             const notifiedValues2 = await waitForNotificationsValues();
             notifiedValues2.should.eql([]);
 
