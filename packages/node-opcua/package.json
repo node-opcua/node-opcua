@@ -1,6 +1,6 @@
 {
     "name": "node-opcua",
-    "version": "2.4.0",
+    "version": "2.4.1",
     "description": "pure nodejs OPCUA SDK - module ",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -35,8 +35,8 @@
         "node-opcua-numeric-range": "^2.4.0",
         "node-opcua-packet-analyzer": "^2.4.0",
         "node-opcua-secure-channel": "^2.4.0",
-        "node-opcua-server": "^2.4.0",
-        "node-opcua-server-discovery": "^2.4.0",
+        "node-opcua-server": "^2.4.1",
+        "node-opcua-server-discovery": "^2.4.1",
         "node-opcua-service-browse": "^2.4.0",
         "node-opcua-service-call": "^2.4.0",
         "node-opcua-service-discovery": "^2.4.0",
@@ -57,7 +57,7 @@
         "node-opcua-types": "^2.4.0",
         "node-opcua-utils": "^2.4.0",
         "node-opcua-variant": "^2.4.0",
-        "node-opcua-vendor-diagnostic": "^2.4.0",
+        "node-opcua-vendor-diagnostic": "^2.4.1",
         "semver": "^6.3.0"
     },
     "devDependencies": {

@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-server-configuration",
- "version": "2.4.0",
+ "version": "2.4.1",
  "description": "pure nodejs OPCUA SDK - module -server",
  "scripts": {
   "build": "tsc",
@@ -26,7 +26,7 @@
   "node-opcua-pki": "^1.5.4",
   "node-opcua-pseudo-session": "^2.4.0",
   "node-opcua-secure-channel": "^2.4.0",
-  "node-opcua-server": "^2.4.0",
+  "node-opcua-server": "^2.4.1",
   "node-opcua-status-code": "^2.3.0",
   "node-opcua-types": "^2.4.0",
   "node-opcua-variant": "^2.4.0"
