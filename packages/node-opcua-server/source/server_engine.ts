@@ -589,8 +589,14 @@ export class ServerEngine extends EventEmitter {
       const namespacesNode = addressSpace.findNode(namespaces) as UAObject;
       if (namespacesNode) {
         for (const ns of namespacesNode.getComponents()) {
-          (ns as any).defaultUserRolePermissions.setValueFromSource({ dataType: DataType.Null });
-          (ns as any).defaultRolePermissions.setValueFromSource({ dataType: DataType.Null });
+          const defaultUserRolePermissions = ns.getChildByName("DefaultUserRolePermissions") as UAVariable | null;
+          if (defaultUserRolePermissions) {
+            defaultUserRolePermissions.setValueFromSource({ dataType: DataType.Null });
+          }
+          const defaultRolePermissions = ns.getChildByName("DefaultRolePermissions") as UAVariable | null;
+          if (defaultRolePermissions) {
+            defaultRolePermissions.setValueFromSource({ dataType: DataType.Null });
+          }
         }
       }
 
