@@ -1099,6 +1099,8 @@ export class OPCUAServer extends OPCUABaseServer {
           throw new Error("internal error");
         }
 
+        options2.port = options2.port || 26543;
+
         /* istanbul ignore next */
         if (!options2.hasOwnProperty("port") || !_.isFinite(options2.port!) || typeof options.port !== "number") {
           throw new Error("expecting a valid port (number)");

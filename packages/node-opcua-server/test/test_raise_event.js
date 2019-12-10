@@ -27,26 +27,26 @@ const subscription_service = require("node-opcua-service-subscription");
 
 
 
-describe("testing Events  ", function () {
+describe("testing Events  ", function() {
 
-    let addressSpace,namespace;
+    let addressSpace, namespace;
     let eventType;
-    before(function (done) {
-        getMiniAddressSpace(function (err,__addressSpace__) {
-            addressSpace =__addressSpace__;
+    before(function(done) {
+        getMiniAddressSpace(function(err, __addressSpace__) {
+            addressSpace = __addressSpace__;
             namespace = addressSpace.getOwnNamespace();
 
-            eventType = namespace.addEventType({browseName: "SomeEventType"});
+            eventType = namespace.addEventType({ browseName: "SomeEventType" });
             done(err);
         });
     });
-    after(function(){
+    after(function() {
         addressSpace.dispose();
         addressSpace = null;
         eventType = null;
     });
 
-    it("should create a new EventType", function () {
+    it("should create a new EventType", function() {
         eventType.browseName.toString().should.eql("1:SomeEventType");
     });
 
@@ -57,7 +57,7 @@ describe("testing Events  ", function () {
 
     util.inherits(Observer, EventEmitter);
 
-    it("should raise a new transitory event of  EventType", function (done) {
+    it("should raise a new transitory event of  EventType", function(done) {
 
         const serverObject = addressSpace.findNode("Server");
         serverObject.browseName.toString().should.eql("Server");
@@ -66,7 +66,7 @@ describe("testing Events  ", function () {
 
         const observer = new Observer();
 
-        observer.on_event = function (evtData) {
+        observer.on_event = function(evtData) {
 
             console.log(" EVENT RECEIVED :", evtData.sourceName.value);
             evtData.sourceName.dataType.should.eql(DataType.String);
@@ -77,16 +77,16 @@ describe("testing Events  ", function () {
         serverObject.once("event", observer.on_event.bind(observer));
 
         serverObject.raiseEvent(eventType, {
-            sourceName: {dataType: "String", value: "Hello"},
-            sourceNode: {dataType: "NodeId", value: serverObject.nodeId},
-            message: {dataType: "String", value: "Hello World"}
+            sourceName: { dataType: "String", value: "Hello" },
+            sourceNode: { dataType: "NodeId", value: serverObject.nodeId },
+            message: { dataType: "String", value: "Hello World" }
         });
 
     });
 
 
 
-    it("should extract EventData from an select clause", function () {
+    it("should extract EventData from an select clause", function() {
 
 
 
@@ -100,14 +100,14 @@ describe("testing Events  ", function () {
                     //  one of its subtypes
                     typeDefinitionId: baseEventType.nodeId,
                     browsePath: [
-                        {name: "EventId"}
+                        { name: "EventId" }
                     ],
                     attributeId: AttributeIds.Value,
                     indexRange: null
                 },
-                {typeDefinitionId: baseEventType.nodeId,browsePath: [{name: "SourceNode"}], attributeId: AttributeIds.Value},
-                {typeDefinitionId: baseEventType.nodeId,browsePath: [{name: "SourceName"}], attributeId: AttributeIds.Value},
-                {typeDefinitionId: baseEventType.nodeId,browsePath: [{name: "ReceiveTime"}], attributeId: AttributeIds.Value}
+                { typeDefinitionId: baseEventType.nodeId, browsePath: [{ name: "SourceNode" }], attributeId: AttributeIds.Value },
+                { typeDefinitionId: baseEventType.nodeId, browsePath: [{ name: "SourceName" }], attributeId: AttributeIds.Value },
+                { typeDefinitionId: baseEventType.nodeId, browsePath: [{ name: "ReceiveTime" }], attributeId: AttributeIds.Value }
             ],
             whereClause: []
         });
@@ -124,7 +124,7 @@ describe("testing Events  ", function () {
 
         const eventData = new EventData(baseEventType);
 
-        const eventFields = extractEventFields(eventFilter.selectClauses,eventData);
+        const eventFields = extractEventFields(eventFilter.selectClauses, eventData);
 
 
         eventFields.length.should.eql(eventFilter.selectClauses.length);
@@ -137,7 +137,7 @@ describe("testing Events  ", function () {
 
     });
 
-    it("should filter an event", function (done) {
+    it("should filter an event", function(done) {
 
         const serverObject = addressSpace.findNode("Server");
         serverObject.browseName.toString().should.eql("Server");
@@ -155,37 +155,37 @@ describe("testing Events  ", function () {
                     //  one of its subtypes
                     typeDefinitionId: null,
                     browsePath: [
-                        {name: "EventId"}
+                        { name: "EventId" }
                     ],
                     attributeId: AttributeIds.Value,
                     indexRange: null
                 },
-                {browsePath: [{name: "SourceNode"}], attributeId: AttributeIds.Value},
-                {browsePath: [{name: "SourceName"}], attributeId: AttributeIds.Value},
-                {browsePath: [{name: "ReceiveTime"}], attributeId: AttributeIds.Value}
+                { browsePath: [{ name: "SourceNode" }], attributeId: AttributeIds.Value },
+                { browsePath: [{ name: "SourceName" }], attributeId: AttributeIds.Value },
+                { browsePath: [{ name: "ReceiveTime" }], attributeId: AttributeIds.Value }
             ],
             whereClause: []
         });
 
-        const rTime = new Date(1789,6,14);
+        const rTime = new Date(1789, 6, 14);
 
         const data = {
-            sourceName: {dataType: "String", value: "Hello"},
-            sourceNode: {dataType: "NodeId", value: serverObject.nodeId},
-            message: {dataType: "String", value: "Hello World"},
-            receiveTime: {dataType: "DateTime",value: rTime}
+            sourceName: { dataType: "String", value: "Hello" },
+            sourceNode: { dataType: "NodeId", value: serverObject.nodeId },
+            message: { dataType: "String", value: "Hello World" },
+            receiveTime: { dataType: "DateTime", value: rTime }
         };
-        const eventData = addressSpace.constructEventData(eventType,data);
+        const eventData = addressSpace.constructEventData(eventType, data);
 
-        const eventFields = extractEventFields(eventFilter.selectClauses,eventData);
+        const eventFields = extractEventFields(eventFilter.selectClauses, eventData);
 
         // make sure all event fields are Variant
-        eventFields.forEach(function(e){
+        eventFields.forEach(function(e) {
             e.should.instanceOf(Variant);
         });
 
         eventFields.length.should.eql(4);
-        eventFields.forEach(function(f){ return console.log( f.toString());});
+        eventFields.forEach(function(f) { return console.log(f.toString()); });
 
         eventFields[1].value.should.eql(serverObject.nodeId); // sourceNode
         eventFields[2].value.should.eql("Hello");
@@ -206,52 +206,52 @@ describe("testing Events  ", function () {
     //   /      \ hasEventSource
     //  Pump   TempSensor
     //
-    it("should bubble events up",function(){
+    it("should bubble events up", function() {
 
         const area1 = namespace.createNode({
             nodeClass: NodeClass.Object,
-            browseName:  "Area1",
+            browseName: "Area1",
             organizedBy: addressSpace.rootFolder.objects
         });
         area1.browseName.name.should.eql("Area1");
 
         const tank1 = namespace.createNode({
             nodeClass: NodeClass.Object,
-            browseName:  "Tank1",
+            browseName: "Tank1",
             componentOf: area1,
-            notifierOf:  area1
+            notifierOf: area1
         });
         tank1.browseName.name.should.eql("Tank1");
 
         const pump = namespace.createNode({
             nodeClass: NodeClass.Object,
-            browseName:    "Pump",
-            componentOf:   tank1,
+            browseName: "Pump",
+            componentOf: tank1,
             eventSourceOf: tank1,
             eventNotifier: 1
         });
-        const pumpStartEventType = namespace.addEventType({browseName: "PumpStartEventType"});
+        const pumpStartEventType = namespace.addEventType({ browseName: "PumpStartEventType" });
         pumpStartEventType.browseName.toString().should.eql("1:PumpStartEventType");
         pumpStartEventType.subtypeOfObj.browseName.toString().should.eql("BaseEventType");
 
         const receivers = [];
-        function spyFunc(object,data) {
-            const self =this;
-            console.log("object ",self.browseName.toString(), " received Event");
+        function spyFunc(object, data) {
+            const self = this;
+            console.log("object ", self.browseName.toString(), " received Event");
             receivers.push(self.browseName.name.toString());
         }
         const server = addressSpace.findNode("Server");
 
-        server.on("event",spyFunc.bind(server));
-        pump.on("event",spyFunc.bind(pump));
-        tank1.on("event",spyFunc.bind(tank1));
-        area1.on("event",spyFunc.bind(area1));
+        server.on("event", spyFunc.bind(server));
+        pump.on("event", spyFunc.bind(pump));
+        tank1.on("event", spyFunc.bind(tank1));
+        area1.on("event", spyFunc.bind(area1));
 
         const eventData = {};
-        pump.raiseEvent(pumpStartEventType,eventData);
+        pump.raiseEvent(pumpStartEventType, eventData);
 
         receivers.should.eql([
-            "Server","Pump","Tank1","Area1"
+            "Server", "Pump", "Tank1", "Area1"
         ]);
 
     });
