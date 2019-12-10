@@ -174,7 +174,10 @@ export class UAProxyManager {
         // create a subscription
     }
 
-    public start(callback: (err?: Error) => void) {
+    public async start(): Promise<void>;
+    public start(callback: (err?: Error) => void): void;
+    public start(...args: any[]): any {
+        const callback = args[0] as (err?: Error) => void;
 
         const createSubscriptionRequest: CreateSubscriptionRequestOptions = {
             maxNotificationsPerPublish: 1000,
@@ -200,7 +203,6 @@ export class UAProxyManager {
     }
 
     public async stop(): Promise<void>;
-
     public stop(callback: (err?: Error) => void): void;
 
     public stop(...args: any[]): any {
@@ -277,7 +279,7 @@ export class UAProxyManager {
 
             (err: Error | null, monitoredItem?: ClientMonitoredItemBase) => {
 
-                Object.defineProperty(proxyObject, "__monitoredItem", {value: monitoredItem, enumerable: false});
+                Object.defineProperty(proxyObject, "__monitoredItem", { value: monitoredItem, enumerable: false });
 
                 proxyObject.__monitoredItem.on("changed", (dataValue: DataValue) => {
                     proxyObject.dataValue = dataValue;
@@ -321,7 +323,7 @@ export class UAProxyManager {
                 Object.defineProperty(
                     proxyObject,
                     "__monitoredItem_execution_flag",
-                    {value: monitoredItem, enumerable: false});
+                    { value: monitoredItem, enumerable: false });
 
                 proxyObject.__monitoredItem_execution_flag.on("changed", (dataValue: DataValue) => {
                     proxyObject.executableFlag = dataValue.value.value;
