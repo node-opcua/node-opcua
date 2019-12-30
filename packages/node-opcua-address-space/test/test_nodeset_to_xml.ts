@@ -146,7 +146,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAObjectType/g);
 
     });
-    it("should output a instance of object with method  to xml", () => {
+    it("KLKL should output a instance of object with method  to xml", () => {
 
         const createCameraType = require("./fixture_camera_type").createCameraType;
 
@@ -162,6 +162,9 @@ describe("testing nodeset to xml", () => {
         }
         str.should.match(/UAObjectType/g);
         str.should.match(/UAObjectType/g);
+        str.should.match(/<\/UAMethod>/g, "must have a complex UAMethod element");
+        str.should.match(/BrowseName="InputArguments"/);
+        str.should.match(/BrowseName="OutputArguments"/);
     });
 
     it("should output an instance of variable type to xml", () => {
@@ -191,6 +194,45 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAReferenceType/g);
         str.should.match(/StuffOf/g);
         str.should.match(/HasStuff/g);
+
+    });
+
+    it("should ouput a Method to xml", () => {
+        const ownNamespace = addressSpace.getOwnNamespace();
+
+        const rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+
+        const obj1 = ownNamespace.addObject({
+            browseName: "Object",
+            organizedBy: rootFolder.objects
+        });
+        ownNamespace.addMethod(obj1, {
+            browseName: "Trigger",
+            inputArguments: [
+                {
+                    dataType: DataType.UInt32,
+                    description: { text: "specifies the number of seconds to wait before the picture is taken " },
+                    name: "ShutterLag",
+                }
+            ],
+            modellingRule: "Mandatory",
+            outputArguments: [
+                {
+                    dataType: "Image",
+                    description: { text: "the generated image" },
+                    name: "Image",
+                }
+            ]
+        });
+        const str = dumpXml(obj1, {});
+
+        str.should.match(/<\/UAMethod>/g, "must have a complex UAMethod element");
+        str.should.match(/BrowseName="InputArguments"/);
+        str.should.match(/BrowseName="OutputArguments"/);
+
+        if (doDebug) {
+            console.log(str);
+        }
 
     });
 
@@ -225,7 +267,7 @@ describe("Namespace to NodeSet2.xml", () => {
         let xml = namespace.toNodeset2XML();
         xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
         xml.should.eql(
-          `<?xml version="1.0"?>
+            `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
         <Uri>http://opcfoundation.org/UA/</Uri>
@@ -265,7 +307,7 @@ describe("Namespace to NodeSet2.xml", () => {
         let xml = namespace.toNodeset2XML();
         xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
         xml.should.eql(
-          `<?xml version="1.0"?>
+            `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
         <Uri>http://opcfoundation.org/UA/</Uri>
@@ -313,7 +355,7 @@ describe("Namespace to NodeSet2.xml", () => {
         let xml = namespace.toNodeset2XML();
         xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
         xml.should.eql(
-          `<?xml version="1.0"?>
+            `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
         <Uri>http://opcfoundation.org/UA/</Uri>
@@ -348,7 +390,7 @@ describe("Namespace to NodeSet2.xml", () => {
     });
 });
 
-describe("nodeset2.xml with more than one referenced namespace", function(this: any) {
+describe("nodeset2.xml with more than one referenced namespace", function (this: any) {
 
     this.timeout(20000);
 
