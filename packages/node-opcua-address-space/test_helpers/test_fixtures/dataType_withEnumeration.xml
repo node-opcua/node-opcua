@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z" 
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>http://opcfoundation.org/UA/DI/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://opcfoundation.org/UA/DI/" Version="1.02" PublicationDate="2019-01-21T00:00:00Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2019-01-15T00:00:00Z" />
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="NodeId">i=17</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+    </Aliases>
+
+    <UADataType NodeId="ns=1;i=6244" BrowseName="1:DeviceHealthEnumeration">
+        <DisplayName>DeviceHealthEnumeration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6450</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+        </References>
+        <Definition Name="DeviceHealthEnumeration">
+            <Field Name="NORMAL" Value="0">
+                <Description>This device functions normally.</Description>
+            </Field>
+            <Field Name="FAILURE" Value="1">
+                <Description>Malfunction of the device or any of its peripherals.</Description>
+            </Field>
+            <Field Name="CHECK_FUNCTION" Value="2">
+                <Description>Functional checks are currently performed.</Description>
+            </Field>
+            <Field Name="OFF_SPEC" Value="3">
+                <Description>The device is currently working outside of its specified range or that internal diagnoses indicate deviations from measured or set values.</Description>
+            </Field>
+            <Field Name="MAINTENANCE_REQUIRED" Value="4">
+                <Description>This element is working, but a maintenance operation is required.</Description>
+            </Field>
+        </Definition>
+    </UADataType>
+    <UAVariable NodeId="ns=1;i=6450" BrowseName="EnumStrings" ParentNodeId="ns=1;i=6244" DataType="LocalizedText" ValueRank="1">
+        <DisplayName>EnumStrings</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6244</Reference>
+        </References>
+        <Value>
+            <ListOfLocalizedText xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+                <LocalizedText>
+                    <Locale>
+                    </Locale>
+                    <Text>NORMAL</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale>
+                    </Locale>
+                    <Text>FAILURE</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale>
+                    </Locale>
+                    <Text>CHECK_FUNCTION</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale>
+                    </Locale>
+                    <Text>OFF_SPEC</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale>
+                    </Locale>
+                    <Text>MAINTENANCE_REQUIRED</Text>
+                </LocalizedText>
+            </ListOfLocalizedText>
+        </Value>
+    </UAVariable>
+
+</UANodeSet>
+
