@@ -1,18 +1,20 @@
 // tslint:disable:no-bitwise
 import * as fs from "fs";
-import { AccessLevelFlag, AttributeIds } from "node-opcua-data-model";
-import * as nodesets from "node-opcua-nodesets";
-import { getFixture } from "node-opcua-test-fixtures";
-import { DataType, Variant } from "node-opcua-variant";
 import * as path from "path";
 import * as should from "should";
-import { AddressSpace, generateAddressSpace, UAVariable } from "..";
-import { findBuiltInType } from "../../node-opcua-factory/dist";
+import * as mocha from "mocha";
+
+import { AccessLevelFlag, AttributeIds } from "node-opcua-data-model";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
+import * as nodesets from "node-opcua-nodesets";
+import { getFixture } from "node-opcua-test-fixtures";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+
+import { AddressSpace, generateAddressSpace, UAVariable } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing NodeSet XML file loading", function(this: any) {
+describe("testing NodeSet XML file loading", function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
@@ -235,15 +237,124 @@ describe("testing NodeSet XML file loading", function(this: any) {
          * </UADataType>
          */
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_isOptionSet.xml");
-        const xml_files = [xml_file1];
+        const xml_files = [
+            xml_file1
+        ];
         await generateAddressSpace(addressSpace, xml_files);
 
         const dataType = addressSpace.findNode("i=95")!;
-        // console.log(dataType.toString());
+        console.log(dataType.toString());
+    });
+
+    it("VV5 read datatype ", async () => {
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_withEnumeration.xml");
+        const xml_files = [
+            nodesets.standard_nodeset_file,
+            xml_file1
+        ];
+        await generateAddressSpace(addressSpace, xml_files);
+
+        const dataType = addressSpace.findDataType("DeviceHealthEnumeration", 1)!;
+
+        dataType.nodeId.toString().should.eql("ns=1;i=6244");
+
+        // must have a EnumString property
+        const enumStrings = dataType.getChildByName("EnumStrings");
+        enumStrings.nodeId.toString().should.eql("ns=1;i=6450");
+
+        const v = enumStrings.readAttribute(null, AttributeIds.Value);
+        v.value.arrayType.should.eql(VariantArrayType.Array);
+        v.value.value[0].toString().should.eql("locale= text=NORMAL");
+        v.value.value[1].toString().should.eql("locale= text=FAILURE");
+        v.value.value[2].toString().should.eql("locale= text=CHECK_FUNCTION");
+        v.value.value[3].toString().should.eql("locale= text=OFF_SPEC");
+        v.value.value[4].toString().should.eql("locale= text=MAINTENANCE_REQUIRED");
+        // console.log(v.value.toString());
+
+        const namespace = addressSpace.getNamespace(1)!;
+        const xml = namespace.toNodeset2XML();
+
+        //xx console.log(xml);
+        xml.should.eql(
+            `<?xml version="1.0"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>http://opcfoundation.org/UA/DI/</Uri>
+    </NamespaceUris>
+    <Models/>
+    <Aliases>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+    </Aliases>
+<!--ReferenceTypes-->
+<!--ObjectTypes-->
+<!--VariableTypes-->
+<!--Other Nodes-->
+    <UAVariable NodeId="ns=1;i=6450" BrowseName="EnumStrings" ValueRank="1" DataType="LocalizedText">
+        <DisplayName>EnumStrings</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+        <Value>
+            <ListOfLocalizedText xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+                <LocalizedText>
+                    <Locale/>
+                    <Text>NORMAL</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale/>
+                    <Text>FAILURE</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale/>
+                    <Text>CHECK_FUNCTION</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale/>
+                    <Text>OFF_SPEC</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale/>
+                    <Text>MAINTENANCE_REQUIRED</Text>
+                </LocalizedText>
+            </ListOfLocalizedText>
+        </Value>
+    </UAVariable>
+    <UADataType NodeId="ns=1;i=6244" BrowseName="1:DeviceHealthEnumeration">
+        <DisplayName>DeviceHealthEnumeration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6450</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+        </References>
+        <Definition Name="DeviceHealthEnumeration">
+            <Field Name="NORMAL" Value="0">
+                <Description>This device functions normally.</Description>
+            </Field>
+            <Field Name="FAILURE" Value="1">
+                <Description>Malfunction of the device or any of its peripherals.</Description>
+            </Field>
+            <Field Name="CHECK_FUNCTION" Value="2">
+                <Description>Functional checks are currently performed.</Description>
+            </Field>
+            <Field Name="OFF_SPEC" Value="3">
+                <Description>The device is currently working outside of its specified range or that internal diagnoses indicate deviations from measured or set values.</Description>
+            </Field>
+            <Field Name="MAINTENANCE_REQUIRED" Value="4">
+                <Description>This element is working, but a maintenance operation is required.</Description>
+            </Field>
+        </Definition>
+    </UADataType>
+</UANodeSet>`
+        )
+
     });
 });
 
-describe("Testing variables loading ", function(this: any) {
+describe("Testing variables loading ", function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
@@ -298,29 +409,28 @@ describe("Testing variables loading ", function(this: any) {
         trueState.readValue().value.toString().should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=PoweredOn)");
         falseState.readValue().value.toString().should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=PoweredOff)");
 
-        variable.readValue().value.toString().should.eql(new Variant({ dataType: "Boolean", value: false}).toString());
+        variable.readValue().value.toString().should.eql(new Variant({ dataType: "Boolean", value: false }).toString());
 
     });
 
-    it("should load ListOfString variables as an array of strings",()=>{
+    it("should load ListOfString variables as an array of strings", () => {
         const ns = addressSpace.getNamespaceIndex("mydemo/");
 
-        let variable = addressSpace.findNode(new NodeId(NodeIdType.STRING,"ListOfString",ns)) as UAVariable
+        const variable = addressSpace.findNode(new NodeId(NodeIdType.STRING, "ListOfString", ns)) as UAVariable;
 
         should.exists(variable);
 
-        let variant = variable.readValue().value;
-        let value = variant.value as Array<string>;
+        const variant = variable.readValue().value;
+        const value = variant.value as string[];
         should.exists(value);
-        
+
         value.should.instanceOf(Array);
         value.length.should.greaterThan(0);
-        value.forEach((arrayElement)=>{
+        value.forEach((arrayElement) => {
             arrayElement.should.instanceOf(String);
         });
-    })
+    });
 });
-
 
 describe("@A@ Testing loading nodeset with custom basic types", function (this: any) {
 
@@ -346,19 +456,13 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
         addressSpace.dispose();
     });
 
-    it("should register new basic type when loaded xml nodeset file",()=>{
-        const myIdenfifierDataType = findBuiltInType("MyIdentifierDataType");
-        should.exists(myIdenfifierDataType);
-    });
-    it("should load new Enumeration ", ()=>{
-            // MyEnumeration
+    it("should compose new  basic type ", () => {
 
-    });
-    it("should compose new  basic type ",()=>{
-        const myIdenfifierDataType = findBuiltInType("MyIdentifierDataType");
+        const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/model_with_custom_datatype/");
+
+        const myIdenfifierDataType = addressSpace.findDataType("MyIdentifierString", ns)!;
         should.exists(myIdenfifierDataType);
 
-        const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/model_with_custom_datatype/")
         const myStructDataTypeNode = addressSpace.findDataType("MyStruct", ns)!;
         should.exists(myStructDataTypeNode);
 

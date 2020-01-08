@@ -920,6 +920,9 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                     if (!referenceMap[refName]) {
                         referenceMap[refName] = [];
                     }
+                    if (!reference.nodeId) {
+                        console.log(reference);
+                    }
                     this._add_for_reconstruction(queue, objMap, reference, (err: Error | null, mobject: any) => {
                         if (!err) {
                             referenceMap[refName].push(mobject);

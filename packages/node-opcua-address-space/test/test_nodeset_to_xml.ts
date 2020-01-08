@@ -2,16 +2,17 @@
 // tslint:disable:max-line-length
 import * as fs from "fs";
 import * as should from "should";
+import * as mocha from "mocha";
 
 import { getTempFilename } from "node-opcua-debug";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
-import { getMiniAddressSpace } from "../";
-import { createBoilerType } from "../";
-
 import {
     AddressSpace,
+    getMiniAddressSpace ,
+    UAVariable,
+    createBoilerType,
     dumpXml,
     generateAddressSpace,
     Namespace,
@@ -20,7 +21,7 @@ import {
 
 import * as nodesets from "node-opcua-nodesets";
 
-const doDebug = false;
+const doDebug = true;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -69,6 +70,11 @@ describe("testing nodeset to xml", () => {
             browseName: "MyEnumTypeForm1",
             enumeration: ["RUNNING", "STOPPED"]
         });
+
+        const enumStringNode = myEnumType.getChildByName("EnumStrings")! as UAVariable;
+        const values = enumStringNode.readValue().value.value.map(x=>x.toString());
+        console.log(values.toString());
+        values.join(",").should.eql("locale=null text=RUNNING,locale=null text=STOPPED");
 
         myEnumType.browseName.toString().should.eql("1:MyEnumTypeForm1");
         const str = dumpXml(myEnumType, {});
@@ -146,6 +152,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAObjectType/g);
 
     });
+
     it("KLKL should output a instance of object with method  to xml", () => {
 
         const createCameraType = require("./fixture_camera_type").createCameraType;
@@ -270,7 +277,6 @@ describe("Namespace to NodeSet2.xml", () => {
             `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
-        <Uri>http://opcfoundation.org/UA/</Uri>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
     <Models/>
@@ -310,7 +316,6 @@ describe("Namespace to NodeSet2.xml", () => {
             `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
-        <Uri>http://opcfoundation.org/UA/</Uri>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
     <Models/>
@@ -358,7 +363,6 @@ describe("Namespace to NodeSet2.xml", () => {
             `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
-        <Uri>http://opcfoundation.org/UA/</Uri>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
     <Models/>

@@ -33,7 +33,9 @@ import {
     ReadAtTimeDetails,
     ReadEventDetails,
     ReadProcessedDetails,
-    ReadRawModifiedDetails
+    ReadRawModifiedDetails,
+    EnumDefinition,
+    EnumField
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
@@ -57,7 +59,7 @@ import {
 import { BaseNode } from "./base_node";
 import { _clone, apply_condition_refresh, BaseNode_toString, ToStringBuilder, UAVariable_toString } from "./base_node_private";
 import { SessionContext } from "./session_context";
-import { UADataType } from "./ua_data_type";
+import { UADataType, EnumerationInfo, IEnumItem } from "./ua_data_type";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -395,9 +397,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         return dataValue;
     }
 
-    public _getEnumValues() {
+    public _getEnumerationInfo(): EnumerationInfo {
         // DataType must be one of Enumeration
-        const dataTypeNode = this.addressSpace.findDataType(this.dataType);
+        const dataTypeNode = this.addressSpace.findDataType(this.dataType) as UADataType;
         if (!dataTypeNode) {
             throw new Error(" Cannot find  DataType  " + this.dataType.toString() + " in standard address Space");
         }
@@ -407,8 +409,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             throw new Error(" Cannot find 'Enumeration' DataType in standard address Space");
         }
         assert(dataTypeNode.isSupertypeOf(enumerationNode));
-
-        return (dataTypeNode as UADataType)._getDefinition();
+        return dataTypeNode._getEnumerationInfo();
     }
 
     public asyncRefresh(...args: any[]): any {
@@ -429,27 +430,27 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         });
     }
 
-    public readEnumValue() {
-        const indexes = this._getEnumValues();
-        const value = this.readValue().value.value;
-        return { value, name: indexes.valueIndex[value].name };
+    public readEnumValue(): IEnumItem {
+        const enumInfo = this._getEnumerationInfo();
+        const value = this.readValue().value.value as number;
+        return { value, name: enumInfo.valueIndex[value].name };
     }
 
     public writeEnumValue(value: string | number): void {
 
-        const indexes = this._getEnumValues();
+        const enumInfo = this._getEnumerationInfo();
 
         if (_.isString(value)) {
 
-            if (!indexes.nameIndex.hasOwnProperty(value)) {
+            if (!enumInfo.nameIndex.hasOwnProperty(value)) {
                 throw new Error("UAVariable#writeEnumValue: cannot find value " + value);
             }
-            const valueIndex = indexes.nameIndex[value].value;
+            const valueIndex = enumInfo.nameIndex[value].value;
             value = valueIndex;
         }
         if (_.isFinite(value)) {
 
-            if (!indexes.valueIndex[value]) {
+            if (!enumInfo.valueIndex[value]) {
                 throw new Error("UAVariable#writeEnumValue : value out of range " + value);
             }
             this.setValueFromSource({

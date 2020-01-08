@@ -33,6 +33,8 @@ import {
 import { AddressSpacePrivate } from "./address_space_private";
 import { UADataType } from "./ua_data_type";
 import { UAVariable } from "./ua_variable";
+import {PseudoSession} from "../source";
+import {getDataTypeDefinition} from "node-opcua-client-dynamic-extension-object";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -316,19 +318,7 @@ export function prepareDataType(
     dataType: UADataType
 ): void {
 
-    if (!dataType._extensionObjectConstructor) {
-
-        const extraDataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
-        const dataTypeFactory = extraDataTypeManager.getDataTypeFactory(dataType.nodeId.namespace);
-        if (doDebug) {
-            debugLog("prepareDataType ", dataType.nodeId.toString() , dataType.browseName.toString());
-        }
-        dataType._extensionObjectConstructor = makeStructure(dataTypeFactory, dataType);
-        if (!dataType._extensionObjectConstructor) {
-            // tslint:disable:no-console
-            console.warn("AddressSpace#constructExtensionObject : cannot make structure for " + dataType.toString());
-        }
-    }
+    assert(dataType._extensionObjectConstructor, "please call await prepareDataType2")
 }
 /**
  *

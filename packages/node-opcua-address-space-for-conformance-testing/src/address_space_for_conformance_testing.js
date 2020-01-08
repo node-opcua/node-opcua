@@ -936,7 +936,6 @@ function add_analog_data_items(namespace, parentFolder) {
         }
 
         const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
-        console.log("=initialValue", initialValue, engineeringUnitsRange);
         assert(_.isArray(initialValue) || (initialValue >= engineeringUnitsRange.low && initialValue <= engineeringUnitsRange.high));
         const name = dataType + "AnalogDataItem";
         const nodeId = "s=" + name;

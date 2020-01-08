@@ -21,6 +21,7 @@ import {
   MethodFunctor,
   removeElement,
   SessionContext,
+  UADataType,
   UADynamicVariableArray,
   UAMethod,
   UAObject,
@@ -952,10 +953,13 @@ export class ServerEngine extends EventEmitter {
             return 0.0;
           });
 
-        const nrt = addressSpace.findDataType(resolveNodeId(DataTypeIds.NamingRuleType))!;
+        const namingRuleDataTypeNode = addressSpace.findDataType(resolveNodeId(DataTypeIds.NamingRuleType))! as UADataType;
         // xx console.log(nrt.toString());
-        if (nrt) {
-          const namingRuleType = (nrt as any)._getDefinition().nameIndex; // getEnumeration("NamingRuleType");
+        if (namingRuleDataTypeNode) {
+          const namingRuleType = (namingRuleDataTypeNode as any)._getEnumerationInfo().nameIndex; // getEnumeration("NamingRuleType");
+          if (!namingRuleType) {
+            throw new Error("Cannot find Enumeration definition for NamingRuleType");
+          }
           // i=111
           bindStandardScalar(VariableIds.ModellingRuleType_NamingRule,
             DataType.UInt16, () => {

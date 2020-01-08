@@ -3,19 +3,19 @@
 # Generated at 05.01.2020 #
 ###########################
 
-PROJECTNAME = model_with_custom_datatype
+PROJECTNAME = case1
 
 TEMPLATESET = ($TEMPLATES)/modeling/v1_0/t0/modeling.tt2set
 
 MODELS += ($MODELS)/Opc.Ua.NodeSet2.ua \
-    model_with_custom_datatype.ua
+    case1.ua
 
 COLORS = ($MODELS)/Opc.Ua.NodeSet2.ua: #0000ff\
-    model_with_custom_datatype.ua: #008000
+    case1.ua: #008000
 
 OUTPUTPATH = 
 
-GENERATE += model_with_custom_datatype.ua
+GENERATE += case1.ua
 
 NODEACCESSINFOROLES += Administrator \
     SecurityAdmin \

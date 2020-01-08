@@ -135,13 +135,13 @@ export class Variant extends BaseUAObject {
     if (options.dataType === DataType.ExtensionObject) {
       if (this.arrayType === VariantArrayType.Scalar) {
         /* istanbul ignore next */
-        if (this.value && !(this.value instanceof ExtensionObject)) {
+        if (this.value && !(this.value instanceof BaseUAObject)) {
           throw new Error("A variant with DataType.ExtensionObject must have a ExtensionObject value");
         }
       } else {
         for (const e of this.value) {
           /* istanbul ignore next */
-          if (e && !(e instanceof ExtensionObject)) {
+          if (e && !(e instanceof BaseUAObject)) {
             throw new Error("A variant with DataType.ExtensionObject must have a ExtensionObject value");
           }
         }

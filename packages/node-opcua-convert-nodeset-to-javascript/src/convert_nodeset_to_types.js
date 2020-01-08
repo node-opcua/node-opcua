@@ -206,9 +206,8 @@ function generateFileCode(namespace, schema, schema_folder) {
     f.save(filename);
 }
 
-function makeStructure(dataType, bForce, schema_folder) {
+function makeStructure(dataType/*: UADataType*/, bForce/*: boolean*/, schema_folder/*: string*/) {
     assert(fs.existsSync(schema_folder), " schema_folder must exist");
-
     bForce = !!bForce;
 
     assert(dataType.nodeClass === NodeClass.DataType);

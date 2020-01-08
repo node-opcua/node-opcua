@@ -130,7 +130,8 @@ function decodeArrayOrElement(
             obj[field.name] = decodeFunc(stream);
         } else {
             if (!obj[field.name]) {
-                throw new Error(" cannot find field with name " + field.name);
+                const constructor = typeDictionary.getStructureTypeConstructor(field.fieldType);
+                obj[field.name] = new constructor({});
             }
             obj[field.name].decode(stream);
         }
@@ -149,13 +150,17 @@ function initializeField(
 
     switch (field.category) {
         case FieldCategory.complex: {
-            const constuctor = getOrCreateConstructor(field.fieldType, typeDictionary) || BaseUAObject;
+            const constructor = getOrCreateConstructor(field.fieldType, typeDictionary) || BaseUAObject;
             if (field.isArray) {
-                (thisAny)[name] = (options[name] || []).map((x: any) =>
-                    constuctor ? new constuctor(x) : null
+                const arr =options[name] || [];
+                if (!arr.map) {
+                    console.log("Errror", options);
+                }
+                (thisAny)[name] = arr.map((x: any) =>
+                    constructor ? new constructor(x) : null
                 );
             } else {
-                (thisAny)[name] = constuctor ? new constuctor(options[name]) : null;
+                (thisAny)[name] = constructor ? new constructor(options[name]) : null;
             }
             // xx processStructuredType(fieldSchema);
             break;
@@ -205,8 +210,9 @@ function encodeFields(thisAny: any, schema: StructuredTypeSchema, stream: Output
         encodeFields(thisAny, schema._baseSchema!, stream);
     }
 
+    const hasOptionalFields = schema.bitFields && schema.bitFields.length > 0;
     // ============ Deal with switchBits
-    if (schema.bitFields && schema.bitFields.length) {
+    if (hasOptionalFields) {
 
         let bitField = 0;
 
@@ -260,15 +266,16 @@ function decodeFields(
     }
 
     // ============ Deal with switchBits
+    const hasOptionalFields = schema.bitFields && schema.bitFields.length > 0;
     let bitField = 0;
-    if (schema.bitFields && schema.bitFields.length) {
+    if (hasOptionalFields) {
         bitField = stream.readUInt32();
     }
 
     for (const field of schema.fields) {
 
         // ignore fields that have a switch bit when bit is not set
-        if (field.switchBit !== undefined) {
+        if (hasOptionalFields &&  field.switchBit !== undefined) {
             // tslint:disable-next-line:no-bitwise
             if ((bitField & (1 << field.switchBit)) === 0) {
                 (thisAny)[field.name] = undefined;
@@ -301,7 +308,7 @@ class DynamicExtensionObject extends ExtensionObject {
     public static schema: StructuredTypeSchema = ExtensionObject.schema;
     public static possibleFields: string[] = [];
     private readonly _typeDictionary: TypeDictionary;
-    private __schema?: StructuredTypeSchema;
+    private readonly __schema?: StructuredTypeSchema;
 
     constructor(options: any, schema: StructuredTypeSchema, typeDictionary: TypeDictionary) {
         assert(schema, "expecting a schema here ");

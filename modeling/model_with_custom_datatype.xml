@@ -3,8 +3,15 @@
     <NamespaceUris>
         <Uri>http://yourorganisation.org/model_with_custom_datatype/</Uri>
     </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://yourorganisation.org/model_with_custom_datatype/" PublicationDate="2020-01-05T14:43:01Z" Version="1.0.0">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2019-09-09T00:00:00Z" Version="1.04.3"/>
+        </Model>
+    </Models>
     <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
         <Alias Alias="String">i=12</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
         <Alias Alias="ByteString">i=15</Alias>
         <Alias Alias="LocalizedText">i=21</Alias>
         <Alias Alias="HasModellingRule">i=37</Alias>
@@ -14,11 +21,13 @@
         <Alias Alias="HasSubtype">i=45</Alias>
         <Alias Alias="HasProperty">i=46</Alias>
         <Alias Alias="HasComponent">i=47</Alias>
-        <Alias Alias="MyIdentifierDataType">ns=1;i=3002</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="NumericRange">i=291</Alias>
+        <Alias Alias="MyIdentifierString">ns=1;i=3002</Alias>
     </Aliases>
     <Extensions>
         <Extension>
-            <ua:ModelInfo Tool="UaModeler" Hash="7INh6yWhu9Jyc5JMOGOnuQ==" Version="1.6.2"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="YjJh7kIfFyCj6782ISasAA==" Version="1.6.3"/>
         </Extension>
     </Extensions>
     <UADataType NodeId="ns=1;i=3004" BrowseName="1:MyEnumeration">
@@ -36,9 +45,9 @@
     <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=3004" ValueRank="1" NodeId="ns=1;i=6007" ArrayDimensions="3" BrowseName="EnumStrings">
         <DisplayName>EnumStrings</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=3004</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
             <uax:ListOfLocalizedText>
@@ -54,8 +63,9 @@
             </uax:ListOfLocalizedText>
         </Value>
     </UAVariable>
-    <UADataType NodeId="ns=1;i=3002" BrowseName="1:MyIdentifierDataType">
-        <DisplayName>MyIdentifierDataType</DisplayName>
+    <UADataType NodeId="ns=1;i=3002" BrowseName="1:MyIdentifierString">
+        <DisplayName>MyIdentifierString</DisplayName>
+        <Description>a string which is a identifier</Description>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=12</Reference>
         </References>
@@ -69,15 +79,15 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
         </References>
         <Definition Name="1:MyStruct">
-            <Field DataType="MyIdentifierDataType" Name="Id"/>
+            <Field DataType="MyIdentifierString" Name="Id"/>
         </Definition>
     </UADataType>
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6005" BrowseName="1:MyStruct">
         <DisplayName>MyStruct</DisplayName>
         <References>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
             <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5001</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
         </References>
         <Value>
             <uax:String>MyStruct</uax:String>
@@ -86,9 +96,9 @@
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6006" BrowseName="1:MyStruct">
         <DisplayName>MyStruct</DisplayName>
         <References>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
             <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5002</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
         </References>
         <Value>
             <uax:String>//xs:element[@name='MyStruct']</uax:String>
@@ -98,9 +108,9 @@
         <DisplayName>TypeDictionary</DisplayName>
         <Description>Collects the data type descriptions of http://yourorganisation.org/model_with_custom_datatype/</Description>
         <References>
+            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
             <Reference ReferenceType="HasComponent">ns=1;i=6005</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
-            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
         </References>
         <Value>
@@ -124,8 +134,8 @@
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6002" BrowseName="NamespaceUri">
         <DisplayName>NamespaceUri</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6001</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
             <uax:String>http://yourorganisation.org/model_with_custom_datatype/</uax:String>
@@ -135,9 +145,9 @@
         <DisplayName>TypeDictionary</DisplayName>
         <Description>Collects the data type descriptions of http://yourorganisation.org/model_with_custom_datatype/</Description>
         <References>
+            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
             <Reference ReferenceType="HasComponent">ns=1;i=6006</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6004</Reference>
-            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=92</Reference>
         </References>
         <Value>
@@ -173,34 +183,109 @@
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6004" BrowseName="NamespaceUri">
         <DisplayName>NamespaceUri</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
             <uax:String>http://yourorganisation.org/model_with_custom_datatype/Types.xsd</uax:String>
         </Value>
     </UAVariable>
+    <UAObject SymbolicName="http___yourorganisation_org_model_with_custom_datatype_" NodeId="ns=1;i=5004" BrowseName="1:http://yourorganisation.org/model_with_custom_datatype/">
+        <DisplayName>http://yourorganisation.org/model_with_custom_datatype/</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6009</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6010</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6011</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6012</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6013</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6014</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6008" BrowseName="IsNamespaceSubset">
+        <DisplayName>IsNamespaceSubset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:Boolean>false</uax:Boolean>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="DateTime" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6009" BrowseName="NamespacePublicationDate">
+        <DisplayName>NamespacePublicationDate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:DateTime>2020-01-05T14:43:01Z</uax:DateTime>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6010" BrowseName="NamespaceUri">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:String>http://yourorganisation.org/model_with_custom_datatype/</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6011" BrowseName="NamespaceVersion">
+        <DisplayName>NamespaceVersion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:String>1.0.0</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="IdType" ParentNodeId="ns=1;i=5004" ValueRank="1" NodeId="ns=1;i=6012" ArrayDimensions="0" BrowseName="StaticNodeIdTypes">
+        <DisplayName>StaticNodeIdTypes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="NumericRange" ParentNodeId="ns=1;i=5004" ValueRank="1" NodeId="ns=1;i=6013" ArrayDimensions="0" BrowseName="StaticNumericNodeIdRange">
+        <DisplayName>StaticNumericNodeIdRange</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6014" BrowseName="StaticStringNodeIdPattern">
+        <DisplayName>StaticStringNodeIdPattern</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+    </UAVariable>
     <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
         <DisplayName>Default Binary</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
             <Reference ReferenceType="HasDescription">ns=1;i=6005</Reference>
         </References>
     </UAObject>
     <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5002" BrowseName="Default XML">
         <DisplayName>Default XML</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
             <Reference ReferenceType="HasDescription">ns=1;i=6006</Reference>
         </References>
     </UAObject>
     <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5003" BrowseName="Default JSON">
         <DisplayName>Default JSON</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
         </References>
     </UAObject>
 </UANodeSet>

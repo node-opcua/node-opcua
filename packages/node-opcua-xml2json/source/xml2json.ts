@@ -9,7 +9,6 @@
 
 import * as fs from "fs";
 import { assert } from "node-opcua-assert";
-import { lowerFirstLetter } from "node-opcua-utils";
 import * as _ from "underscore";
 
 const LtxParser = require("ltx/lib/parsers/ltx.js");
@@ -112,8 +111,11 @@ export interface IReaderState {
     _on_text(text: string): void;
 }
 
-type withPojoLambda = (name: string, pojo: any) => void;
 
+export class ReaderStateBase {
+}
+export interface ReaderStateBase extends IReaderState {
+}
 /**
  * @class ReaderState
  * @private
@@ -124,7 +126,7 @@ type withPojoLambda = (name: string, pojo: any) => void;
  * @param [options.startElement]
  * @param [options.endElement]
  */
-export class ReaderState implements IReaderState {
+export class ReaderState extends ReaderStateBase {
 
     public _init?: (
         name: string, attrs: XmlAttributes,
@@ -150,10 +152,11 @@ export class ReaderState implements IReaderState {
 
     constructor(options: ReaderStateParser | ReaderState) {
 
+        super();
         // ensure options object has only expected properties
         options.parser = options.parser || {};
 
-        if (!(options instanceof ReaderState)) {
+        if (!(options instanceof ReaderStateBase)) {
 
             const fields = _.keys(options);
             const invalid_fields = _.difference(fields, ["parser", "init", "finish", "startElement", "endElement"]);
@@ -249,8 +252,10 @@ export class ReaderState implements IReaderState {
         this.chunks = this.chunks || [];
 
         if (this.level > level) {
+
             // we end a child element of this node
             this._on_endElement2(level, elementName);
+
         } else if (this.level === level) {
             // we received the end event of this node
             // we need to finish
@@ -277,15 +282,6 @@ export class ReaderState implements IReaderState {
             return;
         }
         this.chunks.push(text);
-    }
-
-    public startPojo(elementName: string, attrs: XmlAttributes, withPojo: withPojoLambda) {
-
-        this.engine!._promote(json_extractor, this.engine!.currentLevel, elementName, attrs);
-        json_extractor._withPojo = (name: string, pojo: any) => {
-            withPojo(name, pojo);
-            this.engine!._demote(json_extractor, this.engine!.currentLevel, elementName);
-        };
     }
 }
 
@@ -346,20 +342,11 @@ function resolve_namespace(name: string) {
 export class Xml2Json {
 
     public currentLevel: number = 0;
-    public _pojo = {};
-
     private state_stack: any[] = [];
     private current_state: IReaderState | null = null;
 
-    constructor(options?: ReaderStateParser) {
-
-        if (!options) {
-            this.state_stack = [];
-            this.current_state = null;
-            this._promote(json_extractor, 0);
-            return;
-        }
-        const state = (options instanceof ReaderState)
+    constructor(options: ReaderStateParser) {
+        const state = (options instanceof ReaderStateBase)
             ? options as ReaderState : new ReaderState(options);
         state.root = this;
 
@@ -488,134 +475,13 @@ export class Xml2Json {
         parser.on("close",
             () => {
                 if (callback) {
-                    (callback as any)(null, this._pojo);
+                    (callback as any)(null, (this.current_state! as any)._pojo);
                 }
             });
         return parser;
     }
 }
 
-class ReaderState2 implements IReaderState {
-
-    public _stack: any;
-    public _pojo: any;
-    public _element: any;
-    public text: string;
-
-    public _withPojo: withPojoLambda;
-
-    private parent?: IReaderState;
-    private engine?: Xml2Json;
-    private initLevel: number = 0;
-
-    constructor() {
-        this._pojo = {};
-        this._stack = [];
-        this._element = {};
-        this.text = "";
-        this.parent = undefined;
-        this._withPojo = (pojo: any) => { /* empty */
-        };
-    }
-
-    public _on_init(
-        elementName: string,
-        attrs: XmlAttributes,
-        parent: IReaderState,
-        level: number,
-        engine: Xml2Json
-    ): void {
-
-        this.parent = parent;
-        this.engine = engine;
-        this.initLevel = level;
-        if (this._stack.length === 0) {
-            this._pojo = {};
-            this._element = this._pojo;
-        }
-    }
-
-    public _on_finish() {
-        /* empy */
-    }
-
-    public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
-
-        this._stack.push(this._element);
-
-        if (elementName.match(/^ListOf/)) {
-            elementName = elementName.substring(6);
-            const elName = lowerFirstLetter(elementName);
-            if (this._element instanceof Array) {
-                const array: any[] = [];
-                this._element.push(array);
-                this._element = array;
-            } else {
-                this._element[elName] = [];
-                this._element = this._element[elName];
-            }
-        } else {
-            const elName = lowerFirstLetter(elementName);
-            if (this._element instanceof Array) {
-                const obj = {};
-                this._element.push(obj);
-                this._element = obj;
-            } else {
-                this._element[elName] = {};
-                this._element = this._element[elName];
-            }
-        }
-
-    }
-
-    public _on_endElement2(level: number, elementName: string): void {
-        /* empty */
-    }
-
-    public _on_endElement(level: number, elementName: string): void {
-        this._element = this._stack.pop();
-        if (this.text.length > 0 && this._element) {
-            const elName = lowerFirstLetter(elementName);
-            this._element[elName] = this.text;
-            this.engine!._pojo = this._pojo;
-        } else {
-            const elName = lowerFirstLetter(elementName);
-            if (this.initLevel === level) {
-                if (this._withPojo) {
-                    if (this.text.length) {
-                        this._withPojo.call(null, elName, this.text);
-                    } else {
-                        this._withPojo.call(null, elName, this._pojo);
-                    }
-                }
-            }
-        }
-        this.text = "";
-    }
-
-    public _on_text(text: string): void {
-        this.text = text;
-    }
-
-}
-
-export const json_extractor: ReaderState2 = new ReaderState2();
-
-export const json_parser: ReaderStateParser = {
-
-    init(
-        this: IReaderState,
-        elementName: string,
-        attrs: XmlAttributes,
-        parent: IReaderState,
-        engine: Xml2Json
-    ) {
-        json_extractor._on_init(elementName, attrs, parent, 0, engine);
-    },
-    finish(this: any) {
-        this.parent._pojo = json_extractor._pojo;
-    }
-};
 
 // tslint:disable:no-var-requires
 const thenify = require("thenify");

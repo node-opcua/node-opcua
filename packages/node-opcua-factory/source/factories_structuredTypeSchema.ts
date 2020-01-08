@@ -164,7 +164,7 @@ export function get_base_schema(schema: StructuredTypeSchema) {
         return null;
     }
 
-    if (schema.baseType && schema.baseType !== "BaseUAObject") {
+    if (schema.baseType && schema.baseType !== "BaseUAObject" && schema.baseType !== "DataTypeDefinition") {
         const baseType = getStructureTypeConstructor(schema.baseType);
 
         // istanbul ignore next

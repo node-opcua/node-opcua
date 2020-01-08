@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet
-        Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
-        xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z" 
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
 
     <Aliases>
         <Alias Alias="Boolean">i=1</Alias>
