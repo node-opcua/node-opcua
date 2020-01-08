@@ -31,15 +31,15 @@
   "node-opcua-transport": "^2.4.0",
   "node-opcua-types": "^2.4.0",
   "node-opcua-utils": "^2.4.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
-  "@types/node": "^12.12.8",
-  "@types/underscore": "^1.9.3",
+  "@types/node": "^13.1.5",
+  "@types/underscore": "^1.9.4",
   "async": "^3.1.0",
   "node-opcua-buffer-utils": "^2.3.0",
   "node-opcua-leak-detector": "^2.3.0",
-  "node-opcua-packet-analyzer": "^2.3.0",
+  "node-opcua-packet-analyzer": "^2.4.0",
   "node-opcua-service-browse": "^2.4.0",
   "node-opcua-service-endpoints": "^2.4.0",
   "node-opcua-service-read": "^2.4.0",
@@ -47,7 +47,7 @@
   "node-opcua-test-fixtures": "^2.3.0",
   "node-opcua-test-helpers": "^2.0.0",
   "should": "13.2.3",
-  "sinon": "^7.5.0",
+  "sinon": "^8.0.4",
   "source-map-support": "^0.5.16",
   "sprintf-js": "^1.1.2"
  },

@@ -36,7 +36,7 @@
   "node-opcua-data-value": "^2.4.0",
   "node-opcua-leak-detector": "^2.3.0",
   "should": "13.2.3",
-  "sinon": "^7.5.0"
+  "sinon": "^8.0.4"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

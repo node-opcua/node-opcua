@@ -14,7 +14,7 @@
     "node-opcua-assert": "^2.3.0",
     "node-opcua-debug": "^2.3.0",
     "node-opcua-utils": "^2.4.0",
-    "underscore": "^1.9.1"
+    "underscore": "^1.9.2"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

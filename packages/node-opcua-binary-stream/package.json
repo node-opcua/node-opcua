@@ -14,10 +14,10 @@
 		"colors": "^1.4.0",
 		"node-opcua-assert": "^2.3.0",
 		"node-opcua-buffer-utils": "^2.3.0",
-		"underscore": "^1.9.1"
+		"underscore": "^1.9.2"
 	},
 	"devDependencies": {
-		"@types/underscore": "^1.9.3",
+		"@types/underscore": "^1.9.4",
 		"node-opcua-benchmarker": "^2.3.0",
 		"should": "13.2.3"
 	},

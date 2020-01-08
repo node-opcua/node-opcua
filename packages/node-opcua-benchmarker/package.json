@@ -12,7 +12,7 @@
 	"dependencies": {
 		"async": "^3.1.0",
 		"node-opcua-assert": "^2.3.0",
-		"underscore": "^1.9.1"
+		"underscore": "^1.9.2"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",
@@ -30,7 +30,7 @@
 	],
 	"homepage": "http://node-opcua.github.io/",
 	"devDependencies": {
-		"@types/underscore": "^1.9.3"
+		"@types/underscore": "^1.9.4"
 	},
 	"gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }

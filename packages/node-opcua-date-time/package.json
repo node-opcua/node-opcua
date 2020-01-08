@@ -11,10 +11,10 @@
  "dependencies": {
   "long": "^4.0.0",
   "node-opcua-assert": "^2.3.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
-  "@types/underscore": "^1.9.3",
+  "@types/underscore": "^1.9.4",
   "bignumber.js": "^9.0.0",
   "node-opcua-benchmarker": "^2.3.0",
   "node-opcua-binary-stream": "^2.3.0",

@@ -20,11 +20,11 @@
   "node-opcua-nodeid": "^2.3.0",
   "node-opcua-status-code": "^2.3.0",
   "node-opcua-utils": "^2.4.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
-  "@types/node": "^12.12.8",
-  "@types/underscore": "^1.9.3",
+  "@types/node": "^13.1.5",
+  "@types/underscore": "^1.9.4",
   "node-opcua-debug": "^2.3.0",
   "should": "13.2.3"
  },

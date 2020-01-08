@@ -11,14 +11,14 @@
  },
  "dependencies": {
   "node-opcua-assert": "^2.3.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
-  "@types/node": "^12.12.8",
-  "@types/underscore": "^1.9.3",
+  "@types/node": "^13.1.5",
+  "@types/underscore": "^1.9.4",
   "chalk": "^3.0.0",
   "should": "13.2.3",
-  "sinon": "^7.5.0"
+  "sinon": "^8.0.4"
  },
  "author": "Etienne Rossignon",
  "license": "MIT",

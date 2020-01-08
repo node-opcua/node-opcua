@@ -14,7 +14,7 @@
   "node-opcua-assert": "^2.3.0",
   "node-opcua-debug": "^2.3.0",
   "node-opcua-object-registry": "^2.3.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "repository": {
   "type": "git",
