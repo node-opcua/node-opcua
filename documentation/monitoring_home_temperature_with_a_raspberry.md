@@ -26,7 +26,7 @@ $ npm install q node-w1bus
 
 
 
-```
+```javascript
 const w1bus = require("node-w1bus");
 
 const bus = w1bus.create();
