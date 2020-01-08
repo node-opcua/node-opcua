@@ -28,7 +28,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
 -->
 
-<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2019-01-21T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2019-01-21T00:00:00Z" 
+  xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
   <NamespaceUris>
     <Uri>http://opcfoundation.org/UA/DI/</Uri>
   </NamespaceUris>
@@ -405,7 +407,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -433,7 +436,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -469,7 +473,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -505,7 +510,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -541,7 +547,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1469,7 +1476,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1497,7 +1505,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1533,7 +1542,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1569,7 +1579,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1605,7 +1616,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1723,7 +1735,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1739,7 +1752,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1775,7 +1789,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1791,7 +1806,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1828,7 +1844,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1844,7 +1861,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1860,7 +1878,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1876,7 +1895,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1904,7 +1924,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1999,7 +2020,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -2027,7 +2049,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -2063,7 +2086,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -2099,7 +2123,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -2135,7 +2160,8 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
+              <Description p5:nil="true" 
+                xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -2331,86 +2357,7 @@ YzpTdHJ1Y3R1cmVkVHlwZT4NCg0KPC9vcGM6VHlwZURpY3Rpb25hcnk+</ByteString>
       <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
     </References>
     <Value>
-      <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">PHhzOnNjaGVtYQ0KICB4bWxuczp4cz0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEi
-DQogIHhtbG5zOnVhPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvMjAwOC8wMi9UeXBlcy54
-c2QiDQogIHhtbG5zOnRucz0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBL0RJL1R5cGVzLnhz
-ZCINCiAgdGFyZ2V0TmFtZXNwYWNlPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvREkvVHlw
-ZXMueHNkIg0KICBlbGVtZW50Rm9ybURlZmF1bHQ9InF1YWxpZmllZCINCj4NCiAgPHhzOmltcG9y
-dCBuYW1lc3BhY2U9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS8yMDA4LzAyL1R5cGVzLnhz
-ZCIgLz4NCg0KICA8eHM6c2ltcGxlVHlwZSAgbmFtZT0iRGV2aWNlSGVhbHRoRW51bWVyYXRpb24i
-Pg0KICAgIDx4czpyZXN0cmljdGlvbiBiYXNlPSJ4czpzdHJpbmciPg0KICAgICAgPHhzOmVudW1l
-cmF0aW9uIHZhbHVlPSJOT1JNQUxfMCIgLz4NCiAgICAgIDx4czplbnVtZXJhdGlvbiB2YWx1ZT0i
-RkFJTFVSRV8xIiAvPg0KICAgICAgPHhzOmVudW1lcmF0aW9uIHZhbHVlPSJDSEVDS19GVU5DVElP
-Tl8yIiAvPg0KICAgICAgPHhzOmVudW1lcmF0aW9uIHZhbHVlPSJPRkZfU1BFQ18zIiAvPg0KICAg
-ICAgPHhzOmVudW1lcmF0aW9uIHZhbHVlPSJNQUlOVEVOQU5DRV9SRVFVSVJFRF80IiAvPg0KICAg
-IDwveHM6cmVzdHJpY3Rpb24+DQogIDwveHM6c2ltcGxlVHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFt
-ZT0iRGV2aWNlSGVhbHRoRW51bWVyYXRpb24iIHR5cGU9InRuczpEZXZpY2VIZWFsdGhFbnVtZXJh
-dGlvbiIgLz4NCg0KICA8eHM6Y29tcGxleFR5cGUgbmFtZT0iTGlzdE9mRGV2aWNlSGVhbHRoRW51
-bWVyYXRpb24iPg0KICAgIDx4czpzZXF1ZW5jZT4NCiAgICAgIDx4czplbGVtZW50IG5hbWU9IkRl
-dmljZUhlYWx0aEVudW1lcmF0aW9uIiB0eXBlPSJ0bnM6RGV2aWNlSGVhbHRoRW51bWVyYXRpb24i
-IG1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSJ1bmJvdW5kZWQiIC8+DQogICAgPC94czpzZXF1ZW5j
-ZT4NCiAgPC94czpjb21wbGV4VHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFtZT0iTGlzdE9mRGV2aWNl
-SGVhbHRoRW51bWVyYXRpb24iIHR5cGU9InRuczpMaXN0T2ZEZXZpY2VIZWFsdGhFbnVtZXJhdGlv
-biIgbmlsbGFibGU9InRydWUiPjwveHM6ZWxlbWVudD4NCg0KICA8eHM6Y29tcGxleFR5cGUgbmFt
-ZT0iRmV0Y2hSZXN1bHREYXRhVHlwZSI+DQogICAgPHhzOnNlcXVlbmNlPg0KICAgIDwveHM6c2Vx
-dWVuY2U+DQogIDwveHM6Y29tcGxleFR5cGU+DQogIDx4czplbGVtZW50IG5hbWU9IkZldGNoUmVz
-dWx0RGF0YVR5cGUiIHR5cGU9InRuczpGZXRjaFJlc3VsdERhdGFUeXBlIiAvPg0KDQogIDx4czpj
-b21wbGV4VHlwZSBuYW1lPSJMaXN0T2ZGZXRjaFJlc3VsdERhdGFUeXBlIj4NCiAgICA8eHM6c2Vx
-dWVuY2U+DQogICAgICA8eHM6ZWxlbWVudCBuYW1lPSJGZXRjaFJlc3VsdERhdGFUeXBlIiB0eXBl
-PSJ0bnM6RmV0Y2hSZXN1bHREYXRhVHlwZSIgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91
-bmRlZCIgbmlsbGFibGU9InRydWUiIC8+DQogICAgPC94czpzZXF1ZW5jZT4NCiAgPC94czpjb21w
-bGV4VHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFtZT0iTGlzdE9mRmV0Y2hSZXN1bHREYXRhVHlwZSIg
-dHlwZT0idG5zOkxpc3RPZkZldGNoUmVzdWx0RGF0YVR5cGUiIG5pbGxhYmxlPSJ0cnVlIj48L3hz
-OmVsZW1lbnQ+DQoNCiAgPHhzOmNvbXBsZXhUeXBlIG5hbWU9IlRyYW5zZmVyUmVzdWx0RXJyb3JE
-YXRhVHlwZSI+DQogICAgPHhzOmNvbXBsZXhDb250ZW50IG1peGVkPSJmYWxzZSI+DQogICAgICA8
-eHM6ZXh0ZW5zaW9uIGJhc2U9InRuczpGZXRjaFJlc3VsdERhdGFUeXBlIj4NCiAgICAgICAgPHhz
-OnNlcXVlbmNlPg0KICAgICAgICAgIDx4czplbGVtZW50IG5hbWU9IlN0YXR1cyIgdHlwZT0ieHM6
-aW50IiBtaW5PY2N1cnM9IjAiIC8+DQogICAgICAgICAgPHhzOmVsZW1lbnQgbmFtZT0iRGlhZ25v
-c3RpY3MiIHR5cGU9InVhOkRpYWdub3N0aWNJbmZvIiBtaW5PY2N1cnM9IjAiIG5pbGxhYmxlPSJ0
-cnVlIiAvPg0KICAgICAgICA8L3hzOnNlcXVlbmNlPg0KICAgICAgPC94czpleHRlbnNpb24+DQog
-ICAgPC94czpjb21wbGV4Q29udGVudD4NCiAgPC94czpjb21wbGV4VHlwZT4NCiAgPHhzOmVsZW1l
-bnQgbmFtZT0iVHJhbnNmZXJSZXN1bHRFcnJvckRhdGFUeXBlIiB0eXBlPSJ0bnM6VHJhbnNmZXJS
-ZXN1bHRFcnJvckRhdGFUeXBlIiAvPg0KDQogIDx4czpjb21wbGV4VHlwZSBuYW1lPSJMaXN0T2ZU
-cmFuc2ZlclJlc3VsdEVycm9yRGF0YVR5cGUiPg0KICAgIDx4czpzZXF1ZW5jZT4NCiAgICAgIDx4
-czplbGVtZW50IG5hbWU9IlRyYW5zZmVyUmVzdWx0RXJyb3JEYXRhVHlwZSIgdHlwZT0idG5zOlRy
-YW5zZmVyUmVzdWx0RXJyb3JEYXRhVHlwZSIgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91
-bmRlZCIgbmlsbGFibGU9InRydWUiIC8+DQogICAgPC94czpzZXF1ZW5jZT4NCiAgPC94czpjb21w
-bGV4VHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFtZT0iTGlzdE9mVHJhbnNmZXJSZXN1bHRFcnJvckRh
-dGFUeXBlIiB0eXBlPSJ0bnM6TGlzdE9mVHJhbnNmZXJSZXN1bHRFcnJvckRhdGFUeXBlIiBuaWxs
-YWJsZT0idHJ1ZSI+PC94czplbGVtZW50Pg0KDQogIDx4czpjb21wbGV4VHlwZSBuYW1lPSJUcmFu
-c2ZlclJlc3VsdERhdGFEYXRhVHlwZSI+DQogICAgPHhzOmNvbXBsZXhDb250ZW50IG1peGVkPSJm
-YWxzZSI+DQogICAgICA8eHM6ZXh0ZW5zaW9uIGJhc2U9InRuczpGZXRjaFJlc3VsdERhdGFUeXBl
-Ij4NCiAgICAgICAgPHhzOnNlcXVlbmNlPg0KICAgICAgICAgIDx4czplbGVtZW50IG5hbWU9IlNl
-cXVlbmNlTnVtYmVyIiB0eXBlPSJ4czppbnQiIG1pbk9jY3Vycz0iMCIgLz4NCiAgICAgICAgICA8
-eHM6ZWxlbWVudCBuYW1lPSJFbmRPZlJlc3VsdHMiIHR5cGU9InhzOmJvb2xlYW4iIG1pbk9jY3Vy
-cz0iMCIgLz4NCiAgICAgICAgICA8eHM6ZWxlbWVudCBuYW1lPSJQYXJhbWV0ZXJEZWZzIiB0eXBl
-PSJ0bnM6TGlzdE9mUGFyYW1ldGVyUmVzdWx0RGF0YVR5cGUiIG1pbk9jY3Vycz0iMCIgbmlsbGFi
-bGU9InRydWUiIC8+DQogICAgICAgIDwveHM6c2VxdWVuY2U+DQogICAgICA8L3hzOmV4dGVuc2lv
-bj4NCiAgICA8L3hzOmNvbXBsZXhDb250ZW50Pg0KICA8L3hzOmNvbXBsZXhUeXBlPg0KICA8eHM6
-ZWxlbWVudCBuYW1lPSJUcmFuc2ZlclJlc3VsdERhdGFEYXRhVHlwZSIgdHlwZT0idG5zOlRyYW5z
-ZmVyUmVzdWx0RGF0YURhdGFUeXBlIiAvPg0KDQogIDx4czpjb21wbGV4VHlwZSBuYW1lPSJMaXN0
-T2ZUcmFuc2ZlclJlc3VsdERhdGFEYXRhVHlwZSI+DQogICAgPHhzOnNlcXVlbmNlPg0KICAgICAg
-PHhzOmVsZW1lbnQgbmFtZT0iVHJhbnNmZXJSZXN1bHREYXRhRGF0YVR5cGUiIHR5cGU9InRuczpU
-cmFuc2ZlclJlc3VsdERhdGFEYXRhVHlwZSIgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91
-bmRlZCIgbmlsbGFibGU9InRydWUiIC8+DQogICAgPC94czpzZXF1ZW5jZT4NCiAgPC94czpjb21w
-bGV4VHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFtZT0iTGlzdE9mVHJhbnNmZXJSZXN1bHREYXRhRGF0
-YVR5cGUiIHR5cGU9InRuczpMaXN0T2ZUcmFuc2ZlclJlc3VsdERhdGFEYXRhVHlwZSIgbmlsbGFi
-bGU9InRydWUiPjwveHM6ZWxlbWVudD4NCg0KICA8eHM6Y29tcGxleFR5cGUgbmFtZT0iUGFyYW1l
-dGVyUmVzdWx0RGF0YVR5cGUiPg0KICAgIDx4czpzZXF1ZW5jZT4NCiAgICAgIDx4czplbGVtZW50
-IG5hbWU9Ik5vZGVQYXRoIiB0eXBlPSJ1YTpMaXN0T2ZRdWFsaWZpZWROYW1lIiBtaW5PY2N1cnM9
-IjAiIG5pbGxhYmxlPSJ0cnVlIiAvPg0KICAgICAgPHhzOmVsZW1lbnQgbmFtZT0iU3RhdHVzQ29k
-ZSIgdHlwZT0idWE6U3RhdHVzQ29kZSIgbWluT2NjdXJzPSIwIiAvPg0KICAgICAgPHhzOmVsZW1l
-bnQgbmFtZT0iRGlhZ25vc3RpY3MiIHR5cGU9InVhOkRpYWdub3N0aWNJbmZvIiBtaW5PY2N1cnM9
-IjAiIG5pbGxhYmxlPSJ0cnVlIiAvPg0KICAgIDwveHM6c2VxdWVuY2U+DQogIDwveHM6Y29tcGxl
-eFR5cGU+DQogIDx4czplbGVtZW50IG5hbWU9IlBhcmFtZXRlclJlc3VsdERhdGFUeXBlIiB0eXBl
-PSJ0bnM6UGFyYW1ldGVyUmVzdWx0RGF0YVR5cGUiIC8+DQoNCiAgPHhzOmNvbXBsZXhUeXBlIG5h
-bWU9Ikxpc3RPZlBhcmFtZXRlclJlc3VsdERhdGFUeXBlIj4NCiAgICA8eHM6c2VxdWVuY2U+DQog
-ICAgICA8eHM6ZWxlbWVudCBuYW1lPSJQYXJhbWV0ZXJSZXN1bHREYXRhVHlwZSIgdHlwZT0idG5z
-OlBhcmFtZXRlclJlc3VsdERhdGFUeXBlIiBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0idW5ib3Vu
-ZGVkIiBuaWxsYWJsZT0idHJ1ZSIgLz4NCiAgICA8L3hzOnNlcXVlbmNlPg0KICA8L3hzOmNvbXBs
-ZXhUeXBlPg0KICA8eHM6ZWxlbWVudCBuYW1lPSJMaXN0T2ZQYXJhbWV0ZXJSZXN1bHREYXRhVHlw
-ZSIgdHlwZT0idG5zOkxpc3RPZlBhcmFtZXRlclJlc3VsdERhdGFUeXBlIiBuaWxsYWJsZT0idHJ1
-ZSI+PC94czplbGVtZW50Pg0KDQo8L3hzOnNjaGVtYT4=</ByteString>
+      <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">PHhzOnNjaGVtYQ0KICB4bWxuczp4cz0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEi DQogIHhtbG5zOnVhPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvMjAwOC8wMi9UeXBlcy54 c2QiDQogIHhtbG5zOnRucz0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBL0RJL1R5cGVzLnhz ZCINCiAgdGFyZ2V0TmFtZXNwYWNlPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvREkvVHlw ZXMueHNkIg0KICBlbGVtZW50Rm9ybURlZmF1bHQ9InF1YWxpZmllZCINCj4NCiAgPHhzOmltcG9y dCBuYW1lc3BhY2U9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS8yMDA4LzAyL1R5cGVzLnhz ZCIgLz4NCg0KICA8eHM6c2ltcGxlVHlwZSAgbmFtZT0iRGV2aWNlSGVhbHRoRW51bWVyYXRpb24i Pg0KICAgIDx4czpyZXN0cmljdGlvbiBiYXNlPSJ4czpzdHJpbmciPg0KICAgICAgPHhzOmVudW1l cmF0aW9uIHZhbHVlPSJOT1JNQUxfMCIgLz4NCiAgICAgIDx4czplbnVtZXJhdGlvbiB2YWx1ZT0i RkFJTFVSRV8xIiAvPg0KICAgICAgPHhzOmVudW1lcmF0aW9uIHZhbHVlPSJDSEVDS19GVU5DVElP Tl8yIiAvPg0KICAgICAgPHhzOmVudW1lcmF0aW9uIHZhbHVlPSJPRkZfU1BFQ18zIiAvPg0KICAg ICAgPHhzOmVudW1lcmF0aW9uIHZhbHVlPSJNQUlOVEVOQU5DRV9SRVFVSVJFRF80IiAvPg0KICAg IDwveHM6cmVzdHJpY3Rpb24+DQogIDwveHM6c2ltcGxlVHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFt ZT0iRGV2aWNlSGVhbHRoRW51bWVyYXRpb24iIHR5cGU9InRuczpEZXZpY2VIZWFsdGhFbnVtZXJh dGlvbiIgLz4NCg0KICA8eHM6Y29tcGxleFR5cGUgbmFtZT0iTGlzdE9mRGV2aWNlSGVhbHRoRW51 bWVyYXRpb24iPg0KICAgIDx4czpzZXF1ZW5jZT4NCiAgICAgIDx4czplbGVtZW50IG5hbWU9IkRl dmljZUhlYWx0aEVudW1lcmF0aW9uIiB0eXBlPSJ0bnM6RGV2aWNlSGVhbHRoRW51bWVyYXRpb24i IG1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSJ1bmJvdW5kZWQiIC8+DQogICAgPC94czpzZXF1ZW5j ZT4NCiAgPC94czpjb21wbGV4VHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFtZT0iTGlzdE9mRGV2aWNl SGVhbHRoRW51bWVyYXRpb24iIHR5cGU9InRuczpMaXN0T2ZEZXZpY2VIZWFsdGhFbnVtZXJhdGlv biIgbmlsbGFibGU9InRydWUiPjwveHM6ZWxlbWVudD4NCg0KICA8eHM6Y29tcGxleFR5cGUgbmFt ZT0iRmV0Y2hSZXN1bHREYXRhVHlwZSI+DQogICAgPHhzOnNlcXVlbmNlPg0KICAgIDwveHM6c2Vx dWVuY2U+DQogIDwveHM6Y29tcGxleFR5cGU+DQogIDx4czplbGVtZW50IG5hbWU9IkZldGNoUmVz dWx0RGF0YVR5cGUiIHR5cGU9InRuczpGZXRjaFJlc3VsdERhdGFUeXBlIiAvPg0KDQogIDx4czpj b21wbGV4VHlwZSBuYW1lPSJMaXN0T2ZGZXRjaFJlc3VsdERhdGFUeXBlIj4NCiAgICA8eHM6c2Vx dWVuY2U+DQogICAgICA8eHM6ZWxlbWVudCBuYW1lPSJGZXRjaFJlc3VsdERhdGFUeXBlIiB0eXBl PSJ0bnM6RmV0Y2hSZXN1bHREYXRhVHlwZSIgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91 bmRlZCIgbmlsbGFibGU9InRydWUiIC8+DQogICAgPC94czpzZXF1ZW5jZT4NCiAgPC94czpjb21w bGV4VHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFtZT0iTGlzdE9mRmV0Y2hSZXN1bHREYXRhVHlwZSIg dHlwZT0idG5zOkxpc3RPZkZldGNoUmVzdWx0RGF0YVR5cGUiIG5pbGxhYmxlPSJ0cnVlIj48L3hz OmVsZW1lbnQ+DQoNCiAgPHhzOmNvbXBsZXhUeXBlIG5hbWU9IlRyYW5zZmVyUmVzdWx0RXJyb3JE YXRhVHlwZSI+DQogICAgPHhzOmNvbXBsZXhDb250ZW50IG1peGVkPSJmYWxzZSI+DQogICAgICA8 eHM6ZXh0ZW5zaW9uIGJhc2U9InRuczpGZXRjaFJlc3VsdERhdGFUeXBlIj4NCiAgICAgICAgPHhz OnNlcXVlbmNlPg0KICAgICAgICAgIDx4czplbGVtZW50IG5hbWU9IlN0YXR1cyIgdHlwZT0ieHM6 aW50IiBtaW5PY2N1cnM9IjAiIC8+DQogICAgICAgICAgPHhzOmVsZW1lbnQgbmFtZT0iRGlhZ25v c3RpY3MiIHR5cGU9InVhOkRpYWdub3N0aWNJbmZvIiBtaW5PY2N1cnM9IjAiIG5pbGxhYmxlPSJ0 cnVlIiAvPg0KICAgICAgICA8L3hzOnNlcXVlbmNlPg0KICAgICAgPC94czpleHRlbnNpb24+DQog ICAgPC94czpjb21wbGV4Q29udGVudD4NCiAgPC94czpjb21wbGV4VHlwZT4NCiAgPHhzOmVsZW1l bnQgbmFtZT0iVHJhbnNmZXJSZXN1bHRFcnJvckRhdGFUeXBlIiB0eXBlPSJ0bnM6VHJhbnNmZXJS ZXN1bHRFcnJvckRhdGFUeXBlIiAvPg0KDQogIDx4czpjb21wbGV4VHlwZSBuYW1lPSJMaXN0T2ZU cmFuc2ZlclJlc3VsdEVycm9yRGF0YVR5cGUiPg0KICAgIDx4czpzZXF1ZW5jZT4NCiAgICAgIDx4 czplbGVtZW50IG5hbWU9IlRyYW5zZmVyUmVzdWx0RXJyb3JEYXRhVHlwZSIgdHlwZT0idG5zOlRy YW5zZmVyUmVzdWx0RXJyb3JEYXRhVHlwZSIgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91 bmRlZCIgbmlsbGFibGU9InRydWUiIC8+DQogICAgPC94czpzZXF1ZW5jZT4NCiAgPC94czpjb21w bGV4VHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFtZT0iTGlzdE9mVHJhbnNmZXJSZXN1bHRFcnJvckRh dGFUeXBlIiB0eXBlPSJ0bnM6TGlzdE9mVHJhbnNmZXJSZXN1bHRFcnJvckRhdGFUeXBlIiBuaWxs YWJsZT0idHJ1ZSI+PC94czplbGVtZW50Pg0KDQogIDx4czpjb21wbGV4VHlwZSBuYW1lPSJUcmFu c2ZlclJlc3VsdERhdGFEYXRhVHlwZSI+DQogICAgPHhzOmNvbXBsZXhDb250ZW50IG1peGVkPSJm YWxzZSI+DQogICAgICA8eHM6ZXh0ZW5zaW9uIGJhc2U9InRuczpGZXRjaFJlc3VsdERhdGFUeXBl Ij4NCiAgICAgICAgPHhzOnNlcXVlbmNlPg0KICAgICAgICAgIDx4czplbGVtZW50IG5hbWU9IlNl cXVlbmNlTnVtYmVyIiB0eXBlPSJ4czppbnQiIG1pbk9jY3Vycz0iMCIgLz4NCiAgICAgICAgICA8 eHM6ZWxlbWVudCBuYW1lPSJFbmRPZlJlc3VsdHMiIHR5cGU9InhzOmJvb2xlYW4iIG1pbk9jY3Vy cz0iMCIgLz4NCiAgICAgICAgICA8eHM6ZWxlbWVudCBuYW1lPSJQYXJhbWV0ZXJEZWZzIiB0eXBl PSJ0bnM6TGlzdE9mUGFyYW1ldGVyUmVzdWx0RGF0YVR5cGUiIG1pbk9jY3Vycz0iMCIgbmlsbGFi bGU9InRydWUiIC8+DQogICAgICAgIDwveHM6c2VxdWVuY2U+DQogICAgICA8L3hzOmV4dGVuc2lv bj4NCiAgICA8L3hzOmNvbXBsZXhDb250ZW50Pg0KICA8L3hzOmNvbXBsZXhUeXBlPg0KICA8eHM6 ZWxlbWVudCBuYW1lPSJUcmFuc2ZlclJlc3VsdERhdGFEYXRhVHlwZSIgdHlwZT0idG5zOlRyYW5z ZmVyUmVzdWx0RGF0YURhdGFUeXBlIiAvPg0KDQogIDx4czpjb21wbGV4VHlwZSBuYW1lPSJMaXN0 T2ZUcmFuc2ZlclJlc3VsdERhdGFEYXRhVHlwZSI+DQogICAgPHhzOnNlcXVlbmNlPg0KICAgICAg PHhzOmVsZW1lbnQgbmFtZT0iVHJhbnNmZXJSZXN1bHREYXRhRGF0YVR5cGUiIHR5cGU9InRuczpU cmFuc2ZlclJlc3VsdERhdGFEYXRhVHlwZSIgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91 bmRlZCIgbmlsbGFibGU9InRydWUiIC8+DQogICAgPC94czpzZXF1ZW5jZT4NCiAgPC94czpjb21w bGV4VHlwZT4NCiAgPHhzOmVsZW1lbnQgbmFtZT0iTGlzdE9mVHJhbnNmZXJSZXN1bHREYXRhRGF0 YVR5cGUiIHR5cGU9InRuczpMaXN0T2ZUcmFuc2ZlclJlc3VsdERhdGFEYXRhVHlwZSIgbmlsbGFi bGU9InRydWUiPjwveHM6ZWxlbWVudD4NCg0KICA8eHM6Y29tcGxleFR5cGUgbmFtZT0iUGFyYW1l dGVyUmVzdWx0RGF0YVR5cGUiPg0KICAgIDx4czpzZXF1ZW5jZT4NCiAgICAgIDx4czplbGVtZW50 IG5hbWU9Ik5vZGVQYXRoIiB0eXBlPSJ1YTpMaXN0T2ZRdWFsaWZpZWROYW1lIiBtaW5PY2N1cnM9 IjAiIG5pbGxhYmxlPSJ0cnVlIiAvPg0KICAgICAgPHhzOmVsZW1lbnQgbmFtZT0iU3RhdHVzQ29k ZSIgdHlwZT0idWE6U3RhdHVzQ29kZSIgbWluT2NjdXJzPSIwIiAvPg0KICAgICAgPHhzOmVsZW1l bnQgbmFtZT0iRGlhZ25vc3RpY3MiIHR5cGU9InVhOkRpYWdub3N0aWNJbmZvIiBtaW5PY2N1cnM9 IjAiIG5pbGxhYmxlPSJ0cnVlIiAvPg0KICAgIDwveHM6c2VxdWVuY2U+DQogIDwveHM6Y29tcGxl eFR5cGU+DQogIDx4czplbGVtZW50IG5hbWU9IlBhcmFtZXRlclJlc3VsdERhdGFUeXBlIiB0eXBl PSJ0bnM6UGFyYW1ldGVyUmVzdWx0RGF0YVR5cGUiIC8+DQoNCiAgPHhzOmNvbXBsZXhUeXBlIG5h bWU9Ikxpc3RPZlBhcmFtZXRlclJlc3VsdERhdGFUeXBlIj4NCiAgICA8eHM6c2VxdWVuY2U+DQog ICAgICA8eHM6ZWxlbWVudCBuYW1lPSJQYXJhbWV0ZXJSZXN1bHREYXRhVHlwZSIgdHlwZT0idG5z OlBhcmFtZXRlclJlc3VsdERhdGFUeXBlIiBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0idW5ib3Vu ZGVkIiBuaWxsYWJsZT0idHJ1ZSIgLz4NCiAgICA8L3hzOnNlcXVlbmNlPg0KICA8L3hzOmNvbXBs ZXhUeXBlPg0KICA8eHM6ZWxlbWVudCBuYW1lPSJMaXN0T2ZQYXJhbWV0ZXJSZXN1bHREYXRhVHlw ZSIgdHlwZT0idG5zOkxpc3RPZlBhcmFtZXRlclJlc3VsdERhdGFUeXBlIiBuaWxsYWJsZT0idHJ1 ZSI+PC94czplbGVtZW50Pg0KDQo8L3hzOnNjaGVtYT4=</ByteString>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6425" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6423" DataType="String">

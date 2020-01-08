@@ -4,5 +4,5 @@
     "rootDir": ".",
     "outDir": "dist"
   },
-  "files": [ "source/xml2json.ts" ]
+  "files": [ "source/index.ts" ]
 }

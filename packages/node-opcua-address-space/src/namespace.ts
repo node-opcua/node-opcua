@@ -17,7 +17,15 @@ import { sameNodeId } from "node-opcua-nodeid";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { Argument, ArgumentOptions, AxisInformation, EnumValueType, EUInformation, Range } from "node-opcua-types";
+import {
+    Argument,
+    ArgumentOptions,
+    AxisInformation,
+    EnumDefinition, EnumField,
+    EnumValueType,
+    EUInformation,
+    Range
+} from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import {
@@ -90,6 +98,7 @@ import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "./ua_tw
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
+import {coerceInt64} from "node-opcua-basic-types";
 
 const doDebug = false;
 
@@ -1371,8 +1380,9 @@ export class UANamespace implements NamespacePublic {
 
         if (_.isString(options.enumeration[0])) {
 
+            const enumeration  = options.enumeration  as string[];
             // enumeration is a array of string
-            definition = (options.enumeration as any).map((str: string, index: number) => coerceLocalizedText(str));
+            definition = enumeration.map((str: string, index: number) => coerceLocalizedText(str));
 
             const value = new Variant({
                 arrayType: VariantArrayType.Array,
@@ -1391,10 +1401,28 @@ export class UANamespace implements NamespacePublic {
             });
             assert(enumStrings.browseName.toString() === "EnumStrings");
 
+            // set $definition
+            // EnumDefinition
+            //   This Structured DataType is used to provide the metadata for a custom Enumeration or
+            //   OptionSet DataType. It is derived from the DataType DataTypeDefinition.
+            // Enum Field:
+            //   This Structured DataType is used to provide the metadata for a field of a custom Enumeration
+            //   or OptionSet DataType. It is derived from the DataType EnumValueType. If used for an
+            //   OptionSet, the corresponding Value in the base type contains the number of the bit associated
+            //   with the field. The EnumField is formally defined in Table 37.
+            (enumType as any).$definition = new EnumDefinition({
+                fields: enumeration.map((x: string, index: number) => new EnumField({
+                    name: x,
+                    description: "",
+                    value: coerceInt64(index)
+                }))
+            });
+
         } else {
 
+            const enumeration  = options.enumeration  as EnumerationItem[];
             // construct the definition object
-            definition = (options.enumeration as any).map((enumItem: EnumerationItem) => {
+            definition = enumeration.map((enumItem: EnumerationItem) => {
                 return new EnumValueType({
                     description: coerceLocalizedText(enumItem.description),
                     displayName: coerceLocalizedText(enumItem.displayName),
@@ -1418,6 +1446,14 @@ export class UANamespace implements NamespacePublic {
                 valueRank: 1
             });
             assert(enumValues.browseName.toString() === "EnumValues");
+
+            (enumType as any).$definition = new EnumDefinition({
+                fields: enumeration.map((x: EnumerationItem, index: number) => new EnumField({
+                    name: x.displayName.toString(),
+                    description: x.description ? x.description.toString() : "",
+                    value: coerceInt64(x.value)
+                }))
+            });
         }
         // now create the string value property
         // <UAVariable NodeId="i=7612" BrowseName="EnumStrings"

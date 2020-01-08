@@ -96,7 +96,7 @@ describe("testing add new DataType ", function(this: any) {
 
 describe("issue #108", () => {
 
-    it("should verify that UAObjectType.instantiate works for complex ObjectTypes like DI and ADI", async () => {
+    it("should verify that UAObjectType.instantiate works for complex ObjectTypes like DI and ADI (reading from old 1.02 NodeSet)", async () => {
 
         const addressSpace = AddressSpace.create();
 

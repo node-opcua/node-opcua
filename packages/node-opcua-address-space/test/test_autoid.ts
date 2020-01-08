@@ -1,26 +1,18 @@
-import * as path from "path";
-import * as fs from "fs";
 import * as should from "should";
-import { BinaryStream } from "node-opcua-binary-stream";
+import * as mocha from "mocha";
 
+import { BinaryStream } from "node-opcua-binary-stream";
 import { nodesets } from "node-opcua-nodesets";
-import { findBuiltInType } from "node-opcua-factory";
 import {
-    ExtraDataTypeManager,
     resolveDynamicExtensionObject
 } from "node-opcua-client-dynamic-extension-object"
-
-
-import { AddressSpace, generateAddressSpace, } from "..";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { Variant, DataType } from "node-opcua-variant";
 
-import { encode_decode_round_trip_test} from "node-opcua-packet-analyzer/dist/test_helpers";
-
+import { AddressSpace, generateAddressSpace, } from "..";
 import { ensureDatatypeExtracted } from "../source/loader/load_nodeset2";
-import { NodeId } from "node-opcua-nodeid";
 
-describe("Testing AutoID custom types", function (this: any) {
+describe("Testing AutoID custom types", async function (this: any) {
 
     this.timeout(200000); // could be slow on appveyor !
 
@@ -34,8 +26,7 @@ describe("Testing AutoID custom types", function (this: any) {
             nodesets.di,
             nodesets.autoId,
         ]);
-
-        ensureDatatypeExtracted(addressSpace);
+        await ensureDatatypeExtracted(addressSpace);
     });
     after(() => {
         addressSpace.dispose();
@@ -46,16 +37,14 @@ describe("Testing AutoID custom types", function (this: any) {
         interface ScanSettings extends ExtensionObject {
 
         }
-        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/")
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         nsAutoId.should.eql(2);
 
         const scanSettingsDataTypeNode = addressSpace.findDataType("ScanSettings", nsAutoId)!;
         should.exist(scanSettingsDataTypeNode);
 
         const settings = addressSpace.constructExtensionObject(scanSettingsDataTypeNode, {
-
-        } as ScanSettings) as ScanSettings;
-
+        }) as ScanSettings;
 
     });
 
@@ -85,7 +74,7 @@ describe("Testing AutoID custom types", function (this: any) {
 
         }
         
-        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/")
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         nsAutoId.should.eql(2);
 
         const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
@@ -116,6 +105,7 @@ describe("Testing AutoID custom types", function (this: any) {
             }
         }) as ScanResult;
 
+        // console.log("xxx = ", scanResult.toString());
         ///xx console.log(scanResult.schema);
 
         const v = new Variant({

@@ -50,6 +50,16 @@ const debugLog = make_debugLog(__filename);
 
 async function extractSchema(session: IBasicSession, nodeId: NodeId): Promise<TypeDictionary> {
     const rawSchemaDataValue = await session.read({ nodeId, attributeId: AttributeIds.Value });
+    if (!rawSchemaDataValue.value.value) {
+        // note : this case could happen as
+        //        NodeSet2.xml file from version 1.02 do not expose the schema in the value
+        const name = await session.read({nodeId, attributeId: AttributeIds.BrowseName});
+        const message = "cannot extract schema => " + name.value.value.toString() + " " +
+            nodeId.toString() + " " +
+            rawSchemaDataValue.value.toString();
+        console.log(message);
+        throw new Error(message);
+    }
     const rawSchema = rawSchemaDataValue.value.value.toString();
 
     /* istanbul ignore next */
@@ -81,7 +91,7 @@ export async function exploreDataTypeDefinition(
     const references = result.references || [];
 
     /* istanbul ignore next */
-    if (references.length === 0) {
+    if (references.length   === 0) {
         return;
     }
 
@@ -112,15 +122,16 @@ export async function exploreDataTypeDefinition(
 
     for (const [ref, defaultBinary] of tuples) {
         const name = ref.browseName!.name!.toString();
-        const constructor = getOrCreateConstructor(name, typeDictionary, defaultBinary);
 
         /* istanbul ignore next */
         if (doDebug) {
             // let's verify that constructor is operational
             try {
+                const constructor = getOrCreateConstructor(name, typeDictionary, defaultBinary);
                 const testObject = new constructor();
                 debugLog(testObject.toString());
             } catch (err) {
+                debugLog("Error")
                 debugLog(err.message);
             }
         }
@@ -144,8 +155,12 @@ export async function extractNamespaceDataType(
         nodeId: resolveNodeId("Server_NamespaceArray")
     });
 
-    if (dataValueNamespaceArray.statusCode === StatusCodes.Good && dataValueNamespaceArray.value.value.length > 0) {
+    if (dataValueNamespaceArray.statusCode === StatusCodes.Good &&
+        (dataValueNamespaceArray.value.value && dataValueNamespaceArray.value.value.length > 0)) {
         dataTypeManager.setNamespaceArray(dataValueNamespaceArray.value.value as string[]);
+    }
+    if (!dataValueNamespaceArray.value.value) {
+        dataTypeManager.setNamespaceArray([]);
     }
 
     // DatType/OPCBinary => i=93 [OPCBinarySchema_TypeSystem]
@@ -168,7 +183,6 @@ export async function extractNamespaceDataType(
     const references = result.references!.filter(
         (e: ReferenceDescription) => e.nodeId.namespace !== 0);
 
-    const promises: Array<Promise<void>> = [];
 
     const dataTypeDictionaryType = resolveNodeId("DataTypeDictionaryType");
 
@@ -179,10 +193,10 @@ export async function extractNamespaceDataType(
         dataTypeManager.registerTypeDictionary(ref.nodeId, typeDictionary);
     }
 
+    const promises: Array<Promise<void>> = [];
     for (const ref of references) {
         promises.push(processReference(ref));
     }
-
     await Promise.all(promises);
 }
 
@@ -247,7 +261,15 @@ export async function getDataTypeDefinition(
     const encodingReference = result1.references![0]!;
     assert(encodingReference.browseName.toString() === "Default Binary");
 
-    // Xx console.log("Has Encoding ", encodingReference.browseName.toString(), encodingReference.nodeId.toString());
+    /* istanbul ignore next */
+    if (doDebug) {
+        const browseName = await session.read({
+            attributeId: AttributeIds.BrowseName,
+            nodeId: dataTypeNodeId
+        });
+        console.log(browseName.value.value.toString(), "Has Encoding ", encodingReference.browseName.toString(), encodingReference.nodeId.toString());
+    }
+    const defaultBinaryEncodingNodeId = encodingReference.nodeId;
 
     const nodeToBrowse2 = {
         browseDirection: BrowseDirection.Forward,
@@ -297,5 +319,9 @@ export async function getDataTypeDefinition(
     if (schema.id.value === 0) {
         schema.id = dataTypeNodeId;
     }
+    if (!schema.encodingDefaultBinary || schema.encodingDefaultBinary.value === 0) {
+        schema.encodingDefaultBinary = defaultBinaryEncodingNodeId;
+    }
+    // todo XML and JSON encoding ...
     return schema;
 }

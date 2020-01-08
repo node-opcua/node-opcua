@@ -78,7 +78,7 @@ export class ClientSidePublishEngine {
     }
 
     public suspend(suspendedState: boolean) {
-        assert(this.isSuspended !== !!suspendedState, "pusblushEngine: invalid state");
+        assert(this.isSuspended !== !!suspendedState, "publishEngine: invalid state");
         this.isSuspended = !!suspendedState;
         if (!this.isSuspended) {
             this.replenish_publish_request_queue();

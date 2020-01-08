@@ -17,53 +17,53 @@
         <Alias Alias="HasProperty">i=46</Alias>
         <Alias Alias="HasComponent">i=47</Alias>
         <Alias Alias="EUInformation">i=887</Alias>
-        <Alias Alias="MyStructureDataType">ns=1;i=3001</Alias>
-        <Alias Alias="MyOtherStructureDataType">ns=1;i=3003</Alias>
+        <Alias Alias="MyStructureDataType">ns=1;i=3</Alias>
+        <Alias Alias="MyOtherStructureDataType">ns=1;i=4</Alias>
     </Aliases>
     <Extensions>
         <Extension>
-            <ua:ModelInfo Tool="UaModeler" Hash="t8V639LgyRli27e7Nuoh2w==" Version="1.5.2"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="Viyedj9cKLm1PBIn4e9ggg==" Version="1.6.3"/>
         </Extension>
     </Extensions>
-    <UADataType NodeId="ns=1;i=3003" BrowseName="1:MyOtherStructureDataType">
+    <UADataType NodeId="ns=1;i=4" BrowseName="1:MyOtherStructureDataType">
         <DisplayName>MyOtherStructureDataType</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5003</Reference>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=7</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=8</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
         </References>
         <Definition Name="1:MyOtherStructureDataType">
-            <Field DataType="String" ValueRank="1" Name="ListOfNames"/>
-            <Field DataType="MyStructureDataType" ValueRank="1" Name="ListOfValues"/>
+            <Field DataType="String" ValueRank="1" ArrayDimensions="0" Name="Names"/>
+            <Field DataType="MyStructureDataType" ValueRank="1" ArrayDimensions="0" Name="Values"/>
         </Definition>
     </UADataType>
-    <UAVariable DataType="String" Historizing="true" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6012" BrowseName="1:MyOtherStructureDataType">
+    <UAVariable DataType="String" Historizing="true" ParentNodeId="ns=1;i=10" NodeId="ns=1;i=21" BrowseName="1:MyOtherStructureDataType">
         <DisplayName>MyOtherStructureDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5003</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=7</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10</Reference>
         </References>
         <Value>
             <uax:String>MyOtherStructureDataType</uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="String" Historizing="true" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6013" BrowseName="1:MyOtherStructureDataType">
+    <UAVariable DataType="String" Historizing="true" ParentNodeId="ns=1;i=12" NodeId="ns=1;i=22" BrowseName="1:MyOtherStructureDataType">
         <DisplayName>MyOtherStructureDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5004</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=8</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=12</Reference>
         </References>
         <Value>
             <uax:String>//xs:element[@name='MyOtherStructureDataType']</uax:String>
         </Value>
     </UAVariable>
-    <UADataType NodeId="ns=1;i=3001" BrowseName="1:MyStructureDataType">
+    <UADataType NodeId="ns=1;i=3" BrowseName="1:MyStructureDataType">
         <DisplayName>MyStructureDataType</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=6</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
         </References>
         <Definition Name="1:MyStructureDataType">
@@ -74,36 +74,36 @@
             <Field DataType="EUInformation" Name="EngineeringUnits"/>
         </Definition>
     </UADataType>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6005" BrowseName="1:MyStructureDataType">
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=10" NodeId="ns=1;i=14" BrowseName="1:MyStructureDataType">
         <DisplayName>MyStructureDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5001</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10</Reference>
         </References>
         <Value>
             <uax:String>MyStructureDataType</uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6006" BrowseName="1:MyStructureDataType">
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=12" NodeId="ns=1;i=15" BrowseName="1:MyStructureDataType">
         <DisplayName>MyStructureDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5002</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=6</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=12</Reference>
         </References>
         <Value>
             <uax:String>//xs:element[@name='MyStructureDataType']</uax:String>
         </Value>
     </UAVariable>
-    <UAVariable SymbolicName="my_data_type_BinarySchema" DataType="ByteString" NodeId="ns=1;i=6001" BrowseName="1:my_data_type">
+    <UAVariable SymbolicName="my_data_type_BinarySchema" DataType="ByteString" NodeId="ns=1;i=10" BrowseName="1:my_data_type">
         <DisplayName>my_data_type</DisplayName>
         <Description>Collects the data type descriptions of http://yourorganisation.org/my_data_type/</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=6012</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=6005</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=21</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=14</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=11</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
         </References>
         <Value>
@@ -116,39 +116,39 @@
         GFjZT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBLyIvPgogPG9wYzpTdHJ1Y3R1cmVkV
         HlwZSBCYXNlVHlwZT0idWE6RXh0ZW5zaW9uT2JqZWN0IiBOYW1lPSJNeU90aGVyU3RydWN0d
         XJlRGF0YVR5cGUiPgogIDxvcGM6RmllbGQgVHlwZU5hbWU9Im9wYzpJbnQzMiIgTmFtZT0iT
-        m9PZkxpc3RPZk5hbWVzIi8+CiAgPG9wYzpGaWVsZCBMZW5ndGhGaWVsZD0iTm9PZkxpc3RPZ
-        k5hbWVzIiBUeXBlTmFtZT0ib3BjOkNoYXJBcnJheSIgTmFtZT0iTGlzdE9mTmFtZXMiLz4KI
-        CA8b3BjOkZpZWxkIFR5cGVOYW1lPSJvcGM6SW50MzIiIE5hbWU9Ik5vT2ZMaXN0T2ZWYWx1Z
-        XMiLz4KICA8b3BjOkZpZWxkIExlbmd0aEZpZWxkPSJOb09mTGlzdE9mVmFsdWVzIiBUeXBlT
-        mFtZT0idG5zOk15U3RydWN0dXJlRGF0YVR5cGUiIE5hbWU9Ikxpc3RPZlZhbHVlcyIvPgogP
-        C9vcGM6U3RydWN0dXJlZFR5cGU+CiA8b3BjOlN0cnVjdHVyZWRUeXBlIEJhc2VUeXBlPSJ1Y
-        TpFeHRlbnNpb25PYmplY3QiIE5hbWU9Ik15U3RydWN0dXJlRGF0YVR5cGUiPgogIDxvcGM6R
-        mllbGQgVHlwZU5hbWU9Im9wYzpJbnQzMiIgTmFtZT0iSWQiLz4KICA8b3BjOkZpZWxkIFR5c
-        GVOYW1lPSJvcGM6RG91YmxlIiBOYW1lPSJIaWdoVmFsdWUiLz4KICA8b3BjOkZpZWxkIFR5c
-        GVOYW1lPSJvcGM6RG91YmxlIiBOYW1lPSJMb3dWYWx1ZSIvPgogIDxvcGM6RmllbGQgVHlwZ
-        U5hbWU9InVhOkxvY2FsaXplZFRleHQiIE5hbWU9IkNvbW1lbnRzIi8+CiAgPG9wYzpGaWVsZ
-        CBUeXBlTmFtZT0idWE6RVVJbmZvcm1hdGlvbiIgTmFtZT0iRW5naW5lZXJpbmdVbml0cyIvP
-        gogPC9vcGM6U3RydWN0dXJlZFR5cGU+Cjwvb3BjOlR5cGVEaWN0aW9uYXJ5Pgo=</uax:ByteString>
+        m9PZk5hbWVzIi8+CiAgPG9wYzpGaWVsZCBMZW5ndGhGaWVsZD0iTm9PZk5hbWVzIiBUeXBlT
+        mFtZT0ib3BjOkNoYXJBcnJheSIgTmFtZT0iTmFtZXMiLz4KICA8b3BjOkZpZWxkIFR5cGVOY
+        W1lPSJvcGM6SW50MzIiIE5hbWU9Ik5vT2ZWYWx1ZXMiLz4KICA8b3BjOkZpZWxkIExlbmd0a
+        EZpZWxkPSJOb09mVmFsdWVzIiBUeXBlTmFtZT0idG5zOk15U3RydWN0dXJlRGF0YVR5cGUiI
+        E5hbWU9IlZhbHVlcyIvPgogPC9vcGM6U3RydWN0dXJlZFR5cGU+CiA8b3BjOlN0cnVjdHVyZ
+        WRUeXBlIEJhc2VUeXBlPSJ1YTpFeHRlbnNpb25PYmplY3QiIE5hbWU9Ik15U3RydWN0dXJlR
+        GF0YVR5cGUiPgogIDxvcGM6RmllbGQgVHlwZU5hbWU9Im9wYzpJbnQzMiIgTmFtZT0iSWQiL
+        z4KICA8b3BjOkZpZWxkIFR5cGVOYW1lPSJvcGM6RG91YmxlIiBOYW1lPSJIaWdoVmFsdWUiL
+        z4KICA8b3BjOkZpZWxkIFR5cGVOYW1lPSJvcGM6RG91YmxlIiBOYW1lPSJMb3dWYWx1ZSIvP
+        gogIDxvcGM6RmllbGQgVHlwZU5hbWU9InVhOkxvY2FsaXplZFRleHQiIE5hbWU9IkNvbW1lb
+        nRzIi8+CiAgPG9wYzpGaWVsZCBUeXBlTmFtZT0idWE6RVVJbmZvcm1hdGlvbiIgTmFtZT0iR
+        W5naW5lZXJpbmdVbml0cyIvPgogPC9vcGM6U3RydWN0dXJlZFR5cGU+Cjwvb3BjOlR5cGVEa
+        WN0aW9uYXJ5Pgo=</uax:ByteString>
         </Value>
     </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6002" BrowseName="NamespaceUri">
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=10" NodeId="ns=1;i=11" BrowseName="NamespaceUri">
         <DisplayName>NamespaceUri</DisplayName>
         <References>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6001</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
             <uax:String>http://yourorganisation.org/my_data_type/</uax:String>
         </Value>
     </UAVariable>
-    <UAVariable SymbolicName="my_data_type_XmlSchema" DataType="ByteString" NodeId="ns=1;i=6003" BrowseName="1:my_data_type">
+    <UAVariable SymbolicName="my_data_type_XmlSchema" DataType="ByteString" NodeId="ns=1;i=12" BrowseName="1:my_data_type">
         <DisplayName>my_data_type</DisplayName>
         <Description>Collects the data type descriptions of http://yourorganisation.org/my_data_type/</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=6013</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=6006</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=6004</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=22</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=15</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=13</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=92</Reference>
         </References>
         <Value>
@@ -160,209 +160,193 @@
         Dx4czppbXBvcnQgbmFtZXNwYWNlPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvMjAwO
         C8wMi9UeXBlcy54c2QiLz4KIDx4czpjb21wbGV4VHlwZSBuYW1lPSJNeU90aGVyU3RydWN0d
         XJlRGF0YVR5cGUiPgogIDx4czpzZXF1ZW5jZT4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzP
-        SIwIiBtYXhPY2N1cnM9IjEiIHR5cGU9InVhOkxpc3RPZlN0cmluZyIgbmFtZT0iTGlzdE9mT
-        mFtZXMiLz4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9IjEiIHR5c
-        GU9InRuczpMaXN0T2ZNeVN0cnVjdHVyZURhdGFUeXBlIiBuYW1lPSJMaXN0T2ZWYWx1ZXMiL
-        z4KICA8L3hzOnNlcXVlbmNlPgogPC94czpjb21wbGV4VHlwZT4KIDx4czplbGVtZW50IHR5c
-        GU9InRuczpNeU90aGVyU3RydWN0dXJlRGF0YVR5cGUiIG5hbWU9Ik15T3RoZXJTdHJ1Y3R1c
-        mVEYXRhVHlwZSIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9Ikxpc3RPZk15T3RoZXJTdHJ1Y
-        3R1cmVEYXRhVHlwZSI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlbWVudCBtaW5PY2N1c
-        nM9IjAiIG1heE9jY3Vycz0idW5ib3VuZGVkIiB0eXBlPSJ0bnM6TXlPdGhlclN0cnVjdHVyZ
-        URhdGFUeXBlIiBuYW1lPSJNeU90aGVyU3RydWN0dXJlRGF0YVR5cGUiIG5pbGxhYmxlPSJ0c
-        nVlIi8+CiAgPC94czpzZXF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVud
-        CB0eXBlPSJ0bnM6TGlzdE9mTXlPdGhlclN0cnVjdHVyZURhdGFUeXBlIiBuYW1lPSJMaXN0T
-        2ZNeU90aGVyU3RydWN0dXJlRGF0YVR5cGUiIG5pbGxhYmxlPSJ0cnVlIi8+CiA8eHM6Y29tc
-        GxleFR5cGUgbmFtZT0iTXlTdHJ1Y3R1cmVEYXRhVHlwZSI+CiAgPHhzOnNlcXVlbmNlPgogI
-        CA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0iMSIgdHlwZT0ieHM6aW50I
-        iBuYW1lPSJJZCIvPgogICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0iM
-        SIgdHlwZT0ieHM6ZG91YmxlIiBuYW1lPSJIaWdoVmFsdWUiLz4KICAgPHhzOmVsZW1lbnQgb
-        WluT2NjdXJzPSIwIiBtYXhPY2N1cnM9IjEiIHR5cGU9InhzOmRvdWJsZSIgbmFtZT0iTG93V
-        mFsdWUiLz4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9IjEiIHR5c
-        GU9InVhOkxvY2FsaXplZFRleHQiIG5hbWU9IkNvbW1lbnRzIi8+CiAgIDx4czplbGVtZW50I
-        G1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSIxIiB0eXBlPSJ1YTpFVUluZm9ybWF0aW9uIiBuY
-        W1lPSJFbmdpbmVlcmluZ1VuaXRzIi8+CiAgPC94czpzZXF1ZW5jZT4KIDwveHM6Y29tcGxle
-        FR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6TXlTdHJ1Y3R1cmVEYXRhVHlwZSIgbmFtZ
-        T0iTXlTdHJ1Y3R1cmVEYXRhVHlwZSIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9Ikxpc3RPZ
-        k15U3RydWN0dXJlRGF0YVR5cGUiPgogIDx4czpzZXF1ZW5jZT4KICAgPHhzOmVsZW1lbnQgb
-        WluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91bmRlZCIgdHlwZT0idG5zOk15U3RydWN0d
-        XJlRGF0YVR5cGUiIG5hbWU9Ik15U3RydWN0dXJlRGF0YVR5cGUiIG5pbGxhYmxlPSJ0cnVlI
-        i8+CiAgPC94czpzZXF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0e
-        XBlPSJ0bnM6TGlzdE9mTXlTdHJ1Y3R1cmVEYXRhVHlwZSIgbmFtZT0iTGlzdE9mTXlTdHJ1Y
-        3R1cmVEYXRhVHlwZSIgbmlsbGFibGU9InRydWUiLz4KPC94czpzY2hlbWE+Cg==</uax:ByteString>
+        SIwIiBtYXhPY2N1cnM9IjEiIHR5cGU9InVhOkxpc3RPZlN0cmluZyIgbmFtZT0iTmFtZXMiL
+        z4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9IjEiIHR5cGU9InRuc
+        zpMaXN0T2ZNeVN0cnVjdHVyZURhdGFUeXBlIiBuYW1lPSJWYWx1ZXMiLz4KICA8L3hzOnNlc
+        XVlbmNlPgogPC94czpjb21wbGV4VHlwZT4KIDx4czplbGVtZW50IHR5cGU9InRuczpNeU90a
+        GVyU3RydWN0dXJlRGF0YVR5cGUiIG5hbWU9Ik15T3RoZXJTdHJ1Y3R1cmVEYXRhVHlwZSIvP
+        gogPHhzOmNvbXBsZXhUeXBlIG5hbWU9Ikxpc3RPZk15T3RoZXJTdHJ1Y3R1cmVEYXRhVHlwZ
+        SI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY
+        3Vycz0idW5ib3VuZGVkIiB0eXBlPSJ0bnM6TXlPdGhlclN0cnVjdHVyZURhdGFUeXBlIiBuY
+        W1lPSJNeU90aGVyU3RydWN0dXJlRGF0YVR5cGUiIG5pbGxhYmxlPSJ0cnVlIi8+CiAgPC94c
+        zpzZXF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6T
+        GlzdE9mTXlPdGhlclN0cnVjdHVyZURhdGFUeXBlIiBuYW1lPSJMaXN0T2ZNeU90aGVyU3Ryd
+        WN0dXJlRGF0YVR5cGUiIG5pbGxhYmxlPSJ0cnVlIi8+CiA8eHM6Y29tcGxleFR5cGUgbmFtZ
+        T0iTXlTdHJ1Y3R1cmVEYXRhVHlwZSI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlbWVud
+        CBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0iMSIgdHlwZT0ieHM6aW50IiBuYW1lPSJJZCIvP
+        gogICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0iMSIgdHlwZT0ieHM6Z
+        G91YmxlIiBuYW1lPSJIaWdoVmFsdWUiLz4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwI
+        iBtYXhPY2N1cnM9IjEiIHR5cGU9InhzOmRvdWJsZSIgbmFtZT0iTG93VmFsdWUiLz4KICAgP
+        HhzOmVsZW1lbnQgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9IjEiIHR5cGU9InVhOkxvY2Fsa
+        XplZFRleHQiIG5hbWU9IkNvbW1lbnRzIi8+CiAgIDx4czplbGVtZW50IG1pbk9jY3Vycz0iM
+        CIgbWF4T2NjdXJzPSIxIiB0eXBlPSJ1YTpFVUluZm9ybWF0aW9uIiBuYW1lPSJFbmdpbmVlc
+        mluZ1VuaXRzIi8+CiAgPC94czpzZXF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6Z
+        WxlbWVudCB0eXBlPSJ0bnM6TXlTdHJ1Y3R1cmVEYXRhVHlwZSIgbmFtZT0iTXlTdHJ1Y3R1c
+        mVEYXRhVHlwZSIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9Ikxpc3RPZk15U3RydWN0dXJlR
+        GF0YVR5cGUiPgogIDx4czpzZXF1ZW5jZT4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwI
+        iBtYXhPY2N1cnM9InVuYm91bmRlZCIgdHlwZT0idG5zOk15U3RydWN0dXJlRGF0YVR5cGUiI
+        G5hbWU9Ik15U3RydWN0dXJlRGF0YVR5cGUiIG5pbGxhYmxlPSJ0cnVlIi8+CiAgPC94czpzZ
+        XF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6TGlzd
+        E9mTXlTdHJ1Y3R1cmVEYXRhVHlwZSIgbmFtZT0iTGlzdE9mTXlTdHJ1Y3R1cmVEYXRhVHlwZ
+        SIgbmlsbGFibGU9InRydWUiLz4KPC94czpzY2hlbWE+Cg==</uax:ByteString>
         </Value>
     </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6004" BrowseName="NamespaceUri">
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=12" NodeId="ns=1;i=13" BrowseName="NamespaceUri">
         <DisplayName>NamespaceUri</DisplayName>
         <References>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6003</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
             <uax:String>http://yourorganisation.org/my_data_type/Types.xsd</uax:String>
         </Value>
     </UAVariable>
-    <UAVariableType DataType="MyOtherStructureDataType" NodeId="ns=1;i=2002" BrowseName="1:MyOtherStructureType">
+    <UAVariableType DataType="MyOtherStructureDataType" NodeId="ns=1;i=2" BrowseName="1:MyOtherStructureType">
         <DisplayName>MyOtherStructureType</DisplayName>
         <References>
-            <Reference ReferenceType="HasComponent">ns=1;i=6014</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=6015</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=23</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=24</Reference>
         </References>
         <Value>
             <uax:ExtensionObject>
                 <uax:TypeId>
-                    <uax:Identifier>ns=1;i=5004</uax:Identifier>
+                    <uax:Identifier>ns=1;i=8</uax:Identifier>
                 </uax:TypeId>
                 <uax:Body>
                     <MyOtherStructureDataType xmlns="http://yourorganisation.org/my_data_type/Types.xsd">
-                        <ListOfNames>
-                            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"></String>
-                        </ListOfNames>
-                        <ListOfValues/>
+                        <Names>
+                            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">Hello</String>
+                            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">World</String>
+                        </Names>
+                        <Values>
+                            <MyStructureDataType>
+                                <Id>1</Id>
+                                <HighValue>0</HighValue>
+                                <LowValue>0</LowValue>
+                                <Comments/>
+                                <EngineeringUnits>
+                                    <NamespaceUri xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"></NamespaceUri>
+                                    <UnitId xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">0</UnitId>
+                                    <DisplayName xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"/>
+                                    <Description xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"/>
+                                </EngineeringUnits>
+                            </MyStructureDataType>
+                            <MyStructureDataType>
+                                <Id>2</Id>
+                                <HighValue>0</HighValue>
+                                <LowValue>0</LowValue>
+                                <Comments/>
+                                <EngineeringUnits>
+                                    <NamespaceUri xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"></NamespaceUri>
+                                    <UnitId xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">0</UnitId>
+                                    <DisplayName xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"/>
+                                    <Description xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"/>
+                                </EngineeringUnits>
+                            </MyStructureDataType>
+                        </Values>
                     </MyOtherStructureDataType>
                 </uax:Body>
             </uax:ExtensionObject>
         </Value>
     </UAVariableType>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=2002" ValueRank="1" NodeId="ns=1;i=6014" BrowseName="1:ListOfNames">
-        <DisplayName>ListOfNames</DisplayName>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=2" ValueRank="1" NodeId="ns=1;i=23" BrowseName="1:Names">
+        <DisplayName>Names</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2002</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2</Reference>
         </References>
     </UAVariable>
-    <UAVariable DataType="MyStructureDataType" ParentNodeId="ns=1;i=2002" ValueRank="1" NodeId="ns=1;i=6015" BrowseName="1:ListOfValues">
-        <DisplayName>ListOfValues</DisplayName>
+    <UAVariable DataType="MyStructureDataType" ParentNodeId="ns=1;i=2" ValueRank="1" NodeId="ns=1;i=24" BrowseName="1:Values">
+        <DisplayName>Values</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2002</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2</Reference>
         </References>
-        <Value>
-            <uax:ExtensionObject>
-                <uax:TypeId>
-                    <uax:Identifier>ns=1;i=5002</uax:Identifier>
-                </uax:TypeId>
-                <uax:Body>
-                    <MyStructureDataType xmlns="http://yourorganisation.org/my_data_type/Types.xsd">
-                        <Id>0</Id>
-                        <HighValue>0</HighValue>
-                        <LowValue>0</LowValue>
-                        <Comments/>
-                        <EngineeringUnits>
-                            <NamespaceUri xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"></NamespaceUri>
-                            <UnitId xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">0</UnitId>
-                            <DisplayName xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"/>
-                            <Description xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"/>
-                        </EngineeringUnits>
-                    </MyStructureDataType>
-                </uax:Body>
-            </uax:ExtensionObject>
-        </Value>
     </UAVariable>
     <UAVariableType DataType="MyStructureDataType" NodeId="ns=1;i=2001" BrowseName="1:MyStructureType">
         <DisplayName>MyStructureType</DisplayName>
         <References>
-            <Reference ReferenceType="HasComponent">ns=1;i=6010</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=6011</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=6008</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=6007</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=6009</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6004</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6005</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6002</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6001</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6003</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
         </References>
-        <Value>
-            <uax:ExtensionObject>
-                <uax:TypeId>
-                    <uax:Identifier>ns=1;i=5002</uax:Identifier>
-                </uax:TypeId>
-                <uax:Body>
-                    <MyStructureDataType xmlns="http://yourorganisation.org/my_data_type/Types.xsd">
-                        <Id>0</Id>
-                        <HighValue>0</HighValue>
-                        <LowValue>0</LowValue>
-                        <Comments/>
-                        <EngineeringUnits>
-                            <NamespaceUri xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"></NamespaceUri>
-                            <UnitId xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">0</UnitId>
-                            <DisplayName xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"/>
-                            <Description xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"/>
-                        </EngineeringUnits>
-                    </MyStructureDataType>
-                </uax:Body>
-            </uax:ExtensionObject>
-        </Value>
     </UAVariableType>
-    <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6010" BrowseName="1:Comments">
+    <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6004" BrowseName="1:Comments">
         <DisplayName>Comments</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
         </References>
     </UAVariable>
-    <UAVariable DataType="EUInformation" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6011" BrowseName="1:EngineeringUnits">
+    <UAVariable DataType="EUInformation" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6005" BrowseName="1:EngineeringUnits">
         <DisplayName>EngineeringUnits</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
         </References>
     </UAVariable>
-    <UAVariable DataType="Double" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6008" BrowseName="1:HighValue">
+    <UAVariable DataType="Double" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6002" BrowseName="1:HighValue">
         <DisplayName>HighValue</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
         </References>
     </UAVariable>
-    <UAVariable DataType="Int32" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6007" BrowseName="1:Id">
+    <UAVariable DataType="Int32" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6001" BrowseName="1:Id">
         <DisplayName>Id</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
         </References>
     </UAVariable>
-    <UAVariable DataType="Double" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6009" BrowseName="1:LowValue">
+    <UAVariable DataType="Double" ParentNodeId="ns=1;i=2001" NodeId="ns=1;i=6003" BrowseName="1:LowValue">
         <DisplayName>LowValue</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2001</Reference>
         </References>
     </UAVariable>
-    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5" BrowseName="Default Binary">
         <DisplayName>Default Binary</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3001</Reference>
-            <Reference ReferenceType="HasDescription">ns=1;i=6005</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=14</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5002" BrowseName="Default XML">
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=6" BrowseName="Default XML">
         <DisplayName>Default XML</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3001</Reference>
-            <Reference ReferenceType="HasDescription">ns=1;i=6006</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=15</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5003" BrowseName="Default Binary">
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=7" BrowseName="Default Binary">
         <DisplayName>Default Binary</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
-            <Reference ReferenceType="HasDescription">ns=1;i=6012</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=4</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=21</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5004" BrowseName="Default XML">
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=8" BrowseName="Default XML">
         <DisplayName>Default XML</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
-            <Reference ReferenceType="HasDescription">ns=1;i=6013</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=4</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=22</Reference>
         </References>
     </UAObject>
 </UANodeSet>

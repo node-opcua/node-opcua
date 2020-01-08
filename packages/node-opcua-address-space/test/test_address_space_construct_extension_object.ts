@@ -11,6 +11,7 @@
 //
 "use strict";
 
+import * as mocha from "mocha";
 import * as fs from "fs";
 import * as utils from "node-opcua-utils";
 
@@ -43,11 +44,12 @@ const context = SessionContext.defaultContext;
 
 function debugLog(...args: any[]) {
     //
+    console.log.apply(console.log, args);
 }
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing address space namespace loading", function(this: any) {
+describe("testing address space namespace loading", function (this: any) {
     this.timeout(Math.max(300000, this._timeout));
 
     let addressSpace: AddressSpace;
@@ -70,11 +72,10 @@ describe("testing address space namespace loading", function(this: any) {
         addressSpace.dispose();
     });
 
-    it("should be possible to create a ServerStatus ExtensionObject ", () => {
+    it("should be possible to create a ServerStatus ExtensionObject", () => {
 
         const serverStatusDataType = addressSpace.findDataType("ServerStatusDataType")!;
         serverStatusDataType.nodeClass.should.eql(NodeClass.DataType);
-
         serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
         const serverStatus = addressSpace.constructExtensionObject(serverStatusDataType);
         serverStatus.constructor.name.should.eql("ServerStatusDataType");
@@ -195,8 +196,8 @@ describe("testing address space namespace loading", function(this: any) {
         debugLog(myOtherStructureDataType.xmlEncodingDefinition.toString());
 
         const options = {
-            listOfNames: ["Hello", "World"],
-            listOfValues: [
+            names: ["Hello", "World"],
+            values: [
                 {
                     highValue: 100,
                     lowValue: 50,
@@ -210,14 +211,14 @@ describe("testing address space namespace loading", function(this: any) {
         const op = addressSpace.constructExtensionObject(myOtherStructureDataType, options) as any;
 
         op.constructor.name.should.eql("MyOtherStructureDataType");
-        // xx console.log(op.toString());
+        debugLog(op.toString());
 
-        op.listOfNames.should.eql(["Hello", "World"]);
-        op.listOfValues.length.should.eql(2);
-        op.listOfValues[0].highValue.should.eql(100);
-        op.listOfValues[0].lowValue.should.eql(50);
-        op.listOfValues[1].highValue.should.eql(101);
-        op.listOfValues[1].lowValue.should.eql(51);
+        op.names.should.eql(["Hello", "World"]);
+        op.values.length.should.eql(2);
+        op.values[0].highValue.should.eql(100);
+        op.values[0].lowValue.should.eql(50);
+        op.values[1].highValue.should.eql(101);
+        op.values[1].lowValue.should.eql(51);
 
     });
 

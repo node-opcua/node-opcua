@@ -14,15 +14,14 @@
   },
   "jsRules": {},
   "rules": {
-
-    "indent": [true, "spaces", 4],
-    
+    "indent": [
+      true,
+      "spaces",
+      4
+    ],
     "object-literal-sort-keys": true,
-
     "max-line-length": false,
-
     "no-consecutive-blank-lines": true,
-
     "interface-name": [
       false,
       "never-prefix"
@@ -35,6 +34,14 @@
     ],
     "trailing-comma": [
       true
+    ],
+    "space-before-function-paren": [
+      true,
+      {
+        "anonymous": "always",
+        "named": "never",
+        "asyncArrow": "always"
+      }
     ]
   },
   "rulesDirectory": []
