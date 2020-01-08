@@ -33,15 +33,15 @@
   "node-opcua-utils": "^2.4.0",
   "once": "^1.4.0",
   "thenify": "^3.3.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
   "@types/async": "^3.0.3",
-  "@types/underscore": "^1.9.3",
+  "@types/underscore": "^1.9.4",
   "dequeue": "^1.0.5",
   "node-opcua-leak-detector": "^2.3.0",
   "should": "13.2.3",
-  "sinon": "^7.5.0"
+  "sinon": "^8.0.4"
  },
  "eslintConfig": {
   "env": {

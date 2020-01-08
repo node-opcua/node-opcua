@@ -26,11 +26,11 @@
   "node-opcua-utils": "^2.4.0",
   "node-opcua-xml2json": "^2.4.0",
   "prettier": "^1.19.1",
-  "typescript": "^3.7.2",
-  "underscore": "^1.9.1"
+  "typescript": "^3.7.4",
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
-  "@types/prettier": "^1.18.3",
+  "@types/prettier": "^1.19.0",
   "node-opcua-binary-stream": "^2.3.0",
   "node-opcua-extension-object": "^2.4.0",
   "node-opcua-packet-analyzer": "^2.4.0",

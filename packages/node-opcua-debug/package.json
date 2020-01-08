@@ -11,7 +11,7 @@
   "hexy": "^0.3.0",
   "node-opcua-assert": "^2.3.0",
   "node-opcua-buffer-utils": "^2.3.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
   "chalk": "^3.0.0",

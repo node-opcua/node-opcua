@@ -13,7 +13,7 @@
  "license": "MIT",
  "dependencies": {
   "should": "13.2.3",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "repository": {
   "type": "git",

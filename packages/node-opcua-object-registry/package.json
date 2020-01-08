@@ -12,7 +12,7 @@
  "dependencies": {
   "node-opcua-assert": "^2.3.0",
   "node-opcua-debug": "^2.3.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
   "colors": "^1.4.0",

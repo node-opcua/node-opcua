@@ -23,7 +23,7 @@
   "node-opcua-service-endpoints": "^2.4.0",
   "node-opcua-service-secure-channel": "^2.4.0",
   "node-opcua-types": "^2.4.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
   "node-opcua-generator": "^2.4.0"

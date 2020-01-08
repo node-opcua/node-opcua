@@ -13,7 +13,7 @@
   "node-opcua-factory": "^2.4.0",
   "node-opcua-nodeid": "^2.3.0",
   "node-opcua-utils": "^2.4.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
   "node-opcua-packet-analyzer": "^2.4.0",

@@ -19,7 +19,7 @@
   "node-opcua-nodeid": "^2.3.0",
   "node-opcua-status-code": "^2.3.0",
   "node-opcua-utils": "^2.4.0",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.2"
  },
  "devDependencies": {
   "node-opcua-debug": "^2.3.0"

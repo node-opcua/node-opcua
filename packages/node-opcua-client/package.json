@@ -16,7 +16,7 @@
     "dependencies": {
         "@types/async": "^3.0.3",
         "@types/once": "^1.4.0",
-        "@types/underscore": "^1.9.3",
+        "@types/underscore": "^1.9.4",
         "async": "^3.1.0",
         "callbackify": "^1.1.0",
         "chalk": "^3.0.0",
@@ -61,7 +61,7 @@
         "node-opcua-variant": "^2.4.0",
         "once": "^1.4.0",
         "thenify": "^3.3.0",
-        "underscore": "^1.9.1"
+        "underscore": "^1.9.2"
     },
     "devDependencies": {
         "@types/mocha": "^5.2.7",
@@ -72,7 +72,7 @@
         "node-opcua-leak-detector": "^2.3.0",
         "node-opcua-nodesets": "^2.1.5",
         "should": "13.2.3",
-        "sinon": "^7.5.0"
+        "sinon": "^8.0.4"
     },
     "eslintConfig": {
         "env": {
