@@ -8,7 +8,7 @@ istanbul:
 			--exclude="_generated_opcua_types.ts" \
 			--exclude="packages/node-opcua-types/**/*.*" \
 			--exclude="packages/node-opcua-utils/**/*.*" \
-			--cwd=. node packages/run_all_mocha_tests.js 
+			--cwd=. node -max_old_space_size=8192 packages/run_all_mocha_tests.js 
 
 
 coveralls: istanbul
