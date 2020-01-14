@@ -1,6 +1,6 @@
 {
  "name": "node-opcua-aggregates",
- "version": "2.4.0",
+ "version": "2.4.2",
  "description": "pure nodejs OPCUA SDK - module -end2end-test",
  "main": "./dist/index.js",
  "types": "./dist/index.d.ts",
@@ -10,16 +10,16 @@
  },
  "dependencies": {
   "@types/async": "^3.0.3",
-  "node-opcua-address-space": "^2.4.0",
+  "node-opcua-address-space": "^2.4.2",
   "node-opcua-constants": "^2.1.6",
-  "node-opcua-data-value": "^2.4.0",
-  "node-opcua-nodeid": "^2.3.0",
-  "node-opcua-nodesets": "^2.1.5",
-  "node-opcua-service-history": "^2.4.0",
-  "node-opcua-status-code": "^2.3.0",
-  "node-opcua-types": "^2.4.0",
-  "node-opcua-utils": "^2.4.0",
-  "node-opcua-variant": "^2.4.0"
+  "node-opcua-data-value": "^2.4.2",
+  "node-opcua-nodeid": "^2.4.2",
+  "node-opcua-nodesets": "^2.4.2",
+  "node-opcua-service-history": "^2.4.2",
+  "node-opcua-status-code": "^2.4.2",
+  "node-opcua-types": "^2.4.2",
+  "node-opcua-utils": "^2.4.2",
+  "node-opcua-variant": "^2.4.2"
  },
  "devDependencies": {
   "@types/mocha": "^5.2.7",
@@ -27,7 +27,7 @@
   "colors": "^1.4.0",
   "delayed": "^2.0.0",
   "node-opcua-assert": "^2.3.0",
-  "node-opcua-leak-detector": "^2.3.0",
+  "node-opcua-leak-detector": "^2.4.2",
   "should": "13.2.3",
   "sinon": "^8.0.4",
   "underscore": "^1.9.2",
