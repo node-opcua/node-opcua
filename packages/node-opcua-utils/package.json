@@ -14,7 +14,7 @@
   "underscore": "^1.9.2"
  },
  "devDependencies": {
-  "@types/node": "^13.1.5",
+  "@types/node": "^13.1.6",
   "@types/underscore": "^1.9.4",
   "chalk": "^3.0.0",
   "should": "13.2.3",
