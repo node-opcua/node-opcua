@@ -41,6 +41,14 @@ export interface EnumerationInfo {
     valueIndex: { [id: number]: IEnumItem };
 }
 
+function findBasicDataType(dataType: UADataType): DataType {
+    if (dataType.nodeId.value <= 25) {
+        // we have a well-known DataType
+        return dataType.nodeId.value as DataType;
+    }
+    return findBasicDataType(dataType.subtypeOfObj as UADataType);
+}
+
 export class UADataType extends BaseNode implements UADataTypePublic {
 
     public readonly nodeClass = NodeClass.DataType;
@@ -82,6 +90,11 @@ export class UADataType extends BaseNode implements UADataTypePublic {
         this.definition = options.definition || [];
 
         this.isAbstract = (options.isAbstract === null) ? false : options.isAbstract;
+    }
+
+
+    public get basicDataType(): DataType {
+        return findBasicDataType(this);
     }
 
     public readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue {

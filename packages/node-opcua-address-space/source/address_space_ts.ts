@@ -453,6 +453,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     readValueAsync(context: SessionContext | null, callback: DataValueCallback): void;
 
+    isEnumeration(): boolean;
     /**
      *
      */
@@ -844,9 +845,12 @@ export interface UADataType extends BaseNode {
     readonly xmlEncodingNodeId: NodeId;
     readonly xmlEncoding: BaseNode;
 
+    readonly basicDataType: DataType;
+
     isSupertypeOf(referenceType: NodeIdLike | UADataType): boolean;
 
     getEncodingNode(encodingName: string): BaseNode | null;
+
 }
 
 export interface InstantiateOptions {

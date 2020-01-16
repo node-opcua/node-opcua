@@ -26,7 +26,7 @@ import { Variant } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 
-import { XmlWriter } from "../source";
+import { XmlWriter, Namespace } from "../source";
 
 import { BaseNode } from "./base_node";
 import { UANamespace } from "./namespace";
@@ -199,6 +199,7 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
         case DataType.Int32:
         case DataType.UInt16:
         case DataType.UInt32:
+        case DataType.String:
             xw.startElement(DataType[dataType]);
             // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
             xw.text(value.toString());
@@ -208,7 +209,7 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
         case DataType.QualifiedName:
         case DataType.StatusCode:
         default:
-            throw new Error("_dumpVariantVlaue incomplete " + value + " " + DataType[dataType]);
+            throw new Error("_dumpVariantValue!! incomplete  value = " + value + "  dataType=" + dataType + " - v=" + DataType[dataType]);
     }
 }
 
@@ -216,6 +217,7 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
 function _dumpVariantInnerValue(xw: XmlWriter, dataType: DataType, value: any) {
 
     switch (dataType) {
+        case null:
         case DataType.Null:
             break;
         case DataType.LocalizedText:
@@ -239,13 +241,15 @@ function _dumpVariantInnerValue(xw: XmlWriter, dataType: DataType, value: any) {
         case DataType.Int32:
         case DataType.UInt16:
         case DataType.UInt32:
+        case DataType.String:
             xw.text(value.toString());
             break;
         case DataType.ByteString:
         case DataType.QualifiedName:
         case DataType.StatusCode:
         default:
-            throw new Error("_dumpVariantValue incomplete " + value + " " + DataType[dataType] + " dataType = " + dataType);
+            throw new Error("_dumpVariantInnerValue incomplete "
+                + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
     }
 }
 
@@ -254,7 +258,14 @@ function _dumpVariantInnerValue(xw: XmlWriter, dataType: DataType, value: any) {
  * @param field
  */
 function findBaseDataType(field: StructuredTypeField): DataType {
-    return (DataType as any)[field.fieldType] as DataType;
+    if (field.fieldType === "UAString") {
+        return DataType.String;
+    }
+    const result = (DataType as any)[field.fieldType] as DataType;
+    if (!result) {
+        throw new Error("cannot find baseDataType of " + field.name + "= " + field.fieldType);
+    }
+    return result;
 }
 
 /**
@@ -280,6 +291,7 @@ function _dumpVariantExtensionObjectValue_Body(
                         const baseType = findBaseDataType(field);
                         _dumpVariantInnerValue(xw, baseType, v);
                     } catch (err) {
+                        console.log("Error in _dumpVariantExtensionObjectValue_Body !!!", err.message);
                         console.log(schema.name);
                         console.log(field);
                         // throw err;
@@ -340,17 +352,12 @@ function _dumpValue(
     }
     const dataTypeName = dataTypeNode.browseName.toString();
 
-    const baseDataTypeName = (DataType as any)[DataType[value.dataType]];
+    const baseDataTypeName = DataType[value.dataType];
 
-    // console.log("nodeset_to_xml #_dumpValue Cannot find ", dataTypeName,node.dataType.toString());
-    if (false && !hasStructuredType(dataTypeName)) {
-        console.log("Ignore ", value.toString());
-        return;
-    } // this is not a extension object
-
-    if (baseDataTypeName === DataType.Null) {
+    if (baseDataTypeName === "Null") {
         return;
     }
+    assert(typeof baseDataTypeName === "string");
 
     xw.startElement("Value");
 
@@ -750,7 +757,8 @@ function dumpUAVariable(
         const dataTypeNode = addressSpace.findNode(node.dataType);
         if (dataTypeNode) {
             // verify that data Type is in alias
-            const dataTypeName = dataTypeNode.browseName.toString();
+            //xx const dataTypeName = dataTypeNode.browseName.toString();
+            const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
             xw.writeAttribute("DataType", dataTypeName);
         }
     }
@@ -991,17 +999,28 @@ function buildUpAliases(
     // put datatype into aliases list
     if (node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.VariableType) {
 
-        const nodeV = node as UAVariableType || UAVariable;
+        const nodeV = node as (UAVariableType | UAVariable);
 
         if (nodeV.dataType && nodeV.dataType.namespace === 0 && nodeV.dataType.value !== 0) {
             // name
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, nodeV.dataType));
             if (dataTypeName) {
                 if (!options.aliases[dataTypeName]) {
-                    options.aliases[dataTypeName] = nodeV.dataType;
+                    options.aliases[dataTypeName] = n(xw, nodeV.dataType);
                 }
             }
         }
+
+        if (nodeV.dataType && nodeV.dataType.namespace !== 0 && nodeV.dataType.value !== 0) {
+            // name
+            const dataTypeName = b(xw, resolveDataTypeName(addressSpace, nodeV.dataType));
+            if (dataTypeName) {
+                if (!options.aliases[dataTypeName]) {
+                    options.aliases[dataTypeName] = n(xw, nodeV.dataType);
+                }
+            }
+        }
+
     }
 
     function collectReferenceNameInAlias(reference: Reference) {
@@ -1041,7 +1060,7 @@ function writeAliases(
 
 function constructNamespaceDependency(
     namespace: NamespacePrivate
-) {
+): Namespace[] {
 
     const addressSpace = namespace.addressSpace;
 
@@ -1079,9 +1098,11 @@ function constructNamespaceDependency(
     return dependency;
 }
 
-function constructNamespaceTranslationTable(dependency: any): any {
+type ITranslationTable = { [key: number]: number };
 
-    const translationTable: any = {};
+function constructNamespaceTranslationTable(dependency: Namespace[]): ITranslationTable {
+
+    const translationTable: ITranslationTable = {};
     for (let i = 0; i < dependency.length; i++) {
         translationTable[dependency[i].index] = i;
     }
@@ -1126,7 +1147,6 @@ export function dumpXml(
     options: any
 ) {
 
-    const addressSpace = node.addressSpace;
 
     const namespace = node.namespace as NamespacePrivate;
 
@@ -1192,7 +1212,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
     }
 
     xw.endElement();
-
+    visitUANode
     // ------------- Namespace Uris
     xw.startElement("Models");
     xw.endElement();
@@ -1234,7 +1254,6 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
     // -------------- Any thing else
     xw.writeComment("Other Nodes");
     const nodes = _.values(this._nodeid_index).sort(sortByBrowseName);
-    // xx xw.writeComment(" "+ nodes.map(x=>x.browseName.name.toString()).join(" "));
     for (const node of nodes) {
         if (!xw.visitedNode[_hash(node)]) {
             node.dumpXML(xw);

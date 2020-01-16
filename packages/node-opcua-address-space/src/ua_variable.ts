@@ -397,7 +397,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         return dataValue;
     }
 
-    public _getEnumerationInfo(): EnumerationInfo {
+    public isEnumeration(): boolean {
         // DataType must be one of Enumeration
         const dataTypeNode = this.addressSpace.findDataType(this.dataType) as UADataType;
         if (!dataTypeNode) {
@@ -408,7 +408,14 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         if (!enumerationNode) {
             throw new Error(" Cannot find 'Enumeration' DataType in standard address Space");
         }
-        assert(dataTypeNode.isSupertypeOf(enumerationNode));
+        return dataTypeNode.isSupertypeOf(enumerationNode);
+    }
+
+
+    public _getEnumerationInfo(): EnumerationInfo {
+        // DataType must be one of Enumeration
+        assert(this.isEnumeration(), "Variable is not an enumeration");
+        const dataTypeNode = this.addressSpace.findDataType(this.dataType)! as UADataType;
         return dataTypeNode._getEnumerationInfo();
     }
 
@@ -431,9 +438,10 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public readEnumValue(): IEnumItem {
-        const enumInfo = this._getEnumerationInfo();
         const value = this.readValue().value.value as number;
-        return { value, name: enumInfo.valueIndex[value].name };
+        const enumInfo = this._getEnumerationInfo();
+        const enumV = enumInfo.valueIndex[value];
+        return { value, name: enumV ? enumV.name : "?????" };
     }
 
     public writeEnumValue(value: string | number): void {
@@ -443,15 +451,23 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         if (_.isString(value)) {
 
             if (!enumInfo.nameIndex.hasOwnProperty(value)) {
-                throw new Error("UAVariable#writeEnumValue: cannot find value " + value);
+
+                const possibleValues = Object.keys(enumInfo.nameIndex).join(",")
+                throw new Error("UAVariable#writeEnumValue: cannot find value " +
+                    value + " in [" + possibleValues + "]");
             }
             const valueIndex = enumInfo.nameIndex[value].value;
             value = valueIndex;
         }
         if (_.isFinite(value)) {
 
+            const possibleValues = Object.keys(enumInfo.nameIndex).join(",")
+
             if (!enumInfo.valueIndex[value]) {
-                throw new Error("UAVariable#writeEnumValue : value out of range " + value);
+
+                throw new Error("UAVariable#writeEnumValue : value out of range " + value +
+                    " in [" + possibleValues + "]"
+                );
             }
             this.setValueFromSource({
                 dataType: DataType.Int32,

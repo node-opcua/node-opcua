@@ -12,9 +12,9 @@ export * from "../source/helpers/argument_list";
 export * from "../source/helpers/call_helpers";
 export * from "../source/helpers/ensure_secure_access";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
-export { UACertificateExpirationAlarm }  from "./alarms_and_conditions";
+export { UACertificateExpirationAlarm } from "./alarms_and_conditions";
 export { ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";
-export {ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";
+export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";
 
 export { generateAddressSpace } from "../source";
 export { promoteToStateMachine } from "./state_machine/finite_state_machine";
@@ -33,3 +33,4 @@ export * from "./data_access/ua_mutlistate_value_discrete";
 export * from "./alarms_and_conditions/condition_info";
 export * from "../test_helpers";
 export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
+export { Reference } from "./reference";
