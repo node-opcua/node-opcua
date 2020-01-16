@@ -10,7 +10,7 @@ import { Variant } from "node-opcua-variant";
 
 import {
     AddressSpace,
-    getMiniAddressSpace ,
+    getMiniAddressSpace,
     UAVariable,
     createBoilerType,
     dumpXml,
@@ -21,7 +21,7 @@ import {
 
 import * as nodesets from "node-opcua-nodesets";
 
-const doDebug = true;
+const doDebug = process.env.DEBUGTEST || false;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -72,7 +72,7 @@ describe("testing nodeset to xml", () => {
         });
 
         const enumStringNode = myEnumType.getChildByName("EnumStrings")! as UAVariable;
-        const values = enumStringNode.readValue().value.value.map(x=>x.toString());
+        const values = enumStringNode.readValue().value.value.map(x => x.toString());
         console.log(values.toString());
         values.join(",").should.eql("locale=null text=RUNNING,locale=null text=STOPPED");
 
@@ -204,7 +204,7 @@ describe("testing nodeset to xml", () => {
 
     });
 
-    it("should ouput a Method to xml", () => {
+    it("should output a Method to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
 
         const rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
@@ -231,7 +231,7 @@ describe("testing nodeset to xml", () => {
                 }
             ]
         });
-        const str = dumpXml(obj1, {});
+        let str = dumpXml(obj1, {});
 
         str.should.match(/<\/UAMethod>/g, "must have a complex UAMethod element");
         str.should.match(/BrowseName="InputArguments"/);
@@ -240,6 +240,97 @@ describe("testing nodeset to xml", () => {
         if (doDebug) {
             console.log(str);
         }
+
+        str = str.replace(/LastModified=\".*\" /g, "LastModified=\"DATE\" ");
+        str.should.eql(`<?xml version="1.0"?>
+<UANodeSet xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.02" LastModified="DATE" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <Aliases>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+    </Aliases>
+<!--Object - 1:Object {{{{ -->
+    <UAObject NodeId="ns=1;i=1000" BrowseName="1:Object">
+        <DisplayName>Object</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1001</Reference>
+        </References>
+    </UAObject>
+    <UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger">
+        <DisplayName>Trigger</DisplayName>
+        <Description></Description>
+        <References>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=1002</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=1003</Reference>
+        </References>
+    </UAMethod>
+    <UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ValueRank="1" DataType="Argument">
+        <DisplayName>InputArguments</DisplayName>
+        <Description>the definition of the input argument of method 1:Object.1:Trigger</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>1
+        <Value>
+            <ListOfExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=0;i=297</Identifier>
+                    </TypeId>
+                    <Body>
+                        <Argument>
+                            <Name>ShutterLag</Name>
+                            <DataType>
+                                <Identifier>ns=0;i=7</Identifier>
+                            </DataType>
+                            <ValueRank>-1</ValueRank>
+                            <ArrayDimensions>0</ArrayDimensions>
+                            <Description>
+                                <Locale/>
+                                <Text>specifies the number of seconds to wait before the picture is taken </Text>
+                            </Description>
+                        </Argument>
+                    </Body>
+                </ExtensionObject>
+            </ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ValueRank="1" DataType="Argument">
+        <DisplayName>OutputArguments</DisplayName>
+        <Description>the definition of the output arguments of method 1:Object.1:Trigger</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>1
+        <Value>
+            <ListOfExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=0;i=297</Identifier>
+                    </TypeId>
+                    <Body>
+                        <Argument>
+                            <Name>Image</Name>
+                            <DataType>
+                                <Identifier>ns=0;i=30</Identifier>
+                            </DataType>
+                            <ValueRank>-1</ValueRank>
+                            <ArrayDimensions>0</ArrayDimensions>
+                            <Description>
+                                <Locale/>
+                                <Text>the generated image</Text>
+                            </Description>
+                        </Argument>
+                    </Body>
+                </ExtensionObject>
+            </ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+<!--Object - 1:Object }}}} -->
+</UANodeSet>`);
 
     });
 
