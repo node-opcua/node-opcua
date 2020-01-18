@@ -79,6 +79,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
 
     public definition_name: string;
     public definition: any[];
+
     private enumStrings?: any;
     private enumValues?: any;
     private $definition?: DataTypeDefinition;

@@ -1,10 +1,11 @@
+import * as should from "should";
+import { removeDecoration } from "./test_helpers";
 
 import {
     AddressSpace,
     generateAddressSpace
 } from "node-opcua-address-space";
 import { nodesets } from "node-opcua-nodesets";
-import * as should from "should";
 import { displayNodeElement } from "..";
 
 
@@ -26,7 +27,6 @@ describe("displayNodeElement", () => {
         addressSpace.dispose();
     });
 
-    const nonTextReg = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
 
     it("displayNodeElement", () => {
 
@@ -35,52 +35,48 @@ describe("displayNodeElement", () => {
         const str1 = displayNodeElement(addressSpace.rootFolder.objects.server);
 
 
-        // remove color characters etc...
-        function s(str: string): string {
-            return str.replace(nonTextReg, "");
-        }
-        s(str1).should.eql(`┌────────────────┬──────────────┬──────────────────────────┬───────────────┬─────────────────────────┬───────────────────────────────────────┬───────┐
+        removeDecoration(str1).should.eql(`┌────────────────┬──────────────┬──────────────────────────┬───────────────┬─────────────────────────┬───────────────────────────────────────┬───────┐
 │ ReferenceType  │ NodeId       │ BrowseName               │ ModellingRule │ TypeDefinition          │ DataType                              │ Value │
 ├────────────────┼──────────────┴──────────────────────────┴───────────────┴─────────────────────────┴───────────────────────────────────────┴───────┤
 │ BrowseName:    │ Server                                                                                                                            │
 ├────────────────┼──────────────┬──────────────────────────┬───────────────┬─────────────────────────┬───────────────────────────────────────┬───────┤
-│ HasProperty⟶Ⓥ  │ ns=0;i=2254  │ ServerArray              │               │ PropertyType            │ String                                │ null  │
+│ HasProperty Ⓥ  │ ns=0;i=2254  │ ServerArray              │               │ PropertyType            │ String                                │ null  │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasProperty⟶Ⓥ  │ ns=0;i=2255  │ NamespaceArray           │               │ PropertyType            │ String                                │ null  │
+│ HasProperty Ⓥ  │ ns=0;i=2255  │ NamespaceArray           │               │ PropertyType            │ String                                │ null  │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓥ │ ns=0;i=2256  │ ServerStatus             │               │ ServerStatusType        │ ServerStatusDataType(ExtensionObject) │ null  │
+│ HasComponent Ⓥ │ ns=0;i=2256  │ ServerStatus             │               │ ServerStatusType        │ ServerStatusDataType(ExtensionObject) │ null  │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasProperty⟶Ⓥ  │ ns=0;i=2267  │ ServiceLevel             │               │ PropertyType            │ Byte                                  │ null  │
+│ HasProperty Ⓥ  │ ns=0;i=2267  │ ServiceLevel             │               │ PropertyType            │ Byte                                  │ null  │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasProperty⟶Ⓥ  │ ns=0;i=2994  │ Auditing                 │               │ PropertyType            │ Boolean                               │ null  │
+│ HasProperty Ⓥ  │ ns=0;i=2994  │ Auditing                 │               │ PropertyType            │ Boolean                               │ null  │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasProperty⟶Ⓥ  │ ns=0;i=12885 │ EstimatedReturnTime      │               │ PropertyType            │ DateTime                              │ null  │
+│ HasProperty Ⓥ  │ ns=0;i=12885 │ EstimatedReturnTime      │               │ PropertyType            │ DateTime                              │ null  │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasProperty⟶Ⓥ  │ ns=0;i=17634 │ LocalTime                │               │ PropertyType            │ TimeZoneDataType(ExtensionObject)     │ null  │
+│ HasProperty Ⓥ  │ ns=0;i=17634 │ LocalTime                │               │ PropertyType            │ TimeZoneDataType(ExtensionObject)     │ null  │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓞ │ ns=0;i=2268  │ ServerCapabilities       │               │ ServerCapabilitiesType  │                                       │       │
+│ HasComponent Ⓞ │ ns=0;i=2268  │ ServerCapabilities       │               │ ServerCapabilitiesType  │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓞ │ ns=0;i=2274  │ ServerDiagnostics        │               │ ServerDiagnosticsType   │                                       │       │
+│ HasComponent Ⓞ │ ns=0;i=2274  │ ServerDiagnostics        │               │ ServerDiagnosticsType   │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓞ │ ns=0;i=2295  │ VendorServerInfo         │               │ VendorServerInfoType    │                                       │       │
+│ HasComponent Ⓞ │ ns=0;i=2295  │ VendorServerInfo         │               │ VendorServerInfoType    │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓞ │ ns=0;i=2296  │ ServerRedundancy         │               │ ServerRedundancyType    │                                       │       │
+│ HasComponent Ⓞ │ ns=0;i=2296  │ ServerRedundancy         │               │ ServerRedundancyType    │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓞ │ ns=0;i=11715 │ Namespaces               │               │ NamespacesType          │                                       │       │
+│ HasComponent Ⓞ │ ns=0;i=11715 │ Namespaces               │               │ NamespacesType          │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓜ │ ns=0;i=11492 │ GetMonitoredItems        │               │                         │                                       │       │
+│ HasComponent Ⓜ │ ns=0;i=11492 │ GetMonitoredItems        │               │                         │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓜ │ ns=0;i=12873 │ ResendData               │               │                         │                                       │       │
+│ HasComponent Ⓜ │ ns=0;i=12873 │ ResendData               │               │                         │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓜ │ ns=0;i=12749 │ SetSubscriptionDurable   │               │                         │                                       │       │
+│ HasComponent Ⓜ │ ns=0;i=12749 │ SetSubscriptionDurable   │               │                         │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓜ │ ns=0;i=12886 │ RequestServerStateChange │               │                         │                                       │       │
+│ HasComponent Ⓜ │ ns=0;i=12886 │ RequestServerStateChange │               │                         │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓞ │ ns=0;i=17594 │ Dictionaries             │               │ DictionaryFolderType    │                                       │       │
+│ HasComponent Ⓞ │ ns=0;i=17594 │ Dictionaries             │               │ DictionaryFolderType    │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓞ │ ns=0;i=12637 │ ServerConfiguration      │               │ ServerConfigurationType │                                       │       │
+│ HasComponent Ⓞ │ ns=0;i=12637 │ ServerConfiguration      │               │ ServerConfigurationType │                                       │       │
 ├────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
-│ HasComponent⟶Ⓞ │ ns=0;i=14443 │ PublishSubscribe         │               │ PublishSubscribeType    │                                       │       │
+│ HasComponent Ⓞ │ ns=0;i=14443 │ PublishSubscribe         │               │ PublishSubscribeType    │                                       │       │
 └────────────────┴──────────────┴──────────────────────────┴───────────────┴─────────────────────────┴───────────────────────────────────────┴───────┘`)
 
     });

@@ -29,7 +29,7 @@ export function setNamespaceMetaData(namespace: Namespace) {
 
     const metaData = namespaceMetadataType.instantiate({
         browseName: deriveName,
-        organizedBy: namespaces,
+        componentOf: namespaces,
     }) as any as UANamespaceMetadataType;
 
 

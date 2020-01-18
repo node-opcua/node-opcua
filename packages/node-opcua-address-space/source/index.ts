@@ -26,3 +26,4 @@ export { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixtur
 export { ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";
 export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";
 export { Reference } from "../src/reference";
+export { NodeIdManager } from "../src/nodeid_manager";

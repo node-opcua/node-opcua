@@ -17,12 +17,12 @@ export interface BuildModelOptions {
 export async function buildModel(data: BuildModelOptions): Promise<string> {
     try {
         const addressSpace = AddressSpace.create();
-        await generateAddressSpace(addressSpace, data.xmlFiles);
-        // workarround)
-        (addressSpace as any)._private_namespaceIndex = 2;
+
+        // create own namespace (before loading other xml files)
         const ns = addressSpace.registerNamespace(data.namespaceUri);
-        //xx console.log("own namespace = ", addressSpace.getOwnNamespace().index);
-        //xx console.log("    namespace = ", ns.index);
+
+        await generateAddressSpace(addressSpace, data.xmlFiles);
+
         data.createModel(addressSpace);
         const xmlModel = ns.toNodeset2XML();
         addressSpace.dispose();

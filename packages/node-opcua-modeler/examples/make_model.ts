@@ -35,6 +35,8 @@ const nodesetFilename = "./MyModel.NodeSet2.xml";
 
 function createModel(addressSpace: AddressSpace) {
 
+    const ns = addressSpace.getOwnNamespace();
+
     const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
     if (nsDI < 0) {
         throw new Error("Cannot find DI namespace!");
@@ -50,11 +52,6 @@ function createModel(addressSpace: AddressSpace) {
         throw new Error("Cannot find DevieType");
     }
 
-    const ns = addressSpace.registerNamespace(namespaceUri);
-
-    console.log("own namespace = ", addressSpace.getOwnNamespace().index);
-    console.log("    namespace = ", ns.index);
-
     // construct namespace meta data
     const metaData = setNamespaceMetaData(addressSpace.getOwnNamespace());
 
@@ -66,7 +63,7 @@ function createModel(addressSpace: AddressSpace) {
     promoteToMandatory(boilerType, "Manufacturer", nsDI);
     promoteToMandatory(boilerType, "DeviceHealth", nsDI);
 
-    displayNodeElement(boilerType);
+    console.log(displayNodeElement(boilerType));
 }
 
 async function buildModelFile() {

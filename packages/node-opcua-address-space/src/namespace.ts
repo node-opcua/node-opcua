@@ -6,13 +6,13 @@ import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import { coerceInt64 } from "node-opcua-basic-types";
 import { AxisScaleEnumeration } from "node-opcua-data-access";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
 import { dumpIf } from "node-opcua-debug";
-import { makeNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
@@ -98,18 +98,14 @@ import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "./ua_tw
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
-import {coerceInt64} from "node-opcua-basic-types";
+
+import { NodeIdManager } from "./nodeid_manager";
+
 
 const doDebug = false;
 
 const regExp1 = /^(s|i|b|g)=/;
 const regExpNamespaceDotBrowseName = /^[0-9]+:(.*)/;
-const hasPropertyRefId = resolveNodeId("HasProperty");
-const hasComponentRefId = resolveNodeId("HasComponent");
-
-export const NamespaceOptions = {
-    nodeIdNameSeparator: "-"
-};
 
 function detachNode(node: BaseNode) {
     const addressSpace = node.addressSpace;
@@ -166,10 +162,10 @@ export class UANamespace implements NamespacePublic {
     public _objectTypeMap: { [key: string]: UAObjectType };
     public _variableTypeMap: { [key: string]: UAVariableType };
     public _referenceTypeMap: { [key: string]: UAReferenceType };
-    private _internal_id_counter: number;
     private _aliases: { [key: string]: NodeId };
     private _referenceTypeMapInv: any;
     private _dataTypeMap: { [key: string]: UADataType };
+    private _nodeIdManager: NodeIdManager;
 
     constructor(options: any) {
 
@@ -184,7 +180,6 @@ export class UANamespace implements NamespacePublic {
 
         this.index = options.index;
         this._nodeid_index = {};
-        this._internal_id_counter = 1000;
 
         this._aliases = {};
         this._objectTypeMap = {};
@@ -192,6 +187,7 @@ export class UANamespace implements NamespacePublic {
         this._referenceTypeMap = {};
         this._referenceTypeMapInv = {};
         this._dataTypeMap = {};
+        this._nodeIdManager = new NodeIdManager(this.index);
     }
 
     public getDefaultNamespace(): UANamespace {
@@ -591,7 +587,7 @@ export class UANamespace implements NamespacePublic {
      *
      */
     public createDataType(options: CreateDataTypeOptions): UADataType {
-        assert(options.hasOwnProperty("isAbstract"));
+        assert(options.hasOwnProperty("isAbstract"), "must provide isAbstract");
         assert(!options.hasOwnProperty("nodeClass"));
         assert(options.hasOwnProperty("browseName"), "must provide a browseName");
 
@@ -1380,7 +1376,7 @@ export class UANamespace implements NamespacePublic {
 
         if (_.isString(options.enumeration[0])) {
 
-            const enumeration  = options.enumeration  as string[];
+            const enumeration = options.enumeration as string[];
             // enumeration is a array of string
             definition = enumeration.map((str: string, index: number) => coerceLocalizedText(str));
 
@@ -1420,7 +1416,7 @@ export class UANamespace implements NamespacePublic {
 
         } else {
 
-            const enumeration  = options.enumeration  as EnumerationItem[];
+            const enumeration = options.enumeration as EnumerationItem[];
             // construct the definition object
             definition = enumeration.map((enumItem: EnumerationItem) => {
                 return new EnumValueType({
@@ -1763,51 +1759,13 @@ export class UANamespace implements NamespacePublic {
     ): UAOffNormalAlarm {
         return UAOffNormalAlarm.instantiate(this, "OffNormalAlarmType", options, data);
     }
+
     // --- internal stuff
     public _construct_nodeId(options: any): NodeId {
-
-        const addressSpace = this.addressSpace;
-        let nodeId = options.nodeId;
-
-        if (!nodeId) {
-
-            for (const ref of options.references) {
-                ref._referenceType = addressSpace.findReferenceType(ref.referenceType);
-
-                /* istanbul ignore next */
-                if (!ref._referenceType) {
-                    throw new Error("Cannot find referenceType " + JSON.stringify(ref));
-                }
-                ref.referenceType = ref._referenceType.nodeId;
-            }
-            // find HasComponent, or has Property reverse
-            const parentRef = _identifyParentInReference(options.references);
-            if (parentRef) {
-                assert(parentRef.nodeId instanceof NodeId);
-                assert(options.browseName instanceof QualifiedName);
-                nodeId = __combineNodeId(parentRef.nodeId, options.browseName);
-            }
-        } else if (typeof nodeId === "string") {
-            if (nodeId.match(regExp1)) {
-                nodeId = "ns=" + this.index + ";" + nodeId;
-            }
-        }
-        nodeId = nodeId || this._build_new_NodeId();
-        if (nodeId instanceof NodeId) {
-            return nodeId;
-        }
-        nodeId = resolveNodeId(nodeId);
-        assert(nodeId instanceof NodeId);
-        return nodeId;
+        return this._nodeIdManager.constructNodeId(this.addressSpace, options);
     }
-
     public _build_new_NodeId(): NodeId {
-        let nodeId: NodeId;
-        do {
-            nodeId = makeNodeId(this._internal_id_counter, this.index);
-            this._internal_id_counter += 1;
-        } while (this._nodeid_index.hasOwnProperty(nodeId.toString()));
-        return nodeId;
+        return this._nodeIdManager.buildNewNodeId(this.addressSpace);
     }
 
     public _register(node: BaseNode): void {
@@ -2190,15 +2148,6 @@ export class UANamespace implements NamespacePublic {
     }
 }
 
-function _identifyParentInReference(references: Reference[]) {
-    assert(_.isArray(references));
-    const candidates = references.filter((ref: Reference) => {
-        return ref.isForward === false &&
-            (sameNodeId(ref.referenceType, hasComponentRefId) || sameNodeId(ref.referenceType, hasPropertyRefId));
-    });
-    assert(candidates.length <= 1);
-    return candidates[0];
-}
 
 const _constructors_map: any = {
     DataType: UADataType,
@@ -2210,15 +2159,6 @@ const _constructors_map: any = {
     VariableType: UAVariableType,
     View: UAView
 };
-
-function __combineNodeId(parentNodeId: NodeId, name: string) {
-    let nodeId = null;
-    if (parentNodeId.identifierType === NodeId.NodeIdType.STRING) {
-        const childName = parentNodeId.value + NamespaceOptions.nodeIdNameSeparator + name.toString();
-        nodeId = new NodeId(NodeId.NodeIdType.STRING, childName, parentNodeId.namespace);
-    }
-    return nodeId;
-}
 
 /**
  * @method _coerce_parent

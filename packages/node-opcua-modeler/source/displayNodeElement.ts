@@ -59,11 +59,12 @@ export function displayNodeElement(node: BaseNode): string {
         }
 
         // ignore subtype references
+        /* istanbul ignore next */
         if (!ref.node) {
             console.log(" Halt ", ref.toString());
             return;
         }
-        const dir = ref.isForward ? "⟶" : "⟵";
+        const dir = ref.isForward ? " " : " ";
         const refNode = ref.node!;
 
         const refType = ref._referenceType!;

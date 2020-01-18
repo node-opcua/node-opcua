@@ -19,6 +19,7 @@ function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
         return ref.nodeId.toString() === node2.nodeId.toString()
     });
     const ref = r ? r[0] : null;
+    /* instanbul ignore next */
     if (!ref) {
         console.log(node1.toString());
         console.log(node2.toString());
@@ -38,6 +39,7 @@ export function promoteToMandatory(
     const addressSpace = node.addressSpace;
 
     const superType = node.subtypeOfObj!;
+    /* istanbul ignore next */
     if (!superType) {
         throw new Error("Expecting a super type");
     }
@@ -45,21 +47,30 @@ export function promoteToMandatory(
     const browseResult = addressSpace.browsePath(makeBrowsePath(superType.nodeId,
         `.${namespaceIndex}:${propertyName}`));
     const propNodeId = (!browseResult.targets || !browseResult.targets[0]) ? null : browseResult.targets[0].targetId!;
+
+    /* istanbul ignore next */
     if (!propNodeId) {
         displayNodeElement(superType);
         throw new Error("property " + propertyName + " do not exists on " + superType.browseName.toString());
     }
+
     const propInSuperType = addressSpace.findNode(propNodeId)! as UAVariable | UAMethod | UAObject;
+
+    /* istanbul ignore next */
     if (!propInSuperType) {
         throw new Error("cannot find " + propNodeId.toString());
     }
+
     // check mandatory
+    /* istanbul ignore next */
     if (propInSuperType.modellingRule == "Mandatory") {
         console.log("Warning property " + propertyName + " is already Mandatory in super type");
         return;
     }
     // replicate property
     const ref = findReferenceToNode(superType, propInSuperType);
+
+    /* istanbul ignore next */
     if (!ref) {
         throw new Error("Ref");
     }
@@ -71,6 +82,6 @@ export function promoteToMandatory(
         references: [newRef],
         modellingRule: "Mandatory"
     });
-    console.log(node.toString());
-    console.log(newProp.toString());
+    //xx console.log(node.toString());
+    //xxconsole.log(newProp.toString());
 }

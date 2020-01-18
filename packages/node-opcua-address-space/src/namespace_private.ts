@@ -29,7 +29,7 @@ export interface NamespacePrivate extends Namespace {
 }
 
 export declare const NamespacePrivate: {
-    new (options: any): NamespacePrivate;
+    new(options: any): NamespacePrivate;
 };
 
 function isValidModellingRule(ruleName: string) {

@@ -1198,7 +1198,7 @@ export interface AddTwoStateVariableOptions extends AddVariableOptions {
 }
 
 export interface CreateDataTypeOptions extends AddBaseNodeOptions {
-    isAbstract?: boolean;
+    isAbstract: boolean;
     superType?: string | NodeId;
 }
 

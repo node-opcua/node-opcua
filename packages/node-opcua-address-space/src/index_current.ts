@@ -24,7 +24,7 @@ export * from "./base_node";
 export * from "./extension_object_array_node";
 export * from "./event_data";
 
-export { NamespaceOptions } from "./namespace";
+export { NamespaceOptions } from "./nodeid_manager";
 export { dumpXml } from "./nodeset_to_xml";
 export * from "./data_access/ua_analog_item";
 export * from "./data_access/ua_data_item";
@@ -34,3 +34,4 @@ export * from "./alarms_and_conditions/condition_info";
 export * from "../test_helpers";
 export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
 export { Reference } from "./reference";
+export { NodeIdManager } from "../src/nodeid_manager";
