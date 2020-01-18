@@ -69,7 +69,7 @@ export function promoteToMandatory(
     /* istanbul ignore next */
     if (!propNodeId) {
         displayNodeElement(superType);
-        throw new Error("property " + propertyName + " do not exists on " + superType.browseName.toString());
+        throw new Error("property " + propertyName + " do not exists on " + superType.browseName.toString() + " or any superType");
     }
 
     const propInSuperType = addressSpace.findNode(propNodeId)! as UAVariable | UAMethod | UAObject;

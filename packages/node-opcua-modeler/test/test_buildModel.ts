@@ -1,6 +1,7 @@
 import * as should from "should";
 import { buildModel, AddressSpace } from "..";
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("buidModel", () => {
 
     it("should build a model", async () => {

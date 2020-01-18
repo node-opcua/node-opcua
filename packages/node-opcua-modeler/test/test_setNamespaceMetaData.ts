@@ -13,6 +13,7 @@ import {
 } from "..";
 
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("displayNodeElement", () => {
 
     let addressSpace: AddressSpace;

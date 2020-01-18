@@ -11,6 +11,7 @@ import {
     DataType,
 } from "..";
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("addExtensionObjectDataType", () => {
 
     const namespaceUri = "urn:name"
@@ -25,7 +26,9 @@ describe("addExtensionObjectDataType", () => {
         await generateAddressSpace(addressSpace, nodesetsXML);
 
     });
-    after(() => { addressSpace.dispose(); });
+    after(() => {
+        addressSpace.dispose();
+    });
     it("should add a ExtensionObject DataType", async () => {
 
         const ns = addressSpace.getOwnNamespace();
