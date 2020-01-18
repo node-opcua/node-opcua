@@ -18,32 +18,41 @@ const regExp1 = /^(s|i|b|g)=/;
 const regExp2 = /^ns=[0-9]+;(s|i|b|g)=/;
 const hasPropertyRefId = resolveNodeId("HasProperty");
 const hasComponentRefId = resolveNodeId("HasComponent");
+const hasEncoding = resolveNodeId("HasEncoding");
 
-function __combineNodeId(parentNodeId: NodeId, name: string) {
-    let nodeId = null;
-    if (parentNodeId.identifierType === NodeId.NodeIdType.STRING) {
-        const childName = parentNodeId.value + NamespaceOptions.nodeIdNameSeparator + name.toString();
-        nodeId = new NodeId(NodeId.NodeIdType.STRING, childName, parentNodeId.namespace);
-    }
-    return nodeId;
-}
-
-
-function _identifyParentInReference(references: Reference[]) {
+function _identifyParentInReference(references: Reference[]): [NodeId, string] | null {
 
     const candidates = references.filter((ref: Reference) => {
-        return ref.isForward === false &&
-            (sameNodeId(ref.referenceType, hasComponentRefId) || sameNodeId(ref.referenceType, hasPropertyRefId));
+        return !ref.isForward &&
+            (
+                sameNodeId(ref.referenceType, hasComponentRefId) ||
+                sameNodeId(ref.referenceType, hasPropertyRefId) ||
+                sameNodeId(ref.referenceType, hasEncoding)
+            );
     });
     assert(candidates.length <= 1);
-    return candidates[0];
+    if (candidates.length === 0) {
+        return null;
+    }
+    const ref = candidates[0];
+    if (sameNodeId(ref.referenceType, hasEncoding)) {
+        return [ref.nodeId, "_Encoding"];
+    }
+    return [ref.nodeId, ""];
 }
 
-interface AddressSpacePartial {
+export interface AddressSpacePartial {
 
     findNode(nodeId: NodeIdLike): BaseNodePublic | null;
     findReferenceType(refType: NodeIdLike, namespaceIndex?: number): UAReferenceTypePublic | null;
 
+}
+export interface ConstructNodeIdOptions {
+
+    nodeId?: string | NodeIdLike | null;
+    browseName: QualifiedName;
+    nodeClass: NodeClass;
+    references?: Reference[]
 }
 
 export class NodeIdManager {
@@ -53,11 +62,12 @@ export class NodeIdManager {
 
     private _internal_id_counter: number;
     private namespaceIndex: number;
+    private addressSpace: AddressSpacePartial;
 
-    constructor(namespaceIndex: number) {
+    constructor(namespaceIndex: number, addressSpace: AddressSpacePartial) {
         this._internal_id_counter = 1000;
         this.namespaceIndex = namespaceIndex;
-
+        this.addressSpace = addressSpace;
     }
     public setCache(cache: [string, number, NodeClass][]) {
         this._cache = {};
@@ -85,27 +95,28 @@ export class NodeIdManager {
         return line.join("\n");
     }
 
-    public buildNewNodeId(addressSpace: AddressSpacePartial): NodeId {
+    public buildNewNodeId(): NodeId {
         let nodeId: NodeId;
         do {
             nodeId = makeNodeId(this._internal_id_counter, this.namespaceIndex);
             this._internal_id_counter += 1;
-        } while (addressSpace.findNode(nodeId) || this._isInCache(nodeId.value as number));
+        } while (this.addressSpace.findNode(nodeId) || this._isInCache(nodeId.value as number));
         return nodeId;
     }
 
-    public constructNodeId(addressSpace: AddressSpacePartial, options: any): NodeId {
+    public constructNodeId(options: ConstructNodeIdOptions): NodeId {
 
         let nodeId = options.nodeId;
         const nodeClass = options.nodeClass;
 
         if (!nodeId) {
 
-            const parentNodeId = this.findParentNodeId(addressSpace, options);
+            const data = this.findParentNodeId(options);
 
-            if (parentNodeId) {
+            if (data) {
+                const [parentNodeId, linkName] = data;
                 assert(options.browseName instanceof QualifiedName);
-                const name = options.browseName.toString();
+                const name = options.browseName.toString().replace(/ /g, "");
 
                 nodeId = null;
                 if (parentNodeId.identifierType === NodeId.NodeIdType.STRING) {
@@ -121,7 +132,7 @@ export class NodeIdManager {
                         if (nodeIdValue) {
                             return new NodeId(NodeIdType.NUMERIC, nodeIdValue, this.namespaceIndex);
                         } else {
-                            return this._getOrCreateFromName(newName, nodeClass, addressSpace);
+                            return this._getOrCreateFromName(newName, nodeClass);
                         }
                     }
                 }
@@ -134,7 +145,7 @@ export class NodeIdManager {
                 if (isRootType) {
                     // try to find 
                     const baseName = options.browseName.toString();
-                    return this._getOrCreateFromName(baseName, nodeClass, addressSpace);
+                    return this._getOrCreateFromName(baseName, nodeClass);
                 }
 
             }
@@ -147,11 +158,11 @@ export class NodeIdManager {
                 } else if (nodeId.match(regExp1)) {
                     nodeId = "ns=" + this.namespaceIndex + ";" + nodeId;
                 } else {
-                    nodeId = this._getOrCreateFromName(nodeId, nodeClass, addressSpace);
+                    nodeId = this._getOrCreateFromName(nodeId, nodeClass);
                 }
             }
         }
-        nodeId = nodeId || this.buildNewNodeId(addressSpace);
+        nodeId = nodeId || this.buildNewNodeId();
         if (nodeId instanceof NodeId) {
             assert(nodeId.namespace === this.namespaceIndex);
             return nodeId;
@@ -161,22 +172,21 @@ export class NodeIdManager {
         return nodeId;
     }
 
-    public findParentNodeId(addressSpace: AddressSpacePartial, options: any): NodeId | null {
+    public findParentNodeId(options: ConstructNodeIdOptions): [NodeId, string] | null {
 
         if (!options.references) {
             return null;
         }
         for (const ref of options.references) {
-            ref._referenceType = addressSpace.findReferenceType(ref.referenceType);
+            (ref as any)._referenceType = this.addressSpace.findReferenceType(ref.referenceType);
             /* istanbul ignore next */
             if (!ref._referenceType) {
                 throw new Error("Cannot find referenceType " + JSON.stringify(ref));
             }
-            ref.referenceType = ref._referenceType.nodeId;
+            ref.referenceType = (ref as any)._referenceType.nodeId;
         }
         // find HasComponent, or has Property reverse
-        const parentRef = _identifyParentInReference(options.references);
-        return parentRef ? parentRef.nodeId : null;
+        return _identifyParentInReference(options.references);
     }
 
     private _addInCache(name: string, nodeIdValue: number, nodeClass: NodeClass) {
@@ -192,14 +202,13 @@ export class NodeIdManager {
 
     private _getOrCreateFromName(
         aliasName: string,
-        nodeClass: NodeClass,
-        addressSpace: AddressSpacePartial
+        nodeClass: NodeClass
     ): NodeId {
 
         if (this._cache[aliasName]) {
             return new NodeId(NodeIdType.NUMERIC, this._cache[aliasName], this.namespaceIndex);
         } else {
-            const nodeIdResult = this.buildNewNodeId(addressSpace);
+            const nodeIdResult = this.buildNewNodeId();
             this._addInCache(aliasName, nodeIdResult.value as number, nodeClass);
             return nodeIdResult;
         }

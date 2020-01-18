@@ -58,21 +58,8 @@ export function getOrCreateDataTypeSystem(namespace: Namespace): UAObject {
     node = dataTypeSystemType.instantiate({
         browseName: name,
         componentOf: opcBinaryTypeSystem,
-        optionals: [
-            "Deprecated",
-            "DataTypeVersion",
-            "NamespaceUri"
-        ]
     })!;
 
-    const namespaceUriProp = node.getPropertyByName("NamespaceUri");
-    if (namespaceUriProp) {
-        namespaceUriProp.setValueFromSource({ dataType: DataType.String, value: namespace.namespaceUri });
-    }
-    const deprecatedProp = node.getPropertyByName("Deprecated");
-    if (deprecatedProp) {
-        deprecatedProp.setValueFromSource({ dataType: DataType.Boolean, value: true });
-    }
     return node;
 }
 
@@ -89,7 +76,20 @@ export function addOldDataTypeDictionary(namespace: Namespace, dataType: UADataT
     const dataTypeDictionary = dataTypeDictionaryType.instantiate({
         browseName: dataType.browseName.name!,
         componentOf: dataTypeSystem,
+        optionals: [
+            "Deprecated",
+            "DataTypeVersion",
+            "NamespaceUri"
+        ]
     });
+    const namespaceUriProp = dataTypeDictionary.getPropertyByName("NamespaceUri");
+    if (namespaceUriProp) {
+        namespaceUriProp.setValueFromSource({ dataType: DataType.String, value: namespace.namespaceUri });
+    }
+    const deprecatedProp = dataTypeDictionary.getPropertyByName("Deprecated");
+    if (deprecatedProp) {
+        deprecatedProp.setValueFromSource({ dataType: DataType.Boolean, value: true });
+    }
     return dataTypeDictionary;
 }
 export interface ExtensionObjectDefinition {
@@ -135,7 +135,6 @@ export function addExtensionObjectDataType(
     const structureDefinition = options.structureDefinition || [];
 
     const dataType = namespace.createDataType({
-        nodeId: `$$${options.browseName.toString()}`,
         browseName: options.browseName,
         description: options.description,
         isAbstract: options.isAbstract,
@@ -146,7 +145,7 @@ export function addExtensionObjectDataType(
                 isForward: true,
                 nodeId: defaultBinary.nodeId
             }
-        ]
+        ],
     });
 
     (dataType as any).$definition = new StructureDefinition(structureDefinition);

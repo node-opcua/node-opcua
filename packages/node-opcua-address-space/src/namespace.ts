@@ -99,7 +99,7 @@ import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
 
-import { NodeIdManager } from "./nodeid_manager";
+import { NodeIdManager, ConstructNodeIdOptions } from "./nodeid_manager";
 
 
 const doDebug = false;
@@ -187,7 +187,7 @@ export class UANamespace implements NamespacePublic {
         this._referenceTypeMap = {};
         this._referenceTypeMapInv = {};
         this._dataTypeMap = {};
-        this._nodeIdManager = new NodeIdManager(this.index);
+        this._nodeIdManager = new NodeIdManager(this.index, this.addressSpace);
     }
 
     public getDefaultNamespace(): UANamespace {
@@ -1761,11 +1761,11 @@ export class UANamespace implements NamespacePublic {
     }
 
     // --- internal stuff
-    public _construct_nodeId(options: any): NodeId {
-        return this._nodeIdManager.constructNodeId(this.addressSpace, options);
+    public _construct_nodeId(options: ConstructNodeIdOptions): NodeId {
+        return this._nodeIdManager.constructNodeId(options);
     }
     public _build_new_NodeId(): NodeId {
-        return this._nodeIdManager.buildNewNodeId(this.addressSpace);
+        return this._nodeIdManager.buildNewNodeId();
     }
 
     public _register(node: BaseNode): void {
