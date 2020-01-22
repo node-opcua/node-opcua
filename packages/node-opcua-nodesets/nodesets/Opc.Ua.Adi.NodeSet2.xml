@@ -35,8 +35,8 @@
   </NamespaceUris>
   <Models>
     <Model ModelUri="http://opcfoundation.org/UA/ADI/" Version="1.01" PublicationDate="2013-07-31T00:00:00Z">
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.03" PublicationDate="2013-12-02T00:00:00Z" />
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.01" PublicationDate="2012-12-31T00:00:00Z" />
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05" PublicationDate="2019-07-23T00:00:00Z" />
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.02" PublicationDate="2019-05-01T00:00:00Z" />
     </Model>
   </Models>
   <Aliases>
@@ -95,7 +95,6 @@
   </UAObject>
   <UAVariable NodeId="ns=1;i=15002" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=15001" DataType="String">
     <DisplayName>NamespaceUri</DisplayName>
-    <Description>The URI of the namespace.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
@@ -106,7 +105,6 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=15003" BrowseName="NamespaceVersion" ParentNodeId="ns=1;i=15001" DataType="String">
     <DisplayName>NamespaceVersion</DisplayName>
-    <Description>The human readable string representing version of the namespace.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
@@ -117,7 +115,6 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=15004" BrowseName="NamespacePublicationDate" ParentNodeId="ns=1;i=15001" DataType="DateTime">
     <DisplayName>NamespacePublicationDate</DisplayName>
-    <Description>The publication date for the namespace.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
@@ -128,7 +125,6 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=15005" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=15001" DataType="Boolean">
     <DisplayName>IsNamespaceSubset</DisplayName>
-    <Description>If TRUE then the server only supports a subset of the namespace.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
@@ -137,9 +133,8 @@
       <Boolean xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">false</Boolean>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=15006" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=15001" DataType="i=256" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=15006" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=15001" DataType="i=256" ValueRank="1" ArrayDimensions="0">
     <DisplayName>StaticNodeIdTypes</DisplayName>
-    <Description>A list of IdTypes for nodes which are the same in every server that exposes them.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
@@ -150,9 +145,8 @@
       </ListOfInt32>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=15007" BrowseName="StaticNumericNodeIdRange" ParentNodeId="ns=1;i=15001" DataType="i=291" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=15007" BrowseName="StaticNumericNodeIdRange" ParentNodeId="ns=1;i=15001" DataType="i=291" ValueRank="1" ArrayDimensions="0">
     <DisplayName>StaticNumericNodeIdRange</DisplayName>
-    <Description>A list of ranges for numeric node ids which are the same in every server that exposes them.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
@@ -165,7 +159,6 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=15008" BrowseName="StaticStringNodeIdPattern" ParentNodeId="ns=1;i=15001" DataType="String">
     <DisplayName>StaticStringNodeIdPattern</DisplayName>
-    <Description>A regular expression which matches string node ids are the same in every server that exposes them.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
@@ -175,14 +168,14 @@
       </String>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=15031" BrowseName="DefaultRolePermissions" ParentNodeId="ns=1;i=15001" DataType="i=96" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=15031" BrowseName="DefaultRolePermissions" ParentNodeId="ns=1;i=15001" DataType="i=96" ValueRank="1" ArrayDimensions="0">
     <DisplayName>DefaultRolePermissions</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15001</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=15032" BrowseName="DefaultUserRolePermissions" ParentNodeId="ns=1;i=15001" DataType="i=96" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=15032" BrowseName="DefaultUserRolePermissions" ParentNodeId="ns=1;i=15001" DataType="i=96" ValueRank="1" ArrayDimensions="0">
     <DisplayName>DefaultUserRolePermissions</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -254,7 +247,6 @@
   </UAObject>
   <UAVariable NodeId="ns=1;i=9463" BrowseName="Size" ParentNodeId="ns=1;i=9462" DataType="UInt64">
     <DisplayName>Size</DisplayName>
-    <Description>The size of the file in bytes.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -263,7 +255,6 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=13070" BrowseName="Writable" ParentNodeId="ns=1;i=9462" DataType="Boolean">
     <DisplayName>Writable</DisplayName>
-    <Description>Whether the file is writable.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -272,7 +263,6 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=13071" BrowseName="UserWritable" ParentNodeId="ns=1;i=9462" DataType="Boolean">
     <DisplayName>UserWritable</DisplayName>
-    <Description>Whether the file is writable by the current user.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -281,7 +271,6 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=9466" BrowseName="OpenCount" ParentNodeId="ns=1;i=9462" DataType="UInt16">
     <DisplayName>OpenCount</DisplayName>
-    <Description>The current number of open file handles.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -297,7 +286,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9462</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9468" BrowseName="InputArguments" ParentNodeId="ns=1;i=9467" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9468" BrowseName="InputArguments" ParentNodeId="ns=1;i=9467" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -318,14 +307,13 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
       </ListOfExtensionObject>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=9469" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9467" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9469" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9467" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>OutputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -346,7 +334,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -361,7 +348,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9462</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9471" BrowseName="InputArguments" ParentNodeId="ns=1;i=9470" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9471" BrowseName="InputArguments" ParentNodeId="ns=1;i=9470" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -382,7 +369,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -398,7 +384,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9462</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9473" BrowseName="InputArguments" ParentNodeId="ns=1;i=9472" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9473" BrowseName="InputArguments" ParentNodeId="ns=1;i=9472" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -419,7 +405,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -435,14 +420,13 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
       </ListOfExtensionObject>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=9474" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9472" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9474" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9472" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>OutputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -463,7 +447,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -478,7 +461,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9462</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9476" BrowseName="InputArguments" ParentNodeId="ns=1;i=9475" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9476" BrowseName="InputArguments" ParentNodeId="ns=1;i=9475" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -499,7 +482,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -515,7 +497,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -531,7 +512,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9462</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9478" BrowseName="InputArguments" ParentNodeId="ns=1;i=9477" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9478" BrowseName="InputArguments" ParentNodeId="ns=1;i=9477" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -552,14 +533,13 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
       </ListOfExtensionObject>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=9479" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9477" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9479" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9477" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>OutputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -580,7 +560,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -595,7 +574,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9462</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9481" BrowseName="InputArguments" ParentNodeId="ns=1;i=9480" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9481" BrowseName="InputArguments" ParentNodeId="ns=1;i=9480" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -616,7 +595,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -632,7 +610,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -666,7 +643,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9382</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9444" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9443" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9444" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9443" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>OutputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -687,7 +664,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -703,7 +679,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9382</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9446" BrowseName="InputArguments" ParentNodeId="ns=1;i=9445" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9446" BrowseName="InputArguments" ParentNodeId="ns=1;i=9445" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -724,14 +700,13 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
       </ListOfExtensionObject>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=9447" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9445" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9447" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9445" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>OutputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -752,7 +727,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -767,7 +741,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9382</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9449" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9448" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9449" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9448" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>OutputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -788,7 +762,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -804,7 +777,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9382</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9451" BrowseName="InputArguments" ParentNodeId="ns=1;i=9450" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9451" BrowseName="InputArguments" ParentNodeId="ns=1;i=9450" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -825,14 +798,13 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
       </ListOfExtensionObject>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=9452" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9450" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9452" BrowseName="OutputArguments" ParentNodeId="ns=1;i=9450" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>OutputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -853,7 +825,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1030,7 +1001,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9503</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9524" BrowseName="InputArguments" ParentNodeId="ns=1;i=9523" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9524" BrowseName="InputArguments" ParentNodeId="ns=1;i=9523" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -1051,7 +1022,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1067,7 +1037,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1083,7 +1052,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1359,7 +1327,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9647</Reference>
     </References>
     <Value>
@@ -1385,7 +1353,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9649</Reference>
     </References>
     <Value>
@@ -1410,7 +1378,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9651</Reference>
     </References>
     <Value>
@@ -1435,7 +1403,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9653</Reference>
     </References>
     <Value>
@@ -1458,7 +1426,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9655</Reference>
     </References>
     <Value>
@@ -1788,7 +1756,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9679</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=9702" BrowseName="InputArguments" ParentNodeId="ns=1;i=9701" DataType="i=296" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=9702" BrowseName="InputArguments" ParentNodeId="ns=1;i=9701" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -1809,7 +1777,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1825,7 +1792,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -1841,7 +1807,6 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
-              <Description p5:nil="true" xmlns:p5="http://www.w3.org/2001/XMLSchema-instance" />
             </Argument>
           </Body>
         </ExtensionObject>
@@ -2334,7 +2299,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9996</Reference>
     </References>
     <Value>
@@ -2361,7 +2326,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=9998</Reference>
     </References>
     <Value>
@@ -2387,7 +2352,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10000</Reference>
     </References>
     <Value>
@@ -2413,7 +2378,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10002</Reference>
     </References>
     <Value>
@@ -2763,7 +2728,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10048</Reference>
     </References>
     <Value>
@@ -2789,7 +2754,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10050</Reference>
     </References>
     <Value>
@@ -2813,7 +2778,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10052</Reference>
     </References>
     <Value>
@@ -2839,7 +2804,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10054</Reference>
     </References>
     <Value>
@@ -2868,7 +2833,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10056</Reference>
     </References>
     <Value>
@@ -2894,7 +2859,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10058</Reference>
     </References>
     <Value>
@@ -2918,7 +2883,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10060</Reference>
     </References>
     <Value>
@@ -2945,7 +2910,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10062</Reference>
     </References>
     <Value>
@@ -2969,7 +2934,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10064</Reference>
     </References>
     <Value>
@@ -2996,7 +2961,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10066</Reference>
     </References>
     <Value>
@@ -3023,7 +2988,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10068</Reference>
     </References>
     <Value>
@@ -3047,7 +3012,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10070</Reference>
     </References>
     <Value>
@@ -3074,7 +3039,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10072</Reference>
     </References>
     <Value>
@@ -3108,7 +3073,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10074</Reference>
     </References>
     <Value>
@@ -3143,7 +3108,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10076</Reference>
     </References>
     <Value>
@@ -3165,7 +3130,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10078</Reference>
     </References>
     <Value>
@@ -3187,7 +3152,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10080</Reference>
     </References>
     <Value>
@@ -4448,7 +4413,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10201</Reference>
     </References>
     <Value>
@@ -4470,7 +4435,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10203</Reference>
     </References>
     <Value>
@@ -4494,7 +4459,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10205</Reference>
     </References>
     <Value>
@@ -4518,7 +4483,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10207</Reference>
     </References>
     <Value>
@@ -4542,7 +4507,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10209</Reference>
     </References>
     <Value>
@@ -4564,7 +4529,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10211</Reference>
     </References>
     <Value>
@@ -4588,7 +4553,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10213</Reference>
     </References>
     <Value>
@@ -4612,7 +4577,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10215</Reference>
     </References>
     <Value>
@@ -4636,7 +4601,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10217</Reference>
     </References>
     <Value>
@@ -4658,7 +4623,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10219</Reference>
     </References>
     <Value>
@@ -4682,7 +4647,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10221</Reference>
     </References>
     <Value>
@@ -4706,7 +4671,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10223</Reference>
     </References>
     <Value>
@@ -4730,7 +4695,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10225</Reference>
     </References>
     <Value>
@@ -4752,7 +4717,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10227</Reference>
     </References>
     <Value>
@@ -4776,7 +4741,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10229</Reference>
     </References>
     <Value>
@@ -4798,7 +4763,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10231</Reference>
     </References>
     <Value>
@@ -4822,7 +4787,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10233</Reference>
     </References>
     <Value>
@@ -4849,7 +4814,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10235</Reference>
     </References>
     <Value>
@@ -4873,7 +4838,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10237</Reference>
     </References>
     <Value>
@@ -4898,7 +4863,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10239</Reference>
     </References>
     <Value>
@@ -5865,7 +5830,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10317</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=10372" BrowseName="EnumStrings" ParentNodeId="ns=1;i=10369" DataType="LocalizedText" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=10372" BrowseName="EnumStrings" ParentNodeId="ns=1;i=10369" DataType="LocalizedText" ValueRank="1" ArrayDimensions="0">
     <DisplayName>EnumStrings</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -6171,17 +6136,6 @@
     <DisplayName>ParameterSet</DisplayName>
     <Description>Flat list of Parameters</Description>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=10468</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10474</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10483</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10492</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10495</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10498</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10502</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10505</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10511</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10517</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10523</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10575</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10584</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10593</Reference>
@@ -6200,132 +6154,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1030</Reference>
     </References>
   </UAObject>
-  <UAVariable NodeId="ns=1;i=10468" BrowseName="1:IsEnabled" ParentNodeId="ns=1;i=10446" DataType="Boolean">
-    <DisplayName>IsEnabled</DisplayName>
-    <Description>True if this stream maybe used to perform acquisition</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10559</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10474" BrowseName="1:DiagnosticStatus" ParentNodeId="ns=1;i=10446" DataType="ns=2;i=6244">
-    <DisplayName>DiagnosticStatus</DisplayName>
-    <Description>Stream health status</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10483" BrowseName="1:LastSampleTime" ParentNodeId="ns=1;i=10446" DataType="DateTime">
-    <DisplayName>LastSampleTime</DisplayName>
-    <Description>Time at which the last sample was acquired</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10492" BrowseName="1:IsActive" ParentNodeId="ns=1;i=10446" DataType="Boolean">
-    <DisplayName>IsActive</DisplayName>
-    <Description>True if this stream is actually running, acquiring data</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10565</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10495" BrowseName="1:ExecutionCycle" ParentNodeId="ns=1;i=10446" DataType="ns=1;i=9378">
-    <DisplayName>ExecutionCycle</DisplayName>
-    <Description>Indicates which Execution cycle is in progress</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10565</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10498" BrowseName="1:ExecutionCycleSubcode" ParentNodeId="ns=1;i=10446" DataType="UInteger">
-    <DisplayName>ExecutionCycleSubcode</DisplayName>
-    <Description>Indicates which Execution cycle subcode is in progress</Description>
-    <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=10501</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10565</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2376</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10501" BrowseName="EnumStrings" ParentNodeId="ns=1;i=10498" DataType="LocalizedText" ValueRank="1">
-    <DisplayName>EnumStrings</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10498</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10502" BrowseName="1:Progress" ParentNodeId="ns=1;i=10446" DataType="Float">
-    <DisplayName>Progress</DisplayName>
-    <Description>Indicates the progress of an acquisition in terms of percentage of completion. Its value shall be between 0 and 100.</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10565</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10505" BrowseName="1:AcquisitionCounter" ParentNodeId="ns=1;i=10446" DataType="i=289">
-    <DisplayName>AcquisitionCounter</DisplayName>
-    <Description>Simple counter incremented after each Sampling acquisition performed on this Stream</Description>
-    <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=10509</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10567</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2368</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10509" BrowseName="EURange" ParentNodeId="ns=1;i=10505" DataType="i=884">
-    <DisplayName>EURange</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10505</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10511" BrowseName="1:AcquisitionResultStatus" ParentNodeId="ns=1;i=10446" DataType="ns=1;i=3003">
-    <DisplayName>AcquisitionResultStatus</DisplayName>
-    <Description>Quality of the acquisition</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10567</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10517" BrowseName="1:ScaledData" ParentNodeId="ns=1;i=10446">
-    <DisplayName>ScaledData</DisplayName>
-    <Description>Scaled data produced as a result of data acquisition on the Stream and application of the analyser model</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10567</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10523" BrowseName="1:AcquisitionEndTime" ParentNodeId="ns=1;i=10446" DataType="DateTime">
-    <DisplayName>AcquisitionEndTime</DisplayName>
-    <Description>The end time of the AnalyseSample or AnalyseCalibrationSample or AnalyseValidationSample state of the AnalyserChannel_OperatingModeExecuteSubStateMachine state machine</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10567</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10446</Reference>
-    </References>
-  </UAVariable>
   <UAVariable NodeId="ns=1;i=10575" BrowseName="1:ActiveBackground" ParentNodeId="ns=1;i=10446" DataType="Float">
     <DisplayName>ActiveBackground</DisplayName>
     <References>
@@ -6434,7 +6262,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10584</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=10593" BrowseName="1:SpectralRange" ParentNodeId="ns=1;i=10446" DataType="i=884" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=10593" BrowseName="1:SpectralRange" ParentNodeId="ns=1;i=10446" DataType="i=884" ValueRank="1" ArrayDimensions="0">
     <DisplayName>SpectralRange</DisplayName>
     <References>
       <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10563</Reference>
@@ -6694,17 +6522,6 @@
     <DisplayName>ParameterSet</DisplayName>
     <Description>Flat list of Parameters</Description>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=10790</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10796</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10805</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10814</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10817</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10820</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10824</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10827</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10833</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10839</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=10845</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10897</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10906</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10915</Reference>
@@ -6713,127 +6530,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1032</Reference>
     </References>
   </UAObject>
-  <UAVariable NodeId="ns=1;i=10790" BrowseName="1:IsEnabled" ParentNodeId="ns=1;i=10768" DataType="Boolean">
-    <DisplayName>IsEnabled</DisplayName>
-    <Description>True if this stream maybe used to perform acquisition</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10796" BrowseName="1:DiagnosticStatus" ParentNodeId="ns=1;i=10768" DataType="ns=2;i=6244">
-    <DisplayName>DiagnosticStatus</DisplayName>
-    <Description>Stream health status</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10805" BrowseName="1:LastSampleTime" ParentNodeId="ns=1;i=10768" DataType="DateTime">
-    <DisplayName>LastSampleTime</DisplayName>
-    <Description>Time at which the last sample was acquired</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10814" BrowseName="1:IsActive" ParentNodeId="ns=1;i=10768" DataType="Boolean">
-    <DisplayName>IsActive</DisplayName>
-    <Description>True if this stream is actually running, acquiring data</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10817" BrowseName="1:ExecutionCycle" ParentNodeId="ns=1;i=10768" DataType="ns=1;i=9378">
-    <DisplayName>ExecutionCycle</DisplayName>
-    <Description>Indicates which Execution cycle is in progress</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10820" BrowseName="1:ExecutionCycleSubcode" ParentNodeId="ns=1;i=10768" DataType="UInteger">
-    <DisplayName>ExecutionCycleSubcode</DisplayName>
-    <Description>Indicates which Execution cycle subcode is in progress</Description>
-    <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=10823</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2376</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10823" BrowseName="EnumStrings" ParentNodeId="ns=1;i=10820" DataType="LocalizedText" ValueRank="1">
-    <DisplayName>EnumStrings</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10820</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10824" BrowseName="1:Progress" ParentNodeId="ns=1;i=10768" DataType="Float">
-    <DisplayName>Progress</DisplayName>
-    <Description>Indicates the progress of an acquisition in terms of percentage of completion. Its value shall be between 0 and 100.</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10827" BrowseName="1:AcquisitionCounter" ParentNodeId="ns=1;i=10768" DataType="i=289">
-    <DisplayName>AcquisitionCounter</DisplayName>
-    <Description>Simple counter incremented after each Sampling acquisition performed on this Stream</Description>
-    <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=10831</Reference>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10889</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2368</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10831" BrowseName="EURange" ParentNodeId="ns=1;i=10827" DataType="i=884">
-    <DisplayName>EURange</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=10827</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10833" BrowseName="1:AcquisitionResultStatus" ParentNodeId="ns=1;i=10768" DataType="ns=1;i=3003">
-    <DisplayName>AcquisitionResultStatus</DisplayName>
-    <Description>Quality of the acquisition</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10889</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10839" BrowseName="1:ScaledData" ParentNodeId="ns=1;i=10768">
-    <DisplayName>ScaledData</DisplayName>
-    <Description>Scaled data produced as a result of data acquisition on the Stream and application of the analyser model</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10889</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=10845" BrowseName="1:AcquisitionEndTime" ParentNodeId="ns=1;i=10768" DataType="DateTime">
-    <DisplayName>AcquisitionEndTime</DisplayName>
-    <Description>The end time of the AnalyseSample or AnalyseCalibrationSample or AnalyseValidationSample state of the AnalyserChannel_OperatingModeExecuteSubStateMachine state machine</Description>
-    <References>
-      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=10889</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10768</Reference>
-    </References>
-  </UAVariable>
   <UAVariable NodeId="ns=1;i=10897" BrowseName="1:Background" ParentNodeId="ns=1;i=10768" DataType="Float">
     <DisplayName>Background</DisplayName>
     <References>
@@ -6992,23 +6688,13 @@
     <DisplayName>ParameterSet</DisplayName>
     <Description>Flat list of Parameters</Description>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=11384</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=11551</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1011</Reference>
     </References>
   </UAObject>
-  <UAVariable NodeId="ns=1;i=11384" BrowseName="1:DiagnosticStatus" ParentNodeId="ns=1;i=11305" DataType="ns=2;i=6244">
-    <DisplayName>DiagnosticStatus</DisplayName>
-    <Description>General health status of the analyser</Description>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=11305</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=11551" BrowseName="1:SpectralRange" ParentNodeId="ns=1;i=11305" DataType="i=884" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=11551" BrowseName="1:SpectralRange" ParentNodeId="ns=1;i=11305" DataType="i=884" ValueRank="1" ArrayDimensions="0">
     <DisplayName>SpectralRange</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2365</Reference>
@@ -7204,7 +6890,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12840</Reference>
     </References>
     <Value>
@@ -7228,7 +6914,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12842</Reference>
     </References>
     <Value>
@@ -7254,7 +6940,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12844</Reference>
     </References>
     <Value>
@@ -7277,7 +6963,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12846</Reference>
     </References>
     <Value>
@@ -7303,7 +6989,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12848</Reference>
     </References>
     <Value>
@@ -7327,7 +7013,7 @@
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=12850</Reference>
     </References>
     <Value>
@@ -7669,7 +7355,7 @@
       <Reference ReferenceType="HasProperty">ns=1;i=13026</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
     </References>
-    <Definition Name="ExecutionCycleEnumeration">
+    <Definition Name="1:ExecutionCycleEnumeration">
       <Field Name="IDLE" Value="0">
         <Description>Idle, no cleaning or acquisition cycle in progress</Description>
       </Field>
@@ -7705,7 +7391,7 @@
       </Field>
     </Definition>
   </UADataType>
-  <UAVariable NodeId="ns=1;i=13026" BrowseName="EnumValues" ParentNodeId="ns=1;i=9378" DataType="i=7594" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=13026" BrowseName="EnumValues" ParentNodeId="ns=1;i=9378" DataType="i=7594" ValueRank="1" ArrayDimensions="0">
     <DisplayName>EnumValues</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -7943,7 +7629,7 @@
       <Reference ReferenceType="HasProperty">ns=1;i=13027</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
     </References>
-    <Definition Name="AcquisitionResultStatusEnumeration">
+    <Definition Name="1:AcquisitionResultStatusEnumeration">
       <Field Name="NOT_USED" Value="0">
         <Description>No longer used.</Description>
       </Field>
@@ -7961,7 +7647,7 @@
       </Field>
     </Definition>
   </UADataType>
-  <UAVariable NodeId="ns=1;i=13027" BrowseName="EnumStrings" ParentNodeId="ns=1;i=3003" DataType="LocalizedText" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=13027" BrowseName="EnumStrings" ParentNodeId="ns=1;i=3003" DataType="LocalizedText" ValueRank="1" ArrayDimensions="0">
     <DisplayName>EnumStrings</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -8189,7 +7875,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=2010</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=13058" BrowseName="1:Statistics" ParentNodeId="ns=1;i=2010" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=13058" BrowseName="1:Statistics" ParentNodeId="ns=1;i=2010" ValueRank="1" ArrayDimensions="0">
     <DisplayName>Statistics</DisplayName>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=13059</Reference>
@@ -8239,7 +7925,7 @@
       <Reference ReferenceType="HasProperty">ns=1;i=13063</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
     </References>
-    <Definition Name="AlarmStateEnumeration">
+    <Definition Name="1:AlarmStateEnumeration">
       <Field Name="NORMAL_0" Value="0">
         <Description>Normal</Description>
       </Field>
@@ -8263,7 +7949,7 @@
       </Field>
     </Definition>
   </UADataType>
-  <UAVariable NodeId="ns=1;i=13063" BrowseName="EnumValues" ParentNodeId="ns=1;i=3009" DataType="i=7594" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=13063" BrowseName="EnumValues" ParentNodeId="ns=1;i=3009" DataType="i=7594" ValueRank="1" ArrayDimensions="0">
     <DisplayName>EnumValues</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -8468,7 +8154,6 @@ MzIiIC8+DQogIDwvb3BjOkVudW1lcmF0ZWRUeXBlPg0KDQo8L29wYzpUeXBlRGljdGlvbmFyeT4=</By
   </UAVariable>
   <UAVariable NodeId="ns=1;i=13069" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=13067" DataType="String">
     <DisplayName>NamespaceUri</DisplayName>
-    <Description>A URI that uniquely identifies the dictionary.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=13067</Reference>
@@ -8479,7 +8164,6 @@ MzIiIC8+DQogIDwvb3BjOkVudW1lcmF0ZWRUeXBlPg0KDQo8L29wYzpUeXBlRGljdGlvbmFyeT4=</By
   </UAVariable>
   <UAVariable NodeId="ns=1;i=8001" BrowseName="Deprecated" ParentNodeId="ns=1;i=13067" DataType="Boolean">
     <DisplayName>Deprecated</DisplayName>
-    <Description>Indicates that all of the definitions for the dictionary are available through a DataTypeDefinition Attribute.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=13067</Reference>
@@ -8563,7 +8247,6 @@ YT4=</ByteString>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=13066" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=13064" DataType="String">
     <DisplayName>NamespaceUri</DisplayName>
-    <Description>A URI that uniquely identifies the dictionary.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=13064</Reference>
@@ -8574,7 +8257,6 @@ YT4=</ByteString>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=8003" BrowseName="Deprecated" ParentNodeId="ns=1;i=13064" DataType="Boolean">
     <DisplayName>Deprecated</DisplayName>
-    <Description>Indicates that all of the definitions for the dictionary are available through a DataTypeDefinition Attribute.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=13064</Reference>
