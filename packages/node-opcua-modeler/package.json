@@ -14,6 +14,7 @@
     "chalk": "^3.0.0",
     "cli-table3": "^0.5.1",
     "node-opcua-address-space": "^2.4.3",
+    "node-opcua-basic-types": "^2.4.2",
     "node-opcua-assert": "^2.3.0",
     "node-opcua-data-model": "^2.4.2",
     "node-opcua-nodeid": "^2.4.2",

@@ -1,15 +1,20 @@
 import {
     BaseNode,
-    UAObjectType,
-    UAVariableType,
-    UAVariable,
+    UADataType,
     UAMethod,
     UAObject,
-    UAReference
+    UAObjectType,
+    UAReference,
+    UAReferenceType,
+    UAVariable,
+    UAVariableType,
 } from "node-opcua-address-space";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { displayNodeElement } from ".";
+import { NodeClass } from "node-opcua-data-model";
 
+
+type UAType = UAObjectType | UAVariableType | UAReferenceType | UADataType;
 
 // find the reference that links node1 to node2
 function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
@@ -21,6 +26,17 @@ function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
     const ref = r ? r[0] : null;
     /* instanbul ignore next */
     if (!ref) {
+        // may be from subtype
+        if (node1.nodeClass === NodeClass.ObjectType ||
+            node1.nodeClass == NodeClass.ReferenceType ||
+            node1.nodeClass === NodeClass.VariableType) {
+
+            const uaType = node1 as UAType;
+            if (uaType.subtypeOfObj) {
+                return findReferenceToNode(uaType.subtypeOfObj, node2);
+            }
+        }
+
         console.log(node1.toString());
         console.log(node2.toString());
         throw new Error("Internal Error cannot find ref from node "
