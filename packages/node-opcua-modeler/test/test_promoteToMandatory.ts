@@ -5,6 +5,8 @@ import {
     displayNodeElement,
     nodesets,
     Namespace,
+    assert,
+    NodeClass,
 } from "..";
 import { removeDecoration } from "./test_helpers";
 import * as should from "should";
@@ -75,7 +77,11 @@ describe("promoteToMandatory", () => {
             subtypeOf: deviceType,
         });
 
-        promoteToMandatory(boilerType, "DeviceClass", nsDI);
+        const deviceClass = promoteToMandatory(boilerType, "DeviceClass", nsDI);
+
+        deviceClass.browseName.toString().should.eql(`${nsDI}:DeviceClass`);
+        deviceClass.nodeClass.should.eql(NodeClass.Variable);
+
 
     });
 });

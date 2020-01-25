@@ -16,6 +16,8 @@ import { NodeClass } from "node-opcua-data-model";
 
 type UAType = UAObjectType | UAVariableType | UAReferenceType | UADataType;
 
+type UAConcrete = UAVariable | UAObject | UAMethod;
+
 // find the reference that links node1 to node2
 function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
     const references = node1.allReferences();
@@ -49,7 +51,7 @@ function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
 export function promoteToMandatory(
     node: UAObjectType | UAVariableType,
     propertyName: string,
-    namespaceIndex: number) {
+    namespaceIndex: number): UAConcrete {
     // get base node
 
     const addressSpace = node.addressSpace;
@@ -81,7 +83,7 @@ export function promoteToMandatory(
     /* istanbul ignore next */
     if (propInSuperType.modellingRule == "Mandatory") {
         console.log("Warning property " + propertyName + " is already Mandatory in super type");
-        return;
+        return propInSuperType;
     }
     // replicate property
     const ref = findReferenceToNode(superType, propInSuperType);
@@ -94,10 +96,11 @@ export function promoteToMandatory(
 
     const newRef: UAReference = { isForward: false, nodeId: node.nodeId, referenceType: ref.referenceType };
 
-    const newProp = (propInSuperType as UAVariable).clone({
+    const newProp = (propInSuperType as UAConcrete).clone({
         references: [newRef],
         modellingRule: "Mandatory"
-    });
+    }, null, null);
     //xx console.log(node.toString());
     //xxconsole.log(newProp.toString());
+    return newProp;
 }

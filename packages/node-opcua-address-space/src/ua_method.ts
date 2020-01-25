@@ -194,8 +194,8 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
 
     public clone(
         options: any,
-        optionalFilter: any,
-        extraInfo: any
+        optionalFilter?: any,
+        extraInfo?: any
     ): UAMethodPublic {
 
         assert(!options.componentOf || options.componentOf, "trying to create an orphan method ?");

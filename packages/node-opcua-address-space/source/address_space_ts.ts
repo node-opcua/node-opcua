@@ -773,6 +773,9 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
     raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
 
     on(eventName: "event", eventHandler: (eventData: EventData) => void): this;
+
+    clone(options: any, optionalFilter?: any, extraInfo?: any): UAObject;
+
 }
 
 // export interface CallMethodResult {
