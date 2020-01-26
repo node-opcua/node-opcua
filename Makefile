@@ -2,17 +2,18 @@
 test-cov: istanbul coveralls 
 
 istanbul:
-	npx nyc --report none --source-map \
+	npx nyc@14 --report none --source-map \
 			--include="packages/node-opcua-*/dist/**/*.js"  \
+			--exclude="packages/node-opcua-*/test/**/*.js"  \
 			--exclude-after-remap=false \
 			--exclude="_generated_opcua_types.ts" \
 			--exclude="packages/node-opcua-types/**/*.*" \
 			--exclude="packages/node-opcua-utils/**/*.*" \
-			--cwd=. node -max_old_space_size=8192 packages/run_all_mocha_tests.js 
+			--cwd=. node -max_old_space_size=4096 packages/run_all_mocha_tests.js 
 
 
 coveralls: istanbul
-	npx nyc report --source-map \
+	npx nyc@14 report --source-map \
 			--include="packages/node-opcua-*/dist/**/*.js"  \
 			--exclude-after-remap=false \
 			--cwd=. \

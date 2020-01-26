@@ -3,11 +3,7 @@ import * as mocha from "mocha";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { should } from "should";
 import {
-    json_extractor,
-    json_parser,
     ParserLike,
-    ReaderState,
-    ReaderStateParser,
     ReaderStateParserLike,
     Xml2Json,
     XmlAttributes
@@ -61,23 +57,23 @@ describe("XMLToJSON", () => {
         });
 
         parser.parseString(
-          "<employees>" +
-          "   <person name='John'>" +
-          "     <address>Paris</address>" +
-          "   </person>" +
-          "</employees>", () => {
+            "<employees>" +
+            "   <person name='John'>" +
+            "     <address>Paris</address>" +
+            "   </person>" +
+            "</employees>", () => {
 
-              init_called.should.equal(true);
+                init_called.should.equal(true);
 
-              finish_called.should.equal(true);
+                finish_called.should.equal(true);
 
-              (parser as any).obj.should.eql({ name: "John", address: "Paris" });
-              done();
-          });
+                (parser as any).obj.should.eql({ name: "John", address: "Paris" });
+                done();
+            });
 
     });
 
-    it("should parse a UTF8 encoded xml file with a BOM", function(this: any, done: ErrorCallback) {
+    it("should parse a UTF8 encoded xml file with a BOM", function (this: any, done: ErrorCallback) {
 
         const nodesets = require("node-opcua-nodesets");
 
@@ -109,21 +105,21 @@ describe("XMLToJSON", () => {
         });
 
         parser.parseString(
-          "<object>" +
-          "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" +
-          "</object>", () => {
+            "<object>" +
+            "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" +
+            "</object>", () => {
 
-              displayName!.should.eql("<HelloWorld>");
+                displayName!.should.eql("<HelloWorld>");
 
-              done();
-          });
+                done();
+            });
     });
 
     it("should parse a array", (done: ErrorCallback) => {
 
         function BasicType_parser1(
-          dataType: string,
-          parseFunc: (this: any, text: string) => any
+            dataType: string,
+            parseFunc: (this: any, text: string) => any
         ): ParserLike {
 
             const _parser: ParserLike = {};
@@ -144,8 +140,8 @@ describe("XMLToJSON", () => {
         }
 
         function ListOf1(
-          dataType: string,
-          parseFunc: any
+            dataType: string,
+            parseFunc: any
         ) {
             return {
                 init(this: any) {
@@ -176,7 +172,7 @@ describe("XMLToJSON", () => {
         const parser = new Xml2Json(state_Variant);
 
         parser.parseString(
-          `<Value>
+            `<Value>
             <uax:ListOfFloat>
                 <uax:Float>11</uax:Float>
                 <uax:Float>12</uax:Float>
@@ -189,8 +185,8 @@ describe("XMLToJSON", () => {
                 <uax:Float>33</uax:Float>
             </uax:ListOfFloat>
         </Value>`, () => {
-              done();
-          });
+            done();
+        });
 
     });
     it("should parse a array 2", (done: ErrorCallback) => {

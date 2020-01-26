@@ -1,9 +1,9 @@
-import { MessageSecurityMode } from "node-opcua-types";
 import { NodeClass } from "node-opcua-data-model";
+import { MessageSecurityMode } from "node-opcua-types";
 
-import { IChannelBase, SessionContext } from "../session_context";
-import { BaseNode, UAVariable } from "../address_space_ts";
 import { connect } from "http2";
+import { BaseNode, UAVariable } from "../address_space_ts";
+import { IChannelBase, SessionContext } from "../session_context";
 
 function isChannelSecure(channel: IChannelBase): boolean {
     if (channel.securityMode === MessageSecurityMode.SignAndEncrypt) {
@@ -22,8 +22,9 @@ function newIsUserReadable(this: BaseNode, context: SessionContext): boolean {
             console.log(" context has no channel", context);
             return false;
         }
-        if (!isChannelSecure(context.session.channel)) 
+        if (!isChannelSecure(context.session.channel)) {
             return false;
+        }
         return true;
     }
     return false;
@@ -43,9 +44,9 @@ function replaceMethod(obj: any, method: string, func: any) {
 
 }
 /**
- * make sure that the given ia node can only be read 
+ * make sure that the given ia node can only be read
  * by Admistrrator user on a encrypted channel
- * @param node 
+ * @param node
  */
 export function ensureObjectIsSecure(node: BaseNode) {
 
@@ -61,7 +62,7 @@ export function ensureObjectIsSecure(node: BaseNode) {
 
     }
     const children = node.findReferencesAsObject("Aggregates", true);
-    for(const child of children) {
+    for (const child of children) {
         ensureObjectIsSecure(child);
     }
 }

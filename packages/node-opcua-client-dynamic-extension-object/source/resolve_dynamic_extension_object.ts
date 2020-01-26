@@ -1,7 +1,5 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
-import { constructObject } from "node-opcua-factory";
-import { ExpandedNodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
@@ -12,11 +10,6 @@ function resolveDynamicExtensionObjectV(
 ): ExtensionObject {
 
     try {
-        const namespaceUri = extraDataType.namespaceArray[opaque.nodeId.namespace];
-        const expandedNodeId = ExpandedNodeId.fromNodeId(opaque.nodeId, namespaceUri);
-
-        const typeDictionary = extraDataType.getTypeDictionaryForNamespace(opaque.nodeId.namespace);
-
         const Constructor = extraDataType.getExtensionObjectConstructorFromBinaryEncoding(opaque.nodeId);
         const object = new Constructor();
         const stream = new BinaryStream(opaque.buffer);

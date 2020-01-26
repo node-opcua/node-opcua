@@ -26,6 +26,8 @@ import { NumericRange } from "node-opcua-numeric-range";
 import { WriteValue, WriteValueOptions } from "node-opcua-service-write";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
+    EnumDefinition,
+    EnumField,
     HistoryReadDetails,
     HistoryReadResult,
     HistoryReadResultOptions,
@@ -34,8 +36,8 @@ import {
     ReadEventDetails,
     ReadProcessedDetails,
     ReadRawModifiedDetails,
-    EnumDefinition,
-    EnumField
+    StructureDefinition,
+    StructureDescription
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
@@ -59,7 +61,7 @@ import {
 import { BaseNode } from "./base_node";
 import { _clone, apply_condition_refresh, BaseNode_toString, ToStringBuilder, UAVariable_toString } from "./base_node_private";
 import { SessionContext } from "./session_context";
-import { UADataType, EnumerationInfo, IEnumItem } from "./ua_data_type";
+import { EnumerationInfo, IEnumItem, UADataType } from "./ua_data_type";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -155,7 +157,7 @@ function validateDataType(
     if (destUADataType.isAbstract || destUADataType.nodeId.namespace !== 0) {
         builtInUADataType = destUADataType;
     } else {
-        builtInType = findBuiltInType(destUADataType.browseName).name;
+        builtInType = findBuiltInType(destUADataType.symbolicName).name;
         builtInUADataType = addressSpace.findDataType(builtInType)!;
     }
     assert(builtInUADataType instanceof UADataType);
@@ -411,7 +413,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         return dataTypeNode.isSupertypeOf(enumerationNode);
     }
 
-
     public _getEnumerationInfo(): EnumerationInfo {
         // DataType must be one of Enumeration
         assert(this.isEnumeration(), "Variable is not an enumeration");
@@ -452,7 +453,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
             if (!enumInfo.nameIndex.hasOwnProperty(value)) {
 
-                const possibleValues = Object.keys(enumInfo.nameIndex).join(",")
+                const possibleValues = Object.keys(enumInfo.nameIndex).join(",");
                 throw new Error("UAVariable#writeEnumValue: cannot find value " +
                     value + " in [" + possibleValues + "]");
             }
@@ -461,7 +462,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
         if (_.isFinite(value)) {
 
-            const possibleValues = Object.keys(enumInfo.nameIndex).join(",")
+            const possibleValues = Object.keys(enumInfo.nameIndex).join(",");
 
             if (!enumInfo.valueIndex[value]) {
 
@@ -1238,9 +1239,15 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         // ------------------------------------------------------
         // now bind each member
         // ------------------------------------------------------
-        for (const field of dt.definition) {
+        const definition = dt._getDefinition() as StructureDefinition;
 
-            camelCaseName = lowerFirstLetter(field.name);
+        if (!definition) {
+            console.log("xx definition missing in ", dt.toString());
+        }
+
+        for (const field of definition?.fields || []) {
+
+            camelCaseName = lowerFirstLetter(field.name!);
             const component = components.filter((f) => f.browseName.name!.toString() === field.name);
             if (component.length === 1) {
                 property = component[0];
@@ -1249,7 +1256,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 assert(component.length === 0);
                 // create a variable (Note we may use ns=1;s=parentName/0:PropertyName)
                 property = this.namespace.addVariable({
-                    browseName: { namespaceIndex: structureNamespace, name: field.name.toString() },
+                    browseName: { namespaceIndex: structureNamespace, name: field.name!.toString() },
                     componentOf: this,
                     dataType: field.dataType,
                     minimumSamplingInterval: this.minimumSamplingInterval
@@ -1268,8 +1275,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 const basicType = addressSpace.findCorrespondingBasicDataType(field.dataType);
                 console.log(chalk.cyan("xxx"), " dataType",
                     w(field.dataType.toString(), 8),
-                    w(field.name, 35),
-                    "valueRank", chalk.cyan(w(field.valueRank, 3)),
+                    w(field.name!, 35),
+                    "valueRank", chalk.cyan(w(field.valueRank.toString(), 3)),
                     chalk.green(w(x, 25)),
                     "basicType = ", chalk.yellow(w(basicType.toString(), 20)),
                     property.nodeId.toString(), property.readValue().statusCode.toString());

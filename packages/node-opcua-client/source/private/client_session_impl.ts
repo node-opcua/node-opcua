@@ -8,7 +8,7 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { DateTime } from "node-opcua-basic-types";
 import {
-    extractNamespaceDataType,
+    populateDataTypeManager,
     ExtraDataTypeManager,
     getDataTypeDefinition,
     getExtraDataTypeManager,
@@ -25,7 +25,6 @@ import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId
 import { getArgumentDefinitionHelper, IBasicSession } from "node-opcua-pseudo-session";
 import {
     AnyConstructorFunc,
-    createDynamicObjectConstructor
 } from "node-opcua-schemas";
 import {
     ErrorCallback,
@@ -2134,7 +2133,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const sessionPriv: any = this as any;
         if (!sessionPriv.$$extraDataTypeManager) {
             const extraDataTypeManager = new ExtraDataTypeManager();
-            await extractNamespaceDataType(this, extraDataTypeManager);
+            await populateDataTypeManager(this, extraDataTypeManager);
             sessionPriv.$$extraDataTypeManager = extraDataTypeManager;
         }
         return sessionPriv.$$extraDataTypeManager;

@@ -1272,28 +1272,20 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 
     protected _coerceReferenceType(referenceType: string | NodeId | UAReferenceTypePublic): UAReferenceTypePublic {
 
+        let result: UAReferenceTypePublic;
         if (typeof referenceType === "string") {
-            referenceType = this.addressSpace.findReferenceType(referenceType)!;
+            result = this.addressSpace.findReferenceType(referenceType)!;
+            /* istanbul ignore next */
+            if (!result) {
+                throw new Error("Cannot coerce reference with name " + referenceType);
+            }
         } else if (referenceType instanceof NodeId) {
-            referenceType = this.addressSpace.findNode(referenceType) as UAReferenceTypePublic;
+            result = this.addressSpace.findNode(referenceType) as UAReferenceTypePublic;
+        } else {
+            result = referenceType;
         }
-        assert(referenceType.nodeClass === NodeClass.ReferenceType);
-        return referenceType as UAReferenceTypePublic;
-    }
-
-    protected __findReferenceWithBrowseName(
-        referenceType: any,
-        browseName: any
-    ): BaseNode {
-
-        const refs = this.findReferencesAsObject(referenceType);
-
-        function hasBrowseName(node: BaseNode): boolean {
-            return node.browseName.toString() === browseName;
-        }
-
-        const ref = refs.filter(hasBrowseName)[0];
-        return ref;
+        assert(result.nodeClass === NodeClass.ReferenceType);
+        return result as UAReferenceTypePublic;
     }
 
     private __addReference(referenceOpts: AddReferenceOpts): Reference {

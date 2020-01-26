@@ -3,6 +3,7 @@
 //      [<Description>text</Description>]
 //   <Field>
 // </Definition>
+import assert from "node-opcua-assert";
 import {
     ReaderStateParserLike,
     XmlAttributes
@@ -21,9 +22,10 @@ import {
 //
 export const _definitionParser: ReaderStateParserLike = {
     init(this: any, name: string, attrs: XmlAttributes) {
-        this.parent.definition = [];
-        this.parent.definition_name = attrs.Name;
-        this.array = this.parent.definition;
+        assert(!this.parent.definitionFields || this.parent.definitionFields.length === 0);
+        this.parent.definitionFields = [];
+        this.parent.definitionName = attrs.SymbolicName || attrs.Name;
+        this.array = this.parent.definitionFields;
     },
     parser: {
         Field: {
@@ -73,8 +75,9 @@ export const definitionReaderStateParser: ReaderStateParserLike = {
     },
     endElement(this: any) {
         this._pojo = {
-            name: this.definition_name,
-            fields: this.definition
+            name: this.definitionName,
+
+            fields: this.definitionFields
         };
     }
 };

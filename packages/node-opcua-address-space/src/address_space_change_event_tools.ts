@@ -80,7 +80,7 @@ export function _handle_add_reference_change_event(
 }
 
 try {
-    (ModelChangeStructureDataType as any).prototype.toString = function(options: any): string {
+    (ModelChangeStructureDataType as any).prototype.toString = function (options: any): string {
         if (!options) {
             return "";
         }

@@ -1,8 +1,8 @@
 // tslint:disable:no-bitwise
 import * as fs from "fs";
+import * as mocha from "mocha";
 import * as path from "path";
 import * as should from "should";
-import * as mocha from "mocha";
 
 import { AccessLevelFlag, AttributeIds } from "node-opcua-data-model";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
@@ -10,7 +10,8 @@ import * as nodesets from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-import { AddressSpace, generateAddressSpace, UAVariable } from "..";
+import { EnumDefinition, EnumDescription, StructureDefinition, StructureDescription } from "node-opcua-types";
+import { AddressSpace, generateAddressSpace, UADataType, UAVariable } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -242,8 +243,13 @@ describe("testing NodeSet XML file loading", function (this: any) {
         ];
         await generateAddressSpace(addressSpace, xml_files);
 
-        const dataType = addressSpace.findNode("i=95")!;
-        console.log(dataType.toString());
+        const dataType = addressSpace.findNode("i=95")! as UADataType;
+
+        should.exist(dataType);
+
+        // TO DO : What should it be .
+        // (dataType as any)._getDefinition().should.be.instanceOf(StructureDefinition);
+
     });
 
     it("VV5 read datatype ", async () => {
@@ -258,8 +264,10 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         dataType.nodeId.toString().should.eql("ns=1;i=6244");
 
+        (dataType as any)._getDefinition().should.be.instanceOf(EnumDefinition);
+
         // must have a EnumString property
-        const enumStrings = dataType.getChildByName("EnumStrings");
+        const enumStrings = dataType.getChildByName("EnumStrings")!;
         enumStrings.nodeId.toString().should.eql("ns=1;i=6450");
 
         const v = enumStrings.readAttribute(null, AttributeIds.Value);
@@ -274,7 +282,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const namespace = addressSpace.getNamespace(1)!;
         const xml = namespace.toNodeset2XML();
 
-        //xx console.log(xml);
+        // xx console.log(xml);
         xml.should.eql(
             `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
@@ -290,9 +298,31 @@ describe("testing NodeSet XML file loading", function (this: any) {
         <Alias Alias="LocalizedText">i=21</Alias>
     </Aliases>
 <!--ReferenceTypes-->
-<!--ObjectTypes-->
-<!--VariableTypes-->
-<!--Other Nodes-->
+<!--DataTypes-->
+    <UADataType NodeId="ns=1;i=6244" BrowseName="1:DeviceHealthEnumeration">
+        <DisplayName>DeviceHealthEnumeration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6450</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+        </References>
+        <Definition Name="DeviceHealthEnumeration">
+            <Field Name="NORMAL" Value="0">
+                <Description>This device functions normally.</Description>
+            </Field>
+            <Field Name="FAILURE" Value="1">
+                <Description>Malfunction of the device or any of its peripherals.</Description>
+            </Field>
+            <Field Name="CHECK_FUNCTION" Value="2">
+                <Description>Functional checks are currently performed.</Description>
+            </Field>
+            <Field Name="OFF_SPEC" Value="3">
+                <Description>The device is currently working outside of its specified range or that internal diagnoses indicate deviations from measured or set values.</Description>
+            </Field>
+            <Field Name="MAINTENANCE_REQUIRED" Value="4">
+                <Description>This element is working, but a maintenance operation is required.</Description>
+            </Field>
+        </Definition>
+    </UADataType>
     <UAVariable NodeId="ns=1;i=6450" BrowseName="EnumStrings" ValueRank="1" DataType="LocalizedText">
         <DisplayName>EnumStrings</DisplayName>
         <References>
@@ -324,32 +354,54 @@ describe("testing NodeSet XML file loading", function (this: any) {
             </ListOfLocalizedText>
         </Value>
     </UAVariable>
-    <UADataType NodeId="ns=1;i=6244" BrowseName="1:DeviceHealthEnumeration">
-        <DisplayName>DeviceHealthEnumeration</DisplayName>
-        <References>
-            <Reference ReferenceType="HasProperty">ns=1;i=6450</Reference>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
-        </References>
-        <Definition Name="DeviceHealthEnumeration">
-            <Field Name="NORMAL" Value="0">
-                <Description>This device functions normally.</Description>
-            </Field>
-            <Field Name="FAILURE" Value="1">
-                <Description>Malfunction of the device or any of its peripherals.</Description>
-            </Field>
-            <Field Name="CHECK_FUNCTION" Value="2">
-                <Description>Functional checks are currently performed.</Description>
-            </Field>
-            <Field Name="OFF_SPEC" Value="3">
-                <Description>The device is currently working outside of its specified range or that internal diagnoses indicate deviations from measured or set values.</Description>
-            </Field>
-            <Field Name="MAINTENANCE_REQUIRED" Value="4">
-                <Description>This element is working, but a maintenance operation is required.</Description>
-            </Field>
-        </Definition>
-    </UADataType>
+<!--ObjectTypes-->
+<!--VariableTypes-->
+<!--Other Nodes-->
 </UANodeSet>`
-        )
+        );
+
+    });
+
+    it("VV6 Coordiantes 3DFrame (which is from namespace 0)", async () => {
+
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_structures.xml");
+        const xml_files = [
+            xml_file1
+        ];
+        await generateAddressSpace(addressSpace, xml_files);
+
+        const dataType = addressSpace.findDataType("3DFrame", 0)!;
+        dataType.browseName.toString().should.eql("3DFrame");
+        dataType.symbolicName.toString().should.eql("ThreeDFrame");
+
+        dataType.binaryEncoding.nodeId.toString().should.eql("ns=0;i=18823");
+        dataType.binaryEncodingDefinition.should.eql("ThreeDFrame");
+
+        dataType.xmlEncoding.nodeId.toString().should.eql("ns=0;i=18859");
+        dataType.xmlEncodingDefinition.should.eql("//xs:element[@name='ThreeDFrame']");
+
+        dataType.jsonEncoding.nodeId.toString().should.eql("ns=0;i=19072");
+
+        // now construct some extension object based on this type....
+        const frame = addressSpace.constructExtensionObject(dataType);
+        console.log("fraùe", frame.toString());
+
+    });
+    it("VV7 ----------", async () => {
+
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_structures.xml");
+        const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace.xml");
+        const xml_files = [
+            xml_file1,
+            xml_file2
+        ];
+        await generateAddressSpace(addressSpace, xml_files);
+
+        console.log("Loaded !");
+
+        const dataType = addressSpace.findDataType("3DFrame", 0)!;
+
+        const object = addressSpace.constructExtensionObject(dataType);
 
     });
 });

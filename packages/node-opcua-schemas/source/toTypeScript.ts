@@ -1,19 +1,25 @@
-import { StructuredTypeSchema } from "node-opcua-factory";
-import { TypeDictionary } from "./parse_binary_xsd";
+import {
+    ConstructorFuncWithSchema,
+    DataTypeFactory,
+    StructuredTypeSchema,
+} from "node-opcua-factory";
 
-export function toTypeScript(typeDictionnary: TypeDictionary): string {
+export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
 
-    const declaration: {[key: string]: string} = {};
+    const enumeratedTypes = (dataTypeFactory as any)._enumerations;
+    const structuredTypes = (dataTypeFactory as any)._structureTypeConstructorByNameMap;
+
+    const declaration: { [key: string]: string } = {};
 
     function adjustType(t: string): string {
-        if (!typeDictionnary.enumeratedTypes[t] && !typeDictionnary.structuredTypes[t]) {
+        if (!enumeratedTypes[t] && !structuredTypes[t]) {
             declaration[t] = t;
         }
         return t;
     }
     const l: string[] = [];
     // enumeration
-    for (const e of Object.values(typeDictionnary.enumeratedTypes)) {
+    for (const e of Object.values(enumeratedTypes) as any[]) {
         l.push(`export enum ${e.name} {`);
         // console.log((e.typedEnum as any).enumItems);
         for (const v of Object.entries(e.enumValues as any)) {
@@ -26,11 +32,13 @@ export function toTypeScript(typeDictionnary: TypeDictionary): string {
         l.push(`}`);
 
     }
-    const alreadyDone: {[key: string]: StructuredTypeSchema} = {};
+    const alreadyDone: { [key: string]: StructuredTypeSchema } = {};
     function dumpType(o: StructuredTypeSchema) {
         // base type first
         const b = o.baseType;
-        const bt = typeDictionnary.structuredTypes[b];
+
+        const bt = structuredTypes[b]?.schema;
+
         if (b && !alreadyDone[o.baseType] && bt) {
             dumpType(bt);
         }
@@ -68,7 +76,7 @@ export function toTypeScript(typeDictionnary: TypeDictionary): string {
 
         } else {
 
-            if (o.fields.length === 0 ) {
+            if (o.fields.length === 0) {
                 l.push("// tslint:disable-next-line: no-empty-interface");
             }
 
@@ -89,11 +97,11 @@ export function toTypeScript(typeDictionnary: TypeDictionary): string {
         }
     }
     // objects
-    for (const o of Object.values(typeDictionnary.structuredTypes)) {
-        if (alreadyDone[o.name]) {
+    for (const o of Object.values(structuredTypes) as ConstructorFuncWithSchema[]) {
+        if (alreadyDone[o.schema.name]) {
             continue;
         }
-        dumpType(o);
+        dumpType(o.schema);
     }
     const opcuatypes = Object.keys(declaration).sort().join(",\n    ");
     l.unshift(`import {\n    ${opcuatypes}\n} from "node-opcua";`);

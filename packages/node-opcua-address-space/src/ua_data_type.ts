@@ -21,10 +21,11 @@ import {
     UADataType as UADataTypePublic, UAVariable
 } from "../source";
 import { BaseNode } from "./base_node";
-import { BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
+import { BaseNode_References_toString, BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
 import * as  tools from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
+import { UAObject } from "./ua_object";
 
 type ExtensionObjectConstructor = new (options: any) => ExtensionObject;
 
@@ -53,7 +54,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
 
     public readonly nodeClass = NodeClass.DataType;
     public readonly definitionName: string = "";
-
+    public readonly symbolicName: string;
     /**
      * returns true if this is a super type of baseType
      *
@@ -77,9 +78,6 @@ export class UADataType extends BaseNode implements UADataTypePublic {
 
     public readonly isAbstract: boolean;
 
-    public definition_name: string;
-    public definition: any[];
-
     private enumStrings?: any;
     private enumValues?: any;
     private $definition?: DataTypeDefinition;
@@ -87,12 +85,10 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     constructor(options: any) {
 
         super(options);
-        this.definition_name = options.definition_name || "<UNKNOWN>";
-        this.definition = options.definition || [];
-
+        this.$definition = options.$definition;
         this.isAbstract = (options.isAbstract === null) ? false : options.isAbstract;
+        this.symbolicName = options.symbolicName || this.browseName.name!;
     }
-
 
     public get basicDataType(): DataType {
         return findBasicDataType(this);
@@ -108,105 +104,105 @@ export class UADataType extends BaseNode implements UADataTypePublic {
                 options.statusCode = StatusCodes.Good;
                 options.value = { dataType: DataType.Boolean, value: !!this.isAbstract };
                 break;
-            case AttributeIds.DataTypeDefinition: {
+            case AttributeIds.DataTypeDefinition:
                 const _definition = this._getDefinition();
                 if (_definition !== null) {
                     options.value = { dataType: DataType.ExtensionObject, value: _definition };
                 } else {
                     options.statusCode = StatusCodes.BadAttributeIdInvalid;
                 }
-            } break;
+                break;
             default:
                 return super.readAttribute(context, attributeId);
         }
         return new DataValue(options);
     }
 
-    public getEncodingNode(encoding_name: string): BaseNode | null {
-
-        assert(encoding_name === "Default Binary" || encoding_name === "Default Xml");
-        // could be binary or xml
-        const refs = this.findReferences("HasEncoding", true);
-        const addressSpace = this.addressSpace;
-        const encoding = refs
-            .map((ref) => addressSpace.findNode(ref.nodeId))
-            .filter((obj: any) => obj !== null)
-            .filter((obj: any) => obj.browseName.toString() === encoding_name);
-        return encoding.length === 0 ? null : encoding[0] as BaseNode;
+    public getEncodingDefinition(encoding_name: string): string | null {
+        const encodingNode = this.getEncodingNode(encoding_name);
+        if (!encodingNode) {
+            throw new Error("Cannot find Encoding for " + encoding_name);
+        }
+        const indexRange = new NumericRange();
+        const descriptionNodeRef = encodingNode.findReferences("HasDescription")[0]!;
+        const descriptionNode = this.addressSpace.findNode(descriptionNodeRef.nodeId) as UAVariable;
+        if (!descriptionNode) {
+            return null;
+        }
+        const dataValue = descriptionNode.readValue(SessionContext.defaultContext, indexRange);
+        return dataValue.value.value.toString() || null;
     }
 
+    public getEncodingNode(encoding_name: string): UAObject | null {
+
+        const _cache = BaseNode._getCache(this);
+        const key = encoding_name + "Node";
+        if (_cache[key] === undefined) {
+
+            assert(encoding_name === "Default Binary" || encoding_name === "Default XML" || encoding_name === "Default JSON");
+            // could be binary or xml
+            const refs = this.findReferences("HasEncoding", true);
+            const addressSpace = this.addressSpace;
+            const encoding = refs
+                .map((ref) => addressSpace.findNode(ref.nodeId))
+                .filter((obj: any) => obj !== null)
+                .filter((obj: any) => obj.browseName.toString() === encoding_name);
+            const node = encoding.length === 0 ? null : encoding[0] as UAObject;
+            _cache[key] = node;
+        }
+        return _cache[key];
+    }
+
+    public getEncodingNodeId(encoding_name: string): ExpandedNodeId | null {
+        const _cache = BaseNode._getCache(this);
+        const key = encoding_name + "NodeId";
+        if (_cache[key] === undefined) {
+            const encoding = this.getEncodingNode(encoding_name);
+            if (encoding) {
+                const namespaceUri = this.addressSpace.getNamespaceUri(encoding.nodeId.namespace);
+                _cache[key] = ExpandedNodeId.fromNodeId(encoding.nodeId, namespaceUri);
+            } else {
+                _cache[key] = null;
+            }
+        }
+        return _cache[key];
+    }
     /**
      * returns the encoding of this node's
      * TODO objects have 2 encodings : XML and Binaries
      */
-    public get binaryEncodingNodeId() {
 
-        const _cache = BaseNode._getCache(this);
-        if (!_cache.binaryEncodingNodeId) {
-            const encoding = this.getEncodingNode("Default Binary");
-            if (encoding) {
-                const namespaceUri = this.addressSpace.getNamespaceUri(encoding.nodeId.namespace);
-                _cache.binaryEncodingNodeId = ExpandedNodeId.fromNodeId(encoding.nodeId, namespaceUri);
-            } else {
-                _cache.binaryEncodingNodeId = null;
-            }
-        }
-        return _cache.binaryEncodingNodeId;
+    public get binaryEncoding(): BaseNode | null {
+        return this.getEncodingNode("Default Binary");
+    }
+    public get binaryEncodingDefinition(): string | null {
+        return this.getEncodingDefinition("Default Binary");
+    }
+    public get binaryEncodingNodeId(): ExpandedNodeId | null {
+        return this.getEncodingNodeId("Default Binary");
     }
 
-    public get binaryEncoding(): BaseNode {
-        const _cache = BaseNode._getCache(this);
-        if (!_cache.binaryEncodingNode) {
-            _cache.binaryEncodingNode = this.__findReferenceWithBrowseName("HasEncoding", "Default Binary");
-            // also add namespaceUri
-        }
-        return _cache.binaryEncodingNode;
+    public get xmlEncoding(): BaseNode | null {
+        return this.getEncodingNode("Default XML");
+    }
+    public get xmlEncodingNodeId(): ExpandedNodeId | null {
+        return this.getEncodingNodeId("Default XML");
+    }
+    public get xmlEncodingDefinition(): string | null {
+        return this.getEncodingDefinition("Default XML");
     }
 
-    public get binaryEncodingDefinition(): string {
-        const indexRange = new NumericRange();
-        const descriptionNode = this.binaryEncoding.findReferencesAsObject("HasDescription")[0];
-        const structureVar = descriptionNode.findReferencesAsObject(
-            "HasComponent", false)[0] as any as UAVariable;
-        const dataValue = structureVar.readValue(SessionContext.defaultContext, indexRange);
-        // xx if (!dataValue || !dataValue.value || !dataValue.value.value) { return "empty";}
-        return dataValue.value.value.toString();
+    public get jsonEncoding(): BaseNode | null {
+        return this.getEncodingNode("Default JSON");
     }
 
-    public get xmlEncoding(): BaseNode {
-
-        const _cache = BaseNode._getCache(this);
-        if (!_cache.xmlEncodingNode) {
-            _cache.xmlEncodingNode = this.__findReferenceWithBrowseName("HasEncoding", "Default XML");
-        }
-        return _cache.xmlEncodingNode;
+    public get jsonEncodingNodeId(): ExpandedNodeId | null {
+        return this.getEncodingNodeId("Default JSON");
     }
 
-    public get xmlEncodingNodeId(): NodeId {
-        const _cache = BaseNode._getCache(this);
-        if (!_cache.xmlEncodingNodeId) {
-            const encoding = this.getEncodingNode("Default Xml");
-            if (encoding) {
-                const namespaceUri = this.addressSpace.getNamespaceUri(encoding.nodeId.namespace);
-                _cache.xmlEncodingNodeId = ExpandedNodeId.fromNodeId(encoding.nodeId, namespaceUri);
-            } else {
-                _cache.xmlEncodingNodeId = null;
-            }
-        }
-        return _cache.xmlEncodingNodeId;
-    }
-
-    public get xmlEncodingDefinition(): string {
-        const indexRange = new NumericRange();
-        const descriptionNode = this.xmlEncoding.findReferencesAsObject("HasDescription")[0];
-        const structureVar = descriptionNode.findReferencesAsObject(
-            "HasComponent", false)[0] as any as UAVariable;
-        const dataValue = structureVar.readValue(SessionContext.defaultContext, indexRange);
-        if (!dataValue || !dataValue.value || !dataValue.value.value) {
-            return "empty";
-        }
-        return dataValue.value.value.toString();
-    }
+    //  public get jsonEncodingDefinition(): string | null {
+    //      return this.getEncodingDefinition("Default JSON");
+    //  }
 
     public _getEnumerationInfo(): EnumerationInfo {
         let definition = [];
@@ -248,34 +244,6 @@ export class UADataType extends BaseNode implements UADataTypePublic {
         //  A DataTypeDefinition defines an abstract representation of a UADataType that can be used by
         //  design tools to automatically create serialization code. The fields in the DataTypeDefinition type
         //  are defined in Table F.12.
-
-        if (this.$definition === undefined && this.definition && this.definition.length > 0) {
-
-            const enumerationNode = this.addressSpace.findDataType("Enumeration")!;
-            const structureNode = this.addressSpace.findDataType("Structure")!;
-            if (enumerationNode && this.isSupertypeOf(enumerationNode)) {
-                this.$definition = new EnumDefinition({
-                    fields: this.definition.map((x) => ({
-                        value: x.value,
-                        description: {
-                            text: x.description,
-                        },
-                        name: x.name
-                    }))
-                });
-
-            } else if (structureNode && this.isSupertypeOf(structureNode)) {
-                // Structure = 0,
-                // StructureWithOptionalFields = 1,
-                // Union = 2,
-                this.$definition = new StructureDefinition({
-                    // defaultEncodingId: NodeId;
-                    // baseDataType: NodeId;
-                    fields: this.definition,
-                    structureType: StructureType.Structure,
-                });
-            }
-        }
         return this.$definition || null;
     }
 
@@ -299,7 +267,7 @@ function dataTypeDefinition_toString(
         return;
     }
     const output = definition.toString();
-    options.add(options.padding + chalk.yellow("                              :  definition "));
+    options.add(options.padding + chalk.yellow(" Definition                   :             "));
     for (const str of output.split("\n")) {
         options.add(options.padding + chalk.yellow("                              :   " + str));
     }
@@ -323,6 +291,9 @@ export function DataType_toString(
         options.add(options.padding + chalk.yellow("          subtypeOfObj        : ") +
             (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : ""));
     }
+    // references
+    BaseNode_References_toString.call(this, options);
+
     dataTypeDefinition_toString.call(this, options);
 
 }

@@ -27,7 +27,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
         addressSpace.dispose();
     });
 
-    it("should create a Variable that expose an array of ExtensionObject of a specific type", async () => {
+    it("should create a Variable that exposes an array of ExtensionObject of a specific type", async () => {
 
         // given a address space
         // give a DataType
@@ -45,7 +45,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
 
         const expectedType = addressSpace.findVariableType("SubscriptionDiagnosticsArrayType")!;
         arr.typeDefinition.toString().should.eql(expectedType.nodeId.toString(),
-          "should have typeDefinition SubscriptionDiagnosticsArrayType");
+            "should have typeDefinition SubscriptionDiagnosticsArrayType");
 
         const dv = arr.readValue();
         should(dv.value.value).eql([]);

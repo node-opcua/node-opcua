@@ -72,8 +72,8 @@ describe("testing nodeset to xml", () => {
         });
 
         const enumStringNode = myEnumType.getChildByName("EnumStrings")! as UAVariable;
-        const values = enumStringNode.readValue().value.value.map(x => x.toString());
-        console.log(values.toString());
+        const values = enumStringNode.readValue().value.value.map((x: any) => x.toString());
+        // xx console.log(values.toString());
         values.join(",").should.eql("locale=null text=RUNNING,locale=null text=STOPPED");
 
         myEnumType.browseName.toString().should.eql("1:MyEnumTypeForm1");

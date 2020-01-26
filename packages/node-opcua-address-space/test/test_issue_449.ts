@@ -31,14 +31,14 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
             browseName: "TEST",
             dataType: "String",
             value: {
-                get: function(this: UAVariable) {
+                get: function (this: UAVariable) {
                     // in get - this.browseName works great.
                     return new Variant({
                         dataType: DataType.String,
                         value: this.browseName.toString()
                     });
                 },
-                set: function(this: UAVariable, variant: Variant) {
+                set: function (this: UAVariable, variant: Variant) {
                     // in set - it doesn't
                     this.browseName.toString().should.eql("1:TEST");
                     this.should.eql(node);
@@ -58,6 +58,6 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
 
         const statusCode = await node.writeValue(SessionContext.defaultContext, dataValue);
         statusCode.should.eql(StatusCodes.Good);
-        
+
     });
 });

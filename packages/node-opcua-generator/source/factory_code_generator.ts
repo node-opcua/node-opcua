@@ -21,7 +21,10 @@ import * as path from "path";
 import * as  prettier from "prettier";
 import * as _ from "underscore";
 
-import { ObjectIds } from "node-opcua-constants";
+import {
+    DataTypeIds,
+    ObjectIds
+} from "node-opcua-constants";
 import { make_debugLog } from "node-opcua-debug";
 import { coerceNodeId, makeExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { capitalizeFirstLetter, LineFile, normalize_require_file } from "node-opcua-utils";
@@ -113,9 +116,9 @@ function get_class_tscript_filename_local(schemaName: string): string {
 type WriteFunc = (...args: string[]) => void;
 
 function write_enumeration_setter(
-  write: WriteFunc,
-  schema: StructuredTypeSchema,
-  field: FieldType, member: string
+    write: WriteFunc,
+    schema: StructuredTypeSchema,
+    field: FieldType, member: string
 ): void {
     const capMember = capitalizeFirstLetter(member);
     write(`    public set${capMember}(value: any): ${field.fieldType} {`);
@@ -130,16 +133,16 @@ function write_enumeration_setter(
 }
 
 function write_enumeration(
-  write: WriteFunc,
-  schema: StructuredTypeSchema,
-  field: FieldType,
-  member: string,
-  i: number
+    write: WriteFunc,
+    schema: StructuredTypeSchema,
+    field: FieldType,
+    member: string,
+    i: number
 ): void {
     assert(!field.isArray); // would not work in this case
     const capMember = capitalizeFirstLetter(member);
     write(
-      `        this.${field.name} = this.set${capMember}(initialize_field(schema.fields[${i}], options.${field.name}));`
+        `        this.${field.name} = this.set${capMember}(initialize_field(schema.fields[${i}], options.${field.name}));`
     );
 }
 
@@ -378,7 +381,7 @@ function write_encode(write: WriteFunc, schema: StructuredTypeSchema): void {
                 case FieldCategory.complex:
                     if (field.isArray) {
                         write(
-                          `        encodeArray(this.${member}, stream, (obj, stream1) => { obj.encode(stream1); });`);
+                            `        encodeArray(this.${member}, stream, (obj, stream1) => { obj.encode(stream1); });`);
                     } else {
                         write(`        this.${member}.encode(stream);`);
                     }
@@ -424,7 +427,7 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
         }
     }
 
-//  ---------------------------------------------------------------
+    //  ---------------------------------------------------------------
     if (_.isFunction(schema.decode)) {
 
         if (produceComment) {
@@ -506,10 +509,10 @@ function write_class_constructor_options(write: WriteFunc, schema: StructuredTyp
                 if (field.fieldType === "ExtensionObject") {
                     write(`    ${member}?: (${field.fieldType} | null)${arrayOpt};`);
                 } else if (
-                    field.fieldType === "Variant" || 
-                    field.fieldType === "DataValue" || 
-                    field.fieldType === "NodeId" || 
-                    field.fieldType === "QualifiedName" || 
+                    field.fieldType === "Variant" ||
+                    field.fieldType === "DataValue" ||
+                    field.fieldType === "NodeId" ||
+                    field.fieldType === "QualifiedName" ||
                     field.fieldType === "LocalizedText"
                 ) {
                     write(`    ${member}?: (${field.fieldType}Like | null)${arrayOpt};`);
@@ -610,8 +613,10 @@ export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSche
     const className = schema.name;
     const baseClass = schema.baseType;
 
+    const dataTypeNodeId = getDataTypeNodeId(schema);
     const encodingBinaryNodeId = getEncodingBinaryId(schema);
     const encodingXmlNodeId = getEncodingXmlId(schema);
+    const encodingJsonNodeId = getEncodingJsonId(schema);
 
     const needRegistration = encodingBinaryNodeId.value !== 0;
 
@@ -635,6 +640,7 @@ export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSche
         // -------------------------------------------------------------------------
         // - encodingDefaultBinary
         // -------------------------------------------------------------------------
+        write(`    public static dataTypeNodeId = makeExpandedNodeId(${dataTypeNodeId.value}, ${dataTypeNodeId.namespace});`);
         if (encodingBinaryNodeId) {
             write(`    public static encodingDefaultBinary = makeExpandedNodeId(${encodingBinaryNodeId.value}, ${encodingBinaryNodeId.namespace});`
             );
@@ -642,10 +648,17 @@ export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSche
 
         if (encodingXmlNodeId) {
             write(
-              `    public static encodingDefaultXml = makeExpandedNodeId(${encodingXmlNodeId.value}, ${encodingXmlNodeId.namespace});`
+                `    public static encodingDefaultXml = makeExpandedNodeId(${encodingXmlNodeId.value}, ${encodingXmlNodeId.namespace});`
             );
         } else {
             write("    public static encodingDefaultXml = null;");
+        }
+        if (encodingJsonNodeId) {
+            write(
+                `    public static encodingDefaultJson = makeExpandedNodeId(${encodingJsonNodeId.value}, ${encodingJsonNodeId.namespace});`
+            );
+        } else {
+            write("    public static encodingDefaultJson = null;");
         }
         // xx        write(`    static schema = schema${className};`);
 
@@ -662,6 +675,9 @@ export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSche
     }
     write("}");
 
+    if (dataTypeNodeId) {
+        write(`${className}.schema.dataTypeNodeId = ${className}.dataTypeNodeId;`);
+    }
     if (encodingBinaryNodeId) {
         write(`${className}.schema.encodingDefaultBinary = ${className}.encodingDefaultBinary;`);
     }
@@ -669,12 +685,20 @@ export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSche
     if (encodingXmlNodeId) {
         write(`${className}.schema.encodingDefaultXml = ${className}.encodingDefaultXml;`);
     }
+    if (encodingJsonNodeId) {
+        write(`${className}.schema.encodingDefaultJson = ${className}.encodingDefaultJson;`);
+    }
 
     if (needRegistration) {
-        write(`registerClassDefinition("${className}", ${className});`);
+        write(`registerClassDefinition( ${className}.dataTypeNodeId, "${className}", ${className});`);
     }
 }
 
+function getDataTypeNodeId(schema: StructuredTypeSchema): NodeId {
+    const className = schema.name;
+    const encodingBinarylId = (DataTypeIds as any)[className];
+    return coerceNodeId(encodingBinarylId);
+}
 function getEncodingBinaryId(schema: StructuredTypeSchema): NodeId {
     const className = schema.name;
     const encodingBinarylId = (ObjectIds as any)[className + "_Encoding_DefaultBinary"];
@@ -686,12 +710,17 @@ function getEncodingXmlId(schema: StructuredTypeSchema): NodeId {
     const encodingXmlId = (ObjectIds as any)[className + "_Encoding_DefaultXml"];
     return coerceNodeId(encodingXmlId);
 }
+function getEncodingJsonId(schema: StructuredTypeSchema): NodeId {
+    const className = schema.name;
+    const encodingXmlId = (ObjectIds as any)[className + "_Encoding_DefaultJson"];
+    return coerceNodeId(encodingXmlId);
+}
 
 /* eslint complexity:[0,50],  max-statements: [1, 254]*/
 export function produce_tscript_code(
-  schema: StructuredTypeSchema,
-  localSchemaFile: string,
-  generatedTypescriptFilename: string
+    schema: StructuredTypeSchema,
+    localSchemaFile: string,
+    generatedTypescriptFilename: string
 ) {
 
     const className = schema.name;
@@ -713,7 +742,7 @@ export function produce_tscript_code(
     // Xx resolve_schema_field_types(schema, generatedObjectSchema);
 
     const complexTypes = schema.fields.filter(
-      (field: FieldType) => field.category === FieldCategory.complex && field.fieldType !== schema.name);
+        (field: FieldType) => field.category === FieldCategory.complex && field.fieldType !== schema.name);
 
     const folderForSourceFile = path.dirname(generatedTypescriptFilename);
 
@@ -749,7 +778,7 @@ export function produce_tscript_code(
     const schemaObjName = schema.name + "_Schema";
 
     write(
-      `import { ${schemaObjName} } from "${localSchemaFile}";`
+        `import { ${schemaObjName} } from "${localSchemaFile}";`
     );
     write("const schema = " + schemaObjName + ";");
 
@@ -769,11 +798,11 @@ export function produce_tscript_code(
         if (fs.existsSync(filename)) {
             // xx write("const " + field.fieldType + ' = require("' + local_filename + '").' + field.fieldType + ";");
             write(
-              `import { ${field.fieldType} } from "${localFilename}";`
+                `import { ${field.fieldType} } from "${localFilename}";`
             );
         } else {
             write(
-              `import { ${field.fieldType} } from "../source/imports";`
+                `import { ${field.fieldType} } from "../source/imports";`
             );
         }
     }

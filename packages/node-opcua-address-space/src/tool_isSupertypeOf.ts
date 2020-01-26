@@ -25,9 +25,7 @@ function _filterSubType(reference: UAReference) {
       && !reference.isForward);
 }
 
-export interface BaseNodeConstructor<T extends BaseNode> {
-    new(): T;
-}
+export type BaseNodeConstructor<T extends BaseNode> = new() => T;
 
 function _slow_isSupertypeOf<T extends UAType>(
   this: T,
@@ -109,7 +107,7 @@ export function construct_isSupertypeOf<T extends UAType>(
 ): IsSupertypeOfFunc<T> {
 
     assert(_.isFunction(Class));
-    return wrap_memoize(function(this: T, baseType: T): boolean {
+    return wrap_memoize(function (this: T, baseType: T): boolean {
         assert(baseType instanceof Class);
         assert(this instanceof Class);
         return _slow_isSupertypeOf.call(this, Class, baseType);
@@ -117,7 +115,7 @@ export function construct_isSupertypeOf<T extends UAType>(
 }
 
 export function construct_slow_isSupertypeOf<T extends UAType>(Class: typeof BaseNode) {
-    return function(this: T, baseType: T) {
+    return function (this: T, baseType: T) {
         return _slow_isSupertypeOf.call(this, Class, baseType);
     };
 }

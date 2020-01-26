@@ -23,7 +23,7 @@ export * from "./helpers/ensure_secure_access";
 export * from "../src/alarms_and_conditions";
 export * from "../test_helpers";
 export { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture";
-export { ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";
 export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";
 export { Reference } from "../src/reference";
 export { NodeIdManager, ConstructNodeIdOptions } from "../src/nodeid_manager";
+export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/load_nodeset2";

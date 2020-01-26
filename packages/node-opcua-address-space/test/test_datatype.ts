@@ -33,7 +33,7 @@ describe("testing UADataype -  Attribute", () => {
         const dataType = namespace.createDataType({
             browseName: "MyDataType",
             isAbstract: true,
-            superType: "BaseDataType",
+            subtypeOf: "BaseDataType",
         });
 
         let value;

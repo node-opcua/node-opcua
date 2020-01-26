@@ -6,10 +6,10 @@ import { DataType } from "node-opcua-variant";
 import * as should from "should";
 import { getMiniAddressSpace } from "../";
 
-import { AddressSpace, SessionContext, UADataType } from "..";
-import {generateAddressSpace} from "..";
-import {nodesets} from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { StructureDefinition } from "node-opcua-types";
+import { AddressSpace, SessionContext, UADataType } from "..";
+import { generateAddressSpace } from "..";
 
 const context = SessionContext.defaultContext;
 
@@ -20,7 +20,7 @@ describe("testing UADataype -  Attribute", () => {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const nodesetFilename =  [
+        const nodesetFilename = [
             nodesets.standard
         ];
         await generateAddressSpace(addressSpace, nodesetFilename);
@@ -37,10 +37,10 @@ describe("testing UADataype -  Attribute", () => {
     });
     it("DTX4 should extract Definition from DataType structure", async () => {
 
-        const dataTypeSchemaHeader = addressSpace.findDataType("DataTypeSchemaHeader");
+        const dataTypeSchemaHeader = addressSpace.findDataType("DataTypeSchemaHeader")!;
         should.exist(dataTypeSchemaHeader);
 
-        const dataTypeDefinitionDataValue = dataTypeSchemaHeader.readAttribute(null,AttributeIds.DataTypeDefinition);
+        const dataTypeDefinitionDataValue = dataTypeSchemaHeader.readAttribute(null, AttributeIds.DataTypeDefinition);
         should.exist(dataTypeDefinitionDataValue);
         dataTypeDefinitionDataValue.statusCode.should.eql(StatusCodes.Good);
 

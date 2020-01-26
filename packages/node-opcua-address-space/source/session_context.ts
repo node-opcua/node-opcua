@@ -4,11 +4,11 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { CertificateInternals , exploreCertificate, Certificate} from "node-opcua-crypto";
+import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
-import { AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken, MessageSecurityMode } from "node-opcua-types";
+import { AnonymousIdentityToken, MessageSecurityMode, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 
-import { BaseNode,  ISessionContext, UAObject , UAObjectType} from "./address_space_ts";
+import { BaseNode, ISessionContext, UAObject, UAObjectType } from "./address_space_ts";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -41,7 +41,7 @@ export interface IChannelBase {
     securityPolicy: string;
 }
 /**
- * 
+ *
  */
 export interface ISessionBase {
     userIdentityToken?: UserIdentityToken;

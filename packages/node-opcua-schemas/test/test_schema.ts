@@ -8,23 +8,28 @@ import * as mocha from "mocha";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { hexDump } from "node-opcua-debug";
-import { Enum, EnumItem } from "node-opcua-enum";
 import {
+    DataTypeFactory,
     parameters
 } from "node-opcua-factory";
+import { DataType, Variant } from "node-opcua-variant";
+
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/test_helpers";
 
-import { parseBinaryXSD, TypeDictionary } from "../source";
-import { getOrCreateConstructor } from "../source/dynamic_extension_object";
+import {
+    getOrCreateConstructor,
+    parseBinaryXSDAsync
+} from "..";
 
-import { DataType, Variant } from "node-opcua-variant";
+import { MockProvider } from "./mock_id_provider";
 
 const doDebug = false;
 
+const idProvider = new MockProvider();
 // ts-lint:disable:no-string-literal
-describe("Binary Schemas Helper", () => {
+describe("BSHA - Binary Schemas Helper 1", () => {
 
-    let typeDictionary: TypeDictionary;
+    let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type.xsd");
@@ -32,22 +37,22 @@ describe("Binary Schemas Helper", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
+        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
     });
 
     after(() => {
         parameters.debugSchemaHelper = old_schema_helpers_doDebug;
     });
 
-    it("should parse some structure types", async () => {
-        should.exists(typeDictionary.structuredTypes.WorkOrderType);
+    it("BSH1 - should parse some structure types", async () => {
+        dataTypeFactory.hasStructuredType("WorkOrderType").should.eql(true);
     });
-    it("should parse some enumerated types", async () => {
-        should.exists(typeDictionary.enumeratedTypes.Priority);
+    it("BSH2 - should parse some enumerated types", async () => {
+        dataTypeFactory.hasEnumeration("Priority").should.eql(true);
     });
-    it("should construct a dynamic object structure", () => {
+    it("BSH3 - should construct a dynamic object structure", () => {
 
-        const WorkOrderType = getOrCreateConstructor("WorkOrderType", typeDictionary);
+        const WorkOrderType = getOrCreateConstructor("WorkOrderType", dataTypeFactory);
 
         const workOrderType = new WorkOrderType({
             assetID: "AssetId1234",
@@ -72,9 +77,9 @@ describe("Binary Schemas Helper", () => {
         });
     });
 
-    it("should handle StructureWithOptionalFields - 1", () => {
+    it("BSH4 - should handle StructureWithOptionalFields - 1", () => {
 
-        const StructureWithOptionalFields = getOrCreateConstructor("StructureWithOptionalFields", typeDictionary);
+        const StructureWithOptionalFields = getOrCreateConstructor("StructureWithOptionalFields", dataTypeFactory);
 
         const structureWithOptionalFields1 = new StructureWithOptionalFields({
             mandatoryInt32: 42,
@@ -104,9 +109,9 @@ describe("Binary Schemas Helper", () => {
             buffer.length.should.equal(17, "expected stream length to be 17 bytes");
         });
     });
-    it("should handle StructureWithOptionalFields - 2", () => {
+    it("BSH5 - should handle StructureWithOptionalFields - 2", () => {
 
-        const StructureWithOptionalFields = getOrCreateConstructor("StructureWithOptionalFields", typeDictionary);
+        const StructureWithOptionalFields = getOrCreateConstructor("StructureWithOptionalFields", dataTypeFactory);
         const structureWithOptionalFields2 = new StructureWithOptionalFields({
             mandatoryInt32: 42,
             mandatoryStringArray: ["h"],
@@ -140,9 +145,9 @@ describe("Binary Schemas Helper", () => {
 
 });
 
-describe("Binary Schemas Helper 1", () => {
+describe("BSHB - Binary Schemas Helper 2", () => {
 
-    let typeDictionary: TypeDictionary;
+    let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type1.xsd");
@@ -150,19 +155,19 @@ describe("Binary Schemas Helper 1", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
+        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
     });
 
     after(() => {
         parameters.debugSchemaHelper = old_schema_helpers_doDebug;
     });
 
-    it("should parse some structure types", async () => {
-        should.exists(typeDictionary.structuredTypes.SystemStateDescriptionDataType);
+    it("BSHB1 - should parse some structure types", async () => {
+        dataTypeFactory.hasStructuredType("SystemStateDescriptionDataType").should.eql(true);
     });
 
-    it("should parse some enumerated types", async () => {
-        should.exists(typeDictionary.enumeratedTypes.SystemStateDataType);
+    it("BSHB2 - should parse some enumerated types", async () => {
+        dataTypeFactory.hasEnumeration("SystemStateDataType").should.eql(true);
     });
 
     enum SystemStateEnum2 {
@@ -174,11 +179,11 @@ describe("Binary Schemas Helper 1", () => {
         NST_6 = 6,
     }
 
-    it("should construct a dynamic object structure 1", () => {
+    it("BSHB3 - should construct a dynamic object structure 1", () => {
 
-        const SystemStateDescriptionDataType = getOrCreateConstructor("SystemStateDescriptionDataType", typeDictionary);
+        const SystemStateDescriptionDataType = getOrCreateConstructor("SystemStateDescriptionDataType", dataTypeFactory);
 
-        const SystemState = typeDictionary.enumeratedTypes.SystemStateDataType.enumValues as SystemStateEnum2;
+        const SystemState = dataTypeFactory.getEnumeration("SystemStateDataType")!.enumValues as SystemStateEnum2;
 
         const systemStateDescription = new SystemStateDescriptionDataType({
             state: SystemStateEnum2.ENG_3,
@@ -197,9 +202,9 @@ describe("Binary Schemas Helper 1", () => {
             buffer.length.should.equal(17);
         });
     });
-    it("should construct a dynamic object structure 2", () => {
+    it("BSHB4 - should construct a dynamic object structure 2", () => {
 
-        const SystemStateDescriptionDataType = getOrCreateConstructor("SystemStateDescriptionDataType", typeDictionary);
+        const SystemStateDescriptionDataType = getOrCreateConstructor("SystemStateDescriptionDataType", dataTypeFactory);
         const systemStateDescription = new SystemStateDescriptionDataType({
             state: SystemStateEnum2.ENG_3
             // not specified ( can be omitted ) stateDescription: undefined
@@ -214,9 +219,9 @@ describe("Binary Schemas Helper 1", () => {
 
 });
 
-describe("Binary Schemas Helper 2", () => {
+describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
 
-    let typeDictionary: TypeDictionary;
+    let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type2.xsd");
@@ -224,18 +229,20 @@ describe("Binary Schemas Helper 2", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
+        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
     });
 
     after(() => {
         parameters.debugSchemaHelper = old_schema_helpers_doDebug;
     });
 
-    it("should parse ProcessingTimesDataType structure types", async () => {
-        should.exists(typeDictionary.structuredTypes.ProcessingTimesDataType);
+    it("BSHC1 - should parse ProcessingTimesDataType structure types", async () => {
+        dataTypeFactory.hasStructuredType("ProcessingTimesDataType").should.eql(true);
+        const ProcessingTimesDataType = dataTypeFactory.getStructuredTypeSchema("ProcessingTimesDataType");
+        ProcessingTimesDataType.name.should.eql("ProcessingTimesDataType");
     });
 
-    it("should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
+    it("BSHC2 - should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
 
         interface ProcessingTimes {
             startTime: Date;
@@ -244,7 +251,7 @@ describe("Binary Schemas Helper 2", () => {
             processingDuration?: number;
         }
 
-        const ProcessingTimesDataType = getOrCreateConstructor("ProcessingTimesDataType", typeDictionary);
+        const ProcessingTimesDataType = getOrCreateConstructor("ProcessingTimesDataType", dataTypeFactory);
 
         const processingTimes: ProcessingTimes = new ProcessingTimesDataType({
             endTime: new Date(Date.now() - 110),
@@ -262,9 +269,9 @@ describe("Binary Schemas Helper 2", () => {
         });
     });
 
-    it("should construct a dynamic object structure ProcessingTimesDataType - 2", () => {
+    it("BSHC3 - should construct a dynamic object structure ProcessingTimesDataType - 2", () => {
 
-        const ProcessingTimesDataType = getOrCreateConstructor("ProcessingTimesDataType", typeDictionary);
+        const ProcessingTimesDataType = getOrCreateConstructor("ProcessingTimesDataType", dataTypeFactory);
 
         const processingTimes = new ProcessingTimesDataType({
             acquisitionDuration: 1000,
@@ -282,9 +289,9 @@ describe("Binary Schemas Helper 2", () => {
         });
     });
 
-    it("should construct a ConfigurationDataType - 1", () => {
+    it("BSHC4 - should construct a ConfigurationDataType - 1", () => {
 
-        const ConfigurationDataType = getOrCreateConstructor("ConfigurationDataType", typeDictionary);
+        const ConfigurationDataType = getOrCreateConstructor("ConfigurationDataType", dataTypeFactory);
 
         const configuration = new ConfigurationDataType({
             externalId: {
@@ -313,9 +320,9 @@ describe("Binary Schemas Helper 2", () => {
 
     });
 
-    it("should construct a ResultDataType - 1", () => {
+    it("BSHC5 - should construct a ResultDataType - 1", () => {
 
-        const ResultDataType = getOrCreateConstructor("ResultDataType", typeDictionary);
+        const ResultDataType = getOrCreateConstructor("ResultDataType", dataTypeFactory);
 
         const result = new ResultDataType({
             resultContent: [
@@ -331,9 +338,9 @@ describe("Binary Schemas Helper 2", () => {
     });
 });
 
-describe("Binary Schemas Helper 3", () => {
+describe("BSHD - Binary Schemas Helper 4", () => {
 
-    let typeDictionary: TypeDictionary;
+    let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type3.xsd");
@@ -341,25 +348,25 @@ describe("Binary Schemas Helper 3", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
+        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
     });
 
     after(() => {
         parameters.debugSchemaHelper = old_schema_helpers_doDebug;
     });
 
-    it("should parse NodeIdType structure types", async () => {
-        should.exists(typeDictionary.structuredTypes.NodeId);
+    it("BSHD1 - should parse NodeIdType structure types", async () => {
+        dataTypeFactory.hasStructuredType("NodeId").should.eql(true);
     });
 
-    it("should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
-
+    it("BSHD2 - should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
+        //
     });
 });
 
-describe("Binary Schemas Helper 4", () => {
+describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
 
-    let typeDictionary: TypeDictionary;
+    let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type4.xsd");
@@ -367,16 +374,16 @@ describe("Binary Schemas Helper 4", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
+        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
     });
 
     after(() => {
         parameters.debugSchemaHelper = old_schema_helpers_doDebug;
     });
 
-    it("should parse ScanData union", async () => {
+    it("BSHE1 - should parse ScanData union", async () => {
 
-        const ScanData = getOrCreateConstructor("ScanData", typeDictionary);
+        const ScanData = getOrCreateConstructor("ScanData", dataTypeFactory);
 
         const scanData2a = new ScanData({ byteString: Buffer.allocUnsafe(10) });
         const scanData2b = new ScanData({ switchField: 1, byteString: Buffer.allocUnsafe(10) });
@@ -412,10 +419,10 @@ describe("Binary Schemas Helper 4", () => {
         });
 
     });
-    it("should parse MyScanResult structure types", async () => {
-        should.exists(typeDictionary.structuredTypes.MyScanResult);
+    it("BSHE2 - should parse MyScanResult structure types", async () => {
+        dataTypeFactory.hasStructuredType("MyScanResult").should.eql(true);
 
-        const MyScanResult = getOrCreateConstructor("MyScanResult", typeDictionary);
+        const MyScanResult = getOrCreateConstructor("MyScanResult", dataTypeFactory);
 
         const result = new MyScanResult({
 
@@ -430,7 +437,7 @@ describe("Binary Schemas Helper 4", () => {
         // xx console.log(reloaded.toJSON());
     });
 
-    it("should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
+    it("BSHE3 -  should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
         /* */
     });
 });

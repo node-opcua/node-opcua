@@ -28,9 +28,7 @@ export interface NamespacePrivate extends Namespace {
     _createNode(options: CreateNodeOptions): BaseNode;
 }
 
-export declare const NamespacePrivate: {
-    new(options: any): NamespacePrivate;
-};
+export declare const NamespacePrivate: new(options: any) => NamespacePrivate;
 
 function isValidModellingRule(ruleName: string) {
     // let restrict to Mandatory or Optional for the time being

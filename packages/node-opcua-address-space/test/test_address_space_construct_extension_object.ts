@@ -11,8 +11,8 @@
 //
 "use strict";
 
-import * as mocha from "mocha";
 import * as fs from "fs";
+import * as mocha from "mocha";
 import * as utils from "node-opcua-utils";
 
 import { assert } from "node-opcua-assert";
@@ -42,7 +42,7 @@ import {
 // make sure all namespace 0 data type are properly loaded
 const context = SessionContext.defaultContext;
 
-function debugLog(...args: any[]) {
+function debugLog(...args: [any, ... any[]]) {
     //
     console.log.apply(console.log, args);
 }
@@ -77,6 +77,7 @@ describe("testing address space namespace loading", function (this: any) {
         const serverStatusDataType = addressSpace.findDataType("ServerStatusDataType")!;
         serverStatusDataType.nodeClass.should.eql(NodeClass.DataType);
         serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
+
         const serverStatus = addressSpace.constructExtensionObject(serverStatusDataType);
         serverStatus.constructor.name.should.eql("ServerStatusDataType");
         serverStatus.should.have.property("startTime");
@@ -107,6 +108,7 @@ describe("testing address space namespace loading", function (this: any) {
     });
 
     it("should create a arbitrary structure from a second name space", () => {
+
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
         ns.should.eql(2);
 
@@ -174,10 +176,10 @@ describe("testing address space namespace loading", function (this: any) {
         // find the encoding
         // Xx debugLog(myStructureDataType.binaryEncoding.toString());
 
-        debugLog(myStructureDataType.binaryEncodingDefinition.toString());
+        debugLog(myStructureDataType.binaryEncodingDefinition!.toString());
         debugLog("------------------------------------------------------------------------------");
         // xx debugLog(myStructureDataType.xmlEncoding.toString());
-        debugLog(myStructureDataType.xmlEncodingDefinition.toString());
+        debugLog(myStructureDataType.xmlEncodingDefinition!.toString());
     });
 
     it("AC explore the DataType through OPCUA", () => {
@@ -190,10 +192,10 @@ describe("testing address space namespace loading", function (this: any) {
 
         // find the encoding
         // xx debugLog(myStructureDataType.binaryEncoding.toString());
-        debugLog(myOtherStructureDataType.binaryEncodingDefinition.toString());
+        debugLog(myOtherStructureDataType.binaryEncodingDefinition!.toString());
         debugLog("------------------------------------------------------------------------------");
         // xx debugLog(myStructureDataType.xmlEncoding.toString());
-        debugLog(myOtherStructureDataType.xmlEncodingDefinition.toString());
+        debugLog(myOtherStructureDataType.xmlEncodingDefinition!.toString());
 
         const options = {
             names: ["Hello", "World"],

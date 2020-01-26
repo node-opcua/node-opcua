@@ -99,8 +99,7 @@ import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
 
-import { NodeIdManager, ConstructNodeIdOptions } from "./nodeid_manager";
-
+import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
 
 const doDebug = false;
 
@@ -162,9 +161,9 @@ export class UANamespace implements NamespacePublic {
     public _objectTypeMap: { [key: string]: UAObjectType };
     public _variableTypeMap: { [key: string]: UAVariableType };
     public _referenceTypeMap: { [key: string]: UAReferenceType };
+    public _dataTypeMap: { [key: string]: UADataType };
     private _aliases: { [key: string]: NodeId };
     private _referenceTypeMapInv: any;
-    private _dataTypeMap: { [key: string]: UADataType };
     private _nodeIdManager: NodeIdManager;
 
     constructor(options: any) {
@@ -577,14 +576,6 @@ export class UANamespace implements NamespacePublic {
 
     /**
      * @method createDataType
-     * @param options
-     * @param options.isAbstract
-     * @param options.browseName {BrowseName}
-     * @param options.superType {NodeId}
-     * @param [options.nodeId]
-     * @param [options.displayName]
-     * @param [options.description]
-     *
      */
     public createDataType(options: CreateDataTypeOptions): UADataType {
         assert(options.hasOwnProperty("isAbstract"), "must provide isAbstract");
@@ -596,16 +587,20 @@ export class UANamespace implements NamespacePublic {
         options1.references = options.references || [];
 
         if (options1.references.length === 0) {
-            if (!options1.superType) {
-                throw new Error("must provide a superType");
+            if (!options1.subtypeOf) {
+                throw new Error("must provide a subtypeOf");
             }
-            options1.superType = this.addressSpace.findDataType(options1.superType) as UADataType;
-            if (!options1.superType) {
-                throw new Error("cannot find superType");
+        }
+        if (options1.subtypeOf) {
+            if (!(options1.subtypeOf instanceof UADataType)) {
+                options1.subtypeOf = this.addressSpace.findDataType(options1.subtypeOf) as UADataType;
+            }
+            if (!options1.subtypeOf) {
+                throw new Error("cannot find subtypeOf ");
             }
             options1.references.push({
                 isForward: false,
-                nodeId: options1.superType.nodeId,
+                nodeId: options1.subtypeOf.nodeId,
                 referenceType: "HasSubtype"
             });
         }
@@ -1409,6 +1404,7 @@ export class UANamespace implements NamespacePublic {
             (enumType as any).$definition = new EnumDefinition({
                 fields: enumeration.map((x: string, index: number) => new EnumField({
                     name: x,
+
                     description: "",
                     value: coerceInt64(index)
                 }))
@@ -1446,6 +1442,7 @@ export class UANamespace implements NamespacePublic {
             (enumType as any).$definition = new EnumDefinition({
                 fields: enumeration.map((x: EnumerationItem, index: number) => new EnumField({
                     name: x.displayName.toString(),
+
                     description: x.description ? x.description.toString() : "",
                     value: coerceInt64(x.value)
                 }))
@@ -2147,7 +2144,6 @@ export class UANamespace implements NamespacePublic {
         return method;
     }
 }
-
 
 const _constructors_map: any = {
     DataType: UADataType,

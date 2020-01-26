@@ -1,23 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet
-        Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
-        xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <Aliases>
         <Alias Alias="Boolean">i=1</Alias>
         <Alias Alias="NodeId">i=17</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
         <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
-
-
-
     <UAReferenceType NodeId="i=31" BrowseName="References" IsAbstract="true" Symmetric="true">
         <DisplayName>References</DisplayName>
         <Description>The abstract base type for all references.</Description>
         <References/>
         <InverseName>References</InverseName>
     </UAReferenceType>
-
     <UAReferenceType NodeId="i=32" BrowseName="NonHierarchicalReferences" IsAbstract="true">
         <DisplayName>NonHierarchicalReferences</DisplayName>
         <Description>The abstract base type for all non-hierarchical references.</Description>
@@ -26,8 +21,6 @@
         </References>
         <InverseName>NonHierarchicalReferences</InverseName>
     </UAReferenceType>
-
-    
     <UAReferenceType NodeId="i=33" BrowseName="HierarchicalReferences" IsAbstract="true">
         <DisplayName>HierarchicalReferences</DisplayName>
         <Description>The abstract base type for all hierarchical references.</Description>
@@ -36,7 +29,6 @@
         </References>
         <InverseName>HierarchicalReferences</InverseName>
     </UAReferenceType>
-
     <UAReferenceType NodeId="i=35" BrowseName="Organizes">
         <DisplayName>Organizes</DisplayName>
         <Description>The type for hierarchical references that are used to organize nodes.</Description>
@@ -45,7 +37,6 @@
         </References>
         <InverseName>OrganizedBy</InverseName>
     </UAReferenceType>
-
     <UAReferenceType NodeId="i=37" BrowseName="HasModellingRule">
         <DisplayName>HasModellingRule</DisplayName>
         <Description>The type for references from instance declarations to modelling rule nodes.</Description>
@@ -54,7 +45,6 @@
         </References>
         <InverseName>ModellingRuleOf</InverseName>
     </UAReferenceType>
-
     <UAReferenceType NodeId="i=40" BrowseName="HasTypeDefinition">
         <DisplayName>HasTypeDefinition</DisplayName>
         <Description>The type for references from a instance node its type definition node.</Description>
@@ -79,14 +69,11 @@
         </References>
         <InverseName>ComponentOf</InverseName>
     </UAReferenceType>
-
-
     <UAObjectType NodeId="i=58" BrowseName="BaseObjectType">
         <DisplayName>BaseObjectType</DisplayName>
         <Description>The base type for all object nodes.</Description>
         <References/>
     </UAObjectType>
-
     <UAObjectType NodeId="i=61" BrowseName="FolderType">
         <DisplayName>FolderType</DisplayName>
         <Description>The type for objects that organize other nodes.</Description>
@@ -94,7 +81,6 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
         </References>
     </UAObjectType>
-
     <UAObject NodeId="i=84" BrowseName="Root" SymbolicName="RootFolder">
         <DisplayName>Root</DisplayName>
         <Description>The root of the server address space.</Description>
@@ -110,7 +96,6 @@
         </References>
         <InverseName>EncodingOf</InverseName>
     </UAReferenceType>
-
     <UAReferenceType NodeId="i=45" BrowseName="HasSubtype">
         <DisplayName>HasSubtype</DisplayName>
         <Description>The type for non-looping hierarchical references that are used to define sub types.</Description>
@@ -119,13 +104,25 @@
         </References>
         <InverseName>HasSupertype</InverseName>
     </UAReferenceType>
-
     <UADataType NodeId="i=24" BrowseName="BaseDataType" IsAbstract="true">
         <DisplayName>BaseDataType</DisplayName>
         <Description>Describes a value that can have any valid DataType.</Description>
         <References/>
     </UADataType>
-
+    <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
+        <DisplayName>Enumeration</DisplayName>
+        <Description>Describes a value that is an enumerated DataType.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=22" BrowseName="Structure" IsAbstract="true">
+        <DisplayName>Structure</DisplayName>
+        <Description>Describes a value that is any type of structure that can be described with a data encoding.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
     <UADataType NodeId="i=26" BrowseName="Number" IsAbstract="true">
         <DisplayName>Number</DisplayName>
         <Description>Describes a value that can have any numeric DataType.</Description>
@@ -133,7 +130,6 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
     </UADataType>
-
     <UADataType NodeId="i=28" BrowseName="UInteger" IsAbstract="true">
         <DisplayName>UInteger</DisplayName>
         <Description>Describes a value that can have any unsigned integer DataType.</Description>
@@ -141,7 +137,6 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=26</Reference>
         </References>
     </UADataType>
-
     <UADataType NodeId="i=7" BrowseName="UInt32">
         <DisplayName>UInt32</DisplayName>
         <Description>Describes a value that is an integer between 0 and 4,294,967,295.</Description>
@@ -149,52 +144,43 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=28</Reference>
         </References>
     </UADataType>
-
-
-<UADataType NodeId="i=95" BrowseName="AccessRestrictionType">
-    <DisplayName>AccessRestrictionType</DisplayName>
-    <References>
-      <Reference ReferenceType="HasProperty">i=15035</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=7</Reference>
-    </References>
-    <Definition Name="AccessRestrictionType" IsOptionSet="true">
-      <Field Name="SigningRequired" Value="0" />
-      <Field Name="EncryptionRequired" Value="1" />
-      <Field Name="SessionRequired" Value="2" />
-    </Definition>
-  </UADataType>
-
-  <UAVariable NodeId="i=15035" BrowseName="OptionSetValues" ParentNodeId="i=95" DataType="LocalizedText" ValueRank="1">
-    <DisplayName>OptionSetValues</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">i=95</Reference>
-    </References>
-    <Value>
-      <ListOfLocalizedText xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
-        <LocalizedText>
-          <Locale>
-          </Locale>
-          <Text>SigningRequired</Text>
-        </LocalizedText>
-        <LocalizedText>
-          <Locale>
-          </Locale>
-          <Text>EncryptionRequired</Text>
-        </LocalizedText>
-        <LocalizedText>
-          <Locale>
-          </Locale>
-          <Text>SessionRequired</Text>
-        </LocalizedText>
-      </ListOfLocalizedText>
-    </Value>
-  </UAVariable>
-
-
-
-
+    <UADataType NodeId="i=95" BrowseName="AccessRestrictionType">
+        <DisplayName>AccessRestrictionType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=15035</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=7</Reference>
+        </References>
+        <Definition Name="AccessRestrictionType" IsOptionSet="true">
+            <Field Name="SigningRequired" Value="0" />
+            <Field Name="EncryptionRequired" Value="1" />
+            <Field Name="SessionRequired" Value="2" />
+        </Definition>
+    </UADataType>
+    <UAVariable NodeId="i=15035" BrowseName="OptionSetValues" ParentNodeId="i=95" DataType="LocalizedText" ValueRank="1">
+        <DisplayName>OptionSetValues</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=95</Reference>
+        </References>
+        <Value>
+            <ListOfLocalizedText
+                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+                <LocalizedText>
+                    <Locale></Locale>
+                    <Text>SigningRequired</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale></Locale>
+                    <Text>EncryptionRequired</Text>
+                </LocalizedText>
+                <LocalizedText>
+                    <Locale></Locale>
+                    <Text>SessionRequired</Text>
+                </LocalizedText>
+            </ListOfLocalizedText>
+        </Value>
+    </UAVariable>
 </UANodeSet>
 
 

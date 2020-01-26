@@ -19,7 +19,7 @@ import {
 } from "node-opcua-data-model";
 import { DataValue, DataValueOptions, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
 import { PreciseClock } from "node-opcua-date-time";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import { NodeId, NodeIdLike, ExpandedNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { BrowseDescription, BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
 import {
@@ -840,15 +840,20 @@ export interface UADataType extends BaseNode {
 
     readonly isAbstract: boolean;
 
-    readonly binaryEncodingDefinition: string;
-    readonly binaryEncodingNodeId: NodeId;
-    readonly binaryEncoding: BaseNode;
+    readonly binaryEncodingDefinition: string | null;
+    readonly binaryEncodingNodeId: ExpandedNodeId | null;
+    readonly binaryEncoding: BaseNode | null;
 
-    readonly xmlEncodingDefinition: string;
-    readonly xmlEncodingNodeId: NodeId;
-    readonly xmlEncoding: BaseNode;
+    readonly xmlEncodingDefinition: string | null;
+    readonly xmlEncodingNodeId: ExpandedNodeId | null;
+    readonly xmlEncoding: BaseNode | null;
+
+    // readonly jsonEncodingDefinition: string | null;
+    readonly jsonEncodingNodeId: ExpandedNodeId | null;
+    readonly jsonEncoding: BaseNode | null;
 
     readonly basicDataType: DataType;
+    readonly symbolicName: string;
 
     isSupertypeOf(referenceType: NodeIdLike | UADataType): boolean;
 
@@ -1202,7 +1207,7 @@ export interface AddTwoStateVariableOptions extends AddVariableOptions {
 
 export interface CreateDataTypeOptions extends AddBaseNodeOptions {
     isAbstract: boolean;
-    superType?: string | NodeId;
+    subtypeOf?: string | NodeId | UADataType;
 }
 
 // -
@@ -2593,8 +2598,6 @@ export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVar
     $$getElementBrowseName: (obj: T) => QualifiedName;
     $$indexPropertyName: string;
 }
-
-export declare function prepareDataType(addressSpace: AddressSpace, dataType: UADataType): void;
 
 export declare function createExtObjArrayNode<T extends ExtensionObject>(
     parentFolder: UAObject,

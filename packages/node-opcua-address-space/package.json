@@ -46,6 +46,7 @@
   "node-opcua-utils": "^2.4.2",
   "node-opcua-variant": "^2.4.2",
   "node-opcua-xml2json": "^2.4.2",
+  "pretty-error": "^2.1.1",
   "object.values": "^1.1.1",
   "set-prototype-of": "^1.0.0",
   "underscore": "^1.9.2",

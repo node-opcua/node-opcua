@@ -3,7 +3,7 @@ import { OpaqueStructure } from "node-opcua-extension-object";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { DataType } from "node-opcua-variant";
 
-import { extractNamespaceDataType } from "./client_dynamic_extension_object";
+import { populateDataTypeManager } from "./client_dynamic_extension_object";
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { resolveDynamicExtensionObject } from "./resolve_dynamic_extension_object";
 
@@ -13,7 +13,7 @@ export async function getExtraDataTypeManager(
     const sessionPriv: any = session as any;
     if (!sessionPriv.$$extraDataTypeManager) {
         const extraDataTypeManager = new ExtraDataTypeManager();
-        await extractNamespaceDataType(session, extraDataTypeManager);
+        await populateDataTypeManager(session, extraDataTypeManager);
         sessionPriv.$$extraDataTypeManager = extraDataTypeManager;
     }
     return sessionPriv.$$extraDataTypeManager;

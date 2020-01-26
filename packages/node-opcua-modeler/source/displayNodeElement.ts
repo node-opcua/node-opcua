@@ -119,14 +119,14 @@ export function displayNodeElement(node: BaseNode): string {
 
         const curNode = node;
 
-        let superType = (curNode as UAObjectType).subtypeOfObj;
-        while (superType) {
-            table.push([superType.browseName.toString() + ":", "--", "--", "--"]);
-            const references = superType.allReferences();
+        let subtypeOf = (curNode as UAObjectType).subtypeOfObj;
+        while (subtypeOf) {
+            table.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
+            const references = subtypeOf.allReferences();
             for (const ref of references) {
                 dumpRefe(ref);
             }
-            superType = (superType as UAObjectType).subtypeOfObj;
+            subtypeOf = (subtypeOf as UAObjectType).subtypeOfObj;
         }
     }
     return table.toString();
