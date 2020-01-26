@@ -9,7 +9,7 @@ let clock: any = null;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing add TwoStateVariable ", function(this: any) {
+describe("testing add TwoStateVariable ", function (this: any) {
 
     this.timeout(Math.max(this._timeout, 10000));
 
@@ -30,10 +30,10 @@ describe("testing add TwoStateVariable ", function(this: any) {
         addressSpace.dispose();
     });
 
-    beforeEach(function(this: any) {
+    beforeEach(function (this: any) {
         clock = sinon.useFakeTimers();
     });
-    afterEach(function(this: any) {
+    afterEach(function (this: any) {
         clock.restore();
         clock = null;
     });
@@ -98,7 +98,7 @@ describe("testing add TwoStateVariable ", function(this: any) {
         node.readValue().value.value.text.should.eql("Disabled");
     });
 
-    it("should add a TwoStateVariableType with transitionTime", function(this: any) {
+    it("should add a TwoStateVariableType with transitionTime", function (this: any) {
 
         const node = namespace.addTwoStateVariable({
             browseName: "TwoStateVariable2",
@@ -172,7 +172,7 @@ describe("testing add TwoStateVariable ", function(this: any) {
 
     });
 
-    it("should add a TwoStateVariableType with effectiveTransitionTime", function(this: any) {
+    it("should add a TwoStateVariableType with effectiveTransitionTime", function (this: any) {
 
         const mainState = namespace.addTwoStateVariable({
             browseName: "TwoStateVariable2",

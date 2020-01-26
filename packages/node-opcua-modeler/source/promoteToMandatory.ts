@@ -56,20 +56,20 @@ export function promoteToMandatory(
 
     const addressSpace = node.addressSpace;
 
-    const superType = node.subtypeOfObj!;
+    const subtypeOf = node.subtypeOfObj!;
     /* istanbul ignore next */
-    if (!superType) {
+    if (!subtypeOf) {
         throw new Error("Expecting a super type");
     }
 
-    const browseResult = addressSpace.browsePath(makeBrowsePath(superType.nodeId,
+    const browseResult = addressSpace.browsePath(makeBrowsePath(subtypeOf.nodeId,
         `.${namespaceIndex}:${propertyName}`));
     const propNodeId = (!browseResult.targets || !browseResult.targets[0]) ? null : browseResult.targets[0].targetId!;
 
     /* istanbul ignore next */
     if (!propNodeId) {
-        displayNodeElement(superType);
-        throw new Error("property " + propertyName + " do not exists on " + superType.browseName.toString() + " or any superType");
+        displayNodeElement(subtypeOf);
+        throw new Error("property " + propertyName + " do not exists on " + subtypeOf.browseName.toString() + " or any superType");
     }
 
     const propInSuperType = addressSpace.findNode(propNodeId)! as UAVariable | UAMethod | UAObject;
@@ -86,7 +86,7 @@ export function promoteToMandatory(
         return propInSuperType;
     }
     // replicate property
-    const ref = findReferenceToNode(superType, propInSuperType);
+    const ref = findReferenceToNode(subtypeOf, propInSuperType);
 
     /* istanbul ignore next */
     if (!ref) {

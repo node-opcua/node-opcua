@@ -39,10 +39,10 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", ()
             dataType: "Double",
             definition: "(tempA -25) + tempB",
             engineeringUnits: standardUnits.degree_celsius,
-            engineeringUnitsRange: {low: -2000, high: 2000},
-            instrumentRange: {low: -100, high: 200},
+            engineeringUnitsRange: { low: -2000, high: 2000 },
+            instrumentRange: { low: -100, high: 200 },
             organizedBy: objectsFolder,
-            value: new Variant({dataType: DataType.Double, value: 10.0}),
+            value: new Variant({ dataType: DataType.Double, value: 10.0 }),
             valuePrecision: 0.5,
         });
     });
@@ -52,13 +52,13 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", ()
         }
     });
 
-    it("should verify that addMethod doesn't mess up with dataType namespace", () =>  {
+    it("should verify that addMethod doesn't mess up with dataType namespace", () => {
 
         // create a custom DataType ( derived from String )
         const dataType = namespace.createDataType({
             browseName: "MyCustomString",
             isAbstract: false,
-            superType: "String"
+            subtypeOf: "String"
         });
 
         const myCustomStringDataType = addressSpace.findDataType("1:MyCustomString")!;
@@ -88,6 +88,6 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", ()
 
         inputArguments[0].constructor.name.should.eql("Argument");
         inputArguments[0].dataType.toString()
-          .should.eql(myCustomStringDataType.nodeId.toString(), "nodeid and namespace should match");
+            .should.eql(myCustomStringDataType.nodeId.toString(), "nodeid and namespace should match");
     });
 });

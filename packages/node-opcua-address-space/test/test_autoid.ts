@@ -1,16 +1,19 @@
-import * as should from "should";
 import * as mocha from "mocha";
+import * as should from "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { nodesets } from "node-opcua-nodesets";
 import {
     resolveDynamicExtensionObject
-} from "node-opcua-client-dynamic-extension-object"
+} from "node-opcua-client-dynamic-extension-object";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { Variant, DataType } from "node-opcua-variant";
+import { nodesets } from "node-opcua-nodesets";
+import { DataType, Variant } from "node-opcua-variant";
 
-import { AddressSpace, generateAddressSpace, } from "..";
-import { ensureDatatypeExtracted } from "../source/loader/load_nodeset2";
+import {
+    AddressSpace,
+    ensureDatatypeExtracted,
+    generateAddressSpace,
+} from "..";
 
 describe("Testing AutoID custom types", async function (this: any) {
 
@@ -48,16 +51,14 @@ describe("Testing AutoID custom types", async function (this: any) {
 
     });
 
-    
     function encode_decode<T extends any>(obj: T): T {
-
 
         const size = obj.binaryStoreSize();
         const stream = new BinaryStream(Buffer.alloc(size));
         obj.encode(stream);
 
         stream.rewind();
-    
+
         // reconstruct a object ( some object may not have a default Binary and should be recreated
         const expandedNodeId = obj.encodingDefaultBinary;
         const objReloaded = new obj.constructor();
@@ -73,7 +74,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         interface ScanResult extends ExtensionObject {
 
         }
-        
+
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         nsAutoId.should.eql(2);
 
@@ -105,8 +106,8 @@ describe("Testing AutoID custom types", async function (this: any) {
             }
         }) as ScanResult;
 
-        // console.log("xxx = ", scanResult.toString());
-        ///xx console.log(scanResult.schema);
+        console.log("scanResult = ", scanResult.toString());
+        console.log(scanResult.schema);
 
         const v = new Variant({
             dataType: DataType.ExtensionObject,
@@ -114,9 +115,9 @@ describe("Testing AutoID custom types", async function (this: any) {
         });
         const reload_v = encode_decode(v);
 
-        const extraDataTypeManager = await  ensureDatatypeExtracted(addressSpace);
+        const extraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
         await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
-        
+
         console.log(reload_v.toString());
 
         console.log(scanResult.toString());

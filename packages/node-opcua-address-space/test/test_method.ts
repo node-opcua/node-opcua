@@ -5,10 +5,10 @@ import {AttributeIds, LocalizedText} from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
+import { NodeClass } from "node-opcua-types";
 import { AddressSpace, Namespace, RootFolder , UAMethod} from "..";
 import { SessionContext } from "..";
 import { getMiniAddressSpace } from "../";
-import { NodeClass } from "node-opcua-types";
 
 const context = SessionContext.defaultContext;
 
@@ -99,7 +99,7 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", (
             displayName: "My Display Name"
         });
 
-        let value = method.readAttribute(context, AttributeIds.DisplayName);
+        const value = method.readAttribute(context, AttributeIds.DisplayName);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.dataType.should.eql(DataType.LocalizedText);
         value.value.value.toString().should.equal(new LocalizedText({ locale: null, text: "My Display Name" }).toString());

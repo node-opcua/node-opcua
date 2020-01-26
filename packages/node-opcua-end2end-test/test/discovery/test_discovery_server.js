@@ -23,7 +23,7 @@ const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 // add the tcp/ip endpoint with no security
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("DS1 - Discovery server", function () {
+describe("DS1 - Discovery server", function() {
 
     this.timeout(20000);
 
@@ -31,16 +31,16 @@ describe("DS1 - Discovery server", function () {
 
     let server;
 
-    before(function () {
+    before(function() {
         server = new OPCUAServer({ port: 1235 });
     });
 
-    after(function (done) {
+    after(function(done) {
         server.shutdown(done);
         server = null;
     });
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         discovery_server = new OPCUADiscoveryServer({ port: 1235 });
         discovery_server.start((err) => {
             if (err) {
@@ -53,7 +53,7 @@ describe("DS1 - Discovery server", function () {
         });
     });
 
-    afterEach(function (done) {
+    afterEach(function(done) {
         discovery_server.shutdown(done);
         discovery_server = null;
     });
@@ -64,13 +64,16 @@ describe("DS1 - Discovery server", function () {
         const client = OPCUAClient.create({
             endpoint_must_exist: false,
         });
+        client.on("backoff", () => {
+            console.log("cannot connect to " + discovery_server_endpointUrl);
+        });
         async.series([
-            function (callback) {
+            function(callback) {
                 client.connect(discovery_server_endpointUrl, callback);
             },
 
-            function (callback) {
-                client.performMessageTransaction(registerServerRequest, function (err, response) {
+            function(callback) {
+                client.performMessageTransaction(registerServerRequest, function(err, response) {
                     if (!err) {
                         // RegisterServerResponse
                         assert(response instanceof opcua.RegisterServerResponse);
@@ -79,13 +82,13 @@ describe("DS1 - Discovery server", function () {
                     callback();
                 });
             },
-            function (callback) {
+            function(callback) {
                 setImmediate(() => client.disconnect(callback));
             }
         ], done);
     }
 
-    it("should fail to register server if discovery url is not specified (Bad_DiscoveryUrlMissing)", function (done) {
+    it("should fail to register server if discovery url is not specified (Bad_DiscoveryUrlMissing)", function(done) {
 
         const request = new opcua.RegisterServerRequest({
             server: {
@@ -117,7 +120,7 @@ describe("DS1 - Discovery server", function () {
 
     });
 
-    it("should fail to register server to the discover server if server type is Client (BadInvalidArgument)", function (done) {
+    it("should fail to register server to the discover server if server type is Client (BadInvalidArgument)", function(done) {
         const request = new opcua.RegisterServerRequest({
             server: {
 
@@ -148,7 +151,7 @@ describe("DS1 - Discovery server", function () {
 
     });
 
-    it("should fail to register server to the discover server if server name array is empty (BadServerNameMissing)", function (done) {
+    it("should fail to register server to the discover server if server name array is empty (BadServerNameMissing)", function(done) {
 
         const request = new opcua.RegisterServerRequest({
             server: {
@@ -179,22 +182,22 @@ describe("DS1 - Discovery server", function () {
     });
 });
 
-describe("DS2 - DiscoveryServer2", function () {
+describe("DS2 - DiscoveryServer2", function() {
 
     this.timeout(20000);
 
     let discovery_server, discoveryServerEndpointUrl;
     let server;
 
-    before(function () {
+    before(function() {
         OPCUAServer.registry.count().should.eql(0);
     });
 
-    after(function (done) {
+    after(function(done) {
         OPCUAServer.registry.count().should.eql(0);
         done();
     });
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         discovery_server = new OPCUADiscoveryServer({ port: 1235 });
         discovery_server.start((err) => {
             if (err) {
@@ -206,7 +209,7 @@ describe("DS2 - DiscoveryServer2", function () {
         });
     });
 
-    afterEach(function (done) {
+    afterEach(function(done) {
         discovery_server.shutdown(done);
     });
 
@@ -219,14 +222,14 @@ describe("DS2 - DiscoveryServer2", function () {
 
     }
 
-    it("should register server to the discover server 2", function (done) {
+    it("should register server to the discover server 2", function(done) {
 
         // there should be no endpoint exposed by an blank discovery server
         discovery_server.registeredServerCount.should.equal(0);
         let initialServerCount = 0;
         async.series([
 
-            function (callback) {
+            function(callback) {
                 findServers(discoveryServerEndpointUrl, (err, data) => {
 
                     debugLog("data = ", data);
@@ -242,7 +245,7 @@ describe("DS2 - DiscoveryServer2", function () {
                 });
             },
 
-            function (callback) {
+            function(callback) {
 
                 server = new OPCUAServer({
                     port: 1236,
@@ -252,7 +255,7 @@ describe("DS2 - DiscoveryServer2", function () {
                 });
                 addServerCertificateToTrustedCertificateInDiscoveryServer(server, callback);
             },
-            function (callback) {
+            function(callback) {
                 server.start((err) => {
                     if (err) {
                         return callback(err);
@@ -266,12 +269,12 @@ describe("DS2 - DiscoveryServer2", function () {
                 });
             },
 
-            function (callback) {
+            function(callback) {
                 discovery_server.registeredServerCount.should.equal(1);
                 callback();
             },
 
-            function (callback) {
+            function(callback) {
                 findServers(discoveryServerEndpointUrl, (err, data) => {
                     const { servers, endpoints } = data;
                     //xx debugLog(servers[0].toString());
@@ -281,10 +284,10 @@ describe("DS2 - DiscoveryServer2", function () {
                 });
             },
 
-            function (callback) {
+            function(callback) {
                 server.shutdown(callback);
             },
-            function (callback) {
+            function(callback) {
                 findServers(discoveryServerEndpointUrl, (err, data) => {
                     const { servers, endpoints } = data;
                     servers.length.should.eql(initialServerCount);
@@ -298,11 +301,11 @@ describe("DS2 - DiscoveryServer2", function () {
 });
 
 
-process.on("uncaughtException", function (err) {
+process.on("uncaughtException", function(err) {
     console.log(err);
 });
 
-describe("DS3 - Discovery server - many server", function () {
+describe("DS3 - Discovery server - many server", function() {
 
     this.timeout(200000);
 
@@ -310,7 +313,7 @@ describe("DS3 - Discovery server - many server", function () {
 
     let server1, server2, server3, server4, server5;
 
-    before(function () {
+    before(function() {
         const discoveryServerEndpointUrl = "opc.tcp://localhost:1240";// discovery_server.endpoint[0].endpointUrl;
         OPCUAServer.registry.count().should.eql(0);
         server1 = new OPCUAServer({
@@ -349,13 +352,13 @@ describe("DS3 - Discovery server - many server", function () {
         server4.discoveryServerEndpointUrl.should.eql(discoveryServerEndpointUrl);
     });
 
-    after(function (done) {
+    after(function(done) {
 
         OPCUAServer.registry.count().should.eql(0);
         done();
     });
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         debugLog("Starting Discovery server on port 1240");
         discoveryServer = new OPCUADiscoveryServer({ port: 1240 });
         discoveryServer.start((err) => {
@@ -367,9 +370,9 @@ describe("DS3 - Discovery server - many server", function () {
         });
     });
 
-    afterEach(function (done) {
+    afterEach(function(done) {
         debugLog("Stopping Discovery server on port 1240");
-        discoveryServer.shutdown(function (err) {
+        discoveryServer.shutdown(function(err) {
             debugLog(" Discovery server on port 1240 stopped");
             done(err);
         });
@@ -380,7 +383,7 @@ describe("DS3 - Discovery server - many server", function () {
     function start_all_servers(done) {
         registeredServerCount = 0;
         async.parallel([
-            function (callback) {
+            function(callback) {
                 debugLog("Starting  server1");
                 server1.start(callback);
                 server1.once("serverRegistered", () => {
@@ -389,7 +392,7 @@ describe("DS3 - Discovery server - many server", function () {
                 });
 
             },
-            function (callback) {
+            function(callback) {
                 debugLog("Starting  server2");
                 server2.start(callback);
                 server2.once("serverRegistered", () => {
@@ -397,7 +400,7 @@ describe("DS3 - Discovery server - many server", function () {
                     registeredServerCount += 1;
                 });
             },
-            function (callback) {
+            function(callback) {
                 debugLog("Starting  server3");
                 server3.start(callback);
                 server3.once("serverRegistered", () => {
@@ -405,7 +408,7 @@ describe("DS3 - Discovery server - many server", function () {
                     registeredServerCount += 1;
                 });
             },
-            function (callback) {
+            function(callback) {
                 debugLog("Starting  server4");
                 server4.start(callback);
                 server4.once("serverRegistered", () => {
@@ -413,7 +416,7 @@ describe("DS3 - Discovery server - many server", function () {
                     registeredServerCount += 1;
                 });
             },
-            function (callback) {
+            function(callback) {
                 debugLog("Starting  server5");
                 server5.start(callback);
                 server5.once("serverRegistered", () => {
@@ -428,33 +431,33 @@ describe("DS3 - Discovery server - many server", function () {
 
     function stop_all_servers(done) {
         async.parallel([
-            function (callback) {
+            function(callback) {
                 server1.shutdown(callback);
             },
-            function (callback) {
+            function(callback) {
                 server2.shutdown(callback);
             },
-            function (callback) {
+            function(callback) {
                 server3.shutdown(callback);
             },
-            function (callback) {
+            function(callback) {
                 server4.shutdown(callback);
             },
-            function (callback) {
+            function(callback) {
                 server5.shutdown(callback);
             }
         ], done);
     }
 
 
-    it("DS3-1 a discovery server shall be able to expose many registered servers", function (done) {
+    it("DS3-1 a discovery server shall be able to expose many registered servers", function(done) {
 
 
         async.series([
-            function (callback) {
+            function(callback) {
                 start_all_servers(callback);
             },
-            function (callback) {
+            function(callback) {
 
                 function wait_until_all_servers_registered() {
                     if (registeredServerCount === 5) {
@@ -465,7 +468,7 @@ describe("DS3 - Discovery server - many server", function () {
 
                 wait_until_all_servers_registered();
             },
-            function (callback) {
+            function(callback) {
                 discoveryServer.registeredServerCount.should.equal(5);
                 callback();
             },
@@ -476,7 +479,7 @@ describe("DS3 - Discovery server - many server", function () {
 
             function query_discovery_server_for_available_servers(callback) {
 
-                findServers(discoveryServerEndpointUrl, function (err, data) {
+                findServers(discoveryServerEndpointUrl, function(err, data) {
                     const { servers, endpoints } = data;
 
                     if (doDebug) {
@@ -494,7 +497,7 @@ describe("DS3 - Discovery server - many server", function () {
 
 
             function query_discovery_server_for_available_servers_on_network(callback) {
-                findServersOnNetwork(discoveryServerEndpointUrl, function (err, servers) {
+                findServersOnNetwork(discoveryServerEndpointUrl, function(err, servers) {
                     if (doDebug) {
                         for (const s of servers) {
                             debugLog(s.toString());
@@ -506,7 +509,7 @@ describe("DS3 - Discovery server - many server", function () {
                     callback(err);
                 });
             },
-            function (callback) {
+            function(callback) {
                 stop_all_servers(callback);
             }
         ], done);

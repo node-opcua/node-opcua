@@ -67,7 +67,7 @@ function applyOnAllSchemaFields(
     functor: Func1,
     args: any
 ) {
-    
+
     const baseSchema = get_base_schema(schema);
     if (baseSchema) {
         applyOnAllSchemaFields(self, baseSchema, data, functor, args);
@@ -175,7 +175,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: an
                 str = fieldNameF + " " + fieldTypeF + ": " + _arrayEllipsis(value);
             } else {
                 if (fieldType === "IntegerId" || fieldType === "UInt32") {
-                    value = "" + value + "               " + ((value !== undefined ) ? "0x"+value.toString(16) : "undefined");
+                    value = "" + value + "               " + ((value !== undefined) ? "0x" + value.toString(16) : "undefined");
                 } else if (fieldType === "DateTime" || fieldType === "UtcTime") {
                     value = (value && value.toISOString) ? value.toISOString() : value;
                 } else if (typeof value === "object" && value !== null && value !== undefined) {
@@ -196,11 +196,11 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: an
 
         } else {
 
-            const typeDictionary = (self.schema as any).$typeDictionary as DataTypeFactory;
+            const typeDictionary = (self.schema as any).$$factory as DataTypeFactory;
             if (!typeDictionary) {
                 console.log(" No typeDictionary for ", self.schema);
             }
-            field.fieldTypeConstructor = field.fieldTypeConstructor || 
+            field.fieldTypeConstructor = field.fieldTypeConstructor ||
                 (typeDictionary.getStructureTypeConstructor(fieldType));
             const fieldTypeConstructor = field.fieldTypeConstructor;
 

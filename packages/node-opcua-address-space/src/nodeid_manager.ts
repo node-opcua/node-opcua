@@ -1,14 +1,14 @@
 import { assert } from "node-opcua-assert";
-import { NodeId, resolveNodeId, makeNodeId, sameNodeId, NodeIdLike, NodeIdType } from "node-opcua-nodeid";
-import { QualifiedName, NodeClass } from "node-opcua-data-model";
+import { NodeClass, QualifiedName } from "node-opcua-data-model";
+import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 
-import { Reference } from "./reference";
+import { LineFile } from "node-opcua-utils";
 import {
     BaseNode as BaseNodePublic,
     UAReferenceType as UAReferenceTypePublic
 } from "../source";
 import { AddressSpace } from "./address_space";
-import { LineFile } from "node-opcua-utils";
+import { Reference } from "./reference";
 
 export const NamespaceOptions = {
     nodeIdNameSeparator: "-"
@@ -52,7 +52,7 @@ export interface ConstructNodeIdOptions {
     nodeId?: string | NodeIdLike | null;
     browseName: QualifiedName;
     nodeClass: NodeClass;
-    references?: Reference[]
+    references?: Reference[];
 }
 
 export class NodeIdManager {
@@ -69,7 +69,7 @@ export class NodeIdManager {
         this.namespaceIndex = namespaceIndex;
         this.addressSpace = addressSpace;
     }
-    public setCache(cache: [string, number, NodeClass][]) {
+    public setCache(cache: Array<[string, number, NodeClass]>) {
         this._cache = {};
         this._reverseCache = {};
         for (const [key, value, nodeClass] of cache) {
@@ -77,8 +77,8 @@ export class NodeIdManager {
         }
     }
 
-    public getSymbols(): [string, number, string][] {
-        const line: [string, number, string][] = [];
+    public getSymbols(): Array<[string, number, string]> {
+        const line: Array<[string, number, string]> = [];
         for (const [key, value] of Object.entries(this._cache)) {
             const nodeClass = NodeClass[this._reverseCache[value].nodeClass];
             line.push([key, value, nodeClass]);
@@ -90,7 +90,7 @@ export class NodeIdManager {
 
         const line: string[] = [];
         for (const [name, value, nodeClass] of this.getSymbols()) {
-            line.push([name, value, nodeClass].join(","))
+            line.push([name, value, nodeClass].join(","));
         }
         return line.join("\n");
     }
@@ -143,7 +143,7 @@ export class NodeIdManager {
                     options.nodeClass === NodeClass.ReferenceType ||
                     options.nodeClass === NodeClass.VariableType;
                 if (isRootType) {
-                    // try to find 
+                    // try to find
                     const baseName = options.browseName.toString();
                     return this._getOrCreateFromName(baseName, nodeClass);
                 }

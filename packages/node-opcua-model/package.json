@@ -24,6 +24,7 @@
     "node-opcua-service-browse": "^2.4.2",
     "node-opcua-status-code": "^2.4.2",
     "node-opcua-xml2json": "^2.4.2",
+    "node-opcua-client-dynamic-extension-object": "^2.4.2",
     "underscore": "^1.9.2"
   },
   "devDependencies": {

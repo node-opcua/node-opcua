@@ -53076,16 +53076,16 @@ aGVtYT4=</ByteString>
       <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">//xs:element[@name='Frame']</String>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="i=19061" BrowseName="3DFrame" SymbolicName="ThreeDFrame" ParentNodeId="i=8252" DataType="String">
-    <DisplayName>3DFrame</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">i=8252</Reference>
-    </References>
-    <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">//xs:element[@name='ThreeDFrame']</String>
-    </Value>
-  </UAVariable>
+    <UAVariable NodeId="i=19061" BrowseName="3DFrame" SymbolicName="ThreeDFrame" ParentNodeId="i=8252" DataType="String">
+      <DisplayName>3DFrame</DisplayName>
+      <References>
+        <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+        <Reference ReferenceType="HasComponent" IsForward="false">i=8252</Reference>
+      </References>
+      <Value>
+        <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">//xs:element[@name='ThreeDFrame']</String>
+      </Value>
+    </UAVariable>
   <UAVariable NodeId="i=15730" BrowseName="IdentityMappingRuleType" ParentNodeId="i=8252" DataType="String">
     <DisplayName>IdentityMappingRuleType</DisplayName>
     <References>

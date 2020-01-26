@@ -2,11 +2,11 @@
  * @module node-opcua-address-space.Private
  */
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-status-code";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
+import { StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 

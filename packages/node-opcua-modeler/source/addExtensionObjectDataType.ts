@@ -3,7 +3,8 @@ import {
     Namespace,
     UADataType,
     AddressSpace,
-    UAObject
+    UAObject,
+    UAVariable
 } from "node-opcua-address-space";
 import {
     QualifiedNameLike,
@@ -42,40 +43,36 @@ export function getOrCreateDataTypeSystem(namespace: Namespace): UAObject {
     assert(opcBinaryTypeSystem.nodeId.toString() === "ns=0;i=93");
     assert(opcBinaryTypeSystem.browseName.toString() === "OPC Binary");
 
-    const name = namespace.namespaceUri;
-
-    let node: UAObject = opcBinaryTypeSystem.getComponentByName(name) as UAObject;
-    if (node) {
-        assert(node.nodeClass === NodeClass.Object);
-        return node;
-    }
-
-    const dataTypeSystemType = addressSpace.findObjectType("DataTypeSystemType");
-    /* istanbul ignore next */
-    if (!dataTypeSystemType) {
-        throw new Error("Cannot find DataTypeSystemType");
-    }
-    node = dataTypeSystemType.instantiate({
-        browseName: name,
-        componentOf: opcBinaryTypeSystem,
-    })!;
-
-    return node;
+    return opcBinaryTypeSystem;
 }
 
-export function addOldDataTypeDictionary(namespace: Namespace, dataType: UADataType) {
+
+
+function getDataTypeDictionary(namespace: Namespace) {
 
     const addressSpace = namespace.addressSpace;
+
+    const opcBinaryTypeSystem = getOrCreateDataTypeSystem(namespace);
+    assert(opcBinaryTypeSystem.nodeId.toString() === "ns=0;i=93")
+
+    const name = namespace.namespaceUri.replace(/.*:/, "");
+
+    let node: UAVariable = opcBinaryTypeSystem.getComponentByName(name) as UAVariable;
+    if (node) {
+        assert(node.nodeClass === NodeClass.Variable);
+        // already exits ....
+        return node;
+    }
 
     const dataTypeDictionaryType = addressSpace.findVariableType("DataTypeDictionaryType");
     /* istanbul ignore next */
     if (!dataTypeDictionaryType) {
         throw new Error("Cannot find DataTypeDictionaryType");
     }
-    const dataTypeSystem = getOrCreateDataTypeSystem(namespace);
     const dataTypeDictionary = dataTypeDictionaryType.instantiate({
-        browseName: dataType.browseName.name!,
-        componentOf: dataTypeSystem,
+        browseName: name!,
+        description: `Collects the data type descriptions of ${namespace.namespaceUri}`,
+        componentOf: opcBinaryTypeSystem,
         optionals: [
             "Deprecated",
             "DataTypeVersion",
@@ -92,6 +89,30 @@ export function addOldDataTypeDictionary(namespace: Namespace, dataType: UADataT
     }
     return dataTypeDictionary;
 }
+
+export function addDataTypeDescription(namespace: Namespace, dataType: UADataType) {
+
+    const addressSpace = namespace.addressSpace;
+
+    const dataTypeDictionnary = getDataTypeDictionary(namespace);
+
+    const dataTypeDescriptionType = addressSpace.findVariableType("DataTypeDescriptionType");
+    if (!dataTypeDescriptionType) {
+        throw new Error("Cannot find DataTypeDescriptionType");
+    }
+
+    const dataTypeDescription = dataTypeDescriptionType.instantiate({
+        browseName: dataType.browseName.name!,
+        componentOf: dataTypeDictionnary,
+    });
+    dataTypeDescription.setValueFromSource({
+        dataType: DataType.String,
+        value: dataType.browseName.name!
+    });
+
+    return dataTypeDescription;
+
+}
 export interface ExtensionObjectDefinition {
 
     browseName: QualifiedNameLike;
@@ -102,12 +123,13 @@ export interface ExtensionObjectDefinition {
     binaryEncoding: NodeId;
     xmlEncoding: NodeId;
 
-    superType?: UADataType;
+    subtypeOf?: UADataType;
 }
 
 export function addExtensionObjectDataType(
     namespace: Namespace,
-    options: ExtensionObjectDefinition): UADataType {
+    options: ExtensionObjectDefinition
+): UADataType {
 
     const addressSpace = namespace.addressSpace;
 
@@ -124,13 +146,14 @@ export function addExtensionObjectDataType(
     }
 
     const defaultBinary = dataTypeEncodingType.instantiate({
-        nodeId: `$$${options.browseName.toString() + "_Encoding_DefaultBinary"}`,
         browseName: { name: "Default Binary", namespaceIndex: 0 }
     })!;
     assert(defaultBinary.browseName.toString() === "Default Binary");
 
     const baseSuperType = "Structure";
-    const superType = addressSpace.findDataType(options.superType ? options.superType : baseSuperType);
+    const subtypeOf = addressSpace.findDataType(options.subtypeOf ? options.subtypeOf : baseSuperType)!;
+
+    console.log("xxx subtypeOf = ", subtypeOf.browseName.toString());
 
     const structureDefinition = options.structureDefinition || [];
 
@@ -138,7 +161,7 @@ export function addExtensionObjectDataType(
         browseName: options.browseName,
         description: options.description,
         isAbstract: options.isAbstract,
-        superType: superType?.nodeId,
+        subtypeOf,
         references: [
             {
                 referenceType: "HasEncoding",
@@ -150,10 +173,15 @@ export function addExtensionObjectDataType(
 
     (dataType as any).$definition = new StructureDefinition(structureDefinition);
 
-    addOldDataTypeDictionary(namespace, dataType);
+    const dataTypeDescription = addDataTypeDescription(namespace, dataType);
+    defaultBinary.addReference({
+        referenceType: "HasDescription",
+        isForward: true,
+        nodeId: dataTypeDescription
+    });
 
-    const v = (dataType as any).__findReferenceWithBrowseName("HasEncoding", "Default Binary");
-    assert(v.browseName.toString() === "Default Binary");
+    const v = dataType.getEncodingNode("Default Binary");
+    assert(v?.browseName.toString() === "Default Binary");
     return dataType;
 
 }

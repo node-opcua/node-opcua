@@ -19,10 +19,9 @@ describe("NodeIdManager", () => {
 
     beforeEach(async () => {
 
-
         addressSpace = AddressSpace.create();
         const ns = addressSpace.registerNamespace(namespaceUri);
-        const nodesetsXML = [];
+        const nodesetsXML: string[] = [];
         await generateAddressSpace(addressSpace, nodesetsXML);
 
         nodeIdManager = new NodeIdManager(1, addressSpace);

@@ -49,7 +49,7 @@ function createCustomType(addressSpace: AddressSpace): MyCustomType {
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing add new DataType ", function(this: any) {
+describe("testing add new DataType ", function (this: any) {
 
     this.timeout(Math.max(300000, this._timeout));
 
@@ -121,7 +121,7 @@ describe("issue #108", () => {
 
         const ftnirType = addressSpace.findObjectType("3:FTNIRSimulatorDeviceType")!;
 
-        // xx console.log(" ftnirType = ",ftnirType.toString());
+        // console.log(" ftnirType = ", ftnirType.toString());
         should.exist(ftnirType);
 
         const ftnirInstance = ftnirType.instantiate({ browseName: "MyFTNIR", organizedBy: deviceSet });

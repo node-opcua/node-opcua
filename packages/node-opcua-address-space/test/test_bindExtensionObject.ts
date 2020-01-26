@@ -2,7 +2,7 @@ import * as should from "should";
 import * as sinon from "sinon";
 
 import { DateTime, Double, UAString, UInt32 } from "node-opcua-basic-types";
-import { LocalizedText , LocalizedTextLike } from "node-opcua-data-model";
+import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { NodeIdLike } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -15,7 +15,7 @@ import {
     SessionDiagnosticsDataType
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, RootFolder , UAVariable , UAVariableT } from "..";
+import { AddressSpace, RootFolder, UAVariable, UAVariableT } from "..";
 import { getMiniAddressSpace } from "../";
 
 interface ServiceCounterVariable extends UAVariable {
@@ -241,9 +241,9 @@ describe("Extension Object binding and sub  components\n", () => {
 
             extensionObjectVar.on("value_changed", spy_on_SessionDiagnostics_value_changed);
             extensionObjectVar.totalRequestCount.on("value_changed",
-              spy_on_SessionDiagnostics_TotalRequestCount_value_changed);
+                spy_on_SessionDiagnostics_TotalRequestCount_value_changed);
             extensionObjectVar.totalRequestCount.totalCount.on("value_changed",
-              spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed);
+                spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed);
 
             extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
             extensionObjectVar.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
@@ -323,13 +323,13 @@ describe("Extension Object binding and sub  components\n", () => {
 
             sessionDiagnostics.on("value_changed", spy_on_sessionDiagnostics_value_changed);
             sessionDiagnostics.clientDescription.on("value_changed",
-              spy_on_sessionDiagnostics_clientDescription_value_changed);
+                spy_on_sessionDiagnostics_clientDescription_value_changed);
             sessionDiagnostics.totalRequestCount.on("value_changed",
-              spy_on_sessionDiagnostics_totalRequestCount_value_changed);
+                spy_on_sessionDiagnostics_totalRequestCount_value_changed);
             sessionDiagnostics.totalRequestCount.totalCount.on("value_changed",
-              spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed);
+                spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed);
             sessionDiagnostics.totalRequestCount.errorCount.on("value_changed",
-              spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed);
+                spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed);
         });
 
         it("ZA1- a ExtensionObject variable should have the expected dataType node", () => {
@@ -338,7 +338,8 @@ describe("Extension Object binding and sub  components\n", () => {
             dataTypeNode.browseName.toString().should.eql("SessionDiagnosticsDataType");
             const structure = addressSpace.findDataType("Structure");
             dataTypeNode.isSupertypeOf(structure).should.eql(true);
-            dataTypeNode.definition.map((x: any) =>  x.name).sort().should.eql([
+
+            dataTypeNode.$definition.fields.map((x: any) => x.name).sort().should.eql([
                 "ActualSessionTimeout",
                 "AddNodesCount",
                 "AddReferencesCount",
@@ -391,109 +392,109 @@ describe("Extension Object binding and sub  components\n", () => {
         });
 
         it("ZA3- updateExtensionObjectPartial: it should be possible to cascade changes " +
-          "by acting on the whole ExtensionObject", () => {
+            "by acting on the whole ExtensionObject", () => {
 
-            spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(0);
 
-            const someClientDescription = /* new ApplicationDescription( */{
-                /* ApplicationDescription */
-                applicationUri: "applicationUri-1"
-            }/*)*/;
+                const someClientDescription = /* new ApplicationDescription( */{
+                    /* ApplicationDescription */
+                    applicationUri: "applicationUri-1"
+                }/*)*/;
 
-            sessionDiagnostics.updateExtensionObjectPartial({clientDescription: someClientDescription});
+                sessionDiagnostics.updateExtensionObjectPartial({ clientDescription: someClientDescription });
 
-            spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(1);
-            spy_on_sessionDiagnostics_value_changed.callCount.should.eql(1);
+                spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(1);
+                spy_on_sessionDiagnostics_value_changed.callCount.should.eql(1);
 
-            sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
-            sessionDiagnostics.clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
-            sessionDiagnostics.readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
+                sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
+                sessionDiagnostics.clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
+                sessionDiagnostics.readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
 
-            _sessionDiagnostics.clientDescription.applicationUri.should.eql("applicationUri-1");
+                _sessionDiagnostics.clientDescription.applicationUri.should.eql("applicationUri-1");
 
-            spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
-            spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
-            spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-            const eo = sessionDiagnostics.constructExtensionObjectFromComponents();
-            eo.clientDescription.applicationUri.should.eql("applicationUri-1");
+                const eo = sessionDiagnostics.constructExtensionObjectFromComponents();
+                eo.clientDescription.applicationUri.should.eql("applicationUri-1");
 
-            // xx console.log(eo.toString());
+                // xx console.log(eo.toString());
 
-        });
+            });
 
         it("ZA4- updateExtensionObjectPartial: it should be possible to cascade changes " +
-          "by acting on the whole ExtensionObject - middle", () => {
+            "by acting on the whole ExtensionObject - middle", () => {
 
-            spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
-            spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
-            spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-            sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
-            sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
-            sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
-            _sessionDiagnostics.totalRequestCount.totalCount.should.eql(0);
+                sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
+                sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+                _sessionDiagnostics.totalRequestCount.totalCount.should.eql(0);
 
-            const totalRequestCount = /* new Counter( */{
-                errorCount: 25,
-                totalCount: 130,
-            };
-            sessionDiagnostics.updateExtensionObjectPartial({totalRequestCount});
+                const totalRequestCount = /* new Counter( */{
+                    errorCount: 25,
+                    totalCount: 130,
+                };
+                sessionDiagnostics.updateExtensionObjectPartial({ totalRequestCount });
 
-            sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(130);
-            sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(130);
-            sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(130);
-            _sessionDiagnostics.totalRequestCount.totalCount.should.eql(130);
+                sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(130);
+                sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(130);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(130);
+                _sessionDiagnostics.totalRequestCount.totalCount.should.eql(130);
 
-            sessionDiagnostics.totalRequestCount.errorCount.readValue().value.value.should.eql(25);
-            sessionDiagnostics.totalRequestCount.readValue().value.value.errorCount.should.eql(25);
-            sessionDiagnostics.readValue().value.value.totalRequestCount.errorCount.should.eql(25);
-            _sessionDiagnostics.totalRequestCount.errorCount.should.eql(25);
+                sessionDiagnostics.totalRequestCount.errorCount.readValue().value.value.should.eql(25);
+                sessionDiagnostics.totalRequestCount.readValue().value.value.errorCount.should.eql(25);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.errorCount.should.eql(25);
+                _sessionDiagnostics.totalRequestCount.errorCount.should.eql(25);
 
-        });
+            });
 
         it("ZA5- incrementExtensionObjectPartial: it should be possible to cascade changes " +
-          "by increasing a value on ExtensionObject", () => {
+            "by increasing a value on ExtensionObject", () => {
 
-            sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
-            sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
-            sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
-            _sessionDiagnostics.totalRequestCount.totalCount.should.eql(0);
+                sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
+                sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+                _sessionDiagnostics.totalRequestCount.totalCount.should.eql(0);
 
-            spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
-            spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
-            spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-            sessionDiagnostics.incrementExtensionObjectPartial("totalRequestCount.totalCount");
+                sessionDiagnostics.incrementExtensionObjectPartial("totalRequestCount.totalCount");
 
-            sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
-            sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(1);
-            sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(1);
-            _sessionDiagnostics.totalRequestCount.totalCount.should.eql(1);
+                sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
+                sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(1);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(1);
+                _sessionDiagnostics.totalRequestCount.totalCount.should.eql(1);
 
-            sessionDiagnostics.incrementExtensionObjectPartial("totalRequestCount.totalCount");
+                sessionDiagnostics.incrementExtensionObjectPartial("totalRequestCount.totalCount");
 
-            sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(2);
-            sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(2);
-            sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(2);
-            _sessionDiagnostics.totalRequestCount.totalCount.should.eql(2);
+                sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(2);
+                sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(2);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(2);
+                _sessionDiagnostics.totalRequestCount.totalCount.should.eql(2);
 
-            spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(2);
-            spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
-            spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(2);
+                spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(2);
+                spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
+                spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(2);
 
-        });
+            });
 
         it("ZA6- changing property values in extension object directly should propagates changes and notification " +
-          "to NodeVariables", () => {
+            "to NodeVariables", () => {
 
-            _sessionDiagnostics.clientDescription.applicationUri = "applicationUri-1";
+                _sessionDiagnostics.clientDescription.applicationUri = "applicationUri-1";
 
-            sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
-            sessionDiagnostics.clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
-            sessionDiagnostics.readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
+                sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
+                sessionDiagnostics.clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
+                sessionDiagnostics.readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
 
-        });
+            });
     });
 
 });

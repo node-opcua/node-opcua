@@ -1,7 +1,7 @@
 import * as chalk from "chalk";
 import * as should from "should";
 
-import { AddressSpace , UAServerStatus, UAObjectType } from "..";
+import { AddressSpace , UAObjectType, UAServerStatus } from "..";
 import { getMiniAddressSpace } from "../";
 import { createCameraType, FakeCamera } from "./fixture_camera_type";
 

@@ -45,7 +45,6 @@ import { UAAcknowledgeableConditionBase } from "./alarms_and_conditions";
 import { UAConditionBase } from "./alarms_and_conditions";
 import { BaseNode } from "./base_node";
 import { EventData } from "./event_data";
-import { prepareDataType } from "./extension_object_array_node";
 import { AddressSpace_installHistoricalDataNode } from "./historical_access/address_space_historical_data_node";
 import { UANamespace } from "./namespace";
 import { isNonEmptyQualifiedName } from "./namespace";
@@ -237,7 +236,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @returns {Namespace}
      */
     public registerNamespace(namespaceUri: string) {
-        let index = this._namespaceArray.findIndex(ns => ns.namespaceUri === namespaceUri);
+        let index = this._namespaceArray.findIndex((ns) => ns.namespaceUri === namespaceUri);
         if (index !== -1) {
             assert((this._namespaceArray[index].addressSpace as any) === (this as any));
             return this._namespaceArray[index];
@@ -984,11 +983,15 @@ export class AddressSpace implements AddressSpacePrivate {
             // may be dataType was the NodeId of the "Binary Encoding" node
             throw new Error("getExtensionObjectConstructor: dataType has unexpected type" + dataType);
         }
-
-        if (dataType.nodeId.namespace === 0) {
+        const _dataType = dataType as UADataType;
+        // to do verify that dataType is of type "Strucuture"
+        assert(_dataType.isSupertypeOf(this.findDataType("Structure")!));
+        if (!_dataType._extensionObjectConstructor) {
+            const dataTypeManager = (this as any).$$extraDataTypeManager as ExtraDataTypeManager;
+            _dataType._extensionObjectConstructor = dataTypeManager.getExtensionObjectConstructorFromDataType(_dataType.nodeId);
         }
-        prepareDataType(this, dataType);
-        const Constructor = (dataType as UADataType)._extensionObjectConstructor;
+        assert(_dataType._extensionObjectConstructor, "dataType must have a constructor");
+        const Constructor = _dataType._extensionObjectConstructor;
         return Constructor;
     }
 
@@ -1494,7 +1497,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         if (!el) {
             // verify that node Id exists in standard type map typeMap
-            const find = _.filter(typeMap, a => a === nodeId!.value);
+            const find = _.filter(typeMap, (a) => a === nodeId!.value);
             /* istanbul ignore next */
             if (find.length !== 1) {
                 throw new Error(

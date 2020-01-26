@@ -100,8 +100,8 @@ export class PseudoSession implements IBasicSession {
             results = results.map((result: BrowseResult) => {
                 assert(!result.continuationPoint);
                 const truncatedResult = this.continuationPointManager.register(
-                this.requestedMaxReferencesPerNode,
-                result.references || []
+                    this.requestedMaxReferencesPerNode,
+                    result.references || []
                 );
                 assert(truncatedResult.statusCode === StatusCodes.Good);
                 truncatedResult.statusCode = result.statusCode;
@@ -150,23 +150,23 @@ export class PseudoSession implements IBasicSession {
     }
 
     public browseNext(
-      continuationPoint: Buffer,
-      releaseContinuationPoints: boolean,
-      callback: ResponseCallback<BrowseResult>): void;
+        continuationPoint: Buffer,
+        releaseContinuationPoints: boolean,
+        callback: ResponseCallback<BrowseResult>): void;
 
     public browseNext(
-      continuationPoints: Buffer[],
-      releaseContinuationPoints: boolean,
-      callback: ResponseCallback<BrowseResult[]>): void;
+        continuationPoints: Buffer[],
+        releaseContinuationPoints: boolean,
+        callback: ResponseCallback<BrowseResult[]>): void;
 
     public browseNext(
-      continuationPoint: Buffer,
-      releaseContinuationPoints: boolean
+        continuationPoint: Buffer,
+        releaseContinuationPoints: boolean
     ): Promise<BrowseResult>;
 
     public browseNext(
-      continuationPoints: Buffer[],
-      releaseContinuationPoints: boolean
+        continuationPoints: Buffer[],
+        releaseContinuationPoints: boolean
     ): Promise<BrowseResult[]>;
     public browseNext(
         continuationPoints: Buffer | Buffer[],
@@ -179,9 +179,9 @@ export class PseudoSession implements IBasicSession {
             if (continuationPoints instanceof Buffer) {
                 return this.browseNext([continuationPoints], releaseContinuationPoints,
                     (err, _results) => {
-                    if (err) { return callback!(err); }
-                    callback!(null, _results![0]);
-                });
+                        if (err) { return callback!(err); }
+                        callback!(null, _results![0]);
+                    });
                 return;
             }
             const session = this;
@@ -214,22 +214,22 @@ export class PseudoSession implements IBasicSession {
 
     // call service ----------------------------------------------------------------------------------------------------
     public call(
-      methodToCall: CallMethodRequestLike,
-      callback: ResponseCallback<CallMethodResult>
+        methodToCall: CallMethodRequestLike,
+        callback: ResponseCallback<CallMethodResult>
     ): void;
     public call(
-      methodsToCall: CallMethodRequestLike[],
-      callback: ResponseCallback<CallMethodResult[]>
+        methodsToCall: CallMethodRequestLike[],
+        callback: ResponseCallback<CallMethodResult[]>
     ): void;
     public call(
-      methodToCall: CallMethodRequestLike
+        methodToCall: CallMethodRequestLike
     ): Promise<CallMethodResult>;
     public call(
-      methodsToCall: CallMethodRequestLike[]
+        methodsToCall: CallMethodRequestLike[]
     ): Promise<CallMethodResult[]>;
     public call(
-      methodsToCall: CallMethodRequestLike | CallMethodRequestLike[],
-      callback?: ResponseCallback<any>
+        methodsToCall: CallMethodRequestLike | CallMethodRequestLike[],
+        callback?: ResponseCallback<any>
     ): any {
 
         const isArray = _.isArray(methodsToCall);
@@ -238,35 +238,35 @@ export class PseudoSession implements IBasicSession {
         }
 
         async.map(methodsToCall as CallMethodRequestLike[],
-          (methodToCall, innerCallback: (err: Error | null, result?: CallMethodResult) => void) => {
+            (methodToCall, innerCallback: (err: Error | null, result?: CallMethodResult) => void) => {
 
-              const callMethodRequest = new CallMethodRequest(methodToCall);
+                const callMethodRequest = new CallMethodRequest(methodToCall);
 
-              callMethodHelper(
-                this.server, this.session, this.addressSpace, callMethodRequest,
-                (err: Error | null, result?: CallMethodResultOptions) => {
+                callMethodHelper(
+                    this.server, this.session, this.addressSpace, callMethodRequest,
+                    (err: Error | null, result?: CallMethodResultOptions) => {
 
-                    let callMethodResult: CallMethodResult;
-                    if (err) {
-                        callMethodResult = new CallMethodResult({
-                            statusCode: StatusCodes.BadInternalError
-                        });
-                    } else {
-                        callMethodResult = new CallMethodResult(result);
-                    }
-                    innerCallback(null, callMethodResult);
-                });
+                        let callMethodResult: CallMethodResult;
+                        if (err) {
+                            callMethodResult = new CallMethodResult({
+                                statusCode: StatusCodes.BadInternalError
+                            });
+                        } else {
+                            callMethodResult = new CallMethodResult(result);
+                        }
+                        innerCallback(null, callMethodResult);
+                    });
 
-          }, (err?: Error | null, callMethodResults?: any) => {
-              callback!(null, isArray ? callMethodResults! : callMethodResults![0]);
-          });
+            }, (err?: Error | null, callMethodResults?: any) => {
+                callback!(null, isArray ? callMethodResults! : callMethodResults![0]);
+            });
     }
 
     public getArgumentDefinition(
-      methodId: MethodId
+        methodId: MethodId
     ): Promise<ArgumentDefinition>;
     public getArgumentDefinition(
-      methodId: MethodId, callback: ResponseCallback<ArgumentDefinition>
+        methodId: MethodId, callback: ResponseCallback<ArgumentDefinition>
     ): void;
     public getArgumentDefinition(methodId: MethodId, callback?: ResponseCallback<ArgumentDefinition>): any {
         return getArgumentDefinitionHelper(this, methodId, callback!);
@@ -277,8 +277,8 @@ export class PseudoSession implements IBasicSession {
     public translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
     public translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
     public translateBrowsePath(
-      browsePaths: BrowsePath[] | BrowsePath,
-      callback?: any
+        browsePaths: BrowsePath[] | BrowsePath,
+        callback?: any
     ): any {
 
         const isArray = _.isArray(browsePaths);

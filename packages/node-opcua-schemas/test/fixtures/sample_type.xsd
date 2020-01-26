@@ -1,9 +1,7 @@
-<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xmlns:tns="http://www.unifiedautomation.com/DemoServer/"
-                    DefaultByteOrder="LittleEndian"
-                    xmlns:opc="http://opcfoundation.org/BinarySchema/"
-                    xmlns:ua="http://opcfoundation.org/UA/"
-                    TargetNamespace="http://www.unifiedautomation.com/DemoServer/">
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:tns="http://www.unifiedautomation.com/DemoServer/" DefaultByteOrder="LittleEndian" 
+    xmlns:opc="http://opcfoundation.org/BinarySchema/" 
+    xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://www.unifiedautomation.com/DemoServer/">
     <opc:Import Namespace="http://opcfoundation.org/UA/"/>
     <opc:StructuredType BaseType="ua:ExtensionObject" Name="AccessRights">
         <opc:Field TypeName="opc:ByteString" Name="Value"/>

@@ -1,67 +1,67 @@
 {
- "name": "node-opcua-certificate-manager",
- "version": "2.4.2",
- "description": "pure nodejs OPCUA SDK - module -client",
- "scripts": {
-  "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
-  "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
-  "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
-  "test": "mocha test/*.ts",
-  "test-typescript": "npx mocha test/*.ts",
-  "build": "tsc",
-  "lint": "tslint source/**/*.ts",
-  "doc": "typedoc --options typedoc.js"
- },
- "main": "./dist/index.js",
- "types": "./dist/index.d.ts",
- "dependencies": {
-  "@types/mkdirp": "^0.5.2",
-  "async": "^3.1.0",
-  "chalk": "^3.0.0",
-  "delayed": "^2.0.0",
-  "env-paths": "^2.2.0",
-  "mkdirp": "^0.5.1",
-  "node-opcua-assert": "^2.3.0",
-  "node-opcua-basic-types": "^2.4.2",
-  "node-opcua-buffer-utils": "^2.4.2",
-  "node-opcua-common": "^2.4.2",
-  "node-opcua-constants": "^2.1.6",
-  "node-opcua-crypto": "^1.1.4",
-  "node-opcua-debug": "^2.4.2",
-  "node-opcua-pki": "^1.5.5",
-  "node-opcua-status-code": "^2.4.2",
-  "node-opcua-utils": "^2.4.2",
-  "once": "^1.4.0",
-  "thenify": "^3.3.0",
-  "underscore": "^1.9.2"
- },
- "devDependencies": {
-  "@types/async": "^3.0.3",
-  "@types/underscore": "^1.9.4",
-  "dequeue": "^1.0.5",
-  "node-opcua-leak-detector": "^2.4.2",
-  "should": "13.2.3",
-  "sinon": "^8.0.4"
- },
- "eslintConfig": {
-  "env": {
-   "node": true
-  }
- },
- "author": "Etienne Rossignon",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git://github.com/node-opcua/node-opcua.git"
- },
- "keywords": [
-  "OPCUA",
-  "opcua",
-  "m2m",
-  "iot",
-  "opc ua",
-  "internet of things"
- ],
- "homepage": "http://node-opcua.github.io/",
- "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+    "name": "node-opcua-certificate-manager",
+    "version": "2.4.2",
+    "description": "pure nodejs OPCUA SDK - module -client",
+    "scripts": {
+        "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
+        "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
+        "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
+        "test": "mocha test/*.ts",
+        "test-typescript": "npx mocha test/*.ts",
+        "build": "tsc",
+        "lint": "tslint source/**/*.ts",
+        "doc": "typedoc --options typedoc.js"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "dependencies": {
+        "@types/mkdirp": "^0.5.2",
+        "async": "^3.1.0",
+        "chalk": "^3.0.0",
+        "delayed": "^2.0.0",
+        "env-paths": "^2.2.0",
+        "mkdirp": "^0.5.1",
+        "node-opcua-assert": "^2.3.0",
+        "node-opcua-basic-types": "^2.4.2",
+        "node-opcua-buffer-utils": "^2.4.2",
+        "node-opcua-common": "^2.4.2",
+        "node-opcua-constants": "^2.1.6",
+        "node-opcua-crypto": "^1.1.4",
+        "node-opcua-debug": "^2.4.2",
+        "node-opcua-pki": "^1.5.5",
+        "node-opcua-status-code": "^2.4.2",
+        "node-opcua-utils": "^2.4.2",
+        "once": "^1.4.0",
+        "thenify": "^3.3.0",
+        "underscore": "^1.9.2"
+    },
+    "devDependencies": {
+        "@types/async": "^3.0.3",
+        "@types/underscore": "^1.9.4",
+        "dequeue": "^1.0.5",
+        "node-opcua-leak-detector": "^2.4.2",
+        "should": "13.2.3",
+        "sinon": "^8.0.4"
+    },
+    "eslintConfig": {
+        "env": {
+            "node": true
+        }
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }

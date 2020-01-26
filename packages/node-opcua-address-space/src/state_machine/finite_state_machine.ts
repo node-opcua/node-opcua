@@ -309,14 +309,14 @@ export class StateMachine extends UAObject implements StateMachine {
                 // xx nodeId:      this.nodeId,
                 // TransitionEventType
                 // TransitionVariableType
-                transition: {
+                "transition": {
                     dataType: "LocalizedText",
                     value: transitionNode.displayName[0]
                 },
 
                 "transition.id": transitionNode.transitionNumber.readValue().value,
 
-                fromState: {
+                "fromState": {
                     dataType: "LocalizedText",
                     value: fromStateNode ? fromStateNode.displayName[0] : ""
                 }, // StateVariableType
@@ -327,7 +327,7 @@ export class StateMachine extends UAObject implements StateMachine {
                         dataType: "Null"
                     },
 
-                toState: {
+                "toState": {
                     dataType: "LocalizedText",
                     value: toStateNode.displayName[0]
                 }, // StateVariableType

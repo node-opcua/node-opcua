@@ -3,8 +3,8 @@
  */
 // tslint:disable:no-empty-interface
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-status-code";
 import { NodeClass } from "node-opcua-data-model";
+import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { VariantLike } from "node-opcua-variant";

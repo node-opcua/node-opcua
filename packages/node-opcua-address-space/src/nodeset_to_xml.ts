@@ -9,7 +9,7 @@ const XMLWriter = require("xml-writer");
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { BrowseDirection, NodeClass, LocalizedText } from "node-opcua-data-model";
+import { BrowseDirection, LocalizedText, makeNodeClassMask, makeResultMask, NodeClass } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import {
     FieldBasic,
@@ -18,16 +18,19 @@ import {
     StructuredTypeField,
     StructuredTypeSchema
 } from "node-opcua-factory";
-import { hasStructuredType } from "node-opcua-factory";
 import { getStructuredTypeSchema } from "node-opcua-factory";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { Variant } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 
-import { XmlWriter, Namespace } from "../source";
+import { Namespace, XmlWriter } from "../source";
 
+import { Int64 } from "node-opcua-basic-types";
+import { Enum } from "node-opcua-enum";
+import { BrowseDescriptionLike } from "node-opcua-pseudo-session";
+import { BrowseDescription, EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
 import { BaseNode } from "./base_node";
 import { UANamespace } from "./namespace";
 import { NamespacePrivate } from "./namespace_private";
@@ -39,18 +42,16 @@ import { UAObjectType } from "./ua_object_type";
 import { UAReferenceType } from "./ua_reference_type";
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
-import { EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
-import { Enum } from "node-opcua-enum/dist";
-import { Int64 } from "node-opcua-basic-types";
 
 function _hash(node: BaseNode | Reference): string {
     return (node.nodeId.toString());
 }
 
 function _dumpDisplayName(xw: XmlWriter, node: BaseNode): void {
-    xw.startElement("DisplayName").text(node.displayName[0].text!).endElement();
+    if (node.displayName && node.displayName[0]) {
+        xw.startElement("DisplayName").text(node.displayName[0].text!).endElement();
+    }
 }
-
 function _dumpDescription(xw: XmlWriter, node: BaseNode): void {
     if (node.description) {
         let desc = node.description.text;
@@ -98,6 +99,17 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
 
     function referenceToKeep(reference: Reference): boolean {
         const referenceType = reference._referenceType!;
+
+        // get the direct backward reference to a external namespace
+        if (referenceType.isSupertypeOf(aggregateReferenceType) && !reference.isForward) {
+            if (reference.nodeId.namespace !== node.nodeId.namespace) {
+                // todo: may be check that reference.nodeId.namespace is one of the namespace
+                // on which our namespace is build and not a derived one !
+                // xx console.log("xxxxxxxxxxxxxx Keeping => ", referenceType.toString(), reference.node?.nodeId.toString());
+                return true;
+            }
+        }
+
         // only keep
         if (referenceType.isSupertypeOf(aggregateReferenceType) && reference.isForward) {
             return true;
@@ -442,26 +454,6 @@ function visitUANode(
     return node;
 }
 
-function dumpReferencedNodesOld(
-    xw: XmlWriter,
-    node: BaseNode,
-    forward: boolean
-) {
-
-    assert(_.isBoolean(forward));
-
-    xw.visitedNode[_hash(node)] = 1;
-
-    const nodesToVisit: any = {};
-    visitUANode(node, nodesToVisit, forward);
-
-    for (const el of nodesToVisit.elements) {
-        if (!xw.visitedNode[_hash(el)]) {
-            el.dumpXML(xw);
-        }
-    }
-}
-
 function dumpReferencedNodes(
     xw: XmlWriter,
     node: BaseNode,
@@ -544,10 +536,16 @@ function dumpCommonElements(
     _dumpReferences(xw, node);
 }
 
-
-function coerceInt64ToInt32(int64: Int64) {
+function coerceInt64ToInt32(int64: Int64): number {
+    if (typeof (int64) === "number") {
+        return int64 as number;
+    }
+    console.log(int64);
+    if (int64[0] === 4294967295 && int64[1] === 4294967295) {
+        return 0xFFFFFFFF;
+    }
     assert(int64[0] === 0, "???");
-    return int64[1]
+    return int64[1];
 }
 
 function _dumpEnumDefinition(
@@ -581,15 +579,15 @@ function _dumpStructureDefinition(
         xw.writeAttribute("Name", defItem.name!);
 
         if (defItem.arrayDimensions) {
-            xw.writeAttribute("ArrayDimensions", defItem.arrayDimensions.map(x => x.toString()).join(","));
+            xw.writeAttribute("ArrayDimensions", defItem.arrayDimensions.map((x) => x.toString()).join(","));
         }
         if (defItem.valueRank !== undefined && defItem.valueRank !== -1) {
             xw.writeAttribute("ValueRank", defItem.valueRank);
         }
-        if (defItem.isOptional !== undefined /* && defItem.isOptional !== false */) {
+        if (defItem.isOptional /* && defItem.isOptional !== false */) {
             xw.writeAttribute("IsOptional", defItem.isOptional.toString());
         }
-        if (defItem.maxStringLength !== undefined /* && defItem.isOptional !== false */) {
+        if (defItem.maxStringLength !== undefined && defItem.maxStringLength !== 0) {
             xw.writeAttribute("MaxStringLength", defItem.maxStringLength);
         }
         // todo : SymbolicName ( see AutoId )
@@ -612,14 +610,17 @@ function _dumpUADataTypeDefinition(
     node: UADataType
 ) {
     const $definition = node._getDefinition();
-    if ($definition && $definition instanceof EnumDefinition) {
+    if (!$definition) {
+        return;
+    }
+    if ($definition instanceof EnumDefinition) {
         xw.startElement("Definition");
         xw.writeAttribute("Name", node.browseName.name!);
         _dumpEnumDefinition(xw, $definition);
         xw.endElement();
         return;
     }
-    if ($definition && $definition instanceof StructureDefinition) {
+    if ($definition instanceof StructureDefinition) {
         xw.startElement("Definition");
         xw.writeAttribute("Name", node.browseName.name!);
 
@@ -633,92 +634,34 @@ function _dumpUADataTypeDefinition(
         xw.endElement();
         return;
     }
-
-
-    /// TODO => Obsolete code to remove:
-    if (!node.definition || node.definition.length === 0) {
-        return;
-    }
-    xw.startElement("Definition");
-    xw.writeAttribute("Name", node.browseName.name!);
-
-    for (const defItem of node.definition) {
-        xw.startElement("Field");
-        xw.writeAttribute("Name", defItem.name);
-
-        if (defItem.dataType && !defItem.dataType.isEmpty()) {
-            // there is no dataType on enumeration
-            const dataTypeStr = defItem.dataType.toString();
-            xw.writeAttribute("DataType", dataTypeStr);
-        }
-        if (!utils.isNullOrUndefined(defItem.valueRank) && defItem.valueRank !== -1) {
-            xw.writeAttribute("ValueRank", defItem.valueRank);
-        }
-        if (!utils.isNullOrUndefined(defItem.value)) {
-            xw.writeAttribute("Value", defItem.value);
-        }
-        if (defItem.description && defItem.description.text) {
-            xw.startElement("Description");
-            xw.text(defItem.description.text);
-            xw.endElement();
-        }
-        xw.endElement();
-    }
-    xw.endElement();
-    return;
-    /*
-        const indexes = node._getDefinition();
-        if (indexes) {
-            xw.startElement("Definition");
-            xw.writeAttribute("Name", node.definitionName);
-    
-            _.forEach(indexes.nameIndex, (defItem: any, key) => {
-    
-                xw.startElement("Field");
-                xw.writeAttribute("Name", defItem.name);
-    
-                if (defItem.dataType && !defItem.dataType.isEmpty()) {
-                    // there is no dataType on enumeration
-                    const dataTypeStr = defItem.dataType.toString();
-                    xw.writeAttribute("DataType", dataTypeStr);
-                }
-    
-                if (!utils.isNullOrUndefined(defItem.valueRank)) {
-                    xw.writeAttribute("ValueRank", defItem.valueRank);
-                }
-                if (!utils.isNullOrUndefined(defItem.value)) {
-                    xw.writeAttribute("Value", defItem.value);
-                }
-                if (defItem.description) {
-                    xw.startElement("Description");
-                    xw.text(defItem.description);
-                    xw.endElement();
-                }
-                xw.endElement();
-            });
-            xw.endElement();
-        }
-    */
+    // throw new Error("_dumpUADataTypeDefinition: Should not get here !");
 }
 
 function dumpUADataType(
     xw: XmlWriter,
     node: UADataType
 ) {
+    _markAsVisited(xw, node);
+
     xw.startElement("UADataType");
     xw.writeAttribute("NodeId", n(xw, node.nodeId));
     xw.writeAttribute("BrowseName", b(xw, node.browseName));
-    if (node.displayName && node.displayName[0]) {
-        xw.startElement("DisplayName");
-        xw.text(node.displayName[0].text!);
-        xw.endElement();
+    if (node.symbolicName !== node.browseName.name) {
+        xw.writeAttribute("SymbolicName", node.symbolicName);
     }
     if (node.isAbstract) {
         xw.writeAttribute("IsAbstract", node.isAbstract ? "true" : "false");
     }
+
+    _dumpDisplayName(xw, node);
+
     _dumpReferences(xw, node);
+
     _dumpUADataTypeDefinition(xw, node);
+
     xw.endElement();
+
+    dumpAggregates(xw, node);
 }
 
 UADataType.prototype.dumpXML = function (xw: XmlWriter) {
@@ -757,7 +700,7 @@ function dumpUAVariable(
         const dataTypeNode = addressSpace.findNode(node.dataType);
         if (dataTypeNode) {
             // verify that data Type is in alias
-            //xx const dataTypeName = dataTypeNode.browseName.toString();
+            // xx const dataTypeName = dataTypeNode.browseName.toString();
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
             xw.writeAttribute("DataType", dataTypeName);
         }
@@ -914,11 +857,9 @@ function dumpUAObjectType(
 
     assert(node instanceof UAObjectType);
     xw.writeComment("ObjectType - " + b(xw, node.browseName) + " {{{{ ");
-    xw.visitedNode = xw.visitedNode || {};
-    assert(!xw.visitedNode[_hash(node)]);
-    xw.visitedNode[_hash(node)] = 1;
+    _markAsVisited(xw, node);
 
-    // dump SubTypeOf and HasTypeDefinition
+    // dump SubtypeOf and HasTypeDefinition
     dumpReferencedNodes(xw, node, false);
 
     xw.startElement("UAObjectType");
@@ -940,9 +881,7 @@ function dumpUAMethod(
     node: UAMethod
 ) {
 
-    xw.visitedNode = xw.visitedNode || {};
-    assert(!xw.visitedNode[_hash(node)]);
-    xw.visitedNode[_hash(node)] = 1;
+    _markAsVisited(xw, node);
 
     dumpReferencedNodes(xw, node, false);
 
@@ -1098,7 +1037,7 @@ function constructNamespaceDependency(
     return dependency;
 }
 
-type ITranslationTable = { [key: number]: number };
+interface ITranslationTable { [key: number]: number; }
 
 function constructNamespaceTranslationTable(dependency: Namespace[]): ITranslationTable {
 
@@ -1146,7 +1085,6 @@ export function dumpXml(
     node: BaseNode,
     options: any
 ) {
-
 
     const namespace = node.namespace as NamespacePrivate;
 
@@ -1212,7 +1150,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
     }
 
     xw.endElement();
-    visitUANode
+    visitUANode;
     // ------------- Namespace Uris
     xw.startElement("Models");
     xw.endElement();
@@ -1230,6 +1168,42 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
     const referenceTypes = _.values(this._referenceTypeMap).sort(sortByBrowseName);
     for (const referenceType of referenceTypes) {
         dumpReferenceType(xw, referenceType);
+    }
+
+    // -------------- Dictionaries
+    const addressSpace = this.addressSpace;
+    const opcBinaryTypeSystem = addressSpace.findNode("OPCBinarySchema_TypeSystem") as UAObject;
+    if (opcBinaryTypeSystem) {
+
+        // let find all DataType dictionary node corresponding to a given namespace
+        // (have DataTypeDictionaryType)
+        const nodeToBrowse = new BrowseDescription({
+            browseDirection: BrowseDirection.Forward,
+            includeSubtypes: false,
+            nodeClassMask: makeNodeClassMask("Variable"),
+            nodeId: opcBinaryTypeSystem.nodeId,
+            referenceTypeId: resolveNodeId("HasComponent"),
+            resultMask: makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition")
+        });
+        const result = opcBinaryTypeSystem.browseNode(nodeToBrowse).filter((r) => r.nodeId.namespace === this.index);
+        assert(result.length <= 1);
+        if (result.length === 1) {
+            xw.writeComment("DataSystem");
+            const dataSystemType = addressSpace.findNode(result[0].nodeId)! as UAVariable;
+            dataSystemType.dumpXML(xw);
+        }
+
+    }
+    // -------------- DataTypes
+    const dataTypes = _.values(this._dataTypeMap).sort(sortByBrowseName);
+    if (dataTypes.length) {
+        xw.writeComment("DataTypes");
+        // xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
+        for (const dataType of dataTypes) {
+            if (!xw.visitedNode[_hash(dataType)]) {
+                dataType.dumpXML(xw);
+            }
+        }
     }
     // -------------- ObjectTypes
     xw.writeComment("ObjectTypes");
@@ -1251,7 +1225,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
         }
     }
 
-    // -------------- Any thing else
+    // -------------- Any   thing else
     xw.writeComment("Other Nodes");
     const nodes = _.values(this._nodeid_index).sort(sortByBrowseName);
     for (const node of nodes) {

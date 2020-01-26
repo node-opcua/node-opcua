@@ -100,7 +100,7 @@ function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: Fiel
         switchBit: fieldLight.switchBit,
 
         switchValue: fieldLight.switchValue,
-        
+
         schema
     };
 }
@@ -109,6 +109,8 @@ export class StructuredTypeSchema extends TypeSchemaBase {
 
     public fields: FieldType[];
     public id: NodeId;
+    public dataTypeNodeId: NodeId;
+
     public baseType: string;
     public _possibleFields: string[];
     public _baseSchema: StructuredTypeSchema | null;
@@ -122,6 +124,8 @@ export class StructuredTypeSchema extends TypeSchemaBase {
 
     public encodingDefaultBinary?: ExpandedNodeId;
     public encodingDefaultXml?: ExpandedNodeId;
+    public encodingDefaultJson?: ExpandedNodeId;
+
     public bitFields?: any[];
 
     constructor(options: StructuredTypeOptions) {
@@ -137,6 +141,7 @@ export class StructuredTypeSchema extends TypeSchemaBase {
         }
         this.fields = options.fields.map(buildField.bind(null, this));
         this.id = NodeId.nullNodeId;
+        this.dataTypeNodeId = NodeId.nullNodeId;
 
         this._possibleFields = this.fields.map((field) => field.name);
         this._baseSchema = null;
@@ -157,7 +162,7 @@ export function get_base_schema(schema: StructuredTypeSchema) {
         return baseSchema;
     }
 
-    if (schema.baseType === "ExtensionObject") {
+    if (schema.baseType === "ExtensionObject" || schema.baseType === "DataTypeDefinition") {
         return null;
     }
     if (schema.baseType === "Union") {

@@ -132,6 +132,7 @@
         "node-opcua-pki": "^1.5.5",
         "object.values": "^1.1.1",
         "once": "^1.4.0",
+        "pretty-error": "^2.1.1",
         "pretty-ms": "^5.1.0",
         "progress": "^2.0.3",
         "q": "^1.5.1",

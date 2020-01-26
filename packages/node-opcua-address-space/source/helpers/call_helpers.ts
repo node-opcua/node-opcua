@@ -16,10 +16,9 @@ import { CallMethodResultOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 
 import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
+import { ensureDatatypeExtractedWithCallback } from "../loader/load_nodeset2";
 import { IServerBase, ISessionBase, SessionContext } from "../session_context";
 import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list";
-
-import { ensureDatatypeExtractedWithCallback } from "../../source/loader/load_nodeset2";
 
 // Symbolic Id                   Description
 // ----------------------------  -----------------------------------------------------------------------------
@@ -39,11 +38,11 @@ import { ensureDatatypeExtractedWithCallback } from "../../source/loader/load_no
 type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
 export function callMethodHelper(
-  server: IServerBase,
-  session: ISessionBase,
-  addressSpace: AddressSpace,
-  callMethodRequest: CallMethodRequest,
-  callback: ResponseCallback<CallMethodResultOptions>
+    server: IServerBase,
+    session: ISessionBase,
+    addressSpace: AddressSpace,
+    callMethodRequest: CallMethodRequest,
+    callback: ResponseCallback<CallMethodResultOptions>
 ): void {
     const objectId = callMethodRequest.objectId;
     const methodId = callMethodRequest.methodId;
@@ -51,7 +50,7 @@ export function callMethodHelper(
 
     assert(objectId instanceof NodeId);
     assert(methodId instanceof NodeId);
- 
+
     let response = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
 
     if (response.statusCode !== StatusCodes.Good) {
@@ -81,7 +80,7 @@ export function callMethodHelper(
 
     let l_extraDataTypeManager: ExtraDataTypeManager;
 
-    ensureDatatypeExtractedWithCallback(addressSpace, (err2: Error|null, extraDataTypeManager: ExtraDataTypeManager) => {
+    ensureDatatypeExtractedWithCallback(addressSpace, (err2: Error | null, extraDataTypeManager: ExtraDataTypeManager) => {
 
         l_extraDataTypeManager = extraDataTypeManager;
 
@@ -115,9 +114,9 @@ export function callMethodHelper(
                     const outputArguments = callMethodResponse.outputArguments || [];
                     for (const variant of outputArguments) {
                         resolveDynamicExtensionObject(variant as Variant, l_extraDataTypeManager);
-                    }    
+                    }
                 }
-        
+
                 return callback(null, callMethodResponse);
             });
     });

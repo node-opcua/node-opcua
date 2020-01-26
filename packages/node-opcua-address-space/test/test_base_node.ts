@@ -38,7 +38,7 @@ describe("Testing UAObject", () => {
     });
 
     function dump(e: any) {
-        console.log(e.toString({ addressSpace: addressSpace }));
+        console.log(e.toString({ addressSpace }));
     }
 
     it("AddressSpace#addObject should create a 'hasTypeDefinition' reference on node", () => {

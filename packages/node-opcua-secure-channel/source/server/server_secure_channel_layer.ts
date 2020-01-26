@@ -1461,7 +1461,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
 }
 
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { NodeClass } from "../../../node-opcua-data-model/dist";
 ServerSecureChannelLayer.registry = new ObjectRegistry({});
 
 (ServerSecureChannelLayer as any).prototype.checkCertificateCallback =

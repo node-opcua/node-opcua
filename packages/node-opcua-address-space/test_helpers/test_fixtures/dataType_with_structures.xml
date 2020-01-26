@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UANodeSet
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2020-01-08T00:00:00Z"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <Models>
+        <Model ModelUri="http://opcfoundation.org/UA/" Version="1.04.4" PublicationDate="2020-01-08T00:00:00Z" />
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="SByte">i=2</Alias>
+        <Alias Alias="Byte">i=3</Alias>
+        <Alias Alias="Int16">i=4</Alias>
+        <Alias Alias="UInt16">i=5</Alias>
+        <Alias Alias="Int32">i=6</Alias>
+        <Alias Alias="UInt32">i=7</Alias>
+        <Alias Alias="Int64">i=8</Alias>
+        <Alias Alias="UInt64">i=9</Alias>
+        <Alias Alias="Float">i=10</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="ByteString">i=15</Alias>
+        <Alias Alias="Guid">i=14</Alias>
+        <Alias Alias="XmlElement">i=16</Alias>
+        <Alias Alias="NodeId">i=17</Alias>
+        <Alias Alias="ExpandedNodeId">i=18</Alias>
+        <Alias Alias="QualifiedName">i=20</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+        <Alias Alias="StatusCode">i=19</Alias>
+        <Alias Alias="Structure">i=22</Alias>
+        <Alias Alias="Number">i=26</Alias>
+        <Alias Alias="Integer">i=27</Alias>
+        <Alias Alias="UInteger">i=28</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasEventSource">i=36</Alias>
+        <Alias Alias="HasNotifier">i=48</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
+    </Aliases>
+
+    <UADataType NodeId="i=1" BrowseName="Boolean">
+        <DisplayName>Boolean</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=6" BrowseName="Int32">
+        <DisplayName>Int32</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=27</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=27" BrowseName="Integer" IsAbstract="true">
+        <DisplayName>Integer</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=26</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=24" BrowseName="BaseDataType" IsAbstract="true">
+        <DisplayName>BaseDataType</DisplayName>
+        <References />
+    </UADataType>
+    <UADataType NodeId="i=26" BrowseName="Number" IsAbstract="true">
+        <DisplayName>Number</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=11" BrowseName="Double">
+        <DisplayName>Double</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=26</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=19" BrowseName="StatusCode">
+        <DisplayName>StatusCode</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=20" BrowseName="QualifiedName">
+        <DisplayName>QualifiedName</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=21" BrowseName="LocalizedText">
+        <DisplayName>LocalizedText</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=22" BrowseName="Structure" IsAbstract="true">
+        <DisplayName>Structure</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=23" BrowseName="DataValue">
+        <DisplayName>DataValue</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=25" BrowseName="DiagnosticInfo">
+        <DisplayName>DiagnosticInfo</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+
+
+
+    <UAReferenceType NodeId="i=31" BrowseName="References" IsAbstract="true" Symmetric="true">
+        <DisplayName>References</DisplayName>
+        <References />
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=32" BrowseName="NonHierarchicalReferences" IsAbstract="true" Symmetric="true">
+        <DisplayName>NonHierarchicalReferences</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=31</Reference>
+        </References>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=33" BrowseName="HierarchicalReferences" IsAbstract="true">
+        <DisplayName>HierarchicalReferences</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=31</Reference>
+        </References>
+        <InverseName>HierarchicalReferences</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=34" BrowseName="HasChild" IsAbstract="true">
+        <DisplayName>HasChild</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
+        </References>
+        <InverseName>ChildOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=35" BrowseName="Organizes">
+        <DisplayName>Organizes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
+        </References>
+        <InverseName>OrganizedBy</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=37" BrowseName="HasModellingRule">
+        <DisplayName>HasModellingRule</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>ModellingRuleOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=38" BrowseName="HasEncoding">
+        <DisplayName>HasEncoding</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>EncodingOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=39" BrowseName="HasDescription">
+        <DisplayName>HasDescription</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>DescriptionOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=40" BrowseName="HasTypeDefinition">
+        <DisplayName>HasTypeDefinition</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>TypeDefinitionOf</InverseName>
+    </UAReferenceType>
+  <UAReferenceType NodeId="i=44" BrowseName="Aggregates" IsAbstract="true">
+    <DisplayName>Aggregates</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=34</Reference>
+    </References>
+    <InverseName>AggregatedBy</InverseName>
+  </UAReferenceType>
+    <UAReferenceType NodeId="i=45" BrowseName="HasSubtype">
+        <DisplayName>HasSubtype</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=34</Reference>
+        </References>
+        <InverseName>SubtypeOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=46" BrowseName="HasProperty">
+        <DisplayName>HasProperty</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=44</Reference>
+        </References>
+        <InverseName>PropertyOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=47" BrowseName="HasComponent">
+        <DisplayName>HasComponent</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=44</Reference>
+        </References>
+        <InverseName>ComponentOf</InverseName>
+    </UAReferenceType>
+    <UAObjectType NodeId="i=58" BrowseName="BaseObjectType">
+        <DisplayName>BaseObjectType</DisplayName>
+        <References />
+    </UAObjectType>
+    <UAObjectType NodeId="i=76" BrowseName="DataTypeEncodingType">
+        <DisplayName>DataTypeEncodingType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+    </UAObjectType>
+    <UAVariableType NodeId="i=62" BrowseName="BaseVariableType" IsAbstract="true" ValueRank="-2">
+        <DisplayName>BaseVariableType</DisplayName>
+        <References />
+    </UAVariableType>
+    <UAVariableType NodeId="i=63" BrowseName="BaseDataVariableType" ValueRank="-2">
+        <DisplayName>BaseDataVariableType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=62</Reference>
+        </References>
+    </UAVariableType>
+    <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
+        <DisplayName>Enumeration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=120" BrowseName="NamingRuleType">
+        <DisplayName>NamingRuleType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=12169</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+        </References>
+        <Definition Name="NamingRuleType">
+            <Field Name="Mandatory" Value="1">
+                <Description>The BrowseName must appear in all instances of the type.</Description>
+            </Field>
+            <Field Name="Optional" Value="2">
+                <Description>The BrowseName may appear in an instance of the type.</Description>
+            </Field>
+            <Field Name="Constraint" Value="3">
+                <Description>The modelling rule defines a constraint and the BrowseName is not used in an instance of the type.</Description>
+            </Field>
+        </Definition>
+    </UADataType>
+    <UAVariable NodeId="i=12169" BrowseName="EnumValues" ParentNodeId="i=120" DataType="i=7594" ValueRank="1" ArrayDimensions="0">
+        <DisplayName>EnumValues</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=120</Reference>
+        </References>
+        <Value>
+            <ListOfExtensionObject
+                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>i=7616</Identifier>
+                    </TypeId>
+                    <Body>
+                        <EnumValueType>
+                            <Value>1</Value>
+                            <DisplayName>
+                                <Locale></Locale>
+                                <Text>Mandatory</Text>
+                            </DisplayName>
+                            <Description>
+                                <Locale></Locale>
+                                <Text>The BrowseName must appear in all instances of the type.</Text>
+                            </Description>
+                        </EnumValueType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>i=7616</Identifier>
+                    </TypeId>
+                    <Body>
+                        <EnumValueType>
+                            <Value>2</Value>
+                            <DisplayName>
+                                <Locale></Locale>
+                                <Text>Optional</Text>
+                            </DisplayName>
+                            <Description>
+                                <Locale></Locale>
+                                <Text>The BrowseName may appear in an instance of the type.</Text>
+                            </Description>
+                        </EnumValueType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>i=7616</Identifier>
+                    </TypeId>
+                    <Body>
+                        <EnumValueType>
+                            <Value>3</Value>
+                            <DisplayName>
+                                <Locale></Locale>
+                                <Text>Constraint</Text>
+                            </DisplayName>
+                            <Description>
+                                <Locale></Locale>
+                                <Text>The modelling rule defines a constraint and the BrowseName is not used in an instance of the type.</Text>
+                            </Description>
+                        </EnumValueType>
+                    </Body>
+                </ExtensionObject>
+            </ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAObject NodeId="i=80" BrowseName="Optional" SymbolicName="ModellingRule_Optional">
+        <DisplayName>Optional</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=113</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=77</Reference>
+        </References>
+    </UAObject>
+    <!--                        -->
+    <UADataType NodeId="i=18811" BrowseName="Orientation" IsAbstract="true">
+        <DisplayName>Orientation</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=18812" BrowseName="3DOrientation" SymbolicName="ThreeDOrientation">
+        <DisplayName>3DOrientation</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=18811</Reference>
+        </References>
+        <Definition Name="3DOrientation" SymbolicName="ThreeDOrientation">
+            <Field Name="A" DataType="i=11" />
+            <Field Name="B" DataType="i=11" />
+            <Field Name="C" DataType="i=11" />
+        </Definition>
+    </UADataType>
+    <!--                        -->
+    <UADataType NodeId="i=18809" BrowseName="CartesianCoordinates" IsAbstract="true">
+        <DisplayName>CartesianCoordinates</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=18810" BrowseName="3DCartesianCoordinates" SymbolicName="ThreeDCartesianCoordinates">
+        <DisplayName>3DCartesianCoordinates</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=18809</Reference>
+        </References>
+        <Definition Name="3DCartesianCoordinates" SymbolicName="ThreeDCartesianCoordinates">
+            <Field Name="X" DataType="i=11" />
+            <Field Name="Y" DataType="i=11" />
+            <Field Name="Z" DataType="i=11" />
+        </Definition>
+    </UADataType>
+    <UAObject NodeId="i=18819" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=18810</Reference>
+            <Reference ReferenceType="HasDescription">i=18836</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <!--                        -->
+    <UADataType NodeId="i=18813" BrowseName="Frame" IsAbstract="true">
+        <DisplayName>Frame</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=18814" BrowseName="3DFrame" SymbolicName="ThreeDFrame">
+        <DisplayName>3DFrame</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=18813</Reference>
+        </References>
+        <Definition Name="3DFrame" SymbolicName="ThreeDFrame">
+            <Field Name="CartesianCoordinates" DataType="i=18810" />
+            <Field Name="Orientation" DataType="i=18812" />
+        </Definition>
+    </UADataType>
+    <UAObject NodeId="i=18823" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=18814</Reference>
+            <Reference ReferenceType="HasDescription">i=18848</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAVariable NodeId="i=18848" BrowseName="3DFrame" SymbolicName="ThreeDFrame" ParentNodeId="i=7617" DataType="String">
+        <DisplayName>3DFrame</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=7617</Reference>
+        </References>
+        <Value>
+            <String
+                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ThreeDFrame
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </String>
+        </Value>
+    </UAVariable>
+    <UAObject NodeId="i=18859" BrowseName="Default XML" SymbolicName="DefaultXml">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=18814</Reference>
+            <Reference ReferenceType="HasDescription">i=19061</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAVariable NodeId="i=19061" BrowseName="3DFrame" SymbolicName="ThreeDFrame" ParentNodeId="i=8252" DataType="String">
+        <DisplayName>3DFrame</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=8252</Reference>
+        </References>
+        <Value>
+            <String
+                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">//xs:element[@name='ThreeDFrame']
+            
+            
+            
+            
+            
+            </String>
+        </Value>
+    </UAVariable>
+    <UAObject NodeId="i=19072" BrowseName="Default JSON" SymbolicName="DefaultJson">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">i=18814</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <!--                        -->
+    <UAVariable NodeId="i=113" BrowseName="NamingRule" ParentNodeId="i=80" DataType="i=120">
+        <DisplayName>NamingRule</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=80</Reference>
+        </References>
+        <Value>
+            <Int32
+                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </Int32>
+        </Value>
+    </UAVariable>
+    <UAVariableType NodeId="i=68" BrowseName="PropertyType" ValueRank="-2">
+        <DisplayName>PropertyType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=62</Reference>
+        </References>
+    </UAVariableType>
+    <UAVariableType NodeId="i=69" BrowseName="DataTypeDescriptionType" DataType="String">
+        <DisplayName>DataTypeDescriptionType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=104</Reference>
+            <Reference ReferenceType="HasProperty">i=105</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+        </References>
+    </UAVariableType>
+    <UAVariable NodeId="i=104" BrowseName="DataTypeVersion" ParentNodeId="i=69" DataType="String">
+        <DisplayName>DataTypeVersion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=69</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=105" BrowseName="DictionaryFragment" ParentNodeId="i=69" DataType="ByteString">
+        <DisplayName>DictionaryFragment</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=69</Reference>
+        </References>
+    </UAVariable>
+    <UAVariableType NodeId="i=72" BrowseName="DataTypeDictionaryType" DataType="ByteString">
+        <DisplayName>DataTypeDictionaryType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=106</Reference>
+            <Reference ReferenceType="HasProperty">i=107</Reference>
+            <Reference ReferenceType="HasProperty">i=15001</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+        </References>
+    </UAVariableType>
+    <UAVariable NodeId="i=7617" BrowseName="Opc.Ua" SymbolicName="OpcUa_BinarySchema" DataType="ByteString">
+        <DisplayName>Opc.Ua</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent">i=18848</Reference>
+        </References>
+        <Value/>
+    </UAVariable>
+    <UAVariable NodeId="i=18836" BrowseName="3DCartesianCoordinates" SymbolicName="ThreeDCartesianCoordinates" ParentNodeId="i=7617" DataType="String">
+        <DisplayName>3DCartesianCoordinates</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=7617</Reference>
+        </References>
+        <Value>
+            <String
+                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ThreeDCartesianCoordinates
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            </String>
+        </Value>
+    </UAVariable>
+    <UAVariable NodeId="i=18796" BrowseName="CartesianCoordinates" ParentNodeId="i=18791" DataType="i=18810">
+        <DisplayName>CartesianCoordinates</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent">i=18798</Reference>
+            <Reference ReferenceType="HasComponent">i=18799</Reference>
+            <Reference ReferenceType="HasComponent">i=18800</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=18774</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=18791</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=18798" BrowseName="X" ParentNodeId="i=18796" DataType="Double">
+        <DisplayName>X</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=18796</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=18799" BrowseName="Y" ParentNodeId="i=18796" DataType="Double">
+        <DisplayName>Y</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=18796</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=18800" BrowseName="Z" ParentNodeId="i=18796" DataType="Double">
+        <DisplayName>Z</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=18796</Reference>
+        </References>
+    </UAVariable>
+    <UAVariableType NodeId="i=18772" BrowseName="CartesianCoordinatesType" IsAbstract="true" DataType="i=18809">
+        <DisplayName>CartesianCoordinatesType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=18773</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+        </References>
+    </UAVariableType>
+    <UAVariable NodeId="i=18773" BrowseName="LengthUnit" ParentNodeId="i=18772" DataType="i=887">
+        <DisplayName>LengthUnit</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=18772</Reference>
+        </References>
+    </UAVariable>
+    <!-- OPC.Binary -->
+    <UAObject NodeId="i=93" BrowseName="OPC Binary" SymbolicName="OPCBinarySchema_TypeSystem">
+        <DisplayName>OPC Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=90</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=75</Reference>
+        </References>
+    </UAObject>
+</UANodeSet>

@@ -982,9 +982,9 @@ export class ServerEngine extends EventEmitter {
             DataType.UInt16, () => {
               return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
             });
-          bindStandardScalar(VariableIds.ModellingRule_MandatoryShared_NamingRule,
+          bindStandardScalar(VariableIds.ModellingRule_MandatoryPlaceholder_NamingRule,
             DataType.UInt16, () => {
-              return namingRuleType.MandatoryShared ? namingRuleType.MandatoryShared.value : 0;
+              return namingRuleType.MandatoryPlaceholder ? namingRuleType.MandatoryPlaceholder.value : 0;
             });
 
         }

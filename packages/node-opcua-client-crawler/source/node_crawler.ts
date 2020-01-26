@@ -379,6 +379,10 @@ function getReferenceTypeId(referenceType: undefined | string | NodeId | UARefer
         return NodeId.resolveNodeId("i=47");
     } else if (referenceType.toString() === "i=46" || referenceType === "HasProperty") {
         return NodeId.resolveNodeId("i=46");
+    } else if (referenceType.toString() === NodeId.resolveNodeId("HasEncoding").toString() || referenceType === "HasEncoding") {
+        return NodeId.resolveNodeId("HasEncoding");
+    } else if (referenceType.toString() === NodeId.resolveNodeId("HasDescription").toString() || referenceType === "HasDescription") {
+        return NodeId.resolveNodeId("HasDescription");
     } else {
         throw new Error("Invalid reference Type" + referenceType.toString());
     }
@@ -1202,6 +1206,9 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             appendPrepopulatedReference("Organizes");
             appendPrepopulatedReference("HasEventSource");
             appendPrepopulatedReference("HasModellingRule");
+            appendPrepopulatedReference("HasEncoding");
+            appendPrepopulatedReference("HasDescription");
+
         }
     }
 

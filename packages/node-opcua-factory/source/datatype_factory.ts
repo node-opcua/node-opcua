@@ -7,10 +7,11 @@ import * as  _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import {ExpandedNodeId, NodeId} from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 
 import { ConstructorFunc, ConstructorFuncWithSchema } from "./constructor_type";
 import { BaseUAObject } from "./factories_baseobject";
+import { EnumerationDefinitionSchema } from "./factories_enumerations";
 import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
 
 const debugLog = make_debugLog(__filename);
@@ -23,7 +24,13 @@ export class DataTypeFactory {
     public imports: string[] = [];
 
     private _structureTypeConstructorByNameMap: { [key: string]: ConstructorFuncWithSchema } = {};
+    private _structureTypeConstructorByDataTypeMap: { [key: string]: ConstructorFuncWithSchema } = {};
     private _structureTypeConstructorByEncodingNodeIdMap: any = {};
+
+    private _enumerations: {
+        [key: string]: EnumerationDefinitionSchema
+    } = {};
+
     private readonly baseDataFactories: DataTypeFactory[];
 
     public constructor(baseDataFactories: DataTypeFactory[]) {
@@ -32,20 +39,41 @@ export class DataTypeFactory {
         this.baseDataFactories = baseDataFactories;
     }
 
-    public registerFactory(typeName: string, constructor: ConstructorFuncWithSchema): void {
-        /* istanbul ignore next */
-        if (this.hasStructuredType(typeName)) {
-            console.log(this.getStructureTypeConstructor(typeName));
-            console.log("target namespace =", this.targetNamespace);
-            throw new Error(" registerFactory  : " + typeName + " already registered");
+    // -----------------------------
+    // EnumerationDefinitionSchema
+    public registerEnumeration(enumeration: EnumerationDefinitionSchema): void {
+        assert(!this._enumerations[enumeration.name]);
+        this._enumerations[enumeration.name] = enumeration;
+    }
+    public hasEnumeration(enumName: string): boolean {
+        return this.getEnumeration(enumName) !== null;
+    }
+    public getEnumeration(enumName: string): EnumerationDefinitionSchema | null {
+        if (this._enumerations[enumName]) {
+            return this._enumerations[enumName];
         }
-        this._structureTypeConstructorByNameMap[typeName] = constructor;
-        Object.defineProperty(constructor.schema, "$typeDictionary", {
-            enumerable: false,
-            value: this,
-            writable: false,
-        });
+        return null;
+    }
+    //  ----------------------------
 
+    public findConstructorForDataType(dataTypeNodeId: NodeId): ConstructorFuncWithSchema {
+        const constructor = this._structureTypeConstructorByDataTypeMap[dataTypeNodeId.toString()];
+        if (constructor) {
+            return constructor;
+        }
+        for (const factory of this.baseDataFactories) {
+            const constructor2 = factory.findConstructorForDataType(dataTypeNodeId);
+            if (constructor2) {
+                return constructor2;
+            }
+        }
+        throw new Error("Cannot find StructureType constructor for dataType " + dataTypeNodeId.toString());
+    }
+    // ----------------------------------------------------------------------------------------------------
+    // Acces by typeName
+    // ----------------------------------------------------------------------------------------------------
+    public structuredTypesNames(): string[] {
+        return Object.keys(this._structureTypeConstructorByNameMap);
     }
 
     public getStructureTypeConstructor(typeName: string): ConstructorFuncWithSchema {
@@ -59,7 +87,7 @@ export class DataTypeFactory {
                 return constructor2;
             }
         }
-        throw new Error("Cannot find StructureType constructor for " + typeName);
+        throw new Error("Cannot find StructureType constructor for " + typeName + " - it may be abstract");
     }
 
     public hasStructuredType(typeName: string): boolean {
@@ -86,23 +114,67 @@ export class DataTypeFactory {
         console.log(" done");
     }
 
-    public registerClassDefinition(className: string, classConstructor: ConstructorFuncWithSchema): void {
-        this.registerFactory(className, classConstructor);
-        const expandedNodeId = classConstructor.encodingDefaultBinary;
-        this.associateWithBinaryEncoding(className, expandedNodeId);
+    public registerClassDefinition(dataTypeNodeId: NodeId, className: string, classConstructor: ConstructorFuncWithSchema): void {
+        this.registerFactory(dataTypeNodeId, className, classConstructor);
+        assert(classConstructor.encodingDefaultBinary.value !== 0);
+        this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
     }
 
-    public associateWithDataType(className: string, nodeId: NodeId) {
-
-        return;
-        /*
-        const schema = this.structuredTypes[className];
-        if (doDebug) {
-            debugLog(" associateWithDataType ", className, nodeId.toString());
+    // ----------------------------------------------------------------------------------------------------
+    // Acces by binaryEncodingNodeId
+    // ----------------------------------------------------------------------------------------------------
+    public getConstructor(binaryEncodingNodeId: NodeId): ConstructorFunc | null {
+        const expandedNodeIdKey = makeExpandedNodeIdKey(binaryEncodingNodeId);
+        const constructor = this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey];
+        if (constructor) {
+            return constructor;
         }
-        assert(schema.id.toString() === "ns=0;i=0", "already associated");
-        schema.id = nodeId;
-         */
+        for (const factory of this.baseDataFactories) {
+            const constructor2 = factory.getConstructor(binaryEncodingNodeId);
+            if (constructor2) {
+                return constructor2;
+            }
+        }
+        debugLog(chalk.red("#getConstructor : cannot find constructor for expandedId "), binaryEncodingNodeId.toString());
+        return null;
+    }
+
+    public hasConstructor(binaryEncodingNodeId: NodeId): boolean {
+        if (!binaryEncodingNodeId) {
+            return false;
+        }
+        /* istanbul ignore next */
+        if (!verifyExpandedNodeId(binaryEncodingNodeId)) {
+            console.log("Invalid expandedNodeId");
+            return false;
+        }
+        const expandedNodeIdKey = makeExpandedNodeIdKey(binaryEncodingNodeId);
+        const constructor = this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey];
+        if (constructor) {
+            return true;
+        }
+        for (const factory of this.baseDataFactories) {
+            const constructor2 = factory.getConstructor(binaryEncodingNodeId);
+            if (constructor2) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public constructObject(binaryEncodingNodeId: NodeId): BaseUAObject {
+        if (!verifyExpandedNodeId(binaryEncodingNodeId)) {
+            throw new Error(" constructObject : invalid expandedNodeId provided " + binaryEncodingNodeId.toString());
+        }
+        const constructor = this.getConstructor(binaryEncodingNodeId);
+
+        if (!constructor) {
+            debugLog("Cannot find constructor for " + binaryEncodingNodeId.toString());
+            return new BaseUAObject();
+            // throw new Error("Cannot find constructor for " + expandedNodeId.toString());
+        }
+        return callConstructor(constructor);
+
     }
 
     public associateWithBinaryEncoding(className: string, expandedNodeId: ExpandedNodeId) {
@@ -113,7 +185,6 @@ export class DataTypeFactory {
 
         /* istanbul ignore next */
         if (!verifyExpandedNodeId(expandedNodeId)) {
-            console.log()
             throw new Error("Invalid expandedNodeId " + expandedNodeId.toString() + " className = " + className);
         }
         const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
@@ -127,84 +198,36 @@ export class DataTypeFactory {
         this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey] = classConstructor;
     }
 
-    public getConstructor(expandedNodeId: ExpandedNodeId): ConstructorFunc | null {
-        const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
-        const constructor = this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey];
-        if (constructor) {
-            return constructor;
-        }
-        for (const factory of this.baseDataFactories) {
-            const constructor2 = factory.getConstructor(expandedNodeId);
-            if (constructor2) {
-                return constructor2;
-            }
-        }
-        debugLog(chalk.red("#getConstructor : cannot find constructor for expandedId "), expandedNodeId.toString());
-        return null;
-    }
-
-    public hasConstructor(expandedNodeId: ExpandedNodeId): boolean {
-        if (!expandedNodeId) {
-            return false;
-        }
+    public registerFactory(dataTypeNodeId: NodeId, typeName: string, constructor: ConstructorFuncWithSchema): void {
+        assert(dataTypeNodeId.value !== 0, "dataTypeNodeId cannot be null");
         /* istanbul ignore next */
-        if (!verifyExpandedNodeId(expandedNodeId)) {
-            console.log("Invalid expandedNodeId");
-            return false;
+        if (this.hasStructuredType(typeName)) {
+            console.log(this.getStructureTypeConstructor(typeName));
+            console.log("target namespace =", this.targetNamespace);
+            throw new Error(" registerFactory  : " + typeName + " already registered");
         }
-        const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
-        const constructor = this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey];
-        if (constructor) {
-            return true;
-        }
-        for (const factory of this.baseDataFactories) {
-            const constructor2 = factory.getConstructor(expandedNodeId);
-            if (constructor2) {
-                return true;
-            }
-        }
-        return false;
+        debugLog("registerning typeName ", typeName, dataTypeNodeId.toString());
+        this._structureTypeConstructorByNameMap[typeName] = constructor;
+        this._structureTypeConstructorByDataTypeMap[dataTypeNodeId.toString()] = constructor;
+        Object.defineProperty(constructor.schema, "$$factory", {
+            enumerable: false,
+            value: this,
+            writable: false,
+        });
     }
 
-    public constructObject(expandedNodeId: ExpandedNodeId): BaseUAObject {
-        if (!verifyExpandedNodeId(expandedNodeId)) {
-            throw new Error(" constructObject : invalid expandedNodeId provided " + expandedNodeId.toString());
-        }
-        const constructor = this.getConstructor(expandedNodeId);
-
-        if (!constructor) {
-            debugLog("Cannot find constructor for " + expandedNodeId.toString());
-            return new BaseUAObject();
-            // throw new Error("Cannot find constructor for " + expandedNodeId.toString());
-        }
-        return callConstructor(constructor);
-
-    }
 }
 
-function verifyExpandedNodeId(expandedNodeId: ExpandedNodeId): boolean {
+function verifyExpandedNodeId(expandedNodeId: NodeId): boolean {
     /* istanbul ignore next */
     if (expandedNodeId.value instanceof Buffer) {
         throw new Error("getConstructor not implemented for opaque nodeid");
     }
-    if (expandedNodeId.namespace === 0) {
-        if (expandedNodeId.namespaceUri === "http://opcfoundation.org/UA/" || !expandedNodeId.namespaceUri) {
-            return true;
-        }
-        // When namespace is ZERO, namepaceUri must be "http://opcfoundation.org/UA/"  or nothing
-        return false;
-    } else {
-        // expandedNodeId.namespace  !==0
-        // in this case a valid expandedNodeId.namespaceUri  must be provided
-        return !!expandedNodeId.namespaceUri && expandedNodeId.namespaceUri.length > 2;
-    }
+    return true;
 }
 
-function makeExpandedNodeIdKey(expandedNodeId: ExpandedNodeId): string {
-    if (expandedNodeId.namespace === 0) {
-        return expandedNodeId.value.toString();
-    }
-    return expandedNodeId.namespaceUri + "@" + expandedNodeId.value.toString();
+function makeExpandedNodeIdKey(expandedNodeId: NodeId): string {
+    return expandedNodeId.toString();
 }
 
 export function callConstructor(constructor: ConstructorFunc): BaseUAObject {
@@ -212,5 +235,4 @@ export function callConstructor(constructor: ConstructorFunc): BaseUAObject {
     const constructorFunc: any = constructor.bind.apply(constructor, arguments as any);
     return new constructorFunc();
 }
-
 

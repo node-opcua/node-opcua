@@ -2,16 +2,17 @@
  * @module node-opcua-address-space
  */
 import * as async from "async";
+import * as chalk from "chalk";
 import * as fs from "fs";
 import * as _ from "underscore";
+import * as util from "util";
 import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
 import {
-    extractNamespaceDataType,
-    getDataTypeDefinition,
-    ExtraDataTypeManager
+    populateDataTypeManager,
+    ExtraDataTypeManager,
 } from "node-opcua-client-dynamic-extension-object";
 import { EnumValueType } from "node-opcua-common";
 import { EUInformation } from "node-opcua-data-access";
@@ -27,17 +28,42 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import {
     findSimpleType,
+    getStandartDataTypeFactory,
     getStructureTypeConstructor,
     registerBasicType,
-    findBuiltInType,
-    getStandartDataTypeFactory
+    StructuredTypeSchema
 } from "node-opcua-factory";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { Argument } from "node-opcua-service-call";
-import { Range } from "node-opcua-types";
-import { DataType, VariantArrayType, VariantOptions } from "node-opcua-variant";
-import { ParserLike, ReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } from "node-opcua-xml2json";
+import {
+    NodeId,
+    resolveNodeId
+} from "node-opcua-nodeid";
+import {
+    Argument
+} from "node-opcua-service-call";
+import {
+    DataTypeDefinition,
+    EnumDefinition,
+    Range,
+    StructureDefinition,
+    StructureField,
+    StructureType
+} from "node-opcua-types";
+import {
+    DataType,
+    VariantArrayType,
+    VariantOptions
+} from "node-opcua-variant";
+import {
+    ParserLike, ReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes
+} from "node-opcua-xml2json";
 
+import {
+    _definitionParser,
+    Definition,
+    FragmentClonerParser,
+    InternalFragmentClonerReaderState,
+    makeExtensionObjectReader,
+} from "node-opcua-xml2json";
 import {
     AddReferenceTypeOptions,
     AddressSpace as AddressSpacePublic,
@@ -46,20 +72,15 @@ import {
     PseudoSession
 } from "../../source";
 import { AddressSpace } from "../../src/address_space";
+import { AddressSpacePrivate } from "../../src/address_space_private";
 import { BaseNode } from "../../src/base_node";
 import { NamespacePrivate } from "../../src/namespace_private";
 import { UADataType } from "../../src/ua_data_type";
 import { UAVariable } from "../../src/ua_variable";
 import { UAVariableType } from "../../src/ua_variable_type";
-import { AddressSpacePrivate } from "../../src/address_space_private";
-import {
-    _definitionParser,
-    Definition,
-    FragmentClonerParser,
-    InternalFragmentClonerReaderState,
-    makeExtensionObjectReader,
-    startPojo
-} from "node-opcua-xml2json/dist/source";
+
+import * as PrettyError from "pretty-error";
+const pe = new PrettyError();
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -67,16 +88,18 @@ const debugLog = make_debugLog(__filename);
 export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraDataTypeManager> {
     const addressSpacePriv: any = addressSpace as any;
     if (!addressSpacePriv.$$extraDataTypeManager) {
-        const session = new PseudoSession(addressSpace);
+
         const extraDataTypeManager = new ExtraDataTypeManager();
 
         const namespaceArray = addressSpace.getNamespaceArray().map((n: Namespace) => n.namespaceUri);
-
-        debugLog("Namespace Array = ", namespaceArray);
-
+        debugLog("Namespace Array = ", namespaceArray.join("\n                   "));
         extraDataTypeManager.setNamespaceArray(namespaceArray);
-        await extractNamespaceDataType(session, extraDataTypeManager);
         addressSpacePriv.$$extraDataTypeManager = extraDataTypeManager;
+
+        // now extract structure and enumeration from old form if
+        const session = new PseudoSession(addressSpace);
+        await populateDataTypeManager(session, extraDataTypeManager);
+
     }
     return addressSpacePriv.$$extraDataTypeManager;
 }
@@ -92,7 +115,7 @@ function findDataTypeNode(addressSpace: AddressSpace, encodingNodeId: NodeId): U
     // xx console.log("encodingNode", encodingNode.toString());
 
     const refs = encodingNode.findReferences("HasEncoding", false);
-    const dataTypes = refs.map(ref => addressSpace.findNode(ref.nodeId)).filter((obj: any) => obj !== null);
+    const dataTypes = refs.map((ref) => addressSpace.findNode(ref.nodeId)).filter((obj: any) => obj !== null);
 
     // istanbul ignore next
     if (dataTypes.length !== 1) {
@@ -105,6 +128,74 @@ function findDataTypeNode(addressSpace: AddressSpace, encodingNodeId: NodeId): U
         throw new Error("internal error: expecting a UADataType node here");
     }
     return dataTypeNode;
+}
+
+async function decodeXmlObject(
+    addressSpace2: AddressSpace,
+    xmlEncodingNodeId: NodeId,
+    xmlBody: string
+): Promise<ExtensionObject | null> {
+
+    const dataTypeManager = await ensureDatatypeExtracted(addressSpace2);
+    const dataTypeNode = findDataTypeNode(addressSpace2, xmlEncodingNodeId);
+
+    const dataTypeFactory = dataTypeManager.getDataTypeFactory(xmlEncodingNodeId.namespace);
+
+    // istanbul ignore next
+    if (!dataTypeNode) {
+        debugLog(" cannot find ", xmlEncodingNodeId.toString());
+        return null;
+    }
+    const dataTypeName = dataTypeNode.browseName.name!;
+    const definitionMap = {
+
+        findDefinition(name: string): Definition {
+            debugLog(chalk.magentaBright("xxxxxxxxxxxxx !!!! "), name);
+            if (!name) {
+                return { name: "", fields: [] };
+            }
+            return dataTypeFactory.getStructuredTypeSchema(name) as any as Definition;
+        }
+    };
+    const reader = makeExtensionObjectReader(dataTypeName, definitionMap, {});
+    const parser2 = new Xml2Json(reader);
+    const pojo = await parser2.parseString(xmlBody);
+    // at this time the bsd file containing object definition
+    // must have been found and object can be constructed
+    const userDefinedExtensionObject = addressSpace2.constructExtensionObject(
+        dataTypeNode,
+        pojo
+    );
+
+    // istanbul ignore next
+    if (doDebug) {
+        debugLog("userDefinedExtensionObject", userDefinedExtensionObject.toString());
+    }
+    //
+    return userDefinedExtensionObject;
+}
+
+function makeEnumDefinition(definitionFields: any[]) {
+    return new EnumDefinition({
+        fields: definitionFields.map((x) => ({
+            description: {
+                text: x.description,
+            },
+            name: x.name,
+            value: x.value
+        }))
+    });
+}
+function makeStructureDefinition(definitionFields: any[]) {
+    // Structure = 0,
+    // StructureWithOptionalFields = 1,
+    // Union = 2,
+    return new StructureDefinition({
+        baseDataType: undefined,
+        defaultEncodingId: undefined,
+        fields: definitionFields,
+        structureType: StructureType.Structure,
+    });
 }
 
 function __make_back_references(namespace: NamespacePrivate) {
@@ -194,50 +285,8 @@ function makeDefaultVariant2(
     return variant;
 }
 
-/**
- * @method prepareDataType2
- * @private
- * @param dataType
- */
-async function prepareDataType2(addressSpace: AddressSpacePrivate, dataType: UADataType): Promise<void> {
-    if (dataType.isAbstract) {
-        return;
-    }
-    if (!dataType._extensionObjectConstructor) {
-        if (dataType.nodeId.namespace === 0) {
-            dataType._extensionObjectConstructor = getStructureTypeConstructor(dataType.browseName.name!);
-            return;
-        }
-        const extraDataTypeManager = addressSpace.getDataTypeManager();
-        const dataTypeFactory = extraDataTypeManager.getDataTypeFactory(dataType.nodeId.namespace);
-        if (doDebug) {
-            debugLog("prepareDataType ", dataType.nodeId.toString(), dataType.browseName.toString());
-        }
-
-        const session = new PseudoSession(addressSpace);
-
-        try {
-            // make sure schema has been extracted
-            const schema = await getDataTypeDefinition(session, dataType.nodeId, extraDataTypeManager);
-        } catch (e) { }
-
-        dataType._extensionObjectConstructor = extraDataTypeManager.getExtensionObjectConstructorFromDataType(
-            dataType.nodeId
-        );
-        // dataType._extensionObjectConstructor = makeStructure(dataTypeFactory, dataType);
-
-        /*        console.log("xxx Structure ", dataTypeNode.browseName.toString(), dataTypeNode.nodeId.toString());
-                const extraDataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
-                const dataTypeFactory = extraDataTypeManager.getDataTypeFactory(dataTypeNode.nodeId.namespace);
-                assert(dataTypeFactory);
-                dataTypeFactory.associateWithDataType(dataTypeNode.browseName.name!, dataTypeNode.nodeId);
-        */
-
-        if (!dataType._extensionObjectConstructor) {
-            // tslint:disable:no-console
-            console.warn("AddressSpace#constructExtensionObject : cannot make structure for " + dataType.toString());
-        }
-    }
+function isOldWayForExtractiongSchema() {
+    return false;
 }
 
 export function generateAddressSpace(
@@ -254,6 +303,8 @@ export function generateAddressSpace(
     const addressSpace1 = addressSpace as AddressSpace;
 
     let postTasks: Task[] = [];
+    let postTasks2: Task[] = [];
+    let postTasks3: Task[] = [];
 
     let alias_map: { [key: string]: NodeId } = {};
 
@@ -286,6 +337,8 @@ export function generateAddressSpace(
 
         // istanbul ignore next
         if (namespaceIndex === undefined) {
+            // tslint:disable-next-line: no-console
+            debugLog("Warning: namespace_uri_translation = ", namespace_uri_translation);
             throw new Error("_translateNamespaceIndex! Cannot find namespace definition for index " + innerIndex);
         }
         return namespaceIndex;
@@ -508,31 +561,70 @@ export function generateAddressSpace(
         }
     };
 
-    const _mapDefinition: { [key: string]: Definition } = {};
+    // const _mapDefinition: { [key: string]: Definition } = {};
+    // function makeStructureSchemaFromDefinition(dataTypeNodeId: NodeId, name: string, fields: StructureField[]): Definition {
+
+    //     let schema: any;
+    //     if (!fields || !fields.length) {
+    //         schema = { name, fields: [] };
+    //     } else {
+
+    //         schema = {
+    //             name,
+
+    //             fields: fields!.map((x: any) => {
+    //                 x = { ...x };
+    //                 console.log(x.dataType);
+    //                 if (x.dataType && x.dataType.match(/(ns=[0-9]+;)?i=[0-9]+.*/)) {
+    //                     const replacement = _mapDefinition[x.dataType];
+    //                     if (replacement) {
+    //                         x.dataType = _mapDefinition[x.dataType].name;
+    //                     } else {
+    //                         const dataTypeNode = addressSpace.findNode(x.dataType)! as UADataType;
+    //                         if (dataTypeNode) {
+    //                             x.dataType = dataTypeNode.symbolicName!;
+    //                         } else {
+    //                             // tslint:disable-next-line: no-console
+    //                             console.log("Warning!!: cannot find " + x.dataType.toString());
+    //                         }
+    //                     }
+    //                 }
+    //                 return x;
+    //             })
+    //         };
+    //     }
+    //     _mapDefinition[name] = schema;
+    //     // todo convert i=XX string with dataType Name;
+    //     _mapDefinition[dataTypeNodeId.toString()] = _mapDefinition[name];
+
+    // }
 
     const state_UADataType = {
         init(this: any, name: string, attrs: XmlAttributes) {
             this.obj = {};
             this.obj.nodeClass = NodeClass.DataType;
-            this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
+            this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract) || false;
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
             this.obj.displayName = "";
             this.obj.description = "";
-            this.obj.definition = [];
-            this.definition = undefined;
+            this.obj.symbolicName = attrs.SymbolicName;
+            this.isDraft = (attrs.ReleaseStatus === "Draft");
+            this.definitionFields = [];
         },
         finish(this: any) {
-            //
-            this.obj.definition = this.definition;
-            this.obj.definition_name = this.definition_name;
+            if (this.isDraft) {
+                // ignore Draft element
+                debugLog("Ignoring Draft dataType =", this.obj.browseName.toString());
+                return;
+            }
+            let definitionFields = this.definitionFields;
 
             const dataTypeNode = _internal_createNode(this.obj) as UADataType;
             assert(addressSpace1.findNode(this.obj.nodeId));
-            //xx if (this.obj.nodeId.namespace !== 0) {
+            const definitionName = dataTypeNode.browseName.name!;
 
             const processBasicDataType = async (addressSpace2: AddressSpace) => {
-                await ensureDatatypeExtracted(addressSpace2);
 
                 const enumeration = addressSpace2.findDataType("Enumeration");
                 const structure = addressSpace2.findDataType("Structure");
@@ -542,74 +634,42 @@ export function generateAddressSpace(
                 const isEnumeration = enumeration && dataTypeNode.isSupertypeOf(enumeration);
                 const isStructure = structure && dataTypeNode.isSupertypeOf(structure);
 
-                const definition = dataTypeNode.definition;
-                const definition_name = dataTypeNode.browseName.name!;
-
-                if (definition) {
+                if (definitionFields.length) {
                     // remove <namespace>:
-                    const nameWithoutNamespace = definition_name.split(":").slice(-1)[0];
-
-                    debugLog("registering Definition for ", definition_name, nameWithoutNamespace);
-
-                    _mapDefinition[nameWithoutNamespace] = {
-                        name: nameWithoutNamespace,
-                        fields: definition.map((x: any) => {
-                            x = { ...x };
-                            if (x.dataType && x.dataType.match(/(ns=[0-9]+;)?i=[0-9]+.*/)) {
-                                const replacement = _mapDefinition[x.dataType];
-                                if (replacement) {
-                                    x.dataType = _mapDefinition[x.dataType].name;
-                                } else {
-                                    const dataTypeNode = addressSpace.findNode(x.dataType)!;
-                                    if (dataTypeNode) {
-                                        x.dataType = dataTypeNode.browseName.name!;
-                                    } else {
-                                        console.log("Warning!!: cannot find " + x.dataType.toString());
-                                    }
-                                }
-                            }
-                            return x;
-                        })
-                    };
-                    // todo convert i=XX string with dataType Name;
-                    _mapDefinition[dataTypeNode.nodeId.toString()] = _mapDefinition[nameWithoutNamespace];
-
+                    const nameWithoutNamespace = definitionName.split(":").slice(-1)[0];
                     // replace DataType with nodeId
-                    dataTypeNode.definition = definition.map(x => {
+                    definitionFields = definitionFields.map((x: any) => {
                         if (x.dataType) {
                             x.dataType = convertToNodeId(x.dataType);
                         }
                         return x;
                     });
-                }
 
+                    // const schema = makeStructureSchemaFromDefinition(dataTypeNode.nodeId, nameWithoutNamespace, definitionFields);
+
+                    if (isStructure /*&& dataTypeNode.nodeId.namespace !== 0*/) {
+                        debugLog("setting structure $definition for ", definitionName, nameWithoutNamespace);
+                        (dataTypeNode as any).$definition = makeStructureDefinition(definitionFields);
+                    }
+                    if (isEnumeration /* && dataTypeNode.nodeId.namespace !== 0 */) {
+                        (dataTypeNode as any).$definition = makeEnumDefinition(definitionFields);
+                    }
+                }
                 if (!isEnumeration && !isStructure && this.obj.nodeId.namespace !== 0) {
                     const baseType = dataTypeNode.subtypeOfObj!;
                     if (baseType && baseType.nodeId.namespace !== 0) {
+
                         // this is a basic type
                         const typeName = dataTypeNode.browseName.name!; // .replace("DataType","");
 
-                        /* istanbul ignore next */
-                        if (doDebug) {
-                            debugLog(
-                                `registerBasicType({ name: "${typeName}", subType: "${baseType.browseName.name!}" });`
-                            );
-                        }
                         registerBasicType({
                             name: typeName,
                             subType: baseType.browseName.name!
                         });
                     }
                 }
-                if (isStructure) {
-                    await prepareDataType2(addressSpace2, dataTypeNode);
-                }
-                if (isEnumeration) {
-                    //xx console.log("xxx Enumeration ", dataTypeNode.browseName.toString(),dataTypeNode.nodeId.toString());
-                }
             };
             postTasks.push(processBasicDataType);
-            //xx }
         },
         parser: {
             DisplayName: {
@@ -844,6 +904,7 @@ export function generateAddressSpace(
             finish(this: any) {
                 const self = this.parent; // ExtensionObject
 
+                // typeDefinitionId is also the "Default XML" encoding nodeId !
                 switch (self.typeDefinitionId.toString()) {
                     case "i=7616": // EnumValueType
                     case "ns=0;i=7616": // EnumValueType
@@ -873,62 +934,24 @@ export function generateAddressSpace(
                         this.bodyXML = this._cloneFragment!.value;
                         this._cloneFragment!.value = null;
 
+                        // the "Default Xml" encoding  nodeId
+                        const xmlEncodingNodeId = _translateNodeId(self.typeDefinitionId.toString());
+                        const xmlBody = this.bodyXML;
                         // this is a user defined Extension Object
                         debugLog(
-                            "loadnodeset2: unsupported typeDefinitionId in ExtensionObject Default XML = " +
-                            self.typeDefinitionId.toString()
+                            "loadnodeset2: typeDefinitionId in ExtensionObject Default XML = " + xmlEncodingNodeId.toString()
                         );
-                        const typeDefinitionId = _translateNodeId(self.typeDefinitionId.toString()); // the "Default Binary" nodeId
-
-                        const xmlBody = this.bodyXML;
-
+                        if (doDebug) {
+                            debugLog("xxxx ", chalk.yellow(xmlBody));
+                        }
                         const postTaskData = self.postTaskData;
                         const task = async (addressSpace2: AddressSpace) => {
-                            await ensureDatatypeExtracted(addressSpace2);
-
-                            const dataTypeNode = findDataTypeNode(addressSpace2, typeDefinitionId);
-
-                            // istanbul ignore next
-                            if (!dataTypeNode) {
-                                debugLog(" cannot find ", typeDefinitionId.toString());
-                                return;
-                            }
-                            const dataTypeName = dataTypeNode.browseName.name!;
-                            const definitionMap = {
-                                findDefinition(name: string): Definition {
-                                    if (!name) {
-                                        return { name: "", fields: [] };
-                                    }
-                                    const def = _mapDefinition[name];
-                                    if (!def) {
-                                        console.log("x!!!!!xxx ", name);
-                                        // may be a well known data structure from namespace 0
-                                        const a = getStandartDataTypeFactory().getStructuredTypeSchema(name);
-                                        return (a as any) as Definition;
-                                    }
-                                    return def;
-                                }
-                            };
-                            const reader = makeExtensionObjectReader(dataTypeName, definitionMap, {});
-                            const parser = new Xml2Json(reader);
-                            const pojo = await parser.parseString(xmlBody);
-                            // at this time the bsd file containing object definition
-                            // must have been found and object can be constructed
-                            const userDefinedExtensionObject = addressSpace2.constructExtensionObject(
-                                dataTypeNode,
-                                pojo
-                            );
-
-                            // istanbul ignore next
-                            if (doDebug) {
-                                debugLog("userDefinedExtensionObject", userDefinedExtensionObject.toString());
-                            }
-                            //
+                            const extensionObject: ExtensionObject | null = await decodeXmlObject(addressSpace2, xmlEncodingNodeId, xmlBody);
                             if (postTaskData) {
-                                postTaskData.postponedExtensionObject = userDefinedExtensionObject;
+                                postTaskData.postponedExtensionObject = extensionObject;
                             }
                         };
-                        postTasks.push(task);
+                        postTasks2.push(task);
                         self.extensionObjectPojo = null;
                         assert(!self.extensionObject || self.extensionObject instanceof ExtensionObject);
                         break;
@@ -1154,7 +1177,7 @@ export function generateAddressSpace(
                                 v.value.value = data.variant.value;
                             }
                         };
-                        postTasks.push(task);
+                        postTasks3.push(task);
                     }
                 }
             }
@@ -1375,9 +1398,6 @@ export function generateAddressSpace(
         (err?: Error | null) => {
             make_back_references(addressSpace1);
 
-            // perform post task
-            debugLog("Performing post loading tasks");
-
             async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
                 for (const task of tasks) {
                     try {
@@ -1390,18 +1410,33 @@ export function generateAddressSpace(
                     }
                 }
             }
-
-            callbackify(performPostLoadingTasks)(postTasks, () => {
+            async function finalSteps(): Promise<void> {
+                // perform post task
+                debugLog(chalk.bgYellow("Performing post loading tasks -------------------------------------------"));
+                await performPostLoadingTasks(postTasks);
                 postTasks = [];
-                debugLog("Post loading task done");
-                assert(!addressSpace1.suspendBackReference);
 
-                ensureDatatypeExtractedWithCallback(addressSpace, () => {
-                    callback!(err || undefined);
-                });
+                debugLog(chalk.bgYellow("Performing DataType extraction -------------------------------------------"));
+                assert(!addressSpace1.suspendBackReference);
+                await ensureDatatypeExtracted(addressSpace);
+                debugLog(chalk.bgYellow("DataType extaction done ") + chalk.green("DONE"), err?.message);
+
+                debugLog(chalk.bgYellow("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
+                await performPostLoadingTasks(postTasks2);
+                postTasks2 = [];
+                debugLog(chalk.bgYellow("Performing post loading tasks 2 (assigning Extension Objec to Variables) ---------------------"));
+                await performPostLoadingTasks(postTasks3);
+                postTasks3 = [];
+
+                debugLog(chalk.bgYellow("Performing post loading tasks -------------------------------------------") + chalk.green("DONE"));
+            }
+            callbackify(finalSteps)((err1?: Error) => {
+                if (err1) {
+                    console.log("Error ", pe.render(err1));
+                }
+                callback!(err1 || undefined);
             });
-        }
-    );
+        });
 }
 
 // tslint:disable:no-var-requires

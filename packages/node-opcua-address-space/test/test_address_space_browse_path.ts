@@ -238,7 +238,6 @@ describe("AddressSpace#browsePath 2/2", () => {
 describe("AddressSpace#browsePath 2/2", () => {
 
   let addressSpace: AddressSpace;
-  let namespace: Namespace;
 
   before(async () => {
     const xml_file = nodesets.standard_nodeset_file;
@@ -255,15 +254,14 @@ describe("AddressSpace#browsePath 2/2", () => {
   it("AddressSpace#deleteNode => delete OOO", () => {
 
     const server = addressSpace.rootFolder.objects.server;
-    const childrenBefore = server.getComponents().map(c => c.browseName.toString()).sort().join(" ");
+    const childrenBefore = server.getComponents().map((c) => c.browseName.toString()).sort().join(" ");
 
     const node = server.getChildByName("ServerRedundancy")!;
     should.exist(node);
     console.log(node.toString());
     addressSpace.deleteNode(node);
-    const childrenAfter = server.getComponents().map(c => c.browseName.toString()).sort().join(" ");
+    const childrenAfter = server.getComponents().map((c) => c.browseName.toString()).sort().join(" ");
     console.log("childrenAfter  = ", childrenAfter);
     console.log("childrenBefore = ", childrenBefore);
   });
 });
-

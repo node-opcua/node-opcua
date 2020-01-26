@@ -1,37 +1,37 @@
+// tslint:disable:no-console
+import * as fs from "fs";
+import { promisify } from "util";
 import {
     AddressSpace,
+    buildModel,
+    DataType,
+    displayNodeElement,
     generateAddressSpace,
     nodesets,
-    UAVariable,
-    UAObject,
-    UAVariableT,
-    DataType,
     promoteToMandatory,
-    displayNodeElement,
     setNamespaceMetaData,
-    buildModel
+    UAObject,
+    UAVariable,
+    UAVariableT,
 } from "..";
 // } from "node-opcua-modeler";
-import * as fs from "fs";
 
+const writeFile = promisify(fs.writeFile);
 
 interface UABoilerTest extends UAObject {
     deviceHealth: UAVariable;
     manufacturer: UAVariableT<string, DataType.String>;
 }
 
-
 const xmlFiles = [
     nodesets.standard,
     nodesets.di
 ];
 
-
 const namespaceUri = "http://acme.com/Boiler/V0";
 const version = "1.0.0";
 
 const nodesetFilename = "./MyModel.NodeSet2.xml";
-
 
 function createModel(addressSpace: AddressSpace) {
 
@@ -69,13 +69,13 @@ function createModel(addressSpace: AddressSpace) {
 async function buildModelFile() {
     try {
         const xmlModel = await buildModel({
+            createModel,
             namespaceUri,
             version,
             xmlFiles,
-            createModel
         });
         // save model to a file
-        await fs.promises.writeFile(nodesetFilename, xmlModel, "utf-8");
+        await writeFile(nodesetFilename, xmlModel, "utf-8");
 
     } catch (err) {
         console.log("Error", err);
@@ -85,12 +85,12 @@ async function buildModelFile() {
 async function testNamepsace() {
 
     const addressSpace = AddressSpace.create();
-    const xmlFiles = [
+    const xmlFiles1 = [
         nodesets.standard,
         nodesets.di,
         nodesetFilename,
-    ]
-    await generateAddressSpace(addressSpace, xmlFiles);
+    ];
+    await generateAddressSpace(addressSpace, xmlFiles1);
 
     const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
     if (nsDI < 0) {
