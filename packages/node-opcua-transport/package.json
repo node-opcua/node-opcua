@@ -23,7 +23,8 @@
   "node-opcua-status-code": "^2.1.6",
   "node-opcua-types": "^2.1.8",
   "node-opcua-utils": "^2.1.6",
-  "underscore": "^1.9.1"
+  "underscore": "^1.9.1",
+  "ws": "^7.2.1"
  },
  "devDependencies": {
   "@types/node": "^12.7.4",

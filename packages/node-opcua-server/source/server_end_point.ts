@@ -7,12 +7,10 @@ import chalk from "chalk";
 import { EventEmitter } from "events";
 import * as net from "net";
 import { Server, Socket } from "net";
-import * as path from "path";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import {
-    ICertificateManager,
     OPCUACertificateManager
 } from "node-opcua-certificate-manager";
 import {
@@ -34,6 +32,10 @@ import {
 import { UserTokenType } from "node-opcua-service-endpoints";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
+import { ServerTCP_transport, ServerWS_transport } from "../../node-opcua-transport/dist/source";
+
+import * as WebSocket from 'ws';
+import { IncomingMessage } from "http";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -140,7 +142,7 @@ export interface AddStandardEndpointDescriptionsParam {
  * note:
  *   see OPCUA Release 1.03 part 4 page 108 7.1 ApplicationDescription
  */
-export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureChannelParent {
+export abstract class OPCUAServerEndPoint extends EventEmitter implements ServerSecureChannelParent {
 
     /**
      * the tcp port
@@ -161,11 +163,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public _on_close_channel?: (channel: ServerSecureChannelLayer) => void;
     private _certificateChain: Certificate;
     private _privateKey: PrivateKeyPEM;
-    private _channels: { [key: string]: ServerSecureChannelLayer };
-    private _server?: Server;
+    protected _channels: { [key: string]: ServerSecureChannelLayer };
+    
     private _endpoints: EndpointDescription[];
-    private _listen_callback: any;
-    private _started: boolean = false;
+    protected _listen_callback: any;
+    protected _started: boolean = false;
     private _counter = OPCUAServerEndPointCounter++;
 
     constructor(options: OPCUAServerEndPointOptions) {
@@ -193,8 +195,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this.maxConnections = options.maxConnections || 20;
 
         this.timeout = options.timeout || 30000;
-
-        this._server = undefined;
 
         this._setup_server();
 
@@ -224,7 +224,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         assert(this._endpoints.length === 0, "endpoints must have been deleted");
         this._endpoints = [];
 
-        this._server = undefined;
         this._listen_callback = null;
 
         this.removeAllListeners();
@@ -420,28 +419,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * @method listen
      * @async
      */
-    public listen(callback: (err?: Error) => void) {
-
-        assert(_.isFunction(callback));
-        assert(!this._started, "OPCUAServerEndPoint is already listening");
-
-        this._listen_callback = callback;
-
-        this._server!.on("error", (err: Error) => {
-            debugLog(chalk.red.bold(" error") + " port = " + this.port, err);
-            this._started = false;
-            this._end_listen(err);
-        });
-        this._server!.on("listening", () => {
-            debugLog("server is listening");
-        });
-        this._server!.listen(this.port, /*"::",*/ (err?: Error) => { // 'listening' listener
-            debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
-            assert(!err, " cannot listen to port ");
-            this._started = true;
-            this._end_listen();
-        });
-    }
+    public abstract listen(callback: (err?: Error) => void) : void;
 
     public killClientSockets(callback: (err?: Error) => void) {
 
@@ -469,13 +447,12 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // The optional callback will be called once the 'close' event occurs.
         // Unlike that event, it will be called with an Error as its only argument
         // if the server was not open when it was closed.
-        this._server!.close(() => {
-            this._started = false;
-            debugLog("Connection has been closed !");
-        });
+        this._close_server();
         this._started = false;
         callback();
     }
+
+    protected  abstract _close_server(): void;
 
     public restoreConnection(callback: (err?: Error) => void) {
         this.listen(callback);
@@ -565,106 +542,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         return Object.keys(this._channels).length;
     }
 
-    private _dump_statistics() {
+   
 
-        const self = this;
+    protected abstract _setup_server(): void;
 
-        self._server!.getConnections((err: Error | null, count: number) => {
-            debugLog(chalk.cyan("CONCURRENT CONNECTION = "), count);
-        });
-        debugLog(chalk.cyan("MAX CONNECTIONS = "), self._server!.maxConnections);
-    }
-
-    private _setup_server() {
-
-        assert(!this._server);
-        this._server = net.createServer({ pauseOnConnect: true }, this._on_client_connection.bind(this));
-
-        // xx console.log(" Server with max connections ", self.maxConnections);
-        this._server.maxConnections = this.maxConnections + 1; // plus one extra
-
-        this._listen_callback = null;
-        this._server.on("connection", (socket: NodeJS.Socket) => {
-
-            // istanbul ignore next
-            if (doDebug) {
-                this._dump_statistics();
-                debugLog("server connected  with : " +
-                  (socket as any).remoteAddress + ":" + (socket as any).remotePort);
-            }
-
-        }).on("close", () => {
-            debugLog("server closed : all connections have ended");
-        }).on("error", (err: Error) => {
-            // this could be because the port is already in use
-            debugLog(chalk.red.bold("server error: "), err.message);
-        });
-    }
-
-    private _on_client_connection(socket: Socket) {
-
-        // a client is attempting a connection on the socket
-        (socket as any).setNoDelay(true);
-
-        debugLog("OPCUAServerEndPoint#_on_client_connection", this._started);
-        if (!this._started) {
-            debugLog(chalk.bgWhite.cyan("OPCUAServerEndPoint#_on_client_connection " +
-              "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"));
-            socket.end();
-            return;
-        }
-
-        const establish_connection = () => {
-
-            const nbConnections = Object.keys(this._channels).length;
-            debugLog(" nbConnections ", nbConnections, " self._server.maxConnections",
-              this._server!.maxConnections, this.maxConnections);
-            if (nbConnections >= this.maxConnections) {
-                debugLog(chalk.bgWhite.cyan("OPCUAServerEndPoint#_on_client_connection " +
-                  "The maximum number of connection has been reached - Connection is refused"));
-                socket.end();
-                (socket as any).destroy();
-                return;
-            }
-
-            debugLog("OPCUAServerEndPoint._on_client_connection successful => New Channel");
-
-            const channel = new ServerSecureChannelLayer({
-                defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
-                // objectFactory: this.objectFactory,
-                parent: this,
-                timeout: this.timeout
-            });
-
-            socket.resume();
-
-            this._preregisterChannel(channel);
-
-            channel.init(socket, (err?: Error) => {
-                this._un_pre_registerChannel(channel);
-                debugLog(chalk.yellow.bold("Channel#init done"), err);
-                if (err) {
-                    socket.end();
-                } else {
-                    debugLog("server receiving a client connection");
-                    this._registerChannel(channel);
-                }
-            });
-
-            channel.on("message", (message: any) => {
-                // forward
-                this.emit("message", message, channel, this);
-            });
-        };
-        // Each SecureChannel exists until it is explicitly closed or until the last token has expired and the overlap
-        // period has elapsed. A Server application should limit the number of SecureChannels.
-        // To protect against misbehaving Clients and denial of service attacks, the Server shall close the oldest
-        // SecureChannel that has no Session assigned before reaching the maximum number of supported SecureChannels.
-        this._prevent_DDOS_Attack(establish_connection);
-
-    }
-
-    private _preregisterChannel(channel: ServerSecureChannelLayer) {
+    protected _preregisterChannel(channel: ServerSecureChannelLayer) {
         // _preregisterChannel is used to keep track of channel for which
         // that are in early stage of the hand shaking process.
         // e.g HEL/ACK and OpenSecureChannel may not have been received yet
@@ -683,7 +565,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         channel.on("abort", (channel as any)._unpreregisterChannelEvent);
     }
 
-    private _un_pre_registerChannel(channel: ServerSecureChannelLayer) {
+    protected _un_pre_registerChannel(channel: ServerSecureChannelLayer) {
 
         if (!this._channels[channel.hashKey]) {
             debugLog("Already un preregistered ?", channel.hashKey);
@@ -701,7 +583,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * @param channel
      * @private
      */
-    private _registerChannel(channel: ServerSecureChannelLayer) {
+    protected _registerChannel(channel: ServerSecureChannelLayer) {
 
         if (this._started) {
 
@@ -710,7 +592,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             assert(!this._channels[channel.hashKey]);
             this._channels[channel.hashKey] = channel;
 
-            channel._rememberClientAddressAndPort();
             /**
              * @event newChannel
              * @param channel
@@ -764,7 +645,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         /// channel.dispose();
     }
 
-    private _end_listen(err?: Error) {
+    protected abstract _dump_statistics(): void;
+
+    protected _end_listen(err?: Error) {
         assert(_.isFunction(this._listen_callback));
         this._listen_callback(err);
         this._listen_callback = null;
@@ -793,7 +676,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     /**
      * @private
      */
-    private _prevent_DDOS_Attack(establish_connection: () => void) {
+    protected _prevent_DDOS_Attack(establish_connection: () => void) {
 
         const nbConnections = this.activeChannelCount;
 
@@ -1088,3 +971,278 @@ const defaultSecurityPolicies = [
 // xx UNUSED!!    SecurityPolicy.Basic256Rsa15,
     SecurityPolicy.Basic256Sha256
 ];
+
+
+export class OPCUATCPServerEndPoint extends OPCUAServerEndPoint {
+    protected _server?: Server;
+    protected _setup_server() {
+
+        assert(!this._server);
+        this._server = net.createServer({ pauseOnConnect: true }, this._on_client_connection.bind(this));
+
+        // xx console.log(" Server with max connections ", self.maxConnections);
+        this._server.maxConnections = this.maxConnections + 1; // plus one extra
+
+        this._listen_callback = null;
+        this._server.on("connection", (socket: net.Socket) => {
+
+            // istanbul ignore next
+            if (doDebug) {
+                this._dump_statistics();
+                debugLog("server connected  with : " +
+                  socket.remoteAddress + ":" + socket.remotePort);
+            }
+
+        }).on("close", () => {
+            debugLog("server closed : all connections have ended");
+        }).on("error", (err: Error) => {
+            // this could be because the port is already in use
+            debugLog(chalk.red.bold("server error: "), err.message);
+        });
+    }
+
+    private _on_client_connection(socket: Socket) {
+
+        // a client is attempting a connection on the socket
+        (socket).setNoDelay(true);
+
+        debugLog("OPCUATCPServerEndPoint#_on_client_connection", this._started);
+        if (!this._started) {
+            debugLog(chalk.bgWhite.cyan("OPCUATCPServerEndPoint#_on_client_connection " +
+              "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"));
+            socket.end();
+            return;
+        }
+
+        const establish_connection = () => {
+
+            const nbConnections = Object.keys(this._channels).length;
+            debugLog(" nbConnections ", nbConnections, " self._server.maxConnections",
+              this._server!.maxConnections, this.maxConnections);
+            if (nbConnections >= this.maxConnections) {
+                debugLog(chalk.bgWhite.cyan("OPCUAServerEndPoint#_on_client_connection " +
+                  "The maximum number of connection has been reached - Connection is refused"));
+                socket.end();
+                (socket as any).destroy();
+                return;
+            }
+
+            debugLog("OPCUAServerEndPoint._on_client_connection successful => New Channel");
+
+            const channel = new ServerSecureChannelLayer<Socket>({
+                defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
+                // objectFactory: this.objectFactory,
+                parent: this,
+                timeout: this.timeout
+            }, new ServerTCP_transport());
+
+            socket.resume();
+
+            this._preregisterChannel(channel);
+
+            channel.init(socket, (err?: Error) => {
+                this._un_pre_registerChannel(channel);
+                debugLog(chalk.yellow.bold("Channel#init done"), err);
+                if (err) {
+                    socket.end();
+                } else {
+                    debugLog("server receiving a client connection");
+                    this._registerChannel(channel);
+                }
+            });
+
+            channel.on("message", (message: any) => {
+                // forward
+                this.emit("message", message, channel, this);
+            });
+        };
+        // Each SecureChannel exists until it is explicitly closed or until the last token has expired and the overlap
+        // period has elapsed. A Server application should limit the number of SecureChannels.
+        // To protect against misbehaving Clients and denial of service attacks, the Server shall close the oldest
+        // SecureChannel that has no Session assigned before reaching the maximum number of supported SecureChannels.
+        this._prevent_DDOS_Attack(establish_connection);
+
+    }
+
+    protected  _close_server() {
+        this._server!.close(() => {
+            this._started = false;
+            debugLog("Connection has been closed !");
+        });
+    }
+
+    /**
+     * @method listen
+     * @async
+     */
+    public listen(callback: (err?: Error) => void) {
+
+        assert(_.isFunction(callback));
+        assert(!this._started, "OPCUAServerEndPoint is already listening");
+
+        this._listen_callback = callback;
+
+        this._server!.on("error", (err: Error) => {
+            debugLog(chalk.red.bold(" error") + " port = " + this.port, err);
+            this._started = false;
+            this._end_listen(err);
+        });
+        this._server!.on("listening", () => {
+            debugLog("server is listening");
+        });
+        this._server!.listen(this.port, /*"::",*/ (err?: Error) => { // 'listening' listener
+            debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
+            assert(!err, " cannot listen to port ");
+            this._started = true;
+            this._end_listen();
+        });
+    }
+
+    protected _dump_statistics() {
+
+        const self = this;
+
+        self._server!.getConnections((err: Error | null, count: number) => {
+            debugLog(chalk.cyan("CONCURRENT CONNECTION = "), count);
+        });
+        debugLog(chalk.cyan("MAX CONNECTIONS = "), self._server!.maxConnections);
+    }
+
+    public dispose() {
+        this._server = undefined;
+        super.dispose();
+    }
+
+    
+}
+
+export class OPCUAWSServerEndPoint extends OPCUAServerEndPoint {
+    protected _server?: WebSocket.Server;
+    public listen(callback: (err?: Error | undefined) => void): void {
+        assert(_.isFunction(callback));
+        assert(!this._started, "OPCUAWSServerEndPoint is already listening");
+        assert(!this._server);
+
+        this._server = new WebSocket.Server({ 
+            port: this.port, 
+            verifyClient:  (info: { origin: string; secure: boolean; req: IncomingMessage })  => this._verifyClient(info) });
+        this._server.setMaxListeners(this.maxConnections + 1); // plus one extra
+
+        this._listen_callback = callback;
+
+        this._server.on("connection", (socket: WebSocket, request: IncomingMessage) => {
+            if (doDebug) {
+                this._dump_statistics();
+                debugLog("server connected with : " +
+                  request.socket.remoteAddress + ":" + request.socket.remotePort);
+            }
+            this._on_client_connection(socket,request);
+        }).on("close", () => {
+            debugLog("server closed : all connections have ended");
+        }).on("error", (err: Error) => {
+            debugLog(chalk.red.bold(" error") + " port = " + this.port, err);
+            this._started = false;
+            this._end_listen(err);
+        }).on("listening", () => {
+            debugLog("server is listening");
+        });
+
+        this._started = true;
+    }    
+    
+    protected _close_server(): void {
+        this._server!.close(() => {
+            debugLog("Connection has been closed !");
+        });
+        this._server = undefined;
+        this._started = false;
+
+    }
+
+    protected _setup_server(): void {
+        // nothing to do
+    }
+    
+    protected _dump_statistics(): void {
+        throw new Error("Method not implemented.");
+    }
+
+    private _verifyClient(info: { origin: string; secure: boolean; req: IncomingMessage }): boolean {
+        if (!this._started) {
+            debugLog(chalk.bgWhite.cyan("OPCUATCPServerEndPoint#_on_client_connection " +
+              "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"));
+            return false;        
+        }
+
+        const nbConnections = Object.keys(this._channels).length;
+        debugLog(" nbConnections ", nbConnections, " self._server.maxListeners",
+          this._server!.getMaxListeners(), this.maxConnections);
+        if (nbConnections >= this.maxConnections) {
+            return false;
+        }
+
+        return true
+
+    }
+
+    private _on_client_connection(socket: WebSocket, request: IncomingMessage) {
+
+        // a client is attempting a connection on the socket
+
+        debugLog("OPCUATCPServerEndPoint#_on_client_connection", this._started);
+        if (!this._started) {
+            debugLog(chalk.bgWhite.cyan("OPCUATCPServerEndPoint#_on_client_connection " +
+              "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"));
+            socket.terminate();
+            return;
+        }
+
+        const establish_connection = () => {
+
+            const nbConnections = Object.keys(this._channels).length;
+            debugLog(" nbConnections ", nbConnections, " self._server.maxListeners",
+              this._server!.getMaxListeners(), this.maxConnections);
+            if (nbConnections >= this.maxConnections) {
+                debugLog(chalk.bgWhite.cyan("OPCUAServerEndPoint#_on_client_connection " +
+                  "The maximum number of connection has been reached - Connection is refused"));
+                socket.close(1013 /*try again later */, "The maximum number of connection has been reached - Connection is refused");
+                return;
+            }
+
+            debugLog("OPCUAServerEndPoint._on_client_connection successful => New Channel");
+
+            const channel = new ServerSecureChannelLayer<WebSocket>({
+                defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
+                // objectFactory: this.objectFactory,
+                parent: this,
+                timeout: this.timeout
+            }, new ServerWS_transport());
+
+            this._preregisterChannel(channel);
+
+            channel.init(socket, (err?: Error) => {
+                this._un_pre_registerChannel(channel);
+                debugLog(chalk.yellow.bold("Channel#init done"), err);
+                if (err) {
+                    socket.terminate();
+                } else {
+                    debugLog("server receiving a client connection");
+                    this._registerChannel(channel);
+                }
+            });
+
+            channel.on("message", (message: any) => {
+                // forward
+                this.emit("message", message, channel, this);
+            });
+        };
+        // Each SecureChannel exists until it is explicitly closed or until the last token has expired and the overlap
+        // period has elapsed. A Server application should limit the number of SecureChannels.
+        // To protect against misbehaving Clients and denial of service attacks, the Server shall close the oldest
+        // SecureChannel that has no Session assigned before reaching the maximum number of supported SecureChannels.
+        this._prevent_DDOS_Attack(establish_connection);
+
+    }
+
+
+}

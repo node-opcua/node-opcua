@@ -9,13 +9,14 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import * as os from "os";
 import * as _ from "underscore";
-import { getFakeTransport, TCP_transport } from "./tcp_transport";
+import { TCP_transport } from "./tcp_transport";
 import { decodeMessage, packTcpMessage, parseEndpointUrl } from "./tools";
 
 import * as debug from "node-opcua-debug";
 import { AcknowledgeMessage } from "./AcknowledgeMessage";
 import { HelloMessage } from "./HelloMessage";
 import { TCPErrorMessage } from "./TCPErrorMessage";
+import { getFakeTransport } from "./transport";
 
 const doDebug = debug.checkDebugFlag(__filename);
 const debugLog = debug.make_debugLog(__filename);

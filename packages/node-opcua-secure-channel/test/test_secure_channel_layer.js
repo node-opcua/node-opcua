@@ -4,6 +4,7 @@ const should = require("should");
 
 const ClientSecureChannelLayer = require("..").ClientSecureChannelLayer;
 const ServerSecureChannelLayer = require("..").ServerSecureChannelLayer;
+const ServerTCP_Transport = require("node-opcua-transport").ServerTCP_transport;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing ClientSecureChannel 1", function () {
@@ -78,12 +79,12 @@ function startServer(holder,callback) {
     server_socket.listen(1234);
     server_socket.on("connection", function on_connection(socket) {
 
-        const serverChannel = new ServerSecureChannelLayer({});
+        const serverChannel = new ServerSecureChannelLayer({}, new ServerTCP_Transport());
         holder.serverChannel = serverChannel;
         serverChannel.timeout = 10050;
         serverChannel.init(socket, function () {
             //xx console.log(" server channel is initialised");
-        });
+        },);
     });
 
     callback();

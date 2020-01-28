@@ -26,6 +26,7 @@ import {
     ServerSecureChannelLayer,
     ServerSecureChannelParent
 } from "../source";
+import { ServerTCP_transport } from "node-opcua-transport";
 
 type SimpleCallback = (err?: Error) => void;
 
@@ -84,12 +85,12 @@ describe("Testing secure client and server connection", () => {
             }
         };
 
-        const serverSChannel: ServerSecureChannelLayer = new ServerSecureChannelLayer({
+        const serverSChannel = new ServerSecureChannelLayer<Socket>({
             defaultSecureTokenLifetime: 0,
             objectFactory: undefined,
             parent: parentS,
             timeout: 0
-        });
+        }, new ServerTCP_transport());
 
         const transportServer = (directTransport.server as any) as Socket;
 

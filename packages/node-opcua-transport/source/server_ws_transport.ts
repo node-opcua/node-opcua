@@ -14,13 +14,14 @@ import { verify_message_chunk } from "node-opcua-chunkmanager";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { AcknowledgeMessage } from "./AcknowledgeMessage";
 import { HelloMessage } from "./HelloMessage";
-import { TCP_transport } from "./tcp_transport";
+import * as WebSocket from "ws";
 // this package requires
 import { TCPErrorMessage } from "./TCPErrorMessage";
 import { decodeMessage, packTcpMessage } from "./tools";
 
 import * as debug from "node-opcua-debug";
 import { ErrorCallback } from "./client_tcp_transport";
+import { Websocket_transport } from "./ws_transport";
 import { ServerTransport } from "./transport";
 
 const hexDump = debug.hexDump;
@@ -52,7 +53,7 @@ const minimumBufferSize = 8192;
  * @constructor
  *
  */
-export class ServerTCP_transport extends TCP_transport implements ServerTransport<Socket> {
+export class ServerWS_transport extends Websocket_transport implements ServerTransport<WebSocket> {
 
     public receiveBufferSize: number;
     public sendBufferSize: number;
@@ -90,7 +91,7 @@ export class ServerTCP_transport extends TCP_transport implements ServerTranspor
      *
      *
      */
-    public init(socket: Socket, callback: ErrorCallback) {
+    public init(socket: WebSocket, callback: ErrorCallback) {
         if (debugLog) {
             debugLog(chalk.cyan("init socket"));
         }

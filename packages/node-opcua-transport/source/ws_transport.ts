@@ -2,16 +2,16 @@
  * @module node-opcua-transport
  */
 import { default as chalk } from "chalk";
-import { Socket } from "net";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import * as  debug from "node-opcua-debug";
 import { PacketAssembler } from "node-opcua-packet-assembler";
 
 import { readRawMessageHeader } from "./message_builder_base";
-import { writeTCPMessageHeader } from "./tools";
+
+
+import * as WebSocket from 'ws';
 
 import { Transport } from './transport';
 
@@ -24,9 +24,7 @@ const doDebug = debug.checkDebugFlag(__filename);
 let counter = 0;
 
 // tslint:disable:class-name
-export class TCP_transport extends Transport<Socket> {
-
-    public _socket: Socket | null;
+export class Websocket_transport extends Transport<WebSocket> {
 
     constructor() {
 
@@ -42,11 +40,13 @@ export class TCP_transport extends Transport<Socket> {
     public dispose() {
         assert(!this._timerId);
         if (this._socket) {
-            this._socket.destroy();
+            this._socket.terminate();
             this._socket.removeAllListeners();
             this._socket = null;
         }
     }
+
+
 
 
     /**
@@ -66,7 +66,7 @@ export class TCP_transport extends Transport<Socket> {
             return;
         }
 
-        assert(!this._disconnecting, "TCP Transport has already been disconnected");
+        assert(!this._disconnecting, "WS Transport has already been disconnected");
         this._disconnecting = true;
 
         // xx assert(!this._theCallback,
@@ -74,8 +74,7 @@ export class TCP_transport extends Transport<Socket> {
         this._cleanup_timers();
 
         if (this._socket) {
-            this._socket.end();
-            this._socket.destroy();
+            this._socket.close();
             // xx this._socket.removeAllListeners();
             this._socket = null;
         }
@@ -86,14 +85,14 @@ export class TCP_transport extends Transport<Socket> {
     }
 
     public isValid(): boolean {
-        return this._socket !== null && !this._socket.destroyed && !this._disconnecting;
+        return this._socket !== null && this._socket.readyState === WebSocket.OPEN && !this._disconnecting;
     }
 
     protected _write_chunk(messageChunk: Buffer) {
         if (this._socket !== null) {
             this.bytesWritten += messageChunk.length;
             this.chunkWrittenCount++;
-            this._socket.write(messageChunk);
+            this._socket.send(messageChunk);
         }
     }
 
@@ -102,7 +101,7 @@ export class TCP_transport extends Transport<Socket> {
      * @param socket {Socket}
      * @protected
      */
-    protected _install_socket(socket: Socket) {
+    protected _install_socket(socket: WebSocket) {
 
         assert(socket);
         this._socket = socket;
@@ -110,9 +109,9 @@ export class TCP_transport extends Transport<Socket> {
             debugLog("_install_socket ", this.name);
         }
 
-        
-        this._remoteAddress = socket.remoteAddress || "";
-        this._remotePort = socket.remotePort || 0;
+        let strUrl = socket.url.split(":");
+        this._remoteAddress = strUrl[0];
+        this._remotePort = (strUrl.length == 2) ? Number.parseInt(strUrl[1]) : 0;
 
         // install packet assembler ...
         this.packetAssembler = new PacketAssembler({
@@ -127,8 +126,8 @@ export class TCP_transport extends Transport<Socket> {
         this.packetAssembler.on("message", (messageChunk: Buffer) => this._on_message_received(messageChunk));
 
         this._socket
-            .on("data", (data: Buffer) => this._on_socket_data(data))
-            .on("close", (hadError) => this._on_socket_close(hadError))
+            .on("message", (data: Buffer) => this._on_socket_data(data))
+            .on("close", (code, reason: string) => this._on_socket_close(code, reason))
             .on("end", (err: Error) => this._on_socket_end(err))
             .on("error", (err: Error) => this._on_socket_error(err));
 
@@ -136,35 +135,38 @@ export class TCP_transport extends Transport<Socket> {
         if (doDestroyOnTimeout) {
             // set socket timeout
             debugLog("setting _socket.setTimeout to ", this.timeout);
-            this._socket.setTimeout(this.timeout, () => {
+            setTimeout(() => {
                 debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
                 if (this._socket) {
-                    this._socket.destroy();
+                    this._socket.terminate();
                     // 08/2008 shall we do this ?
                     this._socket.removeAllListeners();
                     this._socket = null;
                 }
-            });
+            }, this.timeout);
         }
     }
 
 
-    private _on_socket_close(hadError: boolean) {
+    private _on_socket_close(code: number, reason: string) {
         // istanbul ignore next
         if (doDebug) {
             debugLog(chalk.red(" SOCKET CLOSE : "),
-                chalk.yellow("had_error ="), chalk.cyan(hadError.toString()), this.name);
+                chalk.yellow("had_error ="), chalk.cyan(code.toString()), this.name);
         }
         if (this._socket) {
             debugLog("  remote address = ",
-                this._socket.remoteAddress, " ", this._socket.remoteFamily, " ", this._socket.remotePort);
+                this._socket.url, " ", this._socket.protocol);
         }
-        if (hadError) {
+
+        let hadError = code !== 1000; /* if not normal */
+        if (code !== 1000 ) {
             if (this._socket) {
-                this._socket.destroy();
+                this._socket.terminate();
             }
+            this.emit('socket_error', code, reason);
         }
-        const err = hadError ? new Error("ERROR IN SOCKET") : undefined;
+        const err = hadError ? new Error("ERROR IN SOCKET: reason=" + reason + ' code=' + code + ' name=' + this.name) : undefined;
         this.on_socket_closed(err);
 
     }
