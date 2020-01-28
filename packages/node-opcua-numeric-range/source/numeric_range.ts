@@ -489,7 +489,7 @@ export class NumericRange implements NumericalRange1 {
     }
   }
 
-  public set_values(arrayToAlter: any, newValues: any) {
+  public set_values(arrayToAlter: any, newValues: any) : {array: [], statusCode: StatusCode } {
     assert_array_or_buffer(arrayToAlter);
     assert_array_or_buffer(newValues);
 
