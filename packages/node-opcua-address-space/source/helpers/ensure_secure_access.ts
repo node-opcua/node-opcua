@@ -50,7 +50,7 @@ function replaceMethod(obj: any, method: string, func: any) {
  */
 export function ensureObjectIsSecure(node: BaseNode) {
 
-    if (node.nodeClass == NodeClass.Variable) {
+    if (node.nodeClass === NodeClass.Variable) {
 
         replaceMethod(node, "isUserReadable", newIsUserReadable);
         const variable = node as UAVariable;

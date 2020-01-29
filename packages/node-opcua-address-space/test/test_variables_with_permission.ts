@@ -1,6 +1,6 @@
 // tslint:disable:no-bitwise
 
-import { AttributeIds } from "node-opcua-data-model";
+import { AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
 import { AccessLevelFlag } from "node-opcua-data-model";
 import { BrowseDescription } from "node-opcua-service-browse";
 
@@ -9,14 +9,14 @@ import { getMiniAddressSpace } from "../";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("AddressSpace : testing add enumeration type", () => {
+describe("AddressSpace : Variable.setPermissions", () => {
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;
     let variable: UAVariable;
 
     before((done) => {
-        getMiniAddressSpace( (err: Error|null, __addressSpace__?: AddressSpace) => {
+        getMiniAddressSpace((err: Error | null, __addressSpace__?: AddressSpace) => {
 
             addressSpace = __addressSpace__!;
 
@@ -46,13 +46,14 @@ describe("AddressSpace : testing add enumeration type", () => {
 
         variable.userAccessLevel = 0;
         variable.userAccessLevel.should.eql(0);
+
         variable.setPermissions({
-            CurrentRead: ["*"],
-            CurrentWrite: ["!*"]
+            CurrentRead: ["*"], // at the end we want CurrentReadAccess to All user
+            CurrentWrite: ["!*"] // and no write access at all
         });
 
         const dataValue1 = variable.readAttribute(null, AttributeIds.UserAccessLevel);
-        dataValue1.value.value.should.eql(0x0);
+        dataValue1.value.value.should.eql(makeAccessLevelFlag("CurrentRead"));
 
     });
     it("should adjust userAccessLevel based on session Context permission", () => {
@@ -60,21 +61,22 @@ describe("AddressSpace : testing add enumeration type", () => {
         const context = new SessionContext({
             session: {},
         });
-        context.getCurrentUserRole =  () => "Operator";
+        context.getCurrentUserRole = () => "Operator";
 
         variable.userAccessLevel = 0;
         variable.userAccessLevel.should.eql(0);
 
         variable.setPermissions({
             CurrentRead: ["*"],
-            CurrentWrite: ["!*" , "Administrator"]
+            CurrentWrite: ["!*", "Administrator"]
         });
         const dataValue1 = variable.readAttribute(context, AttributeIds.UserAccessLevel);
         dataValue1.value.value.should.eql(AccessLevelFlag.CurrentRead);
 
-        context.getCurrentUserRole =  () => "Administrator";
+        context.getCurrentUserRole = () => "Administrator";
         const dataValue2 = variable.readAttribute(context, AttributeIds.UserAccessLevel);
         dataValue2.value.value.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
 
     });
+
 });
