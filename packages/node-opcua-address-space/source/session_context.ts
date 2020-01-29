@@ -81,6 +81,26 @@ export interface SessionContextOptions {
     server?: IServerBase;   /* OPCUAServer*/
 }
 
+function hasOneRoleDenied(permission: string[], roles: string[]): boolean {
+
+    for (const role of roles) {
+        const str = "!" + role;
+        if (permission.findIndex((x: string) => x === str) >= 0) {
+            return true; // user is explicitly denied
+        }
+    }
+    return false;
+}
+function hasOneRoleAllowed(permission: string[], roles: string[]) {
+    for (const role of roles) {
+        const str = role;
+        if (permission.findIndex((x: string) => x === str) >= 0) {
+            return true; // user is explicitly denied
+        }
+    }
+    return false;
+}
+
 export class SessionContext implements ISessionContext {
 
     public static defaultContext = new SessionContext({});
@@ -166,19 +186,14 @@ export class SessionContext implements ISessionContext {
             return (lNode.userAccessLevel & actionFlag) === actionFlag;
         }
 
+        const roles = userRole.split(";");
+
         if (permission[0] === "*") {
             // accept all except...
-            const str = "!" + userRole;
-            if (permission.findIndex((x: string) => x === str) >= 0) {
-                return false; // user is explicitly denied
-            }
-            return true;
+            return !hasOneRoleDenied(permission, roles);
         } else {
-            // deny all, unless specify
-            if (permission.findIndex((x: string) => x === userRole) >= 0) {
-                return true; // user is explicitly denied
-            }
-            return false;
+            // deny a
+            return hasOneRoleAllowed(permission, roles) && !hasOneRoleDenied(permission, roles);
         }
     }
 }
