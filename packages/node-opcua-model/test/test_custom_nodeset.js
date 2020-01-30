@@ -30,7 +30,7 @@ describe("testing custom nodeset", function() {
 
     this.timeout(Math.min(30000, this._timeout));
 
-    it("should parse a custom nodeset", async () => {
+    xit("should parse a custom nodeset", async () => {
 
         const nodeset_files = [
             nodesets.standard,

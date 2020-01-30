@@ -11,8 +11,8 @@ import { callbackify } from "util";
 import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
 import {
-    populateDataTypeManager,
     ExtraDataTypeManager,
+    populateDataTypeManager,
 } from "node-opcua-client-dynamic-extension-object";
 import { EnumValueType } from "node-opcua-common";
 import { EUInformation } from "node-opcua-data-access";
@@ -31,7 +31,9 @@ import {
     getStandartDataTypeFactory,
     getStructureTypeConstructor,
     registerBasicType,
-    StructuredTypeSchema
+    StructuredTypeSchema,
+    DataTypeFactory,
+    BasicTypeDefinition
 } from "node-opcua-factory";
 import {
     NodeId,
@@ -89,16 +91,22 @@ export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraD
     const addressSpacePriv: any = addressSpace as any;
     if (!addressSpacePriv.$$extraDataTypeManager) {
 
-        const extraDataTypeManager = new ExtraDataTypeManager();
+        const dataTypeManager = new ExtraDataTypeManager();
 
         const namespaceArray = addressSpace.getNamespaceArray().map((n: Namespace) => n.namespaceUri);
         debugLog("Namespace Array = ", namespaceArray.join("\n                   "));
-        extraDataTypeManager.setNamespaceArray(namespaceArray);
-        addressSpacePriv.$$extraDataTypeManager = extraDataTypeManager;
+        dataTypeManager.setNamespaceArray(namespaceArray);
+        addressSpacePriv.$$extraDataTypeManager = dataTypeManager;
+
+        for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
+            const dataTypeFactory1 = new DataTypeFactory([getStandartDataTypeFactory()]);
+            dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
+        }
+        // inject simple types
 
         // now extract structure and enumeration from old form if
         const session = new PseudoSession(addressSpace);
-        await populateDataTypeManager(session, extraDataTypeManager);
+        await populateDataTypeManager(session, dataTypeManager);
 
     }
     return addressSpacePriv.$$extraDataTypeManager;
@@ -599,6 +607,8 @@ export function generateAddressSpace(
 
     // }
 
+    const pendingSimpleTypeToRegister: any[] = [];
+
     const state_UADataType = {
         init(this: any, name: string, attrs: XmlAttributes) {
             this.obj = {};
@@ -656,17 +666,8 @@ export function generateAddressSpace(
                     }
                 }
                 if (!isEnumeration && !isStructure && this.obj.nodeId.namespace !== 0) {
-                    const baseType = dataTypeNode.subtypeOfObj!;
-                    if (baseType && baseType.nodeId.namespace !== 0) {
 
-                        // this is a basic type
-                        const typeName = dataTypeNode.browseName.name!; // .replace("DataType","");
-
-                        registerBasicType({
-                            name: typeName,
-                            subType: baseType.browseName.name!
-                        });
-                    }
+                    pendingSimpleTypeToRegister.push({ name: definitionName, dataTypeNodeId: dataTypeNode.nodeId });
                 }
             };
             postTasks.push(processBasicDataType);
@@ -1411,24 +1412,45 @@ export function generateAddressSpace(
                 }
             }
             async function finalSteps(): Promise<void> {
+
+                /// ----------------------------------------------------------------------------------------
                 // perform post task
-                debugLog(chalk.bgYellow("Performing post loading tasks -------------------------------------------"));
+                debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
                 await performPostLoadingTasks(postTasks);
                 postTasks = [];
 
-                debugLog(chalk.bgYellow("Performing DataType extraction -------------------------------------------"));
+
+
+                debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
                 assert(!addressSpace1.suspendBackReference);
                 await ensureDatatypeExtracted(addressSpace);
-                debugLog(chalk.bgYellow("DataType extaction done ") + chalk.green("DONE"), err?.message);
 
-                debugLog(chalk.bgYellow("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
+                /// ----------------------------------------------------------------------------------------
+                debugLog(chalk.bgGreenBright("DataType extaction done ") + chalk.green("DONE"), err?.message);
+
+                for (const { name, dataTypeNodeId } of pendingSimpleTypeToRegister) {
+                    if (dataTypeNodeId.namespace === 0) {
+                        continue;
+                    }
+                    const dataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
+                    const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
+                    /*                    const def = registerBasicType({
+                                            name,
+                                            subType: "???"
+                                        });
+                      */                  // dataTypeFactory.registerSimpleType(name, dataTypeNodeId, def );
+
+                }
+                pendingSimpleTypeToRegister.splice(0);
+
+                debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
                 await performPostLoadingTasks(postTasks2);
                 postTasks2 = [];
-                debugLog(chalk.bgYellow("Performing post loading tasks 2 (assigning Extension Objec to Variables) ---------------------"));
+                debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (assigning Extension Object to Variables) ---------------------"));
                 await performPostLoadingTasks(postTasks3);
                 postTasks3 = [];
 
-                debugLog(chalk.bgYellow("Performing post loading tasks -------------------------------------------") + chalk.green("DONE"));
+                debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") + chalk.green("DONE"));
             }
             callbackify(finalSteps)((err1?: Error) => {
                 if (err1) {

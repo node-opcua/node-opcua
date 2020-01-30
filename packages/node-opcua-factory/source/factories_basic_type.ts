@@ -52,9 +52,11 @@ export interface BasicTypeOptions {
 export function registerBasicType(schema: BasicTypeOptions) {
 
     const exists: boolean = hasBuiltInType(schema.name);
+
+    /* istanbul ignore next */
     if (exists) {
         // tslint:disable-next-line: no-console
-        console.log(schema);
+        console.log("registerBasicType:", schema);
         throw new Error(`Basic Type ${schema.name} already registered`);
     }
 
@@ -65,7 +67,7 @@ export function registerBasicType(schema: BasicTypeOptions) {
     /* istanbul ignore next */
     if (!t) {
         // tslint:disable-next-line:no-console
-        console.log(util.inspect(schema, { colors: true}));
+        console.log(util.inspect(schema, { colors: true }));
         throw new Error(" cannot find subtype " + schema.subType);
     }
     assert(_.isFunction(t.decode));
@@ -106,20 +108,21 @@ export function registerBasicType(schema: BasicTypeOptions) {
 // Registering the Basic Type already defined int the OPC-UA Specification
 // =============================================================================================
 
-registerBasicType({name: "Counter", subType: "UInt32"});
+registerBasicType({ name: "Counter", subType: "UInt32" });
 // OPC Unified Architecture, part 3.0 $8.13 page 65
-registerBasicType({name: "Duration", subType: "Double"});
-registerBasicType({name: "UAString", subType: "String"});
-registerBasicType({name: "UABoolean", subType: "Boolean"});
-registerBasicType({name: "UtcTime",  subType: "DateTime"});
+registerBasicType({ name: "Duration", subType: "Double" });
+registerBasicType({ name: "UAString", subType: "String" });
+registerBasicType({ name: "UABoolean", subType: "Boolean" });
+registerBasicType({ name: "UtcTime", subType: "DateTime" });
 // already ? registerBasicType({name: "Int8",     subType: "SByte"});
 // already ? registerBasicType({name: "UInt8",    subType: "Byte"});
-registerBasicType({name: "Char",    subType: "Byte"});
+registerBasicType({ name: "Char", subType: "Byte" });
 // xx registerBasicType({name:"XmlElement" ,subType:"String"  });
-registerBasicType({name: "Time",     subType: "String"});
+registerBasicType({ name: "Time", subType: "String" });
 // string in the form "en-US" or "de-DE" or "fr" etc...
 
-registerBasicType({name: "LocaleId",
+registerBasicType({
+    name: "LocaleId",
     subType: "String",
 
     defaultValue: null,
@@ -129,9 +132,9 @@ registerBasicType({name: "LocaleId",
     validate: validateLocaleId,
 });
 
-registerBasicType({name: "ContinuationPoint", subType: "ByteString"});
-registerBasicType({name: "Image",    subType: "ByteString"});
-registerBasicType({name: "NodeIdType", subType: "NodeId"});
+registerBasicType({ name: "ContinuationPoint", subType: "ByteString" });
+registerBasicType({ name: "Image", subType: "ByteString" });
+registerBasicType({ name: "NodeIdType", subType: "NodeId" });
 
 registerBasicType({ name: "ImageBMP", subType: "Image" });
 registerBasicType({ name: "ImageGIF", subType: "Image" });

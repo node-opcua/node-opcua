@@ -9,7 +9,7 @@ const doDebug = false;
 
 async function parse_opcua_common(session) {
     const dataTypeManager = new ExtraDataTypeManager();
-    await populateDataTypeManager(session, dataTypeManager);
+    await populateDataTypeManager(session, idProvider, dataTypeManager);
 }
 
 exports.parse_opcua_common = parse_opcua_common;

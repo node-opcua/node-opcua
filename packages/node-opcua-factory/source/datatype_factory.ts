@@ -11,8 +11,10 @@ import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 
 import { ConstructorFunc, ConstructorFuncWithSchema } from "./constructor_type";
 import { BaseUAObject } from "./factories_baseobject";
-import { EnumerationDefinitionSchema } from "./factories_enumerations";
+import { EnumerationDefinitionSchema, hasEnumeration, getEnumeration } from "./factories_enumerations";
 import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
+import { hasBuiltInType, getBuildInType } from "./factories_builtin_types";
+import { BasicTypeDefinition } from ".";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -30,6 +32,9 @@ export class DataTypeFactory {
     private _enumerations: {
         [key: string]: EnumerationDefinitionSchema
     } = {};
+    private _simpleTypes: {
+        [key: string]: { nodeId: NodeId, definition: BasicTypeDefinition }
+    } = {};
 
     private readonly baseDataFactories: DataTypeFactory[];
 
@@ -40,19 +45,72 @@ export class DataTypeFactory {
     }
 
     // -----------------------------
+    public registerSimpleType(name: string, dataTypeNodeId: NodeId, def: BasicTypeDefinition) {
+        if (this._simpleTypes[name]) {
+            throw new Error("registerSimpleType " + name + " already register");
+        }
+        this._simpleTypes[name] = { nodeId: dataTypeNodeId, definition: def };
+    }
+
+    public hasSimpleType(name: string): boolean {
+        if (this._simpleTypes[name]) {
+            return true;
+        }
+        for (const factory of this.baseDataFactories) {
+            if (factory.hasSimpleType(name)) {
+                return true;
+            }
+        }
+        const hasSimpleT = hasBuiltInType(name);
+        if (hasSimpleT) {
+            return hasSimpleT;
+        }
+        return hasBuiltInType(name);
+    }
+    public getSimpleType(name: string): BasicTypeDefinition {
+        if (this._simpleTypes[name]) {
+            return this._simpleTypes[name].definition;
+        }
+        for (const factory of this.baseDataFactories) {
+            if (factory.hasSimpleType(name)) {
+                return factory.getSimpleType(name);
+            }
+        }
+        return getBuildInType(name);
+    }
+    // -----------------------------
     // EnumerationDefinitionSchema
     public registerEnumeration(enumeration: EnumerationDefinitionSchema): void {
         assert(!this._enumerations[enumeration.name]);
         this._enumerations[enumeration.name] = enumeration;
     }
     public hasEnumeration(enumName: string): boolean {
-        return this.getEnumeration(enumName) !== null;
+        if (this._enumerations[enumName]) {
+            return true;
+        }
+        for (const factory of this.baseDataFactories) {
+            const e = factory.hasEnumeration(enumName);
+            if (e) {
+                return true;
+            }
+        }
+        if (hasEnumeration(enumName)) {
+            return true;
+        }
+        return false;
     }
     public getEnumeration(enumName: string): EnumerationDefinitionSchema | null {
         if (this._enumerations[enumName]) {
             return this._enumerations[enumName];
         }
-        return null;
+        for (const factory of this.baseDataFactories) {
+            const e = factory.getEnumeration(enumName);
+            if (e !== null) {
+                return e;
+            }
+        }
+        const ee = getEnumeration(enumName);
+        return ee;
     }
     //  ----------------------------
 
@@ -87,7 +145,7 @@ export class DataTypeFactory {
                 return constructor2;
             }
         }
-        throw new Error("Cannot find StructureType constructor for " + typeName + " - it may be abstract");
+        throw new Error("Cannot find StructureType constructor for " + typeName + " - it may be abstract, or it could be a basic type");
     }
 
     public hasStructuredType(typeName: string): boolean {

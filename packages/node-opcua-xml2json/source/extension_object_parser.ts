@@ -4,7 +4,7 @@ import {
     ParserLike,
     XmlAttributes
 } from "./xml2json";
-import {lowerFirstLetter} from "node-opcua-utils";
+import { lowerFirstLetter } from "node-opcua-utils";
 
 
 
@@ -53,13 +53,13 @@ const localizedTextReader: ReaderStateParserLike = {
     parser: {
         Locale: {
             finish(this: any) {
-                this.parent.localizedText =this.parent.localizedText  || {};
+                this.parent.localizedText = this.parent.localizedText || {};
                 this.parent.localizedText.locale = this.text.trim();
             }
         },
         Text: {
             finish(this: any) {
-                this.parent.localizedText =this.parent.localizedText  || {};
+                this.parent.localizedText = this.parent.localizedText || {};
                 this.parent.localizedText.text = this.text.trim();
             }
         }
@@ -201,9 +201,9 @@ function _clone(a: any): any {
         return a;
     }
     if (a instanceof Array) {
-        return a.map(x=>_clone(x));
+        return a.map(x => _clone(x));
     }
-    return { ... a};
+    return { ...a };
 }
 
 function _makeExtensionObjectReader(
@@ -269,6 +269,7 @@ function _makeExtensionObjectReader(
                     this.value = undefined;
                 },
                 startElement(this: any, name: string, attrs: XmlAttributes) {
+                    // empty
                 },
                 endElement(this: any, element: string) {
                     this.value.push(_clone(this.parser[element].value));

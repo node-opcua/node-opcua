@@ -16,7 +16,7 @@ import {
 } from "..";
 // } from "node-opcua-modeler";
 
-const writeFile = promisify(fs.writeFile);
+const writeFile  = promisify(fs.writeFile);
 
 interface UABoilerTest extends UAObject {
     deviceHealth: UAVariable;

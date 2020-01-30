@@ -78,11 +78,10 @@ export function getOrCreateStructuredTypeSchema(
                     case "tns":
 
                         field.fieldType = fieldTypeName;
-                        const enumeratedType = dataTypeFactory.getEnumeration(fieldTypeName);
-                        if (enumeratedType) {
+                        if (dataTypeFactory.hasEnumeration(fieldTypeName)) {
+                            const enumeratedType = dataTypeFactory.getEnumeration(fieldTypeName);
                             field.category = FieldCategory.enumeration;
                             field.schema = enumeratedType;
-
                         } else {
                             // must be a structure then ....
                             field.category = FieldCategory.complex;
