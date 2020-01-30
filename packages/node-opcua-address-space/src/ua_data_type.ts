@@ -43,7 +43,8 @@ export interface EnumerationInfo {
 }
 
 function findBasicDataType(dataType: UADataType): DataType {
-    if (dataType.nodeId.value <= 25) {
+
+    if (dataType.nodeId.namespace === 0 && dataType.nodeId.value <= 25) {
         // we have a well-known DataType
         return dataType.nodeId.value as DataType;
     }

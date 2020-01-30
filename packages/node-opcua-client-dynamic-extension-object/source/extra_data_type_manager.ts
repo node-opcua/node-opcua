@@ -30,22 +30,18 @@ export class ExtraDataTypeManager {
         this.namespaceArray = namespaceArray;
     }
 
-    public hasDataTypeFactory(nodeId: NodeId): boolean {
-        return !!this.dataTypeFactoryMap.hasOwnProperty(this.makeKey(nodeId));
+    public hasDataTypeFactory(namespaceIndex: number): boolean {
+        return !!this.dataTypeFactoryMapByNamespace.hasOwnProperty(namespaceIndex);
     }
 
-    public registerDataTypeFactory(nodeId: NodeId, dataTypeFactory: DataTypeFactory) {
+    public registerDataTypeFactory(namespaceIndex: number, dataTypeFactory: DataTypeFactory) {
         /* istanbul ignore next */
-        if (this.hasDataTypeFactory(nodeId)) {
+        assert(namespaceIndex !== 0,
+            "registerTypeDictionary cannot be used for namespace 0");
+        if (this.hasDataTypeFactory(namespaceIndex)) {
             throw new Error("Dictionary already registered");
         }
-
-        this.dataTypeFactoryMap[this.makeKey(nodeId)] = dataTypeFactory;
-        assert(nodeId.namespace !== 0,
-            "registerTypeDictionary cannot be used for namespace 0");
-        assert(!this.dataTypeFactoryMapByNamespace.hasOwnProperty(nodeId.namespace),
-            "already registered");
-        this.dataTypeFactoryMapByNamespace[nodeId.namespace] = dataTypeFactory;
+        this.dataTypeFactoryMapByNamespace[namespaceIndex] = dataTypeFactory;
     }
 
     public getDataTypeFactoryForNamespace(namespaceIndex: number): DataTypeFactory {
@@ -79,9 +75,4 @@ export class ExtraDataTypeManager {
         }
         return Constructor;
     }
-
-    private makeKey(nodeId: NodeId): string {
-        return this.namespaceArray[nodeId.namespace] + "@" + nodeId.value.toString();
-    }
-
 }

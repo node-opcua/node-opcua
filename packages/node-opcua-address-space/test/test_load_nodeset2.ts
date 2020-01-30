@@ -1,16 +1,15 @@
 // tslint:disable:no-bitwise
 import * as fs from "fs";
-import * as mocha from "mocha";
 import * as path from "path";
 import * as should from "should";
 
 import { AccessLevelFlag, AttributeIds } from "node-opcua-data-model";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-import { EnumDefinition, EnumDescription, StructureDefinition, StructureDescription } from "node-opcua-types";
+import { EnumDefinition } from "node-opcua-types";
 import { AddressSpace, generateAddressSpace, UADataType, UAVariable } from "..";
 
 // tslint:disable-next-line:no-var-requires
@@ -52,7 +51,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         // set a large timeout ( loading the large nodeset xml file could be very slow on RPI)
         this.timeout(Math.max(400000, this._timeout));
 
-        const xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard;
 
         fs.existsSync(xml_file).should.be.eql(true);
 
@@ -223,7 +222,6 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
 
         const variableType1 = addressSpace.findVariableType("MyStructureType", ns)!;
-        const value = variableType1.readAttribute(null, AttributeIds.Value);
         // xx console.log(value.toString());
     });
 
@@ -401,7 +399,75 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const dataType = addressSpace.findDataType("3DFrame", 0)!;
 
+
+    });
+
+    it("VV8 ----------", async () => {
+
+        addressSpace.registerNamespace("PRIVATE");
+
+        const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace_basic.xml");
+        const xml_files = [
+            nodesets.standardNodeSetFilename,
+            xml_file2
+        ];
+        await generateAddressSpace(addressSpace, xml_files);
+
+        const nsIndex = addressSpace.getNamespaceIndex("urn:MyNamespace/");
+        nsIndex.should.be.greaterThan(0);
+
+        const dataType = addressSpace.findDataType("ANY", nsIndex)!;
+        dataType.nodeId.namespace.should.eql(nsIndex);
+        dataType.subtypeOf.toString().should.eql("ns=0;i=3");
+        dataType.subtypeOfObj.nodeId.toString().should.eql("ns=0;i=3");
+        dataType.basicDataType.should.eql(DataType.Byte);
+
+        should.throws(() => {
+            const object = addressSpace.constructExtensionObject(dataType);
+        });
+
+        const a = addressSpace.getOwnNamespace().addVariable({
+            browseName: "A",
+            dataType,
+            value: { dataType: DataType.Byte, value: 43 }
+        });
+        a.setValueFromSource({ dataType: DataType.Byte, value: 23 });
+
+        const HW_SUBMODULE_DataType = addressSpace.findDataType("HW_SUBMODULE", nsIndex);
+        HW_SUBMODULE_DataType.nodeId.namespace.should.eql(nsIndex);
+        HW_SUBMODULE_DataType.subtypeOf.toString().should.eql("ns=2;i=3034");
+        HW_SUBMODULE_DataType.basicDataType.should.eql(DataType.UInt16);
+
+    });
+
+    it("VV9 ----------", async () => {
+
+        addressSpace.registerNamespace("PRIVATE");
+
+        const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace_mix.xml");
+        const xml_files = [
+            nodesets.standardNodeSetFilename,
+            xml_file2
+        ];
+        await generateAddressSpace(addressSpace, xml_files);
+
+        const nsIndex = addressSpace.getNamespaceIndex("urn:MyNamespace/mix");
+        nsIndex.should.be.greaterThan(0);
+
+        const dataType = addressSpace.findDataType("F_SYSINFO", nsIndex)!;
+        dataType.nodeId.namespace.should.eql(nsIndex);
+        dataType.subtypeOf.toString().should.eql(`ns=${nsIndex};i=3500`);
+        dataType.subtypeOfObj.nodeId.toString().should.eql(`ns=${nsIndex};i=3500`);
+        dataType.basicDataType.should.eql(DataType.ExtensionObject);
+
         const object = addressSpace.constructExtensionObject(dataType);
+
+        const a = addressSpace.getOwnNamespace().addVariable({
+            browseName: "A",
+            dataType,
+            value: { dataType: DataType.ExtensionObject, value: object }
+        });
+        a.setValueFromSource({ dataType: DataType.ExtensionObject, value: object });
 
     });
 });
@@ -491,7 +557,6 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const namespace0 = addressSpace.getDefaultNamespace();
         const xml_file = path.join(
             __dirname,
             "../../../modeling/model_with_custom_datatype.xml"

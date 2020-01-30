@@ -37,7 +37,8 @@ describe("BSHA - Binary Schemas Helper 1", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
+        dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -155,7 +156,8 @@ describe("BSHB - Binary Schemas Helper 2", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
+        dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -229,7 +231,8 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
+        dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -348,7 +351,8 @@ describe("BSHD - Binary Schemas Helper 4", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
+        dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -374,7 +378,8 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "ascii");
-        dataTypeFactory = await parseBinaryXSDAsync(sample, [], idProvider);
+        dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {

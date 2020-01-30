@@ -3,16 +3,25 @@ import * as mocha from "mocha";
 import * as  path from "path";
 import * as should from "should";
 
-import { BaseUAObject, DataTypeFactory } from "node-opcua-factory";
+import {
+    redirectToFile
+} from "node-opcua-debug";
+import {
+    BaseUAObject, DataTypeFactory
+} from "node-opcua-factory";
 import {
     makeExpandedNodeId
 } from "node-opcua-nodeid";
-import { MockProvider } from "./mock_id_provider";
-import { getObjectClassName } from "node-opcua-utils";
-import { redirectToFile } from "node-opcua-debug";
+import {
+    getObjectClassName
+} from "node-opcua-utils";
+import {
+    MockProvider
+} from "./mock_id_provider";
 
-
-import { encode_decode_round_trip_test, compare_obj_by_encoding } from "node-opcua-packet-analyzer/dist/test_helpers";
+import {
+    encode_decode_round_trip_test, compare_obj_by_encoding
+} from "node-opcua-packet-analyzer/dist/test_helpers";
 const a = BaseUAObject;
 
 import {
@@ -261,7 +270,7 @@ describe("Factories: testing encodingDefaultBinary and constructObject", () => {
         should.exist(Company.schema.encodingDefaultBinary);
         const obj = dataTypeFactory.constructObject(Company.schema.encodingDefaultBinary!);
         console.log(obj);
-        obj.constructor.schema.name.should.equal("Company");
+        (obj.constructor as any).schema.name.should.equal("Company");
         getObjectClassName(obj).should.equal("Object");
     });
 

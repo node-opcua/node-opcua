@@ -307,9 +307,9 @@ export interface MapDataTypeAndEncodingIdProvider {
 
 export function parseBinaryXSD(
     xmlString: string,
-    dataTypeFactories: DataTypeFactory[],
     idProvider: MapDataTypeAndEncodingIdProvider,
-    callback: (err: Error | null, dataTypeFactory?: DataTypeFactory) => void
+    dataTypeFactory: DataTypeFactory,
+    callback: (err?: Error | null) => void
 ) {
 
     const parser = new Xml2Json(state0);
@@ -317,8 +317,6 @@ export function parseBinaryXSD(
     (parser as any).typeDictionary = typeDictionary;
 
     parser.parseString(xmlString, (err?: Error | null) => {
-
-        const dataTypeFactory = new DataTypeFactory(dataTypeFactories);
 
         // resolve and prepare enumerations
         for (const key in typeDictionary.enumeratedTypesRaw) {
@@ -359,7 +357,7 @@ export function parseBinaryXSD(
                 for (const f of structuredType.fields) {
                     const fieldType = f.fieldType.split(":")[1];
                     const s = typeDictionary.getStructuredTypesRawByName(fieldType);
-                        if (s !== structuredType && s) {
+                    if (s !== structuredType && s) {
                         visitStructure(s);
                     } else {
                         map[fieldType] = "1";
@@ -382,25 +380,23 @@ export function parseBinaryXSD(
             debugLog("processing ", chalk.cyan(structuredType.name));
             getOrCreateStructuredTypeSchema(structuredType.name, typeDictionary, dataTypeFactory, idProvider);
         }
-        callback(err!, dataTypeFactory);
+        callback(err);
     });
 }
 
 export async function parseBinaryXSDAsync(
     xmlString: string,
-    dataTypeFactories: DataTypeFactory[],
-    idProvider: MapDataTypeAndEncodingIdProvider
-): Promise<DataTypeFactory> {
-    let dataTypeFactor: any = null;
+    idProvider: MapDataTypeAndEncodingIdProvider,
+    dataTypeFactory: DataTypeFactory
+): Promise<void> {
+
     await new Promise((resolve, reject) => {
-        parseBinaryXSD(xmlString, dataTypeFactories, idProvider, (err: Error | null, dataTypeFactory?: DataTypeFactory) => {
+        parseBinaryXSD(xmlString, idProvider, dataTypeFactory, (err?: Error | null) => {
             if (err) {
                 reject(err);
             } else {
-                dataTypeFactor = dataTypeFactory;
-                resolve(dataTypeFactory);
+                resolve();
             }
         });
     });
-    return dataTypeFactor;
 }

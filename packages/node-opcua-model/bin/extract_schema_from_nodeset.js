@@ -1,11 +1,11 @@
 "use strict";
-const { 
+const {
     AddressSpace,
     generateAddressSpace
- } = require("node-opcua-address-space");
+} = require("node-opcua-address-space");
 const nodesets = require("node-opcua-nodesets");
 const {
-     parse_opcua_common 
+    parse_opcua_common
 } = require("../lib/parse_server_common");
 
 const _ = require("underscore");
@@ -24,10 +24,10 @@ const g_nodesets = [
     nodesets.standard_nodeset_file,
     nodesets.di_nodeset_filename,
     nodesets.adi_nodeset_filename,
-    path.join(__dirname,"../../../modeling/my_data_type.xml")
+    path.join(__dirname, "../../../modeling/my_data_type.xml")
 ];
 
-(async ()=> {
+(async () => {
     await parse_xml(g_nodesets);
     console.log("done");
 })();

@@ -22,6 +22,7 @@ import {
     FieldCategory,
     getStandartDataTypeFactory,
     StructuredTypeSchema,
+    DataTypeFactory,
 } from "node-opcua-factory";
 import {
     DataTypeAndEncodingId,
@@ -178,7 +179,9 @@ export async function generate(
             }
         };
 
-        const dataTypeFactory = await parseBinaryXSDAsync(content, [getStandartDataTypeFactory()], idProvider);
+        const dataTypeFactory = new DataTypeFactory([getStandartDataTypeFactory()]);
+        await parseBinaryXSDAsync(content, idProvider, dataTypeFactory);
+
         write(
             `// tslint:disable:no-this-assignment
 // tslint:disable:max-classes-per-file
