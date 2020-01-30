@@ -32,7 +32,7 @@ const w1bus = require("node-w1bus");
 const bus = w1bus.create();
 const opcua = require("node-opcua");
 
-const sensors = [];
+let sensors = [];
 
 function find_sensors(done) {
   bus
