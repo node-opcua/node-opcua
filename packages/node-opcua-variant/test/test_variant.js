@@ -1,36 +1,35 @@
 "use strict";
 
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const _ = require("underscore");
 
-const Variant = require("..").Variant;
-const DataType = require("..").DataType;
-const VariantArrayType = require("..").VariantArrayType;
-const isValidVariant = require("..").isValidVariant;
-const buildVariantArray = require("..").buildVariantArray;
+const {
+    Variant,
+    DataType,
+    VariantArrayType,
+    isValidVariant,
+    buildVariantArray,
+    VARIANT_ARRAY_MASK,
+    coerceVariantType,
+    decodeVariant
+} = require("..");
 
 const ec = require("node-opcua-basic-types");
-const QualifiedName = require("node-opcua-data-model").QualifiedName;
-const LocalizedText = require("node-opcua-data-model").LocalizedText;
+const { QualifiedName, LocalizedText } = require("node-opcua-data-model");
 
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers")
-    .encode_decode_round_trip_test;
+const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
-const redirectToFile = require("node-opcua-debug").redirectToFile;
+const { redirectToFile } = require("node-opcua-debug");
 
-const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-
-const VARIANT_ARRAY_MASK = require("..").VARIANT_ARRAY_MASK;
-const coerceVariantType = require("..").coerceVariantType;
-const decodeVariant = require("..").decodeVariant;
+const { Benchmarker } = require("node-opcua-benchmarker");
+const { BinaryStream } = require("node-opcua-binary-stream");
 
 const factories = require("node-opcua-factory");
 
-const NumericRange = require("node-opcua-numeric-range").NumericRange;
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
+const { NumericRange } = require("node-opcua-numeric-range");
+const { StatusCodes } = require("node-opcua-status-code");
+const { ExtensionObject } = require("node-opcua-extension-object");
 
 describe("Variant", () => {
 
@@ -340,7 +339,7 @@ describe("Variant", () => {
 
 
         var1.toString().should.eql("Variant(Matrix[  ]<UInt32>, l= 0, value=[])");
-    
+
     });
 
     xit("not supported - should create a Variant as a Matrix (2x3) of UInt32 - Matrix given as a Array of Array", () => {
@@ -428,6 +427,75 @@ describe("Variant", () => {
             stream.length.should.equal(17);
         });
     });
+
+
+    it("should create a Array of string", () => {
+        const var1 = new Variant({
+            arrayType: VariantArrayType.Array,
+            dataType: DataType.String,
+            value: ["string1", "string2", "string3"]
+        });
+
+        var1.dataType.should.eql(DataType.String);
+        var1.arrayType.should.eql(VariantArrayType.Array);
+
+        encode_decode_round_trip_test(var1, function(stream) {
+            stream.length.should.equal(38);
+        });
+
+    });
+
+    function makeFlat(arr/*: Array<Array<string>> */)/*: Array<string>*/ {
+        return arr.reduce((acc, val) => acc.concat(val), []);
+    }
+    it("should create a Matrix of Int16", () => {
+        const value = [
+            [11, 12, 13],
+            [21, 22, 23],
+            [31, 32, 33],
+            [41, 42, 43],
+        ];
+        const var1 = new Variant({
+            arrayType: VariantArrayType.Matrix,
+            dataType: DataType.Int16,
+            dimensions: [3, 4],
+            value: makeFlat(value)
+        });
+
+        var1.dataType.should.eql(DataType.Int16);
+        var1.arrayType.should.eql(VariantArrayType.Matrix);
+        var1.dimensions.should.eql([3, 4]);
+
+        encode_decode_round_trip_test(var1, function(stream) {
+            stream.length.should.equal(41);
+        });
+
+
+    })
+    it("should create a Matrix of strings", () => {
+        const value = [
+            ["string", "string", "string"],
+            ["string", "string", "string"],
+            ["string", "string", "string"],
+            ["string", "string", "string"],
+        ];
+        const var1 = new Variant({
+            arrayType: VariantArrayType.Matrix,
+            dataType: DataType.String,
+            dimensions: [3, 4],
+            value: makeFlat(value)
+        });
+
+        var1.dataType.should.eql(DataType.String);
+        var1.arrayType.should.eql(VariantArrayType.Matrix);
+        var1.dimensions.should.eql([3, 4]);
+
+        encode_decode_round_trip_test(var1, function(stream) {
+            stream.length.should.equal(137);
+        });
+
+
+    })
 });
 
 const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
@@ -1861,9 +1929,9 @@ describe("miscellaneous Variant tests", () => {
         var2.toString().should.eql("Variant(Scalar<Null>, value: <null>)");
     });
 
-    it("coerce",() => {
+    it("coerce", () => {
 
-        Variant.coerce({ dataType:"Double", value: 3.14}).toString().
+        Variant.coerce({ dataType: "Double", value: 3.14 }).toString().
             should.eql("Variant(Scalar<Double>, value: 3.14)");
     });
 
