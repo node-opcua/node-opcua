@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-generator",
-    "version": "2.5.0-alpha.0",
+    "version": "2.5.0-alpha.1",
     "description": "pure nodejs OPCUA SDK - module -generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -20,8 +20,8 @@
         "node-opcua-factory": "^2.5.0-alpha.0",
         "node-opcua-guid": "^2.5.0-alpha.0",
         "node-opcua-nodeid": "^2.5.0-alpha.0",
-        "node-opcua-numeric-range": "^2.5.0-alpha.0",
-        "node-opcua-schemas": "^2.5.0-alpha.0",
+        "node-opcua-numeric-range": "^2.5.0-alpha.1",
+        "node-opcua-schemas": "^2.5.0-alpha.1",
         "node-opcua-status-code": "^2.5.0-alpha.0",
         "node-opcua-utils": "^2.5.0-alpha.0",
         "node-opcua-xml2json": "^2.5.0-alpha.0",
@@ -33,7 +33,7 @@
         "@types/prettier": "^1.19.0",
         "node-opcua-binary-stream": "^2.5.0-alpha.0",
         "node-opcua-extension-object": "^2.5.0-alpha.0",
-        "node-opcua-packet-analyzer": "^2.5.0-alpha.0",
+        "node-opcua-packet-analyzer": "^2.5.0-alpha.1",
         "should": "13.2.3",
         "source-map-support": "^0.5.16"
     },

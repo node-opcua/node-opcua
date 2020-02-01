@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-modeler",
-  "version": "2.5.0-alpha.0",
+  "version": "2.5.0-alpha.1",
   "description": "pure nodejs OPCUA SDK - module - model",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,16 +13,16 @@
   "dependencies": {
     "chalk": "^3.0.0",
     "cli-table3": "^0.5.1",
-    "node-opcua-address-space": "^2.5.0-alpha.0",
+    "node-opcua-address-space": "^2.5.0-alpha.1",
     "node-opcua-assert": "^2.5.0-alpha.0",
     "node-opcua-basic-types": "^2.5.0-alpha.0",
-    "node-opcua-data-model": "^2.5.0-alpha.0",
+    "node-opcua-data-model": "^2.5.0-alpha.1",
     "node-opcua-nodeid": "^2.5.0-alpha.0",
     "node-opcua-nodesets": "^2.5.0-alpha.0",
-    "node-opcua-numeric-range": "^2.5.0-alpha.0",
-    "node-opcua-service-translate-browse-path": "^2.5.0-alpha.0",
-    "node-opcua-types": "^2.5.0-alpha.0",
-    "node-opcua-variant": "^2.5.0-alpha.0",
+    "node-opcua-numeric-range": "^2.5.0-alpha.1",
+    "node-opcua-service-translate-browse-path": "^2.5.0-alpha.1",
+    "node-opcua-types": "^2.5.0-alpha.1",
+    "node-opcua-variant": "^2.5.0-alpha.1",
     "node-opcua-xml2json": "^2.5.0-alpha.0"
   },
   "devDependencies": {
