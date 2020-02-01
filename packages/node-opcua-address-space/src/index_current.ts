@@ -38,3 +38,5 @@ export * from "../test_helpers";
 export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
 export { Reference } from "./reference";
 export { NodeIdManager } from "../src/nodeid_manager";
+export * from "../src/alarms_and_conditions/extract_event_fields";
+export * from "./event_data";

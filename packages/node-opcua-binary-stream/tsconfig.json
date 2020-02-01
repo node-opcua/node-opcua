@@ -1,11 +1,26 @@
 {
-  "extends" : "../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "source",
-    "outDir": "dist"
+    "outDir": "dist",
+    "composite": true
   },
-  "files": [
-    "source/index.ts"
+  "include": [
+    "source/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../node-opcua-assert"
+    },
+    {
+      "path": "../node-opcua-buffer-utils"
+    },
+    {
+      "path": "../node-opcua-benchmarker"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
-
 }

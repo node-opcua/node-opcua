@@ -7,7 +7,14 @@ import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
-import { BaseNode, EventData, makeAttributeEventName, SessionContext, UAVariable } from "node-opcua-address-space";
+import {
+  BaseNode,
+  IEventData,
+  extractEventFields,
+  makeAttributeEventName,
+  SessionContext,
+  UAVariable
+} from "node-opcua-address-space";
 import { DateTime } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
@@ -19,7 +26,6 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId } from "node-opcua-nodeid";
 import { NumericalRange0, NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { extractEventFields } from "node-opcua-service-filter";
 import { EventFilter } from "node-opcua-service-filter";
 import {
   ReadValueId,
@@ -767,7 +773,7 @@ export class MonitoredItem extends EventEmitter {
     this._on_value_changed(dataValue);
   }
 
-  private _on_opcua_event(eventData: EventData) {
+  private _on_opcua_event(eventData: IEventData) {
 
     // TO DO : => Improve Filtering, bearing in mind that ....
     // Release 1.04 8 OPC Unified Architecture, Part 9
@@ -785,7 +791,7 @@ export class MonitoredItem extends EventEmitter {
       ? this.filter.selectClauses
       : ([] as SimpleAttributeOperand[]);
 
-    const eventFields = extractEventFields(selectClauses, eventData);
+    const eventFields: Variant[] = extractEventFields(SessionContext.defaultContext, selectClauses, eventData);
 
     // istanbul ignore next
     if (doDebug) {

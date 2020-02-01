@@ -1,3 +1,4 @@
+// tslint:disable: no-console
 // tslint:disable:no-bitwise
 import * as fs from "fs";
 import * as path from "path";
@@ -372,17 +373,17 @@ describe("testing NodeSet XML file loading", function (this: any) {
         dataType.browseName.toString().should.eql("3DFrame");
         dataType.symbolicName.toString().should.eql("ThreeDFrame");
 
-        dataType.binaryEncoding.nodeId.toString().should.eql("ns=0;i=18823");
-        dataType.binaryEncodingDefinition.should.eql("ThreeDFrame");
+        dataType.binaryEncoding?.nodeId.toString().should.eql("ns=0;i=18823");
+        dataType.binaryEncodingDefinition?.should.eql("ThreeDFrame");
 
-        dataType.xmlEncoding.nodeId.toString().should.eql("ns=0;i=18859");
-        dataType.xmlEncodingDefinition.should.eql("//xs:element[@name='ThreeDFrame']");
+        dataType.xmlEncoding?.nodeId.toString().should.eql("ns=0;i=18859");
+        dataType.xmlEncodingDefinition?.should.eql("//xs:element[@name='ThreeDFrame']");
 
-        dataType.jsonEncoding.nodeId.toString().should.eql("ns=0;i=19072");
+        dataType.jsonEncoding?.nodeId.toString().should.eql("ns=0;i=19072");
 
         // now construct some extension object based on this type....
         const frame = addressSpace.constructExtensionObject(dataType);
-        console.log("fraùe", frame.toString());
+        console.log("frame", frame.toString());
 
     });
     it("VV7 ----------", async () => {
@@ -418,8 +419,9 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const dataType = addressSpace.findDataType("ANY", nsIndex)!;
         dataType.nodeId.namespace.should.eql(nsIndex);
-        dataType.subtypeOf.toString().should.eql("ns=0;i=3");
-        dataType.subtypeOfObj.nodeId.toString().should.eql("ns=0;i=3");
+        should.exist(dataType.subtypeOf);
+        dataType.subtypeOf?.toString().should.eql("ns=0;i=3");
+        dataType.subtypeOfObj?.nodeId.toString().should.eql("ns=0;i=3");
         dataType.basicDataType.should.eql(DataType.Byte);
 
         should.throws(() => {
@@ -433,9 +435,9 @@ describe("testing NodeSet XML file loading", function (this: any) {
         });
         a.setValueFromSource({ dataType: DataType.Byte, value: 23 });
 
-        const HW_SUBMODULE_DataType = addressSpace.findDataType("HW_SUBMODULE", nsIndex);
+        const HW_SUBMODULE_DataType = addressSpace.findDataType("HW_SUBMODULE", nsIndex)!;
         HW_SUBMODULE_DataType.nodeId.namespace.should.eql(nsIndex);
-        HW_SUBMODULE_DataType.subtypeOf.toString().should.eql("ns=2;i=3034");
+        HW_SUBMODULE_DataType.subtypeOf!.toString().should.eql("ns=2;i=3034");
         HW_SUBMODULE_DataType.basicDataType.should.eql(DataType.UInt16);
 
     });
@@ -456,8 +458,8 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const dataType = addressSpace.findDataType("F_SYSINFO", nsIndex)!;
         dataType.nodeId.namespace.should.eql(nsIndex);
-        dataType.subtypeOf.toString().should.eql(`ns=${nsIndex};i=3500`);
-        dataType.subtypeOfObj.nodeId.toString().should.eql(`ns=${nsIndex};i=3500`);
+        dataType.subtypeOf!.toString().should.eql(`ns=${nsIndex};i=3500`);
+        dataType.subtypeOfObj!.nodeId.toString().should.eql(`ns=${nsIndex};i=3500`);
         dataType.basicDataType.should.eql(DataType.ExtensionObject);
 
         const object = addressSpace.constructExtensionObject(dataType);

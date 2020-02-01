@@ -1,15 +1,16 @@
+import { resolveNodeId } from "node-opcua-nodeid";
 import "should";
 import * as sinon from "sinon";
-import { resolveNodeId } from "node-opcua-nodeid";
 import {
-    NodeIdManager,
     AddressSpace,
+    ConstructNodeIdOptions,
     generateAddressSpace,
-    ConstructNodeIdOptions
+    NodeIdManager
 } from "..";
 
 import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 
+// tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("NodeIdManager", () => {
 
@@ -83,7 +84,7 @@ describe("NodeIdManager", () => {
     });
 
     it("should constructNodeId with CoercibleString form", () => {
-        const options = { nodeId: "CloseSecureChannelRequest_Encoding_DefaultXml" };
+        const options = { nodeId: "CloseSecureChannelRequest_Encoding_DefaultXml", nodeClass: NodeClass.Object, browseName: coerceQualifiedName("a") };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;i=1000");
 
@@ -147,8 +148,8 @@ describe("NodeIdManager", () => {
 
         const options2 = {
             browseName: coerceQualifiedName("Property1"),
-            nodeId: "SomeName_Property1",
             nodeClass: NodeClass.Variable,
+            nodeId: "SomeName_Property1",
         };
         const nodeId2 = nodeIdManager.constructNodeId(options2);
         nodeId2.toString().should.eql("ns=1;i=1001");

@@ -27,3 +27,4 @@ export { ContinuationPointManager } from "../source/continuation_points/continua
 export { Reference } from "../src/reference";
 export { NodeIdManager, ConstructNodeIdOptions } from "../src/nodeid_manager";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/load_nodeset2";
+export * from "../src/event_data";

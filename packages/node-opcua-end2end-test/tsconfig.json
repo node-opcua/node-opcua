@@ -1,7 +1,92 @@
 {
-  "extends" : "../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "source",
-    "outDir": "dist"
-  }
+    "outDir": "dist",
+    "composite": true
+  },
+  "references": [
+    {
+      "path": "../node-opcua"
+    },
+    {
+      "path": "../node-opcua-address-space"
+    },
+    {
+      "path": "../node-opcua-address-space-for-conformance-testing"
+    },
+    {
+      "path": "../node-opcua-assert"
+    },
+    {
+      "path": "../node-opcua-basic-types"
+    },
+    {
+      "path": "../node-opcua-binary-stream"
+    },
+    {
+      "path": "../node-opcua-buffer-utils"
+    },
+    {
+      "path": "../node-opcua-client"
+    },
+    {
+      "path": "../node-opcua-client-proxy"
+    },
+    {
+      "path": "../node-opcua-common"
+    },
+    {
+      "path": "../node-opcua-constants"
+    },
+    {
+      "path": "../node-opcua-debug"
+    },
+    {
+      "path": "../node-opcua-extension-object"
+    },
+    {
+      "path": "../node-opcua-factory"
+    },
+    {
+      "path": "../node-opcua-generator"
+    },
+    {
+      "path": "../node-opcua-hostname"
+    },
+    {
+      "path": "../node-opcua-leak-detector"
+    },
+    {
+      "path": "../node-opcua-nodeid"
+    },
+    {
+      "path": "../node-opcua-packet-analyzer"
+    },
+    {
+      "path": "../node-opcua-server"
+    },
+    {
+      "path": "../node-opcua-server-discovery"
+    },
+    {
+      "path": "../node-opcua-service-browse"
+    },
+    {
+      "path": "../node-opcua-service-filter"
+    },
+    {
+      "path": "../node-opcua-service-read"
+    },
+    {
+      "path": "../node-opcua-service-secure-channel"
+    },
+    {
+      "path": "../node-opcua-variant"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

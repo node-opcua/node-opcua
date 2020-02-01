@@ -10,9 +10,10 @@ import { StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
+import { SessionContext } from "../source";
 import {
     BaseNode as BaseNodePublic,
-    EventData as EventDataPublic,
+    IEventData,
     UAVariable as UAVariablePublic
 } from "../source/address_space_ts";
 
@@ -21,7 +22,7 @@ import {
  * @param eventTypeNode {BaseNode}
  * @constructor
  */
-export class EventData implements EventDataPublic {
+export class EventData implements IEventData {
 
     public eventId: NodeId;
     public $eventDataSource: BaseNodePublic;
@@ -39,7 +40,7 @@ export class EventData implements EventDataPublic {
      * @param selectClause {SimpleAttributeOperand}
      * @return {NodeId|null}
      */
-    public resolveSelectClause(selectClause: SimpleAttributeOperand) {
+    public resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null {
         const self = this;
         assert(selectClause instanceof SimpleAttributeOperand);
         const addressSpace = self.$eventDataSource.addressSpace;
@@ -86,7 +87,7 @@ export class EventData implements EventDataPublic {
      * @param selectClause {SimpleAttributeOperand}
      * @return {Variant}
      */
-    public readValue(nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
+    public readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
         assert(nodeId instanceof NodeId);
         assert(selectClause instanceof SimpleAttributeOperand);
         const self = this;
@@ -104,9 +105,9 @@ export class EventData implements EventDataPublic {
 
         if (node.nodeClass === NodeClass.Variable && selectClause.attributeId === AttributeIds.Value) {
             const nodeVariable = node as UAVariablePublic;
-            return prepare(nodeVariable.readValue(null, selectClause.indexRange));
+            return prepare(nodeVariable.readValue(sessionContext, selectClause.indexRange));
         }
-        return prepare(node.readAttribute( null, selectClause.attributeId));
+        return prepare(node.readAttribute(sessionContext, selectClause.attributeId));
     }
 }
 
@@ -114,5 +115,5 @@ function prepare(dataValue: DataValue): Variant {
     if (dataValue.statusCode === StatusCodes.Good) {
         return dataValue.value;
     }
-    return new Variant({dataType: DataType.StatusCode, value: dataValue.statusCode});
+    return new Variant({ dataType: DataType.StatusCode, value: dataValue.statusCode });
 }

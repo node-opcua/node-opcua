@@ -5,7 +5,7 @@
     "main": "dist/source/index.js",
     "types": "dist/source/index.d.ts",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "test": "echo no test"
     },
     "dependencies": {

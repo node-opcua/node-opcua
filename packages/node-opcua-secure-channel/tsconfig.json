@@ -1,11 +1,97 @@
 {
-  "extends" : "../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "",
-    "outDir": "dist"
+    "outDir": "dist",
+    "composite": true
   },
-  "files": [
-    "source/index.ts",
-    "test_helpers/index.ts"
+  "include": [
+    "source/**/*.ts",
+    "src/**/*.ts",
+    "test_helpers/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../node-opcua-assert"
+    },
+    {
+      "path": "../node-opcua-basic-types"
+    },
+    {
+      "path": "../node-opcua-binary-stream"
+    },
+    {
+      "path": "../node-opcua-certificate-manager"
+    },
+    {
+      "path": "../node-opcua-chunkmanager"
+    },
+    {
+      "path": "../node-opcua-common"
+    },
+    {
+      "path": "../node-opcua-debug"
+    },
+    {
+      "path": "../node-opcua-enum"
+    },
+    {
+      "path": "../node-opcua-factory"
+    },
+    {
+      "path": "../node-opcua-nodeid"
+    },
+    {
+      "path": "../node-opcua-object-registry"
+    },
+    {
+      "path": "../node-opcua-packet-analyzer"
+    },
+    {
+      "path": "../node-opcua-service-secure-channel"
+    },
+    {
+      "path": "../node-opcua-status-code"
+    },
+    {
+      "path": "../node-opcua-transport"
+    },
+    {
+      "path": "../node-opcua-types"
+    },
+    {
+      "path": "../node-opcua-utils"
+    },
+    {
+      "path": "../node-opcua-buffer-utils"
+    },
+    {
+      "path": "../node-opcua-leak-detector"
+    },
+    {
+      "path": "../node-opcua-packet-analyzer"
+    },
+    {
+      "path": "../node-opcua-service-browse"
+    },
+    {
+      "path": "../node-opcua-service-endpoints"
+    },
+    {
+      "path": "../node-opcua-service-read"
+    },
+    {
+      "path": "../node-opcua-service-session"
+    },
+    {
+      "path": "../node-opcua-test-fixtures"
+    },
+    {
+      "path": "../node-opcua-test-helpers"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }

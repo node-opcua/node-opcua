@@ -1,11 +1,38 @@
 {
-  "extends" : "../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "source",
-    "outDir": "dist"
+    "outDir": "dist",
+    "composite": true
   },
-  "files": [
-    "source/index.ts"
+  "include": [
+    "source/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../node-opcua-assert"
+    },
+    {
+      "path": "../node-opcua-basic-types"
+    },
+    {
+      "path": "../node-opcua-binary-stream"
+    },
+    {
+      "path": "../node-opcua-buffer-utils"
+    },
+    {
+      "path": "../node-opcua-factory"
+    },
+    {
+      "path": "../node-opcua-packet-assembler"
+    },
+    {
+      "path": "../node-opcua-debug"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
-
 }

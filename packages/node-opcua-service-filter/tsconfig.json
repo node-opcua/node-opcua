@@ -1,15 +1,63 @@
 {
-  "extends" : "../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "source",
-    "outDir": "dist"
+    "outDir": "dist",
+    "composite": true
   },
   "include": [
-    "./source/index.ts"
+    "source/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "_generated_",
     "dist"
+  ],
+  "references": [
+    {
+      "path": "../node-opcua-assert"
+    },
+    {
+      "path": "../node-opcua-basic-types"
+    },
+    {
+      "path": "../node-opcua-binary-stream"
+    },
+    {
+      "path": "../node-opcua-constants"
+    },
+    {
+      "path": "../node-opcua-data-model"
+    },
+    {
+      "path": "../node-opcua-debug"
+    },
+    {
+      "path": "../node-opcua-factory"
+    },
+    {
+      "path": "../node-opcua-nodeid"
+    },
+    {
+      "path": "../node-opcua-numeric-range"
+    },
+    {
+      "path": "../node-opcua-service-translate-browse-path"
+    },
+    {
+      "path": "../node-opcua-status-code"
+    },
+    {
+      "path": "../node-opcua-types"
+    },
+    {
+      "path": "../node-opcua-variant"
+    },
+    {
+      "path": "../node-opcua-generator"
+    },
+    {
+      "path": "../node-opcua-service-secure-channel"
+    }
   ]
 }

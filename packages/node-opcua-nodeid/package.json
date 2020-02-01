@@ -1,41 +1,41 @@
 {
- "name": "node-opcua-nodeid",
- "main": "./dist/index.js",
- "types": "./dist/index.d.ts",
- "version": "2.4.2",
- "description": "pure nodejs OPCUA SDK - module -nodeid",
- "scripts": {
-  "build": "tsc",
-  "lint": "tslint source/**/*.ts",
-  "clean": "node -e \"require('rimraf').sync('dist');\"",
-  "test": "mocha test"
- },
- "dependencies": {
-  "node-opcua-assert": "^2.3.0",
-  "node-opcua-constants": "^2.1.6",
-  "node-opcua-enum": "^2.4.2",
-  "node-opcua-guid": "^2.3.0",
-  "underscore": "^1.9.2"
- },
- "devDependencies": {
-  "node-opcua-benchmarker": "^2.4.2",
-  "should": "13.2.3",
-  "source-map-support": "^0.5.16"
- },
- "author": "Etienne Rossignon",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git://github.com/node-opcua/node-opcua.git"
- },
- "keywords": [
-  "OPCUA",
-  "opcua",
-  "m2m",
-  "iot",
-  "opc ua",
-  "internet of things"
- ],
- "homepage": "http://node-opcua.github.io/",
- "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+    "name": "node-opcua-nodeid",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "version": "2.4.2",
+    "description": "pure nodejs OPCUA SDK - module -nodeid",
+    "scripts": {
+        "build": "tsc -b",
+        "lint": "tslint source/**/*.ts",
+        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "test": "mocha test"
+    },
+    "dependencies": {
+        "node-opcua-assert": "^2.3.0",
+        "node-opcua-constants": "^2.1.6",
+        "node-opcua-enum": "^2.4.2",
+        "node-opcua-guid": "^2.3.0",
+        "underscore": "^1.9.2"
+    },
+    "devDependencies": {
+        "node-opcua-benchmarker": "^2.4.2",
+        "should": "13.2.3",
+        "source-map-support": "^0.5.16"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }

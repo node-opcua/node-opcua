@@ -29,7 +29,7 @@ import {
     AddReferenceOpts,
     AddressSpace as AddressSpacePublic,
     adjustBrowseDirection,
-    EventData as EventDataPublic,
+    IEventData,
     IHistoricalDataNodeOptions,
     RootFolder,
     SessionContext,
@@ -648,7 +648,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      * @private
      */
-    public constructEventData(eventTypeId: UAEventTypePublic, data: any): EventDataPublic {
+    public constructEventData(eventTypeId: UAEventTypePublic, data: any): IEventData {
         const addressSpace = this;
 
         data = data || {};

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua",
-    "version": "2.0.0",
+    "version": "2.5.0",
     "private": true,
     "description": "pure nodejs OPCUA SDK",
     "homepage": "http://node-opcua.github.io/",
@@ -11,8 +11,9 @@
     },
     "scripts": {
         "_x_preinstall": "npm i browserify -g",
-        "bootstrap": "node  ./node_modules/lerna/cli.js bootstrap --hoist --reject-cycles --sort --concurrency=1",
-        "build": "node  ./node_modules/lerna/cli.js --stream --sort --concurrency=1 run build",
+        "bootstrap": "node  ./node_modules/lerna/cli.js bootstrap --hoist",
+        "build1": "node  ./node_modules/lerna/cli.js --stream --sort --concurrency=1 run build",
+        "build": "npm run generate && tsc -b packages",
         "generate": "node  ./node_modules/lerna/cli.js run generate",
         "postinstall": "npm run bootstrap && npm run build && npm run generate",
         "pretest": "node  ./node_modules/lerna/cli.js run pretest",

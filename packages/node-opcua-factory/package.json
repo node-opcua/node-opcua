@@ -1,43 +1,42 @@
 {
- "name": "node-opcua-factory",
- "version": "2.4.2",
- "description": "pure nodejs OPCUA SDK - module -factory",
- "main": "./dist/index.js",
- "types": "./dist/index.d.ts",
- "scripts": {
-  "build": "tsc",
-  "lint": "tslint source/**/*.ts",
-  "test": "echo no test"
- },
- "dependencies": {
-  "chalk": "^3.0.0",
-  "node-opcua-assert": "^2.3.0",
-  "node-opcua-basic-types": "^2.4.2",
-  "node-opcua-binary-stream": "^2.4.2",
-  "node-opcua-enum": "^2.4.2",
-  "node-opcua-guid": "^2.3.0",
-  "node-opcua-nodeid": "^2.4.2",
-  "node-opcua-status-code": "^2.4.2",
-  "node-opcua-utils": "^2.4.2",
-  "underscore": "^1.9.2"
- },
- "devDependencies": {
-  "node-opcua-debug": "^2.4.2"
- },
- "author": "Etienne Rossignon",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git://github.com/node-opcua/node-opcua.git"
- },
- "keywords": [
-  "OPCUA",
-  "opcua",
-  "m2m",
-  "iot",
-  "opc ua",
-  "internet of things"
- ],
- "homepage": "http://node-opcua.github.io/",
- "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+    "name": "node-opcua-factory",
+    "version": "2.4.2",
+    "description": "pure nodejs OPCUA SDK - module -factory",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -b",
+        "lint": "tslint source/**/*.ts",
+        "test": "echo no test"
+    },
+    "dependencies": {
+        "chalk": "^3.0.0",
+        "node-opcua-assert": "^2.3.0",
+        "node-opcua-basic-types": "^2.4.2",
+        "node-opcua-binary-stream": "^2.4.2",
+        "node-opcua-debug": "^2.4.2",
+        "node-opcua-enum": "^2.4.2",
+        "node-opcua-guid": "^2.3.0",
+        "node-opcua-nodeid": "^2.4.2",
+        "node-opcua-status-code": "^2.4.2",
+        "node-opcua-utils": "^2.4.2",
+        "underscore": "^1.9.2"
+    },
+    "devDependencies": {},
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }

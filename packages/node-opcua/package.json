@@ -5,7 +5,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "tsc"
+        "build": "tsc -b"
     },
     "engines": {
         "node": ">=8.10"
@@ -16,6 +16,7 @@
         "node-opcua-address-space-for-conformance-testing": "^2.4.4",
         "node-opcua-assert": "^2.3.0",
         "node-opcua-basic-types": "^2.4.2",
+        "node-opcua-binary-stream": "^2.4.2",
         "node-opcua-certificate-manager": "^2.4.2",
         "node-opcua-client": "^2.4.4",
         "node-opcua-client-crawler": "^2.4.4",

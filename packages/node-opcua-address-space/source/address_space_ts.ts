@@ -49,7 +49,8 @@ import {
     ServerStatusDataType,
     SessionDiagnosticsDataType,
     SessionSecurityDiagnosticsDataType,
-    SignedSoftwareCertificate
+    SignedSoftwareCertificate,
+    SimpleAttributeOperand
 } from "node-opcua-types";
 import {
     DataType,
@@ -772,7 +773,7 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
 
     raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
 
-    on(eventName: "event", eventHandler: (eventData: EventData) => void): this;
+    on(eventName: "event", eventHandler: (eventData: IEventData) => void): this;
 
     clone(options: any, optionalFilter?: any, extraInfo?: any): UAObject;
 
@@ -2277,7 +2278,7 @@ export interface IVariableHistorianOptions {
     historian?: IVariableHistorian;
 }
 
-export interface EventData {
+export interface IEventData {
     /**
      * the event type node
      */
@@ -2286,6 +2287,11 @@ export interface EventData {
      *
      */
     eventId: NodeId;
+
+    resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null;
+    setValue(lowerName: string, node: BaseNode, variant: VariantLike): void;
+    readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant;
+
 }
 
 export interface AddressSpace {
@@ -2436,7 +2442,7 @@ export interface AddressSpace {
      * or an instance of a ConditionType
      *
      */
-    constructEventData(eventTypeId: UAEventType, data: any): EventData;
+    constructEventData(eventTypeId: UAEventType, data: any): IEventData;
 
     /**
      * walk up the hierarchy of objects until a view is found

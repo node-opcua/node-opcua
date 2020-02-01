@@ -3,8 +3,9 @@
 	"version": "2.4.4",
 	"description": "pure nodejs OPCUA SDK - module -server-discovery",
 	"scripts": {
-		"build": "tsc",
-		"postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
+		"build": "tsc -b",
+		"postinstall": "npm run certificate",
+		"certificate": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
 		"test": "echo no test here  : see node-opcua-end-to-end"
 	},
 	"main": "./dist/index.js",

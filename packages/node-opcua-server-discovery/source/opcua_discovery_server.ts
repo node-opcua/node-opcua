@@ -102,7 +102,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         const default_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
         options.certificateFile = options.certificateFile || default_certificate_file;
-        assert(fs.existsSync(options.certificateFile));
+        assert(fs.existsSync(options.certificateFile), "cannot find certificateFile" + options.certificateFile);
 
         const default_private_key_file = constructFilename("certificates/PKI/own/private/private_key.pem");
         options.privateKeyFile = options.privateKeyFile || default_private_key_file;

@@ -30,5 +30,5 @@
     "include": ["packages/**/*.ts"],
     "exclude": ["node_modules/**", "node_modules"],
     "compileOnSave": false,
-    "incremental": true
+    "incremental": "traceResolution"
 }
