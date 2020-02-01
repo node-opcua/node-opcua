@@ -1,39 +1,39 @@
 {
- "name": "node-opcua-date-time",
- "main": "./dist/index.js",
- "types": "./dist/index.d.ts",
- "version": "2.4.2",
- "description": "pure nodejs OPCUA SDK - module -date-time",
- "scripts": {
-  "build": "tsc",
-  "test": "mocha test"
- },
- "dependencies": {
-  "long": "^4.0.0",
-  "node-opcua-assert": "^2.3.0",
-  "underscore": "^1.9.2"
- },
- "devDependencies": {
-  "@types/underscore": "^1.9.4",
-  "bignumber.js": "^9.0.0",
-  "node-opcua-benchmarker": "^2.4.2",
-  "node-opcua-binary-stream": "^2.4.2",
-  "should": "13.2.3"
- },
- "author": "Etienne Rossignon",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git://github.com/node-opcua/node-opcua.git"
- },
- "keywords": [
-  "OPCUA",
-  "opcua",
-  "m2m",
-  "iot",
-  "opc ua",
-  "internet of things"
- ],
- "homepage": "http://node-opcua.github.io/",
- "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+    "name": "node-opcua-date-time",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "version": "2.4.2",
+    "description": "pure nodejs OPCUA SDK - module -date-time",
+    "scripts": {
+        "build": "tsc -b",
+        "test": "mocha test"
+    },
+    "dependencies": {
+        "long": "^4.0.0",
+        "node-opcua-assert": "^2.3.0",
+        "underscore": "^1.9.2"
+    },
+    "devDependencies": {
+        "@types/underscore": "^1.9.4",
+        "bignumber.js": "^9.0.0",
+        "node-opcua-benchmarker": "^2.4.2",
+        "node-opcua-binary-stream": "^2.4.2",
+        "should": "13.2.3"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }

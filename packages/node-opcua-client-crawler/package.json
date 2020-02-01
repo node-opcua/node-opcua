@@ -6,7 +6,7 @@
 	"description": "pure nodejs OPCUA SDK - module -client-crawler",
 	"scripts": {
 		"lint": "tslint source/**/*.ts",
-		"build": "tsc",
+		"build": "tsc -b",
 		"test": "mocha test"
 	},
 	"dependencies": {

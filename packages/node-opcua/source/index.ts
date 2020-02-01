@@ -14,14 +14,16 @@ const minimumNodeVersionRequired = ">=8.0.0"; // minimum
 // istanbul ignore next
 if (!semver.satisfies(process.version, minimumNodeVersionRequired)) {
     console.log(
-      chalk.cyan(`warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${
-        process.version
-        }.`));
+        chalk.cyan(`warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${
+            process.version
+            }.`));
 }
 
 export * from "node-opcua-common";
 
 export { assert } from "node-opcua-assert";
+export { BinaryStream } from "node-opcua-binary-stream";
+
 export * from "node-opcua-utils";
 
 export {
@@ -134,6 +136,6 @@ module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPC
 const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
 
 module.exports.build_address_space_for_conformance_testing =
-  address_space_for_conformance_testing.build_address_space_for_conformance_testing;
+    address_space_for_conformance_testing.build_address_space_for_conformance_testing;
 
 module.exports.install_optional_cpu_and_memory_usage_node = require("node-opcua-vendor-diagnostic").install_optional_cpu_and_memory_usage_node;

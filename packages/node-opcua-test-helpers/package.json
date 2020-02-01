@@ -1,31 +1,31 @@
 {
- "name": "node-opcua-test-helpers",
- "version": "2.4.2",
- "description": "pure nodejs OPCUA SDK - module -test-helpers",
- "main": "./dist/index.js",
- "types": "./dist/index.d.ts",
- "private": true,
- "scripts": {
-  "build": "tsc",
-  "test": "echo no test"
- },
- "author": "Etienne Rossignon",
- "license": "MIT",
- "dependencies": {
-  "should": "13.2.3",
-  "underscore": "^1.9.2"
- },
- "repository": {
-  "type": "git",
-  "url": "git://github.com/node-opcua/node-opcua.git"
- },
- "keywords": [
-  "OPCUA",
-  "opcua",
-  "m2m",
-  "iot",
-  "opc ua",
-  "internet of things"
- ],
- "homepage": "http://node-opcua.github.io/"
+    "name": "node-opcua-test-helpers",
+    "version": "2.4.2",
+    "description": "pure nodejs OPCUA SDK - module -test-helpers",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "private": true,
+    "scripts": {
+        "build": "tsc -b",
+        "test": "echo no test"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "dependencies": {
+        "should": "13.2.3",
+        "underscore": "^1.9.2"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/"
 }

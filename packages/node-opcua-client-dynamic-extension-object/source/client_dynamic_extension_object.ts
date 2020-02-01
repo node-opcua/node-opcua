@@ -4,7 +4,6 @@
  */
 import * as chalk from "chalk";
 import * as _ from "underscore";
-import { promisify } from "util";
 
 import { assert } from "node-opcua-assert";
 import {
@@ -12,31 +11,27 @@ import {
     makeNodeClassMask,
     makeResultMask, NodeClass, QualifiedName
 } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
 import {
     checkDebugFlag,
     make_debugLog
 } from "node-opcua-debug";
 import {
+    BasicTypeDefinition,
     ConstructorFuncWithSchema,
     DataTypeFactory,
     FieldCategory,
-    FieldType,
+    FieldInterfaceOptions,
     getBuildInType,
-    getStandartDataTypeFactory,
-    getStructuredTypeSchema,
-    hasBuiltInType,
-    hasStructuredType,
     StructuredTypeOptions,
     StructuredTypeSchema,
-    BasicTypeDefinition,
-    FieldInterfaceOptions,
 } from "node-opcua-factory";
 import {
     ExpandedNodeId,
+    makeExpandedNodeId,
     NodeId,
     resolveNodeId,
-    sameNodeId,
-    makeExpandedNodeId
+    sameNodeId
 } from "node-opcua-nodeid";
 import {
     BrowseDescriptionLike,
@@ -63,19 +58,13 @@ import {
 } from "node-opcua-status-code";
 import {
     DataTypeDefinition,
-    DataTypeDescription,
     EnumDefinition,
     StructureDefinition,
-    StructureField,
     StructureType,
 } from "node-opcua-types";
 import {
     ExtraDataTypeManager
 } from "./extra_data_type_manager";
-import { isValidInt32 } from "../../node-opcua-basic-types/dist";
-import { DataType } from "node-opcua-variant";
-import { DataValue } from "node-opcua-data-value";
-import { Session } from "inspector";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -243,7 +232,6 @@ async function _findEncodings(session: IBasicSession, dataTypeNodeId: NodeId): P
     return encodings;
 }
 
-
 async function _extractDataTypeDictionaryFromDefinition(
     session: IBasicSession,
     dataTypeDictionaryNodeId: NodeId,
@@ -335,12 +323,6 @@ async function _extractNodeIds(
         map[dataTypeDescription.browseName.name!.toString()] = dataTypeDescription.encodings!;
     }
 
-    function f(a: DataTypeAndEncodingId) {
-        return a ? (a.dataTypeNodeId.toString() + " b=" +
-            a.binaryEncodingNodeId?.toString() + " x=" +
-            a.xmlEncodingNodeId?.toString() + " j=" +
-            a.jsonEncodingNodeId?.toString()) : " null";
-    }
     return {
         getDataTypeAndEncodingId(key: string) {
             return map[key];
@@ -741,7 +723,7 @@ async function findDataTypeBasicType(
         switch (subTypeNodeId.value) {
             case 22: /* Structure */
             case 29: /* Enumeration */
-                throw new Error("Not expecting Structure or Enumeration")
+                throw new Error("Not expecting Structure or Enumeration");
             default:
                 break;
         }
@@ -771,7 +753,7 @@ async function resolveFieldType(
         return null;
     }
     const key = dataTypeNodeId.toString();
-    let v = cache[key];
+    const v = cache[key];
     if (v) {
         return v;
     }
@@ -882,7 +864,7 @@ async function _convertDataTypeDefinitionToStructureTypeSchema(
         return new StructuredTypeSchema(os);
     } else if (definition instanceof EnumDefinition) {
         //
-        console.log("xxxx Ignoring enumeration !!!!")
+        console.log("xxxx Ignoring enumeration !!!!");
     }
     throw new Error("Not Implemented");
 }

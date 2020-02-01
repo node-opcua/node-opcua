@@ -6,7 +6,6 @@
 // tslint:disable:max-classes-per-file
 // tslint:disable:unified-signatures
 
-import { Request, Response } from "node-opcua-client";
 export { Request, Response } from "node-opcua-client";
 export * from "node-opcua-certificate-manager";
 export * from "node-opcua-address-space";

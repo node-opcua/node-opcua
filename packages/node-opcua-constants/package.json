@@ -4,7 +4,7 @@
   "description": "pure nodejs OPCUA SDK - module -constants",
   "scripts": {
     "clean": "node -e \"require('rimraf').sync('dist');\"",
-    "build": "tsc",
+    "build": "tsc -b",
     "lint": "tslint -c tslint.json source/**/*.ts",
     "test": ""
   },

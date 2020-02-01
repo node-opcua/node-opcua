@@ -3,7 +3,7 @@
   "version": "2.4.4",
   "description": "pure nodejs OPCUA SDK - module -server",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "lint": "tslint source/**/*.ts",
     "clean": "node -e \"require('rimraf').sync('dist');\"",
     "test": "mocha test"

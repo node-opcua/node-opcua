@@ -7,7 +7,7 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import {
-    resolveNodeId
+    NodeId, resolveNodeId
 } from "node-opcua-nodeid";
 import {
     ArgumentDefinition,
@@ -37,11 +37,13 @@ import {
     StatusCodes
 } from "node-opcua-status-code";
 
-import { MessageSecurityMode } from "node-opcua-types";
+import { NodeClass, AttributeIds } from "node-opcua-data-model";
+import { MessageSecurityMode, ReadValueId } from "node-opcua-types";
 import { AddressSpace } from "./address_space_ts";
 import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 import { callMethodHelper } from "./helpers/call_helpers";
 import { IServerBase, ISessionBase, SessionContext } from "./session_context";
+import { UAVariable } from "../src/ua_variable";
 /**
  * Pseudo session is an helper object that exposes the same async methods
  * than the ClientSession. It can be used on a server address space.
@@ -124,28 +126,39 @@ export class PseudoSession implements IBasicSession {
             nodesToRead = [nodesToRead];
         }
 
+        const context = SessionContext.defaultContext;
+
         setImmediate(() => {
 
-            // xx const context = new SessionContext({ session: null });
-            const dataValues = nodesToRead.map((nodeToRead: ReadValueIdLike) => {
-
-                assert(!!nodeToRead.nodeId, "expecting a nodeId");
-                assert(!!nodeToRead.attributeId, "expecting a attributeId");
-
-                const nodeId = nodeToRead.nodeId!;
-                const attributeId = nodeToRead.attributeId!;
-                const indexRange = nodeToRead.indexRange;
-                const dataEncoding = nodeToRead.dataEncoding;
-                const obj = this.addressSpace.findNode(nodeId);
-                if (!obj) {
-                    return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+            async.map(nodesToRead, (nodeToRead: ReadValueId, innerCallback: any) => {
+                const obj = this.addressSpace.findNode(nodeToRead.nodeId);
+                if (!obj || obj.nodeClass !== NodeClass.Variable || nodeToRead.attributeId !== AttributeIds.Value) {
+                    return innerCallback();
                 }
-                const context = SessionContext.defaultContext;
-                const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
-                return dataValue;
-            });
+                (obj as UAVariable).readValueAsync(context, innerCallback);
+            }, (err) => {
+                // xx const context = new SessionContext({ session: null });
+                const dataValues = nodesToRead.map((nodeToRead: ReadValueIdLike) => {
 
-            callback!(null, isArray ? dataValues : dataValues[0]);
+                    assert(!!nodeToRead.nodeId, "expecting a nodeId");
+                    assert(!!nodeToRead.attributeId, "expecting a attributeId");
+
+                    const nodeId = nodeToRead.nodeId!;
+                    const attributeId = nodeToRead.attributeId!;
+                    const indexRange = nodeToRead.indexRange;
+                    const dataEncoding = nodeToRead.dataEncoding;
+                    const obj = this.addressSpace.findNode(nodeId);
+                    if (!obj) {
+                        return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+                    }
+                    const context = SessionContext.defaultContext;
+                    const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
+                    return dataValue;
+                });
+
+                callback!(null, isArray ? dataValues : dataValues[0]);
+
+            });
         });
     }
 

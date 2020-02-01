@@ -1,10 +1,56 @@
 {
-  "extends" : "../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "dist"
+    "outDir": "dist",
+    "composite": true
   },
-  "types": [ "mocha" ],
-  "files": [ "source/index.ts"]
-
+  "types": [
+    "mocha"
+  ],
+  "include": [
+    "source/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../node-opcua-assert"
+    },
+    {
+      "path": "../node-opcua-binary-stream"
+    },
+    {
+      "path": "../node-opcua-data-model"
+    },
+    {
+      "path": "../node-opcua-debug"
+    },
+    {
+      "path": "../node-opcua-enum"
+    },
+    {
+      "path": "../node-opcua-extension-object"
+    },
+    {
+      "path": "../node-opcua-factory"
+    },
+    {
+      "path": "../node-opcua-nodeid"
+    },
+    {
+      "path": "../node-opcua-variant"
+    },
+    {
+      "path": "../node-opcua-xml2json"
+    },
+    {
+      "path": "../node-opcua-utils"
+    },
+    {
+      "path": "../node-opcua-packet-analyzer"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

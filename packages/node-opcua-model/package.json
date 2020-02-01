@@ -4,7 +4,7 @@
   "description": "pure nodejs OPCUA SDK - module - model",
   "main": "index.js",
   "scripts": {
-    "_build": "tsc",
+    "_build": "tsc -b",
     "test": "mocha test"
   },
   "author": "Etienne Rossignon",

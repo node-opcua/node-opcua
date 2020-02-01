@@ -5,7 +5,7 @@
   "version": "2.4.2",
   "description": "pure nodejs OPCUA SDK - module -data-access",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "test": "mocha test",
     "clean": "node -e \"require('rimraf').sync('dist');\"",
     "lint": "tslint source/**/*.ts"

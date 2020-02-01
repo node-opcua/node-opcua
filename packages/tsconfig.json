@@ -14,7 +14,18 @@
         "noStrictGenericChecks": true,
         "skipDefaultLibCheck": true,
         "outDir": "dist",
-        "incremental": true
+        "incremental": true,
+        "composite": true
     },
-    "exclude": ["**/node_modules/*", "node_modules", "**/dist/*"]
+    "exclude": ["**/node_modules/*", "node_modules", "**/dist/*", "packages/*"],
+    "references": [
+        { "path": "node-opcua" },
+        { "path": "node-opcua-test-fixtures" },
+        { "path": "node-opcua-aggregates" },
+        { "path": "node-opcua-file-transfer" },
+        { "path": "node-opcua-benchmarker" },
+        { "path": "node-opcua-modeler" },
+        { "path": "node-opcua-local-discovery-server" },
+        { "path": "node-opcua-samples" }
+    ]
 }
