@@ -1,5 +1,5 @@
 /**
- * @module node-opcua-file-transfer-client
+ * @module node-opcua-file-transfer
  */
 import { Byte, Int32, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
@@ -20,6 +20,10 @@ import { OpenFileMode } from "../open_mode";
 
 export { OpenFileMode } from "../open_mode";
 
+/**
+ *
+ *
+ */
 export class ClientFile {
 
     public fileHandle: number = 0;
