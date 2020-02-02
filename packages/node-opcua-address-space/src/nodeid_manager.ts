@@ -13,6 +13,9 @@ import { Reference } from "./reference";
 export const NamespaceOptions = {
     nodeIdNameSeparator: "-"
 };
+function isValidNodeClass(nodeClass: NodeClass) {
+    return typeof (NodeClass as any)[nodeClass] === "string";
+}
 
 const regExp1 = /^(s|i|b|g)=/;
 const regExp2 = /^ns=[0-9]+;(s|i|b|g)=/;
@@ -69,12 +72,26 @@ export class NodeIdManager {
         this.namespaceIndex = namespaceIndex;
         this.addressSpace = addressSpace;
     }
+
     public setCache(cache: Array<[string, number, NodeClass]>) {
         this._cache = {};
         this._reverseCache = {};
         for (const [key, value, nodeClass] of cache) {
             this._addInCache(key, value, nodeClass);
         }
+    }
+
+    public setSymbols(symbols: Array<[string, number, string]>): void {
+
+        function convertNodeClass(nodeClass: string): NodeClass {
+            return (NodeClass as any)[nodeClass as any] as NodeClass;
+        }
+        const symbols2 = symbols.map((e: [string, number, string]) => [
+            e[0] as string,
+            e[1] as number,
+            convertNodeClass(e[2])
+        ]) as Array<[string, number, NodeClass]>;
+        this.setCache(symbols2);
     }
 
     public getSymbols(): Array<[string, number, string]> {
@@ -106,48 +123,54 @@ export class NodeIdManager {
 
     public constructNodeId(options: ConstructNodeIdOptions): NodeId {
 
+        function prepareName(browseName: QualifiedName): string {
+            assert(browseName instanceof QualifiedName);
+            const m = browseName.name!.toString().replace(/[ ]/g, "_").replace(/(\<|\>)/g, "");
+            return m;
+        }
         let nodeId = options.nodeId;
         const nodeClass = options.nodeClass;
 
         if (!nodeId) {
 
-            const data = this.findParentNodeId(options);
+            //    console.log("xx constructNodeId", options.browseName.toString());
 
-            if (data) {
-                const [parentNodeId, linkName] = data;
-                assert(options.browseName instanceof QualifiedName);
-                const name = options.browseName.toString().replace(/ /g, "");
+            const parentInfo = this.findParentNodeId(options);
 
+            if (parentInfo) {
+                const [parentNodeId, linkName] = parentInfo;
+                const name = prepareName(options.browseName);
                 nodeId = null;
                 if (parentNodeId.identifierType === NodeId.NodeIdType.STRING) {
+                    // combining string nodeId => not stored in chache
                     const childName = parentNodeId.value + NamespaceOptions.nodeIdNameSeparator + name;
                     nodeId = new NodeId(NodeId.NodeIdType.STRING, childName, parentNodeId.namespace);
-
+                    return nodeId;
                 } else if (parentNodeId.identifierType === NodeId.NodeIdType.NUMERIC) {
                     //
-                    const baseName = this._reverseCache[parentNodeId.value as number];
-                    if (baseName) {
-                        const newName = baseName.name + "_" + name;
-                        const nodeIdValue = this._cache[newName];
-                        if (nodeIdValue) {
-                            return new NodeId(NodeIdType.NUMERIC, nodeIdValue, this.namespaceIndex);
+                    const baseNameInCache = this._reverseCache[parentNodeId.value as number];
+                    if (baseNameInCache) {
+                        const newName = baseNameInCache.name + "_" + name;
+                        const nodeIdValueInCache = this._cache[newName];
+                        if (nodeIdValueInCache) {
+                            return new NodeId(NodeIdType.NUMERIC, nodeIdValueInCache, this.namespaceIndex);
                         } else {
                             return this._getOrCreateFromName(newName, nodeClass);
                         }
                     }
                 }
+                // }} has parent ... 
             } else {
                 const isRootType =
                     options.nodeClass === NodeClass.DataType ||
                     options.nodeClass === NodeClass.ObjectType ||
                     options.nodeClass === NodeClass.ReferenceType ||
                     options.nodeClass === NodeClass.VariableType;
+                // try to find
                 if (isRootType) {
-                    // try to find
-                    const baseName = options.browseName.toString();
+                    const baseName = options.browseName.name!.toString();
                     return this._getOrCreateFromName(baseName, nodeClass);
                 }
-
             }
         } else if (typeof nodeId === "string") {
 
@@ -190,8 +213,11 @@ export class NodeIdManager {
     }
 
     private _addInCache(name: string, nodeIdValue: number, nodeClass: NodeClass) {
-
+        assert(!name.includes(":"), "Alias name should not contain special characters");
         assert(typeof name === "string" && name[0] !== "[");
+        if (this._isInCache(nodeIdValue) || this._cache[name]) {
+            throw new Error("Already in Cache !" + name + " " + nodeIdValue + " = " + this._cache[name]);
+        }
         this._cache[name] = nodeIdValue;
         this._reverseCache[nodeIdValue] = { name, nodeClass };
     }
@@ -204,7 +230,8 @@ export class NodeIdManager {
         aliasName: string,
         nodeClass: NodeClass
     ): NodeId {
-
+        assert(isValidNodeClass(nodeClass), "invalid node class " + nodeClass);
+        assert(!aliasName.includes(":"), "Alias name should not contain special characters");
         if (this._cache[aliasName]) {
             return new NodeId(NodeIdType.NUMERIC, this._cache[aliasName], this.namespaceIndex);
         } else {

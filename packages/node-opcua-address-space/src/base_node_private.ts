@@ -421,6 +421,7 @@ export function _clone(
         browseName: this.browseName,
         description: this.description,
         displayName: this.displayName,
+        nodeClass: this.nodeClass,
     });
     options.references = options.references || [];
 

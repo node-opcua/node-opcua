@@ -33,7 +33,7 @@ describe("displayNodeElement", () => {
 
         displayNodeElement(addressSpace.rootFolder);
 
-        const str1 = displayNodeElement(addressSpace.rootFolder.objects.server);
+        const str1 = displayNodeElement(addressSpace.rootFolder.objects.server, { format: "cli" });
 
 
         removeDecoration(str1).should.eql(`┌────────────────┬──────────────┬──────────────────────────┬───────────────┬─────────────────────────┬───────────────────────────────────────┬───────┐

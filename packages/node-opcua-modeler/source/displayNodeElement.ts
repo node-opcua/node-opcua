@@ -2,16 +2,49 @@
 import {
     BaseNode,
     Reference,
-    UAVariable,
     UAObjectType,
+    UAVariable,
 } from "node-opcua-address-space";
-import { DataType } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
+import { DataType } from "node-opcua-variant";
+
+// tslint:disable-next-line: no-var-requires
 const Table = require("cli-table3");
 
+const chars1 = {
+    // tslint:disable-next-line: object-literal-sort-keys
+    "top": "-", "top-mid": "+", "top-left": "+", "top-right": "+"
+    , "bottom": "-", "bottom-mid": "+", "bottom-left": "+", "bottom-right": "+"
+    , "left": "|", "left-mid": "+", "mid": "-", "mid-mid": "+"
+    , "right": "|", "right-mid": "+", "middle": "|"
+};
+const chars2 = {
+    // tslint:disable-next-line: object-literal-sort-keys
+    "top": " ", "top-mid": "   ", "top-left": "  ", "top-right": "  "
+    , "bottom": " ", "bottom-mid": "   ", "bottom-left": "  ", "bottom-right": " "
+    , "left": "| ", "left-mid": "| ", "mid": "-", "mid-mid": " | "
+    , "right": " |", "right-mid": "| ", "middle": " | "
+};
+const chars3 = {
+    "top": "", "top-mid": "", "top-left": "", "top-right": ""
+    , "bottom": "", "bottom-mid": "", "bottom-left": "", "bottom-right": ""
+    , "left": "| ", "left-mid": "", "mid": "-", "mid-mid": " | "
+    , "right": " |", "right-mid": "", "middle": " | "
+};
 
-const a = 'ⓂⓄⓋⓥⓇ❗⟵	⟶⟷'
+function toMarkdownTable(table: { head: string[], rows: string[][] }): string {
+
+    const t = [];
+
+    t.push("| " + table.head.join(" | ") + " |");
+    t.push("| " + table.head.map(() => "---").join(" | ") + " |");
+    for (const r of table.rows) {
+        t.push("| " + r.join(" | ") + " |");
+    }
+    return t.join("\n");
+}
+const a = "ⓂⓄⓋⓥⓇ❗⟵	⟶⟷";
 function symbol(nodeClass: NodeClass) {
     switch (nodeClass) {
         case NodeClass.DataType: return "Ⓓ";
@@ -21,19 +54,26 @@ function symbol(nodeClass: NodeClass) {
         case NodeClass.Object: return "Ⓞ";
         case NodeClass.Variable: return "Ⓥ";
         case NodeClass.View: return "⦖";
-        default: return "?"
+        default: return "?";
     }
 }
 const hasSubtypeNodeId = resolveNodeId("HasSubtype");
 
-export function displayNodeElement(node: BaseNode): string {
+export interface DisplayNodeOptions {
+    format: "cli" | "markdown";
+}
 
+export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions): string {
+
+    const rows: Array<string[]> = [];
+    const head: string[] = [
+        "ReferenceType", "NodeId", "BrowseName", "ModellingRule", "TypeDefinition", "DataType", "Value"
+    ];
     // instantiate
-    var table = new Table({
-        head: [
-            'ReferenceType', 'NodeId', 'BrowseName', 'ModellingRule', "TypeDefinition", "DataType", "Value"
-        ],
-        //colWidths: [100, 200, 50, 50,]
+    const table = new Table({
+        // chars,
+        head,
+        // colWidths: [100, 200, 50, 50,]
     });
 
     table.push(
@@ -42,6 +82,8 @@ export function displayNodeElement(node: BaseNode): string {
             { colSpan: 6, content: node.browseName.toString() },
         ],
     );
+    rows.push(["BrowseName:", node.browseName.toString()]);
+
     if (node.description) {
         table.push(
             [
@@ -49,6 +91,7 @@ export function displayNodeElement(node: BaseNode): string {
                 node.description.toString(),
             ],
         );
+        rows.push(["Description:", node.description.toString()]);
     }
 
     const alreadyDumped: any = {};
@@ -61,6 +104,7 @@ export function displayNodeElement(node: BaseNode): string {
         // ignore subtype references
         /* istanbul ignore next */
         if (!ref.node) {
+            // tslint:disable-next-line: no-console
             console.log(" Halt ", ref.toString());
             return;
         }
@@ -81,20 +125,21 @@ export function displayNodeElement(node: BaseNode): string {
 
             const val = v.readValue().value.value;
             if (v.isEnumeration() && val !== null) {
-                const a = v.readEnumValue();
-                value = a.value + " (" + a.name + ")";
+                const enumValue = v.readEnumValue();
+                value = enumValue.value + " (" + enumValue.name + ")";
             } else {
                 value = val ? val.toString() : "null";
             }
             const actualDataType = DataType[v.readValue().value.dataType];
             const basicDataType = DataType[v.dataTypeObj.basicDataType];
             dataType = v.dataTypeObj.browseName.toString();
-            if (basicDataType != dataType) {
+            if (basicDataType !== dataType) {
                 dataType = dataType + "(" + basicDataType + ")";
             }
-            //findBasicDataType(v.dataTypeObj);
+            // findBasicDataType(v.dataTypeObj);
         }
-        table.push(
+
+        const row =
             [
                 refType.browseName.toString() + dir + symbol(refNode.nodeClass),
                 refNode.nodeId.toString(),
@@ -102,9 +147,11 @@ export function displayNodeElement(node: BaseNode): string {
                 modelingRule,
                 (refNode as any).typeDefinitionObj ? (refNode as any).typeDefinitionObj.browseName.toString() : ""
                 , dataType, value
-            ],
+            ];
 
-        );
+        table.push(row);
+        rows.push(row);
+
         alreadyDumped[refNode.browseName.toString()] = 1;
 
     }
@@ -122,12 +169,18 @@ export function displayNodeElement(node: BaseNode): string {
         let subtypeOf = (curNode as UAObjectType).subtypeOfObj;
         while (subtypeOf) {
             table.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
-            const references = subtypeOf.allReferences();
-            for (const ref of references) {
+            rows.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"])
+            const references2 = subtypeOf.allReferences();
+            for (const ref of references2) {
                 dumpRefe(ref);
             }
             subtypeOf = (subtypeOf as UAObjectType).subtypeOfObj;
         }
     }
-    return table.toString();
+
+    if (options && options.format === "markdown") {
+        return toMarkdownTable({ head, rows });
+    } else {
+        return table.toString();
+    }
 }

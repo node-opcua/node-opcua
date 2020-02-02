@@ -1766,6 +1766,7 @@ export class UANamespace implements NamespacePublic {
     }
 
     public _register(node: BaseNode): void {
+
         assert(node instanceof BaseNode,
             "Expecting a instance of BaseNode in _register");
         assert(node.nodeId instanceof NodeId, "Expecting a NodeId");
@@ -1777,16 +1778,17 @@ export class UANamespace implements NamespacePublic {
         assert(node.hasOwnProperty("browseName"), "Node must have a browseName");
         // assert(node.browseName.namespaceIndex === this.index,"browseName must belongs to this namespace");
 
-        const indexName = node.nodeId.toString();
-        if (this._nodeid_index.hasOwnProperty(indexName)) {
-            throw new Error("nodeId " + node.nodeId.displayText() + " already registered " + node.nodeId.toString()
+        const hashKey = node.nodeId.toString();
+        if (this._nodeid_index.hasOwnProperty(hashKey)) {
+            throw new Error("node " + node.browseName.toString() + "nodeId = " +
+                node.nodeId.displayText() + " already registered " + node.nodeId.toString()
                 + "\n" +
                 " in namespace " + this.namespaceUri + " index = " + this.index
                 + "\n" +
                 " browseName = " + node.browseName.toString());
         }
 
-        this._nodeid_index[indexName] = node;
+        this._nodeid_index[hashKey] = node;
 
         if (node.nodeClass === NodeClass.ObjectType) {
             this._registerObjectType(node as UAObjectType);

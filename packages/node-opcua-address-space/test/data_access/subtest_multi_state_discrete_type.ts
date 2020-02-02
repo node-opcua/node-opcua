@@ -59,7 +59,7 @@ export function subtest_multi_state_discrete_type(maintest: any) {
                 const objectsFolder = addressSpace.rootFolder.objects;
 
                 multiState = namespace.addMultiStateDiscrete({
-                    browseName: "MyMultiStateVariable",
+                    browseName: "MyMultiStateVariable3",
                     enumStrings: ["Red", "Orange", "Green"],
                     organizedBy: objectsFolder,
                     value: 1 // Orange

@@ -14,6 +14,7 @@ import {
     Folder,
     FolderType,
     InstantiateObjectOptions,
+    Namespace,
     ProgramFiniteStateMachine,
     ProgramFiniteStateMachineType,
     SessionContext,
@@ -247,9 +248,7 @@ function addRelation(
 }
 
 // tslint:disable:no-console
-export function createBoilerType(addressSpace: AddressSpace): BoilerType {
-
-    const namespace = addressSpace.getOwnNamespace();
+export function createBoilerType(namespace: Namespace): BoilerType {
 
     // istanbul ignore next
     if (namespace.findObjectType("BoilerType")) {
@@ -282,11 +281,12 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
         subtypeOf: "NonHierarchicalReferences"
     }) as SignalToReference;
 
+    const addressSpace = namespace.addressSpace;
     flowTo.isSupertypeOf(addressSpace.findReferenceType("References")!);
     flowTo.isSupertypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
     hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("References")!);
     hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
-    hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("1:FlowTo")!);
+    hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("FlowTo", namespace.index)!);
 
     const NonHierarchicalReferences = addressSpace.findReferenceType("NonHierarchicalReferences");
 
@@ -455,7 +455,7 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
         modellingRule: "Mandatory",
         notifierOf: boilerInputPipeType
     }) as FlowTransmitter;
-    assert(ftx1.output.browseName.toString() === "1:Output");
+    assert(ftx1.output.browseName.toString() === `${namespace.index}:Output`);
 
     const valve1 = valveType.instantiate({
         browseName: "ValveX001",
@@ -629,7 +629,7 @@ export function makeBoiler(
 
     // istanbul ignore next
     if (!boilerType) {
-        createBoilerType(addressSpace);
+        createBoilerType(namespace);
         boilerType = namespace.findObjectType("BoilerType")!;
     }
     // now instantiate boiler

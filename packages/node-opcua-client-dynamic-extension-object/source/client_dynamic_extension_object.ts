@@ -740,6 +740,17 @@ interface Cache {
     schema: any;
     category: FieldCategory;
 }
+
+async function readBrowseName(session: IBasicSession, nodeId: NodeId): Promise<string> {
+    const dataValue = await session.read({ nodeId, attributeId: AttributeIds.BrowseName });
+    if (dataValue.statusCode !== StatusCodes.Good) {
+        const message = "cannot extract BrowseName of nodeId = " + nodeId.toString();
+        debugLog(message);
+        throw new Error(message);
+    }
+    return dataValue.value!.value.name;
+}
+
 async function resolveFieldType(
     session: IBasicSession,
     dataTypeNodeId: NodeId,
@@ -757,15 +768,7 @@ async function resolveFieldType(
     if (v) {
         return v;
     }
-    async function getFieldTypeName(): Promise<string> {
-        const dataValue = await session.read({ nodeId: dataTypeNodeId, attributeId: AttributeIds.BrowseName });
-        if (dataValue.statusCode !== StatusCodes.Good) {
-            debugLog("cannot extract node", dataTypeNodeId.toString());
-            throw new Error("cannot extract browseName for  nodeId " + dataTypeNodeId.toString());
-        }
-        return dataValue.value!.value.name;
-    }
-    const fieldTypeName = await getFieldTypeName();
+    const fieldTypeName = await readBrowseName(session, dataTypeNodeId);
 
     let schema: any;
     let category: FieldCategory = FieldCategory.enumeration;

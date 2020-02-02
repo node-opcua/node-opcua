@@ -1074,7 +1074,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             historizing: this.historizing,
             minimumSamplingInterval: this.minimumSamplingInterval,
             userAccessLevel: this.userAccessLevel,
-            valueRank: this.valueRank
+            valueRank: this.valueRank,
         });
 
         const newVariable = _clone.call(this, UAVariable, options, optionalFilter, extraInfo) as UAVariable;

@@ -526,7 +526,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
     it("should produce a XML file - with DI included - 1 Rich ObjectType - and reload it", async () => {
 
-        createBoilerType(addressSpace);
+        createBoilerType(namespace);
         const xml = namespace.toNodeset2XML();
         const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
 

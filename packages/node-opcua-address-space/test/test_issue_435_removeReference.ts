@@ -2,7 +2,7 @@ import * as nodesets from "node-opcua-nodesets";
 import * as should from "should";
 
 import { generateAddressSpace } from "..";
-import { AddressSpace , BaseNode} from "..";
+import { AddressSpace, BaseNode } from "..";
 
 import { BoilerType, createBoilerType } from "..";
 
@@ -19,10 +19,10 @@ describe("UANode#removeReference", () => {
         namespace.index.should.eql(1);
 
         addressSpace.getNamespace("Private").index.should.eql(
-          (addressSpace as any)._private_namespaceIndex);
+            (addressSpace as any)._private_namespaceIndex);
 
         await generateAddressSpace(addressSpace, nodesetFilename);
-        boilerType = createBoilerType(addressSpace);
+        boilerType = createBoilerType(namespace);
     });
     after(async () => {
         if (addressSpace) {

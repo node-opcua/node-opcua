@@ -4,19 +4,24 @@ import { promisify } from "util";
 import {
     AddressSpace,
     buildModel,
+    createBoilerType,
     DataType,
     displayNodeElement,
     generateAddressSpace,
+    getPresetSymbolsFromCSV,
     nodesets,
     promoteToMandatory,
+    saveSymbolsToCSV,
     setNamespaceMetaData,
+    Symbols,
     UAObject,
     UAVariable,
     UAVariableT,
 } from "..";
 // } from "node-opcua-modeler";
 
-const writeFile  = promisify(fs.writeFile);
+const writeFile = promisify(fs.writeFile);
+const readFile = promisify(fs.readFile);
 
 interface UABoilerTest extends UAObject {
     deviceHealth: UAVariable;
@@ -32,6 +37,7 @@ const namespaceUri = "http://acme.com/Boiler/V0";
 const version = "1.0.0";
 
 const nodesetFilename = "./MyModel.NodeSet2.xml";
+const symbolFilename = "./MyModelIds.csv";
 
 function createModel(addressSpace: AddressSpace) {
 
@@ -55,27 +61,49 @@ function createModel(addressSpace: AddressSpace) {
     // construct namespace meta data
     const metaData = setNamespaceMetaData(addressSpace.getOwnNamespace());
 
-    const boilerType = ns.addObjectType({
-        browseName: "BoilerType",
+    const boilerDeviceType = ns.addObjectType({
+        browseName: "BoilerDeviceType",
         subtypeOf: deviceType,
     });
 
-    promoteToMandatory(boilerType, "Manufacturer", nsDI);
-    promoteToMandatory(boilerType, "DeviceHealth", nsDI);
+    promoteToMandatory(boilerDeviceType, "Manufacturer", nsDI);
+    promoteToMandatory(boilerDeviceType, "DeviceHealth", nsDI);
+    const parameterSet = promoteToMandatory(boilerDeviceType, "ParameterSet", nsDI);
 
-    console.log(displayNodeElement(boilerType));
+    ns.addVariable({
+        browseName: "HumiditySetpoint",
+        componentOf: parameterSet,
+        dataType: "Double"
+    });
+
+    ns.addVariable({
+        browseName: "TemperatureSetpoint",
+        componentOf: parameterSet,
+        dataType: "Double"
+    });
+
+    createBoilerType(ns);
+
+    console.log((boilerDeviceType));
 }
 
 async function buildModelFile() {
     try {
-        const xmlModel = await buildModel({
+
+        const presetSymbols = await getPresetSymbolsFromCSV(symbolFilename);
+
+        const { xmlModel, symbols } = await buildModel({
             createModel,
             namespaceUri,
             version,
             xmlFiles,
+            // tslint:disable-next-line: object-literal-sort-keys
+            presetSymbols,
         });
         // save model to a file
         await writeFile(nodesetFilename, xmlModel, "utf-8");
+
+        await saveSymbolsToCSV(symbolFilename, symbols);
 
     } catch (err) {
         console.log("Error", err);
@@ -103,12 +131,12 @@ async function testNamepsace() {
     }
 
     const nsLRA = addressSpace.getNamespaceIndex("http://acme.com/Boiler/V0");
-    const boilerType = addressSpace.findObjectType("BoilerType", nsLRA);
-    if (!boilerType) {
+    const boilerDeviceType = addressSpace.findObjectType("BoilerDeviceType", nsLRA);
+    if (!boilerDeviceType) {
         throw new Error("cannot find boiler type");
     }
 
-    const boiler = boilerType.instantiate({
+    const boiler = boilerDeviceType.instantiate({
         browseName: "Boiler1",
         organizedBy: deviceSet
     }) as UABoilerTest;

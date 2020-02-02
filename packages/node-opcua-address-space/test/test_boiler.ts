@@ -77,7 +77,8 @@ describe("Testing Boiler System", () => {
 
         const context = SessionContext.defaultContext;
 
-        const boilerType = createBoilerType(addressSpace);
+        const boilerType = createBoilerType(namespace);
+
         boilerType.getNotifiers().length.should.eql(3);
         boilerType.getEventSources().length.should.eql(1);
 

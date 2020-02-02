@@ -243,7 +243,7 @@ export function utest_condition(test: any) {
                 const namespace = addressSpace.getOwnNamespace();
 
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
-                    browseName: "MyCustomCondition2",
+                    browseName: "MyCustomCondition2C",
                     conditionSource: source,
                     organizedBy: addressSpace.rootFolder.objects
                 });
@@ -348,7 +348,7 @@ export function utest_condition(test: any) {
                 const namespace = addressSpace.getOwnNamespace();
 
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
-                    browseName: "MyCustomCondition4",
+                    browseName: "MyCustomCondition5",
                     conditionSource: null,
                     optionals: [
                         "EnabledState.EffectiveDisplayName",
@@ -368,7 +368,7 @@ export function utest_condition(test: any) {
                 const namespace = addressSpace.getOwnNamespace();
 
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
-                    browseName: "MyCustomCondition4",
+                    browseName: "MyCustomCondition6",
                     conditionSource: null,
                     optionals: [
                         "EnabledState.EffectiveDisplayName",
@@ -480,7 +480,7 @@ export function utest_condition(test: any) {
                 const namespace = addressSpace.getOwnNamespace();
 
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
-                    browseName: "MyCustomCondition3",
+                    browseName: "MyCustomCondition7",
                     conditionSource: source,
                     optionals: [
                         "EnabledState.EffectiveDisplayName",
@@ -513,7 +513,7 @@ export function utest_condition(test: any) {
 
                 const namespace = addressSpace.getOwnNamespace();
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
-                    browseName: "MyCustomCondition_last_severity_recorded",
+                    browseName: "MyCustomCondition_last_severity_recorded-2",
                     conditionSource: source,
                     optionals: [
                         "EnabledState.EffectiveDisplayName",
@@ -534,7 +534,7 @@ export function utest_condition(test: any) {
 
                 const namespace = addressSpace.getOwnNamespace();
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
-                    browseName: "MyCustomCondition_last_severity_recorded",
+                    browseName: "MyCustomCondition_last_severity_recorded-1",
                     conditionSource: source,
                     optionals: [
                         "EnabledState.EffectiveDisplayName",
@@ -597,7 +597,7 @@ export function utest_condition(test: any) {
 
                 const namespace = addressSpace.getOwnNamespace();
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
-                    browseName: "MyCustomCondition3",
+                    browseName: "MyCustomCondition8",
                     conditionSource: source,
                     optionals: [
                         "EnabledState.EffectiveDisplayName",
