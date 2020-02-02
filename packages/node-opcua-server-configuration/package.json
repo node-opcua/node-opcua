@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-server-configuration",
-    "version": "2.5.0-alpha.1",
+    "version": "2.5.0-alpha.2",
     "description": "pure nodejs OPCUA SDK - module -server",
     "scripts": {
         "build": "tsc -b",
@@ -12,11 +12,11 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "colors": "^1.4.0",
-        "node-opcua-address-space": "^2.5.0-alpha.1",
+        "node-opcua-address-space": "^2.5.0-alpha.2",
         "node-opcua-assert": "^2.5.0-alpha.0",
         "node-opcua-basic-types": "^2.5.0-alpha.0",
         "node-opcua-certificate-manager": "^2.5.0-alpha.1",
-        "node-opcua-client": "^2.5.0-alpha.1",
+        "node-opcua-client": "^2.5.0-alpha.2",
         "node-opcua-crypto": "^1.1.4",
         "node-opcua-data-model": "^2.5.0-alpha.1",
         "node-opcua-debug": "^2.5.0-alpha.0",
@@ -26,7 +26,7 @@
         "node-opcua-pki": "^1.5.5",
         "node-opcua-pseudo-session": "^2.5.0-alpha.1",
         "node-opcua-secure-channel": "^2.5.0-alpha.1",
-        "node-opcua-server": "^2.5.0-alpha.1",
+        "node-opcua-server": "^2.5.0-alpha.2",
         "node-opcua-status-code": "^2.5.0-alpha.0",
         "node-opcua-types": "^2.5.0-alpha.1",
         "node-opcua-variant": "^2.5.0-alpha.1"

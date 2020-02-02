@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-address-space",
-    "version": "2.5.0-alpha.1",
+    "version": "2.5.0-alpha.2",
     "description": "pure nodejs OPCUA SDK - module -address-space",
     "main": "./dist/src/index_current.js",
     "types": "./dist/source/index.d.ts",
@@ -18,7 +18,7 @@
         "dequeue": "^1.0.5",
         "node-opcua-assert": "^2.5.0-alpha.0",
         "node-opcua-basic-types": "^2.5.0-alpha.0",
-        "node-opcua-client-dynamic-extension-object": "^2.5.0-alpha.1",
+        "node-opcua-client-dynamic-extension-object": "^2.5.0-alpha.2",
         "node-opcua-common": "^2.5.0-alpha.1",
         "node-opcua-constants": "^2.5.0-alpha.0",
         "node-opcua-crypto": "^1.1.4",
