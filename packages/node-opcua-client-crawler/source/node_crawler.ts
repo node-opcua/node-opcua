@@ -751,6 +751,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         }
         if (!referenceTypeIdCacheNode) {
             referenceTypeIdCacheNode = crawler._createCacheNode(reference.referenceTypeId);
+            referenceTypeIdCacheNode.nodeClass = NodeClass.ReferenceType;
             this._add_crawl_task(referenceTypeIdCacheNode, userData);
         }
 
@@ -1408,12 +1409,19 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             throw new Error("NodeCrawler#_createCacheNode :" +
                 " cache node should not exist already : " + nodeId.toString());
         }
-        switch (referenceToParent ? referenceToParent!.nodeClass : -1) {
+        const nodeClass = (referenceToParent ? referenceToParent!.nodeClass : NodeClass.Unspecified) as NodeClass;
+        switch (nodeClass) {
+            case NodeClass.Method:
+                cacheNode = new CacheNode(nodeId);
+                cacheNode.nodeClass = NodeClass.Method;
+                break;
             case NodeClass.Object:
                 cacheNode = new CacheNode(nodeId);
+                cacheNode.nodeClass = NodeClass.Object;
                 break;
             case NodeClass.ObjectType:
                 cacheNode = new CacheNode(nodeId);
+                cacheNode.nodeClass = NodeClass.ObjectType;
                 break;
             case NodeClass.Variable:
                 cacheNode = new CacheNodeVariable(nodeId);
@@ -1423,6 +1431,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                 break;
             default:
                 cacheNode = new CacheNode(nodeId);
+                cacheNode.nodeClass = nodeClass;
                 break;
         }
         cacheNode.parent = parentNode;

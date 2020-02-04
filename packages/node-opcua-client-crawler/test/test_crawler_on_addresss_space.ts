@@ -9,9 +9,9 @@ import {
 } from "node-opcua-address-space";
 
 import {
-    ObjectIds
+    ObjectIds, DataTypeIds
 } from "node-opcua-constants";
-import { BrowseDirection } from "node-opcua-data-model";
+import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import {
     makeNodeId,
     NodeId
@@ -24,7 +24,7 @@ import {
     UserData
 } from "..";
 
-describe("NodeCrawler", function(this: any) {
+describe("NodeCrawler", function (this: any) {
 
     this.timeout(200000);
 
@@ -314,6 +314,39 @@ describe("NodeCrawler", function(this: any) {
 
         results = [];
 
+        crawler.dispose();
+
+    });
+    it("#717 it should populate nodeClass for each elements visited ", async () => {
+
+        const session = new PseudoSession(addressSpace);
+
+        const crawler = new NodeCrawler(session);
+
+        let results: Array<{ browseName: string, nodeClass: string }> = [];
+
+        const data = {
+            onBrowse(this: UserData, crawler1: NodeCrawler, cacheNode: CacheNode) {
+                results.push({
+                    browseName: cacheNode.browseName.toString(),
+                    nodeClass: NodeClass[cacheNode.nodeClass]
+                });
+                followForward(crawler1, cacheNode, this);
+            }
+        };
+
+        await crawler.crawl(addressSpace.rootFolder.objects.server.nodeId, data);
+
+        const countInvalidNodeClass1 = results.reduce((previous: number, current) => previous + ((current.nodeClass === "Unspecified") ? 1 : 0), 0);
+        countInvalidNodeClass1.should.eql(0);
+
+        results = [];
+        await crawler.crawl(DataTypeIds.BaseDataType, data);
+        const countInvalidNodeClass2 = results.reduce((previous: number, current) => previous + ((current.nodeClass === "Unspecified") ? 1 : 0), 0);
+        countInvalidNodeClass2.should.eql(0);
+        const countDataTypeNodeClass3 = results.reduce((previous: number, current) => previous + ((current.nodeClass === "DataType") ? 1 : 0), 0);
+        countDataTypeNodeClass3.should.eql(1);
+        // console.log(results);
         crawler.dispose();
 
     });
