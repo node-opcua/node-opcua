@@ -6,11 +6,11 @@ import { ExtraDataTypeManager } from "./extra_data_type_manager";
 
 function resolveDynamicExtensionObjectV(
     opaque: OpaqueStructure,
-    extraDataType: ExtraDataTypeManager
+    dataTypeManager: ExtraDataTypeManager
 ): ExtensionObject {
 
     try {
-        const Constructor = extraDataType.getExtensionObjectConstructorFromBinaryEncoding(opaque.nodeId);
+        const Constructor = dataTypeManager.getExtensionObjectConstructorFromBinaryEncoding(opaque.nodeId);
         const object = new Constructor();
         const stream = new BinaryStream(opaque.buffer);
         object.decode(stream);
@@ -24,7 +24,7 @@ function resolveDynamicExtensionObjectV(
 
 export async function resolveDynamicExtensionObject(
     variant: Variant,
-    extraDataType: ExtraDataTypeManager
+    dataTypeManager: ExtraDataTypeManager
 ): Promise<void> {
 
     if (variant.dataType !== DataType.ExtensionObject) {
@@ -38,7 +38,7 @@ export async function resolveDynamicExtensionObject(
                 if (!(v instanceof OpaqueStructure)) {
                     return v;
                 }
-                const obj = resolveDynamicExtensionObjectV(v as OpaqueStructure, extraDataType);
+                const obj = resolveDynamicExtensionObjectV(v as OpaqueStructure, dataTypeManager);
                 return obj;
             });
         }
@@ -49,6 +49,6 @@ export async function resolveDynamicExtensionObject(
         return;
     }
     variant.value = resolveDynamicExtensionObjectV(
-        variant.value as OpaqueStructure, extraDataType);
+        variant.value as OpaqueStructure, dataTypeManager);
 
 }

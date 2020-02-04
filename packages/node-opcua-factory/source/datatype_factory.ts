@@ -4,6 +4,7 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import * as  _ from "underscore";
+import * as util from "util";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -15,6 +16,7 @@ import { EnumerationDefinitionSchema, hasEnumeration, getEnumeration } from "./f
 import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
 import { hasBuiltInType, getBuildInType } from "./factories_builtin_types";
 import { BasicTypeDefinition } from ".";
+import { link } from "fs";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -140,6 +142,9 @@ export class DataTypeFactory {
             return constructor;
         }
         for (const factory of this.baseDataFactories) {
+            if (!factory.hasStructuredType(typeName)) {
+                continue;
+            }
             const constructor2 = factory.getStructureTypeConstructor(typeName);
             if (constructor2) {
                 return constructor2;
@@ -173,9 +178,12 @@ export class DataTypeFactory {
     }
 
     public registerClassDefinition(dataTypeNodeId: NodeId, className: string, classConstructor: ConstructorFuncWithSchema): void {
-        this.registerFactory(dataTypeNodeId, className, classConstructor);
-        assert(classConstructor.encodingDefaultBinary.value !== 0);
-        this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
+        this._registerFactory(dataTypeNodeId, className, classConstructor);
+        if (classConstructor.encodingDefaultBinary && classConstructor.encodingDefaultBinary.value !== 0) {
+            this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
+        } else {
+            console.log("warning ", dataTypeNodeId.toString, "name= ", className, " do not have binary encoding");
+        }
     }
 
     // ----------------------------------------------------------------------------------------------------
@@ -256,7 +264,7 @@ export class DataTypeFactory {
         this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey] = classConstructor;
     }
 
-    public registerFactory(dataTypeNodeId: NodeId, typeName: string, constructor: ConstructorFuncWithSchema): void {
+    private _registerFactory(dataTypeNodeId: NodeId, typeName: string, constructor: ConstructorFuncWithSchema): void {
         assert(dataTypeNodeId.value !== 0, "dataTypeNodeId cannot be null");
         /* istanbul ignore next */
         if (this.hasStructuredType(typeName)) {
@@ -274,6 +282,38 @@ export class DataTypeFactory {
         });
     }
 
+    public toString(): string {
+        const l: string[] = [];
+        function write(...args: [any, ...any[]]) {
+            l.push(util.format.apply(util.format, args));
+        }
+        dumpDataFactory(this, write);
+        return l.join("\n");
+    }
+}
+
+function dumpSchema(schema: StructuredTypeSchema, write: any) {
+    write("name           ", schema.name);
+    write("dataType       ", schema.dataTypeNodeId.toString());
+    write("binaryEncoding ", schema.encodingDefaultBinary!.toString());
+    for (const f of schema.fields) {
+        write("          ", f.name.padEnd(30, " "), f.isArray ? true : false, f.fieldType);
+    }
+}
+function dumpDataFactory(dataFactory: DataTypeFactory, write: any) {
+
+    for (const structureTypeName of dataFactory.structuredTypesNames()) {
+        const schema = dataFactory.getStructuredTypeSchema(structureTypeName);
+
+        if (!dataFactory.findConstructorForDataType(schema.dataTypeNodeId)) {
+            write("  ( No constructor for " + schema.name + "  " + schema.dataTypeNodeId.toString());
+        }
+        if (dataFactory.hasConstructor(schema.encodingDefaultBinary!)) {
+            throw new Error("Not  in Binary Encoding Map!!!!!");
+        }
+        write("structureTypeName =", structureTypeName);
+        dumpSchema(schema, write);
+    }
 }
 
 function verifyExpandedNodeId(expandedNodeId: NodeId): boolean {
@@ -293,4 +333,3 @@ export function callConstructor(constructor: ConstructorFunc): BaseUAObject {
     const constructorFunc: any = constructor.bind.apply(constructor, arguments as any);
     return new constructorFunc();
 }
-

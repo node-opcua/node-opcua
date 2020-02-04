@@ -1,11 +1,14 @@
 /**
  * @module node-opcua-client-dynamic-extension-object
  */
+import * as util from "util";
+
 import assert from "node-opcua-assert";
 import {
     ConstructorFunc,
     DataTypeFactory,
     getStandartDataTypeFactory,
+    StructuredTypeSchema,
 } from "node-opcua-factory";
 import {
     ExpandedNodeId,
@@ -19,7 +22,6 @@ export class ExtraDataTypeManager {
 
     public namespaceArray: string[] = [];
 
-    private readonly dataTypeFactoryMap: { [key: string]: DataTypeFactory } = {};
     private readonly dataTypeFactoryMapByNamespace: { [key: number]: DataTypeFactory } = {};
 
     constructor() {
@@ -71,8 +73,24 @@ export class ExtraDataTypeManager {
         const dataTypeFactory = this.getDataTypeFactoryForNamespace(binaryEncodingNodeId.namespace);
         const Constructor = dataTypeFactory.getConstructor(binaryEncodingNodeId);
         if (!Constructor) {
-            throw new Error("getExtensionObjectConstructorFromBinaryEncoding cannot find constructor for " + binaryEncodingNodeId.toString());
+            throw new Error("getExtensionObjectConstructorFromBinaryEncoding cannot find constructor for binaryEncoding " + binaryEncodingNodeId.toString());
         }
         return Constructor;
+    }
+    public toString(): string {
+        const l: string[] = [];
+        function write(...args: [any, ...any[]]) {
+            l.push(util.format.apply(util.format, args));
+        }
+        write("ExtraDataTypeMananager");
+        for (let n = 0; n < this.namespaceArray.length; n++) {
+            write("-----------", this.namespaceArray[n]);
+            const dataFactory = this.dataTypeFactoryMapByNamespace[n];
+            if (!dataFactory) {
+                continue;
+            }
+            write(dataFactory.toString());
+        }
+        return l.join("\n");
     }
 }

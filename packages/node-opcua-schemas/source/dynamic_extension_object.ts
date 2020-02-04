@@ -46,7 +46,7 @@ export function getOrCreateConstructor(
     }
     // istanbul ignore next
     if (!dataTypeFactory.hasStructuredType(dataTypeName)) {
-        dataTypeFactory.registerFactory(schema.id, dataTypeName, constructor as ConstructorFuncWithSchema);
+        dataTypeFactory.registerClassDefinition(schema.id, dataTypeName, constructor as ConstructorFuncWithSchema);
         return constructor;
         // hrow new Error("constructor should now be registered - " + fieldType);
     }
@@ -592,7 +592,7 @@ export function createDynamicObjectConstructor(
     if (schema.baseType === "Union") {
         const UNIONConstructor = _createDynamicUnionConstructor(schema, dataTypeFactory);
         schemaPriv.$Constructor = UNIONConstructor;
-        dataTypeFactory.registerFactory(dataTypeNodeId, schema.name, UNIONConstructor as any);
+        dataTypeFactory.registerClassDefinition(dataTypeNodeId, schema.name, UNIONConstructor as any);
         return UNIONConstructor;
     }
 
@@ -642,8 +642,8 @@ export function createDynamicObjectConstructor(
     Object.defineProperty(EXTENSION, "name", { value: schema.name });
 
     schemaPriv.$Constructor = EXTENSION;
-
-    dataTypeFactory.registerFactory(dataTypeNodeId, schema.name, EXTENSION as any);
+    (EXTENSION as any).encodingDefaultBinary = schema.encodingDefaultBinary;
+    dataTypeFactory.registerClassDefinition(dataTypeNodeId, schema.name, EXTENSION as any);
 
     return EXTENSION;
 }

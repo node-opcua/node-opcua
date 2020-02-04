@@ -127,7 +127,7 @@ import {
     VariantLike
 } from "node-opcua-variant";
 
-import { StructuredTypeSchema } from "node-opcua-factory";
+import { StructuredTypeSchema, DataTypeFactory, getStandartDataTypeFactory } from "node-opcua-factory";
 import {
     ArgumentDefinition,
     BrowseDescriptionLike,
@@ -2132,9 +2132,19 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public async extractNamespaceDataType(): Promise<ExtraDataTypeManager> {
         const sessionPriv: any = this as any;
         if (!sessionPriv.$$extraDataTypeManager) {
-            const extraDataTypeManager = new ExtraDataTypeManager();
-            await populateDataTypeManager(this, extraDataTypeManager);
-            sessionPriv.$$extraDataTypeManager = extraDataTypeManager;
+
+            const dataTypeManager = new ExtraDataTypeManager();
+
+            const namespaceArray = await sessionPriv.readNamespaceArray();
+            debugLog("Namespace Array = ", namespaceArray.join("\n                   "));
+            sessionPriv.$$extraDataTypeManager = dataTypeManager;
+            dataTypeManager.setNamespaceArray(namespaceArray);
+
+            for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
+                const dataTypeFactory1 = new DataTypeFactory([getStandartDataTypeFactory()]);
+                dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
+            }
+            await populateDataTypeManager(this, dataTypeManager);
         }
         return sessionPriv.$$extraDataTypeManager;
     }
