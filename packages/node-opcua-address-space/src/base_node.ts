@@ -134,6 +134,8 @@ export function makeAttributeEventName(attributeId: AttributeIds) {
  */
 export class BaseNode extends EventEmitter implements BaseNodePublic {
 
+    public onFirstBrowseAction?: (this: BaseNodePublic) => Promise<void>;
+
     public get addressSpace(): AddressSpacePrivate {
         const _private = BaseNode_getPrivate(this);
         if (!_private) {

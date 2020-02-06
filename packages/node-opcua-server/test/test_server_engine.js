@@ -1,6 +1,7 @@
+/* eslint-disable no-prototype-builtins */
+/* eslint-disable max-statements */
 /// <reference types=".." />
 /* jslint */
-/*global require,describe, it, before, after */
 "use strict";
 const should = require("should");
 const util = require("util");
@@ -772,6 +773,64 @@ describe("testing ServerEngine", () => {
         test_result_mask(ResultMask.NodeClass & ResultMask.BrowseName);
 
 
+    });
+
+    it("browseWithAutomaticExpansion", async()=>{
+
+        const namespace = engine.addressSpace.getOwnNamespace();
+        const expandableNode = namespace.addObject({
+            browseName:"Expandable"
+        });
+        let nbCalls = 0;
+        expandableNode.onFirstBrowseAction = async function() {
+            nbCalls +=1;
+            await new Promise((resolve)=>{
+                setTimeout(()=>{
+                    const addressSpace = this.addressSpace;
+                    const namespace = addressSpace.getOwnNamespace();
+                    namespace.addObject({
+                        browseName: "SubObject1",
+                        componentOf: this
+                    });
+                    namespace.addObject({
+                        browseName: "SubObject2",
+                        componentOf: this
+                    });
+
+                    resolve();
+                }, 100);
+            });
+        };
+        
+        const nodesToBrowse = [
+            {
+                nodeId: expandableNode.nodeId,
+                browseDirection: BrowseDirection.Forward,
+                referenceTypeId: "HierarchicalReferences",
+                includeSubtypes: true,
+                nodeClassMask: 0, // 0 = all nodes
+                resultMask: 63
+            },
+            {
+                nodeId: expandableNode.nodeId,
+                browseDirection: BrowseDirection.Both,
+                referenceTypeId: "HierarchicalReferences",
+                includeSubtypes: true,
+                nodeClassMask: 0, // 0 = all nodes
+                resultMask: 63
+            }
+        ]
+        const browseResults = await engine.browseWithAutomaticExpansion(nodesToBrowse);
+        browseResults.length.should.eql(2);
+        browseResults[0].references.length.should.eql(2);
+        browseResults[0].references[0].browseName.toString().should.eql("1:SubObject1");
+        browseResults[0].references[1].browseName.toString().should.eql("1:SubObject2");
+        browseResults[1].references.length.should.eql(2);
+        browseResults[1].references[0].browseName.toString().should.eql("1:SubObject1");
+        browseResults[1].references[1].browseName.toString().should.eql("1:SubObject2");
+
+
+        nbCalls.should.eql(1,"Node must have been expanded only once");
     });
 
     describe("readSingleNode on Object", () => {

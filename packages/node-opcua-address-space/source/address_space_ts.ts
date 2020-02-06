@@ -19,7 +19,7 @@ import {
 } from "node-opcua-data-model";
 import { DataValue, DataValueOptions, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
 import { PreciseClock } from "node-opcua-date-time";
-import { NodeId, NodeIdLike, ExpandedNodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId, NodeIdLike, } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { BrowseDescription, BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
 import {
@@ -139,6 +139,8 @@ export declare class BaseNode extends EventEmitter {
     public readonly namespaceIndex: number;
     public readonly namespaceUri: string;
     public readonly namespace: Namespace;
+
+    public onFirstBrowseAction?: (this: BaseNode) => Promise<void>;
 
     /**
      * return a complete name of this object by pre-pending
