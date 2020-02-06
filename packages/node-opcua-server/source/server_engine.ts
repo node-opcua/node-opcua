@@ -1096,6 +1096,30 @@ export class ServerEngine extends EventEmitter {
     return addressSpace.browseSingleNode(nodeId, browseDescription, context);
   }
 
+  public async browseWithAutomaticExpansion(
+    nodesToBrowse: BrowseDescription[],
+    context?: SessionContext
+  ) {
+
+    // do expansion first
+    for (const browseDescription of nodesToBrowse) {
+      const nodeId = resolveNodeId(browseDescription.nodeId);
+      const node = this.addressSpace!.findNode(nodeId);
+      if (node) {
+        if (node.onFirstBrowseAction) {
+          try {
+            await node.onFirstBrowseAction();
+            node.onFirstBrowseAction = undefined;
+          } catch (err) {
+            console.log("onFirstBrowseAction method has failed", err.message);
+            console.log(err);
+          }
+          assert(node.onFirstBrowseAction === undefined, "expansion can only be made once");
+        }
+      }
+    }
+    return this.browse(nodesToBrowse, context);
+  }
   /**
    *
    */
@@ -1103,15 +1127,11 @@ export class ServerEngine extends EventEmitter {
     nodesToBrowse: BrowseDescription[],
     context?: SessionContext
   ): BrowseResult[] {
-    const engine = this;
-    assert(_.isArray(nodesToBrowse));
 
     const results: BrowseResult[] = [];
     for (const browseDescription of nodesToBrowse) {
-
       const nodeId = resolveNodeId(browseDescription.nodeId);
-
-      const r = engine.browseSingleNode(nodeId, browseDescription, context);
+      const r = this.browseSingleNode(nodeId, browseDescription, context);
       results.push(r);
     }
     return results;

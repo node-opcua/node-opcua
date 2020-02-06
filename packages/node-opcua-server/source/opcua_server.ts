@@ -38,7 +38,8 @@ import {
   UAObject,
   UAVariable,
   UAView,
-  verifyArguments_ArgumentList
+  verifyArguments_ArgumentList,
+  ErrorCallback
 } from "node-opcua-address-space";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
@@ -152,7 +153,7 @@ import {
   CancelResponse,
   EndpointDescription, MonitoredItemModifyRequest,
   MonitoringMode,
-  UserIdentityToken, UserTokenPolicy
+  UserIdentityToken, UserTokenPolicy, BrowseDescription
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
@@ -840,6 +841,20 @@ export interface OPCUAServer {
    */
   userCertificateManager: OPCUACertificateManager;
 
+}
+
+function getNodeIds(nodesToBrowse: BrowseDescription[]): NodeId[] {
+  // perform beforeBrowse action on nodes
+  const map = new Map<string, NodeId>();
+  for (const browseDescription of nodesToBrowse) {
+    const hash = browseDescription.nodeId.toString();
+    map.set(hash, browseDescription.nodeId);
+  }
+  const result: NodeId[] = [];
+  for (const nodeId of map.values()) {
+    result.push(nodeId);
+  }
+  return result;
 }
 
 /**
@@ -2497,34 +2512,43 @@ export class OPCUAServer extends OPCUABaseServer {
 
         // limit results to requestedMaxReferencesPerNode further so it never exceed a too big number
         const requestedMaxReferencesPerNode = Math.min(9876, request.requestedMaxReferencesPerNode);
-        let results: BrowseResult[] = [];
         assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
-        results = server.engine.browse(request.nodesToBrowse);
 
-        assert(results[0].schema.name === "BrowseResult");
+        const context = new SessionContext({ session, server });
 
-        // handle continuation point and requestedMaxReferencesPerNode
-        const maxBrowseContinuationPoints = server.engine.serverCapabilities.maxBrowseContinuationPoints;
-        results = results.map((result: BrowseResult) => {
-          assert(!result.continuationPoint);
+        const f = callbackify(server.engine.browseWithAutomaticExpansion).bind(server.engine);
+        f(request.nodesToBrowse, context, (err?: Error | null, results?: BrowseResult[]) => {
 
-          if (session.continuationPointManager.hasReachMaximum(maxBrowseContinuationPoints)) {
-            return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
+          // istanbul ignore next
+          if (!results) {
+            throw new Error("internal error");
           }
-          const truncatedResult = session.continuationPointManager.register(
-            requestedMaxReferencesPerNode,
-            result.references || []
-          );
-          assert(truncatedResult.statusCode === StatusCodes.Good);
-          truncatedResult.statusCode = result.statusCode;
-          return new BrowseResult(truncatedResult);
-        });
 
-        response = new BrowseResponse({
-          diagnosticInfos: undefined,
-          results
+          assert(results[0].schema.name === "BrowseResult");
+
+          // handle continuation point and requestedMaxReferencesPerNode
+          const maxBrowseContinuationPoints = server.engine.serverCapabilities.maxBrowseContinuationPoints;
+          results = results.map((result: BrowseResult) => {
+            assert(!result.continuationPoint);
+
+            if (session.continuationPointManager.hasReachMaximum(maxBrowseContinuationPoints)) {
+              return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
+            }
+            const truncatedResult = session.continuationPointManager.register(
+              requestedMaxReferencesPerNode,
+              result.references || []
+            );
+            assert(truncatedResult.statusCode === StatusCodes.Good);
+            truncatedResult.statusCode = result.statusCode;
+            return new BrowseResult(truncatedResult);
+          });
+
+          response = new BrowseResponse({
+            diagnosticInfos: undefined,
+            results
+          });
+          sendResponse(response);
         });
-        sendResponse(response);
       });
   }
 
