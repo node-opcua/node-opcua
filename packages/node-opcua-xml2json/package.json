@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-xml2json",
-  "version": "2.5.0-alpha.0",
+  "version": "2.5.0-alpha.4",
   "description": "pure nodejs OPCUA SDK - module -xml2json",
   "main": "dist/source/index.js",
   "type": "dist/source/index.d.ts",
@@ -11,15 +11,15 @@
   "dependencies": {
     "bomstrip": "0.1.4",
     "ltx": "^2.9.2",
-    "node-opcua-assert": "^2.5.0-alpha.0",
-    "node-opcua-debug": "^2.5.0-alpha.0",
-    "node-opcua-utils": "^2.5.0-alpha.0",
+    "node-opcua-assert": "^2.5.0-alpha.4",
+    "node-opcua-debug": "^2.5.0-alpha.4",
+    "node-opcua-utils": "^2.5.0-alpha.4",
     "underscore": "^1.9.2"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",
   "devDependencies": {
-    "node-opcua-nodesets": "^2.5.0-alpha.0",
+    "node-opcua-nodesets": "^2.5.0-alpha.4",
     "should": "13.2.3"
   },
   "repository": {
