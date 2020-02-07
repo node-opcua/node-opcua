@@ -6,4 +6,5 @@ test/
 test_to_fix/
 certificates/
 .vscode/
-
+tsconfig.json
+tsconfig.tsbuildinfo
