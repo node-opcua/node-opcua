@@ -10,4 +10,7 @@ certificates/
 _test_generated/
 schemas/
 pki/
+tsconfig.json
+tsconfig.tsbuildinfo
+tslint.*
 

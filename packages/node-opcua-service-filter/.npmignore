@@ -12,5 +12,9 @@ schemas/
 pki/
 tmp/
 deprecated_*
+tsconfig.json
+tsconfig.tsbuildinfo
+tslint.*
+.mocharc.yaml
 
 

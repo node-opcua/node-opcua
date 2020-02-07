@@ -7,4 +7,6 @@ test_to_fix/
 test_fixtures/
 certificates/
 .vscode/
-
+tsconfig.json
+tsconfig.tsbuildinfo
+tslint.*
