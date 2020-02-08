@@ -33,12 +33,8 @@ export async function resolveDynamicExtensionObject(
     if (variant.arrayType !== VariantArrayType.Scalar) {
 
         if (variant.value instanceof Array) {
-            variant.value = (variant.value as any[]).map((v: any) => {
-
-                if (!(v instanceof OpaqueStructure)) {
-                    return v;
-                }
-                const obj = resolveDynamicExtensionObjectV(v as OpaqueStructure, dataTypeManager);
+            variant.value = (variant.value as OpaqueStructure[]).map((v: OpaqueStructure) => {
+                const obj = resolveDynamicExtensionObjectV(v, dataTypeManager);
                 return obj;
             });
         }

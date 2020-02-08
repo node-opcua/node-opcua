@@ -1,7 +1,7 @@
 import { DataValue } from "node-opcua-data-value";
 import { OpaqueStructure } from "node-opcua-extension-object";
 import { IBasicSession } from "node-opcua-pseudo-session";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 
 import { populateDataTypeManager } from "./client_dynamic_extension_object";
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
@@ -26,8 +26,17 @@ export async function promoteOpaqueStructure(
 
     // count number of Opaque Structures
     const dataValuesToFix = dataValues.filter((dataValue: DataValue) =>
-        dataValue.value.dataType === DataType.ExtensionObject &&
-        dataValue.value.value instanceof OpaqueStructure);
+        dataValue.value && dataValue.value.dataType === DataType.ExtensionObject &&
+        (
+            (dataValue.value.arrayType === VariantArrayType.Scalar
+                && dataValue.value.value instanceof OpaqueStructure)
+            ||
+            (dataValue.value.arrayType !== VariantArrayType.Scalar
+                && dataValue.value.value && dataValue.value.value.length >= 0
+                && dataValue.value.value[0] instanceof OpaqueStructure)
+        )
+    );
+
     if (dataValuesToFix.length === 0) {
         return;
     }
@@ -35,8 +44,9 @@ export async function promoteOpaqueStructure(
     // construct dataTypeManager if not already present
     const extraDataTypeManager = await getExtraDataTypeManager(session);
 
-    const promises = dataValuesToFix.map(async (dataValue: DataValue) => {
-        resolveDynamicExtensionObject(dataValue.value, extraDataTypeManager);
-    });
+    const promises = dataValuesToFix.map(
+        async (dataValue: DataValue) => {
+            return await resolveDynamicExtensionObject(dataValue.value, extraDataTypeManager)
+        });
     await Promise.all(promises);
 }

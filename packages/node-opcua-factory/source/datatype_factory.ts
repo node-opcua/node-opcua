@@ -305,13 +305,24 @@ function dumpDataFactory(dataFactory: DataTypeFactory, write: any) {
     for (const structureTypeName of dataFactory.structuredTypesNames()) {
         const schema = dataFactory.getStructuredTypeSchema(structureTypeName);
 
+        write("structureTypeName =", structureTypeName);
+
         if (!dataFactory.findConstructorForDataType(schema.dataTypeNodeId)) {
             write("  ( No constructor for " + schema.name + "  " + schema.dataTypeNodeId.toString());
         }
-        if (dataFactory.hasConstructor(schema.encodingDefaultBinary!)) {
-            throw new Error("Not  in Binary Encoding Map!!!!!");
+        if (!schema.encodingDefaultBinary) {
+            write(" (Schema has no encoding defaultBinary )");
+        } else {
+            if (dataFactory.hasConstructor(schema.encodingDefaultBinary)) {
+                console.log("schema", schema.name);
+                console.log("schema", schema.dataTypeNodeId.toString());
+                console.log("schema", schema.encodingDefaultBinary ? schema.encodingDefaultBinary.toString() : " ");
+                console.log("schema", schema.encodingDefaultXml ? schema.encodingDefaultXml.toString() : " ");
+                // return;
+                // throw new Error("Not  in Binary Encoding Map!!!!!  " + schema.encodingDefaultBinary);
+
+            }
         }
-        write("structureTypeName =", structureTypeName);
         dumpSchema(schema, write);
     }
 }

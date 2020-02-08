@@ -598,9 +598,9 @@ async function getHasEncodingDefaultBinary(
         });
 
         // tslint:disable:no-console
-        console.log("node-id    :", dataTypeNodeId.toString());
+        console.log("node-id    :", dataTypeNodeId ? dataTypeNodeId.toString() : null);
         console.log("nodeClass  :", NodeClass[nodeClass.value.value]);
-        console.log("browseName :", browseName.value.value.toString());
+        console.log("browseName :", browseName.toString());
         console.log(result1.toString());
         throw new Error("getDataTypeDefinition invalid HasEncoding reference");
     }
