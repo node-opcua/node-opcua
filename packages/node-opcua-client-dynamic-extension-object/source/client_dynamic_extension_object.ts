@@ -18,6 +18,7 @@ import {
 } from "node-opcua-debug";
 import {
     BasicTypeDefinition,
+    BasicTypeSchema,
     ConstructorFuncWithSchema,
     DataTypeFactory,
     FieldCategory,
@@ -25,9 +26,8 @@ import {
     getBuildInType,
     StructuredTypeOptions,
     StructuredTypeSchema,
-    BasicTypeSchema,
-    TypeSchemaBase,
     TypeDefinition,
+    TypeSchemaBase,
 } from "node-opcua-factory";
 import {
     ExpandedNodeId,
@@ -237,9 +237,9 @@ async function _findEncodings(session: IBasicSession, dataTypeNodeId: NodeId): P
 interface IDataTypeDefInfo {
     className: string;
     dataTypeNodeId: NodeId;
-    dataTypeDefinition: StructureDefinition
+    dataTypeDefinition: StructureDefinition;
 }
-type DataTypeDefinitions = Array<IDataTypeDefInfo>;
+type DataTypeDefinitions = IDataTypeDefInfo[];
 
 function sortStructure(dataTypeDefinitions: DataTypeDefinitions) {
     const dataTypeDefinitionsSorted: IDataTypeDefInfo[] = [];
@@ -323,10 +323,12 @@ async function _extractDataTypeDictionaryFromDefinition(
             const schema = await _convertDataTypeDefinitionToStructureTypeSchema(
                 session, dataTypeNodeId, className, dataTypeDefinition, dataTypeFactory, cache);
 
-            console.log(chalk.red("Registering "), chalk.cyan(className.padEnd(30, " ")), schema.dataTypeNodeId.toString());
+            // istanbul ignore next
+            if (doDebug) {
+                debugLog(chalk.red("Registering "), chalk.cyan(className.padEnd(30, " ")), schema.dataTypeNodeId.toString());
+            }
             const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
             assert(Constructor.schema === schema);
-            console.log("---------------------------------");
         } catch (err) {
             console.log("Constructor verification: ", err.message);
             console.log("For this reason class " + className + " has not been registered");
@@ -373,8 +375,8 @@ async function _extractDataTypeDictionary(
 
     if (isDictionaryDeprecated || !rawSchemaDataValue.value.value) {
 
-        console.log("DataTypeDictionary is deprecated  or BSD schema stored in dataValue is null ! ", chalk.cyan(name.value.value.toString()), "namespace =", namespace);
-        console.log("lets use the new way (1.04) and let's crawl all dataTypes exposed by this name space");
+        debugLog("DataTypeDictionary is deprecated  or BSD schema stored in dataValue is null ! ", chalk.cyan(name.value.value.toString()), "namespace =", namespace);
+        debugLog("lets use the new way (1.04) and let's crawl all dataTypes exposed by this name space");
 
         // dataType definition in store directily in UADataType under the $definition property
         const dataTypeFactory2 = dataTypeManager.getDataTypeFactory(dataTypeDictionaryNodeId.namespace);
@@ -633,8 +635,6 @@ async function getDefinition(session: IBasicSession, defaultBinaryEncodingNodeId
     assert(result2.references && result2.references.length === 1);
     const definitionRef = result2.references![0]!;
 
-    // xx console.log("HasDefinition ", definitionRef.browseName.toString(), definitionRef.nodeId.toString());
-
     const nameDataValue = await session.read({
         attributeId: AttributeIds.Value,
         nodeId: definitionRef.nodeId
@@ -778,7 +778,9 @@ async function findDataTypeBasicType(
     dataTypeNodeId: NodeId
 ): Promise<TypeDefinition> {
     const subTypeNodeId = await findSuperType(session, dataTypeNodeId);
-    console.log("subTypeNodeId  of ", dataTypeNodeId.toString(), " is ", subTypeNodeId.toString());
+
+    debugLog("subTypeNodeId  of ", dataTypeNodeId.toString(), " is ", subTypeNodeId.toString());
+
     const key = subTypeNodeId.toString();
     if (cache[key]) {
         return cache[key].schema;
@@ -944,9 +946,7 @@ async function _convertDataTypeDefinitionToStructureTypeSchema(
             fields,
             id: 0,
             name,
-            // xx fields: definition.fields!
         });
-        console.log(os);
 
         return await _setupEncodings(session, dataTypeNodeId, os);
     }

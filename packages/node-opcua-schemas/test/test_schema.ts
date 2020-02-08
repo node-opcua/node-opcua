@@ -57,7 +57,9 @@ describe("BSHA - Binary Schemas Helper 1", () => {
 
         const workOrderType = new WorkOrderType({
             assetID: "AssetId1234",
-            iD: "00000000-0000-0000-ABCD-000000000000",
+
+            ID: "00000000-0000-0000-ABCD-000000000000",
+
             startTime: new Date(),
             statusComments: [{
                 actor: "Foo",

@@ -85,7 +85,7 @@ interface WorkOrderStatusType {
     comment: LocalizedText;
 }
 interface WorkOrderType {
-    iD: Guid;
+    ID: Guid;
     assetID: UAString;
     startTime: DateTime;
     statusComments: WorkOrderStatusType[];

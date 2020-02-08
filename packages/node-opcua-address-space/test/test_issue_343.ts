@@ -46,8 +46,8 @@ describe("Testing automatic string nodeid assignment", () => {
 
         boiler.nodeId.toString().should.eql("ns=1;s=MyBoiler");
 
-        boiler.pipeX001.nodeId.namespace.should.eql(boiler.nodeId.namespace, "expecting namespace index to match");
-        boiler.pipeX001.nodeId.toString().should.eql("ns=1;s=MyBoiler-PipeX001");
+        boiler.inputPipe.nodeId.namespace.should.eql(boiler.nodeId.namespace, "expecting namespace index to match");
+        boiler.inputPipe.nodeId.toString().should.eql("ns=1;s=MyBoiler-InputPipe");
 
         //  console.log(boiler.toString());
 
@@ -69,8 +69,8 @@ describe("Testing automatic string nodeid assignment", () => {
 
             boiler.nodeId.toString().should.eql("ns=1;s=MyBoiler2");
 
-            boiler.pipeX001.nodeId.namespace.should.eql(boiler.nodeId.namespace, "expecting namespace index to match");
-            boiler.pipeX001.nodeId.toString().should.eql("ns=1;s=MyBoiler2#PipeX001");
+            boiler.inputPipe.nodeId.namespace.should.eql(boiler.nodeId.namespace, "expecting namespace index to match");
+            boiler.inputPipe.nodeId.toString().should.eql("ns=1;s=MyBoiler2#InputPipe");
 
             NamespaceOptions.nodeIdNameSeparator = old_nodeIdNameSeparator;
 

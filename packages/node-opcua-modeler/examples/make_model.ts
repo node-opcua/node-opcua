@@ -84,7 +84,8 @@ function createModel(addressSpace: AddressSpace) {
 
     createBoilerType(ns);
 
-    console.log((boilerDeviceType));
+    console.log(displayNodeElement(boilerDeviceType));
+
 }
 
 async function buildModelFile() {
@@ -143,7 +144,8 @@ async function testNamepsace() {
 
     boiler.deviceHealth.writeEnumValue("MAINTENANCE_REQUIRED");
     boiler.manufacturer.setValueFromSource({ dataType: DataType.LocalizedText, value: { text: "STERFIVE" } });
-    displayNodeElement(boiler);
+
+    console.log(displayNodeElement(boiler));
 
     addressSpace.dispose();
 }

@@ -43,18 +43,18 @@ describe("UANode#removeReference", () => {
 
         // xx console.log(componentsBefore.join(" "));
 
-        componentsBefore.indexOf("1:PipeX001").should.be.aboveOrEqual(0);
+        componentsBefore.indexOf("1:InputPipe").should.be.aboveOrEqual(0);
 
-        boiler.removeReference({ referenceType: "HasComponent", nodeId: boiler.pipeX001.nodeId });
+        boiler.removeReference({ referenceType: "HasComponent", nodeId: boiler.inputPipe.nodeId });
         const componentsAfter = boiler.getComponents().map((x: BaseNode) => x.browseName.toString());
         // xx console.log(componentsAfter.join(" "));
 
-        componentsAfter.indexOf("1:PipeX001").should.eql(-1);
+        componentsAfter.indexOf("1:InputPipe").should.eql(-1);
 
-        should.not.exist(boiler.pipeX001);
+        should.not.exist(boiler.inputPipe);
 
-        boiler.removeReference({ referenceType: "HasComponent", nodeId: boiler.pipeX002.nodeId });
-        should.not.exist(boiler.pipeX002);
+        boiler.removeReference({ referenceType: "HasComponent", nodeId: boiler.outputPipe.nodeId });
+        should.not.exist(boiler.outputPipe);
 
     });
 

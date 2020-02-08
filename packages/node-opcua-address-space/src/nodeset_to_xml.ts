@@ -629,11 +629,12 @@ function _dumpUADataTypeDefinition(
         xw.startElement("Definition");
         xw.writeAttribute("Name", node.browseName.name!);
 
+        /*
         // todo
         $definition.baseDataType;
-
         // todo
         $definition.structureType;
+        */
 
         _dumpStructureDefinition(xw, $definition);
         xw.endElement();
@@ -1155,7 +1156,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
     }
 
     xw.endElement();
-    visitUANode;
+
     // ------------- Namespace Uris
     xw.startElement("Models");
     xw.endElement();

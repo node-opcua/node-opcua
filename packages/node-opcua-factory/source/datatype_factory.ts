@@ -10,13 +10,19 @@ import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 
+import { BasicTypeDefinition } from ".";
 import { ConstructorFunc, ConstructorFuncWithSchema } from "./constructor_type";
 import { BaseUAObject } from "./factories_baseobject";
-import { EnumerationDefinitionSchema, hasEnumeration, getEnumeration } from "./factories_enumerations";
+import {
+    getBuildInType,
+    hasBuiltInType,
+} from "./factories_builtin_types";
+import {
+    EnumerationDefinitionSchema,
+    getEnumeration,
+    hasEnumeration
+} from "./factories_enumerations";
 import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
-import { hasBuiltInType, getBuildInType } from "./factories_builtin_types";
-import { BasicTypeDefinition } from ".";
-import { link } from "fs";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -182,7 +188,8 @@ export class DataTypeFactory {
         if (classConstructor.encodingDefaultBinary && classConstructor.encodingDefaultBinary.value !== 0) {
             this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
         } else {
-            console.log("warning ", dataTypeNodeId.toString, "name= ", className, " do not have binary encoding");
+            console.log("warning ", dataTypeNodeId.toString(),
+                "name=", className, " do not have binary encoding");
         }
     }
 
@@ -264,6 +271,15 @@ export class DataTypeFactory {
         this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey] = classConstructor;
     }
 
+    public toString(): string {
+        const l: string[] = [];
+        function write(...args: [any, ...any[]]) {
+            l.push(util.format.apply(util.format, args));
+        }
+        dumpDataFactory(this, write);
+        return l.join("\n");
+    }
+
     private _registerFactory(dataTypeNodeId: NodeId, typeName: string, constructor: ConstructorFuncWithSchema): void {
         assert(dataTypeNodeId.value !== 0, "dataTypeNodeId cannot be null");
         /* istanbul ignore next */
@@ -282,14 +298,6 @@ export class DataTypeFactory {
         });
     }
 
-    public toString(): string {
-        const l: string[] = [];
-        function write(...args: [any, ...any[]]) {
-            l.push(util.format.apply(util.format, args));
-        }
-        dumpDataFactory(this, write);
-        return l.join("\n");
-    }
 }
 
 function dumpSchema(schema: StructuredTypeSchema, write: any) {

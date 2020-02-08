@@ -66,6 +66,7 @@ async function test_back(tmpFile: string) {
     }
 }
 
+// tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("addExtensionObjectDataType", () => {
 
@@ -91,9 +92,9 @@ describe("addExtensionObjectDataType", () => {
         const structureDefinition: StructureDefinitionOptions = {
             baseDataType: "",
             fields: [{
+                dataType: DataType.String,
                 isOptional: false,
                 name: "Name",
-                dataType: DataType.String,
                 valueRank: - 1
             }]
         };
@@ -133,7 +134,7 @@ describe("addExtensionObjectDataType", () => {
         await writeFile(tmpCSVFile, csv, "utf-8");
         console.log("symbol =\n", csv);
 
-        ///xx fix me await test_back(tmpFile);
+        // xx fix me await test_back(tmpFile);
 
     });
 
