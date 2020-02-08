@@ -8,10 +8,10 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { DateTime } from "node-opcua-basic-types";
 import {
-    populateDataTypeManager,
     ExtraDataTypeManager,
     getDataTypeDefinition,
     getExtraDataTypeManager,
+    populateDataTypeManager,
     promoteOpaqueStructure,
     resolveDynamicExtensionObject,
 } from "node-opcua-client-dynamic-extension-object";
@@ -127,7 +127,7 @@ import {
     VariantLike
 } from "node-opcua-variant";
 
-import { StructuredTypeSchema, DataTypeFactory, getStandartDataTypeFactory } from "node-opcua-factory";
+import { DataTypeFactory, getStandartDataTypeFactory, StructuredTypeSchema } from "node-opcua-factory";
 import {
     ArgumentDefinition,
     BrowseDescriptionLike,

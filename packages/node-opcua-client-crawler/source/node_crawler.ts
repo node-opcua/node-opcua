@@ -262,7 +262,7 @@ interface TaskExtraReference extends TaskBase {
 }
 
 interface TaskReconstruction extends TaskBase {
-    data: any;
+    data: CacheNode;
     func: (task: TaskReconstruction, callback: Callback) => void;
 }
 
@@ -658,14 +658,14 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                     cacheNode.nodeId,
                     AttributeIds.BrowseName,
 
-                    (err: Error | null, value?: any) => {
+                    (err: Error | null, value?: QualifiedName) => {
 
                         /* istanbul ignore else */
                         if (err) {
                             return callback(err);
                         }
                         assert(value instanceof QualifiedName);
-                        cacheNode.browseName = value;
+                        cacheNode.browseName = value!;
                         setImmediate(callback);
                     });
             },
@@ -674,12 +674,12 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                 this._defer_readNode(
                     cacheNode.nodeId,
                     AttributeIds.NodeClass,
-                    (err: Error | null, value?: any) => {
+                    (err: Error | null, value?: NodeClass) => {
                         /* istanbul ignore else */
                         if (err) {
                             return callback(err);
                         }
-                        cacheNode.nodeClass = value;
+                        cacheNode.nodeClass = value!;
                         setImmediate(callback);
                     });
             },
@@ -689,13 +689,13 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                     cacheNode.nodeId,
                     AttributeIds.DisplayName,
 
-                    (err: Error | null, value?: any) => {
+                    (err: Error | null, value?: LocalizedText) => {
                         /* istanbul ignore else */
                         if (err) {
                             return callback(err);
                         }
                         assert(value instanceof LocalizedText);
-                        cacheNode.displayName = value;
+                        cacheNode.displayName = value!;
                         setImmediate(callback);
                     });
             },
@@ -784,7 +784,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
     private simplify_object(
         objMap: any,
-        object: any,
+        object: CacheNode,
         finalCallback: (err: Error | null, obj?: any) => void
     ) {
 
@@ -794,7 +794,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             (task: TaskReconstruction, innerCallback: Callback) => {
                 setImmediate(() => {
                     assert(_.isFunction(task.func));
-                    task.func(task.data, innerCallback);
+                    task.func(task, innerCallback);
                 });
             }, 1);
 
@@ -812,7 +812,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     private _add_for_reconstruction(
         queue: any,
         objMap: any,
-        object: any,
+        object: CacheNode,
         extraFunc: (err: Error | null, obj?: any) => void
     ) {
         assert(_.isFunction(extraFunc));
@@ -821,7 +821,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         const task: TaskReconstruction = {
             data: object,
             func: (data, callback: ErrorCallback) => {
-                this._reconstruct_manageable_object(queue, objMap, data, (err: Error | null, obj?: any) => {
+                this._reconstruct_manageable_object(queue, objMap, object, (err: Error | null, obj?: any) => {
                     extraFunc(err, obj);
                     callback(err || undefined);
                 });
@@ -833,7 +833,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     private _reconstruct_manageable_object(
         queue: any,
         objMap: any,
-        object: any,
+        object: CacheNode,
         callback: (err: Error | null, obj?: any
         ) => void) {
 
@@ -868,14 +868,12 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         if (object.nodeClass) {
             obj.nodeClass = object.nodeClass.toString();
         }
-        if (object.dataType) {
-            obj.dataType = object.dataType.toString();
-            // xx obj.dataTypeName = object.dataTypeName;
-        }
-        if (object.dataValue) {
-            if (object.dataValue instanceof Array || object.dataValue.length > 10) {
-                // too much verbosity here
-            } else {
+        if (object instanceof CacheNodeVariable || object instanceof CacheNodeVariableType) {
+            if (object.dataType) {
+                obj.dataType = object.dataType.toString();
+                // xx obj.dataTypeName = object.dataTypeName;
+            }
+            if (object.dataValue) {
                 obj.dataValue = object.dataValue.toString();
             }
         }
@@ -926,7 +924,8 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                         referenceMap[refName] = [];
                     }
                     if (!reference.nodeId) {
-                        console.log(reference);
+                        // tslint:disable-next-line: no-console
+                        console.log("node id ", reference.toString());
                     }
                     this._add_for_reconstruction(queue, objMap, reference, (err: Error | null, mobject: any) => {
                         if (!err) {
@@ -968,7 +967,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
             /* istanbul ignore else */
             if (err) {
-                return callback(err || undefined);
+                return callback(err);
             }
 
             for (const pair of _.zip(selectedPendingReadTasks, dataValues)) {
@@ -1341,8 +1340,12 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
             this.browseNameMap[key] = "?";
             this.pendingReadTasks.push({
                 action: (value: any, dataValue: DataValue) => {
+                    if (attributeId === AttributeIds.Value) {
+                        this.set_cache_NodeAttribute(nodeId, attributeId, dataValue);
+                        callback(null, dataValue);
+                        return;
+                    }
                     if (dataValue.statusCode === StatusCodes.Good) {
-                        // xx  console.log("xxxx set_cache_NodeAttribute", nodeId, attributeId, value);
                         this.set_cache_NodeAttribute(nodeId, attributeId, value);
                         callback(null, value);
                     } else {
@@ -1608,7 +1611,10 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                 const cache = cacheNode as CacheNodeVariable | CacheNodeVariableType;
                 this._defer_readNode(cacheNode.nodeId, AttributeIds.Value,
                     (err: Error | null, value?: DataValue) => {
-                        cache.dataValue = value!;
+                        if (!err) {
+                            assert(value instanceof DataValue);
+                            cache.dataValue = value!;
+                        }
                         callback();
                     });
             },

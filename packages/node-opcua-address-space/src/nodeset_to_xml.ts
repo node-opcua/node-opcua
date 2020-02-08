@@ -218,10 +218,15 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
             xw.endElement();
             break;
         case DataType.ByteString:
+            xw.startElement(DataType[dataType]);
+            // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
+            xw.text(value.toString("base64").match(/.{1,80}/g).join("\n"));
+            xw.endElement();
+            break;
         case DataType.QualifiedName:
         case DataType.StatusCode:
         default:
-            throw new Error("_dumpVariantValue!! incomplete  value = " + value + "  dataType=" + dataType + " - v=" + DataType[dataType]);
+            throw new Error("_dumpVariantValue!! incomplete  dataType=" + dataType + " - v=" + DataType[dataType] + "  value = " + value);
     }
 }
 
