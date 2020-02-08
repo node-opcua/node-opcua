@@ -160,7 +160,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         const callback = args[0];
         assert(_.isFunction(callback), "expecting a callback function");
 
-
         if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID
             || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
             // already terminated... just ignore
@@ -512,10 +511,22 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
     public toString(): string {
         let str = "";
-        str += "subscriptionId      :" + this.subscriptionId + "\n";
-        str += "publishingInterval  :" + this.publishingInterval + "\n";
-        str += "lifetimeCount       :" + this.lifetimeCount + "\n";
-        str += "maxKeepAliveCount   :" + this.maxKeepAliveCount + "\n";
+        str += "subscriptionId      : " + this.subscriptionId + "\n";
+        str += "publishingInterval  : " + this.publishingInterval + "\n";
+        str += "lifetimeCount       : " + this.lifetimeCount + "\n";
+        str += "maxKeepAliveCount   : " + this.maxKeepAliveCount + "\n";
+        str += "hasTimedOut         : " + this.hasTimedOut + "\n";
+
+        const timeToleave = this.lifetimeCount * this.publishingInterval;
+        str += "timeToleave         : " + timeToleave + "\n";
+        str += "lastRequestSentTime : " + this.lastRequestSentTime.toString() + "\n";
+        const durat = Date.now() - this.lastRequestSentTime.getTime();
+        const extra = (durat - timeToleave) > 0
+            ? chalk.red(" expired since " + (durat - timeToleave) / 1000 + " seconds")
+            : chalk.green(" valid for " + (-((durat - timeToleave))) / 1000 + " seconds");
+
+        str += "timeSinceLast PR    : " + durat + "ms" + extra + "\n";
+        str += "has expired         : " + (durat > timeToleave) + "\n";
         return str;
     }
 

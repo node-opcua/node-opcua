@@ -1973,6 +1973,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         //
         const privateThis = this as any;
         if (!(!privateThis.pendingTransactions || privateThis.pendingTransactions.length === 0)) {
+            // tslint:disable-next-line: no-console
             console.log("dispose when pendingTransactions is not empty ");
         }
     }
@@ -2001,6 +2002,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         str += "\n isValidChannel........... " + this.isChannelValid() + " has been closed  " + this.hasBeenClosed();
         str += "\n channelId................ " + this.channelId();
         str += "\n remaining life time...... " + this.evaluateRemainingLifetime();
+        str += "\n subscription count....... " + this.subscriptionCount;
         if (this._client && this._client._secureChannel) {
             if (this._client._secureChannel.securityToken) {
                 str += "\n reviseTokenLifetime...... " +
