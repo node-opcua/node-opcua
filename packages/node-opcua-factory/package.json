@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-factory",
-    "version": "2.5.0-alpha.4",
+    "version": "2.5.0-alpha.5",
     "description": "pure nodejs OPCUA SDK - module -factory",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

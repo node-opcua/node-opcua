@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-chunkmanager",
-    "version": "2.5.0-alpha.4",
+    "version": "2.5.0-alpha.5",
     "description": "pure nodejs OPCUA SDK - module -chunkmanager",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -16,7 +16,7 @@
         "node-opcua-basic-types": "^2.5.0-alpha.4",
         "node-opcua-binary-stream": "^2.5.0-alpha.4",
         "node-opcua-buffer-utils": "^2.5.0-alpha.4",
-        "node-opcua-factory": "^2.5.0-alpha.4",
+        "node-opcua-factory": "^2.5.0-alpha.5",
         "node-opcua-packet-assembler": "^2.5.0-alpha.4",
         "underscore": "^1.9.2"
     },

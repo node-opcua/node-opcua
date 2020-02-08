@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-generator",
-    "version": "2.5.0-alpha.4",
+    "version": "2.5.0-alpha.5",
     "description": "pure nodejs OPCUA SDK - module -generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -17,11 +17,11 @@
         "node-opcua-date-time": "^2.5.0-alpha.4",
         "node-opcua-debug": "^2.5.0-alpha.4",
         "node-opcua-enum": "^2.5.0-alpha.4",
-        "node-opcua-factory": "^2.5.0-alpha.4",
+        "node-opcua-factory": "^2.5.0-alpha.5",
         "node-opcua-guid": "^2.5.0-alpha.4",
         "node-opcua-nodeid": "^2.5.0-alpha.4",
-        "node-opcua-numeric-range": "^2.5.0-alpha.4",
-        "node-opcua-schemas": "^2.5.0-alpha.4",
+        "node-opcua-numeric-range": "^2.5.0-alpha.5",
+        "node-opcua-schemas": "^2.5.0-alpha.5",
         "node-opcua-status-code": "^2.5.0-alpha.4",
         "node-opcua-utils": "^2.5.0-alpha.4",
         "node-opcua-xml2json": "^2.5.0-alpha.4",
@@ -32,8 +32,8 @@
     "devDependencies": {
         "@types/prettier": "^1.19.0",
         "node-opcua-binary-stream": "^2.5.0-alpha.4",
-        "node-opcua-extension-object": "^2.5.0-alpha.4",
-        "node-opcua-packet-analyzer": "^2.5.0-alpha.4",
+        "node-opcua-extension-object": "^2.5.0-alpha.5",
+        "node-opcua-packet-analyzer": "^2.5.0-alpha.5",
         "should": "13.2.3",
         "source-map-support": "^0.5.16"
     },

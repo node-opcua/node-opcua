@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-certificate-manager",
-    "version": "2.5.0-alpha.4",
+    "version": "2.5.0-alpha.5",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "certificate": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
@@ -24,7 +24,7 @@
         "node-opcua-assert": "^2.5.0-alpha.4",
         "node-opcua-basic-types": "^2.5.0-alpha.4",
         "node-opcua-buffer-utils": "^2.5.0-alpha.4",
-        "node-opcua-common": "^2.5.0-alpha.4",
+        "node-opcua-common": "^2.5.0-alpha.5",
         "node-opcua-constants": "^2.5.0-alpha.4",
         "node-opcua-crypto": "^1.1.4",
         "node-opcua-debug": "^2.5.0-alpha.4",
