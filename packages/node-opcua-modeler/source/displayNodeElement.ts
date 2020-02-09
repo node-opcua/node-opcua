@@ -5,7 +5,6 @@ import {
     UAObjectType,
     UAVariable,
 } from "node-opcua-address-space";
-import { resolveReferenceNode } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
@@ -99,7 +98,7 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
     const alreadyDumped: any = {};
 
     function dumpRefe(ref: Reference, filter?: string) {
-        resolveReferenceNode(node.addressSpace, ref);
+        Reference.resolveReferenceNode(node.addressSpace, ref);
         if (!ref.isForward) {
             return;
         }
