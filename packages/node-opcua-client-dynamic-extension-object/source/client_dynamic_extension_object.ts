@@ -320,7 +320,7 @@ async function _extractDataTypeDictionaryFromDefinition(
         }
         // now fill typeDictionary
         try {
-            const schema = await _convertDataTypeDefinitionToStructureTypeSchema(
+            const schema = await convertDataTypeDefinitionToStructureTypeSchema(
                 session, dataTypeNodeId, className, dataTypeDefinition, dataTypeFactory, cache);
 
             // istanbul ignore next
@@ -873,7 +873,7 @@ async function resolveFieldType(
                 }
 
                 const definition = dataTypeDefinitionDataValue.value.value;
-                // schema = await _convertDataTypeDefinitionToStructureTypeSchema(session, fieldTypeName, definition, dataTypeFactory, cache);
+                // schema = await convertDataTypeDefinitionToStructureTypeSchema(session, fieldTypeName, definition, dataTypeFactory, cache);
                 schema = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
                 break;
         }
@@ -904,7 +904,8 @@ async function _setupEncodings(
 
     return schema;
 }
-async function _convertDataTypeDefinitionToStructureTypeSchema(
+
+export async function convertDataTypeDefinitionToStructureTypeSchema(
     session: IBasicSession,
     dataTypeNodeId: NodeId,
     name: string,

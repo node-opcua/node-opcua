@@ -25,12 +25,12 @@ const hasEncoding = resolveNodeId("HasEncoding");
 
 function _identifyParentInReference(references: Reference[]): [NodeId, string] | null {
 
-    const candidates = references.filter((ref: Reference) => {
-        return !ref.isForward &&
+    const candidates = references.filter((r: Reference) => {
+        return !r.isForward &&
             (
-                sameNodeId(ref.referenceType, hasComponentRefId) ||
-                sameNodeId(ref.referenceType, hasPropertyRefId) ||
-                sameNodeId(ref.referenceType, hasEncoding)
+                sameNodeId(r.referenceType, hasComponentRefId) ||
+                sameNodeId(r.referenceType, hasPropertyRefId) ||
+                sameNodeId(r.referenceType, hasEncoding)
             );
     });
     assert(candidates.length <= 1);
@@ -107,7 +107,7 @@ export class NodeIdManager {
 
         const line: string[] = [];
         for (const [name, value, nodeClass] of this.getSymbols()) {
-            line.push([name, value, nodeClass].join(","));
+            line.push([name, value, nodeClass].join(";"));
         }
         return line.join("\n");
     }
@@ -125,7 +125,7 @@ export class NodeIdManager {
 
         function prepareName(browseName: QualifiedName): string {
             assert(browseName instanceof QualifiedName);
-            const m = browseName.name!.toString().replace(/[ ]/g, "_").replace(/(\<|\>)/g, "");
+            const m = browseName.name!.toString().replace(/[ ]/g, "").replace(/(\<|\>)/g, "");
             return m;
         }
         let nodeId = options.nodeId;
@@ -150,7 +150,7 @@ export class NodeIdManager {
                     //
                     const baseNameInCache = this._reverseCache[parentNodeId.value as number];
                     if (baseNameInCache) {
-                        const newName = baseNameInCache.name + "_" + name;
+                        const newName = baseNameInCache.name + linkName + "_" + name;
                         const nodeIdValueInCache = this._cache[newName];
                         if (nodeIdValueInCache) {
                             return new NodeId(NodeIdType.NUMERIC, nodeIdValueInCache, this.namespaceIndex);
@@ -159,7 +159,7 @@ export class NodeIdManager {
                         }
                     }
                 }
-                // }} has parent ... 
+                // }} has parent ...
             } else {
                 const isRootType =
                     options.nodeClass === NodeClass.DataType ||

@@ -1,25 +1,37 @@
 /**
  * @module node-opcua-address-space.Private
  */
-import { assert } from "node-opcua-assert";
-import { NodeId } from "node-opcua-nodeid";
-import { AddReferenceOpts, CreateNodeOptions, ModellingRuleType, Namespace } from "../source";
-import { AddressSpacePrivate } from "./address_space_private";
-import { BaseNode } from "./base_node";
-// tslint:disable:no-empty-interface
+import {
+    assert
+} from "node-opcua-assert";
+import {
+    NodeId
+} from "node-opcua-nodeid";
+import {
+    AddReferenceOpts,
+    ConstructNodeIdOptions,
+    CreateNodeOptions,
+    ModellingRuleType,
+    Namespace
+} from "../source";
+import {
+    AddressSpacePrivate
+} from "./address_space_private";
+import {
+    BaseNode
+} from "./base_node";
+
 export interface NamespacePrivate extends Namespace {
 
     addressSpace: AddressSpacePrivate;
 
     _nodeid_index: { [key: string]: BaseNode };
 
-    _construct_nodeId(options: any): NodeId;
+    constructNodeId(options: ConstructNodeIdOptions): NodeId;
 
     resolveAlias(name: string): NodeId | null;
 
     dispose(): void;
-
-    _build_new_NodeId(): NodeId;
 
     _register(node: BaseNode): void;
 
@@ -28,7 +40,7 @@ export interface NamespacePrivate extends Namespace {
     _createNode(options: CreateNodeOptions): BaseNode;
 }
 
-export declare const NamespacePrivate: new(options: any) => NamespacePrivate;
+export declare const NamespacePrivate: new (options: any) => NamespacePrivate;
 
 function isValidModellingRule(ruleName: string) {
     // let restrict to Mandatory or Optional for the time being

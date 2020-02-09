@@ -23,6 +23,9 @@
     "node-opcua-nodesets": "^2.5.0-alpha.4",
     "node-opcua-numeric-range": "^2.5.0-alpha.5",
     "node-opcua-service-translate-browse-path": "^2.5.0-alpha.5",
+    "node-opcua-client-dynamic-extension-object": "^2.5.0-alpha.5",
+    "node-opcua-schemas": "^2.5.0-alpha.4",
+    "node-opcua-factory": "^2.5.0-alpha.4",
     "node-opcua-types": "^2.5.0-alpha.5",
     "node-opcua-variant": "^2.5.0-alpha.5",
     "node-opcua-xml2json": "^2.5.0-alpha.4"

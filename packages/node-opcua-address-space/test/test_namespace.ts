@@ -1,6 +1,6 @@
 import { NodeClass } from "node-opcua-data-model";
 import * as should from "should";
-import { AddressSpace } from "..";
+import { AddressSpace, Namespace } from "..";
 const _should = should;
 
 // tslint:disable-next-line:no-var-requires
@@ -39,7 +39,7 @@ describe("AddressSpace Namespace", () => {
         const node = namespace1._createNode({
             browseName: "Toto",
             nodeClass: NodeClass.Object,
-            nodeId: (namespace1 as any)._build_new_NodeId()
+            nodeId: "s=TOTO"
         });
 
         node.browseName.toString().should.eql("1:Toto");

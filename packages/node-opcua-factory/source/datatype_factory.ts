@@ -156,6 +156,7 @@ export class DataTypeFactory {
                 return constructor2;
             }
         }
+        console.log(Object.keys(this._structureTypeConstructorByNameMap).join(" "));
         throw new Error("Cannot find StructureType constructor for " + typeName + " - it may be abstract, or it could be a basic type");
     }
 

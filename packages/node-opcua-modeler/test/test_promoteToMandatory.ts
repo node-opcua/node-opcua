@@ -1,22 +1,23 @@
+import * as should from "should";
 import {
     AddressSpace,
-    generateAddressSpace,
-    promoteToMandatory,
-    displayNodeElement,
-    nodesets,
-    Namespace,
     assert,
+    displayNodeElement,
+    generateAddressSpace,
+    Namespace,
     NodeClass,
+    nodesets,
+    promoteToMandatory,
 } from "..";
 import { removeDecoration } from "./test_helpers";
-import * as should from "should";
 
 const namespaceUri = "urn:some";
 
 function createModel(addressSpace: AddressSpace) {
-
+    /* empty */
 }
 
+// tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("promoteToMandatory", () => {
 
@@ -42,7 +43,7 @@ describe("promoteToMandatory", () => {
 
     });
     after(() => {
-        addressSpace.dispose()
+        addressSpace.dispose();
     });
 
     it("when creating a sub type it should be possible to promote a component or property to mandatory", async () => {
@@ -69,10 +70,10 @@ describe("promoteToMandatory", () => {
 
         const str1 = displayNodeElement(boilerType);
         const a = removeDecoration(str1).split("\n");
-        console.log(str1);
+        // console.log(a);
 
-       // a[2 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=1;i=1001  │ 2:DeviceHealth         │ Mandatory           │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
-       // a[13 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=2;i=6208  │ 2:DeviceHealth         │ Optional            │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
+        // a[2 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=1;i=1001  │ 2:DeviceHealth         │ Mandatory           │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
+        // a[13 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=2;i=6208  │ 2:DeviceHealth         │ Optional            │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
 
-    })
-})
+    });
+});

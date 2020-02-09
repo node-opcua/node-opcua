@@ -9,10 +9,9 @@ import {
     UAVariable,
     UAVariableType,
 } from "node-opcua-address-space";
+import { NodeClass } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { displayNodeElement } from ".";
-import { NodeClass } from "node-opcua-data-model";
-
 
 type UAType = UAObjectType | UAVariableType | UAReferenceType | UADataType;
 
@@ -21,16 +20,15 @@ type UAConcrete = UAVariable | UAObject | UAMethod;
 // find the reference that links node1 to node2
 function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
     const references = node1.allReferences();
-    const r = references.filter((ref: UAReference) => {
-        //xx console.log(ref.nodeId.toString(), node2.nodeId.toString());
-        return ref.nodeId.toString() === node2.nodeId.toString()
+    const r = references.filter((reference: UAReference) => {
+        return reference.nodeId.toString() === node2.nodeId.toString();
     });
     const ref = r ? r[0] : null;
     /* instanbul ignore next */
     if (!ref) {
         // may be from subtype
         if (node1.nodeClass === NodeClass.ObjectType ||
-            node1.nodeClass == NodeClass.ReferenceType ||
+            node1.nodeClass === NodeClass.ReferenceType ||
             node1.nodeClass === NodeClass.VariableType) {
 
             const uaType = node1 as UAType;
@@ -39,14 +37,11 @@ function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
             }
         }
 
-        console.log(node1.toString());
-        console.log(node2.toString());
         throw new Error("Internal Error cannot find ref from node "
             + node1.nodeId.toString() + " " + node2.nodeId.toString());
     }
     return ref;
 }
-
 
 export function promoteToMandatory(
     node: UAObjectType | UAVariableType,
@@ -81,7 +76,8 @@ export function promoteToMandatory(
 
     // check mandatory
     /* istanbul ignore next */
-    if (propInSuperType.modellingRule == "Mandatory") {
+    if (propInSuperType.modellingRule === "Mandatory") {
+        // tslint:disable-next-line: no-console
         console.log("Warning property " + propertyName + " is already Mandatory in super type");
         return propInSuperType;
     }
@@ -92,15 +88,12 @@ export function promoteToMandatory(
     if (!ref) {
         throw new Error("Ref");
     }
-    console.log(ref.toString());
 
     const newRef: UAReference = { isForward: false, nodeId: node.nodeId, referenceType: ref.referenceType };
 
     const newProp = (propInSuperType as UAConcrete).clone({
+        modellingRule: "Mandatory",
         references: [newRef],
-        modellingRule: "Mandatory"
     }, null, null);
-    //xx console.log(node.toString());
-    //xxconsole.log(newProp.toString());
     return newProp;
 }

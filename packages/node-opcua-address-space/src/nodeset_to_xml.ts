@@ -16,7 +16,9 @@ import {
     FieldType,
     getStructureTypeConstructor,
     StructuredTypeField,
-    StructuredTypeSchema
+    StructuredTypeSchema,
+    hasConstructor,
+    hasStructuredType
 } from "node-opcua-factory";
 import { getStructuredTypeSchema } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
@@ -367,7 +369,7 @@ function _dumpValue(
         console.log("Cannot find dataType:", node.dataType);
         return;
     }
-    const dataTypeName = dataTypeNode.browseName.toString();
+    const dataTypeName = dataTypeNode.browseName.name!.toString();
 
     const baseDataTypeName = DataType[value.dataType];
 
@@ -382,16 +384,19 @@ function _dumpValue(
     const isExtensionObject = value.dataType === DataType.ExtensionObject;
 
     if (isExtensionObject) {
-        const schema = getStructuredTypeSchema(dataTypeName);
-        const encodeXml = _dumpVariantExtensionObjectValue.bind(null, xw, schema);
-        if (value.arrayType === VariantArrayType.Array) {
-            xw.startElement("ListOf" + baseDataTypeName);
-            value.value.forEach(encodeXml);
-            xw.endElement();
-        } else if (value.arrayType === VariantArrayType.Scalar) {
-            encodeXml(value.value);
-        } else {
-            throw new Error("Unsupported case");
+        if (hasStructuredType(dataTypeName)) {
+
+            const schema = getStructuredTypeSchema(dataTypeName);
+            const encodeXml = _dumpVariantExtensionObjectValue.bind(null, xw, schema);
+            if (value.arrayType === VariantArrayType.Array) {
+                xw.startElement("ListOf" + baseDataTypeName);
+                value.value.forEach(encodeXml);
+                xw.endElement();
+            } else if (value.arrayType === VariantArrayType.Scalar) {
+                encodeXml(value.value);
+            } else {
+                throw new Error("Unsupported case");
+            }
         }
     } else {
 

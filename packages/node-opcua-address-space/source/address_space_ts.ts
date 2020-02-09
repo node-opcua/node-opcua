@@ -935,6 +935,8 @@ export interface InstantiateObjectOptions extends InstantiateOptions {
     //
     conditionSource?: NodeId | BaseNode;
     eventNotifier?: Byte;
+    // for DataTypeEncodingType
+    encodingOf?: NodeId | BaseNode;
 }
 
 export declare interface UAObjectType extends BaseNode, IPropertyAndComponentHolder {
@@ -1166,6 +1168,7 @@ export interface AddObjectOptions extends AddBaseNodeOptions {
     // default value is "BaseObjectType";
     typeDefinition?: string | NodeId | UAObjectType;
     nodeVersion?: string;
+    encodingOf?: NodeId | BaseNode;
 }
 
 export interface AddViewOptions extends AddBaseNodeOptions {
@@ -1279,6 +1282,8 @@ export declare interface Namespace {
     namespaceUri: string;
     addressSpace: AddressSpace;
     index: number;
+
+    constructNodeId(options: ConstructNodeIdOptions): NodeId;
 
     // -------------------------------------------------------------------------
 
@@ -2475,6 +2480,7 @@ export interface AddressSpace {
 
 import { AddressSpace as AddressSpaceImpl } from "../src/address_space";
 import { UAOffNormalAlarm } from "../src/alarms_and_conditions/ua_off_normal_alarm";
+import { ConstructNodeIdOptions } from "../src/nodeid_manager";
 import { UATwoStateDiscrete } from "./interfaces/data_access/ua_two_state_discrete";
 
 export class AddressSpace {

@@ -1521,28 +1521,6 @@ export class AddressSpace implements AddressSpacePrivate {
         const [namespace, browseName] = _extract_namespace_and_browse_name_as_string(this, refType, namespaceIndex);
         return namespace.findReferenceType(browseName);
     }
-
-    private _build_new_NodeId(): NodeId {
-        /* istanbul ignore next */
-        if (this._namespaceArray.length <= 1) {
-            throw new Error("Please create a private namespace");
-        }
-        const privateNamespace = this.getOwnNamespace();
-        return privateNamespace._build_new_NodeId();
-    }
-
-    private _resolveRequestedNamespace(options: any): NamespacePrivate {
-        if (!options.nodeId) {
-            return this.getOwnNamespace();
-        }
-        if (typeof options.nodeId === "string") {
-            if (options.nodeId.match(/^(i|s|g|b)=/)) {
-                options.nodeId = this.getOwnNamespace()._construct_nodeId(options);
-            }
-        }
-        options.nodeId = resolveNodeId(options.nodeId);
-        return this.getNamespace(options.nodeId.namespace);
-    }
 }
 
 function _getNamespace(addressSpace: AddressSpace, nodeOrNodId: BaseNode | NodeId): NamespacePrivate {

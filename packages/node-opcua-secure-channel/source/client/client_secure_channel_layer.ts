@@ -1203,7 +1203,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
             } else {
                 debugLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", err);
                 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECHK ME !!!
-                this.closeWithError(new Error("Restarting because Request has timed out during OpenSecureChannel"), () => { });
+                this.closeWithError(new Error("Restarting because Request has timed out during OpenSecureChannel"), () => {
+                    /* */
+                });
             }
         });
     }

@@ -12,7 +12,7 @@ import {
     setNamespaceMetaData
 } from "..";
 
-
+// tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("displayNodeElement", () => {
 
@@ -24,7 +24,7 @@ describe("displayNodeElement", () => {
         const xmlFiles = [
             nodesets.standard,
             nodesets.di
-        ]
+        ];
         await generateAddressSpace(addressSpace, xmlFiles);
     });
 
@@ -39,16 +39,19 @@ describe("displayNodeElement", () => {
         setNamespaceMetaData(namespace);
 
         const str1 = displayNodeElement(addressSpace.rootFolder.objects.server.namespaces);
-        removeDecoration(str1).should.eql(`┌────────────────┬──────────────┬───────────────────────────────────┬───────────────┬───────────────────────┬──────────┬───────┐
-│ ReferenceType  │ NodeId       │ BrowseName                        │ ModellingRule │ TypeDefinition        │ DataType │ Value │
-├────────────────┼──────────────┴───────────────────────────────────┴───────────────┴───────────────────────┴──────────┴───────┤
-│ BrowseName:    │ Namespaces                                                                                                  │
-├────────────────┼──────────────┬───────────────────────────────────┬───────────────┬───────────────────────┬──────────┬───────┤
-│ HasComponent Ⓞ │ ns=0;i=15957 │ http://opcfoundation.org/UA/      │               │ NamespaceMetadataType │          │       │
-├────────────────┼──────────────┼───────────────────────────────────┼───────────────┼───────────────────────┼──────────┼───────┤
-│ HasComponent Ⓞ │ ns=2;i=15001 │ 2:http://opcfoundation.org/UA/DI/ │               │ NamespaceMetadataType │          │       │
-├────────────────┼──────────────┼───────────────────────────────────┼───────────────┼───────────────────────┼──────────┼───────┤
-│ HasComponent Ⓞ │ ns=1;i=1000  │ 1:urn://myNamespace               │               │ NamespaceMetadataType │          │       │
-└────────────────┴──────────────┴───────────────────────────────────┴───────────────┴───────────────────────┴──────────┴───────┘`);
+        // .log(removeDecoration(str1));
+        removeDecoration(str1).should.eql(`┌──────────────────────┬──────────────┬───────────────────────────────────┬───────────────┬───────────────────────┬──────────┬───────┐
+│ ReferenceType        │ NodeId       │ BrowseName                        │ ModellingRule │ TypeDefinition        │ DataType │ Value │
+├──────────────────────┼──────────────┴───────────────────────────────────┴───────────────┴───────────────────────┴──────────┴───────┤
+│ BrowseName:          │ Namespaces                                                                                                  │
+├──────────────────────┼──────────────┬───────────────────────────────────┬───────────────┬───────────────────────┬──────────┬───────┤
+│ HasTypeDefinition ⓄT │ ns=0;i=11645 │ NamespacesType                    │               │                       │          │       │
+├──────────────────────┼──────────────┼───────────────────────────────────┼───────────────┼───────────────────────┼──────────┼───────┤
+│ HasComponent Ⓞ       │ ns=0;i=15957 │ http://opcfoundation.org/UA/      │               │ NamespaceMetadataType │          │       │
+├──────────────────────┼──────────────┼───────────────────────────────────┼───────────────┼───────────────────────┼──────────┼───────┤
+│ HasComponent Ⓞ       │ ns=2;i=15001 │ 2:http://opcfoundation.org/UA/DI/ │               │ NamespaceMetadataType │          │       │
+├──────────────────────┼──────────────┼───────────────────────────────────┼───────────────┼───────────────────────┼──────────┼───────┤
+│ HasComponent Ⓞ       │ ns=1;i=1000  │ 1:urn://myNamespace               │               │ NamespaceMetadataType │          │       │
+└──────────────────────┴──────────────┴───────────────────────────────────┴───────────────┴───────────────────────┴──────────┴───────┘`);
     });
 });

@@ -1758,11 +1758,8 @@ export class UANamespace implements NamespacePublic {
     }
 
     // --- internal stuff
-    public _construct_nodeId(options: ConstructNodeIdOptions): NodeId {
+    public constructNodeId(options: ConstructNodeIdOptions): NodeId {
         return this._nodeIdManager.constructNodeId(options);
-    }
-    public _build_new_NodeId(): NodeId {
-        return this._nodeIdManager.buildNewNodeId();
     }
 
     public _register(node: BaseNode): void {
@@ -1875,7 +1872,7 @@ export class UANamespace implements NamespacePublic {
         }
 
         // --- nodeId adjustment
-        options.nodeId = this._construct_nodeId(options);
+        options.nodeId = this.constructNodeId(options);
         dumpIf(!options.nodeId, options); // missing node Id
         assert(options.nodeId instanceof NodeId);
 
@@ -2219,6 +2216,7 @@ export function _handle_hierarchy_parent(
     options.componentOf = _coerce_parent(addressSpace, options.componentOf, addressSpace._coerceNode);
     options.propertyOf = _coerce_parent(addressSpace, options.propertyOf, addressSpace._coerceNode);
     options.organizedBy = _coerce_parent(addressSpace, options.organizedBy, addressSpace._coerceFolder);
+    options.encodingOf = _coerce_parent(addressSpace, options.encodingOf, addressSpace._coerceNode);
 
     if (options.componentOf) {
         assert(!options.propertyOf);
@@ -2252,6 +2250,16 @@ export function _handle_hierarchy_parent(
             isForward: false,
             nodeId: options.organizedBy.nodeId,
             referenceType: "Organizes"
+        });
+    }
+    if (options.encodingOf) {
+        // parent must be a DataType
+        assert(options.encodingOf.nodeClass === NodeClass.DataType,
+            "encodingOf must be toward a DataType");
+        references.push({
+            isForward: false,
+            nodeId: options.encodingOf.nodeId,
+            referenceType: "HasEncoding"
         });
     }
 }

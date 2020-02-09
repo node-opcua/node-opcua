@@ -85,6 +85,7 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
      * @param [options.eventSourceOf]
      * @param [options.optionals = [] name of the optional child to create
      * @param [options.modellingRule]
+     * @param [options.encodingOf]
      *
      *
      * Note : HasComponent usage scope
@@ -119,6 +120,7 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
             browseName: options.browseName,
             componentOf: options.componentOf,
             description: options.description || this.description,
+            encodingOf: options.encodingOf,
             eventSourceOf: options.eventSourceOf,
             notifierOf: options.notifierOf,
             organizedBy: options.organizedBy,

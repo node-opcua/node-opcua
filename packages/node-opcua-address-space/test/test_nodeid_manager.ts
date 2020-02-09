@@ -144,7 +144,7 @@ describe("NodeIdManager", () => {
         const options = { browseName: coerceQualifiedName("Property1"), nodeClass: NodeClass.Variable };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;i=1001");
-        nodeIdManager.getSymbolCSV().should.eql(`SomeName,1000,Object\nSomeName_Property1,1001,Variable`);
+        nodeIdManager.getSymbolCSV().should.eql(`SomeName;1000;Object\nSomeName_Property1;1001;Variable`);
 
         const options2 = {
             browseName: coerceQualifiedName("Property1"),
@@ -154,7 +154,7 @@ describe("NodeIdManager", () => {
         const nodeId2 = nodeIdManager.constructNodeId(options2);
         nodeId2.toString().should.eql("ns=1;i=1001");
 
-        nodeIdManager.getSymbolCSV().should.eql(`SomeName,1000,Object\nSomeName_Property1,1001,Variable`);
+        nodeIdManager.getSymbolCSV().should.eql(`SomeName;1000;Object\nSomeName_Property1;1001;Variable`);
     });
 
     it("should maintain a list of Symbol and recycle the one that exists already", () => {
@@ -167,7 +167,7 @@ describe("NodeIdManager", () => {
 
         const nodeId1 = nodeIdManager.constructNodeId(options1);
         nodeId1.toString().should.eql("ns=1;i=1000");
-        nodeIdManager.getSymbolCSV().should.eql(`MyNewDataType,1000,ObjectType`);
+        nodeIdManager.getSymbolCSV().should.eql(`MyNewDataType;1000;ObjectType`);
 
         nodeIdManager.findParentNodeId = () => [nodeId1, ""];
 
@@ -179,7 +179,7 @@ describe("NodeIdManager", () => {
         nodeId2.toString().should.eql("ns=1;i=1001");
 
         nodeIdManager.getSymbolCSV().should.eql(
-            `MyNewDataType,1000,ObjectType\nMyNewDataType_Property1,1001,Variable`);
+            `MyNewDataType;1000;ObjectType\nMyNewDataType_Property1;1001;Variable`);
 
     });
 });

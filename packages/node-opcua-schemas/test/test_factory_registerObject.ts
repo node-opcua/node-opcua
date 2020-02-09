@@ -20,10 +20,12 @@ import {
 } from "./mock_id_provider";
 
 import {
-    encode_decode_round_trip_test, compare_obj_by_encoding
+    compare_obj_by_encoding, encode_decode_round_trip_test
 } from "node-opcua-packet-analyzer/dist/test_helpers";
 const a = BaseUAObject;
 
+import { BinaryStream } from "node-opcua-binary-stream";
+import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
 import {
     AnyConstructorFunc,
     createDynamicObjectConstructor,
@@ -32,8 +34,6 @@ import {
     StructureTypeRaw,
     TypeDictionary,
 } from "../source";
-import { BinaryStream } from "node-opcua-binary-stream";
-import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
 
 const typeDictionary = new TypeDictionary();
 

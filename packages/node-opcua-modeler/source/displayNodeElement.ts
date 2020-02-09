@@ -5,6 +5,7 @@ import {
     UAObjectType,
     UAVariable,
 } from "node-opcua-address-space";
+import { resolveReferenceNode } from "node-opcua-address-space/src/reference";
 import { NodeClass } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
@@ -27,6 +28,7 @@ const chars2 = {
     , "right": " |", "right-mid": "| ", "middle": " | "
 };
 const chars3 = {
+    // tslint:disable-next-line: object-literal-sort-keys
     "top": "", "top-mid": "", "top-left": "", "top-right": ""
     , "bottom": "", "bottom-mid": "", "bottom-left": "", "bottom-right": ""
     , "left": "| ", "left-mid": "", "mid": "-", "mid-mid": " | "
@@ -65,7 +67,7 @@ export interface DisplayNodeOptions {
 
 export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions): string {
 
-    const rows: Array<string[]> = [];
+    const rows: string[][] = [];
     const head: string[] = [
         "ReferenceType", "NodeId", "BrowseName", "ModellingRule", "TypeDefinition", "DataType", "Value"
     ];
@@ -96,23 +98,28 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
 
     const alreadyDumped: any = {};
 
-    function dumpRefe(ref: Reference) {
+    function dumpRefe(ref: Reference, filter?: string) {
+        resolveReferenceNode(node.addressSpace, ref);
         if (!ref.isForward) {
             return;
         }
-
         // ignore subtype references
         /* istanbul ignore next */
         if (!ref.node) {
             // tslint:disable-next-line: no-console
-            console.log(" Halt ", ref.toString());
+            console.log(" Halt ", ref.toString({ addressSpace: node.addressSpace }));
             return;
         }
         const dir = ref.isForward ? " " : " ";
         const refNode = ref.node!;
 
         const refType = ref._referenceType!;
-        if (refType.browseName.toString() === "HasSubtype") {
+        if (filter) {
+            if (refType.browseName.toString() !== filter) {
+                return;
+            }
+        }
+        if (alreadyDumped[refNode.browseName.toString()]) {
             return;
         }
         // xx const r = refNode.findReferencesAsObject("HasModellingRule", true);
@@ -156,9 +163,20 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
 
     }
     const references = node.allReferences();
+
+    const m = {};
+    for (const ref of references) {
+        dumpRefe(ref, "HasSubtype");
+    }
+    for (const ref of references) {
+        dumpRefe(ref, "HasTypeDefinition");
+    }
+    for (const ref of references) {
+        dumpRefe(ref, "HasEncoding");
+    }
+
     for (const ref of references) {
         dumpRefe(ref);
-
     }
 
     // add property from derived type
@@ -169,7 +187,7 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
         let subtypeOf = (curNode as UAObjectType).subtypeOfObj;
         while (subtypeOf) {
             table.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
-            rows.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"])
+            rows.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
             const references2 = subtypeOf.allReferences();
             for (const ref of references2) {
                 dumpRefe(ref);

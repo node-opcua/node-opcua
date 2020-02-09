@@ -447,7 +447,7 @@ export function _clone(
         UANamespace_process_modelling_rule(options.references, options.modellingRule);
     }
 
-    options.nodeId = this.addressSpace.getOwnNamespace()._construct_nodeId(options);
+    options.nodeId = this.addressSpace.getOwnNamespace().constructNodeId(options);
 
     assert(options.nodeId instanceof NodeId);
 
