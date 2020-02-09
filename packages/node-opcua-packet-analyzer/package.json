@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-packet-analyzer",
-    "version": "2.5.0-alpha.5",
+    "version": "2.5.0-alpha.6",
     "description": "pure nodejs OPCUA SDK - module -packet-analyzer",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
@@ -13,11 +13,11 @@
     "dependencies": {
         "chalk": "^3.0.0",
         "node-opcua-assert": "^2.5.0-alpha.4",
-        "node-opcua-basic-types": "^2.5.0-alpha.4",
+        "node-opcua-basic-types": "^2.5.0-alpha.6",
         "node-opcua-binary-stream": "^2.5.0-alpha.4",
         "node-opcua-debug": "^2.5.0-alpha.4",
-        "node-opcua-factory": "^2.5.0-alpha.5",
-        "node-opcua-utils": "^2.5.0-alpha.4",
+        "node-opcua-factory": "^2.5.0-alpha.6",
+        "node-opcua-utils": "^2.5.0-alpha.6",
         "underscore": "^1.9.2"
     },
     "devDependencies": {
