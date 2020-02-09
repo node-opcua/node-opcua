@@ -5,7 +5,7 @@ import {
     UAObjectType,
     UAVariable,
 } from "node-opcua-address-space";
-import { resolveReferenceNode } from "node-opcua-address-space/src/reference";
+import { resolveReferenceNode } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
