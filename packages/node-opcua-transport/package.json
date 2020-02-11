@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-transport",
-    "version": "2.5.0-alpha.6",
+    "version": "2.5.0-alpha.9",
     "description": "pure nodejs OPCUA SDK - module -transport",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
@@ -22,7 +22,7 @@
         "node-opcua-object-registry": "^2.5.0-alpha.4",
         "node-opcua-packet-assembler": "^2.5.0-alpha.4",
         "node-opcua-status-code": "^2.5.0-alpha.4",
-        "node-opcua-types": "^2.5.0-alpha.6",
+        "node-opcua-types": "^2.5.0-alpha.9",
         "node-opcua-utils": "^2.5.0-alpha.6",
         "underscore": "^1.9.2"
     },
@@ -31,7 +31,7 @@
         "@types/underscore": "^1.9.4",
         "colors": "^1.4.0",
         "node-opcua-debug": "^2.3.0",
-        "node-opcua-generator": "^2.5.0-alpha.6",
+        "node-opcua-generator": "^2.5.0-alpha.9",
         "should": "13.2.3",
         "sinon": "^8.0.4"
     },
