@@ -1,8 +1,8 @@
 // tslint:disable:no-console
 // tslint:disable:max-line-length
 import * as fs from "fs";
-import * as should from "should";
 import * as mocha from "mocha";
+import * as should from "should";
 
 import { getTempFilename } from "node-opcua-debug";
 import { DataType } from "node-opcua-variant";
@@ -10,13 +10,13 @@ import { Variant } from "node-opcua-variant";
 
 import {
     AddressSpace,
-    getMiniAddressSpace,
-    UAVariable,
     createBoilerType,
     dumpXml,
     generateAddressSpace,
+    getMiniAddressSpace,
     Namespace,
-    RootFolder
+    RootFolder,
+    UAVariable
 } from "..";
 
 import * as nodesets from "node-opcua-nodesets";
@@ -82,8 +82,8 @@ describe("testing nodeset to xml", () => {
             console.log(str);
         }
         str.should.match(/RUNNING/);
-        str.should.match(/<Field Name="RUNNING" Value="0"\/>/);
-        str.should.match(/<Field Name="STOPPED" Value="1"\/>/);
+        str.should.match(/<Field Name="RUNNING" Value="0">/);
+        str.should.match(/<Field Name="STOPPED" Value="1">/);
 
     });
     it("€€ should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", () => {
@@ -102,8 +102,8 @@ describe("testing nodeset to xml", () => {
             console.log(str);
         }
         str.should.match(/RUNNING/);
-        str.should.match(/<Field Name="RUNNING" Value="10"\/>/);
-        str.should.match(/<Field Name="STOPPED" Value="20"\/>/);
+        str.should.match(/<Field Name="RUNNING" Value="10">/);
+        str.should.match(/<Field Name="STOPPED" Value="20">/);
 
     });
 

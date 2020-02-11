@@ -2,8 +2,8 @@ import * as fs from "fs";
 import {
     AddressSpace,
     generateAddressSpace,
-    NodeIdManager,
-    Namespace
+    Namespace,
+    NodeIdManager
 } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
 import { promisify } from "util";
@@ -17,7 +17,7 @@ export interface BuildModelOptions {
     version: string;
     namespaceUri: string;
     xmlFiles: string[];
-    createModel: (addressSpace: AddressSpace) => void;
+    createModel: /*async*/ (addressSpace: AddressSpace) => Promise<void>;
     presetSymbols?: Symbols;
 }
 
@@ -35,7 +35,7 @@ export async function buildModel(data: BuildModelOptions): Promise<{ markdown: s
 
         await generateAddressSpace(addressSpace, data.xmlFiles);
 
-        data.createModel(addressSpace);
+        await data.createModel(addressSpace);
 
         const xmlModel = ns.toNodeset2XML();
         const symbols = nodeIdManager.getSymbols();

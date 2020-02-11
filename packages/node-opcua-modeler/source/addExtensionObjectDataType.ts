@@ -255,6 +255,7 @@ export function addVariableTypeForDataType(
                 componentOf: variableType,
                 dataType: field.dataType,
                 description: field.description,
+                modellingRule: "Mandatory",
                 valueRank: field.valueRank === undefined ? -1 : field.valueRank,
             });
 
@@ -264,6 +265,7 @@ export function addVariableTypeForDataType(
                 componentOf: variableType,
                 dataType: field.dataType,
                 description: field.description,
+                modellingRule: "Mandatory",
                 typeDefinition,
                 valueRank: field.valueRank === undefined ? -1 : field.valueRank,
             });

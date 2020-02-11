@@ -8,43 +8,8 @@ import {
 import { NodeClass } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
+import { TableHelper } from "./tableHelper";
 
-// tslint:disable-next-line: no-var-requires
-const Table = require("cli-table3");
-
-const chars1 = {
-    // tslint:disable-next-line: object-literal-sort-keys
-    "top": "-", "top-mid": "+", "top-left": "+", "top-right": "+"
-    , "bottom": "-", "bottom-mid": "+", "bottom-left": "+", "bottom-right": "+"
-    , "left": "|", "left-mid": "+", "mid": "-", "mid-mid": "+"
-    , "right": "|", "right-mid": "+", "middle": "|"
-};
-const chars2 = {
-    // tslint:disable-next-line: object-literal-sort-keys
-    "top": " ", "top-mid": "   ", "top-left": "  ", "top-right": "  "
-    , "bottom": " ", "bottom-mid": "   ", "bottom-left": "  ", "bottom-right": " "
-    , "left": "| ", "left-mid": "| ", "mid": "-", "mid-mid": " | "
-    , "right": " |", "right-mid": "| ", "middle": " | "
-};
-const chars3 = {
-    // tslint:disable-next-line: object-literal-sort-keys
-    "top": "", "top-mid": "", "top-left": "", "top-right": ""
-    , "bottom": "", "bottom-mid": "", "bottom-left": "", "bottom-right": ""
-    , "left": "| ", "left-mid": "", "mid": "-", "mid-mid": " | "
-    , "right": " |", "right-mid": "", "middle": " | "
-};
-
-function toMarkdownTable(table: { head: string[], rows: string[][] }): string {
-
-    const t = [];
-
-    t.push("| " + table.head.join(" | ") + " |");
-    t.push("| " + table.head.map(() => "---").join(" | ") + " |");
-    for (const r of table.rows) {
-        t.push("| " + r.join(" | ") + " |");
-    }
-    return t.join("\n");
-}
 const a = "ⓂⓄⓋⓥⓇ❗⟵	⟶⟷";
 function symbol(nodeClass: NodeClass) {
     switch (nodeClass) {
@@ -66,16 +31,10 @@ export interface DisplayNodeOptions {
 
 export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions): string {
 
-    const rows: string[][] = [];
     const head: string[] = [
         "ReferenceType", "NodeId", "BrowseName", "ModellingRule", "TypeDefinition", "DataType", "Value"
     ];
-    // instantiate
-    const table = new Table({
-        // chars,
-        head,
-        // colWidths: [100, 200, 50, 50,]
-    });
+    const table = new TableHelper(head);
 
     table.push(
         [
@@ -83,24 +42,38 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
             { colSpan: 6, content: node.browseName.toString() },
         ],
     );
-    rows.push(["BrowseName:", node.browseName.toString()]);
+
+    const superType = (node as UAObjectType).subtypeOfObj;
+    if (superType) {
+        table.push(
+            [
+                "Base", superType.browseName.toString(),
+                { colSpan: 6, content: node.browseName.toString() },
+            ],
+        );
+    }
 
     if (node.description) {
         table.push(
             [
-                "Description: ",
+                "Description",
                 node.description.toString(),
+                { colSpan: 6, content: node.browseName.toString() },
             ],
         );
-        rows.push(["Description:", node.description.toString()]);
     }
 
     const alreadyDumped: any = {};
+
+    const descriptions: any = [];
 
     function dumpRefe(ref: Reference, filter?: string) {
         Reference.resolveReferenceNode(node.addressSpace, ref);
         if (!ref.isForward) {
             return;
+        }
+        if (ref.referenceType === resolveNodeId("HasSubtype")) {
+            return; // ignore forward HasSubtype
         }
         // ignore subtype references
         /* istanbul ignore next */
@@ -118,7 +91,7 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
                 return;
             }
         }
-        if (alreadyDumped[refNode.browseName.toString()]) {
+        if (alreadyDumped[refNode.nodeId.toString()]) {
             return;
         }
         // xx const r = refNode.findReferencesAsObject("HasModellingRule", true);
@@ -130,7 +103,9 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
             const v = refNode as UAVariable;
 
             const val = v.readValue().value.value;
-            if (v.isEnumeration() && val !== null) {
+            if (v.isExtensionObject()) {
+                // don't do anything
+            } else if (v.isEnumeration() && val !== null) {
                 const enumValue = v.readEnumValue();
                 value = enumValue.value + " (" + enumValue.name + ")";
             } else {
@@ -156,29 +131,42 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
             ];
 
         table.push(row);
-        rows.push(row);
 
-        alreadyDumped[refNode.browseName.toString()] = 1;
+        descriptions.push({
+            description: refNode.description ? refNode.description.toString() : "",
+            name: refNode.browseName.name!,
+            type: dataType,
+        });
+        alreadyDumped[refNode.nodeId.toString()] = 1;
 
     }
     const references = node.allReferences();
 
     const m = {};
-    for (const ref of references) {
-        dumpRefe(ref, "HasSubtype");
-    }
-    for (const ref of references) {
-        dumpRefe(ref, "HasTypeDefinition");
-    }
-    for (const ref of references) {
-        dumpRefe(ref, "HasEncoding");
-    }
 
-    for (const ref of references) {
-        dumpRefe(ref);
+    function dumpReferences(_references: Reference[]) {
+        // xx for (const ref of references) {
+        // xx  dumpRefe(ref, "HasSubtype");
+        // xx }
+        for (const ref of _references) {
+            dumpRefe(ref, "HasTypeDefinition");
+        }
+        for (const ref of _references) {
+            dumpRefe(ref, "HasEncoding");
+        }
+        for (const ref of _references) {
+            dumpRefe(ref, "HasComponent");
+        }
+        for (const ref of _references) {
+            dumpRefe(ref, "HasProperty");
+        }
+        for (const ref of _references) {
+            dumpRefe(ref, "Organizes");
+        }
     }
+    dumpReferences(references);
 
-    // add property from derived type
+    // add property from base object/variable type
     if (node.nodeClass === NodeClass.ObjectType || node.nodeClass === NodeClass.VariableType) {
 
         const curNode = node;
@@ -186,17 +174,14 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
         let subtypeOf = (curNode as UAObjectType).subtypeOfObj;
         while (subtypeOf) {
             table.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
-            rows.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
             const references2 = subtypeOf.allReferences();
-            for (const ref of references2) {
-                dumpRefe(ref);
-            }
+            dumpReferences(references2);
             subtypeOf = (subtypeOf as UAObjectType).subtypeOfObj;
         }
     }
 
     if (options && options.format === "markdown") {
-        return toMarkdownTable({ head, rows });
+        return table.toMarkdownTable();
     } else {
         return table.toString();
     }

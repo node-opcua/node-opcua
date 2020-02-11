@@ -97,10 +97,12 @@ export class LocalizedText extends BaseUAObject {
      * @extends BaseUAObject
      * @param  options {Object}
      */
-    constructor(options?: LocalizedTextOptions) {
+    constructor(options?: LocalizedTextOptions | string) {
 
         super();
-
+        if (typeof options === "string") {
+            options = { text: options };
+        }
         const schema = schemaLocalizedText;
         options = options || {};
         /* istanbul ignore next */

@@ -8,7 +8,7 @@ describe("buidModel", () => {
     it("should build a model", async () => {
 
         const { xmlModel, symbols, markdown } = await buildModel({
-            createModel: (addressSpace: AddressSpace) => {
+            createModel: async (addressSpace: AddressSpace) => {
                 /* empty */
             },
             namespaceUri: "urn:namespace",

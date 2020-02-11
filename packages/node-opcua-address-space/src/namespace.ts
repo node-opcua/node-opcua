@@ -8,7 +8,7 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { coerceInt64 } from "node-opcua-basic-types";
 import { AxisScaleEnumeration } from "node-opcua-data-access";
-import { coerceLocalizedText } from "node-opcua-data-model";
+import { coerceLocalizedText, coerceQualifiedName } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
@@ -1358,7 +1358,7 @@ export class UANamespace implements NamespacePublic {
         const opts = {
             browseName: options.browseName,
             definition,
-            description: options.description || null,
+            description: coerceLocalizedText(options.description) || null,
             displayName: options.displayName || null,
             isAbstract: false,
             nodeClass: NodeClass.DataType,
@@ -1405,7 +1405,7 @@ export class UANamespace implements NamespacePublic {
                 fields: enumeration.map((x: string, index: number) => new EnumField({
                     name: x,
 
-                    description: "",
+                    description: coerceLocalizedText(x),
                     value: coerceInt64(index)
                 }))
             });
@@ -1443,7 +1443,7 @@ export class UANamespace implements NamespacePublic {
                 fields: enumeration.map((x: EnumerationItem, index: number) => new EnumField({
                     name: x.displayName.toString(),
 
-                    description: x.description ? x.description.toString() : "",
+                    description: x.description || "",
                     value: coerceInt64(x.value)
                 }))
             });

@@ -457,6 +457,9 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
     readValueAsync(context: SessionContext | null, callback: DataValueCallback): void;
 
     isEnumeration(): boolean;
+
+    isExtensionObject(): boolean;
+
     /**
      *
      */

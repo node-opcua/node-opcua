@@ -39,7 +39,7 @@ const version = "1.0.0";
 const nodesetFilename = "./MyModel.NodeSet2.xml";
 const symbolFilename = "./MyModelIds.csv";
 
-function createModel(addressSpace: AddressSpace) {
+async function createModel(addressSpace: AddressSpace): Promise<void> {
 
     const ns = addressSpace.getOwnNamespace();
 

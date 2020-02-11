@@ -413,6 +413,19 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         return dataTypeNode.isSupertypeOf(enumerationNode);
     }
 
+    public isExtensionObject(): boolean {
+        // DataType must be one of Structure
+        const dataTypeNode = this.addressSpace.findDataType(this.dataType) as UADataType;
+        if (!dataTypeNode) {
+            throw new Error(" Cannot find  DataType  " + this.dataType.toString() + " in standard address Space");
+        }
+        const structureNode = this.addressSpace.findDataType("Structure")!;
+        if (!structureNode) {
+            throw new Error(" Cannot find 'Structure' DataType in standard address Space");
+        }
+        return dataTypeNode.isSupertypeOf(structureNode);
+    }
+
     public _getEnumerationInfo(): EnumerationInfo {
         // DataType must be one of Enumeration
         assert(this.isEnumeration(), "Variable is not an enumeration");
