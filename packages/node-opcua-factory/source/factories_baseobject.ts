@@ -204,7 +204,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: an
                 (typeDictionary.getStructureTypeConstructor(fieldType));
             const fieldTypeConstructor = field.fieldTypeConstructor;
 
-            const _newDesc = fieldTypeConstructor.prototype.schema || (fieldTypeConstructor as any).schema;
+            const _newFieldSchema = (field.schema as StructuredTypeSchema) || fieldTypeConstructor.prototype.schema || (fieldTypeConstructor as any).schema;
 
             if (field.isArray) {
                 if (value === null) {
@@ -221,7 +221,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: an
                         data.lines.push(padding + chalk.cyan("  { " + ("/*" + i + "*/")));
 
                         const data1 = { padding: padding + "    ", lines: [] };
-                        applyOnAllSchemaFields(element, _newDesc, data1, _exploreObject, args);
+                        applyOnAllSchemaFields(element, _newFieldSchema, data1, _exploreObject, args);
                         data.lines = data.lines.concat(data1.lines);
 
                         data.lines.push(padding + "  }" + ((i === value.length - 1) ? "" : ","));
@@ -236,7 +236,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: an
 
                 data.lines.push(fieldNameF + " " + fieldTypeF + ": {");
                 const data1 = { padding: padding + "  ", lines: [] };
-                applyOnAllSchemaFields(value, _newDesc, data1, _exploreObject, args);
+                applyOnAllSchemaFields(value, _newFieldSchema, data1, _exploreObject, args);
                 data.lines = data.lines.concat(data1.lines);
 
                 data.lines.push(padding + "}");

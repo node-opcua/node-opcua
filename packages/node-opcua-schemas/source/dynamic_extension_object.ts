@@ -301,12 +301,56 @@ function decodeFields(
     }
 }
 
-class DynamicExtensionObject extends ExtensionObject {
+function ___fieldToJson(field: FieldType, value: any): any {
+    switch (field.category) {
+        case FieldCategory.complex:
+            return value.toJSON();
+            break;
+        case FieldCategory.enumeration:
+        case FieldCategory.basic:
+            return value instanceof Date ? new Date(value.getTime()) : (value.toJSON ? value.toJSON() : value);
+            break;
+        default:
+            /* istanbul ignore next*/
+            throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
+    }
+}
+function fieldToJSON(field: FieldType, value: any): any {
+    if (field.isArray) {
+        if (value) {
+            return value.map(___fieldToJson.bind(null, field));
+        }
+    } else {
+        return ___fieldToJson(field, value);
+    }
+}
+function encodeToJson(
+    thisAny: any,
+    schema: StructuredTypeSchema,
+    pojo: any) {
+
+    if (schema._baseSchema && schema._baseSchema.fields.length) {
+        encodeToJson(thisAny, schema._baseSchema!, pojo);
+    }
+    for (const field of schema.fields) {
+        const value = (thisAny as any)[field.name];
+        if (value === undefined) {
+            continue;
+        }
+        pojo[field.name] = fieldToJSON(field, value);
+    }
+}
+
+interface T {
+    factory?: DataTypeFactory;
+    schema?: StructuredTypeSchema;
+}
+const _private = new WeakMap<T>();
+
+export class DynamicExtensionObject extends ExtensionObject {
 
     public static schema: StructuredTypeSchema = ExtensionObject.schema;
     public static possibleFields: string[] = [];
-    private readonly _factory: DataTypeFactory;
-    private readonly __schema?: StructuredTypeSchema;
 
     constructor(options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
         assert(schema, "expecting a schema here ");
@@ -314,9 +358,8 @@ class DynamicExtensionObject extends ExtensionObject {
 
         super(options);
         options = options || {};
-        this.__schema = schema;
 
-        this._factory = factory;
+        _private.set(this, { schema, factory });
 
         check_options_correctness_against_schema(this, this.schema, options);
 
@@ -325,16 +368,27 @@ class DynamicExtensionObject extends ExtensionObject {
 
     public encode(stream: OutputBinaryStream): void {
         super.encode(stream);
-        encodeFields(this as any, this.schema, stream);
+        encodeFields(this, this.schema, stream);
     }
 
     public decode(stream: BinaryStream): void {
         super.decode(stream);
-        decodeFields(this as any, this.schema, stream, this._factory);
+        decodeFields(this, this.schema, stream, _private.get(this).factory);
     }
 
     public get schema(): StructuredTypeSchema {
-        return this.__schema!;
+        const r = _private.get(this);
+        if (!r) {
+            console.log("cannot find private stuff for", this.constructor.name);
+            console.log(new Error());
+        }
+        return r.schema!;
+    }
+
+    public toJSON(): any {
+        const pojo: any = {};
+        encodeToJson(this, this.schema, pojo);
+        return pojo;
     }
 
 }
@@ -351,15 +405,14 @@ export type AnyConstructorFunc = AnyConstructable;
 // tslint:disable-next-line:max-classes-per-file
 class UnionBaseClass extends BaseUAObject {
 
-    private __schema?: StructuredTypeSchema;
-
     constructor(options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
         super();
 
         assert(schema, "expecting a schema here ");
         assert(factory, "expecting a typeDic");
         options = options || {};
-        this.__schema = schema;
+
+        _private.set(this, { schema });
 
         check_options_correctness_against_schema(this, this.schema, options);
 
@@ -507,14 +560,14 @@ class UnionBaseClass extends BaseUAObject {
     }
 
     public get schema(): StructuredTypeSchema {
-        return this.__schema!;
+        return _private.get(this).schema!;
     }
 
     public toString(): string {
         return super.toString();
     }
 
-    public toJSON(): string {
+    public toJSON(): any {
 
         const pojo: any = {};
         const switchFieldName = this.schema.fields[0].name;
@@ -529,22 +582,11 @@ class UnionBaseClass extends BaseUAObject {
             if (field.switchValue === undefined || field.switchValue !== switchValue) {
                 continue;
             }
-
-            if ((this as any)[field.name] === undefined) {
+            const value = (this as any)[field.name];
+            if (value === undefined) {
                 continue;
             }
-            switch (field.category) {
-                case FieldCategory.complex:
-                    pojo[field.name] = (this as any)[field.name].toJSON();
-                    break;
-                case FieldCategory.enumeration:
-                case FieldCategory.basic:
-                    pojo[field.name] = (this as any)[field.name].toJSON ? (this as any)[field.name].toJSON() : (this as any)[field.name];
-                    break;
-                default:
-                    /* istanbul ignore next*/
-                    throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
-            }
+            pojo[field.name] = fieldToJSON(field, value);
             break;
         }
         return pojo;
@@ -568,6 +610,7 @@ function _createDynamicUnionConstructor(
             super(options, schema, factory);
             assert(this.schema === schema);
         }
+
     }
 
     // to do : may be remove DataType suffix here ?
@@ -634,6 +677,11 @@ export function createDynamicObjectConstructor(
 
         public toString(): string {
             return super.toString();
+        }
+        public toJSON(): any {
+            const pojo = {};
+            encodeToJson(this, this.schema, pojo);
+            return pojo;
         }
 
     }

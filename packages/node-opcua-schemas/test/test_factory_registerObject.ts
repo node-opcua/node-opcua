@@ -76,7 +76,7 @@ const Company_Schema = {
     fields: [
         { name: "name", fieldType: "opc:CharArray" },
         { name: "employees", isArray: true, fieldType: "tns:Employee" },
-        { name: "company_values", isArray: true, fieldType: "opc:CharArray" }
+        { name: "companyValues", isArray: true, fieldType: "opc:CharArray" }
     ]
 };
 
@@ -197,6 +197,19 @@ describe("testing Factory", () => {
         const employee = new Employee({ lastName: "John", service: "R&D" });
         encode_decode_round_trip_test(employee);
 
+        console.log(employee.toJSON());
+        employee.toJSON().should.eql({
+            address: "",
+            age: 25,
+            lastName: "John",
+            role: {
+                description: "",
+                title: ""
+            },
+            salary: 1000,
+            service: "R&D",
+        });
+
     });
 
     it("FF6 - should encode and decode a composite object containing an array", () => {
@@ -231,6 +244,31 @@ describe("testing Factory", () => {
         company.employees[1].should.be.instanceOf(Employee);
 
         encode_decode_round_trip_test(company);
+
+        company.toJSON().should.eql({
+            companyValues: [],
+            name: "ACME",
+
+            employees: [
+                {
+                    address: "",
+                    age: 25,
+                    lastName: "John",
+                    role: { title: "manager", description: "" },
+                    salary: 1000,
+                    service: "R&D",
+                },
+                {
+                    address: "",
+                    age: 56,
+                    lastName: "Peter",
+                    role: { title: "engineer", description: "" },
+                    salary: 1000,
+                    service: "R&D",
+                }
+            ]
+
+        })
     });
 
     it("FF8 - should create an Object with a containing an array of string passed in the initializer", () => {
@@ -238,15 +276,15 @@ describe("testing Factory", () => {
         const company = new Company({
             name: "ACME",
 
-            company_values: [
+            companyValues: [
                 "A commitment to sustainability and to acting in an environmentally friendly way",
                 "A commitment to innovation and excellence.",
                 "Encouraging employees to take initiative and give the best."
             ]
         });
 
-        company.company_values.length.should.equal(3);
-        company.company_values[0].should.equal("A commitment to sustainability and to acting in an environmentally friendly way");
+        company.companyValues.length.should.equal(3);
+        company.companyValues[0].should.equal("A commitment to sustainability and to acting in an environmentally friendly way");
 
         company.should.have.property("employees");
 

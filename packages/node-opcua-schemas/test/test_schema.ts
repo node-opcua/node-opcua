@@ -22,6 +22,7 @@ import {
 } from "..";
 
 import { MockProvider } from "./mock_id_provider";
+import { ExtensionObject } from "node-opcua-extension-object";
 
 const doDebug = false;
 
@@ -111,6 +112,11 @@ describe("BSHA - Binary Schemas Helper 1", () => {
 
             buffer.length.should.equal(17, "expected stream length to be 17 bytes");
         });
+
+        structureWithOptionalFields1.toJSON().should.eql({
+            mandatoryInt32: 42,
+            mandatoryStringArray: ["a"]
+        });
     });
     it("BSH5 - should handle StructureWithOptionalFields - 2", () => {
 
@@ -143,7 +149,12 @@ describe("BSHA - Binary Schemas Helper 1", () => {
             buffer.readInt32LE(30).should.eql(1); // length of "b"
             buffer.length.should.equal(35);
         });
-
+        structureWithOptionalFields2.toJSON().should.eql({
+            mandatoryInt32: 42,
+            mandatoryStringArray: ["h"],
+            optionalInt32: 43,
+            optionalStringArray: ["a", "b"]
+        });
     });
 
 });
@@ -205,6 +216,11 @@ describe("BSHB - Binary Schemas Helper 2", () => {
             // 32 bits + 5 (9) => stateDescription with 5 letter
             buffer.length.should.equal(17);
         });
+
+        systemStateDescription.toJSON().should.eql({
+            state: SystemStateEnum2.ENG_3,
+            stateDescription: "Hello"
+        });
     });
     it("BSHB4 - should construct a dynamic object structure 2", () => {
 
@@ -249,7 +265,7 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
 
     it("BSHC2 - should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
 
-        interface ProcessingTimes {
+        interface ProcessingTimes extends ExtensionObject {
             startTime: Date;
             endTime: Date;
             acquisitionDuration?: number;
@@ -258,10 +274,12 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
 
         const ProcessingTimesDataType = getOrCreateConstructor("ProcessingTimesDataType", dataTypeFactory);
 
-        const processingTimes: ProcessingTimes = new ProcessingTimesDataType({
-            endTime: new Date(Date.now() - 110),
-            startTime: new Date(Date.now() - 150)
-        });
+        const refDate = (new Date(2020, 14, 2, 13, 0)).getTime();
+        const pojo = {
+            endTime: new Date(refDate - 110),
+            startTime: new Date(refDate - 150)
+        };
+        const processingTimes: ProcessingTimes = new ProcessingTimesDataType(pojo);
 
         encode_decode_round_trip_test(processingTimes, (buffer: Buffer) => {
             if (doDebug) {
@@ -271,6 +289,11 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
             // 64 bits (8)     => startTime
             // 64 bits (8)     => endTime
             buffer.length.should.equal(20);
+        });
+
+        processingTimes.toJSON().should.eql({
+            endTime: new Date("2021-03-02T11:59:59.890Z"),
+            startTime: new Date("2021-03-02T11:59:59.850Z"),
         });
     });
 
