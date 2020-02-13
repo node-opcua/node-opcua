@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-file-transfer",
-  "version": "2.5.0-alpha.9",
+  "version": "2.5.0-alpha.10",
   "description": "pure nodejs OPCUA SDK - module -server",
   "scripts": {
     "build": "tsc -b",
@@ -12,28 +12,28 @@
   "types": "./dist/index.d.ts",
   "dependencies": {
     "colors": "^1.4.0",
-    "node-opcua-address-space": "^2.5.0-alpha.9",
+    "node-opcua-address-space": "^2.5.0-alpha.10",
     "node-opcua-assert": "^2.5.0-alpha.4",
     "node-opcua-basic-types": "^2.5.0-alpha.6",
-    "node-opcua-client": "^2.5.0-alpha.9",
-    "node-opcua-data-model": "^2.5.0-alpha.9",
+    "node-opcua-client": "^2.5.0-alpha.10",
+    "node-opcua-data-model": "^2.5.0-alpha.10",
     "node-opcua-debug": "^2.5.0-alpha.4",
     "node-opcua-nodeid": "^2.5.0-alpha.4",
     "node-opcua-nodesets": "^2.5.0-alpha.4",
     "node-opcua-pki": "^1.5.5",
-    "node-opcua-pseudo-session": "^2.5.0-alpha.9",
-    "node-opcua-secure-channel": "^2.5.0-alpha.9",
-    "node-opcua-server": "^2.5.0-alpha.9",
-    "node-opcua-service-call": "^2.5.0-alpha.9",
-    "node-opcua-service-read": "^2.5.0-alpha.9",
-    "node-opcua-service-translate-browse-path": "^2.5.0-alpha.9",
+    "node-opcua-pseudo-session": "^2.5.0-alpha.10",
+    "node-opcua-secure-channel": "^2.5.0-alpha.10",
+    "node-opcua-server": "^2.5.0-alpha.10",
+    "node-opcua-service-call": "^2.5.0-alpha.10",
+    "node-opcua-service-read": "^2.5.0-alpha.10",
+    "node-opcua-service-translate-browse-path": "^2.5.0-alpha.10",
     "node-opcua-status-code": "^2.5.0-alpha.4",
-    "node-opcua-types": "^2.5.0-alpha.9",
-    "node-opcua-variant": "^2.5.0-alpha.9"
+    "node-opcua-types": "^2.5.0-alpha.10",
+    "node-opcua-variant": "^2.5.0-alpha.10"
   },
   "devDependencies": {
     "node-opcua-binary-stream": "^2.5.0-alpha.4",
-    "node-opcua-data-value": "^2.5.0-alpha.9",
+    "node-opcua-data-value": "^2.5.0-alpha.10",
     "node-opcua-leak-detector": "^2.5.0-alpha.4",
     "should": "13.2.3",
     "sinon": "^8.0.4"
