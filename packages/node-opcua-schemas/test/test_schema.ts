@@ -274,7 +274,7 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
 
         const ProcessingTimesDataType = getOrCreateConstructor("ProcessingTimesDataType", dataTypeFactory);
 
-        const refDate = (new Date(2020, 14, 2, 13, 0)).getTime();
+        const refDate = (new Date(Date.UTC(2020, 14, 2, 13, 0))).getTime();
         const pojo = {
             endTime: new Date(refDate - 110),
             startTime: new Date(refDate - 150)
@@ -292,8 +292,8 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
         });
 
         processingTimes.toJSON().should.eql({
-            endTime: new Date("2021-03-02T11:59:59.890Z"),
-            startTime: new Date("2021-03-02T11:59:59.850Z"),
+            endTime: new Date(refDate - 110),
+            startTime: new Date(refDate - 150)
         });
     });
 
