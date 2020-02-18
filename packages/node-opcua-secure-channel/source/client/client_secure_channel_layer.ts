@@ -1588,15 +1588,15 @@ export class ClientSecureChannelLayer extends EventEmitter {
         request.requestHeader.returnDiagnostics = 0x0;
 
         /* istanbul ignore next */
-        if (doDebug) {
-            debugLog(chalk.yellow.bold("------------------------------------- Client Sending a request  "),
+        if (doTraceRequestContent) {
+            console.log(chalk.yellow.bold("------------------------------------- Client Sending a request  "),
                 request.constructor.name,
                 "h=", request.requestHeader.requestHandle,
                 " channel id ", this.channelId,
                 " securityToken=", this.securityToken! ? this.securityToken!.tokenId : "x");
-            if (doTraceRequestContent) {
-                console.log(request.toString());
-            }
+        }
+        if (doTraceRequestContent) {
+            console.log(request.toString());
         }
 
         const security_options = (msgType === "OPN") ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
