@@ -245,10 +245,10 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             ? this.publishEngine.pendingPublishRequestCount : 0;
     }
 
-    public updateClientLastContactTime(currentTime: Date) {
+    public updateClientLastContactTime() {
         const session = this;
         if (session._sessionDiagnostics && session._sessionDiagnostics.clientLastContactTime) {
-            currentTime = currentTime || new Date();
+            const currentTime = new Date();
             // do not record all ticks as this may be overwhelming,
             if (currentTime.getTime() - 250 >= session._sessionDiagnostics.clientLastContactTime.getTime()) {
                 session._sessionDiagnostics.clientLastContactTime = currentTime;
@@ -262,9 +262,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @param currentTime {DateTime}
      * @private
      */
-    public onClientSeen(currentTime: Date) {
+    public onClientSeen() {
 
-        this.updateClientLastContactTime(currentTime);
+        this.updateClientLastContactTime();
 
         if (this._sessionDiagnostics) {
             // see https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
@@ -602,9 +602,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @private
      */
     public watchdogReset() {
-        const self = this;
+        debugLog("Session#watchdogReset: the server session has expired and must be removed from the server");
         // the server session has expired and must be removed from the server
-        self.emit("timeout");
+        this.emit("timeout");
     }
 
     private _createSessionObjectInAddressSpace() {
