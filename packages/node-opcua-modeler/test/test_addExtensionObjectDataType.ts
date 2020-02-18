@@ -146,7 +146,7 @@ describe("addVariableTypeForDataType", function (this: any) {
     after(() => {
         addressSpace.dispose();
     });
-    it("should addVariableTypeForDataType", async () => {
+    it("ZZZE should addVariableTypeForDataType", async () => {
 
         const ns = addressSpace.getOwnNamespace();
 
@@ -254,6 +254,19 @@ describe("addVariableTypeForDataType", function (this: any) {
 
         const csv = (ns as any)._nodeIdManager.getSymbolCSV();
         await writeFile(tmpCSVFile, csv, "utf-8");
+
+
+
+        const statusType = serverStatusType.instantiate({
+            browseName: "Test",
+            organizedBy: addressSpace.rootFolder.objects.server
+        }) as any;
+        should.exist(statusType.startTime);
+        const e = statusType.readValue().value.value;
+        should.exist(e.startTime);
+        console.log("e.", e.toString());
+        console.log("statusType.", statusType.toString());
+
 
     });
 });

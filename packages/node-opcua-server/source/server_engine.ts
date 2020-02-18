@@ -1454,6 +1454,7 @@ export class ServerEngine extends EventEmitter {
       console.log(
         chalk.cyan("Server: closing SESSION "),
         session.status, chalk.yellow(session.sessionName),
+        chalk.yellow(session.nodeId.toString()),
         chalk.cyan(" because of timeout = "), session.sessionTimeout,
         chalk.cyan(" has expired without a keep alive"));
 

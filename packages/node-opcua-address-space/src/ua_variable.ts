@@ -1286,7 +1286,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             if (doDebug) {
                 const x = addressSpace.findNode(field.dataType)!.browseName.toString();
                 const basicType = addressSpace.findCorrespondingBasicDataType(field.dataType);
-                console.log(chalk.cyan("xxx"), " dataType",
+                debugLog(chalk.cyan("xxx"), " dataType",
                     w(field.dataType.toString(), 8),
                     w(field.name!, 35),
                     "valueRank", chalk.cyan(w(field.valueRank.toString(), 3)),

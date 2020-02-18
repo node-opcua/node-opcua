@@ -132,6 +132,7 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter) 
     writer.writeLine("");
     for (const dataType of dataTypes) {
         writer.writeLine("\n\n### " + dataType.browseName.name!.toString());
+        writer.writeLine("");
         writer.writeLine(dataTypeToMarkdown(dataType));
     }
     // -------------- writeObjectType
@@ -144,8 +145,15 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter) 
         writer.writeLine(d(objectType));
         // enumerate components
         writer.writeLine(displayNodeElement(objectType, { format: "markdown" }));
+
         for (const comp of objectType.getComponents()) {
             writer.writeLine("\n\n#### " + comp.browseName.name!.toString());
+            writer.writeLine("");
+            writer.writeLine(d(comp));
+        }
+        for (const comp of objectType.getProperties()) {
+            writer.writeLine("\n\n#### " + comp.browseName.name!.toString());
+            writer.writeLine("");
             writer.writeLine(d(comp));
         }
     }
@@ -157,11 +165,13 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter) 
     for (const variableType of variableTypes) {
         writer.writeLine("\n\n### " + variableType.browseName.name!.toString());
         writer.writeLine(d(variableType));
+        writer.writeLine("");
         // enumerate components
         writer.writeLine(displayNodeElement(variableType, { format: "markdown" }));
         for (const reference of variableType.allReferences()) {
             const n = reference.node!;
             writer.writeLine("\n\n#### " + n.browseName.name!.toString());
+            writer.writeLine("");
             writer.writeLine(d(n));
         }
     }

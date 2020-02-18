@@ -4,7 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module -service-write",
     "scripts": {
         "test": "mocha test",
-        "clean": "node -e \"require('rimraf').sync('_generated_');node -e \"require('rimraf').sync('dist');\"",
+        "clean": "node -e \"require('rimraf').sync('_generated_')\"  && node -e \"require('rimraf').sync('dist');\"",
         "__generate": "node ./generate",
         "build": "tsc -b"
     },
