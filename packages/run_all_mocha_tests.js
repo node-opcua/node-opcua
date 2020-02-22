@@ -315,8 +315,9 @@ class MyReporter {
     }
 }
 
-// mocha.reporter(MyReporter);
-
+if (process.env.NODEOPCUATESTREPORTER) {
+    mocha.reporter(MyReporter);
+}
 
 // Run the tests.
 mocha.run((failures) => {
