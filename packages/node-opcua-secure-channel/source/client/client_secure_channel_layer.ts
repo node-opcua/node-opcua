@@ -23,7 +23,7 @@ import {
 import { assert } from "node-opcua-assert";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { get_clock_tick } from "node-opcua-utils";
+import { get_clock_tick, timestamp } from "node-opcua-utils";
 
 import { readMessageHeader, verify_message_chunk } from "node-opcua-chunkmanager";
 import { checkDebugFlag, hexDump, make_debugLog, make_errorLog } from "node-opcua-debug";
@@ -705,14 +705,17 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         /* istanbul ignore next */
         if (doTraceMessage) {
-            console.log(chalk.cyan.bold("xxxxx  <<<<<< _on_message_received "), requestId, response.schema.name);
+            console.log(chalk.cyan.bold(timestamp(), "  <<<<<< _on_message_received "),
+                requestId, response.schema.name,
+                response.responseHeader.serviceResult.toString());
         }
 
         const requestData = this._requests[requestId];
 
         /* istanbul ignore next */
         if (!requestData) {
-            console.log(chalk.cyan.bold("xxxxx  <<<<<< _on_message_received for unknwonw or timeout request "), requestId, response.schema.name);
+            console.log(chalk.cyan.bold("xxxxx  <<<<<< _on_message_received for unknwonw or timeout request "),
+                requestId, response.schema.name, response.responseHeader.serviceResult.toString());
             throw new Error(" =>  invalid requestId =" + requestId);
         }
 
@@ -1389,7 +1392,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         /* istanbul ignore next */
         if (doTraceMessage) {
-            console.log(chalk.cyan("xxxxx   >>>>>>                     "), requestHandle, request.schema.name);
+            console.log(chalk.cyan(timestamp(), "   >>>>>>                     "), requestHandle, request.schema.name);
         }
 
         const requestData: RequestData = {
