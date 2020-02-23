@@ -14,6 +14,7 @@ import { readRawMessageHeader } from "./message_builder_base";
 import * as WebSocket from 'ws';
 
 import { Transport } from './transport';
+import { Socket } from "net";
 
 type ErrorCallback = (err?: Error | null) => void;
 
@@ -109,9 +110,9 @@ export class Websocket_transport extends Transport<WebSocket> {
             debugLog("_install_socket ", this.name);
         }
 
-        let strUrl = socket.url.split(":");
-        this._remoteAddress = strUrl[0];
-        this._remotePort = (strUrl.length == 2) ? Number.parseInt(strUrl[1]) : 0;
+        let nativeSocket: Socket|undefined = (socket as any)._socket
+        this._remoteAddress = (nativeSocket && nativeSocket.remoteAddress) ? nativeSocket.remoteAddress : "";
+        this._remotePort = (nativeSocket && nativeSocket.remotePort) ? nativeSocket.remotePort : 0;
 
         // install packet assembler ...
         this.packetAssembler = new PacketAssembler({
