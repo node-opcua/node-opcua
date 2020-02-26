@@ -28,6 +28,7 @@ import {
     StructuredTypeSchema,
     TypeDefinition,
     TypeSchemaBase,
+    getStandartDataTypeFactory,
 } from "node-opcua-factory";
 import {
     ExpandedNodeId,
@@ -494,9 +495,17 @@ export async function populateDataTypeManager(
         nodeId: resolveNodeId("Server_NamespaceArray")
     });
 
+    const namespaceArray = dataValueNamespaceArray.value.value;
+
     if (dataValueNamespaceArray.statusCode === StatusCodes.Good &&
-        (dataValueNamespaceArray.value.value && dataValueNamespaceArray.value.value.length > 0)) {
-        dataTypeManager.setNamespaceArray(dataValueNamespaceArray.value.value as string[]);
+        (namespaceArray && namespaceArray.length > 0)) {
+        dataTypeManager.setNamespaceArray(namespaceArray as string[]);
+
+        for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
+            const dataTypeFactory1 = new DataTypeFactory([getStandartDataTypeFactory()]);
+            dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
+        }
+
     }
 
     /// to do :: may be not useful

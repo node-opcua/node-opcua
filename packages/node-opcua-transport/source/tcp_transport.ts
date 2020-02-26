@@ -361,7 +361,7 @@ export class TCP_transport extends EventEmitter {
             // to do = intercept socket error as well
             this._on_error_during_one_time_message_receiver = (err?: Error) => {
                 this._fulfill_pending_promises(
-                    new Error(`ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
+                    new Error(`ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms) ` + err?.message));
             };
             this._socket.on("close", this._on_error_during_one_time_message_receiver);
         }
