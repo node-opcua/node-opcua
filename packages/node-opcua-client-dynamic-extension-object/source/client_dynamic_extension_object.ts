@@ -243,17 +243,26 @@ interface IDataTypeDefInfo {
 type DataTypeDefinitions = IDataTypeDefInfo[];
 
 function sortStructure(dataTypeDefinitions: DataTypeDefinitions) {
+
     const dataTypeDefinitionsSorted: IDataTypeDefInfo[] = [];
     const _visited: { [key: string]: IDataTypeDefInfo } = {};
     const _map: { [key: string]: IDataTypeDefInfo } = {};
+
     for (const d of dataTypeDefinitions) {
         _map[d.dataTypeNodeId.toString()] = d;
     }
+
     function _visit(d: IDataTypeDefInfo) {
-        const hash = d.dataTypeDefinition.toString();
+
+        const hash = d.dataTypeNodeId.toString();
         if (_visited[hash]) {
             return;
         }
+        const bbb = _map[d.dataTypeDefinition.baseDataType.toString()];
+        if (bbb) {
+            _visit(bbb);
+        }
+
         for (const f of d.dataTypeDefinition.fields || []) {
             const ddd = _map[f.dataType.toString()];
             if (!ddd) {
@@ -299,7 +308,6 @@ async function _extractDataTypeDictionaryFromDefinition(
         const dataTypeNodeId = dataTypeNodeIds[index];
         const dataTypeDescription = dataTypeDescriptions[index];
         index++;
-        debugLog("in ... populateDataTypeManager");
 
         /* istanbul ignore next */
         if (dataValue.statusCode !== StatusCodes.Good) {
@@ -323,7 +331,6 @@ async function _extractDataTypeDictionaryFromDefinition(
         try {
             const schema = await convertDataTypeDefinitionToStructureTypeSchema(
                 session, dataTypeNodeId, className, dataTypeDefinition, dataTypeFactory, cache);
-
             // istanbul ignore next
             if (doDebug) {
                 debugLog(chalk.red("Registering "), chalk.cyan(className.padEnd(30, " ")), schema.dataTypeNodeId.toString());
@@ -331,7 +338,7 @@ async function _extractDataTypeDictionaryFromDefinition(
             const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
             assert(Constructor.schema === schema);
         } catch (err) {
-            console.log("Constructor verification: ", err.message);
+            console.log("Constructor verification err: ", err.message);
             console.log("For this reason class " + className + " has not been registered");
             console.log(err);
         }

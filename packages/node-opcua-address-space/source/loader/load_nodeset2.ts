@@ -629,12 +629,22 @@ export function generateAddressSpace(
                 return;
             }
             let definitionFields = this.definitionFields;
+            // replace DataType with nodeId
+            definitionFields = definitionFields.map((x: any) => {
+                if (x.dataType) {
+                    x.dataType = convertToNodeId(x.dataType);
+                }
+                return x;
+            });
 
             const dataTypeNode = _internal_createNode(this.obj) as UADataType;
             assert(addressSpace1.findNode(this.obj.nodeId));
             const definitionName = dataTypeNode.browseName.name!;
 
+            let alreadyCalled = false;
             const processBasicDataType = async (addressSpace2: AddressSpace) => {
+
+                assert(!alreadyCalled); alreadyCalled = true;
 
                 const enumeration = addressSpace2.findDataType("Enumeration");
                 const structure = addressSpace2.findDataType("Structure");
@@ -647,13 +657,6 @@ export function generateAddressSpace(
                 if (definitionFields.length) {
                     // remove <namespace>:
                     const nameWithoutNamespace = definitionName.split(":").slice(-1)[0];
-                    // replace DataType with nodeId
-                    definitionFields = definitionFields.map((x: any) => {
-                        if (x.dataType) {
-                            x.dataType = convertToNodeId(x.dataType);
-                        }
-                        return x;
-                    });
 
                     // const schema = makeStructureSchemaFromDefinition(dataTypeNode.nodeId, nameWithoutNamespace, definitionFields);
 
@@ -666,7 +669,6 @@ export function generateAddressSpace(
                     }
                 }
                 if (!isEnumeration && !isStructure && this.obj.nodeId.namespace !== 0) {
-
                     pendingSimpleTypeToRegister.push({ name: definitionName, dataTypeNodeId: dataTypeNode.nodeId });
                 }
             };

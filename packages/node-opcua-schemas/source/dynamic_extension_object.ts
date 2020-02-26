@@ -660,7 +660,7 @@ export function createDynamicObjectConstructor(
             schema._baseSchema = BaseClass.schema;
 
         } catch (err) {
-            console.log(err.message);
+            console.log("createDynamicObjectConstructor err= ", err.message);
         }
     }
 
