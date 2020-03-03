@@ -509,8 +509,10 @@ export async function populateDataTypeManager(
         dataTypeManager.setNamespaceArray(namespaceArray as string[]);
 
         for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
-            const dataTypeFactory1 = new DataTypeFactory([getStandartDataTypeFactory()]);
-            dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
+            if (dataTypeManager.hasDataTypeFactory(namespaceIndex)) {
+                const dataTypeFactory1 = new DataTypeFactory([getStandartDataTypeFactory()]);
+                dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
+            }
         }
 
     }
