@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-client",
-    "version": "2.5.0-alpha.13",
+    "version": "2.5.0-alpha.14",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
@@ -25,7 +25,7 @@
         "node-opcua-basic-types": "^2.5.0-alpha.12",
         "node-opcua-buffer-utils": "^2.5.0-alpha.4",
         "node-opcua-certificate-manager": "^2.5.0-alpha.12",
-        "node-opcua-client-dynamic-extension-object": "^2.5.0-alpha.13",
+        "node-opcua-client-dynamic-extension-object": "^2.5.0-alpha.14",
         "node-opcua-common": "^2.5.0-alpha.12",
         "node-opcua-constants": "^2.5.0-alpha.4",
         "node-opcua-crypto": "^1.1.4",
@@ -66,7 +66,7 @@
     "devDependencies": {
         "@types/mocha": "^5.2.7",
         "dequeue": "^1.0.5",
-        "node-opcua-address-space": "^2.5.0-alpha.13",
+        "node-opcua-address-space": "^2.5.0-alpha.14",
         "node-opcua-binary-stream": "^2.5.0-alpha.4",
         "node-opcua-factory": "^2.5.0-alpha.12",
         "node-opcua-leak-detector": "^2.5.0-alpha.4",
