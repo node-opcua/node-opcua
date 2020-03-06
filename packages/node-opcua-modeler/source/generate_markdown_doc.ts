@@ -64,9 +64,11 @@ function dataTypeToMarkdown(dataType: UADataType): string {
     if (dataType.subtypeOfObj) {
         writer.writeLine("\nSubtype of " + dataType.subtypeOfObj?.browseName.toString());
     }
+    writer.writeLine("");
 
     if (definition instanceof EnumDefinition) {
         writer.writeLine("\nBasic Type: " + (DataType as any)[DataType.UInt32]);
+        writer.writeLine("");
 
         const table = new TableHelper(["Name", "Value", "Description"]);
         for (const f of definition.fields || []) {
@@ -97,6 +99,7 @@ function dataTypeToMarkdown(dataType: UADataType): string {
         writer.writeLine(table.toMarkdownTable());
     } else {
         writer.writeLine("\nBasic Type: " + (DataType as any)[dataType.basicDataType]);
+        writer.writeLine("");
 
     }
     return writer.toString();
@@ -111,7 +114,9 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter) 
 
     const nsIndex = addressSpace.getNamespaceIndex(namespaceUri);
 
+    writer.writeLine("");
     writer.writeLine("# Namespace " + namespaceUri);
+    writer.writeLine("");
     // -------------- writeReferences
     const namespacePriv = namespace as unknown as NamespacePriv2;
     const referenceTypes = Object.values(namespacePriv._referenceTypeMap);
