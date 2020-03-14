@@ -54,7 +54,7 @@ import {
     HistoricalDataConfiguration,
     IVariableHistorian, Permissions,
     PseudoSession,
-    StatusCodeCallBack,
+    StatusCodeCallback,
     UADataType as UADataTypePublic,
     UAVariable as UAVariablePublic, UAVariableType
 } from "../source";
@@ -624,7 +624,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         // adjust arguments if optional indexRange Parameter is not given
         let indexRange: NumericRange | null = null;
-        let callback: StatusCodeCallBack;
+        let callback: StatusCodeCallback;
         if (args.length === 1) {
             indexRange = new NumericRange();
             callback = args[0];

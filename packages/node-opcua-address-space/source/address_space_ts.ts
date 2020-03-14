@@ -242,12 +242,12 @@ export interface BindVariableOptionsVariation1 {
 
 export type DataValueCallback = (err: Error | null, dataValue?: DataValue) => void;
 
-export type StatusCodeCallBack = (err: Error | null, statusCode?: StatusCode) => void;
+export type StatusCodeCallback = (err: Error | null, statusCode?: StatusCode) => void;
 
 export type VariableDataValueGetterSync = () => DataValue;
 export type VariableDataValueGetterAsync = (callback: DataValueCallback) => void;
 
-export type VariableDataValueSetterWithCallback = (dataValue: DataValue, callback: StatusCodeCallBack) => void;
+export type VariableDataValueSetterWithCallback = (dataValue: DataValue, callback: StatusCodeCallback) => void;
 
 export interface BindVariableOptionsVariation2 {
     timestamped_get: VariableDataValueGetterSync | VariableDataValueGetterAsync;
@@ -484,10 +484,10 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
         context: SessionContext,
         dataValue: DataValueOptions,
         indexRange: string | NumericRange | null,
-        callback: StatusCodeCallBack
+        callback: StatusCodeCallback
     ): void;
 
-    writeValue(context: SessionContext, dataValue: DataValueOptions, callback: StatusCodeCallBack): void;
+    writeValue(context: SessionContext, dataValue: DataValueOptions, callback: StatusCodeCallback): void;
 
     writeValue(
         context: SessionContext,
@@ -524,7 +524,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *  ```
      *
      */
-    writeAttribute(context: SessionContext, writeValue: WriteValueOptions, callback: StatusCodeCallBack): void;
+    writeAttribute(context: SessionContext, writeValue: WriteValueOptions, callback: StatusCodeCallback): void;
     /**
      * write a variale attribute (async/await version)
      * @param context
