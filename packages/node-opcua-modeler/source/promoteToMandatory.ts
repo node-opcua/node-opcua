@@ -8,6 +8,7 @@ import {
     UAReferenceType,
     UAVariable,
     UAVariableType,
+    ModellingRuleType,
 } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
@@ -15,7 +16,7 @@ import { displayNodeElement } from ".";
 
 type UAType = UAObjectType | UAVariableType | UAReferenceType | UADataType;
 
-type UAConcrete = UAVariable | UAObject | UAMethod;
+export type UAConcrete = UAVariable | UAObject | UAMethod;
 
 // find the reference that links node1 to node2
 function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
@@ -43,11 +44,11 @@ function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
     return ref;
 }
 
-export function promoteToMandatory(
+export function getChildInTypeOrBaseType(
     node: UAObjectType | UAVariableType,
     propertyName: string,
-    namespaceIndex: number): UAConcrete {
-    // get base node
+    namespaceIndex: number
+): { propInSuperType: UAConcrete, reference: UAReference } {
 
     const addressSpace = node.addressSpace;
 
@@ -57,8 +58,7 @@ export function promoteToMandatory(
         throw new Error("Expecting a super type");
     }
 
-    const browseResult = addressSpace.browsePath(makeBrowsePath(subtypeOf.nodeId,
-        `.${namespaceIndex}:${propertyName}`));
+    const browseResult = addressSpace.browsePath(makeBrowsePath(subtypeOf.nodeId, `.${namespaceIndex}:${propertyName}`));
     const propNodeId = (!browseResult.targets || !browseResult.targets[0]) ? null : browseResult.targets[0].targetId!;
 
     /* istanbul ignore next */
@@ -73,6 +73,23 @@ export function promoteToMandatory(
     if (!propInSuperType) {
         throw new Error("cannot find " + propNodeId.toString());
     }
+    // replicate property
+    const reference = findReferenceToNode(subtypeOf, propInSuperType);
+
+    /* istanbul ignore next */
+    if (!reference) {
+        throw new Error("cannot find reference");
+    }
+    return { propInSuperType, reference };
+}
+
+export function promoteToMandatory(
+    node: UAObjectType | UAVariableType,
+    propertyName: string,
+    namespaceIndex: number): UAConcrete {
+    // get base node
+
+    const { propInSuperType, reference } = getChildInTypeOrBaseType(node, propertyName, namespaceIndex);
 
     // check mandatory
     /* istanbul ignore next */
@@ -81,18 +98,41 @@ export function promoteToMandatory(
         console.log("Warning property " + propertyName + " is already Mandatory in super type");
         return propInSuperType;
     }
-    // replicate property
-    const ref = findReferenceToNode(subtypeOf, propInSuperType);
 
-    /* istanbul ignore next */
-    if (!ref) {
-        throw new Error("Ref");
-    }
-
-    const newRef: UAReference = { isForward: false, nodeId: node.nodeId, referenceType: ref.referenceType };
+    const newRef: UAReference = {
+        isForward: false,
+        nodeId: node.nodeId,
+        referenceType: reference.referenceType
+    };
 
     const newProp = (propInSuperType as UAConcrete).clone({
         modellingRule: "Mandatory",
+        references: [newRef],
+    }, null, null);
+    return newProp;
+}
+
+export function promoteChild(
+    node: UAObjectType | UAVariableType,
+    propertyName: string,
+    namespaceIndex: number,
+    modellingRule: ModellingRuleType
+): UAConcrete {
+
+    const { propInSuperType, reference } = getChildInTypeOrBaseType(node, propertyName, namespaceIndex);
+
+    if (!modellingRule) {
+        modellingRule = propInSuperType.modellingRule || null;
+    }
+
+    const newRef: UAReference = {
+        isForward: false,
+        nodeId: node.nodeId,
+        referenceType: reference.referenceType
+    };
+
+    const newProp = (propInSuperType as UAConcrete).clone({
+        modellingRule,
         references: [newRef],
     }, null, null);
     return newProp;
