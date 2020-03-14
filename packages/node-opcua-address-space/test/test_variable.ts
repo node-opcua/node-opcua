@@ -25,7 +25,7 @@ import {
     PseudoSession,
     RootFolder,
     SessionContext,
-    StatusCodeCallBack,
+    StatusCodeCallback,
     UAVariable,
 } from "..";
 
@@ -687,7 +687,7 @@ describe("testing Variable#bindVariable", () => {
                         callback(null, value_with_timestamp);
                     }, 100);
                 },
-                timestamped_set(dataValue1: DataValue, callback: StatusCodeCallBack): void {
+                timestamped_set(dataValue1: DataValue, callback: StatusCodeCallback): void {
                     setTimeout(() => {
                         value_with_timestamp.value = dataValue1.value;
                         value_with_timestamp.sourceTimestamp = dataValue1.sourceTimestamp;
