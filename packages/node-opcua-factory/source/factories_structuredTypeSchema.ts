@@ -220,10 +220,10 @@ export function extract_all_fields(schema: StructuredTypeSchema) {
  * @method  check_options_correctness_against_schema
  *
  */
-export function check_options_correctness_against_schema(obj: any, schema: StructuredTypeSchema, options: any) {
+export function check_options_correctness_against_schema(obj: any, schema: StructuredTypeSchema, options: any): boolean {
 
     if (!parameters.debugSchemaHelper) {
-        return; // ignoring set
+        return true; // ignoring set
     }
 
     options = options || {};

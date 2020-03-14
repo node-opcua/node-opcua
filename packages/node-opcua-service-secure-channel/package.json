@@ -21,7 +21,7 @@
         "underscore": "^1.9.2"
     },
     "devDependencies": {
-        "node-opcua-binary-stream": "^2.3.0",
+        "node-opcua-binary-stream": "^2.4.2",
         "node-opcua-buffer-utils": "^2.5.0-alpha.4",
         "node-opcua-debug": "^2.5.0-alpha.4",
         "node-opcua-generator": "^2.5.0-alpha.12",

@@ -241,7 +241,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                     // xx                 endpoint.restoreConnection(callback2);
                     // xx              }
                 ], inner_callback);
-            }, callback);
+            }, callback!);
     }
 
     public on_request(message: Message, channel: ServerSecureChannelLayer) {

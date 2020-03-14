@@ -15,12 +15,12 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "@types/mkdirp": "^0.5.2",
-        "async": "^3.1.0",
+        "@types/mkdirp": "^1.0.0",
+        "async": "^3.2.0",
         "chalk": "^3.0.0",
         "delayed": "^2.0.0",
         "env-paths": "^2.2.0",
-        "mkdirp": "^0.5.1",
+        "mkdirp": "^1.0.3",
         "node-opcua-assert": "^2.5.0-alpha.4",
         "node-opcua-basic-types": "^2.5.0-alpha.12",
         "node-opcua-buffer-utils": "^2.5.0-alpha.4",
@@ -36,12 +36,12 @@
         "underscore": "^1.9.2"
     },
     "devDependencies": {
-        "@types/async": "^3.0.3",
+        "@types/async": "^3.0.8",
         "@types/underscore": "^1.9.4",
         "dequeue": "^1.0.5",
         "node-opcua-leak-detector": "^2.5.0-alpha.4",
         "should": "13.2.3",
-        "sinon": "^8.0.4"
+        "sinon": "^9.0.1"
     },
     "eslintConfig": {
         "env": {
