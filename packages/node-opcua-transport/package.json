@@ -27,13 +27,13 @@
         "underscore": "^1.9.2"
     },
     "devDependencies": {
-        "@types/node": "^13.1.6",
+        "@types/node": "^13.9.1",
         "@types/underscore": "^1.9.4",
         "colors": "^1.4.0",
-        "node-opcua-debug": "^2.3.0",
+        "node-opcua-debug": "^2.4.2",
         "node-opcua-generator": "^2.5.0-alpha.12",
         "should": "13.2.3",
-        "sinon": "^8.0.4"
+        "sinon": "^9.0.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

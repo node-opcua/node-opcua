@@ -10,7 +10,7 @@
 		"test": "mocha test"
 	},
 	"dependencies": {
-		"async": "^3.1.0",
+		"async": "^3.2.0",
 		"node-opcua-assert": "^2.5.0-alpha.4",
 		"node-opcua-common": "^2.5.0-alpha.12",
 		"node-opcua-constants": "^2.5.0-alpha.4",

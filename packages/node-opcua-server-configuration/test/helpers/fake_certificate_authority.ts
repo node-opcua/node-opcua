@@ -25,12 +25,12 @@ import {
 export const _tempFolder = path.join(__dirname, "../../temp");
 
 export async function initializeHelpers() {
-    await promisify(rimraf)( path.join(_tempFolder, "*"));
-    await promisify(mkdirp)(_tempFolder);
+    await promisify(rimraf)(path.join(_tempFolder, "*"));
+    await promisify(mkdirp as any)(_tempFolder);
 }
 
 export async function produceCertificateAndPrivateKey()
-  : Promise<{ certificate: Certificate, privateKey: PrivateKey }> {
+    : Promise<{ certificate: Certificate, privateKey: PrivateKey }> {
 
     // Given a Certificate Authority
     const certificateManager = new CertificateManager({
@@ -67,9 +67,9 @@ export async function produceCertificateAndPrivateKey()
 }
 
 async function _produceCertificate(
-  certificateSigningRequest: Buffer,
-  startDate: Date,
-  validity: number
+    certificateSigningRequest: Buffer,
+    startDate: Date,
+    validity: number
 ): Promise<Buffer> {
     // Given a Certificate Authority
     const certificateAuthority = new CertificateAuthority({
@@ -83,8 +83,8 @@ async function _produceCertificate(
     const csrFile = path.join(certificateAuthority.rootDir, csrFilename);
 
     await promisify(fs.writeFile)(csrFile,
-      toPem(certificateSigningRequest,
-        "CERTIFICATE REQUEST"), "utf8");
+        toPem(certificateSigningRequest,
+            "CERTIFICATE REQUEST"), "utf8");
 
     // --- generate the certificate
 
@@ -95,13 +95,13 @@ async function _produceCertificate(
     }
 
     await certificateAuthority.signCertificateRequest(
-      certificate,
-      csrFile, {
-          applicationUri: "urn:MACHINE:MyApplication",
-          dns: [os.hostname()],
-          startDate,
-          validity
-      });
+        certificate,
+        csrFile, {
+        applicationUri: "urn:MACHINE:MyApplication",
+        dns: [os.hostname()],
+        startDate,
+        validity
+    });
 
     const certificatePEM = await promisify(fs.readFile)(certificate, "utf8");
     return convertPEMtoDER(certificatePEM);

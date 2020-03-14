@@ -14,7 +14,7 @@
     "clean": "node -e \"require('rimraf').sync('certificates');\""
   },
   "dependencies": {
-    "async": "^3.1.0",
+    "async": "^3.2.0",
     "bonjour": "^3.5.0",
     "colors": "^1.4.0",
     "node-opcua": "^2.5.0-alpha.14",

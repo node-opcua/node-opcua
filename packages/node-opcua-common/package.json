@@ -23,8 +23,8 @@
         "underscore": "^1.9.2"
     },
     "devDependencies": {
-        "@types/mocha": "^5.2.7",
-        "@types/node": "^13.1.6",
+        "@types/mocha": "^7.0.2",
+        "@types/node": "^13.9.1",
         "node-opcua-generator": "^2.5.0-alpha.12",
         "should": "13.2.3"
     },

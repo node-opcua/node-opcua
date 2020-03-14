@@ -13,7 +13,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "async": "^3.1.0",
+        "async": "^3.2.0",
         "bonjour": "^3.5.0",
         "colors": "^1.4.0",
         "dequeue": "^1.0.5",
@@ -67,7 +67,7 @@
         "node-opcua-test-helpers": "^2.5.0-alpha.0",
         "node-opcua-transport": "^2.5.0-alpha.12",
         "should": "13.2.3",
-        "sinon": "^8.0.4"
+        "sinon": "^9.0.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

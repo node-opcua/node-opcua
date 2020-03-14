@@ -16,8 +16,8 @@
         "clean": "node -e \"require('rimraf').sync('certificates');\""
     },
     "dependencies": {
-        "@types/yargs": "^15.0.0",
-        "async": "^3.1.0",
+        "@types/yargs": "^15.0.4",
+        "async": "^3.2.0",
         "colors": "^1.4.0",
         "easy-table": "^1.1.1",
         "exit": "^0.1.2",
@@ -30,7 +30,7 @@
         "sprintf-js": "^1.1.2",
         "treeify": "^1.1.0",
         "underscore": "^1.9.2",
-        "yargs": "^15.1.0"
+        "yargs": "^15.3.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
