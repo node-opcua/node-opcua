@@ -26,7 +26,11 @@ export const _tempFolder = path.join(__dirname, "../../temp");
 
 export async function initializeHelpers() {
     await promisify(rimraf)(path.join(_tempFolder, "*"));
-    await promisify(mkdirp as any)(_tempFolder);
+    try {
+        await promisify(fs.mkdir)(_tempFolder);
+    } catch (err) {
+
+    }
 }
 
 export async function produceCertificateAndPrivateKey()
