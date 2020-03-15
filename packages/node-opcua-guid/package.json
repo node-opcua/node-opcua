@@ -13,7 +13,7 @@
         "node-opcua-assert": "^2.5.0-alpha.4"
     },
     "devDependencies": {
-        "should": "13.2.3"
+        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

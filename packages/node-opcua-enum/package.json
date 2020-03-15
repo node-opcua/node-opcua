@@ -15,7 +15,7 @@
     "devDependencies": {
         "enum": "2.5.0",
         "node-opcua-benchmarker": "^2.5.0-alpha.4",
-        "should": "13.2.3",
+        "should": "^13.2.3",
         "underscore": "^1.9.2"
     },
     "author": "Etienne Rossignon",

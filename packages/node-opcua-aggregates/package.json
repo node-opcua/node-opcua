@@ -28,10 +28,10 @@
         "delayed": "^2.0.0",
         "node-opcua-assert": "^2.5.0-alpha.4",
         "node-opcua-leak-detector": "^2.5.0-alpha.4",
-        "should": "13.2.3",
+        "should": "^13.2.3",
         "sinon": "^9.0.1",
         "underscore": "^1.9.2",
-        "yargs": "^15.3.0"
+        "yargs": "^15.3.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

@@ -12,7 +12,7 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "should": "13.2.3",
+        "should": "^13.2.3",
         "underscore": "^1.9.2"
     },
     "repository": {

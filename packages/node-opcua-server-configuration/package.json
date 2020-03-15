@@ -35,7 +35,7 @@
         "node-opcua-binary-stream": "^2.5.0-alpha.4",
         "node-opcua-data-value": "^2.5.0-alpha.12",
         "node-opcua-leak-detector": "^2.5.0-alpha.4",
-        "should": "13.2.3",
+        "should": "^13.2.3",
         "sinon": "^9.0.1"
     },
     "author": "Etienne Rossignon",

@@ -22,7 +22,7 @@
     },
     "devDependencies": {
         "node-opcua-generator": "^2.5.0-alpha.12",
-        "should": "13.2.3"
+        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

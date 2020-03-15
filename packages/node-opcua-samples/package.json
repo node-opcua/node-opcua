@@ -21,7 +21,6 @@
         "colors": "^1.4.0",
         "easy-table": "^1.1.1",
         "exit": "^0.1.2",
-        "hexy": "^0.3.0",
         "node-opcua": "^2.5.0-alpha.14",
         "node-opcua-assert": "^2.5.0-alpha.4",
         "node-opcua-pki": "^1.5.5",
@@ -30,7 +29,7 @@
         "sprintf-js": "^1.1.2",
         "treeify": "^1.1.0",
         "underscore": "^1.9.2",
-        "yargs": "^15.3.0"
+        "yargs": "^15.3.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
