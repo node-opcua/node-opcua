@@ -9,7 +9,7 @@
     "test": "mocha test"
   },
   "dependencies": {
-    "bomstrip": "0.1.4",
+    "bomstrip": "^0.1.4",
     "ltx": "^2.9.2",
     "node-opcua-assert": "^2.5.0-alpha.4",
     "node-opcua-debug": "^2.5.0-alpha.4",
@@ -21,7 +21,7 @@
   "license": "MIT",
   "devDependencies": {
     "node-opcua-nodesets": "^2.5.0-alpha.4",
-    "should": "13.2.3"
+    "should": "^13.2.3"
   },
   "repository": {
     "type": "git",

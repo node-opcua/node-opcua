@@ -19,7 +19,7 @@
     },
     "devDependencies": {
         "node-opcua-benchmarker": "^2.5.0-alpha.4",
-        "should": "13.2.3",
+        "should": "^13.2.3",
         "source-map-support": "^0.5.16"
     },
     "author": "Etienne Rossignon",

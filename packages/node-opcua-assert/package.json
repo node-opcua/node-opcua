@@ -11,7 +11,7 @@
         "lint": "tslint source/**/*.ts"
     },
     "dependencies": {
-        "better-assert": "1.0.2",
+        "better-assert": "^1.0.2",
         "chalk": "^3.0.0",
         "pretty-error": "^2.1.1"
     },

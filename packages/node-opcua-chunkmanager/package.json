@@ -21,10 +21,10 @@
         "underscore": "^1.9.2"
     },
     "devDependencies": {
-        "@types/node": "^13.9.1",
+        "@types/node": "^13.9.2",
         "@types/underscore": "^1.9.4",
         "node-opcua-debug": "^2.5.0-alpha.4",
-        "should": "13.2.3",
+        "should": "^13.2.3",
         "source-map-support": "^0.5.16"
     },
     "author": "Etienne Rossignon",

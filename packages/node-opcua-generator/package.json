@@ -34,7 +34,7 @@
         "node-opcua-binary-stream": "^2.5.0-alpha.4",
         "node-opcua-extension-object": "^2.5.0-alpha.12",
         "node-opcua-packet-analyzer": "^2.5.0-alpha.12",
-        "should": "13.2.3",
+        "should": "^13.2.3",
         "source-map-support": "^0.5.16"
     },
     "author": "Etienne Rossignon",

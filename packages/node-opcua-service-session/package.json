@@ -25,7 +25,7 @@
         "node-opcua-data-model": "^2.5.0-alpha.12",
         "node-opcua-generator": "^2.5.0-alpha.12",
         "node-opcua-service-endpoints": "^2.4.2",
-        "should": "13.2.3"
+        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
