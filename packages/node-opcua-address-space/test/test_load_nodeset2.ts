@@ -400,7 +400,6 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const dataType = addressSpace.findDataType("3DFrame", 0)!;
 
-
     });
 
     it("VV8 ----------", async () => {

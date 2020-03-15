@@ -583,6 +583,14 @@ function _dumpStructureDefinition(
     xw: XmlWriter,
     structureDefinition: StructureDefinition
 ) {
+
+    /*
+     * note: baseDataType and defaultEncodingId are implicit and not stored in the XML file ??
+     *
+     */
+    const baseDataType = structureDefinition.baseDataType;
+    const defaultEncodingId = structureDefinition.defaultEncodingId;
+
     structureDefinition.fields = structureDefinition.fields || [];
     for (const defItem/*: StructureField*/ of structureDefinition.fields) {
         xw.startElement("Field");
@@ -640,7 +648,6 @@ function _dumpUADataTypeDefinition(
         // todo
         $definition.structureType;
         */
-
         _dumpStructureDefinition(xw, $definition);
         xw.endElement();
         return;

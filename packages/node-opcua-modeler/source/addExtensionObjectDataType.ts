@@ -163,7 +163,7 @@ export async function addExtensionObjectDataType(
     const baseSuperType = "Structure";
     const subtypeOf = addressSpace.findDataType(options.subtypeOf ? options.subtypeOf : baseSuperType)!;
 
-    const structureDefinition = options.structureDefinition || [];
+    const structureDefinition = options.structureDefinition;
 
     const dataType = namespace.createDataType({
         browseName: options.browseName,
@@ -172,22 +172,10 @@ export async function addExtensionObjectDataType(
         subtypeOf,
     });
 
-    const defaultBinaryNodeId = namespace.constructNodeId({
-        browseName: coerceQualifiedName("0:Default Binary"),
-        nodeClass: NodeClass.Object,
-        references: [
-            new Reference({
-                isForward: false,
-                nodeId: dataType.nodeId,
-                referenceType: resolveNodeId("HasEncoding"),
-            })
-        ],
-    });
-
     const defaultBinary = dataTypeEncodingType.instantiate({
         browseName: coerceQualifiedName("0:Default Binary"),
         encodingOf: dataType,
-        nodeId: defaultBinaryNodeId,
+        // nodeId: defaultBinaryEncodingNode,
     })!;
     assert(defaultBinary.browseName.toString() === "Default Binary");
 

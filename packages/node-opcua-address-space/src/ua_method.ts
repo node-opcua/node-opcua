@@ -49,7 +49,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     public get parent(): UAObjectPublic | null {
-        return super.parent as UAObjectPublic;
+        return   super.parent as UAObjectPublic;
     }
 
     public value?: any;

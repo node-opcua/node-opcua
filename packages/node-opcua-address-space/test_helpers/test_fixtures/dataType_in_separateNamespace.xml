@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<UANodeSet
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2019-05-01T00:00:00Z"
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2019-05-01T00:00:00Z" 
     xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
         <Uri>http://opcfoundation.org/UA/DI/</Uri>
@@ -92,16 +91,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
         </References>
         <Value>
-            <String
-                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ParameterResultDataType
-            
-            
-            
-            
-            
-            
-            
-            </String>
+            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ParameterResultDataType</String>
         </Value>
     </UAVariable>
     <!-- B-->
@@ -120,14 +110,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
         </References>
         <Value>
-            <String
-                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">TransferResultDataDataType
-            
-            
-            
-            
-            
-            </String>
+            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">TransferResultDataDataType</String>
         </Value>
     </UAVariable>
     <!-- C -->
@@ -144,25 +127,24 @@
         </References>
         <Value/>
     </UAVariable>
-      <UAVariable NodeId="ns=1;i=6437" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6435" DataType="String">
-    <DisplayName>NamespaceUri</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6435</Reference>
-    </References>
-    <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/DI/</String>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=15893" BrowseName="Deprecated" ParentNodeId="ns=1;i=6435" DataType="Boolean">
-    <DisplayName>Deprecated</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6435</Reference>
-    </References>
-    <Value>
-      <Boolean xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">true</Boolean>
-    </Value>
-  </UAVariable>
-
+    <UAVariable NodeId="ns=1;i=6437" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6435" DataType="String">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6435</Reference>
+        </References>
+        <Value>
+            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/DI/</String>
+        </Value>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=15893" BrowseName="Deprecated" ParentNodeId="ns=1;i=6435" DataType="Boolean">
+        <DisplayName>Deprecated</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6435</Reference>
+        </References>
+        <Value>
+            <Boolean xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">true</Boolean>
+        </Value>
+    </UAVariable>
 </UANodeSet>

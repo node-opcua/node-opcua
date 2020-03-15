@@ -18,7 +18,7 @@
         <Alias Alias="String">i=12</Alias>
     </Aliases>
 
-    <UADataType NodeId="ns=1;i=3500" BrowseName="1:SimaticSystemStructures">
+    <UADataType NodeId="ns=1;i=3500" BrowseName="1:SimaticSystemStructures" IsAbstract="true">
         <DisplayName>SimaticSystemStructures</DisplayName>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>

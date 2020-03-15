@@ -1421,8 +1421,6 @@ export function generateAddressSpace(
                 await performPostLoadingTasks(postTasks);
                 postTasks = [];
 
-
-
                 debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
                 assert(!addressSpace1.suspendBackReference);
                 await ensureDatatypeExtracted(addressSpace);
@@ -1436,11 +1434,6 @@ export function generateAddressSpace(
                     }
                     const dataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
                     const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
-                    /*                    const def = registerBasicType({
-                                            name,
-                                            subType: "???"
-                                        });
-                      */                  // dataTypeFactory.registerSimpleType(name, dataTypeNodeId, def );
 
                 }
                 pendingSimpleTypeToRegister.splice(0);

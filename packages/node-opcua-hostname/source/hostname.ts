@@ -32,7 +32,7 @@ function fqdn(callback: (err: Error | null, fqdn?: string) => void) {
     });
 }
 
-let _fullyQualifiedDomainNameInCache: string| undefined;
+let _fullyQualifiedDomainNameInCache: string | undefined;
 
 /**
  * extract FullyQualifiedDomainName of this computer
@@ -42,11 +42,11 @@ export async function extractFullyQualifiedDomainName(): Promise<string> {
     if (_fullyQualifiedDomainNameInCache) {
         return _fullyQualifiedDomainNameInCache;
     }
-    if (false && process.platform === "win32") {
+    if (process.platform === "win32") {
         // http://serverfault.com/a/73643/251863
         const env = process.env;
         _fullyQualifiedDomainNameInCache = env.COMPUTERNAME
-          + ((env.USERDNSDOMAIN && env.USERDNSDOMAIN!.length > 0) ? "." + env.USERDNSDOMAIN : "");
+            + ((env.USERDNSDOMAIN && env.USERDNSDOMAIN!.length > 0) ? "." + env.USERDNSDOMAIN : "");
 
     } else {
 
@@ -71,8 +71,8 @@ export async function prepareFQDN() {
 export function getFullyQualifiedDomainName(optional_max_length?: number) {
 
     return _fullyQualifiedDomainNameInCache
-      ? trim(_fullyQualifiedDomainNameInCache, optional_max_length)
-      : "%FQDN%";
+        ? trim(_fullyQualifiedDomainNameInCache, optional_max_length)
+        : "%FQDN%";
 }
 
 export function resolveFullyQualifiedDomainName(str: string): string {
