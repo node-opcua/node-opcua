@@ -182,8 +182,7 @@ describe("testing status code manipulation", () => {
     });
 
     it("valueOf", () => {
-        StatusCodes.BadAggregateConfigurationRejected.valueOf.should.eql(2161770496);
-
+        StatusCodes.BadAggregateConfigurationRejected.valueOf().should.eql(2161770496);
     });
 });
 
@@ -242,20 +241,20 @@ describe("ModifiableStatusCode", () => {
         statusCode.hasSemanticChangedBit.should.equal(false);
 
     });
-    it("test with extra bits 1",() => {
+    it("test with extra bits 1", () => {
         const statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianCalculated");
         statusCode.toString().should.eql("UncertainDataSubNormal#HistorianCalculated (0x40a40001)");
     });
-    it("test with extra bits 2",() => {
+    it("test with extra bits 2", () => {
         const statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianInterpolated");
         statusCode.toString().should.eql("UncertainDataSubNormal#HistorianInterpolated (0x40a40002)");
     });
-    it("test with extra bits 3",() => {
+    it("test with extra bits 3", () => {
         const statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianCalculated");
         const statusCode2 = StatusCode.makeStatusCode(statusCode, "HistorianInterpolated");
         statusCode2.toString().should.eql("UncertainDataSubNormal#HistorianCalculated|HistorianInterpolated (0x40a40003)");
     });
-    it("test with extra bits 4",() => {
+    it("test with extra bits 4", () => {
         const statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianCalculated");
         const mask = 0x0000FFFFFF;
         const extraBits = statusCode.value & mask;
