@@ -128,11 +128,11 @@ export abstract class StatusCode {
      *  returns a status code that can be modified
      */
     public static makeStatusCode(
-        statusCode: StatusCode | string, 
+        statusCode: StatusCode | string,
         optionalBits: string | number): StatusCode {
 
         const _base = coerceStatusCode(statusCode);
-        const tmp = new ModifiableStatusCode({_base});
+        const tmp = new ModifiableStatusCode({ _base });
         if (optionalBits || typeof optionalBits === "number") {
             tmp.set(optionalBits);
         }
@@ -154,7 +154,7 @@ export abstract class StatusCode {
      */
     public abstract get description(): string;
 
-    public get valueOf(): number {
+    public valueOf(): number {
         return this.value;
     }
 
@@ -166,17 +166,17 @@ export abstract class StatusCode {
         return (this.value & mask) === mask;
     }
 
-    /**returns true if the overflow bit is set */
+    /** returns true if the overflow bit is set */
     public get hasOverflowBit(): boolean {
         return this.checkBit(extraStatusCodeBits.Overflow);
     }
 
-    /**returns true if the semanticChange bit is set */
+    /** returns true if the semanticChange bit is set */
     public get hasSemanticChangedBit(): boolean {
         return this.checkBit(extraStatusCodeBits.SemanticChanged);
     }
 
-    /**returns true if the structureChange bit is set */
+    /** returns true if the structureChange bit is set */
     public get hasStructureChangedBit(): boolean {
         return this.checkBit(extraStatusCodeBits.StructureChanged);
     }
@@ -269,10 +269,10 @@ export function getStatusCodeFromCode(code: number) {
     /* istanbul ignore if */
     if (!sc) {
         sc = StatusCodes.Bad;
-        console.log("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16), 
-        " code was 0x"+ code.toString(16));
-        warnLog("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16), 
-        " code was 0x"+ code.toString(16));
+        console.log("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16),
+            " code was 0x" + code.toString(16));
+        warnLog("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16),
+            " code was 0x" + code.toString(16));
     }
     if (infoBits) {
         const tmp = new ModifiableStatusCode({ _base: sc });
@@ -394,9 +394,9 @@ export function coerceStatusCode(statusCode: any): StatusCode {
     if (typeof statusCode === "number") {
         return getStatusCodeFromCode(statusCode);
     }
-    const _StatusCodes =StatusCodes as any
+    const _StatusCodes = StatusCodes as any
     if (!_StatusCodes[statusCode as string]) {
-        throw new Error("Cannot find StatusCode "+ statusCode);
+        throw new Error("Cannot find StatusCode " + statusCode);
     }
     return _StatusCodes[statusCode as string];
 }
