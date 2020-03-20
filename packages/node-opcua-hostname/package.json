@@ -2,7 +2,7 @@
 	"name": "node-opcua-hostname",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
-	"version": "2.5.0-alpha.4",
+	"version": "2.5.1",
 	"description": "pure nodejs OPCUA SDK - module -hostname",
 	"scripts": {
 		"build": "tsc -b",
@@ -10,7 +10,7 @@
 		"test": "mocha test"
 	},
 	"dependencies": {
-		"node-opcua-assert": "^2.5.0-alpha.4"
+		"node-opcua-assert": "^2.5.1"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",
