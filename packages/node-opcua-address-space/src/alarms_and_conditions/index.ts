@@ -14,3 +14,4 @@ export * from "./ua_non_exclusive_limit_alarm";
 export * from "./ua_alarm_condition_base";
 export * from "./ua_certificate_expiration_alarm";
 export * from "./extract_event_fields";
+export * from "./check_where_clause";

@@ -153,11 +153,13 @@ const hostname = require("os").hostname();
 
 server.on("post_initialize", function() {
 
-  opcua.build_address_space_for_conformance_testing(server.engine.addressSpace);
+  const addressSpace = server.engine.addressSpace;
+
+  opcua.build_address_space_for_conformance_testing(addressSpace);
 
   install_optional_cpu_and_memory_usage_node(server);
 
-  const addressSpace = server.engine.addressSpace;
+  addressSpace.installAlarmsAndConditionsService();
 
   const rootFolder = addressSpace.findNode("RootFolder");
   assert(rootFolder.browseName.toString() === "Root");
@@ -409,6 +411,7 @@ server.start(function(err) {
   //  console.log = function(){};
 
 });
+
 
 server.on("create_session", function(session) {
   console.log(" SESSION CREATED");
