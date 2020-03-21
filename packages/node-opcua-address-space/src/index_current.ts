@@ -33,10 +33,13 @@ export * from "./data_access/ua_analog_item";
 export * from "./data_access/ua_data_item";
 export * from "./data_access/ua_multistate_discrete";
 export * from "./data_access/ua_mutlistate_value_discrete";
-export * from "./alarms_and_conditions/condition_info";
+
 export * from "../test_helpers";
 export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
 export { Reference } from "./reference";
 export { NodeIdManager } from "../src/nodeid_manager";
-export * from "../src/alarms_and_conditions/extract_event_fields";
+
+export * from "./alarms_and_conditions/condition_info";
+export * from "./alarms_and_conditions/check_where_clause";
+export * from "./alarms_and_conditions/extract_event_fields";
 export * from "./event_data";

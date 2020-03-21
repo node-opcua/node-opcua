@@ -13,7 +13,9 @@ import {
   extractEventFields,
   makeAttributeEventName,
   SessionContext,
-  UAVariable
+  UAVariable,
+  checkWhereClause,
+  AddressSpace
 } from "node-opcua-address-space";
 import { DateTime } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
@@ -783,8 +785,15 @@ export class MonitoredItem extends EventEmitter {
     // ignore the Event content filtering associated with a Subscription and will always be
     // delivered to the Client.
 
+    // istanbul ignore next
     if (!this.filter || !(this.filter instanceof EventFilter)) {
-      throw new Error("Internal Error");
+      throw new Error("Internal Error : a EventFilter is requested");
+    }
+
+    const addressSpace: AddressSpace = eventData.$eventDataSource?.addressSpace as AddressSpace;
+
+    if (!checkWhereClause(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)) {
+      return;
     }
 
     const selectClauses = this.filter.selectClauses

@@ -27,7 +27,7 @@ export class EventData implements IEventData {
     public eventId: NodeId;
     public $eventDataSource: BaseNodePublic;
 
-    private __nodes: any;
+    private __nodes: { [key: string]: Variant };
 
     constructor(eventTypeNode: BaseNodePublic) {
         this.__nodes = {};
@@ -41,15 +41,14 @@ export class EventData implements IEventData {
      * @return {NodeId|null}
      */
     public resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null {
-        const self = this;
         assert(selectClause instanceof SimpleAttributeOperand);
-        const addressSpace = self.$eventDataSource.addressSpace;
+        const addressSpace = this.$eventDataSource.addressSpace;
 
         if (selectClause.browsePath!.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
             assert(!"Cannot use resolveSelectClause on this selectClause as it has no browsePath");
         }
         // navigate to the innerNode specified by the browsePath [ QualifiedName]
-        const browsePath = constructBrowsePathFromQualifiedName(self.$eventDataSource, selectClause.browsePath);
+        const browsePath = constructBrowsePathFromQualifiedName(this.$eventDataSource, selectClause.browsePath);
 
         // xx console.log(self.$eventDataSource.browseName.toString());
         // xx console.log("xx browse Path", browsePath.toString());

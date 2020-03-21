@@ -197,7 +197,9 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: an
         } else {
 
             const typeDictionary = (self.schema as any).$$factory as DataTypeFactory;
+            // istanbul ignore next
             if (!typeDictionary) {
+                // tslint:disable-next-line: no-console
                 console.log(" No typeDictionary for ", self.schema);
             }
             field.fieldTypeConstructor = field.fieldTypeConstructor ||
