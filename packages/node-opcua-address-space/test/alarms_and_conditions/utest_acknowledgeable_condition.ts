@@ -78,7 +78,7 @@ export function utest_acknowledgeable_condition(test: any) {
                 browseName: "AcknowledgeableCondition5",
                 componentOf: source,
                 conditionSource: source,
-                optionals: ["ConfirmedState"]
+                optionals: ["ConfirmedState", "Confirm"]
             }, {
                 "enabledState.id": { dataType: DataType.Boolean, value: true }
             }) as UAAcknowledgeableConditionBase;

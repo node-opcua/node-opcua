@@ -54,10 +54,10 @@ export class UANonExclusiveLimitAlarm extends UALimitAlarm {
      * @return {UANonExclusiveLimitAlarm}
      */
     public static instantiate(
-      namespace: NamespacePrivate,
-      type: UAEventType | NodeId | string,
-      options: any,
-      data: any
+        namespace: NamespacePrivate,
+        type: UAEventType | NodeId | string,
+        options: any,
+        data: any
     ): UANonExclusiveLimitAlarm {
 
         const addressSpace = namespace.addressSpace;
@@ -141,10 +141,11 @@ export class UANonExclusiveLimitAlarm extends UALimitAlarm {
     }
 
     public _calculateConditionInfo(
-      states: any,
-      isActive: boolean,
-      value: any,
-      oldConditionInfo: any) {
+        states: string | null,
+        isActive: boolean,
+        value: string,
+        oldConditionInfo: ConditionInfo
+    ): ConditionInfo {
 
         if (!isActive) {
             return new ConditionInfo({
@@ -155,15 +156,9 @@ export class UANonExclusiveLimitAlarm extends UALimitAlarm {
             });
 
         } else {
-            // build-up state string
-            let state_str = Object.keys(states).map((s: string) => {
-                return states[s] === true ? s : null;
-            }).filter((a) => !!a).join(";"); //
-
-            state_str = JSON.stringify(states);
 
             return new ConditionInfo({
-                message: "Condition value is " + value + " and state is " + state_str,
+                message: "Condition value is " + value + " and state is " + states,
                 quality: StatusCodes.Good,
                 retain: true,
                 severity: 150
@@ -171,11 +166,15 @@ export class UANonExclusiveLimitAlarm extends UALimitAlarm {
         }
     }
 
-    public _signalNewCondition(states: any, isActive: boolean, value: any): void {
+    public _signalNewCondition2(
+        states: { [key: string]: string },
+        isActive: boolean,
+        value: string
+    ): void {
 
         const alarm = this as any;
 
-        if (!states) {
+        if (typeof states === "string") {
             return;
         }
 
@@ -190,7 +189,14 @@ export class UANonExclusiveLimitAlarm extends UALimitAlarm {
         _install("low");
         _install("lowLow");
 
-        UALimitAlarm.prototype._signalNewCondition.call(this, states, isActive, value);
+        // build-up state string
+        let state_str = Object.keys(states).map((s: string) =>
+            states[s] ? s : null
+        ).filter((a) => a !== null).join(";"); //
+
+        state_str = JSON.stringify(states);
+
+        UALimitAlarm.prototype._signalNewCondition.call(this, state_str, isActive, value);
     }
 
     protected _setStateBasedOnInputValue(value: number): void {
@@ -203,19 +209,16 @@ export class UANonExclusiveLimitAlarm extends UALimitAlarm {
 
         const states: any = {
             highHigh: alarm.highHighState ? alarm.highHighState.getValue() : "unset",
-
             high: alarm.highState ? alarm.highState.getValue() : "unset",
-
             low: alarm.lowState ? alarm.lowState.getValue() : "unset",
-
             lowLow: alarm.lowLowState ? alarm.lowLowState.getValue() : "unset"
         };
 
         let count = 0;
 
         function ___p(
-          stateName: string,
-          func_value: () => boolean
+            stateName: string,
+            func_value: () => boolean
         ) {
             if (states[stateName] !== "unset") {
                 const val = func_value();
@@ -241,7 +244,8 @@ export class UANonExclusiveLimitAlarm extends UALimitAlarm {
         });
 
         if (count > 0) {
-            alarm._signalNewCondition(states, isActive, value);
+
+            alarm._signalNewCondition2(states, isActive, value.toString());
         }
     }
 }
