@@ -63,10 +63,10 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
      * @param data
      */
     public static instantiate(
-      namespace: Namespace,
-      alarmConditionTypeId: UAEventType | string | NodeId,
-      options: any,
-      data: any
+        namespace: Namespace,
+        alarmConditionTypeId: UAEventType | string | NodeId,
+        options: any,
+        data: any
     ) {
 
         const addressSpace = namespace.addressSpace;
@@ -93,10 +93,10 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         }
 
         assert(alarmConditionTypeBase === alarmConditionType ||
-          alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
+            alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
 
         const alarmNode = UAAcknowledgeableConditionBase.instantiate(
-          namespace, alarmConditionTypeId, options, data) as UAAlarmConditionBase;
+            namespace, alarmConditionTypeId, options, data) as UAAlarmConditionBase;
         Object.setPrototypeOf(alarmNode, UAAlarmConditionBase.prototype);
 
         // ----------------------- Install Alarm specifics
@@ -450,11 +450,11 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
      *
      */
     public _calculateConditionInfo(
-      stateData: any,
-      isActive: boolean,
-      value: any,
-      oldCondition: ConditionInfo
-    ) {
+        stateData: string | null,
+        isActive: boolean,
+        value: string,
+        oldCondition: ConditionInfo
+    ): ConditionInfo {
 
         if (!stateData) {
             return new ConditionInfo({
@@ -480,10 +480,10 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         alarm.currentBranch().setAckedState(true);
     }
     public _signalNewCondition(
-      stateName: string | null,
-      isActive?: boolean,
-      value?: any
-    ): void  {
+        stateName: string | null,
+        isActive?: boolean,
+        value?: string
+    ): void {
 
         const alarm = this;
         // xx if(stateName === null) {
@@ -496,17 +496,17 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         // xx assert(isActive !== alarm.activeState.getValue());
 
         const oldConditionInfo = alarm.getCurrentConditionInfo();
-        const newConditionInfo = alarm._calculateConditionInfo(stateName, !!isActive, value, oldConditionInfo);
+        const newConditionInfo = alarm._calculateConditionInfo(stateName, !!isActive, value!, oldConditionInfo);
 
         // detect potential internal bugs due to misused of _signalNewCondition
         if (_.isEqual(oldConditionInfo, newConditionInfo)) {
             // tslint:disable-next-line:no-console
             console.log(oldConditionInfo);
             throw new Error("condition values have not change, shall we really raise an event ? alarm "
-              + alarm.browseName.toString());
+                + alarm.browseName.toString());
         }
         assert(!_.isEqual(oldConditionInfo, newConditionInfo),
-          "condition values have not change, shall we really raise an event ?");
+            "condition values have not change, shall we really raise an event ?");
 
         if (isActive) {
             alarm.currentBranch().setActiveState(true);

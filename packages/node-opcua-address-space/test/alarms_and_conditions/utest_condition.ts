@@ -754,7 +754,7 @@ export function utest_condition(test: any) {
                             spy_on_event.getCall(0).thisValue.nodeId.toString().should.eql("ns=0;i=2253");
                             spy_on_event.getCall(0).thisValue.browseName.toString().should.eql("Server");
                             spy_on_event.getCall(0).args.length.should.eql(1);
-                            spy_on_event.getCall(0).args[0].eventType.toString().should.eql("Variant(Scalar<NodeId>, value: ns=0;i=2787)");
+                            spy_on_event.getCall(0).args[0].eventType.toString().should.eql("Variant(Scalar<NodeId>, value: RefreshStartEventType (ns=0;i=2787))");
 
                             // xx console.log("spy_on_event.getCall(0).args[0]=",spy_on_event.getCall(1).args[0]);
                             spy_on_event.getCall(1).thisValue.browseName.toString().should.eql("Server");
@@ -763,7 +763,7 @@ export function utest_condition(test: any) {
                             const last = spy_on_event.callCount - 1;
                             // RefreshEndEventType (i=2788)
                             spy_on_event.getCall(last).thisValue.browseName.toString().should.eql("Server");
-                            spy_on_event.getCall(last).args[0].eventType.toString().should.eql("Variant(Scalar<NodeId>, value: ns=0;i=2788)");
+                            spy_on_event.getCall(last).args[0].eventType.toString().should.eql("Variant(Scalar<NodeId>, value: RefreshEndEventType (ns=0;i=2788))");
 
                         });
                 });
