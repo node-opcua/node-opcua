@@ -189,7 +189,7 @@ export class Enum {
         const parts = key.split(" | ");
 
         let val = 0;
-        for (const part of  parts) {
+        for (const part of parts) {
             const item = pThis[part];
             if (undefined === item) {
                 return null;

@@ -3,16 +3,16 @@
 Error.stackTraceLimit = 1000;
 const util = require("util");
 
-const { 
+const {
     Variant,
-    DataType, 
+    DataType,
     VariantArrayType
 } = require("node-opcua-variant");
 const { NumericRange } = require("node-opcua-numeric-range");
 const { StatusCodes } = require("node-opcua-status-code");
 const { ExtensionObject } = require("node-opcua-extension-object");
 
-const { DataValue, extractRange  }= require("..");
+const { DataValue, extractRange } = require("..");
 
 require("should");
 
@@ -23,7 +23,7 @@ describe("DataValue", () => {
 
         const dataValue = new DataValue();
 
-        encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
+        encode_decode_round_trip_test(dataValue, function(buffer/*, id*/) {
             buffer.length.should.equal(1);
         });
     });
@@ -31,9 +31,9 @@ describe("DataValue", () => {
     it("should create a DataValue with string variant and encode/decode it nicely ", () => {
 
         const dataValue = new DataValue({
-            value: new Variant({dataType: DataType.String, value: "Hello"})
+            value: new Variant({ dataType: DataType.String, value: "Hello" })
         });
-        encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
+        encode_decode_round_trip_test(dataValue, function(buffer/*, id*/) {
             buffer.length.should.equal(1 + 1 + 4 + 5);
         });
     });
@@ -41,35 +41,35 @@ describe("DataValue", () => {
     it("should create a DataValue with string variant and some date and encode/decode it nicely", () => {
 
         const dataValue = new DataValue({
-            value: new Variant({dataType: DataType.String, value: "Hello"}),
+            value: new Variant({ dataType: DataType.String, value: "Hello" }),
             serverTimestamp: new Date(Date.UTC(1601, 0, 1, 0, 0, 1)),
             serverPicoseconds: 50000,
             sourceTimestamp: new Date(Date.UTC(1601, 0, 1, 0, 0, 2)),
             sourcePicoseconds: 25000, // 25 nano
         });
         //xx var str = dataValue.toString();
-        encode_decode_round_trip_test(dataValue, function (/*buffer, id*/) {
+        encode_decode_round_trip_test(dataValue, function(/*buffer, id*/) {
         });
     });
 
     it("should create a DataValue with string variant and all dates and encode/decode it nicely", () => {
 
         const dataValue = new DataValue({
-            value: new Variant({dataType: DataType.String, value: "Hello"}),
+            value: new Variant({ dataType: DataType.String, value: "Hello" }),
             statusCode: StatusCodes.BadCertificateHostNameInvalid,
-            serverTimestamp: new Date(Date.UTC(2018,1,23,12,34,56,789)),
+            serverTimestamp: new Date(Date.UTC(2018, 1, 23, 12, 34, 56, 789)),
             serverPicoseconds: 987654320,
-            sourceTimestamp: new Date(Date.UTC(2018,1,23,18,54,12,345)),
+            sourceTimestamp: new Date(Date.UTC(2018, 1, 23, 18, 54, 12, 345)),
             sourcePicoseconds: 12345670
         });
-        encode_decode_round_trip_test(dataValue, function (/*buffer, id*/) {
+        encode_decode_round_trip_test(dataValue, function(/*buffer, id*/) {
         });
     });
 
     it("DataValue#toString", () => {
 
         let dataValue = new DataValue({
-            value: new Variant({dataType: DataType.String, value: "Hello"}),
+            value: new Variant({ dataType: DataType.String, value: "Hello" }),
             statusCode: StatusCodes.BadCertificateHostNameInvalid,
             serverTimestamp: new Date(Date.UTC(1789, 6, 14)),
             serverPicoseconds: 1000,
@@ -78,15 +78,16 @@ describe("DataValue", () => {
         });
         let str = dataValue.toString();
         str.split(/\n/).should.eql([
-            "DataValue:",
-            "   value:           Variant(Scalar<String>, value: Hello)",
+            "{ /* DataValue */",
+            "   value: Variant(Scalar<String>, value: Hello)",
             "   statusCode:      BadCertificateHostNameInvalid (0x80160000)",
             "   serverTimestamp: 1789-07-14T00:00:00.000Z $ 000.001.000",
-            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 000.002.000"
+            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 000.002.000",
+            "}"
         ]);
 
         dataValue = new DataValue({
-            value: new Variant({dataType: DataType.String, value: "Hello"}),
+            value: new Variant({ dataType: DataType.String, value: "Hello" }),
             statusCode: StatusCodes.BadCertificateHostNameInvalid,
             serverTimestamp: null,
             serverPicoseconds: null,
@@ -95,11 +96,12 @@ describe("DataValue", () => {
         });
         str = dataValue.toString();
         str.split(/\n/).should.eql([
-            "DataValue:",
-            "   value:           Variant(Scalar<String>, value: Hello)",
+            "{ /* DataValue */",
+            "   value: Variant(Scalar<String>, value: Hello)",
             "   statusCode:      BadCertificateHostNameInvalid (0x80160000)",
             "   serverTimestamp: null",
-            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 000.002.000"
+            "   sourceTimestamp: 2089-07-14T00:00:00.000Z $ 000.002.000",
+            "}"
         ]);
     });
 
@@ -209,7 +211,7 @@ describe("DataValue", () => {
         dataValue1.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
         dataValue1.value.dataType.should.eql(DataType.ByteString);
         dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
-        should.equal(null,dataValue1.value.value);
+        should.equal(null, dataValue1.value.value);
     });
 
     it("DataValue - extractRange on a Array of ByteString", () => {
@@ -225,7 +227,7 @@ describe("DataValue", () => {
                     Buffer.from("JKL"),
                     null
                 ]
-           })
+            })
         });
         const dataValue1 = extractRange(dataValue, new NumericRange("2:3"));
         dataValue1.statusCode.should.eql(StatusCodes.Good);
@@ -244,19 +246,19 @@ describe("DataValue", () => {
                 dimensions: [3, 3],
                 value: [
                     //[
-                        Buffer.from("11"),
-                        Buffer.from("12"),
-                        Buffer.from("13")
+                    Buffer.from("11"),
+                    Buffer.from("12"),
+                    Buffer.from("13")
                     ,//],
                     //[
-                        Buffer.from("21"),
-                        Buffer.from("22"),
-                        Buffer.from("23")
+                    Buffer.from("21"),
+                    Buffer.from("22"),
+                    Buffer.from("23")
                     ,//],
                     //[
-                        Buffer.from("31"),
-                        Buffer.from("32"),
-                        Buffer.from("33"),
+                    Buffer.from("31"),
+                    Buffer.from("32"),
+                    Buffer.from("33"),
                     //]
                 ]
             })
@@ -268,7 +270,7 @@ describe("DataValue", () => {
         dataValue1.value.value[1].toString().should.eql("33");
         dataValue1.value.dataType.should.eql(DataType.ByteString);
         dataValue1.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValue1.value.dimensions.should.eql([1,2]);
+        dataValue1.value.dimensions.should.eql([1, 2]);
     });
     it("DataValue - extractRange on invalid range - edge case", () => {
 
@@ -283,7 +285,7 @@ describe("DataValue", () => {
         invalidRange.isValid().should.eql(false);
         const dataValue1 = extractRange(dataValue, invalidRange);
         dataValue1.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
-        should.equal(null,dataValue1.value.value);
+        should.equal(null, dataValue1.value.value);
 
     });
     describe("Cloning a DataValue", () => {
@@ -375,7 +377,7 @@ describe("DataValue", () => {
 
             it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object", () => {
 
-                const extObj = new SomeExtensionObject({a: 36});
+                const extObj = new SomeExtensionObject({ a: 36 });
                 const dv = new DataValue({
                     value: {
                         dataType: DataType.ExtensionObject,
@@ -397,8 +399,8 @@ describe("DataValue", () => {
 
             });
             it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object array", () => {
-                const extObj1 = new SomeExtensionObject({a: 36});
-                const extObj2 = new SomeExtensionObject({a: 37});
+                const extObj1 = new SomeExtensionObject({ a: 36 });
+                const extObj2 = new SomeExtensionObject({ a: 37 });
                 const dv = new DataValue({
                     value: {
                         dataType: DataType.ExtensionObject,

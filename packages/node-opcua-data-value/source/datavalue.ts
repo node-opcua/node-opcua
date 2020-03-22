@@ -355,20 +355,22 @@ export class DataValue extends BaseUAObject {
         + w((picoseconds % 1000) >> 0);
       //    + " (" + picoseconds+ ")";
     }
+    function d(timestamp: Date | null, picoseconds: number): string {
+      return (timestamp ? timestamp.toISOString()
+        + " $ " + toMicroNanoPico(picoseconds)
+        : "null"); // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
 
-    let str = "DataValue:";
-    if (this.value) {
-      str += "\n   value:           " + Variant.prototype.toString.apply(this.value); // this.value.toString();
-    } else {
-      str += "\n   value:            <null>";
     }
-    str += "\n   statusCode:      " + (this.statusCode ? this.statusCode.toString() : "null");
-    str += "\n   serverTimestamp: " + (this.serverTimestamp ? this.serverTimestamp.toISOString()
-      + " $ " + toMicroNanoPico(this.serverPicoseconds)
-      : "null"); // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
-    str += "\n   sourceTimestamp: " + (this.sourceTimestamp ? this.sourceTimestamp.toISOString()
-      + " $ " + toMicroNanoPico(this.sourcePicoseconds)
-      : "null"); // + "  " + (this.sourceTimestamp ? this.sourceTimestamp.getTime() :"-");
+    let str = "{ /* DataValue */";
+    if (this.value) {
+      str += "\n" + "   value: " + Variant.prototype.toString.apply(this.value); // this.value.toString();
+    } else {
+      str += "\n" + "   value:            <null>";
+    }
+    str += "\n" + "   statusCode:      " + (this.statusCode ? this.statusCode.toString() : "null");
+    str += "\n" + "   serverTimestamp: " + d(this.serverTimestamp, this.serverPicoseconds)
+    str += "\n" + "   sourceTimestamp: " + d(this.sourceTimestamp, this.sourcePicoseconds);
+    str += "\n" + "}";
     return str;
   }
 
