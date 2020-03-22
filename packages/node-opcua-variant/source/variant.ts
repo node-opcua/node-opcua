@@ -5,6 +5,7 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import { NodeId } from "node-opcua-nodeid";
 import {
   coerceInt64,
   coerceUInt64,
@@ -203,6 +204,8 @@ function variantToString(self: Variant, options?: any) {
     switch (self.dataType) {
       case DataType.ByteString:
         return value ? "0x" + value.toString("hex") : "<null>";
+      case DataType.NodeId:
+        return value instanceof NodeId ? (value as NodeId).displayText() : (value ? value.toString(options) : "");
       case DataType.Boolean:
         return value.toString();
       case DataType.DateTime:
@@ -474,9 +477,9 @@ function constructHook(options: any): any {
       }
       /* istanbul ignore next */
       if (options.value.length !== calculate_product(options.dimensions)) {
-        throw new Error("Matrix Variant : invalid value size = options.value.length " 
-            + options.value.length  + "!=" + calculate_product(options.dimensions) 
-            + " => " + JSON.stringify(options.dimensions));
+        throw new Error("Matrix Variant : invalid value size = options.value.length "
+          + options.value.length + "!=" + calculate_product(options.dimensions)
+          + " => " + JSON.stringify(options.dimensions));
       }
     }
   } else {

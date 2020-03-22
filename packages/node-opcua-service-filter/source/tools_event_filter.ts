@@ -45,6 +45,7 @@ export function constructEventFilter(
     if (conditionTypes && !_.isArray(conditionTypes)) {
         return constructEventFilter(arrayOfNames, [conditionTypes]);
     }
+    // istanbul ignore next
     if (!(arrayOfNames instanceof Array)) {
         throw new Error("internal error");
     }
@@ -108,7 +109,9 @@ export function constructEventFilter(
         selectClauses: selectClauses,
 
         whereClause: { // ContentFilter
-            elements: [ // ContentFilterElement
+            elements: [
+
+                // ContentFilterElement
                 // {
                 //    filterOperator: FilterOperator.IsNull,
                 //    filterOperands: [ //
