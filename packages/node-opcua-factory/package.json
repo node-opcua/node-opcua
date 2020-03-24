@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-factory",
-    "version": "2.5.1",
+    "version": "2.5.2",
     "description": "pure nodejs OPCUA SDK - module -factory",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,12 +12,12 @@
     "dependencies": {
         "chalk": "^3.0.0",
         "node-opcua-assert": "^2.5.1",
-        "node-opcua-basic-types": "^2.5.1",
+        "node-opcua-basic-types": "^2.5.2",
         "node-opcua-binary-stream": "^2.5.1",
         "node-opcua-debug": "^2.5.1",
-        "node-opcua-enum": "^2.5.1",
+        "node-opcua-enum": "^2.5.2",
         "node-opcua-guid": "^2.5.1",
-        "node-opcua-nodeid": "^2.5.1",
+        "node-opcua-nodeid": "^2.5.2",
         "node-opcua-status-code": "^2.5.1",
         "node-opcua-utils": "^2.5.1",
         "underscore": "^1.9.2"

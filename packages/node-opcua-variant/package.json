@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-variant",
-    "version": "2.5.1",
+    "version": "2.5.2",
     "description": "pure nodejs OPCUA SDK - module -variant",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -11,12 +11,12 @@
     },
     "dependencies": {
         "node-opcua-assert": "^2.5.1",
-        "node-opcua-basic-types": "^2.5.1",
-        "node-opcua-data-model": "^2.5.1",
-        "node-opcua-enum": "^2.5.1",
-        "node-opcua-extension-object": "^2.5.1",
-        "node-opcua-factory": "^2.5.1",
-        "node-opcua-nodeid": "^2.5.1",
+        "node-opcua-basic-types": "^2.5.2",
+        "node-opcua-data-model": "^2.5.2",
+        "node-opcua-enum": "^2.5.2",
+        "node-opcua-extension-object": "^2.5.2",
+        "node-opcua-factory": "^2.5.2",
+        "node-opcua-nodeid": "^2.5.2",
         "node-opcua-utils": "^2.5.1",
         "underscore": "^1.9.2"
     },
@@ -24,8 +24,8 @@
         "node-opcua-benchmarker": "^2.5.1",
         "node-opcua-binary-stream": "^2.5.1",
         "node-opcua-debug": "^2.5.1",
-        "node-opcua-numeric-range": "^2.5.1",
-        "node-opcua-packet-analyzer": "^2.5.1",
+        "node-opcua-numeric-range": "^2.5.2",
+        "node-opcua-packet-analyzer": "^2.5.2",
         "node-opcua-status-code": "^2.5.1",
         "should": "^13.2.3",
         "source-map-support": "^0.5.16"
