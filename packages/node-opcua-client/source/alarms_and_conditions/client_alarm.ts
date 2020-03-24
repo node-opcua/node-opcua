@@ -50,10 +50,10 @@ export class ClientAlarm extends EventEmitter {
         this.fields = eventFields;
         this.update(eventFields);
     }
-    public async acknowledge(session: ClientSession, comment: string): Promise<StatusCode>  {
+    public async acknowledge(session: ClientSession, comment: string): Promise<StatusCode> {
         return await session.acknowledgeCondition(this.conditionId, this.eventId, comment);
     }
-    public async confirm(session: ClientSession, comment: string): Promise<StatusCode>  {
+    public async confirm(session: ClientSession, comment: string): Promise<StatusCode> {
         return await session.confirmCondition(this.conditionId, this.eventId, comment);
     }
     public update(eventFields: EventStuff) {

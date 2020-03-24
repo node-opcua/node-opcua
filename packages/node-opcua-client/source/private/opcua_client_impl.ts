@@ -70,7 +70,8 @@ import {
     UserIdentityInfoUserName,
     UserIdentityInfoX509,
     WithSessionFuncP,
-    WithSubscriptionFuncP
+    WithSubscriptionFuncP,
+    EndpointWithUserIdentity
 } from "../opcua_client";
 import { repair_client_sessions } from "../reconnection";
 import { ClientBaseImpl } from "./client_base_impl";
@@ -317,10 +318,7 @@ function createUserNameIdentityToken(
     return identityToken;
 }
 
-export interface EndpointWithUserIdentity {
-    endpointUrl: string;
-    userIdentity: UserIdentityInfo;
-}
+
 
 /***
  *
