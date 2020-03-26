@@ -12,6 +12,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { UAObjectType } from "../ua_object_type";
 import { UAReferenceType } from "../ua_reference_type";
 import { UAVariableType } from "../ua_variable_type";
+import { UAObject } from "../ua_object";
 
 function checkOfType(
     addressSpace: AddressSpace,
@@ -43,8 +44,13 @@ function checkOfType(
     if (!node) {
         throw new Error("cannot find  node " + eventData.$eventDataSource?.toString());
     }
-    return (node as any).isSupertypeOf(ofTypeNode);
-    //    return true;
+    if (node instanceof UAObjectType) {
+        return node.isSupertypeOf(ofTypeNode);
+    }
+    if (node instanceof UAObject && node.typeDefinitionObj) {
+        return node.typeDefinitionObj.isSupertypeOf(ofTypeNode);
+    }
+    return true;
 }
 export function checkWhereClause(
     addressSpace: AddressSpace,
