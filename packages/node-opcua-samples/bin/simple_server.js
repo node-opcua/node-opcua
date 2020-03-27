@@ -124,11 +124,11 @@ const server_options = {
     maxHistoryContinuationPoints: 10,
     // maxInactiveLockTime
     operationLimits: {
-      maxNodesPerRead: 0,
-      maxNodesPerWrite: 0,
-      maxNodesPerHistoryReadData: 0,
-      maxNodesPerBrowse: 0,
-      maxNodesPerMethodCall: 0,
+      maxNodesPerRead: 1000,
+      maxNodesPerWrite: 1000,
+      maxNodesPerHistoryReadData: 100,
+      maxNodesPerBrowse: 1000,
+      maxNodesPerMethodCall: 200,
     }
   },
   userManager: userManager,
