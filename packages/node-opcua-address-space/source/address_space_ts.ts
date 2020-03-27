@@ -2485,6 +2485,7 @@ import { AddressSpace as AddressSpaceImpl } from "../src/address_space";
 import { UAOffNormalAlarm } from "../src/alarms_and_conditions/ua_off_normal_alarm";
 import { ConstructNodeIdOptions } from "../src/nodeid_manager";
 import { UATwoStateDiscrete } from "./interfaces/data_access/ua_two_state_discrete";
+import { UANamespace } from "../src/namespace";
 
 export class AddressSpace {
     public static historizerFactory: any;
@@ -2640,3 +2641,4 @@ export declare function removeElement<T extends ExtensionObject>(
 // }}
 
 export declare function dumpXml(node: BaseNode, options: any): string;
+export declare function dumpToBSD(namespace: Namespace): string;

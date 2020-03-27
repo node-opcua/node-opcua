@@ -8,6 +8,7 @@ import {
     UAVariable,
     UAVariableT,
     UAVariableType,
+    dumpToBSD,
 } from "node-opcua-address-space";
 import assert from "node-opcua-assert";
 import {
@@ -33,7 +34,7 @@ import {
     StructureDefinition,
     StructureDefinitionOptions
 } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
 
 /**
  * create the deprecated DataTypeDictionnary node that was
@@ -60,7 +61,7 @@ export interface UADataTypeDictionary extends UAVariable {
     dataTypeVersion: UAVariableT<string, DataType.Boolean>;
 }
 
-function getDataTypeDictionary(namespace: Namespace): UADataTypeDictionary {
+export function getDataTypeDictionary(namespace: Namespace): UADataTypeDictionary {
 
     const addressSpace = namespace.addressSpace;
 
@@ -93,6 +94,17 @@ function getDataTypeDictionary(namespace: Namespace): UADataTypeDictionary {
             "NamespaceUri"
         ]
     }) as UADataTypeDictionary;
+
+    dataTypeDictionary.bindVariable({
+        get: () => {
+            const bsd = dumpToBSD(namespace);
+            return new Variant({
+                dataType: DataType.ByteString,
+                value: Buffer.from(bsd, "utf-8")
+            })
+        }
+    })
+
     const namespaceUriProp = dataTypeDictionary.getPropertyByName("NamespaceUri");
     if (namespaceUriProp) {
         namespaceUriProp.setValueFromSource({ dataType: DataType.String, value: namespace.namespaceUri });

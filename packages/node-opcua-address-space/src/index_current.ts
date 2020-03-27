@@ -28,7 +28,9 @@ export * from "./extension_object_array_node";
 export * from "./event_data";
 
 export { NamespaceOptions } from "./nodeid_manager";
-export { dumpXml } from "./nodeset_to_xml";
+export { dumpXml } from "./nodeset_tools/nodeset_to_xml";
+export { dumpToBSD } from "./nodeset_tools/typedictionary_to_xml";
+
 export * from "./data_access/ua_analog_item";
 export * from "./data_access/ua_data_item";
 export * from "./data_access/ua_multistate_discrete";

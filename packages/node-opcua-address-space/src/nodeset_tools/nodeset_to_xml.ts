@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 // produce nodeset xml files
-import { AddressSpacePrivate } from "./address_space_private";
+import { AddressSpacePrivate } from "../address_space_private";
 
 // tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
@@ -27,23 +27,23 @@ import { Variant } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 
-import { Namespace, XmlWriter } from "../source";
+import { Namespace, XmlWriter } from "../../source";
 
 import { Int64 } from "node-opcua-basic-types";
 import { Enum } from "node-opcua-enum";
 import { BrowseDescriptionLike } from "node-opcua-pseudo-session";
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
-import { BaseNode } from "./base_node";
-import { UANamespace } from "./namespace";
-import { NamespacePrivate } from "./namespace_private";
-import { Reference } from "./reference";
-import { UADataType } from "./ua_data_type";
-import { UAMethod } from "./ua_method";
-import { UAObject } from "./ua_object";
-import { UAObjectType } from "./ua_object_type";
-import { UAReferenceType } from "./ua_reference_type";
-import { UAVariable } from "./ua_variable";
-import { UAVariableType } from "./ua_variable_type";
+import { BaseNode } from "../base_node";
+import { UANamespace } from "../namespace";
+import { NamespacePrivate } from "../namespace_private";
+import { Reference } from "../reference";
+import { UADataType } from "../ua_data_type";
+import { UAMethod } from "../ua_method";
+import { UAObject } from "../ua_object";
+import { UAObjectType } from "../ua_object_type";
+import { UAReferenceType } from "../ua_reference_type";
+import { UAVariable } from "../ua_variable";
+import { UAVariableType } from "../ua_variable_type";
 
 function _hash(node: BaseNode | Reference): string {
     return (node.nodeId.toString());

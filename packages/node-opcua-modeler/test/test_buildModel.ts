@@ -5,7 +5,7 @@ import { AddressSpace, buildModel } from "..";
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("buidModel", () => {
 
-    it("should build a model", async () => {
+    it("should build a empty model", async () => {
 
         const { xmlModel, symbols, markdown } = await buildModel({
             createModel: async (addressSpace: AddressSpace) => {

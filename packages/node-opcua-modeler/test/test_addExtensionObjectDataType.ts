@@ -6,6 +6,7 @@ import * as path from "path";
 import * as should from "should";
 import { promisify } from "util";
 import {
+    getDataTypeDictionary,
     addExtensionObjectDataType,
     AddressSpace,
     addVariableTypeForDataType,
@@ -26,7 +27,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("addExtensionObjectDataType", function (this: any) {
 
     this.timeout(10000);
-    const namespaceUri = "urn:name";
+    const namespaceUri = "http://sterfive.org/UA/Demo/";
 
     let addressSpace: AddressSpace;
     before(async () => {
@@ -41,18 +42,29 @@ describe("addExtensionObjectDataType", function (this: any) {
     after(() => {
         addressSpace.dispose();
     });
-    it("should add an ExtensionObject DataType", async () => {
+    it("ZZZE-1 should add an ExtensionObject DataType", async () => {
 
         const ns = addressSpace.getOwnNamespace();
+        console.log("ns", ns.namespaceUri);
 
         const structureDefinition: StructureDefinitionOptions = {
             baseDataType: "",
-            fields: [{
-                dataType: DataType.String,
-                isOptional: false,
-                name: "Name",
-                valueRank: - 1
-            }]
+            fields: [
+                {
+                    dataType: DataType.String,
+                    description: "the name",
+                    isOptional: false,
+                    name: "Name",
+                    valueRank: -1
+                },
+                {
+                    arrayDimensions: [1],
+                    dataType: DataType.Float,
+                    description: "the list of values",
+                    name: "Values",
+                    valueRank: 1,
+                }
+            ]
         };
 
         const options: ExtensionObjectDefinition = {
@@ -107,7 +119,7 @@ describe("addExtensionObjectDataType", function (this: any) {
             ];
             await generateAddressSpace(addressSpace2, nodesetsXML);
 
-            const nsIndex = addressSpace2.getNamespaceIndex("urn:name");
+            const nsIndex = addressSpace2.getNamespaceIndex(namespaceUri);
             nsIndex.should.eql(1);
             const personDataType = addressSpace2.findDataType("PersonDataType", nsIndex)!;
             const v = namespace.addVariable({
@@ -125,6 +137,20 @@ describe("addExtensionObjectDataType", function (this: any) {
         }
 
         await testReloadGeneratedNodeset();
+
+        // make sure that bsd is correct
+        const dataTypeDictionary = getDataTypeDictionary(ns);
+        const bsd = dataTypeDictionary.readValue().value.value.toString();
+        console.log(bsd);
+        bsd.should.eql(
+            `<?xml version="1.0"?>
+<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:n1="http://sterfive.org/UA/Demo/" DefaultByteOrder="LittleEndian" TargetNamespace="http://sterfive.org/UA/Demo/">
+    <opc:StructuredType Name="StructureDefinition" BaseType="ua:ExtensionObject">
+        <opc:Field Name="Name" TypeName="opc:String"/>
+        <opc:Field Name="NoOfValues" TypeName="opc:Int32"/>
+        <opc:Field Name="Values" TypeName="opc:Float" LengthField="NoOfValues"/>
+    </opc:StructuredType>
+</opc:TypeDictionary>`);
     });
 
 });
@@ -146,7 +172,7 @@ describe("addVariableTypeForDataType", function (this: any) {
     after(() => {
         addressSpace.dispose();
     });
-    it("ZZZE should addVariableTypeForDataType", async () => {
+    it("ZZZE-2 should addVariableTypeForDataType", async () => {
 
         const ns = addressSpace.getOwnNamespace();
 
@@ -255,8 +281,6 @@ describe("addVariableTypeForDataType", function (this: any) {
         const csv = (ns as any)._nodeIdManager.getSymbolCSV();
         await writeFile(tmpCSVFile, csv, "utf-8");
 
-
-
         const statusType = serverStatusType.instantiate({
             browseName: "Test",
             organizedBy: addressSpace.rootFolder.objects.server
@@ -268,5 +292,27 @@ describe("addVariableTypeForDataType", function (this: any) {
         console.log("statusType.", statusType.toString());
 
 
+        // make sure that bsd is correct
+        const dataTypeDictionary = getDataTypeDictionary(ns);
+        const bsd = dataTypeDictionary.readValue().value.value.toString();
+        console.log(bsd);
+        bsd.should.eql(
+            `<?xml version="1.0"?>
+<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:n1="urn:name" DefaultByteOrder="LittleEndian" TargetNamespace="urn:name">
+    <opc:StructuredType Name="StructureDefinition" BaseType="ua:ExtensionObject">
+        <opc:Field Name="ProductUri" TypeName="opc:String"/>
+        <opc:Field Name="ManufacturerName" TypeName="opc:String"/>
+        <opc:Field Name="ProductName" TypeName="opc:String"/>
+        <opc:Field Name="SoftwareVersion" TypeName="opc:String"/>
+        <opc:Field Name="BuildNumber" TypeName="opc:String"/>
+        <opc:Field Name="BuildDate" TypeName="opc:DateTime"/>
+    </opc:StructuredType>
+    <opc:StructuredType Name="StructureDefinition" BaseType="ua:ExtensionObject">
+        <opc:Field Name="StartTime" TypeName="opc:DateTime"/>
+        <opc:Field Name="CurrentTime" TypeName="opc:UtcTime"/>
+        <opc:Field Name="BuildInfo" TypeName="n1:MyBuildInfoDataType"/>
+    </opc:StructuredType>
+</opc:TypeDictionary>`);
     });
+
 });
