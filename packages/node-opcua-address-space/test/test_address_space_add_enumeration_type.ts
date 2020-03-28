@@ -7,7 +7,7 @@ import * as should from "should";
 
 import { getMiniAddressSpace } from "../";
 
-import {AddressSpace, BaseNode, Namespace, SessionContext} from "..";
+import { AddressSpace, BaseNode, Namespace, SessionContext } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -47,7 +47,7 @@ describe("AddressSpace : testing add enumeration type", () => {
         const names = r.map((x: any) => x.browseName.toString());
 
         names.filter((x: string) => x === "1:MyEnumType2").length
-          .should.eql(1, "MyEnumType2 should be find in enum");
+            .should.eql(1, "MyEnumType2 should be find in enum");
 
         // now instantiate a variable that have this type.
         const e = namespace.addVariable({
@@ -124,7 +124,7 @@ describe("AddressSpace : testing add enumeration type", () => {
         const names = r.map((x: any) => x.browseName.toString());
 
         names.filter((x: string) => x === "1:MyEnumType3").length
-          .should.eql(1, "MyEnumType3 should be find in enum");
+            .should.eql(1, "MyEnumType3 should be find in enum");
 
         // now instantiate a variable that have this type.
         const e = namespace.addVariable({
@@ -198,12 +198,12 @@ describe("AddressSpace : testing add enumeration type", () => {
 
         // simulate a write
         const statusCode = await e.writeValue(SessionContext.defaultContext,
-          new DataValue({
-              value: {
-                  dataType: DataType.UInt32,
-                  value: 2
-              }
-          }));
+            new DataValue({
+                value: {
+                    dataType: DataType.UInt32,
+                    value: 2
+                }
+            }));
         should(statusCode).eql(StatusCodes.Good);
     });
 });

@@ -236,7 +236,7 @@ const state0: any = {
                                         this.attrs.LengthField ? chalk.yellow(" lengthField= ") + w(this.attrs.LengthField, 40) : "",
                                         this.attrs.SwitchField ? chalk.yellow(" SwitchField= ") + w(this.attrs.SwitchField, 40) : "",
                                         this.attrs.SwitchValue !== undefined ? chalk.yellow(" SwitchValue= ") + w(this.attrs.SwitchValue, 40) : "",
-                                        //chalk.yellow(" lengthField="), w(this.attrs.LengthField, 40)
+                                        // chalk.yellow(" lengthField="), w(this.attrs.LengthField, 40)
                                     );
                                 }
                                 resolveType(this.parent.typeDictionary, this.attrs.TypeName);

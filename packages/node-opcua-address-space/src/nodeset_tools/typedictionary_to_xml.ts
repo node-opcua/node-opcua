@@ -1,60 +1,127 @@
-import { UANamespace } from "../namespace";
 import * as _ from "underscore";
+import { assert } from "node-opcua-assert";
+import { StructureDefinition, EnumDefinition, EnumDescription } from "node-opcua-types";
+import { constructNamespaceDependency } from "./construct_namespace_dependency";
+import { NodeId } from "node-opcua-nodeid";
 import { XmlWriter, Namespace } from "../../source/address_space_ts";
 import { UADataType } from "../ua_data_type";
-import { StructureDefinition, EnumDefinition, EnumDescription } from "node-opcua-types";
-import { Xml2Json } from "node-opcua-xml2json/source";
-import { constructNamespaceDependency } from "./construct_namespace_dependency";
 import { AddressSpace } from "../address_space";
 import { AddressSpacePrivate } from "../address_space_private";
+import { UANamespace } from "../namespace";
+
 // tslint:disable-next-line: no-var-requires
 const XMLWriter = require("xml-writer");
 
-function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition) {
+function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition, name: string): void {
     xw.startElement("opc:EnumeratedType");
-    xw.writeAttribute("Name", e.schema.name);
+    xw.writeAttribute("Name", name);
+    xw.writeAttribute("LengthInBits", "32");
     for (const f of e.fields || []) {
         xw.startElement("opc:EnumeratedValue");
         xw.writeAttribute("Name", f.name!);
-        xw.writeAttribute("Value", f.value.toString());
+        assert(f.value[0] === 0, "unsuppor 64 bit value !");
+        xw.writeAttribute("Value", f.value[1].toString());
         xw.endElement();
     }
     xw.endElement();
+}
+function buildXmlName(
+    addressSpace: AddressSpacePrivate,
+    map: { [key: number]: string },
+    nodeId: NodeId
+) {
+    if (NodeId.sameNodeId(nodeId, NodeId.nullNodeId)) {
+        return "ua:ExtensionObject";
+    }
+    const node = addressSpace.findNode(nodeId);
+    // istanbull ignore next
+    if (!node) {
+        throw new Error("Cannot find Node for" + nodeId?.toString());
+    }
+    const typeName = node.browseName.name!;
+    const prefix = node.nodeId.namespace === 0
+        ? (node.nodeId.value <= 15 ? "opc" : "ua")
+        : map[node.nodeId.namespace];
+    return prefix + ":" + ((typeName === "Structure" && prefix === "ua") ? "ExtensionObject" : typeName);
+
 }
 function dumpDataTypeStructure(
     xw: XmlWriter,
     addressSpace: AddressSpacePrivate,
     map: { [key: number]: string },
-    structureDefinition: StructureDefinition
+    structureDefinition: StructureDefinition,
+    name: string,
+    doc?: string
 ) {
-    xw.startElement("opc:StructuredType");
-    xw.writeAttribute("Name", structureDefinition.schema.name);
-    xw.writeAttribute("BaseType", "ua:ExtensionObject");
 
+    xw.startElement("opc:StructuredType");
+    xw.writeAttribute("Name", name);
+    xw.writeAttribute("BaseType", buildXmlName(addressSpace, map, structureDefinition.baseDataType));
+
+    if (doc) {
+        xw.startElement("opc:Documentation");
+        xw.text(doc);
+        xw.endElement();
+    }
+    let optionalsCount = 0;
+    for (const f of structureDefinition.fields || []) {
+        if (f.isOptional) {
+            xw.startElement("opc:Field");
+            xw.writeAttribute("Name", f.name + "Specified");
+            xw.writeAttribute("TypeName", "opc:Bit");
+            xw.endElement();
+            optionalsCount++;
+        }
+    }
+
+    // istanbul ignore next
+    if (optionalsCount >= 32) {
+        throw new Error("Too many optionals fields");
+    }
+
+    if (optionalsCount) {
+        /*
+                const padding = optionalsCount <= 8
+                    ? (8 - optionalsCount)
+                    : (optionalsCount <= 16)
+                        ? (16 - optionalsCount)
+                        : (32 - optionalsCount)
+                    ;
+        */
+        const padding = 32 - optionalsCount;
+        if (padding !== 0) {
+
+            xw.startElement("opc:Field");
+            xw.writeAttribute("Name", "Reserved1");
+            xw.writeAttribute("TypeName", "opc:Bit");
+            xw.writeAttribute("Length", padding.toString());
+            xw.endElement();
+        }
+    }
     for (const f of structureDefinition.fields || []) {
 
         const isArray = f.valueRank > 0 && f.arrayDimensions?.length;
+
         if (isArray) {
             xw.startElement("opc:Field");
             xw.writeAttribute("Name", "NoOf" + f.name!);
             xw.writeAttribute("TypeName", "opc:Int32");
+            if (f.isOptional) {
+                xw.writeAttribute("SwitchField", f.name + "Specified");
+            }
             xw.endElement();
         }
 
         xw.startElement("opc:Field");
         xw.writeAttribute("Name", f.name!);
 
-        const dataTypeNode = addressSpace.findNode(f.dataType);
-        // istanbull ignore next
-        if (!dataTypeNode) {
-            throw new Error("Cannot find DataType for" + f.dataType?.toString());
-        }
-        const typeName = dataTypeNode.browseName.name!;
-        const prefix = dataTypeNode.nodeId.namespace === 0 ? "opc" : map[dataTypeNode.nodeId.namespace];
-
-        xw.writeAttribute("TypeName", prefix + ":" + typeName);
+        const typeName = buildXmlName(addressSpace, map, f.dataType);
+        xw.writeAttribute("TypeName", typeName);
         if (isArray) {
             xw.writeAttribute("LengthField", "NoOf" + f.name!);
+        }
+        if (f.isOptional) {
+            xw.writeAttribute("SwitchField", f.name + "Specified");
         }
         xw.endElement();
     }
@@ -65,12 +132,14 @@ function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: { [key: num
 
     const addressSpace = dataType.addressSpace;
 
+    const name: string = dataType.browseName.name!;
+
     const def = dataType._getDefinition();
     if (def instanceof StructureDefinition) {
-        dumpDataTypeStructure(xw, addressSpace, map, def);
+        dumpDataTypeStructure(xw, addressSpace, map, def, name);
     }
     if (def instanceof EnumDefinition) {
-        dumpEnumeratedType(xw, def);
+        dumpEnumeratedType(xw, def, name);
     }
 }
 

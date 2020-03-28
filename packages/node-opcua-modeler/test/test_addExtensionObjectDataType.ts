@@ -145,7 +145,7 @@ describe("addExtensionObjectDataType", function (this: any) {
         bsd.should.eql(
             `<?xml version="1.0"?>
 <opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:n1="http://sterfive.org/UA/Demo/" DefaultByteOrder="LittleEndian" TargetNamespace="http://sterfive.org/UA/Demo/">
-    <opc:StructuredType Name="StructureDefinition" BaseType="ua:ExtensionObject">
+    <opc:StructuredType Name="PersonDataType" BaseType="ua:ExtensionObject">
         <opc:Field Name="Name" TypeName="opc:String"/>
         <opc:Field Name="NoOfValues" TypeName="opc:Int32"/>
         <opc:Field Name="Values" TypeName="opc:Float" LengthField="NoOfValues"/>
@@ -232,7 +232,6 @@ describe("addVariableTypeForDataType", function (this: any) {
         };
         const buildInfoDataType = await addExtensionObjectDataType(ns, buildInfoOptions);
 
-        console.log("AAAAAAAA");
         const serverStatusStructureDefinition: StructureDefinitionOptions = {
             baseDataType: "",
             fields: [
@@ -299,7 +298,7 @@ describe("addVariableTypeForDataType", function (this: any) {
         bsd.should.eql(
             `<?xml version="1.0"?>
 <opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:n1="urn:name" DefaultByteOrder="LittleEndian" TargetNamespace="urn:name">
-    <opc:StructuredType Name="StructureDefinition" BaseType="ua:ExtensionObject">
+    <opc:StructuredType Name="MyBuildInfoDataType" BaseType="ua:ExtensionObject">
         <opc:Field Name="ProductUri" TypeName="opc:String"/>
         <opc:Field Name="ManufacturerName" TypeName="opc:String"/>
         <opc:Field Name="ProductName" TypeName="opc:String"/>
@@ -307,9 +306,9 @@ describe("addVariableTypeForDataType", function (this: any) {
         <opc:Field Name="BuildNumber" TypeName="opc:String"/>
         <opc:Field Name="BuildDate" TypeName="opc:DateTime"/>
     </opc:StructuredType>
-    <opc:StructuredType Name="StructureDefinition" BaseType="ua:ExtensionObject">
+    <opc:StructuredType Name="MyServerStatusDataType" BaseType="ua:ExtensionObject">
         <opc:Field Name="StartTime" TypeName="opc:DateTime"/>
-        <opc:Field Name="CurrentTime" TypeName="opc:UtcTime"/>
+        <opc:Field Name="CurrentTime" TypeName="ua:UtcTime"/>
         <opc:Field Name="BuildInfo" TypeName="n1:MyBuildInfoDataType"/>
     </opc:StructuredType>
 </opc:TypeDictionary>`);
