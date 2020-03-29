@@ -2,7 +2,7 @@
     "name": "node-opcua-data-value",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.5.2",
+    "version": "2.5.4",
     "description": "pure nodejs OPCUA SDK - module -data-value",
     "scripts": {
         "build": "tsc -b",
@@ -25,7 +25,7 @@
         "underscore": "^1.9.2"
     },
     "devDependencies": {
-        "node-opcua-generator": "^2.5.2",
+        "node-opcua-generator": "^2.5.4",
         "node-opcua-numeric-range": "^2.5.2",
         "node-opcua-packet-analyzer": "^2.5.2",
         "should": "^13.2.3"

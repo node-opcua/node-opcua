@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-generator",
-    "version": "2.5.2",
+    "version": "2.5.4",
     "description": "pure nodejs OPCUA SDK - module -generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -21,10 +21,10 @@
         "node-opcua-guid": "^2.5.1",
         "node-opcua-nodeid": "^2.5.2",
         "node-opcua-numeric-range": "^2.5.2",
-        "node-opcua-schemas": "^2.5.2",
+        "node-opcua-schemas": "^2.5.4",
         "node-opcua-status-code": "^2.5.1",
         "node-opcua-utils": "^2.5.1",
-        "node-opcua-xml2json": "^2.5.1",
+        "node-opcua-xml2json": "^2.5.4",
         "prettier": "^1.19.1",
         "typescript": "^3.8.3",
         "underscore": "^1.9.2"
