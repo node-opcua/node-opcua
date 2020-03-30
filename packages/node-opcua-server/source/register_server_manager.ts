@@ -65,7 +65,7 @@ function securityPolicyLevel(securityPolicy: UAString): number {
 }
 
 function sortEndpointBySecurityLevel(
-  endpoints: EndpointDescription[]
+    endpoints: EndpointDescription[]
 ): EndpointDescription[] {
 
     endpoints.sort((a: EndpointDescription, b: EndpointDescription) => {
@@ -108,8 +108,8 @@ function findSecureEndpoint(endpoints: EndpointDescription[]): EndpointDescripti
 }
 
 function constructRegisterServerRequest(
-  server: any,
-  isOnline: boolean
+    server: any,
+    isOnline: boolean
 ): RegisterServerRequest {
 
     const discoveryUrls = server.getDiscoveryUrls();
@@ -138,8 +138,8 @@ function constructRegisterServerRequest(
 }
 
 function constructRegisterServer2Request(
-  server: any,
-  isOnline: boolean
+    server: any,
+    isOnline: boolean
 ): RegisterServer2Request {
 
     const discoveryUrls = server.getDiscoveryUrls();
@@ -188,10 +188,10 @@ const infinite_connectivity_strategy = {
 };
 
 function sendRegisterServerRequest(
-  self: any,
-  client: any,
-  isOnline: boolean,
-  callback: EmptyCallback
+    self: any,
+    client: any,
+    isOnline: boolean,
+    callback: EmptyCallback
 ) {
 
     // try to send a RegisterServer2Request
@@ -201,25 +201,25 @@ function sendRegisterServerRequest(
         if (!err) {
             // RegisterServerResponse
             debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has succeeded (isOnline",
-              isOnline, ")");
+                isOnline, ")");
             assert(response instanceof RegisterServer2Response);
             callback(err!);
         } else {
             debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has failed " +
-              "(isOnline", isOnline, ")");
+                "(isOnline", isOnline, ")");
             debugLog("RegisterServerManager#_registerServer" +
-              " falling back to using sendRegisterServerRequest instead");
+                " falling back to using sendRegisterServerRequest instead");
             // fall back to
             const request1 = constructRegisterServerRequest(self.server, isOnline);
             // xx console.log("request",request.toString());
             client.performMessageTransaction(request1, (err1: Error | null, response1: RegisterServerResponse) => {
                 if (!err1) {
                     debugLog("RegisterServerManager#_registerServer sendRegisterServerRequest " +
-                      "has succeeded (isOnline", isOnline, ")");
+                        "has succeeded (isOnline", isOnline, ")");
                     assert(response1 instanceof RegisterServerResponse);
                 } else {
                     debugLog("RegisterServerManager#_registerServer sendRegisterServerRequest " +
-                      "has failed (isOnline", isOnline, ")");
+                        "has failed (isOnline", isOnline, ")");
                 }
                 callback(err1!);
             });
@@ -263,8 +263,8 @@ function sendRegisterServerRequest(
  * @constructor
  */
 export class RegisterServerManager
-  extends EventEmitter
-  implements IRegisterServerManager {
+    extends EventEmitter
+    implements IRegisterServerManager {
 
     public discoveryServerEndpointUrl: string;
     private server: OPCUABaseServer | null;
@@ -283,7 +283,7 @@ export class RegisterServerManager
         this._setState(RegisterServerManagerStatus.INACTIVE);
         this.timeout = g_DefaultRegistrationServerTimeout;
         this.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl
-          || "opc.tcp://localhost:4840";
+            || "opc.tcp://localhost:4840";
 
         assert(typeof this.discoveryServerEndpointUrl === "string");
         this._registrationTimerId = null;
@@ -316,7 +316,7 @@ export class RegisterServerManager
             return callback(new Error("RegisterServer process already started")); // already started
         }
 
-        this.discoveryServerEndpointUrl  = resolveFullyQualifiedDomainName(this.discoveryServerEndpointUrl);
+        this.discoveryServerEndpointUrl = resolveFullyQualifiedDomainName(this.discoveryServerEndpointUrl);
 
         // perform initial registration + automatic renewal
         this._establish_initial_connection((err?: Error) => {
@@ -337,7 +337,7 @@ export class RegisterServerManager
 
                 if (err1) {
                     debugLog("RegisterServerManager#start - registering server has failed ! " +
-                      "please check that your server certificate is accepted by the LDS");
+                        "please check that your server certificate is accepted by the LDS");
                     this._emitEvent("serverRegistrationFailure");
                 } else {
                     this._emitEvent("serverRegistered");
@@ -352,7 +352,7 @@ export class RegisterServerManager
     public _establish_initial_connection(outer_callback: EmptyCallback) {
 
         if (!this.server) {
-            throw  new Error("Internal Error");
+            throw new Error("Internal Error");
         }
         debugLog("RegisterServerManager#_establish_initial_connection");
 
@@ -375,9 +375,9 @@ export class RegisterServerManager
         client.on("backoff", (nretry: number, delay: number) => {
             debugLog("RegisterServerManager - received backoff");
             console.log(
-              chalk.bgWhite.yellow("contacting discovery server backoff "),
-              this.discoveryServerEndpointUrl, " attempt #",
-              nretry, " retrying in ", delay / 1000.0, " seconds");
+                chalk.bgWhite.cyan("contacting discovery server backoff "),
+                this.discoveryServerEndpointUrl, " attempt #",
+                nretry, " retrying in ", delay / 1000.0, " seconds");
             this._emitEvent("serverRegistrationPending");
         });
 
@@ -388,7 +388,7 @@ export class RegisterServerManager
                 client.connect(this.discoveryServerEndpointUrl, (err?: Error) => {
                     if (err) {
                         debugLog("RegisterServerManager#_establish_initial_connection " +
-                          ": initial connection to server has failed");
+                            ": initial connection to server has failed");
                         // xx debugLog(err);
                     }
                     return callback(err);
@@ -413,7 +413,7 @@ export class RegisterServerManager
                         }
                     } else {
                         debugLog("RegisterServerManager#_establish_initial_connection " +
-                          ": getEndpointsRequest has failed");
+                            ": getEndpointsRequest has failed");
                         debugLog(err);
                     }
                     callback(err!);
@@ -486,7 +486,7 @@ export class RegisterServerManager
 
         // install a registration
         debugLog("RegisterServerManager#_trigger_next " +
-          ": installing timeout to perform registerServer renewal (timeout =", this.timeout, ")");
+            ": installing timeout to perform registerServer renewal (timeout =", this.timeout, ")");
 
         this._registrationTimerId = setTimeout(() => {
 
@@ -499,7 +499,7 @@ export class RegisterServerManager
             debugLog("RegisterServerManager#_trigger_next : renewing RegisterServer");
             this._registerServer(true, (err?: Error) => {
                 if (this.state !== RegisterServerManagerStatus.INACTIVE
-                  && this.state !== RegisterServerManagerStatus.UNREGISTERING) {
+                    && this.state !== RegisterServerManagerStatus.UNREGISTERING) {
                     debugLog("RegisterServerManager#_trigger_next : renewed !", err);
                     this._setState(RegisterServerManagerStatus.WAITING);
                     this._emitEvent("serverRegistrationRenewed");
@@ -550,13 +550,13 @@ export class RegisterServerManager
         assert(_.isFunction(outer_callback));
 
         debugLog("RegisterServerManager#_registerServer isOnline:",
-          isOnline, "seleectedEndpoint: ", this.selectedEndpoint.endpointUrl);
+            isOnline, "seleectedEndpoint: ", this.selectedEndpoint.endpointUrl);
 
         assert(this.selectedEndpoint,
-          "must have a selected endpoint => please call _establish_initial_connection");
+            "must have a selected endpoint => please call _establish_initial_connection");
 
         assert(this.server!.serverType !== undefined,
-          " must have a valid server Type");
+            " must have a valid server Type");
 
         // construct connection
         const server = this.server!;
@@ -586,8 +586,8 @@ export class RegisterServerManager
         (server as any)._registration_client = client;
 
         const theStatus = isOnline
-          ? RegisterServerManagerStatus.REGISTERING
-          : RegisterServerManagerStatus.UNREGISTERING;
+            ? RegisterServerManagerStatus.REGISTERING
+            : RegisterServerManagerStatus.UNREGISTERING;
         this._setState(theStatus);
 
         debugLog("                      lds endpoint uri : ", selectedEndpoint.endpointUrl);
@@ -601,9 +601,9 @@ export class RegisterServerManager
                     if (err) {
                         debugLog("RegisterServerManager#_registerServer connection to client has failed");
                         debugLog("RegisterServerManager#_registerServer  " +
-                          "=> please check that you server certificate is trusted by the LDS");
+                            "=> please check that you server certificate is trusted by the LDS");
                         console.log("RegisterServer to the LDS  has failed during secure connection  " +
-                          "=> please check that you server certificate is trusted by the LDS. err: " + err.message);
+                            "=> please check that you server certificate is trusted by the LDS. err: " + err.message);
                         // xx debugLog(options);
                         client.disconnect(() => {
                             debugLog("RegisterServerManager#_registerServer client disconnected");
@@ -674,7 +674,7 @@ export class RegisterServerManager
         if (this._registration_client) {
 
             debugLog("RegisterServerManager#_cancel_pending_client_if_any " +
-              "=> wee need to disconnect  _registration_client");
+                "=> wee need to disconnect  _registration_client");
 
             this._registration_client.disconnect(() => {
                 this._registration_client = null;
