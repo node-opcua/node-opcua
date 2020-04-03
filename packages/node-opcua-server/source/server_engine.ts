@@ -77,7 +77,8 @@ import {
   SessionDiagnosticsDataType,
   SessionSecurityDiagnosticsDataType,
   TimeZoneDataType,
-  WriteValue
+  WriteValue,
+  ReadValueId
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -1709,9 +1710,12 @@ export class ServerEngine extends EventEmitter {
    * @async
    */
   public refreshValues(
-    nodesToRefresh: any,
+    nodesToRefresh: (ReadValueId[] | HistoryReadValueId[]),
+    maxAge: number,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
   ): void {
+
+    const referenceTime = new Date(Date.now() - maxAge);
 
     assert(callback instanceof Function);
     const engine = this;
@@ -1721,7 +1725,7 @@ export class ServerEngine extends EventEmitter {
 
       // only consider node  for which the caller wants to read the Value attribute
       // assuming that Value is requested if attributeId is missing,
-      if (nodeToRefresh.attributeId && nodeToRefresh.attributeId !== AttributeIds.Value) {
+      if (nodeToRefresh instanceof ReadValueId && nodeToRefresh.attributeId !== AttributeIds.Value) {
         continue;
       }
       // ... and that are valid object and instances of Variables ...
@@ -1753,7 +1757,7 @@ export class ServerEngine extends EventEmitter {
         }));
         return;
       }
-      (obj as UAVariable).asyncRefresh(inner_callback);
+      (obj as UAVariable).asyncRefresh(referenceTime, inner_callback);
 
     }, (err?: Error | null, arrResult?: (DataValue | undefined)[]) => {
       callback(err || null, arrResult as DataValue[]);

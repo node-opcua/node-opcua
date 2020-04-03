@@ -6,43 +6,59 @@
 const should = require("should");
 const util = require("util");
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
+const {
+    SessionContext,
+} = require("node-opcua-address-space");
+const {
+    ServerState,
+} = require("node-opcua-common");
+const {
+    VariableIds,
+    ObjectIds
+} = require("node-opcua-constants");
+const {
+    NodeClass,
+    QualifiedName,
+    AttributeIds,
+    BrowseDirection,
+    ResultMask
+} = require("node-opcua-data-model");
+const {
+    DataValue
+} = require("node-opcua-data-value");
+const {
+    coerceNodeId,
+    resolveNodeId,
+    makeNodeId,
+    makeExpandedNodeId,
+    NodeId
+} = require("node-opcua-nodeid");
+const {
+    BrowseRequest,
+    BrowseDescription
+} = require("node-opcua-service-browse");
+const {
+    TimestampsToReturn,
+    ReadRequest,
+    ReadValueId,
+} = require("node-opcua-service-read");
+const {
+    HistoryReadRequest,
+    HistoryReadDetails,
+    HistoryReadResult,
+    HistoryData
+} = require("node-opcua-service-history");
+const {
+    StatusCodes
+} = require("node-opcua-status-code");
+const {
+    DataType, Variant, VariantArrayType
+} = require("node-opcua-variant");
+const { assert_arrays_are_equal } = require("node-opcua-test-helpers");
 
-const SessionContext = require("node-opcua-address-space").SessionContext;
-const UAObject = require("node-opcua-address-space").UAObject;
-const Reference = require("node-opcua-address-space").Reference;
-const ServerState = require("node-opcua-common").ServerState;
-const VariableIds = require("node-opcua-constants").VariableIds;
-const ObjectIds = require("node-opcua-constants").ObjectIds;
-const NodeClass = require("node-opcua-data-model").NodeClass;
-const QualifiedName = require("node-opcua-data-model").QualifiedName;
-const AttributeIds = require("node-opcua-data-model").AttributeIds;
-const BrowseDirection = require("node-opcua-data-model").BrowseDirection;
-const ResultMask = require("node-opcua-data-model").ResultMask;
-const DataValue = require("node-opcua-data-value").DataValue;
-const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
-const NodeId = require("node-opcua-nodeid").NodeId;
 
-const BrowseRequest = require("node-opcua-service-browse").BrowseRequest;
-const BrowseDescription =  require("node-opcua-service-browse").BrowseDescription;
-const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
-const ReadRequest = require("node-opcua-service-read").ReadRequest;
-const HistoryReadRequest = require("node-opcua-service-history").HistoryReadRequest;
-const HistoryReadDetails = require("node-opcua-service-history").HistoryReadDetails;
-const HistoryReadResult = require("node-opcua-service-history").HistoryReadResult;
-const HistoryData = require("node-opcua-service-history").HistoryData;
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-
-const DataType = require("node-opcua-variant").DataType;
-const Variant = require("node-opcua-variant").Variant;
-const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-const assert_arrays_are_equal = require("node-opcua-test-helpers").assert_arrays_are_equal;
-
-
-const ServerEngine = require("..").ServerEngine;
+const { ServerEngine } = require("..");
 
 const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
 const standard_nodeset_file = require("node-opcua-nodesets").nodesets.standard_nodeset_file;
@@ -66,7 +82,7 @@ describe("testing ServerEngine", () => {
         softwareVersion: "1.0",
     };
 
-    before(function (done) {
+    before(function(done) {
 
         engine = new ServerEngine({ buildInfo: defaultBuildInfo });
 
@@ -87,63 +103,63 @@ describe("testing ServerEngine", () => {
             }
 
             namespace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "TestArray",
-                  nodeId: "s=TestArray",
-                  dataType: "Double",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              arrayType: VariantArrayType.Array,
-                              value: testArray
-                          });
-                      },
-                      set: null // read only
-                  }
-              }
+                organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                browseName: "TestArray",
+                nodeId: "s=TestArray",
+                dataType: "Double",
+                value: {
+                    get: function() {
+                        return new Variant({
+                            dataType: DataType.Double,
+                            arrayType: VariantArrayType.Array,
+                            value: testArray
+                        });
+                    },
+                    set: null // read only
+                }
+            }
             );
 
             // add a writable Int32
             namespace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "WriteableInt32",
-                  nodeId: "s=WriteableInt32",
-                  dataType: "Int32",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              arrayType: VariantArrayType.Array,
-                              value: testArray
-                          });
-                      },
-                      set: function (variant) {
-                          // Variation 1 : synchronous
-                          // assert(_.isFunction(callback));
-                          return StatusCodes.Good;
-                      }
-                  }
-              }
+                organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                browseName: "WriteableInt32",
+                nodeId: "s=WriteableInt32",
+                dataType: "Int32",
+                value: {
+                    get: function() {
+                        return new Variant({
+                            dataType: DataType.Double,
+                            arrayType: VariantArrayType.Array,
+                            value: testArray
+                        });
+                    },
+                    set: function(variant) {
+                        // Variation 1 : synchronous
+                        // assert(_.isFunction(callback));
+                        return StatusCodes.Good;
+                    }
+                }
+            }
             );
 
             // add a writable Int32
             namespace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "WriteableUInt32Async",
-                  nodeId: "s=WriteableUInt32Async",
-                  dataType: "UInt32",
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              arrayType: VariantArrayType.Array,
-                              value: testArray
-                          });
-                      }
+                organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                browseName: "WriteableUInt32Async",
+                nodeId: "s=WriteableUInt32Async",
+                dataType: "UInt32",
+                value: {
+                    get: function() {
+                        return new Variant({
+                            dataType: DataType.Double,
+                            arrayType: VariantArrayType.Array,
+                            value: testArray
+                        });
+                    }
 
-                  }
-              }
+                }
+            }
             );
 
             const newFolderWithFilteredItems = namespace.addFolder("ObjectsFolder", {
@@ -163,20 +179,20 @@ describe("testing ServerEngine", () => {
             }
             const newFolder1 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder1",
-                browseFilter: check_if_allow.bind(null,1)
+                browseFilter: check_if_allow.bind(null, 1)
             });
             assert(newFolder1);
 
             const newFolder2 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder2",
 
-                browseFilter: check_if_allow.bind(null,2)
+                browseFilter: check_if_allow.bind(null, 2)
             });
             assert(newFolder2);
 
             const newFolder3 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder3",
-                browseFilter: check_if_allow.bind(null,3)
+                browseFilter: check_if_allow.bind(null, 3)
             });
             assert(newFolder3);
 
@@ -185,7 +201,7 @@ describe("testing ServerEngine", () => {
 
     });
 
-    after(function () {
+    after(function() {
         engine.shutdown();
         engine = null;
     });
@@ -308,7 +324,7 @@ describe("testing ServerEngine", () => {
 
         const newFolder1 = namespace.addFolder("ObjectsFolder", "NoUniqueName");
 
-        (function () {
+        (function() {
             namespace.addFolder("ObjectsFolder", "NoUniqueName");
         }).should.throw("browseName already registered");
 
@@ -316,7 +332,7 @@ describe("testing ServerEngine", () => {
         result.should.eql(newFolder1);
     });
 
-    it("should be possible to create a variable in a folder", function (done) {
+    it("should be possible to create a variable in a folder", function(done) {
 
         const addressSpace = engine.addressSpace;
         const namespace = addressSpace.getOwnNamespace();
@@ -324,24 +340,24 @@ describe("testing ServerEngine", () => {
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder1");
 
         const newVariable = namespace.addVariable(
-          {
-              componentOf: newFolder,
-              browseName: "Temperature",
-              dataType: "Float",
-              value: {
-                  get: function () {
-                      return new Variant({ dataType: DataType.Float, value: 10.0 });
-                  },
-                  set: function () {
-                      return StatusCodes.BadNotWritable;
-                  }
-              }
+            {
+                componentOf: newFolder,
+                browseName: "Temperature",
+                dataType: "Float",
+                value: {
+                    get: function() {
+                        return new Variant({ dataType: DataType.Float, value: 10.0 });
+                    },
+                    set: function() {
+                        return StatusCodes.BadNotWritable;
+                    }
+                }
 
-          });
+            });
         newVariable.typeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent.nodeId.should.equal(newFolder.nodeId);
 
-        newVariable.readValueAsync(context, function (err, dataValue) {
+        newVariable.readValueAsync(context, function(err, dataValue) {
             if (!err) {
                 dataValue.statusCode.should.eql(StatusCodes.Good);
                 dataValue.value.should.be.instanceOf(Variant);
@@ -363,10 +379,10 @@ describe("testing ServerEngine", () => {
             browseName: "Temperature",
             dataType: "Double",
             value: {
-                get: function () {
+                get: function() {
                     return new Variant({ dataType: DataType.Double, value: 10.0 });
                 },
-                set: function () {
+                set: function() {
                     return StatusCodes.BadNotWritable;
                 }
             }
@@ -377,7 +393,7 @@ describe("testing ServerEngine", () => {
 
     });
 
-    it("should be possible to create a variable in a folder that returns a timestamped value", function (done) {
+    it("should be possible to create a variable in a folder that returns a timestamped value", function(done) {
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder4");
 
@@ -392,14 +408,14 @@ describe("testing ServerEngine", () => {
             browseName: "TemperatureWithSourceTimestamps",
             dataType: "Double",
             value: {
-                timestamped_get: function () {
+                timestamped_get: function() {
                     return temperature;
                 }
             }
         });
 
 
-        newVariable.readValueAsync(context, function (err, dataValue) {
+        newVariable.readValueAsync(context, function(err, dataValue) {
 
             if (!err) {
 
@@ -414,7 +430,7 @@ describe("testing ServerEngine", () => {
 
     });
 
-    it("should be possible to create a variable that returns historical data", function (done) {
+    it("should be possible to create a variable that returns historical data", function(done) {
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolderHistorical1");
 
@@ -431,10 +447,10 @@ describe("testing ServerEngine", () => {
             historizing: true,
             userAccessLevel: 7,
             value: {
-                timestamped_get: function () {
+                timestamped_get: function() {
                     return (readValue);
                 },
-                historyRead: function (context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback) {
+                historyRead: function(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback) {
 
                     assert(context instanceof SessionContext);
                     assert(callback instanceof Function);
@@ -471,7 +487,7 @@ describe("testing ServerEngine", () => {
             }]
         });
 
-        engine.historyRead(context, historyReadRequest, function (err, historyReadResult) {
+        engine.historyRead(context, historyReadRequest, function(err, historyReadResult) {
             historyReadResult[0].should.be.instanceOf(HistoryReadResult);
             historyReadResult[0].historyData.dataValues.length.should.eql(50);
 
@@ -526,7 +542,7 @@ describe("testing ServerEngine", () => {
         };
         const browseResult = engine.browseSingleNode("RootFolder", browseDescription);
 
-        const browseNames = browseResult.references.map(function (r) {
+        const browseNames = browseResult.references.map(function(r) {
             return r.browseName.name;
         });
         //xx console.log(browseNames);
@@ -775,17 +791,17 @@ describe("testing ServerEngine", () => {
 
     });
 
-    it("browseWithAutomaticExpansion", async()=>{
+    it("browseWithAutomaticExpansion", async () => {
 
         const namespace = engine.addressSpace.getOwnNamespace();
         const expandableNode = namespace.addObject({
-            browseName:"Expandable"
+            browseName: "Expandable"
         });
         let nbCalls = 0;
         expandableNode.onFirstBrowseAction = async function() {
-            nbCalls +=1;
-            await new Promise((resolve)=>{
-                setTimeout(()=>{
+            nbCalls += 1;
+            await new Promise((resolve) => {
+                setTimeout(() => {
                     const addressSpace = this.addressSpace;
                     const namespace = addressSpace.getOwnNamespace();
                     namespace.addObject({
@@ -801,7 +817,7 @@ describe("testing ServerEngine", () => {
                 }, 100);
             });
         };
-        
+
         const nodesToBrowse = [
             {
                 nodeId: expandableNode.nodeId,
@@ -830,7 +846,7 @@ describe("testing ServerEngine", () => {
         browseResults[1].references[1].browseName.toString().should.eql("1:SubObject2");
 
 
-        nbCalls.should.eql(1,"Node must have been expanded only once");
+        nbCalls.should.eql(1, "Node must have been expanded only once");
     });
 
     describe("readSingleNode on Object", () => {
@@ -912,7 +928,7 @@ describe("testing ServerEngine", () => {
     describe("readSingleNode on ReferenceType", () => {
 
         let ref_Organizes_nodeId;
-        beforeEach(function () {
+        beforeEach(function() {
             ref_Organizes_nodeId = engine.addressSpace.findReferenceType("Organizes").nodeId;
         });
 
@@ -1103,22 +1119,22 @@ describe("testing ServerEngine", () => {
         // Expect BadIndexRangeNoData
 
         const nodeId = "ns=1;s=TestVar";
-        before(function () {
+        before(function() {
             namespace.addVariable({
-                  browseName: "TestVar",
-                  dataType: "Double",
-                  nodeId: nodeId,
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  value: {
-                      get: function () {
-                          return new Variant({
-                              dataType: DataType.Double,
-                              value: 0
-                          });
-                      },
-                      set: null // read only
-                  }
-              }
+                browseName: "TestVar",
+                dataType: "Double",
+                nodeId: nodeId,
+                organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                value: {
+                    get: function() {
+                        return new Variant({
+                            dataType: DataType.Double,
+                            value: 0
+                        });
+                    },
+                    set: null // read only
+                }
+            }
             );
         });
 
@@ -1143,9 +1159,9 @@ describe("testing ServerEngine", () => {
         }
 
         const attributes = ["AccessLevel", "BrowseName", "DataType", "DisplayName", "Historizing", "NodeClass", "NodeId", "UserAccessLevel", "ValueRank"];
-        attributes.forEach(function (attribute) {
+        attributes.forEach(function(attribute) {
 
-            it("shall return BadIndexRangeNoData when performing a read with a  indexRange and attributeId = " + attribute + " ", function (done) {
+            it("shall return BadIndexRangeNoData when performing a read with a  indexRange and attributeId = " + attribute + " ", function(done) {
                 read_shall_get_BadIndexRangeNoData(AttributeIds[attribute], done);
             });
 
@@ -1174,7 +1190,7 @@ describe("testing ServerEngine", () => {
                 nodesToRead: [
                     {
                         attributeId: AttributeIds.Value,
-                        dataEncoding: {name: "DefaultBinary"},
+                        dataEncoding: { name: "DefaultBinary" },
                         indexRange: null,
                         nodeId: nodeId
                     }
@@ -1190,27 +1206,27 @@ describe("testing ServerEngine", () => {
     describe("testing read operation with timestamps", () => {
 
         const nodesToRead =
-          [
-              {
-                  nodeId: resolveNodeId("RootFolder"),
-                  attributeId: AttributeIds.DisplayName,
-                  indexRange: null, /* ???? */
-                  dataEncoding: null /* */
-              },
-              {
-                  nodeId: resolveNodeId("RootFolder"),
-                  attributeId: AttributeIds.BrowseName,
-                  indexRange: null, /* ???? */
-                  dataEncoding: null /* */
-              },
-              {
-                  nodeId: resolveNodeId("ns=0;i=2259"), //Server_serverStatus_State
-                  attributeId: AttributeIds.Value,
-                  indexRange: null, /* ???? */
-                  dataEncoding: null /* */
-              }
-          ];
-        it("should read and set the required timestamps : TimestampsToReturn.Neither", function (done) {
+            [
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.DisplayName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                },
+                {
+                    nodeId: resolveNodeId("RootFolder"),
+                    attributeId: AttributeIds.BrowseName,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                },
+                {
+                    nodeId: resolveNodeId("ns=0;i=2259"), //Server_serverStatus_State
+                    attributeId: AttributeIds.Value,
+                    indexRange: null, /* ???? */
+                    dataEncoding: null /* */
+                }
+            ];
+        it("should read and set the required timestamps : TimestampsToReturn.Neither", function(done) {
 
             const readRequest = new ReadRequest({
                 maxAge: 0,
@@ -1218,7 +1234,7 @@ describe("testing ServerEngine", () => {
                 nodesToRead: nodesToRead
             });
 
-            engine.refreshValues(readRequest.nodesToRead, function (err) {
+            engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
                 if (!err) {
 
                     const dataValues = engine.read(context, readRequest);
@@ -1351,28 +1367,28 @@ describe("testing ServerEngine", () => {
 
     });
 
-    it("should read Server_NamespaceArray ", function (done) {
+    it("should read Server_NamespaceArray ", function(done) {
 
         const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
-                {
+                new ReadValueId({
                     nodeId: server_NamespaceArray_Id,
                     attributeId: AttributeIds.DisplayName,
                     indexRange: null, /* ???? */
                     dataEncoding: null /* */
-                },
-                {
+                }),
+                new ReadValueId({
                     nodeId: server_NamespaceArray_Id,
                     attributeId: AttributeIds.Value,
                     indexRange: null, /* ???? */
                     dataEncoding: null /* */
-                }
+                })
             ]
         });
 
-        engine.refreshValues(readRequest.nodesToRead, function (err) {
+        engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
             if (!err) {
                 const dataValues = engine.read(context, readRequest);
                 dataValues.length.should.equal(2);
@@ -1384,21 +1400,21 @@ describe("testing ServerEngine", () => {
         });
     });
 
-    it("should handle indexRange with individual value", function (done) {
+    it("should handle indexRange with individual value", function(done) {
 
         const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
-                {
+                new ReadValueId({
                     nodeId: "ns=1;s=TestArray",
                     attributeId: AttributeIds.Value,
                     indexRange: "2",     // <<<<<<<<<<<<<<<<<<<<<<<<<<
                     dataEncoding: null /* */
-                }
+                })
             ]
         });
-        engine.refreshValues(readRequest.nodesToRead, function (err) {
+        engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
             if (!err) {
                 const dataValues = engine.read(context, readRequest);
                 dataValues.length.should.equal(1);
@@ -1412,21 +1428,21 @@ describe("testing ServerEngine", () => {
         });
     });
 
-    it("should handle indexRange with a simple range", function (done) {
+    it("should handle indexRange with a simple range", function(done) {
 
         const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
-                {
+                new ReadValueId({
                     nodeId: "ns=1;s=TestArray",
                     attributeId: AttributeIds.Value,
                     indexRange: "2:5",    // <<<<<<<<<<<<<<<<<<<<<<<<<<
                     dataEncoding: null /* */
-                }
+                })
             ]
         });
-        engine.refreshValues(readRequest.nodesToRead, function (err) {
+        engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
             if (!err) {
                 const dataValues = engine.read(context, readRequest);
                 dataValues.length.should.equal(1);
@@ -1440,21 +1456,21 @@ describe("testing ServerEngine", () => {
 
     });
 
-    it("should receive BadIndexRangeNoData when indexRange try to access outside boundary", function (done) {
+    it("should receive BadIndexRangeNoData when indexRange try to access outside boundary", function(done) {
 
         const readRequest = new ReadRequest({
             maxAge: 0,
             timestampsToReturn: TimestampsToReturn.Both,
             nodesToRead: [
-                {
+                new ReadValueId({
                     nodeId: "ns=1;s=TestArray",
                     attributeId: AttributeIds.Value,
                     indexRange: "5000:6000",    // <<<<<<<<<<<<<<<<<<<<<<<<<< BAD BOUNDARY !!!
                     dataEncoding: null /* */
-                }
+                })
             ]
         });
-        engine.refreshValues(readRequest.nodesToRead, function (err) {
+        engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
             if (!err) {
                 const dataValues = engine.read(context, readRequest);
                 dataValues.length.should.equal(1);
@@ -1607,16 +1623,18 @@ describe("testing ServerEngine", () => {
 
     describe("Accessing ServerStatus nodes", () => {
 
-        it("should read  Server_ServerStatus_CurrentTime", function (done) {
+        it("should read  Server_ServerStatus_CurrentTime", function(done) {
 
             const readRequest = new ReadRequest({
                 timestampsToReturn: TimestampsToReturn.Neither,
-                nodesToRead: [{
-                    nodeId: VariableIds.Server_ServerStatus_CurrentTime,
-                    attributeId: AttributeIds.Value
-                }]
+                nodesToRead: [
+                    new ReadValueId({
+                        nodeId: VariableIds.Server_ServerStatus_CurrentTime,
+                        attributeId: AttributeIds.Value
+                    })
+                ]
             });
-            engine.refreshValues(readRequest.nodesToRead, function (err) {
+            engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
                 if (!err) {
                     const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
@@ -1629,16 +1647,18 @@ describe("testing ServerEngine", () => {
 
         });
 
-        it("should read  Server_ServerStatus_StartTime", function (done) {
+        it("should read  Server_ServerStatus_StartTime", function(done) {
 
             const readRequest = new ReadRequest({
                 timestampsToReturn: TimestampsToReturn.Neither,
-                nodesToRead: [{
-                    nodeId: VariableIds.Server_ServerStatus_StartTime,
-                    attributeId: AttributeIds.Value
-                }]
+                nodesToRead: [
+                    {
+                        nodeId: VariableIds.Server_ServerStatus_StartTime,
+                        attributeId: AttributeIds.Value
+                    }
+                ]
             });
-            engine.refreshValues(readRequest.nodesToRead, function (err) {
+            engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
                 if (!err) {
                     const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
@@ -1651,18 +1671,20 @@ describe("testing ServerEngine", () => {
 
         });
 
-        it("should read  Server_ServerStatus_BuildInfo_BuildNumber", function (done) {
+        it("should read  Server_ServerStatus_BuildInfo_BuildNumber", function(done) {
 
             engine.serverStatus.buildInfo.buildNumber = "1234";
 
             const readRequest = new ReadRequest({
                 timestampsToReturn: TimestampsToReturn.Neither,
-                nodesToRead: [{
-                    nodeId: VariableIds.Server_ServerStatus_BuildInfo_BuildNumber,
-                    attributeId: AttributeIds.Value
-                }]
+                nodesToRead: [
+                    {
+                        nodeId: VariableIds.Server_ServerStatus_BuildInfo_BuildNumber,
+                        attributeId: AttributeIds.Value
+                    }
+                ]
             });
-            engine.refreshValues(readRequest.nodesToRead, function (err) {
+            engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
                 if (!err) {
                     const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
@@ -1690,17 +1712,19 @@ describe("testing ServerEngine", () => {
 
         });
 
-        it("should read  Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount", function (done) {
+        it("should read  Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount", function(done) {
 
             const nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
             const node = engine.addressSpace.findNode(nodeid);
             should.exist(node);
 
-            const nodesToRead = [{
-                attributeId: AttributeIds.Value,
-                nodeId: nodeid
-            }];
-            engine.refreshValues(nodesToRead, function (err) {
+            const nodesToRead = [
+                new ReadValueId({
+                    attributeId: AttributeIds.Value,
+                    nodeId: nodeid
+                })
+            ];
+            engine.refreshValues(nodesToRead, 0, function(err) {
                 if (!err) {
                     const dataValue = node.readAttribute(context, AttributeIds.Value);
                     dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -1712,18 +1736,18 @@ describe("testing ServerEngine", () => {
 
         });
 
-        it("should read all attributes of Server_ServerStatus_CurrentTime", function (done) {
+        it("should read all attributes of Server_ServerStatus_CurrentTime", function(done) {
 
             const readRequest = new ReadRequest({
                 timestampsToReturn: TimestampsToReturn.Neither,
-                nodesToRead: [1, 2, 3, 4, 5, 6, 7, 13, 14, 15, 16, 17, 18, 19, 20].map(function (attributeId) {
-                    return {
+                nodesToRead: [1, 2, 3, 4, 5, 6, 7, 13, 14, 15, 16, 17, 18, 19, 20].map(function(attributeId) {
+                    return new ReadValueId({
                         nodeId: VariableIds.Server_ServerStatus_CurrentTime,
                         attributeId: attributeId
-                    };
+                    });
                 })
             });
-            engine.refreshValues(readRequest.nodesToRead, function (err) {
+            engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
                 if (!err) {
                     const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(15);
@@ -1737,18 +1761,123 @@ describe("testing ServerEngine", () => {
         });
     });
 
+    const sinon = require("sinon");
+    describe("ServerEngine read maxAge", () => {
+        let clock; let timerId;
+        beforeEach(function() {
+            const old_setInterval = setInterval;
+            clock = sinon.useFakeTimers(new Date(2000, 11, 25, 0, 0, 0));
+            timerId = old_setInterval(() => {
+                clock.tick(1000);
+            }, 100);
+        });
+        afterEach(function() {
+            clock.restore();
+            clock = null;
+            clearInterval(timerId);
+        });
+
+        it("should not cause dataValue to be refreshed if maxAge is greater than available dataValue", async () => {
+
+            const ns = engine.addressSpace.getOwnNamespace();
+            const nodeId = "ns=1;s=MyVar";
+            let refreshFuncSpy;
+            function given_a_variable_that_have_asyn_refresh() {
+                let value = 0;
+                const variable = ns.addVariable({ browseName: "SomeVarX", dataType: "Double", nodeId });
+                variable.bindVariable({
+                    refreshFunc: function(callback) {
+                        setTimeout(() => {
+                            const dataValue = new DataValue({
+                                value: new Variant({ dataType: "Double", value: value + 1 }),
+                                statusCode: 0,
+                                sourceTimestamp: new Date(),
+                                serverTimestamp: new Date()
+                            });
+                            value += 1;
+                            callback(null, dataValue);
+                        }, 1000);
+                    }
+                });
+
+                refreshFuncSpy = sinon.spy(variable, "refreshFunc");
+            }
+
+            async function when_I_read_the_value_with_max_age(maxAge) {
+
+                return await new Promise((resolve, reject) => {
+                    const readRequest = new ReadRequest({
+                        timestampsToReturn: TimestampsToReturn.Both,
+                        nodesToRead: [
+                            new ReadValueId({
+                                nodeId,
+                                attributeId: AttributeIds.Value
+                            })
+                        ]
+                    });
+
+                    engine.refreshValues(readRequest.nodesToRead, maxAge, function(err) {
+                        if (!err) {
+                            const dataValues = engine.read(context, readRequest);
+                            return resolve(dataValues[0]);
+                        }
+                        return reject(err);
+                    });
+                });
+            }
+
+
+            given_a_variable_that_have_asyn_refresh();
+
+            {
+                const dataValue = await when_I_read_the_value_with_max_age(0);
+                //xx console.log(dataValue.toString());
+                dataValue.value.value.should.eql(1);
+                refreshFuncSpy.callCount.should.eql(1);
+                refreshFuncSpy.resetHistory();
+                refreshFuncSpy.callCount.should.eql(0);
+            }
+            {
+                const dataValue1 = await when_I_read_the_value_with_max_age(4000);
+                //xx console.log(dataValue1.toString());
+                dataValue1.value.value.should.eql(1);
+                refreshFuncSpy.callCount.should.eql(0);
+            }
+            {
+
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                const dataValue2 = await when_I_read_the_value_with_max_age(500);
+                //xx console.log(dataValue2.toString());
+                dataValue2.value.value.should.eql(2);
+                refreshFuncSpy.callCount.should.eql(1);
+            }
+            {
+
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                const dataValue3 = await when_I_read_the_value_with_max_age(0);
+                //xx console.log(dataValue3.toString());
+                dataValue3.value.value.should.eql(3);
+                refreshFuncSpy.callCount.should.eql(2);
+            }
+
+
+        });
+    });
+
     describe("Accessing ServerStatus as a single composite object", () => {
 
-        it("should be possible to access the ServerStatus Object as a variable", function (done) {
+        it("should be possible to access the ServerStatus Object as a variable", function(done) {
 
             const readRequest = new ReadRequest({
                 timestampsToReturn: TimestampsToReturn.Neither,
-                nodesToRead: [{
-                    nodeId: VariableIds.Server_ServerStatus,
-                    attributeId: AttributeIds.Value
-                }]
+                nodesToRead: [
+                    new ReadValueId({
+                        nodeId: VariableIds.Server_ServerStatus,
+                        attributeId: AttributeIds.Value
+                    })
+                ]
             });
-            engine.refreshValues(readRequest.nodesToRead, function (err) {
+            engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
                 if (!err) {
                     const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
@@ -1774,16 +1903,18 @@ describe("testing ServerEngine", () => {
 
     describe("Accessing BuildInfo as a single composite object", () => {
 
-        it("should be possible to read the Server_ServerStatus_BuildInfo Object as a complex structure", function (done) {
+        it("should be possible to read the Server_ServerStatus_BuildInfo Object as a complex structure", function(done) {
 
             const readRequest = new ReadRequest({
                 timestampsToReturn: TimestampsToReturn.Neither,
-                nodesToRead: [{
-                    nodeId: VariableIds.Server_ServerStatus_BuildInfo,
-                    attributeId: AttributeIds.Value
-                }]
+                nodesToRead: [
+                    new ReadValueId({
+                        nodeId: VariableIds.Server_ServerStatus_BuildInfo,
+                        attributeId: AttributeIds.Value
+                    })
+                ]
             });
-            engine.refreshValues(readRequest.nodesToRead, function (err) {
+            engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
                 if (!err) {
                     const dataValues = engine.read(context, readRequest);
                     dataValues.length.should.equal(1);
@@ -1809,7 +1940,7 @@ describe("testing ServerEngine", () => {
 
         const WriteValue = require("node-opcua-service-write").WriteValue;
 
-        it("should write a single node", function (done) {
+        it("should write a single node", function(done) {
 
             const nodeToWrite = new WriteValue({
                 nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
@@ -1822,13 +1953,13 @@ describe("testing ServerEngine", () => {
                     }
                 }
             });
-            engine.writeSingleNode(context, nodeToWrite, function (err, statusCode) {
+            engine.writeSingleNode(context, nodeToWrite, function(err, statusCode) {
                 statusCode.should.eql(StatusCodes.Good);
                 done(err);
             });
         });
 
-        it("should return BadNotWritable when trying to write a Executable attribute", function (done) {
+        it("should return BadNotWritable when trying to write a Executable attribute", function(done) {
 
             const nodeToWrite = new WriteValue({
                 nodeId: resolveNodeId("RootFolder"),
@@ -1841,14 +1972,14 @@ describe("testing ServerEngine", () => {
                     }
                 }
             });
-            engine.writeSingleNode(context, nodeToWrite, function (err, statusCode) {
+            engine.writeSingleNode(context, nodeToWrite, function(err, statusCode) {
                 statusCode.should.eql(StatusCodes.BadNotWritable);
                 done(err);
             });
 
         });
 
-        it("should write many nodes", function (done) {
+        it("should write many nodes", function(done) {
 
             const nodesToWrite = [
                 new WriteValue({
@@ -1875,7 +2006,7 @@ describe("testing ServerEngine", () => {
                 })
             ];
 
-            engine.write(context, nodesToWrite, function (err, results) {
+            engine.write(context, nodesToWrite, function(err, results) {
                 results.length.should.eql(2);
                 results[0].should.eql(StatusCodes.Good);
                 results[1].should.eql(StatusCodes.Good);
@@ -1884,7 +2015,7 @@ describe("testing ServerEngine", () => {
 
         });
 
-        it(" write a single node with a null variant shall return BadTypeMismatch", function (done) {
+        it(" write a single node with a null variant shall return BadTypeMismatch", function(done) {
 
             const nodeToWrite = new WriteValue({
                 nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
@@ -1898,7 +2029,7 @@ describe("testing ServerEngine", () => {
 
             nodeToWrite.value.value = null;
 
-            engine.writeSingleNode(context, nodeToWrite, function (err, statusCode) {
+            engine.writeSingleNode(context, nodeToWrite, function(err, statusCode) {
                 statusCode.should.eql(StatusCodes.BadTypeMismatch);
                 done(err);
             });
@@ -1908,38 +2039,40 @@ describe("testing ServerEngine", () => {
 
     describe("testing the ability to handle variable that returns a StatusCode rather than a Variant", () => {
 
-        before(function () {
+        before(function() {
             // add a variable that fails to provide a Variant.
             // we simulate the scenario where the variable represent a PLC value,
             // and for some reason, the server cannot access the PLC.
             // In this case we expect the value getter to return a StatusCode rather than a Variant
             namespace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "FailingPLCValue",
-                  nodeId: "ns=1;s=FailingPLCValue",
-                  dataType: "Double",
-                  value: {
-                      get: function () {
-                          // we return a StatusCode here instead of a Variant
-                          // this means : "Houston ! we have a problem"
-                          return StatusCodes.BadResourceUnavailable;
-                      },
-                      set: null // read only
-                  }
-              }
+                organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                browseName: "FailingPLCValue",
+                nodeId: "ns=1;s=FailingPLCValue",
+                dataType: "Double",
+                value: {
+                    get: function() {
+                        // we return a StatusCode here instead of a Variant
+                        // this means : "Houston ! we have a problem"
+                        return StatusCodes.BadResourceUnavailable;
+                    },
+                    set: null // read only
+                }
+            }
             );
         });
 
-        it("ZZ should have statusCode=BadResourceUnavailable when trying to read the FailingPLCValue variable", function (done) {
+        it("ZZ should have statusCode=BadResourceUnavailable when trying to read the FailingPLCValue variable", function(done) {
 
             const readRequest = new ReadRequest({
                 timestampsToReturn: TimestampsToReturn.Neither,
-                nodesToRead: [{
-                    nodeId: "ns=1;s=FailingPLCValue",
-                    attributeId: AttributeIds.Value
-                }]
+                nodesToRead: [
+                    new ReadValueId({
+                        nodeId: "ns=1;s=FailingPLCValue",
+                        attributeId: AttributeIds.Value
+                    })
+                ]
             });
-            engine.refreshValues(readRequest.nodesToRead, function (err) {
+            engine.refreshValues(readRequest.nodesToRead, 0, function(err) {
                 if (!err) {
                     const readResults = engine.read(context, readRequest);
                     readResults[0].statusCode.should.eql(StatusCodes.BadResourceUnavailable);
@@ -1956,54 +2089,54 @@ describe("testing ServerEngine", () => {
         let value1 = 0;
         let value2 = 0;
 
-        before(function () {
+        before(function() {
 
             // add a variable that provide a on demand refresh function
             namespace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "RefreshedOnDemandValue",
-                  nodeId: "ns=1;s=RefreshedOnDemandValue",
-                  dataType: "Double",
-                  value: {
-                      refreshFunc: function (callback) {
-                          // add some delay to simulate a long operation to perform the asynchronous read
-                          setTimeout(function () {
-                              value1 += 1;
-                              const dataValue = new DataValue({
-                                  value: {
-                                      dataType: DataType.Double,
-                                      value: value1
-                                  }
-                              });
-                              callback(null, dataValue);
-                          }, 10);
-                      }
-                  }
-              }
+                organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                browseName: "RefreshedOnDemandValue",
+                nodeId: "ns=1;s=RefreshedOnDemandValue",
+                dataType: "Double",
+                value: {
+                    refreshFunc: function(callback) {
+                        // add some delay to simulate a long operation to perform the asynchronous read
+                        setTimeout(function() {
+                            value1 += 1;
+                            const dataValue = new DataValue({
+                                value: {
+                                    dataType: DataType.Double,
+                                    value: value1
+                                }
+                            });
+                            callback(null, dataValue);
+                        }, 10);
+                    }
+                }
+            }
             );
             // add an other variable that provide a on demand refresh function
             namespace.addVariable({
-                  organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                  browseName: "OtherRefreshedOnDemandValue",
-                  nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
-                  dataType: "Double",
-                  value: {
-                      refreshFunc: function (callback) {
-                          setTimeout(function () {
-                              value2 += 1;
-                              const dataValue = new DataValue({
-                                  value: { dataType: DataType.Double, value: value2 }
-                              });
-                              callback(null, dataValue);
-                          }, 10);
-                      }
-                  }
-              }
+                organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
+                browseName: "OtherRefreshedOnDemandValue",
+                nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
+                dataType: "Double",
+                value: {
+                    refreshFunc: function(callback) {
+                        setTimeout(function() {
+                            value2 += 1;
+                            const dataValue = new DataValue({
+                                value: { dataType: DataType.Double, value: value2 }
+                            });
+                            callback(null, dataValue);
+                        }, 10);
+                    }
+                }
+            }
             );
         });
 
 
-        beforeEach(function () {
+        beforeEach(function() {
             // reset counters;
             value1 = 0;
             value2 = 0;
@@ -2011,14 +2144,16 @@ describe("testing ServerEngine", () => {
         });
 
 
-        it("should refresh a single variable value asynchronously", function (done) {
+        it("should refresh a single variable value asynchronously", function(done) {
 
-            const nodesToRefresh = [{ nodeId: "ns=1;s=RefreshedOnDemandValue" }];
+            const nodesToRefresh = [
+                new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue" })
+            ];
 
             const v = engine.readSingleNode(context, nodesToRefresh[0].nodeId, AttributeIds.Value);
             v.statusCode.should.equal(StatusCodes.UncertainInitialValue);
 
-            engine.refreshValues(nodesToRefresh, function (err, values) {
+            engine.refreshValues(nodesToRefresh, 0, function(err, values) {
 
                 if (!err) {
                     values[0].value.value.should.equal(1);
@@ -2035,15 +2170,15 @@ describe("testing ServerEngine", () => {
             });
         });
 
-        it("should refresh multiple variable values asynchronously", function (done) {
+        it("should refresh multiple variable values asynchronously", function(done) {
 
 
             const nodesToRefresh = [
-                { nodeId: "ns=1;s=RefreshedOnDemandValue" },
-                { nodeId: "ns=1;s=OtherRefreshedOnDemandValue" }
+                new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue" }),
+                new ReadValueId({ nodeId: "ns=1;s=OtherRefreshedOnDemandValue" })
             ];
 
-            engine.refreshValues(nodesToRefresh, function (err, values) {
+            engine.refreshValues(nodesToRefresh, 0, function(err, values) {
                 if (!err) {
                     values.length.should.equal(2, " expecting two node asynchronous refresh call");
 
@@ -2057,14 +2192,14 @@ describe("testing ServerEngine", () => {
             });
         });
 
-        it("should  refresh nodes only once if they are duplicated ", function (done) {
+        it("should  refresh nodes only once if they are duplicated ", function(done) {
 
             const nodesToRefresh = [
-                { nodeId: "ns=1;s=RefreshedOnDemandValue" },
-                { nodeId: "ns=1;s=RefreshedOnDemandValue" }, // <== duplicated node
-                { nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName }
+                new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue" }),
+                new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue" }), // <== duplicated node
+                new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName })
             ];
-            engine.refreshValues(nodesToRefresh, function (err, values) {
+            engine.refreshValues(nodesToRefresh, 0, function(err, values) {
 
                 if (!err) {
                     values.length.should.equal(1, " expecting only one node asynchronous refresh call");
@@ -2077,13 +2212,13 @@ describe("testing ServerEngine", () => {
             });
         });
 
-        it("should ignore nodes with attributeId!=AttributeIds.Value ", function (done) {
+        it("should ignore nodes with attributeId!=AttributeIds.Value ", function(done) {
             value1.should.equal(0);
             value2.should.equal(0);
             const nodesToRefresh = [
-                { nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName }
+                new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName })
             ];
-            engine.refreshValues(nodesToRefresh, function (err, values) {
+            engine.refreshValues(nodesToRefresh, 0, function(err, values) {
                 if (!err) {
                     values.length.should.equal(0, " expecting no asynchronous refresh call");
                     value1.should.equal(0);
@@ -2093,12 +2228,12 @@ describe("testing ServerEngine", () => {
             });
         });
 
-        it("should perform readValueAsync on Variable", function (done) {
+        it("should perform readValueAsync on Variable", function(done) {
 
             const variable = engine.addressSpace.findNode("ns=1;s=RefreshedOnDemandValue");
 
             value1.should.equal(0);
-            variable.readValueAsync(context, function (err, value) {
+            variable.readValueAsync(context, function(err, value) {
                 value1.should.equal(1);
 
                 done(err);
@@ -2116,12 +2251,11 @@ describe("testing ServerEngine", () => {
             server.serverDiagnostics.enabledFlag.browseName.toString().should.eql("EnabledFlag");
         });
     });
-
 });
 
 describe("ServerEngine advanced", () => {
 
-    it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown", function (done) {
+    it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown", function(done) {
 
         const engine = new ServerEngine();
 
@@ -2137,7 +2271,7 @@ describe("ServerEngine advanced", () => {
         done();
     });
 
-    it("ServerEngine#shutdown engine should take care of disposing session on shutdown", function (done) {
+    it("ServerEngine#shutdown engine should take care of disposing session on shutdown", function(done) {
 
         const engine = new ServerEngine();
         const session1 = engine.createSession();
@@ -2170,7 +2304,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function(/*this: any*
 
     this.timeout(40000);
     let test;
-    before(function (done) {
+    before(function(done) {
 
         test = this;
 
@@ -2181,19 +2315,19 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function(/*this: any*
         });
 
     });
-    after(function () {
+    after(function() {
         engine.shutdown();
         engine = null;
     });
-    beforeEach(function () {
+    beforeEach(function() {
         test.clock = sinon.useFakeTimers(Date.now());
 
     });
-    afterEach(function () {
+    afterEach(function() {
         test.clock.restore();
     });
 
-    it("ServerEngine#ServerCapabilities should expose ServerCapabilities ", function (done) {
+    it("ServerEngine#ServerCapabilities should expose ServerCapabilities ", function(done) {
 
         const serverCapabilitiesId = makeNodeId(ObjectIds.Server_ServerCapabilities); // ns=0;i=2268
         serverCapabilitiesId.toString().should.eql("ns=0;i=2268");
@@ -2207,7 +2341,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function(/*this: any*
         done();
     });
 
-    it("ServerEngine#ServerStatus should expose currentTime", function (done) {
+    it("ServerEngine#ServerStatus should expose currentTime", function(done) {
 
         const currentTimeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime); // ns=0;i=2258
         currentTimeId.value.should.eql(2258);

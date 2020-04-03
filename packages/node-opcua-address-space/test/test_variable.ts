@@ -500,7 +500,7 @@ describe("testing Variable#bindVariable", () => {
             dataValueCheck1.statusCode.should.eql(StatusCodes.UncertainInitialValue);
 
             // call_refresh
-            await variable.asyncRefresh();
+            await variable.asyncRefresh(new Date());
 
             // read_simple_value_after_refresh
             const dataValueCheck2 = variable.readValue();

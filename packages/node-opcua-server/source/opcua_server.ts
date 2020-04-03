@@ -2649,7 +2649,7 @@ export class OPCUAServer extends OPCUABaseServer {
         }
 
         // ask for a refresh of asynchronous variables
-        server.engine.refreshValues(request.nodesToRead, (err?: Error | null) => {
+        server.engine.refreshValues(request.nodesToRead, request.maxAge, (err?: Error | null) => {
           assert(!err, " error not handled here , fix me");
 
           results = server.engine.read(context, request);
@@ -2717,7 +2717,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const context = new SessionContext({ session, server });
 
         // ask for a refresh of asynchronous variables
-        server.engine.refreshValues(request.nodesToRead, (err?: Error | null) => {
+        server.engine.refreshValues(request.nodesToRead, 0, (err?: Error | null) => {
 
           assert(!err, " error not handled here , fix me"); // TODO
 

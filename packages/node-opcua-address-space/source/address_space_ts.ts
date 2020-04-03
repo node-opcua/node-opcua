@@ -495,9 +495,9 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
         indexRange?: string | NumericRange | null
     ): Promise<StatusCode>;
 
-    asyncRefresh(callback: DataValueCallback): void;
+    asyncRefresh(oldestDate: Date, callback: DataValueCallback): void;
 
-    asyncRefresh(): Promise<DataValue>;
+    asyncRefresh(oldestDate: Date): Promise<DataValue>;
 
     /**
      * write a variale attribute (callback version)

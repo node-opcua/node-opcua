@@ -260,7 +260,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     public _timestamped_set_func: any;
     public _get_func: any;
     public _set_func: any;
-    public refreshFunc: any;
+    public refreshFunc?: (callback: DataValueCallback) => void;
     public __waiting_callbacks?: any[];
 
     get typeDefinitionObj(): UAVariableType {
@@ -435,11 +435,27 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
     public asyncRefresh(...args: any[]): any {
 
-        const callback = args[0] as DataValueCallback;
+        const oldestDate = args[0] as Date;
+        const callback = args[1] as DataValueCallback;
 
         if (!this.refreshFunc) {
-            return callback(null, this.readValue());
+            // no refresh func
+            const dataValue = this.readValue();
+            if (oldestDate.getTime() <= dataValue.serverTimestamp!.getTime()) {
+                return callback(null, dataValue);
+            } else {
+                // fake
+                dataValue.serverTimestamp = oldestDate;
+                dataValue.serverPicoseconds = 0;
+                return callback(null, dataValue);
+            }
         }
+
+        if (this._dataValue.serverTimestamp && (oldestDate.getTime() <= this._dataValue.serverTimestamp!.getTime())) {
+            const dataValue = this.readValue();
+            return callback(null, dataValue);
+        }
+
         this.refreshFunc.call(this, (err: Error | null, dataValue?: DataValueLike) => {
             if (err || !dataValue) {
                 dataValue = { statusCode: StatusCodes.BadNoDataAvailable };
@@ -966,7 +982,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             this._timestamped_get_func = null;
             this._get_func = null;
             this._set_func = null;
-            this.refreshFunc = null;
+            this.refreshFunc = undefined;
             this._historyRead = UAVariable.prototype._historyRead;
         }
 
@@ -1025,7 +1041,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             innerCallback(null, dataValue);
         };
 
-        let func = null;
+        let func: (innerCallback: (err: Error | null, dataValue: DataValue) => void) => void;
+
         if (!this.isReadable(context)) {
             func = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
                 const dataValue = new DataValue({ statusCode: StatusCodes.BadNotReadable });
@@ -1037,7 +1054,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 innerCallback(null, dataValue);
             };
         } else {
-            func = _.isFunction(this.refreshFunc) ? this.asyncRefresh : readImmediate;
+            func = _.isFunction(this.refreshFunc) ? this.asyncRefresh.bind(this, new Date()) : readImmediate;
         }
 
         const satisfy_callbacks = (err: Error | null, dataValue?: DataValue) => {
