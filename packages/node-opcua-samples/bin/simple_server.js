@@ -154,10 +154,10 @@ const paths = envPaths(productUri);
 
     await serverCertificateManager.createSelfSignedCertificate({
       applicationUri: applicationUri,
-      dns: argv.alternateHostname ? ["localhost", argv.alternateHostname, fqdn] : ["localhost", fqdn],
+      dns: argv.alternateHostname ? [argv.alternateHostname, fqdn] : [fqdn],
       ip: await getIpAddresses(),
       outputFile: certificateFile,
-      subject: "/CN=Sterfive;/L=France;/DN=",
+      subject: "/CN=Sterfive/L=France/DC=Test",
       startDate: new Date(),
       validity: 365 * 10,
     })
