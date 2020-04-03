@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-"use strict";
-
 const fs = require("fs");
 const treeify = require("treeify");
 const _ = require("underscore");
@@ -9,9 +7,7 @@ const Table = require("easy-table");
 const async = require("async");
 const assert = require("node-opcua-assert").assert;
 const opcua = require("node-opcua");
-const VariableIds = opcua.VariableIds;
-const BrowseDirection = opcua.BrowseDirection;
-
+const { ApplicationType, VariableIds, BrowseDirection } = require("node-opcua");
 
 //node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
 const yargs = require("yargs/yargs");
@@ -148,7 +144,7 @@ async function __dumpEvent(session, fields, eventFields) {
     }
 }
 
-const q = new async.queue(function (task, callback) {
+const q = new async.queue(function(task, callback) {
     __dumpEvent(task.session, task.fields, task.eventFields, callback);
 });
 
@@ -239,12 +235,12 @@ async function enumerateAllAlarmAndConditionInstances(the_session) {
             };
 
             const nodesToBrowse = [browseDesc1];
-            session.browse(nodesToBrowse, function (err, browseResults) {
+            session.browse(nodesToBrowse, function(err, browseResults) {
                 if (err) {
                     console.log("err =", err);
                 }
                 if (!err) {
-                    browseResults[0].references.forEach(function (ref) {
+                    browseResults[0].references.forEach(function(ref) {
                         if (isConditionEventType(ref.typeDefinition)) {
                             //
                             const alarm = {
@@ -274,9 +270,9 @@ async function enumerateAllAlarmAndConditionInstances(the_session) {
 
     }
 
-    enumerateAllConditionTypes(the_session, function (err, map) {
+    enumerateAllConditionTypes(the_session, function(err, map) {
         conditions = map;
-        exploreForObjectOfType(the_session, opcua.resolveNodeId("RootFolder"), function (err) {
+        exploreForObjectOfType(the_session, opcua.resolveNodeId("RootFolder"), function(err) {
             if (!err) {
                 return callback(null, found);
             }
@@ -297,9 +293,9 @@ const ObjectTypeIds = opcua.ObjectTypeIds;
 async function getAllEventTypes(session, callback) {
     const baseNodeId = makeNodeId(ObjectTypeIds.BaseEventType);
 
-    const q = new async.queue(function (task, callback) {
+    const q = new async.queue(function(task, callback) {
 
-        _getAllEventTypes(task.nodeId, task.tree, function (err, result) {
+        _getAllEventTypes(task.nodeId, task.tree, function(err, result) {
             if (err) {
                 return callback(err);
             }
@@ -319,12 +315,12 @@ async function getAllEventTypes(session, callback) {
             nodeClassMask: opcua.NodeClassMask.ObjectType, // Objects
             resultMask: 63
         };
-        session.browse(browseDesc1, function (err, browseResult) {
+        session.browse(browseDesc1, function(err, browseResult) {
             if (err) {
                 console.log(" ERROR = ", err);
             } else {
                 // to do continuation points
-                browseResult.references.forEach(function (reference) {
+                browseResult.references.forEach(function(reference) {
                     const subtree = { nodeId: reference.nodeId.toString() };
                     tree[reference.browseName.toString()] = subtree;
                     q.push({ nodeId: reference.nodeId, tree: subtree });
@@ -352,13 +348,13 @@ function monitorAlarm(subscription, alarmNodeId, callback) {
 
     assert(_.isFunction(callback));
 
-    callConditionRefresh(subscription, function (err) {
+    callConditionRefresh(subscription, function(err) {
         callback();
     });
 }
 
 async.series([
-    function (callback) {
+    function(callback) {
 
         const options = {
             endpoint_must_exist: false,
@@ -377,16 +373,16 @@ async.series([
 
         client.connect(endpointUrl, callback);
 
-        client.on("backoff", function (number, delay) {
+        client.on("backoff", function(number, delay) {
             console.log(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
         });
 
     },
 
-    function (callback) {
+    function(callback) {
 
 
-        client.getEndpoints(function (err, endpoints) {
+        client.getEndpoints(function(err, endpoints) {
 
             if (argv.debug) {
                 fs.writeFile("tmp/endpoints.log", JSON.stringify(endpoints, null, " "));
@@ -395,7 +391,7 @@ async.series([
 
             const table = new Table();
             if (!err) {
-                endpoints.forEach(function (endpoint, i) {
+                endpoints.forEach(function(endpoint, i) {
                     table.cell("endpoint", endpoint.endpointUrl + "");
                     table.cell("Application URI", endpoint.server.applicationUri);
                     table.cell("Product URI", endpoint.server.productUri);
@@ -408,17 +404,18 @@ async.series([
 
                     serverCertificate = endpoint.serverCertificate;
 
-                    const certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
-                    fs.writeFile(certificate_filename, crypto_utils.toPem(serverCertificate, "CERTIFICATE"));
-
+                    if (argv.debug) {
+                        const certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
+                        fs.writeFile(certificate_filename, crypto_utils.toPem(serverCertificate, "CERTIFICATE"));
+                    }
                     table.newRow();
                 });
                 console.log(table.toString());
 
-                endpoints.forEach(function (endpoint) {
+                endpoints.forEach(function(endpoint) {
                     console.log("Identify Token for : Security Mode=", endpoint.securityMode.toString(), " Policy=", endpoint.securityPolicyUri);
                     const table2 = new Table();
-                    endpoint.userIdentityTokens.forEach(function (token) {
+                    endpoint.userIdentityTokens.forEach(function(token) {
                         table2.cell("policyId", token.policyId);
                         table2.cell("tokenType", token.tokenType.toString());
                         table2.cell("issuedTokenType", token.issuedTokenType);
@@ -435,12 +432,12 @@ async.series([
         });
     },
     //------------------------------------------
-    function (callback) {
+    function(callback) {
         client.disconnect(callback);
     },
 
     // reconnect using the correct end point URL now
-    function (callback) {
+    function(callback) {
 
         const hexDump = opcua.hexDump;
         console.log(chalk.cyan("Server Certificate :"));
@@ -470,7 +467,7 @@ async.series([
     },
 
     //------------------------------------------
-    function (callback) {
+    function(callback) {
 
         let userIdentity = null; // anonymous
         if (argv.userName && argv.password) {
@@ -481,7 +478,7 @@ async.series([
             };
 
         }
-        client.createSession(userIdentity, function (err, session) {
+        client.createSession(userIdentity, function(err, session) {
             if (!err) {
                 the_session = session;
                 console.log(chalk.yellow(" session created"));
@@ -491,13 +488,13 @@ async.series([
         });
     },
     function set_event_handlers(callback) {
-        client.on("connection_reestablished", function () {
+        client.on("connection_reestablished", function() {
             console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
         });
-        client.on("backoff", function (number, delay) {
+        client.on("backoff", function(number, delay) {
             console.log(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
         });
-        client.on("start_reconnection", function () {
+        client.on("start_reconnection", function() {
             console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
         });
 
@@ -506,11 +503,11 @@ async.series([
     },
     // ----------------------------------------
     // display namespace array
-    function (callback) {
+    function(callback) {
 
         const server_NamespaceArray_Id = opcua.makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2006
 
-        the_session.readVariableValue(server_NamespaceArray_Id, function (err, dataValue) {
+        the_session.readVariableValue(server_NamespaceArray_Id, function(err, dataValue) {
 
             console.log(" --- NAMESPACE ARRAY ---");
             if (!err) {
@@ -524,9 +521,9 @@ async.series([
         });
     },
 
-    function (callback) {
+    function(callback) {
 
-        getAllEventTypes(the_session, function (err, result) {
+        getAllEventTypes(the_session, function(err, result) {
 
             console.log(chalk.cyan("--------------------------------------------------------------- All Event Types "));
             console.log(treeify.asTree(result, true));
@@ -536,7 +533,7 @@ async.series([
     },
 
     //------------------------------------------
-    function (callback) {
+    function(callback) {
 
         let t1, t2;
 
@@ -552,7 +549,7 @@ async.series([
             const crawler = new NodeCrawler(the_session);
 
             let t = Date.now();
-            client.on("send_request", function () {
+            client.on("send_request", function() {
                 t1 = Date.now();
             });
 
@@ -566,7 +563,7 @@ async.series([
 
             const nodeId = "ObjectsFolder";
             console.log("now crawling object folder ...please wait...");
-            crawler.read(nodeId, function (err, obj) {
+            crawler.read(nodeId, function(err, obj) {
                 console.log(" Time         = ", (new Date()).getTime() - t);
                 console.log(" read        = ", crawler.readCounter);
                 console.log(" browse      = ", crawler.browseCounter);
@@ -576,11 +573,11 @@ async.series([
                     if (false) {
                         // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
                         //xx console.log(treeify.asTree(obj, true));
-                        treeify.asLines(obj, true, true, function (line) {
+                        treeify.asLines(obj, true, true, function(line) {
                             console.log(line);
                         });
                     } else {
-                      //  process.exit(1);
+                        //  process.exit(1);
                     }
                 }
                 client.removeListener("receive_response", print_stat);
@@ -598,9 +595,9 @@ async.series([
     // -----------------------------------------------------------------------------------------------------------------
     // enumerate all Condition Types exposed by the server
     // -----------------------------------------------------------------------------------------------------------------
-    function (callback) {
+    function(callback) {
 
-        enumerateAllConditionTypes(the_session, function (err, conditionTypes, conditionTree) {
+        enumerateAllConditionTypes(the_session, function(err, conditionTypes, conditionTree) {
             console.log(treeify.asTree(conditionTree));
             callback();
         });
@@ -609,14 +606,14 @@ async.series([
     // -----------------------------------------------------------------------------------------------------------------
     // enumerate all objects that have an Alarm & Condition instances
     // -----------------------------------------------------------------------------------------------------------------
-    function (callback) {
+    function(callback) {
 
-        enumerateAllAlarmAndConditionInstances(the_session, function (err, alarms) {
+        enumerateAllAlarmAndConditionInstances(the_session, function(err, alarms) {
 
             if (!err) {
 
                 console.log(" -------------------------------------------------------------------- Alarms & Conditions ------------------------");
-                alarms.forEach(function (alarm) {
+                alarms.forEach(function(alarm) {
                     console.log(
                         "parent = ",
                         chalk.cyan(w(alarm.parent.toString(), 30)),
@@ -635,11 +632,11 @@ async.series([
 
     },
     // ------------------ check if server supports Query Services
-    function (callback) {
+    function(callback) {
 
         const queryFirstRequest = {};
 
-        the_session.queryFirst(queryFirstRequest, function (err, queryFirstResult) {
+        the_session.queryFirst(queryFirstRequest, function(err, queryFirstResult) {
             if (err) {
                 console.log("QueryFirst is not supported by Server");
             }
@@ -650,14 +647,14 @@ async.series([
 
 
     // create Read
-    function (callback) {
+    function(callback) {
 
         if (!doHistory) {
             return callback();
         }
         const now = Date.now();
         const start = now - 1000; // read 1 seconds of history
-        the_session.readHistoryValue(monitored_node, start, now, function (err, historicalReadResult) {
+        the_session.readHistoryValue(monitored_node, start, now, function(err, historicalReadResult) {
 
             if (!err) {
                 console.log(" historicalReadResult =", historicalReadResult.toString());
@@ -671,7 +668,7 @@ async.series([
 
     // -----------------------------------------
     // create subscription
-    function (callback) {
+    function(callback) {
 
         const parameters = {
             requestedPublishingInterval: 100,
@@ -690,7 +687,7 @@ async.series([
 
         let t = getTick();
 
-        the_subscription.on("started", function () {
+        the_subscription.on("started", function() {
 
             console.log("started subscription :", the_subscription.subscriptionId);
 
@@ -702,24 +699,24 @@ async.series([
 
             callback();
 
-        }).on("internal_error", function (err) {
+        }).on("internal_error", function(err) {
             console.log(" received internal error", err.message);
 
-        }).on("keepalive", function () {
+        }).on("keepalive", function() {
 
             const t1 = getTick();
             const span = t1 - t;
             t = t1;
             console.log("keepalive ", span / 1000, "sec", " pending request on server = ", the_subscription.publish_engine.nbPendingPublishRequests);
 
-        }).on("terminated", function (err) {
+        }).on("terminated", function(err) {
 
         });
     },
 
     function get_monitored_item(callback) {
 
-        the_subscription.getMonitoredItems(function (err, results) {
+        the_subscription.getMonitoredItems(function(err, results) {
             if (!err) {
                 console.log("MonitoredItems clientHandles", results.clientHandles);
                 console.log("MonitoredItems serverHandles", results.serverHandles);
@@ -750,14 +747,14 @@ async.series([
                 discardOldest: true
             }
         );
-        monitoredItem.on("initialized", function () {
+        monitoredItem.on("initialized", function() {
             console.log("monitoredItem initialized");
             callback();
         });
-        monitoredItem.on("changed", function (dataValue) {
+        monitoredItem.on("changed", function(dataValue) {
             console.log(monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue.value.toString());
         });
-        monitoredItem.on("err", function (err_message) {
+        monitoredItem.on("err", function(err_message) {
             console.log(monitoredItem.itemToMonitor.nodeId.toString(), chalk.red(" ERROR"), err_message);
             callback();
         });
@@ -828,46 +825,46 @@ async.series([
             }
         );
 
-        event_monitoringItem.on("initialized", function () {
+        event_monitoringItem.on("initialized", function() {
             console.log("event_monitoringItem initialized");
             callback();
         });
 
-        event_monitoringItem.on("changed", function (eventFields) {
-            dumpEvent(the_session, fields, eventFields, function () {
+        event_monitoringItem.on("changed", function(eventFields) {
+            dumpEvent(the_session, fields, eventFields, function() {
             });
         });
-        event_monitoringItem.on("err", function (err_message) {
+        event_monitoringItem.on("err", function(err_message) {
             console.log("event_monitoringItem ", baseEventTypeId, chalk.red(" ERROR"), err_message);
         });
 
     },
 
-    function (callback) {
+    function(callback) {
         console.log("Monitoring alarms");
         const alarmNodeId = "ns=2;s=1:Colours/EastTank?Green";
-        monitorAlarm(the_subscription, alarmNodeId, function () {
+        monitorAlarm(the_subscription, alarmNodeId, function() {
             callback();
         });
     },
 
 
-    function (callback) {
+    function(callback) {
         console.log("Starting timer ", timeout);
         let timerId;
         if (timeout > 0) {
-            timerId = setTimeout(function () {
+            timerId = setTimeout(function() {
                 if (!the_subscription) {
                     return callback();
                 }
-                the_subscription.once("terminated", function () {
+                the_subscription.once("terminated", function() {
                     callback();
                 });
-                the_subscription.terminate(function () { });
+                the_subscription.terminate(function() { });
             }, timeout);
 
             // simulate a connection break at t =timeout/2
-            setTimeout(function () {
+            setTimeout(function() {
 
                 console.log(chalk.red.bgWhite("  -------------------------------------------------------------------- "));
                 console.log(chalk.red.bgWhite("  --                               SIMULATE CONNECTION BREAK        -- "));
@@ -883,19 +880,19 @@ async.series([
     },
 
 
-    function (callback) {
+    function(callback) {
         console.log(" closing session");
-        the_session.close(function (err) {
+        the_session.close(function(err) {
             // console.log(" session closed", err);
             callback();
         });
     },
 
-    function (callback) {
+    function(callback) {
         console.log(" Calling disconnect");
         client.disconnect(callback);
     }
-], function (err) {
+], function(err) {
 
     console.log(chalk.cyan(" disconnected"));
 
@@ -908,7 +905,7 @@ async.series([
     }
     // force disconnection
     if (client) {
-        client.disconnect(function () {
+        client.disconnect(function() {
             const exit = require("exit");
             console.log("Exiting");
             exit();
@@ -916,12 +913,12 @@ async.series([
     }
 });
 
-process.on("error", function (err) {
+process.on("error", function(err) {
 
     console.log(" UNTRAPPED ERROR", err.message);
 });
 let user_interruption_count = 0;
-process.on("SIGINT", function () {
+process.on("SIGINT", function() {
 
     console.log(" user interuption ...");
 
@@ -934,7 +931,7 @@ process.on("SIGINT", function () {
         console.log(chalk.red.bold(" Received client interruption from user "));
         console.log(chalk.red.bold(" shutting down ..."));
 
-        the_subscription.terminate(function () { });
+        the_subscription.terminate(function() { });
         the_subscription = null;
     }
 });
