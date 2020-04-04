@@ -135,6 +135,14 @@ const paths = envPaths(productUri);
   const configFolder = paths.config;
   const certificateFolder = path.join(configFolder);
   const pkiFolder = path.join(configFolder, "pki");
+  const userPkiFolder = path.join(configFolder, "userPki");
+
+  const userCertificateManager = new OPCUACertificateManager({
+    automaticallyAcceptUnknownCertificate: false,
+    name: "userPki",
+    rootFolder: userPkiFolder,
+  });
+  await userCertificateManager.initialize();
 
   const serverCertificateManager = new OPCUACertificateManager({
     automaticallyAcceptUnknownCertificate: true,
@@ -168,6 +176,8 @@ const paths = envPaths(productUri);
   const server_options = {
 
     serverCertificateManager,
+    userCertificateManager,
+
     certificateFile,
     privateKeyFile,
 
@@ -205,6 +215,7 @@ const paths = envPaths(productUri);
       }
     },
     userManager: userManager,
+
 
     isAuditing: false,
     //xx registerServerMethod: RegisterServerMethod.HIDDEN,
@@ -471,6 +482,10 @@ const paths = envPaths(productUri);
   console.log(chalk.yellow("  Certificate trusted folder  "), server.serverCertificateManager.trustedFolder);
   console.log(chalk.yellow("  Server private key          "), server.serverCertificateManager.privateKey);
   console.log(chalk.yellow("  Server public key           "), server.certificateFile);
+  console.log(chalk.yellow("  X509 User rejected folder   "), server.userCertificateManager.trustedFolder);
+  console.log(chalk.yellow("  X509 User trusted folder    "), server.userCertificateManager.rejectedFolder);
+
+
 
   console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
