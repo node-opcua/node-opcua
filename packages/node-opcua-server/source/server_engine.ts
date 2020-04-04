@@ -1889,9 +1889,6 @@ export class ServerEngine extends EventEmitter {
         console.log("                        ", err.stack);
         return new DataValue({ statusCode: StatusCodes.BadInternalError });
       }
-
-      // Xx console.log(dataValue.toString());
-
       dataValue = apply_timestamps(dataValue, timestampsToReturn, attributeId);
 
       return dataValue;
