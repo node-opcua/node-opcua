@@ -171,6 +171,7 @@ function _add_variable(namespace, parent, varName, dataTypeName, current_value, 
         dataType: varName,
         valueRank: isArray ? 1 : -1,
         accessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
+        userAccessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
         value: variant
     });
     variable._backdoor_placeholder = placeholder;
@@ -556,8 +557,8 @@ function add_access_right_variables(namespace, parentFolder) {
         dataType: "Int32",
         valueRank: -1,
 
-        accessLevel: "CurrentRead",
-        userAccessLevel: "CurrentRead",
+        accessLevel: makeAccessLevelFlag("CurrentRead"),
+        userAccessLevel: makeAccessLevelFlag("CurrentRead"),
 
         value: new Variant({
             dataType: DataType.Int32,
@@ -574,8 +575,8 @@ function add_access_right_variables(namespace, parentFolder) {
         nodeId: "s=" + name,
         dataType: "Int32",
         valueRank: -1,
-        accessLevel: "CurrentWrite",
-        userAccessLevel: "CurrentWrite",
+        accessLevel: makeAccessLevelFlag("CurrentWrite"),
+        userAccessLevel: makeAccessLevelFlag("CurrentWrite"),
         value: {}
 
     });
@@ -589,9 +590,8 @@ function add_access_right_variables(namespace, parentFolder) {
         dataType: "Int32",
         valueRank: -1,
 
-        accessLevel: "CurrentRead",
-
-        userAccessLevel: "",
+        accessLevel: makeAccessLevelFlag("CurrentRead"),
+        userAccessLevel: makeAccessLevelFlag(""),
 
         value: new Variant({
             dataType: DataType.Int32,
@@ -609,9 +609,8 @@ function add_access_right_variables(namespace, parentFolder) {
         dataType: "Int32",
         valueRank: -1,
 
-        accessLevel: "CurrentWrite | CurrentRead",
-
-        userAccessLevel: "CurrentRead",
+        accessLevel: makeAccessLevelFlag("CurrentWrite | CurrentRead"),
+        userAccessLevel: makeAccessLevelFlag("CurrentRead"),
 
         value: new Variant({
             dataType: DataType.Int32,
