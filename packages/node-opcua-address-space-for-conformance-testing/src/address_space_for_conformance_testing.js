@@ -15,6 +15,10 @@ const fs = require("fs");
 const { coerceNodeId, makeNodeId } = require("node-opcua-nodeid");
 const { StatusCodes } = require("node-opcua-status-code");
 const { AddressSpace, Namespace } = require("node-opcua-address-space");
+const {
+    AccessLevelFlag,
+    makeAccessLevelFlag
+} = require("node-opcua-data-model");
 
 const {
     Variant,
@@ -166,14 +170,13 @@ function _add_variable(namespace, parent, varName, dataTypeName, current_value, 
         nodeId: nodeId,
         dataType: varName,
         valueRank: isArray ? 1 : -1,
+        accessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
         value: variant
     });
     variable._backdoor_placeholder = placeholder;
     return variable;
 }
 
-const AccessLevelFlag = require("node-opcua-data-model").AccessLevelFlag;
-const coerceAccessLevelFlag = require("node-opcua-data-model").coerceAccessLevelFlag;
 
 function add_variable(namespace, parent, name, realType, default_value, extra_name) {
 
@@ -626,9 +629,8 @@ function add_access_right_variables(namespace, parentFolder) {
         dataType: "Int32",
         valueRank: -1,
 
-        accessLevel: "CurrentRead",
-
-        userAccessLevel: "CurrentRead",
+        accessLevel: makeAccessLevelFlag("CurrentRead"),
+        userAccessLevel: makeAccessLevelFlag("CurrentRead"),
 
         value: new Variant({
             dataType: DataType.Int32,
@@ -647,9 +649,8 @@ function add_access_right_variables(namespace, parentFolder) {
         dataType: "Int32",
         valueRank: -1,
 
-        accessLevel: "CurrentWrite",
-
-        userAccessLevel: "CurrentWrite",
+        accessLevel: makeAccessLevelFlag("CurrentWrite"),
+        userAccessLevel: makeAccessLevelFlag("CurrentWrite"),
 
         value: new Variant({
             dataType: DataType.Int32,
@@ -667,8 +668,8 @@ function add_access_right_variables(namespace, parentFolder) {
         dataType: "Int32",
         valueRank: -1,
 
-        accessLevel: "",
-        userAccessLevel: "",
+        accessLevel: makeAccessLevelFlag(""),
+        userAccessLevel: makeAccessLevelFlag(""),
 
         value: new Variant({
             dataType: DataType.Int32,
@@ -986,7 +987,7 @@ function add_analog_data_items(namespace, parentFolder) {
             value: new Variant({
                 arrayType: VariantArrayType.Array,
                 dataType: DataType[dataType],
-                value: [initialValue, initialValue, initialValue, initialValue, initialValue    ]
+                value: [initialValue, initialValue, initialValue, initialValue, initialValue]
             })
         });
 

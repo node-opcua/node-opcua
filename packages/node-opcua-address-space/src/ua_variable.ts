@@ -441,18 +441,20 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         if (!this.refreshFunc) {
             // no refresh func
             const dataValue = this.readValue();
+            dataValue.serverTimestamp = oldestDate;
+            dataValue.serverPicoseconds = 0;
             if (oldestDate.getTime() <= dataValue.serverTimestamp!.getTime()) {
                 return callback(null, dataValue);
             } else {
                 // fake
-                dataValue.serverTimestamp = oldestDate;
-                dataValue.serverPicoseconds = 0;
                 return callback(null, dataValue);
             }
         }
 
         if (this._dataValue.serverTimestamp && (oldestDate.getTime() <= this._dataValue.serverTimestamp!.getTime())) {
             const dataValue = this.readValue();
+            dataValue.serverTimestamp = oldestDate;
+            dataValue.serverPicoseconds = 0;
             return callback(null, dataValue);
         }
 

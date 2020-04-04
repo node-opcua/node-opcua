@@ -1768,7 +1768,7 @@ describe("testing ServerEngine", () => {
             const old_setInterval = setInterval;
             clock = sinon.useFakeTimers(new Date(2000, 11, 25, 0, 0, 0));
             timerId = old_setInterval(() => {
-                clock.tick(1000);
+                clock.tick(2000);
             }, 100);
         });
         afterEach(function() {
@@ -1777,7 +1777,36 @@ describe("testing ServerEngine", () => {
             clearInterval(timerId);
         });
 
-        it("should not cause dataValue to be refreshed if maxAge is greater than available dataValue", async () => {
+        async function pause(ms) {
+            await new Promise((resolve) => setTimeout(resolve, ms));
+        }
+        async function when_I_read_the_value_with_max_age(nodeId, maxAge) {
+
+            await pause(100);
+            clock.tick(1000);
+            return await new Promise((resolve, reject) => {
+                const readRequest = new ReadRequest({
+                    timestampsToReturn: TimestampsToReturn.Both,
+                    nodesToRead: [
+                        new ReadValueId({
+                            nodeId,
+                            attributeId: AttributeIds.Value
+                        })
+                    ]
+                });
+
+                engine.refreshValues(readRequest.nodesToRead, maxAge, function(err) {
+                    if (!err) {
+                        const dataValues = engine.read(context, readRequest);
+                        return resolve(dataValues[0]);
+                    }
+                    return reject(err);
+                });
+            });
+        }
+
+
+        it("MAXA-1 qshould not cause dataValue to be refreshed if maxAge is greater than available dataValue", async () => {
 
             const ns = engine.addressSpace.getOwnNamespace();
             const nodeId = "ns=1;s=MyVar";
@@ -1803,34 +1832,11 @@ describe("testing ServerEngine", () => {
                 refreshFuncSpy = sinon.spy(variable, "refreshFunc");
             }
 
-            async function when_I_read_the_value_with_max_age(maxAge) {
-
-                return await new Promise((resolve, reject) => {
-                    const readRequest = new ReadRequest({
-                        timestampsToReturn: TimestampsToReturn.Both,
-                        nodesToRead: [
-                            new ReadValueId({
-                                nodeId,
-                                attributeId: AttributeIds.Value
-                            })
-                        ]
-                    });
-
-                    engine.refreshValues(readRequest.nodesToRead, maxAge, function(err) {
-                        if (!err) {
-                            const dataValues = engine.read(context, readRequest);
-                            return resolve(dataValues[0]);
-                        }
-                        return reject(err);
-                    });
-                });
-            }
-
 
             given_a_variable_that_have_asyn_refresh();
 
             {
-                const dataValue = await when_I_read_the_value_with_max_age(0);
+                const dataValue = await when_I_read_the_value_with_max_age(nodeId, 0);
                 //xx console.log(dataValue.toString());
                 dataValue.value.value.should.eql(1);
                 refreshFuncSpy.callCount.should.eql(1);
@@ -1838,7 +1844,7 @@ describe("testing ServerEngine", () => {
                 refreshFuncSpy.callCount.should.eql(0);
             }
             {
-                const dataValue1 = await when_I_read_the_value_with_max_age(4000);
+                const dataValue1 = await when_I_read_the_value_with_max_age(nodeId, 4000);
                 //xx console.log(dataValue1.toString());
                 dataValue1.value.value.should.eql(1);
                 refreshFuncSpy.callCount.should.eql(0);
@@ -1846,7 +1852,7 @@ describe("testing ServerEngine", () => {
             {
 
                 await new Promise((resolve) => setTimeout(resolve, 2000));
-                const dataValue2 = await when_I_read_the_value_with_max_age(500);
+                const dataValue2 = await when_I_read_the_value_with_max_age(nodeId, 500);
                 //xx console.log(dataValue2.toString());
                 dataValue2.value.value.should.eql(2);
                 refreshFuncSpy.callCount.should.eql(1);
@@ -1854,12 +1860,51 @@ describe("testing ServerEngine", () => {
             {
 
                 await new Promise((resolve) => setTimeout(resolve, 2000));
-                const dataValue3 = await when_I_read_the_value_with_max_age(0);
+                const dataValue3 = await when_I_read_the_value_with_max_age(nodeId, 0);
                 //xx console.log(dataValue3.toString());
                 dataValue3.value.value.should.eql(3);
                 refreshFuncSpy.callCount.should.eql(2);
             }
 
+
+        });
+        it("MAXA-2 should set serverTimestamp to current time on none updated variable ", async () => {
+
+
+            const ns = engine.addressSpace.getOwnNamespace();
+            const nodeId = "ns=1;s=MyVar2";
+            function given_a_static_variable() {
+                const variable = ns.addVariable({ browseName: "SomeVarX", dataType: "Double", nodeId });
+                variable.setValueFromSource({ dataType: "Double", value: 42 });
+            }
+
+            given_a_static_variable();
+
+            const dataValue = await when_I_read_the_value_with_max_age(nodeId, 0);
+            const refSourceTimestamp = dataValue.sourceTimestamp.getTime();
+            //xx console.log(dataValue.toString());
+            dataValue.value.value.should.eql(42);
+
+            await pause(100);
+            const dataValue1 = await when_I_read_the_value_with_max_age(nodeId, 4000);
+            //xx console.log(dataValue1.toString());
+            dataValue1.value.value.should.eql(42);
+            dataValue1.serverTimestamp.getTime().should.be.greaterThan(dataValue.serverTimestamp.getTime());
+            dataValue1.sourceTimestamp.getTime().should.eql(refSourceTimestamp);
+
+            await pause(2000);
+            const dataValue2 = await when_I_read_the_value_with_max_age(nodeId, 500);
+            //xx console.log(dataValue2.toString());
+            dataValue2.value.value.should.eql(42);
+            dataValue2.serverTimestamp.getTime().should.be.greaterThan(dataValue1.serverTimestamp.getTime());
+            dataValue2.sourceTimestamp.getTime().should.eql(refSourceTimestamp);
+
+            await pause(2000);
+            const dataValue3 = await when_I_read_the_value_with_max_age(nodeId, 0);
+            //xx console.log(dataValue3.toString());
+            dataValue3.value.value.should.eql(42);
+            dataValue3.serverTimestamp.getTime().should.be.greaterThan(dataValue2.serverTimestamp.getTime());
+            dataValue3.sourceTimestamp.getTime().should.eql(refSourceTimestamp);
 
         });
     });

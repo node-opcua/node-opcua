@@ -423,27 +423,28 @@ export function apply_timestamps(
       cloneDataValue = cloneDataValue || _partial_clone(dataValue);
       cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
       cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-      if (!cloneDataValue.serverTimestamp) {
-        now = now || getCurrentClock();
-        cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-        cloneDataValue.serverPicoseconds = now.picoseconds;
-      }
+      // xx if (!cloneDataValue.serverTimestamp) {
+      now = now || getCurrentClock();
+      cloneDataValue.serverTimestamp = now.timestamp as DateTime;
+      cloneDataValue.serverPicoseconds = now.picoseconds;
+      // xx }
       break;
     case TimestampsToReturn.Source:
       cloneDataValue = cloneDataValue || _partial_clone(dataValue);
       cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
       cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
       break;
+    case TimestampsToReturn.Both:
     default:
       assert(timestampsToReturn === TimestampsToReturn.Both);
       cloneDataValue = cloneDataValue || _partial_clone(dataValue);
       cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
       cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-      if (!cloneDataValue.serverTimestamp) {
-        now = now || getCurrentClock();
-        cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-        cloneDataValue.serverPicoseconds = now.picoseconds;
-      }
+      //xx if (!cloneDataValue.serverTimestamp) {
+      now = now || getCurrentClock();
+      cloneDataValue.serverTimestamp = now.timestamp as DateTime;
+      cloneDataValue.serverPicoseconds = now.picoseconds;
+      //xx }
       cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
       cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
       break;
