@@ -25,7 +25,11 @@ export enum WriteMask {
     UserWriteMask = (1 << 18), // Indicates if the UserWriteMask Attribute is writable.
     ValueRank = (1 << 19), // Indicates if the ValueRank Attribute is writable.
     WriteMask = (1 << 20), // Indicates if the WriteMask Attribute is writable.
-    ValueForVariableType = (1 << 21)  // Indicates if the Value Attribute is writable for a VariableType.
+    ValueForVariableType = (1 << 21),  // Indicates if the Value Attribute is writable for a VariableType.
+    DataTypeDefinition = (1 << 22), /// Indicates if the DataTypeDefinition Attribute is writable.
+    RolePermissions = (1 << 23), // Indicates if the RolePermissions Attribute is writable.
+    AccessRestrictions = (1 << 24),// Indicates if the AccessRestrictions Attribute is writable.
+    AccessLevelEx = (1 << 25),// Indicates if the AccessLevelEx Attribute is writable.
     // It does not apply for
     // Variables since this is handled by the AccessLevel and UserAccessLevel
     // Attributes for the Variable. For Variables this bit shall be set to 0.
