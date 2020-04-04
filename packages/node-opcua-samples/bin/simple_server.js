@@ -144,7 +144,7 @@ const paths = envPaths(productUri);
 
   await serverCertificateManager.initialize();
 
-  const certificateFile = path.join(pkiFolder, `server_certificate.pem`);
+  const certificateFile = path.join(pkiFolder, `server_certificate1.pem`);
   const privateKeyFile = serverCertificateManager.privateKey;
   assert(fs.existsSync(privateKeyFile), "expecting private key");
 
@@ -157,7 +157,7 @@ const paths = envPaths(productUri);
       dns: argv.alternateHostname ? [argv.alternateHostname, fqdn] : [fqdn],
       ip: await getIpAddresses(),
       outputFile: certificateFile,
-      subject: "/CN=Sterfive/L=France/DC=Test",
+      subject: "/CN=Sterfive/DC=Test",
       startDate: new Date(),
       validity: 365 * 10,
     })
