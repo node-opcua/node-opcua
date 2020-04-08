@@ -271,14 +271,12 @@ async function _getAllEventTypes(session: ClientSession, baseNodeId: NodeId, tre
     };
     const browseResult = await session.browse(browseDesc1);
 
-    const promises = [];
     // to do continuation points
     for (const reference of browseResult.references!) {
         const subtree = { nodeId: reference.nodeId.toString() };
         tree[reference.browseName.toString()] = subtree;
-        promises.push(_getAllEventTypes(session, reference.nodeId, subtree));
+        await _getAllEventTypes(session, reference.nodeId, subtree);
     }
-    await Promise.all(promises);
 }
 
 /**
