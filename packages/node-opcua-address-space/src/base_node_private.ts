@@ -73,7 +73,7 @@ export function BaseNode_removePrivate(self: BaseNode): void {
 export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
     return g_weakMap.get(self);
 }
-
+    
 const hasTypeDefinition_ReferenceTypeNodeId = resolveNodeId("HasTypeDefinition");
 
 export interface ToStringOption {

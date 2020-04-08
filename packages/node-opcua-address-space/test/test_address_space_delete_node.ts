@@ -2,7 +2,14 @@ import {
     AddressSpace,
     getMiniAddressSpace,
     Namespace,
+    UAObject,
+    UAObjectType,
+    UADiscreteAlarm,
+    generateAddressSpace,
+    ensureDatatypeExtracted,
 } from "..";
+import { DataType } from "node-opcua-variant";
+import { nodesets } from "node-opcua-nodesets";
 
 describe("AddressSpace#delete", () => {
     let addressSpace: AddressSpace;
@@ -70,4 +77,114 @@ describe("AddressSpace#delete", () => {
         parentNode.getComponents().length.should.eql(0);
 
     });
+});
+
+describe("AddressSpace#deleteNode", () => {
+
+    let addressSpace: AddressSpace;
+    let namespace: Namespace;
+
+    function _createXXXXAlarm(
+        deviceNode: UAObject,
+        alarmType: UAObjectType,
+        browseName: string
+    ): UADiscreteAlarm {
+
+        const deviceHealthNode = (deviceNode as any).deviceHealth;
+        if (!deviceHealthNode) {
+            throw new Error("DeviceHealth must exist");
+        }
+        const deviceHealthAlarms = (deviceNode as any).deviceHealthAlarms;
+        if (!deviceHealthAlarms) {
+            throw new Error("deviceHealthAlarms must exist");
+        }
+
+        (alarmType as any).isAbstract = false;
+
+        if (alarmType.isAbstract) {
+            throw new Error("Alarm Type cannot be abstract " + alarmType.browseName.toString());
+        }
+        (deviceNode as any).eventNotifier = 1;
+
+        const options = {
+            browseName,
+            componentOf: deviceHealthAlarms,
+            conditionSource: deviceNode,
+            inputNode: deviceHealthNode,
+            // normalState: normalStateNode,
+            optionals: [
+                "ConfirmedState",
+                "Confirm"
+            ]
+        };
+        const alarmNode = namespace.instantiateAlarmCondition(
+            alarmType,
+            options,
+            null);
+
+        alarmNode.conditionName.setValueFromSource({
+            dataType: DataType.String,
+            value: browseName.replace("Alarm", "")
+        });
+
+        // install inputNode Node monitoring for change
+        alarmNode._installInputNodeMonitoring(options.inputNode);
+        alarmNode.activeState.setValue(false);
+
+        return alarmNode;
+    }
+
+    function createDeviceNodeWithAlarm(nodeId: string) {
+
+        const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+        if (nsDI < 0) {
+            throw new Error("Cannot find DI namespace!");
+        }
+        const checkFunctionAlarmType = addressSpace.findEventType("CheckFunctionAlarmType", nsDI)!;
+
+        const deviceNode = namespace.addObject({
+            browseName: "A",
+            eventSourceOf: addressSpace.rootFolder.objects.server,
+            nodeId,
+            organizedBy: addressSpace.rootFolder.objects,
+        });
+        const deviceHealth = namespace.addVariable({
+            browseName: "DeviceHealth",
+            componentOf: deviceNode,
+            dataType: "Int32",
+        });
+        const deviceHealthAlarms = namespace.addObject({
+            browseName: "DeviceHealthAlarms",
+            componentOf: deviceNode,
+        })
+        _createXXXXAlarm(deviceNode, checkFunctionAlarmType, "CheckFunctionAlarm");
+
+        return deviceNode;
+    }
+
+    before(async () => {
+        addressSpace = AddressSpace.create();
+        const namespace0 = addressSpace.getDefaultNamespace();
+
+        await generateAddressSpace(addressSpace, [
+            nodesets.standard,
+            nodesets.di,
+            nodesets.autoId,
+        ]);
+        await ensureDatatypeExtracted(addressSpace);
+        namespace = addressSpace.getOwnNamespace();
+    });
+
+    after(() => {
+        addressSpace.dispose();
+    });
+
+    it("YUYU mshould create an alarm and delete it", () => {
+
+        const deviceNode = createDeviceNodeWithAlarm("s=Test");
+        addressSpace.deleteNode(deviceNode);
+        const deviceNodeAgain = createDeviceNodeWithAlarm("s=Test");
+        addressSpace.deleteNode(deviceNodeAgain);
+    });
+
 });
