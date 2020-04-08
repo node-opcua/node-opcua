@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-write",
-    "version": "2.5.4",
+    "version": "2.5.5",
     "description": "pure nodejs OPCUA SDK - module -service-write",
     "scripts": {
         "test": "mocha test",
@@ -12,22 +12,22 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "^2.5.1",
-        "node-opcua-basic-types": "^2.5.2",
+        "node-opcua-basic-types": "^2.5.5",
         "node-opcua-binary-stream": "^2.5.1",
-        "node-opcua-data-value": "^2.5.4",
-        "node-opcua-factory": "^2.5.2",
+        "node-opcua-data-value": "^2.5.5",
+        "node-opcua-factory": "^2.5.5",
         "node-opcua-nodeid": "^2.5.2",
-        "node-opcua-numeric-range": "^2.5.2",
-        "node-opcua-service-secure-channel": "^2.5.4",
-        "node-opcua-types": "^2.5.4",
+        "node-opcua-numeric-range": "^2.5.5",
+        "node-opcua-service-secure-channel": "^2.5.5",
+        "node-opcua-types": "^2.5.5",
         "underscore": "^1.9.2"
     },
     "devDependencies": {
-        "node-opcua-common": "^2.5.4",
-        "node-opcua-data-model": "^2.5.2",
-        "node-opcua-generator": "^2.5.4",
-        "node-opcua-packet-analyzer": "^2.5.2",
-        "node-opcua-variant": "^2.5.2",
+        "node-opcua-common": "^2.5.5",
+        "node-opcua-data-model": "^2.5.5",
+        "node-opcua-generator": "^2.5.5",
+        "node-opcua-packet-analyzer": "^2.5.5",
+        "node-opcua-variant": "^2.5.5",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
