@@ -328,8 +328,10 @@ async function _extractDataTypeDictionaryFromDefinition(
     }
     for (const { className, dataTypeNodeId, dataTypeDefinition } of dataTypeDefinitionsSorted) {
 
-        console.log(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
-
+        // istanbul ignore next
+        if (doDebug) {
+            console.log(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
+        }
         if (dataTypeFactory.hasStructuredType(className)) {
             continue; // this structure has already been seen
         }
@@ -616,6 +618,8 @@ async function getHasEncodingDefaultBinary(
     /* istanbul ignore next */
     if (!(result1.references && result1.references.length === 1)) {
 
+        // may be dataTypeNodeId is not a dataType, 
+        // let's verify this.
         const nodeClass = await session.read({
             attributeId: AttributeIds.NodeClass,
             nodeId: dataTypeNodeId
@@ -630,7 +634,7 @@ async function getHasEncodingDefaultBinary(
         console.log("nodeClass  :", NodeClass[nodeClass.value.value]);
         console.log("browseName :", browseName.toString());
         console.log(result1.toString());
-        throw new Error("getDataTypeDefinition invalid HasEncoding reference");
+        throw new Error("getDataTypeDefinition invalid HasEncoding reference dataTypeNodeId must be NodeClass.DataType but was " + NodeClass[nodeClass.value.value]);
     }
 
     const encodingReference = result1.references![0]!;
