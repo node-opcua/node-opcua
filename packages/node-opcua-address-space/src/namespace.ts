@@ -109,23 +109,43 @@ const regExpNamespaceDotBrowseName = /^[0-9]+:(.*)/;
 function detachNode(node: BaseNode) {
     const addressSpace = node.addressSpace;
 
-    const hierarchicalReferences = node.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse);
-    // delete references in Parent object that points to this object
-    for (const ref of hierarchicalReferences) {
+    // console.log("detachNode", node.browseName.toString(), node.nodeId.toString());
+
+    const nonHierarchicalReferences = node.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Inverse);
+    for (const ref of nonHierarchicalReferences) {
+
+        //        console.log("removing ", ref.toString({ addressSpace }));
         assert(!ref.isForward);
-        const parent = addressSpace.findNode(ref.nodeId)! as BaseNode;
-        parent.removeReference({
+        ref.node!.removeReference({
+            isForward: !ref.isForward,
+            nodeId: node.nodeId,
+            referenceType: ref.referenceType
+        });
+    }
+    const nonHierarchicalReferencesF = node.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Forward);
+    for (const ref of nonHierarchicalReferencesF) {
+
+        // console.log("removing ", ref.toString({ addressSpace }));
+        if (!ref.node) {
+            // could be a special case of a frequently use traget node such as ModellingRule_Mandatory that do not back trace
+            // their reference 
+            // console.log("!!!!!!!!!!!!!!!!!!!!", ref.nodeId.toString());
+            continue;
+        }
+        assert(ref.isForward);
+        ref.node!.removeReference({
             isForward: !ref.isForward,
             nodeId: node.nodeId,
             referenceType: ref.referenceType
         });
     }
 
-    // delete references in Parent object that points to this object
-    const nonHierarchicalReferences = node.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Inverse);
-    for (const ref of nonHierarchicalReferences) {
+    // remove reversed Hierarchical references
+    const hierarchicalReferences = node.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse);
+    for (const ref of hierarchicalReferences) {
         assert(!ref.isForward);
-        ref.node!.removeReference({
+        const parent = addressSpace.findNode(ref.nodeId)! as BaseNode;
+        parent.removeReference({
             isForward: !ref.isForward,
             nodeId: node.nodeId,
             referenceType: ref.referenceType
@@ -663,6 +683,8 @@ export class UANamespace implements NamespacePublic {
      *
      */
     public deleteNode(nodeOrNodeId: NodeId | BaseNode): void {
+
+
         let node: BaseNode | null = null;
         let nodeId: NodeId = NodeId.nullNodeId;
         if (nodeOrNodeId instanceof NodeId) {
@@ -676,6 +698,7 @@ export class UANamespace implements NamespacePublic {
             node = nodeOrNodeId;
             nodeId = node.nodeId;
         }
+        // console.log("deleteNode", node?.toString());
         if (nodeId.namespace !== this.index) {
             throw new Error("this node doesn't belong to this namespace");
         }
@@ -705,12 +728,12 @@ export class UANamespace implements NamespacePublic {
             // TODO : a better idea would be to extract any references of type "HasChild"
             const components = node.findReferences("HasComponent", true);
             const properties = node.findReferences("HasProperty", true);
-
             // TODO: shall we delete nodes pointed by "Organizes" links here ?
             const subfolders = node.findReferences("Organizes", true);
-            const rf = ([] as UAReferencePublic[]).concat(components, properties, subfolders);
 
-            rf.forEach(deleteNodePointedByReference);
+            for (const r of components) { deleteNodePointedByReference(r); }
+            for (const r of properties) { deleteNodePointedByReference(r); }
+            for (const r of subfolders) { deleteNodePointedByReference(r); }
 
             _handle_delete_node_model_change_event(node);
 

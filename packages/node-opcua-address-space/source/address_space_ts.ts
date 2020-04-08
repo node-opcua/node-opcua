@@ -93,6 +93,8 @@ export interface UAReference {
     readonly isForward: boolean;
 
     readonly node?: BaseNode;
+
+    toString(options?: { addressSpace?: AddressSpace }): string;
 }
 
 export declare function resolveReferenceType(
@@ -1022,7 +1024,7 @@ export enum EUEngineeringUnit {
     // to be continued
 }
 
-export type ModellingRuleType = "Mandatory" | "Optional" | null;
+export type ModellingRuleType = "Mandatory" | "Optional" | "MandatoryPlaceholder" | "OptionalPlaceholder" | "ExposesItsArray" | null;
 
 export interface AddBaseNodeOptions {
     browseName: QualifiedNameLike;

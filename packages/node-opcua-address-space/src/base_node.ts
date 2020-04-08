@@ -947,6 +947,9 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         assert(referencOpts.hasOwnProperty("nodeId"));
 
         const addressSpace: AddressSpacePrivate = this.addressSpace;
+        if (!addressSpace) {
+            console.log(" Where is addressSpace ?");
+        }
         const reference = addressSpace.normalizeReferenceTypes([referencOpts!])![0];
         const h = reference.hash;
 
@@ -965,7 +968,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         } else if (_private._back_referenceIdx[h]) {
             (relatedNode as any).removeReference(invReference);
         } else {
-            throw new Error("Cannot find reference " + reference);
+            //            throw new Error("Cannot find reference " + reference);
         }
 
         _handle_HierarchicalReference(this, reference);
