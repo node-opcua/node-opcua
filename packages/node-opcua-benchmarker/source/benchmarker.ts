@@ -7,6 +7,7 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import { format } from "url";
 
 export interface IPerformanceData {
     message: string;
@@ -26,25 +27,27 @@ export interface IRunOptions {
     min_count?: number;
 }
 
+export type TestFunctionSync = () => void;
+export type TestFunctionAsync = () => Promise<void>;
+export type TestFunction = TestFunctionSync | TestFunctionAsync;
 export interface ITestRun {
     name: string;
-    functor: () => void;
+    functor: TestFunction;
     result?: IPerformanceData;
 }
 
-function measure_cycle(func: () => void): number {
+async function measure_cycle(func: TestFunction): Promise<number> {
     const start = process.hrtime(); // tuple [second, nanosecond]
-    func();
+    await func();
     const elapsed = process.hrtime(start);
     return elapsed[0] + elapsed[1] / 1000000000;
 }
 
 export interface IBenchmarkerEvent {
-    on(event: "completed", listener: () => void): this;
+    on(event: "completed", listener: (this: Benchmarker, fastest: ITestRun, speedUp: number) => void): this;
 
     on(event: "cycle", listener: (message: string) => void): this;
 }
-
 export class Benchmarker extends EventEmitter implements IBenchmarkerEvent {
 
     /**
@@ -76,7 +79,7 @@ export class Benchmarker extends EventEmitter implements IBenchmarkerEvent {
      * @param name name of the tests
      * @param func the code that need to be stress
      */
-    public add(name: string, func: () => void): Benchmarker {
+    public add(name: string, func: TestFunction): Benchmarker {
         assert(_.isFunction(func));
         this.suites[name] = {
             functor: func,
@@ -89,15 +92,15 @@ export class Benchmarker extends EventEmitter implements IBenchmarkerEvent {
      * run the benchmark
      * @param options
      */
-    public run(options?: IRunOptions) {
+    public async run(options?: IRunOptions) {
 
         options = options || {};
         options.max_time = !options.max_time ? 0.5 : options.max_time;
         options.min_count = options.min_count || 5;
 
-        _.each(this.suites, (test) => {
-            test.result = this.measure_perf(test.name, test.functor, options!);
-        });
+        for (const test of Object.values(this.suites)) {
+            test.result = await this.measure_perf(test.name, test.functor, options!);
+        }
 
         // find fastest
         this.fastest = _.max(this.suites, (bench: ITestRun) => {
@@ -109,7 +112,7 @@ export class Benchmarker extends EventEmitter implements IBenchmarkerEvent {
 
         this.speedUp = Math.floor(this.fastest!.result!.ops / this.slowest!.result!.ops);
 
-        this.emit("complete");
+        this.emit("complete", this.fastest, this.speedUp);
 
         return this;
     }
@@ -121,14 +124,14 @@ export class Benchmarker extends EventEmitter implements IBenchmarkerEvent {
      * @param options
      * @internal
      */
-    private measure_perf(name: string, func: () => void, options: IRunOptions): IPerformanceData {
+    private async  measure_perf(name: string, func: TestFunction, options: IRunOptions): Promise<IPerformanceData> {
         assert(_.isFunction(func));
         let totalTime = 0;
         let count = 0;
         const maxTime = !options.max_time ? 0.5 : options.max_time;
         const minCount = options.min_count || 5;
         while (totalTime < maxTime || count < minCount) {
-            totalTime += measure_cycle(func);
+            totalTime += await measure_cycle(func);
             count += 1;
         }
         const ops = count / totalTime;
