@@ -45,7 +45,7 @@ import { UAReferenceType } from "../ua_reference_type";
 import { UAVariable } from "../ua_variable";
 import { UAVariableType } from "../ua_variable_type";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
-
+const defaultAccessLevel = 3;
 function _hash(node: BaseNode | Reference): string {
     return (node.nodeId.toString());
 }
@@ -722,6 +722,13 @@ function dumpUAVariable(
             // xx const dataTypeName = dataTypeNode.browseName.toString();
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
             xw.writeAttribute("DataType", dataTypeName);
+        }
+
+        if(node.accessLevel !== defaultAccessLevel){
+            xw.writeAttribute("AccessLevel", node.accessLevel);
+        }
+        if(node.userAccessLevel !=  defaultAccessLevel){
+            xw.writeAttribute("UserAccessLevel", node.accessLevel);
         }
     }
     {
