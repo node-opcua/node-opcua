@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-node-management",
-    "version": "2.5.5",
+    "version": "2.5.6",
     "description": "pure nodejs OPCUA SDK - module -service-node-management",
     "scripts": {
         "build": "tsc -b",
@@ -12,18 +12,18 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "^2.5.1",
-        "node-opcua-basic-types": "^2.5.5",
-        "node-opcua-binary-stream": "^2.5.1",
-        "node-opcua-data-model": "^2.5.5",
-        "node-opcua-extension-object": "^2.5.5",
-        "node-opcua-factory": "^2.5.5",
-        "node-opcua-nodeid": "^2.5.2",
-        "node-opcua-service-secure-channel": "^2.5.5",
-        "node-opcua-types": "^2.5.5",
+        "node-opcua-basic-types": "^2.5.6",
+        "node-opcua-binary-stream": "^2.5.6",
+        "node-opcua-data-model": "^2.5.6",
+        "node-opcua-extension-object": "^2.5.6",
+        "node-opcua-factory": "^2.5.6",
+        "node-opcua-nodeid": "^2.5.6",
+        "node-opcua-service-secure-channel": "^2.5.6",
+        "node-opcua-types": "^2.5.6",
         "underscore": "^1.9.2"
     },
     "devDependencies": {
-        "node-opcua-generator": "^2.5.5"
+        "node-opcua-generator": "^2.5.6"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
