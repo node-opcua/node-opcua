@@ -2155,6 +2155,15 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         dataTypeNodeId: NodeId
     ): Promise<AnyConstructorFunc> {
 
+        const privateThis = this as any;
+
+        if (!privateThis.dataTypeConstructor) {
+            privateThis.dataTypeConstructor = {};
+        }
+        const c = privateThis.dataTypeConstructor[dataTypeNodeId.toString()];
+        if (c) {
+            return c as AnyConstructorFunc;
+        }
         await this.extractNamespaceDataType();
         const sessionPriv: any = this as any;
         if (!sessionPriv.$$extraDataTypeManager) {
@@ -2166,7 +2175,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const schema = await getDataTypeDefinition(this, dataTypeNodeId, extraDataTypeManager);
 
         // now resolve it
-        return extraDataTypeManager.getExtensionObjectConstructorFromDataType(dataTypeNodeId);
+        const constructor = extraDataTypeManager.getExtensionObjectConstructorFromDataType(dataTypeNodeId);
+
+        // put it in cache
+        privateThis.dataTypeConstructor[dataTypeNodeId.toString()] = constructor;
+        return constructor;
     }
 
     /**
