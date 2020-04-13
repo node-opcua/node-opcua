@@ -134,7 +134,7 @@ export class QualifiedName extends BaseUAObject {
 QualifiedName.prototype.schema = QualifiedName.schema;
 // not an extension object registerClassDefinition("QualifiedName", QualifiedName);
 
-export type QualifiedNameLike = QualifiedNameOptions | QualifiedName | string;
+export type QualifiedNameLike = QualifiedNameOptions | string;
 
 // xx QualifiedName.prototype.isEmpty = function (): boolean {
 // xx    return !this.name || this.name.length === 0;

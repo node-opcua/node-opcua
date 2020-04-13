@@ -80,18 +80,18 @@ export interface CreateSubscriptionOptions {
     priority?: UInt8;
 }
 
-export type BrowseDescriptionLike = string | BrowseDescriptionOptions | BrowseDescription;
-export type ReadValueIdLike = ReadValueIdOptions | ReadValueId;
-export type WriteValueLike = WriteValueOptions | WriteValue;
-export type DeleteMonitoredItemsRequestLike = DeleteMonitoredItemsRequestOptions | DeleteMonitoredItemsRequest;
-export type CreateSubscriptionRequestLike = CreateSubscriptionRequestOptions | CreateSubscriptionRequest;
-export type DeleteSubscriptionsRequestLike = DeleteSubscriptionsRequestOptions | DeleteSubscriptionsRequest;
-export type TransferSubscriptionsRequestLike = TransferSubscriptionsRequestOptions | TransferSubscriptionsRequest;
-export type CreateMonitoredItemsRequestLike = CreateMonitoredItemsRequestOptions | CreateMonitoredItemsRequest;
-export type ModifyMonitoredItemsRequestLike = ModifyMonitoredItemsRequestOptions | ModifyMonitoredItemsRequest;
-export type ModifySubscriptionRequestLike = ModifySubscriptionRequestOptions | ModifySubscriptionRequest;
-export type SetMonitoringModeRequestLike = SetMonitoringModeRequestOptions | SetMonitoringModeRequest;
-export type QueryFirstRequestLike = QueryFirstRequestOptions | QueryFirstRequest;
+export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
+export type ReadValueIdLike = ReadValueIdOptions;
+export type WriteValueLike = WriteValueOptions;
+export type DeleteMonitoredItemsRequestLike = DeleteMonitoredItemsRequestOptions;
+export type CreateSubscriptionRequestLike = CreateSubscriptionRequestOptions;
+export type DeleteSubscriptionsRequestLike = DeleteSubscriptionsRequestOptions;
+export type TransferSubscriptionsRequestLike = TransferSubscriptionsRequestOptions;
+export type CreateMonitoredItemsRequestLike = CreateMonitoredItemsRequestOptions;
+export type ModifyMonitoredItemsRequestLike = ModifyMonitoredItemsRequestOptions;
+export type ModifySubscriptionRequestLike = ModifySubscriptionRequestOptions;
+export type SetMonitoringModeRequestLike = SetMonitoringModeRequestOptions;
+export type QueryFirstRequestLike = QueryFirstRequestOptions;
 
 export type SubscriptionId = number;
 

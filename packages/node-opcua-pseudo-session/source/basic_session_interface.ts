@@ -30,9 +30,9 @@ import {
 } from "node-opcua-service-translate-browse-path";
 import { Variant } from "node-opcua-variant";
 
-export type BrowseDescriptionLike = string | BrowseDescriptionOptions | BrowseDescription;
-export type ReadValueIdLike = ReadValueId | ReadValueIdOptions;
-export type CallMethodRequestLike = CallMethodRequestOptions | CallMethodRequest;
+export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
+export type ReadValueIdLike = ReadValueIdOptions;
+export type CallMethodRequestLike = CallMethodRequestOptions;
 
 export type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 

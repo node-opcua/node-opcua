@@ -31,8 +31,8 @@ import {
 import { ResponseCallback } from "./client_session";
 import { Request, Response } from "./common";
 
-export type FindServersRequestLike = FindServersRequest | FindServersRequestOptions;
-export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequest | FindServersOnNetworkRequestOptions;
+export type FindServersRequestLike = FindServersRequestOptions;
+export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequestOptions;
 export type CreateSecureChannelCallbackFunc = (err: Error | null, secureChannel?: ClientSecureChannelLayer) => void;
 
 export interface FindEndpointOptions {

@@ -196,7 +196,7 @@ export class Variant extends BaseUAObject {
 
 Variant.prototype.schema = schemaVariant;
 
-export type VariantLike = VariantOptions | Variant;
+export type VariantLike = VariantOptions;
 
 function variantToString(self: Variant, options?: any) {
 

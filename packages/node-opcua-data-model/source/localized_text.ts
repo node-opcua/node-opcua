@@ -190,7 +190,7 @@ export class LocalizedText extends BaseUAObject {
 // not an extension object registerClassDefinition("LocalizedText", LocalizedText);
 registerSpecialVariantEncoder(LocalizedText);
 
-export type LocalizedTextLike = LocalizedTextOptions | LocalizedText | string;
+export type LocalizedTextLike = LocalizedTextOptions | string;
 
 function getLocalizeText_EncodingByte(localizedText: LocalizedText): number {
     let encodingMask = 0;
