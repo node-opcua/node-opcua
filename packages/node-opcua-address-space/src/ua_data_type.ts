@@ -26,11 +26,18 @@ import * as  tools from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { UAObject } from "./ua_object";
+import { StructuredTypeSchema } from "node-opcua-factory/source";
 
-type ExtensionObjectConstructor = new (options: any) => ExtensionObject;
+export type ExtensionObjectConstructor = new (options: any) => ExtensionObject;
+export interface ExtensionObjectConstructorFuncWithSchema extends ExtensionObjectConstructor {
+    schema: StructuredTypeSchema;
+    possibleFields: string[];
+    encodingDefaultBinary: ExpandedNodeId;
+    encodingDefaultXml: ExpandedNodeId;
+}
 
 export interface UADataType {
-    _extensionObjectConstructor: ExtensionObjectConstructor;
+    _extensionObjectConstructor: ExtensionObjectConstructorFuncWithSchema;
 }
 
 export interface IEnumItem {

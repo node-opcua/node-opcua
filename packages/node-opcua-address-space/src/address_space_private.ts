@@ -18,6 +18,8 @@ import { NamespacePrivate } from "./namespace_private";
 import { Reference } from "./reference";
 import { UAObjectType } from "./ua_object_type";
 import { UAVariableType } from "./ua_variable_type";
+import { ConstructorFuncWithSchema } from "node-opcua-factory/source";
+import { ExtensionObjectConstructorFuncWithSchema } from "./ua_data_type";
 
 export interface AddressSpacePrivate extends AddressSpace {
 
@@ -51,7 +53,7 @@ export interface AddressSpacePrivate extends AddressSpace {
 
   getNamespaceArray(): NamespacePrivate[];
 
-  getExtensionObjectConstructor(dataType: NodeId | UADataType): any;
+  getExtensionObjectConstructor(dataType: NodeId | UADataType): ExtensionObjectConstructorFuncWithSchema;
 
   constructExtensionObject(dataType: UADataType | NodeId, options?: any): ExtensionObject;
 

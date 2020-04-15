@@ -50,7 +50,7 @@ import { UANamespace } from "./namespace";
 import { isNonEmptyQualifiedName } from "./namespace";
 import { NamespacePrivate } from "./namespace_private";
 import { Reference } from "./reference";
-import { UADataType } from "./ua_data_type";
+import { UADataType, ExtensionObjectConstructorFuncWithSchema } from "./ua_data_type";
 import { UAMethod } from "./ua_method";
 import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
@@ -58,6 +58,8 @@ import { UAReferenceType } from "./ua_reference_type";
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
+import { AnyConstructorFunc } from "../../node-opcua-schemas/source";
+import { ConstructorFuncWithSchema } from "node-opcua-factory/source";
 
 const doDebug = false;
 // tslint:disable-next-line:no-var-requires
@@ -967,7 +969,7 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     // - Extension Object ----------------------------------------------------------------------------------------------
-    public getExtensionObjectConstructor(dataType: NodeId | UADataType): any {
+    public getExtensionObjectConstructor(dataType: NodeId | UADataType): ExtensionObjectConstructorFuncWithSchema {
         assert(dataType, "expecting a dataType");
 
         if (dataType instanceof NodeId) {
@@ -988,7 +990,8 @@ export class AddressSpace implements AddressSpacePrivate {
         assert(_dataType.isSupertypeOf(this.findDataType("Structure")!));
         if (!_dataType._extensionObjectConstructor) {
             const dataTypeManager = (this as any).$$extraDataTypeManager as ExtraDataTypeManager;
-            _dataType._extensionObjectConstructor = dataTypeManager.getExtensionObjectConstructorFromDataType(_dataType.nodeId);
+            _dataType._extensionObjectConstructor =
+                dataTypeManager.getExtensionObjectConstructorFromDataType(_dataType.nodeId) as ExtensionObjectConstructorFuncWithSchema;
         }
         assert(_dataType._extensionObjectConstructor, "dataType must have a constructor");
         const Constructor = _dataType._extensionObjectConstructor;

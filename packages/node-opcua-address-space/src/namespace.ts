@@ -8,7 +8,7 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { coerceInt64 } from "node-opcua-basic-types";
 import { AxisScaleEnumeration } from "node-opcua-data-access";
-import { coerceLocalizedText, coerceQualifiedName } from "node-opcua-data-model";
+import { coerceLocalizedText, coerceQualifiedName, QualifiedNameLike } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
@@ -106,6 +106,10 @@ const doDebug = false;
 const regExp1 = /^(s|i|b|g)=/;
 const regExpNamespaceDotBrowseName = /^[0-9]+:(.*)/;
 
+export interface AddFolderOptions {
+    browseName: QualifiedNameLike;
+
+}
 function detachNode(node: BaseNode) {
     const addressSpace = node.addressSpace;
 
@@ -475,7 +479,7 @@ export class UANamespace implements NamespacePublic {
      *
      * @return {BaseNode}
      */
-    public addFolder(parentFolder: UAObject, options: any): UAObject {
+    public addFolder(parentFolder: UAObject, options: AddFolderOptions | string): UAObject {
 
         if (typeof options === "string") {
             options = { browseName: options };
@@ -483,11 +487,11 @@ export class UANamespace implements NamespacePublic {
 
         const addressSpace = this.addressSpace;
 
-        assert(!options.typeDefinition, "addFolder does not expect typeDefinition to be defined ");
+        assert(!(options as any).typeDefinition, "addFolder does not expect typeDefinition to be defined ");
         const typeDefinition = addressSpace._coerceTypeDefinition("FolderType");
         parentFolder = addressSpace._coerceFolder(parentFolder)! as UAObject;
-        options.nodeClass = NodeClass.Object;
-        options.references = [
+        (options as any).nodeClass = NodeClass.Object;
+        (options as any).references = [
             { referenceType: "HasTypeDefinition", isForward: true, nodeId: typeDefinition },
             { referenceType: "Organizes", isForward: false, nodeId: parentFolder.nodeId }
         ];

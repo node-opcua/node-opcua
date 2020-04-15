@@ -1124,7 +1124,7 @@ export interface VariableStuff {
      */
     historizing?: boolean;
 
-    dataValue?: DataValue;
+    dataValue?: DataValueOptions;
 }
 
 export interface AddVariableTypeOptions extends AddBaseNodeOptions, VariableStuff {
@@ -2432,7 +2432,7 @@ export interface AddressSpace {
     /**
      * get the extension object constructor from a DataType nodeID or UADataType object
      */
-    getExtensionObjectConstructor(dataType: NodeId | UADataType): any;
+    getExtensionObjectConstructor(dataType: NodeId | UADataType): AnyConstructorFunc;
 
     /**
      * construct an extension object constructor from a DataType nodeID or UADataType object
@@ -2488,6 +2488,7 @@ import { UAOffNormalAlarm } from "../src/alarms_and_conditions/ua_off_normal_ala
 import { ConstructNodeIdOptions } from "../src/nodeid_manager";
 import { UATwoStateDiscrete } from "./interfaces/data_access/ua_two_state_discrete";
 import { UANamespace } from "../src/namespace";
+import { AnyConstructorFunc } from "../../node-opcua-schemas/source";
 
 export class AddressSpace {
     public static historizerFactory: any;
