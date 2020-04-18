@@ -8,25 +8,25 @@ import {
     buildModel,
     nodesets
 } from "node-opcua-modeler";
-
+import * as fs from "fs";
 
 // the namespaceUri
 const namespaceUri = "http://acme.com/Boiler/V0";
 const version= "1.0.0";
 
 // the nodeset file required by your model
-const xmlFiles = {
+const xmlFiles: string[] = [
     nodesets.standard,
     nodesets.di
-};
-
-function createModel(addressSpace: AddressSpace): void {
+];
+    
+async function createModel(addressSpace: AddressSpace): Promise<void> {
     // create your model here !
 }
 
 (async () => {
     try {
-        const xmlModel = await buildModel({
+        const { markdown, xmlModel, symbols } = await buildModel({
             namespaceUri,
             version,
             xmlFiles,
@@ -34,7 +34,7 @@ function createModel(addressSpace: AddressSpace): void {
         });
         // save model to a file
         const nodesetFiename = "./MyModel.NodeSet2.xml";
-        await fs.promises.writeFile(nodesetFiename, xml, "utf-8");
+        await fs.promises.writeFile(nodesetFiename, xmlModel, "utf-8");
 
     } catch (err) {
         console.log("Error", err);
