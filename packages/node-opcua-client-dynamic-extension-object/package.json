@@ -10,7 +10,7 @@
     "test": "echo no test"
   },
   "dependencies": {
-    "chalk": "^3.0.0",
+    "chalk": "^4.0.0",
     "node-opcua-assert": "^2.5.1",
     "node-opcua-binary-stream": "^2.5.6",
     "node-opcua-data-model": "^2.5.7",

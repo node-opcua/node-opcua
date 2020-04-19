@@ -10,7 +10,7 @@
         "test": "mocha test"
     },
     "dependencies": {
-        "chalk": "^3.0.0",
+        "chalk": "^4.0.0",
         "node-opcua-assert": "^2.5.1",
         "node-opcua-basic-types": "^2.5.6",
         "node-opcua-buffer-utils": "^2.5.6",
@@ -26,17 +26,17 @@
         "node-opcua-status-code": "^2.5.6",
         "node-opcua-utils": "^2.5.1",
         "node-opcua-xml2json": "^2.5.6",
-        "prettier": "^1.19.1",
+        "prettier": "^2.0.4",
         "typescript": "^3.8.3",
-        "underscore": "^1.9.2"
+        "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "@types/prettier": "^1.19.0",
+        "@types/prettier": "^2.0.0",
         "node-opcua-binary-stream": "^2.5.6",
         "node-opcua-extension-object": "^2.5.6",
         "node-opcua-packet-analyzer": "^2.5.6",
         "should": "^13.2.3",
-        "source-map-support": "^0.5.16"
+        "source-map-support": "^0.5.17"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

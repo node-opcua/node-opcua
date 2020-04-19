@@ -14,10 +14,10 @@
         "node-opcua-assert": "^2.5.1"
     },
     "devDependencies": {
-        "enum": "2.5.0",
+        "enum": "3.0.3",
         "node-opcua-benchmarker": "^2.5.6",
         "should": "^13.2.3",
-        "underscore": "^1.9.2"
+        "underscore": "^1.10.2"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

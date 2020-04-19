@@ -19,12 +19,12 @@
         "node-opcua-service-endpoints": "^2.5.7",
         "node-opcua-service-secure-channel": "^2.5.7",
         "node-opcua-types": "^2.5.7",
-        "underscore": "^1.9.2"
+        "underscore": "^1.10.2"
     },
     "devDependencies": {
         "node-opcua-data-model": "^2.5.7",
         "node-opcua-generator": "^2.5.7",
-        "node-opcua-service-endpoints": "^2.4.2",
+        "node-opcua-service-endpoints": "^2.5.7",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

@@ -10,7 +10,7 @@
   "author": "Etienne Rossignon",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^3.0.0",
+    "chalk": "^4.0.0",
     "node-opcua-address-space": "^2.5.7",
     "node-opcua-assert": "^2.5.1",
     "node-opcua-basic-types": "^2.5.6",
@@ -25,7 +25,7 @@
     "node-opcua-service-browse": "^2.5.7",
     "node-opcua-status-code": "^2.5.6",
     "node-opcua-xml2json": "^2.5.6",
-    "underscore": "^1.9.2"
+    "underscore": "^1.10.2"
   },
   "devDependencies": {
     "node-opcua-leak-detector": "^2.5.6",

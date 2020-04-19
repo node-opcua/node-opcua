@@ -18,7 +18,7 @@
     "node-opcua-factory": "^2.5.6",
     "node-opcua-nodeid": "^2.5.6",
     "node-opcua-types": "^2.5.7",
-    "underscore": "^1.9.2"
+    "underscore": "^1.10.2"
   },
   "devDependencies": {
     "node-opcua-generator": "^2.5.7",

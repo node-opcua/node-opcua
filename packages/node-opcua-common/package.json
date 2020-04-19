@@ -20,11 +20,11 @@
         "node-opcua-service-endpoints": "^2.5.7",
         "node-opcua-service-secure-channel": "^2.5.7",
         "node-opcua-types": "^2.5.7",
-        "underscore": "^1.9.2"
+        "underscore": "^1.10.2"
     },
     "devDependencies": {
         "@types/mocha": "^7.0.2",
-        "@types/node": "^13.9.2",
+        "@types/node": "^13.13.0",
         "node-opcua-generator": "^2.5.7",
         "should": "^13.2.3"
     },

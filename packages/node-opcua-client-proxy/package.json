@@ -28,7 +28,7 @@
         "node-opcua-status-code": "^2.5.6",
         "node-opcua-utils": "^2.5.1",
         "node-opcua-variant": "^2.5.7",
-        "underscore": "^1.9.2"
+        "underscore": "^1.10.2"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

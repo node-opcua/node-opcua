@@ -12,7 +12,7 @@
 	"dependencies": {
 		"async": "^3.2.0",
 		"node-opcua-assert": "^2.5.1",
-		"underscore": "^1.9.2"
+		"underscore": "^1.10.2"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",

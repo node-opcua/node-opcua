@@ -59,7 +59,7 @@
         "node-opcua-types": "^2.5.7",
         "node-opcua-utils": "^2.5.1",
         "node-opcua-variant": "^2.5.7",
-        "underscore": "^1.9.2"
+        "underscore": "^1.10.2"
     },
     "devDependencies": {
         "node-opcua-data-access": "^2.5.7",
@@ -67,7 +67,7 @@
         "node-opcua-test-helpers": "^2.5.1",
         "node-opcua-transport": "^2.5.7",
         "should": "^13.2.3",
-        "sinon": "^9.0.1"
+        "sinon": "^9.0.2"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
