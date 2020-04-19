@@ -25,6 +25,8 @@ import {
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantT } from "node-opcua-variant";
+import { AnyConstructorFunc } from "node-opcua-schemas";
+import { ConstructorFuncWithSchema } from "node-opcua-factory/source";
 import {
     AddReferenceOpts,
     AddressSpace as AddressSpacePublic,
@@ -58,8 +60,6 @@ import { UAReferenceType } from "./ua_reference_type";
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
-import { AnyConstructorFunc } from "../../node-opcua-schemas/source";
-import { ConstructorFuncWithSchema } from "node-opcua-factory/source";
 
 const doDebug = false;
 // tslint:disable-next-line:no-var-requires

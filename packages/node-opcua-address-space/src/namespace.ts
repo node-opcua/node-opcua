@@ -61,7 +61,7 @@ import {
     UAReference as UAReferencePublic,
     UAVariable as UAVariablePublic,
     UAVariableType as UAVariableTypePublic,
-    UAView as UAViewPublic, YArrayItemVariable
+    UAView as UAViewPublic, YArrayItemVariable, UAVariableTypeT
 } from "../source";
 
 import { coerceEnumValues } from "../source/helpers/coerce_enum_value";
@@ -687,7 +687,6 @@ export class UANamespace implements NamespacePublic {
      *
      */
     public deleteNode(nodeOrNodeId: NodeId | BaseNode): void {
-
 
         let node: BaseNode | null = null;
         let nodeId: NodeId = NodeId.nullNodeId;
@@ -1937,6 +1936,8 @@ export class UANamespace implements NamespacePublic {
         }
         if (node.nodeClass === NodeClass.ObjectType) {
             this._unregisterObjectType(node as UAObjectType);
+        } else if (node.nodeClass === NodeClass.VariableType) {
+            this._unregisterVariableType(node as UAVariableType);
         } else if (node.nodeClass === NodeClass.Object) {
             // etc...
         } else if (node.nodeClass === NodeClass.Variable) {
@@ -2072,8 +2073,14 @@ export class UANamespace implements NamespacePublic {
         this._dataTypeMap[key] = node;
     }
 
-    private _unregisterObjectType(node: BaseNode): void {
-        //
+    private _unregisterObjectType(node: UAObjectType): void {
+        const key = node.browseName.name!;
+        delete this._objectTypeMap[key];
+    }
+
+    private _unregisterVariableType(node: UAVariableType): void {
+        const key = node.browseName.name!;
+        delete this._variableTypeMap[key];
     }
 
     /**

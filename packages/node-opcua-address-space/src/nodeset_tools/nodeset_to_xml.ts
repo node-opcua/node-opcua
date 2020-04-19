@@ -177,7 +177,9 @@ function _dumpNodeId(xw: XmlWriter, v: NodeId) {
 
 // tslint:disable:no-console
 function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
-
+    if (value === undefined || value === null) {
+        return;
+    }
     switch (dataType) {
         case DataType.Null:
             break;
@@ -215,16 +217,20 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
         case DataType.UInt16:
         case DataType.UInt32:
         case DataType.String:
-            xw.startElement(DataType[dataType]);
-            // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
-            xw.text(value.toString());
-            xw.endElement();
+            if (value !== undefined && value !== null) {
+                xw.startElement(DataType[dataType]);
+                // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
+                xw.text(value.toString());
+                xw.endElement();
+            }
             break;
         case DataType.ByteString:
-            xw.startElement(DataType[dataType]);
-            // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
-            xw.text(value.toString("base64").match(/.{1,80}/g).join("\n"));
-            xw.endElement();
+            if (value !== undefined && value !== null) {
+                xw.startElement(DataType[dataType]);
+                // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
+                xw.text(value.toString("base64").match(/.{1,80}/g).join("\n"));
+                xw.endElement();
+            }
             break;
         case DataType.QualifiedName:
         case DataType.StatusCode:
@@ -402,7 +408,13 @@ function _dumpValue(
     } else {
 
         const encodeXml = _dumpVariantValue.bind(null, xw, value.dataType);
-        if (value.arrayType === VariantArrayType.Array) {
+        if (value.arrayType === VariantArrayType.Matrix) {
+            console.log("Warning _dumpValue : Matrix not supported yet")
+            xw.startElement("ListOf" + dataTypeName);
+            xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
+            value.value.forEach(encodeXml);
+            xw.endElement();
+        } else if (value.arrayType === VariantArrayType.Array) {
             xw.startElement("ListOf" + dataTypeName);
             xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
             value.value.forEach(encodeXml);
@@ -479,13 +491,18 @@ function dumpReferencedNodes(
             if (r && r.length) {
                 assert(r.length === 1);
                 const typeDefinitionObj = Reference.resolveReferenceNode(addressSpace, r[0])! as BaseNode;
-                assert(typeDefinitionObj instanceof BaseNode);
-
-                if (typeDefinitionObj.nodeId.namespace === node.nodeId.namespace) {
-                    // only output node if it is on the same namespace
-                    if (!xw.visitedNode[_hash(typeDefinitionObj)]) {
-                        typeDefinitionObj.dumpXML(xw);
+                if (!typeDefinitionObj) {
+                    console.log(node.toString());
+                    console.log("Warning : " + node.browseName.toString() + " unknown typeDefinition, ", r[0].toString());
+                } else {
+                    assert(typeDefinitionObj instanceof BaseNode);
+                    if (typeDefinitionObj.nodeId.namespace === node.nodeId.namespace) {
+                        // only output node if it is on the same namespace
+                        if (!xw.visitedNode[_hash(typeDefinitionObj)]) {
+                            typeDefinitionObj.dumpXML(xw);
+                        }
                     }
+
                 }
             }
         }
@@ -771,7 +788,7 @@ function dumpUAVariableType(
             console.log(" cannot find datatype " + node.dataType +
                 " for node " + node.browseName.toString() + " id =" + node.nodeId.toString());
         } else {
-            const dataTypeName = dataTypeNode.browseName.toString();
+            const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
             xw.writeAttribute("DataType", dataTypeName);
 
         }

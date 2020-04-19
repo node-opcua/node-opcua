@@ -79,7 +79,10 @@ async function getIpAddresses(): Promise<string[]> {
     const ipAddresses: string[] = [];
     const ifaces = os.networkInterfaces();
     for (const ifname of Object.keys(ifaces)) {
-        for (const iface  of ifaces[ifname]) {
+        if (!ifaces[ifname]) {
+            continue;
+        }
+        for (const iface of ifaces[ifname]!) {
             if ("IPv4" !== iface.family || iface.internal !== false) {
                 // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
                 continue;
@@ -232,7 +235,7 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
 
         for (const e of endpoint.endpointDescriptions()) {
             // e.serverCertificate = null;
-            (e as any).__defineGetter__("serverCertificate", function(this: any) {
+            (e as any).__defineGetter__("serverCertificate", function (this: any) {
                 return endpoint.getCertificateChain();
             });
         }
@@ -240,9 +243,9 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
 
     await installPushCertificateManagement(
         server.engine.addressSpace, {
-            applicationGroup: server.serverCertificateManager,
-            userTokenGroup: server.userCertificateManager
-        });
+        applicationGroup: server.serverCertificateManager,
+        userTokenGroup: server.userCertificateManager
+    });
 
     const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.serverConfiguration;
     const serverConfigurationPriv = serverConfiguration as any;
