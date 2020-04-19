@@ -59,6 +59,8 @@ import {
     VariantByteString,
     VariantLike
 } from "node-opcua-variant";
+import { AnyConstructorFunc } from "node-opcua-schemas";
+
 import { MinimalistAddressSpace, Reference } from "../src/reference";
 import { State, StateMachine, StateMachineType, Transition, UtcTime } from "./interfaces/state_machine";
 import { SessionContext } from "./session_context";
@@ -884,6 +886,14 @@ export interface InstantiateOptions {
     description?: LocalizedTextLike;
 
     /**
+     * an optional displayName
+     *
+     * if not provided the default description of the corresponding browseName
+     * will be used.
+     */
+    displayName?: LocalizedTextLike | null;
+
+    /**
      * the parent Folder holding this object
      *
      * note
@@ -932,6 +942,7 @@ export interface InstantiateVariableOptions extends InstantiateOptions {
     extensionObject?: any;
     nodeId?: NodeIdLike;
     minimumSamplingInterval?: number;
+    propertyOf?: NodeIdLike | UAObject | UAObjectType | UAVariable | UAVariableType | UAMethod;
     value?: any;
     valueRank?: number;
 }
@@ -2488,7 +2499,6 @@ import { UAOffNormalAlarm } from "../src/alarms_and_conditions/ua_off_normal_ala
 import { ConstructNodeIdOptions } from "../src/nodeid_manager";
 import { UATwoStateDiscrete } from "./interfaces/data_access/ua_two_state_discrete";
 import { UANamespace } from "../src/namespace";
-import { AnyConstructorFunc } from "../../node-opcua-schemas/source";
 
 export class AddressSpace {
     public static historizerFactory: any;
