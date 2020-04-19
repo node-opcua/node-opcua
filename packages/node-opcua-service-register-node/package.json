@@ -5,7 +5,7 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha test",
-        "clean": "node -e \"require('rimraf').sync('_generated_');\"",
+        "clean": "node -e \"require('rimraf').sync('dist');\"",
         "__generate": "node ./generate"
     },
     "main": "./dist/index.js",

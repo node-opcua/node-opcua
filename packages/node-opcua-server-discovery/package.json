@@ -5,6 +5,7 @@
 	"scripts": {
 		"build": "tsc -b",
 		"postinstall": "npm run certificate",
+		"clean": "node -e \"require('rimraf').sync('dist');\"",
 		"certificate": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
 		"test": "echo no test here  : see node-opcua-end-to-end"
 	},

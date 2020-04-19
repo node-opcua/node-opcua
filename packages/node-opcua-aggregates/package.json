@@ -6,7 +6,8 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "test": "mocha -r ts-node/register test/*.ts"
+        "test": "mocha -r ts-node/register test/*.ts",
+        "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
         "@types/async": "^3.0.8",

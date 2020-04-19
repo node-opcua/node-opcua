@@ -6,6 +6,7 @@
     "description": "pure nodejs OPCUA SDK - module -date-time",
     "scripts": {
         "build": "tsc -b",
+        "clean": "node -e \"require('rimraf').sync('dist');\"",
         "test": "mocha test"
     },
     "dependencies": {
