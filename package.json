@@ -99,6 +99,7 @@
 		"@types/sinon": "^7.0.13",
 		"@types/underscore": "^1.9.2",
 		"@types/yargs": "^13.0.2",
+		"@types/ws": "^7.2.4",
 		"async": "^3.1.0",
 		"backoff": "^2.5.0",
 		"better-assert": "1.0.2",
