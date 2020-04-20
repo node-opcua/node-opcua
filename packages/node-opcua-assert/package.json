@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-assert",
-    "version": "2.5.1",
+    "version": "2.5.8",
     "description": "pure nodejs OPCUA SDK - module -assert",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
