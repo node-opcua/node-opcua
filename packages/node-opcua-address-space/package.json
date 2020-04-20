@@ -34,6 +34,7 @@
         "node-opcua-numeric-range": "^2.5.6",
         "node-opcua-object-registry": "^2.5.6",
         "node-opcua-pseudo-session": "^2.5.7",
+        "node-opcua-schemas": "^2.5.7",
         "node-opcua-service-browse": "^2.5.7",
         "node-opcua-service-call": "^2.5.7",
         "node-opcua-service-filter": "^2.5.7",
