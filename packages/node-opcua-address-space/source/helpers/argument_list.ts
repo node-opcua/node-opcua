@@ -160,7 +160,13 @@ function isArgumentValid(
 
     // istanbul ignore next
     if (!argDefDataType) {
+        debugLog("dataType ", argDefinition.dataType.toString(), "doesn't exist");
         return false;
+    }
+
+    if (argDefinition.valueRank > 0 && arg.dataType === DataType.Null) {
+        // this is valid to receive an empty array ith DataType.Null;
+        return true;
     }
 
     // istanbul ignore next
