@@ -284,7 +284,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
                         const element = value[i];
                         data.lines.push(padding + chalk.cyan("  { " + ("/*" + i + "*/")));
 
-                        const data1 = {
+                        const data1: {lines: string[], padding: string} = {
                             lines: [],
                             padding: padding + "    "
                         };
@@ -303,7 +303,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
             } else {
 
                 data.lines.push(fieldNameF + " " + fieldTypeF + ": {");
-                const data1 = { padding: padding + "  ", lines: [] };
+                const data1: {lines: string[], padding: string} = { padding: padding + "  ", lines: [] };
                 applyOnAllSchemaFields(value, _newFieldSchema, data1, _exploreObject, args);
                 data.lines = data.lines.concat(data1.lines);
 
