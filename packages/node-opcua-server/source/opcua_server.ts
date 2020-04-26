@@ -1085,67 +1085,9 @@ export class OPCUAServer extends OPCUABaseServer {
       });
 
       // todo  should self.serverInfo.productUri  match self.engine.buildInfo.productUri ?
+      for (const endpointOptions of endpointDefinitions) {
 
-      const createEndpoint = (port1: number, options1: OPCUAServerOptions): OPCUAServerEndPoint => {
-        // add the tcp/ip endpoint with no security
-        const endPoint = new OPCUAServerEndPoint({
-
-          port: port1,
-
-          certificateManager: this.serverCertificateManager,
-
-          certificateChain: this.getCertificateChain(),
-          privateKey: this.getPrivateKey(),
-
-          defaultSecureTokenLifetime: options1.defaultSecureTokenLifetime || 600000,
-          timeout: options1.timeout || 3 * 60 * 1000,
-
-          maxConnections: this.maxConnectionsPerEndpoint,
-          objectFactory: this.objectFactory,
-          serverInfo: this.serverInfo
-        });
-        return endPoint;
-      };
-
-      function createEndpointDescriptions(options2: OPCUAServerEndpointOptions): OPCUAServerEndPoint {
-
-        /* istanbul ignore next */
-        if (!options) {
-          throw new Error("internal error");
-        }
-
-        options2.port = options2.port || 26543;
-
-        /* istanbul ignore next */
-        if (!options2.hasOwnProperty("port") || !_.isFinite(options2.port!) || typeof options.port !== "number") {
-          throw new Error("expecting a valid port (number)");
-        }
-
-        const port = Number(options2.port || 0);
-
-        const endPoint = createEndpoint(port, options);
-
-        options2.alternateHostname = options2.alternateHostname || [];
-        const alternateHostname = (options2.alternateHostname instanceof Array) ? options2.alternateHostname : [options2.alternateHostname];
-        const allowAnonymous = (options2.allowAnonymous === undefined) ? true : !!options2.allowAnonymous;
-
-        endPoint.addStandardEndpointDescriptions({
-          allowAnonymous,
-          securityModes: options2.securityModes,
-          securityPolicies: options2.securityPolicies,
-
-          alternateHostname,
-
-          disableDiscovery: !!options2.disableDiscovery,
-          // xx                hostname,
-          resourcePath: options.resourcePath || ""
-        });
-        return endPoint;
-      }
-
-      for (const eee of endpointDefinitions) {
-
-        const endPoint = createEndpointDescriptions(eee);
+        const endPoint = this.createEndpointDescriptions(options!, endpointOptions);
         this.endpoints.push(endPoint);
         endPoint.on("message", (message: Message, channel: ServerSecureChannelLayer) => {
           this.on_request(message, channel);
@@ -3313,6 +3255,63 @@ export class OPCUAServer extends OPCUABaseServer {
   /* istanbul ignore next */
   protected _on_HistoryUpdate(message: Message, channel: ServerSecureChannelLayer) {
     return g_sendError(channel, message, HistoryUpdateResponse, StatusCodes.BadNotImplemented);
+  }
+
+  private createEndpoint(port1: number, serverOptions: OPCUAServerOptions): OPCUAServerEndPoint {
+    // add the tcp/ip endpoint with no security
+    const endPoint = new OPCUAServerEndPoint({
+
+      port: port1,
+
+      certificateManager: this.serverCertificateManager,
+
+      certificateChain: this.getCertificateChain(),
+      privateKey: this.getPrivateKey(),
+
+      defaultSecureTokenLifetime: serverOptions.defaultSecureTokenLifetime || 600000,
+      timeout: serverOptions.timeout || 3 * 60 * 1000,
+
+      maxConnections: this.maxConnectionsPerEndpoint,
+      objectFactory: this.objectFactory,
+      serverInfo: this.serverInfo
+    });
+    return endPoint;
+  };
+
+  private createEndpointDescriptions(serverOption: OPCUAServerOptions, endpointOptions: OPCUAServerEndpointOptions): OPCUAServerEndPoint {
+
+    /* istanbul ignore next */
+    if (!endpointOptions) {
+      throw new Error("internal error");
+    }
+
+    endpointOptions.port = endpointOptions.port || 26543;
+
+    /* istanbul ignore next */
+    if (!endpointOptions.hasOwnProperty("port") || !_.isFinite(endpointOptions.port!) || typeof endpointOptions.port !== "number") {
+      throw new Error("expecting a valid port (number)");
+    }
+
+    const port = Number(endpointOptions.port || 0);
+
+    const endPoint = this.createEndpoint(port, serverOption);
+
+    endpointOptions.alternateHostname = endpointOptions.alternateHostname || [];
+    const alternateHostname = (endpointOptions.alternateHostname instanceof Array) ? endpointOptions.alternateHostname : [endpointOptions.alternateHostname];
+    const allowAnonymous = (endpointOptions.allowAnonymous === undefined) ? true : !!endpointOptions.allowAnonymous;
+
+    endPoint.addStandardEndpointDescriptions({
+      allowAnonymous,
+      securityModes: endpointOptions.securityModes,
+      securityPolicies: endpointOptions.securityPolicies,
+
+      alternateHostname,
+
+      disableDiscovery: !!endpointOptions.disableDiscovery,
+      // xx                hostname,
+      resourcePath: serverOption.resourcePath || ""
+    });
+    return endPoint;
   }
 
 }
