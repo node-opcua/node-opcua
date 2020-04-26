@@ -209,6 +209,7 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
             xw.endElement();
             break;
         case DataType.Boolean:
+        case DataType.SByte:
         case DataType.Byte:
         case DataType.Float:
         case DataType.Double:
