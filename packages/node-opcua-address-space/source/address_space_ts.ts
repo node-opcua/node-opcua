@@ -1197,9 +1197,9 @@ export interface AddMethodOptions {
     browseName: QualifiedNameLike;
     displayName?: LocalizedTextLike;
     description?: LocalizedTextLike;
-    inputArguments: ArgumentOptions[];
+    inputArguments?: ArgumentOptions[];
     modellingRule?: ModellingRuleType;
-    outputArguments: ArgumentOptions[];
+    outputArguments?: ArgumentOptions[];
     componentOf?: NodeIdLike | BaseNode;
     executable?: boolean;
     userExecutable?: boolean;

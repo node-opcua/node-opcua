@@ -131,11 +131,7 @@ export { constructEventFilter } from "node-opcua-service-filter";
 
 export * from "node-opcua-transport";
 
-module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
+export { OPCUADiscoveryServer } from "node-opcua-server-discovery";
 
-const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
-
-module.exports.build_address_space_for_conformance_testing =
-    address_space_for_conformance_testing.build_address_space_for_conformance_testing;
-
-module.exports.install_optional_cpu_and_memory_usage_node = require("node-opcua-vendor-diagnostic").install_optional_cpu_and_memory_usage_node;
+export { build_address_space_for_conformance_testing } from "node-opcua-address-space-for-conformance-testing";
+export { install_optional_cpu_and_memory_usage_node } from "node-opcua-vendor-diagnostic";
