@@ -11,10 +11,8 @@ const make_lorem_ipsum_buffer = require("node-opcua-test-helpers").make_lorem_ip
 
 const fake_message_chunk_factory = require("../dist/test_helpers/fake_message_chunk_factory");
 
-const MessageBuilder = require("..").MessageBuilder;
-const SecurityPolicy = require("..").SecurityPolicy;
-
-const getFixture = require("node-opcua-test-fixtures").getFixture;
+const { MessageBuilder, SecurityPolicy } = require("..");
+const { getFixture } = require("node-opcua-test-fixtures");
 
 
 const private_key_filename = getFixture("certs/server_key_1024.pem");

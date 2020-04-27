@@ -28,7 +28,8 @@ import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import {
     AsymmetricAlgorithmSecurityHeader,
     coerceMessageSecurityMode,
-    MessageSecurityMode
+    MessageSecurityMode,
+    CloseSecureChannelRequest
 } from "node-opcua-service-secure-channel";
 import { decodeStatusCode } from "node-opcua-status-code";
 import { MessageBuilderBase } from "node-opcua-transport";
@@ -228,7 +229,15 @@ export class MessageBuilder extends MessageBuilderBase {
             this._report_error("Invalid message type ( HEL/ACK )");
             return false;
         }
-
+        if (msgType === "CLO" && fullMessageBody.length === 0) {
+            // The Client closes the connection by sending a CloseSecureChannel request and closing the
+            // socket gracefully. When the Server receives this Message, it shall release all resources
+            // allocated for the channel. The body of the CloseSecureChannel request is empty. The Server
+            // does not send a CloseSecureChannel response.
+            const objMessage1 = new CloseSecureChannelRequest();
+            this.emit("message", objMessage1, msgType, this.sequenceHeader!.requestId, this.channelId);
+            return true;
+        }
         // read expandedNodeId:
         const id = decodeExpandedNodeId(binaryStream);
 

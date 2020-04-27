@@ -33,7 +33,6 @@ describe("test issue with final CLO message", () => {
         messageBuilder.feed(buffer);
 
 
-
     });
 
 })

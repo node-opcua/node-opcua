@@ -7,10 +7,12 @@ const packTcpMessage = require("node-opcua-transport").packTcpMessage;
 const ClientSecureChannelLayer = require("..").ClientSecureChannelLayer;
 const GetEndpointsRequest = require("node-opcua-service-endpoints").GetEndpointsRequest;
 
-const MockServerTransport = require("../dist/test_helpers").MockServerTransport;
-const fakeAcknowledgeMessage = require("../dist/test_helpers").fakeAcknowledgeMessage;
+const { 
+    MockServerTransport, 
+    fakeAcknowledgeMessage 
+} =  require("../dist/test_helpers");
 
-const packet_sc_2 = require("node-opcua-transport/dist/test-fixtures").packet_sc_2;
+const { packet_sc_2 } = require("node-opcua-transport/dist/test-fixtures");
 assert(packet_sc_2);
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
