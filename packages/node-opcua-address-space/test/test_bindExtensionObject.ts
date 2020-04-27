@@ -1,3 +1,4 @@
+// tslint:disable: no-console
 import * as should from "should";
 import * as sinon from "sinon";
 
@@ -15,8 +16,13 @@ import {
     SessionDiagnosticsDataType
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, RootFolder, UAVariable, UAVariableT } from "..";
+import { AddressSpace, RootFolder, UAVariable, UAVariableT, Namespace, generateAddressSpace, UADataType } from "..";
 import { getMiniAddressSpace } from "../";
+import { nodesets } from "node-opcua-nodesets";
+import * as path from "path";
+import { UAVariableType } from "../src/ua_variable_type";
+
+const doDebug = false;
 
 interface ServiceCounterVariable extends UAVariable {
     totalCount: UAVariableT<UInt32, DataType.UInt32>;
@@ -497,4 +503,128 @@ describe("Extension Object binding and sub  components\n", () => {
             });
     });
 
+});
+
+// tslint:disable-next-line: no-empty-interface
+interface UAMeasIdDataType extends UAVariable {
+
+}
+// tslint:disable-next-line: no-empty-interface
+interface UAPartIdDataType extends UAVariable {
+    id: UAVariableT<string, DataType.String>;
+    $description: UAVariableT<LocalizedText, DataType.LocalizedText>;
+}
+interface UAResultIdDataType extends UAVariable {
+    id: UAVariableT<string, DataType.String>;
+}
+interface UAConfigurationId extends UAVariable {
+    id: UAVariableT<string, DataType.String>;
+    version: UAVariableT<string, DataType.String>;
+    hash: UAVariableT<Buffer, DataType.ByteString>;
+}
+interface UAResultType extends UAVariable {
+    resultId: UAResultIdDataType;
+    hasTransferableDataOnFile?: UAVariableT<boolean, DataType.Boolean>; // Opt
+    isPartial: UAVariableT<boolean, DataType.Boolean>;
+    isSimulated: UAVariableT<boolean, DataType.Boolean>;// Opt
+    resultState: UAVariableT<number, DataType.Int32>;
+    measId: UAMeasIdDataType;
+    partId: UAPartIdDataType;
+    internalConfigurationId: UAConfigurationId;
+    resultContent: UAVariable;
+};
+describe("Extension Object binding and sub  components On MachineVision", () => {
+    let addressSpace: AddressSpace;
+    let namespace: Namespace;
+
+    before(async () => {
+        const nodesetFilename = [
+            nodesets.standard,
+            nodesets.machineVision
+        ]
+        addressSpace = AddressSpace.create();
+        namespace = addressSpace.registerNamespace("private");
+        await generateAddressSpace(addressSpace, nodesetFilename);
+    });
+    after(async () => {
+        addressSpace.dispose();
+    });
+
+    let nsMV: number = 0;
+    let resultDataType: UADataType;
+    let resultType: UAVariableType;
+    beforeEach(() => {
+        nsMV = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/MachineVision");
+        if (nsMV <= 0) {
+            throw new Error("Cannot find MachineVision namespace");
+        }
+        resultDataType = addressSpace.findDataType("ResultDataType", nsMV)!;
+
+        resultType = addressSpace.findVariableType("ResultType", nsMV)! as UAVariableType;
+        if (!resultType) {
+            throw new Error("Cannot find ResultType");
+        }
+    });
+    it("MachineVision-BindExtensionObject should instantitate a ResultType", () => {
+        const result = resultType.instantiate({
+            browseName: `Result`,
+            organizedBy: addressSpace.rootFolder.objects
+        });
+        const extObj = result.bindExtensionObject();
+        if (doDebug) {
+            console.log(extObj?.toString());
+        }
+    });
+    it("MachineVision-BindExtensionObject should instantitate a ResultType", () => {
+
+        const partIdDataType = addressSpace.findDataType("PartIdDataType", nsMV)!;
+        const partId = addressSpace.constructExtensionObject(partIdDataType, {
+            description: "World",
+            id: "Hello",
+        });
+
+        const recipeIdExternalD = addressSpace.findDataType("RecipeIdExternalDataType", nsMV)!;
+
+        const a = addressSpace.constructExtensionObject(recipeIdExternalD, {
+        });
+        const extObj = addressSpace.constructExtensionObject(resultDataType, {
+            hasTransferableDataOnFile: true,
+            internalConfigurationId: {
+                description: "some description",
+                hash: Buffer.from("DEADBEEF", "hex"),
+                id: "IIII",
+                version: "1.2",
+            },
+            partId,
+            resultState: 32,
+
+            resultContent: [
+                { dataType: DataType.ExtensionObject, value: a }
+            ]
+        });
+        const result = resultType.instantiate({
+            browseName: `Result2`,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.ExtensionObject,
+                value: extObj
+            }
+        }) as UAResultType;
+
+        if (doDebug) {
+            console.log(result.readValue().value.value.toString());
+            console.log(result.toString());
+            console.log(result.internalConfigurationId.toString());
+
+        }
+
+        const dataValue = result.internalConfigurationId.readValue();
+        const _internalConfigurationId = dataValue.value.value;
+        _internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
+        if (doDebug) {
+            console.log("Hash =", result.internalConfigurationId.readValue().value.value.toString("hex"));
+        }
+        dataValue.statusCode.should.eql(StatusCodes.Good);
+
+    });
 });

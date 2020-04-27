@@ -1210,7 +1210,14 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             const self = this;
             propertyNode.bindVariable({
                 timestamped_get() {
-                    const value = prepareVariantValue(dataTypeNodeId, self.$extensionObject[name]);
+                    const prop = self.$extensionObject[name];
+                    if (prop === undefined) {
+                        propertyNode._dataValue.value.dataType = DataType.Null
+                        propertyNode._dataValue.statusCode = StatusCodes.Good;
+                        propertyNode._dataValue.value.value = null;
+                        return new DataValue(propertyNode._dataValue);
+                    }
+                    const value = prepareVariantValue(dataTypeNodeId, prop);
                     propertyNode._dataValue.statusCode = StatusCodes.Good;
                     propertyNode._dataValue.value.value = value;
                     return new DataValue(propertyNode._dataValue);
@@ -1227,7 +1234,11 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         // make sure we have a structure
         // ------------------------------------------------------
         const s = this.readValue();
-
+        if (this.dataTypeObj.isAbstract) {
+            console.log("Warning the DataType associated with this Variable is abstract ", this.dataTypeObj.browseName.toString());
+            console.log("You need to provide a extension object yourself ");
+            throw new Error("bindExtensionObject requires a extensionObject as associated dataType is only abstract");
+        }
         if (s.value && s.value.dataType === DataType.Null) {
 
             // create a structure and bind it
@@ -1299,6 +1310,11 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             property._dataValue.statusCode = StatusCodes.Good;
             property.touchValue();
 
+            if (NodeId.sameNodeId(NodeId.nullNodeId,field.dataType)) {
+                debugLog("field.dataType is null ! " + field.name + " " + field.description?.text);
+                debugLog(" dataType replaced with BaseDataType ");
+                field.dataType = this.resolveNodeId("BaseDataType");
+            }
             const dataTypeNodeId = addressSpace.findCorrespondingBasicDataType(field.dataType);
             assert(this.$extensionObject.hasOwnProperty(camelCaseName));
 
@@ -1314,7 +1330,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                     property.nodeId.toString(), property.readValue().statusCode.toString());
             }
 
-            if (dataTypeNodeId === DataType.ExtensionObject) {
+            if (this.$extensionObject[camelCaseName] !== undefined && dataTypeNodeId === DataType.ExtensionObject) {
                 assert(this.$extensionObject[camelCaseName] instanceof Object);
                 this.$extensionObject[camelCaseName] = new Proxy(this.$extensionObject[camelCaseName], makeHandler(property));
                 property._dataValue.value = new Variant({
@@ -1328,12 +1344,20 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
                 const dataTypeAsString = DataType[dataTypeNodeId];
                 assert(typeof dataTypeAsString === "string");
+                const prop = this.$extensionObject[camelCaseName];
 
-                const preparedValue = prepareVariantValue(dataTypeNodeId, this.$extensionObject[camelCaseName]);
-                property._dataValue.value = new Variant({
-                    dataType: dataTypeAsString,
-                    value: preparedValue
-                });
+                if (prop === undefined) {
+                    property._dataValue.value = new Variant({
+                        dataType: DataType.Null,
+                    });
+
+                } else {
+                    const preparedValue = prepareVariantValue(dataTypeNodeId, prop);
+                    property._dataValue.value = new Variant({
+                        dataType: dataTypeAsString,
+                        value: preparedValue
+                    });
+                }
 
                 const self = this;
                 property.camelCaseName = camelCaseName;
