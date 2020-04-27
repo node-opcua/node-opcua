@@ -30,6 +30,9 @@ path.join(__dirname, "nodesets/Opc.Ua.NodeSet2.xml");
 path.join(__dirname, "nodesets/Opc.Ua.Di.NodeSet2.xml");
 path.join(__dirname, "nodesets/Opc.Ua.Adi.NodeSet2.xml");
 path.join(__dirname, "nodesets/Opc.Ua.AutoID.NodeSet2.xml");
+path.join(__dirname, "nodesets/Opc.Ua.MachineVision.NodeSet2.xml");
+path.join(__dirname, "nodesets/Opc.Ua.Robotics.NodeSet2.xml");
+
 // ------------------------------------------------------------- }}
 
 export const standardNodeSetFilename = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
@@ -37,6 +40,8 @@ export const diNodeSetFilename = constructNodesetFilename("Opc.Ua.Di.NodeSet2.xm
 export const adiNodeSetFilename = constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml");
 export const gdsNodeSetFilename = constructNodesetFilename("Opc.Ua.Gds.NodeSet2.xml");
 export const autoIdNodeSetFilename = constructNodesetFilename("Opc.Ua.AutoID.NodeSet2.xml");
+export const roboticsNodeSetFilename = constructNodesetFilename("Opc.Ua.Robotics.NodeSet2.xml")
+export const machineVisionNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineVision.NodeSet2.xml")
 
 export const standard_nodeset_file = standardNodeSetFilename;
 export const di_nodeset_filename = diNodeSetFilename;
@@ -60,5 +65,9 @@ export const nodesets = {
     gdsNodeSetFilename,
     gds_nodeset_filename: gdsNodeSetFilename,
 
-    autoId: autoIdNodeSetFilename
+    autoId: autoIdNodeSetFilename,
+
+    robotics: roboticsNodeSetFilename,
+    
+    machineVision: machineVisionNodeSetFilename
 };
