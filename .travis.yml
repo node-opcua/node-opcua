@@ -8,10 +8,11 @@ node_js:
   # dropping support for node - "6"  (promisify not supporteed)
   # dropped - "7"
   - "8"
-  - "9"
+  # dropped - "9"
   - "10"
   # - "11" not used yet => Lerna stack overflows!
   - "12"
+  - "14"
 os:
   - linux
   - osx
@@ -75,9 +76,12 @@ cache:
 
 after_success:
   # only run code coverage on linux and latest nodejs version
-  - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; then
-      if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
+  - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; 
+    then
+      if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]];
+      then
       fi;
+    else
     fi;
 
 script:
@@ -86,7 +90,8 @@ script:
       export TESTPAGE=11;
       npm test;
     else  
-      if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
+      if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; 
+      then
         npm run pretest;
         make test-cov;
       else  
@@ -100,4 +105,4 @@ notifications:
     urls: https://webhooks.gitter.im/e/4d51130aaea652dbc8f1
     on_success: always  # options: [always|never|change] default: always
     on_failure: always  # options: [always|never|change] default: always
-    on_start: true     # default: false
+    on_start: never     # default: false
