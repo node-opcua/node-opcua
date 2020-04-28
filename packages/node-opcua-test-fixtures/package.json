@@ -26,6 +26,6 @@
     ],
     "homepage": "http://node-opcua.github.io/",
     "dependencies": {
-        "node-opcua-debug": "^2.5.8"
+        "node-opcua-debug": "2.5.8"
     }
 }

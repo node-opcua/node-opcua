@@ -10,7 +10,7 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "node-opcua-assert": "^2.5.8",
+        "node-opcua-assert": "2.5.8",
         "underscore": "^1.10.2"
     },
     "devDependencies": {

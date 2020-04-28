@@ -11,7 +11,7 @@
         "test": "mocha test"
     },
     "dependencies": {
-        "node-opcua-assert": "^2.5.8"
+        "node-opcua-assert": "2.5.8"
     },
     "devDependencies": {
         "should": "^13.2.3"

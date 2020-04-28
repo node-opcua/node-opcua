@@ -11,14 +11,14 @@
         "test": "mocha test"
     },
     "dependencies": {
-        "node-opcua-assert": "^2.5.8",
-        "node-opcua-constants": "^2.5.0-alpha.4",
-        "node-opcua-enum": "^2.5.8",
-        "node-opcua-guid": "^2.5.8",
+        "node-opcua-assert": "2.5.8",
+        "node-opcua-constants": "2.5.0-alpha.4",
+        "node-opcua-enum": "2.5.8",
+        "node-opcua-guid": "2.5.8",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-benchmarker": "^2.5.8",
+        "node-opcua-benchmarker": "2.5.8",
         "should": "^13.2.3",
         "source-map-support": "^0.5.17"
     },

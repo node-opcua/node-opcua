@@ -13,16 +13,16 @@
     "license": "MIT",
     "dependencies": {
         "chalk": "^4.0.0",
-        "node-opcua-assert": "^2.5.8",
-        "node-opcua-basic-types": "^2.5.8",
-        "node-opcua-binary-stream": "^2.5.8",
-        "node-opcua-debug": "^2.5.8",
-        "node-opcua-factory": "^2.5.8",
-        "node-opcua-utils": "^2.5.8",
+        "node-opcua-assert": "2.5.8",
+        "node-opcua-basic-types": "2.5.8",
+        "node-opcua-binary-stream": "2.5.8",
+        "node-opcua-debug": "2.5.8",
+        "node-opcua-factory": "2.5.8",
+        "node-opcua-utils": "2.5.8",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-test-helpers": "^2.5.8",
+        "node-opcua-test-helpers": "2.5.8",
         "should": "^13.2.3"
     },
     "repository": {

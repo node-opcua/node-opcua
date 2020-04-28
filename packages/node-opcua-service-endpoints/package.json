@@ -10,18 +10,18 @@
         "build": "tsc -b"
     },
     "dependencies": {
-        "node-opcua-assert": "^2.5.8",
-        "node-opcua-basic-types": "^2.5.8",
-        "node-opcua-binary-stream": "^2.5.8",
-        "node-opcua-data-model": "^2.5.8",
-        "node-opcua-factory": "^2.5.8",
-        "node-opcua-nodeid": "^2.5.8",
-        "node-opcua-service-secure-channel": "^2.5.8",
-        "node-opcua-types": "^2.5.8",
+        "node-opcua-assert": "2.5.8",
+        "node-opcua-basic-types": "2.5.8",
+        "node-opcua-binary-stream": "2.5.8",
+        "node-opcua-data-model": "2.5.8",
+        "node-opcua-factory": "2.5.8",
+        "node-opcua-nodeid": "2.5.8",
+        "node-opcua-service-secure-channel": "2.5.8",
+        "node-opcua-types": "2.5.8",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-generator": "^2.5.8",
+        "node-opcua-generator": "2.5.8",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

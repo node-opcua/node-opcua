@@ -17,7 +17,7 @@
     "async": "^3.2.0",
     "bonjour": "^3.5.0",
     "colors": "^1.4.0",
-    "node-opcua": "^2.5.8",
+    "node-opcua": "2.5.8",
     "vorpal": "^1.12.0",
     "vorpal-repl": "^1.1.8"
   },
