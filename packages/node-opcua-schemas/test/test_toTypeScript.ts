@@ -59,6 +59,10 @@ interface AccessRights {
     value: ByteString;
     validBits: ByteString;
 }
+interface StructWithOnlyOptionals {
+    optionalInt32?: Int32;
+    optionalStringArray?: UAString[];
+}
 interface StructureWithOptionalFields {
     mandatoryInt32: Int32;
     optionalInt32?: Int32;
