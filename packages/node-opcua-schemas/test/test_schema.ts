@@ -156,6 +156,46 @@ describe("BSHA - Binary Schemas Helper 1", () => {
             optionalStringArray: ["a", "b"]
         });
     });
+    it("BSH4 - should handle StructureWithOptionalFields - 13 (all options fields missing)", () => {
+
+        const StructWithOnlyOptionals = getOrCreateConstructor("StructWithOnlyOptionals", dataTypeFactory);
+        const unionTest1 = new StructWithOnlyOptionals({/* empty */});
+
+        encode_decode_round_trip_test(unionTest1, (buffer: Buffer) => {
+            buffer.length.should.eql(0);
+            if (doDebug) {
+                console.log("Buffer = ",hexDump(buffer));
+            }
+        });
+    });
+    it("BSH4 - should handle StructureWithOptionalFields - 13 (one field missing)", () => {
+
+        const StructWithOnlyOptionals = getOrCreateConstructor("StructWithOnlyOptionals", dataTypeFactory);
+        const unionTest1 = new StructWithOnlyOptionals({
+            optionalStringArray:["Hello", "World"]
+        });
+
+        encode_decode_round_trip_test(unionTest1, (buffer: Buffer) => {
+            buffer.length.should.eql(26);
+            if (doDebug) {
+                console.log("Buffer = ",hexDump(buffer));
+            }
+        });
+    });
+    it("BSH4 - should handle StructureWithOptionalFields - 13 (one field missing 2)", () => {
+
+        const StructWithOnlyOptionals = getOrCreateConstructor("StructWithOnlyOptionals", dataTypeFactory);
+        const unionTest1 = new StructWithOnlyOptionals({
+            optionalInt32: 0
+        });
+
+        encode_decode_round_trip_test(unionTest1, (buffer: Buffer) => {
+            buffer.length.should.eql(8);
+            if (doDebug) {
+                console.log("Buffer = ",hexDump(buffer));
+            }
+        });
+    });
 
 });
 

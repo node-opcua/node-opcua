@@ -7,6 +7,14 @@
         <opc:Field TypeName="opc:ByteString" Name="Value"/>
         <opc:Field TypeName="opc:ByteString" Name="ValidBits"/>
     </opc:StructuredType>
+        <opc:StructuredType BaseType="ua:ExtensionObject" Name="StructWithOnlyOptionals">
+        <opc:Field TypeName="opc:Bit" Name="OptionalInt32Specified"/>
+        <opc:Field TypeName="opc:Bit" Name="OptionalStringArraySpecified"/>
+        <opc:Field Length="30" TypeName="opc:Bit" Name="Reserved1"/>
+        <opc:Field SwitchField="OptionalInt32Specified" TypeName="opc:Int32" Name="OptionalInt32"/>
+        <opc:Field SwitchField="OptionalStringArraySpecified" TypeName="opc:Int32" Name="NoOfOptionalStringArray"/>
+        <opc:Field SwitchField="OptionalStringArraySpecified" LengthField="NoOfOptionalStringArray" TypeName="opc:CharArray" Name="OptionalStringArray"/>
+    </opc:StructuredType>
     <opc:StructuredType BaseType="ua:ExtensionObject" Name="StructureWithOptionalFields">
         <opc:Field TypeName="opc:Bit" Name="OptionalInt32Specified"/>
         <opc:Field TypeName="opc:Bit" Name="OptionalStringArraySpecified"/>

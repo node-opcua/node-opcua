@@ -213,10 +213,11 @@ function encodeFields(thisAny: any, schema: StructuredTypeSchema, stream: Output
     if (hasOptionalFields) {
 
         let bitField = 0;
-
+        let mandatoryFieldCount = 0;
         for (const field of schema.fields) {
 
             if (field.switchBit === undefined) {
+                mandatoryFieldCount++;
                 continue;
             }
             if ((thisAny)[field.name] === undefined) {
@@ -224,6 +225,10 @@ function encodeFields(thisAny: any, schema: StructuredTypeSchema, stream: Output
             }
             // tslint:disable-next-line:no-bitwise
             bitField |= (1 << field.switchBit);
+        }
+
+        if (bitField === 0 && mandatoryFieldCount === 0 ) {
+            return;
         }
         // write
         stream.writeUInt32(bitField);
@@ -267,7 +272,8 @@ function decodeFields(
     const hasOptionalFields = schema.bitFields && schema.bitFields.length > 0;
     let bitField = 0;
     if (hasOptionalFields) {
-        bitField = stream.readUInt32();
+        // note: it is possible that the bitField is even not written if Zero!
+        bitField = (stream.buffer.length >0) ? stream.readUInt32() : 0;
     }
 
     for (const field of schema.fields) {
