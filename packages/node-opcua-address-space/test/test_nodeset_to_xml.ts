@@ -20,6 +20,8 @@ import {
 } from "..";
 
 import * as nodesets from "node-opcua-nodesets";
+import { randomGuid } from "node-opcua-basic-types";
+import { coerceLocalizedText } from "../../node-opcua-data-model/dist";
 
 const doDebug = process.env.DEBUGTEST || false;
 
@@ -524,15 +526,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         }
     });
 
-    it("should produce a XML file - with DI included - 1 Rich ObjectType - and reload it", async () => {
-
-        createBoilerType(namespace);
-        const xml = namespace.toNodeset2XML();
-        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
-
-        const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
-        fs.writeFileSync(tmpFilename, xml);
-
+    async function reloadedNodeSet(tmpFilename: string) {
         /// Xx console.log(xml);
         const theNodesets = [
             nodesets.standard_nodeset_file,
@@ -551,11 +545,62 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
         const tmpFilename2 = getTempFilename("__generated_node_set_version2.xml");
         fs.writeFileSync(tmpFilename2, r_xml);
+        reloadedAddressSpace.dispose();
+        return r_xml2;
+    }
 
+    it("should produce a XML file - with DI included - 1 Rich ObjectType - and reload it", async () => {
+
+        createBoilerType(namespace);
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+        // create a
+    });
+
+    it("NSXML1 should output an XML file - with Variant GUID", async () => {
+        const v = namespace.addVariable({
+            browseName: "Test",
+            dataType: "Guid",
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.Guid,
+                value: "AFCFB362-73BD-D408-20FA-94E9567BCC27" // randomGuid("000")
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+        // console.log(xml);
+    });
+    it("NSXML2 should output an XML file - with Variant LocalizedText", async () => {
+        const v = namespace.addVariable({
+            browseName: "Test",
+            dataType: "Guid",
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.LocalizedText,
+                value: coerceLocalizedText("Hello")
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
-        reloadedAddressSpace.dispose();
-
-        // create a
+        // console.log(xml);
     });
 });
