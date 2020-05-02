@@ -189,7 +189,8 @@ export class DataTypeFactory {
         if (classConstructor.encodingDefaultBinary && classConstructor.encodingDefaultBinary.value !== 0) {
             this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
         } else {
-            console.log("warning ", dataTypeNodeId.toString(),
+            // for instance in DI FetchResultDataType should be abstract but is not
+            debugLog("warning ", dataTypeNodeId.toString(),
                 "name=", className, " do not have binary encoding");
         }
     }

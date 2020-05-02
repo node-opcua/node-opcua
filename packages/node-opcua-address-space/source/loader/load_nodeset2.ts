@@ -82,6 +82,7 @@ import { UAVariable } from "../../src/ua_variable";
 import { UAVariableType } from "../../src/ua_variable_type";
 
 import * as PrettyError from "pretty-error";
+import { isValidGuid } from "node-opcua-basic-types";
 const pe = new PrettyError();
 
 const doDebug = checkDebugFlag(__filename);
@@ -1035,6 +1036,23 @@ export function generateAddressSpace(
                         dataType: DataType.String,
                         value: this.text
                     };
+                }
+            },
+
+            Guid: {
+                parser: {
+                    String: {
+                        finish(this: any) {
+                            const guid = this.text;
+                            if (!isValidGuid(guid)) {
+                                /* ?*/
+                            }
+                            this.parent.parent.parent.obj.value = {
+                                dataType: DataType.Guid,
+                                value: this.text
+                            };
+                        }
+                    },
                 }
             },
 

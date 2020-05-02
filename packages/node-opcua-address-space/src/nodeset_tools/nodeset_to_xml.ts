@@ -45,6 +45,7 @@ import { UAReferenceType } from "../ua_reference_type";
 import { UAVariable } from "../ua_variable";
 import { UAVariableType } from "../ua_variable_type";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
+import { ExtensionObject } from "node-opcua-extension-object/source";
 
 function _hash(node: BaseNode | Reference): string {
     return (node.nodeId.toString());
@@ -169,6 +170,33 @@ function _dumpLocalizedText(xw: XmlWriter, v: LocalizedText) {
     xw.endElement();
 }
 
+/*
+<uax:ExtensionObject>
+    <uax:TypeId>
+        <uax:Identifier>i=339</uax:Identifier>
+    </uax:TypeId>
+    <uax:Body>
+        <BuildInfo xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+            <ProductUri></ProductUri>
+            <ManufacturerName></ManufacturerName>
+            <ProductName></ProductName>
+            <SoftwareVersion></SoftwareVersion>
+            <BuildNumber></BuildNumber>
+            <BuildDate>1900-01-01T00:00:00Z</BuildDate>
+        </BuildInfo>
+    </uax:Body>
+</uax:ExtensionObject>
+*/
+
+function _dumpExtensionObject(xw: XmlWriter, v: ExtensionObject) {
+    if (!v) { return; }
+    xw.startElement("TypeId");
+    _dumpNodeId(xw, v.schema.encodingDefaultXml!);
+    xw.endElement();
+    xw.startElement("Body");
+
+    xw.endElement();
+}
 function _dumpNodeId(xw: XmlWriter, v: NodeId) {
     xw.startElement("Identifier");
     xw.text(v.toString());
@@ -232,6 +260,26 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
                 xw.text(value.toString("base64").match(/.{1,80}/g).join("\n"));
                 xw.endElement();
             }
+            break;
+        case DataType.Guid:
+            /*
+             <uax:Guid>
+                <uax:String>947c29a7-490d-4dc9-adda-1109e3e8fcb7</uax:String>
+            </uax:Guid>
+            */
+            if (value !== undefined && value !== null) {
+                xw.startElement(DataType[dataType]);
+                // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
+                xw.startElement("String");
+                xw.text(value.toString());
+                xw.endElement();
+                xw.endElement();
+            }
+            break;
+        case DataType.ExtensionObject:
+            xw.startElement(DataType[dataType]);
+            _dumpExtensionObject(xw, value as ExtensionObject);
+            xw.endElement();
             break;
         case DataType.QualifiedName:
         case DataType.StatusCode:
