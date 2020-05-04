@@ -1152,11 +1152,11 @@ export function generateAddressSpace(
 
             ListOfInt8: ListOf("Int8", parseInt),
 
-            ListOfUint32: ListOf("Uint32", parseInt),
+            ListOfUInt32: ListOf("UInt32", parseInt),
 
-            ListOfUint16: ListOf("Uint16", parseInt),
+            ListOfUInt16: ListOf("UInt16", parseInt),
 
-            ListOfUint8: ListOf("Uint8", parseInt),
+            ListOfUInt8: ListOf("UInt8", parseInt),
 
             ListOfString: ListOf("String", (value: string) => value),
 

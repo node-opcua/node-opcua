@@ -269,13 +269,13 @@ describe("testing nodeset to xml", () => {
             <Reference ReferenceType="HasProperty">ns=1;i=1003</Reference>
         </References>
     </UAMethod>
-    <UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ValueRank="1" DataType="Argument">
+    <UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ValueRank="1" DataType="Argument" ArrayDimensions="1">
         <DisplayName>InputArguments</DisplayName>
         <Description>the definition of the input argument of method 1:Object.1:Trigger</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-        </References>1
+        </References>
         <Value>
             <ListOfExtensionObject>
                 <ExtensionObject>
@@ -300,13 +300,13 @@ describe("testing nodeset to xml", () => {
             </ListOfExtensionObject>
         </Value>
     </UAVariable>
-    <UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ValueRank="1" DataType="Argument">
+    <UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ValueRank="1" DataType="Argument" ArrayDimensions="1">
         <DisplayName>OutputArguments</DisplayName>
         <Description>the definition of the output arguments of method 1:Object.1:Trigger</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-        </References>1
+        </References>
         <Value>
             <ListOfExtensionObject>
                 <ExtensionObject>
@@ -600,6 +600,62 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
         const r_xml2 = await reloadedNodeSet(tmpFilename);
         r_xml2.split("\n").should.eql(xml2.split("\n"));
+
+        // console.log(xml);
+    });
+    it("NSXML3 should output an XML file - with Variant Matrix UAVariable", async () => {
+        const v = namespace.addVariable({
+            browseName: "Test",
+            dataType: "UInt32",
+
+            arrayDimensions: [1, 2],
+            valueRank: 2,
+
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.UInt32,
+                value: [1, 2, 3, 4]
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+
+        r_xml2.should.match(/ValueRank=\"2\"/);
+        r_xml2.should.match(/ArrayDimensions=\"1,2\"/);
+
+        // console.log(xml);
+    });
+    it("NSXML3 should output an XML file - with Variant Matrix UAVariableType", async () => {
+        const v = namespace.addVariableType({
+            browseName: "TestVariableType",
+            dataType: "UInt32",
+
+            arrayDimensions: [1, 2],
+            valueRank: 2,
+
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.UInt32,
+                value: [1, 2, 3, 4]
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+
+        r_xml2.should.match(/ValueRank=\"2\"/);
+        r_xml2.should.match(/ArrayDimensions=\"1,2\"/);
 
         // console.log(xml);
     });
