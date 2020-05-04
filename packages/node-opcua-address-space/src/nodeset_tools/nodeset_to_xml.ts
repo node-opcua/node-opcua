@@ -791,9 +791,10 @@ function dumpUAVariable(
         }
     }
     {
+        _dumpArrayDimensions(xw, node);
+
         // sub elements
         dumpCommonElements(xw, node);
-        _dumpArrayDimensions(xw, node);
         _dumpValue(xw, node, node.readValue().value);
     }
     xw.endElement();
@@ -843,9 +844,10 @@ function dumpUAVariableType(
         }
     }
     {
+        _dumpArrayDimensions(xw, node);
+
         // sub elements
         dumpCommonElements(xw, node);
-        _dumpArrayDimensions(xw, node);
         _dumpValue(xw, node, node.value);
     }
 
