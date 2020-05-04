@@ -131,7 +131,6 @@ export interface CacheNodeDataType extends CacheNode {
 // tslint:disable: max-classes-per-file
 export class CacheNodeVariable extends CacheNode {
     public nodeClass: NodeClass.Variable = NodeClass.Variable;
-    public valueRank: any;
     public dataValue?: DataValue;
 
     constructor(nodeId: NodeId) {
@@ -151,11 +150,11 @@ export interface CacheNodeVariable extends CacheNode {
     accessLevel: AccessLevelFlag;
     userAccessLevel: AccessLevelFlag;
     arrayDimensions?: number[];
+    valueRank?: number;
 }
 
 export class CacheNodeVariableType extends CacheNode {
     public nodeClass: NodeClass.VariableType = NodeClass.VariableType;
-    public valueRank: any;
     public dataValue?: DataValue;
 
     constructor(nodeId: NodeId) {
@@ -176,7 +175,7 @@ export interface CacheNodeVariableType extends CacheNode {
     dataValue?: DataValue;
     accessLevel: AccessLevelFlag;
     arrayDimensions?: number[];
-    valueRank: any;
+    valueRank?: number;
 }
 
 export interface CacheNodeObjectType extends CacheNode {
@@ -1318,8 +1317,14 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     ): void;
     private _defer_readNode(
         nodeId: NodeId,
+        attributeId: AttributeIds.ArrayDimensions,
+        callback: (err: Error | null, value?: number[]) => void
+    ): void;
+    private _defer_readNode(
+        nodeId: NodeId,
         attributeId:
             AttributeIds.AccessLevel |
+            AttributeIds.ValueRank |
             AttributeIds.UserAccessLevel |
             AttributeIds.MinimumSamplingInterval |
             AttributeIds.NodeClass,
@@ -1592,7 +1597,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                 this._defer_readNode(
                     cacheNode.nodeId,
                     AttributeIds.DataType,
-                    (err: Error | null, dataType?: any) => {
+                    (err: Error | null, dataType?: NodeId) => {
 
                         if (!(dataType instanceof NodeId)) {
                             return callback();
@@ -1618,8 +1623,35 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                         callback();
                     });
             },
-            task6_variable_arrayDimension: (callback: ErrorCallback) => {
-                callback();
+            task6a_variable_arrayDimension: (callback: ErrorCallback) => {
+                if (cacheNode.nodeClass !== NodeClass.Variable
+                    && cacheNode.nodeClass !== NodeClass.VariableType
+                ) {
+                    return callback();
+                }
+                const cache = cacheNode as CacheNodeVariable | CacheNodeVariableType;
+                this._defer_readNode(cacheNode.nodeId, AttributeIds.ArrayDimensions,
+                    (err: Error | null, value?: number[]) => {
+                        if (!err) {
+                            cache.arrayDimensions = value;
+                        }
+                        callback();
+                    });
+            },
+            task6b_variable_valueRank: (callback: ErrorCallback) => {
+                if (cacheNode.nodeClass !== NodeClass.Variable
+                    && cacheNode.nodeClass !== NodeClass.VariableType
+                ) {
+                    return callback();
+                }
+                const cache = cacheNode as CacheNodeVariable | CacheNodeVariableType;
+                this._defer_readNode(cacheNode.nodeId, AttributeIds.ValueRank,
+                    (err: Error | null, value?: number) => {
+                        if (!err) {
+                            cache.valueRank = value!;
+                        }
+                        callback();
+                    });
             },
             task7_variable_minimumSamplingInterval: (callback: ErrorCallback) => {
                 if (cacheNode.nodeClass !== NodeClass.Variable) {
