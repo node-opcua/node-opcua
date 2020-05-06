@@ -459,13 +459,6 @@ export class AddressSpace implements AddressSpacePrivate {
             throw new Error("Expecting a UADataType" + _orig_dataTypeNode.toString());
         }
         dataTypeNode = dataTypeNode as UADataType;
-        /* istanbul ignore next */
-        if (typeof dataTypeNode!.nodeId!.value !== "number") {
-            throw new Error("Internal Errror");
-        }
-
-        const id: number = dataTypeNode!.nodeId.value as number;
-        assert(_.isFinite(id));
 
         const enumerationType = this.findDataType("Enumeration")!;
         if (sameNodeId(enumerationType.nodeId, dataTypeNode!.nodeId)) {
