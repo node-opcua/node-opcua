@@ -1464,9 +1464,19 @@ export class OPCUAServer extends OPCUABaseServer {
       if (err) {
         return callback(err);
       }
+      /*
+      if (StatusCodes.BadCertificateUntrusted === certificateStatus) {
+        return callback(null, StatusCodes.BadIdentityTokenRejected);
+      }
+      if (StatusCodes.BadCertificateTimeInvalid === certificateStatus) {
+        return callback(null, StatusCodes.BadIdentityTokenRejected);
+      }
+      */
       if (StatusCodes.Good !== certificateStatus) {
         assert(certificateStatus instanceof StatusCode);
         return callback(null, certificateStatus);
+        // return callback(null, StatusCodes.BadIdentityTokenInvalid);
+
       }
 
       // verify if certificate is truster or rejected
@@ -2135,6 +2145,7 @@ export class OPCUAServer extends OPCUABaseServer {
                   secureChannelId: { dataType: "String", value: session.channel!.channelId!.toString() }
                 });
               }
+              server.emit("session_activated", session, userIdentityTokenPasswordRemoved);
             }
           });
       });
@@ -2472,6 +2483,11 @@ export class OPCUAServer extends OPCUABaseServer {
           const maxBrowseContinuationPoints = server.engine.serverCapabilities.maxBrowseContinuationPoints;
           results = results.map((result: BrowseResult) => {
             assert(!result.continuationPoint);
+
+            // istanbul ignore next
+            if (!session.continuationPointManager) {
+              return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
+            }
 
             if (session.continuationPointManager.hasReachMaximum(maxBrowseContinuationPoints)) {
               return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
@@ -3421,6 +3437,8 @@ export interface OPCUAServer {
 
 export interface OPCUAServer extends EventEmitter {
   on(event: "create_session", eventHandler: (session: ServerSession) => void): this;
+
+  on(event: "session_activated", eventHandler: (session: ServerSession, ) => void): this;
 
   on(event: "session_closed", eventHandler: (session: ServerSession, reason: string) => void): this;
 
