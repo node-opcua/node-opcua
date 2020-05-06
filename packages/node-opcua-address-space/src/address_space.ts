@@ -465,8 +465,8 @@ export class AddressSpace implements AddressSpacePrivate {
             return DataType.Int32;
         }
 
-        if (dataTypeNode.nodeId.namespace === 0 && DataType[id]) {
-            return id as DataType;
+        if (dataTypeNode.nodeId.namespace === 0 && DataType[dataTypeNode.nodeId.value as number]) {
+            return dataTypeNode.nodeId.value as DataType;
         }
         return this.findCorrespondingBasicDataType(dataTypeNode.subtypeOfObj as UADataType);
     }
