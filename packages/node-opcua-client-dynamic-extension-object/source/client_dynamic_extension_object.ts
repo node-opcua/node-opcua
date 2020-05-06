@@ -290,7 +290,7 @@ async function _extractDataTypeDictionaryFromDefinition(
     const dataTypeDescriptions = await _getDataTypeDescriptions(session, dataTypeDictionaryNodeId);
     const dataTypeNodeIds = await _enrichWithDescriptionOf(session, dataTypeDescriptions);
 
-    // now read DataTypeDefition attributes of all the dataTypeNodeIds, this will only contains concrete structure 
+    // now read DataTypeDefition attributes of all the dataTypeNodeIds, this will only contains concrete structure
     const nodesToRead: ReadValueIdLike[] = dataTypeNodeIds.map((nodeId: NodeId) => ({
         attributeId: AttributeIds.DataTypeDefinition, nodeId,
     }));
@@ -618,7 +618,7 @@ async function getHasEncodingDefaultBinary(
     /* istanbul ignore next */
     if (!(result1.references && result1.references.length === 1)) {
 
-        // may be dataTypeNodeId is not a dataType, 
+        // may be dataTypeNodeId is not a dataType,
         // let's verify this.
         const nodeClass = await session.read({
             attributeId: AttributeIds.NodeClass,
@@ -925,7 +925,7 @@ async function _setupEncodings(
     schema: StructuredTypeSchema
 ): Promise<StructuredTypeSchema> {
 
-    // read abstract flag 
+    // read abstract flag
     const isAbstractDV = await session.read({ nodeId: dataTypeNodeId, attributeId: AttributeIds.IsAbstract });
     schema.dataTypeNodeId = dataTypeNodeId;
     schema.id = dataTypeNodeId;
