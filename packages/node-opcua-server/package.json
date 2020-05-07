@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-server",
-    "version": "2.5.10",
+    "version": "2.5.11",
     "description": "pure nodejs OPCUA SDK - module -server",
     "scripts": {
         "build": "tsc -b",
@@ -17,11 +17,11 @@
         "bonjour": "^3.5.0",
         "colors": "^1.4.0",
         "dequeue": "^1.0.5",
-        "node-opcua-address-space": "^2.5.10",
+        "node-opcua-address-space": "^2.5.11",
         "node-opcua-assert": "2.5.8",
         "node-opcua-basic-types": "^2.5.9",
         "node-opcua-certificate-manager": "^2.5.10",
-        "node-opcua-client": "^2.5.10",
+        "node-opcua-client": "^2.5.11",
         "node-opcua-client-dynamic-extension-object": "^2.5.10",
         "node-opcua-common": "^2.5.10",
         "node-opcua-constants": "^2.5.9",
