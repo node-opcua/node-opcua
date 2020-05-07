@@ -6,6 +6,7 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import * as aggregates from "node-opcua-aggregates"
 import { DateTime } from "node-opcua-basic-types";
 import {
     ExtraDataTypeManager,
@@ -50,7 +51,8 @@ import {
     HistoryReadRequest,
     HistoryReadResponse,
     HistoryReadResult,
-    ReadRawModifiedDetails
+    ReadRawModifiedDetails,
+    ReadProcessedDetails
 } from "node-opcua-service-history";
 import {
     QueryFirstRequest,
@@ -747,6 +749,117 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         const request = new HistoryReadRequest({
             historyReadDetails: readRawModifiedDetails,
+            nodesToRead,
+            releaseContinuationPoints: false,
+            timestampsToReturn: TimestampsToReturn.Both
+        });
+
+        request.nodesToRead = request.nodesToRead || [];
+
+        assert(nodes.length === request.nodesToRead.length);
+        this.performMessageTransaction(request, (err: Error | null, response) => {
+
+            /* istanbul ignore next */
+            if (err) {
+                return callback(err);
+            }
+
+            /* istanbul ignore next */
+            if (!response || !(response instanceof HistoryReadResponse)) {
+                return callback(new Error("Internal Error"));
+            }
+
+            if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
+                return callback(new Error(response.responseHeader.serviceResult.toString()));
+            }
+
+            response.results = response.results || /* istanbul ignore next */[];
+
+            assert(nodes.length === response.results.length);
+
+            callback(null, isArray ? response.results : response.results[0]);
+        });
+    }
+
+    /**
+     * @method readAggregateValue
+     * @async
+     *
+     * @example
+     *
+     * ```javascript
+     * //  es5
+     * session.readAggregateValue(
+     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   "2015-06-10T09:00:00.000Z",
+     *   "2015-06-10T09:01:00.000Z", 'Average', 3600000, function(err,dataValues) {
+     *
+     * });
+     * ```
+     *
+     * ```javascript
+     * //  es6
+     * const dataValues = await session.readAggregateValue(
+     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   "2015-06-10T09:00:00.000Z",
+     *   "2015-06-10T09:01:00.000Z", 'Average', 3600000);
+     * ```
+     * @param nodes   the read value id
+     * @param start   the start time in UTC format
+     * @param end     the end time in UTC format
+     * @param aggregateFn
+     * @param processingInterval in milliseconds
+     * @param callback
+     */
+    public readAggregateValue(
+        nodes: ReadValueIdLike[],
+        start: DateTime,
+        end: DateTime,
+        aggregateFn: String,
+        processingInterval: Number,
+        callback: (err: Error | null, results?: HistoryReadResult[]) => void): void;
+    public async readAggregateValue(
+        nodes: ReadValueIdLike[],
+        start: DateTime,
+        end: DateTime,
+        aggregateFn: String,
+        processingInterval: Number,
+    ): Promise<HistoryReadResult[]>;
+
+    public readAggregateValue(...args: any[]): any {
+
+        const start = args[1];
+        const end = args[2];
+        const aggregateFn = aggregates.AggregateFunction[args[3]];
+        const processingInterval = args[4];
+        const callback = args[4];
+        assert(_.isFunction(callback));
+
+        const arg0 = args[0];
+        const isArray = _.isArray(arg0);
+
+        const nodes = isArray ? arg0 : [arg0];
+
+        const nodesToRead = [];
+
+        for (const node of nodes) {
+            nodesToRead.push({
+                continuationPoint: undefined,
+                dataEncoding: undefined, // {namespaceIndex: 0, name: undefined},
+                indexRange: undefined,
+                nodeId: resolveNodeId(node)
+            });
+        }
+
+        const readProcessedDetails = new ReadProcessedDetails({
+            startTime: start,
+            endTime: end,
+            aggregateType: [aggregateFn],
+            processingInterval: processingInterval
+        });
+
+        const request = new HistoryReadRequest({
+            historyReadDetails: readProcessedDetails,
             nodesToRead,
             releaseContinuationPoints: false,
             timestampsToReturn: TimestampsToReturn.Both
@@ -2338,6 +2451,7 @@ ClientSessionImpl.prototype.browse = thenify.withCallback(ClientSessionImpl.prot
 ClientSessionImpl.prototype.browseNext = thenify.withCallback(ClientSessionImpl.prototype.browseNext, opts);
 ClientSessionImpl.prototype.readVariableValue = thenify.withCallback(ClientSessionImpl.prototype.readVariableValue, opts);
 ClientSessionImpl.prototype.readHistoryValue = thenify.withCallback(ClientSessionImpl.prototype.readHistoryValue, opts);
+ClientSessionImpl.prototype.readAggregateValue = thenify.withCallback(ClientSessionImpl.prototype.readAggregateValue, opts);
 ClientSessionImpl.prototype.write = thenify.withCallback(ClientSessionImpl.prototype.write, opts);
 ClientSessionImpl.prototype.writeSingleNode = thenify.withCallback(ClientSessionImpl.prototype.writeSingleNode, opts);
 ClientSessionImpl.prototype.readAllAttributes = thenify.withCallback(ClientSessionImpl.prototype.readAllAttributes, opts);

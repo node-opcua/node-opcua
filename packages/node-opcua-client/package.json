@@ -21,6 +21,7 @@
         "callbackify": "^1.1.0",
         "chalk": "^4.0.0",
         "delayed": "^2.0.0",
+        "node-opcua-aggregates": "^2.6.0-alpha.1",
         "node-opcua-assert": "^2.6.0-alpha.1",
         "node-opcua-basic-types": "^2.6.0-alpha.1",
         "node-opcua-buffer-utils": "^2.6.0-alpha.1",
