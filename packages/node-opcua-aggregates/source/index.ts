@@ -4,7 +4,8 @@
 export { 
     addAggregateSupport,
     installAggregateConfigurationOptions,
-    getAggregateConfiguration
+    getAggregateConfiguration,
+    AggregateFunction
 } from "./aggregates";
 export * from "./interpolate";
 export * from "./minmax";

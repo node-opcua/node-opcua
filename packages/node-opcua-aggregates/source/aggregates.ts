@@ -119,7 +119,7 @@ function setHistoricalServerCapabilities(
     // xx setBoolean("InsertAnnotationsCapability");
 }
 
-export type AggregateFunctioName =
+export type AggregateFunctionName =
   "AnnotationCount" |
   "Average" |
   "Count" |
@@ -194,7 +194,8 @@ function addAggregateFunctionSupport(
     });
 }
 
-const enum AggregateFunction {
+
+export enum AggregateFunction {
     AnnotationCount = ObjectIds.AggregateFunction_AnnotationCount,
     Average = ObjectIds.AggregateFunction_Average,
     Count = ObjectIds.AggregateFunction_Count,
