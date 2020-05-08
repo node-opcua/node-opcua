@@ -231,8 +231,8 @@ export class ConditionSnapshot extends EventEmitter {
      * @method resolveSelectClause
      * @param selectClause {SelectClause}
      */
-    public resolveSelectClause(selectClause: any): any {
-        return this.eventData?.resolveSelectClause(selectClause);
+    public resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null {
+        return this.eventData?.resolveSelectClause(selectClause) || null;
     }
 
     /**

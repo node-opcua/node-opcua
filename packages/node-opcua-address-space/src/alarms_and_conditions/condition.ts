@@ -14,10 +14,10 @@ import { StatusCodes } from "node-opcua-status-code";
 import { ConditionSnapshot } from "./condition_snapshot";
 
 export function _setAckedState(
-  self: ConditionSnapshot,
-  requestedAckedState: any,
-  eventId?: any,
-  comment?: string | LocalizedText | LocalizedTextLike
+    self: ConditionSnapshot,
+    requestedAckedState: any,
+    conditionEventId?: Buffer,
+    comment?: string | LocalizedText | LocalizedTextLike
 ) {
 
     assert(self instanceof ConditionSnapshot);

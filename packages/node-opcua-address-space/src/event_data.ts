@@ -89,7 +89,6 @@ export class EventData implements IEventData {
     public readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
         assert(nodeId instanceof NodeId);
         assert(selectClause instanceof SimpleAttributeOperand);
-        const self = this;
         assert(nodeId instanceof NodeId);
         const addressSpace = this.$eventDataSource.addressSpace;
 
@@ -97,7 +96,7 @@ export class EventData implements IEventData {
         const key = node.nodeId.toString();
 
         // if the value exists in cache ... we read it from cache...
-        const cached_value = self.__nodes[key];
+        const cached_value = this.__nodes[key];
         if (cached_value) {
             return cached_value;
         }
