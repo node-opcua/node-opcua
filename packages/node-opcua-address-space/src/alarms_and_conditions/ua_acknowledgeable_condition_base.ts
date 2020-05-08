@@ -28,13 +28,13 @@ export interface UAAcknowledgeableConditionBase extends UAConditionBase {
 export interface UAAcknowledgeableConditionBase extends UAConditionBase {
 
     on(
-      eventName: string,
-      eventHandler: (...args: any[]) => void
+        eventName: string,
+        eventHandler: (...args: any[]) => void
     ): this;
 
     on(
-      eventName: "acknowledged" | "confirmed",
-      eventHandler: (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void
+        eventName: "acknowledged" | "confirmed",
+        eventHandler: (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void
     ): this;
 }
 
@@ -48,14 +48,14 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
     /**
      */
     public static instantiate(
-      namespace: Namespace,
-      conditionTypeId: UAEventType | NodeId | string,
-      options: any,
-      data: any
+        namespace: Namespace,
+        conditionTypeId: UAEventType | NodeId | string,
+        options: any,
+        data: any
     ): UAAcknowledgeableConditionBase {
 
         const conditionNode = UAConditionBase.instantiate(
-          namespace, conditionTypeId, options, data) as UAAcknowledgeableConditionBase;
+            namespace, conditionTypeId, options, data) as UAAcknowledgeableConditionBase;
 
         Object.setPrototypeOf(conditionNode, UAAcknowledgeableConditionBase.prototype);
 
@@ -140,10 +140,12 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
                 dataType: DataType.Null
             },
 
+            // The ConditionEventId field shall contain the id of the event for which the comment was added
+            conditionEventId: { dataType: DataType.ByteString, value: branch.getEventId() },
+
+            // The Comment contains the actual comment that was added
             comment: { dataType: DataType.LocalizedText, value: branch.getComment() },
 
-            // EventType
-            eventId: { dataType: DataType.ByteString, value: branch.getEventId() },
             inputArguments: {
                 dataType: DataType.Null
             },
@@ -168,8 +170,8 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
 
             actionTimeStamp: { dataType: DataType.DateTime, value: new Date() },
 
-            // EventType
-            eventId: { dataType: DataType.ByteString, value: branch.getEventId() },
+            // ConditionEventId The ConditionEventId field shall contain the id of the Event that was confirmedd 
+            conditionEventId: { dataType: DataType.ByteString, value: branch.getEventId() },
             // xx branchId: branch.branchId.readValue().value,
 
             // AuditEventType
@@ -199,17 +201,17 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
     }
 
     public _acknowledge_branch(
-      eventId: Buffer,
-      comment: string | LocalizedTextLike | LocalizedText,
-      branch: ConditionSnapshot,
-      message: string
+        conditionEventId: Buffer,
+        comment: string | LocalizedTextLike | LocalizedText,
+        branch: ConditionSnapshot,
+        message: string
     ) {
 
         assert(typeof (message) === "string");
 
         const conditionNode = this;
 
-        const statusCode = _setAckedState(branch, true, eventId, comment);
+        const statusCode = _setAckedState(branch, true, conditionEventId, comment);
         if (statusCode !== StatusCodes.Good) {
             return statusCode;
         }
@@ -227,7 +229,6 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
 
         conditionNode.raiseNewBranchState(branch);
 
-        // xx conditionNode._raiseAuditConditionCommentEvent("Method/Acknowledge",eventId,comment);
         conditionNode._raiseAuditConditionAcknowledgeEvent(branch);
 
         /**
@@ -237,24 +238,24 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
          * @param  branch    {ConditionSnapshot}
          * raised when the alarm branch has been acknowledged
          */
-        conditionNode.emit("acknowledged", eventId, comment, branch);
+        conditionNode.emit("acknowledged", conditionEventId, comment, branch);
 
         return StatusCodes.Good;
     }
 
     /**
      * @method _confirm_branch
-     * @param eventId
+     * @param conditionEventId The ConditionEventId field shall contain the id of the Event that was conformed
      * @param comment
      * @param branch
      * @param message
      * @private
      */
     public _confirm_branch(
-      eventId: Buffer,
-      comment: string | LocalizedTextLike,
-      branch: ConditionSnapshot,
-      message: string
+        conditionEventId: Buffer,
+        comment: string | LocalizedTextLike,
+        branch: ConditionSnapshot,
+        message: string
     ): any {
 
         assert(typeof (message) === "string");
@@ -262,14 +263,14 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
 
         const conditionNode = this;
         // xx var eventId = branch.getEventId();
-        assert(branch.getEventId().toString("hex") === eventId.toString("hex"));
+        assert(branch.getEventId().toString("hex") === conditionEventId.toString("hex"));
         branch.setConfirmedState(true);
 
         // once confirmed a branch do not need to be retained
         branch.setRetain(false);
         branch.setComment(comment);
 
-        conditionNode._raiseAuditConditionCommentEvent(message, eventId, comment);
+        conditionNode._raiseAuditConditionCommentEvent(message, conditionEventId, comment);
         conditionNode._raiseAuditConditionConfirmEvent(branch);
 
         conditionNode.raiseNewBranchState(branch);
@@ -281,7 +282,7 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
          * @param  eventId
          * raised when the alarm branch has been confirmed
          */
-        conditionNode.emit("confirmed", eventId, comment, branch);
+        conditionNode.emit("confirmed", conditionEventId, comment, branch);
 
     }
 
@@ -291,8 +292,8 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
      * @param comment
      */
     public autoConfirmBranch(
-      branch: ConditionSnapshot,
-      comment: LocalizedTextLike
+        branch: ConditionSnapshot,
+        comment: LocalizedTextLike
     ) {
         assert(branch instanceof ConditionSnapshot);
         if (!this.confirmedState) {
@@ -301,10 +302,10 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
         }
         assert(!branch.getConfirmedState(), "already confirmed ?");
         const conditionNode = this;
-        const eventId = branch.getEventId();
+        const conditionEventId = branch.getEventId();
         // tslint:disable-next-line:no-console
         console.log("autoConfirmBranch getAckedState ", branch.getAckedState());
-        conditionNode._confirm_branch(eventId, comment, branch, "Server/Confirm");
+        conditionNode._confirm_branch(conditionEventId, comment, branch, "Server/Confirm");
     }
 
     /**
@@ -313,38 +314,38 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
      * @param comment {String|LocalizedText}
      */
     public acknowledgeAndAutoConfirmBranch(
-      branch: ConditionSnapshot,
-      comment: string | LocalizedTextLike | LocalizedText
+        branch: ConditionSnapshot,
+        comment: string | LocalizedTextLike | LocalizedText
     ) {
         comment = LocalizedText.coerce(comment)!;
-        const eventId = branch.getEventId();
+        const conditionEventId = branch.getEventId();
         branch.setRetain(false);
-        this._acknowledge_branch(eventId, comment, branch, "Server/Acknowledge");
+        this._acknowledge_branch(conditionEventId, comment, branch, "Server/Acknowledge");
         this.autoConfirmBranch(branch, comment);
     }
 }
 
 function _acknowledge_method(
-  inputArguments: VariantLike[],
-  context: SessionContext,
-  callback: any
+    inputArguments: VariantLike[],
+    context: SessionContext,
+    callback: any
 ) {
 
     UAConditionBase.with_condition_method(inputArguments, context, callback,
-      (
-        eventId: Buffer,
-        comment: LocalizedText,
-        branch: ConditionSnapshot,
-        conditionNode: UAConditionBase) => {
+        (
+            conditionEventId: Buffer,
+            comment: LocalizedText,
+            branch: ConditionSnapshot,
+            conditionNode: UAConditionBase) => {
 
-          const ackConditionNode = conditionNode as UAAcknowledgeableConditionBase;
-          // precondition checking
-          assert(!eventId || eventId instanceof Buffer, "must have a valid eventId or  null");
-          assert(comment instanceof LocalizedText, "expecting a comment as LocalizedText");
-          assert(conditionNode instanceof UAAcknowledgeableConditionBase);
-          ackConditionNode._acknowledge_branch(eventId, comment, branch, "Method/Acknowledged");
-          return StatusCodes.Good;
-      });
+            const ackConditionNode = conditionNode as UAAcknowledgeableConditionBase;
+            // precondition checking
+            assert(!conditionEventId || conditionEventId instanceof Buffer, "must have a valid eventId or  null");
+            assert(comment instanceof LocalizedText, "expecting a comment as LocalizedText");
+            assert(conditionNode instanceof UAAcknowledgeableConditionBase);
+            ackConditionNode._acknowledge_branch(conditionEventId, comment, branch, "Method/Acknowledged");
+            return StatusCodes.Good;
+        });
 }
 
 /*
@@ -356,28 +357,28 @@ function _acknowledge_method(
  * @private
  */
 function _confirm_method(
-  inputArguments: VariantLike[],
-  context: SessionContext,
-  callback: any
+    inputArguments: VariantLike[],
+    context: SessionContext,
+    callback: any
 ) {
 
     UAConditionBase.with_condition_method(
-      inputArguments, context, callback,
-      (
-        eventId: Buffer,
-        comment: LocalizedText,
-        branch: ConditionSnapshot,
-        conditionNode: UAConditionBase) => {
+        inputArguments, context, callback,
+        (
+            eventId: Buffer,
+            comment: LocalizedText,
+            branch: ConditionSnapshot,
+            conditionNode: UAConditionBase) => {
 
-          assert(eventId instanceof Buffer);
-          assert(branch.getEventId() instanceof Buffer);
-          assert(branch.getEventId().toString("hex") === eventId.toString("hex"));
+            assert(eventId instanceof Buffer);
+            assert(branch.getEventId() instanceof Buffer);
+            assert(branch.getEventId().toString("hex") === eventId.toString("hex"));
 
-          const ackConditionNode = conditionNode as UAAcknowledgeableConditionBase;
-          if (branch.getConfirmedState()) {
-              return StatusCodes.BadConditionBranchAlreadyConfirmed;
-          }
-          ackConditionNode._confirm_branch(eventId, comment, branch, "Method/Confirm");
-          return StatusCodes.Good;
-      });
+            const ackConditionNode = conditionNode as UAAcknowledgeableConditionBase;
+            if (branch.getConfirmedState()) {
+                return StatusCodes.BadConditionBranchAlreadyConfirmed;
+            }
+            ackConditionNode._confirm_branch(eventId, comment, branch, "Method/Confirm");
+            return StatusCodes.Good;
+        });
 }

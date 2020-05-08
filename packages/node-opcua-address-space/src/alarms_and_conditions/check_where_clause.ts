@@ -1,10 +1,11 @@
 import {
     SessionContext,
     IEventData,
-    AddressSpace
+    AddressSpace,
+    extractEventFields
 } from "../../source";
 import {
-    ContentFilter, FilterOperator, LiteralOperand
+    ContentFilter, FilterOperator, LiteralOperand, SimpleAttributeOperand
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
@@ -13,6 +14,9 @@ import { UAObjectType } from "../ua_object_type";
 import { UAReferenceType } from "../ua_reference_type";
 import { UAVariableType } from "../ua_variable_type";
 import { UAObject } from "../ua_object";
+import { ExtensionObject } from "node-opcua-extension-object";
+import { NodeId, sameNodeId } from "node-opcua-nodeid";
+import { UAVariable } from "../ua_variable";
 
 function checkOfType(
     addressSpace: AddressSpace,
@@ -52,6 +56,45 @@ function checkOfType(
     }
     return true;
 }
+
+function _extractValue(operand: SimpleAttributeOperand, eventData: IEventData): NodeId | null {
+    // eventData.readValue;
+    const v = extractEventFields(SessionContext.defaultContext, [operand], eventData)[0];
+    return v.value as NodeId;
+}
+
+function checkInList(
+    addressSpace: AddressSpace,
+    filterOperands: ExtensionObject[],
+    eventData: IEventData
+): boolean {
+
+    const operand0 = filterOperands[0];
+    if (!(operand0 instanceof SimpleAttributeOperand)) {
+        // unsupported case
+        return false;
+    }
+    const nodeId: NodeId | null = _extractValue(operand0, eventData);
+    if (!nodeId) {
+        return false;
+    }
+    function _is(nodeId1: NodeId, operandX: LiteralOperand): boolean {
+
+        const operandNode = addressSpace.findNode(operandX.value.value as NodeId) as UAObjectType & UAReferenceType & UAVariableType;
+        if (!operandNode) {
+            return false;
+        }
+        return sameNodeId(nodeId1, operandNode.nodeId);
+    }
+    for (let i = 1; i < filterOperands.length; i++) {
+        const filterOperand = filterOperands[i];
+        if ((filterOperand instanceof LiteralOperand) && _is(nodeId, filterOperand)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function checkWhereClause(
     addressSpace: AddressSpace,
     sessionContext: SessionContext,
@@ -66,6 +109,8 @@ export function checkWhereClause(
         switch (element.filterOperator) {
             case FilterOperator.OfType:
                 return checkOfType(addressSpace, element.filterOperands![0] as LiteralOperand, eventData);
+            case FilterOperator.InList:
+                return checkInList(addressSpace, element.filterOperands as ExtensionObject[], eventData);
             default:
                 // from Spec  OPC Unified Architecture, Part 4 133 Release 1.04
                 //  Any basic FilterOperator in Table 119 may be used in the whereClause, however, only the

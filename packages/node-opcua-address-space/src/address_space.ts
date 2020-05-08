@@ -638,8 +638,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * ...
      *
      *
-     * eventTypeId can be a UAObjectType deriving from EventType
-     * or an instance of a ConditionType
+     * eventTypeId can be a UAEventType
      *
      * @private
      */
@@ -651,6 +650,7 @@ export class AddressSpace implements AddressSpacePrivate {
         // construct the reference dataStructure to store event Data
         let eventTypeNode = eventTypeId;
 
+        // make sure that eventType is really a object that derived from EventType
         if (eventTypeId instanceof UAObjectType) {
             eventTypeNode = addressSpace.findEventType(eventTypeId)!;
         }
@@ -662,7 +662,7 @@ export class AddressSpace implements AddressSpacePrivate {
         assert(eventTypeNode instanceof UAObjectType, "eventTypeId must represent a UAObjectType");
 
         // eventId
-        assert(data.hasOwnProperty, "eventId constructEventData : options object should not have eventId property");
+        assert(!data.hasOwnProperty("eventId"), "eventId constructEventData : options object should not have eventId property");
         data.eventId = data.eventId || addressSpace.generateEventId();
 
         // eventType
