@@ -6,6 +6,7 @@ const treeify = require("treeify");
 const _ = require("underscore");
 const chalk = require("chalk");
 const Table = require("easy-table");
+const util = require("util");
 const {
     ApplicationType,
     assert,
@@ -444,7 +445,7 @@ async function main() {
     console.log(" --- NAMESPACE ARRAY ---");
     const namespaceArray = dataValue.value.value;
     for (const namespace of namespaceArray) {
-        console.log(" Namespace ", namespace.index, "  : ", namespace);
+        console.log(" Namespace ", namespaceArray.indexOf(namespace), "  : ", namespace);
     }
     console.log(" -----------------------");
 
