@@ -1370,12 +1370,17 @@ function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
 
     const addressSpace = namespace.addressSpace;
 
+    const myEvtType = namespace.findObjectType("MyEventType") || namespace.addEventType({
+        browseName: "MyEventType",
+        subtypeOf: "BaseEventType" // should be implicit
+    });
+
     // add 2 nodes that generate an event when ever they are written to.
-    function _add_trigger_node(browseName: string, nodeId: NodeIdLike) {
+    function _add_trigger_node(parent: UAObject, browseName: string, nodeId: NodeIdLike) {
         const triggerNode = namespace.addVariable({
             browseName,
             nodeId,
-            organizedBy: parentFolder,
+            eventSourceOf: parent,
             dataType: "Double",
             typeDefinition: makeNodeId(68)
         });
@@ -1388,12 +1393,9 @@ function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
             });
         };
         const setFunc = (variant: Variant) => {
-
             value = variant.value;
-
             const server = addressSpace.rootFolder.objects.server;
-
-            server.raiseEvent("3:MyEventType", {
+            server.raiseEvent(myEvtType, {
                 message: {
                     dataType: DataType.LocalizedText,
                     value: { text: "Hello World" }
@@ -1402,7 +1404,6 @@ function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
                     dataType: DataType.UInt32,
                     value: 32
                 }
-
             });
         };
 
@@ -1413,14 +1414,20 @@ function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
         triggerNode.bindVariable(options);
     }
 
-    const triggerNode01 = _add_trigger_node("TriggerNode01", "s=TriggerNode01");
+    const sampleTriggerNode = namespace.addObject({
+        browseName: "SampleTriggerNode",
+        eventNotifier: 0x1,
+        organizedBy: parentFolder,
+    })
+    const triggerNode01 = _add_trigger_node(sampleTriggerNode, "TriggerNode01", "s=TriggerNode01");
 
-    const triggerNode02 = _add_trigger_node("TriggerNode02", "s=TriggerNode02");
+    const triggerNode02 = _add_trigger_node(sampleTriggerNode, "TriggerNode02", "s=TriggerNode02");
 }
 
 function add_sampleView(namespace: Namespace): void {
 
     const addressSpace = namespace.addressSpace;
+    
     namespace.addView({
         organizedBy: addressSpace.rootFolder.views,
         browseName: "SampleView",

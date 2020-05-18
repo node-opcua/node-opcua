@@ -39,8 +39,10 @@ import {
   UAVariable,
   UAView,
   verifyArguments_ArgumentList,
-  ErrorCallback
 } from "node-opcua-address-space";
+import {
+  ErrorCallback
+} from "node-opcua-status-code";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, Nonce, toPem } from "node-opcua-crypto";
@@ -1464,19 +1466,24 @@ export class OPCUAServer extends OPCUABaseServer {
       if (err) {
         return callback(err);
       }
-      /*
-      if (StatusCodes.BadCertificateUntrusted === certificateStatus) {
+      if (StatusCodes.BadCertificateUntrusted === certificateStatus
+        || StatusCodes.BadCertificateTimeInvalid === certificateStatus
+        || StatusCodes.BadCertificateIssuerTimeInvalid === certificateStatus
+        || StatusCodes.BadCertificateIssuerUseNotAllowed === certificateStatus
+        || StatusCodes.BadCertificateIssuerRevocationUnknown === certificateStatus
+        || StatusCodes.BadCertificateRevocationUnknown === certificateStatus
+        || StatusCodes.BadCertificateRevoked === certificateStatus
+        || StatusCodes.BadCertificateUseNotAllowed === certificateStatus
+        || StatusCodes.BadSecurityChecksFailed === certificateStatus
+        || StatusCodes.Good !== certificateStatus
+      ) {
+        debugLog("isValidX509IdentityToken => certificateStatus = ", certificateStatus?.toString());
         return callback(null, StatusCodes.BadIdentityTokenRejected);
       }
-      if (StatusCodes.BadCertificateTimeInvalid === certificateStatus) {
-        return callback(null, StatusCodes.BadIdentityTokenRejected);
-      }
-      */
       if (StatusCodes.Good !== certificateStatus) {
         assert(certificateStatus instanceof StatusCode);
         return callback(null, certificateStatus);
         // return callback(null, StatusCodes.BadIdentityTokenInvalid);
-
       }
 
       // verify if certificate is truster or rejected

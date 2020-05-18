@@ -51,7 +51,7 @@ describe("Testing AutoID custom types", async function (this: any) {
 
     });
 
-    function encode_decode<T extends any>(obj: T): T {
+    function encode_decode(obj: Variant): Variant {
 
         const size = obj.binaryStoreSize();
         const stream = new BinaryStream(Buffer.alloc(size));
@@ -60,8 +60,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         stream.rewind();
 
         // reconstruct a object ( some object may not have a default Binary and should be recreated
-        const expandedNodeId = obj.encodingDefaultBinary;
-        const objReloaded = new obj.constructor();
+        const objReloaded = new Variant();
 
         objReloaded.decode(stream);
 

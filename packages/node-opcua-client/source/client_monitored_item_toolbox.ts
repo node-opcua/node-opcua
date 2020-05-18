@@ -15,12 +15,12 @@ import {
     MonitoringMode, SetMonitoringModeResponse
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { MonitoredItemCreateRequestOptions } from "node-opcua-types";
 import { ClientMonitoredItemBase } from "./client_monitored_item_base";
 import { SetMonitoringModeRequestLike } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
-import { Callback, ErrorCallback } from "./common";
 import { ClientMonitoredItemImpl } from "./private/client_monitored_item_impl";
 import { ClientSessionImpl } from "./private/client_session_impl";
 
@@ -98,7 +98,7 @@ export class ClientMonitoredItemToolbox {
             const clientHandle = monitoredItem.monitoringParameters.clientHandle;
             return new MonitoredItemModifyRequest({
                 monitoredItemId: monitoredItem.monitoredItemId,
-                requestedParameters: _.extend(_.clone(parameters), {clientHandle})
+                requestedParameters: _.extend(_.clone(parameters), { clientHandle })
             });
         });
         const modifyMonitoredItemsRequest = new ModifyMonitoredItemsRequest({
@@ -137,7 +137,7 @@ export class ClientMonitoredItemToolbox {
             });
     }
 
-    public static  _toolbox_setMonitoringMode(
+    public static _toolbox_setMonitoringMode(
         subscription: ClientSubscription,
         monitoredItems: ClientMonitoredItemBase[],
         monitoringMode: MonitoringMode,

@@ -14,6 +14,12 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
+import { NumericRange } from "node-opcua-numeric-range";
+import { WriteValue } from "node-opcua-types";
+import {
+    StatusCodeCallback,
+} from "node-opcua-status-code";
+
 const nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
 import {
@@ -25,12 +31,9 @@ import {
     PseudoSession,
     RootFolder,
     SessionContext,
-    StatusCodeCallback,
     UAVariable,
 } from "..";
 
-import { NumericRange } from "node-opcua-numeric-range";
-import { WriteValue } from "node-opcua-types";
 import { create_minimalist_address_space_nodeset } from "../";
 
 const context = SessionContext.defaultContext;

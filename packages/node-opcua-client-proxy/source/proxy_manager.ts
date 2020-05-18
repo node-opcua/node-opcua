@@ -21,8 +21,8 @@ import { DataValue } from "node-opcua-data-value";
 import { NodeIdLike } from "node-opcua-nodeid";
 import { CreateSubscriptionRequestOptions } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
+import { ErrorCallback } from "node-opcua-status-code";
 
-import { ErrorCallback } from "./common";
 import { readUAStructure } from "./object_explorer";
 import { makeRefId } from "./proxy";
 import { ProxyBaseNode } from "./proxy_base_node";
