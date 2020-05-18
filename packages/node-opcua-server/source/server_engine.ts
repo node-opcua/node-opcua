@@ -13,7 +13,6 @@ import {
   AddressSpace,
   BaseNode,
   bindExtObjArrayNode,
-  Callback,
   DataValueCallback,
   ensureDatatypeExtractedWithCallback,
   ensureObjectIsSecure,
@@ -60,7 +59,7 @@ import {
   HistoryReadResult,
   HistoryReadValueId
 } from "node-opcua-service-history";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes, CallbackT } from "node-opcua-status-code";
 import {
   BrowseDescription,
   BrowsePath,
@@ -1204,6 +1203,14 @@ export class ServerEngine extends EventEmitter {
     for (let i = 0; i < nodesToRead.length; i++) {
       const readValueId = nodesToRead[i];
       dataValues[i] = engine._readSingleNode(context, readValueId, timestampsToReturn);
+      if (timestampsToReturn === TimestampsToReturn.Server) {
+        dataValues[i].sourceTimestamp = null;
+        dataValues[i].sourcePicoseconds = 0;
+      }
+      if ((timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) && (!dataValues[i].serverTimestamp || dataValues[i].serverTimestamp === minOPCUADate)) {
+        dataValues[i].serverTimestamp = new Date();
+        dataValues[i].sourcePicoseconds = 0;
+      }
     }
     return dataValues;
   }
@@ -1900,7 +1907,7 @@ export class ServerEngine extends EventEmitter {
     nodeToRead: HistoryReadValueId,
     historyReadDetails: HistoryReadDetails,
     timestampsToReturn: TimestampsToReturn,
-    callback: Callback<HistoryReadResult>
+    callback: CallbackT<HistoryReadResult>
   ): void {
 
     assert(context instanceof SessionContext);

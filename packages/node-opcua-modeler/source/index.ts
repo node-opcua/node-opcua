@@ -13,7 +13,9 @@ export * from "node-opcua-assert";
 export * from "node-opcua-data-model";
 export * from "node-opcua-nodeid";
 export * from "node-opcua-numeric-range";
+export * from "node-opcua-status-code";
 export * from "node-opcua-basic-types";
+
 export {
     DataTypeDefinition,
     EnumDefinition,

@@ -38,6 +38,9 @@ import { makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-
 import { BrowseDescription, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
+import { Callback, ErrorCallback } from "node-opcua-status-code"
+
+type EmptyCallback = () => void;
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -230,7 +233,7 @@ interface TaskCrawl extends TaskBase {
         cacheNode: CacheNode;
         userData: UserData;
     };
-    func: (task: TaskCrawl, callback: Callback) => void;
+    func: (task: TaskCrawl, callback: EmptyCallback) => void;
 }
 
 interface Task2 extends TaskBase {
@@ -239,7 +242,7 @@ interface Task2 extends TaskBase {
         parentNode?: CacheNode;
         reference?: ReferenceDescription;
     };
-    func: (task: Task2, callback: Callback) => void;
+    func: (task: Task2, callback: EmptyCallback) => void;
 }
 
 interface TaskProcessBrowseResponse extends TaskBase {
@@ -247,7 +250,7 @@ interface TaskProcessBrowseResponse extends TaskBase {
         objectsToBrowse: TaskBrowseNode[];
         browseResults: BrowseResult[];
     };
-    func: (task: TaskProcessBrowseResponse, callback: Callback) => void;
+    func: (task: TaskProcessBrowseResponse, callback: EmptyCallback) => void;
 }
 
 interface TaskExtraReference extends TaskBase {
@@ -257,18 +260,16 @@ interface TaskExtraReference extends TaskBase {
         reference: any,
         userData: UserData
     };
-    func: (task: TaskExtraReference, callback: Callback) => void;
+    func: (task: TaskExtraReference, callback: EmptyCallback) => void;
 }
 
 interface TaskReconstruction extends TaskBase {
     data: CacheNode;
-    func: (task: TaskReconstruction, callback: Callback) => void;
+    func: (task: TaskReconstruction, callback: EmptyCallback) => void;
 }
 
 type Task = TaskCrawl | Task2 | TaskProcessBrowseResponse | TaskExtraReference;
 
-type Callback = () => void;
-type ErrorCallback = (err?: Error) => void;
 
 function _setExtraReference(task: TaskExtraReference, callback: ErrorCallback) {
 
@@ -464,7 +465,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         this.pendingBrowseTasks = [];
         this.pendingBrowseNextTasks = [];
 
-        this.taskQueue = async.queue((task: Task, callback: Callback) => {
+        this.taskQueue = async.queue((task: Task, callback: EmptyCallback) => {
             // use process next tick to relax the stack frame
 
             /* istanbul ignore next */
@@ -790,7 +791,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         assert(_.isFunction(finalCallback));
 
         const queue = async.queue(
-            (task: TaskReconstruction, innerCallback: Callback) => {
+            (task: TaskReconstruction, innerCallback: EmptyCallback) => {
                 setImmediate(() => {
                     assert(_.isFunction(task.func));
                     task.func(task, innerCallback);
@@ -1123,7 +1124,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         this.emit("browsed", cacheNode, userData);
     }
 
-    private _crawl_task(task: TaskCrawl, callback: Callback) {
+    private _crawl_task(task: TaskCrawl, callback: EmptyCallback) {
 
         const cacheNode = task.param.cacheNode;
         const nodeId = task.param.cacheNode.nodeId;
@@ -1370,14 +1371,14 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     private _resolve_deferred(
         comment: string,
         collection: any[],
-        method: (callback: Callback) => void
+        method: (callback: EmptyCallback) => void
     ) {
 
         debugLog("_resolve_deferred ", comment, collection.length);
 
         if (collection.length > 0) {
             this._push_task("adding operation " + comment, {
-                func: (task: Task, callback: Callback) => {
+                func: (task: Task, callback: EmptyCallback) => {
                     method.call(this, callback);
                 },
                 param: {}
@@ -1743,7 +1744,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
 
     private _process_browse_response_task(
         task: TaskProcessBrowseResponse,
-        callback: Callback
+        callback: EmptyCallback
     ) {
 
         const objectsToBrowse = task.param.objectsToBrowse;

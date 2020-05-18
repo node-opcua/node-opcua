@@ -23,7 +23,7 @@
     "devDependencies": {
         "node-opcua-packet-analyzer": "^2.5.10",
         "should": "^13.2.3",
-        "source-map-support": "^0.5.17"
+        "source-map-support": "^0.5.19"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

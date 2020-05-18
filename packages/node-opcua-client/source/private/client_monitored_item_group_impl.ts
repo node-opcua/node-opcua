@@ -10,6 +10,7 @@ import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { MonitoringMode, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
+import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { resolveNodeId } from "node-opcua-nodeid";
 import { ReadValueIdOptions } from "node-opcua-types";
@@ -17,7 +18,6 @@ import { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
 import { ClientSubscription } from "../client_subscription";
-import { Callback, ErrorCallback } from "../common";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 
@@ -34,14 +34,14 @@ const warningLog = debugLog;
  *
  *  note: this.monitoringMode = subscription_service.MonitoringMode.Reporting;
  */
-export class ClientMonitoredItemGroupImpl extends EventEmitter implements ClientMonitoredItemGroup  {
+export class ClientMonitoredItemGroupImpl extends EventEmitter implements ClientMonitoredItemGroup {
 
     public readonly monitoredItems: ClientMonitoredItemBase[];
     private readonly subscription: ClientSubscription;
     private timestampsToReturn: TimestampsToReturn;
     private readonly monitoringMode: MonitoringMode;
 
-      constructor(
+    constructor(
         subscription: ClientSubscription,
         itemsToMonitor: any[],
         monitoringParameters: any,
@@ -52,7 +52,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         assert(_.isArray(itemsToMonitor));
         // Try to resolve the nodeId and fail fast if we can't.
         itemsToMonitor.forEach((itemToMonitor: ReadValueIdOptions) => {
-              itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId!);
+            itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId!);
         });
 
         timestampsToReturn = timestampsToReturn || TimestampsToReturn.Neither;
@@ -75,7 +75,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         ret += "itemsToMonitor:       = [\n " +
             this.monitoredItems.map((monitoredItem: ClientMonitoredItemBase) =>
                 monitoredItem.itemToMonitor.toString()).join("\n")
-         + "\n];\n";
+            + "\n];\n";
         ret += "timestampsToReturn:   " +
             this.timestampsToReturn.toString() + "\n";
         ret += "monitoringMode        " + MonitoringMode[this.monitoringMode];
@@ -90,7 +90,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
     public async terminate(): Promise<void>;
     public terminate(done: ErrorCallback): void;
     public terminate(...args: any[]): any {
-        const done = args[0] as  ErrorCallback;
+        const done = args[0] as ErrorCallback;
         assert(!done || _.isFunction(done));
         /**
          * Notify the observer that this monitored item has been terminated.
@@ -118,7 +118,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
     ): Promise<StatusCode>;
     public modify(
         parameters: MonitoringParametersOptions,
-        callback: (err: Error|null, statusCode?: StatusCode) => void): void;
+        callback: (err: Error | null, statusCode?: StatusCode) => void): void;
     public modify(
         parameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn | null,
@@ -147,7 +147,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
     public setMonitoringMode(
         monitoringMode: MonitoringMode,
         callback: Callback<StatusCode>
-        ): void;
+    ): void;
     public setMonitoringMode(...args: any[]): any {
         const monitoringMode = args[0] as MonitoringMode;
         const callback = args[1] as Callback<StatusCode>;
@@ -209,7 +209,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
-const opts = {multiArgs: false};
+const opts = { multiArgs: false };
 
 ClientMonitoredItemGroupImpl.prototype.terminate = thenify.withCallback(ClientMonitoredItemGroupImpl.prototype.terminate);
 ClientMonitoredItemGroupImpl.prototype.setMonitoringMode = thenify.withCallback(ClientMonitoredItemGroupImpl.prototype.setMonitoringMode);
@@ -230,7 +230,7 @@ ClientMonitoredItemGroup.create = (
 
     (subscription as ClientSubscriptionImpl)._wait_for_subscription_to_be_ready((err?: Error) => {
         if (err) {
-            return ;
+            return;
         }
         monitoredItemGroup._monitor((err1?: Error) => {
         });

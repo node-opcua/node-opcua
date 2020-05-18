@@ -94,8 +94,6 @@ export * from "node-opcua-service-query";
 export * from "node-opcua-service-node-management";
 export { DiagnosticInfo } from "node-opcua-data-model";
 
-export { SecurityPolicy, ErrorCallback, MessageSecurityMode } from "node-opcua-secure-channel";
-
 // -----------------------------------------------------------------------------
 // Nodeset stuff
 // -----------------------------------------------------------------------------
@@ -127,8 +125,6 @@ export * from "node-opcua-service-filter";
 export * from "node-opcua-address-space";
 
 // filtering tools
-export { constructEventFilter } from "node-opcua-service-filter";
-
 export * from "node-opcua-transport";
 
 export { OPCUADiscoveryServer } from "node-opcua-server-discovery";

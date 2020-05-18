@@ -227,6 +227,7 @@ describe("testing Events  ", () => {
         const tank1 = namespace.createNode({
             browseName: "Tank1",
             componentOf: area1,
+            eventNotifier: 0x1,
             nodeClass: NodeClass.Object,
             notifierOf: area1
         });
@@ -239,6 +240,8 @@ describe("testing Events  ", () => {
             eventSourceOf: tank1,
             nodeClass: NodeClass.Object,
         }) as UAObject;
+
+
         const pumpStartEventType = namespace.addEventType({ browseName: "PumpStartEventType" });
         pumpStartEventType.browseName.toString().should.eql("1:PumpStartEventType");
         pumpStartEventType.subtypeOfObj!.browseName.toString().should.eql("BaseEventType");

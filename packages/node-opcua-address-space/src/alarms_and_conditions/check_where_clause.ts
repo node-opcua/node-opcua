@@ -44,7 +44,7 @@ function checkOfType(
     if (ofTypeNode.nodeClass !== NodeClass.ObjectType) {
         throw new Error("operaand should be a ObjectType " + ofTypeNode.nodeId.toString());
     }
-    const node = eventData.$eventDataSource! as (UAObjectType | UAReferenceType | UAVariableType);
+    const node = eventData.$eventDataSource! as (UAObjectType | UAObject | UAReferenceType | UAVariableType);
     if (!node) {
         throw new Error("cannot find  node " + eventData.$eventDataSource?.toString());
     }
@@ -80,7 +80,7 @@ function checkInList(
     }
     function _is(nodeId1: NodeId, operandX: LiteralOperand): boolean {
 
-        const operandNode = addressSpace.findNode(operandX.value.value as NodeId) as UAObjectType & UAReferenceType & UAVariableType;
+        const operandNode = addressSpace.findNode(operandX.value.value as NodeId);
         if (!operandNode) {
             return false;
         }
