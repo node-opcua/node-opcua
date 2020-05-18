@@ -11,7 +11,7 @@ import { VariableIds } from "node-opcua-constants";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { coerceNodeId } from "node-opcua-nodeid";
-import { ErrorCallback } from "node-opcua-secure-channel";
+import { ErrorCallback } from "node-opcua-status-code";
 import { StatusCodes } from "node-opcua-status-code";
 import { ClientSessionImpl } from "./private/client_session_impl";
 

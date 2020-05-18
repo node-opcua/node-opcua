@@ -51,7 +51,7 @@ function compileTscriptCode(typescriptFilename: string): string {
     const sourcemapFilename = typescriptFilename.replace(/\.ts$/, ".js.map");
 
     fs.writeFileSync(javascriptFilename, res1.outputText, "ascii");
-    fs.writeFileSync(sourcemapFilename, res1.sourceMapText, "ascii");
+    fs.writeFileSync(sourcemapFilename, res1.sourceMapText!, "ascii");
 
     return res1.outputText;
 }
@@ -170,8 +170,8 @@ export async function registerObject(schema: string, generateCodeFolder?: string
         const defaultHint = path.join(path.dirname(callerFolder), "schemas");
         hintSchema.unshift(defaultHint);
         generateCodeFolder = generateCodeFolder
-          ? generateCodeFolder
-          : path.join(path.dirname(callerFolder), "_generated_");
+            ? generateCodeFolder
+            : path.join(path.dirname(callerFolder), "_generated_");
     }
 
     const folderHint = hintSchema[0];

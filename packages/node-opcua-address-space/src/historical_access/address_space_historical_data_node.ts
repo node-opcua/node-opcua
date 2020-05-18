@@ -18,10 +18,11 @@ import {
   ReadRawModifiedDetails
 } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
+import { CallbackT } from "node-opcua-status-code";
+
 import { DataType } from "node-opcua-variant";
 import {
   AddressSpace as AddressSpacePublic,
-  Callback,
   ContinuationPoint,
   HistoricalDataConfiguration,
   IVariableHistorian,
@@ -167,7 +168,7 @@ export class VariableHistorian implements IVariableHistorian {
     maxNumberToExtract: number,
     isReversed: boolean,
     reverseDataValue: boolean,
-    callback: Callback<DataValue[]>
+    callback: CallbackT<DataValue[]>
   ) {
 
     assert(callback instanceof Function);
@@ -224,7 +225,7 @@ function _update_startOfOnlineArchive(this: UAVariable, newDate: Date): void {
 
   const startOfArchiveDataValue = _get_startOfOfflineArchive(node);
   if (startOfArchiveDataValue.statusCode !== StatusCodes.Good ||
-    !startOfArchiveDataValue.value || ! startOfArchiveDataValue.value.value ||
+    !startOfArchiveDataValue.value || !startOfArchiveDataValue.value.value ||
     startOfArchiveDataValue.value.value.getTime() >= newDate.getTime()) {
     node._update_startOfArchive(newDate);
   }
@@ -258,7 +259,7 @@ function _historyReadModify(
   indexRange: NumericRange | null,
   dataEncoding: QualifiedNameLike | null,
   continuationPoint: ContinuationPoint | null,
-  callback: Callback<HistoryReadResult>
+  callback: CallbackT<HistoryReadResult>
 ) {
 
   //
@@ -324,7 +325,7 @@ function _historyReadRawAsync(
   maxNumberToExtract: number,
   isReversed: boolean,
   reverseDataValue: boolean,
-  callback: Callback<DataValue[]>
+  callback: CallbackT<DataValue[]>
 ) {
 
   assert(callback instanceof Function);
@@ -345,7 +346,7 @@ function _historyReadRaw(
   indexRange: NumericRange | null,
   dataEncoding: QualifiedNameLike | null,
   continuationPoint: ContinuationPoint | null,
-  callback: Callback<HistoryReadResult>
+  callback: CallbackT<HistoryReadResult>
 ): void {
 
   const node = this;
@@ -550,7 +551,7 @@ function _historyReadRawModify(
   indexRange: NumericRange | null,
   dataEncoding: QualifiedNameLike | null,
   continuationPoint: ContinuationPoint | null,
-  callback: Callback<HistoryReadResult>
+  callback: CallbackT<HistoryReadResult>
 ) {
 
   const node = this;
@@ -589,7 +590,7 @@ function _historyRead(
   indexRange: NumericRange | null,
   dataEncoding: QualifiedNameLike | null,
   continuationPoint: ContinuationPoint | null,
-  callback: Callback<HistoryReadResult>
+  callback: CallbackT<HistoryReadResult>
 ) {
   assert(context instanceof SessionContext);
   assert(callback instanceof Function);

@@ -10,7 +10,7 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "@types/async": "^3.2.0",
+        "@types/async": "^3.2.2",
         "node-opcua-address-space": "^2.5.12",
         "node-opcua-constants": "^2.5.9",
         "node-opcua-data-value": "^2.5.10",

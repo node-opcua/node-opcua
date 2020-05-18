@@ -33,6 +33,7 @@ import {
 } from "node-opcua-service-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
 import { ClientTCP_transport } from "node-opcua-transport";
+import { ErrorCallback } from "node-opcua-status-code";
 
 import {
     BaseUAObject
@@ -72,7 +73,8 @@ const doTraceResponseContent = process.env.NODEOPCUADEBUG && (process.env.NODEOP
 const doTraceStatistics = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("STATS") >= 0);
 const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0);
 
-import { ErrorCallback, ICertificateKeyPairProvider, Request, Response } from "../common";
+
+import { ICertificateKeyPairProvider, Request, Response } from "../common";
 
 export const requestHandleNotSetValue = 0xDEADBEEF;
 
@@ -119,7 +121,7 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
     if (response && response instanceof ServiceFault) {
         response.responseHeader.stringTable = response.responseHeader.stringTable || [];
         response.responseHeader.stringTable = [response.responseHeader.stringTable.join("\n")];
-        err = new Error(" ServiceFault returned by server " + response.toString() + " request = " + request.toString());
+    err = new Error(" serviceResult = " + response.responseHeader.serviceResult.toString() + "  returned by server \n response:" + response.toString() + "\n  request: " + request.toString());
         (err as any).response = response;
         response = undefined;
     }
@@ -528,7 +530,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._establish_connection(
             transport,
             endpointUrl,
-            (err?: Error) => {
+            (err?: Error | null) => {
 
                 if (err) {
                     debugLog(chalk.red("cannot connect to server"));
@@ -954,6 +956,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._performMessageTransaction(msgType, msg, (err?: Error | null, response?: Response) => {
 
             if (response && response.responseHeader && response.responseHeader.serviceResult !== StatusCodes.Good) {
+                console.log("xxxxx => response.responseHeader.serviceResult", response.responseHeader.serviceResult.toString());
                 err = new Error(response.responseHeader.serviceResult.toString());
             }
             if (!err && response) {
@@ -1192,7 +1195,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
 
         const isInitial = false;
-        this._open_secure_channel_request(isInitial, (err?: Error) => {
+        this._open_secure_channel_request(isInitial, (err?: Error | null) => {
 
             /* istanbul ignore else */
             if (!err) {

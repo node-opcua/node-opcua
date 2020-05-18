@@ -207,17 +207,18 @@ export class OPCUABaseServer extends OPCUASecureObject {
     public shutdown(done: (err?: Error) => void) {
 
         uninstallPeriodicClockAdjustmement();
-
-        debugLog("OPCUABaseServer#shutdown starting");
-        assert(_.isFunction(done));
-        async.forEach(this.endpoints,
-            (endpoint: OPCUAServerEndPoint, callback: (err?: Error) => void) => {
-                cleanupEndpoint(endpoint);
-                endpoint.shutdown(callback);
-            }, (err?: Error | null) => {
-                debugLog("shutdown completed");
-                done(err!);
-            });
+        this.serverCertificateManager.dispose().then(() => {
+            debugLog("OPCUABaseServer#shutdown starting");
+            assert(_.isFunction(done));
+            async.forEach(this.endpoints,
+                (endpoint: OPCUAServerEndPoint, callback: (err?: Error) => void) => {
+                    cleanupEndpoint(endpoint);
+                    endpoint.shutdown(callback);
+                }, (err?: Error | null) => {
+                    debugLog("shutdown completed");
+                    done(err!);
+                });
+        });
     }
 
     public async shutdownChannels(): Promise<void>;

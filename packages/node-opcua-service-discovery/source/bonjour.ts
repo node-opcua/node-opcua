@@ -42,7 +42,13 @@ export interface Announcement {
     capabilities: string[];
 }
 
-export function sameAnnouncement(a: Announcement, b: Announcement): boolean {
+export function sameAnnouncement(a?: Announcement, b?: Announcement): boolean {
+    if (!a && !b) {
+        return true;
+    }
+    if (!a || !b) {
+        return false;
+    }
     return a.port === b.port &&
         a.path === b.path &&
         a.name === b.name &&
@@ -108,7 +114,11 @@ export class BonjourHolder {
     public async _announcedOnMulticastSubnet(
         options: Announcement
     ): Promise<boolean> {
-        if (this._service && this.announcement) {
+        if (!options) {
+            // ignored
+            return false;
+        }
+        if (this._service && this.announcement && options) {
             // verify that Announcement has changed
             if (sameAnnouncement(options, this.announcement!)) {
                 debugLog(" Announcement ignored as it has been already made", options.name);

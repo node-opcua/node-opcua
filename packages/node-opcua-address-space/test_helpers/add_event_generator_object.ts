@@ -6,8 +6,8 @@ import { DataType, Variant } from "node-opcua-variant";
 import { Folder, MethodFunctor, MethodFunctorCallback, Namespace, SessionContext } from "../source";
 
 export function add_eventGeneratorObject(
-  namespace: Namespace,
-  parentFolder: Folder | string
+    namespace: Namespace,
+    parentFolder: Folder | string
 ) {
 
     const myEvtType = namespace.addEventType({
@@ -17,7 +17,8 @@ export function add_eventGeneratorObject(
 
     const myObject = namespace.addObject({
         browseName: "EventGeneratorObject",
-        organizedBy: parentFolder
+        eventNotifier: 1,
+        organizedBy: parentFolder,
     });
 
     myObject.addReference({
@@ -43,9 +44,9 @@ export function add_eventGeneratorObject(
     });
 
     method.bindMethod((
-      inputArguments: Variant[],
-      context: SessionContext,
-      callback: MethodFunctorCallback) => {
+        inputArguments: Variant[],
+        context: SessionContext,
+        callback: MethodFunctorCallback) => {
 
         // xx console.log("In Event Generator Method");
         // xx console.log(this.toString());

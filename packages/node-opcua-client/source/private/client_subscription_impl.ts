@@ -29,6 +29,7 @@ import {
     StatusChangeNotification
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { Callback, ErrorCallback } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 
 import { ClientMonitoredItemBase } from "../client_monitored_item_base";
@@ -40,7 +41,6 @@ import {
     ClientSubscription,
     ClientSubscriptionOptions
 } from "../client_subscription";
-import { Callback, ErrorCallback } from "../common";
 import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import { ClientSidePublishEngine } from "./client_publish_engine";

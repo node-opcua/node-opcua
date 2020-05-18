@@ -48,7 +48,7 @@ import { WriteRequest, WriteResponse } from "node-opcua-service-write";
 
 export type Request =
     CreateSessionRequest | ActivateSessionRequest | CloseSessionRequest |
-    GetEndpointsRequest|
+    GetEndpointsRequest |
     ReadRequest | BrowseRequest | BrowseNextRequest | WriteRequest | CallRequest | TranslateBrowsePathsToNodeIdsRequest |
     CreateSubscriptionRequest | DeleteSubscriptionsRequest | TransferSubscriptionsRequest |
     CreateMonitoredItemsRequest | ModifyMonitoredItemsRequest | ModifySubscriptionRequest |
@@ -60,7 +60,7 @@ export type Request =
 
 export type Response =
     CreateSessionResponse | ActivateSessionResponse | CloseSessionResponse |
-    GetEndpointsResponse|
+    GetEndpointsResponse |
     ReadResponse | BrowseResponse | BrowseNextResponse | WriteResponse | CallResponse | TranslateBrowsePathsToNodeIdsResponse |
     CreateSubscriptionResponse | DeleteSubscriptionsResponse | TransferSubscriptionsResponse |
     CreateMonitoredItemsResponse | ModifyMonitoredItemsResponse | ModifySubscriptionResponse |
@@ -70,5 +70,3 @@ export type Response =
     QueryFirstResponse | QueryNextResponse
     ;
 
-export type ErrorCallback = (err?: Error) => void;
-export type Callback<T> = (err: Error|null, returnValue?: T) => void;
