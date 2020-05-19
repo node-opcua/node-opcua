@@ -108,8 +108,12 @@ const regExpNamespaceDotBrowseName = /^[0-9]+:(.*)/;
 
 export interface AddFolderOptions {
     browseName: QualifiedNameLike;
-
 }
+
+interface AddVariableOptions2 extends AddVariableOptions {
+    nodeClass?: NodeClass.Variable
+};
+
 function detachNode(node: BaseNode) {
     const addressSpace = node.addressSpace;
 
@@ -415,7 +419,7 @@ export class UANamespace implements NamespacePublic {
         } else {
             assert(!options.typeDefinition || options.typeDefinition !== "PropertyType");
         }
-        return this._addVariable(options);
+        return this._addVariable(options as AddVariableOptions2);
     }
 
     public addView(options: AddViewOptions): UAView {
@@ -2086,7 +2090,7 @@ export class UANamespace implements NamespacePublic {
     /**
      * @private
      */
-    private _addVariable(options: any): UAVariablePublic {
+    private _addVariable(options: AddVariableOptions2): UAVariablePublic {
 
         const addressSpace = this.addressSpace;
 
@@ -2113,7 +2117,7 @@ export class UANamespace implements NamespacePublic {
         assert(typeDefinition instanceof NodeId);
 
         // ------------------------------------------ DataType
-        options.dataType = addressSpace._coerce_DataType(options.dataType);
+        options.dataType = addressSpace._coerce_DataType(options.dataType!);
 
         options.valueRank = utils.isNullOrUndefined(options.valueRank) ? -1 : options.valueRank;
         assert(_.isFinite(options.valueRank));
@@ -2123,7 +2127,7 @@ export class UANamespace implements NamespacePublic {
         assert(_.isArray(options.arrayDimensions) || options.arrayDimensions === null);
         // -----------------------------------------------------
 
-        options.minimumSamplingInterval = +options.minimumSamplingInterval || 0;
+        options.minimumSamplingInterval = (options.minimumSamplingInterval !== undefined) ? +options.minimumSamplingInterval : 0;
         let references = options.references || ([] as AddReferenceOpts[]);
 
         references = ([] as AddReferenceOpts[]).concat(references, [
