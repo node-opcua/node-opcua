@@ -34,17 +34,32 @@ import {
   TimestampsToReturn
 } from "node-opcua-service-read";
 import {
-  MonitoredItemModifyResult, MonitoredItemNotification, MonitoringMode,
+  MonitoredItemModifyResult,
+  MonitoredItemNotification,
+  MonitoringMode,
   MonitoringParameters
 } from "node-opcua-service-subscription";
 import {
-  DataChangeFilter, DataChangeTrigger, DeadbandType,
-  isOutsideDeadbandAbsolute, isOutsideDeadbandNone, isOutsideDeadbandPercent,
+  DataChangeFilter,
+  DataChangeTrigger,
+  DeadbandType,
+  isOutsideDeadbandAbsolute,
+  isOutsideDeadbandNone,
+  isOutsideDeadbandPercent,
   PseudoRange
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { EventFieldList, MonitoringFilter, ReadValueIdOptions, SimpleAttributeOperand } from "node-opcua-types";
-import { sameVariant, Variant } from "node-opcua-variant";
+import {
+  EventFieldList,
+  MonitoringFilter,
+  ReadValueIdOptions,
+  SimpleAttributeOperand,
+  SubscriptionDiagnosticsDataType
+} from "node-opcua-types";
+import {
+  sameVariant,
+  Variant
+} from "node-opcua-variant";
 
 import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
@@ -296,6 +311,10 @@ export type QueueItem = MonitoredItemNotification | EventFieldList;
 
 type TimerKey = NodeJS.Timer;
 
+export interface ISubscription {
+  $session?: any;
+  subscriptionDiagnostics: SubscriptionDiagnosticsDataType;
+}
 /**
  * a server side monitored item
  *
@@ -331,7 +350,7 @@ export class MonitoredItem extends EventEmitter {
   public discardOldest: boolean = true;
   public queueSize: number = 0;
   public clientHandle?: number;
-  public $subscription: any;
+  public $subscription?: ISubscription;
   public _samplingId?: TimerKey | string;
   public samplingFunc: ((
     this: MonitoredItem,
@@ -467,7 +486,7 @@ export class MonitoredItem extends EventEmitter {
     this._node = null;
     this._semantic_version = 0;
 
-    this.$subscription = null;
+    this.$subscription = undefined;
 
     this.removeAllListeners();
 
@@ -936,9 +955,12 @@ export class MonitoredItem extends EventEmitter {
       assert(_.isEqual(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
       assert(notification.value.statusCode.hasOverflowBit);
     }
-    if (this.$subscription && this.$subscription.subcriptionDiagnosticInfo) {
-      this.$subscription.subcriptionDiagnosticInfo.monitoringQueueOverflowCount++;
+    // console.log(chalk.cyan("Setting Ovver"), !!this.$subscription, !!this.$subscription!.subscriptionDiagnostics);
+    if (this.$subscription && this.$subscription.subscriptionDiagnostics) {
+      this.$subscription.subscriptionDiagnostics.monitoringQueueOverflowCount++;
+      console.log(" this.$subscription.subcriptionDiagnosticInfo.monitoringQueueOverflowCount = ", this.$subscription.subscriptionDiagnostics.monitoringQueueOverflowCount);
     }
+    // to do eventQueueOverFlowCount
   }
 
   private _enqueue_notification(
