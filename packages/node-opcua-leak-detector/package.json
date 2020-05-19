@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-leak-detector",
-    "version": "2.5.9",
+    "version": "2.6.0-alpha.0",
     "description": "pure nodejs OPCUA SDK - module -leak-detector",
     "main": "index.js",
     "scripts": {
@@ -13,8 +13,8 @@
     "dependencies": {
         "colors": "^1.4.0",
         "node-opcua-assert": "2.5.8",
-        "node-opcua-debug": "^2.5.9",
-        "node-opcua-object-registry": "^2.5.9",
+        "node-opcua-debug": "^2.6.0-alpha.0",
+        "node-opcua-object-registry": "^2.6.0-alpha.0",
         "underscore": "^1.10.2"
     },
     "repository": {
