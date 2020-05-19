@@ -21,7 +21,7 @@ import {
 
 import * as nodesets from "node-opcua-nodesets";
 import { randomGuid } from "node-opcua-basic-types";
-import { coerceLocalizedText } from "../../node-opcua-data-model/dist";
+import { coerceLocalizedText, makeAccessLevelFlag } from "../../node-opcua-data-model/dist";
 
 const doDebug = process.env.DEBUGTEST || false;
 
@@ -485,6 +485,47 @@ describe("Namespace to NodeSet2.xml", () => {
 </UANodeSet>`
         );
     });
+
+    it("should emit AccessLevel attribute when needed (UAVariable)", () => {
+
+        const acessLevelFlag = makeAccessLevelFlag("CurrentRead | CurrentWrite | HistoryRead");
+
+        const myVariable = namespace.addVariable({
+            accessLevel: acessLevelFlag,
+            browseName: "MyVariable",
+            dataType: DataType.Double,
+            typeDefinition: "BaseVariableType",
+        });
+
+        myVariable.accessLevel.should.eql(acessLevelFlag);
+
+        let xml = namespace.toNodeset2XML();
+        xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        xml.should.eql(
+            `<?xml version="1.0"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>http://MYNAMESPACE</Uri>
+    </NamespaceUris>
+    <Models/>
+    <Aliases>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+    </Aliases>
+<!--ReferenceTypes-->
+<!--ObjectTypes-->
+<!--VariableTypes-->
+<!--Other Nodes-->
+    <UAVariable NodeId="ns=1;i=1000" BrowseName="1:MyVariable" AccessLevel="7" DataType="Double">
+        <DisplayName>MyVariable</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=62</Reference>
+        </References>
+    </UAVariable>
+</UANodeSet>`);
+
+    });
+
 });
 
 describe("nodeset2.xml with more than one referenced namespace", function (this: any) {

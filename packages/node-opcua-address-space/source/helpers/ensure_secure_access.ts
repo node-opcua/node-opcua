@@ -13,13 +13,13 @@ function isChannelSecure(channel: IChannelBase): boolean {
 }
 
 function newIsUserReadable(this: BaseNode, context: SessionContext): boolean {
-    if (context ) {
+    if (context) {
         if (!context.session) {
-            console.log(" context has no session", context);
+            // console.log(" context has no session", context);
             return false;
         }
         if (!context.session.channel) {
-            console.log(" context has no channel", context);
+            // console.log(" context has no channel", context);
             return false;
         }
         if (!isChannelSecure(context.session.channel)) {
@@ -35,7 +35,7 @@ function replaceMethod(obj: any, method: string, func: any) {
         throw new Error("Icannot find method " + method + " on object " + obj.browseName.toString());
     }
     obj[method] = function (this: any, ...args: any[]) {
-        const ret =  func.apply(this, args);
+        const ret = func.apply(this, args);
         if (!ret) {
             return false;
         }
@@ -57,7 +57,7 @@ export function ensureObjectIsSecure(node: BaseNode) {
 
         variable.setPermissions({
             CurrentRead: ["!*", "Supervisor", "ConfigAdmin", "SystemAdmin"],
-            CurrentWrite: ["!*" ]
+            CurrentWrite: ["!*"]
         });
 
     }
