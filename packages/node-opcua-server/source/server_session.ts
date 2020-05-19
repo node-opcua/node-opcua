@@ -32,7 +32,7 @@ import {
     SessionSecurityDiagnosticsDataType,
     SubscriptionDiagnosticsDataType
 } from "node-opcua-common";
-import { QualifiedName } from "node-opcua-data-model";
+import { QualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
@@ -639,6 +639,13 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 "ServerSession#_createSessionObjectInAddressSpace :" +
                 " no serverDiagnostics.sessionsDiagnosticsSummary");
             return false;
+        }
+
+        if (false) {
+            // set serverDiagnosticsNode enabledFlag writeable
+            // TO DO ... 
+            serverDiagnosticsNode.enabledFlag.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
+            serverDiagnosticsNode.enabledFlag.accessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
         }
 
         const sessionDiagnosticsObjectType = this.addressSpace.findObjectType("SessionDiagnosticsObjectType");
