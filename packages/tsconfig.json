@@ -1,6 +1,5 @@
 {
     "compilerOptions": {
-        "skipLibCheck": false,
         "moduleResolution": "node",
         "strictFunctionTypes": true,
         "noImplicitAny": true,
@@ -11,8 +10,10 @@
         "sourceMap": true,
         "strict": true,
         "listFiles": false,
-        "noStrictGenericChecks": true,
-        "skipDefaultLibCheck": true,
+        "noStrictGenericChecks": false,
+        "noImplicitThis": true,
+        "skipLibCheck": false,
+        "removeComments": true,
         "outDir": "dist",
         "incremental": true,
         "composite": true
