@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-model",
-  "version": "2.6.0-alpha.1",
+  "version": "2.5.12",
   "description": "pure nodejs OPCUA SDK - module - model",
   "main": "index.js",
   "scripts": {
@@ -11,24 +11,24 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.0.0",
-    "node-opcua-address-space": "^2.6.0-alpha.1",
-    "node-opcua-assert": "^2.6.0-alpha.1",
-    "node-opcua-basic-types": "^2.6.0-alpha.1",
-    "node-opcua-client": "^2.6.0-alpha.1",
-    "node-opcua-client-dynamic-extension-object": "^2.6.0-alpha.1",
-    "node-opcua-enum": "^2.6.0-alpha.1",
-    "node-opcua-factory": "^2.6.0-alpha.1",
-    "node-opcua-generator": "^2.6.0-alpha.1",
-    "node-opcua-nodeid": "^2.6.0-alpha.1",
-    "node-opcua-nodesets": "^2.6.0-alpha.1",
-    "node-opcua-schemas": "^2.6.0-alpha.1",
-    "node-opcua-service-browse": "^2.6.0-alpha.1",
-    "node-opcua-status-code": "^2.6.0-alpha.1",
-    "node-opcua-xml2json": "^2.6.0-alpha.1",
+    "node-opcua-address-space": "^2.5.12",
+    "node-opcua-assert": "2.5.8",
+    "node-opcua-basic-types": "^2.5.9",
+    "node-opcua-client": "^2.5.12",
+    "node-opcua-client-dynamic-extension-object": "^2.5.10",
+    "node-opcua-enum": "^2.5.9",
+    "node-opcua-factory": "^2.5.10",
+    "node-opcua-generator": "^2.5.10",
+    "node-opcua-nodeid": "^2.5.9",
+    "node-opcua-nodesets": "^2.5.9",
+    "node-opcua-schemas": "^2.5.10",
+    "node-opcua-service-browse": "^2.5.10",
+    "node-opcua-status-code": "^2.5.9",
+    "node-opcua-xml2json": "^2.5.9",
     "underscore": "^1.10.2"
   },
   "devDependencies": {
-    "node-opcua-leak-detector": "^2.6.0-alpha.1",
+    "node-opcua-leak-detector": "^2.5.9",
     "should": "^13.2.3"
   },
   "repository": {

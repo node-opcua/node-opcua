@@ -11,14 +11,15 @@ import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { ErrorCallback } from "node-opcua-secure-channel";
 import { CallMethodRequest, CallMethodResult } from "node-opcua-service-call";
 import { BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
-import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { CallMethodRequestLike, ResponseCallback } from "../client_session";
 import { ClientSubscription } from "../client_subscription";
+import { Callback } from "../common";
 import { ClientSessionImpl } from "../private/client_session_impl";
 import { ClientSubscriptionImpl } from "../private/client_subscription_impl";
 

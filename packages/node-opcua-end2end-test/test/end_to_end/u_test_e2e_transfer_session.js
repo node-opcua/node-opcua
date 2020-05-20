@@ -6,10 +6,7 @@ const path = require("path");
 const fs = require("fs");
 
 const opcua = require("node-opcua");
-const {
-  readCertificate,
-  readCertificateRevocationList
-} = require("node-opcua-crypto");
+const readCertificate = require("node-opcua-crypto").readCertificate;
 
 const OPCUAClient = opcua.OPCUAClient;
 const StatusCodes = opcua.StatusCodes;
@@ -441,8 +438,6 @@ module.exports = function(test) {
           //xx console.log(" creating initial channel with some certificate");
           const certificateFile1 = m("certificates/client_cert_2048.pem");
           const privateKeyFile1 = m("certificates/client_key_2048.pem");
-          console.log(certificateFile1);
-
           client1 = OPCUAClient.create({
             certificateFile: certificateFile1,
             privateKeyFile: privateKeyFile1,
@@ -452,18 +447,8 @@ module.exports = function(test) {
           });
 
           const certificate = readCertificate(certificateFile1);
+          test.server.serverCertificateManager.trustCertificate(certificate, callback);
 
-          async function doIt() {
-            await test.server.serverCertificateManager.trustCertificate(certificate);
-            const issuerCertificateFile = m("certificates/CA/public/cacert.pem");
-            const issuerCertificateRevocationListFile = m("certificates/CA/crl/revocation_list.der");
-            const issuerCertificate = readCertificate(issuerCertificateFile);
-            const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-            test.server.serverCertificateManager.addIssuer(issuerCertificate);
-            test.server.serverCertificateManager.addRevocationList(issuerCrl);
-            callback();
-          }
-          doIt();
         },
         function(callback) {
           client1.connect(test.endpointUrl, callback);

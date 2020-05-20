@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-debug",
-    "version": "2.6.0-alpha.1",
+    "version": "2.5.9",
     "description": "pure nodejs OPCUA SDK - module -debug",
     "scripts": {
         "build": "tsc -b",
@@ -10,8 +10,8 @@
     "dependencies": {
         "chalk": "^4.0.0",
         "hexy": "^0.3.0",
-        "node-opcua-assert": "^2.6.0-alpha.1",
-        "node-opcua-buffer-utils": "^2.6.0-alpha.1",
+        "node-opcua-assert": "2.5.8",
+        "node-opcua-buffer-utils": "^2.5.9",
         "underscore": "^1.10.2"
     },
     "devDependencies": {

@@ -57,11 +57,7 @@ import {
   SubscriptionDiagnosticsDataTypeOptions
 } from "node-opcua-types";
 
-import {
-  MonitoredItem,
-  MonitoredItemOptions,
-  ISubscription
-} from "./monitored_item";
+import { MonitoredItem, MonitoredItemOptions } from "./monitored_item";
 import { ServerSession } from "./server_session";
 import { validateFilter } from "./validate_filter";
 
@@ -518,6 +514,7 @@ export class Subscription extends EventEmitter {
     // NotificationMessage or a keep-alive Message is sent out the first time the publishing
     // timer expires.
     this.messageSent = false;
+
 
     this.timerId = null;
     this._start_timer();

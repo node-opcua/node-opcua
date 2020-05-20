@@ -5,7 +5,6 @@ import * as async from "async";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { Callback, ErrorCallback } from "node-opcua-status-code";
 import { AttributeIds, BrowseDirection, makeNodeClassMask, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
@@ -15,6 +14,7 @@ import { CallMethodRequest, CallMethodResult } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { Callback } from "./common";
 import { makeRefId } from "./proxy";
 import { UAProxyManager } from "./proxy_manager";
 import { ProxyVariable } from "./proxy_variable";
@@ -28,6 +28,7 @@ export interface ObjectExplorerOptions {
 
 const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
 
+type ErrorCallback = (err?: Error) => void;
 
 function convertNodeIdToDataType(dataTypeId: NodeId): DataType {
     return (dataTypeId as any)._dataType as DataType;
@@ -71,10 +72,10 @@ function convertNodeIdToDataTypeAsync(
 
         // istanbul ignore next
         if (err) {
-            setImmediate(() => {
+             setImmediate(() => {
                 callback(err);
             });
-            return;
+             return;
         }
 
         dataValue = dataValue!;
@@ -170,7 +171,7 @@ function add_method(
                     throw new Error("expecting value to be an Array or a TypedArray");
                 }
             }
-            return new Variant({ arrayType, dataType, value });
+            return new Variant({arrayType, dataType, value});
         });
 
         const methodToCall = new CallMethodRequest({
@@ -198,7 +199,7 @@ function add_method(
 
             if (callResult.outputArguments.length !== obj[name].outputArguments.length) {
                 return callback(new Error("Internal error callResult.outputArguments.length "
-                    + callResult.outputArguments.length + " " + obj[name].outputArguments.length));
+                  + callResult.outputArguments.length + " " +  obj[name].outputArguments.length));
             }
 
             const outputArgs: any = {};
@@ -279,7 +280,7 @@ function add_method(
                 callback();
             });
         }
-    ], (err) => outerCallback(err!));
+    ], (err) => outerCallback(err!) );
 
 }
 
@@ -539,20 +540,20 @@ export function readUAStructure(
             (callback: ErrorCallback) => {
                 async.mapSeries(browseResults![0].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        add_component(proxyManager, obj, reference, callback), (err) => callback(err!));
+                        add_component(proxyManager, obj, reference, callback), (err) => callback(err!) );
             },
 
             (callback: ErrorCallback) => {
                 async.mapSeries(browseResults![1].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        add_property(proxyManager, obj, reference, callback), (err) => callback(err!));
+                        add_property(proxyManager, obj, reference, callback), (err) => callback(err!) );
             },
 
             // now enrich our object with nice callable async methods
             (callback: ErrorCallback) => {
                 async.mapSeries(browseResults![2].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        add_method(proxyManager, obj, reference, callback), (err) => callback(err!));
+                        add_method(proxyManager, obj, reference, callback), (err) => callback(err!) );
             },
 
             // now set typeDefinition
@@ -586,7 +587,7 @@ export function readUAStructure(
             (callback: ErrorCallback) => {
                 async.mapSeries(browseResults![6].references!,
                     (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        addFolderElement(proxyManager, obj, reference, callback), (err) => callback(err!));
+                        addFolderElement(proxyManager, obj, reference, callback), (err) => callback(err!) );
             }
 
         ], (err) => callback(err!));

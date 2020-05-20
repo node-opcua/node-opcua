@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-numeric-range",
-    "version": "2.6.0-alpha.1",
+    "version": "2.5.10",
     "description": "pure nodejs OPCUA SDK - module -numeric-range",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,17 +12,17 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-assert": "^2.6.0-alpha.1",
-        "node-opcua-basic-types": "^2.6.0-alpha.1",
-        "node-opcua-binary-stream": "^2.6.0-alpha.1",
-        "node-opcua-factory": "^2.6.0-alpha.1",
-        "node-opcua-status-code": "^2.6.0-alpha.1",
+        "node-opcua-assert": "2.5.8",
+        "node-opcua-basic-types": "^2.5.9",
+        "node-opcua-binary-stream": "^2.5.9",
+        "node-opcua-factory": "^2.5.10",
+        "node-opcua-status-code": "^2.5.9",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-nodeid": "^2.6.0-alpha.1",
-        "node-opcua-packet-analyzer": "^2.6.0-alpha.1",
-        "node-opcua-test-helpers": "^2.6.0-alpha.1",
+        "node-opcua-nodeid": "^2.5.9",
+        "node-opcua-packet-analyzer": "^2.5.10",
+        "node-opcua-test-helpers": "2.5.8",
         "should": "^13.2.3"
     },
     "repository": {

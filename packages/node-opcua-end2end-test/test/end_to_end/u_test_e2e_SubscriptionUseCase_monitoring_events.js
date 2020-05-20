@@ -3,7 +3,7 @@
 
 const async = require("async");
 const should = require("should");
-const chalk = require("chalk");
+
 const opcua = require("node-opcua");
 
 const OPCUAClient = opcua.OPCUAClient;
@@ -16,25 +16,25 @@ const constructEventFilter = opcua.constructEventFilter;
 
 const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
-module.exports = function(test) {
+module.exports = function (test) {
 
-    describe("Client Subscription with Event monitoring", function() {
+    describe("Client Subscription with Event monitoring", function () {
         let client;
 
-        beforeEach(function(done) {
+        beforeEach(function (done) {
             client = OPCUAClient.create();
             done();
         });
-        afterEach(function(done) {
+        afterEach(function (done) {
             client = null;
             done();
         });
 
-        it("ZZ1 CreateMonitoredItemsRequest: server should not accept en Event filter if node attribute to monitor is not EventNotifier", function(done) {
+        it("ZZ1 CreateMonitoredItemsRequest: server should not accept en Event filter if node attribute to monitor is not EventNotifier", function (done) {
 
             const filter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
 
-            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
                 const itemToMonitor = new opcua.ReadValueId({
                     nodeId: resolveNodeId("Server_ServerStatus"),
@@ -59,7 +59,7 @@ module.exports = function(test) {
                     }]
                 });
 
-                session.createMonitoredItems(createMonitoredItemsRequest, function(err, createMonitoredItemsResponse) {
+                session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
                     if (err) {
                         return callback(err);
                     }
@@ -79,20 +79,20 @@ module.exports = function(test) {
 
         });
 
-        xit("should only accept event monitoring on ObjectNode that have the SubscribeToEventBit set", function(done) {
+        xit("should only accept event monitoring on ObjectNode that have the SubscribeToEventBit set", function (done) {
 
             // Part 3:
             // Objects and views can be used to monitor Events. Events are only available from Nodes where the
-            // SubscribeToEvents bit (bit 0) of the EventNotifier Attribute is set.
+            // SubscribeToEvents bit of the EventNotifier Attribute is set.
 
             // todo: check that
             done();
         });
 
         // check if nodeID exists
-        it("ZY2 should create a monitoredItem on a event without an Event Filter ", function(done) {
+        it("ZY2 should create a monitoredItem on a event without an Event Filter ", function (done) {
 
-            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
                 const itemToMonitor = new opcua.ReadValueId({
                     nodeId: resolveNodeId("Server"),
@@ -116,7 +116,7 @@ module.exports = function(test) {
                     }]
                 });
 
-                session.createMonitoredItems(createMonitoredItemsRequest, function(err, createMonitoredItemsResponse) {
+                session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
                     if (err) {
                         return callback(err);
                     }
@@ -142,7 +142,7 @@ module.exports = function(test) {
         });
 
         // check if nodeID exists
-        it("ZZ2 should create a monitoredItem on a event with an Event Filter ", function(done) {
+        it("ZZ2 should create a monitoredItem on a event with an Event Filter ", function (done) {
 
             const constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
 
@@ -150,7 +150,7 @@ module.exports = function(test) {
 
             //xx console.log("filter = ",filter.toString());
 
-            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
                 const itemToMonitor = new opcua.ReadValueId({
                     nodeId: resolveNodeId("Server"),
@@ -174,7 +174,7 @@ module.exports = function(test) {
                     }]
                 });
 
-                session.createMonitoredItems(createMonitoredItemsRequest, function(err, createMonitoredItemsResponse) {
+                session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
                     if (err) {
                         return callback(err);
                     }
@@ -214,7 +214,7 @@ module.exports = function(test) {
             }, done);
         });
 
-        it("ZZ2B should modify parameters of a monitoredItem on a event (Modify Event)", function(done) {
+        it("ZZ2B should modify parameters of a monitoredItem on a event (Modify Event)", function (done) {
 
             // this test should verify that server deals appropriately if a sampling interval is provided
             // ( event don't use sampling interval)
@@ -225,7 +225,7 @@ module.exports = function(test) {
 
             //xx console.log("filter = ",filter.toString());
 
-            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, outer_callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, outer_callback) {
 
                 const itemToMonitor = new opcua.ReadValueId({
                     nodeId: resolveNodeId("Server"),
@@ -254,7 +254,7 @@ module.exports = function(test) {
 
 
                     function create_monitored_item(callback) {
-                        session.createMonitoredItems(createMonitoredItemsRequest, function(err, createMonitoredItemsResponse) {
+                        session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
                             if (err) {
                                 return callback(err);
                             }
@@ -284,7 +284,7 @@ module.exports = function(test) {
                                 })
                             ]
                         });
-                        session.modifyMonitoredItems(modifyMonitoredItemsRequest, function(err, modifyMonitoredItemsResponse) {
+                        session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err, modifyMonitoredItemsResponse) {
                             modifyMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
                             callback();
@@ -299,9 +299,9 @@ module.exports = function(test) {
             }, done);
         });
 
-        it("ZZ3 Client: should raise a error if a filter is specified when monitoring some attributes which are not Value or EventNotifier", function(done) {
+        it("ZZ3 Client: should raise a error if a filter is specified when monitoring some attributes which are not Value or EventNotifier", function (done) {
 
-            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
                 const readValue = {
                     nodeId: resolveNodeId("Server"),
@@ -314,7 +314,7 @@ module.exports = function(test) {
 
                     filter: new opcua.DataChangeFilter({}) // FILTER !
                 };
-                subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function(err) {
+                subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                     should.exist(err);
                     err.message.should.match(/no filter expected/);
                     //xx console.log(err.message);
@@ -324,9 +324,9 @@ module.exports = function(test) {
             }, done);
         });
 
-        it("ZZ4 Client: should raise a error if filter is not of type EventFilter when monitoring an event", function(done) {
+        it("ZZ4 Client: should raise a error if filter is not of type EventFilter when monitoring an event", function (done) {
 
-            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
 
                 const readValue = {
                     nodeId: resolveNodeId("Server"),
@@ -340,7 +340,7 @@ module.exports = function(test) {
                     filter: new opcua.DataChangeFilter({}) // intentionally wrong :not an EventFilter
 
                 };
-                subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function(err) {
+                subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both, function (err) {
                     should.exist(err);
                     err.message.should.match(/Got a DataChangeFilter but a EventFilter/);
                     console.log(err.message);
@@ -350,7 +350,7 @@ module.exports = function(test) {
             }, done);
         });
 
-        describe("ZZA- Testing Server generating Event and client receiving Event Notification", function() {
+        describe("ZZA- Testing Server generating Event and client receiving Event Notification", function () {
 
 
             function callEventGeneratorMethod(session, callback) {
@@ -368,7 +368,7 @@ module.exports = function(test) {
                     ]
                 }];
 
-                session.call(methodsToCall, function(err, response) {
+                session.call(methodsToCall, function (err, response) {
                     //xx console.log("call response = ",response.toString());
                     response[0].statusCode.should.eql(opcua.StatusCodes.Good);
                     callback(err);
@@ -376,19 +376,19 @@ module.exports = function(test) {
 
             }
 
-            it("TE1 - should monitored Server Event", function(done) {
+            it("TE1 - should monitored Server Event", function (done) {
 
                 const fields = ["EventType", "SourceName", "EventId", "ReceiveTime", "Severity", "Message"];
                 const eventFilter = constructEventFilter(fields);
 
-                perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, inner_callback) {
+                perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, inner_callback) {
 
 
                     let eventNotificationCount = 0;
 
                     async.series([
 
-                        function(callback) {
+                        function (callback) {
                             const monitoredItem2 = opcua.ClientMonitoredItem.create(subscription, {
                                 nodeId: resolveNodeId(opcua.VariableIds.Server_ServerStatus_CurrentTime),
                                 attributeId: AttributeIds.Value
@@ -397,13 +397,13 @@ module.exports = function(test) {
                                 queueSize: 100
                             }, TimestampsToReturn.Both);
 
-                            monitoredItem2.on("changed", function(dataValue) {
+                            monitoredItem2.on("changed", function (dataValue) {
                                 //xxx console.log(" Server Time is ",dataValue.toString())
                             });
                             callback();
                         },
 
-                        function(callback) {
+                        function (callback) {
 
                             const readValue = {
                                 nodeId: resolveNodeId("Server"),
@@ -417,9 +417,9 @@ module.exports = function(test) {
                             };
 
                             const monitoredItem = opcua.ClientMonitoredItem.create(
-                                subscription, readValue, requestedParameters, TimestampsToReturn.Both);
+                              subscription, readValue, requestedParameters, TimestampsToReturn.Both);
 
-                            monitoredItem.on("initialized", function() {
+                            monitoredItem.on("initialized", function () {
                                 callback();
                             });
 
@@ -427,14 +427,14 @@ module.exports = function(test) {
                                 return (str + "                                      ").substr(0, l);
                             }
 
-                            monitoredItem.on("changed", function(eventFields) {
+                            monitoredItem.on("changed", function (eventFields) {
                                 // TODO
                                 eventNotificationCount = eventNotificationCount + 1;
 
                                 // istanbul ignore next
                                 if (true) {
                                     console.log("Changed !!!  ");
-                                    eventFields.forEach(function(variant, index) {
+                                    eventFields.forEach(function (variant, index) {
                                         console.log(chalk.yellow(w(fields[index], 15)), chalk.cyan(variant.toString()));
                                     });
                                 }
@@ -444,10 +444,10 @@ module.exports = function(test) {
                         // make server generate an event
                         callEventGeneratorMethod.bind(null, session),
 
-                        function(callback) {
+                        function (callback) {
                             setTimeout(callback, 1000);
                         },
-                        function(callback) {
+                        function (callback) {
                             eventNotificationCount.should.eql(1, " Should have received one event notification");
                             callback();
                         }

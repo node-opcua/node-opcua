@@ -1,29 +1,20 @@
 "use strict";
 
+const opcua = require("node-opcua");
 const should = require("should");
 const async = require("async");
 const fs = require("fs");
-const path = require("path");
-const { assert } = require("node-opcua-assert");
+const assert = require("node-opcua-assert").assert;
 
-const {
-    OPCUAServer,
-    OPCUAClient,
-    ApplicationType,
-    findServers,
-    findServersOnNetwork,
-    RegisterServerResponse,
-    RegisterServerRequest,
-    StatusCodes,
-    RegisterServerMethod
-} = require("node-opcua");
-const { OPCUADiscoveryServer } = require("node-opcua-server-discovery");
-const {
-    readCertificate,
-    exploreCertificate,
-    readCertificateRevocationList
-} = require("node-opcua-crypto");
+const OPCUAServer = opcua.OPCUAServer;
+const OPCUAClient = opcua.OPCUAClient;
+const ApplicationType = opcua.ApplicationType;
 
+const OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
+const readCertificate = require("node-opcua-crypto").readCertificate;
+
+const findServers = opcua.findServers;
+const findServersOnNetwork = opcua.findServersOnNetwork;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
@@ -85,7 +76,7 @@ describe("DS1 - Discovery server", function() {
                 client.performMessageTransaction(registerServerRequest, function(err, response) {
                     if (!err) {
                         // RegisterServerResponse
-                        assert(response instanceof RegisterServerResponse);
+                        assert(response instanceof opcua.RegisterServerResponse);
                     }
                     externalFunc(err, response);
                     callback();
@@ -99,7 +90,7 @@ describe("DS1 - Discovery server", function() {
 
     it("should fail to register server if discovery url is not specified (Bad_DiscoveryUrlMissing)", function(done) {
 
-        const request = new RegisterServerRequest({
+        const request = new opcua.RegisterServerRequest({
             server: {
 
                 // The globally unique identifier for the Server instance. The serverUri matches
@@ -111,7 +102,7 @@ describe("DS1 - Discovery server", function() {
 
                 serverNames: [{ text: "some name" }],
 
-                serverType: ApplicationType.Server,
+                serverType: opcua.ApplicationType.Server,
                 gatewayServerUri: null,
                 discoveryUrls: [],                 // INTENTIONALLY EMPTY
                 semaphoreFilePath: null,
@@ -122,7 +113,7 @@ describe("DS1 - Discovery server", function() {
         function check_response(err, response) {
             should.not.exist(err);
             //xx console.log(response.toString());
-            response.responseHeader.serviceResult.should.eql(StatusCodes.BadDiscoveryUrlMissing);
+            response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadDiscoveryUrlMissing);
         }
 
         send_registered_server_request(discovery_server_endpointUrl, request, check_response, done);
@@ -130,7 +121,7 @@ describe("DS1 - Discovery server", function() {
     });
 
     it("should fail to register server to the discover server if server type is Client (BadInvalidArgument)", function(done) {
-        const request = new RegisterServerRequest({
+        const request = new opcua.RegisterServerRequest({
             server: {
 
                 // The globally unique identifier for the Server instance. The serverUri matches
@@ -142,7 +133,7 @@ describe("DS1 - Discovery server", function() {
 
                 serverNames: [{ text: "some name" }],
 
-                serverType: ApplicationType.Client, /// CLIENT HERE !!!
+                serverType: opcua.ApplicationType.Client, /// CLIENT HERE !!!
                 gatewayServerUri: null,
                 discoveryUrls: [],
                 semaphoreFilePath: null,
@@ -153,7 +144,7 @@ describe("DS1 - Discovery server", function() {
         function check_response(err, response) {
             should.not.exist(err);
             //xx debugLog(response.toString());
-            response.responseHeader.serviceResult.should.eql(StatusCodes.BadInvalidArgument);
+            response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadInvalidArgument);
         }
 
         send_registered_server_request(discovery_server_endpointUrl, request, check_response, done);
@@ -162,7 +153,7 @@ describe("DS1 - Discovery server", function() {
 
     it("should fail to register server to the discover server if server name array is empty (BadServerNameMissing)", function(done) {
 
-        const request = new RegisterServerRequest({
+        const request = new opcua.RegisterServerRequest({
             server: {
 
                 // The globally unique identifier for the Server instance. The serverUri matches
@@ -174,7 +165,7 @@ describe("DS1 - Discovery server", function() {
 
                 serverNames: [],   /// <<<<< INTENTIONALLY EMPTY
 
-                serverType: ApplicationType.Server,
+                serverType: opcua.ApplicationType.Server,
                 gatewayServerUri: null,
                 discoveryUrls: [],
                 semaphoreFilePath: null,
@@ -184,7 +175,7 @@ describe("DS1 - Discovery server", function() {
 
         function check_response(err, response) {
             should.not.exist(err);
-            response.responseHeader.serviceResult.should.eql(StatusCodes.BadServerNameMissing);
+            response.responseHeader.serviceResult.should.eql(opcua.StatusCodes.BadServerNameMissing);
         }
 
         send_registered_server_request(discovery_server_endpointUrl, request, check_response, done);
@@ -258,7 +249,7 @@ describe("DS2 - DiscoveryServer2", function() {
 
                 server = new OPCUAServer({
                     port: 1236,
-                    registerServerMethod: RegisterServerMethod.LDS,
+                    registerServerMethod: opcua.RegisterServerMethod.LDS,
                     discoveryServerEndpointUrl: discoveryServerEndpointUrl
 
                 });
@@ -328,30 +319,30 @@ describe("DS3 - Discovery server - many server", function() {
         server1 = new OPCUAServer({
             port: 1231,
             serverInfo: { applicationUri: "AA", productUri: "A" },
-            registerServerMethod: RegisterServerMethod.LDS,
+            registerServerMethod: opcua.RegisterServerMethod.LDS,
             discoveryServerEndpointUrl: discoveryServerEndpointUrl
         });
         server2 = new OPCUAServer({
             port: 1232, serverInfo: { applicationUri: "AB", productUri: "B" },
-            registerServerMethod: RegisterServerMethod.LDS,
+            registerServerMethod: opcua.RegisterServerMethod.LDS,
             discoveryServerEndpointUrl: discoveryServerEndpointUrl
         });
         server3 = new OPCUAServer({
             port: 1233,
             serverInfo: { applicationUri: "AC", productUri: "C" },
-            registerServerMethod: RegisterServerMethod.LDS,
+            registerServerMethod: opcua.RegisterServerMethod.LDS,
             discoveryServerEndpointUrl: discoveryServerEndpointUrl
         });
         server4 = new OPCUAServer({
             port: 1234,
             serverInfo: { applicationUri: "AD", productUri: "D" },
-            registerServerMethod: RegisterServerMethod.LDS,
+            registerServerMethod: opcua.RegisterServerMethod.LDS,
             discoveryServerEndpointUrl: discoveryServerEndpointUrl
         });
         server5 = new OPCUAServer({
             port: 1235,
             serverInfo: { applicationUri: "AE", productUri: "E" },
-            registerServerMethod: RegisterServerMethod.LDS,
+            registerServerMethod: opcua.RegisterServerMethod.LDS,
             discoveryServerEndpointUrl: discoveryServerEndpointUrl
         });
 
@@ -367,24 +358,17 @@ describe("DS3 - Discovery server - many server", function() {
         done();
     });
 
-    beforeEach(async () => {
+    beforeEach(function(done) {
         debugLog("Starting Discovery server on port 1240");
-        discoveryServer = new OPCUADiscoveryServer({
-            port: 1240
+        discoveryServer = new OPCUADiscoveryServer({ port: 1240 });
+        discoveryServer.start((err) => {
+            if (err) {
+                return done(err);
+            }
+            discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
+            done();
         });
-        discoveryServer.serverCertificateManager.automaticallyAcceptUnknownCertificate = true;
-
-        await discoveryServer.start();
-        discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
-
-        const issuerCertificateFile = path.join(__dirname, "../../../node-opcua-samples/certificates/CA/public/cacert.pem");
-        const issuerCertificateRevocationListFile = path.join(__dirname, "../../../node-opcua-samples/certificates/CA/crl/revocation_list.der");
-        const issuerCertificate = await readCertificate(issuerCertificateFile);
-        const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-        discoveryServer.serverCertificateManager.addIssuer(issuerCertificate);
-        discoveryServer.serverCertificateManager.addRevocationList(issuerCrl);
     });
-
 
     afterEach(function(done) {
         debugLog("Stopping Discovery server on port 1240");
@@ -396,19 +380,8 @@ describe("DS3 - Discovery server - many server", function() {
 
     let registeredServerCount = 0;
 
-    async function checkServerCertificateAgainsLDS(server) {
-        console.log(server.certificateFile);
-        const certificate = await server.getCertificate();
-        const certIngo = await exploreCertificate(certificate);
-        console.log(certIngo);
-        const status = await discoveryServer.serverCertificateManager.verifyCertificate(certificate);
-        console.log(status);
-    }
     function start_all_servers(done) {
         registeredServerCount = 0;
-
-
-
         async.parallel([
             function(callback) {
                 debugLog("Starting  server1");
@@ -476,13 +449,6 @@ describe("DS3 - Discovery server - many server", function() {
         ], done);
     }
 
-
-    it("DS3-0 checking certificates", async () => {
-        await checkServerCertificateAgainsLDS(server1);
-        await checkServerCertificateAgainsLDS(server2);
-        await checkServerCertificateAgainsLDS(server3);
-        await checkServerCertificateAgainsLDS(server4);
-    });
 
     it("DS3-1 a discovery server shall be able to expose many registered servers", function(done) {
 

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-variant",
-    "version": "2.6.0-alpha.1",
+    "version": "2.5.10",
     "description": "pure nodejs OPCUA SDK - module -variant",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -10,25 +10,25 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "node-opcua-assert": "^2.6.0-alpha.1",
-        "node-opcua-basic-types": "^2.6.0-alpha.1",
-        "node-opcua-data-model": "^2.6.0-alpha.1",
-        "node-opcua-enum": "^2.6.0-alpha.1",
-        "node-opcua-extension-object": "^2.6.0-alpha.1",
-        "node-opcua-factory": "^2.6.0-alpha.1",
-        "node-opcua-nodeid": "^2.6.0-alpha.1",
-        "node-opcua-utils": "^2.6.0-alpha.1",
+        "node-opcua-assert": "2.5.8",
+        "node-opcua-basic-types": "^2.5.9",
+        "node-opcua-data-model": "^2.5.10",
+        "node-opcua-enum": "^2.5.9",
+        "node-opcua-extension-object": "^2.5.10",
+        "node-opcua-factory": "^2.5.10",
+        "node-opcua-nodeid": "^2.5.9",
+        "node-opcua-utils": "^2.5.9",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-benchmarker": "^2.6.0-alpha.1",
-        "node-opcua-binary-stream": "^2.6.0-alpha.1",
-        "node-opcua-debug": "^2.6.0-alpha.1",
-        "node-opcua-numeric-range": "^2.6.0-alpha.1",
-        "node-opcua-packet-analyzer": "^2.6.0-alpha.1",
-        "node-opcua-status-code": "^2.6.0-alpha.1",
+        "node-opcua-benchmarker": "^2.5.9",
+        "node-opcua-binary-stream": "^2.5.9",
+        "node-opcua-debug": "^2.5.9",
+        "node-opcua-numeric-range": "^2.5.10",
+        "node-opcua-packet-analyzer": "^2.5.10",
+        "node-opcua-status-code": "^2.5.9",
         "should": "^13.2.3",
-        "source-map-support": "^0.5.19"
+        "source-map-support": "^0.5.17"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

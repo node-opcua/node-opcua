@@ -47,7 +47,7 @@ import { ClientPushCertificateManagement } from "../..";
 import { certificateMatchesPrivateKey } from "../..";
 import { OPCUAServerPartial } from "../../source";
 
-// tslint:disable-next:no-var-requires
+//tslint:disable-next:no-var-requires
 import rimraf = require("rimraf");
 
 const doDebug = checkDebugFlag("ServerConfiguration");
@@ -122,10 +122,10 @@ describe("Testing server configured with push certificate management", () => {
         debugLog("---------------------------------------------------------------");
         const certificateChain1 = server.getCertificateChain();
         debugLog("server.getCertificateChain() =",
-            makeSHA1Thumbprint(certificateChain1).toString("hex") + " l=" + certificateChain1.length);
+          makeSHA1Thumbprint(certificateChain1).toString("hex") + " l=" + certificateChain1.length);
         const privateKey1 = convertPEMtoDER(server.getPrivateKey());
         debugLog("server.getPrivateKey()       =",
-            makeSHA1Thumbprint(privateKey1).toString("hex"));
+          makeSHA1Thumbprint(privateKey1).toString("hex"));
 
         const match = certificateMatchesPrivateKey(certificateChain1, privateKey1);
         debugLog("math                         =", match);
@@ -136,7 +136,7 @@ describe("Testing server configured with push certificate management", () => {
             for (const e of endpoint.endpointDescriptions()) {
                 const certificateChain3 = e.serverCertificate;
                 debugLog("endpoint certificate =",
-                    makeSHA1Thumbprint(certificateChain3).toString("hex") + " l=" + certificateChain3.length);
+                  makeSHA1Thumbprint(certificateChain3).toString("hex") + " l=" + certificateChain3.length);
                 // xx console.log(e.toString());
             }
 
@@ -172,17 +172,17 @@ describe("Testing server configured with push certificate management", () => {
             const pm = new ClientPushCertificateManagement(session);
 
             const response = await pm.createSigningRequest(
-                "DefaultApplicationGroup",
-                NodeId.nullNodeId,
-                "CN=MyApplication");
+              "DefaultApplicationGroup",
+              NodeId.nullNodeId,
+              "CN=MyApplication");
 
             debugLog(" cert request status",
-                response.statusCode.toString());
+              response.statusCode.toString());
             if (response.statusCode !== StatusCodes.Good) {
                 throw new Error("Cannot get signing request from server : " + response.statusCode.toString());
             }
             debugLog(" cert request       ",
-                response.certificateSigningRequest!.toString("base64"));
+              response.certificateSigningRequest!.toString("base64"));
 
             const certificateFull = await produceCertificate(response.certificateSigningRequest!);
 
@@ -192,10 +192,10 @@ describe("Testing server configured with push certificate management", () => {
 
             // generate some certificate
             const response2 = await pm.updateCertificate(
-                "DefaultApplicationGroup",
-                NodeId.nullNodeId,
-                certificate,
-                issuerCertificates
+              "DefaultApplicationGroup",
+              NodeId.nullNodeId,
+              certificate,
+              issuerCertificates
             );
             debugLog(" updateCertificate  status", response2.statusCode.toString());
             if (response2.statusCode !== StatusCodes.Good) {
@@ -218,7 +218,7 @@ describe("Testing server configured with push certificate management", () => {
     }
 
     async function replaceServerCertificateAndPrivateKeyUsingPushCertificateManagerMethod(
-        endpointUrl: string
+      endpointUrl: string
     ): Promise<{ certificate: Certificate, privateKey: PrivateKey }> {
 
         // create a new key pair
@@ -253,12 +253,12 @@ describe("Testing server configured with push certificate management", () => {
 
             // generate some certificate
             const response2 = await pm.updateCertificate(
-                "DefaultApplicationGroup",
-                NodeId.nullNodeId,
-                certificate,
-                issuerCertificates,
-                privateKeyFormat,
-                privateKey
+              "DefaultApplicationGroup",
+              NodeId.nullNodeId,
+              certificate,
+              issuerCertificates,
+              privateKeyFormat,
+              privateKey
             );
             debugLog(" updateCertificate  status", response2.statusCode.toString());
 
@@ -418,10 +418,10 @@ describe("Testing server configured with push certificate management", () => {
         });
 
         const monitoredItem = await subscription.monitor({
-            attributeId: AttributeIds.Value,
-            nodeId: "i=2258" // Current Time
-        },
-            { samplingInterval: 500 }, TimestampsToReturn.Both);
+              attributeId: AttributeIds.Value,
+              nodeId: "i=2258" // Current Time
+          },
+          { samplingInterval: 500 }, TimestampsToReturn.Both);
 
         count = 0;
         monitoredItem.on("changed", (dataValue: DataValue) => {
@@ -438,7 +438,7 @@ describe("Testing server configured with push certificate management", () => {
         debugLog("stopping");
         await new Promise((resolve) => setTimeout(resolve, 5000));
         debugLog("stopOnGoingConnection - Server certificate is now ",
-            makeSHA1Thumbprint(onGoingClient.serverCertificate!).toString("base64"));
+          makeSHA1Thumbprint(onGoingClient.serverCertificate!).toString("base64"));
         await onGoingSession.close();
         await onGoingClient.disconnect();
     }

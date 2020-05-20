@@ -3,15 +3,12 @@
  */
 // tslint:disable:class-name
 // system
-import * as os from "os";
-import * as _ from "underscore";
-
 import { createConnection, Socket } from "net";
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
-import { ErrorCallback } from "node-opcua-status-code";
-
+import * as os from "os";
+import * as _ from "underscore";
 import { getFakeTransport, TCP_transport } from "./tcp_transport";
 import { decodeMessage, packTcpMessage, parseEndpointUrl } from "./tools";
 
@@ -24,6 +21,7 @@ const doDebug = debug.checkDebugFlag(__filename);
 const debugLog = debug.make_debugLog(__filename);
 const gHostname = os.hostname();
 
+export type ErrorCallback = (err?: Error) => void;
 
 function createClientSocket(endpointUrl: string): Socket {
     // create a socket based on Url

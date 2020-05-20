@@ -9,7 +9,7 @@ const XMLWriter = require("xml-writer");
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { BrowseDirection, LocalizedText, makeNodeClassMask, makeResultMask, NodeClass, makeAccessLevelFlag } from "node-opcua-data-model";
+import { BrowseDirection, LocalizedText, makeNodeClassMask, makeResultMask, NodeClass } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import {
     FieldBasic,
@@ -586,7 +586,6 @@ function dumpReferencedNodes(
     }
 }
 
-const currentReadFlag = makeAccessLevelFlag("CurrentRead");
 function dumpCommonAttributes(
     xw: XmlWriter,
     node: BaseNode
@@ -601,12 +600,6 @@ function dumpCommonAttributes(
     if (node.hasOwnProperty("isAbstract")) {
         if ((node as any).isAbstract) {
             xw.writeAttribute("IsAbstract", (node as any).isAbstract ? "true" : "false");
-        }
-    }
-    if (node.hasOwnProperty("accessLevel")) {
-        // CurrentRead is by default
-        if ((node as any).accessLevel !== currentReadFlag) {
-            xw.writeAttribute("AccessLevel", (node as any).accessLevel);
         }
     }
 }

@@ -32,6 +32,7 @@ import {
 } from "node-opcua-hostname";
 import {
     ClientSecureChannelLayer, computeSignature, ConnectionStrategyOptions,
+    ErrorCallback,
     fromURI,
     getCryptoFactory,
     SecurityPolicy
@@ -55,10 +56,6 @@ import {
     X509IdentityToken
 } from "node-opcua-service-session";
 import { StatusCodes } from "node-opcua-status-code";
-import {
-    ErrorCallback,
-} from "node-opcua-status-code";
-
 import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { isNullOrUndefined } from "node-opcua-utils";
 

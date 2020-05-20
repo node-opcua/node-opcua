@@ -11,8 +11,7 @@ import {
     readCertificate,
     readKeyPem,
     readPrivateKey,
-    split_der,
-    readCertificateRevocationList
+    split_der
 } from "node-opcua-crypto";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { StatusCode } from "node-opcua-status-code";
@@ -40,22 +39,9 @@ interface TestParam {
     shouldFailAtClientConnection?: boolean;
 }
 
-const certificateFolder = path.join(__dirname, "../../../packages/node-opcua-end2end-test/certificates");
-
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing secure client and server connection", () => {
-
-    const certificateManager = new OPCUACertificateManager({});
-    before(async () => {
-        const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
-        const issuerCertificate = readCertificate(issuerCertificateFile);
-        await certificateManager.addIssuer(issuerCertificate);
-
-        const issuerCertificateRevocationListFile = path.join(certificateFolder, "CA/crl/revocation_list.der");
-        const crl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-        await certificateManager.addRevocationList(crl);
-    });
 
     let directTransport: DirectTransport;
     beforeEach((done) => {
@@ -72,12 +58,15 @@ describe("Testing secure client and server connection", () => {
 
         const parentS: ServerSecureChannelParent = {
 
-            certificateManager,
+            certificateManager: new OPCUACertificateManager({
+
+            }),
 
             // tslint:disable-next-line:object-literal-shorthand
-            getCertificate: function () {
+            getCertificate: function() {
 
                 const chain = this.getCertificateChain();
+
                 const firstCertificateInChain = split_der(chain)[0];
                 return firstCertificateInChain!;
             },
@@ -107,7 +96,7 @@ describe("Testing secure client and server connection", () => {
         const parentC: ClientSecureChannelParent = {
 
             // tslint:disable-next-line:object-literal-shorthand
-            getCertificate: function () {
+            getCertificate: function() {
                 const chain = this.getCertificateChain();
                 const firstCertificateInChain = split_der(chain)[0];
                 return firstCertificateInChain!;
@@ -147,9 +136,9 @@ describe("Testing secure client and server connection", () => {
                 if (param.clientCertificate) {
                     const certMan = serverSChannel.certificateManager;
                     certMan.trustCertificate(param.clientCertificate,
-                        (err?: Error | null) => {
-                            callback(err!);
-                        });
+                      (err?: Error|null) => {
+                        callback(err!);
+                    });
                 } else {
                     callback();
                 }
@@ -201,13 +190,14 @@ describe("Testing secure client and server connection", () => {
     });
 
     function performTest1(
-        sizeC: number,
-        sizeS: number,
-        securityPolicy: SecurityPolicy,
-        done: (err?: Error) => void
+      sizeC: number,
+      sizeS: number,
+      securityPolicy: SecurityPolicy,
+      done: (err?: Error) => void
     ): void {
         function m(file: string): string {
-            const fullpathname = path.join(certificateFolder, file);
+            const fullpathname = path.join(__dirname,
+              "../../../packages/node-opcua-end2end-test/certificates/" + file);
             if (!fs.existsSync(fullpathname)) {
                 throw new Error("file must exist: " + fullpathname);
             }
