@@ -16,7 +16,7 @@ const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
 const generate_new_id = require("node-opcua-factory").generate_new_id;
 const _enumerations = require("node-opcua-factory/src/factories_enumerations")._private._enumerations;
 const schema = require("../../schemas/Variant_schema").Variant_Schema;
-const BaseUAObject = require("node-opcua-factory").BaseUAObject;
+const BaseUAObject = require("node-opcua-factory/src/factories_baseobject").BaseUAObject;
 
 /**
  * @class Variant
@@ -40,16 +40,16 @@ function Variant(options) {
      * @type {DataType}
      * @default  0
      */
-    //## Define special behavior for Enumeration
+        //## Define special behavior for Enumeration
     Object.defineProperties(this, {
         "dataType": {
             hidden: false,
             enumerable: true,
             configurable: true,
-            get: function() {
+            get: function () {
                 return this.__dataType;
             },
-            set: function(value) {
+            set: function (value) {
                 const coercedValue = _enumerations.DataType.typedEnum.get(value);
                 if (coercedValue === undefined || coercedValue === null) {
                     throw new Error("value cannot be coerced to DataType: " + value);
@@ -70,16 +70,16 @@ function Variant(options) {
      * @type {VariantArrayType}
      * @default  0
      */
-    //## Define special behavior for Enumeration
+        //## Define special behavior for Enumeration
     Object.defineProperties(this, {
         "arrayType": {
             hidden: false,
             enumerable: true,
             configurable: true,
-            get: function() {
+            get: function () {
                 return this.__arrayType;
             },
-            set: function(value) {
+            set: function (value) {
                 const coercedValue = _enumerations.VariantArrayType.typedEnum.get(value);
                 if (coercedValue === undefined || coercedValue === null) {
                     throw new Error("value cannot be coerced to VariantArrayType: " + value);
@@ -115,7 +115,7 @@ const encode_VariantArrayType = _enumerations.VariantArrayType.encode;
 const decode_VariantArrayType = _enumerations.VariantArrayType.decode;
 const encode_Any = _defaultTypeMap.Any.encode;
 const decode_Any = _defaultTypeMap.Any.decode;
-Variant.prototype.encode = function(stream, options) {
+Variant.prototype.encode = function (stream, options) {
     schema.encode(this, stream, options);
 };
 /**
@@ -125,10 +125,10 @@ Variant.prototype.encode = function(stream, options) {
  * @param stream {BinaryStream}
  * @param [option] {object}
  */
-Variant.prototype.decode = function(stream, options) {
+Variant.prototype.decode = function (stream, options) {
     schema.decode(this, stream, options);
 };
-Variant.prototype.decodeDebug = function(stream, options) {
+Variant.prototype.decodeDebug = function (stream, options) {
     schema.decodeDebug(this, stream, options);
 };
 /**
@@ -137,10 +137,10 @@ Variant.prototype.decodeDebug = function(stream, options) {
  * @method isValid
  * @return {Boolean}
  */
-Variant.prototype.isValid = function() {
+Variant.prototype.isValid = function () {
     return schema.isValid(this);
 };
-Variant.possibleFields = function() {
+Variant.possibleFields = function () {
     return [
         "dataType",
         "arrayType",
