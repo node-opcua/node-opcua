@@ -12,7 +12,7 @@ import { LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
-import { ErrorCallback } from "node-opcua-status-code";
+import { ErrorCallback } from "node-opcua-secure-channel";
 import {
     BrowseDescription, BrowseDescriptionOptions, BrowseRequest, BrowseResponse, BrowseResult
 } from "node-opcua-service-browse";
@@ -55,9 +55,6 @@ import {
 } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
-import { Callback } from "node-opcua-status-code";
-
-
 import { ClientSubscription } from "./client_subscription";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
@@ -101,6 +98,7 @@ export type SubscriptionId = number;
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
+import { Callback } from "./common";
 export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";

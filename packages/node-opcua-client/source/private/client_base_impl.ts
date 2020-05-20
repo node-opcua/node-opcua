@@ -25,6 +25,7 @@ import {
     coerceSecurityPolicy,
     ConnectionStrategy,
     ConnectionStrategyOptions,
+    ErrorCallback,
     SecurityPolicy,
     SecurityToken
 } from "node-opcua-secure-channel";
@@ -40,9 +41,6 @@ import {
 import {
     coerceMessageSecurityMode, MessageSecurityMode
 } from "node-opcua-service-secure-channel";
-import {
-    ErrorCallback,
-} from "node-opcua-status-code";
 
 import { ResponseCallback } from "../client_session";
 import { Request, Response } from "../common";

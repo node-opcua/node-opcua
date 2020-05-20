@@ -9,15 +9,13 @@ const sinon = require("sinon");
 const path = require("path");
 const fs = require("fs");
 const _ = require("underscore");
-const { callbackify } = require("util");
+
 const crypto = require("crypto");
 
 const opcua = require("node-opcua");
-const { readCertificateRevocationList } = require("node-opcua-crypto");
 
-const { OPCUACertificateManager, OPCUAClient, MessageSecurityMode } = require("node-opcua");
-
-const { ClientSecureChannelLayer } = require("node-opcua-client");
+const OPCUAClient = opcua.OPCUAClient;
+const ClientSecureChannelLayer = require("node-opcua-client").ClientSecureChannelLayer;
 
 
 const debugLog = require("node-opcua-debug").make_debugLog("TEST");
@@ -27,13 +25,15 @@ fs.existsSync(certificate_store).should.eql(true, "expecting certificate store a
 
 const port = 2225;
 
-const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
-const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
+const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-const {
+
+const { 
     start_simple_server,
-    stop_simple_server
-} = require("../../test_helpers/external_server_fixture");
+    stop_simple_server 
+  } = require("../../test_helpers/external_server_fixture");
+  
 
 const g_defaultSecureTokenLifetime = 30 * 1000; // ms
 const g_tokenRenewalInterval = 400; // renew token as fast as possible
@@ -49,50 +49,23 @@ const no_reconnect_connectivity_strategy = {
 };
 
 
-let g_certificateManager = null;
-async function makeCerficateManager() {
-
-    if (g_certificateManager) {
-        return g_certificateManager;
-    }
-    const certificateManager = new OPCUACertificateManager({});
-    await certificateManager.initialize();
-
-    const issuerCertificateFile = path.join(certificate_store, "CA/public/cacert.pem");
-    const issuerCertificateRevocationListFile = path.join(certificate_store, "CA/crl/revocation_list.der");
-
-    const issuerCertificate = await readCertificate(issuerCertificateFile);
-
-    const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-    await certificateManager.addIssuer(issuerCertificate);
-    await certificateManager.addRevocationList(issuerCrl);
-
-    g_certificateManager = certificateManager;
-    return certificateManager;
-}
-
 function start_inner_server_local(options, callback) {
     // Given a server that have a signed end point
 
-    callbackify(makeCerficateManager)((err, certificateManager) => {
-        options = options || {};
-        options.port = options.port || port;
+    options = options || {};
+    options.port = options.port || port;
 
-        options.certificateManager = options.certificateManager || certificateManager;
-        server = build_server_with_temperature_device(options, function(err) {
-            if (err) {
-                return callback(err);
-            }
-            const data = {};
-            data.endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            data.serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;
-            data.temperatureVariableId = server.temperatureVariableId;
-            data.server = server;
-            callback(null, data);
-        });
-
+    server = build_server_with_temperature_device(options, function (err) {
+        if (err) {
+            return callback(err);
+        }
+        const data = {};
+        data.endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        data.serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;
+        data.temperatureVariableId = server.temperatureVariableId;
+        data.server = server;
+        callback(null, data);
     });
-
 }
 
 function stop_inner_server_local(data, callback) {
@@ -120,7 +93,7 @@ function stop_inner_server_local(data, callback) {
 
 function start_server1(options, callback) {
     // Given a server that have a signed end point
-    start_simple_server(options, function(err, data) {
+    start_simple_server(options, function (err, data) {
         if (err) {
             return callback(err, null);
         }
@@ -141,7 +114,7 @@ function start_server1(options, callback) {
 function get_server_channel_security_token_change_count(server) {
     const sessions = _.values(server.engine._sessions);
     sessions.length.should.eql(1, "Expecting only one session on server at address " + server);
-    const count = server.endpoints.reduce(function(accumulated, endpoint) {
+    const count = server.endpoints.reduce(function (accumulated, endpoint) {
         return accumulated + endpoint.securityTokenCount;
     }, 0);
 
@@ -166,7 +139,7 @@ function start_server(options, callback) {
         options = null;
     }
     // Given a server that have a signed end point
-    start_inner_server_local(options, function(err, data) {
+    start_inner_server_local(options, function (err, data) {
         if (err) {
             return callback(err, null);
         }
@@ -177,7 +150,7 @@ function start_server(options, callback) {
     });
 }
 
-const start_server_with_1024bits_certificate = function(callback) {
+const start_server_with_1024bits_certificate = function (callback) {
 
     const server_certificate_pem_file = path.join(certificate_store, "server_cert_1024.pem");
     const server_certificate_privatekey_file = path.join(certificate_store, "server_key_1024.pem");
@@ -191,7 +164,7 @@ const start_server_with_1024bits_certificate = function(callback) {
     start_server(options, callback);
 };
 
-const start_server_with_2048bits_certificate = function(callback) {
+const start_server_with_2048bits_certificate = function (callback) {
 
     const server_certificate_pem_file = path.join(certificate_store, "server_cert_2048.pem");
     const server_certificate_privatekey_file = path.join(certificate_store, "server_key_2048.pem");
@@ -206,7 +179,7 @@ const start_server_with_2048bits_certificate = function(callback) {
     start_server(options, callback);
 };
 
-const start_server_with_4096bits_certificate = function(callback) {
+const start_server_with_4096bits_certificate = function (callback) {
 
     const server_certificate_pem_file = path.join(certificate_store, "server_cert_4096.pem");
     const server_certificate_privatekey_file = path.join(certificate_store, "server_key_4096.pem");
@@ -245,15 +218,15 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
     const nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
 
 
-    client.on("security_token_renewed", function() {
+    client.on("security_token_renewed", function () {
 
         debugLog(" Security token has been renewed");
 
         security_token_renewed_counter += 1;
         if (security_token_renewed_counter === security_token_renewed_limit) {
 
-            setImmediate(function() {
-                subscription.terminate(function() {
+            setImmediate(function () {
+                subscription.terminate(function () {
                     debugLog("        subscription terminated ");
                     if (!the_error) {
                         const nbTokenId = get_server_channel_security_token_change_count(server) - nbTokenId_before_server_side;
@@ -275,15 +248,15 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
     });
 
     let the_error = null;
-    subscription.on("started", function() {
+    subscription.on("started", function () {
         debugLog("xxx    starting monitoring ");
     });
 
-    subscription.on("internal_error", function(err) {
+    subscription.on("internal_error", function (err) {
         debugLog(chalk.red("xxx internal error in ClientSubscription"), err.message);
         the_error = err;
     });
-    subscription.on("terminated", function() {
+    subscription.on("terminated", function () {
     });
 }
 
@@ -318,9 +291,9 @@ function common_test(securityPolicy, securityMode, options, done) {
 
     trustCertificateOnServer(client.certificateFile, () => {
 
-        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-            keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function(err) {
+            keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function (err) {
                 token_change.should.be.aboveOrEqual(2);
                 inner_done(err);
             });
@@ -328,7 +301,7 @@ function common_test(securityPolicy, securityMode, options, done) {
     });
 
 
-    client.on("lifetime_75", function(token) {
+    client.on("lifetime_75", function (token) {
         // check if we are late!
         //
         const expectedExpiryTick = token.createdAt.getTime() + token.revisedLifetime;
@@ -338,11 +311,11 @@ function common_test(securityPolicy, securityMode, options, done) {
         }
         debugLog("received lifetime_75", JSON.stringify(token), delay);
     });
-    client.on("security_token_renewed", function() {
+    client.on("security_token_renewed", function () {
         token_change += 1;
         debugLog("received security_token_renewed", token_change);
     });
-    client.on("close", function() {
+    client.on("close", function () {
         debugLog(" connection has been closed");
     });
 }
@@ -363,20 +336,20 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
 
     trustCertificateOnServer(client.clientCertificate, () => {
 
-        client.on("backoff", function(number, delay) {
+        client.on("backoff", function (number, delay) {
             debugLog(" backoff attempt#", number, " retry in ", delay);
         });
 
-        client.connect(endpointUrl, function(err) {
+        client.connect(endpointUrl, function (err) {
 
             if (err) {
                 debugLog("Error = ", err.message);
-                client.disconnect(function() {
+                client.disconnect(function () {
                     done();
                 });
 
             } else {
-                client.disconnect(function() {
+                client.disconnect(function () {
                     done(new Error("The connection's succeeded, but was expected to fail!"));
                 });
             }
@@ -413,21 +386,21 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
         const after_reconnection_spy = new sinon.spy();
         const start_reconnection_spy = new sinon.spy();
 
-        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
             client.on("start_reconnection", start_reconnection_spy);
             client.on("after_reconnection", after_reconnection_spy);
 
-            keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function(err) {
+            keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal, function (err) {
                 debugLog("err = ", err);
                 // inner_done(err);
             });
-            client.on("close", function() {
+            client.on("close", function () {
                 debugLog("            connection has been closed");
                 inner_done();
             });
 
-        }, function(err) {
+        }, function (err) {
 
             debugLog(chalk.yellow.bold(" RECEIVED ERROR :"), err);
             start_reconnection_spy.callCount.should.eql(1);
@@ -437,55 +410,55 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
             done();
         });
     });
-    client.on("backoff", function(number, delay) {
+    client.on("backoff", function (number, delay) {
         debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
     });
-    client.on("lifetime_75", function(token) {
+    client.on("lifetime_75", function (token) {
         debugLog("            received lifetime_75", JSON.stringify(token));
     });
-    client.on("security_token_renewed", function() {
+    client.on("security_token_renewed", function () {
         token_change += 1;
     });
-    client.on("close", function() {
+    client.on("close", function () {
         debugLog("            connection has been closed");
     });
 }
 
 function perform_collection_of_test_with_client_configuration(message, options) {
 
-    it("should succeed with Basic128Rsa15  with Sign           " + message, function(done) {
+    it("should succeed with Basic128Rsa15  with Sign           " + message, function (done) {
         common_test("Basic128Rsa15", "Sign", options, done);
     });
 
-    it("should succeed with Basic128Rsa15  with Sign           " + message, function(done) {
+    it("should succeed with Basic128Rsa15  with Sign           " + message, function (done) {
         common_test("Basic128Rsa15", "Sign", options, done);
     });
 
-    it("should succeed with Basic128Rsa15  with SignAndEncrypt " + message, function(done) {
+    it("should succeed with Basic128Rsa15  with SignAndEncrypt " + message, function (done) {
         common_test("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
-    it("should succeed with Basic256       with Sign           " + message, function(done) {
+    it("should succeed with Basic256       with Sign           " + message, function (done) {
         common_test("Basic256", "Sign", options, done);
     });
 
-    it("should succeed with Basic256       with SignAndEncrypt " + message, function(done) {
+    it("should succeed with Basic256       with SignAndEncrypt " + message, function (done) {
         common_test("Basic256", "SignAndEncrypt", options, done);
     });
 
-    it("should fail    with Basic256Rsa15  with Sign           " + message, function(done) {
+    it("should fail    with Basic256Rsa15  with Sign           " + message, function (done) {
         check_open_secure_channel_fails("Basic256Rsa15", "Sign", options, done);
     });
 
-    it("should fail    with Basic256Rsa15  with SignAndEncrypt " + message, function(done) {
+    it("should fail    with Basic256Rsa15  with SignAndEncrypt " + message, function (done) {
         check_open_secure_channel_fails("Basic256Rsa15", "SignAndEncrypt", options, done);
     });
 
-    it("should succeed with Basic256Sha256 with Sign           " + message, function(done) {
+    it("should succeed with Basic256Sha256 with Sign           " + message, function (done) {
         common_test("Basic256Sha256", "Sign", options, done);
     });
 
-    it("should succeed with Basic256Sha256 with SignAndEncrypt " + message, function(done) {
+    it("should succeed with Basic256Sha256 with SignAndEncrypt " + message, function (done) {
         common_test("Basic256Sha256", "SignAndEncrypt", options, done);
     });
 
@@ -520,27 +493,25 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("ZZA- testing Secure Client-Server communication", function() {
+describe("ZZA- testing Secure Client-Server communication", function () {
 
     this.timeout(Math.max(this._timeout, 20001));
 
     let serverHandle;
-
-
-    before(function(done) {
-        start_server(function(err, handle) {
+    before(function (done) {
+        start_server(function (err, handle) {
             serverHandle = handle;
             done(err);
         });
     });
-    after(function(done) {
-        stop_server(serverHandle, function() {
+    after(function (done) {
+        stop_server(serverHandle, function () {
             serverHandle = null;
             done();
         });
     });
 
-    it("QQQ1 a client shall be able to establish a SIGNED connection with a server", function(done) {
+    it("QQQ1 a client shall be able to establish a SIGNED connection with a server", function (done) {
 
 
         should.exist(serverCertificate);
@@ -555,7 +526,7 @@ describe("ZZA- testing Secure Client-Server communication", function() {
         const client = OPCUAClient.create(options);
         trustCertificateOnServer(client.clientCertificate, () => {
 
-            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
                 inner_done();
             }, done);
@@ -563,7 +534,7 @@ describe("ZZA- testing Secure Client-Server communication", function() {
 
     });
 
-    it("QQQ2 a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 1024 bit client certificate", function(done) {
+    it("QQQ2 a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 1024 bit client certificate", function (done) {
 
         should.exist(serverCertificate);
 
@@ -582,7 +553,7 @@ describe("ZZA- testing Secure Client-Server communication", function() {
 
         trustCertificateOnServer(client.certificateFile, () => {
 
-            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 inner_done();
             }, done);
 
@@ -590,7 +561,7 @@ describe("ZZA- testing Secure Client-Server communication", function() {
 
     });
 
-    it("QQQ3 a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 2048 bit client certificate", function(done) {
+    it("QQQ3 a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 2048 bit client certificate", function (done) {
 
         should.exist(serverCertificate);
 
@@ -608,13 +579,13 @@ describe("ZZA- testing Secure Client-Server communication", function() {
         };
         const client = OPCUAClient.create(options);
         trustCertificateOnServer(client.certificateFile, () => {
-            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 inner_done();
             }, done);
         });
 
     });
-    it("QQQ3b a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 2048 bit client certificate", function(done) {
+    it("QQQ3b a client shall be able to establish a SIGN&ENCRYPT connection with a server and a 2048 bit client certificate", function (done) {
 
         should.exist(serverCertificate);
 
@@ -632,13 +603,13 @@ describe("ZZA- testing Secure Client-Server communication", function() {
         };
         const client = OPCUAClient.create(options);
         trustCertificateOnServer(client.certificateFile, () => {
-            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 inner_done();
             }, done);
         });
     });
 
-    it("QQQ4 server shall reject secure connection when client provides a nonce with the wrong length", function(done) {
+    it("QQQ4 server shall reject secure connection when client provides a nonce with the wrong length", function (done) {
 
         should.exist(serverCertificate);
 
@@ -657,7 +628,7 @@ describe("ZZA- testing Secure Client-Server communication", function() {
         trustCertificateOnServer(client.certificateFile, () => {
 
             const old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
-            ClientSecureChannelLayer.prototype._performMessageTransaction = function(msgType, requestMessage, callback) {
+            ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
 
                 // let's alter the client Nonce,
                 if (requestMessage.constructor.name === "OpenSecureChannelRequest") {
@@ -668,9 +639,9 @@ describe("ZZA- testing Secure Client-Server communication", function() {
                 old_performMessageTransaction.call(this, msgType, requestMessage, callback);
             };
 
-            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
                 inner_done();
-            }, function(err) {
+            }, function (err) {
                 debugLog(err.message);
                 err.message.should.match(/BadSecurityModeRejected/);
                 done();
@@ -678,7 +649,7 @@ describe("ZZA- testing Secure Client-Server communication", function() {
         });
     });
 
-    it("QQQ5 a token shall be updated on a regular basis", function(done) {
+    it("QQQ5 a token shall be updated on a regular basis", function (done) {
 
         const options = {
             securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
@@ -694,17 +665,17 @@ describe("ZZA- testing Secure Client-Server communication", function() {
 
         trustCertificateOnServer(client.certificateFile, () => {
 
-            client.on("lifetime_75", function(token) {
+            client.on("lifetime_75", function (token) {
                 debugLog("received lifetime_75", JSON.stringify(token));
             });
 
-            client.on("security_token_renewed", function() {
+            client.on("security_token_renewed", function () {
                 token_change += 1;
                 //xx  debugLog("security_token_renewed");
             });
-            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal + 3, function(err) {
+                keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal + 3, function (err) {
                     //xx debugLog("end of Monitoring ")
                     token_change.should.be.aboveOrEqual(g_numberOfTokenRenewal);
                     inner_done(err);
@@ -715,39 +686,39 @@ describe("ZZA- testing Secure Client-Server communication", function() {
     });
 });
 
-describe("ZZB- testing server behavior on secure connection ", function() {
+describe("ZZB- testing server behavior on secure connection ", function () {
 
     this.timeout(Math.max(this._timeout, 20002));
 
     let serverHandle;
     let old_method;
     let timerId = null;
-    before(function(done) {
+    before(function (done) {
 
         ClientSecureChannelLayer.prototype._renew_security_token.should.be.instanceOf(Function);
         // let modify the client behavior so that _renew_security_token call is delayed by an amount of time
         // that should cause the server to worry about the token not to be renewed.
         old_method = ClientSecureChannelLayer.prototype._renew_security_token;
 
-        ClientSecureChannelLayer.prototype._renew_security_token = function() {
+        ClientSecureChannelLayer.prototype._renew_security_token = function () {
             if (timerId) {
                 return;
             }
             const self = this;
 
             // delay renewal of security token by a long time (exceeding secureTokenLifeTime)
-            timerId = setTimeout(function() {
+            timerId = setTimeout(function () {
                 timerId = null;
                 old_method.call(self);
             }, g_defaultSecureTokenLifetime * 4);
         };
 
-        start_server(function(err, handle) {
+        start_server(function (err, handle) {
             serverHandle = handle;
             done(err);
         });
     });
-    after(function(done) {
+    after(function (done) {
         //Xx should(timerId).eql(null);
         if (timerId) {
             clearTimeout(timerId);
@@ -761,7 +732,7 @@ describe("ZZB- testing server behavior on secure connection ", function() {
         stop_server(serverHandle, done);
     });
 
-    it("ZZB-1 server shall shutdown the connection if client doesn't renew security token on time", function(done) {
+    it("ZZB-1 server shall shutdown the connection if client doesn't renew security token on time", function (done) {
 
         const options = {
             keepSessionAlive: true,
@@ -777,29 +748,29 @@ describe("ZZB- testing server behavior on secure connection ", function() {
         const client = OPCUAClient.create(options);
         trustCertificateOnServer(client.certificateFile, () => {
 
-            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
-                client.once("close", function(err) {
+            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                client.once("close", function (err) {
                     token_change.should.be.eql(0);
                     inner_done();
                 });
-                setTimeout(function() {
+                setTimeout(function () {
                     // security token has now expired
                     //
                     // this request will fail as we haven't renewed the securityToken
                     // Server will close the connection when receiving this request
-                    session.read([], function() {
+                    session.read([], function () {
 
                     });
                 }, 5000);
-            }, function(err) {
+            }, function (err) {
                 done();
             });
         });
 
-        client.on("lifetime_75", function(token) {
+        client.on("lifetime_75", function (token) {
             //xx debugLog("received lifetime_75", JSON.stringify(token));
         });
-        client.on("security_token_renewed", function() {
+        client.on("security_token_renewed", function () {
             token_change += 1;
             //xx debugLog("security_token_renewed");
         });
@@ -809,27 +780,27 @@ describe("ZZB- testing server behavior on secure connection ", function() {
 
 });
 
-describe("ZZC- testing Security Policy with a valid 1024 bit certificate on server", function() {
+describe("ZZC- testing Security Policy with a valid 1024 bit certificate on server", function () {
 
     this.timeout(Math.max(this._timeout, 20003));
 
     let serverHandle;
 
-    before(function(done) {
-        start_server_with_1024bits_certificate(function(err, handle) {
+    before(function (done) {
+        start_server_with_1024bits_certificate(function (err, handle) {
             serverHandle = handle;
             done(err);
         });
     });
-    after(function(done) {
-        stop_server(serverHandle, function() {
+    after(function (done) {
+        stop_server(serverHandle, function () {
             done();
         });
     });
 
     perform_collection_of_test_with_various_client_configuration(" (1024 bits certificate on server)");
 
-    it("connection should fail if security mode requested by client is not supported by server", function(done) {
+    it("connection should fail if security mode requested by client is not supported by server", function (done) {
 
         const securityMode = "Sign";
         const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
@@ -838,20 +809,20 @@ describe("ZZC- testing Security Policy with a valid 1024 bit certificate on serv
     });
 });
 
-describe("ZZD- testing Security Policy with a valid 2048 bit certificate on server", function() {
+describe("ZZD- testing Security Policy with a valid 2048 bit certificate on server", function () {
 
     this.timeout(Math.max(this._timeout, 20004));
 
     let serverHandle;
 
-    before(function(done) {
-        start_server_with_2048bits_certificate(function(err, handle) {
+    before(function (done) {
+        start_server_with_2048bits_certificate(function (err, handle) {
             serverHandle = handle;
             done(err);
         });
     });
-    after(function(done) {
-        stop_server(serverHandle, function() {
+    after(function (done) {
+        stop_server(serverHandle, function () {
             done();
         });
     });
@@ -859,7 +830,7 @@ describe("ZZD- testing Security Policy with a valid 2048 bit certificate on serv
 
     perform_collection_of_test_with_various_client_configuration(" (2048 bits certificate on server)");
 
-    it("connection should fail if security mode requested by client is not supported by server", function(done) {
+    it("connection should fail if security mode requested by client is not supported by server", function (done) {
 
         const securityMode = "Sign";
         const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
@@ -868,47 +839,47 @@ describe("ZZD- testing Security Policy with a valid 2048 bit certificate on serv
     });
 });
 
-describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on server", function() {
+describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on server", function () {
 
     this.timeout(Math.max(this._timeout, 20004));
 
     let serverHandle;
 
-    before(function(done) {
-        start_server_with_4096bits_certificate(function(err, handle) {
+    before(function (done) {
+        start_server_with_4096bits_certificate(function (err, handle) {
             serverHandle = handle;
             done(err);
         });
     });
-    after(function(done) {
-        stop_server(serverHandle, function() {
+    after(function (done) {
+        stop_server(serverHandle, function () {
             done();
         });
     });
 
     perform_collection_of_test_with_various_client_configuration(" (4096 bits certificate on server)");
 
-    it("connection should fail if security mode requested by client is not supported by server", function(done) {
+    it("connection should fail if security mode requested by client is not supported by server", function (done) {
         const securityMode = "Sign";
         const securityPolicy = "Basic192Rsa15"; // !!! Our Server doesn't implement Basic192Rsa15 !!!
         check_open_secure_channel_fails(securityPolicy, securityMode, null, done);
     });
 });
 
-describe("ZZE- testing with various client certificates", function() {
+describe("ZZE- testing with various client certificates", function () {
 
     this.timeout(Math.max(this._timeout, 20005));
 
     let serverHandle;
 
-    before(function(done) {
-        start_server_with_1024bits_certificate(function(err, handle) {
+    before(function (done) {
+        start_server_with_1024bits_certificate(function (err, handle) {
             serverHandle = handle;
             done(err);
         });
     });
-    after(function(done) {
-        stop_server(serverHandle, function() {
+    after(function (done) {
+        stop_server(serverHandle, function () {
             done();
         });
     });
@@ -920,7 +891,7 @@ describe("ZZE- testing with various client certificates", function() {
     const client_certificate_not_active_yet = path.join(certificate_store, "client_cert_2048_not_active_yet.pem");
     const client_certificate_revoked = path.join(certificate_store, "client_cert_2048_revoked.pem");
 
-    it("Server should allow a client with a valid certificate to connect", function(done) {
+    it("Server should allow a client with a valid certificate to connect", function (done) {
 
         const options = {
             certificateFile: client_certificate_ok,
@@ -929,7 +900,7 @@ describe("ZZE- testing with various client certificates", function() {
         common_test("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
-    it("Server should not allow a client with a out of date certificate to connect", function(done) {
+    it("Server should not allow a client with a out of date certificate to connect", function (done) {
 
         const options = {
             certificateFile: client_certificate_out_of_date,
@@ -938,7 +909,7 @@ describe("ZZE- testing with various client certificates", function() {
         check_open_secure_channel_fails("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
-    it("Server should not allow a client to connect when the certificate is not active yet", function(done) {
+    it("Server should not allow a client to connect when the certificate is not active yet", function (done) {
 
         const options = {
             certificateFile: client_certificate_not_active_yet,
@@ -947,7 +918,7 @@ describe("ZZE- testing with various client certificates", function() {
         check_open_secure_channel_fails("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
-    xit("Server should not allow a client to connect with a revoked certificate", function(done) {
+    xit("Server should not allow a client to connect with a revoked certificate", function (done) {
         // todo : implement a mechanism in server code to check certificate against CRL ( Certificate Revocation List)
         const options = {
             certificateFile: client_certificate_revoked,

@@ -13,13 +13,13 @@ import {
     MonitoringParameters, MonitoringParametersOptions,
 } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
-import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { DataValue } from "node-opcua-data-value";
 import { ClientSubscription } from "./client_subscription";
+import { Callback, ErrorCallback } from "./common";
 
 // tslint:disable:unified-signatures
-export interface ClientMonitoredItemOrGroupAction {
+export interface ClientMonitoredItemOrGroupAction  {
 
     modify(
         parameters: MonitoringParametersOptions,
@@ -31,7 +31,7 @@ export interface ClientMonitoredItemOrGroupAction {
     modify(
         parameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn | null,
-        callback: Callback<StatusCode>): void;
+        callback: Callback<StatusCode> ): void;
     modify(...args: any[]): any;
 
     setMonitoringMode(monitoringMode: MonitoringMode): Promise<StatusCode>;
@@ -44,7 +44,7 @@ export interface ClientMonitoredItemOrGroupAction {
 }
 
 // tslint:disable:unified-signatures
-export interface ClientMonitoredItemBase extends EventEmitter, ClientMonitoredItemOrGroupAction {
+export interface ClientMonitoredItemBase  extends EventEmitter, ClientMonitoredItemOrGroupAction {
 
     on(event: "changed", eventHandler: (dataValue: DataValue) => void): this;
 
@@ -56,7 +56,7 @@ export interface ClientMonitoredItemBase extends EventEmitter, ClientMonitoredIt
 
 }
 
-export interface ClientMonitoredItemBase {
+export interface ClientMonitoredItemBase  {
 
     itemToMonitor: ReadValueId;
     monitoringParameters: MonitoringParameters;

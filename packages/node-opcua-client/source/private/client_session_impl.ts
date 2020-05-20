@@ -27,6 +27,7 @@ import {
     AnyConstructorFunc,
 } from "node-opcua-schemas";
 import {
+    ErrorCallback,
     requestHandleNotSetValue,
     SignatureData
 } from "node-opcua-secure-channel";
@@ -107,11 +108,7 @@ import {
 } from "node-opcua-service-write";
 import {
     StatusCode,
-    StatusCodes,
-    Callback
-} from "node-opcua-status-code";
-import {
-    ErrorCallback,
+    StatusCodes
 } from "node-opcua-status-code";
 import {
     BrowseNextRequest,
@@ -154,7 +151,7 @@ import {
 } from "../client_session";
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
 import { ClientSubscription } from "../client_subscription";
-import { Request, Response } from "../common";
+import { Callback, Request, Response } from "../common";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import { OPCUAClientImpl } from "./opcua_client_impl";

@@ -41,9 +41,8 @@ describe("AddressSpace : Conditions ", function (this: any) {
 
         const green = namespace.addObject({
             browseName: "Green",
-            eventNotifier: 0x1,
             notifierOf: addressSpace.rootFolder.objects.server,
-            organizedBy: addressSpace.rootFolder.objects,
+            organizedBy: addressSpace.rootFolder.objects
         });
 
         source = namespace.addObject({

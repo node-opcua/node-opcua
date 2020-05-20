@@ -11,10 +11,11 @@ import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import * as  debug from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { PacketAssembler } from "node-opcua-packet-assembler";
-import { ErrorCallback, CallbackWithData } from "node-opcua-status-code";
 
 import { readRawMessageHeader } from "./message_builder_base";
 import { writeTCPMessageHeader } from "./tools";
+
+type ErrorCallback = (err?: Error | null) => void;
 
 const debugLog = debug.make_debugLog(__filename);
 const doDebug = debug.checkDebugFlag(__filename);
@@ -25,6 +26,7 @@ export function setFakeTransport(mockSocket: any) {
     fakeSocket = mockSocket;
 }
 
+type CallbackWithData = (err: Error | null, data?: Buffer) => void;
 
 export function getFakeTransport() {
     if (fakeSocket.invalid) {

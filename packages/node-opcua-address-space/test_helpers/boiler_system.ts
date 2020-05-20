@@ -534,8 +534,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     // BoilerType
     // --------------------------------------------------------------------------------
     const boilerType = namespace.addObjectType({
-        browseName: "BoilerType",
-        eventNotifier: 0x1,
+        browseName: "BoilerType"
     }) as BoilerType;
 
     // BoilerType.CustomController (CustomControllerType)

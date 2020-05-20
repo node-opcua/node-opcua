@@ -26,11 +26,14 @@ import { StatusCode } from "node-opcua-status-code";
 
 const paths = envPaths("node-opcua");
 
+type ErrorCallback = (err?: Error) => void;
+
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-import { CallbackT, StatusCodeCallback, Callback } from "node-opcua-status-code";
+type CallbackT<T> = (err: Error | null, result?: T) => void;
+type StatusCodeCallback = (err: Error | null, statusCode?: StatusCode) => void;
 
 export interface ICertificateManager {
 
@@ -133,7 +136,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             });
         };
 
-        this._checkRejectedOrTrusted(certificate, (err: Error | null, status0?: "unknown" | "trusted" | "rejected") => {
+        this._getCertificateStatus(certificate, (err: Error | null, status0?: "unknown" | "trusted" | "rejected") => {
 
             if (err) { return callback!(err); }
 

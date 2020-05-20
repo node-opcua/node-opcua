@@ -1,9 +1,9 @@
 const async = require("async");
 const chalk = require("chalk");
 const path = require("path");
-const {
-    start_simple_server,
-    stop_simple_server
+const { 
+  start_simple_server,
+  stop_simple_server 
 } = require("../../test_helpers/external_server_fixture");
 
 const doDebug = false;
@@ -17,21 +17,21 @@ async function suspend_demo_server() {
 }
 
 async function resume_demo_server() {
-    await server.resumeEndPoints(callback);
+   await server.resumeEndPoints(callback);
 }
 
 
-let serverScript = "simple_server_that_terminate_session_too_early.js";
+let serverScript =  "simple_server_that_terminate_session_too_early.js";
 async function start_external_opcua_server() {
 
     const options = {
         server_sourcefile: path.join(__dirname,
-            "../../test_helpers/bin/", serverScript),
+             "../../test_helpers/bin/", serverScript),
         port: 2223
     };
 
     await new Promise((resolve, reject) => {
-        start_simple_server(options, function(err, data) {
+        start_simple_server(options, function (err, data) {
             if (err) {
                 return reject(err);
             }
@@ -53,7 +53,7 @@ async function crash_external_opcua_server() {
         return;
     }
     const promise = new Promise((resolve) => {
-        server_data.process.once("exit", function(err) {
+        server_data.process.once("exit", function (err) {
             debugLog("process killed");
             resolve();
         });
@@ -70,8 +70,8 @@ let client, session, subscription, intervalId, monitoredItem;
 
 async function break_connection(client, socketError) {
 
-    const inputArguments = [{
-        dataType: opcua.DataType.UInt32,
+    const inputArguments = [{ 
+        dataType: opcua.DataType.UInt32, 
         value: 10000
     }];
     const methodToCall = {
@@ -86,7 +86,7 @@ async function break_connection(client, socketError) {
     clientSocket.end();
     clientSocket.destroy();
     clientSocket.emit("error", new Error(socketError));
-    return new Promise((resolve) => setImmediate(resolve));
+    return new Promise((resolve)=>setImmediate(resolve));
 }
 
 async function provoque_server_session_early_termination() {
@@ -98,10 +98,11 @@ async function provoque_server_session_early_termination() {
     };
     const r = await session.call(methodToCall);
     debugLog(r.toString());
-    return new Promise((resolve) => setImmediate(resolve));
+    return new Promise((resolve)=>setImmediate(resolve));
 }
 
-async function start_active_client_no_subscription(connectionStrategy) {
+async function start_active_client_no_subscription(connectionStrategy) 
+{
 
     const endpointUrl = server_data.endpointUrl;
 
@@ -114,27 +115,28 @@ async function start_active_client_no_subscription(connectionStrategy) {
 
 
     await client.connect(endpointUrl);
-    client.on("connection_reestablished", function() {
+    client.on("connection_reestablished", function () {
         debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
     });
-    client.on("backoff", function(number, delay) {
+    client.on("backoff", function (number, delay) {
         debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
     });
 
     session = await client.createSession();
     debugLog("session timeout = ", session.timeout);
-    session.on("keepalive", (state) => {
+    session.on("keepalive", (state)  => {
         if (doDebug) {
             debugLog(chalk.yellow("KeepAlive state="),
                 state.toString(), " pending request on server = ",
                 subscription.publish_engine.nbPendingPublishRequests);
         }
     });
-    session.on("session_closed", (statusCode) => {
+    session.on("session_closed", (statusCode)  =>{
         debugLog(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
     });
 }
-async function start_active_client(connectionStrategy) {
+async function start_active_client(connectionStrategy) 
+{
 
     await start_active_client_no_subscription(connectionStrategy);
 
@@ -151,25 +153,25 @@ async function start_active_client(connectionStrategy) {
 
     subscription = await opcua.ClientSubscription.create(session, parameters);
 
-    subscription.on("initialized", () => {
+    subscription.on("initialized",()=> {
         debugLog("started subscription :", subscription.subscriptionId);
         debugLog(" revised parameters ");
         debugLog("  revised maxKeepAliveCount  ", subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
         debugLog("  revised lifetimeCount      ", subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
         debugLog("  revised publishingInterval ", subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
-        debugLog("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);
+        debugLog("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);    
     });
 
-    subscription.on("internal_error", function(err) {
+    subscription.on("internal_error", function (err) {
         debugLog(" received internal error", err.message);
-    }).on("keepalive", function() {
+    }).on("keepalive", function () {
 
         debugLog(chalk.cyan("keepalive "),
-            chalk.cyan(" pending request on server = "),
-            subscription.publish_engine.nbPendingPublishRequests);
+         chalk.cyan(" pending request on server = "),
+         subscription.publish_engine.nbPendingPublishRequests);
 
-    }).on("terminated", function(err) {
-        debugLog("Session Terminated", err ? err.message : "null");
+    }).on("terminated", function (err) {
+        debugLog("Session Terminated",err ? err.message : "null");
     });
 
 
@@ -182,16 +184,16 @@ async function start_active_client(connectionStrategy) {
     const item = { nodeId: nodeId, attributeId: opcua.AttributeIds.Value };
 
     monitoredItem = await opcua.ClientMonitoredItem.create(subscription, item, requestedParameters, opcua.TimestampsToReturn.Both);
-    monitoredItem.on("err", function(errMessage) {
+    monitoredItem.on("err", function (errMessage) {
         throw new Error(errMessage);
     });
-    monitoredItem.on("changed", function(dataValue) {
+    monitoredItem.on("changed", function (dataValue) {
         if (doDebug) {
             debugLog(chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"), dataValue.statusCode.toString(), dataValue.value.toString());
         }
         result.push(dataValue);
     });
-    monitoredItem.on("initialized", function() {
+    monitoredItem.on("initialized", function () {
         if (doDebug) {
             debugLog(" MonitoredItem initialized");
         }
@@ -199,7 +201,7 @@ async function start_active_client(connectionStrategy) {
 
 
     let counter = 0;
-    intervalId = setInterval(function() {
+    intervalId = setInterval(function () {
         if (doDebug) {
 
             debugLog(" Session OK ? ", session.isChannelValid(),
@@ -224,7 +226,7 @@ async function start_active_client(connectionStrategy) {
                 }
             }
         };
-        session.write(nodeToWrite, function(err, statusCode) {
+        session.write(nodeToWrite, function (err, statusCode) {
             if (err) {
                 if (doDebug) {
                     debugLog(chalk.red("       writing Failed "), err.message);
@@ -239,14 +241,14 @@ async function start_active_client(connectionStrategy) {
         });
 
     }, 250);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve,1000));
 
 }
 
 async function terminate_active_client() {
 
     if (!client) {
-        return;
+        return ;
     }
     if (intervalId) {
         clearInterval(intervalId);
@@ -257,7 +259,7 @@ async function terminate_active_client() {
     client = null;
 }
 async function f(func) {
-    await async function() {
+    await async function () {
         debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
         await func();
         debugLog("       ! " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
@@ -265,7 +267,7 @@ async function f(func) {
     }();
 }
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("GHGL1 - Testing client reconnection with crashing server that close session too early (such as KepwareServerEx6)", function() {
+describe("GHGL1 - Testing client reconnection with crashing server that close session too early (such as KepwareServerEx6)", function () {
 
     this.timeout(100000);
 
@@ -275,7 +277,7 @@ describe("GHGL1 - Testing client reconnection with crashing server that close se
     });
 
     async function when_connection_is_broken() {
-        await break_connection(client, "ECONNRESET");
+        await break_connection(client,"ECONNRESET");
     }
     async function given_a_running_opcua_server() {
         await start_external_opcua_server();
@@ -290,8 +292,8 @@ describe("GHGL1 - Testing client reconnection with crashing server that close se
     }
 
     async function when_the_server_restart_after_some_very_long_time() {
-        await new Promise((resolve) => setTimeout(resolve, 10000));
-        await when_the_server_restart();
+       await new Promise((resolve) => setTimeout(resolve, 10000));
+       await when_the_server_restart();
     }
 
     async function given_a_active_client_with_subscription_and_monitored_items() {
@@ -329,16 +331,16 @@ describe("GHGL1 - Testing client reconnection with crashing server that close se
     }
 
     async function then_client_should_reconnect() {
-        /*        
-                await new Promise((resolve) => {
-                    function on_connection_reestablished() {
-                        client.removeListener("connection_reestablished", on_connection_reestablished);
-                        resolve();
-                    }
-                    client.on("connection_reestablished", on_connection_reestablished);
-                });
-          */
+/*        
         await new Promise((resolve) => {
+            function on_connection_reestablished() {
+                client.removeListener("connection_reestablished", on_connection_reestablished);
+                resolve();
+            }
+            client.on("connection_reestablished", on_connection_reestablished);
+        });
+  */
+       await new Promise((resolve) => {
             function on_session_restored() {
                 session.removeListener("session_restored", on_session_restored);
                 debugLog("session has been restored");
@@ -392,33 +394,33 @@ describe("GHGL1 - Testing client reconnection with crashing server that close se
     async function when_server_closes_session_too_early() {
         await provoque_server_session_early_termination();
     }
-    let c = 0;
+    let c=0;
     async function when_client_detects_a_sessionIdInvalid() {
         const nodeId = opcua.coerceNodeId("ns=1;s=MyCounter");
 
-        try {
+        try  {
             const statusCode = await session.write({
-                nodeId: nodeId,
-                attributeId: opcua.AttributeIds.Value,
-                value: {
+                nodeId: nodeId, 
+                attributeId: opcua.AttributeIds.Value, 
+                value: { 
                     statusCode: opcua.StatusCodes.Good,
-                    value: { dataType: opcua.DataType.Int32, value: c++ }
-                }
+                    value: { dataType: opcua.DataType.Int32, value: c++}}
             });
             debugLog("Write Status code =", statusCode.toString());
-        } catch (err) {
+        }  catch(err) {
             if (err.message.match(/BadSessionIdInvalid/)) {
                 // here we go ! session is invalid
                 return;
             }
-        }
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        } 
+        await new Promise((resolve)=> setTimeout(resolve, 2000));
         if (c < 3) {
             await when_client_detects_a_sessionIdInvalid();
         }
         return;
     }
-    async function then_it_should_succeed_to_recover() {
+    async function then_it_should_succeed_to_recover() 
+    {
 
     }
     it("GZZE3 should reconnect when network is broken", async () => {

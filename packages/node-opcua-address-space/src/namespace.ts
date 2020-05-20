@@ -2218,7 +2218,7 @@ function _coerce_parent(
 function _handle_event_hierarchy_parent(
     addressSpace: AddressSpacePrivate,
     references: AddReferenceOpts[],
-    options: CreateNodeOptions
+    options: any
 ) {
 
     options.eventSourceOf = _coerce_parent(addressSpace, options.eventSourceOf, addressSpace._coerceNode);
@@ -2230,8 +2230,6 @@ function _handle_event_hierarchy_parent(
             nodeId: options.eventSourceOf.nodeId,
             referenceType: "HasEventSource"
         });
-
-        options.eventNotifier = options.eventNotifier || 1;
 
     } else if (options.notifierOf) {
         assert(!options.eventSourceOf, "eventSourceOf shall not be provided with notifierOf ");

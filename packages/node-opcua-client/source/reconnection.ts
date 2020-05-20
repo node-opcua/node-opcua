@@ -7,10 +7,9 @@ import * as async from "async";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { ErrorCallback } from "node-opcua-secure-channel";
 import { TransferSubscriptionsRequest, TransferSubscriptionsResponse } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import { ErrorCallback } from "node-opcua-status-code";
-
 import { SubscriptionId } from "./client_session";
 import { ClientSessionImpl } from "./private/client_session_impl";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";

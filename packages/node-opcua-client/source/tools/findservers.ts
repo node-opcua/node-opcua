@@ -3,7 +3,7 @@
  */
 import * as async from "async";
 
-import { ErrorCallback } from "node-opcua-status-code";
+import { ErrorCallback } from "node-opcua-secure-channel";
 import { ServerOnNetwork } from "node-opcua-service-discovery";
 import { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
 import { ClientBaseImpl } from "../private/client_base_impl";
@@ -20,11 +20,11 @@ export interface FindServerResults {
  * @param callback
  */
 export function findServers(
-    discoveryServerEndpointUri: string,
-    callback: (err: Error | null, result?: FindServerResults) => void
+  discoveryServerEndpointUri: string,
+  callback: (err: Error | null, result?: FindServerResults) => void
 ): void;
 export async function findServers(
-    discoveryServerEndpointUri: string,
+  discoveryServerEndpointUri: string,
 ): Promise<FindServerResults>;
 export function findServers(
     discoveryServerEndpointUri: string,
@@ -51,7 +51,7 @@ export function findServers(
         },
 
         (innerCallback: ErrorCallback) => {
-            client.getEndpoints({ endpointUrl: undefined }, (err: Error | null, _endpoints?: EndpointDescription[]) => {
+            client.getEndpoints({endpointUrl: undefined}, (err: Error | null, _endpoints?: EndpointDescription[]) => {
                 if (_endpoints) {
                     endpoints = _endpoints;
                 }
@@ -70,11 +70,11 @@ export function findServers(
  * extract the server endpoints exposed by a discovery server
  */
 export async function findServersOnNetwork(
-    discoveryServerEndpointUri: string
+  discoveryServerEndpointUri: string
 ): Promise<ServerOnNetwork>;
 export function findServersOnNetwork(
-    discoveryServerEndpointUri: string,
-    callback: (err: Error | null, servers?: ServerOnNetwork[]) => void
+      discoveryServerEndpointUri: string,
+      callback: (err: Error | null, servers?: ServerOnNetwork[]) => void
 ): void;
 export function findServersOnNetwork(
     discoveryServerEndpointUri: string,
@@ -101,6 +101,6 @@ export function findServersOnNetwork(
 // tslint:disable:no-var-requires
 const thenify = require("thenify");
 (module.exports as any).findServersOnNetwork =
-    thenify.withCallback((module.exports as any).findServersOnNetwork);
+  thenify.withCallback((module.exports as any).findServersOnNetwork);
 (module.exports as any).findServers =
-    thenify.withCallback((module.exports as any).findServers);
+  thenify.withCallback((module.exports as any).findServers);

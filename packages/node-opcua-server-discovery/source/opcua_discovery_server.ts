@@ -242,22 +242,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             request.server,
             request.discoveryConfiguration as MdnsDiscoveryConfiguration[],
             (err: Error | null, response?: Response) => {
-                if (err) {
-                    console.log("What shall I do ?", err.message);
-                    console.log(err);
-                    let additional_messages = [];
-                    additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request.schema.name);
-                    additional_messages.push(err.message);
-                    if (err.stack) {
-                        additional_messages = additional_messages.concat(err.stack.split("\n"));
-                    }
-
-                    response = OPCUADiscoveryServer.makeServiceFault(StatusCodes.BadInternalError, additional_messages);
-                    channel.send_response("MSG", response, message);
-
-                } else {
-                    channel.send_response("MSG", response!, message);
-                }
+                channel.send_response("MSG", response!, message);
             });
     }
 
@@ -398,14 +383,14 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         ): Promise<void> {
 
             let b = ((conf as any).bonjourHolder) as BonjourHolder;
-            if (b && b.announcement) {
-                if (sameAnnouncement(b.announcement, announcement)) {
+            if (b) {
+                if (sameAnnouncement(b.announcement!, announcement)) {
                     debugLog("Configuration ", conf.mdnsServerName, " has not changed !");
                     // nothing to do
                     return;
                 } else {
                     debugLog("Configuration ", conf.mdnsServerName, " HAS changed !");
-                    debugLog(" Was ", b.announcement);
+                    debugLog(" Was ", b.announcement!);
                     debugLog(" is  ", announcement);
                 }
                 await _stop_announcedOnMulticastSubnet(conf);

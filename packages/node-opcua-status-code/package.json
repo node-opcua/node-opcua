@@ -2,8 +2,8 @@
     "name": "node-opcua-status-code",
     "version": "2.5.9",
     "description": "pure nodejs OPCUA SDK - module -status-code",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
+    "main": "./dist/opcua_status_code.js",
+    "types": "./dist/opcua_status_code.d.ts",
     "scripts": {
         "build": "tsc -b",
         "clean": "node -e \"require('rimraf').sync('dist');\"",

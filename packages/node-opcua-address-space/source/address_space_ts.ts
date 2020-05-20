@@ -28,9 +28,7 @@ import {
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
 import { WriteValueOptions } from "node-opcua-service-write";
-import { StatusCode, } from "node-opcua-status-code";
-import { ErrorCallback, CallbackT } from "node-opcua-status-code";
-
+import { StatusCode } from "node-opcua-status-code";
 import {
     Argument,
     ArgumentOptions,
@@ -78,7 +76,7 @@ import { UALimitAlarm } from "../src/alarms_and_conditions/ua_limit_alarm";
 import { UANonExclusiveDeviationAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_deviation_alarm";
 import { UANonExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_limit_alarm";
 
-import { StatusCodeCallback } from "node-opcua-status-code";
+export type ErrorCallback = (err?: Error) => void;
 
 export declare interface AddReferenceOpts {
     referenceType: string | NodeId | UAReferenceType;
@@ -248,6 +246,8 @@ export interface BindVariableOptionsVariation1 {
 
 export type DataValueCallback = (err: Error | null, dataValue?: DataValue) => void;
 
+export type StatusCodeCallback = (err: Error | null, statusCode?: StatusCode) => void;
+
 export type VariableDataValueGetterSync = () => DataValue;
 export type VariableDataValueGetterAsync = (callback: DataValueCallback) => void;
 
@@ -273,6 +273,7 @@ export type BindVariableOptions =
     | BindVariableOptionsVariation3;
 
 export type ContinuationPoint = Buffer;
+export type Callback<T> = (err: Error | null, result?: T) => void;
 
 export interface VariableAttributes {
     dataType: NodeId;
@@ -581,7 +582,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint: ContinuationPoint | null,
-        callback: CallbackT<HistoryReadResult>
+        callback: Callback<HistoryReadResult>
     ): void;
 
     clone(options?: any, optionalFilter?: any, extraInfo?: any): UAVariable;

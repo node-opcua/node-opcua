@@ -13,12 +13,11 @@ const _should = should; // make sure should is not removed during tscript compil
 import {
     Certificate,
     readCertificate,
-    makeSHA1Thumbprint,
-    readCertificateRevocationList
+    makeSHA1Thumbprint
 } from "node-opcua-crypto";
 import { OPCUACertificateManager } from "../source";
 
-describe("Testing OPCUA Client Certificate Manager", function (this: any) {
+describe("Testing OPCUA Client Certificate Manager", function (this: any){
 
     this.timeout(10000);
 
@@ -26,7 +25,6 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
     let certificateMgr: OPCUACertificateManager;
 
     const certificate1File = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
-
     let certificate1: Certificate;
     beforeEach(async () => {
 
@@ -41,13 +39,6 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
         });
 
         await certificateMgr.initialize();
-
-        const issuerCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/public/cacert.pem");
-        const issuerCertificateRevocationListFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/crl/revocation_list.der");
-        const issuerCertificate = await readCertificate(issuerCertificateFile);
-        const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-        certificateMgr.addIssuer(issuerCertificate);
-        certificateMgr.addRevocationList(issuerCrl);
 
         certificate1 = await readCertificate(certificate1File);
 
@@ -123,21 +114,10 @@ describe("Testing OPCUA Certificate Manager with automatically acceptange of unk
 
         certificate = await readCertificate(certificate1File);
 
-        certificateThumbprint = "NodeOPCUA[" + makeSHA1Thumbprint(certificate).toString("hex") + "]";
+        certificateThumbprint = makeSHA1Thumbprint(certificate).toString("hex");
 
         await acceptingCertificateMgr.initialize();
         await rejectingCertificateMgr.initialize();
-
-
-        const issuerCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/public/cacert.pem");
-        const issuerCertificateRevocationListFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/crl/revocation_list.der");
-        const issuerCertificate = await readCertificate(issuerCertificateFile);
-        const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-        acceptingCertificateMgr.addIssuer(issuerCertificate);
-        acceptingCertificateMgr.addRevocationList(issuerCrl);
-
-        rejectingCertificateMgr.addIssuer(issuerCertificate);
-        rejectingCertificateMgr.addRevocationList(issuerCrl);
 
     });
 
@@ -150,7 +130,7 @@ describe("Testing OPCUA Certificate Manager with automatically acceptange of unk
         const statusCode = await acceptingCertificateMgr.checkCertificate(certificate);
         statusCode.should.eql(StatusCodes.Good);
 
-        const trusted = path.join(temporaryFolder1, "trusted/certs/" + certificateThumbprint + ".pem");
+        const trusted = path.join(temporaryFolder1, "trusted/" + certificateThumbprint + ".pem");
         const existsInTrustedFolder = fs.existsSync(trusted);
         existsInTrustedFolder.should.eql(true, trusted);
 
@@ -164,7 +144,7 @@ describe("Testing OPCUA Certificate Manager with automatically acceptange of unk
         const statusCode = await rejectingCertificateMgr.checkCertificate(certificate);
         statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
 
-        const trusted = path.join(temporaryFolder2, "trusted/certs/" + certificateThumbprint + ".pem");
+        const trusted = path.join(temporaryFolder2, "trusted/" + certificateThumbprint + ".pem");
         const existsInTrustedFolder = fs.existsSync(trusted);
         existsInTrustedFolder.should.eql(false, trusted);
 

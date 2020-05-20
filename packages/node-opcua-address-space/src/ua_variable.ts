@@ -24,7 +24,7 @@ import { findBuiltInType } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { WriteValue, WriteValueOptions } from "node-opcua-service-write";
-import { StatusCode, StatusCodes, CallbackT } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     EnumDefinition,
     EnumField,
@@ -44,16 +44,17 @@ import { lowerFirstLetter } from "node-opcua-utils";
 import { Variant, VariantLike } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { sameVariant, VariantArrayType } from "node-opcua-variant";
-import { StatusCodeCallback } from "node-opcua-status-code";
 
 import {
     AddressSpace,
     BindVariableOptions,
+    Callback,
     ContinuationPoint,
     DataValueCallback,
     HistoricalDataConfiguration,
     IVariableHistorian, Permissions,
     PseudoSession,
+    StatusCodeCallback,
     UADataType as UADataTypePublic,
     UAVariable as UAVariablePublic, UAVariableType
 } from "../source";
@@ -1309,7 +1310,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             property._dataValue.statusCode = StatusCodes.Good;
             property.touchValue();
 
-            if (NodeId.sameNodeId(NodeId.nullNodeId, field.dataType)) {
+            if (NodeId.sameNodeId(NodeId.nullNodeId,field.dataType)) {
                 debugLog("field.dataType is null ! " + field.name + " " + field.description?.text);
                 debugLog(" dataType replaced with BaseDataType ");
                 field.dataType = this.resolveNodeId("BaseDataType");
@@ -1435,11 +1436,11 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint?: ContinuationPoint | null,
-        callback?: CallbackT<HistoryReadResult>
+        callback?: Callback<HistoryReadResult>
     ): any {
 
         if (!callback) {
-            callback = continuationPoint as any as CallbackT<HistoryReadResult>;
+            callback = continuationPoint as any as Callback<HistoryReadResult>;
             continuationPoint = undefined;
         }
         assert(context instanceof SessionContext);
@@ -1456,7 +1457,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint: ContinuationPoint | null,
-        callback: CallbackT<HistoryReadResult>
+        callback: Callback<HistoryReadResult>
     ): void {
         throw new Error("");
     }
@@ -1467,7 +1468,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint?: ContinuationPoint | null,
-        callback?: CallbackT<HistoryReadResult>
+        callback?: Callback<HistoryReadResult>
     ): any {
         throw new Error("");
     }
@@ -1479,7 +1480,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint: ContinuationPoint | null,
-        callback: CallbackT<HistoryReadResult>
+        callback: Callback<HistoryReadResult>
     ): any {
         const result = new HistoryReadResult({
             statusCode: StatusCodes.BadHistoryOperationUnsupported
@@ -1496,7 +1497,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         maxNumberToExtract: number,
         isReversed: boolean,
         reverseDataValue: boolean,
-        callback: CallbackT<DataValue[]>
+        callback: Callback<DataValue[]>
     ): any {
         throw new Error("");
     }
@@ -1507,7 +1508,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint: ContinuationPoint | null,
-        callback: CallbackT<HistoryReadResult>
+        callback: Callback<HistoryReadResult>
     ): any {
         throw new Error("");
     }
