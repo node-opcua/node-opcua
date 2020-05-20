@@ -3,5 +3,5 @@
     "packages/*",
     "packages_extra/*"
   ],
-  "version": "2.6.0-alpha.0"
+  "version": "2.5.12"
 }
