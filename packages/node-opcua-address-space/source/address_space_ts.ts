@@ -276,6 +276,8 @@ export type ContinuationPoint = Buffer;
 
 export interface VariableAttributes {
     dataType: NodeId;
+    accessLevel: number;
+    userAccessLevel: number;
     valueRank: number;
     minimumSamplingInterval: number;
 }
@@ -978,6 +980,8 @@ export declare class UAVariableType extends BaseNode implements VariableAttribut
     public readonly subtypeOf: NodeId | null;
 
     public dataType: NodeId;
+    public accessLevel: number;
+    public userAccessLevel: number;
     public valueRank: number;
     public minimumSamplingInterval: number;
     public arrayDimensions: number[];
@@ -1093,7 +1097,7 @@ export interface VariableStuff {
      *     Note that the maximum length of an array transferred on the wire is 2147483647 (max Int32)
      *     and a multi-dimensional array is encoded as a one dimensional array.
      */
-    arrayDimensions?: UInt32[] | null;
+    arrayDimensions?: UInt32[];
 
     /**
      * The AccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
@@ -1491,7 +1495,7 @@ export interface UASessionDiagnosticsSummary extends UAObject {
 
 export interface UAServerDiagnostics extends UAObject {
     sessionsDiagnosticsSummary: UASessionDiagnosticsSummary;
-    enabledFlag: UAVariableT<boolean, DataType.Boolean>;
+
     bindExtensionObject(obj: UAServerDiagnosticsSummary): UAServerDiagnosticsSummary;
 }
 

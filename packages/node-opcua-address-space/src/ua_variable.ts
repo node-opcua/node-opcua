@@ -69,14 +69,14 @@ function isGoodish(statusCode: StatusCode) {
     return statusCode.value < 0x10000000;
 }
 
-export function adjust_accessLevel(accessLevel: any): AccessLevelFlag {
+function adjust_accessLevel(accessLevel: any) {
     accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
     accessLevel = makeAccessLevelFlag(accessLevel);
     assert(_.isFinite(accessLevel));
     return accessLevel;
 }
 
-export function adjust_userAccessLevel(userAccessLevel: any, accessLevel: any): AccessLevelFlag {
+function adjust_userAccessLevel(userAccessLevel: any, accessLevel: any) {
     userAccessLevel = utils.isNullOrUndefined(userAccessLevel) ? "CurrentRead | CurrentWrite" : userAccessLevel;
     userAccessLevel = makeAccessLevelFlag(userAccessLevel);
     accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;

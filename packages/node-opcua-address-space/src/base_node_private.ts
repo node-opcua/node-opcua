@@ -73,7 +73,7 @@ export function BaseNode_removePrivate(self: BaseNode): void {
 export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
     return g_weakMap.get(self);
 }
-
+    
 const hasTypeDefinition_ReferenceTypeNodeId = resolveNodeId("HasTypeDefinition");
 
 export interface ToStringOption {
@@ -245,7 +245,6 @@ export function UAVariable_toString(
     BaseNode_toString.call(this, options);
     _UAInstance_toString.call(this, options);
     VariableOrVariableType_toString.call(this, options);
-    AccessLevelFlags_toString.call(this, options);
     BaseNode_References_toString.call(this, options);
 }
 
@@ -279,19 +278,6 @@ function accessLevelFlagToString(flag: AccessLevelFlag): string {
     return str.join(" | ");
 }
 
-function AccessLevelFlags_toString(
-    this: UAVariable,
-    options: ToStringOption
-) {
-    assert(options);
-
-    const _private = BaseNode_getPrivate(this);
-    options.add(options.padding + chalk.yellow("          accessLevel         : ") + " " +
-        accessLevelFlagToString(this.accessLevel));
-    options.add(options.padding + chalk.yellow("          userAccessLevel     : ") + " " +
-        accessLevelFlagToString(this.userAccessLevel));
-
-}
 export function VariableOrVariableType_toString(
     this: UAVariableType | UAVariable,
     options: ToStringOption
@@ -315,6 +301,14 @@ export function VariableOrVariableType_toString(
         }
     }
 
+    if (this.accessLevel) {
+        options.add(options.padding + chalk.yellow("          accessLevel         : ") + " " +
+            accessLevelFlagToString(this.accessLevel));
+    }
+    if (this.userAccessLevel) {
+        options.add(options.padding + chalk.yellow("          userAccessLevel     : ") + " " +
+            accessLevelFlagToString(this.userAccessLevel));
+    }
     if (this.hasOwnProperty("valueRank")) {
         options.add(options.padding + chalk.yellow("          valueRank           : ") + " " +
             this.valueRank.toString());
