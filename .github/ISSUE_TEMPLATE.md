@@ -7,9 +7,12 @@ IF YOU DON'T FILL OUT THE FOLLOWING INFORMATION WE MIGHT CLOSE YOUR ISSUE WITHOU
 
  - ( ) bug report => search github for a similar issue or PR before submitting
  - ( ) feature request
- - ( ) support request => Please do not submit support request here, instead see use 
+<!--
+      => Please do not submit support request here, instead see use 
       - use [gitter](https://gitter.im/node-opcua/node-opcua) or [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua) for community support, or 
       - [contact Sterfive for commercial support](https://www.sterfive.com) (contact (@) sterfive.com )
+-->
+ - ( ) support request 
 
 **Current behavior**
 <!-- Describe how the bug manifests. -->
@@ -46,7 +49,6 @@ gist:
   * ( ) I have installed node-opcua from source ( using git clone)
   * ( ) I have installed node-opcua as a package ( using npm install )
   * ( ) I am using an application that uses node-opcua 
-  
        - ( ) node-red
        - ( ) other : please specify 
         
@@ -74,4 +76,7 @@ gist:
 * **Node:** 
    `node --version` =
 
+* **Typscript:** 
+   `tsc --version` =
+     
 
