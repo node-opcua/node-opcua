@@ -269,7 +269,7 @@ describe("testing nodeset to xml", () => {
             <Reference ReferenceType="HasProperty">ns=1;i=1003</Reference>
         </References>
     </UAMethod>
-    <UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ValueRank="1" DataType="Argument" ArrayDimensions="1">
+    <UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ValueRank="1" ArrayDimensions="1" DataType="Argument">
         <DisplayName>InputArguments</DisplayName>
         <Description>the definition of the input argument of method 1:Object.1:Trigger</Description>
         <References>
@@ -300,7 +300,7 @@ describe("testing nodeset to xml", () => {
             </ListOfExtensionObject>
         </Value>
     </UAVariable>
-    <UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ValueRank="1" DataType="Argument" ArrayDimensions="1">
+    <UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ValueRank="1" ArrayDimensions="1" DataType="Argument">
         <DisplayName>OutputArguments</DisplayName>
         <Description>the definition of the output arguments of method 1:Object.1:Trigger</Description>
         <References>

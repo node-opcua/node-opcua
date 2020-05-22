@@ -7,7 +7,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
-import {AddressSpace, SessionContext, UAVariableType} from "..";
+import { AddressSpace, SessionContext, UAVariableType } from "..";
 import { create_minimalist_address_space_nodeset } from "../";
 
 const _should = should;
@@ -40,7 +40,7 @@ describe("testing UAVariableType", () => {
             isAbstract: false
         });
 
-        const dataValue  = variableType.readAttribute(context, AttributeIds.IsAbstract);
+        const dataValue = variableType.readAttribute(context, AttributeIds.IsAbstract);
         dataValue.value.dataType.should.eql(DataType.Boolean);
         dataValue.statusCode.should.eql(StatusCodes.Good);
         dataValue.value.value.should.equal(false);
@@ -66,7 +66,7 @@ describe("testing UAVariableType", () => {
 
     });
 
-    it("UAVariableType#instantiate should be possible to instantiate a VariableType (nodeId not specified)",  () => {
+    it("UAVariableType#instantiate should be possible to instantiate a VariableType (nodeId not specified)", () => {
 
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             browseName: "MyVariable3",
@@ -169,7 +169,7 @@ describe("testing UAVariableType", () => {
 
         variableType.dataType.should.eql(doubleDataType.nodeId);
         variableType.valueRank.should.eql(2);
-        variableType.arrayDimensions.should.eql([3, 3]);
+        variableType.arrayDimensions!.should.eql([3, 3]);
 
         const obj = variableType.instantiate({
             browseName: "My3x3MatrixVariable"
@@ -179,7 +179,7 @@ describe("testing UAVariableType", () => {
         obj.nodeId.identifierType.should.eql(NodeId.NodeIdType.NUMERIC);
         obj.dataType.should.eql(doubleDataType.nodeId);
         obj.valueRank.should.eql(2);
-        obj.arrayDimensions.should.eql([3, 3]);
+        obj.arrayDimensions!.should.eql([3, 3]);
 
     });
 

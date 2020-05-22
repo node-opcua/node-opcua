@@ -478,7 +478,7 @@ function _dumpValue(
     xw.endElement();
 }
 
-function _dumpArrayDimensions(
+function _dumpArrayDimensionsAttribute(
     xw: XmlWriter,
     node: UAVariableType | UAVariable
 ) {
@@ -785,9 +785,11 @@ function dumpUAVariable(
         // attributes
         dumpCommonAttributes(xw, node);
 
-        if (node.valueRank !== -1) {
+        if (node.valueRank !== -1) { // -1 = Scalar
             xw.writeAttribute("ValueRank", node.valueRank);
         }
+
+        _dumpArrayDimensionsAttribute(xw, node);
 
         const dataTypeNode = addressSpace.findNode(node.dataType);
         if (dataTypeNode) {
@@ -798,7 +800,6 @@ function dumpUAVariable(
         }
     }
     {
-        _dumpArrayDimensions(xw, node);
 
         // sub elements
         dumpCommonElements(xw, node);
@@ -851,7 +852,7 @@ function dumpUAVariableType(
         }
     }
     {
-        _dumpArrayDimensions(xw, node);
+        _dumpArrayDimensionsAttribute(xw, node);
 
         // sub elements
         dumpCommonElements(xw, node);

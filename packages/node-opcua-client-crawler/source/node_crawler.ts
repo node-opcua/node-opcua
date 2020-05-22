@@ -50,6 +50,15 @@ const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | Disp
 function make_node_attribute_key(nodeId: NodeId, attributeId: AttributeIds): string {
     return nodeId.toString() + "_" + attributeId.toString();
 }
+function convertToStandardArray(a: number[] | Uint32Array | undefined): number[] | undefined {
+    if (a === undefined || a === null) {
+        return a;
+    }
+    if (a instanceof Array) { return a; }
+    const b: number[] = [];
+    for (const x of a) { b.push(x) }
+    return b;
+}
 
 //
 // some server do not expose the ReferenceType Node in their address space
@@ -185,8 +194,6 @@ export interface CacheNodeObjectType extends CacheNode {
     nodeClass: NodeClass.ObjectType;
     isAbstract: boolean;
     accessLevel: AccessLevelFlag;
-    arrayDimensions?: number[];
-    valueRank: any;
     eventNotifier: number;
 }
 
@@ -269,7 +276,6 @@ interface TaskReconstruction extends TaskBase {
 }
 
 type Task = TaskCrawl | Task2 | TaskProcessBrowseResponse | TaskExtraReference;
-
 
 function _setExtraReference(task: TaskExtraReference, callback: ErrorCallback) {
 
@@ -1319,7 +1325,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
     private _defer_readNode(
         nodeId: NodeId,
         attributeId: AttributeIds.ArrayDimensions,
-        callback: (err: Error | null, value?: number[]) => void
+        callback: (err: Error | null, value?: number[] | Uint32Array) => void
     ): void;
     private _defer_readNode(
         nodeId: NodeId,
@@ -1632,9 +1638,13 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                 }
                 const cache = cacheNode as CacheNodeVariable | CacheNodeVariableType;
                 this._defer_readNode(cacheNode.nodeId, AttributeIds.ArrayDimensions,
-                    (err: Error | null, value?: number[]) => {
+                    (err: Error | null, value?: number[] | Uint32Array) => {
                         if (!err) {
-                            cache.arrayDimensions = value;
+                            const standardArray = convertToStandardArray(value);
+                            cache.arrayDimensions = standardArray;
+                            // xxx console.log("arrayDimensions  XXXX ", cache.arrayDimensions);
+                        } else {
+                            cache.arrayDimensions = undefined; // set explicitaly
                         }
                         callback();
                     });

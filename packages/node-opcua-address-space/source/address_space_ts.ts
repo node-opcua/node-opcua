@@ -387,7 +387,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *     and a multidimentional array is encoded as a one dimensional array.
      *
      */
-    arrayDimensions: UInt32[];
+    arrayDimensions: UInt32[] | null;
 
     /**
      * The `historizing` attribute indicates whether the server is actively collecting data for the
@@ -934,7 +934,7 @@ export interface InstantiateOptions {
 }
 
 export interface InstantiateVariableOptions extends InstantiateOptions {
-    arrayDimensions?: number[];
+    arrayDimensions?: number[] | null;
     dataType?: any;
     extensionObject?: any;
     nodeId?: NodeIdLike;
@@ -980,7 +980,7 @@ export declare class UAVariableType extends BaseNode implements VariableAttribut
     public dataType: NodeId;
     public valueRank: number;
     public minimumSamplingInterval: number;
-    public arrayDimensions: number[];
+    public arrayDimensions: UInt32[] | null;
     public historizing: boolean;
 
     public isAbstract: boolean;

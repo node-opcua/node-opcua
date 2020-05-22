@@ -7,6 +7,7 @@ import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import { UInt32 } from "node-opcua-basic-types";
 import { NodeClass } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
@@ -63,7 +64,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
     public readonly isAbstract: boolean;
     public dataType: NodeId;
     public valueRank: number;
-    public arrayDimensions: number[];
+    public arrayDimensions: UInt32[];
     public readonly minimumSamplingInterval: number;
     public readonly value: any;
     public historizing: boolean;

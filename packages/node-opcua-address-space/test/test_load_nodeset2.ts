@@ -172,7 +172,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
             .should.eql("Float");
 
         my3x3MatrixType.valueRank.should.eql(2);
-        my3x3MatrixType.arrayDimensions.should.eql([3, 3]);
+        my3x3MatrixType.arrayDimensions!.should.eql([3, 3]);
         (my3x3MatrixType as any).value.toString().should.eql(
             new Variant({
                 dataType: "Float",
@@ -183,7 +183,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType", ns)!;
         myDoubleArrayType.browseName.toString().should.eql("1:MyDoubleArrayType");
         myDoubleArrayType.valueRank.should.eql(1);
-        myDoubleArrayType.arrayDimensions.should.eql([5]);
+        myDoubleArrayType.arrayDimensions!.should.eql([5]);
         (myDoubleArrayType as any).value
             .toString()
             .should.eql(new Variant({ dataType: "Double", value: [1, 2, 3, 4, 5] }).toString());

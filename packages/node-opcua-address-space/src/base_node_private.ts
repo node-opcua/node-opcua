@@ -316,12 +316,21 @@ export function VariableOrVariableType_toString(
     }
 
     if (this.hasOwnProperty("valueRank")) {
-        options.add(options.padding + chalk.yellow("          valueRank           : ") + " " +
-            this.valueRank.toString());
+
+        if (this.valueRank !== undefined) {
+            options.add(options.padding + chalk.yellow("          valueRank           : ") + " " +
+                this.valueRank.toString());
+        } else {
+            options.add(options.padding + chalk.yellow("          valueRank           : ") + " undefined");
+        }
     }
     if (this.minimumSamplingInterval !== undefined) {
         options.add(options.padding + chalk.yellow(" minimumSamplingInterval      : ") + " " +
             this.minimumSamplingInterval.toString() + " ms");
+    }
+    if (this.arrayDimensions) {
+        options.add(options.padding + chalk.yellow(" arrayDimension               : ") + " [" +
+            this.arrayDimensions.join(",").toString() + " ]");
     }
 
 }

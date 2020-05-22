@@ -86,6 +86,9 @@ export function adjust_userAccessLevel(userAccessLevel: any, accessLevel: any): 
 
 function adjust_samplingInterval(minimumSamplingInterval: number): number {
     assert(_.isFinite(minimumSamplingInterval));
+    if (minimumSamplingInterval < 0) {
+        return -1; // only -1 is a valid negative value for samplingInterval and means "unspecified"
+    }
     return minimumSamplingInterval;
 }
 
@@ -252,7 +255,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     public historizing: boolean;
     public semantic_version: number;
     public _permissions: any | null;
-    public arrayDimensions: any;
+    public arrayDimensions: null | number[];
 
     public $extensionObject?: any;
     public _timestamped_get_func: any;

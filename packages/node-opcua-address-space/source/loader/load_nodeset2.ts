@@ -1226,7 +1226,7 @@ export function generateAddressSpace(
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
 
             this.obj.accessLevel = convertAccessLevel(attrs.AccessLevel);
-            this.obj.userAccessLevel = convertAccessLevel(attrs.UserAccessLevel);
+            this.obj.userAccessLevel = this.obj.accessLevel; // convertAccessLevel(attrs.UserAccessLevel || attrs.AccessLevel);
         },
         finish(this: any) {
             // set default value based on obj data Type
