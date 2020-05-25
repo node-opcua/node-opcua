@@ -27,8 +27,8 @@ const endpointUri = "opc.tcp://localhost:48010";
             endpoint_must_exist: false,
             keepSessionAlive: true,
             requestedSessionTimeout: 60 * 1000,
-//            securityMode: MessageSecurityMode.SignAndEncrypt,
-//            securityPolicy: SecurityPolicy.Basic256,
+            //            securityMode: MessageSecurityMode.SignAndEncrypt,
+            //            securityPolicy: SecurityPolicy.Basic256,
             connectionStrategy: {
                 maxRetry: -1,
                 maxDelay: 500,

@@ -1276,7 +1276,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
             Constructor = addressSpace.getExtensionObjectConstructor(this.dataType);
             assert(Constructor);
-            assert(this.$extensionObject.constructor.name === Constructor.name);
+            if (this.$extensionObject.constructor.name !== Constructor.name) {
+                throw new Error("Expecting " + Constructor.name + " but got a " + this.$extensionObject.constructor.name);
+            }
         }
 
         let property: any;
