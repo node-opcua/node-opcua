@@ -16,10 +16,13 @@ import {
 } from "node-opcua";
 import * as should from "should";
 import * as sinon from "sinon";
+const _should = should;
 
 const port = 4000;
 const endpointUrl = `opc.tcp://localhost:${port}`;
 
+// tslint:disable-next-line:no-var-requires
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
 
     let nodeId: NodeId;
@@ -75,7 +78,8 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
             dataType: rfidScanResultDataTypeNode,
             valueRank: -1,
             organizedBy: addressSpace.rootFolder.objects,
-            value: { dataType: DataType.ExtensionObject, value: scanResult }
+            value: { dataType: DataType.ExtensionObject, value: scanResult },
+            minimumSamplingInterval: -1
         });
 
 
@@ -105,36 +109,47 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
         };
         await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (session: IBasicSession, subscription: ClientSubscription) => {
 
-            const itemToMonitor = {
-                nodeId,
-                attributeId: AttributeIds.Value
-            };
-            const parameters: MonitoringParametersOptions = {
-                queueSize: 10,
-                samplingInterval: 100,
-            };
-            const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, parameters, TimestampsToReturn.Both);
+            try {
 
-            // subscription.on("item_added",function(monitoredItem){
-            monitoredItem.on("initialized", () => {
-                console.log(" Initialized !");
-            });
+                const itemToMonitor = {
+                    nodeId,
+                    attributeId: AttributeIds.Value
+                };
+                const parameters: MonitoringParametersOptions = {
+                    queueSize: 10,
+                    samplingInterval: 100,
+                };
+                const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, parameters, TimestampsToReturn.Both);
 
-            const changedSpy = sinon.spy();
-            monitoredItem.on("changed", changedSpy);
-            monitoredItem.on("err", (message: string) => {
-                console.log("Error", message);
-            });
+                // subscription.on("item_added",function(monitoredItem){
+                monitoredItem.on("initialized", () => {
+                    console.log(" Initialized !");
+                });
 
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+                const changedSpy = sinon.spy();
+                monitoredItem.on("changed", changedSpy);
+                monitoredItem.on("err", (message: string) => {
+                    console.log("Error", message);
+                });
 
-            /*RfidScanResult*/
-            changedSpy.callCount.should.eql(1);
-            changedSpy.firstCall.args[0].should.be.instanceOf(DataValue);
-            changedSpy.firstCall.args[0].value.dataType.should.eql(DataType.ExtensionObject);
-            changedSpy.firstCall.args[0].value.value.constructor.name.should.eql("RfidScanResult");
+                monitoredItem.on("changed", (dataValue) => {
+                    console.log(".");//dataValue.toJSON());
+                });
+                await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        })
+                console.log("changedSpy = ", changedSpy.getCalls().length);
+                /*RfidScanResult*/
+                changedSpy.firstCall.args[0].should.be.instanceOf(DataValue);
+                changedSpy.firstCall.args[0].value.dataType.should.eql(DataType.ExtensionObject);
+                changedSpy.firstCall.args[0].value.value.constructor.name.should.eql("RfidScanResult");
+                changedSpy.callCount.should.eql(1);
+            }
+            catch (err) {
+                console.log(err);
+                throw err;
+            }
+        });
+
     });
 });
 
