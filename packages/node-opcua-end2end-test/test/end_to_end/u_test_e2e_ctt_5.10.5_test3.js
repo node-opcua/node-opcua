@@ -21,13 +21,21 @@ const opcua = require("node-opcua");
 
 const OPCUAClient = opcua.OPCUAClient;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const {
+    perform_operation_on_subscription_async
+} = require("../../test_helpers/perform_operation_on_client_session");
 
-module.exports = function (test) {
+async function f(func) {
+    await async function() {
+        debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
+        await func();
+        debugLog("       ! " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
 
-    describe("Testing ctt  ", function () {
+    }();
+}
+module.exports = function(test) {
 
+    describe("Testing ctt  ", function() {
 
         const ClientSubscription = opcua.ClientSubscription;
         let subscription = null;
@@ -37,9 +45,10 @@ module.exports = function (test) {
         let subscription_raw_notification_event;
         let spy_publish;
 
-        function create_subscription_and_monitor_item(the_session, callback) {
+        async function create_subscription_and_monitor_item(session) {
 
-            subscription = ClientSubscription.create(the_session, {
+
+            subscription = ClientSubscription.create(session, {
                 requestedPublishingInterval: 150,
                 requestedLifetimeCount: 10 * 60 * 10,
                 requestedMaxKeepAliveCount: 10,
@@ -50,43 +59,46 @@ module.exports = function (test) {
 
             subscription_raw_notification_event = sinon.spy();
 
-            subscription.once("terminated", function () {
+            subscription.once("terminated", function() {
             });
-            subscription.once("started", function () {
 
-                // monitor 1
-                monitoredItem1 = opcua.ClientMonitoredItem.create(subscription,
-                  {nodeId: nodeId, attributeId: opcua.AttributeIds.Value},
-                  {
-                      samplingInterval: 100,
-                      discardOldest: true,
-                      queueSize: 100
-                  });
+            await new Promise((resolve) => {
+                subscription.once("started", function() {
 
-                monitoredItem1.once("changed", function (dataValue) {
-                    subscription.on("raw_notification", subscription_raw_notification_event);
-                    spy_publish = sinon.spy(the_session, "publish");
-                    callback();
+                    // monitor 1
+                    monitoredItem1 = opcua.ClientMonitoredItem.create(subscription,
+                        { nodeId: nodeId, attributeId: opcua.AttributeIds.Value },
+                        {
+                            samplingInterval: 100,
+                            discardOldest: true,
+                            queueSize: 100
+                        });
+
+                    monitoredItem1.once("changed", (dataValue) => {
+                        console.log("Receive changed");
+                        subscription.on("raw_notification", subscription_raw_notification_event);
+                        spy_publish = sinon.spy(session, "publish");
+                        resolve();
+                    });
                 });
             });
 
         }
 
-        function prevent_publish_request_acknowledgement(session, callback) {
+        async function prevent_publish_request_acknowledgement(session) {
 
-            session._publishEngine.acknowledge_notification = function (subscriptionId, sequenceNumber) {
+            session._publishEngine.acknowledge_notification = function(subscriptionId, sequenceNumber) {
                 //xx this.subscriptionAcknowledgements.push({
                 //xx     subscriptionId: subscriptionId,
                 //xx     sequenceNumber: sequenceNumber
                 //xx });
             };
-            callback();
 
         }
 
         let _the_value = 10001;
 
-        function write_value(session, callback) {
+        async function write_value(session) {
 
             _the_value += 1;
 
@@ -95,98 +107,93 @@ module.exports = function (test) {
                     nodeId: nodeId,
                     attributeId: opcua.AttributeIds.Value,
                     value: /*new DataValue(*/{
-                        value: {/* Variant */dataType: opcua.DataType.Int32, value: _the_value}
+                        value: {/* Variant */dataType: opcua.DataType.Int32, value: _the_value }
                     }
                 }
             ];
-            session.write(nodesToWrite, function (err) {
-                callback(err);
-            });
+            const statusCode = await session.write(nodesToWrite);
         }
 
-        function write_value_and_wait_for_change(session, callback) {
+        async function write_value_and_wait_for_change(session) {
+            await new Promise((resolve, reject) => {
 
-            monitoredItem1.once("changed", function (dataValue) {
-                //xx console.log(chalk.cyan("write_value_and_wait_for_change ! Changed !!!!"),dataValue.toString());
-                dataValue.value.value.should.eql(_the_value);
-                callback();
-            });
-            write_value(session, function (err) {
-            });
+                const timeoutId = setTimeout(() => {
+                    console.log("monitoredItem1 changed notification not recevied in time !");
+                    reject(new Error("monitoredItem1 changed notification not recevied in time !"));
+                }, 1000);
+                monitoredItem1.once("changed", (dataValue) => {
+                    clearTimeout(timeoutId);
+                    //xx console.log(chalk.cyan("write_value_and_wait_for_change ! Changed !!!!"),dataValue.toString());
+                    dataValue.value.value.should.eql(_the_value);
+                    resolve();
+                });
+                write_value(session);
+            })
         }
 
-        it("verifying that RepublishRequest service is working as expected", function (done) {
+        it("verifying that RepublishRequest service is working as expected", async function() {
 
             const client = OPCUAClient.create({
 
             });
+            client.on("backoff", () => { console.log("keep trying to connect to ", endpointUrl); });
+
             const endpointUrl = test.endpointUrl;
 
             const expected_values = [];
             let sequenceNumbers = [];
 
-            function verify_republish(session,index, callback) {
+            async function verify_republish(session, index) {
                 // index  => used to identify sequenceNumbers to retransmit
                 const request = new opcua.RepublishRequest({
                     subscriptionId: subscription.subscriptionId,
                     retransmitSequenceNumber: sequenceNumbers[index]
                 });
 
-                session.republish(request, function (err, response) {
-                    //xx console.log(" xx = ",index,request.toString());
-                    //xx console.log(" xx = ",index,response.toString());
-                    should.not.exist(err);
-                    response.notificationMessage.notificationData[0].monitoredItems[0].should.eql(expected_values[index]);
-                    callback(err);
-                });
+                const response = await session.republish(request);
+                //xx console.log(" xx = ",index,request.toString());
+                //xx console.log(" xx = ",index,response.toString());
+                should.not.exist(err);
+                response.notificationMessage.notificationData[0].monitoredItems[0].should.eql(expected_values[index]);
             }
 
+            await perform_operation_on_subscription_async(client, endpointUrl, async (session) => {
+                console.log("Heree");
+                await f(create_subscription_and_monitor_item)(session);
+                await f(write_value_and_wait_for_change)(session);
+                await f(prevent_publish_request_acknowledgement)(session);
+                await f(write_value_and_wait_for_change)(session);
+                await f(write_value_and_wait_for_change)(session);
+                await f(write_value_and_wait_for_change)(session);
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+                subscription_raw_notification_event.callCount.should.eql(4);
 
-                async.series([
-                    //xx write_value.bind(null,session),
-                    create_subscription_and_monitor_item.bind(null, session),
-                   //Xx function(callback){setTimeout(callback,100);},
-                    write_value_and_wait_for_change.bind(null, session),
-                    prevent_publish_request_acknowledgement.bind(null, session),
-                    write_value_and_wait_for_change.bind(null, session),
-                    write_value_and_wait_for_change.bind(null, session),
-                    write_value_and_wait_for_change.bind(null, session),
+                const seqNumber1 = subscription_raw_notification_event.getCall(0).args[0].sequenceNumber;
+                subscription_raw_notification_event.getCall(0).args[0].sequenceNumber.should.eql(seqNumber1 + 0);
+                subscription_raw_notification_event.getCall(1).args[0].sequenceNumber.should.eql(seqNumber1 + 1);
+                subscription_raw_notification_event.getCall(2).args[0].sequenceNumber.should.eql(seqNumber1 + 2);
+                subscription_raw_notification_event.getCall(3).args[0].sequenceNumber.should.eql(seqNumber1 + 3);
 
-                    function (callback) {
+                //xx console.log(subscription_raw_notification_event.getCall(0).args[0].notificationData[0].monitoredItems[0].toString());
+                //xx console.log(subscription_raw_notification_event.getCall(1).args[0].toString());
+                //xx console.log(subscription_raw_notification_event.getCall(2).args[0].toString());
+                //xx console.log(subscription_raw_notification_event.getCall(3).args[0].toString());
 
-                        subscription_raw_notification_event.callCount.should.eql(4);
+                expected_values.push(subscription_raw_notification_event.getCall(1).args[0].notificationData[0].monitoredItems[0]);
+                expected_values.push(subscription_raw_notification_event.getCall(2).args[0].notificationData[0].monitoredItems[0]);
+                expected_values.push(subscription_raw_notification_event.getCall(3).args[0].notificationData[0].monitoredItems[0]);
 
-                        const seqNumber1 = subscription_raw_notification_event.getCall(0).args[0].sequenceNumber;
-                        subscription_raw_notification_event.getCall(0).args[0].sequenceNumber.should.eql(seqNumber1 + 0);
-                        subscription_raw_notification_event.getCall(1).args[0].sequenceNumber.should.eql(seqNumber1 + 1);
-                        subscription_raw_notification_event.getCall(2).args[0].sequenceNumber.should.eql(seqNumber1 + 2);
-                        subscription_raw_notification_event.getCall(3).args[0].sequenceNumber.should.eql(seqNumber1 + 3);
+                spy_publish.callCount.should.eql(4);
+                //xx console.log(spy_publish.getCall(7).args[0].toString());
 
-                        //xx console.log(subscription_raw_notification_event.getCall(0).args[0].notificationData[0].monitoredItems[0].toString());
-                        //xx console.log(subscription_raw_notification_event.getCall(1).args[0].toString());
-                        //xx console.log(subscription_raw_notification_event.getCall(2).args[0].toString());
-                        //xx console.log(subscription_raw_notification_event.getCall(3).args[0].toString());
+                sequenceNumbers = [seqNumber1 + 1, seqNumber1 + 2, seqNumber1 + 3];
+                //xx console.log(expected_values, sequenceNumbers);
 
-                        expected_values.push(subscription_raw_notification_event.getCall(1).args[0].notificationData[0].monitoredItems[0]);
-                        expected_values.push(subscription_raw_notification_event.getCall(2).args[0].notificationData[0].monitoredItems[0]);
-                        expected_values.push(subscription_raw_notification_event.getCall(3).args[0].notificationData[0].monitoredItems[0]);
+                f(verify_republish)(session, 0);
+                f(verify_republish)(session, 1);
+                f(verify_republish)(session, 2);
 
-                        spy_publish.callCount.should.eql(4);
-                        //xx console.log(spy_publish.getCall(7).args[0].toString());
-
-                        sequenceNumbers = [seqNumber1 + 1, seqNumber1 + 2, seqNumber1 + 3];
-                        //xx console.log(expected_values, sequenceNumbers);
-                        callback()
-                    },
-                    verify_republish.bind(null,session, 0),
-                    verify_republish.bind(null,session, 1),
-                    verify_republish.bind(null,session, 2)
-
-                ], inner_done);
-
-            }, done);
+            });
         });
     });
 };

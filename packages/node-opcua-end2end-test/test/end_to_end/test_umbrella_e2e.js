@@ -69,10 +69,11 @@ describe("testing Client - Umbrella ", function() {
             test.endpointUrl = test.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             test.temperatureVariableId = test.server.temperatureVariableId;
 
-            setTimeout(function() {
 
+            setTimeout(function() {
                 test.server.engine.currentSessionCount.should.eql(0, " expecting ZERO session on server when test is starting !");
                 console.log(" ..... done ");
+                console.log("server started at ", test.endpointUrl);
                 done(err);
 
             }, 1000);
@@ -257,6 +258,6 @@ describe("testing Client - Umbrella ", function() {
     require("./alarms_and_conditions/u_test_e2e_conditions")(test);
     require("./alarms_and_conditions/u_test_e2e_alarm_client_side")(test);
     // typescripts tests starts here...
-    
+
     require("./u_test_e2e_deadband_filter").t(test);
 });

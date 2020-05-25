@@ -680,9 +680,11 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 result = await func(session);
             } catch (err) {
                 errorLog(err);
+                throw err;
+            } finally {
+                await session.close();
+                await this.disconnect();
             }
-            await session.close();
-            await this.disconnect();
             return result;
         } catch (err) {
             throw err;
@@ -712,12 +714,12 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             try {
                 const result = await func(session, subscription);
                 return result;
-            } catch {
-                return undefined;
+            } catch (err) {
+                console.log("withSubscriptionAsync inner functon failed ", err.message);
+                throw err;
             } finally {
                 await subscription.terminate();
             }
-
         });
     }
 

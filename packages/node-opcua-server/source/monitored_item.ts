@@ -315,6 +315,20 @@ export interface ISubscription {
   $session?: any;
   subscriptionDiagnostics: SubscriptionDiagnosticsDataType;
 }
+
+function isSourceNewerThan(a: DataValue, b?: DataValue): boolean {
+  if (!b) {
+    return true;
+  }
+  const at = a.sourceTimestamp?.getTime() || 0;
+  const bt = b.sourceTimestamp?.getTime() || 0;
+
+  if (at === bt) {
+    return a.sourcePicoseconds > b.sourcePicoseconds;
+  }
+  return at > bt;
+}
+
 /**
  * a server side monitored item
  *
@@ -722,9 +736,9 @@ export class MonitoredItem extends EventEmitter {
           console.log(" SAMPLING ERROR =>", err);
         } else {
           // only record value if source timestamp is newer
-          // xx if (newDataValue.sourceTimestamp > this.oldDataValue.sourceTimestamp) {
-          this._on_value_changed(newDataValue!);
-          // xx }
+          if (newDataValue && isSourceNewerThan(newDataValue, this.oldDataValue)) {
+            this._on_value_changed(newDataValue!);
+          }
         }
         this._is_sampling = false;
       });
@@ -958,7 +972,6 @@ export class MonitoredItem extends EventEmitter {
     // console.log(chalk.cyan("Setting Ovver"), !!this.$subscription, !!this.$subscription!.subscriptionDiagnostics);
     if (this.$subscription && this.$subscription.subscriptionDiagnostics) {
       this.$subscription.subscriptionDiagnostics.monitoringQueueOverflowCount++;
-      console.log(" this.$subscription.subcriptionDiagnosticInfo.monitoringQueueOverflowCount = ", this.$subscription.subscriptionDiagnostics.monitoringQueueOverflowCount);
     }
     // to do eventQueueOverFlowCount
   }
