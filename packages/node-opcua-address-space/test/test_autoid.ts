@@ -83,7 +83,6 @@ describe("Testing AutoID custom types", async function (this: any) {
             // ScanResult
             codeType: "Hello",
             scanData: {
-                switchField: 3,
                 epc: {
                     pC: 12,
                     uId: Buffer.from("Hello"),
@@ -93,7 +92,6 @@ describe("Testing AutoID custom types", async function (this: any) {
             },
             timestamp: new Date(2018, 11, 23),
             location: {
-                switchField: 2,
                 local: {
                     x: 100,
                     y: 200,
@@ -122,4 +120,31 @@ describe("Testing AutoID custom types", async function (this: any) {
         console.log(scanResult.toString());
 
     });
+
+    it("should create a opcua variable with a scan result", () => {
+
+        const namespace = addressSpace.getOwnNamespace();
+
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+        nsAutoId.should.eql(2);
+
+        const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
+        should.exist(rfidScanResultDataTypeNode);
+        const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
+            codeType: "Code",
+            scanData: { string: "Hello" },
+            sighting: [{}, {}]
+        });
+
+        const scanResultNode = namespace.addVariable({
+            browseName: "ScanResult",
+            dataType: rfidScanResultDataTypeNode,
+            value: { dataType: DataType.ExtensionObject, value: scanResult }
+        });
+
+
+        console.log(scanResultNode.toString());
+
+    });
+
 });

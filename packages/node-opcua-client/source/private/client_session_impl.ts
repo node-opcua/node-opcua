@@ -2321,7 +2321,7 @@ async function promoteOpaqueStructure3(
     const extraDataTypeManager = await getExtraDataTypeManager(session);
 
     const promises: Array<Promise<void>> = callMethodResults.map(
-        async (x) => promoteOpaqueStructure2(session, x));
+        async (x: CallMethodResult) => promoteOpaqueStructure2(session, x));
     await Promise.all(promises);
 }
 
