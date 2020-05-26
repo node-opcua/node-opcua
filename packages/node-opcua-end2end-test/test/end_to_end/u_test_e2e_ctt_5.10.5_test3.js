@@ -13,31 +13,39 @@
  -    * compare the published NotificationMessage to the republished NotificationMessage (should equal).
  */
 
-const assert = require("node-opcua-assert").assert;
-const async = require("async");
+const { assert } = require("node-opcua-assert");
 const should = require("should");
 const sinon = require("sinon");
 const opcua = require("node-opcua");
+const chalk = require("chalk");
 
-const OPCUAClient = opcua.OPCUAClient;
+const {
+    OPCUAClient,
+    ClientSubscription
+} = opcua;
+
+const doDebug = false;
 
 const {
     perform_operation_on_subscription_async
 } = require("../../test_helpers/perform_operation_on_client_session");
 
-async function f(func) {
-    await async function() {
-        debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
-        await func();
-        debugLog("       ! " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
-
-    }();
+function f(func) {
+    const fct = async function(...args) {
+        if (doDebug) {
+            console.log("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
+        }
+        await func.apply(null, args);
+        if (doDebug) {
+            console.log("       ! " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
+        }
+    }
+    return fct;
 }
 module.exports = function(test) {
 
     describe("Testing ctt  ", function() {
 
-        const ClientSubscription = opcua.ClientSubscription;
         let subscription = null;
 
         const nodeId = "ns=2;s=Scalar_Static_Int32";
@@ -153,7 +161,6 @@ module.exports = function(test) {
                 const response = await session.republish(request);
                 //xx console.log(" xx = ",index,request.toString());
                 //xx console.log(" xx = ",index,response.toString());
-                should.not.exist(err);
                 response.notificationMessage.notificationData[0].monitoredItems[0].should.eql(expected_values[index]);
             }
 
@@ -189,9 +196,9 @@ module.exports = function(test) {
                 sequenceNumbers = [seqNumber1 + 1, seqNumber1 + 2, seqNumber1 + 3];
                 //xx console.log(expected_values, sequenceNumbers);
 
-                f(verify_republish)(session, 0);
-                f(verify_republish)(session, 1);
-                f(verify_republish)(session, 2);
+                await f(verify_republish)(session, 0);
+                await f(verify_republish)(session, 1);
+                await f(verify_republish)(session, 2);
 
             });
         });

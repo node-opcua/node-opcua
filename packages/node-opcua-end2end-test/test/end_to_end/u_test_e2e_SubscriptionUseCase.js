@@ -28,7 +28,7 @@ const perform_operation_on_monitoredItem = require("../../test_helpers/perform_o
 
 const Subscription = require("node-opcua-server").Subscription;
 
-const doDebug = true;
+const doDebug = false;
 const f = require("../../test_helpers/display_function_name").f.bind(null, true);
 
 function trace_console_log() {
@@ -1126,6 +1126,7 @@ module.exports = function(test) {
             //   - The second Publish contains a DataChangeNotification with a value.statusCode matching 
             //     the written value (and value.value matching the value before the write). 
             //   - The third Publish contains no DataChangeNotifications. 
+            //     (Did not expect a dataChange since the values written were the same, i.e. unchanged.)
             perform_operation_on_subscription(client, endpointUrl, function(session, subscription, callback) {
 
                 const notificationMessageSpy = new sinon.spy();
@@ -1135,6 +1136,7 @@ module.exports = function(test) {
                 });
 
                 const monitoredItemOnChangedSpy = new sinon.spy();
+                const subscription_raw_notificiationSpy = new sinon.spy();
 
                 subscription.publishingInterval.should.eql(100);
 
@@ -1166,6 +1168,8 @@ module.exports = function(test) {
                     });
 
                     monitoredItem.on("changed", monitoredItemOnChangedSpy);
+
+                    subscription.on("raw_notification", subscription_raw_notificiationSpy);
                 }
 
 
@@ -1214,9 +1218,11 @@ module.exports = function(test) {
                     create_monitored_item.bind(null),
                     wait.bind(null, 300),
 
+                    //  - Write a status code to the Value  attribute (don’t change the value of the Value attribute). 
                     write.bind(null, 1, StatusCodes.GoodWithOverflowBit),
                     wait.bind(null, 300),
 
+                    //  - Write the existing value and status code to the Value attribute. 
                     write.bind(null, 1, StatusCodes.GoodWithOverflowBit),
                     wait.bind(null, 300),
 
@@ -1224,14 +1230,13 @@ module.exports = function(test) {
                         // wait until next notification received;
                         const lambda = (response) => {
 
-                            console.log("response: ", response.constructor.name)
+                            console.log("response: ", response.constructor.name, "notificationData.length", response.notificationMessage.notificationData.length);
                             if (response.constructor.name === "PublishResponse") {
 
                                 client.removeListener("receive_response", lambda);
                                 // console.log(" xxxx ", response.toString());
-
                                 if (response.notificationMessage.notificationData.length !== 0) {
-                                    return callback(new Errro("Test has failed because PublishResponse has a unexpected notification data"))
+                                    return callback(new Error("Test has failed because PublishResponse has a unexpected notification data"))
                                 }
                                 callback();
                             }
@@ -1241,16 +1246,29 @@ module.exports = function(test) {
                     //xx wait.bind(null, subscription.publishingInterval * subscription.maxKeepAliveCount + 500),
                     function(callback) {
 
-                        monitoredItemOnChangedSpy.callCount.should.eql(2);
-                        monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
-                        monitoredItemOnChangedSpy.getCall(1).args[0].statusCode.should.eql(StatusCodes.GoodWithOverflowBit);
-
-                        callback();
+                        try {
+                            if (doDebug) {
+                                console.log("subscription_raw_notificiationSpy = ", subscription_raw_notificiationSpy.callCount);
+                                console.log("monitoredItemOnChangedSpy         = ", monitoredItemOnChangedSpy.callCount);
+                                for (let i = 0; i < monitoredItemOnChangedSpy.callCount; i++) {
+                                    console.log("    ", monitoredItemOnChangedSpy.getCall(i).args[0].statusCode.toString());
+                                }
+                            }
+                            monitoredItemOnChangedSpy.callCount.should.eql(2);
+                            monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
+                            monitoredItemOnChangedSpy.getCall(1).args[0].statusCode.should.eql(StatusCodes.GoodWithOverflowBit);
+                            callback();
+                        } catch (err) {
+                            console.log(err);
+                            callback(err);
+                        }
 
                     }
                 ], callback);
 
-            }, done);
+            }, (err) => {
+                done(err);
+            });
 
         });
 

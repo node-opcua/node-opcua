@@ -65,8 +65,6 @@ import { MinimalistAddressSpace, Reference } from "./reference";
 // tslint:disable:no-bitwise
 // tslint:disable:no-console
 
-require("object.values");
-
 const doDebug = false;
 
 function defaultBrowseFilterFunc(context?: SessionContext): boolean {
