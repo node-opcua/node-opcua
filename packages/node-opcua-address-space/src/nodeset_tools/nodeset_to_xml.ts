@@ -32,7 +32,7 @@ import { Namespace, XmlWriter } from "../../source";
 import { Int64 } from "node-opcua-basic-types";
 import { Enum } from "node-opcua-enum";
 import { BrowseDescriptionLike } from "node-opcua-pseudo-session";
-import { BrowseDescription, EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
+import { BrowseDescription, EnumDefinition, StructureDefinition, StructureField, StructureType } from "node-opcua-types";
 import { BaseNode } from "../base_node";
 import { UANamespace } from "../namespace";
 import { NamespacePrivate } from "../namespace_private";
@@ -715,7 +715,9 @@ function _dumpUADataTypeDefinition(
     if ($definition instanceof StructureDefinition) {
         xw.startElement("Definition");
         xw.writeAttribute("Name", node.browseName.name!);
-
+        if ($definition.structureType === StructureType.Union) {
+            xw.writeAttribute("IsUnion", "true");
+        }
         /*
         // todo
         $definition.baseDataType;

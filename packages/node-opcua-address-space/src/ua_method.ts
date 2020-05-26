@@ -49,7 +49,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     public get parent(): UAObjectPublic | null {
-        return   super.parent as UAObjectPublic;
+        return super.parent as UAObjectPublic;
     }
 
     public value?: any;
@@ -134,10 +134,13 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         }
 
         assert(context.object instanceof BaseNode);
-
+        if (context.object.nodeClass !== NodeClass.Object && context.object.nodeClass !== NodeClass.ObjectType) {
+            console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() +
+                " called for a node that is not a Object/ObjectType but " + NodeClass[context.object.nodeClass]);
+            return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
+        }
         if (!this._asyncExecutionFunction) {
             console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + "_ has not been bound");
-
             return callback(null, { statusCode: StatusCodes.BadInternalError });
         }
 

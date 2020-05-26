@@ -3,7 +3,7 @@
  */
 import * as async from "async";
 import * as _ from "underscore";
-
+import { promisify } from "util";
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import {
@@ -34,11 +34,11 @@ import {
     BrowsePathResult
 } from "node-opcua-service-translate-browse-path";
 import {
-    StatusCodes
+    StatusCodes, StatusCode
 } from "node-opcua-status-code";
 
 import { NodeClass, AttributeIds } from "node-opcua-data-model";
-import { MessageSecurityMode, ReadValueId } from "node-opcua-types";
+import { MessageSecurityMode, ReadValueId, WriteValueOptions, WriteValue } from "node-opcua-types";
 import { AddressSpace } from "./address_space_ts";
 import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 import { callMethodHelper } from "./helpers/call_helpers";
@@ -304,12 +304,46 @@ export class PseudoSession implements IBasicSession {
         });
         callback!(null, isArray ? browsePathResults : browsePathResults[0]);
     }
+    public write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
+    public write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
+    public write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
+    public write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
+    public write(nodesToWrite: any, callback?: ResponseCallback<any>): any {
+
+        const isArray = _.isArray(nodesToWrite);
+        if (!isArray) {
+            nodesToWrite = [nodesToWrite];
+        }
+
+        const context = SessionContext.defaultContext;
+
+        setImmediate(() => {
+
+            const statusCodesPromises: Promise<StatusCode>[] = nodesToWrite.map((nodeToWrite: WriteValue) => {
+
+                assert(!!nodeToWrite.nodeId, "expecting a nodeId");
+                assert(!!nodeToWrite.attributeId, "expecting a attributeId");
+
+                const nodeId = nodeToWrite.nodeId!;
+                const obj = this.addressSpace.findNode(nodeId);
+                if (!obj) {
+                    return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+                }
+                return promisify(obj.writeAttribute).call(obj, context, nodeToWrite);
+            });
+            Promise.all(statusCodesPromises).then((statusCodes: StatusCodes[]) => {
+                callback!(null, isArray ? statusCodes : statusCodes[0]);
+            });
+        });
+    }
+
 }
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
 PseudoSession.prototype.read = thenify.withCallback(PseudoSession.prototype.read);
+PseudoSession.prototype.write = thenify.withCallback(PseudoSession.prototype.write);
 PseudoSession.prototype.browse = thenify.withCallback(PseudoSession.prototype.browse);
 PseudoSession.prototype.browseNext = thenify.withCallback(PseudoSession.prototype.browseNext);
 PseudoSession.prototype.getArgumentDefinition = thenify.withCallback(PseudoSession.prototype.getArgumentDefinition);

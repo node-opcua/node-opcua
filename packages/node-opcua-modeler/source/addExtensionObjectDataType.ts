@@ -32,7 +32,8 @@ import {
 } from "node-opcua-schemas";
 import {
     StructureDefinition,
-    StructureDefinitionOptions
+    StructureDefinitionOptions,
+    StructureType
 } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 
@@ -176,6 +177,7 @@ export async function addExtensionObjectDataType(
     const subtypeOf = addressSpace.findDataType(options.subtypeOf ? options.subtypeOf : baseSuperType)!;
 
     const structureDefinition = options.structureDefinition;
+    structureDefinition.baseDataType = structureDefinition.baseDataType ? resolveNodeId(structureDefinition.baseDataType) : resolveNodeId("Structure");
 
     const dataType = namespace.createDataType({
         browseName: options.browseName,
@@ -191,7 +193,10 @@ export async function addExtensionObjectDataType(
     })!;
     assert(defaultBinary.browseName.toString() === "Default Binary");
 
+
+
     (dataType as any).$definition = new StructureDefinition(structureDefinition);
+    assert(!NodeId.sameNodeId((dataType as any).$definition.baseDataType, NodeId.nullNodeId));
 
     const dataTypeDescription = addDataTypeDescription(namespace, dataType);
     defaultBinary.addReference({

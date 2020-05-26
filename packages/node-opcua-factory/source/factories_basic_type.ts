@@ -163,6 +163,7 @@ registerBasicType({ name: "VersionTime", subType: "UInt32" });
 registerBasicType({ name: "ApplicationInstanceCertificate", subType: "ByteString" });
 registerBasicType({ name: "AttributeWriteMask", subType: "UInt32" });
 registerBasicType({ name: "Date", subType: "DateTime" });
+
 // registerBasicType({ name: "Counter", subType: "UInt32" });
 // registerBasicType({ name: "IntegerId", subType: "UInt32" });
 // registerBasicType({ name: "UtcTime", subType: "DateTime" });

@@ -3,21 +3,32 @@ import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
+import { hexDump } from "node-opcua-debug";
 
 function resolveDynamicExtensionObjectV(
     opaque: OpaqueStructure,
     dataTypeManager: ExtraDataTypeManager
 ): ExtensionObject {
 
+    const Constructor = dataTypeManager.getExtensionObjectConstructorFromBinaryEncoding(opaque.nodeId);
+    const object = new Constructor();
+    const stream = new BinaryStream(opaque.buffer);
     try {
-        const Constructor = dataTypeManager.getExtensionObjectConstructorFromBinaryEncoding(opaque.nodeId);
-        const object = new Constructor();
-        const stream = new BinaryStream(opaque.buffer);
         object.decode(stream);
         return object;
     } catch (err) {
         // tslint:disable-next-line:no-console
+        console.log("Constructor = ", Constructor.name);
+        // tslint:disable-next-line:no-console
+        console.log("opaqueStructure = ", opaque.nodeId.toString());
+        // tslint:disable-next-line:no-console
+        console.log("opaqueStructure = ", "0x" + opaque.buffer.toString("hex"));
+        // tslint:disable-next-line: no-console
+        console.log(hexDump(opaque.buffer));
+        // tslint:disable-next-line:no-console
         console.log("resolveDynamicExtensionObjectV err = ", err);
+        // try again for debugging
+        object.decode(stream);
         return opaque;
     }
 }

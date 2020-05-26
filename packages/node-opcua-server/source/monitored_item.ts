@@ -974,7 +974,7 @@ export class MonitoredItem extends EventEmitter {
       assert(_.isEqual(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
       assert(notification.value.statusCode.hasOverflowBit);
     }
-    // console.log(chalk.cyan("Setting Ovver"), !!this.$subscription, !!this.$subscription!.subscriptionDiagnostics);
+    // console.log(chalk.cyan("Setting Over"), !!this.$subscription, !!this.$subscription!.subscriptionDiagnostics);
     if (this.$subscription && this.$subscription.subscriptionDiagnostics) {
       this.$subscription.subscriptionDiagnostics.monitoringQueueOverflowCount++;
     }

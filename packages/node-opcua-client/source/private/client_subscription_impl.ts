@@ -62,6 +62,7 @@ const TERMINATING_SUBSCRIPTION_ID = 0xC0CAC01C;
 
 async function promoteOpaqueStructureInNotificationData(session: IBasicSession, notificationData: NotificationData[]): Promise<void> {
 
+    console.log(" promoteOpaqueStructureInNotificationData ");
     const dataValuesToPromote: DataValue[] = [];
     for (const notification of notificationData) {
         if (!notification) {

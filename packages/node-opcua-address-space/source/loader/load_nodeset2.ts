@@ -48,12 +48,14 @@ import {
     Range,
     StructureDefinition,
     StructureField,
-    StructureType
+    StructureType,
+    StructureFieldOptions
 } from "node-opcua-types";
 import {
     DataType,
     VariantArrayType,
-    VariantOptions
+    VariantOptions,
+    Variant
 } from "node-opcua-variant";
 import {
     ParserLike, ReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes
@@ -195,16 +197,25 @@ function makeEnumDefinition(definitionFields: any[]) {
         }))
     });
 }
-function makeStructureDefinition(definitionFields: any[]) {
+function makeStructureDefinition(name: string, definitionFields: StructureFieldOptions[], isUnion: boolean): StructureDefinition {
+
     // Structure = 0,
     // StructureWithOptionalFields = 1,
     // Union = 2,
-    return new StructureDefinition({
+    const hasOptionalFields = definitionFields.filter((field) => field.isOptional).length > 0;
+
+    const structureType = isUnion
+        ? StructureType.Union
+        : (hasOptionalFields ? StructureType.StructureWithOptionalFields : StructureType.Structure);
+
+    const sd = new StructureDefinition({
         baseDataType: undefined,
         defaultEncodingId: undefined,
         fields: definitionFields,
-        structureType: StructureType.Structure,
+        structureType
     });
+
+    return sd;
 }
 
 function __make_back_references(namespace: NamespacePrivate) {
@@ -312,6 +323,7 @@ export function generateAddressSpace(
     const addressSpace1 = addressSpace as AddressSpace;
 
     let postTasks: Task[] = [];
+    let postTaskinitializeVariable: Task[] = [];
     let postTasks2: Task[] = [];
     let postTasks3: Task[] = [];
 
@@ -649,24 +661,29 @@ export function generateAddressSpace(
 
                 const enumeration = addressSpace2.findDataType("Enumeration");
                 const structure = addressSpace2.findDataType("Structure");
+                const union = addressSpace2.findDataType("Union");
 
                 // we have a data type from a companion specification
                 // let's see if this data type need to be registered
                 const isEnumeration = enumeration && dataTypeNode.isSupertypeOf(enumeration);
                 const isStructure = structure && dataTypeNode.isSupertypeOf(structure);
+                const isUnion = !!(structure && union && dataTypeNode.isSupertypeOf(union!));
 
                 if (definitionFields.length) {
                     // remove <namespace>:
                     const nameWithoutNamespace = definitionName.split(":").slice(-1)[0];
 
-                    // const schema = makeStructureSchemaFromDefinition(dataTypeNode.nodeId, nameWithoutNamespace, definitionFields);
-
                     if (isStructure /*&& dataTypeNode.nodeId.namespace !== 0*/) {
+                        // note: at this stage, structure definituon will be incomplete as we do not know
+                        //       what is the subType yet, encodings are also unknown...
+                        //       structureType may also be inaccurate
                         debugLog("setting structure $definition for ", definitionName, nameWithoutNamespace);
-                        (dataTypeNode as any).$definition = makeStructureDefinition(definitionFields);
-                    }
-                    if (isEnumeration /* && dataTypeNode.nodeId.namespace !== 0 */) {
+                        (dataTypeNode as any).$definition = makeStructureDefinition(definitionName, definitionFields, isUnion);
+
+                    } else if (isEnumeration /* && dataTypeNode.nodeId.namespace !== 0 */) {
                         (dataTypeNode as any).$definition = makeEnumDefinition(definitionFields);
+                    } else {
+
                     }
                 }
                 if (!isEnumeration && !isStructure && this.obj.nodeId.namespace !== 0) {
@@ -1188,7 +1205,7 @@ export function generateAddressSpace(
                         const task = async (addressSpace2: AddressSpace) => {
                             data.variant.value = data.postponedExtensionObject;
                             assert(data.nodeId, "expecting a nodeid");
-                            const node = addressSpace.findNode(data.nodeId)!;
+                            const node = addressSpace2.findNode(data.nodeId)!;
                             if (node.nodeClass === NodeClass.Variable) {
                                 const v = node as UAVariable;
                                 v.setValueFromSource(data.variant);
@@ -1214,7 +1231,7 @@ export function generateAddressSpace(
             this.obj.parentNodeId = convertToNodeId(attrs.ParentNodeId);
             this.obj.dataType = convertToNodeId(attrs.DataType);
 
-            this.obj.valueRank = ec.coerceInt32(attrs.ValueRank) || -1;
+            this.obj.valueRank = attrs.ValueRank === undefined ? -1 : ec.coerceInt32(attrs.ValueRank);
             this.obj.arrayDimensions = this.obj.valueRank === -1 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
             this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval
@@ -1229,13 +1246,39 @@ export function generateAddressSpace(
             this.obj.userAccessLevel = this.obj.accessLevel; // convertAccessLevel(attrs.UserAccessLevel || attrs.AccessLevel);
         },
         finish(this: any) {
+            /*
             // set default value based on obj data Type
             if (this.obj.value === undefined) {
                 const dataTypeNode = this.obj.dataType;
                 const valueRank = this.obj.valueRank;
                 this.obj.value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
             }
-            const variable = _internal_createNode(this.obj);
+            */
+            let variable: UAVariable;
+            if (this.obj.value) {
+                const capturedValue = this.obj.value;
+                const task = async (addressSpace2: AddressSpace) => {
+                    if (doDebug) {
+                        debugLog("1 setting value to ", variable.nodeId.toString(), (new Variant(capturedValue)).toString());
+                    }
+                    variable.setValueFromSource(capturedValue);
+                };
+                postTaskinitializeVariable.push(task);
+            } else {
+
+                const task = async (addressSpace2: AddressSpace) => {
+                    const dataTypeNode = variable.dataType;
+                    const valueRank = variable.valueRank;
+                    const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
+                    if (value) {
+                        debugLog("2 setting value to ", variable.nodeId.toString(), value);
+                        variable.setValueFromSource(value);
+                    };
+                }
+                postTaskinitializeVariable.push(task);
+            }
+            this.obj.value = undefined;
+            variable = _internal_createNode(this.obj) as UAVariable;
         },
         parser: {
             DisplayName: {
@@ -1459,7 +1502,12 @@ export function generateAddressSpace(
                 debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
                 await performPostLoadingTasks(postTasks2);
                 postTasks2 = [];
-                debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (assigning Extension Object to Variables) ---------------------"));
+
+                debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
+                await performPostLoadingTasks(postTaskinitializeVariable);
+                postTaskinitializeVariable = [];
+
+                debugLog(chalk.bgGreenBright("Performing post loading tasks 3 (assigning Extension Object to Variables) ---------------------"));
                 await performPostLoadingTasks(postTasks3);
                 postTasks3 = [];
 

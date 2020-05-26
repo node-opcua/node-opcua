@@ -12,7 +12,7 @@ import * as factories from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Variant, VariantLike } from "node-opcua-variant";
+import { Variant, VariantLike, VariantOptions } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 
@@ -153,8 +153,8 @@ function isArgumentValid(
     assert(argDefinition instanceof Argument);
     assert(argDefinition.hasOwnProperty("dataType"));
     assert(argDefinition.hasOwnProperty("valueRank"));
-    assert(arg instanceof Variant);
 
+    
     const argDefDataType = addressSpace.findDataType(argDefinition.dataType);
     const argDataType = addressSpace.findDataType(resolveNodeId(arg.dataType));
 

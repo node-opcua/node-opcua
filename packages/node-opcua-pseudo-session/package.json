@@ -18,6 +18,7 @@
         "node-opcua-service-browse": "^2.6.0-alpha.6",
         "node-opcua-service-call": "^2.6.0-alpha.6",
         "node-opcua-service-read": "^2.6.0-alpha.6",
+        "node-opcua-service-write": "^2.6.0-alpha.6",
         "node-opcua-service-translate-browse-path": "^2.6.0-alpha.6",
         "node-opcua-status-code": "^2.6.0-alpha.1",
         "node-opcua-utils": "^2.6.0-alpha.1",

@@ -33,7 +33,8 @@ import {
   initialize_field,
   initialize_field_array,
   registerSpecialVariantEncoder,
-  StructuredTypeSchema
+  StructuredTypeSchema,
+  registerType
 } from "node-opcua-factory";
 
 import * as utils from "node-opcua-utils";
@@ -511,8 +512,7 @@ function calculate_product(array: number[] | null): number {
 }
 
 function get_encoder(dataType: DataType) {
-
-  const dataTypeAsString = DataType[dataType];
+  const dataTypeAsString = typeof dataType === "string" ? dataType : DataType[dataType];
   const encode = findBuiltInType(dataTypeAsString).encode;
   /* istanbul ignore next */
   if (!encode) {
@@ -1069,3 +1069,12 @@ export interface VariantT<T, DT extends DataType> extends Variant {
 }
 export declare type VariantByteString = VariantT<Buffer, DataType.ByteString>;
 export declare type VariantDouble = VariantT<number, DataType.Double>;
+
+
+registerType({
+  name: "Variant",
+  subType: "",
+  coerce: _coerceVariant,
+  encode: encodeVariant,
+  decode: decodeVariant
+})

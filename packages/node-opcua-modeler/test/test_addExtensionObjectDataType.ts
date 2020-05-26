@@ -177,49 +177,49 @@ describe("addVariableTypeForDataType", function (this: any) {
         const ns = addressSpace.getOwnNamespace();
 
         const buildInfoStructureDefinition: StructureDefinitionOptions = {
-            baseDataType: "",
+            baseDataType: "Structure",
             fields: [
                 {
                     arrayDimensions: [],
                     dataType: DataType.String,
                     isOptional: false,
                     name: "ProductUri",
-                    valueRank: 0,
+                    valueRank: -1,
                 },
                 {
                     arrayDimensions: [],
                     dataType: DataType.String,
                     isOptional: false,
                     name: "ManufacturerName",
-                    valueRank: 0,
+                    valueRank: -1,
                 },
                 {
                     arrayDimensions: [],
                     dataType: DataType.String,
                     isOptional: false,
                     name: "ProductName",
-                    valueRank: 0,
+                    valueRank: -1,
                 },
                 {
                     arrayDimensions: [],
                     dataType: DataType.String,
                     isOptional: false,
                     name: "SoftwareVersion",
-                    valueRank: 0,
+                    valueRank: -1,
                 },
                 {
                     arrayDimensions: [],
                     dataType: DataType.String,
                     isOptional: false,
                     name: "BuildNumber",
-                    valueRank: 0,
+                    valueRank: -1,
                 },
                 {
                     arrayDimensions: [],
                     dataType: DataType.DateTime,
                     isOptional: false,
                     name: "BuildDate",
-                    valueRank: 0,
+                    valueRank: -1,
                 }
             ]
         };
@@ -233,28 +233,28 @@ describe("addVariableTypeForDataType", function (this: any) {
         const buildInfoDataType = await addExtensionObjectDataType(ns, buildInfoOptions);
 
         const serverStatusStructureDefinition: StructureDefinitionOptions = {
-            baseDataType: "",
+            baseDataType: "Structure",
             fields: [
                 {
                     arrayDimensions: [],
                     dataType: DataType.DateTime,
                     isOptional: false,
                     name: "StartTime",
-                    valueRank: 0,
+                    valueRank: -1,
                 },
                 {
                     arrayDimensions: [],
                     dataType: addressSpace.findDataType("UtcTime")!.nodeId,
                     isOptional: false,
                     name: "CurrentTime",
-                    valueRank: 0,
+                    valueRank: -1,
                 },
                 {
                     arrayDimensions: [],
                     dataType: buildInfoDataType.nodeId,
                     isOptional: false,
                     name: "BuildInfo",
-                    valueRank: 0,
+                    valueRank: -1,
                 }
             ]
         };

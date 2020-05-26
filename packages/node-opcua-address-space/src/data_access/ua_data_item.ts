@@ -31,26 +31,22 @@ import { assert } from "node-opcua-assert";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 import * as _ from "underscore";
-import { AddDataItemOptions} from "../../source";
+import { AddDataItemOptions, ModellingRuleType } from "../../source";
 import { UADataItem as UADataItemPublic } from "../../source";
 import { UAVariable } from "../ua_variable";
 
 const definition_Description = "Definition  is a vendor - specific," +
-  " human readable string that specifies how the value of this  DataItem  is calculated.";
+    " human readable string that specifies how the value of this  DataItem  is calculated.";
 const valuePrecision_Description = "";
 
-/**
- * @method add_dataItem_stuff
- * @param variable
- * @param options  {Object}
- * @param options.definition [Optional]
- * @param options.valuePrecision [Optional]
- * @param options.modellingRule [Optional]
- * @private
- */
+interface add_dataItem_stuffOptions {
+    definition?: string;
+    valuePrecision?: number;
+    modellingRule?: ModellingRuleType;
+}
 export function add_dataItem_stuff(
-  variable: UAVariable,
-  options: AddDataItemOptions
+    variable: UAVariable,
+    options: add_dataItem_stuffOptions
 ) {
 
     const addressSpace = variable.addressSpace;

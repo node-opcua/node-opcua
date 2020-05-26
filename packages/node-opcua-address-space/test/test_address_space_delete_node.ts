@@ -179,10 +179,11 @@ describe("AddressSpace#deleteNode", () => {
         addressSpace.dispose();
     });
 
-    it("YUYU mshould create an alarm and delete it", () => {
+    it("YUYU should create an alarm and delete it", () => {
 
         const deviceNode = createDeviceNodeWithAlarm("s=Test");
         addressSpace.deleteNode(deviceNode);
+
         const deviceNodeAgain = createDeviceNodeWithAlarm("s=Test");
         addressSpace.deleteNode(deviceNodeAgain);
     });
