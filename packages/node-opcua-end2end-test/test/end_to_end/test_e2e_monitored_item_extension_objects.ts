@@ -112,8 +112,8 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
             try {
 
                 const itemToMonitor = {
+                    attributeId: AttributeIds.Value,
                     nodeId,
-                    attributeId: AttributeIds.Value
                 };
                 const parameters: MonitoringParametersOptions = {
                     queueSize: 10,

@@ -617,7 +617,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             context = SessionContext.defaultContext;
         }
 
-        console.log("xyxy DataValue = ", dataValue.toString());
         if (!dataValue.sourceTimestamp) {
 
 

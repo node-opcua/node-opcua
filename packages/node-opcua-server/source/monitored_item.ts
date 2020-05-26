@@ -249,10 +249,15 @@ function apply_filter(
   }
   if (this.filter instanceof DataChangeFilter) {
     return apply_datachange_filter.call(this, newDataValue, this.oldDataValue);
+  } else {
+    // if filter not set, by default report changes to Status or Value only
+    if (newDataValue.statusCode.value !== this.oldDataValue.statusCode.value) {
+      return true; // Keep because statusCode has changed ...
+    }
+    return !sameVariant(newDataValue.value, this.oldDataValue.value);
   }
   return true; // keep
   // else {
-  //      // if filter not set, by default report changes to Status or Value only
   //      return !sameDataValue(newDataValue, this.oldDataValue, TimestampsToReturn.Neither);
   // }
   // return true; // keep
@@ -736,9 +741,9 @@ export class MonitoredItem extends EventEmitter {
           console.log(" SAMPLING ERROR =>", err);
         } else {
           // only record value if source timestamp is newer
-          if (newDataValue && isSourceNewerThan(newDataValue, this.oldDataValue)) {
-            this._on_value_changed(newDataValue!);
-          }
+          // xx if (newDataValue && isSourceNewerThan(newDataValue, this.oldDataValue)) {
+          this._on_value_changed(newDataValue!);
+          // xx }
         }
         this._is_sampling = false;
       });

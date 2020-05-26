@@ -1029,6 +1029,11 @@ export function sameVariant(v1: Variant, v2: Variant): boolean {
     return true;
   }
   if (v1.arrayType === VariantArrayType.Scalar) {
+
+    if (v1.dataType === DataType.ExtensionObject) {
+      // compare two extension objects
+      return _.isEqual(v1.value, v2.value);
+    }
     if (Array.isArray(v1.value) && Array.isArray(v2.value)) {
       return __check_same_array(v1.value, v2.value);
     }
