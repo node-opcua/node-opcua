@@ -267,6 +267,27 @@ export function UAObjectType_toString(
     BaseNode_References_toString.call(this, options);
 }
 
+export function valueRankToString(valueRank: number): string {
+    switch (valueRank) {
+        case 1:
+            return "OneDimension (1)";
+        case 0:
+            return "OneOrMoreDimensions (0)"; // The value is an array with one or more dimensions
+        case -1:
+            return "Scalar (-1)";
+        case -2:
+            return "Any (-2)"; // The value can be a scalar or an array with any number of dimensions
+        case -3:
+            return "ScalarOrOneDimension (2)"; // The value can be a scalar or a one dimensional array.
+        default:
+            if (valueRank > 0) {
+                return "" + valueRank + "-Dimensions";
+            } else {
+                return "Invalid (" + valueRank + ")";
+            }
+    }
+}
+
 function accessLevelFlagToString(flag: AccessLevelFlag): string {
     const str: string[] = [];
     if (flag & AccessLevelFlag.CurrentRead) { str.push("CurrentRead"); }
@@ -319,7 +340,7 @@ export function VariableOrVariableType_toString(
 
         if (this.valueRank !== undefined) {
             options.add(options.padding + chalk.yellow("          valueRank           : ") + " " +
-                this.valueRank.toString());
+                valueRankToString(this.valueRank));
         } else {
             options.add(options.padding + chalk.yellow("          valueRank           : ") + " undefined");
         }

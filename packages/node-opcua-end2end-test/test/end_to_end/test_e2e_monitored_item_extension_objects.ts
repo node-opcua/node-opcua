@@ -99,7 +99,10 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
 
     it("MIEO - a client should not receive opaque structure when monitoring extension objects", async () => {
 
-        const client = OPCUAClient.create({ endpoint_must_exist: false });
+        const client = OPCUAClient.create({
+            requestedSessionTimeout: 10000000,
+            endpoint_must_exist: false
+        });
 
         const subscriptionParameters = {
             publishingEnabled: true,

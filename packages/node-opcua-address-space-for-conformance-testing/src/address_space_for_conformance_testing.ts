@@ -909,11 +909,11 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
             browseName: name,
             definition: "(tempA -25) + tempB",
             dataType,
-            value: new Variant({
+            value: {
                 arrayType: VariantArrayType.Scalar,
                 dataType: (DataType as any)[dataType],
                 value: initialValue
-            })
+            }
         });
     }
     function makeRange(dataTypeStr: string): any {
@@ -946,17 +946,17 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
 
             nodeId,
             browseName: name,
-            definition: "(tempA -25) + tempB",
+            definition: "...",
             valuePrecision: 0.5,
             engineeringUnitsRange,
             instrumentRange,
             engineeringUnits: standardUnits.degree_celsius,
             dataType,
-            value: new Variant({
+            value: {
                 arrayType: VariantArrayType.Scalar,
                 dataType: (DataType as any)[dataType],
                 value: initialValue
-            })
+            }
         });
     }
 
@@ -985,11 +985,11 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
             instrumentRange,
             engineeringUnits: standardUnits.degree_celsius,
             dataType,
-            value: new Variant({
+            value: {
                 arrayType: VariantArrayType.Array,
                 dataType: (DataType as any)[dataType],
                 value: [initialValue, initialValue, initialValue, initialValue, initialValue]
-            })
+            }
         });
 
     }
@@ -1018,10 +1018,10 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
         engineeringUnits: standardUnits.degree_celsius,
         dataType: DataType.Double,
 
-        value: new Variant({
+        value: {
             dataType: DataType.Double,
             value: 19.5
-        })
+        }
     });
 
     const data = [
@@ -1427,7 +1427,7 @@ function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
 function add_sampleView(namespace: Namespace): void {
 
     const addressSpace = namespace.addressSpace;
-    
+
     namespace.addView({
         organizedBy: addressSpace.rootFolder.views,
         browseName: "SampleView",

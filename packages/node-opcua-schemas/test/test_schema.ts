@@ -462,12 +462,18 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
         });
 
         const scanData4a = new ScanData({ string: "Hello" });
+        const reloaded4a = encode_decode_round_trip_test(scanData4a, (buffer: Buffer) => {
+            buffer.length.should.eql(4 + 4 + 5);
+        });
         const scanData4b = new ScanData({ switchField: 2, string: "Hello" });
         const reloaded4b = encode_decode_round_trip_test(scanData4b, (buffer: Buffer) => {
             buffer.length.should.eql(4 + 4 + 5);
         });
 
         const scanData5a = new ScanData({ string: "36" });
+        const reloaded5a = encode_decode_round_trip_test(scanData5a, (buffer: Buffer) => {
+            buffer.length.should.eql(10);
+        });
         const scanData5b = new ScanData({ switchField: 3, value: 36 });
         const reloaded5b = encode_decode_round_trip_test(scanData5b, (buffer: Buffer) => {
             buffer.length.should.eql(8);

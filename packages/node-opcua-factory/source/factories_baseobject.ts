@@ -436,7 +436,7 @@ export class BaseUAObject {
      */
     public toString(...args: any[]): string {
 
-        if (this.schema && this.schema.hasOwnProperty("toString")) {
+        if (this.   schema && this.schema.hasOwnProperty("toString")) {
             return this.schema.toString.apply(this, arguments as any);
         } else {
             if (!this.explore) {

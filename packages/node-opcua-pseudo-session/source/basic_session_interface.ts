@@ -25,10 +25,14 @@ import {
     ReadValueIdOptions
 } from "node-opcua-service-read";
 import {
+    WriteValueOptions
+} from "node-opcua-service-write";
+import {
     BrowsePath,
     BrowsePathResult
 } from "node-opcua-service-translate-browse-path";
 import { Variant } from "node-opcua-variant";
+import { StatusCode } from "node-opcua-status-code";
 
 export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
 export type ReadValueIdLike = ReadValueIdOptions;
@@ -136,6 +140,16 @@ export interface IBasicSession {
     translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
 
     translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
+}
+
+export interface IBaseSession {
+    write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
+
+    write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
+
+    write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
+
+    write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
 }
 
 export function getArgumentDefinitionHelper(

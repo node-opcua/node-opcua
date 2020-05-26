@@ -82,7 +82,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
 
         this.dataType = coerceNodeId(options.dataType);    // DataType (NodeId)
 
-        this.valueRank = options.valueRank || 0;  // Int32
+        this.valueRank = options.valueRank === undefined ? -1 : (options.valueRank || 0);  // Int32
 
         // see OPC-UA part 5 : $3.7 Conventions for Node descriptions
         this.arrayDimensions = options.arrayDimensions || [];

@@ -275,9 +275,15 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             // note : https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
             // sessionDiagnostics extension object uses a different spelling
             // here with an S !!!!
-            this._sessionDiagnostics.currentMonitoredItemsCount = this.currentMonitoredItemCount;
-            this._sessionDiagnostics.currentSubscriptionsCount = this.currentSubscriptionCount;
-            this._sessionDiagnostics.currentPublishRequestsInQueue = this.currentPublishRequestInQueue;
+            if (this._sessionDiagnostics.currentMonitoredItemsCount !== this.currentMonitoredItemCount) {
+                this._sessionDiagnostics.currentMonitoredItemsCount = this.currentMonitoredItemCount;
+            }
+            if (this._sessionDiagnostics.currentSubscriptionsCount !== this.currentSubscriptionCount) {
+                this._sessionDiagnostics.currentSubscriptionsCount = this.currentSubscriptionCount;
+            }
+            if (this._sessionDiagnostics.currentPublishRequestsInQueue !== this.currentPublishRequestInQueue) {
+                this._sessionDiagnostics.currentPublishRequestsInQueue = this.currentPublishRequestInQueue;
+            }
         }
     }
 

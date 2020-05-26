@@ -3,7 +3,7 @@
  * @module node-opcua-address-space
  */
 import { EventEmitter } from "events";
-import { Byte, ByteString, DateTime, Int64, UABoolean, UAString, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
+import { Byte, ByteString, DateTime, Int64, UABoolean, UAString, UInt16, UInt32, UInt64, Int32, Int16, SByte } from "node-opcua-basic-types";
 
 export type Duration = number;
 
@@ -260,15 +260,12 @@ export interface BindVariableOptionsVariation2 {
 }
 
 export interface BindVariableOptionsVariation3 {
-    refreshFunc: (callback: DataValueCallback) => void;
+    refreshFunc?: (callback: DataValueCallback) => void;
     historyRead?: any;
 }
 
 export type BindVariableOptions =
-    | {
-        historyRead?: any;
-    }
-    | BindVariableOptionsVariation1
+    BindVariableOptionsVariation1
     | BindVariableOptionsVariation2
     | BindVariableOptionsVariation3;
 
@@ -561,7 +558,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     setPermissions(permissions: Permissions): void;
 
-    bindVariable(options: BindVariableOptions, overwrite?: boolean): void;
+    bindVariable(options: BindVariableOptions | VariantLike, overwrite?: boolean): void;
 
     bindExtensionObject(optionalExtensionObject?: ExtensionObject): ExtensionObject | null;
 
@@ -595,7 +592,11 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
     once(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): this;
 }
 
-export interface AddDataItemOptions extends AddVariableOptions {
+export interface AddDataItemOptions extends AddVariableOptionsWithoutValue {
+
+    arrayType?: VariantArrayType;
+    value?: VariantLike | BindVariableOptions;
+
     /** @example  "(tempA -25) + tempB" */
     definition?: string;
     /** @example 0.5 */
@@ -608,6 +609,9 @@ export interface UADataItem extends UAVariable {
 }
 
 export interface AddAnalogDataItemOptions extends AddDataItemOptions {
+
+    value?: VariantLike | BindVariableOptions;
+
     engineeringUnitsRange?: {
         low: number;
         high: number;
@@ -656,7 +660,7 @@ export interface EnumValueTypeOptionsLike {
     description?: LocalizedTextLike | null;
 }
 
-export interface AddMultiStateValueDiscreteOptions extends AddVariableOptions {
+export interface AddMultiStateValueDiscreteOptions extends AddVariableOptionsWithoutValue {
     enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number };
     value?: number | Int64;
 }
@@ -688,6 +692,15 @@ export interface PseudoVariantBoolean {
     dataType: "Boolean" | DataType.Boolean;
     value: boolean;
 }
+export interface PseudoVariantDouble {
+    dataType: "Double" | DataType.Double;
+    value: number;
+}
+
+export interface PseudoVariantFloat {
+    dataType: "Float" | DataType.Float;
+    value: number;
+}
 
 export interface PseudoVariantNodeId {
     dataType: "NodeId" | DataType.NodeId;
@@ -697,6 +710,26 @@ export interface PseudoVariantNodeId {
 export interface PseudoVariantUInt32 {
     dataType: "UInt32" | DataType.UInt32;
     value: UInt32;
+}
+export interface PseudoVariantUInt16 {
+    dataType: "UInt16" | DataType.UInt16;
+    value: UInt16;
+}
+export interface PseudoVariantByte {
+    dataType: "UInt8" | DataType.Byte;
+    value: Byte;
+}
+export interface PseudoVariantInt32 {
+    dataType: "Int32" | DataType.UInt32;
+    value: Int32;
+}
+export interface PseudoVariantInt16 {
+    dataType: "Int16" | DataType.UInt16;
+    value: Int16;
+}
+export interface PseudoVariantSByte {
+    dataType: "SByte" | DataType.SByte;
+    value: SByte;
 }
 
 export interface PseudoVariantDateTime {
@@ -730,10 +763,21 @@ export interface PseudoVariantExtensionObject {
 }
 
 export interface PseudoVariantExtensionObjectArray {
-    dataType: "ExtensionObject";
+    dataType: "ExtensionObject" | DataType.ExtensionObject;
     arrayType: VariantArrayType.Array;
     value: object[];
 }
+
+export type PseudoVariantNumber =
+    | PseudoVariantUInt32
+    | PseudoVariantUInt16
+    | PseudoVariantByte
+    | PseudoVariantInt32
+    | PseudoVariantInt16
+    | PseudoVariantSByte
+    | PseudoVariantDouble
+    | PseudoVariantFloat
+    ;
 
 export type PseudoVariant =
     | PseudoVariantNull
@@ -745,7 +789,7 @@ export type PseudoVariant =
     | PseudoVariantDuration
     | PseudoVariantLocalizedText
     | PseudoVariantStatusCode
-    | PseudoVariantUInt32
+    | PseudoVariantNumber
     | PseudoVariantExtensionObject
     | PseudoVariantExtensionObjectArray;
 
@@ -1143,14 +1187,16 @@ export interface AddVariableTypeOptions extends AddBaseNodeOptions, VariableStuf
     value?: VariantLike;
 }
 
-export interface AddVariableOptions extends AddBaseNodeOptions, VariableStuff {
+export interface AddVariableOptionsWithoutValue extends AddBaseNodeOptions, VariableStuff {
+    permissions?: Permissions;
+}
+export interface AddVariableOptions extends AddVariableOptionsWithoutValue {
     /**
      * permissions
      */
     // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
-    permissions?: Permissions;
-    value?: VariantLike | BindVariableOptions | number | Int64;
+    value?: VariantLike | BindVariableOptions;
     postInstantiateFunc?: (node: UAVariable) => void;
 }
 
@@ -1201,11 +1247,11 @@ export interface AddMethodOptions {
 }
 
 export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, VariableStuff {
-    value?: number;
     enumStrings: string[]; // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
     permissions?: Permissions;
     postInstantiateFunc?: (node: UAVariable) => void;
+    value?: number;
 }
 
 export interface AddReferenceTypeOptions extends AddBaseNodeOptions {
@@ -1214,12 +1260,14 @@ export interface AddReferenceTypeOptions extends AddBaseNodeOptions {
     subtypeOf?: string | NodeId | UAReferenceType;
 }
 
-export interface AddTwoStateVariableOptions extends AddVariableOptions {
+export interface AddTwoStateVariableOptions extends AddVariableOptionsWithoutValue {
     falseState?: string;
     trueState?: string;
     optionals?: string[];
     isFalseSubStateOf?: NodeIdLike | BaseNode;
     isTrueSubStateOf?: NodeIdLike | BaseNode;
+
+    value?: boolean;
 }
 
 export interface CreateDataTypeOptions extends AddBaseNodeOptions {

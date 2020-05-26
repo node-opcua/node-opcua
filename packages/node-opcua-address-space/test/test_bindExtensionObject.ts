@@ -99,7 +99,7 @@ describe("Extension Object binding and sub  components\n", () => {
         addressSpace.dispose();
     });
 
-    describe("bindObject\n", () => {
+    describe("bindObject", () => {
 
         it("ZZ1 - should handle a Variable containing a ServiceCounterDataType", () => {
 

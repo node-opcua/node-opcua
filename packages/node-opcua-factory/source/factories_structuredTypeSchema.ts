@@ -146,6 +146,26 @@ export class StructuredTypeSchema extends TypeSchemaBase {
         this._possibleFields = this.fields.map((field) => field.name);
         this._baseSchema = null;
     }
+    public toString() {
+
+        const str: string[] = [];
+        str.push("name           = " + this.name);
+        str.push("baseType       = " + this.baseType);
+        str.push("id             = " + this.id.toString());
+        str.push("bitFields      = " + (this.bitFields ? this.bitFields.map((b) => b.name).join(" ") : undefined));
+        str.push("dataTypeNodeId = " + (this.dataTypeNodeId ? this.dataTypeNodeId.toString() : undefined));
+        str.push("documentation  = " + this.documentation);
+        str.push("encodingDefaultBinary  = " + this.encodingDefaultBinary?.toString());
+        str.push("encodingDefaultXml     = " + this.encodingDefaultXml?.toString());
+        str.push("encodingDefaultJson    = " + this.encodingDefaultJson?.toString());
+        for (const f of this.fields) {
+            str.push("  field   =  " + f.name.padEnd(30) + " isArray= " + (f.isArray ? true : false) + " " + f.fieldType.toString().padEnd(30) +
+                (f.switchBit !== undefined ? (" switchBit " + f.switchBit) : "") +
+                (f.switchValue !== undefined ? " switchValue    " + f.switchValue : ""));
+        }
+        return str.join("\n");
+
+    }
 }
 
 /**

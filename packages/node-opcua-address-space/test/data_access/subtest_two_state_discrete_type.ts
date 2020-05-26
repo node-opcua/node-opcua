@@ -27,10 +27,10 @@ export function subtest_two_state_discrete_type(maintest: any) {
             prop.browseName.toString().should.eql("1:MySwitch");
 
             prop.getPropertyByName("TrueState")!.readValue().value.toString()
-              .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=busy)");
+                .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=busy)");
 
             prop.getPropertyByName("FalseState")!.readValue().value.toString()
-              .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=idle)");
+                .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=idle)");
 
             prop.readValue().value.toString().should.eql("Variant(Scalar<Boolean>, value: false)");
         });

@@ -900,7 +900,7 @@ export class UANamespace implements NamespacePublic {
             throw new Error("expecting AnalogItemType to be defined , check nodeset xml file");
         }
 
-        let clone_options = _.clone(options);
+        let clone_options = _.clone(options) as AddVariableOptions;
 
         clone_options = _.extend(clone_options, {
             dataType,
@@ -947,6 +947,8 @@ export class UANamespace implements NamespacePublic {
                 dataType: DataType.ExtensionObject, value: new Range(options.engineeringUnitsRange)
             })
         }) as UAVariable;
+
+        assert(euRange.readValue().value.value instanceof Range);
 
         const handler = variable.handle_semantic_changed.bind(variable);
         euRange.on("value_changed", handler);
@@ -1068,7 +1070,7 @@ export class UANamespace implements NamespacePublic {
             options.value = enumValues[0].value; // Int64
         }
 
-        let cloned_options = _.clone(options);
+        let cloned_options = _.clone(options) as AddVariableOptions;
         cloned_options = _.extend(cloned_options, {
             dataType: "Number",
             typeDefinition: multiStateValueDiscreteType.nodeId,
@@ -1679,6 +1681,7 @@ export class UANamespace implements NamespacePublic {
         }
 
         // todo : if options.typeDefinition is specified,
+        // todo : refactor to use twoStateDiscreteType.instantiate
 
         const variable = namespace.addVariable({
             accessLevel: options.accessLevel,
@@ -1690,6 +1693,9 @@ export class UANamespace implements NamespacePublic {
             userAccessLevel: options.userAccessLevel,
             value: new Variant({ dataType: DataType.Boolean, value: !!options.value })
         }) as UAVariable;
+
+        const dataValueVerif = variable.readValue();
+        assert(dataValueVerif.value.dataType === DataType.Boolean);
 
         const handler = variable.handle_semantic_changed.bind(variable);
 

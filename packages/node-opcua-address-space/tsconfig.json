@@ -1,136 +1,135 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "",
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": [
-    "source/**/*.ts",
-    "src/**/*.ts",
-    "test_helpers/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../node-opcua-assert"
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "",
+        "outDir": "dist",
+        "composite": true
     },
-    {
-      "path": "../node-opcua-basic-types"
+    "ts-node": {
+        "compilerOptions": {
+            "inlineSourceMap": true
+        },
+        "include": ["test_helpers/*.ts"]
     },
-    {
-      "path": "../node-opcua-client-dynamic-extension-object"
-    },
-    {
-      "path": "../node-opcua-common"
-    },
-    {
-      "path": "../node-opcua-constants"
-    },
-    {
-      "path": "../node-opcua-data-access"
-    },
-    {
-      "path": "../node-opcua-data-model"
-    },
-    {
-      "path": "../node-opcua-data-value"
-    },
-    {
-      "path": "../node-opcua-date-time"
-    },
-    {
-      "path": "../node-opcua-debug"
-    },
-    {
-      "path": "../node-opcua-enum"
-    },
-    {
-      "path": "../node-opcua-factory"
-    },
-    {
-      "path": "../node-opcua-nodeid"
-    },
-    {
-      "path": "../node-opcua-numeric-range"
-    },
-    {
-      "path": "../node-opcua-object-registry"
-    },
-    {
-      "path": "../node-opcua-pseudo-session"
-    },
-    {
-      "path": "../node-opcua-schemas"
-    },
-    {
-      "path": "../node-opcua-service-browse"
-    },
-    {
-      "path": "../node-opcua-service-call"
-    },
-    {
-      "path": "../node-opcua-service-filter"
-    },
-    {
-      "path": "../node-opcua-service-history"
-    },
-    {
-      "path": "../node-opcua-service-session"
-    },
-    {
-      "path": "../node-opcua-service-translate-browse-path"
-    },
-    {
-      "path": "../node-opcua-service-write"
-    },
-    {
-      "path": "../node-opcua-status-code"
-    },
-    {
-      "path": "../node-opcua-types"
-    },
-    {
-      "path": "../node-opcua-utils"
-    },
-    {
-      "path": "../node-opcua-variant"
-    },
-    {
-      "path": "../node-opcua-xml2json"
-    },
-    {
-      "path": "../node-opcua-benchmarker"
-    },
-    {
-      "path": "../node-opcua-binary-stream"
-    },
-    {
-      "path": "../node-opcua-buffer-utils"
-    },
-    {
-      "path": "../node-opcua-extension-object"
-    },
-    {
-      "path": "../node-opcua-generator"
-    },
-    {
-      "path": "../node-opcua-guid"
-    },
-    {
-      "path": "../node-opcua-leak-detector"
-    },
-    {
-      "path": "../node-opcua-nodesets"
-    },
-    {
-      "path": "../node-opcua-packet-analyzer"
-    },
-    {
-      "path": "../node-opcua-test-fixtures"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "include": ["source/**/*.ts", "src/**/*.ts", "test_helpers/*.ts"],
+    "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-basic-types"
+        },
+        {
+            "path": "../node-opcua-client-dynamic-extension-object"
+        },
+        {
+            "path": "../node-opcua-common"
+        },
+        {
+            "path": "../node-opcua-constants"
+        },
+        {
+            "path": "../node-opcua-data-access"
+        },
+        {
+            "path": "../node-opcua-data-model"
+        },
+        {
+            "path": "../node-opcua-data-value"
+        },
+        {
+            "path": "../node-opcua-date-time"
+        },
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-enum"
+        },
+        {
+            "path": "../node-opcua-factory"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-numeric-range"
+        },
+        {
+            "path": "../node-opcua-object-registry"
+        },
+        {
+            "path": "../node-opcua-pseudo-session"
+        },
+        {
+            "path": "../node-opcua-schemas"
+        },
+        {
+            "path": "../node-opcua-service-browse"
+        },
+        {
+            "path": "../node-opcua-service-call"
+        },
+        {
+            "path": "../node-opcua-service-filter"
+        },
+        {
+            "path": "../node-opcua-service-history"
+        },
+        {
+            "path": "../node-opcua-service-session"
+        },
+        {
+            "path": "../node-opcua-service-translate-browse-path"
+        },
+        {
+            "path": "../node-opcua-service-write"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-types"
+        },
+        {
+            "path": "../node-opcua-utils"
+        },
+        {
+            "path": "../node-opcua-variant"
+        },
+        {
+            "path": "../node-opcua-xml2json"
+        },
+        {
+            "path": "../node-opcua-benchmarker"
+        },
+        {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
+            "path": "../node-opcua-buffer-utils"
+        },
+        {
+            "path": "../node-opcua-extension-object"
+        },
+        {
+            "path": "../node-opcua-generator"
+        },
+        {
+            "path": "../node-opcua-guid"
+        },
+        {
+            "path": "../node-opcua-leak-detector"
+        },
+        {
+            "path": "../node-opcua-nodesets"
+        },
+        {
+            "path": "../node-opcua-packet-analyzer"
+        },
+        {
+            "path": "../node-opcua-test-fixtures"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

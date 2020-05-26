@@ -15,7 +15,7 @@ import { ObjectRegistry } from "node-opcua-object-registry";
 import { BrowseResult } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import {
-    BrowseDescription,
+    BrowseDescription,  
     BrowsePath,
     BrowsePathResult,
     BrowsePathTargetOptions,

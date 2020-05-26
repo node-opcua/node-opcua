@@ -400,9 +400,13 @@ describe("DS3 - Discovery server - many server", function() {
         console.log(server.certificateFile);
         const certificate = await server.getCertificate();
         const certIngo = await exploreCertificate(certificate);
-        console.log(certIngo);
+        if (doDebug) {
+            console.log(certIngo);
+        }
         const status = await discoveryServer.serverCertificateManager.verifyCertificate(certificate);
-        console.log(status);
+        if (doDebug) {
+            console.log(status);
+        }
     }
     function start_all_servers(done) {
         registeredServerCount = 0;

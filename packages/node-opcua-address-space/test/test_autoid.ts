@@ -37,8 +37,17 @@ describe("Testing AutoID custom types", async function (this: any) {
 
     it("should construct a ScanSettings", () => {
 
+        enum LocationTypeEnumeration {
+            NMEA = 0,// An NMEA string representing a coordinate as defined in 9.1.2.
+            LOCAL = 2,// A local coordinate as defined in 9.3.4
+            WGS84 = 4,// A lat / lon / alt coordinate as defined in 9.3.16
+            NAME = 5 //A name for a location as defined in 9.1.1
+        }
         interface ScanSettings extends ExtensionObject {
-
+            duration: number;
+            cycles: number;
+            dataAvailable: boolean;
+            locationType?: LocationTypeEnumeration;
         }
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         nsAutoId.should.eql(2);
@@ -48,7 +57,6 @@ describe("Testing AutoID custom types", async function (this: any) {
 
         const settings = addressSpace.constructExtensionObject(scanSettingsDataTypeNode, {
         }) as ScanSettings;
-
     });
 
     function encode_decode(obj: Variant): Variant {
@@ -78,6 +86,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         nsAutoId.should.eql(2);
 
         const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
+
         should.exist(rfidScanResultDataTypeNode);
         const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
             // ScanResult
@@ -104,7 +113,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         }) as ScanResult;
 
         console.log("scanResult = ", scanResult.toString());
-        console.log(scanResult.schema);
+        //xx console.log(scanResult.schema);
 
         const v = new Variant({
             dataType: DataType.ExtensionObject,
@@ -116,7 +125,6 @@ describe("Testing AutoID custom types", async function (this: any) {
         await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
 
         console.log(reload_v.toString());
-
         console.log(scanResult.toString());
 
     });
@@ -141,10 +149,60 @@ describe("Testing AutoID custom types", async function (this: any) {
             dataType: rfidScanResultDataTypeNode,
             value: { dataType: DataType.ExtensionObject, value: scanResult }
         });
-
-
-        console.log(scanResultNode.toString());
+        //        console.log(scanResultNode.toString());
 
     });
 
+    it("test RfidScanResult", async () => {
+
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+
+        const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
+        if (!rfidScanResultDataTypeNode) {
+            throw new Error("cannot find RfidScanResult");
+        }
+
+        const namespace = addressSpace.getOwnNamespace();
+
+        const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
+            // ScanResult
+            scanData: {
+                epc: {
+                    pC: 12,
+                    uId: Buffer.from("Hello"),
+                    xpC_W1: 10,
+                    xpC_W2: 12
+                },
+            },
+            timestamp: new Date(2018, 11, 23),
+
+            location: {
+                local: {
+                    x: 100,
+                    y: 200,
+                    z: 300,
+
+                    dilutionOfPrecision: 0.01,
+                    timestamp: new Date(),
+                    usefulPrecicision: 2  // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
+                }
+            }
+        });
+
+        const v = new Variant({
+            dataType: DataType.ExtensionObject,
+            value: scanResult
+        });
+        const reload_v = encode_decode(v);
+
+        const extraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
+        await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
+
+        // tslint:disable-next-line: no-console
+        console.log(reload_v.toString());
+        // tslint:disable-next-line: no-console
+        console.log(scanResult.toString());
+
+
+    });
 });
