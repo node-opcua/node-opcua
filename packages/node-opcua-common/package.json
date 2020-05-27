@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-common",
-    "version": "2.6.0-alpha.1",
+    "version": "2.6.0-alpha.6",
     "description": "pure nodejs OPCUA SDK - module -common",
     "scripts": {
         "test-typescript": "npx mocha",
@@ -17,15 +17,15 @@
         "node-opcua-data-model": "^2.6.0-alpha.1",
         "node-opcua-factory": "^2.6.0-alpha.1",
         "node-opcua-nodeid": "^2.6.0-alpha.1",
-        "node-opcua-service-endpoints": "^2.6.0-alpha.1",
-        "node-opcua-service-secure-channel": "^2.6.0-alpha.1",
-        "node-opcua-types": "^2.6.0-alpha.1",
+        "node-opcua-service-endpoints": "^2.6.0-alpha.6",
+        "node-opcua-service-secure-channel": "^2.6.0-alpha.6",
+        "node-opcua-types": "^2.6.0-alpha.6",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
         "@types/mocha": "^7.0.2",
         "@types/node": "^14.0.1",
-        "node-opcua-generator": "^2.6.0-alpha.1",
+        "node-opcua-generator": "^2.6.0-alpha.6",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
