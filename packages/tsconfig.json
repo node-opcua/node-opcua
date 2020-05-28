@@ -13,7 +13,7 @@
         "noStrictGenericChecks": false,
         "noImplicitThis": true,
         "skipLibCheck": false,
-        "removeComments": true,
+        "removeComments": false /* to prevent Istanbul  ignore statement in comment to disapper */,
         "outDir": "dist",
         "incremental": true,
         "composite": true
