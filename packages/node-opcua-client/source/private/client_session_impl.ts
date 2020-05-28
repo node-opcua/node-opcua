@@ -6,7 +6,7 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import * as aggregates from "node-opcua-aggregates"
+import { AggregateFunction } from "node-opcua-aggregates"
 import { DateTime } from "node-opcua-basic-types";
 import {
     ExtraDataTypeManager,
@@ -52,7 +52,8 @@ import {
     HistoryReadResponse,
     HistoryReadResult,
     ReadRawModifiedDetails,
-    ReadProcessedDetails
+    ReadProcessedDetails,
+
 } from "node-opcua-service-history";
 import {
     QueryFirstRequest,
@@ -117,7 +118,8 @@ import {
 } from "node-opcua-status-code";
 import {
     BrowseNextRequest,
-    BrowseNextResponse
+    BrowseNextResponse,
+    HistoryReadValueIdOptions
 } from "node-opcua-types";
 import {
     buffer_ellipsis,
@@ -805,57 +807,62 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      *   "2015-06-10T09:01:00.000Z", 'Average', 3600000);
      * ```
      * @param nodes   the read value id
-     * @param start   the start time in UTC format
-     * @param end     the end time in UTC format
+     * @param startTime   the start time in UTC format
+     * @param endTime     the end time in UTC format
      * @param aggregateFn
      * @param processingInterval in milliseconds
      * @param callback
      */
     public readAggregateValue(
-        nodes: ReadValueIdLike[],
-        start: DateTime,
-        end: DateTime,
-        aggregateFn: String,
-        processingInterval: Number,
-        callback: (err: Error | null, results?: HistoryReadResult[]) => void): void;
+        nodes: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        callback: Callback<HistoryReadResult[]>
+    ): void;
     public async readAggregateValue(
-        nodes: ReadValueIdLike[],
-        start: DateTime,
-        end: DateTime,
-        aggregateFn: String,
-        processingInterval: Number,
+        nodes: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
     ): Promise<HistoryReadResult[]>;
+    public readAggregateValue(
+        nodes: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        callback: Callback<HistoryReadResult>
+    ): void;
+    public async readAggregateValue(
+        nodes: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+    ): Promise<HistoryReadResult>;
 
-    public readAggregateValue(...args: any[]): any {
+    public readAggregateValue(
+        arg0: HistoryReadValueIdOptions[] | HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number, ...args: any[]): any {
 
-        const start = args[1];
-        const end = args[2];
-        const aggregateFn = aggregates.AggregateFunction[args[3]];
-        const processingInterval = args[4];
-        const callback = args[4];
+        const callback = args[0];
         assert(_.isFunction(callback));
 
-        const arg0 = args[0];
         const isArray = _.isArray(arg0);
 
-        const nodes = isArray ? arg0 : [arg0];
-
-        const nodesToRead = [];
-
-        for (const node of nodes) {
-            nodesToRead.push({
-                continuationPoint: undefined,
-                dataEncoding: undefined, // {namespaceIndex: 0, name: undefined},
-                indexRange: undefined,
-                nodeId: resolveNodeId(node)
-            });
-        }
+        const nodesToRead: HistoryReadValueIdOptions[] = isArray ? arg0 as HistoryReadValueIdOptions[] : [arg0 as HistoryReadValueIdOptions];
 
         const readProcessedDetails = new ReadProcessedDetails({
-            startTime: start,
-            endTime: end,
             aggregateType: [aggregateFn],
-            processingInterval: processingInterval
+            endTime,
+            processingInterval,
+            startTime,
         });
 
         const request = new HistoryReadRequest({
@@ -865,9 +872,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             timestampsToReturn: TimestampsToReturn.Both
         });
 
-        request.nodesToRead = request.nodesToRead || [];
-
-        assert(nodes.length === request.nodesToRead.length);
+        assert(nodesToRead.length === request.nodesToRead!.length);
         this.performMessageTransaction(request, (err: Error | null, response) => {
 
             /* istanbul ignore next */
@@ -886,7 +891,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
             response.results = response.results || /* istanbul ignore next */[];
 
-            assert(nodes.length === response.results.length);
+            assert(nodesToRead.length === response.results.length);
 
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1058,8 +1063,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
     public writeSingleNode(...args: any[]): any {
 
-        const nodeId = args[0];
-        const value = args[1];
+        const nodeId = args[0] as NodeIdLike;
+        const value = args[1] as VariantLike;
         const callback = args[2];
 
         assert(_.isFunction(callback));

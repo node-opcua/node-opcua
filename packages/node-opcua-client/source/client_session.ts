@@ -101,6 +101,8 @@ export type SubscriptionId = number;
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
+import { AggregateFunction } from "node-opcua-aggregates";
+import { HistoryReadValueIdOptions } from "node-opcua-types";
 export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
@@ -504,7 +506,66 @@ export interface ClientSessionReadHistoryService {
         end: DateTime
     ): Promise<HistoryReadResult>;
 
+    /**
+     * @method readAggregateValue
+     * @async
+     *
+     * @example
+     *
+     * ```javascript
+     * //  es5
+     * session.readAggregateValue(
+     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   "2015-06-10T09:00:00.000Z",
+     *   "2015-06-10T09:01:00.000Z", AggregateFunction.Average, 3600000, function(err,dataValues) {
+     *
+     * });
+     * ```
+     *
+     * ```javascript
+     * //  es6
+     * const dataValues = await session.readAggregateValue(
+     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   "2015-06-10T09:00:00.000Z",
+     *   "2015-06-10T09:01:00.000Z", AggregateFunction.Average, 3600000);
+     * ```
+     * @param nodes   the read value id
+     * @param startTime   the start time in UTC format
+     * @param endTime     the end time in UTC format
+     * @param aggregateFn
+     * @param processingInterval in milliseconds
+     * @param callback
+     */
+    readAggregateValue(
+        nodes: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        callback: Callback<HistoryReadResult[]>): void;
+    readAggregateValue(
+        nodes: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+    ): Promise<HistoryReadResult[]>;
+    readAggregateValue(
+        nodes: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        callback: Callback<HistoryReadResult>): void;
+    readAggregateValue(
+        nodes: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+    ): Promise<HistoryReadResult>;
 }
+
 
 export interface ClientSessionDataTypeService {
 
