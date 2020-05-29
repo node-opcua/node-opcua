@@ -22,7 +22,6 @@ import { CallbackT } from "node-opcua-status-code";
 import { ObjectIds } from "node-opcua-constants";
 import { NodeId } from "node-opcua-nodeid";
 
-
 import { DataType } from "node-opcua-variant";
 import {
   AddressSpace as AddressSpacePublic,

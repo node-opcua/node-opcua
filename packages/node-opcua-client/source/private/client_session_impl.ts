@@ -2438,7 +2438,7 @@ async function promoteOpaqueStructure3(
     // construct dataTypeManager if not already present
     const extraDataTypeManager = await getExtraDataTypeManager(session);
 
-    const promises: Array<Promise<void>> = callMethodResults.map(
+    const promises: Promise<void>[] = callMethodResults.map(
         async (x: CallMethodResult) => promoteOpaqueStructure2(session, x));
     await Promise.all(promises);
 }
