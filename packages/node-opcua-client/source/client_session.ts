@@ -566,7 +566,6 @@ export interface ClientSessionReadHistoryService {
     ): Promise<HistoryReadResult>;
 }
 
-
 export interface ClientSessionDataTypeService {
 
     /**

@@ -12,8 +12,10 @@
     "dependencies": {
         "@types/async": "^3.2.2",
         "node-opcua-address-space": "^2.6.0-alpha.7",
+        "node-opcua-numeric-range": "^2.6.0-alpha.7",
         "node-opcua-constants": "^2.6.0-alpha.1",
         "node-opcua-data-value": "^2.6.0-alpha.7",
+        "node-opcua-data-model": "^2.6.0-alpha.7",
         "node-opcua-nodeid": "^2.6.0-alpha.1",
         "node-opcua-nodesets": "^2.6.0-alpha.1",
         "node-opcua-service-history": "^2.6.0-alpha.7",

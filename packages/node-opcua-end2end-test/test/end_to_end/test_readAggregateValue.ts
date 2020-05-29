@@ -73,27 +73,24 @@ describe("test readAggregateValue", () => {
         const parameters = {};
         await client.withSubscriptionAsync(endpointUrl, parameters, async (session: ClientSession, subscription: ClientSubscription) => {
 
-            try {
-                const nodes: ReadValueIdOptions = { nodeId: h1NodeId };
+            const nodes: ReadValueIdOptions = { nodeId: h1NodeId };
 
-                const startTime = makeDate("12:00:00");
-                const endTime = makeDate("12:01:40");
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
 
-                const processingInterval = 16 * 1000;
-                const result = await session.readAggregateValue(
-                    nodes,
-                    startTime,
-                    endTime,
-                    AggregateFunction.Maximum,
-                    processingInterval);
+            const processingInterval = 16 * 1000;
+            const result = await session.readAggregateValue(
+                nodes,
+                startTime,
+                endTime,
+                AggregateFunction.Maximum,
+                processingInterval);
 
-                // for the time being readAggregateValue is not implemented on server yet
-                result.statusCode.should.eql(StatusCodes.BadHistoryOperationUnsupported);
-                // xx console.log(result.toString());
+            // for the time being readAggregateValue is not implemented on server yet
+            result.statusCode.should.eql(StatusCodes.Good);
+            console.log(result.toString());
 
-            } catch (err) {
-                console.log("err", err);
-            }
+
         });
     });
 });

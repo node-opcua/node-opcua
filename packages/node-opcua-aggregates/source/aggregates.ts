@@ -8,6 +8,8 @@ import { DataType } from "node-opcua-variant";
 
 import { AddressSpace, BaseNode, UAObject, UAServerCapabilities, UAVariable } from "node-opcua-address-space";
 import { AggregateConfigurationOptionsEx } from "./interval";
+import { AddressSpacePrivate } from "node-opcua-address-space/src/address_space_private";
+import { readProcessedDetails } from "./read_processed_details";
 // import { HistoryServerCapabilities } from "node-opcua-server";
 
 /*
@@ -44,8 +46,8 @@ const historicalCapabilitiesDefaultProperties /*: HistoryServerCapabilities */ =
 };
 
 export function createHistoryServerCapabilities(
-  addressSpace: AddressSpace,
-  serverCapabilities: UAServerCapabilities
+    addressSpace: AddressSpace,
+    serverCapabilities: UAServerCapabilities
 ): UAObject {
 
     /* istanbul ignore next */
@@ -66,8 +68,8 @@ export function createHistoryServerCapabilities(
 }
 
 function setHistoricalServerCapabilities(
-  historyServerCapabilities: any,
-  defaultProperties: any
+    historyServerCapabilities: any,
+    defaultProperties: any
 ) {
     function setBoolean(propName: string) {
         const lowerCase = utils.lowerFirstLetter(propName);
@@ -120,45 +122,45 @@ function setHistoricalServerCapabilities(
 }
 
 export type AggregateFunctionName =
-  "AnnotationCount" |
-  "Average" |
-  "Count" |
-  "Delta" |
-  "DeltaBounds" |
-  "DurationBad" |
-  "DurationGood" |
-  "DurationInStateNonZero" |
-  "DurationInStateZero" |
-  "EndBound" |
-  "Interpolative" |
-  "Maximum" |
-  "Maximum2" |
-  "MaximumActualTime" |
-  "MaximumActualTime2" |
-  "Minimum" |
-  "Minimum2" |
-  "MinimumActualTime" |
-  "MinimumActualTime2" |
-  "NumberOfTransitions" |
-  "PercentBad" |
-  "PercentGood" |
-  "Range" |
-  "Range2" |
-  "StandardDeviationPopulation" |
-  "StandardDeviationSample" |
-  "Start" |
-  "StartBound" |
-  "TimeAverage" |
-  "TimeAverage2" |
-  "Total" |
-  "Total2" |
-  "VariancePopulation" |
-  "VarianceSample" |
-  "WorstQuality" |
-  "WorstQuality2";
+    "AnnotationCount" |
+    "Average" |
+    "Count" |
+    "Delta" |
+    "DeltaBounds" |
+    "DurationBad" |
+    "DurationGood" |
+    "DurationInStateNonZero" |
+    "DurationInStateZero" |
+    "EndBound" |
+    "Interpolative" |
+    "Maximum" |
+    "Maximum2" |
+    "MaximumActualTime" |
+    "MaximumActualTime2" |
+    "Minimum" |
+    "Minimum2" |
+    "MinimumActualTime" |
+    "MinimumActualTime2" |
+    "NumberOfTransitions" |
+    "PercentBad" |
+    "PercentGood" |
+    "Range" |
+    "Range2" |
+    "StandardDeviationPopulation" |
+    "StandardDeviationSample" |
+    "Start" |
+    "StartBound" |
+    "TimeAverage" |
+    "TimeAverage2" |
+    "Total" |
+    "Total2" |
+    "VariancePopulation" |
+    "VarianceSample" |
+    "WorstQuality" |
+    "WorstQuality2";
 
 function addAggregateFunctionSupport(
-  addressSpace: AddressSpace, functionName: number): void {
+    addressSpace: AddressSpace, functionName: number): void {
 
     /* istanbul ignore next */
     if (!functionName) {
@@ -193,7 +195,6 @@ function addAggregateFunctionSupport(
         referenceType: "Organizes"
     });
 }
-
 
 export enum AggregateFunction {
     AnnotationCount = ObjectIds.AggregateFunction_AnnotationCount,
@@ -273,11 +274,14 @@ export function addAggregateSupport(addressSpace: AddressSpace) {
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Minimum);
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Maximum);
 
+    const addressSpaceInternal = addressSpace as AddressSpacePrivate;
+    addressSpaceInternal._readProcessedDetails = readProcessedDetails;
+
 }
 
 export function installAggregateConfigurationOptions(
-  node: UAVariable,
-  options: AggregateConfigurationOptionsEx
+    node: UAVariable,
+    options: AggregateConfigurationOptionsEx
 ) {
     const nodePriv = node as any;
     const aggregateConfiguration = nodePriv.$historicalDataConfiguration.aggregateConfiguration;
