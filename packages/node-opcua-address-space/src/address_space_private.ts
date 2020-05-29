@@ -1,25 +1,46 @@
 /**
  * @module node-opcua-address-space.Private
  */
-import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import { NodeClass } from "node-opcua-data-model";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { BrowsePath, ModelChangeStructureDataType } from "node-opcua-types";
+import {
+  ExtraDataTypeManager
+} from "node-opcua-client-dynamic-extension-object";
+import {
+  NodeClass, QualifiedNameLike
+} from "node-opcua-data-model";
+import {
+  ExtensionObject
+} from "node-opcua-extension-object";
+import {
+  NodeId, NodeIdLike
+} from "node-opcua-nodeid";
+import {
+  BrowsePath, ModelChangeStructureDataType, ReadProcessedDetails, HistoryReadResult
+} from "node-opcua-types";
+import {
+  ConstructorFuncWithSchema
+} from "node-opcua-factory";
+import {
+  NumericRange
+} from "node-opcua-numeric-range";
+import {
+  CallbackT
+} from "node-opcua-status-code";
 
 import {
   AddReferenceOpts,
   AddressSpace,
   BaseNode as BaseNodePublic,
   UADataType,
-  UAView
+  UAView,
+  SessionContext,
+  ContinuationPoint
 } from "../source";
 import { NamespacePrivate } from "./namespace_private";
 import { Reference } from "./reference";
 import { UAObjectType } from "./ua_object_type";
 import { UAVariableType } from "./ua_variable_type";
-import { ConstructorFuncWithSchema } from "node-opcua-factory/source";
 import { ExtensionObjectConstructorFuncWithSchema } from "./ua_data_type";
+import { UAVariable } from "./ua_variable";
 
 export interface AddressSpacePrivate extends AddressSpace {
 
@@ -76,5 +97,15 @@ export interface AddressSpacePrivate extends AddressSpace {
   deleteNode(nodeId: NodeId): void;
 
   getDataTypeManager(): ExtraDataTypeManager;
+
+  ///
+  _readProcessedDetails?: (variable: UAVariable,
+    context: SessionContext,
+    historyReadDetails: ReadProcessedDetails,
+    indexRange: NumericRange | null,
+    dataEncoding: QualifiedNameLike | null,
+    continuationPoint: ContinuationPoint | null,
+    callback: CallbackT<HistoryReadResult>
+  ) => void;
 
 }

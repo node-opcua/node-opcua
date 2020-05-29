@@ -100,7 +100,7 @@ function calculateIntervalMinOrMaxValue(
             continue;
         }
         const compare = predicate(selectedValue, dataValue.value);
-        if (compare === "equal")  {
+        if (compare === "equal") {
             counter = 1;
             continue;
         }
@@ -145,13 +145,13 @@ function calculateIntervalMinOrMaxValue(
 export function calculateIntervalMinValue(interval: Interval, options: AggregateConfigurationOptions): DataValue {
     return calculateIntervalMinOrMaxValue(interval, options,
         (a: Variant, b: Variant) =>
-                    a.value > b.value ? "select" : (a.value === b.value ? "equal" : "reject") );
+            a.value > b.value ? "select" : (a.value === b.value ? "equal" : "reject"));
 }
 
 export function calculateIntervalMaxValue(interval: Interval, options: AggregateConfigurationOptions): DataValue {
     return calculateIntervalMinOrMaxValue(interval, options,
         (a: Variant, b: Variant) =>
-            a.value < b.value ? "select" : (a.value === b.value ? "equal" : "reject") );
+            a.value < b.value ? "select" : (a.value === b.value ? "equal" : "reject"));
 }
 
 // From OPC Unified Architecture, Part 13 26 Release 1.04
