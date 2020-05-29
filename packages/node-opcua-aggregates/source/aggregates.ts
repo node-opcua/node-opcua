@@ -273,6 +273,7 @@ export function addAggregateSupport(addressSpace: AddressSpace) {
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Interpolative);
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Minimum);
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Maximum);
+    addAggregateFunctionSupport(addressSpace, AggregateFunction.Average);
 
     const addressSpaceInternal = addressSpace as AddressSpacePrivate;
     addressSpaceInternal._readProcessedDetails = readProcessedDetails;

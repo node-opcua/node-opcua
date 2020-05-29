@@ -79,17 +79,40 @@ describe("test readAggregateValue", () => {
             const endTime = makeDate("12:01:40");
 
             const processingInterval = 16 * 1000;
-            const result = await session.readAggregateValue(
+            const resultMax = await session.readAggregateValue(
                 nodes,
                 startTime,
                 endTime,
                 AggregateFunction.Maximum,
                 processingInterval);
 
-            // for the time being readAggregateValue is not implemented on server yet
-            result.statusCode.should.eql(StatusCodes.Good);
-            console.log(result.toString());
+            resultMax.statusCode.should.eql(StatusCodes.Good);
 
+            const resultMin = await session.readAggregateValue(
+                nodes,
+                startTime,
+                endTime,
+                AggregateFunction.Minimum,
+                processingInterval);
+            resultMin.statusCode.should.eql(StatusCodes.Good);
+
+            const resultAvg = await session.readAggregateValue(
+                nodes,
+                startTime,
+                endTime,
+                AggregateFunction.Average,
+                processingInterval);
+            resultAvg.statusCode.should.eql(StatusCodes.Good);
+            // tslint:disable-next-line: no-console
+            console.log(resultAvg.toString());
+
+            const resultStdSample = await session.readAggregateValue(
+                nodes,
+                startTime,
+                endTime,
+                AggregateFunction.StandardDeviationSample,
+                processingInterval);
+            resultStdSample.statusCode.should.eql(StatusCodes.BadAggregateNotSupported);
 
         });
     });

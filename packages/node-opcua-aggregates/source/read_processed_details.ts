@@ -13,6 +13,9 @@ import {
     HistoryReadResult, ReadAtTimeDetails, ReadEventDetails, ReadProcessedDetails,
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
+import { AggregateFunction } from "./aggregates";
+import { getInterpolatedData } from "./interpolate";
+import { getAverageData } from "./average";
 
 export function readProcessedDetails(
     variable: UAVariable,
@@ -74,69 +77,52 @@ export function readProcessedDetails(
     const startTime = historyReadDetails.startTime;
     const endTime = historyReadDetails.endTime;
     if (!startTime || !endTime) {
-        const result = new HistoryReadResult({
-            historyData: new HistoryData({}),
-            statusCode: StatusCodes.BadInvalidArgument
-        });
-        return callback(null, result);
+        return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument }));
     }
-
-    let dataValues: DataValue[] = [];
+    if (startTime.getTime() === endTime.getTime()) {
+        // Start = End Int = Anything No intervals. Returns a Bad_InvalidArgument StatusCode,
+        // regardless of whether there is data at the specified time or not
+        return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument }));
+    }
 
     const aggregateType: NodeId[] = historyReadDetails.aggregateType || [];
 
-    const processingInterval = historyReadDetails.processingInterval;
+    // If the ProcessingInterval is specified as 0 then Aggregates shall be calculated using one interval
+    // starting at startTime and ending at endTime.
+    const processingInterval = historyReadDetails.processingInterval || (endTime.getTime() - startTime.getTime());
 
+    function buildResult(err: Error | null, dataValues?: DataValue[]) {
+        if (err) {
+            return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInternalError }));
+        }
+        const result = new HistoryReadResult({
+            historyData: new HistoryData({
+                dataValues
+            }),
+            statusCode: StatusCodes.Good
+        });
+        return callback(null, result);
+    }
     // tslint:disable-next-line: prefer-for-of
     for (let i = 0; i < aggregateType.length; i++) {
 
         switch (aggregateType[0].value) {
-            case ObjectIds.AggregateFunction_Minimum:
-                getMinData(variable, processingInterval, startTime, endTime, (err: Error | null, dataValues?: DataValue[]) => {
-                    if (err) {
-                        const result = new HistoryReadResult({
-                            historyData: new HistoryData(),
-                            statusCode: StatusCodes.BadInternalError
-                        });
-                        return callback(null, result);
-                    }
-                    const result = new HistoryReadResult({
-                        historyData: new HistoryData({
-                            dataValues
-                        }),
-                        statusCode: StatusCodes.Good
-                    });
-                    return callback(null, result);
-                });
+            case AggregateFunction.Minimum:
+                getMinData(variable, processingInterval, startTime, endTime, buildResult);
                 break;
-            case ObjectIds.AggregateFunction_Maximum:
-                getMaxData(variable, processingInterval, startTime, endTime, (err: Error | null, dataValues?: DataValue[]) => {
-                    if (err) {
-                        const result = new HistoryReadResult({
-                            historyData: new HistoryData(),
-                            statusCode: StatusCodes.BadInternalError
-                        });
-                        return callback(null, result);
-                    }
-                    const result = new HistoryReadResult({
-                        historyData: new HistoryData({
-                            dataValues
-                        }),
-                        statusCode: StatusCodes.Good
-                    });
-                    return callback(null, result);
-                });
+            case AggregateFunction.Maximum:
+                getMaxData(variable, processingInterval, startTime, endTime, buildResult);
                 break;
+            case AggregateFunction.Interpolative:
+                getInterpolatedData(variable, processingInterval, startTime, endTime, buildResult);
+                break;
+            case AggregateFunction.Average:
+                getAverageData(variable, processingInterval, startTime, endTime, buildResult);
+                break;
+            case AggregateFunction.Count:
             default:
                 // todo provide correct implementation
-                const result = new HistoryReadResult({
-                    historyData: new HistoryData({}),
-                    statusCode: StatusCodes.BadAggregateNotSupported
-                });
-                return callback(null, result);
-
+                return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadAggregateNotSupported }));
         }
     }
-
-    return;
 }

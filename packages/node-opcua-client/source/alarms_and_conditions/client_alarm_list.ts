@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
-import { ClientAlarm , EventStuff} from "./client_alarm";
+import { ClientAlarm, EventStuff } from "./client_alarm";
 
 export interface ClientAlarmList {
     on(eventName: "alarmChanged", handler: (alarm: ClientAlarm) => void): this;
@@ -43,7 +43,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
 
     public update(eventField: EventStuff) {
 
-        // Spec says: 
+        // Spec says:
         // Clients shall check for multiple Event Notifications for a ConditionBranch to avoid
         // overwriting a new state delivered together with an older state from the Refresh
         // process.

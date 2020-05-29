@@ -17,6 +17,7 @@ import {
     createHistorian4
 } from "./helpers/create_historizing_variables";
 import { makeDate } from "./helpers/helpers";
+import { getAverageData } from "../source/average";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -453,6 +454,171 @@ describe("Aggregates - Function ", () => {
                 done();
             });
     });
+
+    it("Aggregate Average with History1 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getAverageData(h1, 5 * 1000, startDate, endDate,
+            (err: Error | null, dataValues?: DataValue[]) => {
+                if (err) {
+                    return done(err);
+                }
+                dataValues = dataValues!;
+                // 12:00:00.000 BadNoData
+                getInfo(dataValues[0]).should.eql("12:00:00.000Z BadNoData");
+                // 12:00:05.000 BadNoData
+                getInfo(dataValues[1]).should.eql("12:00:05.000Z BadNoData");
+                //  12:00:10.000 10 Good, Calculated
+                getInfo(dataValues[2]).should.eql("12:00:10.000Z 10 Good#HistorianCalculated");
+                // 12:00:15.000 BadNoData
+                getInfo(dataValues[3]).should.eql("12:00:15.000Z BadNoData");
+                // 12:00:20.000 20 Good, Calculated
+                getInfo(dataValues[4]).should.eql("12:00:20.000Z 20 Good#HistorianCalculated");
+                // 12:00:25.000 BadNoData
+                getInfo(dataValues[5]).should.eql("12:00:25.000Z BadNoData");
+                // 12:00:30.000 30 Good, Calculated
+                getInfo(dataValues[6]).should.eql("12:00:30.000Z 30 Good#HistorianCalculated");
+                // 12:00:35.000 BadNoData
+                getInfo(dataValues[7]).should.eql("12:00:35.000Z BadNoData");
+                // 12:00:40.000 BadNoData
+                getInfo(dataValues[8]).should.eql("12:00:40.000Z BadNoData");
+                // 12:00:45.000 BadNoData
+                getInfo(dataValues[9]).should.eql("12:00:45.000Z BadNoData");
+                // 12:00:50.000 50 Good, Calculated
+                getInfo(dataValues[10]).should.eql("12:00:50.000Z 50 Good#HistorianCalculated");
+                // 12:00:55.000 BadNoData
+                getInfo(dataValues[11]).should.eql("12:00:55.000Z BadNoData");
+                // 12:01:00.000 60 Good, Calculated
+                getInfo(dataValues[12]).should.eql("12:01:00.000Z 60 Good#HistorianCalculated");
+                // 12:01:05.000 BadNoData
+                getInfo(dataValues[13]).should.eql("12:01:05.000Z BadNoData");
+                // 12:01:10.000 BadNoData
+                getInfo(dataValues[14]).should.eql("12:01:10.000Z BadNoData");
+                // 12:01:15.000 BadNoData
+                getInfo(dataValues[15]).should.eql("12:01:15.000Z BadNoData");
+                // 12:01:20.000 80 Good, Calculated
+                getInfo(dataValues[16]).should.eql("12:01:20.000Z 80 Good#HistorianCalculated");
+                // 12:01:25.000 BadNoData
+                getInfo(dataValues[17]).should.eql("12:01:25.000Z BadNoData");
+                // 12:01:30.000 90 Good, Calculated
+                getInfo(dataValues[18]).should.eql("12:01:30.000Z 90 Good#HistorianCalculated");
+                // 12:01:35.000 BadNoData
+                getInfo(dataValues[19]).should.eql("12:01:35.000Z BadNoData");
+
+                done();
+            });
+
+    });
+    it("Aggregate Average with History2 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getAverageData(h2, 5 * 1000, startDate, endDate,
+            (err: Error | null, dataValues?: DataValue[]) => {
+                if (err) {
+                    return done(err);
+                }
+                dataValues = dataValues!;
+                // 12:00:00.000 10 Good, Calculated
+                getInfo(dataValues[0]).should.eql("12:00:00.000Z 10 Good#HistorianCalculated");
+                // 12:00:05.000 BadNoData
+                getInfo(dataValues[1]).should.eql("12:00:05.000Z BadNoData");
+                // 12:00:10.000 BadNoData
+                getInfo(dataValues[2]).should.eql("12:00:10.000Z BadNoData");
+                // 12:00:15.000 BadNoData
+                getInfo(dataValues[3]).should.eql("12:00:15.000Z BadNoData");
+                // 12:00:20.000 BadNoData
+                getInfo(dataValues[4]).should.eql("12:00:20.000Z BadNoData");
+                // 12:00:25.000 22.500 Good, Calculated
+                getInfo(dataValues[5]).should.eql("12:00:25.000Z 22.5 Good#HistorianCalculated");
+                // 12:00:30.000 BadNoData
+                getInfo(dataValues[6]).should.eql("12:00:30.000Z BadNoData");
+                // 12:00:35.000 30 Good, Calculated
+                getInfo(dataValues[7]).should.eql("12:00:35.000Z 30 Good#HistorianCalculated");
+                // 12:00:40.000 BadNoData
+                getInfo(dataValues[8]).should.eql("12:00:40.000Z BadNoData");
+                // 12:00:45.000 40 Good, Calculated
+                getInfo(dataValues[9]).should.eql("12:00:45.000Z 40 Good#HistorianCalculated");
+                // 12:00:50.000 50 Good, Calculated
+                getInfo(dataValues[10]).should.eql("12:00:50.000Z 50 Good#HistorianCalculated");
+                // 12:00:55.000 BadNoData
+                getInfo(dataValues[11]).should.eql("12:00:55.000Z BadNoData");
+                // 12:01:00.000 BadNoData
+                getInfo(dataValues[12]).should.eql("12:01:00.000Z BadNoData");
+                // 12:01:05.000 BadNoData
+                getInfo(dataValues[13]).should.eql("12:01:05.000Z BadNoData");
+                // 12:01:10.000 60 Good, Calculated
+                getInfo(dataValues[14]).should.eql("12:01:10.000Z 60 Good#HistorianCalculated");
+                // 12:01:15.000 BadNoData
+                getInfo(dataValues[15]).should.eql("12:01:15.000Z BadNoData");
+                // 12:01:20.000 70 Good, Calculated
+                getInfo(dataValues[16]).should.eql("12:01:20.000Z 70 Good#HistorianCalculated");
+                // 12:01:25.000 80 Good, Calculated
+                getInfo(dataValues[17]).should.eql("12:01:25.000Z 80 Good#HistorianCalculated");
+                // 12:01:30.000 90 Good, Calculated
+                getInfo(dataValues[18]).should.eql("12:01:30.000Z 90 Good#HistorianCalculated");
+                // 12:01:35.000 BadNoData
+                getInfo(dataValues[19]).should.eql("12:01:35.000Z BadNoData");
+                done();
+            });
+
+    });
+    it("Aggregate Average with History3 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getAverageData(h3, 5 * 1000, startDate, endDate,
+            (err: Error | null, dataValues?: DataValue[]) => {
+                if (err) {
+                    return done(err);
+                }
+                dataValues = dataValues!;
+                // 12:00:00.000 10 Good, Calculated
+                getInfo(dataValues[0]).should.eql("12:00:00.000Z 10 Good#HistorianCalculated");
+                // 12:00:05.000 BadNoData
+                getInfo(dataValues[1]).should.eql("12:00:05.000Z BadNoData");
+                // 12:00:10.000 BadNoData
+                getInfo(dataValues[2]).should.eql("12:00:10.000Z BadNoData");
+                // 12:00:15.000 BadNoData
+                getInfo(dataValues[3]).should.eql("12:00:15.000Z BadNoData");
+                // 12:00:20.000 BadNoData
+                getInfo(dataValues[4]).should.eql("12:00:20.000Z BadNoData");
+                // 12:00:25.000 22.500 Good, Calculated
+                getInfo(dataValues[5]).should.eql("12:00:25.000Z 22.5 Good#HistorianCalculated");
+                // 12:00:30.000 BadNoData
+                getInfo(dataValues[6]).should.eql("12:00:30.000Z BadNoData");
+                // 12:00:35.000 30 Good, Calculated
+                getInfo(dataValues[7]).should.eql("12:00:35.000Z 30 Good#HistorianCalculated");
+                // 12:00:40.000 BadNoData
+                getInfo(dataValues[8]).should.eql("12:00:40.000Z BadNoData");
+                // 12:00:45.000 40 Good, Calculated
+                getInfo(dataValues[9]).should.eql("12:00:45.000Z 40 Good#HistorianCalculated");
+                // 12:00:50.000 50 Good, Calculated
+                getInfo(dataValues[10]).should.eql("12:00:50.000Z 50 Good#HistorianCalculated");
+                // 12:00:55.000 BadNoData
+                getInfo(dataValues[11]).should.eql("12:00:55.000Z BadNoData");
+                // 12:01:00.000 BadNoData
+                getInfo(dataValues[12]).should.eql("12:01:00.000Z BadNoData");
+                // 12:01:05.000 BadNoData
+                getInfo(dataValues[13]).should.eql("12:01:05.000Z BadNoData");
+                // 12:01:10.000 60 Good, Calculated
+                getInfo(dataValues[14]).should.eql("12:01:10.000Z 60 Good#HistorianCalculated");
+                // 12:01:15.000 BadNoData
+                getInfo(dataValues[15]).should.eql("12:01:15.000Z BadNoData");
+                // 12:01:20.000 70 Good, Calculated
+                getInfo(dataValues[16]).should.eql("12:01:20.000Z 70 Good#HistorianCalculated");
+                // 12:01:25.000 80 Good, Calculated
+                getInfo(dataValues[17]).should.eql("12:01:25.000Z 80 Good#HistorianCalculated");
+                // 12:01:30.000 90 Good, Calculated
+                getInfo(dataValues[18]).should.eql("12:01:30.000Z 90 Good#HistorianCalculated");
+                // 12:01:35.000 BadNoData
+                getInfo(dataValues[19]).should.eql("12:01:35.000Z BadNoData");
+                done();
+            });
+
+    });
+
 
 });
 

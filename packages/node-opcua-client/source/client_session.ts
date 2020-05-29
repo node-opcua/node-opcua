@@ -57,7 +57,6 @@ import { StatusCode } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { Callback } from "node-opcua-status-code";
 
-
 import { ClientSubscription } from "./client_subscription";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
