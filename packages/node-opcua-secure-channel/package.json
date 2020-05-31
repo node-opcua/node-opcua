@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-secure-channel",
-    "version": "2.6.1",
+    "version": "2.6.2",
     "description": "pure nodejs OPCUA SDK - module -secure-channel",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",

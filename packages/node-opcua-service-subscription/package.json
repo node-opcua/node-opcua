@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-subscription",
-    "version": "2.6.1",
+    "version": "2.6.2",
     "description": "pure nodejs OPCUA SDK - module -service-subscription",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -32,7 +32,7 @@
         "node-opcua-generator": "^2.6.1",
         "node-opcua-numeric-range": "^2.6.1",
         "node-opcua-packet-analyzer": "^2.6.1",
-        "node-opcua-secure-channel": "^2.6.1",
+        "node-opcua-secure-channel": "^2.6.2",
         "node-opcua-service-history": "^2.6.1",
         "node-opcua-service-translate-browse-path": "^2.6.1",
         "node-opcua-status-code": "^2.6.1",
