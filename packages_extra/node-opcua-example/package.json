@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-example",
-  "version": "2.6.2",
+  "version": "2.6.3",
   "description": "pure nodejs OPCUA SDK - module -status-code",
   "private": true,
   "main": "./dist/index.js",
@@ -10,7 +10,7 @@
     "test": "echo no"
   },
   "dependencies": {
-    "node-opcua": "^2.6.2"
+    "node-opcua": "^2.6.3"
   },
   "devDependencies": {
     "should": "^13.2.3"
