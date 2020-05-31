@@ -38,7 +38,7 @@
         "node-opcua-nodesets": "^2.6.1",
         "node-opcua-numeric-range": "^2.6.1",
         "node-opcua-object-registry": "^2.6.1",
-        "node-opcua-pki": "^2.0.2",
+        "node-opcua-pki": "^2.0.3",
         "node-opcua-secure-channel": "^2.6.2",
         "node-opcua-service-browse": "^2.6.1",
         "node-opcua-service-call": "^2.6.1",
