@@ -15,7 +15,7 @@ import { ObjectRegistry } from "node-opcua-object-registry";
 import { BrowseResult } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import {
-    BrowseDescription,  
+    BrowseDescription,
     BrowsePath,
     BrowsePathResult,
     BrowsePathTargetOptions,
@@ -26,7 +26,7 @@ import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantT } from "node-opcua-variant";
 import { AnyConstructorFunc } from "node-opcua-schemas";
-import { ConstructorFuncWithSchema } from "node-opcua-factory/source";
+import { ConstructorFuncWithSchema } from "node-opcua-factory";
 import {
     AddReferenceOpts,
     AddressSpace as AddressSpacePublic,
@@ -980,6 +980,9 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         const _dataType = dataType as UADataType;
         // to do verify that dataType is of type "Strucuture"
+        if (!_dataType.isSupertypeOf(this.findDataType("Structure")!)) {
+            console.log(_dataType.toString());
+        }
         assert(_dataType.isSupertypeOf(this.findDataType("Structure")!));
         if (!_dataType._extensionObjectConstructor) {
             const dataTypeManager = (this as any).$$extraDataTypeManager as ExtraDataTypeManager;

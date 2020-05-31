@@ -26,7 +26,7 @@ import * as  tools from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { UAObject } from "./ua_object";
-import { StructuredTypeSchema } from "node-opcua-factory/source";
+import { StructuredTypeSchema } from "node-opcua-factory";
 
 export type ExtensionObjectConstructor = new (options: any) => ExtensionObject;
 export interface ExtensionObjectConstructorFuncWithSchema extends ExtensionObjectConstructor {

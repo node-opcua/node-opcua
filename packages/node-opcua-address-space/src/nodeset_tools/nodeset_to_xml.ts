@@ -45,7 +45,7 @@ import { UAReferenceType } from "../ua_reference_type";
 import { UAVariable } from "../ua_variable";
 import { UAVariableType } from "../ua_variable_type";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
-import { ExtensionObject } from "node-opcua-extension-object/source";
+import { ExtensionObject } from "node-opcua-extension-object";
 
 function _hash(node: BaseNode | Reference): string {
     return (node.nodeId.toString());

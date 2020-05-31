@@ -1153,17 +1153,22 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             // has not yet been lodaded !
             return true;
         }
-        const Constructor = addressSpace.getExtensionObjectConstructor(this.dataType);
-        if (extObj instanceof Array) {
-            for (const e of extObj) {
-                if (e.constructor.name !== Constructor.name) {
-                    debugLog("extObj.constructor.name ", e.constructor.name, "expected", Constructor.name);
-                    return false;
+        try {
+            const Constructor = addressSpace.getExtensionObjectConstructor(this.dataType);
+            if (extObj instanceof Array) {
+                for (const e of extObj) {
+                    if (e.constructor.name !== Constructor.name) {
+                        debugLog("extObj.constructor.name ", e.constructor.name, "expected", Constructor.name);
+                        return false;
+                    }
                 }
+                return true;
+            } else {
+                return extObj.constructor.name === Constructor.name;
             }
-            return true;
-        } else {
-            return extObj.constructor.name === Constructor.name;
+        } catch (err) {
+            console.log(err);
+            return false;
         }
     }
     /**
@@ -1576,6 +1581,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         if (dataValue.value.dataType === DataType.ExtensionObject) {
             if (!this.checkExtensionObjectIsCorrect(dataValue.value.value)) {
+                console.log(dataValue.toString());
+                console.log("on nodeId =", this.nodeId.toString());
                 throw new Error("Invalid Extension Object");
             }
         }

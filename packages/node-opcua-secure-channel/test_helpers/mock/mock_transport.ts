@@ -96,7 +96,7 @@ export class MockServerTransport extends EventEmitter {
 
             } else {
                 const msg = " MockServerTransport has no more packets to send to client to" +
-                  " emulate server responses.... ";
+                    " emulate server responses.... ";
                 console.log(chalk.red.bold(msg));
                 console.log(chalk.blue.bold(hexDump(data)));
 

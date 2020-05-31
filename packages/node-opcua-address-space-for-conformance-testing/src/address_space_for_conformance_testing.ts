@@ -36,7 +36,6 @@ import {
     standardUnits
 } from "node-opcua-data-access";
 import { add_eventGeneratorObject } from "node-opcua-address-space";
-import { UANamespace } from "node-opcua-address-space/src/namespace";
 
 function defaultValidator(/*value*/) {
     return true;
