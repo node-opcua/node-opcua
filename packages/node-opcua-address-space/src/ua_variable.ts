@@ -1157,6 +1157,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             const Constructor = addressSpace.getExtensionObjectConstructor(this.dataType);
             if (extObj instanceof Array) {
                 for (const e of extObj) {
+                    if (!e) {
+                        continue;
+                    }
                     if (e.constructor.name !== Constructor.name) {
                         debugLog("extObj.constructor.name ", e.constructor.name, "expected", Constructor.name);
                         return false;

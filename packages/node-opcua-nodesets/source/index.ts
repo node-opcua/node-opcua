@@ -11,7 +11,7 @@ export function constructNodesetFilename(filename: string) {
     let file = path.join(dirname, "../nodesets", filename);
     if (!fs.existsSync(file)) {
         if (!process.argv[1]) {
-            throw new Error("Please make sure that nodeset can be found in " +  path.join(dirname, "../nodesets"));
+            throw new Error("Please make sure that nodeset can be found in " + path.join(dirname, "../nodesets"));
         }
         // let's find alternate places where to find the nodeset folder
         let appfolder = path.dirname(process.argv[1]);
@@ -40,9 +40,9 @@ export const diNodeSetFilename = constructNodesetFilename("Opc.Ua.Di.NodeSet2.xm
 export const adiNodeSetFilename = constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml");
 export const gdsNodeSetFilename = constructNodesetFilename("Opc.Ua.Gds.NodeSet2.xml");
 export const autoIdNodeSetFilename = constructNodesetFilename("Opc.Ua.AutoID.NodeSet2.xml");
-export const roboticsNodeSetFilename = constructNodesetFilename("Opc.Ua.Robotics.NodeSet2.xml")
-export const machineVisionNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineVision.NodeSet2.xml")
-
+export const roboticsNodeSetFilename = constructNodesetFilename("Opc.Ua.Robotics.NodeSet2.xml");
+export const machineVisionNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineVision.NodeSet2.xml");
+export const packMLNodeSetFilename = constructNodesetFilename("Opc.Ua.PackML.NodeSet2.xml");
 export const standard_nodeset_file = standardNodeSetFilename;
 export const di_nodeset_filename = diNodeSetFilename;
 export const adi_nodeset_filename = adiNodeSetFilename;
@@ -68,6 +68,8 @@ export const nodesets = {
     autoId: autoIdNodeSetFilename,
 
     robotics: roboticsNodeSetFilename,
-    
-    machineVision: machineVisionNodeSetFilename
+
+    machineVision: machineVisionNodeSetFilename,
+
+    packML: packMLNodeSetFilename
 };
