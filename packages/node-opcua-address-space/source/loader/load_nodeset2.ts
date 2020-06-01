@@ -1258,7 +1258,7 @@ export function generateAddressSpace(
             if (this.obj.value) {
                 const capturedValue = this.obj.value;
                 const task = async (addressSpace2: AddressSpace) => {
-                    if (doDebug) {
+                    if (false && doDebug) {
                         debugLog("1 setting value to ", variable.nodeId.toString(), (new Variant(capturedValue)).toString());
                     }
                     variable.setValueFromSource(capturedValue);
@@ -1271,7 +1271,9 @@ export function generateAddressSpace(
                     const valueRank = variable.valueRank;
                     const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
                     if (value) {
-                        debugLog("2 setting value to ", variable.nodeId.toString(), value);
+                        if (false && doDebug) {
+                            debugLog("2 setting value to ", variable.nodeId.toString(), value);
+                        }
                         variable.setValueFromSource(value);
                     };
                 }

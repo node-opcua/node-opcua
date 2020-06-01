@@ -332,7 +332,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         this._sessions = [];
 
         this._serverEndpoints = [];
-        this._secureChannel = null;
 
         this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
         this.tokenRenewalInterval = options.tokenRenewalInterval || 0;
@@ -447,7 +446,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 this.emit("reconnection_canceled");
                 return callback(new Error("Reconnection has been canceled - " + this.clientName));
             }
-
             this._internal_create_secure_channel(infiniteConnectionRetry, (err?: Error | null) => {
 
                 if (err) {
@@ -510,31 +508,31 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         callback: CreateSecureChannelCallbackFunc
     ) {
 
-        let secureChannel: ClientSecureChannelLayer;
-
         assert(this._secureChannel === null);
         assert(_.isString(this.endpointUrl));
+
+        debugLog("_internal_create_secure_channel creating new ClientSecureChannelLayer");
+        const secureChannel = new ClientSecureChannelLayer({
+            connectionStrategy,
+            defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
+            parent: this,
+            securityMode: this.securityMode,
+            securityPolicy: this.securityPolicy,
+            serverCertificate: this.serverCertificate,
+            tokenRenewalInterval: this.tokenRenewalInterval
+        });
+        secureChannel.protocolVersion = this.protocolVersion;
+
+        this._secureChannel = secureChannel;
 
         async.series([
 
             // ------------------------------------------------- STEP 2 : OpenSecureChannel
             (_innerCallback: ErrorCallback) => {
 
-                secureChannel = new ClientSecureChannelLayer({
-                    connectionStrategy,
-                    defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
-                    parent: this,
-                    securityMode: this.securityMode,
-                    securityPolicy: this.securityPolicy,
-                    serverCertificate: this.serverCertificate,
-                    tokenRenewalInterval: this.tokenRenewalInterval
-                });
-
-                this._secureChannel = secureChannel;
-
-                secureChannel.protocolVersion = this.protocolVersion;
-
+                debugLog("_internal_create_secure_channel before secureChannel.create");
                 secureChannel.create(this.endpointUrl, (err?: Error) => {
+                    debugLog("_internal_create_secure_channel after secureChannel.create");
                     if (err) {
                         debugLog(chalk.yellow("Cannot create secureChannel"),
                             (err.message ? chalk.cyan(err.message) : ""));
@@ -855,6 +853,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public disconnect(): Promise<void>;
     public disconnect(callback: ErrorCallback): void;
     public disconnect(...args: any[]): any {
+
+        this.reconnectionIsCanceled = true;
 
         const callback = args[0];
         assert(_.isFunction(callback), "expecting a callback function here");

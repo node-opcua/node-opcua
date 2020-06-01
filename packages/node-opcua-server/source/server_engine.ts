@@ -37,7 +37,7 @@ import {
   ServerStatusDataType,
   SubscriptionDiagnosticsDataType
 } from "node-opcua-common";
-import { AttributeIds, BrowseDirection, NodeClass } from "node-opcua-data-model";
+import { AttributeIds, BrowseDirection, NodeClass, coerceLocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseResult } from "node-opcua-service-browse";
 import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
@@ -213,7 +213,6 @@ export class ServerEngine extends EventEmitter {
   public clientDescription?: ApplicationDescription;
 
   public addressSpace: AddressSpace | null;
-  public serverStatus: ServerStatusDataType;
 
   public _rejectedSessionCount: number = 0;
 
@@ -223,6 +222,8 @@ export class ServerEngine extends EventEmitter {
   private status: string;
   private _shutdownTask: any[];
   private _applicationUri: string;
+  private _expectedShutdownTime!: Date;
+  private _serverStatus: ServerStatusDataType;
 
   constructor(options: ServerEngineOptions) {
     super();
@@ -240,7 +241,7 @@ export class ServerEngine extends EventEmitter {
 
     options.buildInfo.buildDate = options.buildInfo.buildDate || new Date();
     // ---------------------------------------------------- ServerStatusDataType
-    this.serverStatus = new ServerStatusDataType({
+    this._serverStatus = new ServerStatusDataType({
       buildInfo: options.buildInfo,
       currentTime: new Date(),
       secondsTillShutdown: 0,
@@ -314,6 +315,9 @@ export class ServerEngine extends EventEmitter {
     this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled!;
 
   }
+  public isStarted(): boolean {
+    return !!this._serverStatus!
+  }
 
   public dispose() {
 
@@ -333,7 +337,7 @@ export class ServerEngine extends EventEmitter {
     }
 
     this._shutdownTask = [];
-    this.serverStatus = null as any as ServerStatusDataType;
+    this._serverStatus = null as any as ServerStatusDataType;
     this.status = "disposed";
 
     this.removeAllListeners();
@@ -342,15 +346,15 @@ export class ServerEngine extends EventEmitter {
   }
 
   public get startTime(): Date {
-    return this.serverStatus.startTime!;
+    return this._serverStatus.startTime!;
   }
 
   public get currentTime(): Date {
-    return this.serverStatus.currentTime!;
+    return this._serverStatus.currentTime!;
   }
 
   public get buildInfo(): BuildInfo {
-    return this.serverStatus.buildInfo;
+    return this._serverStatus.buildInfo;
   }
 
   /**
@@ -454,21 +458,32 @@ export class ServerEngine extends EventEmitter {
     return this.serverDiagnosticsSummary.publishingIntervalCount;
   }
 
+  public setShutdownTime(date: Date) {
+    this._expectedShutdownTime = date;
+  }
+  public setShutdownReason(reason: LocalizedTextLike): void {
+    this.addressSpace?.rootFolder.objects.server.serverStatus.shutdownReason.setValueFromSource({
+      dataType: DataType.LocalizedText,
+      value: coerceLocalizedText(reason)!
+    });
+  }
   /**
    * @method secondsTillShutdown
    * @return the approximate number of seconds until the server will be shut down. The
    * value is only relevant once the state changes into SHUTDOWN.
    */
   public secondsTillShutdown(): number {
+    if (!this._expectedShutdownTime) { return 0; }
     // ToDo: implement a correct solution here
-    return 0;
+    const now = Date.now();
+    return Math.max(0, Math.ceil((this._expectedShutdownTime.getTime() - now) / 1000));
   }
 
   /**
    * the name of the server
    */
   public get serverName(): string {
-    return this.serverStatus.buildInfo!.productName!;
+    return this._serverStatus.buildInfo!.productName!;
   }
 
   /**
@@ -484,10 +499,16 @@ export class ServerEngine extends EventEmitter {
   public get serverNamespaceUrn() {
     return this._applicationUri; // "urn:" + engine.serverName;
   }
+  public get serverStatus() {
+    return this._serverStatus;
+  }
 
   public setServerState(serverState: ServerState) {
     assert(serverState !== null && serverState !== undefined);
-    this.serverStatus.state = serverState;
+    this.addressSpace?.rootFolder?.objects?.server?.serverStatus?.state?.setValueFromSource({
+      dataType: DataType.UInt32,
+      value: serverState
+    });
   }
 
   public getServerDiagnosticsEnabledFlag(): boolean {
@@ -542,8 +563,6 @@ export class ServerEngine extends EventEmitter {
       const endTime = new Date();
       debugLog("Loading ", options.nodeset_filename, " done : ",
         endTime.getTime() - startTime.getTime(), " ms");
-
-      engine.setServerState(ServerState.Running);
 
       function bindVariableIfPresent(nodeId: NodeId, opts: any) {
         assert(nodeId instanceof NodeId);
@@ -731,9 +750,7 @@ export class ServerEngine extends EventEmitter {
           return;
         }
         if (serverStatusNode) {
-          serverStatusNode.bindExtensionObject(engine.serverStatus);
-          // xx serverStatusNode.updateExtensionObjectPartial(self.serverStatus);
-          // xx self.serverStatus = serverStatusNode.$extensionObject;
+          serverStatusNode.bindExtensionObject(engine._serverStatus);
           serverStatusNode.minimumSamplingInterval = 1000;
         }
 
@@ -764,7 +781,7 @@ export class ServerEngine extends EventEmitter {
             return (target as any)[prop];
           }
         });
-
+        engine._serverStatus = serverStatusNode.$extensionObject;
       }
 
       function bindServerCapabilities() {
@@ -1072,6 +1089,7 @@ export class ServerEngine extends EventEmitter {
       prepareServerDiagnostics();
 
       engine.status = "initialized";
+      engine.setServerState(ServerState.Running);
       setImmediate(callback);
     });
   }
