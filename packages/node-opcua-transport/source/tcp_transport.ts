@@ -167,6 +167,9 @@ export class TCP_transport extends EventEmitter {
         this._pendingBuffer = undefined;
     }
 
+    public get isDisconnecting(): boolean {
+        return this._disconnecting;
+    }
     /**
      * disconnect the TCP layer and close the underlying socket.
      * The ```"close"``` event will be emitted to the observers with err=null.

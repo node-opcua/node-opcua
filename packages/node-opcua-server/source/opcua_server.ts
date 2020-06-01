@@ -1212,11 +1212,14 @@ export class OPCUAServer extends OPCUABaseServer {
    *    });
    * ```
    * ```ts
-   *   // in typescript with async/await
-   *   await server.shutdown();
+   *   // in typescript with promises
+   *   server.shutdown(10000).then(()=>{
+   *      console.log("Server has shutdown");
+   *   });
    * ```
    * ```javascript
    *    // shutdown within 10 seconds
+   *    server.engine .shutdownReason = coerceLocalizedText("Shutdown for maintenance");
    *    server.shutdown(10000,function(err) {
    *    });
    *   ```
@@ -1236,12 +1239,15 @@ export class OPCUAServer extends OPCUABaseServer {
       return callback();
     }
     assert(this.engine);
-    if (!this.engine.serverStatus) {
+    if (!this.engine.isStarted()) {
       // server may have been shot down already  , or may have fail to start !!
       const err = new Error("OPCUAServer#shutdown failure ! server doesn't seems to be started yet");
       return callback(err);
     }
     this.engine.setServerState(ServerState.Shutdown);
+
+    const shutdownTime = new Date(Date.now() + timeout);
+    this.engine.setShutdownTime(shutdownTime);
 
     debugLog("OPCUServer is now unregistering itself from  the discovery server " + this.buildInfo);
     this.registerServerManager!.stop((err?: Error) => {

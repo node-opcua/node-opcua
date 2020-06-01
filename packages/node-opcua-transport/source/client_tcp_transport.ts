@@ -97,9 +97,9 @@ export class ClientTCP_transport extends TCP_transport {
     public endpointUrl: string;
     public serverUri: string;
     public numberOfRetry: number;
+    public parameters?: AcknowledgeMessage;
 
     private connected: boolean;
-    private parameters?: any;
     private _counter: number;
 
     constructor() {
@@ -142,7 +142,6 @@ export class ClientTCP_transport extends TCP_transport {
             }
             return callback(err);
         }
-
 
         const _on_socket_error_after_connection = (err: Error) => {
             /* istanbul ignore next */
@@ -267,7 +266,7 @@ export class ClientTCP_transport extends TCP_transport {
             responseClass = AcknowledgeMessage;
             _stream.rewind();
             response = decodeMessage(_stream, responseClass);
-            this.parameters = response;
+            this.parameters = response as AcknowledgeMessage;
             callback();
         }
 
