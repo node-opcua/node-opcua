@@ -46,8 +46,9 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
         const issuerCertificateRevocationListFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/crl/revocation_list.der");
         const issuerCertificate = await readCertificate(issuerCertificateFile);
         const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-        certificateMgr.addIssuer(issuerCertificate);
-        certificateMgr.addRevocationList(issuerCrl);
+
+        await certificateMgr.addIssuer(issuerCertificate);
+        await certificateMgr.addRevocationList(issuerCrl);
 
         certificate1 = await readCertificate(certificate1File);
 
@@ -133,11 +134,12 @@ describe("Testing OPCUA Certificate Manager with automatically acceptange of unk
         const issuerCertificateRevocationListFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/crl/revocation_list.der");
         const issuerCertificate = await readCertificate(issuerCertificateFile);
         const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-        acceptingCertificateMgr.addIssuer(issuerCertificate);
-        acceptingCertificateMgr.addRevocationList(issuerCrl);
 
-        rejectingCertificateMgr.addIssuer(issuerCertificate);
-        rejectingCertificateMgr.addRevocationList(issuerCrl);
+        await acceptingCertificateMgr.addIssuer(issuerCertificate);
+        await acceptingCertificateMgr.addRevocationList(issuerCrl);
+
+        await rejectingCertificateMgr.addIssuer(issuerCertificate);
+        await rejectingCertificateMgr.addRevocationList(issuerCrl);
 
     });
 

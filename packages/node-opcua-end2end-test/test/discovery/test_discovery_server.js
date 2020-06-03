@@ -381,8 +381,9 @@ describe("DS3 - Discovery server - many server", function() {
         const issuerCertificateRevocationListFile = path.join(__dirname, "../../../node-opcua-samples/certificates/CA/crl/revocation_list.der");
         const issuerCertificate = await readCertificate(issuerCertificateFile);
         const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-        discoveryServer.serverCertificateManager.addIssuer(issuerCertificate);
-        discoveryServer.serverCertificateManager.addRevocationList(issuerCrl);
+
+        await discoveryServer.serverCertificateManager.addIssuer(issuerCertificate);
+        await discoveryServer.serverCertificateManager.addRevocationList(issuerCrl);
     });
 
 
