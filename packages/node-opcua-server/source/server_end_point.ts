@@ -1145,6 +1145,7 @@ export class OPCUAWSServerEndPoint extends OPCUAServerEndPoint {
             this._end_listen(err);
         }).on("listening", () => {
             debugLog("server is listening");
+            this._end_listen();
         });
 
         this._started = true;
