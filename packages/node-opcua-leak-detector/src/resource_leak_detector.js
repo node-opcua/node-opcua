@@ -413,5 +413,16 @@ exports.describeWithLeakDetector = function (message, func) {
     });
 };
 
+exports.describeWithLeakDetector.only = function(message, func) {
+    if (g_indescribeWithLeakDetector) {
+        return global_describe.only(message,func);
+    }
+    g_indescribeWithLeakDetector = true;
+    global_describe.only.call(this, message, function () {
+        exports.installResourceLeakDetector.call(this, true,func);
+        g_indescribeWithLeakDetector = false;
+    });
+}
+
 
 
