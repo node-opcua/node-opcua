@@ -1,7 +1,7 @@
 import { DataValue } from "node-opcua-data-value";
 import { OpaqueStructure } from "node-opcua-extension-object";
 import { IBasicSession } from "node-opcua-pseudo-session";
-import { DataType, VariantArrayType } from "node-opcua-variant";
+import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
 
 import { populateDataTypeManager } from "./client_dynamic_extension_object";
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
@@ -19,13 +19,14 @@ export async function getExtraDataTypeManager(
     return sessionPriv.$$extraDataTypeManager;
 }
 
+export interface PseudoDataValue { value: Variant };
 export async function promoteOpaqueStructure(
     session: IBasicSession,
-    dataValues: DataValue[]
+    dataValues: PseudoDataValue[]
 ) {
 
     // count number of Opaque Structures
-    const dataValuesToFix = dataValues.filter((dataValue: DataValue) =>
+    const dataValuesToFix = dataValues.filter((dataValue: PseudoDataValue) =>
         dataValue.value && dataValue.value.dataType === DataType.ExtensionObject &&
         (
             (dataValue.value.arrayType === VariantArrayType.Scalar
@@ -45,7 +46,7 @@ export async function promoteOpaqueStructure(
     const extraDataTypeManager = await getExtraDataTypeManager(session);
 
     const promises = dataValuesToFix.map(
-        async (dataValue: DataValue) => {
+        async (dataValue: PseudoDataValue) => {
             return await resolveDynamicExtensionObject(dataValue.value, extraDataTypeManager)
         });
     await Promise.all(promises);

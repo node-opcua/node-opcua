@@ -21,20 +21,20 @@ import {
     DataChangeNotification,
     DeleteMonitoredItemsResponse,
     DeleteSubscriptionsResponse,
-    EventNotificationList,
     MonitoredItemCreateRequestOptions,
     MonitoredItemCreateResult,
     MonitoringParametersOptions,
     NotificationMessage,
     StatusChangeNotification,
-    NotificationData
+    NotificationData,
+    EventNotificationList
 } from "node-opcua-service-subscription";
+
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 import { promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-object";
-import { DataType } from "node-opcua-variant";
-import { DataValue } from "node-opcua-data-value";
+import { DataType, Variant } from "node-opcua-variant";
 import { IBasicSession } from "node-opcua-pseudo-session";
 
 import { ClientMonitoredItemBase } from "../client_monitored_item_base";
@@ -59,10 +59,9 @@ const PENDING_SUBSCRIPTON_ID = 0xC0CAC01A;
 const TERMINTATED_SUBSCRIPTION_ID = 0xC0CAC01B;
 const TERMINATING_SUBSCRIPTION_ID = 0xC0CAC01C;
 
-
 async function promoteOpaqueStructureInNotificationData(session: IBasicSession, notificationData: NotificationData[]): Promise<void> {
 
-    const dataValuesToPromote: DataValue[] = [];
+    const dataValuesToPromote: { value: Variant }[] = [];
     for (const notification of notificationData) {
         if (!notification) {
             continue;
@@ -72,6 +71,18 @@ async function promoteOpaqueStructureInNotificationData(session: IBasicSession, 
                 for (const monitoredItem of notification.monitoredItems) {
                     if (monitoredItem.value.value && monitoredItem.value.value.dataType === DataType.ExtensionObject) {
                         dataValuesToPromote.push(monitoredItem.value);
+                    }
+                }
+            }
+        } else if (notification instanceof EventNotificationList) {
+            if (notification.events) {
+                for (const events of notification.events) {
+                    if (events.eventFields) {
+                        for (const eventField of events.eventFields) {
+                            if (eventField.dataType === DataType.ExtensionObject) {
+                                dataValuesToPromote.push({ value: eventField });
+                            }
+                        }
                     }
                 }
             }
