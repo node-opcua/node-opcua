@@ -34,6 +34,7 @@ import {
     CreateSubscriptionRequestOptions, CreateSubscriptionResponse,
     DeleteMonitoredItemsRequest,
     DeleteMonitoredItemsRequestOptions,
+    DeleteMonitoredItemsResponse,
     DeleteSubscriptionsRequest,
     DeleteSubscriptionsRequestOptions, DeleteSubscriptionsResponse,
     ModifyMonitoredItemsRequest,
@@ -45,7 +46,8 @@ import {
     SetMonitoringModeRequest, SetMonitoringModeRequestOptions,
     SetMonitoringModeResponse,
     TransferSubscriptionsRequest,
-    TransferSubscriptionsRequestOptions, TransferSubscriptionsResponse
+    TransferSubscriptionsRequestOptions,
+    TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
 import {
     BrowsePath, BrowsePathResult
@@ -462,6 +464,16 @@ export interface ClientSessionRawSubscriptionService {
         subscriptionId: SubscriptionId,
         callback: ResponseCallback<MonitoredItemData>
     ): void;
+
+    deleteMonitoredItems(
+        request: DeleteMonitoredItemsRequestLike,
+        callback: Callback<DeleteMonitoredItemsResponse>
+    ): void;
+
+    deleteMonitoredItems(
+        request: DeleteMonitoredItemsRequestLike
+    ): Promise<DeleteMonitoredItemsResponse>;
+
 }
 
 // subscription service
