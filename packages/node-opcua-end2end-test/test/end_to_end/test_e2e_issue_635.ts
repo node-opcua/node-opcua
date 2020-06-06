@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import * as chalk from "chalk";
 import {
   AddressSpace,
   AttributeIds,
@@ -13,7 +13,7 @@ import {
   UAVariable,
   Variant
 } from "node-opcua";
-import { should  } from "should";
+import { should } from "should";
 
 const _should = should;
 
@@ -180,12 +180,7 @@ describe("Testing bug #635", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    await session.deleteSubscriptions({
-      subscriptionIds: [
-        subscription.subscriptionId
-      ]
-    });
-
+    await subscription.terminate();
     await session.close();
     await client.disconnect();
 
@@ -197,7 +192,7 @@ describe("Testing bug #635", () => {
     let errorCount = 0;
     for (const dataValue of data) {
       let correctness = false;
-      if ((dataValue.value.value === 1 || dataValue.value.value === "ciao" ) && dataValue.statusCode === StatusCodes.Good) {
+      if ((dataValue.value.value === 1 || dataValue.value.value === "ciao") && dataValue.statusCode === StatusCodes.Good) {
         correctness = true;
       }
       if ((dataValue.value.value === 2 || dataValue.value.value === "addio") && dataValue.statusCode === StatusCodes.Bad) {

@@ -25,14 +25,18 @@ import {
     ReadValueIdOptions
 } from "node-opcua-service-read";
 import {
+    WriteValueOptions
+} from "node-opcua-service-write";
+import {
     BrowsePath,
     BrowsePathResult
 } from "node-opcua-service-translate-browse-path";
 import { Variant } from "node-opcua-variant";
+import { StatusCode } from "node-opcua-status-code";
 
-export type BrowseDescriptionLike = string | BrowseDescriptionOptions | BrowseDescription;
-export type ReadValueIdLike = ReadValueId | ReadValueIdOptions;
-export type CallMethodRequestLike = CallMethodRequestOptions | CallMethodRequest;
+export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
+export type ReadValueIdLike = ReadValueIdOptions;
+export type CallMethodRequestLike = CallMethodRequestOptions;
 
 export type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
@@ -64,38 +68,41 @@ export interface IBasicSession {
      * @param callback
      */
     browseNext(
-      continuationPoint: Buffer,
-      releaseContinuationPoints: boolean,
-      callback: ResponseCallback<BrowseResult>): void;
+        continuationPoint: Buffer,
+        releaseContinuationPoints: boolean,
+        callback: ResponseCallback<BrowseResult>): void;
 
     browseNext(
-      continuationPoints: Buffer[],
-      releaseContinuationPoints: boolean,
-      callback: ResponseCallback<BrowseResult[]>): void;
+        continuationPoints: Buffer[],
+        releaseContinuationPoints: boolean,
+        callback: ResponseCallback<BrowseResult[]>): void;
 
     browseNext(
-      continuationPoint: Buffer,
-      releaseContinuationPoints: boolean
+        continuationPoint: Buffer,
+        releaseContinuationPoints: boolean
     ): Promise<BrowseResult>;
 
     browseNext(
-      continuationPoints: Buffer[],
-      releaseContinuationPoints: boolean
+        continuationPoints: Buffer[],
+        releaseContinuationPoints: boolean
     ): Promise<BrowseResult[]>;
 }
 export interface IBasicSession {
+
+    read(nodeToRead: ReadValueIdLike, maxAge: number, callback: ResponseCallback<DataValue>): void;
+
+    read(nodesToRead: ReadValueIdLike[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
 
     read(nodeToRead: ReadValueIdLike, callback: ResponseCallback<DataValue>): void;
 
     read(nodesToRead: ReadValueIdLike[], callback: ResponseCallback<DataValue[]>): void;
 
-    read(nodeToRead: ReadValueIdLike): Promise<DataValue>;
+    read(nodeToRead: ReadValueIdLike, maxAge?: number): Promise<DataValue>;
 
-    read(nodesToRead: ReadValueIdLike[]): Promise<DataValue[]>;
-
+    read(nodesToRead: ReadValueIdLike[], maxAge?: number): Promise<DataValue[]>;
 }
 
-export type MethodId = NodeIdLike ;
+export type MethodId = NodeIdLike;
 
 export interface ArgumentDefinition {
     inputArguments: Variant[];
@@ -105,18 +112,18 @@ export interface ArgumentDefinition {
 export interface IBasicSession {
 
     call(
-      methodToCall: CallMethodRequestLike,
-      callback: (err: Error | null, result?: CallMethodResult) => void): void;
+        methodToCall: CallMethodRequestLike,
+        callback: (err: Error | null, result?: CallMethodResult) => void): void;
 
     call(
-      methodsToCall: CallMethodRequestLike[],
-      callback: (err: Error | null, results?: CallMethodResult[]) => void): void;
+        methodsToCall: CallMethodRequestLike[],
+        callback: (err: Error | null, results?: CallMethodResult[]) => void): void;
 
     call(
-      methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
+        methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
 
     call(
-      methodsToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
+        methodsToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
 
     getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
 
@@ -135,10 +142,20 @@ export interface IBasicSession {
     translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
 }
 
+export interface IBaseSession {
+    write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
+
+    write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
+
+    write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
+
+    write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
+}
+
 export function getArgumentDefinitionHelper(
-  session: IBasicSession,
-  methodId: MethodId,
-  callback: ResponseCallback<ArgumentDefinition>
+    session: IBasicSession,
+    methodId: MethodId,
+    callback: ResponseCallback<ArgumentDefinition>
 ) {
 
     const browseDescription = new BrowseDescription({
@@ -164,13 +181,13 @@ export function getArgumentDefinitionHelper(
 
         // xx console.log("xxxx results", util.inspect(results, {colors: true, depth: 10}));
         const inputArgumentRefArray = browseResult.references.filter(
-          (r) => r.browseName.name === "InputArguments");
+            (r) => r.browseName.name === "InputArguments");
 
         // note : InputArguments property is optional thus may be missing
         const inputArgumentRef = (inputArgumentRefArray.length === 1) ? inputArgumentRefArray[0] : null;
 
         const outputArgumentRefArray = browseResult.references.filter(
-          (r) => r.browseName.name === "OutputArguments");
+            (r) => r.browseName.name === "OutputArguments");
 
         // note : OutputArguments property is optional thus may be missing
         const outputArgumentRef = (outputArgumentRefArray.length === 1) ? outputArgumentRefArray[0] : null;

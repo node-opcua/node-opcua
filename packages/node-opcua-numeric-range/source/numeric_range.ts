@@ -229,7 +229,7 @@ function _set_single_value(value: any): NumericalRange0 {
 
 function _check_range(numericalRange: NumericalRange0) {
   switch (numericalRange.type) {
-    case  NumericRangeType.MatrixRange:
+    case NumericRangeType.MatrixRange:
       if (numericalRange.value === null) {
         throw new Error("Internal Error");
       }
@@ -378,6 +378,19 @@ export class NumericRange implements NumericalRange1 {
   }
 
   public isValid(): boolean {
+
+    if (this.type === NumericRangeType.ArrayRange) {
+      const value = this.value as number[];
+      if (value[0] < 0 || value[1] < 0) {
+        return false;
+      }
+    }
+    if (this.type === NumericRangeType.SingleValue) {
+      const value = this.value as number;
+      if (value < 0) {
+        return false;
+      }
+    }
     return this.type !== NumericRangeType.InvalidRange;
   }
 

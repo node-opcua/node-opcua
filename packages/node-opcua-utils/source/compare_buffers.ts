@@ -2,7 +2,7 @@
  * @module node-opcua-utils
  */
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { buffer_ellipsis } from "./buffer_ellipsis";
 
 export function compare_buffers(buf1: Buffer, buf2: Buffer, max_length?: number): void {

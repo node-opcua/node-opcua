@@ -1,43 +1,43 @@
 {
   "name": "node-opcua-types",
-  "version": "2.1.8",
+  "version": "2.6.4",
   "description": "pure nodejs OPCUA SDK - module -generator",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "generate": "ts-node source/generate && tsc",
+    "generate": "tsc -b tsconfig.pre.json && ts-node source/generate && tsc -b",
     "build": "npm run generate",
     "test": "mocha -r ts-node/register test/**/*.ts",
     "clean": "node -e \"require('rimraf').sync('dist');\""
   },
   "dependencies": {
-    "node-opcua-assert": "^2.0.0",
-    "node-opcua-basic-types": "^2.1.6",
-    "node-opcua-binary-stream": "^2.1.0",
-    "node-opcua-buffer-utils": "^2.1.0",
-    "node-opcua-data-model": "^2.1.6",
-    "node-opcua-data-value": "^2.1.8",
-    "node-opcua-date-time": "^2.1.5",
-    "node-opcua-debug": "^2.1.0",
-    "node-opcua-enum": "^2.1.0",
-    "node-opcua-extension-object": "^2.1.6",
-    "node-opcua-factory": "^2.1.6",
-    "node-opcua-generator": "^2.1.8",
-    "node-opcua-guid": "^2.1.0",
-    "node-opcua-nodeid": "^2.1.6",
-    "node-opcua-numeric-range": "^2.1.6",
-    "node-opcua-packet-analyzer": "^2.1.6",
-    "node-opcua-schemas": "^2.1.8",
-    "node-opcua-status-code": "^2.1.6",
-    "node-opcua-utils": "^2.1.6",
-    "node-opcua-variant": "^2.1.6",
-    "underscore": "^1.9.1"
+    "node-opcua-assert": "^2.6.1",
+    "node-opcua-basic-types": "^2.6.1",
+    "node-opcua-binary-stream": "^2.6.1",
+    "node-opcua-buffer-utils": "^2.6.1",
+    "node-opcua-data-model": "^2.6.1",
+    "node-opcua-data-value": "^2.6.4",
+    "node-opcua-date-time": "^2.6.1",
+    "node-opcua-debug": "^2.6.1",
+    "node-opcua-enum": "^2.6.1",
+    "node-opcua-extension-object": "^2.6.1",
+    "node-opcua-factory": "^2.6.1",
+    "node-opcua-generator": "^2.6.4",
+    "node-opcua-guid": "^2.6.1",
+    "node-opcua-nodeid": "^2.6.1",
+    "node-opcua-numeric-range": "^2.6.1",
+    "node-opcua-packet-analyzer": "^2.6.1",
+    "node-opcua-schemas": "^2.6.4",
+    "node-opcua-status-code": "^2.6.1",
+    "node-opcua-utils": "^2.6.1",
+    "node-opcua-variant": "^2.6.1",
+    "underscore": "^1.10.2"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.7",
+    "@types/mocha": "^7.0.2",
     "mocha-typescript": "^1.1.17",
-    "should": "13.2.3",
-    "source-map-support": "^0.5.13"
+    "should": "^13.2.3",
+    "source-map-support": "^0.5.19"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",
@@ -54,5 +54,5 @@
     "internet of things"
   ],
   "homepage": "http://node-opcua.github.io/",
-  "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+  "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
 }

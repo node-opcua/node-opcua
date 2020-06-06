@@ -13,7 +13,7 @@ import { DataType } from "node-opcua-variant";
 
 import {
     BaseNode as BaseNodePublic,
-    UATwoStateVariable  as UATwoStateVariablePublic,
+    UATwoStateVariable as UATwoStateVariablePublic,
     UAVariable as UAVariablePublic
 } from "../source";
 
@@ -61,7 +61,7 @@ function _updateTransitionTime(node: UATwoStateVariablePublic) {
 }
 
 function _updateEffectiveTransitionTime(
-  node: UATwoStateVariablePublic
+    node: UATwoStateVariablePublic
 ) {
     if (node.effectiveTransitionTime) {
         // xx console.log("xxxx _updateEffectiveTransitionTime
@@ -124,8 +124,8 @@ function _getHumanReadableString(node: UATwoStateVariablePublic) {
 }
 
 export function _install_TwoStateVariable_machinery(
-  node: UATwoStateVariablePublic,
-  options: any
+    node: UATwoStateVariablePublic,
+    options: any
 ): UATwoStateVariable {
 
     assert(node.dataTypeObj.browseName.toString() === "LocalizedText");
@@ -165,7 +165,7 @@ export class UATwoStateVariable extends UAVariable implements UATwoStateVariable
     }
 
     get isFalseSubStateOf() { return super.isFalseSubStateOf; }
-    get isTrueSubStateOf()  { return super.isTrueSubStateOf;  }
+    get isTrueSubStateOf() { return super.isTrueSubStateOf; }
 
     public initialize(options: any) {
 
@@ -227,7 +227,7 @@ export class UATwoStateVariable extends UAVariable implements UATwoStateVariable
             const subStates = ([] as BaseNode[]).concat(node.getTrueSubStates(), node.getFalseSubStates());
             for (const subState of subStates) {
                 subState.on("value_changed", () =>
-                  _updateEffectiveTransitionTime(node));
+                    _updateEffectiveTransitionTime(node));
             }
         }
 
@@ -318,8 +318,8 @@ export class UATwoStateVariable extends UAVariable implements UATwoStateVariable
         super._add_backward_reference(reference);
 
         if (reference.isForward &&
-          (sameNodeId(reference.referenceType, hasTrueSubState_ReferenceTypeNodeId) ||
-            sameNodeId(reference.referenceType, hasFalseSubState_ReferenceTypeNodeId))) {
+            (sameNodeId(reference.referenceType, hasTrueSubState_ReferenceTypeNodeId) ||
+                sameNodeId(reference.referenceType, hasFalseSubState_ReferenceTypeNodeId))) {
 
             const addressSpace = self.addressSpace;
             // add event handle
@@ -328,36 +328,3 @@ export class UATwoStateVariable extends UAVariable implements UATwoStateVariable
         }
     }
 }
-
-// ;
-// exports.UATwoStateVariable = UATwoStateVariable;
-//
-// exports.install = function(AddressSpace) {
-//
-//     assert(_.isUndefined(AddressSpace._install_TwoStateVariable_machinery ));
-//     AddressSpace._install_TwoStateVariable_machinery = _install_TwoStateVariable_machinery;
-//
-//     /**
-//      *
-//      * @method addTwoStateVariable
-//      *
-//      * @param options
-//      * @param options.browseName  {String}
-//      * @param [options.description {String}]
-//      * @param [options.modellingRule {String}]
-//      * @param [options.minimumSamplingInterval {Number} =0]
-//      * @param options.componentOf {Node|NodeId}
-//      * @param options.propertyOf {Node|NodeId}
-//      * @param options.trueState {String}
-//      * @param options.falseState {String}
-//      * @param [options.isTrueSubStateOf {NodeId}]
-//      * @param [options.isFalseSubStateOf {NodeId}]
-//      * @param [options.modellingRule]
-//      * @return {UATwoStateVariable}
-//      *
-//      * Optionals can be EffectiveDisplayName, TransitionTime, EffectiveTransitionTime
-//      */
-//     AddressSpace.prototype.addTwoStateVariable   = function(options) {
-//         return this._resolveRequestedNamespace(options).addTwoStateVariable(options);
-//     };
-// };

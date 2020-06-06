@@ -1,6 +1,6 @@
 // compile with  tsc --lib es2018 client_with_custom_datatype.ts
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as os from "os";
 
 import {
@@ -11,7 +11,8 @@ import {
     OPCUAClient,
     OPCUAClientOptions,
     SecurityPolicy,
-    UserTokenType} from "node-opcua-client";
+    UserTokenType
+} from "node-opcua-client";
 
 // this test requires UA C++ Demo Server
 const addNodeMethodNodeId = "ns=2;s=Demo.Massfolder_Static.AddNodes";

@@ -15,8 +15,8 @@ export interface IAlarmTestData {
 }
 
 export function construct_demo_alarm_in_address_space(
-  test: IAlarmTestData,
-  addressSpace: AddressSpace
+    test: IAlarmTestData,
+    addressSpace: AddressSpace
 ) {
 
     const a = addressSpace as any;
@@ -31,20 +31,21 @@ export function construct_demo_alarm_in_address_space(
     const tank = namespace.addObject({
         browseName: "Tank",
         description: "The Object representing the Tank",
+        eventNotifier: 0x01,
         notifierOf: addressSpace.rootFolder.objects.server,
-        organizedBy: addressSpace.rootFolder.objects
+        organizedBy: addressSpace.rootFolder.objects,
     });
     assert(tank.getNotifiers().length === 0, "expecting a notifier now");
 
     const tankLevel = namespace.addVariable({
         browseName: "TankLevel",
+        componentOf: tank,
         dataType: "Double",
         description: "Fill level in percentage (0% to 100%) of the water tank",
         eventSourceOf: tank,
-        propertyOf: tank,
-        value: { dataType: "Double",  value: 0.5}
+        value: { dataType: "Double", value: 0.5 }
     });
-//    assert(tank.getNotifiers().length === 1, "expecting a notifier now");
+    //    assert(tank.getNotifiers().length === 1, "expecting a notifier now");
 
     // --------------------------------------------------------------------------------
     // Let's create a exclusive Limit Alarm that automatically raise itself
@@ -57,23 +58,23 @@ export function construct_demo_alarm_in_address_space(
     }
 
     const tankLevelCondition = namespace.instantiateExclusiveLimitAlarm(
-      exclusiveLimitAlarmType, {
-          browseName: "TankLevelCondition",
-          componentOf: tank,
-          conditionName: "TankLevelCondition",
-          conditionSource: tankLevel,
+        exclusiveLimitAlarmType, {
+        browseName: "TankLevelCondition",
+        componentOf: tank,
+        conditionName: "TankLevelCondition",
+        conditionSource: tankLevel,
 
-          highHighLimit: 0.9,
-          highLimit: 0.8,
+        highHighLimit: 0.9,
+        highLimit: 0.8,
 
-          inputNode: tankLevel,   // the variable that will be monitored for change
+        inputNode: tankLevel,   // the variable that will be monitored for change
 
-          lowLimit: 0.2,
+        lowLimit: 0.2,
 
-          optionals: [
-              "ConfirmedState", "Confirm" // confirm state and confirm Method
-          ]
-      });
+        optionals: [
+            "ConfirmedState", "Confirm" // confirm state and confirm Method
+        ]
+    });
     assert(tankLevelCondition.browseName.toString() === "1:TankLevelCondition");
 
     assert(tankLevel.findReferences("HasCondition").length === 1);
@@ -100,11 +101,11 @@ export function construct_demo_alarm_in_address_space(
     // -------------------------------------------------------------
     const tankLevel2 = namespace.addVariable({
         browseName: "tankLevel2",
+        componentOf: tank,
         dataType: "Double",
         description: "Fill level in percentage (0% to 100%) of the water tank",
         eventSourceOf: tank,
-        propertyOf: tank,
-        value: { dataType: "Double", value: 0.5}
+        value: { dataType: "Double", value: 0.5 }
     });
 
     const nonExclusiveLimitAlarmType = addressSpace.findEventType("NonExclusiveLimitAlarmType");
@@ -113,26 +114,25 @@ export function construct_demo_alarm_in_address_space(
     }
 
     const tankLevelCondition2 = namespace.instantiateNonExclusiveLimitAlarm(
-      nonExclusiveLimitAlarmType, {
-          browseName: "TankLevelCondition2",
-          componentOf: tank,
-          conditionName: "TankLevel2",
-          conditionSource: tankLevel2,
+        nonExclusiveLimitAlarmType, {
+        browseName: "TankLevelCondition2",
+        componentOf: tank,
+        conditionName: "TankLevel2",
+        conditionSource: tankLevel2,
 
-          highHighLimit: 0.9,
-          highLimit: 0.8,
+        highHighLimit: 0.9,
+        highLimit: 0.8,
 
-          inputNode: tankLevel2,   // the variable that will be monitored for change
+        inputNode: tankLevel2,   // the variable that will be monitored for change
 
-          lowLimit: 0.2,
+        lowLimit: 0.2,
 
-          optionals: [
-              "ConfirmedState", "Confirm" // confirm state and confirm Method
-          ]
-      });
+        optionals: [
+            "ConfirmedState", "Confirm" // confirm state and confirm Method
+        ]
+    });
     assert(tankLevel2.findReferences("HasCondition").length === 1);
     assert(tankLevel2.findReferencesAsObject("HasCondition", true).length === 1);
-  
     test.tankLevel = tankLevel;
     test.tankLevelCondition = tankLevelCondition;
 

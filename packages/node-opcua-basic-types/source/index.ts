@@ -13,5 +13,6 @@ export * from "./status_code";
 export * from "./guid";
 export * from "./array";
 export * from "./localeid";
+export * from "./attributeIds";
 
 export type ByteString = Buffer;

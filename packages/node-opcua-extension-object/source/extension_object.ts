@@ -15,7 +15,7 @@ import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 /* tslint:disable:no-empty */
 export class ExtensionObject extends BaseUAObject {
@@ -65,7 +65,7 @@ function constructEmptyExtensionObject(expandedNodeId: NodeId): ExtensionObject 
 //                    |  string without any null terminator.
 //
 
-export function encodeExtensionObject(object: ExtensionObject | null, stream: OutputBinaryStream): void {
+export function encodeExtensionObject(object: BaseUAObject | null, stream: OutputBinaryStream): void {
 
     if (!object) {
         encodeNodeId(makeNodeId(0), stream);
@@ -73,7 +73,7 @@ export function encodeExtensionObject(object: ExtensionObject | null, stream: Ou
         // note : Length shall not hbe specified, end of the job!
     } else {
         /* istanbul ignore next */
-        if (!((object as any) instanceof ExtensionObject)) {
+        if (!((object as any) instanceof BaseUAObject)) {
             throw new Error("Expecting a extension object");
         }
         // ensure we have a valid encoding Default Binary ID !!!
@@ -86,18 +86,18 @@ export function encodeExtensionObject(object: ExtensionObject | null, stream: Ou
         /* istanbul ignore next */
         if (!encodingDefaultBinary) {
             debugLog(chalk.yellow("encoding ExtObj "), object);
-            throw new Error("Cannot find encodingDefaultBinary for this object");
+            throw new Error("Cannot find encodingDefaultBinary for this object : " + object.schema.name);
         }
         /* istanbul ignore next */
         if (encodingDefaultBinary.isEmpty()) {
             debugLog(chalk.yellow("encoding ExtObj "), (object.constructor as any).encodingDefaultBinary.toString());
-            throw new Error("Cannot find encodingDefaultBinary for this object");
+            throw new Error("Cannot find encodingDefaultBinary for this object : " + object.schema.name);
         }
         /* istanbul ignore next */
         if (is_internal_id(encodingDefaultBinary.value as number)) {
             debugLog(chalk.yellow("encoding ExtObj "),
                 (object.constructor as any).encodingDefaultBinary.toString(), object.schema.name);
-            throw new Error("Cannot find valid OPCUA encodingDefaultBinary for this object");
+            throw new Error("Cannot find valid OPCUA encodingDefaultBinary for this object : " + object.schema.name);
         }
 
         encodeNodeId(encodingDefaultBinary, stream);

@@ -11,7 +11,6 @@ import {
     ClientSecureChannelLayer,
     ConnectionStrategy,
     ConnectionStrategyOptions,
-    ErrorCallback,
     SecurityPolicy,
     SecurityToken
 } from "node-opcua-secure-channel";
@@ -27,12 +26,15 @@ import {
 import {
     MessageSecurityMode
 } from "node-opcua-service-secure-channel";
+import {
+    ErrorCallback,
+} from "node-opcua-status-code";
 
 import { ResponseCallback } from "./client_session";
 import { Request, Response } from "./common";
 
-export type FindServersRequestLike = FindServersRequest | FindServersRequestOptions;
-export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequest | FindServersOnNetworkRequestOptions;
+export type FindServersRequestLike = FindServersRequestOptions;
+export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequestOptions;
 export type CreateSecureChannelCallbackFunc = (err: Error | null, secureChannel?: ClientSecureChannelLayer) => void;
 
 export interface FindEndpointOptions {

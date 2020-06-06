@@ -42,8 +42,9 @@ module.exports = function (test) {
                 function(callback) {
 
                     session.close(function(err){
-                        err.message.should.match(/BadSessionNotActivated/);
-
+                        //  err.message.should.match(/BadSessionNotActivated/);
+                        should.not.exist(err);
+                        
                         assert(client1._sessions.length === 0, "");
 
                         callback();

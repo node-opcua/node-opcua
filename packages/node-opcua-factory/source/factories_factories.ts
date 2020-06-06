@@ -3,19 +3,19 @@
  */
 // tslint:disable:no-console
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as  _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { ExpandedNodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 
-import { 
-    DataTypeFactory, 
+import {
+    DataTypeFactory,
 } from "./datatype_factory";
-import { 
+import {
     ConstructorFuncWithSchema,
-    ConstructorFunc 
+    ConstructorFunc
 } from "./constructor_type";
 
 import { BaseUAObject } from "./factories_baseobject";
@@ -41,20 +41,18 @@ export function hasStructuredType(typeName: string): boolean {
 export function getStructuredTypeSchema(typeName: string): StructuredTypeSchema {
     return getStandartDataTypeFactory().getStructuredTypeSchema(typeName);
 }
-export function registerFactory(typeName: string, constructor: ConstructorFuncWithSchema): void {    
-    return getStandartDataTypeFactory().registerFactory(typeName, constructor);
+
+export function getConstructor(binaryEncodingNodeId: ExpandedNodeId): ConstructorFunc | null {
+    return getStandartDataTypeFactory().getConstructor(binaryEncodingNodeId);
 }
-export function getConstructor(expandedNodeId: ExpandedNodeId): ConstructorFunc | null {
-    return getStandartDataTypeFactory().getConstructor(expandedNodeId);
+export function hasConstructor(binaryEncodingNodeId: ExpandedNodeId): boolean {
+    return getStandartDataTypeFactory().hasConstructor(binaryEncodingNodeId);
 }
-export function hasConstructor(expandedNodeId: ExpandedNodeId): boolean {
-    return getStandartDataTypeFactory().hasConstructor(expandedNodeId);
+export function constructObject(binaryEncodingNodeId: ExpandedNodeId): BaseUAObject {
+    return getStandartDataTypeFactory().constructObject(binaryEncodingNodeId);
 }
-export function constructObject(expandedNodeId: ExpandedNodeId): BaseUAObject  {
-    return getStandartDataTypeFactory().constructObject(expandedNodeId);
-}
-export function registerClassDefinition(className: string, classConstructor: ConstructorFuncWithSchema): void {
-    return getStandartDataTypeFactory().registerClassDefinition(className,classConstructor);
+export function registerClassDefinition(dataTypeNodeId: NodeId, className: string, classConstructor: ConstructorFuncWithSchema): void {
+    return getStandartDataTypeFactory().registerClassDefinition(dataTypeNodeId, className, classConstructor);
 }
 /* istanbul ignore next */
 export function dump(): void {

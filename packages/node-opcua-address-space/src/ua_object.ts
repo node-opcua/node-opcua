@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -64,15 +64,14 @@ export class UAObject extends BaseNode implements UAObjectPublic {
         return new DataValue(options);
     }
 
-    public clone(options: any, optionalFilter: any, extraInfo: any) {
+    public clone(options: any, optionalFilter?: any, extraInfo?: any): UAObject {
         options = options || {};
         options = _.extend(_.clone(options), {
             eventNotifier: this.eventNotifier,
             symbolicName: this.symbolicName
         });
 
-        const cloneObject = _clone.call(this, UAObject, options, optionalFilter, extraInfo);
-
+        const cloneObject = _clone.call(this, UAObject, options, optionalFilter, extraInfo) as UAObject;
         // xx  newObject.propagate_back_references();
         // xx newObject.install_extra_properties();
         return cloneObject;
@@ -97,8 +96,8 @@ export class UAObject extends BaseNode implements UAObjectPublic {
      * Raise a transient Event
      */
     public raiseEvent(
-      eventType: EventTypeLike | BaseNode,
-      data: RaiseEventData
+        eventType: EventTypeLike | BaseNode,
+        data: RaiseEventData
     ): void {
 
         const addressSpace = this.addressSpace;
@@ -109,7 +108,7 @@ export class UAObject extends BaseNode implements UAObjectPublic {
                 throw new Error("raiseEvent: eventType cannot find event Type " + eventType.toString());
             }
             eventType = eventTypeFound;
-            if (! eventType || eventType.nodeClass !== NodeClass.ObjectType) {
+            if (!eventType || eventType.nodeClass !== NodeClass.ObjectType) {
                 throw new Error("eventType must exist and be an UAObjectType" + eventType!.toString());
             }
 
@@ -119,7 +118,7 @@ export class UAObject extends BaseNode implements UAObjectPublic {
                 throw new Error("raiseEvent: eventType cannot find event Type " + eventType.toString());
             }
             eventType = eventTypeFound!;
-            if (! eventType || eventType.nodeClass !== NodeClass.ObjectType) {
+            if (!eventType || eventType.nodeClass !== NodeClass.ObjectType) {
                 throw new Error("eventType must exist and be an UAObjectType" + eventType.toString());
             }
         }
@@ -164,8 +163,8 @@ export class UAObject extends BaseNode implements UAObjectPublic {
         } else {
             // tslint:disable:no-console
             console.warn(
-              chalk.yellow("Warning. ") + chalk.cyan("UAObject#raiseEvent") +
-              chalk.red(" cannot find Server object on addressSpace"));
+                chalk.yellow("Warning. ") + chalk.cyan("UAObject#raiseEvent") +
+                chalk.red(" cannot find Server object on addressSpace"));
         }
 
         addinqueue(this);

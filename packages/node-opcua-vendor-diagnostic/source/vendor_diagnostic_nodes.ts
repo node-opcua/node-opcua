@@ -4,7 +4,7 @@ import * as os from "os";
 
 import { Namespace } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
-import { ObjectIds} from "node-opcua-constants";
+import { ObjectIds } from "node-opcua-constants";
 import { ServerEngine } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
@@ -37,7 +37,7 @@ function addVariableWithHumanizeText(namespace: Namespace, options: any) {
             get() {
                 const v = options.value.get();
                 if (v instanceof Variant) {
-                    return new Variant({dataType: DataType.String, value: humanize.filesize(v.value)});
+                    return new Variant({ dataType: DataType.String, value: humanize.filesize(v.value) });
                 } else {
                     return v;
                 }
@@ -72,17 +72,17 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
 
     const namespace = addressSpace.getOwnNamespace();
 
-    const folder = addressSpace.findNode(ObjectIds.Server_VendorServerInfo);
+    const vendorServerInfo = addressSpace.findNode(ObjectIds.Server_VendorServerInfo);
 
-    let usage_result = {memory: 0, cpu: 100};
+    let usage_result = { memory: 0, cpu: 100 };
 
     const pid = process.pid;
 
     if (usage) {
 
-        const options = {keepHistory: true};
+        const options = { keepHistory: true };
         setInterval(() => {
-            usage.lookup(pid, options,  (err: Error| null, result: any) => {
+            usage.lookup(pid, options, (err: Error | null, result: any) => {
                 usage_result = result;
                 console.log("result Used Memory: ", humanize.filesize(result.memory), " CPU ", Math.round(result.cpu), " %");
                 if (err) { console.log("err ", err); }
@@ -91,37 +91,38 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
 
         namespace.addVariable({
 
-            organizedBy: folder,
+            componentOf: vendorServerInfo,
 
-            browseName:    "CPUUsage",
-            dataType:      "Double",
-            description:   "Current CPU usage of the server process",
+            browseName: "CPUUsage",
+            dataType: "Double",
+            description: "Current CPU usage of the server process",
 
             minimumSamplingInterval: 1000,
-            nodeId:        "s=CPUUsage",
+            nodeId: "s=CPUUsage",
             value: {
                 get: () => {
                     if (!usage_result) {
                         return StatusCodes.BadResourceUnavailable;
                     }
-                    return new Variant({dataType: DataType.Double, value: Math.round(usage_result.cpu)});
+                    return new Variant({ dataType: DataType.Double, value: Math.round(usage_result.cpu) });
                 }
             }
         });
 
         addVariableWithHumanizeText(namespace, {
-            browseName:  "MemoryUsage",
-            dataType:    "Number",
+            componentOf: vendorServerInfo,
+
+            browseName: "MemoryUsage",
+            dataType: "Number",
             description: "Current memory usage of the server process",
             minimumSamplingInterval: 1000,
-            nodeId:      "s=MemoryUsage",
-            organizedBy: folder,
+            nodeId: "s=MemoryUsage",
             value: {
                 get: () => {
                     if (!usage_result) {
                         return StatusCodes.BadResourceUnavailable;
                     }
-                    return new Variant({dataType: DataType.UInt32, value: usage_result.memory});
+                    return new Variant({ dataType: DataType.UInt32, value: usage_result.memory });
                 }
             }
         });
@@ -131,7 +132,7 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
     }
 
     namespace.addVariable({
-        organizedBy: folder,
+        componentOf: vendorServerInfo,
 
         browseName: "PercentageMemoryUsed",
         dataType: "Number",
@@ -141,13 +142,13 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         value: {
             get() {
                 const percent_used = Math.round((os.totalmem() - os.freemem()) / os.totalmem() * 100);
-                return new Variant({dataType: DataType.Double, value: percent_used});
+                return new Variant({ dataType: DataType.Double, value: percent_used });
             }
         }
     });
 
     addVariableWithHumanizeText(namespace, {
-        organizedBy: folder,
+        componentOf: vendorServerInfo,
 
         accessLevel: "CurrentRead",
         browseName: "SystemMemoryTotal",
@@ -158,13 +159,13 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         value: {
             get() {
                 const memory = os.totalmem();
-                return new Variant({dataType: DataType.UInt64, value: memory});
+                return new Variant({ dataType: DataType.UInt64, value: memory });
             }
         }
     });
 
     addVariableWithHumanizeText(namespace, {
-        organizedBy: folder,
+        componentOf: vendorServerInfo,
 
         accessLevel: "CurrentRead",
         browseName: "SystemMemoryFree",
@@ -175,13 +176,13 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         value: {
             get() {
                 const memory = os.freemem();
-                return new Variant({dataType: DataType.UInt64, value: memory});
+                return new Variant({ dataType: DataType.UInt64, value: memory });
             }
         }
     });
 
     namespace.addVariable({
-        organizedBy: folder,
+        componentOf: vendorServerInfo,
 
         accessLevel: "CurrentRead",
         browseName: "NumberOfCPUs",
@@ -191,13 +192,13 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         nodeId: "s=NumberOfCPUs",
         value: {
             get() {
-                return new Variant({dataType: DataType.UInt32, value: os.cpus().length});
+                return new Variant({ dataType: DataType.UInt32, value: os.cpus().length });
             }
         }
     });
 
     namespace.addVariable({
-        organizedBy: folder,
+        componentOf: vendorServerInfo,
 
         accessLevel: "CurrentRead",
         browseName: "Arch",
@@ -207,13 +208,13 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         nodeId: "s=ServerArchitecture",
         value: {
             get() {
-                return new Variant({dataType: DataType.String, value: os.type()});
+                return new Variant({ dataType: DataType.String, value: os.type() });
             }
         }
     });
 
     addVariableWithHumanizeText(namespace, {
-        organizedBy: folder,
+        componentOf: vendorServerInfo,
 
         accessLevel: "CurrentRead",
         browseName: "BytesWritten",
@@ -223,13 +224,13 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         nodeId: "s=BytesWritten",
         value: {
             get() {
-                return new Variant({dataType: DataType.UInt64, value: server.bytesWritten});
+                return new Variant({ dataType: DataType.UInt64, value: server.bytesWritten });
             }
         }
     });
 
-    addVariableWithHumanizeText(namespace,  {
-        organizedBy: folder,
+    addVariableWithHumanizeText(namespace, {
+        componentOf: vendorServerInfo,
 
         accessLevel: "CurrentRead",
         browseName: "BytesRead",
@@ -239,13 +240,13 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         nodeId: "s=BytesRead",
         value: {
             get() {
-                return new Variant({dataType: DataType.UInt64, value: server.bytesRead});
+                return new Variant({ dataType: DataType.UInt64, value: server.bytesRead });
             }
         }
     });
 
     namespace.addVariable({
-        organizedBy: folder,
+        componentOf: vendorServerInfo,
 
         accessLevel: "CurrentRead",
         browseName: "TransactionsCount",
@@ -255,13 +256,13 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         nodeId: "s=TransactionsCount",
         value: {
             get() {
-                return new Variant({dataType: DataType.UInt32, value: server.transactionsCount});
+                return new Variant({ dataType: DataType.UInt32, value: server.transactionsCount });
             }
         }
     });
 
     namespace.addVariable({
-        organizedBy: folder,
+        componentOf: vendorServerInfo,
 
         accessLevel: "CurrentRead",
         browseName: "ConnectionsCount",
@@ -271,7 +272,7 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         nodeId: "s=ConnectionCount",
         value: {
             get() {
-                return new Variant({dataType: DataType.String, value: humanize.filesize(server.currentChannelCount)             });
+                return new Variant({ dataType: DataType.String, value: humanize.filesize(server.currentChannelCount) });
             }
         }
     });

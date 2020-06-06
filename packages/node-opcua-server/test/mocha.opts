@@ -1,2 +1,4 @@
 -r ../../node_modules/source-map-support/register
+-r ../../node_modules/ts-node/register
 -timeout 30000
+test/**/*.ts test/**/*.js

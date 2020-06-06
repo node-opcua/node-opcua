@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2019-05-01T00:00:00Z" 
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>http://opcfoundation.org/UA/DI/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://opcfoundation.org/UA/DI/" Version="1.02" PublicationDate="2019-05-01T00:00:00Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.4" PublicationDate="2020-01-08T00:00:00Z" />
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="SByte">i=2</Alias>
+        <Alias Alias="Byte">i=3</Alias>
+        <Alias Alias="Int16">i=4</Alias>
+        <Alias Alias="UInt16">i=5</Alias>
+        <Alias Alias="Int32">i=6</Alias>
+        <Alias Alias="UInt32">i=7</Alias>
+        <Alias Alias="Int64">i=8</Alias>
+        <Alias Alias="UInt64">i=9</Alias>
+        <Alias Alias="Float">i=10</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="ByteString">i=15</Alias>
+        <Alias Alias="Guid">i=14</Alias>
+        <Alias Alias="XmlElement">i=16</Alias>
+        <Alias Alias="NodeId">i=17</Alias>
+        <Alias Alias="ExpandedNodeId">i=18</Alias>
+        <Alias Alias="QualifiedName">i=20</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+        <Alias Alias="StatusCode">i=19</Alias>
+        <Alias Alias="Structure">i=22</Alias>
+        <Alias Alias="Number">i=26</Alias>
+        <Alias Alias="Integer">i=27</Alias>
+        <Alias Alias="UInteger">i=28</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasEventSource">i=36</Alias>
+        <Alias Alias="HasNotifier">i=48</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
+    </Aliases>
+    <UADataType NodeId="ns=1;i=6522" BrowseName="1:FetchResultDataType" IsAbstract="true">
+        <DisplayName>FetchResultDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=6525" BrowseName="1:ParameterResultDataType">
+        <DisplayName>ParameterResultDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="1:ParameterResultDataType">
+            <Field Name="NodePath" DataType="i=20" ValueRank="1" />
+            <Field Name="StatusCode" DataType="i=19" />
+            <Field Name="Diagnostics" DataType="i=25" />
+        </Definition>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=15889" BrowseName="1:TransferResultDataDataType">
+        <DisplayName>TransferResultDataDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=6522</Reference>
+        </References>
+        <Definition Name="1:TransferResultDataDataType">
+            <Field Name="SequenceNumber" DataType="i=6" />
+            <Field Name="EndOfResults" DataType="i=1" />
+            <Field Name="ParameterDefs" DataType="ns=1;i=6525" ValueRank="1" />
+        </Definition>
+    </UADataType>
+    <!-- A -->
+    <UAObject NodeId="ns=1;i=6554" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=6525</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6564</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAVariable NodeId="ns=1;i=6564" BrowseName="1:ParameterResultDataType" ParentNodeId="ns=1;i=6435" DataType="String">
+        <DisplayName>ParameterResultDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
+        </References>
+        <Value>
+            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ParameterResultDataType</String>
+        </Value>
+    </UAVariable>
+    <!-- B-->
+    <UAObject NodeId="ns=1;i=15892" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=15889</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=15897</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAVariable NodeId="ns=1;i=15897" BrowseName="1:TransferResultDataDataType" ParentNodeId="ns=1;i=6435" DataType="String">
+        <DisplayName>TransferResultDataDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6435</Reference>
+        </References>
+        <Value>
+            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">TransferResultDataDataType</String>
+        </Value>
+    </UAVariable>
+    <!-- C -->
+    <UAVariable NodeId="ns=1;i=6435" BrowseName="1:Opc.Ua.Di" SymbolicName="OpcUaDi_BinarySchema" DataType="ByteString">
+        <DisplayName>Opc.Ua.Di</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6437</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=15893</Reference>
+
+            <Reference ReferenceType="HasComponent">ns=1;i=15897</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6564</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+        </References>
+        <Value/>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=6437" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6435" DataType="String">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6435</Reference>
+        </References>
+        <Value>
+            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/DI/</String>
+        </Value>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=15893" BrowseName="Deprecated" ParentNodeId="ns=1;i=6435" DataType="Boolean">
+        <DisplayName>Deprecated</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6435</Reference>
+        </References>
+        <Value>
+            <Boolean xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">true</Boolean>
+        </Value>
+    </UAVariable>
+</UANodeSet>

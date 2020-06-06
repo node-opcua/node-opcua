@@ -9,7 +9,7 @@ import * as path from "path";
  * set a flag
  * @method set_flag
  */
-export function set_flag(value: number, mask: number| {value: number}): number {
+export function set_flag(value: number, mask: number | { value: number }): number {
     if ((mask as any).value) {
         mask = (mask as any).value;
     }
@@ -21,7 +21,7 @@ export function set_flag(value: number, mask: number| {value: number}): number {
  * check if a set of bits are set in the values
  * @method check_flag
  */
-export function check_flag(value: number, mask: number| {value: number}): boolean {
+export function check_flag(value: number, mask: number | { value: number }): boolean {
     if ((mask as any).value) {
         mask = (mask as any).value;
     }
@@ -65,3 +65,4 @@ export * from "./watchdog";
 export { LineFile } from "./linefile";
 export { setDeprecated } from "./set_deprecated";
 export { replaceBufferWithHexDump } from "./replace_buffer_with_hex_dump";
+export * from "./timestamp";

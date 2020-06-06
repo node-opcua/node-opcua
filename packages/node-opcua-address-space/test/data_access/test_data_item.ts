@@ -6,8 +6,8 @@ import * as should from "should";
 
 import { standardUnits } from "node-opcua-data-access";
 import * as nodesets from "node-opcua-nodesets";
-import { encode_decode_round_trip_test} from "node-opcua-packet-analyzer/dist/test_helpers";
-import { AddressSpace ,  generateAddressSpace } from "../..";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { AddressSpace, generateAddressSpace } from "../..";
 
 import { subtest_analog_item_semantic_changed } from "./subtest_analog_item_semantic_changed";
 import { subtest_analog_item_type } from "./subtest_analog_item_type";
@@ -20,7 +20,7 @@ import { subtest_Y_array_item_type } from "./subtest_Y_array_item_type";
 describe("DataAccess", () => {
 
     let addressSpace: AddressSpace;
-    const data  = { addressSpace: null as any  };
+    const data = { addressSpace: null as any };
     before(async () => {
         addressSpace = AddressSpace.create();
 
@@ -108,22 +108,22 @@ describe("DataAccess", () => {
 
     it("should have a UAVariableType XYArrayItemType", () => {
         const xyArrayItemType = addressSpace.findVariableType("XYArrayItemType")!;
-        xyArrayItemType.arrayDimensions.should.eql([0]);
+        xyArrayItemType.arrayDimensions!.should.eql([0]);
     });
 
     it("should have a ImageItemType ", () => {
         const xyArrayItemType = addressSpace.findVariableType("ImageItemType")!;
-        xyArrayItemType.arrayDimensions.should.eql([0, 0]);
+        xyArrayItemType.arrayDimensions!.should.eql([0, 0]);
     });
 
     it("should have a CubeItemType ", () => {
         const xyArrayItemType = addressSpace.findVariableType("CubeItemType")!;
-        xyArrayItemType.arrayDimensions.should.eql([0, 0, 0]);
+        xyArrayItemType.arrayDimensions!.should.eql([0, 0, 0]);
     });
 
     it("should encode and decode a string containing fancy characters", (done: any) => {
         const engineeringUnits = standardUnits.degree_celsius;
-        encode_decode_round_trip_test(engineeringUnits,  (buffer: Buffer) => {
+        encode_decode_round_trip_test(engineeringUnits, (buffer: Buffer) => {
             buffer.length.should.equal(82);
             done();
         });

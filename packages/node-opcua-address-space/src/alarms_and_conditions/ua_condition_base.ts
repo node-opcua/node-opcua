@@ -1,11 +1,11 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { ByteString } from "node-opcua-basic-types";
+import { ByteString, DateTime } from "node-opcua-basic-types";
 import { randomGuid, UInt16 } from "node-opcua-basic-types";
 import {
     AttributeIds,
@@ -42,42 +42,42 @@ const doDebug = checkDebugFlag(__filename);
 export interface UAConditionBase extends BaseEventType {
 
     on(
-      eventName: string,
-      eventHandler: (...args: any[]) => void
+        eventName: string,
+        eventHandler: (...args: any[]) => void
     ): this;
 
     // -- Events
     on(
-      eventName: "addComment",
-      eventHandler: (
-        eventId: Buffer | null,
-        comment: LocalizedText,
-        branch: ConditionSnapshot
-      ) => void
+        eventName: "addComment",
+        eventHandler: (
+            eventId: Buffer | null,
+            comment: LocalizedText,
+            branch: ConditionSnapshot
+        ) => void
     ): this;
 
     on(
-      eventName: "branch_deleted",
-      eventHandler: (branchId: string) => void
+        eventName: "branch_deleted",
+        eventHandler: (branchId: string) => void
     ): this;
 }
 
 export interface UAConditionBase {
     enabledState: UATwoStateVariable;
-    receiveTime: UAVariableT<Date>;
-    localTime: UAVariableT<DataType.ExtensionObject>;
-    message: UAVariableT<DataType.LocalizedText>;
-    severity: UAVariableT<DataType.UInt16>;
-    time: UAVariableT<DataType.DateTime>;
-    branchId: UAVariableT<DataType.NodeId>;
-    eventType: UAVariableT<NodeId>;
-    conditionClassId: UAVariableT<DataType.NodeId>;
-    conditionClassName: UAVariableT<DataType.LocalizedText>;
-    conditionName: UAVariableT<DataType.String>;
-    quality: UAConditionVariable<DataType.StatusCode>;
-    comment: UAConditionVariable<DataType.LocalizedText>;
-    lastSeverity: UAConditionVariable<DataType.StatusCode>;
-    retain: UAVariableT<DataType.Boolean>;
+    receiveTime: UAVariableT<Date, DataType.DateTime>;
+    localTime: UAVariableT<any, DataType.ExtensionObject>;
+    message: UAVariableT<LocalizedText, DataType.LocalizedText>;
+    severity: UAVariableT<UInt16, DataType.UInt16>;
+    time: UAVariableT<DateTime, DataType.DateTime>;
+    branchId: UAVariableT<NodeId, DataType.NodeId>;
+    eventType: UAVariableT<NodeId, DataType.NodeId>;
+    conditionClassId: UAVariableT<NodeId, DataType.NodeId>;
+    conditionClassName: UAVariableT<LocalizedText, DataType.LocalizedText>;
+    conditionName: UAVariableT<string, DataType.String>;
+    quality: UAConditionVariable<StatusCode, DataType.StatusCode>;
+    comment: UAConditionVariable<LocalizedText, DataType.LocalizedText>;
+    lastSeverity: UAConditionVariable<StatusCode, DataType.StatusCode>;
+    retain: UAVariableT<boolean, DataType.Boolean>;
 
     enable: UAMethod;
     disable: UAMethod;
@@ -118,10 +118,10 @@ export class UAConditionBase extends BaseEventType {
     public static typeDefinition = resolveNodeId("ConditionType");
 
     public static instantiate(
-      namespace: Namespace,
-      conditionTypeId: NodeId | string | UAEventType,
-      options: any,
-      data: any
+        namespace: Namespace,
+        conditionTypeId: NodeId | string | UAEventType,
+        options: any,
+        data: any
     ): UAConditionBase {
         return UAConditionBase_instantiate(namespace, conditionTypeId, options, data);
     }
@@ -162,15 +162,15 @@ export class UAConditionBase extends BaseEventType {
      *
      */
     public static with_condition_method(
-      inputArguments: VariantLike[],
-      context: SessionContext,
-      callback: (err: Error | null, result?: { statusCode: StatusCode }) => void,
-      inner_func: (
-        eventId: ByteString,
-        comment: LocalizedText,
-        branch: ConditionSnapshot,
-        conditionNode: UAConditionBase
-      ) => StatusCode
+        inputArguments: VariantLike[],
+        context: SessionContext,
+        callback: (err: Error | null, result?: { statusCode: StatusCode }) => void,
+        inner_func: (
+            eventId: ByteString,
+            comment: LocalizedText,
+            branch: ConditionSnapshot,
+            conditionNode: UAConditionBase
+        ) => StatusCode
     ) {
         const conditionNode = context.object;
 
@@ -220,10 +220,6 @@ export class UAConditionBase extends BaseEventType {
             statusCode
         });
     }
-
-    // xx  public readonly nodeClass = NodeClass.ObjectType;
-
-    public eventId: any;
     private _branch0: ConditionSnapshot = null as any;
     private _previousRetainFlag: boolean = false;
     private _branches: any = {};
@@ -445,8 +441,8 @@ export class UAConditionBase extends BaseEventType {
         assert(refs.length === 1, "expecting only one ConditionOf");
         const node = refs[0];
         assert(
-          node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable,
-          "node for which we are the condition shall be an UAObject or UAVariable"
+            node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable,
+            "node for which we are the condition shall be an UAObject or UAVariable"
         );
         return node as UAObject | UAVariable;
     }
@@ -510,8 +506,8 @@ export class UAConditionBase extends BaseEventType {
         conditionInfo = conditionInfo || {};
 
         conditionInfo.severity = conditionInfo.hasOwnProperty("severity")
-          ? conditionInfo.severity
-          : UAConditionBase.defaultSeverity;
+            ? conditionInfo.severity
+            : UAConditionBase.defaultSeverity;
 
         // only valid for ConditionObjects
         // todo check that object is of type ConditionType
@@ -533,10 +529,10 @@ export class UAConditionBase extends BaseEventType {
         // note : in 1.04 LocalTime property is optional
         if (this.hasOwnProperty("localTime")) {
             branch.setLocalTime(
-              new TimeZoneDataType({
-                  daylightSavingInOffset: false,
-                  offset: 0
-              })
+                new TimeZoneDataType({
+                    daylightSavingInOffset: false,
+                    offset: 0
+                })
             );
         }
 
@@ -597,16 +593,16 @@ export class UAConditionBase extends BaseEventType {
     /**
      * @method _raiseAuditConditionCommentEvent
      * @param sourceName {string}
-     * @param eventId    {Buffer}
+     * @param conditionEventId    {Buffer}
      * @param comment    {LocalizedText}
      * @private
      */
     public _raiseAuditConditionCommentEvent(
-      sourceName: string,
-      eventId: Buffer,
-      comment: LocalizedTextLike
+        sourceName: string,
+        conditionEventId: Buffer,
+        comment: LocalizedTextLike
     ) {
-        assert(eventId === null || eventId instanceof Buffer);
+        assert(conditionEventId === null || conditionEventId instanceof Buffer);
         assert(comment instanceof LocalizedText);
         const server = this.addressSpace.rootFolder.objects.server;
 
@@ -658,9 +654,9 @@ export class UAConditionBase extends BaseEventType {
             },
 
             // AuditConditionCommentEventType
-            eventId: {
+            conditionEventId: {
                 dataType: "ByteString",
-                value: eventId
+                value: conditionEventId
             },
 
             comment: {
@@ -672,8 +668,9 @@ export class UAConditionBase extends BaseEventType {
     }
 
     protected _findBranchForEventId(eventId: Buffer): ConditionSnapshot | null {
+
         const conditionNode = this;
-        if (sameBuffer(conditionNode.eventId.readValue().value.value, eventId)) {
+        if (sameBuffer(conditionNode.eventId!.readValue().value.value, eventId)) {
             return conditionNode.currentBranch();
         }
         const e = _.filter(conditionNode._branches, (branch: ConditionSnapshot, key: string) => {
@@ -691,6 +688,9 @@ export class UAConditionBase extends BaseEventType {
         throw new Error("Unimplemented , please override");
     }
 
+}
+export interface UAConditionBase extends BaseEventType {
+    eventId: UAVariable;
 }
 
 /**
@@ -720,10 +720,10 @@ export class UAConditionBase extends BaseEventType {
  * @return  a instantiated UAConditionBase
  */
 function UAConditionBase_instantiate(
-  namespace: Namespace,
-  conditionTypeId: UAEventType | NodeId | string,
-  options: any,
-  data: any
+    namespace: Namespace,
+    conditionTypeId: UAEventType | NodeId | string,
+    options: any,
+    data: any
 ): UAConditionBase {
 
     /* eslint max-statements: ["error", 100] */
@@ -737,7 +737,7 @@ function UAConditionBase_instantiate(
     }
 
     // reminder : abstract event type cannot be instantiated directly !
-    assert(!conditionType.isAbstract);
+    assert(!conditionType.isAbstract, "Canot instantiate abstract conditionType");
 
     const baseConditionEventType = addressSpace.findEventType("ConditionType");
     /* istanbul ignore next */
@@ -772,8 +772,8 @@ function UAConditionBase_instantiate(
     conditionNode.initialize();
 
     assert(
-      options.hasOwnProperty("conditionSource"),
-      "must specify a condition source either as null or as a UAObject"
+        options.hasOwnProperty("conditionSource"),
+        "must specify a condition source either as null or as a UAObject"
     );
     if (!options.conditionOf) {
         options.conditionOf = options.conditionSource;
@@ -784,7 +784,7 @@ function UAConditionBase_instantiate(
 
         // HasCondition References can be used in the Type definition of an Object or a Variable.
         assert(options.conditionOf.nodeClass === NodeClass.Object ||
-          options.conditionOf.nodeClass === NodeClass.Variable);
+            options.conditionOf.nodeClass === NodeClass.Variable);
 
         conditionNode.addReference({
             isForward: false,
@@ -827,7 +827,7 @@ function UAConditionBase_instantiate(
     // -------------- fixing missing EnabledState.EffectiveDisplayName
     if (!conditionNode.enabledState.effectiveDisplayName) {
         namespace.addVariable({
-            browseName: new QualifiedName({namespaceIndex: 0, name: "EffectiveDisplayName"}),
+            browseName: new QualifiedName({ namespaceIndex: 0, name: "EffectiveDisplayName" }),
             dataType: "LocalizedText",
             propertyOf: conditionNode.enabledState
         });
@@ -900,7 +900,7 @@ function UAConditionBase_instantiate(
 
         options.conditionSource = addressSpace._coerceNode(options.conditionSource);
         if (options.conditionSource.nodeClass !== NodeClass.Object &&
-          options.conditionSource.nodeClass !== NodeClass.Variable) {
+            options.conditionSource.nodeClass !== NodeClass.Variable) {
             // tslint:disable:no-console
             console.log(options.conditionSource);
             throw new Error("Expecting condition source to be NodeClass.Object or Variable");
@@ -927,19 +927,19 @@ function UAConditionBase_instantiate(
                 if (conditionSourceNode.getEventSourceOfs().length === 0) {
                     errorLog("conditionSourceNode = ", conditionSourceNode.browseName.toString());
                     errorLog("conditionSourceNode = ", conditionSourceNode.nodeId.toString());
-                    throw new  Error("conditionSourceNode must be an event source " + conditionSourceNode.browseName.toString() + conditionSourceNode.nodeId.toString() ) ;
+                    throw new Error("conditionSourceNode must be an event source " + conditionSourceNode.browseName.toString() + conditionSourceNode.nodeId.toString());
                 }
             }
 
             const context = SessionContext.defaultContext;
             // set source Node (defined in UABaseEventType)
             conditionNode.sourceNode.setValueFromSource(
-              conditionSourceNode.readAttribute(context, AttributeIds.NodeId).value
+                conditionSourceNode.readAttribute(context, AttributeIds.NodeId).value
             );
 
             // set source Name (defined in UABaseEventType)
             conditionNode.sourceName.setValueFromSource(
-              conditionSourceNode.readAttribute(context, AttributeIds.DisplayName).value
+                conditionSourceNode.readAttribute(context, AttributeIds.DisplayName).value
             );
         }
     }
@@ -1035,10 +1035,10 @@ function UAConditionBase_instantiate(
     branch0.setQuality(StatusCodes.Good);
     branch0.setSeverity(0);
     branch0.setLocalTime(
-      new TimeZoneDataType({
-          daylightSavingInOffset: false,
-          offset: 0
-      })
+        new TimeZoneDataType({
+            daylightSavingInOffset: false,
+            offset: 0
+        })
     );
     branch0.setMessage("");
 
@@ -1050,9 +1050,9 @@ function UAConditionBase_instantiate(
 }
 
 function _disable_method(
-  inputArguments: VariantLike[],
-  context: SessionContext,
-  callback: any
+    inputArguments: VariantLike[],
+    context: SessionContext,
+    callback: any
 ) {
     assert(inputArguments.length === 0);
 
@@ -1071,9 +1071,9 @@ function _disable_method(
 }
 
 function _enable_method(
-  inputArguments: VariantLike[],
-  context: SessionContext,
-  callback: any
+    inputArguments: VariantLike[],
+    context: SessionContext,
+    callback: any
 ) {
     assert(inputArguments.length === 0);
     const conditionNode = context.object;
@@ -1091,9 +1091,9 @@ function _enable_method(
 }
 
 function _condition_refresh_method(
-  inputArguments: VariantLike[],
-  context: SessionContext,
-  callback: any
+    inputArguments: VariantLike[],
+    context: SessionContext,
+    callback: any
 ) {
     // arguments : IntegerId SubscriptionId
     assert(inputArguments.length === 1);
@@ -1116,9 +1116,9 @@ function _condition_refresh_method(
 }
 
 function _perform_condition_refresh(
-  addressSpace: AddressSpacePrivate,
-  inputArguments: VariantLike[],
-  context: SessionContext
+    addressSpace: AddressSpacePrivate,
+    inputArguments: VariantLike[],
+    context: SessionContext
 ) {
     // --- possible StatusCodes:
     //
@@ -1160,9 +1160,9 @@ function _perform_condition_refresh(
 }
 
 function _condition_refresh2_method(
-  inputArguments: VariantLike[],
-  context: SessionContext,
-  callback: any
+    inputArguments: VariantLike[],
+    context: SessionContext,
+    callback: any
 ) {
     // arguments : IntegerId SubscriptionId
     // arguments : IntegerId MonitoredItemId
@@ -1185,9 +1185,9 @@ function _condition_refresh2_method(
 }
 
 function _add_comment_method(
-  inputArguments: VariantLike[],
-  context: SessionContext,
-  callback: any
+    inputArguments: VariantLike[],
+    context: SessionContext,
+    callback: any
 ) {
     //
     // The AddComment Method is used to apply a comment to a specific state of a Condition
@@ -1204,38 +1204,38 @@ function _add_comment_method(
     // AlwaysGeneratesEvent  AuditConditionCommentEventType
     //
     UAConditionBase.with_condition_method(
-      inputArguments,
-      context,
-      callback,
-      (
-        eventId: any,
-        comment: any,
-        branch: any,
-        conditionNode: UAConditionBase
-      ) => {
-          assert(inputArguments instanceof Array);
-          assert(eventId instanceof Buffer || eventId === null);
-          assert(branch instanceof ConditionSnapshot);
-          branch.setComment(comment);
+        inputArguments,
+        context,
+        callback,
+        (
+            conditionEventId: ByteString,
+            comment: LocalizedText,
+            branch: ConditionSnapshot,
+            conditionNode: UAConditionBase
+        ) => {
+            assert(inputArguments instanceof Array);
+            assert(conditionEventId instanceof Buffer || conditionEventId === null);
+            assert(branch instanceof ConditionSnapshot);
+            branch.setComment(comment);
 
-          const sourceName = "Method/AddComment";
+            const sourceName = "Method/AddComment";
 
-          conditionNode._raiseAuditConditionCommentEvent(sourceName, eventId, comment);
+            conditionNode._raiseAuditConditionCommentEvent(sourceName, conditionEventId, comment);
 
-          // raise new event
-          conditionNode.raiseConditionEvent(branch, true);
+            // raise new event
+            conditionNode.raiseConditionEvent(branch, true);
 
-          /**
-           * raised when the  branch has been added a comment
-           * @event addComment
-           * @param  eventId   NodeId|null
-           * @param  comment   {LocalizedText}
-           * @param  branch    {ConditionSnapshot}
-           */
-          conditionNode.emit("addComment", eventId, comment, branch);
+            /**
+             * raised when the  branch has been added a comment
+             * @event addComment
+             * @param  conditionEventId   NodeId|null
+             * @param  comment   {LocalizedText}
+             * @param  branch    {ConditionSnapshot}
+             */
+            conditionNode.emit("addComment", conditionEventId, comment, branch);
 
-          return StatusCodes.Good;
-      });
+            return StatusCodes.Good;
+        });
 }
 
 function sameBuffer(b1: Buffer | null, b2: Buffer | null) {
@@ -1271,13 +1271,13 @@ function _create_new_branch_id() {
     return makeNodeId(randomGuid(), 1);
 }
 
-interface UAConditionVariable<T> extends UAVariableT<T> {
-    sourceTimestamp: UAVariableT<DataType.DateTime>;
+interface UAConditionVariable<T, DT extends DataType> extends UAVariableT<T, DT> {
+    sourceTimestamp: UAVariableT<DateTime, DataType.DateTime>;
 }
 
-function _update_sourceTimestamp<T>(
-  this: UAConditionVariable<T>,
-  dataValue: DataValue /*, indexRange*/
+function _update_sourceTimestamp<T, DT extends DataType>(
+    this: UAConditionVariable<T, DT>,
+    dataValue: DataValue /*, indexRange*/
 ) {
     this.sourceTimestamp.setValueFromSource({
         dataType: DataType.DateTime,
@@ -1286,8 +1286,8 @@ function _update_sourceTimestamp<T>(
 }
 
 // tslint:disable:no-console
-function _install_condition_variable_type<T>(
-  node: UAConditionVariable<T>
+function _install_condition_variable_type<T, DT extends DataType>(
+    node: UAConditionVariable<T, DT>
 ) {
     assert(node instanceof BaseNode);
     // from spec 1.03 : 5.3 condition variables
@@ -1324,8 +1324,8 @@ function _install_condition_variable_type<T>(
  *
  */
 function _getCompositeKey(
-  node: BaseNode,
-  key: string
+    node: BaseNode,
+    key: string
 ): UAVariable {
     let cur = node as any;
     const elements = key.split(".");
@@ -1347,8 +1347,8 @@ function _getCompositeKey(
  * @private
  */
 function _check_subscription_id_is_valid(
-  subscriptionId: number,
-  context: SessionContext
+    subscriptionId: number,
+    context: SessionContext
 ) {
     /// todo: return StatusCodes.BadSubscriptionIdInvalid; if subscriptionId doesn't belong to session...
     return StatusCodes.Good;

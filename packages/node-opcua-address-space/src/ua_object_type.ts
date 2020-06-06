@@ -27,7 +27,6 @@ import {
     assertUnusedChildBrowseName,
     initialize_properties_and_components
 } from "./ua_variable_type";
-import { Byte } from "node-opcua-basic-types";
 
 /*
 UAObjectType.prototype.isSupertypeOf = tools.construct_isSupertypeOf(UAObjectType);
@@ -86,6 +85,7 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
      * @param [options.eventSourceOf]
      * @param [options.optionals = [] name of the optional child to create
      * @param [options.modellingRule]
+     * @param [options.encodingOf]
      *
      *
      * Note : HasComponent usage scope
@@ -117,12 +117,13 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
         const references: Reference[] = [];
 
         const opts: AddObjectOptions = {
-            browseName:     options.browseName,
-            componentOf:    options.componentOf,
-            description:    options.description || this.description,
-            eventSourceOf:  options.eventSourceOf,
-            notifierOf:     options.notifierOf,
-            organizedBy:    options.organizedBy,
+            browseName: options.browseName,
+            componentOf: options.componentOf,
+            description: options.description || this.description,
+            encodingOf: options.encodingOf,
+            eventSourceOf: options.eventSourceOf,
+            notifierOf: options.notifierOf,
+            organizedBy: options.organizedBy,
             references,
 
             typeDefinition: this.nodeId,
@@ -131,7 +132,7 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
 
             eventNotifier: options.eventNotifier === undefined ? 0 : options.eventNotifier,
 
-            modellingRule : options.modellingRule
+            modellingRule: options.modellingRule
         };
 
         const namespace = this.addressSpace.getOwnNamespace();

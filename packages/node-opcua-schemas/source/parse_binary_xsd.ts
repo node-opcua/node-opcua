@@ -5,7 +5,13 @@
 // tslint:disable:object-literal-sort-keys
 // tslint:disable:no-empty
 
-import chalk from "chalk";
+import * as chalk from "chalk";
+
+import assert from "node-opcua-assert";
+import {
+    checkDebugFlag,
+    make_debugLog
+} from "node-opcua-debug";
 import {
     EnumerationDefinitionSchema,
     FieldInterfaceOptions,
@@ -13,13 +19,16 @@ import {
     StructuredTypeOptions,
     StructuredTypeSchema
 } from "node-opcua-factory";
-
-import { checkDebugFlag } from "node-opcua-debug";
 import { DataTypeFactory } from "node-opcua-factory";
+import { NodeId } from "node-opcua-nodeid";
 import { Xml2Json } from "node-opcua-xml2json";
-import { prepareEnumeratedType, prepareStructureType } from "./tools";
+
+import {
+    getOrCreateStructuredTypeSchema,
+} from "./tools";
 
 const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog(__filename);
 
 function w(s: string, l: number): string {
     return (s + "                                                    ").substr(0, l);
@@ -96,32 +105,24 @@ export interface StructureTypeRaw {
 export interface ITypeDictionary {
     targetNamespace: string;
     imports: string[];
-    structuredTypes: { [key: string]: StructuredTypeSchema; };
-    enumeratedTypes: { [key: string]: EnumerationDefinitionSchema; };
-
-    structuredTypesRaw: { [key: string]: StructureTypeRaw };
-    enumeratedTypesRaw: { [key: string]: EnumeratedType; };
+    structuredTypesRaw: StructureTypeRaw[];
+    enumeratedTypesRaw: EnumeratedType[];
 }
 
-export class TypeDictionary extends DataTypeFactory implements ITypeDictionary {
-    public structuredTypes: {
-        [key: string]: StructuredTypeSchema;
-    };
-    public enumeratedTypes: {
-        [key: string]: EnumerationDefinitionSchema;
-    };
-    public structuredTypesRaw: {
-        [key: string]: StructureTypeRaw;
-    };
-    public enumeratedTypesRaw: {
-        [key: string]: EnumeratedType;
-    };
-    constructor(baseDataFactories: DataTypeFactory[]) {
-        super(baseDataFactories);
-        this.structuredTypes = {};
-        this.structuredTypesRaw = {};
-        this.enumeratedTypes = {};
-        this.enumeratedTypesRaw = {};
+export class TypeDictionary implements ITypeDictionary {
+    public targetNamespace: string = "";
+    public imports: string[] = [];
+    public structuredTypesRaw: StructureTypeRaw[] = [];
+    public enumeratedTypesRaw: EnumeratedType[] = [];
+    private structuredTypesRawMap: any = {};
+    constructor() {
+    }
+    public addRaw(structuredType: StructureTypeRaw) {
+        this.structuredTypesRaw.push(structuredType);
+        this.structuredTypesRawMap[structuredType.name] = structuredType;
+    }
+    public getStructuredTypesRawByName(name: string): StructureTypeRaw {
+        return this.structuredTypesRawMap[name]! as StructureTypeRaw;
     }
 }
 
@@ -132,33 +133,33 @@ const state0: any = {
     },
     parser: {
         TypeDictionary: {
-            init: function(this: any, name: string, attributes: any) {
+            init: function (this: any, name: string, attributes: any) {
 
-                this.typeDictionary = this.engine.typeDictionary as TypeDictionary;
+                this.typeDictionary = this.engine.typeDictionary as DataTypeFactory;
                 this.typeDictionary.defaultByteOrder = attributes.DefaultByteOrder;
                 this.typeDictionary.targetNamespace = attributes.TargetNamespace;
 
             },
             parser: {
                 Import: {
-                    init: function(this: any, name: string, attributes: any) {
+                    init: function (this: any, name: string, attributes: any) {
                         this.parent.typeDictionary.imports.push(attributes.Namespace);
                     },
-                    finish: function(this: any) {
+                    finish: function (this: any) {
                         // _register_namespace_uri(this.text);
                         if (doDebug) {
-                            console.log("Import NameSpace = ", this.attrs.Namespace,
+                            debugLog("Import NameSpace = ", this.attrs.Namespace,
                                 " Location", this.attrs.Location);
                         }
                     }
                 },
 
                 EnumeratedType: {
-                    init: function(this: any) {
+                    init: function (this: any) {
 
                         this.typescriptDefinition = "";
                         if (doDebug) {
-                            console.log(chalk.cyan("EnumeratedType Name="),
+                            debugLog(chalk.cyan("EnumeratedType Name="),
                                 w(this.attrs.Name, 40), "LengthInBits=", this.attrs.LengthInBits);
                         }
 
@@ -172,14 +173,14 @@ const state0: any = {
                     },
                     parser: {
                         Documentation: {
-                            finish: function(this: any) {
+                            finish: function (this: any) {
                                 this.parent.enumeratedType.documentation = this.text;
                             }
                         },
                         EnumeratedValue: {
-                            finish: function(this: any) {
+                            finish: function (this: any) {
                                 if (doDebug) {
-                                    console.log(" EnumeratedValue Name=",
+                                    debugLog(" EnumeratedValue Name=",
                                         w(this.attrs.Name, 40), " Value=", this.attrs.Value);
                                 }
                                 const key = this.attrs.Name;
@@ -190,25 +191,25 @@ const state0: any = {
                             }
                         }
                     },
-                    finish: function(this: any) {
+                    finish: function (this: any) {
                         this.typescriptDefinition += `\n}`;
                         this.parent.typeDictionary.enumeratedTypesRaw[this.attrs.Name] = this.enumeratedType;
                         if (doDebug) {
-                            console.log(" this.typescriptDefinition  = ", this.typescriptDefinition);
+                            debugLog(" this.typescriptDefinition  = ", this.typescriptDefinition);
                         }
                     }
                 },
                 StructuredType: {
-                    init: function(this: any) {
+                    init: function (this: any) {
 
                         if (doDebug) {
-                            console.log(chalk.cyan("StructureType Name="),
+                            debugLog(chalk.cyan("StructureType Name="),
                                 chalk.green(this.attrs.Name), " BaseType=", this.attrs.BaseType);
                         }
 
                         const baseType = this.attrs.BaseType;
 
-                        const base = this.parent.typeDictionary.structuredTypesRaw[baseType];
+                        const base = this.parent.typeDictionary.structuredTypesRawMap[baseType];
 
                         const structuredType: StructuredTypeOptions = {
                             name: this.attrs.Name,
@@ -222,17 +223,21 @@ const state0: any = {
                     },
                     parser: {
                         Field: {
-                            finish: function(this: any) {
+                            finish: function (this: any) {
 
                                 if (this.attrs.SourceType) {
                                     // ignore  this field, This is a repetition of the base type field with same name
                                     return;
                                 }
                                 if (doDebug) {
-                                    console.log(
+                                    debugLog(
                                         chalk.yellow(" field Name="), w(this.attrs.Name, 40),
-                                        chalk.yellow(" field TypeName="), w(this.attrs.TypeName, 40),
-                                        chalk.yellow(" field LengthField="), w(this.attrs.LengthField, 40));
+                                        chalk.yellow(" typeName="), w(this.attrs.TypeName, 40),
+                                        this.attrs.LengthField ? chalk.yellow(" lengthField= ") + w(this.attrs.LengthField, 40) : "",
+                                        this.attrs.SwitchField ? chalk.yellow(" SwitchField= ") + w(this.attrs.SwitchField, 40) : "",
+                                        this.attrs.SwitchValue !== undefined ? chalk.yellow(" SwitchValue= ") + w(this.attrs.SwitchValue, 40) : "",
+                                        // chalk.yellow(" lengthField="), w(this.attrs.LengthField, 40)
+                                    );
                                 }
                                 resolveType(this.parent.typeDictionary, this.attrs.TypeName);
 
@@ -266,21 +271,22 @@ const state0: any = {
                                         // we are in a union
                                         field.switchValue = parseInt(this.attrs.SwitchValue, 10);
                                         if (doDebug) {
-                                            console.log("field", field.name, " is part of a union  => ", switchField, " value #", field.switchValue);
+                                            debugLog("field", field.name, " is part of a union  => ", switchField, " value #", field.switchValue);
                                         }
                                     } else {
                                         field.switchBit = structuredType.bitFields ?
                                             structuredType.bitFields!.findIndex((x) => x.name === switchField) : -2;
                                         if (doDebug) {
-                                            console.log("field", field.name, " is optional => ", switchField, "bit #", field.switchBit);
+                                            debugLog("field", field.name, " is optional => ", switchField, "bit #", field.switchBit);
                                         }
                                     }
                                 }
                             }
                         }
                     },
-                    finish: function(this: any) {
-                        this.parent.typeDictionary.structuredTypesRaw[this.attrs.Name] = this.structuredType;
+                    finish: function (this: any) {
+                        assert(this.attrs.Name === this.structuredType.name);
+                        this.parent.typeDictionary.addRaw(this.structuredType);
                     }
                 }
             }
@@ -288,37 +294,109 @@ const state0: any = {
     }
 };
 
+export interface DataTypeAndEncodingId {
+    dataTypeNodeId: NodeId;
+    binaryEncodingNodeId: NodeId;
+    xmlEncodingNodeId: NodeId;
+    jsonEncodingNodeId: NodeId;
+}
+export interface MapDataTypeAndEncodingIdProvider {
+    // getDataTypeNodeId(key: string): NodeId;
+    getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId;
+}
+
 export function parseBinaryXSD(
     xmlString: string,
-    dataTypeFactories: DataTypeFactory[],
-    callback: (err: Error | null, typeDictionary: TypeDictionary
-    ) => void) {
-
-    const typeDictionary = new TypeDictionary(dataTypeFactories);
+    idProvider: MapDataTypeAndEncodingIdProvider,
+    dataTypeFactory: DataTypeFactory,
+    callback: (err?: Error | null) => void
+) {
 
     const parser = new Xml2Json(state0);
+    const typeDictionary = new TypeDictionary();
     (parser as any).typeDictionary = typeDictionary;
+
     parser.parseString(xmlString, (err?: Error | null) => {
+
         // resolve and prepare enumerations
         for (const key in typeDictionary.enumeratedTypesRaw) {
             if (!typeDictionary.enumeratedTypesRaw.hasOwnProperty(key)) {
                 continue;
             }
             const enumeratedType = typeDictionary.enumeratedTypesRaw[key];
-            prepareEnumeratedType(enumeratedType, typeDictionary);
+            const e = new EnumerationDefinitionSchema({
+                enumValues: enumeratedType.enumeratedValues,
+                name: key
+            });
+            dataTypeFactory.registerEnumeration(e);
+        }
+
+        if (doDebug) {
+            debugLog("------------------------------- Resolving complex Type");
+            typeDictionary.structuredTypesRaw.map((x: any) => debugLog(x.name));
+        }
+
+        // create area in navigation order
+        function createExplorationOrder(): StructureTypeRaw[] {
+            const array: StructureTypeRaw[] = [];
+            const map: any = {};
+
+            function visitStructure(structuredType: StructureTypeRaw) {
+                if (!structuredType) {
+                    return;
+                }
+                if (map[structuredType.name]) {
+                    return;
+                }
+                if (structuredType.baseType) {
+                    const base = typeDictionary.getStructuredTypesRawByName(structuredType.baseType);
+                    if (base) {
+                        visitStructure(base);
+                    }
+                }
+                for (const f of structuredType.fields) {
+                    const fieldType = f.fieldType.split(":")[1];
+                    const s = typeDictionary.getStructuredTypesRawByName(fieldType);
+                    if (s !== structuredType && s) {
+                        visitStructure(s);
+                    } else {
+                        map[fieldType] = "1";
+                    }
+                }
+                if (!map[structuredType.name]) {
+                    map[structuredType.name] = 1;
+                    array.push(structuredType);
+                }
+            }
+
+            for (const structuredType of typeDictionary.structuredTypesRaw) {
+                visitStructure(structuredType);
+            }
+            return array;
         }
         // resolve complex types
-        for (const key in typeDictionary.structuredTypesRaw) {
-
-            if (!typeDictionary.structuredTypesRaw.hasOwnProperty(key)) {
-                continue;
-            }
-            const structuredType = typeDictionary.structuredTypesRaw[key];
-            if (structuredType.name !== key) {
-                throw new Error("Invalid name");
-            }
-            prepareStructureType(structuredType, typeDictionary);
+        const schemaInVisitingOrder = createExplorationOrder();
+        for (const structuredType of schemaInVisitingOrder) {
+            debugLog("processing ", chalk.cyan(structuredType.name));
+            getOrCreateStructuredTypeSchema(structuredType.name, typeDictionary, dataTypeFactory, idProvider);
         }
-        callback(err!, typeDictionary);
+        callback(err);
+    });
+}
+
+export async function parseBinaryXSDAsync(
+    xmlString: string,
+    idProvider: MapDataTypeAndEncodingIdProvider,
+    dataTypeFactory: DataTypeFactory
+): Promise<void> {
+
+    await new Promise((resolve, reject) => {
+        parseBinaryXSD(xmlString, idProvider, dataTypeFactory, (err?: Error | null) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
     });
 }

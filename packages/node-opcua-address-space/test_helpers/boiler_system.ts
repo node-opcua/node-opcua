@@ -3,8 +3,8 @@
  */
 // tslint:disable:no-empty-interface
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-status-code";
 import { NodeClass } from "node-opcua-data-model";
+import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { VariantLike } from "node-opcua-variant";
@@ -14,6 +14,7 @@ import {
     Folder,
     FolderType,
     InstantiateObjectOptions,
+    Namespace,
     ProgramFiniteStateMachine,
     ProgramFiniteStateMachineType,
     SessionContext,
@@ -25,7 +26,7 @@ import {
     UAReferenceType,
     UAVariable
 } from "../source";
-import {  promoteToStateMachine } from "../src/state_machine/finite_state_machine";
+import { promoteToStateMachine } from "../src/state_machine/finite_state_machine";
 
 export interface FlowToReference extends UAReferenceType {
 }
@@ -44,7 +45,7 @@ export interface CustomControllerB {
     input2: UAVariable;
     input3: UAVariable;
     controlOut: UAVariable;
-// conflict here !    description: UAVariable;
+    // conflict here !    description: UAVariable;
 }
 
 export interface CustomControllerType extends CustomControllerB, UAObjectType {
@@ -114,30 +115,30 @@ export interface Valve extends GenericActuator {
 }
 
 export interface BoilerInputPipeType extends FolderType {
-    ftX001: FlowTransmitter;
-    valveX001: Valve;
+    flowTransmitter: FlowTransmitter;
+    valve: Valve;
 }
 
 export interface BoilerInputPipe extends Folder {
-    ftX001: FlowTransmitter;
-    valveX001: Valve;
+    flowTransmitter: FlowTransmitter;
+    valve: Valve;
 }
 
 export interface BoilerOutputPipeType extends FolderType {
-    ftX002: FlowTransmitter;
+    flowTransmitter: FlowTransmitter;
 }
 
 export interface BoilerOutputPipe extends Folder {
-    ftX002: FlowTransmitter;
+    flowTransmitter: FlowTransmitter;
 
 }
 
 export interface BoilerDrumpType extends FolderType {
-    liX001: LevelIndicator;
+    levelIndicator: LevelIndicator;
 }
 
 export interface BoilerDrump extends Folder {
-    liX001: LevelIndicator;
+    levelIndicator: LevelIndicator;
 }
 
 export interface BoilerStateMachineType extends ProgramFiniteStateMachineType {
@@ -148,26 +149,26 @@ export interface BoilerStateMachine extends ProgramFiniteStateMachine {
 
 export interface BoilerType extends UAObjectType {
 
-    ccX001: CustomController;
-    fcX001: FlowController;
-    lcX001: LevelController;
-    pipeX001: BoilerInputPipe;
-    drumX001: BoilerDrump;
-    pipeX002: BoilerOutputPipe;
-    drumX002: BoilerDrump;
+    customController: CustomController;
+    flowController: FlowController;
+    levelController: LevelController;
+    inputPipe: BoilerInputPipe;
+    boilerDrum: BoilerDrump;
+    outputPipe: BoilerOutputPipe;
+    boilerDrum2: BoilerDrump;
     simulation: BoilerStateMachine;
 
     instantiate(options: InstantiateObjectOptions): Boiler;
 }
 
 export interface Boiler extends UAObject {
-    ccX001: CustomController;
-    fcX001: FlowController;
-    lcX001: LevelController;
-    pipeX001: BoilerInputPipe;
-    drumX001: BoilerDrump;
-    pipeX002: BoilerOutputPipe;
-    drumX002: BoilerDrump;
+    customController: CustomController;
+    flowController: FlowController;
+    levelController: LevelController;
+    inputPipe: BoilerInputPipe;
+    boilerDrum: BoilerDrump;
+    outputPipe: BoilerOutputPipe;
+    boilerDrum2: BoilerDrump;
     simulation: BoilerStateMachine;
 }
 
@@ -197,30 +198,30 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
         }
         assert(method.nodeClass === NodeClass.Method);
 
-        method._getExecutableFlag = function(/* sessionContext: SessionContext */) {
+        method._getExecutableFlag = function (/* sessionContext: SessionContext */) {
             // must use  a function here to capture 'this'
             return MygetExecutableFlag(this as UAMethod, toState, methodName);
         };
 
         method.bindMethod(
-          function(
-            this: UAMethod,
-            inputArguments: VariantLike[],
-            context: SessionContext,
-            callback: (err: Error | null, callMethodResult: CallMethodResultOptions) => void
-          ) {
-              const stateMachineW = this.parent! as StateMachine;
-              // tslint:disable-next-line:no-console
-              console.log("Boiler System :  " + methodName + " about to process");
-              stateMachineW.setState(toState);
-              callback(null, {
-                  outputArguments: [],
-                  statusCode: StatusCodes.Good,
-              });
-          });
+            function (
+                this: UAMethod,
+                inputArguments: VariantLike[],
+                context: SessionContext,
+                callback: (err: Error | null, callMethodResult: CallMethodResultOptions) => void
+            ) {
+                const stateMachineW = this.parent! as StateMachine;
+                // tslint:disable-next-line:no-console
+                console.log("Boiler System :  " + methodName + " about to process");
+                stateMachineW.setState(toState);
+                callback(null, {
+                    outputArguments: [],
+                    statusCode: StatusCodes.Good,
+                });
+            });
 
         assert(programStateMachine.getMethodByName(methodName) !== null,
-          "Method " + methodName + " should be added to parent object (checked with getMethodByName)");
+            "Method " + methodName + " should be added to parent object (checked with getMethodByName)");
         const lc_name = lowerFirstLetter(methodName);
     }
 
@@ -232,9 +233,9 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
 }
 
 function addRelation(
-  srcNode: BaseNode,
-  referenceType: UAReferenceType | string,
-  targetNode: BaseNode
+    srcNode: BaseNode,
+    referenceType: UAReferenceType | string,
+    targetNode: BaseNode
 ) {
     assert(srcNode, "expecting srcNode !== null");
     assert(targetNode, "expecting targetNode !== null");
@@ -247,9 +248,7 @@ function addRelation(
 }
 
 // tslint:disable:no-console
-export function createBoilerType(addressSpace: AddressSpace): BoilerType {
-
-    const namespace = addressSpace.getOwnNamespace();
+export function createBoilerType(namespace: Namespace): BoilerType {
 
     // istanbul ignore next
     if (namespace.findObjectType("BoilerType")) {
@@ -282,11 +281,12 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
         subtypeOf: "NonHierarchicalReferences"
     }) as SignalToReference;
 
+    const addressSpace = namespace.addressSpace;
     flowTo.isSupertypeOf(addressSpace.findReferenceType("References")!);
     flowTo.isSupertypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
     hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("References")!);
     hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
-    hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("1:FlowTo")!);
+    hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("FlowTo", namespace.index)!);
 
     const NonHierarchicalReferences = addressSpace.findReferenceType("NonHierarchicalReferences");
 
@@ -450,15 +450,15 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
     });
 
     const ftx1 = flowTransmitterType.instantiate({
-        browseName: "FTX001",
+        browseName: "FlowTransmitter",
         componentOf: boilerInputPipeType,
         modellingRule: "Mandatory",
         notifierOf: boilerInputPipeType
     }) as FlowTransmitter;
-    assert(ftx1.output.browseName.toString() === "1:Output");
+    assert(ftx1.output.browseName.toString() === `${namespace.index}:Output`);
 
     const valve1 = valveType.instantiate({
-        browseName: "ValveX001",
+        browseName: "Valve",
         componentOf: boilerInputPipeType,
         modellingRule: "Mandatory"
     }) as Valve;
@@ -472,7 +472,7 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
         subtypeOf: "FolderType"
     });
     const ftx2 = flowTransmitterType.instantiate({
-        browseName: "FTX002",
+        browseName: "FlowTransmitter",
         componentOf: boilerOutputPipeType,
         modellingRule: "Mandatory",
         notifierOf: boilerOutputPipeType
@@ -489,14 +489,14 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
     });
 
     const levelIndicator = levelIndicatorType.instantiate({
-        browseName: "LIX001",
+        browseName: "LevelIndicator",
         componentOf: boilerDrumType,
         modellingRule: "Mandatory",
         notifierOf: boilerDrumType
     }) as LevelIndicator;
 
     const programFiniteStateMachineType: ProgramFiniteStateMachineType =
-      addressSpace.findObjectType("ProgramStateMachineType")! as ProgramFiniteStateMachineType;
+        addressSpace.findObjectType("ProgramStateMachineType")! as ProgramFiniteStateMachineType;
 
     // --------------------------------------------------------
     // define boiler State Machine
@@ -510,9 +510,9 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
     // programStateMachineType has Optional placeHolder for method "Halt", "Reset","Start","Suspend","Resume")
 
     function addMethod(
-      baseType: UAObjectType,
-      objectType: UAObjectType,
-      methodName: string
+        baseType: UAObjectType,
+        objectType: UAObjectType,
+        methodName: string
     ) {
         assert(!objectType.getMethodByName(methodName));
         const method = baseType.getMethodByName(methodName)!;
@@ -534,49 +534,50 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
     // BoilerType
     // --------------------------------------------------------------------------------
     const boilerType = namespace.addObjectType({
-        browseName: "BoilerType"
+        browseName: "BoilerType",
+        eventNotifier: 0x1,
     }) as BoilerType;
 
-    // BoilerType.CCX001 (CustomControllerType)
-    const ccX001 = customControllerType.instantiate({
-        browseName: "CCX001",
+    // BoilerType.CustomController (CustomControllerType)
+    const customController = customControllerType.instantiate({
+        browseName: "CustomController",
         componentOf: boilerType,
         modellingRule: "Mandatory"
     }) as CustomController;
 
-    // BoilerType.FCX001 (FlowController)
-    const fcX001 = flowControllerType.instantiate({
-        browseName: "FCX001",
+    // BoilerType.FlowController (FlowController)
+    const flowController = flowControllerType.instantiate({
+        browseName: "FlowController",
         componentOf: boilerType,
         modellingRule: "Mandatory"
     }) as FlowController;
 
-    // BoilerType.LCX001 (LevelControllerType)
-    const lcX001 = levelControllerType.instantiate({
-        browseName: "LCX001",
+    // BoilerType.LevelController (LevelControllerType)
+    const levelController = levelControllerType.instantiate({
+        browseName: "LevelController",
         componentOf: boilerType,
         modellingRule: "Mandatory"
     }) as LevelController;
 
-    // BoilerType.PipeX001 (BoilerInputPipeType)
-    const pipeX001 = boilerInputPipeType.instantiate({
-        browseName: "PipeX001",
+    // BoilerType.LevelIndicator (BoilerInputPipeType)
+    const inputPipe = boilerInputPipeType.instantiate({
+        browseName: "InputPipe",
         componentOf: boilerType,
         modellingRule: "Mandatory",
         notifierOf: boilerType
     }) as BoilerInputPipe;
 
-    // BoilerType.DrumX001 (BoilerDrumType)
-    const drumx001 = boilerDrumType.instantiate({
-        browseName: "DrumX001",
+    // BoilerType.BoilerDrum (BoilerDrumType)
+    const boilerDrum = boilerDrumType.instantiate({
+        browseName: "BoilerDrum",
         componentOf: boilerType,
         modellingRule: "Mandatory",
         notifierOf: boilerType
     }) as BoilerDrump;
 
-    // BoilerType.PipeX002 (BoilerOutputPipeType)
-    const pipeX002 = boilerOutputPipeType.instantiate({
-        browseName: "PipeX002",
+    // BoilerType.OutputPipe (BoilerOutputPipeType)
+    const outputPipe = boilerOutputPipeType.instantiate({
+        browseName: "OutputPipe",
         componentOf: boilerType,
         modellingRule: "Mandatory",
         notifierOf: boilerType
@@ -590,35 +591,35 @@ export function createBoilerType(addressSpace: AddressSpace): BoilerType {
         modellingRule: "Mandatory",
     }) as BoilerStateMachine;
 
-    addRelation(pipeX001, flowTo, drumx001);
-    addRelation(drumx001, hotFlowTo, pipeX002);
+    addRelation(inputPipe, flowTo, boilerDrum);
+    addRelation(boilerDrum, hotFlowTo, outputPipe);
 
-    assert(boilerType.pipeX001.ftX001);
-    assert(boilerType.pipeX001.ftX001.output);
-    assert(boilerType.fcX001.measurement);
+    assert(boilerType.inputPipe.flowTransmitter);
+    assert(boilerType.inputPipe.flowTransmitter.output);
+    assert(boilerType.flowController.measurement);
 
-    addRelation(boilerType.pipeX001.ftX001.output, signalTo, boilerType.fcX001.measurement);
-    addRelation(boilerType.pipeX001.ftX001.output, signalTo, boilerType.ccX001.input2);
-    addRelation(boilerType.fcX001.controlOut, signalTo, boilerType.pipeX001.valveX001.input);
+    addRelation(boilerType.inputPipe.flowTransmitter.output, signalTo, boilerType.flowController.measurement);
+    addRelation(boilerType.inputPipe.flowTransmitter.output, signalTo, boilerType.customController.input2);
+    addRelation(boilerType.flowController.controlOut, signalTo, boilerType.inputPipe.valve.input);
 
     // indicates that the level controller gets its measurement from the drum's level indicator.
-    addRelation(boilerType.drumX001.liX001.output, signalTo, boilerType.lcX001.measurement);
+    addRelation(boilerType.boilerDrum.levelIndicator.output, signalTo, boilerType.levelController.measurement);
 
-    addRelation(boilerType.pipeX002.ftX002.output, signalTo, boilerType.ccX001.input3);
+    addRelation(boilerType.outputPipe.flowTransmitter.output, signalTo, boilerType.customController.input3);
 
-    addRelation(boilerType.lcX001.controlOut, signalTo, boilerType.ccX001.input1);
+    addRelation(boilerType.levelController.controlOut, signalTo, boilerType.customController.input1);
 
-    addRelation(boilerType.ccX001.controlOut, signalTo, boilerType.fcX001.setPoint);
+    addRelation(boilerType.customController.controlOut, signalTo, boilerType.flowController.setPoint);
 
     return boilerType;
 }
 
 export function makeBoiler(
-  addressSpace: AddressSpace,
-  options: {
-      browseName: string,
-      organizedBy: BaseNode
-  }
+    addressSpace: AddressSpace,
+    options: {
+        browseName: string,
+        organizedBy: BaseNode
+    }
 ): Boiler {
 
     const namespace = addressSpace.getOwnNamespace();
@@ -629,7 +630,7 @@ export function makeBoiler(
 
     // istanbul ignore next
     if (!boilerType) {
-        createBoilerType(addressSpace);
+        createBoilerType(namespace);
         boilerType = namespace.findObjectType("BoilerType")!;
     }
     // now instantiate boiler

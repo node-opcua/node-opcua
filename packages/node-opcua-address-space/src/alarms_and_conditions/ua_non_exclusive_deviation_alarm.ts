@@ -8,6 +8,8 @@ import { assert } from "node-opcua-assert";
 
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
+import { DataType } from "node-opcua-variant";
+
 import { UAVariable, UAVariableT } from "../../source";
 import { NamespacePrivate } from "../namespace_private";
 import {
@@ -21,7 +23,7 @@ import { UALimitAlarm } from "./ua_limit_alarm";
 import { UANonExclusiveLimitAlarm } from "./ua_non_exclusive_limit_alarm";
 
 export interface UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm {
-    setpointNode: UAVariableT<NodeId>;
+    setpointNode: UAVariableT<NodeId, DataType.NodeId>;
     setpointNodeNode: UAVariable;
 }
 

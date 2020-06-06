@@ -2,7 +2,7 @@
  * @module node-opcua-address-space.Private
  */
 // tslint:disable:no-bitwise
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -43,7 +43,7 @@ interface BaseNodeCache {
     _displayName: LocalizedText[];
     _parent?: BaseNodePublic | null;
     _referenceIdx: any;
-    _subtype_idxVersion: number ;
+    _subtype_idxVersion: number;
     _subtype_idx: any;
 }
 
@@ -64,6 +64,12 @@ export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
     return _private;
 }
 
+export function BaseNode_removePrivate(self: BaseNode): void {
+    // there is no need to delete object from weakmap
+    // the GC will take care of this in due course
+    // g_weakMap.delete(self);
+}
+
 export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
     return g_weakMap.get(self);
 }
@@ -76,7 +82,7 @@ export interface ToStringOption {
     padding: string;
 
     add(someline: string): void;
-    indent(a: string , b: string | null): void;
+    indent(a: string, b: string | null): void;
 }
 
 export class ToStringBuilder implements ToStringOption {
@@ -107,21 +113,21 @@ export class ToStringBuilder implements ToStringOption {
 }
 
 function set_as_processed(
-  options: ToStringOption,
-  nodeId: NodeId
+    options: ToStringOption,
+    nodeId: NodeId
 ) {
     options.cycleDetector[nodeId.toString()] = nodeId;
 }
 function is_already_processed(
-  options: ToStringOption,
-  nodeId: NodeId
+    options: ToStringOption,
+    nodeId: NodeId
 ): boolean {
     return !!options.cycleDetector[nodeId.toString()];
 }
 
 export function BaseNode_toString(
-  this: BaseNode,
-  options: ToStringOption
+    this: BaseNode,
+    options: ToStringOption
 ) {
 
     options.level = options.level || 1;
@@ -130,18 +136,18 @@ export function BaseNode_toString(
 
     options.add("");
     options.add(options.padding + chalk.yellow("          nodeId              : ") + this.nodeId.toString());
-    options.add(options.padding + chalk.yellow("          nodeClass           : ") + NodeClass[this.nodeClass]  + " (" + this.nodeClass + ")");
+    options.add(options.padding + chalk.yellow("          nodeClass           : ") + NodeClass[this.nodeClass] + " (" + this.nodeClass + ")");
     options.add(options.padding + chalk.yellow("          browseName          : ") + this.browseName.toString());
     options.add(options.padding + chalk.yellow("          displayName         : ") + this.displayName
-      .map((f) => f.locale + " " + f.text).join(" | "));
+        .map((f) => f.locale + " " + f.text).join(" | "));
 
     options.add(options.padding + chalk.yellow("          description         : ")
-      + (this.description ? this.description.toString() : ""));
+        + (this.description ? this.description.toString() : ""));
 }
 
 export function BaseNode_References_toString(
-  this: BaseNode,
-  options: ToStringOption
+    this: BaseNode,
+    options: ToStringOption
 ) {
 
     const _private = BaseNode_getPrivate(this);
@@ -163,13 +169,13 @@ export function BaseNode_References_toString(
         const o = Reference.resolveReferenceNode(addressSpace, reference);
         const name = o ? o.browseName.toString() : "<???>";
         options.add(options.padding +
-          chalk.yellow("               +-> ") +
-          reference.toString(dispOptions) +
-          " " + chalk.cyan(name));
+            chalk.yellow("               +-> ") +
+            reference.toString(dispOptions) +
+            " " + chalk.cyan(name));
 
         // ignore HasTypeDefinition as it has been already handled
         if (sameNodeId(reference.referenceType, hasTypeDefinition_ReferenceTypeNodeId) &&
-          reference.nodeId.namespace === 0) {
+            reference.nodeId.namespace === 0) {
             return;
         }
         if (o) {
@@ -193,9 +199,9 @@ export function BaseNode_References_toString(
     const br = _.map(_private._back_referenceIdx, (x: Reference) => x);
 
     options.add(options.padding +
-      chalk.yellow("          back_references     : ") +
-      chalk.cyan("  length =") + br.length +
-      chalk.grey(" ( references held by other nodes involving this node)"));
+        chalk.yellow("          back_references     : ") +
+        chalk.cyan("  length =") + br.length +
+        chalk.grey(" ( references held by other nodes involving this node)"));
     // backward reference
     br.forEach(dump_reference.bind(null, false));
 
@@ -206,25 +212,25 @@ function _UAType_toString(
     options: ToStringOption
 ): void {
     if (this.subtypeOfObj) {
-        options.add(options.padding + chalk.yellow("          subtypeOf           : ")  +
-          this.subtypeOfObj.browseName.toString() + " (" + this.subtypeOfObj.nodeId.toString() + ")");
+        options.add(options.padding + chalk.yellow("          subtypeOf           : ") +
+            this.subtypeOfObj.browseName.toString() + " (" + this.subtypeOfObj.nodeId.toString() + ")");
     }
 }
 
 function _UAInstance_toString(
-  this: UAVariable | UAMethod | UAObject,
-  options: ToStringOption
+    this: UAVariable | UAMethod | UAObject,
+    options: ToStringOption
 ): void {
 
     if (this.typeDefinitionObj) {
-        options.add(options.padding + chalk.yellow("          typeDefinition      : ")  +
-          this.typeDefinitionObj.browseName.toString() + " (" + this.typeDefinitionObj.nodeId.toString() + ")");
+        options.add(options.padding + chalk.yellow("          typeDefinition      : ") +
+            this.typeDefinitionObj.browseName.toString() + " (" + this.typeDefinitionObj.nodeId.toString() + ")");
     }
 }
 
 export function UAVariableType_toString(
-  this: UAVariableType,
-  options: ToStringOption
+    this: UAVariableType,
+    options: ToStringOption
 ): void {
     BaseNode_toString.call(this, options);
     _UAType_toString.call(this, options);
@@ -233,12 +239,13 @@ export function UAVariableType_toString(
 }
 
 export function UAVariable_toString(
-  this: UAVariable,
-  options: ToStringOption
+    this: UAVariable,
+    options: ToStringOption
 ): void {
     BaseNode_toString.call(this, options);
     _UAInstance_toString.call(this, options);
     VariableOrVariableType_toString.call(this, options);
+    AccessLevelFlags_toString.call(this, options);
     BaseNode_References_toString.call(this, options);
 }
 
@@ -260,6 +267,27 @@ export function UAObjectType_toString(
     BaseNode_References_toString.call(this, options);
 }
 
+export function valueRankToString(valueRank: number): string {
+    switch (valueRank) {
+        case 1:
+            return "OneDimension (1)";
+        case 0:
+            return "OneOrMoreDimensions (0)"; // The value is an array with one or more dimensions
+        case -1:
+            return "Scalar (-1)";
+        case -2:
+            return "Any (-2)"; // The value can be a scalar or an array with any number of dimensions
+        case -3:
+            return "ScalarOrOneDimension (2)"; // The value can be a scalar or a one dimensional array.
+        default:
+            if (valueRank > 0) {
+                return "" + valueRank + "-Dimensions";
+            } else {
+                return "Invalid (" + valueRank + ")";
+            }
+    }
+}
+
 function accessLevelFlagToString(flag: AccessLevelFlag): string {
     const str: string[] = [];
     if (flag & AccessLevelFlag.CurrentRead) { str.push("CurrentRead"); }
@@ -269,12 +297,25 @@ function accessLevelFlagToString(flag: AccessLevelFlag): string {
     if (flag & AccessLevelFlag.SemanticChange) { str.push("SemanticChange"); }
     if (flag & AccessLevelFlag.StatusWrite) { str.push("StatusWrite"); }
     if (flag & AccessLevelFlag.TimestampWrite) { str.push("TimestampWrite"); }
-    return str.join( " | ");
+    return str.join(" | ");
 }
 
+function AccessLevelFlags_toString(
+    this: UAVariable,
+    options: ToStringOption
+) {
+    assert(options);
+
+    const _private = BaseNode_getPrivate(this);
+    options.add(options.padding + chalk.yellow("          accessLevel         : ") + " " +
+        accessLevelFlagToString(this.accessLevel));
+    options.add(options.padding + chalk.yellow("          userAccessLevel     : ") + " " +
+        accessLevelFlagToString(this.userAccessLevel));
+
+}
 export function VariableOrVariableType_toString(
-  this: UAVariableType | UAVariable,
-  options: ToStringOption
+    this: UAVariableType | UAVariable,
+    options: ToStringOption
 ) {
     assert(options);
 
@@ -291,25 +332,26 @@ export function VariableOrVariableType_toString(
     if (this.nodeClass === NodeClass.Variable) {
         if (this._dataValue) {
             options.add(options.padding + chalk.yellow("          value               : ") + "\n" +
-              options.indent(this._dataValue.toString(), options.padding + "                        | "));
+                options.indent(this._dataValue.toString(), options.padding + "                        | "));
         }
     }
 
-    if (this.accessLevel) {
-        options.add(options.padding + chalk.yellow("          accessLevel         : ") + " " +
-          accessLevelFlagToString(this.accessLevel));
-    }
-    if (this.userAccessLevel) {
-        options.add(options.padding + chalk.yellow("          userAccessLevel     : ") + " " +
-            accessLevelFlagToString(this.userAccessLevel));
-    }
     if (this.hasOwnProperty("valueRank")) {
-        options.add(options.padding + chalk.yellow("          valueRank           : ") + " " +
-          this.valueRank.toString());
+
+        if (this.valueRank !== undefined) {
+            options.add(options.padding + chalk.yellow("          valueRank           : ") + " " +
+                valueRankToString(this.valueRank));
+        } else {
+            options.add(options.padding + chalk.yellow("          valueRank           : ") + " undefined");
+        }
     }
     if (this.minimumSamplingInterval !== undefined) {
         options.add(options.padding + chalk.yellow(" minimumSamplingInterval      : ") + " " +
-          this.minimumSamplingInterval.toString() + " ms");
+            this.minimumSamplingInterval.toString() + " ms");
+    }
+    if (this.arrayDimensions) {
+        options.add(options.padding + chalk.yellow(" arrayDimension               : ") + " [" +
+            this.arrayDimensions.join(",").toString() + " ]");
     }
 
 }
@@ -319,11 +361,11 @@ export function VariableOrVariableType_toString(
  * @private
  */
 function _clone_collection_new(
-  this: BaseNodePublic,
-  newParent: BaseNodePublic,
-  collectionRef: any,
-  optionalFilter: any,
-  extraInfo: any
+    this: BaseNodePublic,
+    newParent: BaseNodePublic,
+    collectionRef: any,
+    optionalFilter: any,
+    extraInfo: any
 ): void {
 
     const addressSpace = newParent.addressSpace;
@@ -340,10 +382,10 @@ function _clone_collection_new(
         if (!_.isFunction((node as any).clone)) {
             // tslint:disable-next-line:no-console
             console.log(
-              chalk.red("Warning : cannot clone node ") +
-              node.browseName.toString() +
-              " of class " + NodeClass[node.nodeClass].toString() +
-              " while cloning " + newParent.browseName.toString());
+                chalk.red("Warning : cannot clone node ") +
+                node.browseName.toString() +
+                " of class " + NodeClass[node.nodeClass].toString() +
+                " while cloning " + newParent.browseName.toString());
             continue;
         }
 
@@ -368,20 +410,20 @@ function _clone_collection_new(
 }
 
 export function _clone_children_references(
-  this: BaseNodePublic,
-  newParent: BaseNodePublic,
-  optionalFilter: any,
-  extraInfo: any): void {
+    this: BaseNodePublic,
+    newParent: BaseNodePublic,
+    optionalFilter: any,
+    extraInfo: any): void {
     // find all reference that derives from the Aggregates
     const aggregatesRef = this.findReferencesEx("Aggregates", BrowseDirection.Forward);
     _clone_collection_new.call(this, newParent, aggregatesRef, optionalFilter, extraInfo);
 }
 
 export function _clone_non_hierarchical_references(
-  this: BaseNode,
-  newParent: BaseNodePublic,
-  optionalFilter: any,
-  extraInfo: any
+    this: BaseNode,
+    newParent: BaseNodePublic,
+    optionalFilter: any,
+    extraInfo: any
 ) {
 
     // clone only some non hierarchical_references that we do want to clone
@@ -398,11 +440,11 @@ export function _clone_non_hierarchical_references(
  * @private
  */
 export function _clone(
-  this: UAObject | UAVariable | UAMethod,
-  Constructor: any,
-  options: any,
-  optionalFilter: any,
-  extraInfo: any
+    this: UAObject | UAVariable | UAMethod,
+    Constructor: any,
+    options: any,
+    optionalFilter: any,
+    extraInfo: any
 ): BaseNode {
 
     assert(_.isFunction(Constructor));
@@ -415,6 +457,7 @@ export function _clone(
         browseName: this.browseName,
         description: this.description,
         displayName: this.displayName,
+        nodeClass: this.nodeClass,
     });
     options.references = options.references || [];
 
@@ -440,7 +483,7 @@ export function _clone(
         UANamespace_process_modelling_rule(options.references, options.modellingRule);
     }
 
-    options.nodeId = this.addressSpace.getOwnNamespace()._construct_nodeId(options);
+    options.nodeId = this.addressSpace.getOwnNamespace().constructNodeId(options);
 
     assert(options.nodeId instanceof NodeId);
 
@@ -459,8 +502,8 @@ export function _clone(
 }
 
 export function _handle_HierarchicalReference(
-  node: BaseNode,
-  reference: Reference,
+    node: BaseNode,
+    reference: Reference,
 ) {
 
     const _private = BaseNode_getPrivate(node);
@@ -484,8 +527,8 @@ export function _handle_HierarchicalReference(
 }
 
 function _remove_HierarchicalReference(
-  node: BaseNode,
-  reference: Reference
+    node: BaseNode,
+    reference: Reference
 ) {
 
     const _private = BaseNode_getPrivate(node);
@@ -506,9 +549,9 @@ function _remove_HierarchicalReference(
 }
 
 function _makeReferenceDescription(
-  addressSpace: AddressSpace,
-  reference: Reference,
-  resultMask: number
+    addressSpace: AddressSpace,
+    reference: Reference,
+    resultMask: number
 ): ReferenceDescription {
 
     const isForward = reference.isForward;
@@ -548,9 +591,9 @@ function _makeReferenceDescription(
 }
 
 export function _constructReferenceDescription(
-  addressSpace: AddressSpace,
-  references: Reference[],
-  resultMask: number
+    addressSpace: AddressSpace,
+    references: Reference[],
+    resultMask: number
 ): ReferenceDescription[] {
     assert(_.isArray(references));
     return references.map((reference: Reference) => _makeReferenceDescription(addressSpace, reference, resultMask));
@@ -561,18 +604,18 @@ export function BaseNode_remove_backward_reference(this: BaseNode, reference: Re
     _remove_HierarchicalReference(this, reference);
     const h = reference.hash;
 
-    if (_private._back_referenceIdx[h]) {
-    // note : h may not exist in _back_referenceIdx since we are not indexing
-    //        _back_referenceIdx to UAObjectType and UAVariableType for performance reasons
-    _private._back_referenceIdx[h].dispose();
-    delete _private._back_referenceIdx[h];
+    if (_private._back_referenceIdx && _private._back_referenceIdx[h]) {
+        // note : h may not exist in _back_referenceIdx since we are not indexing
+        //        _back_referenceIdx to UAObjectType and UAVariableType for performance reasons
+        _private._back_referenceIdx[h].dispose();
+        delete _private._back_referenceIdx[h];
     }
     reference.dispose();
 }
 
 export function BaseNode_add_backward_reference(
-  this: BaseNode,
-  reference: Reference
+    this: BaseNode,
+    reference: Reference
 ): void {
 
     const _private = BaseNode_getPrivate(this);
@@ -654,7 +697,7 @@ export function apply_condition_refresh(this: BaseNode, _cache?: any) {
     const eventSources = this.getEventSources();
 
     const conditions = this.findReferencesAsObject("HasCondition", true);
-    for (const condition  of conditions) {
+    for (const condition of conditions) {
         if (condition instanceof UAConditionBase) {
             condition._resend_conditionEvents();
         }

@@ -1,1 +1,6 @@
 _test_generated
+test/
+tsconfig.json
+tsconfig.tsbuildinfo
+tslint.*
+.mocharc.yaml

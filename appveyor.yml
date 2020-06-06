@@ -1,13 +1,13 @@
 # Test against this version of Node.js
 environment:
   matrix:
-  # - nodejs_version: "4" (not supported any more)
-  # - nodejs_version: "6" (not supported anu more => lack of util.promisify )
-  - nodejs_version: "8"
-  - nodejs_version: "9"
-  - nodejs_version: "10"
-  - nodejs_version: "11"
-  
+    # - nodejs_version: "4" (not supported any more)
+    # - nodejs_version: "6" (not supported anu more => lack of util.promisify )
+    - nodejs_version: "8"
+    - nodejs_version: "9"
+    - nodejs_version: "10"
+    - nodejs_version: "11"
+
 platform:
   - x64
   - x86
@@ -18,9 +18,8 @@ matrix:
 
 # fix lineendings in Windows
 init:
-    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-    - git config --global core.autocrlf input
-
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - git config --global core.autocrlf input
 
 # Install scripts. (runs after repo cloning)
 install:
@@ -28,7 +27,7 @@ install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   # install modules (using appveyor-retry to prevent EPERM bug)
   - npm install -g npm
-  - npm install -g typescript@3.3.3
+  - npm install -g typescript@3.8.3 ts-node
   - set path=C:\Users\appveyor\AppData\Roaming\npm\;%path%
   - tsc --version
   - appveyor-retry npm install
@@ -46,4 +45,4 @@ test_script:
   - node  ./node_modules/lerna/cli.js run test-typescript
 
 # Don't actually build.
-build: "off"
+build: false

@@ -15,31 +15,34 @@ import { SimpleAttributeOperand, TimeZoneDataType } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { UtcTime, UAAcknowledgeableConditionBase } from "../../source";
+import {
+    IEventData,
+    SessionContext,
+    UAAcknowledgeableConditionBase,
+    UtcTime,
+} from "../../source";
 import { BaseNode } from "../base_node";
 import { EventData } from "../event_data";
 import { UATwoStateVariable } from "../ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
 import { _setAckedState } from "./condition";
 import { UAConditionBase } from "./ua_condition_base";
-import { UAObject } from "../ua_object";
-import { thisExpression } from "babel-types";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export interface ConditionSnapshot {
     on(
-      eventName: "value_changed",
-      eventHandler: (node: UAVariable, variant: Variant
-      ) => void): this;
+        eventName: "value_changed",
+        eventHandler: (node: UAVariable, variant: Variant
+        ) => void): this;
 }
 
 function normalizeName(str: string): string {
     return str
-      .split(".")
-      .map(utils.lowerFirstLetter)
-      .join(".");
+        .split(".")
+        .map(utils.lowerFirstLetter)
+        .join(".");
 }
 
 function _visit(self: any, node: BaseNode, prefix: string): void {
@@ -67,8 +70,8 @@ function _visit(self: any, node: BaseNode, prefix: string): void {
 }
 
 function _record_condition_state(
-  self: any,
-  condition: any
+    self: any,
+    condition: any
 ) {
     self._map = {};
     self._node_index = {};
@@ -90,7 +93,7 @@ function _installOnChangeEventHandlers(self: any, node: BaseNode, prefix: string
                 debugLog("adding key =", key);
             }
 
-            aggregate.on("value_changed", (newDataValue: DataValue, oldDataValue: DataValue) => {
+            aggregate.on("value_changed", (newDataValue: DataValue) => {
                 self._map[key] = newDataValue.value;
                 self._node_index[key] = aggregate;
             });
@@ -101,10 +104,10 @@ function _installOnChangeEventHandlers(self: any, node: BaseNode, prefix: string
 }
 
 function _ensure_condition_values_correctness(
-  self: any,
-  node: BaseNode,
-  prefix: string,
-  error: string[]
+    self: any,
+    node: BaseNode,
+    prefix: string,
+    error: string[]
 ) {
     const displayError = !!error;
     error = error || [];
@@ -125,12 +128,12 @@ function _ensure_condition_values_correctness(
 
             if (snapshot_value !== condition_value) {
                 error.push(
-                  " Condition Branch0 is not in sync with node values for " +
-                  key +
-                  "\n v1= " +
-                  snapshot_value +
-                  "\n v2= " +
-                  condition_value
+                    " Condition Branch0 is not in sync with node values for " +
+                    key +
+                    "\n v1= " +
+                    snapshot_value +
+                    "\n v2= " +
+                    condition_value
                 );
             }
 
@@ -173,11 +176,10 @@ export class ConditionSnapshot extends EventEmitter {
     public static normalizeName = normalizeName;
 
     public condition: UAConditionBase;
-    public eventData: any = null;
+    public eventData: IEventData | null = null;
     public branchId: NodeId | null = null;
-    private _map: any = null;
-    private _node_index: any = null;
-    private _need_event_raise: boolean = false;
+    private _map: { [key: string]: Variant } = {};
+    private _node_index: { [key: string]: UAVariable } = {};
 
     /**
      * @class ConditionSnapshot
@@ -201,7 +203,7 @@ export class ConditionSnapshot extends EventEmitter {
         this._set_var("branchId", DataType.NodeId, branchId);
     }
 
-    public _constructEventData(): EventData {
+    public _constructEventData(): IEventData {
 
         if (this.branchId === NodeId.nullNodeId) {
             _ensure_condition_values_correctness(this, this.condition!, "", []);
@@ -229,14 +231,14 @@ export class ConditionSnapshot extends EventEmitter {
      * @method resolveSelectClause
      * @param selectClause {SelectClause}
      */
-    public resolveSelectClause(selectClause: any): any {
-        return this.eventData.resolveSelectClause(selectClause);
+    public resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null {
+        return this.eventData?.resolveSelectClause(selectClause) || null;
     }
 
     /**
      *
      */
-    public readValue(nodeId: NodeId, selectClause: SimpleAttributeOperand) {
+    public readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
 
         const isDisabled = !this.condition!.getEnabledState();
         if (isDisabled) {
@@ -248,13 +250,12 @@ export class ConditionSnapshot extends EventEmitter {
         if (!variant) {
             // the value is not handled by us .. let's delegate
             // to the eventData helper object
-            return this.eventData.readValue(nodeId, selectClause);
+            return this.eventData?.readValue(sessionContext, nodeId, selectClause) || disabledVar;
         }
-        assert(variant instanceof Variant);
         return variant;
     }
 
-    public _get_var(varName: string, dataType: DataType): any {
+    public _get_var(varName: string): any {
 
         if (!this.condition.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
             // xx console.log("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
@@ -304,7 +305,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {NodeId}
      */
     public getBranchId(): NodeId {
-        return this._get_var("branchId", DataType.NodeId) as NodeId;
+        return this._get_var("branchId") as NodeId;
     }
 
     /**
@@ -312,7 +313,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {ByteString}
      */
     public getEventId(): Buffer {
-        return this._get_var("eventId", DataType.ByteString) as Buffer;
+        return this._get_var("eventId") as Buffer;
     }
 
     /**
@@ -320,7 +321,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {Boolean}
      */
     public getRetain(): boolean {
-        return this._get_var("retain", DataType.Boolean) as boolean;
+        return this._get_var("retain") as boolean;
     }
 
     /**
@@ -371,7 +372,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {String}
      */
     public getEnabledStateAsString(): string {
-        return this._get_var("enabledState", DataType.LocalizedText).text;
+        return this._get_var("enabledState").text;
     }
 
     /**
@@ -379,7 +380,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {LocalizedText}
      */
     public getComment(): LocalizedText {
-        return this._get_var("comment", DataType.LocalizedText);
+        return this._get_var("comment");
     }
 
     /**
@@ -397,13 +398,6 @@ export class ConditionSnapshot extends EventEmitter {
     public setComment(txtMessage: LocalizedTextLike): void {
         const txtMessage1 = coerceLocalizedText(txtMessage);
         this._set_var("comment", DataType.LocalizedText, txtMessage1);
-        /*
-         * OPCUA Spec 1.0.3 - Part 9:
-         * Comment, severity and quality are important elements of Conditions and any change
-         * to them will cause Event Notifications.
-         *
-         */
-        this._need_event_raise = true;
     }
 
     /**
@@ -456,13 +450,6 @@ export class ConditionSnapshot extends EventEmitter {
      */
     public setQuality(quality: StatusCode): void {
         this._set_var("quality", DataType.StatusCode, quality);
-        /*
-         * OPCUA Spec 1.0.3 - Part 9:
-         * Comment, severity and quality are important elements of Conditions and any change
-         * to them will cause Event Notifications.
-         *
-         */
-        this._need_event_raise = true;
     }
 
     /**
@@ -470,7 +457,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {StatusCode}
      */
     public getQuality(): StatusCode {
-        return this._get_var("quality", DataType.StatusCode) as StatusCode;
+        return this._get_var("quality") as StatusCode;
     }
 
     /*
@@ -514,13 +501,6 @@ export class ConditionSnapshot extends EventEmitter {
         const lastSeverity = this.getSeverity();
         this.setLastSeverity(lastSeverity);
         this._set_var("severity", DataType.UInt16, severity);
-        /*
-         * OPCUA Spec 1.0.3 - Part 9:
-         * Comment, severity and quality are important elements of Conditions and any change
-         * to them will cause Event Notifications.
-         *
-         */
-        this._need_event_raise = true;
     }
 
     /**
@@ -529,7 +509,7 @@ export class ConditionSnapshot extends EventEmitter {
      */
     public getSeverity(): UInt16 {
         assert(this.condition.getEnabledState(), "condition must be enabled");
-        const value = this._get_var("severity", DataType.UInt16);
+        const value = this._get_var("severity");
         return +value;
     }
 
@@ -554,7 +534,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {UInt16}
      */
     public getLastSeverity(): UInt16 {
-        const value = this._get_var("lastSeverity", DataType.UInt16);
+        const value = this._get_var("lastSeverity");
         return +value;
     }
 
@@ -613,7 +593,7 @@ export class ConditionSnapshot extends EventEmitter {
 
     // read only !
     public getSourceName(): LocalizedText {
-        return this._get_var("sourceName", DataType.LocalizedText);
+        return this._get_var("sourceName");
     }
 
     /**
@@ -621,7 +601,7 @@ export class ConditionSnapshot extends EventEmitter {
      * return {NodeId}
      */
     public getSourceNode(): NodeId {
-        return this._get_var("sourceNode", DataType.NodeId);
+        return this._get_var("sourceNode");
     }
 
     /**
@@ -629,15 +609,15 @@ export class ConditionSnapshot extends EventEmitter {
      * return {NodeId}
      */
     public getEventType(): NodeId {
-        return this._get_var("eventType", DataType.NodeId);
+        return this._get_var("eventType");
     }
 
     public getMessage(): LocalizedText {
-        return this._get_var("message", DataType.LocalizedText);
+        return this._get_var("message");
     }
 
     public isCurrentBranch(): boolean {
-        return this._get_var("branchId", DataType.NodeId) === NodeId.nullNodeId;
+        return this._get_var("branchId") === NodeId.nullNodeId;
     }
 
     // -- ACKNOWLEDGEABLE -------------------------------------------------------------------
@@ -647,8 +627,8 @@ export class ConditionSnapshot extends EventEmitter {
         const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionBase;
         if (!acknowledgeableCondition.ackedState) {
             throw new Error("Node " + acknowledgeableCondition.browseName.toString() +
-              " of type " + acknowledgeableCondition.typeDefinitionObj.browseName.toString() +
-              " has no AckedState");
+                " of type " + acknowledgeableCondition.typeDefinitionObj.browseName.toString() +
+                " has no AckedState");
         }
         return this._get_twoStateVariable("ackedState");
     }
@@ -719,7 +699,7 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     // tslint:disable:no-empty
-    public setShelvingState(state: any) {
+    public setShelvingState() {
         // todo
     }
 
@@ -729,17 +709,17 @@ export class ConditionSnapshot extends EventEmitter {
         //   public branchId: NodeId | null = null;
         const t = this.condition.addressSpace.findNode(this.condition.typeDefinition)!;
         return ""
-        + "condition: " + (this.condition.browseName.toString() + " " + this.condition.nodeId.toString())
-        + ", type: " + (t.browseName.toString() + " " + t.nodeId.toString())
-        + ", branchId: " + (this.branchId ? this.branchId.toString() : "<null>")
-        + ", acked: " + this.getAckedState()
-        + ", confirmed: " + this.getConfirmedState()
-        + ", activeState: " + this.getActiveState()
-       // + ", suppressed: " + this.getSuppressedState()
-        + ", retain: " + this.getRetain()
-        + ", message: " + this.getMessage()
-        + ", comment: " + this.getComment()
-        ;
+            + "condition: " + (this.condition.browseName.toString() + " " + this.condition.nodeId.toString())
+            + ", type: " + (t.browseName.toString() + " " + t.nodeId.toString())
+            + ", branchId: " + (this.branchId ? this.branchId.toString() : "<null>")
+            + ", acked: " + this.getAckedState()
+            + ", confirmed: " + this.getConfirmedState()
+            + ", activeState: " + this.getActiveState()
+            // + ", suppressed: " + this.getSuppressedState()
+            + ", retain: " + this.getRetain()
+            + ", message: " + this.getMessage()
+            + ", comment: " + this.getComment()
+            ;
     }
     /**
      * @class ConditionSnapshot

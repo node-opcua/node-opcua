@@ -1,0 +1,46 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:tns="http://www.unifiedautomation.com/DemoServer/" DefaultByteOrder="LittleEndian" 
+    xmlns:opc="http://opcfoundation.org/BinarySchema/" 
+    xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://www.unifiedautomation.com/DemoServer/">
+    <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+
+  <opc:StructuredType BaseType="ua:ExtensionObject" Name="ScanResult">
+    <opc:Field TypeName="opc:Bit" Name="LocationSpecified"/>
+    <opc:Field Length="31" TypeName="opc:Bit" Name="Reserved1"/>
+    <opc:Field TypeName="opc:CharArray" Name="CodeType"/>
+    <opc:Field TypeName="tns:ScanData" Name="ScanData"/>
+    <opc:Field TypeName="opc:DateTime" Name="Timestamp"/>
+    <opc:Field SwitchField="LocationSpecified" TypeName="tns:Location" Name="Location"/>
+   </opc:StructuredType>
+   <opc:StructuredType BaseType="tns:ScanResult" Name="OcrScanResult">
+    <opc:Field TypeName="opc:Bit" Name="LocationSpecified"/>
+    <opc:Field TypeName="opc:Bit" Name="FontSpecified"/>
+    <opc:Field TypeName="opc:Bit" Name="DecodingTimeSpecified"/>
+    <opc:Field Length="29" TypeName="opc:Bit" Name="Reserved1"/>
+    <opc:Field SourceType="tns:ScanResult" TypeName="opc:CharArray" Name="CodeType"/>
+    <opc:Field SourceType="tns:ScanResult" TypeName="tns:ScanData" Name="ScanData"/>
+    <opc:Field SourceType="tns:ScanResult" TypeName="opc:DateTime" Name="Timestamp"/>
+    <opc:Field SwitchField="LocationSpecified" SourceType="tns:ScanResult" TypeName="tns:Location" Name="Location"/>
+    <opc:Field TypeName="ua:NodeId" Name="ImageId"/>
+    <opc:Field TypeName="opc:Byte" Name="Quality"/>
+    <opc:Field TypeName="tns:Position" Name="Position"/>
+    <opc:Field SwitchField="FontSpecified" TypeName="opc:CharArray" Name="Font"/>
+    <opc:Field SwitchField="DecodingTimeSpecified" TypeName="opc:DateTime" Name="DecodingTime"/>
+   </opc:StructuredType>
+   <opc:StructuredType BaseType="tns:ScanResult" Name="OpticalScanResult">
+    <opc:Field TypeName="opc:Bit" Name="LocationSpecified"/>
+    <opc:Field TypeName="opc:Bit" Name="GradeSpecified"/>
+    <opc:Field TypeName="opc:Bit" Name="PositionSpecified"/>
+    <opc:Field TypeName="opc:Bit" Name="SymbologySpecified"/>
+    <opc:Field TypeName="opc:Bit" Name="ImageIdSpecified"/>
+    <opc:Field Length="27" TypeName="opc:Bit" Name="Reserved1"/>
+    <opc:Field SourceType="tns:ScanResult" TypeName="opc:CharArray" Name="CodeType"/>
+    <opc:Field SourceType="tns:ScanResult" TypeName="tns:ScanData" Name="ScanData"/>
+    <opc:Field SourceType="tns:ScanResult" TypeName="opc:DateTime" Name="Timestamp"/>
+    <opc:Field SwitchField="LocationSpecified" SourceType="tns:ScanResult" TypeName="tns:Location" Name="Location"/>
+    <opc:Field SwitchField="GradeSpecified" TypeName="opc:Float" Name="Grade"/>
+    <opc:Field SwitchField="PositionSpecified" TypeName="tns:Position" Name="Position"/>
+    <opc:Field SwitchField="SymbologySpecified" TypeName="opc:CharArray" Name="Symbology"/>
+    <opc:Field SwitchField="ImageIdSpecified" TypeName="ua:NodeId" Name="ImageId"/>
+   </opc:StructuredType>
+ </opc:TypeDictionary>

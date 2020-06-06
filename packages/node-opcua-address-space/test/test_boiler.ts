@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as nodesets from "node-opcua-nodesets";
 import * as should from "should";
 import { generateAddressSpace } from "..";
@@ -77,7 +77,8 @@ describe("Testing Boiler System", () => {
 
         const context = SessionContext.defaultContext;
 
-        const boilerType = createBoilerType(addressSpace);
+        const boilerType = createBoilerType(namespace);
+
         boilerType.getNotifiers().length.should.eql(3);
         boilerType.getEventSources().length.should.eql(1);
 
@@ -86,16 +87,16 @@ describe("Testing Boiler System", () => {
             organizedBy: addressSpace.rootFolder
         });
 
-        boiler.pipeX001.browseName.toString().should.eql("1:PipeX001");
-        boiler.pipeX002.browseName.toString().should.eql("1:PipeX002");
-        boiler.drumX001.browseName.toString().should.eql("1:DrumX001");
+        boiler.inputPipe.browseName.toString().should.eql("1:InputPipe");
+        boiler.outputPipe.browseName.toString().should.eql("1:OutputPipe");
+        boiler.boilerDrum.browseName.toString().should.eql("1:BoilerDrum");
         boiler.simulation.browseName.toString().should.eql("1:Simulation");
 
-        // xx boiler.pipeX001.displayName.text.toString().should.eql("Pipe1001");
+        // xx boiler.inputPipe.displayName.text.toString().should.eql("Pipe1001");
 
-        boiler.pipeX001.modellingRule!.should.eql("Mandatory");
-        boiler.pipeX002.modellingRule!.should.eql("Mandatory");
-        boiler.drumX001.modellingRule!.should.eql("Mandatory");
+        boiler.inputPipe.modellingRule!.should.eql("Mandatory");
+        boiler.outputPipe.modellingRule!.should.eql("Mandatory");
+        boiler.boilerDrum.modellingRule!.should.eql("Mandatory");
         boiler.simulation.modellingRule!.should.eql("Mandatory");
 
         boiler.getNotifiers().length.should.eql(3);
@@ -103,9 +104,9 @@ describe("Testing Boiler System", () => {
 
         boiler.getNotifiers().map((x: BaseNode) => {
             return x.browseName.name!.toString();
-        }).join(" ").should.eql("PipeX001 DrumX001 PipeX002");
-        // xx boiler.pipeX001.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
-        // xx boiler.pipeX001.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
+        }).join(" ").should.eql("InputPipe BoilerDrum OutputPipe");
+        // xx boiler.inputPipe.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
+        // xx boiler.inputPipe.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
 
         const haltMethod = boiler.simulation.getMethodByName("Halt")!;
         const resetMethod = boiler.simulation.getMethodByName("Reset")!;

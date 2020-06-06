@@ -1,25 +1,28 @@
 /**
  * @module node-opcua-client-dynamic-extension-object
  */
+import * as util from "util";
+
 import assert from "node-opcua-assert";
-import { 
-    StructuredTypeSchema ,
-     getStandartDataTypeFactory, 
-     DataTypeFactory
+import {
+    ConstructorFunc,
+    DataTypeFactory,
+    getStandartDataTypeFactory,
+    StructuredTypeSchema,
 } from "node-opcua-factory";
-import { NodeId } from "node-opcua-nodeid";
-import { 
-    AnyConstructorFunc, 
-    createDynamicObjectConstructor,
-    TypeDictionary 
+import {
+    ExpandedNodeId,
+    NodeId,
+} from "node-opcua-nodeid";
+import {
+    AnyConstructorFunc,
 } from "node-opcua-schemas";
 
 export class ExtraDataTypeManager {
 
     public namespaceArray: string[] = [];
 
-    private readonly typeDictionaries: { [key: string]: TypeDictionary } = {};
-    private readonly typeDictionariesByNamespace: { [key: number]: TypeDictionary } = {};
+    private readonly dataTypeFactoryMapByNamespace: { [key: number]: DataTypeFactory } = {};
 
     constructor() {
         /* */
@@ -29,100 +32,68 @@ export class ExtraDataTypeManager {
         this.namespaceArray = namespaceArray;
     }
 
-    public hasDataTypeDictionary(nodeId: NodeId): boolean {
-        return !!this.typeDictionaries.hasOwnProperty(this.makeKey(nodeId));
+    public hasDataTypeFactory(namespaceIndex: number): boolean {
+        return !!this.dataTypeFactoryMapByNamespace.hasOwnProperty(namespaceIndex);
     }
 
-    public registerTypeDictionary(nodeId: NodeId, typeDictionary: TypeDictionary) {
+    public registerDataTypeFactory(namespaceIndex: number, dataTypeFactory: DataTypeFactory) {
         /* istanbul ignore next */
-        if (this.hasDataTypeDictionary(nodeId)) {
+        assert(namespaceIndex !== 0,
+            "registerTypeDictionary cannot be used for namespace 0");
+        if (this.hasDataTypeFactory(namespaceIndex)) {
             throw new Error("Dictionary already registered");
         }
-
-        this.typeDictionaries[this.makeKey(nodeId)] = typeDictionary;
-        assert(nodeId.namespace !== 0,
-            "registerTypeDictionary cannot be used for namespace 0");
-        assert(!this.typeDictionariesByNamespace.hasOwnProperty(nodeId.namespace),
-            "already registered");
-        this.typeDictionariesByNamespace[nodeId.namespace] = typeDictionary;
+        this.dataTypeFactoryMapByNamespace[namespaceIndex] = dataTypeFactory;
     }
 
-    public getTypeDictionaryForNamespace(namespaceIndex: number): TypeDictionary {
+    public getDataTypeFactoryForNamespace(namespaceIndex: number): DataTypeFactory {
         assert(namespaceIndex !== 0,
             "getTypeDictionaryForNamespace cannot be used for namespace 0");
-        return this.typeDictionariesByNamespace[namespaceIndex];
+        return this.dataTypeFactoryMapByNamespace[namespaceIndex];
     }
     public getDataTypeFactory(namespaceIndex: number): DataTypeFactory {
         if (namespaceIndex === 0) {
             return getStandartDataTypeFactory();
         }
-        return this.typeDictionariesByNamespace[namespaceIndex];
+        return this.dataTypeFactoryMapByNamespace[namespaceIndex];
     }
 
     public getExtensionObjectConstructorFromDataType(
         dataTypeNodeId: NodeId
     ): AnyConstructorFunc {
-        const typeDictionary = this.getTypeDictionaryForNamespace(dataTypeNodeId.namespace);
+        const dataTypeFactory = this.getDataTypeFactory(dataTypeNodeId.namespace);
+        if (!dataTypeFactory) {
+            throw new Error("cannot find dataFactory for namespace=" + dataTypeNodeId.namespace);
+        }
         // find schema corresponding to dataTypeNodeId in typeDictionary
-        const schema = findSchemaForDataType(typeDictionary, dataTypeNodeId);
-        const Constructor = createDynamicObjectConstructor(schema, typeDictionary);
+        const Constructor = dataTypeFactory.findConstructorForDataType(dataTypeNodeId);
         return Constructor;
     }
 
     public getExtensionObjectConstructorFromBinaryEncoding(
         binaryEncodingNodeId: NodeId
-    ): AnyConstructorFunc {
-        const typeDictionary = this.getTypeDictionaryForNamespace(binaryEncodingNodeId.namespace);
-        // find schema corresponding to binaryEncodingNodeId in typeDictionary
-        const schema = findSchemaForBinaryEncoding(typeDictionary, binaryEncodingNodeId);
-        const Constructor = createDynamicObjectConstructor(schema, typeDictionary);
+    ): ConstructorFunc {
+        const dataTypeFactory = this.getDataTypeFactoryForNamespace(binaryEncodingNodeId.namespace);
+        const Constructor = dataTypeFactory.getConstructor(binaryEncodingNodeId);
+        if (!Constructor) {
+            throw new Error("getExtensionObjectConstructorFromBinaryEncoding cannot find constructor for binaryEncoding " + binaryEncodingNodeId.toString());
+        }
         return Constructor;
     }
-
-    private makeKey(nodeId: NodeId): string {
-        return this.namespaceArray[nodeId.namespace] + "@" + nodeId.value.toString();
-    }
-
-}
-
-function findSchemaForDataType(
-    typeDictionary: TypeDictionary,
-    dataTypeNodeId: NodeId
-): StructuredTypeSchema {
-
-    for (const k of Object.keys(typeDictionary.structuredTypes)) {
-
-        const schema = typeDictionary.structuredTypes[k];
-        if (schema.id.value === dataTypeNodeId.value) {
-            assert(schema.id.namespace === dataTypeNodeId.namespace);
-            return schema;
+    public toString(): string {
+        const l: string[] = [];
+        function write(...args: [any, ...any[]]) {
+            l.push(util.format.apply(util.format, args));
         }
-    }
-    throw new Error("findSchemaForDataType: Cannot find schema for " + dataTypeNodeId.toString()
-        + " in " +
-        Object.keys(typeDictionary.structuredTypes).map(
-            (a) => a + ":" +
-                typeDictionary.structuredTypes[a].id.toString()).join("\n"));
-}
-
-function findSchemaForBinaryEncoding(
-    typeDictionary: TypeDictionary,
-    binaryEncodingNodeId: NodeId
-): StructuredTypeSchema {
-
-    for (const k of Object.keys(typeDictionary.structuredTypes)) {
-
-        const schema = typeDictionary.structuredTypes[k];
-        if (schema.encodingDefaultBinary &&
-            schema.encodingDefaultBinary!.value === binaryEncodingNodeId.value) {
-            assert(schema.encodingDefaultBinary!.namespace === binaryEncodingNodeId.namespace);
-            return schema;
+        write("ExtraDataTypeMananager");
+        for (let n = 0; n < this.namespaceArray.length; n++) {
+            write("-----------", this.namespaceArray[n]);
+            const dataFactory = this.dataTypeFactoryMapByNamespace[n];
+            if (!dataFactory) {
+                continue;
+            }
+            write(dataFactory.toString());
         }
+        return l.join("\n");
     }
-    throw new Error("findSchemaForBinaryEncoding: Cannot find schema for " + binaryEncodingNodeId.toString()
-        + " in " +
-        Object.keys(typeDictionary.structuredTypes).map(
-            (a) => a + " " +
-                (typeDictionary.structuredTypes[a].encodingDefaultBinary ?
-                    typeDictionary.structuredTypes[a].encodingDefaultBinary!.toString() : "None")).join("\n"));
 }

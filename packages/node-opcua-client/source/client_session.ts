@@ -12,7 +12,7 @@ import { LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
-import { ErrorCallback } from "node-opcua-secure-channel";
+import { ErrorCallback } from "node-opcua-status-code";
 import {
     BrowseDescription, BrowseDescriptionOptions, BrowseRequest, BrowseResponse, BrowseResult
 } from "node-opcua-service-browse";
@@ -34,15 +34,20 @@ import {
     CreateSubscriptionRequestOptions, CreateSubscriptionResponse,
     DeleteMonitoredItemsRequest,
     DeleteMonitoredItemsRequestOptions,
+    DeleteMonitoredItemsResponse,
     DeleteSubscriptionsRequest,
     DeleteSubscriptionsRequestOptions, DeleteSubscriptionsResponse,
     ModifyMonitoredItemsRequest,
     ModifyMonitoredItemsRequestOptions, ModifyMonitoredItemsResponse,
     ModifySubscriptionRequest,
     ModifySubscriptionRequestOptions, ModifySubscriptionResponse,
-    SetMonitoringModeRequest,
-    SetMonitoringModeRequestOptions, SetMonitoringModeResponse,
-    TransferSubscriptionsRequest, TransferSubscriptionsRequestOptions, TransferSubscriptionsResponse
+    PublishRequest, PublishResponse,
+    RepublishRequest, RepublishResponse,
+    SetMonitoringModeRequest, SetMonitoringModeRequestOptions,
+    SetMonitoringModeResponse,
+    TransferSubscriptionsRequest,
+    TransferSubscriptionsRequestOptions,
+    TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
 import {
     BrowsePath, BrowsePathResult
@@ -52,8 +57,9 @@ import {
 } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
+import { Callback } from "node-opcua-status-code";
+
 import { ClientSubscription } from "./client_subscription";
-import { ClientSessionImpl } from "./private/client_session_impl";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
@@ -78,30 +84,31 @@ export interface CreateSubscriptionOptions {
     priority?: UInt8;
 }
 
-export type BrowseDescriptionLike = string | BrowseDescriptionOptions | BrowseDescription;
-export type ReadValueIdLike = ReadValueIdOptions | ReadValueId;
-export type WriteValueLike = WriteValueOptions | WriteValue;
-export type DeleteMonitoredItemsRequestLike = DeleteMonitoredItemsRequestOptions | DeleteMonitoredItemsRequest;
-export type CreateSubscriptionRequestLike = CreateSubscriptionRequestOptions | CreateSubscriptionRequest;
-export type DeleteSubscriptionsRequestLike = DeleteSubscriptionsRequestOptions | DeleteSubscriptionsRequest;
-export type TransferSubscriptionsRequestLike = TransferSubscriptionsRequestOptions | TransferSubscriptionsRequest;
-export type CreateMonitoredItemsRequestLike = CreateMonitoredItemsRequestOptions | CreateMonitoredItemsRequest;
-export type ModifyMonitoredItemsRequestLike = ModifyMonitoredItemsRequestOptions | ModifyMonitoredItemsRequest;
-export type ModifySubscriptionRequestLike = ModifySubscriptionRequestOptions | ModifySubscriptionRequest;
-export type SetMonitoringModeRequestLike = SetMonitoringModeRequestOptions | SetMonitoringModeRequest;
-export type QueryFirstRequestLike = QueryFirstRequestOptions | QueryFirstRequest;
+export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
+export type ReadValueIdLike = ReadValueIdOptions;
+export type WriteValueLike = WriteValueOptions;
+export type DeleteMonitoredItemsRequestLike = DeleteMonitoredItemsRequestOptions;
+export type CreateSubscriptionRequestLike = CreateSubscriptionRequestOptions;
+export type DeleteSubscriptionsRequestLike = DeleteSubscriptionsRequestOptions;
+export type TransferSubscriptionsRequestLike = TransferSubscriptionsRequestOptions;
+export type CreateMonitoredItemsRequestLike = CreateMonitoredItemsRequestOptions;
+export type ModifyMonitoredItemsRequestLike = ModifyMonitoredItemsRequestOptions;
+export type ModifySubscriptionRequestLike = ModifySubscriptionRequestOptions;
+export type SetMonitoringModeRequestLike = SetMonitoringModeRequestOptions;
+export type QueryFirstRequestLike = QueryFirstRequestOptions;
 
 export type SubscriptionId = number;
 
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
-import { Callback } from "./common";
+import { AggregateFunction } from "node-opcua-aggregates";
+import { HistoryReadValueIdOptions } from "node-opcua-types";
 export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 
-export interface ClientSession {
+export interface ClientSessionBase {
 
     // properties
     /** the session Id */
@@ -135,21 +142,31 @@ export interface ClientSession {
     close(deleteSubscription?: boolean): Promise<void>;
 }
 
+// tslint:disable-next-line: no-empty-interface
+export interface ClientSession extends ClientSessionBase {
+    /* */
+}
 // events
 export interface ClientSession extends EventEmitter {
     // tslint:disable:unified-signatures
-    on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): ClientSession;
+    on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): this;
 
-    on(event: "keepalive_failure", eventHandler: (state: any) => void): ClientSession;
+    on(event: "keepalive_failure", eventHandler: (state: any) => void): this;
 
-    on(event: "session_closed", eventHandler: (statusCode: StatusCode) => void): ClientSession;
+    on(event: "session_closed", eventHandler: (statusCode: StatusCode) => void): this;
+
+    /**
+     *  session_restored is raised when the session and realted subscription
+     *  have been fullt repaired after a reconnection.
+     */
+    on(event: "session_restored", eventHandler: () => void): this;
 
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 
 }
 
 // browse services
-export interface ClientSession extends IBasicSession {
+export interface ClientSessionBrowseService {
 
     /**
      * the maximum number of reference that the server should return per browseResult
@@ -188,7 +205,7 @@ export interface ClientSession extends IBasicSession {
 }
 
 // translate browsePathTo NodeId services
-export interface ClientSession {
+export interface ClientSessionTranslateBrowsePathService {
     translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
 
     translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
@@ -200,7 +217,7 @@ export interface ClientSession {
 }
 
 // query services
-export interface ClientSession {
+export interface ClientSessionQueryService {
     queryFirst(
         queryFirstRequest: QueryFirstRequestLike
     ): Promise<QueryFirstResponse>;
@@ -212,7 +229,7 @@ export interface ClientSession {
 }
 
 // call services
-export interface ClientSession {
+export interface ClientSessionCallService {
 
     /**
      *
@@ -291,7 +308,7 @@ export interface ClientSession {
 }
 
 // register services
-export interface ClientSession {
+export interface ClientSessionRegisterService {
 
     registerNodes(nodesToRegister: NodeIdLike[]): Promise<NodeId[]>;
 
@@ -310,7 +327,7 @@ export interface ClientSession {
 }
 
 // read services
-export interface ClientSession {
+export interface ClientSessionReadService {
 
     read(nodeToRead: ReadValueIdLike, maxAge: number, callback: ResponseCallback<DataValue>): void;
 
@@ -335,7 +352,7 @@ export interface ClientSession {
 }
 
 // write services
-export interface ClientSession {
+export interface ClientSessionWriteService {
     write(nodeToWrite: WriteValueLike, callback: ResponseCallback<StatusCode>): void;
 
     write(nodesToWrite: WriteValueLike[], callback: ResponseCallback<StatusCode[]>): void;
@@ -351,7 +368,7 @@ export interface ClientSession {
 }
 
 // raw subscription services
-export interface ClientSession {
+export interface ClientSessionRawSubscriptionService {
 
     /**
      * @method createSubscription
@@ -439,15 +456,6 @@ export interface ClientSession {
         options: ModifyMonitoredItemsRequestLike)
         : Promise<ModifyMonitoredItemsResponse>;
 
-    createSubscription2(
-        createSubscriptionRequest: CreateSubscriptionRequestLike
-    ): Promise<ClientSubscription>;
-
-    createSubscription2(
-        createSubscriptionRequest: CreateSubscriptionRequestLike,
-        callback: ResponseCallback<ClientSubscription>
-    ): void;
-
     getMonitoredItems(
         subscriptionId: SubscriptionId
     ): Promise<MonitoredItemData>;
@@ -456,10 +464,32 @@ export interface ClientSession {
         subscriptionId: SubscriptionId,
         callback: ResponseCallback<MonitoredItemData>
     ): void;
+
+    deleteMonitoredItems(
+        request: DeleteMonitoredItemsRequestLike,
+        callback: Callback<DeleteMonitoredItemsResponse>
+    ): void;
+
+    deleteMonitoredItems(
+        request: DeleteMonitoredItemsRequestLike
+    ): Promise<DeleteMonitoredItemsResponse>;
+
+}
+
+// subscription service
+export interface ClientSessionSubscriptionService {
+    createSubscription2(
+        createSubscriptionRequest: CreateSubscriptionRequestLike
+    ): Promise<ClientSubscription>;
+
+    createSubscription2(
+        createSubscriptionRequest: CreateSubscriptionRequestLike,
+        callback: ResponseCallback<ClientSubscription>
+    ): void;
 }
 
 // history services
-export interface ClientSession {
+export interface ClientSessionReadHistoryService {
 
     readHistoryValue(
         nodes: ReadValueIdOptions[],
@@ -487,9 +517,67 @@ export interface ClientSession {
         end: DateTime
     ): Promise<HistoryReadResult>;
 
+    /**
+     * @method readAggregateValue
+     * @async
+     *
+     * @example
+     *
+     * ```javascript
+     * //  es5
+     * session.readAggregateValue(
+     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   "2015-06-10T09:00:00.000Z",
+     *   "2015-06-10T09:01:00.000Z", AggregateFunction.Average, 3600000, function(err,dataValues) {
+     *
+     * });
+     * ```
+     *
+     * ```javascript
+     * //  es6
+     * const dataValues = await session.readAggregateValue(
+     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   "2015-06-10T09:00:00.000Z",
+     *   "2015-06-10T09:01:00.000Z", AggregateFunction.Average, 3600000);
+     * ```
+     * @param nodes   the read value id
+     * @param startTime   the start time in UTC format
+     * @param endTime     the end time in UTC format
+     * @param aggregateFn
+     * @param processingInterval in milliseconds
+     * @param callback
+     */
+    readAggregateValue(
+        nodes: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        callback: Callback<HistoryReadResult[]>): void;
+    readAggregateValue(
+        nodes: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+    ): Promise<HistoryReadResult[]>;
+    readAggregateValue(
+        nodes: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        callback: Callback<HistoryReadResult>): void;
+    readAggregateValue(
+        nodes: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+    ): Promise<HistoryReadResult>;
 }
 
-export interface ClientSession {
+export interface ClientSessionDataTypeService {
 
     /**
      * retrieve the built-in DataType of a Variable, from its DataType attribute.
@@ -520,7 +608,7 @@ export interface ClientSession {
 
 }
 
-export interface ClientSession {
+export interface ClientSessionNamespaceService {
 
     getNamespaceIndex(namespaceUri: string): number;
 
@@ -530,7 +618,7 @@ export interface ClientSession {
 
 }
 
-export interface ClientSession {
+export interface ClientSessionExtensionObjectService {
 
     constructExtensionObject(
         dataType: NodeId,
@@ -540,7 +628,7 @@ export interface ClientSession {
     extractNamespaceDataType(): Promise<ExtraDataTypeManager>;
 }
 
-export interface ClientSession {
+export interface ClientSessionConditionService {
 
     disableCondition(): void;
 
@@ -678,5 +766,35 @@ export interface ClientSession {
         nodeId: NodeIdLike,
         methodName: string
     ): Promise<NodeId>;
+
+}
+
+// publish Server
+export interface ClientSessionPublishService {
+    publish(
+        options: PublishRequest,
+        callback: ResponseCallback<PublishResponse>
+    ): void;
+    republish(
+        options: RepublishRequest,
+        callback: ResponseCallback<RepublishResponse>): void;
+}
+
+export interface ClientSession extends
+    ClientSessionTranslateBrowsePathService,
+    ClientSessionQueryService,
+    ClientSessionBrowseService,
+    // ClientSessionRawSubscriptionService,
+    ClientSessionSubscriptionService,
+    ClientSessionCallService,
+    ClientSessionRegisterService,
+    ClientSessionReadService,
+    ClientSessionWriteService,
+    ClientSessionReadHistoryService,
+    ClientSessionConditionService,
+    ClientSessionExtensionObjectService,
+    ClientSessionNamespaceService,
+    ClientSessionDataTypeService,
+    IBasicSession {
 
 }

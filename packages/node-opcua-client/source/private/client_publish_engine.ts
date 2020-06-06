@@ -2,7 +2,7 @@
  * @module node-opcua-client-private
  */
 import * as async from "async";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -78,7 +78,7 @@ export class ClientSidePublishEngine {
     }
 
     public suspend(suspendedState: boolean) {
-        assert(this.isSuspended !== !!suspendedState, "invalid state");
+        assert(this.isSuspended !== !!suspendedState, "publishEngine: invalid state");
         this.isSuspended = !!suspendedState;
         if (!this.isSuspended) {
             this.replenish_publish_request_queue();
@@ -86,7 +86,7 @@ export class ClientSidePublishEngine {
     }
 
     public acknowledge_notification(subscriptionId: SubscriptionId, sequenceNumber: number) {
-        this.subscriptionAcknowledgements.push({subscriptionId, sequenceNumber});
+        this.subscriptionAcknowledgements.push({ subscriptionId, sequenceNumber });
     }
 
     public cleanup_acknowledgment_for_subscription(subscriptionId: SubscriptionId) {
@@ -119,7 +119,7 @@ export class ClientSidePublishEngine {
                     // session has been terminated or suspended
                     return;
                 }
-                this._send_publish_request();
+                this.internalSendPublishRequest();
             });
 
         }
@@ -208,7 +208,7 @@ export class ClientSidePublishEngine {
 
         // After re-establishing the connection the Client shall call Republish in a loop, starting with
         // the next expected sequence number and incrementing the sequence number until the Server returns
-        // the status Bad_MessageNotAvailable.
+        // the status BadMessageNotAvailable.
         // After receiving this status, the Client shall start sending Publish requests with the normal Publish
         // handling.
         // This sequence ensures that the lost NotificationMessages queued in the Server are not overwritten
@@ -229,10 +229,9 @@ export class ClientSidePublishEngine {
         async.forEachOf(this.subscriptionMap, repairSubscription, callback);
     }
 
-    private _send_publish_request() {
+    public internalSendPublishRequest() {
 
         assert(this.session, "ClientSidePublishEngine terminated ?");
-        assert(!this.isSuspended, "should not be suspended");
 
         this.nbPendingPublishRequests += 1;
 
@@ -244,7 +243,7 @@ export class ClientSidePublishEngine {
         // as started in the spec (Spec 1.02 part 4 page 81 5.13.2.2 Function DequeuePublishReq())
         // the server will dequeue the PublishRequest  in first-in first-out order
         // and will validate if the publish request is still valid by checking the timeoutHint in the RequestHeader.
-        // If the request timed out, the server will send a Bad_Timeout service result for the request and de-queue
+        // If the request timed out, the server will send a BadTimeout service result for the request and de-queue
         // another publish request.
         //
         // in Part 4. page 144 Request Header the timeoutHint is described this way.
@@ -252,11 +251,11 @@ export class ClientSidePublishEngine {
         //                    set the timeout on a per-call base.
         //                    For a Server this timeout is only a hint and can be used to cancel long running
         //                    operations to free resources. If the Server detects a timeout, he can cancel the
-        //                    operation by sending the Service result Bad_Timeout. The Server should wait
+        //                    operation by sending the Service result BadTimeout. The Server should wait
         //                    at minimum the timeout after he received the request before cancelling the operation.
         //                    The value of 0 indicates no timeout.
         // In issue#40 (MonitoredItem on changed not fired), we have found that some server might wrongly interpret
-        // the timeoutHint of the request header ( and will bang a Bad_Timeout regardless if client send timeoutHint=0)
+        // the timeoutHint of the request header ( and will bang a BadTimeout regardless if client send timeoutHint=0)
         // as a work around here , we force the timeoutHint to be set to a suitable value.
         //
         // see https://github.com/node-opcua/node-opcua/issues/141
@@ -265,7 +264,7 @@ export class ClientSidePublishEngine {
 
         // also ( part 3 - Release 1.03 page 140)
         // The Server shall check the timeoutHint parameter of a PublishRequest before processing a PublishResponse.
-        // If the request timed out, a Bad_Timeout Service result is sent and another PublishRequest is used.
+        // If the request timed out, a BadTimeout Service result is sent and another PublishRequest is used.
         // The value of 0 indicates no timeout
 
         // in our case:
@@ -274,7 +273,7 @@ export class ClientSidePublishEngine {
         const calculatedTimeout = this.nbPendingPublishRequests * this.timeoutHint;
 
         const publishRequest = new PublishRequest({
-            requestHeader: {timeoutHint: calculatedTimeout}, // see note
+            requestHeader: { timeoutHint: calculatedTimeout }, // see note
             subscriptionAcknowledgements
         });
 
@@ -286,7 +285,7 @@ export class ClientSidePublishEngine {
             this.nbPendingPublishRequests -= 1;
 
             if (err) {
-                debugLog(chalk.cyan("ClientSidePublishEngine.prototype._send_publish_request callback : "),
+                debugLog(chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback : "),
                     chalk.yellow(err.message));
                 debugLog("'" + err.message + "'");
 
@@ -345,13 +344,13 @@ export class ClientSidePublishEngine {
                 }
             } else {
                 if (doDebug) {
-                    debugLog(chalk.cyan("ClientSidePublishEngine.prototype._send_publish_request callback "));
+                    debugLog(chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback "));
                 }
                 this._receive_publish_response(response!);
             }
 
             // feed the server with a new publish Request to the server
-            if (active && this.activeSubscriptionCount > 0) {
+            if (!this.isSuspended && active && this.activeSubscriptionCount > 0) {
                 this.send_publish_request();
             }
         });
@@ -455,12 +454,12 @@ export class ClientSidePublishEngine {
         setImmediate(() => {
             assert(_.isFunction(callback));
             (async as any).whilst(
-               (cb: any) => cb(null, !isDone),
-               sendRepublishFunc, (err: Error|null) => {
-                debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
-                debugLog(" _republish ends with ", err ? err.message : "null");
-                callback(err!);
-            });
+                (cb: any) => cb(null, !isDone),
+                sendRepublishFunc, (err: Error | null) => {
+                    debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
+                    debugLog(" _republish ends with ", err ? err.message : "null");
+                    callback(err!);
+                });
         });
     }
 
@@ -476,7 +475,7 @@ export class ClientSidePublishEngine {
 
             assert(!err || err instanceof Error);
 
-            debugLog("---------------------------------------------------- err =", err ? err.message : null);
+            debugLog("__repairSubscription--------------------- err =", err ? err.message : null);
 
             if (err && err.message.match(/BadSessionInvalid/)) {
                 // _republish failed because session is not valid anymore on server side.

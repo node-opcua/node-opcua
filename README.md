@@ -21,8 +21,6 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 [Node-opcua](http://node-opcua.github.io/) is an full OPC-UA stack written in NodeJS.
 
 
-[![Flattr us](https://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/@gadz_er).
-
 Why NodeJS ?
 
 Because nodeJs is a great framework to design asynchronous application.
@@ -32,13 +30,20 @@ Because nodeJs is a great framework to design asynchronous application.
 
 ### installing node-opcua as a node package
 
-    $ npm install node-opcua
+    $ mkdir mytest
+    $ cd mytest
+    $ npm init 
+    $ npm install node-opcua --unsafe-perms
+    $ # create your first app.js file !
 
 
 ### installing node-opcua samples as a node package
 
 ```shell
-    $ npm install node-opcua-samples
+    $ mkdir myserver
+    $ cd myserver
+    $ npm init
+    $ npm install node-opcua-samples --unsafe-perms
     $ ./node_modules/.bin/simple_server
 ```   
    or
@@ -71,7 +76,7 @@ Because nodeJs is a great framework to design asynchronous application.
 
  * [create a server](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md)
  
- * [create a client](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client.md)
+ * [create a client in typescript](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client_typescript.md)
    
 
 ### API Documentation
@@ -80,7 +85,7 @@ Because nodeJs is a great framework to design asynchronous application.
                 
 ## Minimum nodejs requirement 
 
-  * nodejs version 6.10 or above
+  * nodejs version 8.16 or above
                                   
 ## Contributing
 
@@ -91,13 +96,13 @@ Because nodeJs is a great framework to design asynchronous application.
 
 ## Supporting the project
 
-If you like the project, please 
-[![Flattr us](https://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/@gadz_er).
+If you like the project, please consider [sponsoring the author :beer: :tada: ](https://github.com/sponsors/erossignon), 
+
 This will give us full of motivation to carry on and keep working on the roadmap.
 
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
 
-[![Project Stats](https://www.ohloh.net/p/713850/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/node-opcua)
+[![Project Stats](https://www.openhub.net/p/713850/widgets/project_thin_badge.gif)](https://www.openhub.net/p/node-opcua)
 
 ## Getting commercial support
 

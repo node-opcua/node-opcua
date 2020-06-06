@@ -1,25 +1,21 @@
 /**
  * @module node-opcua-transport
  */
-import { default as chalk } from "chalk";
+import * as chalk from "chalk";
 import { Socket } from "net";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import * as  debug from "node-opcua-debug";
 import { PacketAssembler } from "node-opcua-packet-assembler";
+import { ErrorCallback } from "node-opcua-status-code";
 
 import { readRawMessageHeader } from "./message_builder_base";
-import { writeTCPMessageHeader } from "./tools";
 
 import { Transport } from './transport';
 
-type ErrorCallback = (err?: Error | null) => void;
-
 const debugLog = debug.make_debugLog(__filename);
 const doDebug = debug.checkDebugFlag(__filename);
-
 
 let counter = 0;
 
@@ -39,15 +35,17 @@ export class TCP_transport extends Transport<Socket> {
 
     }
 
+
     public dispose() {
+        this._cleanup_timers();
         assert(!this._timerId);
         if (this._socket) {
             this._socket.destroy();
             this._socket.removeAllListeners();
             this._socket = null;
         }
+        Transport.registry.unregister(this);
     }
-
 
     /**
      * disconnect the TCP layer and close the underlying socket.
@@ -79,8 +77,8 @@ export class TCP_transport extends Transport<Socket> {
             // xx this._socket.removeAllListeners();
             this._socket = null;
         }
+        this.on_socket_ended(null);
         setImmediate(() => {
-            this.on_socket_ended(null);
             callback();
         });
     }
@@ -121,6 +119,7 @@ export class TCP_transport extends Transport<Socket> {
             minimumSizeInBytes: this.headerSize
         });
 
+        /* istanbul ignore next */
         if (!this.packetAssembler) {
             throw new Error("Internal Error");
         }
@@ -132,19 +131,28 @@ export class TCP_transport extends Transport<Socket> {
             .on("end", (err: Error) => this._on_socket_end(err))
             .on("error", (err: Error) => this._on_socket_error(err));
 
-        const doDestroyOnTimeout = false;
-        if (doDestroyOnTimeout) {
-            // set socket timeout
-            debugLog("setting _socket.setTimeout to ", this.timeout);
-            this._socket.setTimeout(this.timeout, () => {
-                debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
-                if (this._socket) {
-                    this._socket.destroy();
-                    // 08/2008 shall we do this ?
-                    this._socket.removeAllListeners();
-                    this._socket = null;
-                }
-            });
+        // set socket timeout
+        debugLog("setting " + this.name + " _socket.setTimeout to ", this.timeout);
+
+        // let use a large timeout here to make sure that we not conflict with our internal timeout
+        this._socket.setTimeout(this.timeout + 2000, () => {
+            debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
+            this.prematureTerminate(new Error("INTERNAL_EPIPE timeout=" + this.timeout));
+        });
+    }
+
+    public prematureTerminate(err: Error) {
+        debugLog("prematureTerminate", err ? err.message : "");
+        if (this._socket) {
+            err.message = "EPIPE_" + err.message;
+            // we consider this as an error
+            const _s = this._socket;
+            _s.end();
+            _s.destroy(); // new Error("Socket has timed out"));
+            _s.emit("error", err);
+            this._socket = null;
+            this.dispose();
+            _s.removeAllListeners();
         }
     }
 
@@ -164,8 +172,9 @@ export class TCP_transport extends Transport<Socket> {
                 this._socket.destroy();
             }
         }
-        const err = hadError ? new Error("ERROR IN SOCKET") : undefined;
+        const err = hadError ? new Error("ERROR IN SOCKET  " + hadError.toString()) : undefined;
         this.on_socket_closed(err);
+        this.dispose();
 
     }
 }

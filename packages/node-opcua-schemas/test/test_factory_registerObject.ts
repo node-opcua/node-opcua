@@ -4,35 +4,41 @@ import * as  path from "path";
 import * as should from "should";
 
 import {
-    BinaryStream
-} from "node-opcua-binary-stream";
-import {
     redirectToFile
 } from "node-opcua-debug";
+import {
+    BaseUAObject, DataTypeFactory
+} from "node-opcua-factory";
 import {
     makeExpandedNodeId
 } from "node-opcua-nodeid";
 import {
-    analyze_object_binary_encoding
-} from "node-opcua-packet-analyzer";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
-
-import { BaseUAObject } from "node-opcua-factory";
-
-const a = BaseUAObject;
+    getObjectClassName
+} from "node-opcua-utils";
+import {
+    MockProvider
+} from "./mock_id_provider";
 
 import {
-    AnyConstructorFunc, createDynamicObjectConstructor, StructureTypeRaw,
-    TypeDictionary
+    compare_obj_by_encoding, encode_decode_round_trip_test
+} from "node-opcua-packet-analyzer/dist/test_helpers";
+const a = BaseUAObject;
+
+import { BinaryStream } from "node-opcua-binary-stream";
+import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
+import {
+    AnyConstructorFunc,
+    createDynamicObjectConstructor,
+    getOrCreateStructuredTypeSchema,
+    MapDataTypeAndEncodingIdProvider,
+    StructureTypeRaw,
+    TypeDictionary,
 } from "../source";
-import { prepareStructureType } from "../source/tools";
 
-const temporary_folder = path.join(__dirname, "..", "_test_generated");
+const typeDictionary = new TypeDictionary();
 
-const typeDictionary = new TypeDictionary([]);
-const Person_Schema = {
+const Person_Schema: StructureTypeRaw = {
     baseType: "ExtensionObject",
-
     name: "Person",
 
     fields: [
@@ -45,7 +51,6 @@ const Person_Schema = {
 const Role_Schema = {
 
     baseType: "ExtensionObject",
-
     name: "Role",
 
     fields: [
@@ -66,30 +71,45 @@ const Employee_Schema = {
 
 const Company_Schema = {
     baseType: "ExtensionObject",
-
     name: "Company",
 
     fields: [
         { name: "name", fieldType: "opc:CharArray" },
         { name: "employees", isArray: true, fieldType: "tns:Employee" },
-        { name: "company_values", isArray: true, fieldType: "opc:CharArray" }
+        { name: "companyValues", isArray: true, fieldType: "opc:CharArray" }
     ]
 };
+
+const FakeBlob_Schema = {
+
+    name: "FakeBlob",
+
+    fields: [
+        { name: "name", fieldType: "String" },
+        { name: "buffer0", fieldType: "ByteString" },
+        { name: "buffer1", fieldType: "ByteString" }
+    ]
+};
+
+const dataTypeFactory = new DataTypeFactory([]);
+const idProvider = new MockProvider();
 
 function p(
     structuredType: StructureTypeRaw,
     typeDictionary1: TypeDictionary
-): AnyConstructorFunc  {
+): AnyConstructorFunc {
 
-    typeDictionary1.structuredTypesRaw[structuredType.name] = structuredType;
-    const schema = prepareStructureType(structuredType, typeDictionary1);
-    return createDynamicObjectConstructor(schema, typeDictionary1);
+    typeDictionary1.addRaw(structuredType);
+    const schema = getOrCreateStructuredTypeSchema(
+        structuredType.name, typeDictionary1, dataTypeFactory, idProvider);
+    return createDynamicObjectConstructor(schema, dataTypeFactory);
 }
 
 const Person = p(Person_Schema, typeDictionary);
 const Role = p(Role_Schema, typeDictionary);
 const Employee = p(Employee_Schema, typeDictionary);
 const Company = p(Company_Schema, typeDictionary);
+const FakeBlob = p(FakeBlob_Schema, typeDictionary);
 
 describe("Factories: construction", () => {
 
@@ -100,7 +120,8 @@ describe("Factories: construction", () => {
 });
 
 describe("testing Factory", () => {
-    it("should construct a new object from a simple Class Description", () => {
+
+    it("FF1 - should construct a new object from a simple Class Description", () => {
 
         const person = new Person();
 
@@ -113,7 +134,7 @@ describe("testing Factory", () => {
         person.age.should.equal(25);
     });
 
-    it("should construct a new object with options from a simple Class Description", () => {
+    it("FF2 - should construct a new object with options from a simple Class Description", () => {
 
         const person = new Person({ lastName: "Joe" });
 
@@ -122,7 +143,7 @@ describe("testing Factory", () => {
         person.age.should.equal(25);
     });
 
-    it("should construct a new object from a complex Class Description", () => {
+    it("FF3 - should construct a new object from a complex Class Description", () => {
 
         const employee = new Employee({
             lastName: "John",
@@ -157,7 +178,7 @@ describe("testing Factory", () => {
 
     });
 
-    it("should encode and decode a simple object created from the Factory", () => {
+    it("FF4 - should encode and decode a simple object created from the Factory", () => {
 
         const person = new Person({ lastName: "Joe" });
         person.age = 50;
@@ -171,14 +192,27 @@ describe("testing Factory", () => {
 
     });
 
-    it("should encode and decode a composite object created from the Factory", () => {
+    it("FF5 - should encode and decode a composite object created from the Factory", () => {
 
         const employee = new Employee({ lastName: "John", service: "R&D" });
         encode_decode_round_trip_test(employee);
 
+        console.log(employee.toJSON());
+        employee.toJSON().should.eql({
+            address: "",
+            age: 25,
+            lastName: "John",
+            role: {
+                description: "",
+                title: ""
+            },
+            salary: 1000,
+            service: "R&D",
+        });
+
     });
 
-    it("should encode and decode a composite object containing an array", () => {
+    it("FF6 - should encode and decode a composite object containing an array", () => {
 
         const company = new Company({ name: "ACME" });
         company.employees.length.should.equal(0);
@@ -194,7 +228,7 @@ describe("testing Factory", () => {
 
     });
 
-    it("should create an Object with a containing an array of JSON object passed in the initializer", () => {
+    it("FF7 - should create an Object with a containing an array of JSON object passed in the initializer", () => {
 
         const company = new Company({
             name: "ACME",
@@ -210,22 +244,47 @@ describe("testing Factory", () => {
         company.employees[1].should.be.instanceOf(Employee);
 
         encode_decode_round_trip_test(company);
+
+        company.toJSON().should.eql({
+            companyValues: [],
+            name: "ACME",
+
+            employees: [
+                {
+                    address: "",
+                    age: 25,
+                    lastName: "John",
+                    role: { title: "manager", description: "" },
+                    salary: 1000,
+                    service: "R&D",
+                },
+                {
+                    address: "",
+                    age: 56,
+                    lastName: "Peter",
+                    role: { title: "engineer", description: "" },
+                    salary: 1000,
+                    service: "R&D",
+                }
+            ]
+
+        })
     });
 
-    it("should create an Object with a containing an array of string passed in the initializer", () => {
+    it("FF8 - should create an Object with a containing an array of string passed in the initializer", () => {
 
         const company = new Company({
             name: "ACME",
 
-            company_values: [
+            companyValues: [
                 "A commitment to sustainability and to acting in an environmentally friendly way",
                 "A commitment to innovation and excellence.",
                 "Encouraging employees to take initiative and give the best."
             ]
         });
 
-        company.company_values.length.should.equal(3);
-        company.company_values[0].should.equal("A commitment to sustainability and to acting in an environmentally friendly way");
+        company.companyValues.length.should.equal(3);
+        company.companyValues[0].should.equal("A commitment to sustainability and to acting in an environmentally friendly way");
 
         company.should.have.property("employees");
 
@@ -233,84 +292,48 @@ describe("testing Factory", () => {
     });
 });
 
-/*
-xdescribe("Factories: testing encodingDefaultBinary and constructObject", () => {
+describe("Factories: testing encodingDefaultBinary and constructObject", () => {
 
-    it("a factory object should have a encodingDefaultBinary", () => {
+    it("XF1 a factory object should have a encodingDefaultBinary", () => {
 
         const company = new Company({ name: "ACME" });
-        company.encodingDefaultBinary.should.eql(makeExpandedNodeId(Company_Schema.id));
-
+        company.constructor.schema.dataTypeNodeId.toString().should.eql(makeExpandedNodeId(Company.schema.dataTypeNodeId).toString());
+        company.constructor.encodingDefaultBinary.toString().should.eql(makeExpandedNodeId(Company.schema.encodingDefaultBinary).toString());
+        company.constructor.encodingDefaultXml.toString().should.eql(makeExpandedNodeId(Company.schema.encodingDefaultXml!).toString());
+        // company.constructor.encodingDefaultJson.toString().should.eql(makeExpandedNodeId(Company.schema.encodingDefaultJson!).toString());
     });
 
-    it("should create a object from a encodingDefaultBinaryId", () => {
+    xit("XF2 should create a object from a encodingDefaultBinaryId", () => {
 
-        const getObjectClassName = require("node-opcua-utils").getObjectClassName;
-
-        const obj = factories.constructObject(makeExpandedNodeId(Company_Schema.id));
-
-        should(obj).have.property("_schema");
-        obj.schema.name.should.equal("Company");
-
+        should.exist(Company.schema.encodingDefaultBinary);
+        const obj = dataTypeFactory.constructObject(Company.schema.encodingDefaultBinary!);
+        console.log(obj);
+        (obj.constructor as any).schema.name.should.equal("Company");
         getObjectClassName(obj).should.equal("Object");
-
     });
 
-
-    it("should encode and decode a Object containing ByteString", function(done) {
-
-        exports.FakeBlob_Schema = {
-
-            id: next_available_id(),
-
-            name: "FakeBlob",
-
-            fields: [
-                { name: "name", fieldType: "String" },
-                { name: "buffer0", fieldType: "ByteString" },
-                { name: "buffer1", fieldType: "ByteString" }
-            ]
-        };
-        generator.unregisterObject(exports.FakeBlob_Schema, temporary_folder);
-
-        const Blob = generator.registerObject(exports.FakeBlob_Schema, temporary_folder);
-
-        const blob = new Blob({ buffer0: Buffer.alloc(0), buffer1: Buffer.alloc(1024) });
-
-        encode_decode_round_trip_test(blob);
-
-        generator.unregisterObject(exports.FakeBlob_Schema, temporary_folder);
-
-
-        done();
-
-    });
-    it("should pretty print an object ", () => {
+    it("XF3 should pretty print an object ", (done) => {
 
         redirectToFile("pretty_print.log", () => {
+
             const company = new Company({ name: "ACME" });
             const employee = new Employee({ lastName: "John", service: "R&D" });
             company.employees.push(employee);
             company.employees.push(new Employee({ lastName: "Peter", service: "R&D" }));
-
             const str = company.explore();
-
             console.log(str);
-
-        });
-
-    });
-
-    it("should help JSON.stringify", () => {
-
-        const someArray = [new Person({})];
-
-        const str = JSON.stringify({ stuff: someArray }, null, " ");
-        //xx console.log("xxxx str =",str);
+            console.log(company.toString());
+        }, done);
 
     });
 
-    it("should clone an object ", () => {
+    it("XF4 - should encode and decode a Object containing ByteString", async () => {
+
+        const blob = new FakeBlob({ buffer0: Buffer.alloc(0), buffer1: Buffer.alloc(1024) });
+        encode_decode_round_trip_test(blob);
+    });
+
+    it("XF5 - should clone an object ", () => {
         const company = new Company({ name: "ACME" });
         const employee = new Employee({ lastName: "John", service: "R&D" });
         company.employees.push(employee);
@@ -328,14 +351,11 @@ xdescribe("Factories: testing encodingDefaultBinary and constructObject", () => 
         compare_obj_by_encoding(company, company_copy);
     });
 
-});
-
-describe("PacketAnalyzer", () => {
-
-    it("should analyse a encoded object", function(done) {
+    it("XF6 - should analyse a encoded object", (done) => {
 
         const company = new Company({
             name: "ACME",
+
             employees: [
                 { lastName: "John", age: 25, service: "R&D" },
                 { lastName: "Peter", age: 56, service: "R&D" }
@@ -349,5 +369,3 @@ describe("PacketAnalyzer", () => {
         }, done);
     });
 });
-
-*/

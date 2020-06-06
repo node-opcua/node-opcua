@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as path from "path";
 import * as should from "should";
 
@@ -216,75 +216,22 @@ describe("----------------------------- Websocket Transport Tests --------------
             priority: 6
         });
 
-        g_session.createSubscription(request, function (err, response) {
+        g_session.createSubscription2(request, function (err, subscription) {
 
             if (err) {
                 return done(err);
             }
-            response!.should.be.instanceof(CreateSubscriptionResponse);
-            subscriptionId = response!.subscriptionId;
+            subscriptionId = subscription!.subscriptionId;
+            subscriptionId.should.not.eql(undefined);
 
             //xx console.log(response.toString());
 
             setImmediate(function () {
-                const request = new DeleteSubscriptionsRequest({
-                    subscriptionIds: [ subscriptionId ]
-                });
-                g_session.deleteSubscriptions(request, function (err, result) {
-                    done(err);
+                subscription?.terminate().then(() => done());
+                    
                 });
             });
-        });
-    });
-
-    it("server should create a monitored item  (CreateMonitoredItems)", function (done) {
-
-
-        let subscriptionId = null;
-        // CreateSubscriptionRequest
-        const request = new CreateSubscriptionRequest({
-            requestedPublishingInterval: 100,
-            requestedLifetimeCount: 100 * 60 * 10,
-            requestedMaxKeepAliveCount: 20,
-            maxNotificationsPerPublish: 10,
-            publishingEnabled: true,
-            priority: 6
-        });
-        g_session.createSubscription(request, function (err, response) {
-            if (err) {
-                return done(err);
-            }
-            response!.should.be.instanceof(CreateSubscriptionResponse);
-            subscriptionId = response!.subscriptionId;
-
-
-            // CreateMonitoredItemsRequest
-            const request = new CreateMonitoredItemsRequest({
-                subscriptionId: subscriptionId,
-                timestampsToReturn: TimestampsToReturn.Both,
-                itemsToCreate: [
-                    {
-                        itemToMonitor: {
-                            nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
-                        },
-                        monitoringMode: MonitoringMode.Sampling,
-                        requestedParameters: {
-                            clientHandle: 26,
-                            samplingInterval: 100,
-                            filter: null,
-                            queueSize: 100,
-                            discardOldest: true
-                        }
-                    }
-                ]
-            });
-            g_session.createMonitoredItems(request, function (err, response) {
-                if (!err) {
-                    response!.should.be.instanceof(CreateMonitoredItemsResponse);
-                }
-                done(err);
-            });
-        });
+        
     });
 
     it("server should send monitored item values ", async () => {
@@ -319,9 +266,9 @@ describe("----------------------------- Websocket Transport Tests --------------
             );
 
             await new Promise( (resolve,reject) => {
-                monItems.on("changed", (dataValue) =>{
+                monItems.on("changed", async (dataValue) =>{
                     console.log(chalk.yellow(" server status current time:"), dataValue.value.toString());
-                    subscription.terminate();
+                    await subscription.terminate();
                     resolve();
                 });
             });
@@ -329,18 +276,5 @@ describe("----------------------------- Websocket Transport Tests --------------
         } catch( err) {
             return err;
         }
-    });
-
-    it("server should handle DeleteSubscriptionsRequest", function (done) {
-
-        const request = new DeleteSubscriptionsRequest({
-            subscriptionIds: [1, 2]
-        });
-        g_session.deleteSubscriptions(request, function (err, response) {
-            if (!err) {
-                response!.should.be.instanceOf(DeleteSubscriptionsResponse);
-            }
-            done(err);
-        });
     });
 });

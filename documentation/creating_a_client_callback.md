@@ -1,17 +1,23 @@
-
 # Creating a Client
 
 In this example, we want to create a OPCUA Client to monitor a variable on the server, created in
 [this tutorial](creating_a_server.md).
 
+### Note:
+
+> this tutorial is using the legacy callback method which has been superceeded by the async/await method that provides a nicer and cleaner technique.
+>
+> Please refer to the typescript version here [create a client typescript](creating_a_client_typescript.md)
+
+you've been warned !
+
 ## preparation
 
-* (note: please make sure node.js is installed. Follow the instructions [here](http://nodejs.org/)).
-
+- (note: please make sure node.js is installed. Follow the instructions [here](http://nodejs.org/)).
 
 Let's create a node project for our client.
 
-``` shell
+```shell
     $ mkdir sample_client
     $ cd sample_client
     $ npm init                      # creates a package.json
@@ -31,8 +37,6 @@ The script will be organised around the following four steps:
 
     _"setting up a series of asynchronous operations"
 
-
-
 ### declaration
 
 ```javascript
@@ -44,6 +48,7 @@ const async = require("async");
 ### client instantiation
 
 To connect to the server, the client must specify the exact URI of the server, comprising hostname, port and OPCUA-endpoint.
+
 ```
 // const endpointUrl = "opc.tcp://<hostname>:4334/UA/MyLittleServer";
 const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
@@ -52,8 +57,6 @@ const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittle
 where `<hostname>` shall be replaced with the computer name or fully qualified domain name of the machine on which the
 server is running. `UA/MyLittleServer` is the endpoint defined by the server and also has to be replaced by an existing endpoint on that server.
 
-
-
 ```javascript
 const client = opcua.OPCUAClient.create({
     endpoint_must_exist: false
@@ -61,26 +64,34 @@ const client = opcua.OPCUAClient.create({
 _"adding some helpers to diagnose connection issues"
 ```
 
-> Note that by default, the `endpointUrl` must match the url exposed by the server, this means that `<hostname>` cannot be replaced by 
-an hostname alias or a straight ip address. To relax this restriction, one can use the  `endpoint_must_exist: false` 
-option when creating the OPUA Client
+> Note that by default, the `endpointUrl` must match the url exposed by the server, this means that `<hostname>` cannot be replaced by
+> an hostname alias or a straight ip address. To relax this restriction, one can use the `endpoint_must_exist: false`
+> option when creating the OPUA Client
 
 ### adding some helpers to diagnose connection issues
 
 It is possible to get a idea of the connection progress by adding a event handled on the "backoff".
 The backoff event is raised when the client failed to connect to the server and indicates that it will retry later.
+
 ```javascript
-client.on("backoff", (retry, delay) => 
-    console.log("still trying to connect to ", endpointUrl ,": retry =", retry, "next attempt in ", delay/1000, "seconds" )
+client.on("backoff", (retry, delay) =>
+  console.log(
+    "still trying to connect to ",
+    endpointUrl,
+    ": retry =",
+    retry,
+    "next attempt in ",
+    delay / 1000,
+    "seconds"
+  )
 );
 ```
- 
 
 ### setting up a series of asynchronous operations
 
 We'll setup a skeleton for the general schedule of the clients life-cycle with placeholders for the actual functions. The `async.series` function will execute all tasks in order of their definition, so we can assume the connection is established before creating a session for example. After all tasks are done the client will disconnect.
 
-*Note: read [this cookbook on async.series](http://www.sebastianseilund.com/nodejs-async-in-practice) if you do not know why it is a good idea to use this method.*
+_Note: read [this cookbook on async.series](http://www.sebastianseilund.com/nodejs-async-in-practice) if you do not know why it is a good idea to use this method._
 
 ```javascript
 
@@ -97,7 +108,7 @@ async.series([
     function(callback) {
         _"create session"
     },
-    
+
     // step 3 : browse
     function(callback) {
        _"browsing the root folder"
@@ -107,12 +118,12 @@ async.series([
     function(callback) {
        _"read a variable with readVariableValue"
     },
-    
+
     // step 4' : read a variable with read
     function(callback) {
        _"read a variable with read"
     },
-    
+
     // step 5: install a subscription and install a monitored item for 10 seconds
     function(callback) {
        _"install a subscription"
@@ -122,7 +133,7 @@ async.series([
     },
     function(callback) {
         // wait a little bit : 10 seconds
-        setTimeout(()=>callback(), 10*1000); 
+        setTimeout(()=>callback(), 10*1000);
     },
     // terminate session
     function(callback) {
@@ -144,40 +155,39 @@ function(err) {
 }) ;
 ```
 
-
 ### Connection
 
 ```javascript
-client.connect(endpointUrl, function (err) {
-    if(err) {
-        console.log(" cannot connect to endpoint :" , endpointUrl );
-    } else {
-        console.log("connected !");
-    }
-    callback(err);
+client.connect(endpointUrl, function(err) {
+  if (err) {
+    console.log(" cannot connect to endpoint :", endpointUrl);
+  } else {
+    console.log("connected !");
+  }
+  callback(err);
 });
 ```
 
 ### create session
 
 ```javascript
-client.createSession( function(err, session) {
-    if(err) {
-        return callback(err);
-    }
-    the_session = session;
-    callback();
+client.createSession(function(err, session) {
+  if (err) {
+    return callback(err);
+  }
+  the_session = session;
+  callback();
 });
 ```
 
 ### closing session
 
 ```javascript
-the_session.close( function(err) {
-    if(err) {
-        console.log("closing session failed ?");
-    }
-    callback();
+the_session.close(function(err) {
+  if (err) {
+    console.log("closing session failed ?");
+  }
+  callback();
 });
 ```
 
@@ -187,13 +197,13 @@ We can browse the `RootFolder` to receive a list of all of it's child nodes. Wit
 
 ```javascript
 the_session.browse("RootFolder", function(err, browseResult) {
-    if(!err) {
-        console.log("Browsing rootfolder: ");
-        for(let reference of browseResult.references) {
-            console.log( reference.browseName.toString(), reference.nodeId.toString());
-        }
+  if (!err) {
+    console.log("Browsing rootfolder: ");
+    for (let reference of browseResult.references) {
+      console.log(reference.browseName.toString(), reference.nodeId.toString());
     }
-    callback(err);
+  }
+  callback(err);
 });
 ```
 
@@ -203,13 +213,16 @@ To read a specific VariableType node we construct a `nodeToRead` object with the
 
 ```javascript
 const maxAge = 0;
-const nodeToRead = { nodeId: "ns=1;s=free_memory", attributeId: opcua.AttributeIds.Value };
+const nodeToRead = {
+  nodeId: "ns=1;s=free_memory",
+  attributeId: opcua.AttributeIds.Value
+};
 
 the_session.read(nodeToRead, maxAge, function(err, dataValue) {
-    if (!err) {
-        console.log(" free mem % = " , dataValue.toString());
-    }
-    callback(err);
+  if (!err) {
+    console.log(" free mem % = ", dataValue.toString());
+  }
+  callback(err);
 });
 ```
 
@@ -219,10 +232,10 @@ It is also possible to directly access a variables value with it's `nodeId` thro
 
 ```javascript
 the_session.readVariableValue("ns=1;s=free_memory", function(err, dataValue) {
-    if (!err) {
-        console.log(" free mem % = " , dataValue.toString());
-    }
-    callback(err);
+  if (!err) {
+    console.log(" free mem % = ", dataValue.toString());
+  }
+  callback(err);
 });
 ```
 
@@ -232,17 +245,19 @@ If the `nodeId` is unkown it may be obtained through browsing for it.
 
 ```javascript
 const browsePath = [
-    opcua.makeBrowsePath("RootFolder", "/Objects/Server.ServerStatus.BuildInfo.ProductName"),
+  opcua.makeBrowsePath(
+    "RootFolder",
+    "/Objects/Server.ServerStatus.BuildInfo.ProductName"
+  )
 ];
 
 let productNameNodeId;
-the_session.translateBrowsePath(browsePath, function (err, results) {
-    if (!err) {
-      console.log(results[0].toString());
-      productNameNodeId = results[0].targets[0].targetId;
-    }
+the_session.translateBrowsePath(browsePath, function(err, results) {
+  if (!err) {
+    console.log(results[0].toString());
+    productNameNodeId = results[0].targets[0].targetId;
+  }
 });
-
 ```
 
 ### install a subscription
@@ -251,56 +266,68 @@ OPC-UA allows for subscriptions to it's objects instead of polling for changes. 
 
 ```javascript
 const subscriptionOptions = {
-    maxNotificationsPerPublish: 1000,
-    publishingEnabled: true,
-    requestedLifetimeCount: 100,
-    requestedMaxKeepAliveCount: 10,
-    requestedPublishingInterval: 1000
+  maxNotificationsPerPublish: 1000,
+  publishingEnabled: true,
+  requestedLifetimeCount: 100,
+  requestedMaxKeepAliveCount: 10,
+  requestedPublishingInterval: 1000
 };
 the_session.createSubscription2(subscriptionOptions, (err, subscription) => {
+  if (err) {
+    return callback(err);
+  }
 
-    if(err) { return callback(err); }
+  the_subscription = subscription;
 
-    the_subscription = subscription;
-
-    the_subscription.on("started", () => {
-        console.log("subscription started for 2 seconds - subscriptionId=", the_subscription.subscriptionId);
-    }).on("keepalive", function() {
-        console.log("subscription keepalive");
-    }).on("terminated", function() {
-       console.log("terminated");
+  the_subscription
+    .on("started", () => {
+      console.log(
+        "subscription started for 2 seconds - subscriptionId=",
+        the_subscription.subscriptionId
+      );
+    })
+    .on("keepalive", function() {
+      console.log("subscription keepalive");
+    })
+    .on("terminated", function() {
+      console.log("terminated");
     });
-    callback();
+  callback();
 });
-``` 
-### add some monitored items
- 
-```javascript
+```
 
+### add some monitored items
+
+```javascript
 // install monitored item
 const itemToMonitor = {
   nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
   attributeId: opcua.AttributeIds.Value
 };
 const monitoringParamaters = {
-        samplingInterval: 100,
-        discardOldest: true,
-        queueSize: 10
+  samplingInterval: 100,
+  discardOldest: true,
+  queueSize: 10
 };
 
-const monitoredItem  = suor(
-    itemToMonitor,
-    monitoringParamaters,
-    opcua.TimestampsToReturn.Both
+the_subscription.monitor(
+  itemToMonitor,
+  monitoringParamaters,
+  opcua.TimestampsToReturn.Both,
+  (err, monitoredItem) => {
+    monitoredItem.on("changed", function(dataValue) {
+      console.log(
+        "monitored item changed:  % free mem = ",
+        dataValue.value.value
+      );
+    });
+    callback();
+  }
 );
 console.log("-------------------------------------");
-
-monitoredItem.on("changed", function(dataValue) {
-   console.log("monitored item changed:  % free mem = ", dataValue.value.value);
-});
 ```
 
-## stopping subscription 
+## stopping subscription
 
 ```javascript
 the_subscription.terminate(callback);
@@ -308,7 +335,6 @@ the_subscription.terminate(callback);
 
 ## Run the Client
 
-``` sh
+```sh
     $ node sample_client
 ```
-

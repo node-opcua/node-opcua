@@ -2,27 +2,27 @@
   "name": "node-opcua-data-access",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "version": "2.1.8",
+  "version": "2.6.4",
   "description": "pure nodejs OPCUA SDK - module -data-access",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "test": "mocha test",
     "clean": "node -e \"require('rimraf').sync('dist');\"",
     "lint": "tslint source/**/*.ts"
   },
   "dependencies": {
-    "node-opcua-assert": "^2.0.0",
-    "node-opcua-basic-types": "^2.1.6",
-    "node-opcua-binary-stream": "^2.1.0",
-    "node-opcua-data-model": "^2.1.6",
-    "node-opcua-factory": "^2.1.6",
-    "node-opcua-nodeid": "^2.1.6",
-    "node-opcua-types": "^2.1.8",
-    "underscore": "^1.9.1"
+    "node-opcua-assert": "^2.6.1",
+    "node-opcua-basic-types": "^2.6.1",
+    "node-opcua-binary-stream": "^2.6.1",
+    "node-opcua-data-model": "^2.6.1",
+    "node-opcua-factory": "^2.6.1",
+    "node-opcua-nodeid": "^2.6.1",
+    "node-opcua-types": "^2.6.4",
+    "underscore": "^1.10.2"
   },
   "devDependencies": {
-    "node-opcua-generator": "^2.1.8",
-    "should": "13.2.3"
+    "node-opcua-generator": "^2.6.4",
+    "should": "^13.2.3"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",
@@ -39,5 +39,5 @@
     "internet of things"
   ],
   "homepage": "http://node-opcua.github.io/",
-  "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+  "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
 }

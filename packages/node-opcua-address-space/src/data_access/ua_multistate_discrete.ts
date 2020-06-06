@@ -2,6 +2,7 @@
  * @module node-opcua-address-space.DataAccess
  */
 import { assert } from "node-opcua-assert";
+import { LocalizedText } from "node-opcua-data-model";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
@@ -14,10 +15,10 @@ import {
 } from "../../source";
 import {
     UAVariable
- } from "../ua_variable";
+} from "../ua_variable";
 
 export interface UAMultiStateDiscrete {
-    enumStrings: Property<"StringArray">;
+    enumStrings: Property<LocalizedText[], DataType.LocalizedText>;
 }
 
 /**
@@ -34,13 +35,13 @@ export class UAMultiStateDiscrete extends UAVariable implements UAMultiStateDisc
         const index = this.getValue();
         const arr = this.enumStrings.readValue().value.value;
         assert(_.isArray(arr));
-        return arr[index].text.toString();
+        return arr[index].text ? arr[index].text!.toString() : "????";
     }
 
     public getIndex(value: string): number {
         const arr = this.enumStrings.readValue().value.value;
         assert(_.isArray(arr));
-        const index = arr.findIndex((a: { text: string }) => a.text === value);
+        const index = arr.findIndex((a: LocalizedText) => a.text === value);
         return index;
     }
 
@@ -61,7 +62,10 @@ export class UAMultiStateDiscrete extends UAVariable implements UAMultiStateDisc
         return this.setValueFromSource(new Variant({ dataType: DataType.UInt32, value }));
     }
 
-    public isValueInRange(value: Variant): StatusCode {
+    public checkVariantCompatibility(value: Variant): StatusCode {
+        if (!this._validate_DataType(value.dataType)) {
+            return StatusCodes.BadTypeMismatch;
+        }
         if (this.enumStrings) {
             const arrayEnumStrings = this.enumStrings.readValue().value.value;
             // MultiStateDiscreteType

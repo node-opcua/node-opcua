@@ -1,15 +1,16 @@
 {
-  "extends" : "../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "source",
-    "outDir": "dist"
+    "outDir": "dist",
+    "composite": true
   },
   "include": [
-    "./source/*.ts"
+    "source/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "_generated_",
     "dist"
-  ]
+  ],
+  "references": []
 }

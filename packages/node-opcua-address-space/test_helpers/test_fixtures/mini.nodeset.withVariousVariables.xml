@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet
-        Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
-        xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z" 
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
         <Uri>mydemo/</Uri>
     </NamespaceUris>
@@ -176,8 +175,6 @@
             </uax:ListOfLocalizedText>
         </Value>
     </UAVariable>
-
-
 
     <UAVariable DataType="String" ValueRank="1" NodeId="ns=1;s=ListOfString" ArrayDimensions="0" BrowseName="1:ListOfString" AccessLevel="3">
         <DisplayName>ListOfString</DisplayName>

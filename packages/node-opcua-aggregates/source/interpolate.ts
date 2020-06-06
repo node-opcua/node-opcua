@@ -133,7 +133,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
     // if a non-Bad Raw value exists at the timestamp then it is the bounding value;
     if (!isBad(dataValue1.statusCode) && interval.hasRawDataAsStart()) {
         return dataValue1;
-    }   
+    }
     // find the first non-Bad Raw value before the timestamp;
 
     // find previous good value

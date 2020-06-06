@@ -5,9 +5,9 @@ import { assert } from "node-opcua-assert";
 import { DataType, Variant } from "node-opcua-variant";
 
 import { coerceInt32, coerceUInt64, Int64 } from "node-opcua-basic-types";
-import { StatusCodes } from "node-opcua-status-code";
-import { coerceLocalizedText } from "node-opcua-data-model";
+import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 import { EnumValueType } from "node-opcua-types";
 import {
@@ -18,9 +18,8 @@ import {
 import { UAVariable } from "../ua_variable";
 
 export interface UAMultiStateValueDiscrete {
-    enumValues: Property<"EnumValueType">;
-    valueAsText: Property<DataType.String>;
-
+    enumValues: Property<EnumValueType[], DataType.ExtensionObject>;
+    valueAsText: Property<LocalizedText, DataType.LocalizedText>;
 }
 
 function install_synchronisation(variable: UAMultiStateValueDiscrete) {
@@ -55,16 +54,16 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
     }
 
     public getValueAsString(): string {
-        return this.valueAsText.readValue().value.value.text;
+        return this.valueAsText.readValue().value.value.text || "";
     }
 
     public getValueAsNumber(): number {
         return this.readValue().value.value;
     }
 
-    public isValueInRange(value: Variant): StatusCode {
+    public checkVariantCompatibility(value: Variant): StatusCode {
         if (this.enumValues) {
-            if (!this._isValueInRange( coerceInt32(value.value))) {
+            if (!this._isValueInRange(coerceInt32(value.value))) {
                 return StatusCodes.BadOutOfRange;
             }
         }
@@ -105,15 +104,15 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
 
         // check that value is in bound
         if (!this._isValueInRange(coerceInt32(value))) {
-            throw new Error("UAMultiStateValueDiscrete#_setValue out of range " +  value);
+            throw new Error("UAMultiStateValueDiscrete#_setValue out of range " + value);
         }
 
         const dataType = this._getDataType();
         if (dataType === DataType.Int64 || dataType === DataType.UInt64) {
-            this.setValueFromSource({ dataType, value});
+            this.setValueFromSource({ dataType, value });
         } else {
             const valueN = value[1];
-            this.setValueFromSource({ dataType, value: valueN});
+            this.setValueFromSource({ dataType, value: valueN });
         }
     }
 
@@ -142,7 +141,7 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
         return result;
     }
     public _getDataType(): DataType {
-        const dataTypeStr  = DataType[this.dataType.value as number] as string;
+        const dataTypeStr = DataType[this.dataType.value as number] as string;
         return (DataType as any)[dataTypeStr] as DataType;
     }
 

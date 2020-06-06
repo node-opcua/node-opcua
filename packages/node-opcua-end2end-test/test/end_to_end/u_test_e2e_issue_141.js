@@ -21,7 +21,8 @@ module.exports = function (test) {
         const options = {
             securityMode: securityMode,
             securityPolicy: securityPolicy,
-            serverCertificate: null
+            serverCertificate: null,
+            requestedSessionTimeout: 20000
         };
 
         let server, client, endpointUrl;
@@ -59,7 +60,7 @@ module.exports = function (test) {
                 let timerId;
                 if (timeout > 0) {
                     timerId = setTimeout(function () {
-                        the_subscription.terminate(function() {
+                        the_subscription.terminate(function () {
                             keepaliveCounter.should.be.greaterThan(1);
                             client.timedOutRequestCount.should.eql(0);
                             inner_done();
@@ -97,14 +98,15 @@ module.exports = function (test) {
                 value: {
                     refreshFunc: function (callback) {
                         should(callback).be.instanceOf(Function);
-
-                        // intentionally not calling callback();
-
-                        //xx var longTime = 1000;
-                        //setTimeout(function () {
-                        //    console.log(" refreshed ");
-                        //    callback(null, new opcua.DataValue({value: value, sourceTimestamp: sourceTimestamp}));
-                        //}, longTime);
+                        // intentionally not calling callback(); immediatly
+                        const longTime = 10000;
+                        setTimeout(function () {
+                            console.log(" refreshed ");
+                            callback(null, new opcua.DataValue({
+                                value: { value: 10, dataType: "Int32" },
+                                sourceTimestamp: new Date()
+                            }));
+                        }, longTime);
                     }
                 }
             });
@@ -125,9 +127,14 @@ module.exports = function (test) {
                 let callback_received = false;
                 let event_received = false;
 
-                session.performMessageTransaction(request, function (err) {
-                    //
-                    //xx console.log(" received performMessageTransaction callback", request.constructor.name.toString());
+                session.performMessageTransaction(request, function (err, response) {
+
+                    console.log(" received performMessageTransaction callback", request.constructor.name.toString());
+                    if (!err) {
+                        console.log(request.toString());
+                        console.log(response.toString());
+                        return inner_done(new Error("Expecting an timeout Error "));
+                    }
                     should.exist(err);
                     callback_received = true;
                     if (callback_received && event_received) {
@@ -136,7 +143,7 @@ module.exports = function (test) {
                 });
 
                 client.on("timed_out_request", function (request) {
-                    //xx console.log(" received timed_out_request", request.constructor.name.toString());
+                    console.log(" received timed_out_request", request.constructor.name.toString());
                     client.timedOutRequestCount.should.eql(1);
                     event_received = true;
                     if (callback_received && event_received) {

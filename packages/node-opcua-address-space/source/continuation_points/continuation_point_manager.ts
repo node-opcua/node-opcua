@@ -31,6 +31,20 @@ export class ContinuationPointManager {
         this._map = {};
     }
 
+    /**
+     * returns true if the current number of active continuation point has reach the limit
+     * specified in maxBrowseContinuationPoint
+     * @param maxBrowseContinuationPoint
+     */
+    public hasReachMaximum(maxBrowseContinuationPoint: number): boolean {
+
+        if (maxBrowseContinuationPoint === 0) {
+            return false;
+        }
+        const nbContinuationPoints = Object.keys(this._map).length;
+        return nbContinuationPoints >= maxBrowseContinuationPoint;
+    }
+
     public register(maxElements: number, values: ReferenceDescription[]): ContinuationPointInfo {
 
         maxElements = maxElements || values.length;

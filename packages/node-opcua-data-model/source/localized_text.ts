@@ -97,10 +97,12 @@ export class LocalizedText extends BaseUAObject {
      * @extends BaseUAObject
      * @param  options {Object}
      */
-    constructor(options?: LocalizedTextOptions) {
+    constructor(options?: LocalizedTextOptions | string) {
 
         super();
-
+        if (typeof options === "string") {
+            options = { text: options };
+        }
         const schema = schemaLocalizedText;
         options = options || {};
         /* istanbul ignore next */
@@ -188,7 +190,7 @@ export class LocalizedText extends BaseUAObject {
 // not an extension object registerClassDefinition("LocalizedText", LocalizedText);
 registerSpecialVariantEncoder(LocalizedText);
 
-export type LocalizedTextLike = LocalizedTextOptions | LocalizedText | string;
+export type LocalizedTextLike = LocalizedTextOptions | string;
 
 function getLocalizeText_EncodingByte(localizedText: LocalizedText): number {
     let encodingMask = 0;

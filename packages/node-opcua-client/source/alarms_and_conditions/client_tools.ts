@@ -11,15 +11,14 @@ import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { ErrorCallback } from "node-opcua-secure-channel";
 import { CallMethodRequest, CallMethodResult } from "node-opcua-service-call";
 import { BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
+import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { CallMethodRequestLike, ResponseCallback } from "../client_session";
 import { ClientSubscription } from "../client_subscription";
-import { Callback } from "../common";
 import { ClientSessionImpl } from "../private/client_session_impl";
 import { ClientSubscriptionImpl } from "../private/client_subscription_impl";
 
@@ -82,6 +81,7 @@ export function callConditionRefresh(
                 objectId: conditionTypeNodeId
             };
 
+            debugLog("xxxxx Calling method ", methodToCall.toString());
             theSession.call(methodToCall, (err: Error | null, result?: CallMethodResult) => {
                 if (err) {
                     return innerCallback(err);
@@ -109,7 +109,7 @@ ClientSessionImpl.prototype.enableCondition = () => {
 
 };
 
-ClientSessionImpl.prototype.addCommentCondition = function(
+ClientSessionImpl.prototype.addCommentCondition = function (
     conditionId: NodeIdLike,
     eventId: Buffer,
     comment: LocalizedTextLike,
@@ -118,7 +118,7 @@ ClientSessionImpl.prototype.addCommentCondition = function(
     this._callMethodCondition("AddComment", conditionId, eventId, comment, callback);
 };
 
-ClientSessionImpl.prototype.findMethodId = function(
+ClientSessionImpl.prototype.findMethodId = function (
     nodeId: NodeIdLike,
     methodName: string,
     callback: ResponseCallback<NodeId>
@@ -159,7 +159,7 @@ ClientSessionImpl.prototype.findMethodId = function(
  * @param callback
  * @private
  */
-ClientSessionImpl.prototype._callMethodCondition = function(
+ClientSessionImpl.prototype._callMethodCondition = function (
     methodName: string,
     conditionId: NodeIdLike,
     eventId: Buffer,
@@ -219,7 +219,7 @@ ClientSessionImpl.prototype._callMethodCondition = function(
     });
 };
 
-ClientSessionImpl.prototype.confirmCondition = function(
+ClientSessionImpl.prototype.confirmCondition = function (
     conditionId: NodeId,
     eventId: Buffer,
     comment: LocalizedTextLike,
@@ -230,7 +230,7 @@ ClientSessionImpl.prototype.confirmCondition = function(
     this._callMethodCondition("Confirm", conditionId, eventId, comment, callback);
 };
 
-ClientSessionImpl.prototype.acknowledgeCondition = function(
+ClientSessionImpl.prototype.acknowledgeCondition = function (
     conditionId: NodeId,
     eventId: Buffer,
     comment: LocalizedTextLike,

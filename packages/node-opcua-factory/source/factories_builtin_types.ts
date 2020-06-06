@@ -33,6 +33,7 @@ import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } fro
 import * as  _ from "underscore";
 import { BasicTypeDefinition, BasicTypeDefinitionOptions, FieldCategory, TypeSchemaBase } from "./types";
 
+
 // tslint:disable:no-empty
 // tslint:enable:no-unused-variable
 function defaultEncode(value: any, stream: OutputBinaryStream): void {
@@ -311,8 +312,8 @@ export function unregisterType(typeName: string): void {
  */
 export function findSimpleType(name: string): BasicTypeDefinition {
     const typeSchema = _defaultTypeMap.get(name);
-    if(!typeSchema) {
-        throw new Error("Cannot find schema for simple type "+ name);
+    if (!typeSchema) {
+        throw new Error("Cannot find schema for simple type " + name);
     }
     assert(typeSchema instanceof TypeSchemaBase);
     return typeSchema as BasicTypeDefinition;
@@ -336,11 +337,7 @@ export function getBuildInType(name: string): BasicTypeDefinition {
  * @param dataTypeName
  * @return {*}
  */
-export function findBuiltInType(dataTypeName: any): BasicTypeDefinition {
-    // coerce string or Qualified Name to string
-    if (dataTypeName.name) {
-        dataTypeName = dataTypeName.toString();
-    }
+export function findBuiltInType(dataTypeName: string): BasicTypeDefinition {
     assert(typeof dataTypeName === "string", "findBuiltInType : expecting a string " + dataTypeName);
     const t = _defaultTypeMap.get(dataTypeName) as BasicTypeDefinition;
     if (!t) {

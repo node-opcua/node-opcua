@@ -1,10 +1,26 @@
 {
-  "extends" : "../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "source",
-    "outDir": "dist"
+    "outDir": "dist",
+    "composite": true
   },
-  "files": [
-    "source/opcua_status_code.ts"
+  "include": [
+    "source/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../node-opcua-assert"
+    },
+    {
+      "path": "../node-opcua-constants"
+    },
+    {
+      "path": "../node-opcua-binary-stream"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }

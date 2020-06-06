@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" 
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>urn:MyNamespace/mix</Uri>
+    </NamespaceUris>
+    <Models/>
+    <Aliases>
+        <Alias Alias="ByteString">i=15</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="ImagePNG">i=2003</Alias>
+        <Alias Alias="String">i=12</Alias>
+    </Aliases>
+
+    <UADataType NodeId="ns=1;i=3500" BrowseName="1:SimaticSystemStructures" IsAbstract="true">
+        <DisplayName>SimaticSystemStructures</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+    </UADataType>
+
+    <UADataType NodeId="ns=1;i=3003" BrowseName="1:DWORD">
+        <DisplayName>DWORD</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=7</Reference>
+        </References>
+    </UADataType>
+
+    <UADataType NodeId="ns=1;s=DT_F_SYSINFO" BrowseName="1:F_SYSINFO">
+        <DisplayName>F_SYSINFO</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;s=TE_F_SYSINFO</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=3500</Reference>
+        </References>
+        <Definition Name="F_SYSINFO">
+            <Field Name="MODE" DataType="i=1"/>
+            <Field Name="TCYC_CURR" DataType="i=6"/>
+            <Field Name="TCYC_LONG" DataType="i=6"/>
+            <Field Name="TRTG_CURR" DataType="i=6"/>
+            <Field Name="TRTG_LONG" DataType="i=6"/>
+            <Field Name="T1RTG_CURR" DataType="i=6"/>
+            <Field Name="T1RTG_LONG" DataType="i=6"/>
+            <Field Name="F_PROG_SIG" DataType="ns=1;i=3003"/>
+            <Field Name="F_PROG_DAT" DataType="ns=1;s=DT_DTL"/>
+            <Field Name="F_RTG_SIG" DataType="ns=1;i=3003"/>
+            <Field Name="F_RTG_DAT" DataType="ns=1;s=DT_DTL"/>
+            <Field Name="VERS_S7SAF" DataType="ns=1;i=3003"/>
+        </Definition>
+    </UADataType>
+
+    <UADataType NodeId="ns=1;s=DT_DTL" BrowseName="1:DTL">
+        <DisplayName>DTL</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;s=TE_DTL</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=3500</Reference>
+        </References>
+        <Definition Name="DTL">
+            <Field Name="YEAR" DataType="i=5"/>
+            <Field Name="MONTH" DataType="i=3"/>
+            <Field Name="DAY" DataType="i=3"/>
+            <Field Name="WEEKDAY" DataType="i=3"/>
+            <Field Name="HOUR" DataType="i=3"/>
+            <Field Name="MINUTE" DataType="i=3"/>
+            <Field Name="SECOND" DataType="i=3"/>
+            <Field Name="NANOSECOND" DataType="i=7"/>
+        </Definition>
+    </UADataType>
+
+
+    <UAObject NodeId="ns=1;s=TE_F_SYSINFO" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <Description>CPU1500</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;s=TD_F_SYSINFO</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;s=TE_DTL" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <Description>CPU1500</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;s=TD_DTL</Reference>
+        </References>
+    </UAObject>
+
+    <UAVariable NodeId="ns=1;s=TD_F_SYSINFO" BrowseName="1:F_SYSINFO" ValueRank="0" DataType="String">
+        <DisplayName>F_SYSINFO</DisplayName>
+        <Description>CPU1500</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+        </References>
+    </UAVariable>
+
+    <UAVariable NodeId="ns=1;s=TD_DTL" BrowseName="1:DTL" ValueRank="0" DataType="String">
+        <DisplayName>DTL</DisplayName>
+        <Description>CPU1500</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+        </References>
+    </UAVariable>
+
+    <UAVariable NodeId="ns=1;i=6001" BrowseName="1:SimaticStructures" ValueRank="0" DataType="ByteString">
+        <DisplayName>SimaticStructures</DisplayName>
+        <Description>Collects the data type descriptions of urn:MyNamespace/mix/</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=5207</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;s=TD_F_SYSINFO</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;s=TD_DTL</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=6002" BrowseName="NamespaceUri" ValueRank="0" DataType="String">
+        <DisplayName>NamespaceUri</DisplayName>
+        <Description>Collects the data type descriptions ofurn:MyNamespace/mix</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=5207" BrowseName="Icon" ValueRank="0" DataType="ImagePNG">
+        <DisplayName>Icon</DisplayName>
+        <Description></Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+    </UAVariable>
+
+</UANodeSet>

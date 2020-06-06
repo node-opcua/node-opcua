@@ -9,17 +9,19 @@ const OPCUAClient = opcua.OPCUAClient;
 const ServerSession = opcua.ServerSession;
 
 
+const f = require("../../test_helpers/display_function_name").f.bind(null, true);
+
 module.exports = function (test) {
 
 
     describe("Testing #195", function () {
 
 
-        it("#195-A the node-opcua client shall automatically detect the maximum number of pending publish request supported by the server and avoid overflowing the server with too many",function(done) {
+        it("#195-A the node-opcua client shall automatically detect the maximum number of pending publish request supported by the server and avoid overflowing the server with too many", function (done) {
 
             let the_session;
             let the_subscription = 0;
-            let the_monitoredItem =0;
+            let the_monitoredItem = 0;
 
             function createSubscription(done) {
 
@@ -29,11 +31,11 @@ module.exports = function (test) {
                     function (callback) {
                         const parameters = {
                             requestedPublishingInterval: 100000,
-                            requestedLifetimeCount:      60,
-                            requestedMaxKeepAliveCount:  10
+                            requestedLifetimeCount: 60,
+                            requestedMaxKeepAliveCount: 10
                         };
                         the_subscription = opcua.ClientSubscription.create(the_session, parameters);
-                        the_subscription.on("started",function() {
+                        the_subscription.on("started", function () {
                             callback();
                         }).on("internal_error", function (err) {
                             console.log(" received internal error", err.message);
@@ -51,19 +53,19 @@ module.exports = function (test) {
                         the_monitoredItem = opcua.ClientMonitoredItem.create(the_subscription,
                             {
                                 nodeId: nodeIdToMonitor,
-                                attributeId:  opcua.AttributeIds.Value
+                                attributeId: opcua.AttributeIds.Value
                             },
                             {
                                 samplingInterval: 1000,
                                 discardOldest: true,
                                 queueSize: 100
-                            },opcua.TimestampsToReturn.Both);
+                            }, opcua.TimestampsToReturn.Both);
 
-                        the_monitoredItem.on("initialized",() => {
+                        the_monitoredItem.on("initialized", () => {
                             callback();
                         });
                     }
-                ],done);
+                ], done);
             }
 
             const oldValue = ServerSession.maxPublishRequestInQueue;
@@ -122,9 +124,9 @@ module.exports = function (test) {
                     client1.disconnect(function () {
                         callback();
                     });
-                },function(callback) {
+                }, function (callback) {
 
-                    ServerSession.maxPublishRequestInQueue =oldValue;
+                    ServerSession.maxPublishRequestInQueue = oldValue;
                     callback();
                 }
             ], done);
@@ -154,17 +156,17 @@ module.exports = function (test) {
             const endpointUrl = test.endpointUrl;
 
             let the_subscription = 0;
-            let the_monitoredItem =0;
+            let the_monitoredItem = 0;
 
             let subscriptionId = null;
             async.series([
 
-                function (callback) {
+                f(function connect_a_client(callback) {
                     client1.connect(endpointUrl, callback);
-                },
+                }),
 
                 // create a session using client1
-                function (callback) {
+                f(function create_a_first_session(callback) {
                     client1.createSession(function (err, session) {
                         if (err) {
                             return callback(err);
@@ -172,18 +174,18 @@ module.exports = function (test) {
                         the_session = session;
                         callback();
                     });
-                },
+                }),
 
                 // create a single subscription
-                function (callback) {
+                f(function create_subscripition(callback) {
                     const parameters = {
                         requestedPublishingInterval: 1000,
-                        requestedLifetimeCount:      100000,  // very long subscription lifetime
-                        requestedMaxKeepAliveCount:  1000
+                        requestedLifetimeCount: 100000,  // very long subscription lifetime
+                        requestedMaxKeepAliveCount: 1000
                     };
                     the_subscription = opcua.ClientSubscription.create(the_session, parameters);
-                    the_subscription.on("started",function() {
-                        subscriptionId =the_subscription.subscriptionId;
+                    the_subscription.on("started", function () {
+                        subscriptionId = the_subscription.subscriptionId;
                         callback();
                     }).on("internal_error", function (err) {
                         console.log(" received internal error", err.message);
@@ -194,36 +196,39 @@ module.exports = function (test) {
                     }).on("terminated", function (err) {
                         should.not.exist(err);
                     });
-                },
-                function (callback) {
+                }),
+                f(function create_some_monitored_item(callback) {
 
                     const nodeIdToMonitor = "ns=0;i=2257"; // Server_ServerStatus_StartTime
                     the_monitoredItem = opcua.ClientMonitoredItem.create(the_subscription,
                         {
                             nodeId: nodeIdToMonitor,
-                            attributeId:  opcua.AttributeIds.Value
+                            attributeId: opcua.AttributeIds.Value
                         },
                         {
                             samplingInterval: 1000,
                             discardOldest: true,
                             queueSize: 100
-                        },opcua.TimestampsToReturn.Both);
+                        }, opcua.TimestampsToReturn.Both);
                     the_monitoredItem.on("initialized", () => {
-                            callback();
-                    });
-                },
-
-                // now wait for the session to expire
-                function (callback) {
-
-                    the_session.on("session_closed",function(statusCode) {
-                        console.log(" Session has been closed ",statusCode.toString() );
                         callback();
                     });
-                },
+                }),
+
+                // now wait for the session to expire
+                f(function wait_for_session_to_expire(callback) {
+
+                    the_session.once("session_closed", function (statusCode) {
+                        console.log(" Session has been closed ", statusCode.toString());
+                        //callback();
+                    });
+                    the_session.close(false, () => {
+                        callback();
+                    })
+                }),
 
                 // now reopen a session to delete the pending subscription
-                function (callback) {
+                f(function create_a_new_session(callback) {
 
                     the_session = null;
                     client1.createSession(function (err, session) {
@@ -233,33 +238,33 @@ module.exports = function (test) {
                         the_session = session;
                         callback();
                     });
-                },
+                }),
 
-                function( callback) {
+                f(function thransfer_subscription_to_new_session(callback) {
 
-                _.isNumber(subscriptionId).should.eql(true);
+                    _.isNumber(subscriptionId).should.eql(true);
 
                     console.log("transferring subscription", subscriptionId);
 
                     the_session.transferSubscriptions({
-                        subscriptionIds: [ subscriptionId]
-                    },function(err,response){
+                        subscriptionIds: [subscriptionId]
+                    }, function (err, response) {
                         //xx console.log(response.toString());
                         response.results[0].statusCode.should.eql(opcua.StatusCodes.Good);
                         callback();
                     });
 
-                    },
-                function(callback) {
+                }),
+                f(function closing_session(callback) {
                     the_session.close(callback);
-                },
+                }),
 
-                function (callback) {
+                f(function disconnecting(callback) {
                     client1.disconnect(function () {
                         //xx console.log(" Client disconnected ", (err ? err.message : "null"));
                         callback();
                     });
-                },function(callback) {
+                }), function (callback) {
                     callback();
                 }
 

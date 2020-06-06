@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2019-05-01T00:00:00Z" 
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>urn:MyNamespace/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="urn:MyNamespace/" Version="1.02" PublicationDate="2019-05-01T00:00:00Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.4" PublicationDate="2020-01-08T00:00:00Z" />
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="SByte">i=2</Alias>
+        <Alias Alias="Byte">i=3</Alias>
+        <Alias Alias="UInt16">i=5</Alias>
+    </Aliases>
+    <UADataType NodeId="ns=1;i=3065" BrowseName="1:ANY">
+        <DisplayName>ANY</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=3</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3066" BrowseName="1:REMOTE">
+        <DisplayName>REMOTE</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=3065</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3036" BrowseName="1:HW_SUBMODULE">
+        <DisplayName>HW_SUBMODULE</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=3034</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3058" BrowseName="1:PORT">
+        <DisplayName>PORT</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=3036</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3034" BrowseName="1:HW_IO">
+        <DisplayName>HW_IO</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=3024</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3024" BrowseName="1:HW_ANY">
+        <DisplayName>HW_ANY</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=5</Reference>
+        </References>
+    </UADataType>
+</UANodeSet>
+
+

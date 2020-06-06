@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-transport
  */
-import { default as chalk } from "chalk";
+import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -45,6 +45,7 @@ export class Websocket_transport extends Transport<WebSocket> {
             this._socket.removeAllListeners();
             this._socket = null;
         }
+        Transport.registry.unregister(this);
     }
 
 
@@ -79,8 +80,8 @@ export class Websocket_transport extends Transport<WebSocket> {
             // xx this._socket.removeAllListeners();
             this._socket = null;
         }
+        this.on_socket_ended(null);
         setImmediate(() => {
-            this.on_socket_ended(null);
             callback();
         });
     }
@@ -132,19 +133,28 @@ export class Websocket_transport extends Transport<WebSocket> {
             .on("end", (err: Error) => this._on_socket_end(err))
             .on("error", (err: Error) => this._on_socket_error(err));
 
-        const doDestroyOnTimeout = false;
-        if (doDestroyOnTimeout) {
-            // set socket timeout
-            debugLog("setting _socket.setTimeout to ", this.timeout);
-            setTimeout(() => {
-                debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
-                if (this._socket) {
-                    this._socket.terminate();
-                    // 08/2008 shall we do this ?
-                    this._socket.removeAllListeners();
-                    this._socket = null;
-                }
-            }, this.timeout);
+
+        // set socket timeout
+        debugLog("setting " + this.name + " _socket.setTimeout to ", this.timeout);
+
+        // let use a large timeout here to make sure that we not conflict with our internal timeout
+        setTimeout(() => {
+            debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
+            this.prematureTerminate(new Error("INTERNAL_EPIPE timeout=" + this.timeout));
+        }, this.timeout + 2000);
+    }
+
+    public prematureTerminate(err: Error) {
+        debugLog("prematureTerminate", err ? err.message : "");
+        if (this._socket) {
+            err.message = "EPIPE_" + err.message;
+            // we consider this as an error
+            const _s = this._socket;
+            _s.terminate()
+            _s.emit("error", err);
+            this._socket = null;
+            this.dispose();
+            _s.removeAllListeners();
         }
     }
 
@@ -169,6 +179,6 @@ export class Websocket_transport extends Transport<WebSocket> {
         }
         const err = hadError ? new Error("ERROR IN SOCKET: reason=" + reason + ' code=' + code + ' name=' + this.name) : undefined;
         this.on_socket_closed(err);
-
+        this.dispose();
     }
 }

@@ -5,8 +5,10 @@ const fs = require("fs");
 const should = require("should");
 const path = require("path");
 
-const start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
-const stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
+const { 
+    start_simple_server,
+    stop_simple_server 
+} = require("../../test_helpers/external_server_fixture");
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 

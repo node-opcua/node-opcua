@@ -9,4 +9,6 @@ certificates/
 .vscode/
 _test_generated/
 schemas/
-
+tsconfig.json
+tsconfig.tsbuildinfo
+tslint.*

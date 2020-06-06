@@ -1,45 +1,45 @@
 {
- "name": "node-opcua-service-call",
- "version": "2.1.8",
- "description": "pure nodejs OPCUA SDK - module -service-call",
- "scripts": {
-  "test": "mocha test",
-  "clean": "node -e \"require('rimraf').sync('dist');\"",
-  "build": "tsc"
- },
- "main": "./dist/index.js",
- "types": "./dist/index.d.ts",
- "dependencies": {
-  "node-opcua-assert": "^2.0.0",
-  "node-opcua-basic-types": "^2.1.6",
-  "node-opcua-binary-stream": "^2.1.0",
-  "node-opcua-factory": "^2.1.6",
-  "node-opcua-nodeid": "^2.1.6",
-  "node-opcua-service-secure-channel": "^2.1.8",
-  "node-opcua-types": "^2.1.8",
-  "node-opcua-variant": "^2.1.6",
-  "underscore": "^1.9.1"
- },
- "devDependencies": {
-  "node-opcua-generator": "^2.1.8",
-  "node-opcua-packet-analyzer": "^2.1.6",
-  "node-opcua-status-code": "^2.1.6",
-  "should": "13.2.3"
- },
- "author": "Etienne Rossignon",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git://github.com/node-opcua/node-opcua.git"
- },
- "keywords": [
-  "OPCUA",
-  "opcua",
-  "m2m",
-  "iot",
-  "opc ua",
-  "internet of things"
- ],
- "homepage": "http://node-opcua.github.io/",
- "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+    "name": "node-opcua-service-call",
+    "version": "2.6.4",
+    "description": "pure nodejs OPCUA SDK - module -service-call",
+    "scripts": {
+        "test": "mocha test",
+        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "build": "tsc -b"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "dependencies": {
+        "node-opcua-assert": "^2.6.1",
+        "node-opcua-basic-types": "^2.6.1",
+        "node-opcua-binary-stream": "^2.6.1",
+        "node-opcua-factory": "^2.6.1",
+        "node-opcua-nodeid": "^2.6.1",
+        "node-opcua-service-secure-channel": "^2.6.4",
+        "node-opcua-types": "^2.6.4",
+        "node-opcua-variant": "^2.6.1",
+        "underscore": "^1.10.2"
+    },
+    "devDependencies": {
+        "node-opcua-generator": "^2.6.4",
+        "node-opcua-packet-analyzer": "^2.6.1",
+        "node-opcua-status-code": "^2.6.1",
+        "should": "^13.2.3"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
 }

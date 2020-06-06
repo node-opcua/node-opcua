@@ -20,17 +20,28 @@ MyObject.prototype.watchdogReset = function() {
 describe("watch dog", function() {
     this.timeout(10000);
     let watchDog = null;
-    beforeEach(function() {
+    beforeEach(() => {
         this.clock = sinon.useFakeTimers();
         watchDog = new WatchDog();
+
+        if (false) {
+            // let's verify that process.hrtime is also affected by sinon.useFakeTimers();
+            should.exist(watchDog.getCurrentSystemTick);
+            const old_getCurrentSystemTick = watchDog.getCurrentSystemTick;
+            watchDog.getCurrentSystemTick= () => {
+                const tick = old_getCurrentSystemTick();
+                console.log("XXXX", tick, process.hrtime());
+                return tick;
+            };
+        }
     });
 
-    afterEach(function() {
+    afterEach(() => {
         watchDog.shutdown();
         this.clock.restore();
     });
 
-    it("should maintain a subscriber count", function() {
+    it("should maintain a subscriber count", () => {
         watchDog.subscriberCount.should.eql(0);
 
         const obj1 = new MyObject();
@@ -42,12 +53,12 @@ describe("watch dog", function() {
         watchDog.subscriberCount.should.eql(0);
     });
 
-    it("should not have a timer running if no subscriber", function() {
+    it("should not have a timer running if no subscriber", () => {
         watchDog.subscriberCount.should.eql(0);
         should(watchDog._timer).equal(null);
     });
 
-    it("should have the internal timer running after the first subscriber has registered", function() {
+    it("should have the internal timer running after the first subscriber has registered", () => {
         should(watchDog._timer).equal(null);
 
         const obj1 = new MyObject();
@@ -58,7 +69,7 @@ describe("watch dog", function() {
         watchDog.removeSubscriber(obj1);
     });
 
-    it("should stop the internal timer running after the last subscriber has unregistered", function() {
+    it("should stop the internal timer running after the last subscriber has unregistered", () => {
         should(watchDog._timer).equal(null);
 
         const obj1 = new MyObject();
@@ -71,14 +82,14 @@ describe("watch dog", function() {
         should.not.exist(watchDog._timer)
     });
 
-    it("should fail if the object subscribing to the WatchDog doesn't provide a 'watchdogReset' method", function(done) {
-        should(function() {
+    it("should fail if the object subscribing to the WatchDog doesn't provide a 'watchdogReset' method", (done) =>  {
+        should(() => {
             watchDog.addSubscriber({}, 100);
         }).throwError();
         done();
     });
 
-    it("should install a 'keepAlive' method on  the subscribing object during addSubscriber and remove it during removeSubscriber", function(done) {
+    it("should install a 'keepAlive' method on  the subscribing object during addSubscriber and remove it during removeSubscriber", (done) =>  {
         const obj = new MyObject();
         should(_.isFunction(obj.keepAlive)).eql(false);
 
@@ -91,11 +102,11 @@ describe("watch dog", function() {
         done();
     });
 
-    it("should call the watchdogReset method of a subscriber when timeout has expired", function(done) {
+    it("should call the watchdogReset method of a subscriber when timeout has expired", (done) =>  {
         const obj = new MyObject();
         watchDog.addSubscriber(obj, 100);
 
-        setTimeout(function() {
+        setTimeout(() => {
             obj.keepAlive();
         }, 200);
 
@@ -104,30 +115,30 @@ describe("watch dog", function() {
         this.clock.tick(2000);
     });
 
-    it("should visit subscribers on a regular basis", function(done) {
+    it("should visit subscribers on a regular basis", (done) =>  {
         const obj1 = new MyObject();
         const obj2 = new MyObject();
 
         watchDog.addSubscriber(obj1, 1000);
         watchDog.addSubscriber(obj2, 1000);
 
-        const timer1 = setInterval(function() {
+        const timer1 = setInterval(() => {
             obj1.keepAlive();
         }, 200);
-        const timer2 = setInterval(function() {
+        const timer2 = setInterval(() => {
             obj2.keepAlive();
         }, 200);
 
         // Since our objects are sending a keepAlive signal on a very regular basic,
         // we should make sure object do not received a watchdogReset call by the WatchDog
-        obj1.on("watchdogReset", function() {
+        obj1.on("watchdogReset", () => {
             done(new Error("Received unexpected watchdogReset on object1"));
         });
-        obj2.on("watchdogReset", function() {
+        obj2.on("watchdogReset", () => {
             done(new Error("Received unexpected watchdogReset on object2"));
         });
 
-        setTimeout(function() {
+        setTimeout(() => {
             obj1._watchDogData.visitCount.should.greaterThan(8);
             obj2._watchDogData.visitCount.should.greaterThan(8);
 
@@ -141,7 +152,7 @@ describe("watch dog", function() {
         setTimeout(done, 15000);
         this.clock.tick(20000);
     });
-    it("should emit an event when it finds that some subscriber has reached the timeout period without sending a keepAlive signal", function(done) {
+    it("should emit an event when it finds that some subscriber has reached the timeout period without sending a keepAlive signal", (done) =>  {
         const obj1 = new MyObject();
         watchDog.addSubscriber(obj1, 1000);
 

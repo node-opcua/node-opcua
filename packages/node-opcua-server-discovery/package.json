@@ -1,30 +1,32 @@
 {
 	"name": "node-opcua-server-discovery",
-	"version": "2.1.9",
+	"version": "2.6.4",
 	"description": "pure nodejs OPCUA SDK - module -server-discovery",
 	"scripts": {
-		"build": "tsc",
-		"postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
+		"build": "tsc -b",
+		"postinstall": "npm run certificate",
+		"clean": "node -e \"require('rimraf').sync('dist');\"",
+		"certificate": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
 		"test": "echo no test here  : see node-opcua-end-to-end"
 	},
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"dependencies": {
-		"@types/bonjour": "^3.5.5",
+		"@types/bonjour": "^3.5.6",
 		"bonjour": "^3.5.0",
-		"node-opcua-assert": "^2.0.0",
-		"node-opcua-basic-types": "^2.1.6",
-		"node-opcua-certificate-manager": "^2.1.8",
-		"node-opcua-common": "^2.1.8",
-		"node-opcua-debug": "^2.1.0",
-		"node-opcua-hostname": "^2.1.0",
-		"node-opcua-pki": "^1.5.3",
-		"node-opcua-secure-channel": "^2.1.8",
-		"node-opcua-server": "^2.1.9",
-		"node-opcua-service-discovery": "^2.1.8",
-		"node-opcua-service-endpoints": "^2.1.8",
-		"node-opcua-status-code": "^2.1.6",
-		"underscore": "^1.9.1"
+		"node-opcua-assert": "^2.6.1",
+		"node-opcua-basic-types": "^2.6.1",
+		"node-opcua-certificate-manager": "^2.6.4",
+		"node-opcua-common": "^2.6.4",
+		"node-opcua-debug": "^2.6.1",
+		"node-opcua-hostname": "^2.6.1",
+		"node-opcua-pki": "^2.0.3",
+		"node-opcua-secure-channel": "^2.6.4",
+		"node-opcua-server": "^2.6.4",
+		"node-opcua-service-discovery": "^2.6.4",
+		"node-opcua-service-endpoints": "^2.6.4",
+		"node-opcua-status-code": "^2.6.1",
+		"underscore": "^1.10.2"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",
@@ -41,5 +43,5 @@
 		"internet of things"
 	],
 	"homepage": "http://node-opcua.github.io/",
-	"gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+	"gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
 }

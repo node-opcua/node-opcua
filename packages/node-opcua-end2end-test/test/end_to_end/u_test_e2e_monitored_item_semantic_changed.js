@@ -19,7 +19,7 @@ function getEURangeNodeId(session, nodeId, callback) {
     const browsePath = [
         opcua.makeBrowsePath(nodeId, ".EURange")
     ];
-    session.translateBrowsePath(browsePath, function (err, results) {
+    session.translateBrowsePath(browsePath, function(err, results) {
 
         if (!err) {
             euRangeNodeId = results[0].targets[0].targetId;
@@ -35,14 +35,14 @@ function writeIncrement(session, analogDataItem, done) {
     let value = null;
     async.series([
 
-        function (callback) {
+        function(callback) {
             const nodeToRead = {
                 nodeId: analogDataItem,
                 attributeId: opcua.AttributeIds.Value,
                 indexRange: null,
                 dataEncoding: null
             };
-            session.read(nodeToRead, function (err, dataValue) {
+            session.read(nodeToRead, function(err, dataValue) {
                 if (!err) {
                     value = dataValue.value.value;
                 }
@@ -50,15 +50,15 @@ function writeIncrement(session, analogDataItem, done) {
             });
         },
 
-        function (callback) {
+        function(callback) {
             const nodeToWrite = {
                 nodeId: analogDataItem,
                 attributeId: opcua.AttributeIds.Value,
                 value: new DataValue({
-                    value: {dataType: DataType.Double, value: value + 1}
+                    value: { dataType: DataType.Double, value: value + 1 }
                 })
             };
-            session.write(nodeToWrite, function (err, statusCode) {
+            session.write(nodeToWrite, function(err, statusCode) {
                 statusCode.should.eql(opcua.StatusCodes.Good);
                 callback(err);
             });
@@ -70,20 +70,20 @@ function readEURange(session, nodeId, done) {
     let euRangeNodeId;
     let euRange;
     async.series([
-        function (callback) {
-            getEURangeNodeId(session, nodeId, function (err, result) {
+        function(callback) {
+            getEURangeNodeId(session, nodeId, function(err, result) {
                 euRangeNodeId = result;
                 callback(err);
             });
         },
-        function (callback) {
+        function(callback) {
             const nodesToRead = {
                 nodeId: euRangeNodeId,
                 attributeId: opcua.AttributeIds.Value,
                 indexRange: null,
                 dataEncoding: null
             };
-            session.read(nodesToRead, function (err, dataValue) {
+            session.read(nodesToRead, function(err, dataValue) {
                 if (!err) {
                     euRange = dataValue.value.value;
                     //xx console.log(" euRange =", euRange.toString());
@@ -92,7 +92,7 @@ function readEURange(session, nodeId, done) {
             });
         }
 
-    ], function (results) {
+    ], function(results) {
         done(null, euRange)
     });
 
@@ -102,21 +102,21 @@ function writeEURange(session, nodeId, euRange, done) {
 
     let euRangeNodeId;
     async.series([
-        function (callback) {
-            getEURangeNodeId(session, nodeId, function (err, result) {
+        function(callback) {
+            getEURangeNodeId(session, nodeId, function(err, result) {
                 euRangeNodeId = result;
                 callback(err);
             });
         },
-        function (callback) {
+        function(callback) {
             const nodeToWrite = {
                 nodeId: euRangeNodeId,
                 attributeId: opcua.AttributeIds.Value,
                 value: new DataValue({
-                    value: {dataType: DataType.ExtensionObject, value: new Range(euRange)}
+                    value: { dataType: DataType.ExtensionObject, value: new Range(euRange) }
                 })
             };
-            session.write(nodeToWrite, function (err,statusCode) {
+            session.write(nodeToWrite, function(err, statusCode) {
                 if (!err) {
                     statusCode.should.eql(opcua.StatusCodes.Good);
                 }
@@ -129,19 +129,19 @@ function writeEURange(session, nodeId, euRange, done) {
 }
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Testing SemanticChanged Bit on statusCode monitoredItemData", function () {
+    describe("Testing SemanticChanged Bit on statusCode monitoredItemData", function() {
 
         let client, endpointUrl;
 
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             client = OPCUAClient.create({});
             endpointUrl = test.endpointUrl;
             done();
         });
 
-        afterEach(function (done) {
+        afterEach(function(done) {
             client.disconnect(done);
             client = null;
         });
@@ -152,14 +152,14 @@ module.exports = function (test) {
             const analogDataItem = "ns=2;s=DoubleAnalogDataItem";
 
 
-            perform_operation_on_raw_subscription(client, endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_raw_subscription(client, endpointUrl, function(session, subscription, callback) {
 
                 let orgEURange = null;
                 async.series([
 
                     // Read current Range
-                    function (callback) {
-                        readEURange(session, analogDataItem, function (err, euRange) {
+                    function(callback) {
+                        readEURange(session, analogDataItem, function(err, euRange) {
                             if (!err) {
                                 orgEURange = euRange;
                             }
@@ -168,7 +168,7 @@ module.exports = function (test) {
                     },
 
                     // - create Monitored Item
-                    function (callback) {
+                    function(callback) {
 
                         const itemToMonitor = new opcua.ReadValueId({
                             attributeId: opcua.AttributeIds.Value,
@@ -178,7 +178,7 @@ module.exports = function (test) {
 
                         const monitoringParameters = new opcua.MonitoringParameters({
                             clientHandle: 1000,
-                            samplingInterval: samplingInterval,
+                            samplingInterval,
                             filter: null,
                             queueSize: 10,
                             discardOldest: true
@@ -195,11 +195,11 @@ module.exports = function (test) {
                         const createMonitorItemsRequest = new opcua.CreateMonitoredItemsRequest({
                             subscriptionId: subscription.subscriptionId,
                             timestampsToReturn: timestampsToReturn,
-                            itemsToCreate: itemsToCreate
+                            itemsToCreate
                         });
 
                         //Xx console.log(createMonitorItemsRequest.toString());
-                        session.createMonitoredItems(createMonitorItemsRequest, function (err, response) {
+                        session.createMonitoredItems(createMonitorItemsRequest, function(err, response) {
                             //xx                            console.log("request=",createMonitorItemsRequest.toString());
                             //xx                            console.log("response = ",response.toString());
                             callback(err);
@@ -208,12 +208,12 @@ module.exports = function (test) {
                     },
 
                     // now get initial request
-                    function (callback) {
+                    function(callback) {
                         const publish_request = new opcua.PublishRequest({
-                            requestHeader: {timeoutHint: 100000}, // see note
+                            requestHeader: { timeoutHint: 100000 }, // see note
                             subscriptionAcknowledgements: []
                         });
-                        session.publish(publish_request, function (err, publish_response) {
+                        session.publish(publish_request, function(err, publish_response) {
                             ///xx console.log(publish_response.toString());
                             // it should have the semantic changed bit set
                             const monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];
@@ -223,18 +223,18 @@ module.exports = function (test) {
                     },
 
                     // Write modified range
-                    function (callback) {
-                        const newEURange = {low: orgEURange.low - 1, high: orgEURange.high + 1};
+                    function(callback) {
+                        const newEURange = { low: orgEURange.low - 1, high: orgEURange.high + 1 };
                         writeEURange(session, analogDataItem, newEURange, callback);
                     },
 
                     // now submit a publish request
-                    function (callback) {
+                    function(callback) {
                         const publish_request = new opcua.PublishRequest({
-                            requestHeader: {timeoutHint: 100000}, // see note
+                            requestHeader: { timeoutHint: 100000 }, // see note
                             subscriptionAcknowledgements: []
                         });
-                        session.publish(publish_request, function (err, publish_response) {
+                        session.publish(publish_request, function(err, publish_response) {
                             if (err) {
                                 return callback(err);
                             }
@@ -247,17 +247,17 @@ module.exports = function (test) {
                     },
 
                     // Write elements again to make sure we have a notification
-                    function (callback) {
+                    function(callback) {
                         writeIncrement(session, analogDataItem, callback);
                     },
 
                     // now submit a publish request
-                    function (callback) {
+                    function(callback) {
                         const publish_request = new opcua.PublishRequest({
-                            requestHeader: {timeoutHint: 100000}, // see note
+                            requestHeader: { timeoutHint: 100000 }, // see note
                             subscriptionAcknowledgements: []
                         });
-                        session.publish(publish_request, function (err, publish_response) {
+                        session.publish(publish_request, function(err, publish_response) {
                             //xx console.log(publish_response.toString());
                             // it should have the semantic changed bit set
                             const monitoredData = publish_response.notificationMessage.notificationData[0].monitoredItems[0];
@@ -268,7 +268,7 @@ module.exports = function (test) {
 
 
                     // restore original range
-                    function (callback) {
+                    function(callback) {
                         writeEURange(session, analogDataItem, orgEURange, callback);
                     }
                 ], callback)
@@ -276,15 +276,15 @@ module.exports = function (test) {
             }, done);
         }
 
-        it("YY1 should set SemanticChanged - with sampling monitored item - 100 ms", function (done) {
+        it("YY1 should set SemanticChanged - with sampling monitored item - 100 ms", function(done) {
             check_semantic_change(100, done);
         });
 
-        it("YY2 should set SemanticChanged - with event based monitored item", function (done) {
+        it("YY2 should set SemanticChanged - with event based monitored item", function(done) {
             check_semantic_change(0, done);
         });
 
-        it("YY3 should set SemanticChanged - with sampling monitored item - 1000 ms", function (done) {
+        it("YY3 should set SemanticChanged - with sampling monitored item - 1000 ms", function(done) {
             check_semantic_change(1000, done);
         });
 

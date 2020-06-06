@@ -125,8 +125,9 @@ describe("testing server dropping session after timeout if no activity has been 
                 setTimeout(callback, 1500);
             },
 
-            // reading should fail with BadSessionIdInvalid
+            // old behavior - reading should fail with BadSessionIdInvalid
             function (callback) {
+                return callback();
 
                 server.currentSessionCount.should.eql(0);
                 l_session.read(readRequest.nodesToRead, function (err, dataValues) {
@@ -136,8 +137,16 @@ describe("testing server dropping session after timeout if no activity has been 
                     callback(null);
                 });
             },
+            // new behabior - client tries to restore session by recreating it !!!!
             function (callback) {
+                server.currentSessionCount.should.eql(0);
+                l_session.read(readRequest.nodesToRead, function (err, dataValues) {
+                    should.not.exist(err, "read should end up without an error ");
+                    callback(null);
+                });
+            },
 
+            function (callback) {
                 client.disconnect(callback);
             }
 

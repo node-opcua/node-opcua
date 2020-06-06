@@ -40,22 +40,17 @@ export function initialize_field(field: StructuredTypeField, value: any): any {
     assert(_.isObject(field));
     assert(!field.isArray);
 
-    try {
-
-        if (field.category === FieldCategory.complex) {
-            if (field.fieldTypeConstructor) {
-                return new field.fieldTypeConstructor(value);
-            } else {
-                debugLog("xxxx => missing constructor for field type", field.fieldType);
-            }
-        }
-
-        const defaultValue = _t.computer_default_value ? _t.computer_default_value(field.defaultValue) : field.defaultValue;
-
-        value = _t.initialize_value(value, defaultValue);
-    } catch (err) {
-        /* empty */
+    if (field.category === FieldCategory.complex) {
+        if (field.fieldTypeConstructor) {
+            return new field.fieldTypeConstructor(value);
+        } else {
+            debugLog("xxxx => missing constructor for field type", field.fieldType);
+        }        
     }
+
+    const defaultValue = _t.computer_default_value ? _t.computer_default_value(field.defaultValue) : field.defaultValue;
+
+    value = _t.initialize_value(value, defaultValue);
 
     if (field.validate) {
         if (!field.validate(value)) {

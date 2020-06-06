@@ -1,11 +1,13 @@
 const async = require("async");
 const chalk = require("chalk");
 const path = require("path");
-const start_simple_server = require("../../test_helpers/external_server_fixture").start_simple_server;
-const stop_simple_server = require("../../test_helpers/external_server_fixture").stop_simple_server;
+const {
+    start_simple_server,
+    stop_simple_server
+} = require("../../test_helpers/external_server_fixture");
 
 const doDebug = false;
-
+const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 let server_data = null;
 
 function start_external_opcua_server(callback) {
@@ -15,13 +17,14 @@ function start_external_opcua_server(callback) {
         port: 2223
     };
 
-    start_simple_server(options, function (err, data) {
+    start_simple_server(options, function(err, data) {
         if (err) {
+            console.log("Cannot start simple server", options);
             return callback(err);
         }
-        console.log("data", data.endpointUrl);
-        console.log("certificate", data.serverCertificate.toString("base64").substring(0, 32) + "...");
-        console.log("pid", data.pid_collected);
+        debugLog("data", data.endpointUrl);
+        debugLog("certificate", data.serverCertificate.toString("base64").substring(0, 32) + "...");
+        debugLog("pid", data.pid_collected);
 
         server_data = data;
         callback(err);
@@ -34,8 +37,8 @@ function crash_external_opcua_server(callback) {
     if (!server_data) {
         return callback();
     }
-    server_data.process.once("exit", function (err) {
-        console.log("process killed");
+    server_data.process.once("exit", function(err) {
+        debugLog("process killed");
         callback();
     });
     server_data.process.kill("SIGTERM");
@@ -63,37 +66,37 @@ function start_active_client(connectionStrategy, callback) {
     async.series([
 
         function client_connect(callback) {
-            client.connect(endpointUrl, function (err) {
+            client.connect(endpointUrl, function(err) {
                 if (err) {
-                    console.log(" cannot connect to endpoint :", endpointUrl);
+                    debugLog(" cannot connect to endpoint :", endpointUrl);
                 } else {
-                    console.log("connected !");
+                    debugLog("connected !");
                 }
                 callback(err);
             });
-            client.on("connection_reestablished", function () {
-                console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
+            client.on("connection_reestablished", function() {
+                debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
             });
-            client.on("backoff", function (number, delay) {
-                console.log(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
+            client.on("backoff", function(number, delay) {
+                debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
             });
         },
 
         function client_recreate_session(callback) {
-            client.createSession(function (err, session) {
+            client.createSession(function(err, session) {
                 if (!err) {
                     the_session = session;
                 }
-                console.log("session timeout = ", session.timeout);
-                the_session.on("keepalive", function (state) {
+                debugLog("session timeout = ", session.timeout);
+                the_session.on("keepalive", function(state) {
                     if (doDebug) {
-                        console.log(chalk.yellow("KeepAlive state="),
-                          state.toString(), " pending request on server = ",
-                          the_subscription.publish_engine.nbPendingPublishRequests);
+                        debugLog(chalk.yellow("KeepAlive state="),
+                            state.toString(), " pending request on server = ",
+                            the_subscription.publish_engine.nbPendingPublishRequests);
                     }
                 });
-                the_session.on("session_closed", function (statusCode) {
-                    console.log(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
+                the_session.on("session_closed", function(statusCode) {
+                    debugLog(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
                 });
                 callback(err);
             });
@@ -112,30 +115,30 @@ function start_active_client(connectionStrategy, callback) {
 
             the_subscription = opcua.ClientSubscription.create(the_session, parameters);
 
-            the_subscription.on("started", function () {
+            the_subscription.on("started", function() {
 
                 if (doDebug) {
 
-                    console.log("started subscription :", the_subscription.subscriptionId);
+                    debugLog("started subscription :", the_subscription.subscriptionId);
 
-                    console.log(" revised parameters ");
-                    console.log("  revised maxKeepAliveCount  ", the_subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
-                    console.log("  revised lifetimeCount      ", the_subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
-                    console.log("  revised publishingInterval ", the_subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
-                    console.log("  suggested timeout hint     ", the_subscription.publish_engine.timeoutHint);
+                    debugLog(" revised parameters ");
+                    debugLog("  revised maxKeepAliveCount  ", the_subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
+                    debugLog("  revised lifetimeCount      ", the_subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
+                    debugLog("  revised publishingInterval ", the_subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
+                    debugLog("  suggested timeout hint     ", the_subscription.publish_engine.timeoutHint);
 
                 }
                 callback();
 
-            }).on("internal_error", function (err) {
-                console.log(" received internal error", err.message);
+            }).on("internal_error", function(err) {
+                debugLog(" received internal error", err.message);
 
-            }).on("keepalive", function () {
+            }).on("keepalive", function() {
 
-                console.log(chalk.cyan("keepalive "), chalk.cyan(" pending request on server = "), the_subscription.publish_engine.nbPendingPublishRequests);
+                debugLog(chalk.cyan("keepalive "), chalk.cyan(" pending request on server = "), the_subscription.publish_engine.nbPendingPublishRequests);
 
-            }).on("terminated", function (err) {
-                console.log("Session Terminated", err.message);
+            }).on("terminated", function(err) {
+                debugLog("Session Terminated", err.message);
             });
 
         },
@@ -151,18 +154,18 @@ function start_active_client(connectionStrategy, callback) {
             const item = { nodeId: nodeId, attributeId: opcua.AttributeIds.Value };
 
             monitoredItem = opcua.ClientMonitoredItem.create(the_subscription, item, requestedParameters, opcua.TimestampsToReturn.Both);
-            monitoredItem.on("err", function (errMessage) {
+            monitoredItem.on("err", function(errMessage) {
                 callback(new Error(errMessage));
             });
-            monitoredItem.on("changed", function (dataValue) {
+            monitoredItem.on("changed", function(dataValue) {
                 if (doDebug) {
-                    console.log(chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"), dataValue.statusCode.toString(), dataValue.value.toString());
+                    debugLog(chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"), dataValue.statusCode.toString(), dataValue.value.toString());
                 }
                 result.push(dataValue);
             });
-            monitoredItem.on("initialized", function () {
+            monitoredItem.on("initialized", function() {
                 if (doDebug) {
-                    console.log(" MonitoredItem initialized");
+                    debugLog(" MonitoredItem initialized");
                 }
                 callback();
             });
@@ -171,16 +174,20 @@ function start_active_client(connectionStrategy, callback) {
         function client_install_regular_activity(callback) {
 
             let counter = 0;
-            intervalId = setInterval(function () {
+
+            function writeValue() {
+                if (!intervalId) {
+                    return;
+                }
                 if (doDebug) {
 
-                    console.log(" Session OK ? ", the_session.isChannelValid(),
-                      "session will expired in ", the_session.evaluateRemainingLifetime() / 1000, " seconds",
-                      chalk.red("subscription will expire in "), the_subscription.evaluateRemainingLifetime() / 1000, " seconds",
-                      chalk.red("subscription?"), the_session.subscriptionCount);
+                    debugLog(" Session OK ? ", the_session.isChannelValid(),
+                        "session will expired in ", the_session.evaluateRemainingLifetime() / 1000, " seconds",
+                        chalk.red("subscription will expire in "), the_subscription.evaluateRemainingLifetime() / 1000, " seconds",
+                        chalk.red("subscription?"), the_session.subscriptionCount);
                 }
                 if (!the_session.isChannelValid() && false) {
-                    //xx console.log(the_session.toString());
+                    //xx debugLog(the_session.toString());
                     return; // ignore write as session is invalid for the time being
                 }
 
@@ -196,21 +203,24 @@ function start_active_client(connectionStrategy, callback) {
                         }
                     }
                 };
-                the_session.write([nodeToWrite], function (err, statusCode) {
+                the_session.write(nodeToWrite, function(err, statusCode) {
                     if (err) {
                         if (doDebug) {
-                            console.log(chalk.red("       writing Failed "), err.message);
+                            debugLog(chalk.red("       writing Failed "), err.message);
                         }
                     } else {
                         if (doDebug) {
-                            console.log("       writing OK counter =", counter, statusCode.toString());
+                            debugLog("       writing OK counter =", counter, statusCode.toString());
                         }
                         counter += 1;
                     }
                     //xx statusCode && statusCode.length===1) ? statusCode[0].toString():"");
+                    setTimeout(writeValue, 500);
                 });
-
+            }
+            intervalId = setInterval(function() {
             }, 250);
+            writeValue();
 
             callback();
         },
@@ -218,9 +228,9 @@ function start_active_client(connectionStrategy, callback) {
         function wait_for_activity_to_settle(callback) {
             setTimeout(callback, 1000);
         }
-    ], function (err) {
+    ], function(err) {
         if (doDebug) {
-            console.log("  --------------------------------------------------\n\n\n");
+            debugLog("  --------------------------------------------------\n\n\n");
         }
         callback(err);
     });
@@ -240,16 +250,16 @@ function terminate_active_client(callback) {
                 intervalId = null;
             }
 
-            the_session.close(function (err) {
+            the_session.close(function(err) {
                 if (err) {
-                    console.log("session closed failed ?");
+                    debugLog("session closed failed ?");
                 }
                 callback();
             });
         },
 
         function client_disconnect(callback) {
-            client.disconnect(function () {
+            client.disconnect(function() {
                 client = null;
                 callback();
             });
@@ -258,41 +268,41 @@ function terminate_active_client(callback) {
     ], callback);
 }
 
+function f(func) {
+    return function(callback) {
+        debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
+        return func(callback);
+    };
+}
+
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing client reconnection with crashing server", function () {
+describe("Testing client reconnection with crashing server", function() {
 
     this.timeout(100000);
 
-    function f(func) {
-        return function (callback) {
-            console.log("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
-            return func(callback);
-        };
-    }
-
-    afterEach(function (done) {
-
-        terminate_active_client(function () {
+    afterEach(function(done) {
+        debugLog("------------------------- Terminating client ----------------------------");
+        terminate_active_client(function() {
             crash_external_opcua_server(done);
         });
     });
 
     function given_a_running_opcua_server(callback) {
 
-        start_external_opcua_server(function (err) {
+        start_external_opcua_server(function(err) {
             callback();
         });
     }
 
     function when_the_server_crash(callback) {
-        crash_external_opcua_server(function (err) {
+        crash_external_opcua_server(function(err) {
             callback();
         });
     }
 
     function when_the_server_restart(callback) {
 
-        start_external_opcua_server(function (err) {
+        start_external_opcua_server(function(err) {
             callback();
         });
     }
@@ -321,7 +331,7 @@ describe("Testing client reconnection with crashing server", function () {
             backoff_counter += 1;
             if (backoff_counter === 2) {
                 if (doDebug) {
-                    console.log("Bingo !  Client has detected disconnection and is currently trying to reconnect");
+                    debugLog("Bingo !  Client has detected disconnection and is currently trying to reconnect");
                 }
                 client.removeListener("backoff", backoff_detector);
                 callback();
@@ -339,7 +349,7 @@ describe("Testing client reconnection with crashing server", function () {
         function on_value_changed(dataValue) {
             change_counter += 1;
             if (doDebug) {
-                console.log(" |||||||||||||||||||| DataValue changed again !!!", dataValue.toString());
+                debugLog(" |||||||||||||||||||| DataValue changed again !!!", dataValue.toString());
             }
             if (change_counter === 3) {
                 monitoredItem.removeListener("value_changed", on_value_changed);
@@ -350,7 +360,7 @@ describe("Testing client reconnection with crashing server", function () {
         monitoredItem.on("changed", on_value_changed);
     }
 
-    it("should reconnection and restore subscriptions when server becomes available again", function (done) {
+    it("should reconnection and restore subscriptions when server becomes available again", function(done) {
 
         async.series([
             f(given_a_running_opcua_server),
@@ -361,7 +371,7 @@ describe("Testing client reconnection with crashing server", function () {
             f(then_client_should_reconnect_and_restore_subscription)
         ], done);
     });
-    it("testing reconnection with failFastReconnection strategy #606", function (done) {
+    it("testing reconnection with failFastReconnection strategy #606", function(done) {
 
         // rationale:
         //  even if the OPCUAClient  uses a fail fast reconnection strategy, a lost of connection

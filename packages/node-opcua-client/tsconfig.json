@@ -1,13 +1,139 @@
 {
-  "extends" : "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "types": [
-      "node", "mocha"
-    ]
-  },
-  "files": [
-    "source/index.ts"
-  ]
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "types": ["node", "mocha"],
+        "composite": true
+    },
+    "include": ["source/**/*.ts"],
+    "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-aggregates"
+        },
+        {
+            "path": "../node-opcua-basic-types"
+        },
+        {
+            "path": "../node-opcua-buffer-utils"
+        },
+        {
+            "path": "../node-opcua-certificate-manager"
+        },
+        {
+            "path": "../node-opcua-client-dynamic-extension-object"
+        },
+        {
+            "path": "../node-opcua-common"
+        },
+        {
+            "path": "../node-opcua-constants"
+        },
+        {
+            "path": "../node-opcua-data-model"
+        },
+        {
+            "path": "../node-opcua-data-value"
+        },
+        {
+            "path": "../node-opcua-date-time"
+        },
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-extension-object"
+        },
+        {
+            "path": "../node-opcua-hostname"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-object-registry"
+        },
+        {
+            "path": "../node-opcua-pseudo-session"
+        },
+        {
+            "path": "../node-opcua-schemas"
+        },
+        {
+            "path": "../node-opcua-secure-channel"
+        },
+        {
+            "path": "../node-opcua-service-browse"
+        },
+        {
+            "path": "../node-opcua-service-call"
+        },
+        {
+            "path": "../node-opcua-service-discovery"
+        },
+        {
+            "path": "../node-opcua-service-endpoints"
+        },
+        {
+            "path": "../node-opcua-service-filter"
+        },
+        {
+            "path": "../node-opcua-service-history"
+        },
+        {
+            "path": "../node-opcua-service-query"
+        },
+        {
+            "path": "../node-opcua-service-read"
+        },
+        {
+            "path": "../node-opcua-service-register-node"
+        },
+        {
+            "path": "../node-opcua-service-secure-channel"
+        },
+        {
+            "path": "../node-opcua-service-session"
+        },
+        {
+            "path": "../node-opcua-service-subscription"
+        },
+        {
+            "path": "../node-opcua-service-translate-browse-path"
+        },
+        {
+            "path": "../node-opcua-service-write"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-types"
+        },
+        {
+            "path": "../node-opcua-utils"
+        },
+        {
+            "path": "../node-opcua-variant"
+        },
+        {
+            "path": "../node-opcua-address-space"
+        },
+        {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
+            "path": "../node-opcua-factory"
+        },
+        {
+            "path": "../node-opcua-leak-detector"
+        },
+        {
+            "path": "../node-opcua-nodesets"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

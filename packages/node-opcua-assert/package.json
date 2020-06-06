@@ -1,33 +1,34 @@
 {
- "name": "node-opcua-assert",
- "version": "2.0.0",
- "description": "pure nodejs OPCUA SDK - module -assert",
- "main": "./dist/index.js",
- "types": "./dist/index.d.ts",
- "scripts": {
-  "build": "tsc",
-  "test": "echo nothing to do",
-  "clean": "node -e \"require('rimraf').sync('dist');\"",
-  "lint": "tslint source/**/*.ts"
- },
- "dependencies": {
-  "better-assert": "1.0.2",
-  "chalk": "^2.4.2"
- },
- "author": "Etienne Rossignon",
- "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git://github.com/node-opcua/node-opcua.git"
- },
- "keywords": [
-  "OPCUA",
-  "opcua",
-  "m2m",
-  "iot",
-  "opc ua",
-  "internet of things"
- ],
- "homepage": "http://node-opcua.github.io/",
- "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+    "name": "node-opcua-assert",
+    "version": "2.6.1",
+    "description": "pure nodejs OPCUA SDK - module -assert",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -b",
+        "test": "echo nothing to do",
+        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "lint": "tslint source/**/*.ts"
+    },
+    "dependencies": {
+        "better-assert": "^1.0.2",
+        "chalk": "^4.0.0",
+        "pretty-error": "^2.1.1"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }

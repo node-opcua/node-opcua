@@ -2,15 +2,16 @@
 	"name": "node-opcua-hostname",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
-	"version": "2.1.0",
+	"version": "2.6.1",
 	"description": "pure nodejs OPCUA SDK - module -hostname",
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc -b",
 		"lint": "tslint source/**/*.ts",
+		"clean": "node -e \"require('rimraf').sync('dist');\"",
 		"test": "mocha test"
 	},
 	"dependencies": {
-		"node-opcua-assert": "^2.0.0"
+		"node-opcua-assert": "^2.6.1"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { ModelChangeStructureDataType } from "node-opcua-common";
@@ -51,7 +51,7 @@ export function _handle_add_reference_change_event(
 
     const node2 = addressSpace.findNode(node2id)! as BaseNode;
 
-    if (node1.nodeVersion || (node2 && (node2 as any).nodeVersion)) {
+    if (node1.nodeVersion || (node2 && node2.nodeVersion)) {
         // a event has to be send
         addressSpace.modelChangeTransaction(() => {
 
@@ -80,7 +80,7 @@ export function _handle_add_reference_change_event(
 }
 
 try {
-    (ModelChangeStructureDataType as any).prototype.toString = function(options: any): string {
+    (ModelChangeStructureDataType as any).prototype.toString = function (options: any): string {
         if (!options) {
             return "";
         }

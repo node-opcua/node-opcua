@@ -11,4 +11,8 @@ _test_generated/
 schemas/
 pki/
 tmp/
+tsconfig.json
+tsconfig.tsbuildinfo
+tslint.*
+.mocharc.yaml
 

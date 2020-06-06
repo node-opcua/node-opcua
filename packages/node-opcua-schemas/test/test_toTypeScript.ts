@@ -1,25 +1,38 @@
 import * as fs from "fs";
 import * as path from "path";
-import { promisify } from "util";
 
-import { StructuredTypeSchema } from "node-opcua-factory";
+import {
+    DataTypeFactory
+} from "node-opcua-factory";
+import { NodeId } from "node-opcua-nodeid";
 
-import { parseBinaryXSD, toTypeScript, TypeDictionary } from "../source";
+import {
+    parseBinaryXSDAsync,
+    toTypeScript,
+    TypeDictionary
+} from "../source";
+import { MockProvider } from "./mock_id_provider";
 
-describe("convert Extension Object definition to Typescript 1", () => {
+function n(i: number): NodeId {
+    return new NodeId(NodeId.NodeIdType.NUMERIC, i, 1);
+}
 
-    let typeDictionary: TypeDictionary;
+const idProvider = new MockProvider();
+
+describe("CTS-1 convert Extension Object definition to Typescript 1", () => {
+
+    let dataTypeFactory: DataTypeFactory;
     before(async () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type.xsd");
-
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
+
+        dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
 
     it("should convert a dynamic object definition to typescript", () => {
 
-        const str = toTypeScript(typeDictionary);
-
+        const str = toTypeScript(dataTypeFactory);
         str.should.eql(
             `import {
     ByteString,
@@ -45,6 +58,10 @@ export enum Priority {
 interface AccessRights {
     value: ByteString;
     validBits: ByteString;
+}
+interface StructWithOnlyOptionals {
+    optionalInt32?: Int32;
+    optionalStringArray?: UAString[];
 }
 interface StructureWithOptionalFields {
     mandatoryInt32: Int32;
@@ -72,7 +89,7 @@ interface WorkOrderStatusType {
     comment: LocalizedText;
 }
 interface WorkOrderType {
-    iD: Guid;
+    ID: Guid;
     assetID: UAString;
     startTime: DateTime;
     statusComments: WorkOrderStatusType[];
@@ -81,17 +98,18 @@ interface WorkOrderType {
 });
 describe("convert Extension Object definition to Typescript 2", () => {
 
-    let typeDictionary: TypeDictionary;
+    let dataTypeFactory: DataTypeFactory;
     before(async () => {
-        const sample_file = path.join(__dirname, "fixtures/sample_type2.xsd");
 
+        const sample_file = path.join(__dirname, "fixtures/sample_type2.xsd");
         const sample = fs.readFileSync(sample_file, "ascii");
-        typeDictionary = await promisify(parseBinaryXSD)(sample, []);
+        dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
 
     it("should convert a dynamic object definition to typescript", () => {
 
-        const str = toTypeScript(typeDictionary);
+        const str = toTypeScript(dataTypeFactory);
 
         str.should.eql(
             `import {

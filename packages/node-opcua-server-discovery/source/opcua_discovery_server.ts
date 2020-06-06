@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-server-discovery
  */
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 import * as _ from "underscore";
@@ -62,8 +62,8 @@ function constructFilename(p: string): string {
 }
 
 function hasCapabilities(
-  serverCapabilities: UAString[] | null,
-  serverCapabilityFilter: string
+    serverCapabilities: UAString[] | null,
+    serverCapabilityFilter: string
 ): boolean {
     if (serverCapabilities == null) {
         return true;  // filter is empty => no filtering should take place
@@ -102,7 +102,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         const default_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
         options.certificateFile = options.certificateFile || default_certificate_file;
-        assert(fs.existsSync(options.certificateFile));
+        assert(fs.existsSync(options.certificateFile), "cannot find certificateFile" + options.certificateFile);
 
         const default_private_key_file = constructFilename("certificates/PKI/own/private/private_key.pem");
         options.privateKeyFile = options.privateKeyFile || default_private_key_file;
@@ -201,11 +201,11 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         }
         debugLog("stopping announcement of LDS on mDNS");
         this.bonjourHolder._stop_announcedOnMulticastSubnetWithCallback(
-          () => {
-              debugLog("stopping announcement of LDS on mDNS - DONE");
-              debugLog("Shutting down Discovery Server");
-              super.shutdown(done!);
-          });
+            () => {
+                debugLog("stopping announcement of LDS on mDNS - DONE");
+                debugLog("Shutting down Discovery Server");
+                super.shutdown(done!);
+            });
     }
 
     /**
@@ -238,13 +238,27 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         request.discoveryConfiguration = request.discoveryConfiguration || [];
         this.__internalRegisterServerWithCallback(
-          RegisterServer2Response,
-          request.server,
-          request.discoveryConfiguration as MdnsDiscoveryConfiguration[],
-          (err: Error | null, response?: Response) => {
-              assert(response instanceof RegisterServer2Response);
-              channel.send_response("MSG", response!, message);
-          });
+            RegisterServer2Response,
+            request.server,
+            request.discoveryConfiguration as MdnsDiscoveryConfiguration[],
+            (err: Error | null, response?: Response) => {
+                if (err) {
+                    console.log("What shall I do ?", err.message);
+                    console.log(err);
+                    let additional_messages = [];
+                    additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request.schema.name);
+                    additional_messages.push(err.message);
+                    if (err.stack) {
+                        additional_messages = additional_messages.concat(err.stack.split("\n"));
+                    }
+
+                    response = OPCUADiscoveryServer.makeServiceFault(StatusCodes.BadInternalError, additional_messages);
+                    channel.send_response("MSG", response, message);
+
+                } else {
+                    channel.send_response("MSG", response!, message);
+                }
+            });
     }
 
     protected _on_RegisterServerRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -253,13 +267,12 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         const request = message.request as RegisterServerRequest;
         assert(request.schema.name === "RegisterServerRequest");
         this.__internalRegisterServerWithCallback(
-          RegisterServerResponse,
-          request.server,
-          undefined,
-          (err: Error | null, response?: Response) => {
-              assert(response instanceof RegisterServerResponse);
-              channel.send_response("MSG", response!, message);
-          });
+            RegisterServerResponse,
+            request.server,
+            undefined,
+            (err: Error | null, response?: Response) => {
+                channel.send_response("MSG", response!, message);
+            });
     }
 
     protected _on_FindServersOnNetworkRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -315,7 +328,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         request.serverCapabilityFilter = request.serverCapabilityFilter || [];
         const serverCapabilityFilter: string = request.serverCapabilityFilter.map(
-          (x: UAString) => x!.toUpperCase()).sort().join(" ");
+            (x: UAString) => x!.toUpperCase()).sort().join(" ");
 
         debugLog(" startingRecordId = ", request.startingRecordId);
 
@@ -342,18 +355,18 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     }
 
     private async __internalRegisterServerWithCallback(
-      RegisterServerXResponse: any /* RegisterServer2Response | RegisterServerResponse */,
-      rawServer: RegisteredServer,
-      discoveryConfigurations: MdnsDiscoveryConfiguration[] | undefined,
-      callback: (err: Error | null, response?: Response) => void
+        RegisterServerXResponse: any /* RegisterServer2Response | RegisterServerResponse */,
+        rawServer: RegisteredServer,
+        discoveryConfigurations: MdnsDiscoveryConfiguration[] | undefined,
+        callback: (err: Error | null, response?: Response) => void
     ) {
         callback(new Error("internal Error"));
     }
 
     private async __internalRegisterServer(
-      RegisterServerXResponse: any /* RegisterServer2Response | RegisterServerResponse */,
-      rawServer: RegisteredServer,
-      discoveryConfigurations?: MdnsDiscoveryConfiguration[]
+        RegisterServerXResponse: any /* RegisterServer2Response | RegisterServerResponse */,
+        rawServer: RegisteredServer,
+        discoveryConfigurations?: MdnsDiscoveryConfiguration[]
     ): Promise<Response> {
 
         const server = rawServer as any as RegisteredServerExtended;
@@ -380,19 +393,19 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         }
 
         async function _announcedOnMulticastSubnet(
-          conf: MdnsDiscoveryConfiguration,
-          announcement: Announcement
+            conf: MdnsDiscoveryConfiguration,
+            announcement: Announcement
         ): Promise<void> {
 
             let b = ((conf as any).bonjourHolder) as BonjourHolder;
-            if (b) {
-                if (sameAnnouncement(b.announcement!, announcement)) {
+            if (b && b.announcement) {
+                if (sameAnnouncement(b.announcement, announcement)) {
                     debugLog("Configuration ", conf.mdnsServerName, " has not changed !");
                     // nothing to do
                     return;
                 } else {
                     debugLog("Configuration ", conf.mdnsServerName, " HAS changed !");
-                    debugLog(" Was ", b.announcement!);
+                    debugLog(" Was ", b.announcement);
                     debugLog(" is  ", announcement);
                 }
                 await _stop_announcedOnMulticastSubnet(conf);
@@ -403,10 +416,10 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         }
 
         async function dealWithDiscoveryConfiguration(
-          previousConfMap: any,
-          server1: RegisteredServer,
-          serverInfo: ApplicationDescriptionOptions,
-          discoveryConfiguration: MdnsDiscoveryConfiguration
+            previousConfMap: any,
+            server1: RegisteredServer,
+            serverInfo: ApplicationDescriptionOptions,
+            discoveryConfiguration: MdnsDiscoveryConfiguration
         ): Promise<StatusCode> {
             // mdnsServerName     String     The name of the Server when it is announced via mDNS.
             //                               See Part 12 for the details about mDNS. This string shall be less than 64 bytes.
@@ -557,7 +570,7 @@ function _isValidServerType(serverType: ApplicationType): boolean {
 }
 
 (OPCUADiscoveryServer as any).prototype.__internalRegisterServerWithCallback =
-  callbackify((OPCUADiscoveryServer as any).prototype.__internalRegisterServer);
+    callbackify((OPCUADiscoveryServer as any).prototype.__internalRegisterServer);
 
 const thenify = require("thenify");
 const opts = { multiArgs: false };

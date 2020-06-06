@@ -10,7 +10,7 @@ import { BaseNode, UAVariable, UAVariableT } from "../../source";
 import { AddressSpacePrivate } from "../address_space_private";
 
 export interface DeviationStuff extends BaseNode {
-    setpointNode: UAVariableT<NodeId>;
+    setpointNode: UAVariableT<NodeId, DataType.NodeId>;
     setpointNodeNode: UAVariable;
     _onSetpointDataValueChange(dataValue: DataValue): void;
     _setStateBasedOnInputValue(value: any): void;

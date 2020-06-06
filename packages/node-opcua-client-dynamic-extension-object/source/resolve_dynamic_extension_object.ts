@@ -1,37 +1,41 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
-import { constructObject } from "node-opcua-factory";
-import { ExpandedNodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
+import { hexDump } from "node-opcua-debug";
 
 function resolveDynamicExtensionObjectV(
     opaque: OpaqueStructure,
-    extraDataType: ExtraDataTypeManager
+    dataTypeManager: ExtraDataTypeManager
 ): ExtensionObject {
 
+    const Constructor = dataTypeManager.getExtensionObjectConstructorFromBinaryEncoding(opaque.nodeId);
+    const object = new Constructor();
+    const stream = new BinaryStream(opaque.buffer);
     try {
-        const namespaceUri = extraDataType.namespaceArray[opaque.nodeId.namespace];
-        const expandedNodeId = ExpandedNodeId.fromNodeId(opaque.nodeId, namespaceUri);
-
-        const typeDictionary = extraDataType.getTypeDictionaryForNamespace(opaque.nodeId.namespace);
-
-        const Constructor = extraDataType.getExtensionObjectConstructorFromBinaryEncoding(opaque.nodeId);
-        const object = new Constructor();
-        const stream = new BinaryStream(opaque.buffer);
         object.decode(stream);
         return object;
     } catch (err) {
         // tslint:disable-next-line:no-console
+        console.log("Constructor = ", Constructor.name);
+        // tslint:disable-next-line:no-console
+        console.log("opaqueStructure = ", opaque.nodeId.toString());
+        // tslint:disable-next-line:no-console
+        console.log("opaqueStructure = ", "0x" + opaque.buffer.toString("hex"));
+        // tslint:disable-next-line: no-console
+        console.log(hexDump(opaque.buffer));
+        // tslint:disable-next-line:no-console
         console.log("resolveDynamicExtensionObjectV err = ", err);
+        // try again for debugging
+        object.decode(stream);
         return opaque;
     }
 }
 
 export async function resolveDynamicExtensionObject(
     variant: Variant,
-    extraDataType: ExtraDataTypeManager
+    dataTypeManager: ExtraDataTypeManager
 ): Promise<void> {
 
     if (variant.dataType !== DataType.ExtensionObject) {
@@ -40,12 +44,8 @@ export async function resolveDynamicExtensionObject(
     if (variant.arrayType !== VariantArrayType.Scalar) {
 
         if (variant.value instanceof Array) {
-            variant.value = (variant.value as any[]).map((v: any) => {
-
-                if (!(v instanceof OpaqueStructure)) {
-                    return v;
-                }
-                const obj = resolveDynamicExtensionObjectV(v as OpaqueStructure, extraDataType);
+            variant.value = (variant.value as OpaqueStructure[]).map((v: OpaqueStructure) => {
+                const obj = resolveDynamicExtensionObjectV(v, dataTypeManager);
                 return obj;
             });
         }
@@ -56,6 +56,6 @@ export async function resolveDynamicExtensionObject(
         return;
     }
     variant.value = resolveDynamicExtensionObjectV(
-        variant.value as OpaqueStructure, extraDataType);
+        variant.value as OpaqueStructure, dataTypeManager);
 
 }

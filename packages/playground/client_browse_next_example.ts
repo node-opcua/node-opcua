@@ -7,10 +7,12 @@ import {
     BrowseResult,
     ConnectionStrategyOptions,
     DataType,
+    DataValueT,
     MessageSecurityMode,
     OPCUAClient,
     OPCUAClientOptions,
     SecurityPolicy,
+    StatusCode,
     StatusCodes,
     UserTokenType, Variant
 } from "node-opcua-client";

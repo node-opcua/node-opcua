@@ -4,11 +4,11 @@
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { CertificateInternals , exploreCertificate, Certificate} from "node-opcua-crypto";
+import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
-import { AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken, MessageSecurityMode } from "node-opcua-types";
+import { AnonymousIdentityToken, MessageSecurityMode, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 
-import { BaseNode,  ISessionContext, UAObject , UAObjectType} from "./address_space_ts";
+import { BaseNode, ISessionContext, UAObject, UAObjectType } from "./address_space_ts";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -41,7 +41,7 @@ export interface IChannelBase {
     securityPolicy: string;
 }
 /**
- * 
+ *
  */
 export interface ISessionBase {
     userIdentityToken?: UserIdentityToken;
@@ -79,6 +79,26 @@ export interface SessionContextOptions {
     session?: ISessionBase;  /* ServerSession */
     object?: UAObject | UAObjectType;
     server?: IServerBase;   /* OPCUAServer*/
+}
+
+function hasOneRoleDenied(permission: string[], roles: string[]): boolean {
+
+    for (const role of roles) {
+        const str = "!" + role;
+        if (permission.findIndex((x: string) => x === str) >= 0) {
+            return true; // user is explicitly denied
+        }
+    }
+    return false;
+}
+function hasOneRoleAllowed(permission: string[], roles: string[]) {
+    for (const role of roles) {
+        const str = role;
+        if (permission.findIndex((x: string) => x === str) >= 0) {
+            return true; // user is explicitly denied
+        }
+    }
+    return false;
 }
 
 export class SessionContext implements ISessionContext {
@@ -166,19 +186,14 @@ export class SessionContext implements ISessionContext {
             return (lNode.userAccessLevel & actionFlag) === actionFlag;
         }
 
+        const roles = userRole.split(";");
+
         if (permission[0] === "*") {
             // accept all except...
-            const str = "!" + userRole;
-            if (permission.findIndex((x: string) => x === str) >= 0) {
-                return false; // user is explicitly denied
-            }
-            return true;
+            return !hasOneRoleDenied(permission, roles);
         } else {
-            // deny all, unless specify
-            if (permission.findIndex((x: string) => x === userRole) >= 0) {
-                return true; // user is explicitly denied
-            }
-            return false;
+            // deny a
+            return hasOneRoleAllowed(permission, roles) && !hasOneRoleDenied(permission, roles);
         }
     }
 }

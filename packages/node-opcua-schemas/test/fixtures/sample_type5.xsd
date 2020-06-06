@@ -1,0 +1,24 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:tns="http://acme.com/DemoServer/" DefaultByteOrder="LittleEndian" 
+    xmlns:opc="http://opcfoundation.org/BinarySchema/" 
+    xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://acme.com/DemoServer/">
+    <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+
+    <opc:StructuredType Name="BinaryIdBaseDataType" BaseType="ua:ExtensionObject">
+        <opc:Field Name="VersionSpecified" TypeName="opc:Bit"/>
+        <opc:Field Name="HashSpecified" TypeName="opc:Bit"/>
+        <opc:Field Name="HashAlgorithmSpecified" TypeName="opc:Bit"/>
+        <opc:Field Name="DescriptionSpecified" TypeName="opc:Bit"/>
+        <opc:Field Name="Reserved1" TypeName="opc:Bit" Length="28"/>
+        <opc:Field Name="Id" TypeName="opc:String"/>
+        <opc:Field Name="Version" TypeName="opc:String" SwitchField="VersionSpecified"/>
+        <opc:Field Name="Hash" TypeName="opc:ByteString" SwitchField="HashSpecified"/>
+        <opc:Field Name="HashAlgorithm" TypeName="opc:String" SwitchField="HashAlgorithmSpecified"/>
+        <opc:Field Name="Description" TypeName="ua:LocalizedText" SwitchField="DescriptionSpecified"/>
+    </opc:StructuredType>
+    <opc:StructuredType Name="ConfigurationIdDataType" BaseType="n3:BinaryIdBaseDataType"/>
+    <opc:StructuredType Name="RecipeIdExternalDataType" BaseType="n3:BinaryIdBaseDataType"/>
+    <opc:StructuredType Name="RecipeIdInternalDataType" BaseType="n3:BinaryIdBaseDataType"/>
+
+</opc:TypeDictionary>

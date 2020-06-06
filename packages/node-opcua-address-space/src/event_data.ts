@@ -2,17 +2,18 @@
  * @module node-opcua-address-space.Private
  */
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-status-code";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
+import { StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
+import { SessionContext } from "../source";
 import {
     BaseNode as BaseNodePublic,
-    EventData as EventDataPublic,
+    IEventData,
     UAVariable as UAVariablePublic
 } from "../source/address_space_ts";
 
@@ -21,12 +22,12 @@ import {
  * @param eventTypeNode {BaseNode}
  * @constructor
  */
-export class EventData implements EventDataPublic {
+export class EventData implements IEventData {
 
     public eventId: NodeId;
     public $eventDataSource: BaseNodePublic;
 
-    private __nodes: any;
+    private __nodes: { [key: string]: Variant };
 
     constructor(eventTypeNode: BaseNodePublic) {
         this.__nodes = {};
@@ -39,16 +40,15 @@ export class EventData implements EventDataPublic {
      * @param selectClause {SimpleAttributeOperand}
      * @return {NodeId|null}
      */
-    public resolveSelectClause(selectClause: SimpleAttributeOperand) {
-        const self = this;
+    public resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null {
         assert(selectClause instanceof SimpleAttributeOperand);
-        const addressSpace = self.$eventDataSource.addressSpace;
+        const addressSpace = this.$eventDataSource.addressSpace;
 
         if (selectClause.browsePath!.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
             assert(!"Cannot use resolveSelectClause on this selectClause as it has no browsePath");
         }
         // navigate to the innerNode specified by the browsePath [ QualifiedName]
-        const browsePath = constructBrowsePathFromQualifiedName(self.$eventDataSource, selectClause.browsePath);
+        const browsePath = constructBrowsePathFromQualifiedName(this.$eventDataSource, selectClause.browsePath);
 
         // xx console.log(self.$eventDataSource.browseName.toString());
         // xx console.log("xx browse Path", browsePath.toString());
@@ -86,10 +86,9 @@ export class EventData implements EventDataPublic {
      * @param selectClause {SimpleAttributeOperand}
      * @return {Variant}
      */
-    public readValue(nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
+    public readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
         assert(nodeId instanceof NodeId);
         assert(selectClause instanceof SimpleAttributeOperand);
-        const self = this;
         assert(nodeId instanceof NodeId);
         const addressSpace = this.$eventDataSource.addressSpace;
 
@@ -97,16 +96,16 @@ export class EventData implements EventDataPublic {
         const key = node.nodeId.toString();
 
         // if the value exists in cache ... we read it from cache...
-        const cached_value = self.__nodes[key];
+        const cached_value = this.__nodes[key];
         if (cached_value) {
             return cached_value;
         }
 
         if (node.nodeClass === NodeClass.Variable && selectClause.attributeId === AttributeIds.Value) {
             const nodeVariable = node as UAVariablePublic;
-            return prepare(nodeVariable.readValue(null, selectClause.indexRange));
+            return prepare(nodeVariable.readValue(sessionContext, selectClause.indexRange));
         }
-        return prepare(node.readAttribute( null, selectClause.attributeId));
+        return prepare(node.readAttribute(sessionContext, selectClause.attributeId));
     }
 }
 
@@ -114,5 +113,5 @@ function prepare(dataValue: DataValue): Variant {
     if (dataValue.statusCode === StatusCodes.Good) {
         return dataValue.value;
     }
-    return new Variant({dataType: DataType.StatusCode, value: dataValue.statusCode});
+    return new Variant({ dataType: DataType.StatusCode, value: dataValue.statusCode });
 }

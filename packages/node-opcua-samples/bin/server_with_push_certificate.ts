@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 import {
     nodesets,

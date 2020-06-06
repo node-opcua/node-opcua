@@ -1,14 +1,16 @@
 /**
  * @module node-opcua-transport
  */
-import { default as chalk } from "chalk";
+import * as chalk  from "chalk";
 import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import * as  debug from "node-opcua-debug";
+import { ObjectRegistry } from "node-opcua-object-registry";
 import { PacketAssembler } from "node-opcua-packet-assembler";
+import { StatusCode } from "node-opcua-status-code";
 
 import { readRawMessageHeader } from "./message_builder_base";
 import { writeTCPMessageHeader } from "./tools";
@@ -40,7 +42,8 @@ let counter = 0;
 // tslint:disable:class-name
 export abstract class Transport<S extends EventEmitter> extends EventEmitter {
 
-    public timeout: number;
+    protected static registry = new ObjectRegistry();
+    
     /**
      * indicates the version number of the OPCUA protocol used
      * @default  0
@@ -68,9 +71,12 @@ export abstract class Transport<S extends EventEmitter> extends EventEmitter {
     private _on_error_during_one_time_message_receiver: any;
     private _pendingBuffer?: any;
     protected packetAssembler?: PacketAssembler;
+    protected _timeout: number;
 
     protected _remotePort: number = 0;
     protected _remoteAddress: string = "";
+    
+    
     get remoteAddress(): string {
         return this._remoteAddress;
     }
@@ -78,6 +84,19 @@ export abstract class Transport<S extends EventEmitter> extends EventEmitter {
     get remotePort(): number {
         return this._remotePort;
     }
+
+    public get timeout(): number {
+        return this._timeout;
+    }
+    public set timeout(value: number) {
+        debugLog("Setting socket " + this.name + " timeout = ", value);
+        this._timeout = value;
+    }
+
+    public get isDisconnecting(): boolean {
+        return this._disconnecting;
+    }
+    
 
     constructor() {
 
@@ -87,7 +106,7 @@ export abstract class Transport<S extends EventEmitter> extends EventEmitter {
         counter += 1;
 
         this._timerId = null;
-        this.timeout = 30000; // 30 seconds timeout
+        this._timeout = 30000; // 30 seconds timeout
         this._socket = null;
         this.headerSize = 8;
         this.protocolVersion = 0;
@@ -104,6 +123,8 @@ export abstract class Transport<S extends EventEmitter> extends EventEmitter {
 
         this._onSocketClosedHasBeenCalled = false;
         this._onSocketEndedHasBeenCalled = false;
+
+        Transport.registry.register(this);
     }
 
     public abstract dispose(): void;
@@ -257,15 +278,15 @@ export abstract class Transport<S extends EventEmitter> extends EventEmitter {
         this._timerId = setTimeout(() => {
             this._timerId = null;
             this._fulfill_pending_promises(
-                new Error(`Timeout in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
-        }, this.timeout);
+                new Error(`Timeout in waiting for data on socket ( timeout was = ${this._timeout} ms)`));
+        }, this._timeout);
 
         // also monitored
         if (this._socket) {
             // to do = intercept socket error as well
             this._on_error_during_one_time_message_receiver = (err?: Error) => {
                 this._fulfill_pending_promises(
-                    new Error(`ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms)`));
+                    new Error(`ERROR in waiting for data on socket ( timeout was = ${this._timeout} ms)`));
             };
             this._socket.on("close", this._on_error_during_one_time_message_receiver);
         }
@@ -339,4 +360,5 @@ export interface ServerTransport<S extends EventEmitter> extends Transport<S> {
     maxChunkCount: number;
     protocolVersion: number;
     init(socket: S, callback: ErrorCallback): void;
+    abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback): void;
 }

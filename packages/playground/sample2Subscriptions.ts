@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 import {
     AttributeIds,
@@ -159,12 +159,12 @@ async function test2() {
 
         const item1 = ClientMonitoredItem.create(subscription, itemToMonitor1, parameters1, TimestampsToReturn.Both);
         item1
-          .on("changed", (dataValue: DataValue) => {
-              console.log(" Value1 has changed : ", dataValue.toString());
-          })
-          .on("terminated", () => {
-              console.log("item1 has been terminated");
-          });
+            .on("changed", (dataValue: DataValue) => {
+                console.log(" Value1 has changed : ", dataValue.toString());
+            })
+            .on("terminated", () => {
+                console.log("item1 has been terminated");
+            });
 
         const itemToMonitor2: ReadValueIdLike = {
             attributeId: AttributeIds.Value,
@@ -172,12 +172,12 @@ async function test2() {
         };
         const item2 = ClientMonitoredItem.create(subscription, itemToMonitor2, parameters1, TimestampsToReturn.Both);
         item2
-          .on("changed", (dataValue: DataValue) => {
-              console.log(" Value2 has changed : ", dataValue.toString());
-          })
-          .on("terminated", () => {
-              console.log("item2 has been terminated");
-          });
+            .on("changed", (dataValue: DataValue) => {
+                console.log(" Value2 has changed : ", dataValue.toString());
+            })
+            .on("terminated", () => {
+                console.log("item2 has been terminated");
+            });
 
         await timeout(10000);
 

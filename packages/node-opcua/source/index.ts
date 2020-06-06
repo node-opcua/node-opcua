@@ -6,7 +6,7 @@
 // tslint:disable:no-console
 // tslint:disable:variable-name
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 const semver = require("semver");
 const minimumNodeVersionRequired = ">=8.0.0"; // minimum
@@ -14,14 +14,16 @@ const minimumNodeVersionRequired = ">=8.0.0"; // minimum
 // istanbul ignore next
 if (!semver.satisfies(process.version, minimumNodeVersionRequired)) {
     console.log(
-      chalk.cyan(`warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${
-        process.version
-        }.`));
+        chalk.cyan(`warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${
+            process.version
+            }.`));
 }
 
 export * from "node-opcua-common";
 
 export { assert } from "node-opcua-assert";
+export { BinaryStream } from "node-opcua-binary-stream";
+
 export * from "node-opcua-utils";
 
 export {
@@ -92,8 +94,6 @@ export * from "node-opcua-service-query";
 export * from "node-opcua-service-node-management";
 export { DiagnosticInfo } from "node-opcua-data-model";
 
-export { SecurityPolicy, ErrorCallback, MessageSecurityMode } from "node-opcua-secure-channel";
-
 // -----------------------------------------------------------------------------
 // Nodeset stuff
 // -----------------------------------------------------------------------------
@@ -125,15 +125,9 @@ export * from "node-opcua-service-filter";
 export * from "node-opcua-address-space";
 
 // filtering tools
-export { constructEventFilter } from "node-opcua-service-filter";
-
 export * from "node-opcua-transport";
 
-module.exports.OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscoveryServer;
+export { OPCUADiscoveryServer } from "node-opcua-server-discovery";
 
-const address_space_for_conformance_testing = require("node-opcua-address-space-for-conformance-testing");
-
-module.exports.build_address_space_for_conformance_testing =
-  address_space_for_conformance_testing.build_address_space_for_conformance_testing;
-
-module.exports.install_optional_cpu_and_memory_usage_node = require("node-opcua-vendor-diagnostic").install_optional_cpu_and_memory_usage_node;
+export { build_address_space_for_conformance_testing } from "node-opcua-address-space-for-conformance-testing";
+export { install_optional_cpu_and_memory_usage_node } from "node-opcua-vendor-diagnostic";

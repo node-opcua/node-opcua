@@ -47,6 +47,7 @@ export class ObjectRegistry {
 
     public unregister(obj: any): void {
         this._cache[obj._____hash] = null;
+        obj._____trace = null;
         delete this._cache[obj._____hash];
     }
 

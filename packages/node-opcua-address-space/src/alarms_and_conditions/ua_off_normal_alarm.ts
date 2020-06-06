@@ -7,7 +7,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
-import { Namespace, UAVariable  } from "../../source";
+import { Namespace, UAVariable } from "../../source";
 import { NamespacePrivate } from "../namespace_private";
 import { UADiscreteAlarm } from "./ua_discrete_alarm";
 
@@ -16,7 +16,7 @@ function isEqual(value1: any, value2: any) {
 }
 
 export interface UAOffNormalAlarm extends UADiscreteAlarm {
-  normalState: UAVariable;
+    normalState: UAVariable;
 }
 /**
  * The OffNormalAlarmType is a specialization of the DiscreteAlarmType intended to represent a
@@ -45,10 +45,10 @@ export class UAOffNormalAlarm extends UADiscreteAlarm {
      *
      */
     public static instantiate(
-      namespace: Namespace,
-      limitAlarmTypeId: string | NodeId,
-      options: any,
-      data: any
+        namespace: Namespace,
+        limitAlarmTypeId: string | NodeId,
+        options: any,
+        data: any
     ): UAOffNormalAlarm {
         const addressSpace = (namespace as NamespacePrivate).addressSpace;
 
@@ -64,16 +64,16 @@ export class UAOffNormalAlarm extends UADiscreteAlarm {
 
         assert(options.hasOwnProperty("inputNode"), "must provide inputNode"); // must provide a inputNode
         const alarmNode = UADiscreteAlarm.instantiate(
-          namespace, limitAlarmTypeId, options, data) as UAOffNormalAlarm;
+            namespace, limitAlarmTypeId, options, data) as UAOffNormalAlarm;
         Object.setPrototypeOf(alarmNode, UAOffNormalAlarm.prototype);
 
         const inputNode = addressSpace._coerceNode(options.inputNode);
- //       assert(inputNode, "Expecting a valid input node");
+        //       assert(inputNode, "Expecting a valid input node");
 
         const normalState = addressSpace._coerceNode(options.normalState)! as UAVariable;
- //       assert(normalState, "Expecting a valid normalState node");
+        //       assert(normalState, "Expecting a valid normalState node");
 
-        const normalStateNodeId = normalState  ? normalState.nodeId : NodeId.nullNodeId;
+        const normalStateNodeId = normalState ? normalState.nodeId : NodeId.nullNodeId;
         alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalStateNodeId });
 
         if (inputNode) {

@@ -1,6 +1,5 @@
 {
     "compilerOptions": {
-        "skipLibCheck": false,
         "moduleResolution": "node",
         "strictFunctionTypes": true,
         "noImplicitAny": true,
@@ -12,12 +11,22 @@
         "strict": true,
         "listFiles": false,
         "noStrictGenericChecks": false,
-        "skipDefaultLibCheck": false,
-        "outDir": "dist"
+        "noImplicitThis": true,
+        "skipLibCheck": false,
+        "removeComments": false /* to prevent Istanbul  ignore statement in comment to disapper */,
+        "outDir": "dist",
+        "incremental": true,
+        "composite": true
     },
-    "exclude": [
-        "**/node_modules/*",
-        "node_modules",
-        "**/dist/*"
+    "exclude": ["**/node_modules/*", "node_modules", "**/dist/*", "packages/*"],
+    "references": [
+        { "path": "node-opcua" },
+        { "path": "node-opcua-test-fixtures" },
+        { "path": "node-opcua-aggregates" },
+        { "path": "node-opcua-file-transfer" },
+        { "path": "node-opcua-benchmarker" },
+        { "path": "node-opcua-modeler" },
+        { "path": "node-opcua-local-discovery-server" },
+        { "path": "node-opcua-samples" }
     ]
 }

@@ -6,21 +6,24 @@ const utils = require("node-opcua-utils");
 const debug = require("node-opcua-debug");
 const debugLog = debug.make_debugLog(__filename);
 
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-const readMessageHeader = require("node-opcua-chunkmanager").readMessageHeader;
+const { BinaryStream } = require("node-opcua-binary-stream");
+const{ readMessageHeader } = require("node-opcua-chunkmanager");
 
-const decodeMessage = require("..").decodeMessage;
-const packTcpMessage = require("..").packTcpMessage;
-const ServerTCP_transport = require("..").ServerTCP_transport;
-const HelloMessage = require("..").HelloMessage;
-const AcknowledgeMessage = require("..").AcknowledgeMessage;
-const TCPErrorMessage = require("..").TCPErrorMessage;
+const {
+    decodeMessage,
+    packTcpMessage,
+    ServerTCP_transport,HelloMessage,
+    AcknowledgeMessage, 
+    TCPErrorMessage
+} = require("..");
 
 
 const DirectTransport = require("../dist/test_helpers").DirectTransport;
 const helloMessage = require("../dist/test-fixtures").packet_cs_1;
 const openChannelRequest = require("../dist/test-fixtures").packet_cs_2;
 const not_an_helloMessage = require("../dist/test-fixtures").packet_cs_3;
+
+const packets = require("../dist/test-fixtures");
 
 
 describe("testing ServerTCP_transport", function () {
@@ -260,6 +263,35 @@ describe("testing ServerTCP_transport", function () {
 
         fakeSocket.client.write(packTcpMessage("HEL", helloMessage));
 
+
+    });
+
+    it("Test CLO message at transport end ",function (done) {
+
+        const transport = new ServerTCP_transport();
+        transport.init(fakeSocket.server, function (err) {});
+        
+        transport.on("message", (messageChunk) => {
+            // console.log("message ", messageChunk);
+            done();
+        });
+
+        const b= Buffer.from("434c4f46180000000c000000010000000f0000000f000000", "hex");
+        // xx console.log(debug.hexDump(b, 80));
+        // xx console.log(debug.hexDump(packets.packect_outtec, 80));
+
+        fakeSocket.client.on("data", function (data) {
+            const stream = new BinaryStream(data);
+            const messageHeader = readMessageHeader(stream);
+          //  console.log(messageHeader);
+            stream.rewind();
+            const response = decodeMessage(stream, AcknowledgeMessage);
+          //  console.log("response = ", response);
+           
+        });
+
+        fakeSocket.client.write(helloMessage);
+        fakeSocket.client.write(packets.packect_outtec);
 
     });
 });

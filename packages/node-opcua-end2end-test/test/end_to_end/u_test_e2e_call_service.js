@@ -1,4 +1,4 @@
-/*global describe, it, require*/
+    /*global describe, it, require*/
 "use strict";
 const should = require("should");
 

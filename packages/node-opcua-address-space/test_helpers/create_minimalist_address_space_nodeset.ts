@@ -4,7 +4,7 @@
 // tslint:disable:no-console
 // tslint:disable:max-line-length
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { DataTypeIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
@@ -28,8 +28,8 @@ function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
     function _dump(referenceType: UAReferenceType, level: string) {
 
         console.log(level, referenceType.browseName.toString(), "(",
-          chalk.green(referenceType.getAllSubtypes().map((x: any) => x.browseName.toString()).join(" ")),
-          ")");
+            chalk.green(referenceType.getAllSubtypes().map((x: any) => x.browseName.toString()).join(" ")),
+            ")");
 
         const subTypes = referenceType.findReferencesExAsObject("HasSubtype");
         for (const subType of subTypes) {
@@ -44,15 +44,15 @@ function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
 }
 
 export function create_minimalist_address_space_nodeset(
-  addressSpace: AddressSpace
+    addressSpace: AddressSpace
 ) {
     const namespace0 = addressSpace.registerNamespace("http://opcfoundation.org/UA/");
     assert(namespace0.index === 0);
 
     function addReferenceType(
-      browseName_: string,
-      isAbstract?: boolean,
-      superType?: UAReferenceType
+        browseName_: string,
+        isAbstract?: boolean,
+        subtypeOf?: UAReferenceType
     ): UAReferenceType {
 
         const tmp = browseName_.split("/");
@@ -66,14 +66,14 @@ export function create_minimalist_address_space_nodeset(
             nodeClass: NodeClass.ReferenceType,
             nodeId: resolveNodeId((ReferenceTypeIds as any)[browseName]),
             references: [] as AddReferenceOpts[],
-            superType
+            subtypeOf
         };
 
         const hasSubType = resolveNodeId("HasSubtype");
-        if (superType) {
+        if (subtypeOf) {
             options.references.push({
                 isForward: false,
-                nodeId: superType.nodeId,
+                nodeId: subtypeOf.nodeId,
                 referenceType: hasSubType
             });
         }
@@ -96,7 +96,7 @@ export function create_minimalist_address_space_nodeset(
             const nonHierarchicalReferences = addReferenceType("NonHierarchicalReferences", true, references);
             {
                 const hasTypeDefinition = addReferenceType("HasTypeDefinition/TypeDefinitionOf", false, nonHierarchicalReferences);
-                const hasModellingRule  = addReferenceType("HasModellingRule/ModellingRuleOf", false, nonHierarchicalReferences);
+                const hasModellingRule = addReferenceType("HasModellingRule/ModellingRuleOf", false, nonHierarchicalReferences);
                 const hasEncoding = addReferenceType("HasEncoding/EncodingOf", false, nonHierarchicalReferences);
             }
         }
@@ -190,7 +190,7 @@ export function create_minimalist_address_space_nodeset(
             });
 
             assert(rootFolder.getFolderElementByName("Objects")!
-              .browseName.toString() === "Objects");
+                .browseName.toString() === "Objects");
 
         }
         {

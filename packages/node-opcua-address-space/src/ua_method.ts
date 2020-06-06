@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
@@ -105,18 +105,18 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     public execute(
-      inputArguments: null | VariantLike[],
-      context: SessionContext
+        inputArguments: null | VariantLike[],
+        context: SessionContext
     ): Promise<CallMethodResultOptions>;
     public execute(
-      inputArguments: null | VariantLike[],
-      context: SessionContext,
-      callback: MethodFunctorCallback
+        inputArguments: null | VariantLike[],
+        context: SessionContext,
+        callback: MethodFunctorCallback
     ): void;
     public execute(
-      inputArguments: VariantLike[] | null,
-      context: SessionContext,
-      callback?: MethodFunctorCallback
+        inputArguments: VariantLike[] | null,
+        context: SessionContext,
+        callback?: MethodFunctorCallback
     ): any {
         if (!callback) {
             throw new Error("execute need to be promisified");
@@ -134,10 +134,13 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         }
 
         assert(context.object instanceof BaseNode);
-
+        if (context.object.nodeClass !== NodeClass.Object && context.object.nodeClass !== NodeClass.ObjectType) {
+            console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() +
+                " called for a node that is not a Object/ObjectType but " + NodeClass[context.object.nodeClass]);
+            return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
+        }
         if (!this._asyncExecutionFunction) {
             console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + "_ has not been bound");
-
             return callback(null, { statusCode: StatusCodes.BadInternalError });
         }
 
@@ -154,34 +157,34 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         try {
 
             this._asyncExecutionFunction.call(
-              (this as UAMethodPublic),
-              inputArguments as Variant[],
-              context,
-              (err: Error | null, callMethodResult: CallMethodResultOptions) => {
+                (this as UAMethodPublic),
+                inputArguments as Variant[],
+                context,
+                (err: Error | null, callMethodResult: CallMethodResultOptions) => {
 
-                  if (err) {
-                      console.log(err.message);
-                      console.log(err);
-                  }
-                  callMethodResult = callMethodResult || {};
+                    if (err) {
+                        console.log(err.message);
+                        console.log(err);
+                    }
+                    callMethodResult = callMethodResult || {};
 
-                  callMethodResult.statusCode = callMethodResult.statusCode || StatusCodes.Good;
-                  callMethodResult.outputArguments = callMethodResult.outputArguments || [];
+                    callMethodResult.statusCode = callMethodResult.statusCode || StatusCodes.Good;
+                    callMethodResult.outputArguments = callMethodResult.outputArguments || [];
 
-                  callMethodResult.inputArgumentResults = inputArgumentResults;
-                  callMethodResult.inputArgumentDiagnosticInfos = inputArgumentDiagnosticInfos;
+                    callMethodResult.inputArgumentResults = inputArgumentResults;
+                    callMethodResult.inputArgumentDiagnosticInfos = inputArgumentDiagnosticInfos;
 
-                  // verify that output arguments are correct according to schema
-                  // Todo : ...
-                  const outputArgsDef = this.getOutputArguments();
+                    // verify that output arguments are correct according to schema
+                    // Todo : ...
+                    const outputArgsDef = this.getOutputArguments();
 
-                  // xx assert(outputArgsDef.length === callMethodResponse.outputArguments.length,
-                  // xx     "_asyncExecutionFunction did not provide the expected number of output arguments");
-                  // to be continued ...
+                    // xx assert(outputArgsDef.length === callMethodResponse.outputArguments.length,
+                    // xx     "_asyncExecutionFunction did not provide the expected number of output arguments");
+                    // to be continued ...
 
-                  callback(err, callMethodResult);
+                    callback(err, callMethodResult);
 
-              });
+                });
 
         } catch (err) {
             // tslint:disable:no-console
@@ -193,9 +196,9 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     public clone(
-      options: any,
-      optionalFilter: any,
-      extraInfo: any
+        options: any,
+        optionalFilter?: any,
+        extraInfo?: any
     ): UAMethodPublic {
 
         assert(!options.componentOf || options.componentOf, "trying to create an orphan method ?");
@@ -232,7 +235,9 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         assert(argsVariable.nodeClass === NodeClass.Variable);
 
         const args = (argsVariable as UAVariable).readValue().value.value;
-
+        if (!args) {
+            return [];
+        }
         // a list of extension object
         assert(_.isArray(args));
         assert(args.length === 0 || UAMethod.checkValidArgument(args[0]));

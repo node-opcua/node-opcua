@@ -5,22 +5,43 @@
 // tslint:disable:max-line-length
 // tslint:disable:no-inner-declarations
 //
+import * as chalk from "chalk";
 import * as fs from "fs";
 import { assert } from "node-opcua-assert";
 import {
+    DataTypeIds,
+    ObjectIds
+} from "node-opcua-constants";
+import {
+    checkDebugFlag,
+    make_debugLog
+} from "node-opcua-debug";
+
+import {
     EnumerationDefinitionSchema,
     FieldCategory,
+    getStandartDataTypeFactory,
     StructuredTypeSchema,
-    getStandartDataTypeFactory
+    DataTypeFactory,
 } from "node-opcua-factory";
-import { EnumeratedType, parseBinaryXSD, TypeDictionary } from "node-opcua-schemas";
+import {
+    DataTypeAndEncodingId,
+    MapDataTypeAndEncodingIdProvider,
+    parseBinaryXSDAsync
+} from "node-opcua-schemas";
 import { LineFile } from "node-opcua-utils";
 import { promisify } from "util";
 import { writeStructuredType } from "./factory_code_generator";
+
+import { NodeId } from "node-opcua-nodeid";
+import * as n from "node-opcua-numeric-range";
+
+const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog(__filename);
+
 // Xx import * as  prettier from "prettier";
 
 const readFile = promisify(fs.readFile);
-const parseBinaryXSD2 = promisify(parseBinaryXSD);
 
 const f = new LineFile();
 
@@ -33,7 +54,6 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     // make sure there is a Invalid key in the enum => else insert one
     const hasInvalid = enumerationSchema.enumValues.hasOwnProperty("Invalid");
     if (!hasInvalid) {
-        // xx console.log("Adding Invalid Enum entry on ", enumeratedType.name);
         enumerationSchema.enumValues[enumerationSchema.enumValues.Invalid = 0xFFFFFFFF] = "Invalid";
     }
 
@@ -47,7 +67,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     const isFlaggable = arrayValues.length > 2
         && arrayValues[2] === arrayValues[1] * 2
         && arrayValues[3] === arrayValues[2] * 2
-    ;
+        ;
     // find min and max values (excluding
     const minEnumValue = Math.min.apply(null, arrayValues);
     const maxEnumValue = Math.max.apply(null, arrayValues);
@@ -68,7 +88,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     write(`}`);
 
     write(`const schema${enumerationSchema.name} = {`);
-    //xx write(`    documentation: "${enumerationSchema.documentation}",`);
+    // xx write(`    documentation: "${enumerationSchema.documentation}",`);
     write(`    enumValues: ${enumerationSchema.name},`);
     write(`    flaggable: ${isFlaggable},`);
     if (!isFlaggable) {
@@ -122,8 +142,6 @@ function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
 
 }
 
-import * as n from "node-opcua-numeric-range";
-
 export async function generate(
     filename: string,
     generatedTypescriptFilename: string
@@ -133,30 +151,39 @@ export async function generate(
 
         const content = await readFile(filename, "ascii");
 
-        const typeDictionary = await parseBinaryXSD2(content,[ getStandartDataTypeFactory() ]);
-
-        for (const key in typeDictionary.structuredTypes) {
-
-            if (!typeDictionary.structuredTypes.hasOwnProperty(key)) {
-                continue;
-            }
-            const structuredType = typeDictionary.structuredTypes[key];
-
-            /*
-                        prepareStructureType(structuredType, typeDictionary);
-
-                        const structuredTypeSchema: StructuredTypeSchema = buildStructuredType(structuredType);
-                        typeDictionary.structuredTypes[key] = structuredTypeSchema;
-            */
-            // reapply recursive schema on field
-            for (const field of structuredType.fields) {
-                if (field.category === FieldCategory.complex && field.fieldType === structuredType.name) {
-                    field.schema = structuredType;
+        const idProvider: MapDataTypeAndEncodingIdProvider = {
+            getDataTypeAndEncodingId(name: string): DataTypeAndEncodingId {
+                const dataType = (DataTypeIds as any)[name] || 0;
+                const binEncoding = (ObjectIds as any)[name + "_Encoding_DefaultBinary"] || 0;
+                const xmlEncoding = (ObjectIds as any)[name + "_Encoding_DefaultXml"] || 0;
+                const jsonEncoding = (ObjectIds as any)[name + "_Encoding_DefaultJson"] || 0;
+                if (dataType === undefined) {
+                    throw new Error("Cannot find " + name);
                 }
+                const dataTypeNodeId = new NodeId(NodeId.NodeIdType.NUMERIC, dataType, 0);
+                const binaryEncodingNodeId = new NodeId(NodeId.NodeIdType.NUMERIC, binEncoding, 0);
+                const xmlEncodingNodeId = new NodeId(NodeId.NodeIdType.NUMERIC, xmlEncoding, 0);
+                const jsonEncodingNodeId = new NodeId(NodeId.NodeIdType.NUMERIC, jsonEncoding, 0);
+                const data: DataTypeAndEncodingId = {
+                    binaryEncodingNodeId,
+                    dataTypeNodeId,
+                    jsonEncodingNodeId,
+                    xmlEncodingNodeId,
+                };
+                if (doDebug) {
+                    debugLog("xxdata=", chalk.cyan(name.padEnd(43, " ")),
+                        data.dataTypeNodeId.toString().padEnd(43, " "),
+                        data.binaryEncodingNodeId.toString().padEnd(43, " "));
+                }
+                return data;
             }
-        }
+        };
 
-        write(`// tslint:disable:no-this-assignment
+        const dataTypeFactory = new DataTypeFactory([getStandartDataTypeFactory()]);
+        await parseBinaryXSDAsync(content, idProvider, dataTypeFactory);
+
+        write(
+            `// tslint:disable:no-this-assignment
 // tslint:disable:max-classes-per-file
 // tslint:disable:no-empty-interface
 // tslint:disable:no-trailing-whitespace
@@ -177,9 +204,11 @@ import {
     decodeString, decodeUABoolean,
     decodeUAString, decodeUInt16,
     decodeUInt32, decodeUInt64,
-    decodeUInt8, Double,
+    decodeUInt8,
+    decodeSByte,
+    Double,
     encodeArray, encodeBoolean,
-    encodeByte, encodeByteString,
+    encodeSByte, encodeByte, encodeByteString,
     encodeDateTime, encodeDouble,
     encodeExpandedNodeId, encodeFloat,
     encodeGuid, encodeInt16,
@@ -284,35 +313,34 @@ import {
                 return;
             }
             alreadyDone[structuredType.name] = structuredType;
-            // make sure
-            if (typeDictionary.structuredTypes[structuredType.baseType]) {
-                processStructuredType(typeDictionary.structuredTypes[structuredType.baseType]);
-            }
 
+            // make sure
+            if (dataTypeFactory.hasStructuredType(structuredType.baseType)) {
+                processStructuredType(dataTypeFactory.getStructuredTypeSchema(structuredType.baseType));
+            }
             for (const field of structuredType.fields) {
                 if (field.category === FieldCategory.complex) {
-                    const fieldSchema = typeDictionary.structuredTypes[field.fieldType];
+                    const fieldSchema = dataTypeFactory.getStructuredTypeSchema(field.fieldType);
                     processStructuredType(fieldSchema);
                 }
                 if (field.category === FieldCategory.enumeration) {
-                    const fieldSchema = typeDictionary.enumeratedTypes[field.fieldType];
+                    const fieldSchema = dataTypeFactory.getEnumeration(field.fieldType)!;
                     processEnumeratedType(fieldSchema);
                 }
             }
             writeStructuredTypeWithSchema(structuredType);
         }
 
-        processStructuredType(typeDictionary.structuredTypes["LocalizedText"]);
-        processStructuredType(typeDictionary.structuredTypes["AxisInformation"]);
-        processStructuredType(typeDictionary.structuredTypes["DiagnosticInfo"]);
+        processStructuredType(dataTypeFactory.getStructuredTypeSchema("LocalizedText"));
+        processStructuredType(dataTypeFactory.getStructuredTypeSchema("AxisInformation"));
+        //        processStructuredType(dataTypeFactory.getStructuredTypeSchema("DiagnosticInfo"));
+        processStructuredType(dataTypeFactory.getStructuredTypeSchema("SimpleAttributeOperand"));
 
-        processStructuredType(typeDictionary.structuredTypes["SimpleAttributeOperand"]);
-
-        for (const structureType in typeDictionary.structuredTypes) {
-            if (!typeDictionary.structuredTypes.hasOwnProperty(structureType)) {
+        for (const structureType of dataTypeFactory.structuredTypesNames().sort()) {
+            if (!dataTypeFactory.hasStructuredType(structureType)) {
                 continue;
             }
-            processStructuredType(typeDictionary.structuredTypes[structureType]);
+            processStructuredType(dataTypeFactory.getStructuredTypeSchema(structureType));
             // if (++i > 250) { break; }
         }
 

@@ -33,7 +33,7 @@ describe("testing address space namespace", () => {
 
 });
 
-describe("testing  address space namespace loading", function(this: any) {
+describe("testing  address space namespace loading", function (this: any) {
 
     it("should process namespaces and translate namespace index when loading node set xml files", async () => {
 

@@ -1,33 +1,34 @@
 {
 	"name": "node-opcua-client-crawler",
-	"version": "2.1.9",
+	"version": "2.6.4",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"description": "pure nodejs OPCUA SDK - module -client-crawler",
 	"scripts": {
 		"lint": "tslint source/**/*.ts",
-		"build": "tsc",
+		"build": "tsc -b",
+		"clean": "node -e \"require('rimraf').sync('dist');\"",
 		"test": "mocha test"
 	},
 	"dependencies": {
-		"async": "^3.1.0",
-		"node-opcua-assert": "^2.0.0",
-		"node-opcua-common": "^2.1.8",
-		"node-opcua-constants": "^2.1.6",
-		"node-opcua-data-model": "^2.1.6",
-		"node-opcua-data-value": "^2.1.8",
-		"node-opcua-debug": "^2.1.0",
-		"node-opcua-factory": "^2.1.6",
-		"node-opcua-nodeid": "^2.1.6",
-		"node-opcua-service-browse": "^2.1.8",
-		"node-opcua-status-code": "^2.1.6",
-		"node-opcua-utils": "^2.1.6",
-		"node-opcua-variant": "^2.1.6",
-		"underscore": "^1.9.1"
+		"async": "^3.2.0",
+		"node-opcua-assert": "^2.6.1",
+		"node-opcua-common": "^2.6.4",
+		"node-opcua-constants": "^2.6.1",
+		"node-opcua-data-model": "^2.6.1",
+		"node-opcua-data-value": "^2.6.4",
+		"node-opcua-debug": "^2.6.1",
+		"node-opcua-factory": "^2.6.1",
+		"node-opcua-nodeid": "^2.6.1",
+		"node-opcua-service-browse": "^2.6.4",
+		"node-opcua-status-code": "^2.6.1",
+		"node-opcua-utils": "^2.6.1",
+		"node-opcua-variant": "^2.6.1",
+		"underscore": "^1.10.2"
 	},
 	"devDependencies": {
-		"node-opcua-address-space": "^2.1.8",
-		"node-opcua-client": "^2.1.9"
+		"node-opcua-address-space": "^2.6.4",
+		"node-opcua-client": "^2.6.4"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",
@@ -44,5 +45,5 @@
 		"internet of things"
 	],
 	"homepage": "http://node-opcua.github.io/",
-	"gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+	"gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
 }

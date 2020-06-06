@@ -3,11 +3,11 @@
  */
 import * as async from "async";
 import * as _ from "underscore";
-
+import { promisify } from "util";
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import {
-    resolveNodeId
+    NodeId, resolveNodeId
 } from "node-opcua-nodeid";
 import {
     ArgumentDefinition,
@@ -34,14 +34,16 @@ import {
     BrowsePathResult
 } from "node-opcua-service-translate-browse-path";
 import {
-    StatusCodes
+    StatusCodes, StatusCode
 } from "node-opcua-status-code";
 
-import { MessageSecurityMode } from "node-opcua-types";
+import { NodeClass, AttributeIds } from "node-opcua-data-model";
+import { MessageSecurityMode, ReadValueId, WriteValueOptions, WriteValue } from "node-opcua-types";
 import { AddressSpace } from "./address_space_ts";
 import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 import { callMethodHelper } from "./helpers/call_helpers";
 import { IServerBase, ISessionBase, SessionContext } from "./session_context";
+import { UAVariable } from "../src/ua_variable";
 /**
  * Pseudo session is an helper object that exposes the same async methods
  * than the ClientSession. It can be used on a server address space.
@@ -100,8 +102,8 @@ export class PseudoSession implements IBasicSession {
             results = results.map((result: BrowseResult) => {
                 assert(!result.continuationPoint);
                 const truncatedResult = this.continuationPointManager.register(
-                this.requestedMaxReferencesPerNode,
-                result.references || []
+                    this.requestedMaxReferencesPerNode,
+                    result.references || []
                 );
                 assert(truncatedResult.statusCode === StatusCodes.Good);
                 truncatedResult.statusCode = result.statusCode;
@@ -124,49 +126,60 @@ export class PseudoSession implements IBasicSession {
             nodesToRead = [nodesToRead];
         }
 
+        const context = SessionContext.defaultContext;
+
         setImmediate(() => {
 
-            // xx const context = new SessionContext({ session: null });
-            const dataValues = nodesToRead.map((nodeToRead: ReadValueIdLike) => {
-
-                assert(!!nodeToRead.nodeId, "expecting a nodeId");
-                assert(!!nodeToRead.attributeId, "expecting a attributeId");
-
-                const nodeId = nodeToRead.nodeId!;
-                const attributeId = nodeToRead.attributeId!;
-                const indexRange = nodeToRead.indexRange;
-                const dataEncoding = nodeToRead.dataEncoding;
-                const obj = this.addressSpace.findNode(nodeId);
-                if (!obj) {
-                    return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+            async.map(nodesToRead, (nodeToRead: ReadValueId, innerCallback: any) => {
+                const obj = this.addressSpace.findNode(nodeToRead.nodeId);
+                if (!obj || obj.nodeClass !== NodeClass.Variable || nodeToRead.attributeId !== AttributeIds.Value) {
+                    return innerCallback();
                 }
-                const context = SessionContext.defaultContext;
-                const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
-                return dataValue;
-            });
+                (obj as UAVariable).readValueAsync(context, innerCallback);
+            }, (err) => {
+                // xx const context = new SessionContext({ session: null });
+                const dataValues = nodesToRead.map((nodeToRead: ReadValueIdLike) => {
 
-            callback!(null, isArray ? dataValues : dataValues[0]);
+                    assert(!!nodeToRead.nodeId, "expecting a nodeId");
+                    assert(!!nodeToRead.attributeId, "expecting a attributeId");
+
+                    const nodeId = nodeToRead.nodeId!;
+                    const attributeId = nodeToRead.attributeId!;
+                    const indexRange = nodeToRead.indexRange;
+                    const dataEncoding = nodeToRead.dataEncoding;
+                    const obj = this.addressSpace.findNode(nodeId);
+                    if (!obj) {
+                        return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+                    }
+                    const context = SessionContext.defaultContext;
+                    const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
+                    return dataValue;
+                });
+
+                callback!(null, isArray ? dataValues : dataValues[0]);
+
+            });
         });
     }
 
     public browseNext(
-      continuationPoint: Buffer,
-      releaseContinuationPoints: boolean,
-      callback: ResponseCallback<BrowseResult>): void;
+        continuationPoint: Buffer,
+        releaseContinuationPoints: boolean,
+        callback: ResponseCallback<BrowseResult>): void;
 
     public browseNext(
-      continuationPoints: Buffer[],
-      releaseContinuationPoints: boolean,
-      callback: ResponseCallback<BrowseResult[]>): void;
+        continuationPoints: Buffer[],
+        releaseContinuationPoints: boolean,
+        callback: ResponseCallback<BrowseResult[]>): void;
 
     public browseNext(
-      continuationPoint: Buffer,
-      releaseContinuationPoints: boolean
+        continuationPoint: Buffer,
+        releaseContinuationPoints: boolean
     ): Promise<BrowseResult>;
 
     public browseNext(
-      continuationPoints: Buffer[],
-      releaseContinuationPoints: boolean
+        continuationPoints: Buffer[],
+        releaseContinuationPoints: boolean
     ): Promise<BrowseResult[]>;
     public browseNext(
         continuationPoints: Buffer | Buffer[],
@@ -179,9 +192,9 @@ export class PseudoSession implements IBasicSession {
             if (continuationPoints instanceof Buffer) {
                 return this.browseNext([continuationPoints], releaseContinuationPoints,
                     (err, _results) => {
-                    if (err) { return callback!(err); }
-                    callback!(null, _results![0]);
-                });
+                        if (err) { return callback!(err); }
+                        callback!(null, _results![0]);
+                    });
                 return;
             }
             const session = this;
@@ -214,22 +227,22 @@ export class PseudoSession implements IBasicSession {
 
     // call service ----------------------------------------------------------------------------------------------------
     public call(
-      methodToCall: CallMethodRequestLike,
-      callback: ResponseCallback<CallMethodResult>
+        methodToCall: CallMethodRequestLike,
+        callback: ResponseCallback<CallMethodResult>
     ): void;
     public call(
-      methodsToCall: CallMethodRequestLike[],
-      callback: ResponseCallback<CallMethodResult[]>
+        methodsToCall: CallMethodRequestLike[],
+        callback: ResponseCallback<CallMethodResult[]>
     ): void;
     public call(
-      methodToCall: CallMethodRequestLike
+        methodToCall: CallMethodRequestLike
     ): Promise<CallMethodResult>;
     public call(
-      methodsToCall: CallMethodRequestLike[]
+        methodsToCall: CallMethodRequestLike[]
     ): Promise<CallMethodResult[]>;
     public call(
-      methodsToCall: CallMethodRequestLike | CallMethodRequestLike[],
-      callback?: ResponseCallback<any>
+        methodsToCall: CallMethodRequestLike | CallMethodRequestLike[],
+        callback?: ResponseCallback<any>
     ): any {
 
         const isArray = _.isArray(methodsToCall);
@@ -238,35 +251,35 @@ export class PseudoSession implements IBasicSession {
         }
 
         async.map(methodsToCall as CallMethodRequestLike[],
-          (methodToCall, innerCallback: (err: Error | null, result?: CallMethodResult) => void) => {
+            (methodToCall, innerCallback: (err: Error | null, result?: CallMethodResult) => void) => {
 
-              const callMethodRequest = new CallMethodRequest(methodToCall);
+                const callMethodRequest = new CallMethodRequest(methodToCall);
 
-              callMethodHelper(
-                this.server, this.session, this.addressSpace, callMethodRequest,
-                (err: Error | null, result?: CallMethodResultOptions) => {
+                callMethodHelper(
+                    this.server, this.session, this.addressSpace, callMethodRequest,
+                    (err: Error | null, result?: CallMethodResultOptions) => {
 
-                    let callMethodResult: CallMethodResult;
-                    if (err) {
-                        callMethodResult = new CallMethodResult({
-                            statusCode: StatusCodes.BadInternalError
-                        });
-                    } else {
-                        callMethodResult = new CallMethodResult(result);
-                    }
-                    innerCallback(null, callMethodResult);
-                });
+                        let callMethodResult: CallMethodResult;
+                        if (err) {
+                            callMethodResult = new CallMethodResult({
+                                statusCode: StatusCodes.BadInternalError
+                            });
+                        } else {
+                            callMethodResult = new CallMethodResult(result);
+                        }
+                        innerCallback(null, callMethodResult);
+                    });
 
-          }, (err?: Error | null, callMethodResults?: any) => {
-              callback!(null, isArray ? callMethodResults! : callMethodResults![0]);
-          });
+            }, (err?: Error | null, callMethodResults?: any) => {
+                callback!(null, isArray ? callMethodResults! : callMethodResults![0]);
+            });
     }
 
     public getArgumentDefinition(
-      methodId: MethodId
+        methodId: MethodId
     ): Promise<ArgumentDefinition>;
     public getArgumentDefinition(
-      methodId: MethodId, callback: ResponseCallback<ArgumentDefinition>
+        methodId: MethodId, callback: ResponseCallback<ArgumentDefinition>
     ): void;
     public getArgumentDefinition(methodId: MethodId, callback?: ResponseCallback<ArgumentDefinition>): any {
         return getArgumentDefinitionHelper(this, methodId, callback!);
@@ -277,8 +290,8 @@ export class PseudoSession implements IBasicSession {
     public translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
     public translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
     public translateBrowsePath(
-      browsePaths: BrowsePath[] | BrowsePath,
-      callback?: any
+        browsePaths: BrowsePath[] | BrowsePath,
+        callback?: any
     ): any {
 
         const isArray = _.isArray(browsePaths);
@@ -291,12 +304,46 @@ export class PseudoSession implements IBasicSession {
         });
         callback!(null, isArray ? browsePathResults : browsePathResults[0]);
     }
+    public write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
+    public write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
+    public write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
+    public write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
+    public write(nodesToWrite: any, callback?: ResponseCallback<any>): any {
+
+        const isArray = _.isArray(nodesToWrite);
+        if (!isArray) {
+            nodesToWrite = [nodesToWrite];
+        }
+
+        const context = SessionContext.defaultContext;
+
+        setImmediate(() => {
+
+            const statusCodesPromises: Promise<StatusCode>[] = nodesToWrite.map((nodeToWrite: WriteValue) => {
+
+                assert(!!nodeToWrite.nodeId, "expecting a nodeId");
+                assert(!!nodeToWrite.attributeId, "expecting a attributeId");
+
+                const nodeId = nodeToWrite.nodeId!;
+                const obj = this.addressSpace.findNode(nodeId);
+                if (!obj) {
+                    return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+                }
+                return promisify(obj.writeAttribute).call(obj, context, nodeToWrite);
+            });
+            Promise.all(statusCodesPromises).then((statusCodes: StatusCodes[]) => {
+                callback!(null, isArray ? statusCodes : statusCodes[0]);
+            });
+        });
+    }
+
 }
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
 PseudoSession.prototype.read = thenify.withCallback(PseudoSession.prototype.read);
+PseudoSession.prototype.write = thenify.withCallback(PseudoSession.prototype.write);
 PseudoSession.prototype.browse = thenify.withCallback(PseudoSession.prototype.browse);
 PseudoSession.prototype.browseNext = thenify.withCallback(PseudoSession.prototype.browseNext);
 PseudoSession.prototype.getArgumentDefinition = thenify.withCallback(PseudoSession.prototype.getArgumentDefinition);

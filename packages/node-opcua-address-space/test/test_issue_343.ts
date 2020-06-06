@@ -4,7 +4,7 @@ import * as nodesets from "node-opcua-nodesets";
 import { generateAddressSpace } from "..";
 import { AddressSpace, Namespace, NamespaceOptions } from "..";
 
-import { BoilerType, createBoilerType} from "..";
+import { BoilerType, createBoilerType } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -28,7 +28,7 @@ describe("Testing automatic string nodeid assignment", () => {
         const someNamespace2 = addressSpace.registerNamespace("SomeOtherNamespace2");
         someNamespace2.index.should.eql(3);
 
-        boilerType = createBoilerType(addressSpace);
+        boilerType = createBoilerType(namespace);
     });
 
     after(async () => {
@@ -46,34 +46,34 @@ describe("Testing automatic string nodeid assignment", () => {
 
         boiler.nodeId.toString().should.eql("ns=1;s=MyBoiler");
 
-        boiler.pipeX001.nodeId.namespace.should.eql(boiler.nodeId.namespace, "expecting namespace index to match");
-        boiler.pipeX001.nodeId.toString().should.eql("ns=1;s=MyBoiler-1:PipeX001");
+        boiler.inputPipe.nodeId.namespace.should.eql(boiler.nodeId.namespace, "expecting namespace index to match");
+        boiler.inputPipe.nodeId.toString().should.eql("ns=1;s=MyBoiler-InputPipe");
 
         //  console.log(boiler.toString());
 
     });
 
     it("should be possible to specify a custom separator for construction string nodeid " +
-      "during object instantiation", () => {
+        "during object instantiation", () => {
 
-        const old_nodeIdNameSeparator = NamespaceOptions.nodeIdNameSeparator;
+            const old_nodeIdNameSeparator = NamespaceOptions.nodeIdNameSeparator;
 
-        old_nodeIdNameSeparator.should.have.type("string");
+            old_nodeIdNameSeparator.should.have.type("string");
 
-        NamespaceOptions.nodeIdNameSeparator = "#";
+            NamespaceOptions.nodeIdNameSeparator = "#";
 
-        const boiler = boilerType.instantiate({
-            browseName: "Boiler2",
-            nodeId: "s=MyBoiler2"
+            const boiler = boilerType.instantiate({
+                browseName: "Boiler2",
+                nodeId: "s=MyBoiler2"
+            });
+
+            boiler.nodeId.toString().should.eql("ns=1;s=MyBoiler2");
+
+            boiler.inputPipe.nodeId.namespace.should.eql(boiler.nodeId.namespace, "expecting namespace index to match");
+            boiler.inputPipe.nodeId.toString().should.eql("ns=1;s=MyBoiler2#InputPipe");
+
+            NamespaceOptions.nodeIdNameSeparator = old_nodeIdNameSeparator;
+
         });
-
-        boiler.nodeId.toString().should.eql("ns=1;s=MyBoiler2");
-
-        boiler.pipeX001.nodeId.namespace.should.eql(boiler.nodeId.namespace, "expecting namespace index to match");
-        boiler.pipeX001.nodeId.toString().should.eql("ns=1;s=MyBoiler2#1:PipeX001");
-
-        NamespaceOptions.nodeIdNameSeparator = old_nodeIdNameSeparator;
-
-    });
 
 });

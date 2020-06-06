@@ -2,14 +2,13 @@
  * @module node-opcua-certificate-manager
  */
 // tslint:disable:no-empty
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 
 import envPaths from "env-paths";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
-import { StatusCodes } from "node-opcua-status-code";
 import {
     Certificate,
     exploreCertificateInfo,
@@ -22,37 +21,35 @@ import {
     CertificateManagerOptions,
     CertificateStatus
 } from "node-opcua-pki";
+import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 
 const paths = envPaths("node-opcua");
-
-type ErrorCallback = (err?: Error) => void;
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-type CallbackT<T> = (err: Error | null, result?: T) => void;
-type StatusCodeCallback = (err: Error | null, statusCode?: StatusCode) => void;
+import { CallbackT, StatusCodeCallback, Callback } from "node-opcua-status-code";
 
 export interface ICertificateManager {
 
     getTrustStatus(
-      certificate: Certificate
+        certificate: Certificate
     ): Promise<StatusCode>;
 
     getTrustStatus(
-      certificate: Certificate,
-      callback: StatusCodeCallback
+        certificate: Certificate,
+        callback: StatusCodeCallback
     ): void;
 
     checkCertificate(
-      certificate: Certificate
+        certificate: Certificate
     ): Promise<StatusCode>;
 
     checkCertificate(
-      certificate: Certificate,
-      callback: StatusCodeCallback): void;
+        certificate: Certificate,
+        callback: StatusCodeCallback): void;
 
     /**
      *
@@ -60,15 +57,15 @@ export interface ICertificateManager {
      * @param callback
      */
     trustCertificate(
-      certificate: Certificate,
-      callback: (err?: Error | null) => void
+        certificate: Certificate,
+        callback: (err?: Error | null) => void
     ): void;
 
     trustCertificate(certificate: Certificate): Promise<void>;
 
     rejectCertificate(
-      certificate: Certificate,
-      callback: (err?: Error | null) => void
+        certificate: Certificate,
+        callback: (err?: Error | null) => void
     ): void;
 
     rejectCertificate(certificate: Certificate): Promise<void>;
@@ -76,8 +73,8 @@ export interface ICertificateManager {
 }
 
 type ReadFileFunc = (
-  filename: string, encoding: string,
-  callback: (err: Error | null, content?: Buffer) => void) => void;
+    filename: string, encoding: string,
+    callback: (err: Error | null, content?: Buffer) => void) => void;
 
 export interface OPCUACertificateManagerOptions {
     /**
@@ -121,7 +118,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public checkCertificate(certificate: Certificate, callback: StatusCodeCallback): void;
     public checkCertificate(certificate: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | void {
 
-         const checkCertificateStep2 = (err?: Error | null) => {
+        const checkCertificateStep2 = (err?: Error | null) => {
             if (err) { return callback!(err, StatusCodes.BadInternalError); }
 
             super.verifyCertificate(certificate, (err1?: Error | null, status?: string) => {
@@ -134,9 +131,9 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                 }
                 callback!(null, statusCode);
             });
-         };
+        };
 
-         this._getCertificateStatus(certificate, (err: Error|null, status0?: "unknown" | "trusted" |  "rejected") => {
+        this._checkRejectedOrTrusted(certificate, (err: Error | null, status0?: "unknown" | "trusted" | "rejected") => {
 
             if (err) { return callback!(err); }
 
@@ -160,19 +157,19 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     }
 
     public async getTrustStatus(
-      certificate: Certificate
+        certificate: Certificate
     ): Promise<StatusCode>;
     public getTrustStatus(
-      certificate: Certificate,
-      callback: StatusCodeCallback
+        certificate: Certificate,
+        callback: StatusCodeCallback
     ): void;
     public getTrustStatus(
-      certificate: Certificate,
-      callback?: StatusCodeCallback
+        certificate: Certificate,
+        callback?: StatusCodeCallback
     ): any {
         this.isCertificateTrusted(certificate, (err: Error | null, trustedStatus?: string) => {
             callback!(err,
-              err ? undefined : (StatusCodes as any)[trustedStatus!]);
+                err ? undefined : (StatusCodes as any)[trustedStatus!]);
         });
     }
 
@@ -184,9 +181,9 @@ const thenify = require("thenify");
 const opts = { multiArgs: false };
 
 OPCUACertificateManager.prototype.checkCertificate =
-  thenify.withCallback(OPCUACertificateManager.prototype.checkCertificate, opts);
+    thenify.withCallback(OPCUACertificateManager.prototype.checkCertificate, opts);
 OPCUACertificateManager.prototype.getTrustStatus =
-  thenify.withCallback(OPCUACertificateManager.prototype.getTrustStatus, opts);
+    thenify.withCallback(OPCUACertificateManager.prototype.getTrustStatus, opts);
 
 // also see OPCUA 1.02 part 4 :
 //  - page 95  6.1.3 Determining if a Certificate is Trusted
@@ -206,7 +203,7 @@ export function checkCertificateValidity(certificate: Certificate): StatusCode {
         // certificate is not active yet
         // tslint:disable-next-line:no-console
         console.log(chalk.red(" Sender certificate is invalid : certificate is not active yet !") +
-          "  not before date =" + cert.notBefore
+            "  not before date =" + cert.notBefore
         );
         return StatusCodes.BadCertificateTimeInvalid;
     }
@@ -214,7 +211,7 @@ export function checkCertificateValidity(certificate: Certificate): StatusCode {
         // certificate is obsolete
         // tslint:disable-next-line:no-console
         console.log(chalk.red(" Sender certificate is invalid : certificate has expired !") +
-          " not after date =" + cert.notAfter);
+            " not after date =" + cert.notAfter);
         return StatusCodes.BadCertificateTimeInvalid;
     }
     // Has SoftwareCertificate has  been revoked by the issuer ?

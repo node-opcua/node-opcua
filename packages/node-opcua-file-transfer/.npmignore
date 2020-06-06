@@ -1,0 +1,4 @@
+test/
+tsconfig.json
+tsconfig.tsbuildinfo
+tslint.*

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-client
  */
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -15,13 +15,13 @@ import {
     MonitoringMode, SetMonitoringModeResponse
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { MonitoredItemCreateRequestOptions } from "node-opcua-types";
 import { ClientMonitoredItemBase } from "./client_monitored_item_base";
 import { SetMonitoringModeRequestLike } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
-import { Callback, ErrorCallback } from "./common";
-import { ClientMonitoredItemBaseImpl, PrepareForMonitoringResult } from "./private/client_monitored_item_base_impl";
+import { ClientMonitoredItemImpl } from "./private/client_monitored_item_impl";
 import { ClientSessionImpl } from "./private/client_session_impl";
 
 const debugLog = make_debugLog(__filename);
@@ -42,7 +42,7 @@ export class ClientMonitoredItemToolbox {
         const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
         for (const monitoredItem of monitoredItems) {
 
-            const monitoredItemI = monitoredItem as ClientMonitoredItemBaseImpl;
+            const monitoredItemI = monitoredItem as ClientMonitoredItemImpl;
             const itemToCreate = monitoredItemI._prepare_for_monitoring();
             if (_.isString(itemToCreate.error)) {
                 return done(new Error(itemToCreate.error));
@@ -75,7 +75,7 @@ export class ClientMonitoredItemToolbox {
 
                     for (let i = 0; i < response.results.length; i++) {
                         const monitoredItemResult = response.results[i];
-                        const monitoredItem = monitoredItems[i] as ClientMonitoredItemBaseImpl;
+                        const monitoredItem = monitoredItems[i] as ClientMonitoredItemImpl;
                         monitoredItem._after_create(monitoredItemResult);
                     }
                 }
@@ -98,7 +98,7 @@ export class ClientMonitoredItemToolbox {
             const clientHandle = monitoredItem.monitoringParameters.clientHandle;
             return new MonitoredItemModifyRequest({
                 monitoredItemId: monitoredItem.monitoredItemId,
-                requestedParameters: _.extend(_.clone(parameters), {clientHandle})
+                requestedParameters: _.extend(_.clone(parameters), { clientHandle })
             });
         });
         const modifyMonitoredItemsRequest = new ModifyMonitoredItemsRequest({
@@ -137,7 +137,7 @@ export class ClientMonitoredItemToolbox {
             });
     }
 
-    public static  _toolbox_setMonitoringMode(
+    public static _toolbox_setMonitoringMode(
         subscription: ClientSubscription,
         monitoredItems: ClientMonitoredItemBase[],
         monitoringMode: MonitoringMode,

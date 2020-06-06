@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { display_trace_from_this_projet_only, hexDump, make_debugLog } from "node-opcua-debug";
@@ -96,7 +96,7 @@ export class MockServerTransport extends EventEmitter {
 
             } else {
                 const msg = " MockServerTransport has no more packets to send to client to" +
-                  " emulate server responses.... ";
+                    " emulate server responses.... ";
                 console.log(chalk.red.bold(msg));
                 console.log(chalk.blue.bold(hexDump(data)));
 

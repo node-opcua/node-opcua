@@ -14,5 +14,9 @@ pki/
 tmp/
 deprecated_*
 _generated_/
+tsconfig.json
+tsconfig.tsbuildinfo
+tslint.*
+.mocharc.yaml
 
 

@@ -1,0 +1,53 @@
+{
+  "name": "node-opcua-modeler",
+  "version": "2.6.4",
+  "description": "pure nodejs OPCUA SDK - module - model",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "node -e \"require('rimraf').sync('dist');\"",
+    "test": "mocha test"
+  },
+  "author": "Etienne Rossignon",
+  "license": "MIT",
+  "dependencies": {
+    "@types/csv-parse": "^1.2.2",
+    "chalk": "^4.0.0",
+    "cli-table3": "^0.6.0",
+    "csv-parse": "^4.9.1",
+    "node-opcua-address-space": "^2.6.4",
+    "node-opcua-assert": "^2.6.1",
+    "node-opcua-basic-types": "^2.6.1",
+    "node-opcua-client-dynamic-extension-object": "^2.6.4",
+    "node-opcua-data-model": "^2.6.1",
+    "node-opcua-factory": "^2.6.1",
+    "node-opcua-nodeid": "^2.6.1",
+    "node-opcua-nodesets": "^2.6.4",
+    "node-opcua-numeric-range": "^2.6.1",
+    "node-opcua-schemas": "^2.6.4",
+    "node-opcua-service-translate-browse-path": "^2.6.4",
+    "node-opcua-status-code": "^2.6.1",
+    "node-opcua-types": "^2.6.4",
+    "node-opcua-variant": "^2.6.1",
+    "node-opcua-xml2json": "^2.6.4"
+  },
+  "devDependencies": {
+    "node-opcua-leak-detector": "^2.6.1",
+    "should": "^13.2.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/node-opcua/node-opcua.git"
+  },
+  "keywords": [
+    "OPCUA",
+    "opcua",
+    "m2m",
+    "iot",
+    "opc ua",
+    "internet of things"
+  ],
+  "homepage": "http://node-opcua.github.io/",
+  "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
+}

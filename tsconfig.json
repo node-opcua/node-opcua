@@ -1,41 +1,34 @@
 {
-  /// "extends": "./config/tsconfig.flexible", // also available: "./config/tsconfig.strict"
-  "compilerOptions": {
-    "skipLibCheck": true,
-    "target": "es6",
-    "outDir": "build/main",
-    "rootDir": "source",
-    "moduleResolution": "node",
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": false, /* to prevent Istanbul  ignore statement in comment to disapper */
-    "importHelpers": true,
-    "inlineSourceMap": true,
-    "listFiles": false,
-    "traceResolution": false,
-    "pretty": true,
+    /// "extends": "./config/tsconfig.flexible",
+    // also available: "./config/tsconfig.strict"
+    "compilerOptions": {
+        "skipLibCheck": true,
+        "target": "es6",
+        "outDir": "build/main",
+        "rootDir": "./",
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "declaration": true,
+        "removeComments": false /* to prevent Istanbul  ignore statement in comment to disapper */,
+        "importHelpers": true,
+        "inlineSourceMap": true,
+        "listFiles": false,
+        "traceResolution": false,
+        "pretty": true,
 
-    "noUnusedLocals": false,                /* Report errors on unused locals. */
-    "noUnusedParameters": false,            /* Report errors on unused parameters. */
-    "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
+        "noUnusedLocals": false /* Report errors on unused locals. */,
+        "noUnusedParameters": false /* Report errors on unused parameters. */,
+        "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
 
-    "lib" : [
-      "es2017", "es2017.object"
-    ],
-    "types" : [
-      "node"
-    ],
-    "baseUrl": ".", // required for "paths"
-    "paths": {
-      "typescript-starter": ["package/node-opcua/index.js"] // write tests without relative paths
-    }
-  },
-  "include": [
-  ],
-  "exclude": [
-    "node_modules/**",
-    "node_modules"
-  ],
-  "compileOnSave": false,
-  "incremental": true
+        "lib": ["es2017", "es2017.object"],
+        "types": ["node"],
+        "baseUrl": ".", // required for "paths"
+        "paths": {
+            "typescript-starter": ["package/node-opcua/index.js"] // write tests without relative paths
+        }
+    },
+    "include": ["packages/**/*.ts"],
+    "exclude": ["node_modules/**", "node_modules"],
+    "compileOnSave": false,
+    "incremental": "traceResolution"
 }

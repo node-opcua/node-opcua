@@ -1,26 +1,29 @@
 // tslint:disable:no-console
 // tslint:disable:max-line-length
 import * as fs from "fs";
+import * as mocha from "mocha";
 import * as should from "should";
 
 import { getTempFilename } from "node-opcua-debug";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
-import { getMiniAddressSpace } from "../";
-import { createBoilerType } from "../";
-
 import {
     AddressSpace,
+    createBoilerType,
     dumpXml,
     generateAddressSpace,
+    getMiniAddressSpace,
     Namespace,
-    RootFolder
+    RootFolder,
+    UAVariable
 } from "..";
 
 import * as nodesets from "node-opcua-nodesets";
+import { randomGuid } from "node-opcua-basic-types";
+import { coerceLocalizedText, makeAccessLevelFlag } from "../../node-opcua-data-model/dist";
 
-const doDebug = false;
+const doDebug = process.env.DEBUGTEST || false;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -70,14 +73,19 @@ describe("testing nodeset to xml", () => {
             enumeration: ["RUNNING", "STOPPED"]
         });
 
+        const enumStringNode = myEnumType.getChildByName("EnumStrings")! as UAVariable;
+        const values = enumStringNode.readValue().value.value.map((x: any) => x.toString());
+        // xx console.log(values.toString());
+        values.join(",").should.eql("locale=null text=RUNNING,locale=null text=STOPPED");
+
         myEnumType.browseName.toString().should.eql("1:MyEnumTypeForm1");
         const str = dumpXml(myEnumType, {});
         if (doDebug) {
             console.log(str);
         }
         str.should.match(/RUNNING/);
-        str.should.match(/<Field Name="RUNNING" Value="0"\/>/);
-        str.should.match(/<Field Name="STOPPED" Value="1"\/>/);
+        str.should.match(/<Field Name="RUNNING" Value="0">/);
+        str.should.match(/<Field Name="STOPPED" Value="1">/);
 
     });
     it("€€ should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", () => {
@@ -96,8 +104,8 @@ describe("testing nodeset to xml", () => {
             console.log(str);
         }
         str.should.match(/RUNNING/);
-        str.should.match(/<Field Name="RUNNING" Value="10"\/>/);
-        str.should.match(/<Field Name="STOPPED" Value="20"\/>/);
+        str.should.match(/<Field Name="RUNNING" Value="10">/);
+        str.should.match(/<Field Name="STOPPED" Value="20">/);
 
     });
 
@@ -146,7 +154,8 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAObjectType/g);
 
     });
-    it("should output a instance of object with method  to xml", () => {
+
+    it("KLKL should output a instance of object with method  to xml", () => {
 
         const createCameraType = require("./fixture_camera_type").createCameraType;
 
@@ -162,6 +171,9 @@ describe("testing nodeset to xml", () => {
         }
         str.should.match(/UAObjectType/g);
         str.should.match(/UAObjectType/g);
+        str.should.match(/<\/UAMethod>/g, "must have a complex UAMethod element");
+        str.should.match(/BrowseName="InputArguments"/);
+        str.should.match(/BrowseName="OutputArguments"/);
     });
 
     it("should output an instance of variable type to xml", () => {
@@ -191,6 +203,136 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAReferenceType/g);
         str.should.match(/StuffOf/g);
         str.should.match(/HasStuff/g);
+
+    });
+
+    it("should output a Method to xml", () => {
+        const ownNamespace = addressSpace.getOwnNamespace();
+
+        const rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+
+        const obj1 = ownNamespace.addObject({
+            browseName: "Object",
+            organizedBy: rootFolder.objects
+        });
+        ownNamespace.addMethod(obj1, {
+            browseName: "Trigger",
+            inputArguments: [
+                {
+                    dataType: DataType.UInt32,
+                    description: { text: "specifies the number of seconds to wait before the picture is taken " },
+                    name: "ShutterLag",
+                }
+            ],
+            modellingRule: "Mandatory",
+            outputArguments: [
+                {
+                    dataType: "Image",
+                    description: { text: "the generated image" },
+                    name: "Image",
+                }
+            ]
+        });
+        let str = dumpXml(obj1, {});
+
+        str.should.match(/<\/UAMethod>/g, "must have a complex UAMethod element");
+        str.should.match(/BrowseName="InputArguments"/);
+        str.should.match(/BrowseName="OutputArguments"/);
+
+        if (doDebug) {
+            console.log(str);
+        }
+
+        str = str.replace(/LastModified=\".*\" /g, "LastModified=\"DATE\" ");
+        str.should.eql(`<?xml version="1.0"?>
+<UANodeSet xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.02" LastModified="DATE" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <Aliases>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+    </Aliases>
+<!--Object - 1:Object {{{{ -->
+    <UAObject NodeId="ns=1;i=1000" BrowseName="1:Object">
+        <DisplayName>Object</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1001</Reference>
+        </References>
+    </UAObject>
+    <UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger">
+        <DisplayName>Trigger</DisplayName>
+        <Description></Description>
+        <References>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=1002</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=1003</Reference>
+        </References>
+    </UAMethod>
+    <UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ValueRank="1" ArrayDimensions="1" DataType="Argument">
+        <DisplayName>InputArguments</DisplayName>
+        <Description>the definition of the input argument of method 1:Object.1:Trigger</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+        <Value>
+            <ListOfExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=0;i=297</Identifier>
+                    </TypeId>
+                    <Body>
+                        <Argument>
+                            <Name>ShutterLag</Name>
+                            <DataType>
+                                <Identifier>ns=0;i=7</Identifier>
+                            </DataType>
+                            <ValueRank>-1</ValueRank>
+                            <ArrayDimensions>0</ArrayDimensions>
+                            <Description>
+                                <Locale/>
+                                <Text>specifies the number of seconds to wait before the picture is taken </Text>
+                            </Description>
+                        </Argument>
+                    </Body>
+                </ExtensionObject>
+            </ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ValueRank="1" ArrayDimensions="1" DataType="Argument">
+        <DisplayName>OutputArguments</DisplayName>
+        <Description>the definition of the output arguments of method 1:Object.1:Trigger</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+        <Value>
+            <ListOfExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=0;i=297</Identifier>
+                    </TypeId>
+                    <Body>
+                        <Argument>
+                            <Name>Image</Name>
+                            <DataType>
+                                <Identifier>ns=0;i=30</Identifier>
+                            </DataType>
+                            <ValueRank>-1</ValueRank>
+                            <ArrayDimensions>0</ArrayDimensions>
+                            <Description>
+                                <Locale/>
+                                <Text>the generated image</Text>
+                            </Description>
+                        </Argument>
+                    </Body>
+                </ExtensionObject>
+            </ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+<!--Object - 1:Object }}}} -->
+</UANodeSet>`);
 
     });
 
@@ -225,10 +367,9 @@ describe("Namespace to NodeSet2.xml", () => {
         let xml = namespace.toNodeset2XML();
         xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
         xml.should.eql(
-          `<?xml version="1.0"?>
+            `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
-        <Uri>http://opcfoundation.org/UA/</Uri>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
     <Models/>
@@ -265,10 +406,9 @@ describe("Namespace to NodeSet2.xml", () => {
         let xml = namespace.toNodeset2XML();
         xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
         xml.should.eql(
-          `<?xml version="1.0"?>
+            `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
-        <Uri>http://opcfoundation.org/UA/</Uri>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
     <Models/>
@@ -313,10 +453,9 @@ describe("Namespace to NodeSet2.xml", () => {
         let xml = namespace.toNodeset2XML();
         xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
         xml.should.eql(
-          `<?xml version="1.0"?>
+            `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
-        <Uri>http://opcfoundation.org/UA/</Uri>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
     <Models/>
@@ -346,9 +485,50 @@ describe("Namespace to NodeSet2.xml", () => {
 </UANodeSet>`
         );
     });
+
+    it("should emit AccessLevel attribute when needed (UAVariable)", () => {
+
+        const acessLevelFlag = makeAccessLevelFlag("CurrentRead | CurrentWrite | HistoryRead");
+
+        const myVariable = namespace.addVariable({
+            accessLevel: acessLevelFlag,
+            browseName: "MyVariable",
+            dataType: DataType.Double,
+            typeDefinition: "BaseVariableType",
+        });
+
+        myVariable.accessLevel.should.eql(acessLevelFlag);
+
+        let xml = namespace.toNodeset2XML();
+        xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        xml.should.eql(
+            `<?xml version="1.0"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>http://MYNAMESPACE</Uri>
+    </NamespaceUris>
+    <Models/>
+    <Aliases>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+    </Aliases>
+<!--ReferenceTypes-->
+<!--ObjectTypes-->
+<!--VariableTypes-->
+<!--Other Nodes-->
+    <UAVariable NodeId="ns=1;i=1000" BrowseName="1:MyVariable" AccessLevel="7" DataType="Double">
+        <DisplayName>MyVariable</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=62</Reference>
+        </References>
+    </UAVariable>
+</UANodeSet>`);
+
+    });
+
 });
 
-describe("nodeset2.xml with more than one referenced namespace", function(this: any) {
+describe("nodeset2.xml with more than one referenced namespace", function (this: any) {
 
     this.timeout(20000);
 
@@ -387,15 +567,7 @@ describe("nodeset2.xml with more than one referenced namespace", function(this: 
         }
     });
 
-    it("should produce a XML file - with DI included - 1 Rich ObjectType - and reload it", async () => {
-
-        createBoilerType(addressSpace);
-        const xml = namespace.toNodeset2XML();
-        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
-
-        const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
-        fs.writeFileSync(tmpFilename, xml);
-
+    async function reloadedNodeSet(tmpFilename: string) {
         /// Xx console.log(xml);
         const theNodesets = [
             nodesets.standard_nodeset_file,
@@ -414,11 +586,118 @@ describe("nodeset2.xml with more than one referenced namespace", function(this: 
 
         const tmpFilename2 = getTempFilename("__generated_node_set_version2.xml");
         fs.writeFileSync(tmpFilename2, r_xml);
+        reloadedAddressSpace.dispose();
+        return r_xml2;
+    }
 
+    it("should produce a XML file - with DI included - 1 Rich ObjectType - and reload it", async () => {
+
+        createBoilerType(namespace);
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+        // create a
+    });
+
+    it("NSXML1 should output an XML file - with Variant GUID", async () => {
+        const v = namespace.addVariable({
+            browseName: "Test",
+            dataType: "Guid",
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.Guid,
+                value: "AFCFB362-73BD-D408-20FA-94E9567BCC27" // randomGuid("000")
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+        // console.log(xml);
+    });
+    it("NSXML2 should output an XML file - with Variant LocalizedText", async () => {
+        const v = namespace.addVariable({
+            browseName: "Test",
+            dataType: "Guid",
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.LocalizedText,
+                value: coerceLocalizedText("Hello")
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
-        reloadedAddressSpace.dispose();
+        // console.log(xml);
+    });
+    it("NSXML3 should output an XML file - with Variant Matrix UAVariable", async () => {
+        const v = namespace.addVariable({
+            browseName: "Test",
+            dataType: "UInt32",
 
-        // create a
+            arrayDimensions: [1, 2],
+            valueRank: 2,
+
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.UInt32,
+                value: [1, 2, 3, 4]
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+
+        r_xml2.should.match(/ValueRank=\"2\"/);
+        r_xml2.should.match(/ArrayDimensions=\"1,2\"/);
+
+        // console.log(xml);
+    });
+    it("NSXML3 should output an XML file - with Variant Matrix UAVariableType", async () => {
+        const v = namespace.addVariableType({
+            browseName: "TestVariableType",
+            dataType: "UInt32",
+
+            arrayDimensions: [1, 2],
+            valueRank: 2,
+
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.UInt32,
+                value: [1, 2, 3, 4]
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+
+        r_xml2.should.match(/ValueRank=\"2\"/);
+        r_xml2.should.match(/ArrayDimensions=\"1,2\"/);
+
+        // console.log(xml);
     });
 });

@@ -25,7 +25,7 @@ import {
     ClientSession
 } from "../client_session";
 import {
-    EventStuff, 
+    EventStuff,
     fieldsToJson
 } from "./client_alarm";
 import {
@@ -85,7 +85,7 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
         publishingEnabled: true,
         requestedLifetimeCount: 10000,
         requestedMaxKeepAliveCount: 1000,
-        requestedPublishingInterval: 10,
+        requestedPublishingInterval: 1000,
     };
     const subscription = await session.createSubscription2(request);
     _sessionPriv.$subscriptionforAlarmList = subscription;
@@ -154,7 +154,7 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
 
     try {
         await callConditionRefresh(subscription);
-    } catch(err) {
+    } catch (err) {
         console.log("Server may not implement condition refresh", err.message);
     }
     _sessionPriv.$monitoredItemForAlarmList = event_monitoringItem;

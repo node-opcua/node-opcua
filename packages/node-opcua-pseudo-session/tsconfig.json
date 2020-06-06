@@ -1,10 +1,45 @@
 {
-  "extends" : "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist"
-  },
-  "files": [
-    "source/index.ts"
-  ]
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true
+    },
+    "include": ["source/**/*.ts"],
+    "references": [
+        {
+            "path": "../node-opcua-data-model"
+        },
+        {
+            "path": "../node-opcua-data-value"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-service-browse"
+        },
+        {
+            "path": "../node-opcua-service-call"
+        },
+        {
+            "path": "../node-opcua-service-read"
+        },
+        {
+            "path": "../node-opcua-service-write"
+        },
+        {
+            "path": "../node-opcua-service-translate-browse-path"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-utils"
+        },
+        {
+            "path": "../node-opcua-variant"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

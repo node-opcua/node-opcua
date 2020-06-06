@@ -18,6 +18,7 @@ describe("DS5- testing OPCUA-Service Discovery Endpoint", function () {
     before(function (done) {
 
         server = build_server_with_temperature_device({port: port}, function (err) {
+            if(err) { return done(err); }
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done(err);

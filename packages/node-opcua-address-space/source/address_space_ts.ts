@@ -3,7 +3,7 @@
  * @module node-opcua-address-space
  */
 import { EventEmitter } from "events";
-import { Byte, ByteString, DateTime, Int64, UABoolean, UAString, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
+import { Byte, ByteString, DateTime, Int64, UABoolean, UAString, UInt16, UInt32, UInt64, Int32, Int16, SByte } from "node-opcua-basic-types";
 
 export type Duration = number;
 
@@ -17,9 +17,9 @@ import {
     QualifiedName,
     QualifiedNameLike
 } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import { DataValue, DataValueOptions, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
 import { PreciseClock } from "node-opcua-date-time";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId, NodeIdLike, } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { BrowseDescription, BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
 import {
@@ -28,7 +28,9 @@ import {
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
 import { WriteValueOptions } from "node-opcua-service-write";
-import { StatusCode } from "node-opcua-status-code";
+import { StatusCode, } from "node-opcua-status-code";
+import { ErrorCallback, CallbackT } from "node-opcua-status-code";
+
 import {
     Argument,
     ArgumentOptions,
@@ -38,6 +40,7 @@ import {
     BrowsePathResult,
     BuildInfo,
     CallMethodResultOptions,
+    EnumValueType,
     EUInformation,
     EUInformationOptions,
     Range,
@@ -48,9 +51,18 @@ import {
     ServerStatusDataType,
     SessionDiagnosticsDataType,
     SessionSecurityDiagnosticsDataType,
-    SignedSoftwareCertificate
+    SignedSoftwareCertificate,
+    SimpleAttributeOperand
 } from "node-opcua-types";
-import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
+import {
+    DataType,
+    Variant,
+    VariantArrayType,
+    VariantByteString,
+    VariantLike
+} from "node-opcua-variant";
+import { AnyConstructorFunc } from "node-opcua-schemas";
+
 import { MinimalistAddressSpace, Reference } from "../src/reference";
 import { State, StateMachine, StateMachineType, Transition, UtcTime } from "./interfaces/state_machine";
 import { SessionContext } from "./session_context";
@@ -66,7 +78,7 @@ import { UALimitAlarm } from "../src/alarms_and_conditions/ua_limit_alarm";
 import { UANonExclusiveDeviationAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_deviation_alarm";
 import { UANonExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_limit_alarm";
 
-export type ErrorCallback = (err?: Error) => void;
+import { StatusCodeCallback } from "node-opcua-status-code";
 
 export declare interface AddReferenceOpts {
     referenceType: string | NodeId | UAReferenceType;
@@ -85,6 +97,8 @@ export interface UAReference {
     readonly isForward: boolean;
 
     readonly node?: BaseNode;
+
+    toString(options?: { addressSpace?: AddressSpace }): string;
 }
 
 export declare function resolveReferenceType(
@@ -131,6 +145,8 @@ export declare class BaseNode extends EventEmitter {
     public readonly namespaceIndex: number;
     public readonly namespaceUri: string;
     public readonly namespace: Namespace;
+
+    public onFirstBrowseAction?: (this: BaseNode) => Promise<void>;
 
     /**
      * return a complete name of this object by pre-pending
@@ -232,12 +248,10 @@ export interface BindVariableOptionsVariation1 {
 
 export type DataValueCallback = (err: Error | null, dataValue?: DataValue) => void;
 
-export type StatusCodeCallBack = (err: Error | null, statusCode?: StatusCode) => void;
-
 export type VariableDataValueGetterSync = () => DataValue;
 export type VariableDataValueGetterAsync = (callback: DataValueCallback) => void;
 
-export type VariableDataValueSetterWithCallback = (dataValue: DataValue, callback: StatusCodeCallBack) => void;
+export type VariableDataValueSetterWithCallback = (dataValue: DataValue, callback: StatusCodeCallback) => void;
 
 export interface BindVariableOptionsVariation2 {
     timestamped_get: VariableDataValueGetterSync | VariableDataValueGetterAsync;
@@ -246,25 +260,19 @@ export interface BindVariableOptionsVariation2 {
 }
 
 export interface BindVariableOptionsVariation3 {
-    refreshFunc: (callback: DataValueCallback) => void;
+    refreshFunc?: (callback: DataValueCallback) => void;
     historyRead?: any;
 }
 
 export type BindVariableOptions =
-    | {
-          historyRead?: any;
-      }
-    | BindVariableOptionsVariation1
+    BindVariableOptionsVariation1
     | BindVariableOptionsVariation2
     | BindVariableOptionsVariation3;
 
 export type ContinuationPoint = Buffer;
-export type Callback<T> = (err: Error | null, result?: T) => void;
 
 export interface VariableAttributes {
     dataType: NodeId;
-    accessLevel: number;
-    userAccessLevel: number;
     valueRank: number;
     minimumSamplingInterval: number;
 }
@@ -376,7 +384,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *     and a multidimentional array is encoded as a one dimensional array.
      *
      */
-    arrayDimensions: UInt32[];
+    arrayDimensions: UInt32[] | null;
 
     /**
      * The `historizing` attribute indicates whether the server is actively collecting data for the
@@ -446,6 +454,10 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     readValueAsync(context: SessionContext | null, callback: DataValueCallback): void;
 
+    isEnumeration(): boolean;
+
+    isExtensionObject(): boolean;
+
     /**
      *
      */
@@ -468,22 +480,22 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValue,
+        dataValue: DataValueOptions,
         indexRange: string | NumericRange | null,
-        callback: StatusCodeCallBack
+        callback: StatusCodeCallback
     ): void;
 
-    writeValue(context: SessionContext, dataValue: DataValue, callback: StatusCodeCallBack): void;
+    writeValue(context: SessionContext, dataValue: DataValueOptions, callback: StatusCodeCallback): void;
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValue,
+        dataValue: DataValueOptions,
         indexRange?: string | NumericRange | null
     ): Promise<StatusCode>;
 
-    asyncRefresh(callback: DataValueCallback): void;
+    asyncRefresh(oldestDate: Date, callback: DataValueCallback): void;
 
-    asyncRefresh(): Promise<DataValue>;
+    asyncRefresh(oldestDate: Date): Promise<DataValue>;
 
     /**
      * write a variale attribute (callback version)
@@ -510,7 +522,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *  ```
      *
      */
-    writeAttribute(context: SessionContext, writeValue: WriteValueOptions, callback: StatusCodeCallBack): void;
+    writeAttribute(context: SessionContext, writeValue: WriteValueOptions, callback: StatusCodeCallback): void;
     /**
      * write a variale attribute (async/await version)
      * @param context
@@ -546,7 +558,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     setPermissions(permissions: Permissions): void;
 
-    bindVariable(options: BindVariableOptions, overwrite?: boolean): void;
+    bindVariable(options: BindVariableOptions | VariantLike, overwrite?: boolean): void;
 
     bindExtensionObject(optionalExtensionObject?: ExtensionObject): ExtensionObject | null;
 
@@ -564,7 +576,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint: ContinuationPoint | null,
-        callback: Callback<HistoryReadResult>
+        callback: CallbackT<HistoryReadResult>
     ): void;
 
     clone(options?: any, optionalFilter?: any, extraInfo?: any): UAVariable;
@@ -580,7 +592,11 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
     once(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): this;
 }
 
-export interface AddDataItemOptions extends AddVariableOptions {
+export interface AddDataItemOptions extends AddVariableOptionsWithoutValue {
+
+    arrayType?: VariantArrayType;
+    value?: VariantLike | BindVariableOptions;
+
     /** @example  "(tempA -25) + tempB" */
     definition?: string;
     /** @example 0.5 */
@@ -588,11 +604,14 @@ export interface AddDataItemOptions extends AddVariableOptions {
 }
 
 export interface UADataItem extends UAVariable {
-    definition?: Property<DataType.String>;
-    valuePrecision?: Property<DataType.Double>;
+    definition?: Property<string, DataType.String>;
+    valuePrecision?: Property<number, DataType.Double>;
 }
 
 export interface AddAnalogDataItemOptions extends AddDataItemOptions {
+
+    value?: VariantLike | BindVariableOptions;
+
     engineeringUnitsRange?: {
         low: number;
         high: number;
@@ -610,13 +629,21 @@ export interface UAAnalogItem extends UADataItem {
     // HasProperty  Variable  InstrumentRange  Range  PropertyType  Optional
     // HasProperty  Variable  EURange  Range  PropertyType  Mandatory
     // HasProperty  Variable  EngineeringUnits  EUInformation  PropertyType  Optional
-    engineeringUnits: Property<"EUInformation">;
-    instrumentRange?: Property<"Range">;
-    euRange: Property<"Range">;
+    engineeringUnits: Property<EUInformation, DataType.ExtensionObject>;
+    instrumentRange?: Property<Range, DataType.ExtensionObject>;
+    euRange: Property<Range, DataType.ExtensionObject>;
 }
 
 export interface UAMultiStateDiscrete extends UAVariable {
-    enumStrings: Property<"StringArray">;
+    /**
+     * The EnumStrings Property only applies for Enumeration DataTypes.
+     * It shall not be applied for other DataTypes. If the EnumValues
+     * Property is provided, the EnumStrings Property shall not be provided.
+     * Each entry of the array of LocalizedText in this Property represents
+     * the human-readable representation of an enumerated value. The
+     * Integer representation of the enumeration value points to a position of the array.
+     */
+    enumStrings: Property<LocalizedText[], DataType.LocalizedText>;
 
     getValue(): number;
 
@@ -633,14 +660,14 @@ export interface EnumValueTypeOptionsLike {
     description?: LocalizedTextLike | null;
 }
 
-export interface AddMultiStateValueDiscreteOptions extends AddVariableOptions {
+export interface AddMultiStateValueDiscreteOptions extends AddVariableOptionsWithoutValue {
     enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number };
     value?: number | Int64;
 }
 
 export interface UAMultiStateValueDiscrete extends UAVariable {
-    enumValues: Property<"EnumValueType">;
-    valueAsText: Property<DataType.String>;
+    enumValues: Property<EnumValueType[], DataType.ExtensionObject>;
+    valueAsText: Property<LocalizedText, DataType.LocalizedText>;
 
     setValue(value: string | number | Int64): void;
     getValueAsString(): string;
@@ -648,7 +675,7 @@ export interface UAMultiStateValueDiscrete extends UAVariable {
 }
 
 // tslint:disable:no-empty-interface
-export interface UAEventType extends UAObjectType {}
+export interface UAEventType extends UAObjectType { }
 
 export type EventTypeLike = string | NodeId | UAEventType;
 
@@ -665,6 +692,15 @@ export interface PseudoVariantBoolean {
     dataType: "Boolean" | DataType.Boolean;
     value: boolean;
 }
+export interface PseudoVariantDouble {
+    dataType: "Double" | DataType.Double;
+    value: number;
+}
+
+export interface PseudoVariantFloat {
+    dataType: "Float" | DataType.Float;
+    value: number;
+}
 
 export interface PseudoVariantNodeId {
     dataType: "NodeId" | DataType.NodeId;
@@ -674,6 +710,26 @@ export interface PseudoVariantNodeId {
 export interface PseudoVariantUInt32 {
     dataType: "UInt32" | DataType.UInt32;
     value: UInt32;
+}
+export interface PseudoVariantUInt16 {
+    dataType: "UInt16" | DataType.UInt16;
+    value: UInt16;
+}
+export interface PseudoVariantByte {
+    dataType: "UInt8" | DataType.Byte;
+    value: Byte;
+}
+export interface PseudoVariantInt32 {
+    dataType: "Int32" | DataType.UInt32;
+    value: Int32;
+}
+export interface PseudoVariantInt16 {
+    dataType: "Int16" | DataType.UInt16;
+    value: Int16;
+}
+export interface PseudoVariantSByte {
+    dataType: "SByte" | DataType.SByte;
+    value: SByte;
 }
 
 export interface PseudoVariantDateTime {
@@ -707,10 +763,21 @@ export interface PseudoVariantExtensionObject {
 }
 
 export interface PseudoVariantExtensionObjectArray {
-    dataType: "ExtensionObject";
+    dataType: "ExtensionObject" | DataType.ExtensionObject;
     arrayType: VariantArrayType.Array;
     value: object[];
 }
+
+export type PseudoVariantNumber =
+    | PseudoVariantUInt32
+    | PseudoVariantUInt16
+    | PseudoVariantByte
+    | PseudoVariantInt32
+    | PseudoVariantInt16
+    | PseudoVariantSByte
+    | PseudoVariantDouble
+    | PseudoVariantFloat
+    ;
 
 export type PseudoVariant =
     | PseudoVariantNull
@@ -722,7 +789,7 @@ export type PseudoVariant =
     | PseudoVariantDuration
     | PseudoVariantLocalizedText
     | PseudoVariantStatusCode
-    | PseudoVariantUInt32
+    | PseudoVariantNumber
     | PseudoVariantExtensionObject
     | PseudoVariantExtensionObjectArray;
 
@@ -756,7 +823,10 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
 
     raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
 
-    on(eventName: "event", eventHandler: (eventData: EventData) => void): this;
+    on(eventName: "event", eventHandler: (eventData: IEventData) => void): this;
+
+    clone(options: any, optionalFilter?: any, extraInfo?: any): UAObject;
+
 }
 
 // export interface CallMethodResult {
@@ -821,17 +891,25 @@ export interface UADataType extends BaseNode {
 
     readonly isAbstract: boolean;
 
-    readonly binaryEncodingDefinition: string;
-    readonly binaryEncodingNodeId: NodeId;
-    readonly binaryEncoding: BaseNode;
+    readonly binaryEncodingDefinition: string | null;
+    readonly binaryEncodingNodeId: ExpandedNodeId | null;
+    readonly binaryEncoding: BaseNode | null;
 
-    readonly xmlEncodingDefinition: string;
-    readonly xmlEncodingNodeId: NodeId;
-    readonly xmlEncoding: BaseNode;
+    readonly xmlEncodingDefinition: string | null;
+    readonly xmlEncodingNodeId: ExpandedNodeId | null;
+    readonly xmlEncoding: BaseNode | null;
+
+    // readonly jsonEncodingDefinition: string | null;
+    readonly jsonEncodingNodeId: ExpandedNodeId | null;
+    readonly jsonEncoding: BaseNode | null;
+
+    readonly basicDataType: DataType;
+    readonly symbolicName: string;
 
     isSupertypeOf(referenceType: NodeIdLike | UADataType): boolean;
 
     getEncodingNode(encodingName: string): BaseNode | null;
+
 }
 
 export interface InstantiateOptions {
@@ -847,6 +925,14 @@ export interface InstantiateOptions {
      * will be used.
      */
     description?: LocalizedTextLike;
+
+    /**
+     * an optional displayName
+     *
+     * if not provided the default description of the corresponding browseName
+     * will be used.
+     */
+    displayName?: LocalizedTextLike | null;
 
     /**
      * the parent Folder holding this object
@@ -892,11 +978,12 @@ export interface InstantiateOptions {
 }
 
 export interface InstantiateVariableOptions extends InstantiateOptions {
-    arrayDimensions?: number[];
+    arrayDimensions?: number[] | null;
     dataType?: any;
     extensionObject?: any;
     nodeId?: NodeIdLike;
     minimumSamplingInterval?: number;
+    propertyOf?: NodeIdLike | UAObject | UAObjectType | UAVariable | UAVariableType | UAMethod;
     value?: any;
     valueRank?: number;
 }
@@ -905,6 +992,8 @@ export interface InstantiateObjectOptions extends InstantiateOptions {
     //
     conditionSource?: NodeId | BaseNode;
     eventNotifier?: Byte;
+    // for DataTypeEncodingType
+    encodingOf?: NodeId | BaseNode;
 }
 
 export declare interface UAObjectType extends BaseNode, IPropertyAndComponentHolder {
@@ -933,11 +1022,9 @@ export declare class UAVariableType extends BaseNode implements VariableAttribut
     public readonly subtypeOf: NodeId | null;
 
     public dataType: NodeId;
-    public accessLevel: number;
-    public userAccessLevel: number;
     public valueRank: number;
     public minimumSamplingInterval: number;
-    public arrayDimensions: number[];
+    public arrayDimensions: UInt32[] | null;
     public historizing: boolean;
 
     public isAbstract: boolean;
@@ -987,7 +1074,7 @@ export enum EUEngineeringUnit {
     // to be continued
 }
 
-export type ModellingRuleType = "Mandatory" | "Optional" | null;
+export type ModellingRuleType = "Mandatory" | "Optional" | "MandatoryPlaceholder" | "OptionalPlaceholder" | "ExposesItsArray" | null;
 
 export interface AddBaseNodeOptions {
     browseName: QualifiedNameLike;
@@ -1050,7 +1137,7 @@ export interface VariableStuff {
      *     Note that the maximum length of an array transferred on the wire is 2147483647 (max Int32)
      *     and a multi-dimensional array is encoded as a one dimensional array.
      */
-    arrayDimensions?: UInt32[];
+    arrayDimensions?: UInt32[] | null;
 
     /**
      * The AccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
@@ -1087,7 +1174,7 @@ export interface VariableStuff {
      */
     historizing?: boolean;
 
-    dataValue?: DataValue;
+    dataValue?: DataValueOptions;
 }
 
 export interface AddVariableTypeOptions extends AddBaseNodeOptions, VariableStuff {
@@ -1100,14 +1187,16 @@ export interface AddVariableTypeOptions extends AddBaseNodeOptions, VariableStuf
     value?: VariantLike;
 }
 
-export interface AddVariableOptions extends AddBaseNodeOptions, VariableStuff {
+export interface AddVariableOptionsWithoutValue extends AddBaseNodeOptions, VariableStuff {
+    permissions?: Permissions;
+}
+export interface AddVariableOptions extends AddVariableOptionsWithoutValue {
     /**
      * permissions
      */
     // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
-    permissions?: Permissions;
-    value?: VariantLike | BindVariableOptions | number | Int64;
+    value?: VariantLike | BindVariableOptions;
     postInstantiateFunc?: (node: UAVariable) => void;
 }
 
@@ -1136,6 +1225,7 @@ export interface AddObjectOptions extends AddBaseNodeOptions {
     // default value is "BaseObjectType";
     typeDefinition?: string | NodeId | UAObjectType;
     nodeVersion?: string;
+    encodingOf?: NodeId | BaseNode;
 }
 
 export interface AddViewOptions extends AddBaseNodeOptions {
@@ -1148,20 +1238,20 @@ export interface AddMethodOptions {
     browseName: QualifiedNameLike;
     displayName?: LocalizedTextLike;
     description?: LocalizedTextLike;
-    inputArguments: ArgumentOptions[];
+    inputArguments?: ArgumentOptions[];
     modellingRule?: ModellingRuleType;
-    outputArguments: ArgumentOptions[];
+    outputArguments?: ArgumentOptions[];
     componentOf?: NodeIdLike | BaseNode;
     executable?: boolean;
     userExecutable?: boolean;
 }
 
 export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, VariableStuff {
-    value?: number;
     enumStrings: string[]; // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
     permissions?: Permissions;
     postInstantiateFunc?: (node: UAVariable) => void;
+    value?: number;
 }
 
 export interface AddReferenceTypeOptions extends AddBaseNodeOptions {
@@ -1170,17 +1260,19 @@ export interface AddReferenceTypeOptions extends AddBaseNodeOptions {
     subtypeOf?: string | NodeId | UAReferenceType;
 }
 
-export interface AddTwoStateVariableOptions extends AddVariableOptions {
+export interface AddTwoStateVariableOptions extends AddVariableOptionsWithoutValue {
     falseState?: string;
     trueState?: string;
     optionals?: string[];
     isFalseSubStateOf?: NodeIdLike | BaseNode;
     isTrueSubStateOf?: NodeIdLike | BaseNode;
+
+    value?: boolean;
 }
 
 export interface CreateDataTypeOptions extends AddBaseNodeOptions {
-    isAbstract?: boolean;
-    superType?: string | NodeId;
+    isAbstract: boolean;
+    subtypeOf?: string | NodeId | UADataType;
 }
 
 // -
@@ -1221,22 +1313,22 @@ export interface AddYArrayItemOptions extends AddVariableOptions {
 }
 
 export interface RangeVariable extends UAVariable {
-    low: UAVariableT<DataType.Double>;
-    high: UAVariableT<DataType.Double>;
+    low: UAVariableT<number, DataType.Double>;
+    high: UAVariableT<number, DataType.Double>;
 }
 
 export interface XAxisDefinitionVariable extends UAVariable {
-    engineeringUnits: UAVariableT<UAString>;
-    title: UAVariableT<UAString>;
+    engineeringUnits: UAVariableT<UAString, DataType.String>;
+    title: UAVariableT<LocalizedText, DataType.LocalizedText>;
     euRange: RangeVariable;
 }
 
 export interface YArrayItemVariable extends UAVariable {
-    euRange: UAVariableT<Range>;
-    title: UAVariableT<DataType.String>;
-    xAxisDefinition: UAVariableT<DataType.ExtensionObject>; // AxisInformationOptions
-    instrumentRange: UAVariableT<Range>;
-    axisScaleType: UAVariableT<AxisScaleEnumeration>;
+    euRange: UAVariableT<Range, DataType.ExtensionObject>;
+    title: UAVariableT<LocalizedText, DataType.LocalizedText>;
+    xAxisDefinition: UAVariableT<AxisInformationOptions, DataType.ExtensionObject>; // AxisInformationOptions
+    instrumentRange: UAVariableT<Range, DataType.ExtensionObject>;
+    axisScaleType: UAVariableT<number, DataType.UInt32>; // AxisScaleEnumeration
 }
 
 export type CreateNodeOptions = any;
@@ -1249,6 +1341,8 @@ export declare interface Namespace {
     namespaceUri: string;
     addressSpace: AddressSpace;
     index: number;
+
+    constructNodeId(options: ConstructNodeIdOptions): NodeId;
 
     // -------------------------------------------------------------------------
 
@@ -1394,7 +1488,7 @@ export declare interface Namespace {
 }
 
 // tslint:disable:no-empty-interface
-export interface Folder extends UAObject {}
+export interface Folder extends UAObject { }
 
 export type FolderType = UAObjectType;
 
@@ -1407,21 +1501,21 @@ export interface TypesFolder extends Folder {
 }
 
 export interface BuildInfo1 extends UAVariable {
-    productUri: UAVariableT<UAString>;
-    manufacturerName: UAVariableT<UAString>;
-    productName: UAVariableT<UAString>;
-    softwareVersion: UAVariableT<UAString>;
-    buildNumber: UAVariableT<UAString>;
-    buildDate: UAVariableT<DateTime>;
+    productUri: UAVariableT<UAString, DataType.String>;
+    manufacturerName: UAVariableT<UAString, DataType.String>;
+    productName: UAVariableT<UAString, DataType.String>;
+    softwareVersion: UAVariableT<UAString, DataType.String>;
+    buildNumber: UAVariableT<UAString, DataType.String>;
+    buildDate: UAVariableT<DateTime, DataType.DateTime>;
     $extensionObject: BuildInfo;
 }
 
 export interface UAServerStatus extends UAVariable {
-    startTime: UAVariableT<DataType.DateTime>;
-    currentTime: UAVariableT<DataType.DateTime>;
-    state: UAVariableT<ServerState>; // Enumeration
-    secondsTillShutdown: UAVariableT<DataType.UInt32>;
-    shutdownReason: UAVariableT<DataType.LocalizedText>;
+    startTime: UAVariableT<DateTime, DataType.DateTime>;
+    currentTime: UAVariableT<DateTime, DataType.DateTime>;
+    state: UAVariableT<ServerState, DataType.ExtensionObject>; // Enumeration
+    secondsTillShutdown: UAVariableT<UInt32, DataType.UInt32>;
+    shutdownReason: UAVariableT<LocalizedText, DataType.LocalizedText>;
     buildInfo: BuildInfo1;
 
     $extensionObject: ServerStatusDataType;
@@ -1445,7 +1539,7 @@ export interface UASessionDiagnosticsSummary extends UAObject {
 
 export interface UAServerDiagnostics extends UAObject {
     sessionsDiagnosticsSummary: UASessionDiagnosticsSummary;
-
+    enabledFlag: UAVariableT<boolean, DataType.Boolean>;
     bindExtensionObject(obj: UAServerDiagnosticsSummary): UAServerDiagnosticsSummary;
 }
 
@@ -1455,7 +1549,7 @@ export interface UAFileType extends UAObject {
      * Size defines the size of the file in Bytes.
      * When a file is opened for write the size might not be accurate.
      */
-    size: UAVariableT<UInt64>;
+    size: UAVariableT<UInt64, DataType.UInt64>;
     /**
      * Writable indicates whether the file is writable. It does not take any user
      * access rights intoaccount, i.e. although the file is writable this may be
@@ -1464,22 +1558,22 @@ export interface UAFileType extends UAObject {
      * opened for writing by another client and thus currently locked and not
      * writable by others.
      */
-    writable: UAVariableT<UABoolean>;
+    writable: UAVariableT<UABoolean, DataType.Boolean>;
     /**
      * UserWritable indicates whether the file is writable taking user access rights into account. The
      * Property does not take into account whether the file is currently opened for writing by another
      * client and thus currently locked and not writable by others.
      */
-    userWritable: UAVariableT<UABoolean>;
+    userWritable: UAVariableT<UABoolean, DataType.Boolean>;
 
     /**
      * OpenCount indicates the number of currently valid file handles on the file.
      */
-    openCount: UAVariableT<UInt16>;
+    openCount: UAVariableT<UInt16, DataType.UInt16>;
     /**
      * The optional Property MimeType contains the media type of the file based on RFC 2046.
      */
-    mimeType: UAVariableT<UAString>;
+    mimeType: UAVariableT<UAString, DataType.String>;
 
     // methods
     open: UAMethod;
@@ -1512,7 +1606,7 @@ export interface UATrustList extends UAFileType {
      * Methods. This can be used to determine if a device has an up to date Trust List or to detect
      * unexpected modifications. Out of band changes are not necessarily reported by this value.
      */
-    lastUpdateTime: UAVariableT<UtcTime>; // mandatory
+    lastUpdateTime: UAVariableT<UtcTime, DataType.DateTime>; // mandatory
 
     /**
      * The UpdateFrequency Property specifies how often the Trust List needs to be checked for
@@ -1522,7 +1616,7 @@ export interface UATrustList extends UAFileType {
      * ServerConfiguration Object then this value specifies how frequently the Server expects the
      * Trust List to be updated.
      */
-    updateFrequency?: UAVariableT<Duration>; // optional
+    updateFrequency?: UAVariableT<Duration, DataType.Double>; // optional
 
     // event
     // If auditing is supported, the CertificateManager shall generate the
@@ -1543,7 +1637,7 @@ export interface UACertificateGroup extends UAObject {
      * Group shall be subtypes of a single common type which shall be either
      * ApplicationCertificateType or HttpsCertificateType
      */
-    certificateTypes: UAVariableT<NodeId[]>;
+    certificateTypes: UAVariableT<NodeId[], DataType.NodeId>;
 
     /**
      * The TrustList Object is the Trust List associated with the Certificate Group.
@@ -1566,7 +1660,7 @@ export interface UACertificateGroup extends UAObject {
     trustListOutOfDate?: UATrustListOutOfDateAlarmType;
 }
 
-export interface UACertificateExpirationAlarmType extends UAEventType {}
+export interface UACertificateExpirationAlarmType extends UAEventType { }
 
 /**
  * This event is raised when a Trust List is changed.
@@ -1574,7 +1668,7 @@ export interface UACertificateExpirationAlarmType extends UAEventType {}
  * It shall also be raised when the AddCertificate or RemoveCertificate Method causes an
  * update to the Trust List.
  */
-export interface UATrustListOutOfDateAlarmType extends UAEventType {}
+export interface UATrustListOutOfDateAlarmType extends UAEventType { }
 
 export interface UACertificateGroupFolder extends Folder {
     /**
@@ -1606,9 +1700,9 @@ export interface UACertificateGroupFolder extends Folder {
     // <AdditionalGroup>
 }
 
-export interface UAKeyCredentialConfigurationFolder extends Folder {}
+export interface UAKeyCredentialConfigurationFolder extends Folder { }
 
-export interface UAUserTokenPolicy {}
+export interface UAUserTokenPolicy { }
 
 export interface UAAuthorizationService extends UAObject {
     // found in authorizationServices
@@ -1617,12 +1711,12 @@ export interface UAAuthorizationService extends UAObject {
      * The ServiceUri is a globally unique identifier that allows a Client to correlate an instance of
      * AuthorizationServiceType with instances of AuthorizationServiceConfigurationType (see
      */
-    serviceUri: UAVariableT<UAString>;
+    serviceUri: UAVariableT<UAString, DataType.String>;
 
     /**
      * The ServiceCertificate is the complete chain of Certificates needed to validate the AccessTokens
      */
-    serviceCertificate: UAVariableT<ByteString>;
+    serviceCertificate: UAVariableT<ByteString, DataType.ByteString>;
 
     /**
      * The GetServiceDescription Method is used read the metadata needed to request AccessTokens
@@ -1633,7 +1727,7 @@ export interface UAAuthorizationService extends UAObject {
      * The UserTokenPolicies Property specifies the UserIdentityTokens which are accepted by the
      * RequestAccessToken Method
      */
-    userTokenPolicy?: UAVariableT<UAUserTokenPolicy[]>;
+    userTokenPolicy?: UAVariableT<UAUserTokenPolicy[], DataType.ExtensionObject>;
 
     /**
      * The RequestAccessToken Method is used to request an Access Token from the Authorization Service
@@ -1641,7 +1735,7 @@ export interface UAAuthorizationService extends UAObject {
     requestAccessToken?: UAMethod;
 }
 
-export interface UAAutorizationServicesFolder extends Folder {}
+export interface UAAutorizationServicesFolder extends Folder { }
 
 // partial UAServerConfiguration related to authorization service
 export interface UAServerConfiguration extends UAObject {
@@ -1703,30 +1797,30 @@ export interface UAServerConfiguration extends UAObject {
      * The MaxTrustListSize is the maximum size of the Trust List in bytes. 0 means no limit.
      * The default is 65 535 bytes.
      */
-    maxTrustListSize: UAVariableT<UInt32>;
+    maxTrustListSize: UAVariableT<UInt32, DataType.UInt32>;
 
     /**
      * If MulticastDnsEnabled is TRUE then the Server announces itself using multicast DNS. It can
      * be changed by writing to the Variable.
      */
-    multicastDnsEnabled: UAVariableT<UABoolean>;
+    multicastDnsEnabled: UAVariableT<UABoolean, DataType.Boolean>;
 
     /**
      * The ServerCapabilities Property specifies the capabilities from Annex D which the Server
      * supports. The value is the same as the value  reported to the LocalDiscoveryServer when the
      * Server calls the RegisterServer2 Service
      */
-    serverCapabilities: UAVariableT<UAString[]>;
+    serverCapabilities: UAVariableT<UAString[], DataType.String>;
 
     /**
      * The SupportedPrivateKeyFormats specifies the PrivateKey formats supported by the Server.
      * Possible values include “PEM” (see RFC 5958) or “PFX” (see PKCS #12). The array is empty
      * if the Server does not allow external Clients to update the PrivateKey
      */
-    supportedPrivateKeyFormats: UAVariableT<UAString[]>;
+    supportedPrivateKeyFormats: UAVariableT<UAString[], DataType.String>;
 }
 
-export interface UADirectoryType {}
+export interface UADirectoryType { }
 
 /**
  *
@@ -1788,57 +1882,57 @@ export interface UAOperationLimits extends UAObject {
      * The MaxNodesPerRead Property indicates the maximum size of the nodesToRead array when
      * a Client calls the Read Service.
      */
-    maxNodesPerRead?: UAVariableT<UInt32>;
+    maxNodesPerRead?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerHistoryReadData Property indicates the maximum size of the nodesToRead
      * array when a Client calls the HistoryRead Service using the historyReadDetails RAW,
      * PROCESSED, MODIFIED or ATTIME.
      */
-    maxNodesPerHistoryReadData?: UAVariableT<UInt32>;
+    maxNodesPerHistoryReadData?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerHistoryReadEvents Property indicates the maximum size of the
      * nodesToRead array when a Client calls the HistoryRead Service using the historyReadDetails
      * EVENTS.
      */
-    maxNodesPerHistoryReadEvents?: UAVariableT<UInt32>;
+    maxNodesPerHistoryReadEvents?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerWrite Property indicates the maximum size of the nodesToWrite array when
      * a Client calls the Write Service.
      */
-    maxNodesPerWrite?: UAVariableT<UInt32>;
+    maxNodesPerWrite?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerHistoryUpdateData Property indicates the maximum size of the
      * historyUpdateDetails array supported by the Server when a Client calls the HistoryUpdate
      * Service.
      */
-    maxNodesPerHistoryUpdateData?: UAVariableT<UInt32>;
+    maxNodesPerHistoryUpdateData?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerHistoryUpdateEvents Property indicates the maximum size of the
      * historyUpdateDetails array when a Client calls the HistoryUpdate Service.
      */
-    maxNodesPerHistoryUpdateEvents?: UAVariableT<UInt32>;
+    maxNodesPerHistoryUpdateEvents?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerMethodCall Property indicates the maximum size of the methodsToCall array
      * when a Client calls the Call Service.
      */
-    maxNodesPerMethodCall?: UAVariableT<UInt32>;
+    maxNodesPerMethodCall?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerBrowse Property indicates the maximum size of the nodesToBrowse array
      * when calling the Browse Service or the continuationPoints array when a Client calls the
      * BrowseNext Service.
      */
-    maxNodesPerBrowse?: UAVariableT<UInt32>;
+    maxNodesPerBrowse?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerRegisterNodes Property indicates the maximum size of the nodesToRegister
      *  array when a Client calls the RegisterNodes Service and the maximum size of the
      * nodesToUnregister when calling the UnregisterNodes Service.
      */
-    maxNodesPerRegisterNodes?: UAVariableT<UInt32>;
+    maxNodesPerRegisterNodes?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerTranslateBrowsePathsToNodeIds Property indicates the maximum size of
      * the browsePaths array when a Client calls the TranslateBrowsePathsToNodeIds Service.
      */
-    maxNodesPerTranslateBrowsePathsToNodeIds?: UAVariableT<UInt32>;
+    maxNodesPerTranslateBrowsePathsToNodeIds?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxNodesPerNodeManagement Property indicates the maximum size of the nodesToAdd
      * array when a Client calls the AddNodes Service, the maximum size of the referencesToAdd
@@ -1846,7 +1940,7 @@ export interface UAOperationLimits extends UAObject {
      * array when a Client calls the DeleteNodes Service, and the maximum size of the
      * referencesToDelete array when a Client calls the DeleteReferences Service.
      */
-    maxNodesPerNodeManagement?: UAVariableT<UInt32>;
+    maxNodesPerNodeManagement?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxMonitoredItemsPerCall Property indicates
      *  • the maximum size of the itemsToCreate array when a Client calls the
@@ -1858,10 +1952,10 @@ export interface UAOperationLimits extends UAObject {
      *  • the maximum size of the sum of the linksToAdd and linksToRemove arrays when a
      *    Client calls the SetTriggering Service.
      */
-    maxMonitoredItemsPerCall?: UAVariableT<UInt32>;
+    maxMonitoredItemsPerCall?: UAVariableT<UInt32, DataType.UInt32>;
 }
 
-export interface IdentityMappingRuleType {}
+export interface IdentityMappingRuleType { }
 
 /**
  * The Properties and Methods of the Role contain sensitive security related information and
@@ -1873,7 +1967,7 @@ export interface Role extends UAObject {
      * The Identities Property specifies the currently configured rules for mapping a UserIdentityToken
      * to the Role. If this Property is an empty array, then the Role cannot be granted to any Session.
      */
-    identities: UAVariableT<IdentityMappingRuleType>;
+    identities: UAVariableT<IdentityMappingRuleType, DataType.ExtensionObject>;
 
     /**
      * The ApplicationsExclude Property defines the Applications Property as an include list or exclude
@@ -1884,14 +1978,14 @@ export interface Role extends UAObject {
      * excluded from this Role. All other Application Instance Certificates shall be included in this
      * Role.
      */
-    applicationsExclude?: UAVariableT<boolean>;
+    applicationsExclude?: UAVariableT<boolean, DataType.Boolean>;
 
     /**
      * The Applications Property specifies the Application Instance Certificates of Clients which shall
      * be included or excluded from this Role. Each element in the array is an ApplicationUri from a
      * Client Certificate which is trusted by the Server.
      */
-    applications?: UAVariableT<UAString>;
+    applications?: UAVariableT<UAString, DataType.String>;
 
     /**
      * The EndpointsExclude Property defines the Endpoints Property as an include list or exclude list.
@@ -1900,7 +1994,7 @@ export interface Role extends UAObject {
      * Role. If this Property has a value of TRUE then all Endpoints included in the Endpoints Property
      * shall be excluded from this Role. All other Endpoints shall be included in this Role.
      */
-    endpointsExclude?: UAVariableT<boolean>;
+    endpointsExclude?: UAVariableT<boolean, DataType.Boolean>;
 
     /**
      * The Endpoints Property specifies the Endpoints which shall be included or excluded from this
@@ -1958,18 +2052,18 @@ export interface UAServerCapabilities extends UAObject {
      * Server Profiles. This list should be limited to the Profiles the Server supports in its current
      * configuration.
      */
-    serverProfileArray: UAVariableT<UAString[]>;
+    serverProfileArray: UAVariableT<UAString[], DataType.String>;
     /**
      * LocaleIdArray is an array of LocaleIds that are known to be supported by the Server. The Server
      * might not be aware of all LocaleIds that it supports because it may provide access to underlying
      * servers, systems or devices that do not report the LocaleIds that they support.
      */
-    localIdArray: UAVariableT<LocaleId[]>;
+    localIdArray: UAVariableT<LocaleId[], DataType.String>;
     /**
      * MinSupportedSampleRate defines the minimum supported sample rate, including 0, which is
      * supported by the Server.
      */
-    minSupportedSampleRate: UAVariableT<Duration>;
+    minSupportedSampleRate: UAVariableT<Duration, DataType.Double>;
     /**
      * MaxBrowseContinuationPoints is an integer specifying the maximum number of parallel
      * continuation points of the Browse Service that the Server can support per session. The value
@@ -1979,7 +2073,7 @@ export interface UAServerCapabilities extends UAObject {
      * that the Server does not restrict the number of parallel continuation points the client should use
      *
      */
-    maxBrowseContinuationPoints: UAVariableT<UInt16>;
+    maxBrowseContinuationPoints: UAVariableT<UInt16, DataType.UInt16>;
     /**
      * MaxQueryContinuationPoints is an integer specifying the maximum number of parallel
      * continuation points of the QueryFirst Services that the Server can support per session. The
@@ -1989,7 +2083,7 @@ export interface UAServerCapabilities extends UAObject {
      * indicates that the Server does not restrict the number of parallel continuation points the client
      * should use.
      */
-    maxQueryContinuationPoints: UAVariableT<UInt16>;
+    maxQueryContinuationPoints: UAVariableT<UInt16, DataType.UInt16>;
     /**
      * MaxHistoryContinuationPoints is an integer specifying the maximum number of parallel
      * continuation points of the HistoryRead Services that the Server can support per session. The
@@ -1999,14 +2093,14 @@ export interface UAServerCapabilities extends UAObject {
      * indicates that the Server does not restrict the number of parallel continuation points the client
      * should use.
      */
-    maxHistoryContinuationPoints: UAVariableT<UInt16>;
+    maxHistoryContinuationPoints: UAVariableT<UInt16, DataType.UInt16>;
 
     /**
      * SoftwareCertificates is an array of SignedSoftwareCertificates containing all
      * SoftwareCertificates supported by the Server. A SoftwareCertificate identifies capabilities of the
      * Server. It contains the list of Profiles supported by the Server. Profiles are described in Part 7.
      */
-    softwareCertificates: UAVariableT<SignedSoftwareCertificate[]>;
+    softwareCertificates: UAVariableT<SignedSoftwareCertificate[], DataType.ExtensionObject>;
 
     /**
      * The MaxArrayLength Property indicates the maximum length of a one or multidimensional array
@@ -2017,7 +2111,7 @@ export interface UAServerCapabilities extends UAObject {
      * on individual values. The individual Property may have a larger or smaller value than
      * MaxArrayLength.
      */
-    maxArrayLength?: UAVariableT<UInt32>;
+    maxArrayLength?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxStringLength Property indicates the maximum number of bytes in Strings supported by
      * Variables of the Server. Servers may override this setting by adding the MaxStringLength
@@ -2025,7 +2119,7 @@ export interface UAServerCapabilities extends UAObject {
      * number of bytes or is not able to determine the maximum number of bytes this Property shall
      * not be provided.
      */
-    maxStringLength?: UAVariableT<UInt32>;
+    maxStringLength?: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The MaxByteStringLength Property indicates the maximum number of bytes in a ByteString
      * supported by Variables of the Server. It also specifies the default maximum size of a FileType
@@ -2034,7 +2128,7 @@ export interface UAServerCapabilities extends UAObject {
      * Object. If a Server does not impose a maximum number of bytes or is not able to determine the
      * maximum number of bytes this Property shall not be provided.
      */
-    maxByteStringLength?: UAVariableT<UInt32>;
+    maxByteStringLength?: UAVariableT<UInt32, DataType.UInt32>;
 
     /**
      * OperationLimits is an entry point to access information on operation limits of the Server, for
@@ -2077,7 +2171,7 @@ export interface UAHistoryServerCapabilities extends UAObject {
      * or AccessHistoryEventsCapability shall have a value of True for the Server to be a valid OPC
      * UA Server supporting Historical Access.
      */
-    accessHistoryDataCapability: UAVariableT<boolean>;
+    accessHistoryDataCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The AccessHistoryEventCapability Variable defines if the server supports access to historical
      * Events. A value of True indicates the server supports access to the history of Events, a value
@@ -2086,7 +2180,7 @@ export interface UAHistoryServerCapabilities extends UAObject {
      * shall have a value of True for the Server to be a valid OPC UA Server supporting Historical
      * Access.
      */
-    accessHistoryEventsCapability: UAVariableT<boolean>;
+    accessHistoryEventsCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The MaxReturnDataValues Variable defines the maximum number of values that can be
      * returned by the Server for each HistoricalNode accessed during a request. A value of 0
@@ -2096,73 +2190,73 @@ export interface UAHistoryServerCapabilities extends UAObject {
      * any restrictions, the underlying system may impose a limit that the Server is not aware of. The
      * default value is 0.
      */
-    maxReturnDataValues: UAVariableT<UInt32>;
+    maxReturnDataValues: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * Similarily, the MaxReturnEventValues specifies the maximum number of Events that a Server
      * can return for a HistoricalEventNode.
      */
-    maxReturnEventValues: UAVariableT<UInt32>;
+    maxReturnEventValues: UAVariableT<UInt32, DataType.UInt32>;
     /**
      * The InsertDataCapability Variable indicates support for the Insert capability. A value of True
      * indicates the Server supports the capability to insert new data values in history, but not
      * overwrite existing values. The default value is False.
      */
-    insertDataCapability: UAVariableT<boolean>;
+    insertDataCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The ReplaceDataCapability Variable indicates support for the Replace capability. A value of
      * True indicates the Server supports the capability to replace existing data values in history, but
      * will not insert new values. The default value is False.
      */
-    replaceDataCapability: UAVariableT<boolean>;
+    replaceDataCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The UpdateDataCapability Variable indicates support for the Update capability. A value of
      * True indicates the Server supports the capability to insert new data values into history if none
      * exists, and replace values that currently exist. The default value is False.
      */
-    updateDataCapability: UAVariableT<boolean>;
+    updateDataCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The DeleteRawCapability Variable indicates support for the delete raw values capability. A
      * value of True indicates the Server supports the capability to delete raw data values in history.
      * The default value is False.
      */
-    deleteRawCapability: UAVariableT<boolean>;
+    deleteRawCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The DeleteAtTimeCapability Variable indicates support for the delete at time capability. A
      * value of True indicates the Server supports the capability to delete a data value at a specified
      * time. The default value is False.
      */
-    deleteAtTimeCapability: UAVariableT<boolean>;
+    deleteAtTimeCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The InsertEventCapability Variable indicates support for the Insert capability. A value of True
      * indicates the Server supports the capability to insert new Events in history. An insert is not a
      * replace. The default value is False.
      */
-    insertEventCapability: UAVariableT<boolean>;
+    insertEventCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The ReplaceEventCapability Variable indicates support for the Replace capability. A value of
      * True indicates the Server supports the capability to replace existing Events in history. A
      * replace is not an insert. The default value is False.
      */
-    replaceEventCapability: UAVariableT<boolean>;
+    replaceEventCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The UpdateEventCapability Variable indicates support for the Update capability. A value of
      * True indicates the Server supports the capability to insert new Events into history if none
      * exists, and replace values that currently exist. The default value is False.
      */
-    updateEventCapability: UAVariableT<boolean>;
+    updateEventCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The DeleteEventCapability Variable indicates support for the deletion of Events capability. A
      * value of True indicates the Server supports the capability to delete Events in history. The
      * default value is False
      */
-    deleteEventCapability: UAVariableT<boolean>;
+    deleteEventCapability: UAVariableT<boolean, DataType.Boolean>;
     /**
      * The InsertAnnotationCapability Variable indicates support for Annotations. A value of True
      * indicates the Server supports the capability to insert Annotations. Some Servers that support
      * Inserting of Annotations will also support editing and deleting of Annotations. The default
      * value is False.
      */
-    insertAnnotationsCapability: UAVariableT<boolean>;
+    insertAnnotationsCapability: UAVariableT<boolean, DataType.Boolean>;
 
     /**
      * AggregateFunctions is an entry point to browse to all Aggregate capabilities supported by the
@@ -2184,7 +2278,7 @@ export interface UAHistoryServerCapabilities extends UAObject {
      * SourceTimestamp. The default is False. This property is optional but it is expected all new
      * Servers include this property.
      */
-    serverTimestampSupported?: UAVariableT<boolean>;
+    serverTimestampSupported?: UAVariableT<boolean, DataType.Boolean>;
 }
 
 export interface Server extends UAObject {
@@ -2250,7 +2344,7 @@ export interface IVariableHistorianOptions {
     historian?: IVariableHistorian;
 }
 
-export interface EventData {
+export interface IEventData {
     /**
      * the event type node
      */
@@ -2259,6 +2353,11 @@ export interface EventData {
      *
      */
     eventId: NodeId;
+
+    resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null;
+    setValue(lowerName: string, node: BaseNode, variant: VariantLike): void;
+    readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant;
+
 }
 
 export interface AddressSpace {
@@ -2271,6 +2370,8 @@ export interface AddressSpace {
      * member of the UAObject/UAVariable node
      */
     isFrugal: boolean;
+
+    resolveNodeId(nodeIdLike: NodeIdLike): NodeId;
 
     findNode(node: NodeIdLike): BaseNode | null;
 
@@ -2385,7 +2486,7 @@ export interface AddressSpace {
     /**
      * get the extension object constructor from a DataType nodeID or UADataType object
      */
-    getExtensionObjectConstructor(dataType: NodeId | UADataType): any;
+    getExtensionObjectConstructor(dataType: NodeId | UADataType): AnyConstructorFunc;
 
     /**
      * construct an extension object constructor from a DataType nodeID or UADataType object
@@ -2407,7 +2508,7 @@ export interface AddressSpace {
      * or an instance of a ConditionType
      *
      */
-    constructEventData(eventTypeId: UAEventType, data: any): EventData;
+    constructEventData(eventTypeId: UAEventType, data: any): IEventData;
 
     /**
      * walk up the hierarchy of objects until a view is found
@@ -2432,13 +2533,15 @@ export interface AddressSpace {
     /**
      * EventId is generated by the Server to uniquely identify a particular Event Notification.
      */
-    generateEventId(): VariantT<DataType.ByteString>;
+    generateEventId(): VariantByteString;
 
 }
 
 import { AddressSpace as AddressSpaceImpl } from "../src/address_space";
 import { UAOffNormalAlarm } from "../src/alarms_and_conditions/ua_off_normal_alarm";
+import { ConstructNodeIdOptions } from "../src/nodeid_manager";
 import { UATwoStateDiscrete } from "./interfaces/data_access/ua_two_state_discrete";
+import { UANamespace } from "../src/namespace";
 
 export class AddressSpace {
     public static historizerFactory: any;
@@ -2484,60 +2587,52 @@ export declare class VariableHistorian implements IVariableHistorian {
     ): void;
 }
 
-export interface VariantT<T> extends Variant {
-    value: T;
-}
-
-export interface DataValueT<T> extends DataValue {
-    variant: VariantT<T>;
-}
-
-export interface UAVariableT<T> extends UAVariable {
+export interface UAVariableT<T, DT extends DataType> extends UAVariable {
     readValue(
         context?: SessionContext,
         indexRange?: NumericRange,
         dataEncoding?: QualifiedNameLike | null
-    ): DataValueT<T>;
+    ): DataValueT<T, DT>;
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValueT<T>,
+        dataValue: DataValueOptionsT<T, DT>,
         indexRange: NumericRange | null,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void;
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValueT<T>,
+        dataValue: DataValueOptionsT<T, DT>,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void;
 
     writeValue(
         context: SessionContext,
-        dataValue: DataValueT<T>,
+        dataValue: DataValueOptionsT<T, DT>,
         indexRange?: NumericRange | null
     ): Promise<StatusCode>;
 }
 
-export interface UAVariableTypeT<T> extends UAVariableType {
-    instantiate(options: InstantiateVariableOptions): UAVariableT<T>;
+export interface UAVariableTypeT<T, DT extends DataType> extends UAVariableType {
+    instantiate(options: InstantiateVariableOptions): UAVariableT<T, DT>;
 }
 
-export interface Property<T> extends UAVariableT<T> {
+export interface Property<T, DT extends DataType> extends UAVariableT<T, DT> {
 }
 
 export interface UAAggregateConfiguration extends UAObject {
-    treatUncertainAsBad: UAVariableT<DataType.Boolean>;
-    percentDataBad: UAVariableT<DataType.Byte>;
-    percentDataGood: UAVariableT<DataType.Byte>;
+    treatUncertainAsBad: UAVariableT<boolean, DataType.Boolean>;
+    percentDataBad: UAVariableT<number, DataType.Byte>;
+    percentDataGood: UAVariableT<number, DataType.Byte>;
 }
 
 export interface HistoricalDataConfiguration extends UAObject {
-    startOfArchive: UAVariableT<DataType.DateTime>;
-    startOfOnlineArchive: UAVariableT<DataType.DateTime>;
-    stepped: UAVariableT<DataType.Boolean>;
-    maxTimeInterval: UAVariableT<"Duration">;
-    minTimeInterval: UAVariableT<"Duration">;
+    startOfArchive: UAVariableT<Date, DataType.DateTime>;
+    startOfOnlineArchive: UAVariableT<Date, DataType.DateTime>;
+    stepped: UAVariableT<boolean, DataType.Boolean>;
+    maxTimeInterval: UAVariableT<number, DataType.Double>; // Duration
+    minTimeInterval: UAVariableT<number, DataType.Double>; // Duration
     aggregateConfiguration: UAAggregateConfiguration;
 }
 
@@ -2567,7 +2662,7 @@ export interface ConditionType extends UAObjectType {
     addComment: UAMethod;
 }
 
-export interface Enumeration extends UAVariable {}
+export interface Enumeration extends UAVariable { }
 
 // {{ Dynamic Array Variable
 export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVariable {
@@ -2577,8 +2672,6 @@ export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVar
     $$getElementBrowseName: (obj: T) => QualifiedName;
     $$indexPropertyName: string;
 }
-
-export declare function prepareDataType(addressSpace: AddressSpace, dataType: UADataType): void;
 
 export declare function createExtObjArrayNode<T extends ExtensionObject>(
     parentFolder: UAObject,
@@ -2604,3 +2697,4 @@ export declare function removeElement<T extends ExtensionObject>(
 // }}
 
 export declare function dumpXml(node: BaseNode, options: any): string;
+export declare function dumpToBSD(namespace: Namespace): string;

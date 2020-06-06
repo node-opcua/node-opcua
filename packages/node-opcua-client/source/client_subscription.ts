@@ -6,17 +6,18 @@
 import { EventEmitter } from "events";
 
 import { DiagnosticInfo } from "node-opcua-data-model";
-import { ErrorCallback } from "node-opcua-secure-channel";
 import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import {
-     MonitoringParametersOptions,
+    MonitoringParametersOptions,
     NotificationMessage
 } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
+import { ErrorCallback } from "node-opcua-status-code";
+
 import { ClientMonitoredItem } from "./client_monitored_item";
 import { ClientMonitoredItemBase } from "./client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "./client_monitored_item_group";
-import { ClientSession, SubscriptionId } from "./client_session";
+import { ClientSession, MonitoredItemData, SubscriptionId } from "./client_session";
 
 export interface ClientSubscriptionOptions {
     requestedPublishingInterval?: number;
@@ -210,6 +211,9 @@ export interface ClientSubscription extends EventEmitter {
     ): void;
     monitorItems(...args: any[]): any;
 
+    getMonitoredItems(): Promise<MonitoredItemData>;
+    getMonitoredItems(callback: (err: Error | null, result?: MonitoredItemData) => void): void;
+
     terminate(): Promise<void>;
     terminate(callback: ErrorCallback): void;
     terminate(...args: any[]): any;
@@ -224,29 +228,25 @@ export declare interface ClientSubscription {
      * notify the observers that the subscription has now started
      * @event started
      */
-    on(event: "started",
-       eventHandler: (subscriptionId: number) => void): this;
+    on(event: "started", eventHandler: (subscriptionId: number) => void): this;
 
     /**
      * notify the observers tha the client subscription has terminated
      * @event  terminated
      */
-    on(event: "terminated",
-       eventHandler: () => void): this;
+    on(event: "terminated", eventHandler: () => void): this;
 
     /**
      * notify the observers that a new monitored item has been added to the subscription.
      * @event  item_added
      */
-    on(event: "item_added",
-       eventHandler: (monitoredItem: ClientMonitoredItem) => void): this;
+    on(event: "item_added", eventHandler: (monitoredItem: ClientMonitoredItem) => void): this;
 
     /**
      * notify the observers that a keep alive Publish Response has been received from the server.
      * @event keepalive
      */
-    on(event: "keepalive",
-       eventHandler: () => void): this;
+    on(event: "keepalive", eventHandler: () => void): this;
 
     /**
      * notify the observers that an error has occurred
@@ -254,29 +254,24 @@ export declare interface ClientSubscription {
      * @param event
      * @param eventHandler
      */
-    on(event: "internal_error",
-       eventHandler: (err: Error) => void): this;
+    on(event: "internal_error", eventHandler: (err: Error) => void): this;
 
-    on(event: "raw_notification",
-       eventHandler: (notificationMessage: NotificationMessage) => void): this;
+    on(event: "raw_notification", eventHandler: (notificationMessage: NotificationMessage) => void): this;
 
     /**
      * notify the observers that some notifications has been received from the server in  a PublishResponse
      * each modified monitored Item
      * @event  received_notifications
      */
-    on(event: "received_notifications",
-       eventHandler: (notificationMessage: NotificationMessage) => void): this;
+    on(event: "received_notifications", eventHandler: (notificationMessage: NotificationMessage) => void): this;
 
     /**
      * notify the observers that the server has send a status changed notification (such as BadTimeout )
      * @event status_changed
      */
-    on(event: "status_changed",
-       eventHandler: (status: StatusCode, diagnosticInfo: DiagnosticInfo) => void): this;
+    on(event: "status_changed", eventHandler: (status: StatusCode, diagnosticInfo: DiagnosticInfo) => void): this;
 
-    on(event: "error",
-       eventHandler: (err: Error) => void): this;
+    on(event: "error", eventHandler: (err: Error) => void): this;
 }
 
 export class ClientSubscription {

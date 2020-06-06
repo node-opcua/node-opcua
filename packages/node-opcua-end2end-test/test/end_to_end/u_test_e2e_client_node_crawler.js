@@ -53,7 +53,7 @@ module.exports = function (test) {
 
             console.log("    referenceTypeId ",
                 f(chalk.yellow(reference.referenceTypeId.displayText(), 35)) +
-                (  reference.isForward ? " => " : " <= ") +
+                (reference.isForward ? " => " : " <= ") +
                 f(chalk.blue.bold(reference.browseName.name, 20)) +
                 "(" + chalk.cyan(reference.nodeId.displayText()) + ")"
             );
@@ -82,7 +82,7 @@ module.exports = function (test) {
                                 return null;
                             }
                         };
-                        console.log(" Node => ",nodeElement.browseName.toString(), nodeElement.nodeId.toString());
+                        console.log(" Node => ", nodeElement.browseName.toString(), nodeElement.nodeId.toString());
                         myDumpReferences(objectIndex, nodeElement.references);
 
                     }).on("end", function () {
@@ -96,6 +96,8 @@ module.exports = function (test) {
                             return done(err);
                         }
                         crawler.crawl(nodeToCrawl, data, function (err) {
+
+                            crawler.dispose();
                             done(err);
                         });
 
@@ -128,7 +130,7 @@ module.exports = function (test) {
                 crawler2.on("browsed", function (nodeElement, data) {
                     browsed_node2++;
                 });
-                const data1 = {onBrowse: NodeCrawler.follow};
+                const data1 = { onBrowse: NodeCrawler.follow };
 
                 crawler1.crawl(nodeToCrawl, data1, function (err) {
                     if (err) {
@@ -137,7 +139,7 @@ module.exports = function (test) {
                     browsed_node1.should.be.greaterThan(10, "expecting more than 10 nodes being browsed");
                     browsed_node2.should.equal(0);
 
-                    const data2 = {onBrowse: NodeCrawler.follow};
+                    const data2 = { onBrowse: NodeCrawler.follow };
                     crawler2.crawl(nodeToCrawl, data2, function (err) {
                         if (err) {
                             return done(err);
@@ -145,6 +147,9 @@ module.exports = function (test) {
 
                         browsed_node2.should.be.greaterThan(10);
                         browsed_node1.should.eql(browsed_node2, "crawler1 and crawler2 should browse the same number of node");
+
+                        crawler1.dispose();
+                        crawler2.dispose();
                         done();
                     });
                 });
@@ -164,7 +169,7 @@ module.exports = function (test) {
 
                     if (!err) {
 
-                        obj.organizes.forEach(function(o) {
+                        obj.organizes.forEach(function (o) {
                             console.log(o.browseName.toString());
                         });
 
@@ -175,6 +180,8 @@ module.exports = function (test) {
                         obj.organizes[2].browseName.toString().should.eql("Views");
                         obj.typeDefinition.should.eql("FolderType");
                     }
+                    crawler.dispose();
+
                     done(err);
                 });
             }, done);
@@ -208,6 +215,7 @@ module.exports = function (test) {
 
                         duration1.should.be.greaterThan(duration2);
 
+                        crawler.dispose();
                         done(err);
                     });
 
@@ -238,6 +246,7 @@ module.exports = function (test) {
                                 console.log(line);
                             });
                         }
+                        crawler.dispose();
                         callback(err);
                     });
 

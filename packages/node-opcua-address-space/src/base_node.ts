@@ -1,11 +1,12 @@
 /**
  * @module node-opcua-address-space
  */
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+import { UInt32 } from "node-opcua-basic-types";
 import {
     AttributeIds,
     attributeNameById,
@@ -43,6 +44,7 @@ import {
     UAReference as UAReferencePublic,
     UAReferenceType as UAReferenceTypePublic,
     UAVariable as UAVariablePublic,
+    UAVariableT,
     UAVariableType as UAVariableTypePublic,
     XmlWriter
 } from "../source";
@@ -54,6 +56,7 @@ import {
     BaseNode_add_backward_reference,
     BaseNode_getPrivate,
     BaseNode_initPrivate, BaseNode_remove_backward_reference,
+    BaseNode_removePrivate,
     BaseNode_toString, getSubtypeIndex, ToStringBuilder
 } from "./base_node_private";
 import { MinimalistAddressSpace, Reference } from "./reference";
@@ -61,8 +64,6 @@ import { MinimalistAddressSpace, Reference } from "./reference";
 // tslint:disable:no-var-requires
 // tslint:disable:no-bitwise
 // tslint:disable:no-console
-
-require("object.values");
 
 const doDebug = false;
 
@@ -92,13 +93,19 @@ export interface InternalBaseNodeOptions {
 
 function _is_valid_BrowseDirection(browseDirection: any) {
     return browseDirection === BrowseDirection.Forward ||
-      browseDirection === BrowseDirection.Inverse ||
-      browseDirection === BrowseDirection.Both
-      ;
+        browseDirection === BrowseDirection.Inverse ||
+        browseDirection === BrowseDirection.Both
+        ;
 }
 
 export interface BaseNode {
-    nodeVersion?: number;
+    /**
+     * NodeVersion (Optional) String The NodeVersion Property is used to indicate the version of a Node.
+     * The NodeVersion Property is updated each time a Reference is added or deleted to the Node the Property
+     * belongs to. Attribute value changes do not cause the NodeVersion to change.
+     * Clients may read the NodeVersion Property or subscribe to it to determine when the structure of a Node has changed.
+     */
+    nodeVersion?: UAVariableT<string, DataType.String>;
 }
 
 export function makeAttributeEventName(attributeId: AttributeIds) {
@@ -125,11 +132,13 @@ export function makeAttributeEventName(attributeId: AttributeIds) {
  */
 export class BaseNode extends EventEmitter implements BaseNodePublic {
 
+    public onFirstBrowseAction?: (this: BaseNodePublic) => Promise<void>;
+
     public get addressSpace(): AddressSpacePrivate {
         const _private = BaseNode_getPrivate(this);
         if (!_private) {
             throw new Error("Internal error , cannot extract private data from " +
-              this.browseName.toString());
+                this.browseName.toString());
         }
         return _private.__address_space as AddressSpacePrivate;
     }
@@ -238,7 +247,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     public static makeAttributeEventName(attributeId: AttributeIds) {
-        return  makeAttributeEventName(attributeId);
+        return makeAttributeEventName(attributeId);
     }
 
     protected static _getCache(baseNode: BaseNode) {
@@ -319,8 +328,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     // Finders
     // ---------------------------------------------------------------------------------------------------
     public findReferencesEx(
-      strReference: string,
-      browseDirection?: BrowseDirection
+        strReference: string,
+        browseDirection?: BrowseDirection
     ): UAReferencePublic[] {
 
         browseDirection = browseDirection !== undefined ? browseDirection : BrowseDirection.Forward;
@@ -393,9 +402,9 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * @return an array with references
      */
     public findReferences(
-      referenceType: string | NodeId | UAReferenceTypePublic,
-      isForward?: boolean
-    ): UAReferencePublic [] {
+        referenceType: string | NodeId | UAReferenceTypePublic,
+        isForward?: boolean
+    ): UAReferencePublic[] {
 
         const _private = BaseNode_getPrivate(this);
 
@@ -442,8 +451,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * @return {Reference}
      */
     public findReference(
-      strReference: string,
-      isForward?: boolean
+        strReference: string,
+        isForward?: boolean
     ): UAReferencePublic | null {
 
         const refs = this.findReferences(strReference, isForward);
@@ -456,8 +465,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     public findReferencesExAsObject(
-      strReference: string,
-      browseDirection?: BrowseDirection
+        strReference: string,
+        browseDirection?: BrowseDirection
     ): BaseNode[] {
 
         const references = this.findReferencesEx(strReference, browseDirection);
@@ -465,8 +474,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     public findReferencesAsObject(
-      strReference: string,
-      isForward?: boolean
+        strReference: string,
+        isForward?: boolean
     ): BaseNode[] {
 
         const references = this.findReferences(strReference, isForward);
@@ -544,8 +553,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * retrieve a component by name
      */
     public getComponentByName(
-      browseName: QualifiedNameLike,
-      namespaceIndex?: number
+        browseName: QualifiedNameLike,
+        namespaceIndex?: number
     ): UAVariablePublic | UAObjectPublic | null {
         const components = this.getComponents();
         const select = _filter_by_browse_name(components, browseName, namespaceIndex);
@@ -567,8 +576,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * retrieve a property by name
      */
     public getPropertyByName(
-      browseName: string,
-      namespaceIndex?: number
+        browseName: string,
+        namespaceIndex?: number
     ): UAVariablePublic | null {
         const properties = this.getProperties();
         const select = _filter_by_browse_name(properties, browseName, namespaceIndex);
@@ -638,10 +647,10 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     public readAttribute(
-      context: SessionContext | null,
-      attributeId: AttributeIds,
-      indexRange?: NumericRange,
-      dataEncoding?: string
+        context: SessionContext | null,
+        attributeId: AttributeIds,
+        indexRange?: NumericRange,
+        dataEncoding?: string
     ): DataValue {
 
         assert(!context || context instanceof SessionContext);
@@ -690,9 +699,9 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     public writeAttribute(
-      context: SessionContext,
-      writeValue: any,
-      callback: (err: Error | null, statusCode?: StatusCode) => void
+        context: SessionContext,
+        writeValue: any,
+        callback: (err: Error | null, statusCode?: StatusCode) => void
     ) {
 
         assert(context instanceof SessionContext);
@@ -769,7 +778,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
             }
             assert(relativePathElement.referenceTypeId instanceof NodeId);
             if ((relativePathElement.isInverse && reference.isForward) ||
-              (!relativePathElement.isInverse && !reference.isForward)) {
+                (!relativePathElement.isInverse && !reference.isForward)) {
                 return false;
             }
             assert(reference.hasOwnProperty("isForward"));
@@ -805,6 +814,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
             }
 
             if (_.isEqual(obj.browseName, relativePathElement.targetName)) { // compare QualifiedName
+
                 const key = obj.nodeId.toString();
                 if (!nodeIdsMap.hasOwnProperty(key)) {
                     nodeIds.push(obj.nodeId);
@@ -813,7 +823,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
             }
         }
 
-        if (this.nodeClass === NodeClass.ObjectType || this.nodeClass === NodeClass.VariableType) {
+        if (nodeIds.length === 0 && (this.nodeClass === NodeClass.ObjectType || this.nodeClass === NodeClass.VariableType)) {
 
             const nodeType = this as any as UAVariableTypePublic;
 
@@ -835,8 +845,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * @return an array with reference descriptions
      */
     public browseNode(
-      browseDescription: BrowseDescription,
-      context?: SessionContext
+        browseDescription: BrowseDescription,
+        context?: SessionContext
     ): ReferenceDescription[] {
 
         assert(_.isFinite(browseDescription.nodeClassMask));
@@ -852,19 +862,19 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         assert(referenceTypeId instanceof NodeId);
 
         const browseDirection = (browseDescription.browseDirection !== undefined)
-          ? browseDescription.browseDirection
-          : BrowseDirection.Both;
+            ? browseDescription.browseDirection
+            : BrowseDirection.Both;
 
         // get all possible references
         let references: Reference[] = ([] as Reference[]).concat(
-          (Object as any).values(_private._referenceIdx),
-          (Object as any).values(_private._back_referenceIdx));
+            (Object as any).values(_private._referenceIdx),
+            (Object as any).values(_private._back_referenceIdx));
 
         /* istanbul ignore next */
         if (do_debug) {
             console.log("all references :", this.nodeId.toString(), this.browseName.toString());
             dumpReferences(addressSpace,
-              (Object as any).values(_private._referenceIdx));
+                (Object as any).values(_private._referenceIdx));
         }
 
         // filter out references not matching referenceType
@@ -877,7 +887,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         references = _filter_by_userFilter.call(this, references, context);
 
         const referenceDescriptions = _constructReferenceDescription(
-          addressSpace, references, browseDescription.resultMask);
+            addressSpace, references, browseDescription.resultMask);
 
         /* istanbul ignore next */
         if (do_debug) {
@@ -890,8 +900,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     public allReferences(): Reference[] {
         const _private = BaseNode_getPrivate(this);
         return ([] as Reference[]).concat(
-          (Object as any).values(_private._referenceIdx),
-          (Object as any).values(_private._back_referenceIdx));
+            (Object as any).values(_private._referenceIdx),
+            (Object as any).values(_private._back_referenceIdx));
     }
 
     /**
@@ -935,6 +945,9 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         assert(referencOpts.hasOwnProperty("nodeId"));
 
         const addressSpace: AddressSpacePrivate = this.addressSpace;
+        if (!addressSpace) {
+            console.log(" Where is addressSpace ?");
+        }
         const reference = addressSpace.normalizeReferenceTypes([referencOpts!])![0];
         const h = reference.hash;
 
@@ -953,7 +966,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         } else if (_private._back_referenceIdx[h]) {
             (relatedNode as any).removeReference(invReference);
         } else {
-            throw new Error("Cannot find reference " + reference);
+            //            throw new Error("Cannot find reference " + reference);
         }
 
         _handle_HierarchicalReference(this, reference);
@@ -1179,6 +1192,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         _private._back_referenceIdx = null;
         _private._referenceIdx = null;
 
+        BaseNode_removePrivate(this);
     }
 
     // istanbul ignore next
@@ -1205,10 +1219,10 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
             // istanbul ignore next
             if (!referenceType) {
                 console.error(
-                  chalk.red(" ERROR"),
-                  " cannot find reference ",
-                  reference.referenceType,
-                  reference.toString());
+                    chalk.red(" ERROR"),
+                    " cannot find reference ",
+                    reference.referenceType,
+                    reference.toString());
             }
 
             const related_node = resolveReferenceNode(addressSpace, reference) as BaseNode;
@@ -1232,7 +1246,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         }
 
         function chain(f1: any, f2: any) {
-            return function(this: BaseNode) {
+            return function chaiFunc(this: BaseNode) {
                 const args = arguments;
                 if (f1) {
                     f1.apply(this, args);
@@ -1261,28 +1275,20 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 
     protected _coerceReferenceType(referenceType: string | NodeId | UAReferenceTypePublic): UAReferenceTypePublic {
 
+        let result: UAReferenceTypePublic;
         if (typeof referenceType === "string") {
-            referenceType = this.addressSpace.findReferenceType(referenceType)!;
+            result = this.addressSpace.findReferenceType(referenceType)!;
+            /* istanbul ignore next */
+            if (!result) {
+                throw new Error("Cannot coerce reference with name " + referenceType);
+            }
         } else if (referenceType instanceof NodeId) {
-            referenceType = this.addressSpace.findNode(referenceType) as UAReferenceTypePublic;
+            result = this.addressSpace.findNode(referenceType) as UAReferenceTypePublic;
+        } else {
+            result = referenceType;
         }
-        assert(referenceType.nodeClass === NodeClass.ReferenceType);
-        return referenceType as UAReferenceTypePublic;
-    }
-
-    protected __findReferenceWithBrowseName(
-      referenceType: any,
-      browseName: any
-    ): BaseNode {
-
-        const refs = this.findReferencesAsObject(referenceType);
-
-        function hasBrowseName(node: BaseNode): boolean {
-            return node.browseName.toString() === browseName;
-        }
-
-        const ref = refs.filter(hasBrowseName)[0];
-        return ref;
+        assert(result.nodeClass === NodeClass.ReferenceType);
+        return result as UAReferenceTypePublic;
     }
 
     private __addReference(referenceOpts: AddReferenceOpts): Reference {
@@ -1335,8 +1341,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 let displayWarning = true;
 
 function toString_ReferenceDescription(
-  ref: Reference,
-  options: { addressSpace: AddressSpacePrivate }
+    ref: Reference,
+    options: { addressSpace: AddressSpacePrivate }
 ): string {
 
     const addressSpace = options.addressSpace;
@@ -1388,7 +1394,7 @@ function _setup_parent_item(this: BaseNode, references: { [key: string]: any }):
                     console.warn("    browseResults:");
                     // tslint:disable-next-line:no-console
                     console.warn(
-                      references.map((f: Reference) => toString_ReferenceDescription(f, options)).join("\n"));
+                        references.map((f: Reference) => toString_ReferenceDescription(f, options)).join("\n"));
                     // tslint:disable-next-line:no-console
                     console.warn("    first one will be used as parent");
                     // xx assert(browseResults.length === 1);
@@ -1402,8 +1408,8 @@ function _setup_parent_item(this: BaseNode, references: { [key: string]: any }):
 }
 
 function _asObject<T extends BaseNode>(
-  references: UAReferencePublic[],
-  addressSpace: AddressSpacePrivate
+    references: UAReferencePublic[],
+    addressSpace: AddressSpacePrivate
 ): T[] {
 
     function toObject(reference: UAReferencePublic): T {
@@ -1412,7 +1418,7 @@ function _asObject<T extends BaseNode>(
         if (false && !obj) {
             // tslint:disable-next-line:no-console
             console.log(chalk.red(" Warning :  object with nodeId ")
-              + chalk.cyan(reference.nodeId.toString()) + chalk.red(" cannot be found in the address space !"));
+                + chalk.cyan(reference.nodeId.toString()) + chalk.red(" cannot be found in the address space !"));
         }
         return obj as any as T;
     }
@@ -1425,18 +1431,18 @@ function _asObject<T extends BaseNode>(
 }
 
 function _filter_by_browse_name<T extends BaseNodePublic>(
-  components: T[],
-  browseName: QualifiedNameLike,
-  namespaceIndex?: number
+    components: T[],
+    browseName: QualifiedNameLike,
+    namespaceIndex?: number
 ): T[] {
 
     let select: T[] = [];
     if (namespaceIndex === null || namespaceIndex === undefined) {
         select = components.filter((c: T) =>
-          c.browseName.name!.toString() === browseName);
+            c.browseName.name!.toString() === browseName);
     } else {
         select = components.filter((c: T) =>
-          c.browseName.name!.toString() === browseName && c.browseName.namespaceIndex === namespaceIndex);
+            c.browseName.name!.toString() === browseName && c.browseName.namespaceIndex === namespaceIndex);
     }
     return select;
 }
@@ -1449,9 +1455,9 @@ function _is_massively_used_reference(referenceType: UAReferenceTypePublic): boo
 }
 
 function _propagate_ref(
-  this: BaseNode,
-  addressSpace: MinimalistAddressSpace,
-  reference: Reference
+    this: BaseNode,
+    addressSpace: MinimalistAddressSpace,
+    reference: Reference
 ): void {
 
     // filter out non  Hierarchical References
@@ -1485,7 +1491,7 @@ function _propagate_ref(
             if (displayWarningReferencePointingToItSelf) {
                 // this could happen with method
                 console.warn("  Warning: a Reference is pointing to itthis ",
-                  this.nodeId.toString(), this.browseName.toString());
+                    this.nodeId.toString(), this.browseName.toString());
                 displayWarningReferencePointingToItSelf = false;
             }
 
@@ -1522,8 +1528,8 @@ function nodeid_is_nothing(nodeid: NodeId): boolean {
  * @return {NodeId}
  */
 function normalize_referenceTypeId(
-  addressSpace: AddressSpacePrivate,
-  referenceTypeId: NodeIdLike
+    addressSpace: AddressSpacePrivate,
+    referenceTypeId: NodeIdLike
 ): NodeId {
     if (!referenceTypeId) {
         return makeNodeId(0);
@@ -1549,10 +1555,10 @@ const resolveReferenceNode = Reference.resolveReferenceNode;
 const resolveReferenceType = Reference.resolveReferenceType;
 
 function _filter_by_referenceType(
-  this: BaseNode,
-  browseDescription: BrowseDescription,
-  references: Reference[],
-  referenceTypeId: any
+    this: BaseNode,
+    browseDescription: BrowseDescription,
+    references: Reference[],
+    referenceTypeId: any
 ) {
 
     // make sure we have a valid referenceTypeId if not null
@@ -1599,8 +1605,8 @@ function reverseOnly(reference: Reference): boolean {
 }
 
 function _filter_by_direction(
-  references: Reference[],
-  browseDirection: BrowseDirection
+    references: Reference[],
+    browseDirection: BrowseDirection
 ): Reference[] {
 
     if (browseDirection === BrowseDirection.Both) {
@@ -1614,9 +1620,9 @@ function _filter_by_direction(
 }
 
 function _filter_by_nodeclass(
-  this: BaseNode,
-  references: Reference[],
-  nodeClassMask: number
+    this: BaseNode,
+    references: Reference[],
+    nodeClassMask: number
 ): Reference[] {
 
     assert(_.isFinite(nodeClassMask));
@@ -1641,9 +1647,9 @@ function _filter_by_nodeclass(
 }
 
 function _filter_by_userFilter(
-  this: BaseNode,
-  references: Reference[],
-  context?: SessionContext
+    this: BaseNode,
+    references: Reference[],
+    context?: SessionContext
 ): Reference[] {
     const addressSpace = this.addressSpace;
     return references.filter((reference: Reference) => {
@@ -1686,7 +1692,7 @@ function install_components_as_object_properties(parentObj: BaseNode) {
     const hierarchicalRefs = parentObj.findHierarchicalReferences();
 
     const children = hierarchicalRefs.map(
-      (r: UAReference) => Reference.resolveReferenceNode(addressSpace, r));
+        (r: UAReference) => Reference.resolveReferenceNode(addressSpace, r));
 
     for (const child of children) {
 
@@ -1699,7 +1705,7 @@ function install_components_as_object_properties(parentObj: BaseNode) {
         if (reservedNames.hasOwnProperty(name)) {
             if (doDebug) {
                 console.log(
-                  chalk.bgWhite.red("Ignoring reserved keyword                                               " + name));
+                    chalk.bgWhite.red("Ignoring reserved keyword                                               " + name));
             }
             continue;
         }

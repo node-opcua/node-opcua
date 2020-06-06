@@ -1,6 +1,6 @@
 // compile with  tsc --lib es2018 client_with_custom_datatype.ts
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 import {
     AttributeIds,
@@ -113,8 +113,8 @@ const endpointUri = "opc.tcp://localhost:48010";
             console.log(" Initialized !");
         });
 
-        monitoredItemGroup.on("changed",  (monitoredItem: ClientMonitoredItemBase, dataValue: DataValue, index: number) => {
-            console.log("Changed on ", index ,  dataValue.value.toString());
+        monitoredItemGroup.on("changed", (monitoredItem: ClientMonitoredItemBase, dataValue: DataValue, index: number) => {
+            console.log("Changed on ", index, dataValue.value.toString());
         });
 
         await new Promise((resolve) => setTimeout(resolve, 1000000));

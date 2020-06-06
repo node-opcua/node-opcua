@@ -11,11 +11,16 @@ import {
     DataType,
     Variant
 } from "node-opcua-variant";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ClientMonitoredItem } from "../client_monitored_item";
 import { ClientSession } from "../client_session";
 import { EventStuff, fieldsToJson } from "./client_alarm";
 import { extractConditionFields } from "./client_alarm_tools_extractConditionFields";
 import { callConditionRefresh } from "./client_tools";
+
+const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 
 /**
  *
@@ -30,8 +35,7 @@ export async function acknowledgeCondition(session: ClientSession, eventStuff: E
         const eventId = eventStuff.eventId.value;
         return await session.acknowledgeCondition(conditionId, eventId, comment);
     } catch (err) {
-        // tslint:disable-next-line: no-console
-        console.log("Acknwoledding alarm has failed !", err);
+        errorLog("Acknwoledding alarm has failed !", err);
         return StatusCodes.BadInternalError;
     }
 }
@@ -40,10 +44,9 @@ export async function confirmCondition(session: ClientSession, eventStuff: Event
     try {
         const conditionId = eventStuff.conditionId.value;
         const eventId = eventStuff.eventId.value;
-        return  await session.confirmCondition(conditionId, eventId, comment);
+        return await session.confirmCondition(conditionId, eventId, comment);
     } catch (err) {
-        // tslint:disable-next-line: no-console
-        console.log("Acknwoledding alarm has failed !", err);
+        errorLog("Acknwoledding alarm has failed !", err);
         return StatusCodes.BadInternalError;
     }
 }
@@ -60,8 +63,9 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
         publishingEnabled: true,
         requestedLifetimeCount: 1000,
         requestedMaxKeepAliveCount: 100,
-        requestedPublishingInterval: 1000,
+        requestedPublishingInterval: 100,
     };
+
     const subscription = await session.createSubscription2(request);
 
     const itemToMonitor: ReadValueIdOptions = {
@@ -76,15 +80,14 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
     const monitoringParameters: MonitoringParametersOptions = {
         discardOldest: false,
         filter: eventFilter,
-        queueSize: 10000,
+        queueSize: 100,
         samplingInterval: 0,
     };
 
-    const acknowledgeableConditions: EventStuff[] = [];
+    const event_monitoringItem =
+        await subscription.monitor(itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
 
-    // now create a event monitored Item
-    const event_monitoringItem = ClientMonitoredItem.create(
-        subscription, itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
+    const acknowledgeableConditions: EventStuff[] = [];
 
     let refreshStartEventHasBeenReceived = false;
     let RefreshEndEventHasBeenReceived = false;
@@ -93,8 +96,10 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
     const RefreshEndEventType = resolveNodeId("RefreshEndEventType").toString();
 
     const promise = new Promise((resolve, reject) => {
-        event_monitoringItem.on("changed", (eventFields: Variant[]) => {
 
+        // now create a event monitored Item
+        event_monitoringItem.on("changed", (_eventFields: any) => {
+            const eventFields = _eventFields as Variant[];
             try {
 
                 if (RefreshEndEventHasBeenReceived) {
@@ -126,17 +131,15 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
                 }
 
             } catch (err) {
-                // tslint:disable-next-line: no-console
-                console.log("Error !!", err);
+                errorLog("Error !!", err);
             }
         });
         // async call without waiting !
-        try  {
+        try {
             callConditionRefresh(subscription);
-        } catch(err) {
+        } catch (err) {
             // it is possible that server do not implement conditionRefresh ...
-            console.log("Server may not implement conditionRefresh");
-            console.log(err.message);
+            debugLog("Server may not implement conditionRefresh", err.message);
         }
     });
 
@@ -151,11 +154,9 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
 export async function acknwoledgeAllConditions(session: ClientSession, message: string): Promise<void> {
 
     try {
-
         let conditions = await findActiveConditions(session);
         if (conditions.length === 0) {
-            // tslint:disable-next-line: no-console
-            console.log("Warning: cannot find conditions ");
+            debugLog("Warning: cannot find conditions ");
         }
 
         // filter acknowledgable conditions (no acked yet)
@@ -168,22 +169,21 @@ export async function acknwoledgeAllConditions(session: ClientSession, message: 
             );
         }
         const result = await Promise.all(promises);
-        // tslint:disable-next-line: no-console
-        console.log("Acked all results: ", result.map(e=> e.toString()).join(" "));
+        if (doDebug) {
+            debugLog("Acked all results: ", result.map(e => e.toString()).join(" "));
+        }
 
     } catch (err) {
-        // tslint:disable-next-line: no-console
-        console.log("Error", err);
+        errorLog("Error", err);
     }
 }
-export async function  confirmAllConditions(session: ClientSession, message: string): Promise<void> {
+export async function confirmAllConditions(session: ClientSession, message: string): Promise<void> {
 
     try {
 
         let conditions = await findActiveConditions(session);
         if (conditions.length === 0) {
-            // tslint:disable-next-line: no-console
-            console.log("Warning: cannot find conditions ");
+            debugLog("Warning: cannot find conditions ");
         }
 
         // filter acknowledgable conditions (no acked yet)
@@ -196,11 +196,10 @@ export async function  confirmAllConditions(session: ClientSession, message: str
             );
         }
         const result = await Promise.all(promises);
-        // tslint:disable-next-line: no-console
-        console.log("Confirm all results: ", result.map(e=> e.toString()).join(" "));
-
+        if (doDebug) {
+            debugLog("Confirm all results: ", result.map(e => e.toString()).join(" "));
+        }
     } catch (err) {
-        // tslint:disable-next-line: no-console
-        console.log("Error", err);
+        errorLog("Error", err);
     }
 }

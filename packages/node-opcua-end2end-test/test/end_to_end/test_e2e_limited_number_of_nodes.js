@@ -24,7 +24,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", function () {
 
 
-    this.timeout(Math.max(this._timeout,10000));
+    this.timeout(Math.max(this._timeout, 10000));
 
     let server;
 
@@ -117,7 +117,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
             const nodeId1 = opcua.makeNodeId(n1);
 
-            const nodeToRead ={nodeId: nodeId1, attributeId: opcua.AttributeIds.Value};
+            const nodeToRead = { nodeId: nodeId1, attributeId: opcua.AttributeIds.Value };
 
             session.read(nodeToRead, function (err, dataValue) {
                 // console.log(results);
@@ -143,18 +143,18 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             const nodeId2 = opcua.makeNodeId(n2);
             console.log(nodeId1.toString());
             const nodesToRead = [
-                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId1, attributeId: opcua.AttributeIds.Value},
-                {nodeId: nodeId2, attributeId: opcua.AttributeIds.Value}
+                { nodeId: nodeId1, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId2, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId1, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId2, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId1, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId2, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId1, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId2, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId1, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId2, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId1, attributeId: opcua.AttributeIds.Value },
+                { nodeId: nodeId2, attributeId: opcua.AttributeIds.Value }
             ];
             nodesToRead.length.should.be.greaterThan(server.engine.serverCapabilities.operationLimits.maxNodesPerRead);
 
@@ -205,16 +205,16 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
         perform_operation_on_client_session(client, endpointUrl, function (session, done) {
 
             const translateBrowsePath = [
-                makeBrowsePath("RootFolder","/Objects/Server"),
-                makeBrowsePath("RootFolder","/Objects/Server"),
-                makeBrowsePath("RootFolder","/Objects/Server"),
-                makeBrowsePath("RootFolder","/Objects/Server"),
-                makeBrowsePath("RootFolder","/Objects/Server"),
-                makeBrowsePath("RootFolder","/Objects/Server"),
-                makeBrowsePath("RootFolder","/Objects/Server"),
-                makeBrowsePath("RootFolder","/Objects/Server"),
-                makeBrowsePath("RootFolder","/Objects/Server"),
-                makeBrowsePath("RootFolder","/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
+                makeBrowsePath("RootFolder", "/Objects/Server"),
 
             ];
 
@@ -250,7 +250,9 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             crawler.read(nodeId, function (err, obj) {
                 if (!err) { /**/
                 }
+                crawler.dispose();
                 callback(err);
+
             });
 
         }, done);

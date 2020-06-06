@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 import * as async from "async";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import * as net from "net";
 import { Server, Socket } from "net";
@@ -235,11 +235,11 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
         const privateKey1 = convertPEMtoDER(this.getPrivateKey());
 
         const txt =
-          " end point" + this._counter +
-          " port = " + this.port +
-          " l = " + this._endpoints.length +
-          " " + makeSHA1Thumbprint(this.getCertificateChain()).toString("hex") +
-          " " + makeSHA1Thumbprint(privateKey1).toString("hex");
+            " end point" + this._counter +
+            " port = " + this.port +
+            " l = " + this._endpoints.length +
+            " " + makeSHA1Thumbprint(this.getCertificateChain()).toString("hex") +
+            " " + makeSHA1Thumbprint(privateKey1).toString("hex");
         return txt;
     }
 
@@ -282,9 +282,9 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
      * @return endpoint_description {EndpointDescription|null}
      */
     public getEndpointDescription(
-      securityMode: MessageSecurityMode,
-      securityPolicy: SecurityPolicy,
-      endpointUrl?: string
+        securityMode: MessageSecurityMode,
+        securityPolicy: SecurityPolicy,
+        endpointUrl?: string
     ): EndpointDescription | null {
 
         const endpoints = this.endpointDescriptions();
@@ -300,9 +300,9 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
     }
 
     public addEndpointDescription(
-      securityMode: MessageSecurityMode,
-      securityPolicy: SecurityPolicy,
-      options?: EndpointDescriptionParams
+        securityMode: MessageSecurityMode,
+        securityPolicy: SecurityPolicy,
+        options?: EndpointDescriptionParams
     ) {
         if (!options) {
             options = { hostname: getFullyQualifiedDomainName() };
@@ -372,15 +372,15 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
 
         const defaultHostname = options.hostname || getFullyQualifiedDomainName();
 
-        let hostnames: string[] = [ defaultHostname ];
+        let hostnames: string[] = [defaultHostname];
 
-        options.alternateHostname =  options.alternateHostname || [];
+        options.alternateHostname = options.alternateHostname || [];
         if (typeof options.alternateHostname === "string") {
-            options.alternateHostname = [ options.alternateHostname];
+            options.alternateHostname = [options.alternateHostname];
         }
         hostnames = _.uniq(hostnames.concat(options.alternateHostname as string[]));
 
-        for (const alternateHostname of hostnames ) {
+        for (const alternateHostname of hostnames) {
 
             const optionsE = options as EndpointDescriptionParams;
             optionsE.hostname = alternateHostname;
@@ -392,7 +392,7 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
                     this.addRestrictedEndpointDescription(optionsE);
                 }
             }
-            for (const securityMode  of  options.securityModes) {
+            for (const securityMode of options.securityModes) {
                 if (securityMode === MessageSecurityMode.None) {
                     continue;
                 }
@@ -479,17 +479,17 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
                 // shutdown all opened channels ...
                 const _channels = _.values(this._channels);
                 async.each(_channels,
-                  (channel: ServerSecureChannelLayer, callback1: (err?: Error) => void) => {
-                      this.shutdown_channel(channel, callback1);
-                  }, (err?: Error | null) => {
+                    (channel: ServerSecureChannelLayer, callback1: (err?: Error) => void) => {
+                        this.shutdown_channel(channel, callback1);
+                    }, (err?: Error | null) => {
 
-                      /* istanbul ignore next */
-                      if (!(Object.keys(this._channels).length === 0)) {
-                          errorLog(" Bad !");
-                      }
-                      assert(Object.keys(this._channels).length === 0, "channel must have unregistered themselves");
-                      callback(err || undefined);
-                  });
+                        /* istanbul ignore next */
+                        if (!(Object.keys(this._channels).length === 0)) {
+                            errorLog(" Bad !");
+                        }
+                        assert(Object.keys(this._channels).length === 0, "channel must have unregistered themselves");
+                        callback(err || undefined);
+                    });
             });
         } else {
             callback();
@@ -509,33 +509,33 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
     public get bytesWritten(): number {
         const channels = _.values(this._channels);
         return this.bytesWrittenInOldChannels + channels.reduce(
-          (accumulated: number, channel: ServerSecureChannelLayer) => {
-              return accumulated + channel.bytesWritten;
-          }, 0);
+            (accumulated: number, channel: ServerSecureChannelLayer) => {
+                return accumulated + channel.bytesWritten;
+            }, 0);
     }
 
     public get bytesRead(): number {
         const channels = _.values(this._channels);
         return this.bytesReadInOldChannels + channels.reduce(
-          (accumulated: number, channel: ServerSecureChannelLayer) => {
-              return accumulated + channel.bytesRead;
-          }, 0);
+            (accumulated: number, channel: ServerSecureChannelLayer) => {
+                return accumulated + channel.bytesRead;
+            }, 0);
     }
 
     public get transactionsCount(): number {
         const channels = _.values(this._channels);
         return this.transactionsCountOldChannels + channels.reduce(
-          (accumulated: number, channel: ServerSecureChannelLayer) => {
-              return accumulated + channel.transactionsCount;
-          }, 0);
+            (accumulated: number, channel: ServerSecureChannelLayer) => {
+                return accumulated + channel.transactionsCount;
+            }, 0);
     }
 
     public get securityTokenCount(): number {
         const channels = _.values(this._channels);
         return this.securityTokenCountOldChannels + channels.reduce(
-          (accumulated: number, channel: ServerSecureChannelLayer) => {
-              return accumulated + channel.securityTokenCount;
-          }, 0);
+            (accumulated: number, channel: ServerSecureChannelLayer) => {
+                return accumulated + channel.securityTokenCount;
+            }, 0);
     }
 
     public get activeChannelCount(): number {
@@ -659,8 +659,8 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
      * @param inner_callback
      */
     private shutdown_channel(
-      channel: ServerSecureChannelLayer,
-      inner_callback: (err?: Error) => void
+        channel: ServerSecureChannelLayer,
+        inner_callback: (err?: Error) => void
     ) {
         assert(_.isFunction(inner_callback));
         channel.once("close", () => {
@@ -686,9 +686,9 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
                 console.log(chalk.bgRed.white("PREVENTING DOS ATTACK => Closing unused channels"));
             }
             const unused_channels: ServerSecureChannelLayer[] = _.filter(this.getChannels(),
-              (channel1: ServerSecureChannelLayer) => {
-                  return !channel1.isOpened && !channel1.hasSession;
-              });
+                (channel1: ServerSecureChannelLayer) => {
+                    return !channel1.isOpened && !channel1.hasSession;
+                });
             if (unused_channels.length === 0) {
                 // all channels are in used , we cannot get any
 
@@ -703,7 +703,7 @@ export abstract class OPCUAServerEndPoint extends EventEmitter implements Server
             // istanbul ignore next
             if (doDebug) {
                 console.log("   - Unused channels that can be clobbered",
-                  _.map(unused_channels, (channel1: ServerSecureChannelLayer) => channel1.hashKey).join(" "));
+                    _.map(unused_channels, (channel1: ServerSecureChannelLayer) => channel1.hashKey).join(" "));
             }
             const channel = unused_channels[0];
 
@@ -765,6 +765,38 @@ interface MakeEndpointDescriptionOptions {
 interface EndpointDescriptionEx extends EndpointDescription {
     restricted: boolean;
 }
+
+function estimateSecurityLevel(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): number {
+
+    if (securityMode === MessageSecurityMode.None) {
+        return 1;
+    }
+    let offset = 100;
+    if (securityMode === MessageSecurityMode.SignAndEncrypt) {
+        offset = 100;
+    }
+    switch (securityPolicy) {
+        case SecurityPolicy.None:
+            return 0;
+        case SecurityPolicy.Basic128:
+        case SecurityPolicy.Basic128Rsa15:
+        case SecurityPolicy.Basic192:
+            return 2;
+        case SecurityPolicy.Basic192Rsa15:
+            return 3;
+        case SecurityPolicy.Basic256:
+            return 4;
+        case SecurityPolicy.Basic256Rsa15:
+            return 4 + offset;
+        case SecurityPolicy.Basic256Sha256:
+            return 6 + offset;
+        case SecurityPolicy.Aes128_Sha256_RsaOaep:
+            return 1;
+        default:
+            return 1;
+    }
+
+}
 /**
  * @private
  */
@@ -779,7 +811,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
     assert(!!options.hostname && (typeof options.hostname === "string"));
     assert(_.isBoolean(options.restricted));
 
-    options.securityLevel = (options.securityLevel === undefined) ? 3 : options.securityLevel;
+    options.securityLevel = (options.securityLevel === undefined) ? estimateSecurityLevel(options.securityMode, options.securityPolicy) : options.securityLevel;
     assert(_.isFinite(options.securityLevel), "expecting a valid securityLevel");
 
     const securityPolicyUri = toURI(options.securityPolicy);
@@ -946,10 +978,10 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
  *
  */
 function matching_endpoint(
-  securityMode: MessageSecurityMode,
-  securityPolicy: SecurityPolicy,
-  endpointUrl: string | undefined,
-  endpoint: EndpointDescription
+    securityMode: MessageSecurityMode,
+    securityPolicy: SecurityPolicy,
+    endpointUrl: string | undefined,
+    endpoint: EndpointDescription
 ): boolean {
 
     assert(endpoint instanceof EndpointDescription);
@@ -968,7 +1000,7 @@ const defaultSecurityModes = [
 const defaultSecurityPolicies = [
     SecurityPolicy.Basic128Rsa15,
     SecurityPolicy.Basic256,
-// xx UNUSED!!    SecurityPolicy.Basic256Rsa15,
+    // xx UNUSED!!    SecurityPolicy.Basic256Rsa15,
     SecurityPolicy.Basic256Sha256
 ];
 

@@ -1,11 +1,11 @@
 ###########################
 # UaModeler Project File  #
-# Generated at 03.08.2019 #
+# Generated at 07.01.2020 #
 ###########################
 
 PROJECTNAME = my_data_type
 
-TEMPLATESET = ($TEMPLATES)/cpp/v1_6/t2/cpp_server.tt2set
+TEMPLATESET = ($TEMPLATES)/cpp/v1_6/t3/cpp_server.tt2set
 
 MODELS += ($MODELS)/Opc.Ua.NodeSet2.ua \
     my_data_type.ua
@@ -19,11 +19,19 @@ OUTPUTPATH =
 
 GENERATE += my_data_type.ua
 
-LOCKEDMODELS += ($MODELS)/Opc.Ua.NodeSet2.ua
-
 NODEACCESSINFOROLES += Administrator \
     SecurityAdmin \
     ConfigurationAdmin \
     Operator \
     Observer
+
+DEFAULTNODEIDS = DataType:3001\
+    Method:7001\
+    Object:5001\
+    ObjectType:1001\
+    ReferenceType:4001\
+    Variable:6001\
+    VariableType:2001\
+    View:8001
+
 

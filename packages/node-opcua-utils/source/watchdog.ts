@@ -5,11 +5,27 @@ import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
+
+type ArbitraryClockTick = number; // in millisecond
+type DurationInMillisecond = number;
+
+/**
+ * a arbitrary clock which is system dependant and 
+ * insensible to clock drifts ....
+ * 
+ */
+function _getCurrentSystemTick(): ArbitraryClockTick {
+    const h = process.hrtime();
+    const n = h[1] / 1000000;
+    assert(n <= 1000);
+    return (h[0] * 1000 + n);
+}
+
 export interface IWatchdogData2 {
     key: number;
     subscriber: ISubscriber;
-    timeout: number;
-    lastSeen: number;
+    timeout: DurationInMillisecond;
+    lastSeen: ArbitraryClockTick;
     visitCount: number;
 }
 
@@ -20,25 +36,24 @@ export interface ISubscriber {
 
     watchdogReset: () => void;
     keepAlive?: () => void;
-    onClientSeen?: (t: Date) => void;
+    onClientSeen?: () => void;
 }
 
-function has_expired(watchDogData: IWatchdogData2, currentTime: number) {
+function hasExpired(watchDogData: IWatchdogData2, currentTime: ArbitraryClockTick) {
     const elapsedTime = currentTime - watchDogData.lastSeen;
     return elapsedTime > watchDogData.timeout;
 }
 
 function keepAliveFunc(this: ISubscriber) {
-    const self: ISubscriber = this as ISubscriber;
-    assert(self._watchDog instanceof WatchDog);
-    if (!self._watchDogData) {
+
+    assert(this._watchDog instanceof WatchDog);
+    if (!this._watchDogData || !this._watchDog) {
         throw new Error("Internal error");
     }
-
-    assert(_.isNumber(self._watchDogData.key));
-    self._watchDogData.lastSeen = Date.now();
-    if (self.onClientSeen) {
-        self.onClientSeen(new Date(self._watchDogData.lastSeen));
+    assert(_.isNumber(this._watchDogData.key));
+    this._watchDogData.lastSeen = this._watchDog.getCurrentSystemTick();
+    if (this.onClientSeen) {
+        this.onClientSeen();
     }
 }
 
@@ -52,7 +67,7 @@ export class WatchDog extends EventEmitter {
 
     private readonly _watchdogDataMap: { [id: number]: IWatchdogData2 };
     private _counter: number;
-    private _currentTime: number;
+    private _currentTime: ArbitraryClockTick;
     private _timer: NodeJS.Timer | null;
     private readonly _visitSubscriberB: (...args: any[]) => void;
 
@@ -61,7 +76,7 @@ export class WatchDog extends EventEmitter {
 
         this._watchdogDataMap = {};
         this._counter = 0;
-        this._currentTime = Date.now();
+        this._currentTime = this.getCurrentSystemTick();
         this._visitSubscriberB = this._visit_subscriber.bind(this);
         this._timer = null; // as NodeJS.Timer;
     }
@@ -81,38 +96,38 @@ export class WatchDog extends EventEmitter {
      * @return the numerical key associated with this subscriber
      */
     public addSubscriber(subscriber: ISubscriber, timeout: number): number {
-        const self = this;
-        self._currentTime = Date.now();
+        this._currentTime = this.getCurrentSystemTick();
         timeout = timeout || 1000;
         assert(_.isNumber(timeout), " invalid timeout ");
         assert(_.isFunction(subscriber.watchdogReset), " the subscriber must provide a watchdogReset method ");
         assert(!_.isFunction(subscriber.keepAlive));
 
-        self._counter += 1;
-        const key = self._counter;
+        this._counter += 1;
+        const key = this._counter;
 
-        subscriber._watchDog = self;
+        subscriber._watchDog = this;
         subscriber._watchDogData = {
             key,
-            lastSeen: self._currentTime,
+            lastSeen: this._currentTime,
             subscriber,
             timeout,
             visitCount: 0
         } as IWatchdogData2;
 
-        self._watchdogDataMap[key] = subscriber._watchDogData;
+        this._watchdogDataMap[key] = subscriber._watchDogData;
 
         if (subscriber.onClientSeen) {
-            subscriber.onClientSeen(new Date(subscriber._watchDogData.lastSeen));
+            subscriber.onClientSeen();
         }
+
         subscriber.keepAlive = keepAliveFunc.bind(subscriber);
 
         // start timer when the first subscriber comes in
-        if (self.subscriberCount === 1) {
-            assert(self._timer === null);
+        if (this.subscriberCount === 1) {
+            assert(this._timer === null);
             this._start_timer();
         }
-
+        assert(this._timer !== null);
         return key;
     }
 
@@ -142,30 +157,32 @@ export class WatchDog extends EventEmitter {
 
     public shutdown(): void {
         assert(
-          this._timer === null && Object.keys(this._watchdogDataMap).length === 0,
-          " leaking subscriber in watchdog"
+            this._timer === null && Object.keys(this._watchdogDataMap).length === 0,
+            " leaking subscriber in watchdog"
         );
     }
 
+    public getCurrentSystemTick(): ArbitraryClockTick {
+        return _getCurrentSystemTick();
+    }
+
     private _visit_subscriber() {
-        const self = this;
 
-        self._currentTime = Date.now();
+        this._currentTime = this.getCurrentSystemTick();
 
-        const expiredSubscribers = _.filter(self._watchdogDataMap, (watchDogData: IWatchdogData2) => {
+        const expiredSubscribers = _.filter(this._watchdogDataMap, (watchDogData: IWatchdogData2) => {
             watchDogData.visitCount += 1;
-            return has_expired(watchDogData, self._currentTime);
+            return hasExpired(watchDogData, this._currentTime);
         });
 
         // xx console.log("_visit_subscriber", _.map(expired_subscribers, _.property("key")));
         if (expiredSubscribers.length) {
-            self.emit("timeout", expiredSubscribers);
+            this.emit("timeout", expiredSubscribers);
         }
         expiredSubscribers.forEach((watchDogData: IWatchdogData2) => {
-            self.removeSubscriber(watchDogData.subscriber);
+            this.removeSubscriber(watchDogData.subscriber);
             watchDogData.subscriber.watchdogReset();
         });
-        // xx self._current_time = Date.now();
     }
 
     private _start_timer(): void {
@@ -180,4 +197,5 @@ export class WatchDog extends EventEmitter {
             this._timer = null;
         }
     }
+
 }

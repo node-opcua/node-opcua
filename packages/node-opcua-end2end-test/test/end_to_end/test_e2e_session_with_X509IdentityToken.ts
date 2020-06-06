@@ -14,9 +14,11 @@ import {
 
 const should = require("should");
 import * as  crypto_utils from "node-opcua-crypto";
-import { Certificate, PrivateKey, PrivateKeyPEM } from "node-opcua-crypto";
+import { Certificate, PrivateKey, PrivateKeyPEM, readCertificate, readCertificateRevocationList } from "node-opcua-crypto";
 
 const empty_nodeset_filename = get_empty_nodeset_filename();
+
+const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
 
 const port = 5000;
 
@@ -32,6 +34,18 @@ async function startServer(): Promise<OPCUAServer> {
         port,
     });
     await server.start();
+
+    const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
+
+    const issuerCertificate = readCertificate(issuerCertificateFile);
+    await server.userCertificateManager.addIssuer(issuerCertificate);
+    await server.serverCertificateManager.addIssuer(issuerCertificate);
+
+    const issuerCertificateRevocationListFile = path.join(certificateFolder, "CA/crl/revocation_list.der");
+    const crl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
+    await server.userCertificateManager.addRevocationList(crl);
+    await server.serverCertificateManager.addRevocationList(crl);
+
     endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
     return server;
 }
@@ -48,8 +62,6 @@ describe("Testing Session with user certificate", () => {
     before(startServer);
     after(endServer);
 
-    const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
-
     const clientPrivateKeyFilename = path.join(certificateFolder, "client_key_2048.pem");
     const privateKey: PrivateKeyPEM = crypto_utils.readPrivateKeyPEM(clientPrivateKeyFilename);
 
@@ -63,7 +75,7 @@ describe("Testing Session with user certificate", () => {
     const notActiveClientCertificateFilename = path.join(certificateFolder, "client_cert_2048_not_active_yet.pem");
     const notActiveClientCertificate: Certificate = crypto_utils.readCertificate(notActiveClientCertificateFilename);
 
-    let client: OPCUAClient|null = null;
+    let client: OPCUAClient | null = null;
 
     beforeEach(async () => {
         client = OPCUAClient.create({});
@@ -105,7 +117,7 @@ describe("Testing Session with user certificate", () => {
             privateKey,
             type: UserTokenType.Certificate,
         };
-        let exceptionCaught: Error|null = null;
+        let exceptionCaught: Error | null = null;
         try {
             const session = await client!.createSession(userIdentity);
             await session.close();
@@ -124,7 +136,7 @@ describe("Testing Session with user certificate", () => {
             privateKey,
             type: UserTokenType.Certificate,
         };
-        let exceptionCaught: Error|null = null;
+        let exceptionCaught: Error | null = null;
         try {
             const session = await client!.createSession(userIdentity);
             await session.close();
@@ -142,7 +154,7 @@ describe("Testing Session with user certificate", () => {
             privateKey,
             type: UserTokenType.Certificate,
         };
-        let exceptionCaught: Error|null = null;
+        let exceptionCaught: Error | null = null;
         try {
             const session = await client!.createSession(userIdentity);
             await session.close();
@@ -158,7 +170,7 @@ describe("Testing Session with user certificate", () => {
             privateKey: wrongPrivateKey,
             type: UserTokenType.Certificate,
         };
-        let exceptionCaught: Error|null = null;
+        let exceptionCaught: Error | null = null;
         try {
             const session = await client!.createSession(userIdentity);
             await session.close();

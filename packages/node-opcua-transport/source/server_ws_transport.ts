@@ -3,8 +3,7 @@
  */
 // tslint:disable:class-name
 // system
-import chalk from "chalk";
-import { Socket } from "net";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
@@ -20,15 +19,13 @@ import { TCPErrorMessage } from "./TCPErrorMessage";
 import { decodeMessage, packTcpMessage } from "./tools";
 
 import * as debug from "node-opcua-debug";
-import { ErrorCallback } from "./client_tcp_transport";
+import { ErrorCallback } from "node-opcua-status-code";
 import { Websocket_transport } from "./ws_transport";
 import { ServerTransport } from "./transport";
 
 const hexDump = debug.hexDump;
 const debugLog = debug.make_debugLog(__filename);
 const doDebug = debug.checkDebugFlag(__filename);
-
-type CallbackFunc = (err: null | Error) => void;
 
 function clamp_value(value: number, minVal: number, maxVal: number): number {
     assert(minVal < maxVal);
@@ -101,6 +98,9 @@ export class ServerWS_transport extends Websocket_transport implements ServerTra
         this._install_HEL_message_receiver(callback);
     }
 
+    public abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback) {
+        return this._abortWithError(statusCode, extraErrorDescription, callback);
+    }
     private _abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback) {
 
         if (debugLog) {

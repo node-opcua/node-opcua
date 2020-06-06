@@ -1,12 +1,24 @@
 
-test-cov: istanbul coveralls codeclimate
+test-cov: istanbul coveralls 
 
 istanbul:
-	npx nyc --source-map --include="packages/node-opcua-*/dist/**/*.js"  --exclude-after-remap=false --exclude="_generated_opcua_types.ts" --exclude="packages/node-opcua-types/**/*.*" --exclude="packages/node-opcua-utils/**/*.*" --cwd=. node packages/run_all_mocha_tests.js
+	npx nyc@14 --report none --source-map \
+			--include="packages/node-opcua-*/dist/**/*.js"  \
+			--exclude="packages/node-opcua-*/test/**/*.js"  \
+			--exclude-after-remap=false \
+			--exclude="_generated_opcua_types.ts" \
+			--exclude="packages/node-opcua-types/**/*.*" \
+			--exclude="packages/node-opcua-utils/**/*.*" \
+			--cwd=. node -max_old_space_size=4096 packages/run_all_mocha_tests.js 
 
 
 coveralls: istanbul
-	npx nyc --source-map --include="packages/node-opcua-*/dist/**/*.js"  --exclude-after-remap=false --exclude="_generated_opcua_types.ts" --exclude="packages/node-opcua-types/**/*.*" --exclude="packages/node-opcua-utils/**/*.*" --cwd=. report --reporter=text-lcov | npx coveralls --exclude tmp
+	npx nyc@14 report --source-map \
+			--include="packages/node-opcua-*/dist/**/*.js"  \
+			--exclude-after-remap=false \
+			--cwd=. \
+			--reporter=text-lcov \
+		 | npx coveralls --exclude tmp
 
 # note a CODECLIMATE_REPO_TOKEN must be specified as an environment variable.
 codeclimate: istanbul

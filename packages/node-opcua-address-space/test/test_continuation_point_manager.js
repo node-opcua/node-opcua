@@ -82,4 +82,24 @@ describe("ContinuationPointManager", () => {
         should.not.exist(results.references);
 
     });
+    it("ContinuationPointManager#hasReachMaximum", () => {
+
+        const cpm = new ContinuationPointManager();
+        cpm.hasReachMaximum(0).should.eql(false);
+        cpm.hasReachMaximum(1).should.eql(false);
+
+        const fullarray = [1, 2, 3, 4, 5, 6, 7, 8];
+        const maxElements = 2;
+        let results = cpm.register(maxElements, fullarray);
+
+        cpm.hasReachMaximum(0).should.eql(false);
+        cpm.hasReachMaximum(1).should.eql(true);
+
+        cpm.cancel(results.continuationPoint);
+
+        cpm.hasReachMaximum(0).should.eql(false);
+        cpm.hasReachMaximum(1).should.eql(false);
+
+    });
+
 });

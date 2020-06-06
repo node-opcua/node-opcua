@@ -27,7 +27,6 @@ export { ClientSidePublishEngine } from "./private/client_publish_engine";
 
 export { ServerState, ServiceCounterDataType } from "node-opcua-common";
 
-import { ClientSecureChannelLayer, ConnectionStrategyOptions, SecurityPolicy } from "node-opcua-secure-channel";
 export { SecurityPolicy, ClientSecureChannelLayer, ConnectionStrategyOptions } from "node-opcua-secure-channel";
 
 import * as utils1 from "node-opcua-utils";
@@ -43,7 +42,7 @@ export {
     NodeId, resolveNodeId, makeNodeId, coerceNodeId, sameNodeId,
     ExpandedNodeId, makeExpandedNodeId, coerceExpandedNodeId
 } from "node-opcua-nodeid";
-export { StatusCode } from "node-opcua-status-code";
+export { StatusCode, StatusCodes } from "node-opcua-status-code";
 export * from "node-opcua-variant";
 export * from "node-opcua-data-value";
 export * from "node-opcua-data-model";

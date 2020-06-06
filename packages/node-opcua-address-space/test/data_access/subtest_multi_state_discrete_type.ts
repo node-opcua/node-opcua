@@ -4,7 +4,7 @@ import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, Namespace, SessionContext , UAMultiStateDiscrete } from "../..";
+import { AddressSpace, Namespace, SessionContext, UAMultiStateDiscrete } from "../..";
 
 export function subtest_multi_state_discrete_type(maintest: any) {
 
@@ -41,8 +41,8 @@ export function subtest_multi_state_discrete_type(maintest: any) {
             prop.valueRank.should.eql(-2);
 
             prop.getPropertyByName("EnumStrings")!.readValue().value.toString()
-              .should.eql(
-              "Variant(Array<LocalizedText>, l= 3, value=[locale=null text=Red,locale=null text=Orange,locale=null text=Green])");
+                .should.eql(
+                    "Variant(Array<LocalizedText>, l= 3, value=[locale=null text=Red,locale=null text=Orange,locale=null text=Green])");
 
             prop.enumStrings.readValue().value.dataType.should.eql(DataType.LocalizedText);
 
@@ -59,7 +59,7 @@ export function subtest_multi_state_discrete_type(maintest: any) {
                 const objectsFolder = addressSpace.rootFolder.objects;
 
                 multiState = namespace.addMultiStateDiscrete({
-                    browseName: "MyMultiStateVariable",
+                    browseName: "MyMultiStateVariable3",
                     enumStrings: ["Red", "Orange", "Green"],
                     organizedBy: objectsFolder,
                     value: 1 // Orange
@@ -79,8 +79,17 @@ export function subtest_multi_state_discrete_type(maintest: any) {
                 const dataValue = new DataValue({
                     value: new Variant({ dataType: DataType.UInt32, value: 2 })// OK
                 });
-                const statusCode = await  multiState.writeValue(SessionContext.defaultContext, dataValue);
+                const statusCode = await multiState.writeValue(SessionContext.defaultContext, dataValue);
                 statusCode.should.eql(StatusCodes.Good);
+            });
+            it("writing a value which has not the correct type shall return BadTypeMismatch", async () => {
+                const dataValue = new DataValue({
+                    value: new Variant({
+                        dataType: DataType.String, value: "2"
+                    })// OK
+                });
+                const statusCode = await multiState.writeValue(SessionContext.defaultContext, dataValue);
+                statusCode.should.eql(StatusCodes.BadTypeMismatch);
             });
         });
     });

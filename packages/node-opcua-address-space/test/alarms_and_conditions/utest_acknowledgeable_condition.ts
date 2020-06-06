@@ -59,7 +59,7 @@ export function utest_acknowledgeable_condition(test: any) {
 
             const namespace = addressSpace.getOwnNamespace();
             const condition = namespace.instantiateCondition("AcknowledgeableConditionType", {
-                browseName: "AcknowledgeableCondition2",
+                browseName: "AcknowledgeableCondition3",
                 componentOf: source,
                 conditionSource: source
             }, {
@@ -69,7 +69,7 @@ export function utest_acknowledgeable_condition(test: any) {
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(1);
-            condition.browseName.toString().should.eql("1:AcknowledgeableCondition2");
+            condition.browseName.toString().should.eql("1:AcknowledgeableCondition3");
         });
 
         it("should instantiate AcknowledgeableConditionType with ConfirmedState", async () => {
@@ -78,7 +78,7 @@ export function utest_acknowledgeable_condition(test: any) {
                 browseName: "AcknowledgeableCondition5",
                 componentOf: source,
                 conditionSource: source,
-                optionals: ["ConfirmedState"]
+                optionals: ["ConfirmedState", "Confirm"]
             }, {
                 "enabledState.id": { dataType: DataType.Boolean, value: true }
             }) as UAAcknowledgeableConditionBase;
@@ -130,7 +130,7 @@ export function utest_acknowledgeable_condition(test: any) {
             statusCode.should.eql(StatusCodes.Good);
 
             condition.currentBranch().setAckedState(false).should.eql(StatusCodes.Good,
-              "it should still be possible to modify current status");
+                "it should still be possible to modify current status");
 
             // however
             // xx condition._setConfirmedState(false).should.eql(StatusCodes.BadConditionDisabled);

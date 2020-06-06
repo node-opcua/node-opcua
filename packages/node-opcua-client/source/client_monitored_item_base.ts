@@ -13,12 +13,50 @@ import {
     MonitoringParameters, MonitoringParametersOptions,
 } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
+import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { DataValue } from "node-opcua-data-value";
 import { ClientSubscription } from "./client_subscription";
-import { Callback, ErrorCallback } from "./common";
 
-export interface ClientMonitoredItemBase extends EventEmitter {
+// tslint:disable:unified-signatures
+export interface ClientMonitoredItemOrGroupAction {
+
+    modify(
+        parameters: MonitoringParametersOptions,
+        timestampsToReturn?: TimestampsToReturn
+    ): Promise<StatusCode>;
+    modify(
+        parameters: MonitoringParametersOptions,
+        callback: Callback<StatusCode>): void;
+    modify(
+        parameters: MonitoringParametersOptions,
+        timestampsToReturn: TimestampsToReturn | null,
+        callback: Callback<StatusCode>): void;
+    modify(...args: any[]): any;
+
+    setMonitoringMode(monitoringMode: MonitoringMode): Promise<StatusCode>;
+    setMonitoringMode(monitoringMode: MonitoringMode, callback: Callback<StatusCode>): void;
+    setMonitoringMode(...args: any[]): any;
+
+    terminate(): Promise<void>;
+    terminate(done: ErrorCallback): void;
+    terminate(...args: any[]): any;
+}
+
+// tslint:disable:unified-signatures
+export interface ClientMonitoredItemBase extends EventEmitter, ClientMonitoredItemOrGroupAction {
+
+    on(event: "changed", eventHandler: (dataValue: DataValue) => void): this;
+
+    on(event: "err", eventHandler: (message: string) => void): this;
+
+    on(event: "terminated", eventHandler: () => void): this;
+
+    on(event: "initialized", eventHandler: () => void): this;
+
+}
+
+export interface ClientMonitoredItemBase {
 
     itemToMonitor: ReadValueId;
     monitoringParameters: MonitoringParameters;
@@ -29,43 +67,4 @@ export interface ClientMonitoredItemBase extends EventEmitter {
     result?: MonitoredItemCreateResult;
     filterResult?: ExtensionObject;
 
-}
-
-// tslint:disable:unified-signatures
-export interface ClientMonitoredItemBase {
-
-    on(event: "changed", eventHandler: (dataValue: DataValue) => void): this;
-
-    on(event: "err", eventHandler: (message: string) => void): this;
-
-    on(event: "terminated", eventHandler: () => void): this;
-
-    on(event: "initialized", eventHandler: () => void): this;
-}
-
-export interface ClientMonitoredItemOrGroupAction  {
-
-    modify(
-        parameters: MonitoringParametersOptions
-    ): Promise<StatusCode>;
-    modify(
-        parameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
-    ): Promise<StatusCode>;
-    modify(
-        parameters: MonitoringParametersOptions,
-        callback: Callback<StatusCode>): void;
-    modify(
-        parameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn | null,
-        callback: Callback<StatusCode> ): void;
-    modify(...args: any[]): any;
-
-    setMonitoringMode(monitoringMode: MonitoringMode): Promise<StatusCode>;
-    setMonitoringMode(monitoringMode: MonitoringMode, callback: Callback<StatusCode>): void;
-    setMonitoringMode(...args: any[]): any;
-
-    terminate(): Promise<void>;
-    terminate(done: ErrorCallback): void;
-    terminate(...args: any[]): any;
 }

@@ -374,3 +374,7 @@ export const packet_sc_7 = makebuffer_from_trace(`
 0040   05 91 2c 1f 67 59 b1 10 ba d6 d1 46 77 89 39 9c  ..,.gY.....Fw.9.
 0050   20 bd 76 15 57 09 17 92 00 00 00 00 00 00 00 00  .v.W...........
 `);
+
+export const packect_outtec = makebuffer_from_trace(`
+00000000: 43 4c 4f 46 18 00 00 00 0c 00 00 00 01 00 00 00 0f 00 00 00 0f 00 00 00
+`);

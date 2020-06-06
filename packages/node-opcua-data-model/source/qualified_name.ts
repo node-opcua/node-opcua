@@ -134,7 +134,7 @@ export class QualifiedName extends BaseUAObject {
 QualifiedName.prototype.schema = QualifiedName.schema;
 // not an extension object registerClassDefinition("QualifiedName", QualifiedName);
 
-export type QualifiedNameLike = QualifiedNameOptions | QualifiedName | string;
+export type QualifiedNameLike = QualifiedNameOptions | string;
 
 // xx QualifiedName.prototype.isEmpty = function (): boolean {
 // xx    return !this.name || this.name.length === 0;
@@ -142,8 +142,8 @@ export type QualifiedNameLike = QualifiedNameOptions | QualifiedName | string;
 
 function isInteger(value: any): boolean {
     return typeof value === "number" &&
-      isFinite(value) &&
-      Math.floor(value) === value;
+        isFinite(value) &&
+        Math.floor(value) === value;
 }
 
 /**
@@ -162,9 +162,9 @@ export function stringToQualifiedName(value: string): QualifiedName {
     let namespaceIndex = 0;
 
     if (!isNaN(parseFloat(splitArray[0])) &&
-      isFinite(parseInt(splitArray[0], 10)) &&
-      isInteger(parseFloat(splitArray[0])) &&
-      splitArray.length > 1) {
+        isFinite(parseInt(splitArray[0], 10)) &&
+        isInteger(parseFloat(splitArray[0])) &&
+        splitArray.length > 1) {
         namespaceIndex = parseInt(splitArray[0], 10);
         splitArray.shift();
         value = splitArray.join(":");
@@ -172,7 +172,10 @@ export function stringToQualifiedName(value: string): QualifiedName {
     return new QualifiedName({ namespaceIndex, name: value });
 }
 
-export function coerceQualifiedName(value: any): QualifiedName | null {
+export function coerceQualifiedName(value: null): null;
+export function coerceQualifiedName(value: QualifiedNameLike): QualifiedName;
+export function coerceQualifiedName(value: string): QualifiedName;
+export function coerceQualifiedName(value: null | QualifiedNameLike): QualifiedName | null {
 
     if (!value) {
         return null;

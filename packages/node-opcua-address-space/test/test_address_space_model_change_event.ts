@@ -14,7 +14,7 @@ import {
 } from "..";
 
 interface UAObjectWithVersion extends UAObject {
-    nodeVersion: UAVariableT<DataType.String>;
+    nodeVersion: UAVariableT<string, DataType.String>;
 }
 
 function createNodeWithNodeVersion(
@@ -30,7 +30,7 @@ function createNodeWithNodeVersion(
     return versionableNode as UAObjectWithVersion;
 }
 
-describe("address_space ModelChangeEvent", function(this: any) {
+describe("address_space ModelChangeEvent", function (this: any) {
 
     this.timeout(100000);
     // Part 3:

@@ -5,7 +5,7 @@
 // tslint:disable:no-console
 // tslint:disable:max-line-length
 
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
@@ -28,7 +28,8 @@ import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import {
     AsymmetricAlgorithmSecurityHeader,
     coerceMessageSecurityMode,
-    MessageSecurityMode
+    MessageSecurityMode,
+    CloseSecureChannelRequest
 } from "node-opcua-service-secure-channel";
 import { decodeStatusCode } from "node-opcua-status-code";
 import { MessageBuilderBase } from "node-opcua-transport";
@@ -228,7 +229,15 @@ export class MessageBuilder extends MessageBuilderBase {
             this._report_error("Invalid message type ( HEL/ACK )");
             return false;
         }
-
+        if (msgType === "CLO" && fullMessageBody.length === 0) {
+            // The Client closes the connection by sending a CloseSecureChannel request and closing the
+            // socket gracefully. When the Server receives this Message, it shall release all resources
+            // allocated for the channel. The body of the CloseSecureChannel request is empty. The Server
+            // does not send a CloseSecureChannel response.
+            const objMessage1 = new CloseSecureChannelRequest();
+            this.emit("message", objMessage1, msgType, this.sequenceHeader!.requestId, this.channelId);
+            return true;
+        }
         // read expandedNodeId:
         const id = decodeExpandedNodeId(binaryStream);
 
@@ -254,13 +263,24 @@ export class MessageBuilder extends MessageBuilderBase {
 
         } else {
 
-            /* istanbul ignore next */
-            debugLog("message size =", this.totalMessageSize, " body size =", this.totalBodySize, objMessage.constructor.name);
-
             if (this._safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
 
+                /* istanbul ignore next */
                 if (!this.sequenceHeader) {
                     throw new Error("internal error");
+                }
+
+                /* istanbul ignore next */
+                if (doDebug) {
+
+                    const o = (objMessage as any);
+                    const requestHandle = o.responseHeader ? o.responseHeader.requestHandle :
+                        (o.requestHeader ? o.requestHeader.requestHandle : "");
+
+                    debugLog(this.id, "message size =", ("" + this.totalMessageSize).padEnd(8),
+                        " body size   =", ("" + this.totalBodySize).padEnd(8),
+                        " requestHandle = ", requestHandle,
+                        objMessage.constructor.name);
                 }
                 try {
 
@@ -281,8 +301,8 @@ export class MessageBuilder extends MessageBuilderBase {
                     if (doDebug) {
                         debugLog(err);
                     }
-                    console.log(chalk.red("MessageBuilder : ERROR DETECTED IN event handler"));
-                    console.log(err.stack);
+                    debugLog(chalk.red("MessageBuilder : ERROR DETECTED IN event handler"));
+                    debugLog(err.stack);
                 }
             } else {
                 const message = "cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name;
@@ -322,7 +342,7 @@ export class MessageBuilder extends MessageBuilderBase {
         }
         /* istanbul ignore next */
         if (doDebug) {
-            debugLog(chalk.yellow.bold(" Sequence Number = "), sequenceNumber);
+            debugLog(chalk.yellow.bold("" + this.id + " Sequence Number = "), sequenceNumber);
         }
         this._previousSequenceNumber = sequenceNumber;
     }
@@ -341,7 +361,7 @@ export class MessageBuilder extends MessageBuilderBase {
             debugLog("securityHeader = {");
             debugLog("             securityPolicyId: ", asymmetricAlgorithmSecurityHeader.securityPolicyUri);
             debugLog("             senderCertificate: ",
-              makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex"));
+                makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex"));
 
             debugLog("};");
         }
@@ -401,9 +421,9 @@ export class MessageBuilder extends MessageBuilderBase {
         // then verify the signature
         const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
         assert(signatureLength === 128 ||
-          signatureLength === 256 ||
-          signatureLength === 384 ||
-          signatureLength === 512);
+            signatureLength === 256 ||
+            signatureLength === 384 ||
+            signatureLength === 512);
 
         const chunk = binaryStream.buffer;
 
@@ -438,7 +458,7 @@ export class MessageBuilder extends MessageBuilderBase {
         /* istanbul ignore next */
         if (doDebug) {
             debugLog("id=", this.id, " ", chalk.yellow("_select_matching_token : searching token "),
-              tokenId, "length = ", this._tokenStack.length, this.tokenIds());
+                tokenId, "length = ", this._tokenStack.length, this.tokenIds());
         }
         // this method select the security token matching the provided tokenId
         // it also get rid of older security token

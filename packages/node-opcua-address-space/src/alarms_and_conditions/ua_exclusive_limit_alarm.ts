@@ -28,10 +28,10 @@ export class UAExclusiveLimitAlarm extends UALimitAlarm {
      * @return {UAExclusiveLimitAlarm}
      */
     public static instantiate(
-      namespace: NamespacePrivate,
-      type: UAEventType |  string | NodeId,
-      options: any,
-      data: any
+        namespace: NamespacePrivate,
+        type: UAEventType | string | NodeId,
+        options: any,
+        data: any
     ): UAExclusiveLimitAlarm {
 
         const addressSpace = namespace.addressSpace;
@@ -68,9 +68,10 @@ export class UAExclusiveLimitAlarm extends UALimitAlarm {
     }
 
     public _signalNewCondition(
-      stateName: string | null,
-      isActive: boolean,
-      value: any): void {
+        stateName: string | null,
+        isActive: boolean,
+        value: string
+    ): void {
         assert(stateName === null || typeof isActive === "boolean");
         assert(validState.indexOf(stateName) >= 0, "must have a valid state : " + stateName);
 
@@ -110,7 +111,7 @@ export class UAExclusiveLimitAlarm extends UALimitAlarm {
         }
 
         if (state !== oldState) {
-            this._signalNewCondition(state, isActive, value);
+            this._signalNewCondition(state, isActive, value.toString());
         }
     }
 }

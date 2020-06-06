@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-factory
  */
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as  _ from "underscore";
 
 import {
@@ -100,7 +100,7 @@ function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: Fiel
         switchBit: fieldLight.switchBit,
 
         switchValue: fieldLight.switchValue,
-        
+
         schema
     };
 }
@@ -109,6 +109,8 @@ export class StructuredTypeSchema extends TypeSchemaBase {
 
     public fields: FieldType[];
     public id: NodeId;
+    public dataTypeNodeId: NodeId;
+
     public baseType: string;
     public _possibleFields: string[];
     public _baseSchema: StructuredTypeSchema | null;
@@ -122,6 +124,8 @@ export class StructuredTypeSchema extends TypeSchemaBase {
 
     public encodingDefaultBinary?: ExpandedNodeId;
     public encodingDefaultXml?: ExpandedNodeId;
+    public encodingDefaultJson?: ExpandedNodeId;
+
     public bitFields?: any[];
 
     constructor(options: StructuredTypeOptions) {
@@ -137,9 +141,30 @@ export class StructuredTypeSchema extends TypeSchemaBase {
         }
         this.fields = options.fields.map(buildField.bind(null, this));
         this.id = NodeId.nullNodeId;
+        this.dataTypeNodeId = NodeId.nullNodeId;
 
         this._possibleFields = this.fields.map((field) => field.name);
         this._baseSchema = null;
+    }
+    public toString() {
+
+        const str: string[] = [];
+        str.push("name           = " + this.name);
+        str.push("baseType       = " + this.baseType);
+        str.push("id             = " + this.id.toString());
+        str.push("bitFields      = " + (this.bitFields ? this.bitFields.map((b) => b.name).join(" ") : undefined));
+        str.push("dataTypeNodeId = " + (this.dataTypeNodeId ? this.dataTypeNodeId.toString() : undefined));
+        str.push("documentation  = " + this.documentation);
+        str.push("encodingDefaultBinary  = " + this.encodingDefaultBinary?.toString());
+        str.push("encodingDefaultXml     = " + this.encodingDefaultXml?.toString());
+        str.push("encodingDefaultJson    = " + this.encodingDefaultJson?.toString());
+        for (const f of this.fields) {
+            str.push("  field   =  " + f.name.padEnd(30) + " isArray= " + (f.isArray ? true : false) + " " + f.fieldType.toString().padEnd(30) +
+                (f.switchBit !== undefined ? (" switchBit " + f.switchBit) : "") +
+                (f.switchValue !== undefined ? " switchValue    " + f.switchValue : ""));
+        }
+        return str.join("\n");
+
     }
 }
 
@@ -157,14 +182,14 @@ export function get_base_schema(schema: StructuredTypeSchema) {
         return baseSchema;
     }
 
-    if (schema.baseType === "ExtensionObject") {
+    if (schema.baseType === "ExtensionObject" || schema.baseType === "DataTypeDefinition") {
         return null;
     }
     if (schema.baseType === "Union") {
         return null;
     }
 
-    if (schema.baseType && schema.baseType !== "BaseUAObject") {
+    if (schema.baseType && schema.baseType !== "BaseUAObject" && schema.baseType !== "DataTypeDefinition") {
         const baseType = getStructureTypeConstructor(schema.baseType);
 
         // istanbul ignore next
@@ -215,10 +240,10 @@ export function extract_all_fields(schema: StructuredTypeSchema) {
  * @method  check_options_correctness_against_schema
  *
  */
-export function check_options_correctness_against_schema(obj: any, schema: StructuredTypeSchema, options: any) {
+export function check_options_correctness_against_schema(obj: any, schema: StructuredTypeSchema, options: any): boolean {
 
     if (!parameters.debugSchemaHelper) {
-        return; // ignoring set
+        return true; // ignoring set
     }
 
     options = options || {};

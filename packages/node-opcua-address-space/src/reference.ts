@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { coerceNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
@@ -40,15 +40,15 @@ function is_valid_reference(ref: Reference): boolean {
 function _arrow(text: string, length: number, isForward: boolean): string {
 
     length = Math.max(length, text.length + 8);
-    const nb = Math.floor((length  - text.length - 2) / 2);
+    const nb = Math.floor((length - text.length - 2) / 2);
     const h = Array(nb).join("-");
 
     const extra = (text.length % 2 === 1) ? "-" : "";
 
     if (isForward) {
-        return extra + h + " " + text + " " +  h + "> ";
+        return extra + h + " " + text + " " + h + "> ";
     }
-    return "<"  + h + " " +  text + " " +  h + extra + " ";
+    return "<" + h + " " + text + " " + h + extra + " ";
 }
 
 function _w(str: string, width: number): string {
@@ -64,18 +64,18 @@ function _localCoerceToNodeID(nodeIdLike: string | NodeId | BaseNode) {
 
 export interface MinimalistAddressSpace {
     findNode(
-      nodeId: NodeIdLike
+        nodeId: NodeIdLike
     ): BaseNode | null;
 
     findReferenceType(
-      referenceTypeId: NodeIdLike | UAReferenceType,
-      namespaceIndex?: number
+        referenceTypeId: NodeIdLike | UAReferenceType,
+        namespaceIndex?: number
     ): UAReferenceType | null;
 }
 
 export function resolveReferenceNode(
-  addressSpace: MinimalistAddressSpace,
-  reference: UAReference
+    addressSpace: MinimalistAddressSpace,
+    reference: UAReference
 ): BaseNode {
 
     const _reference = reference as Reference;
@@ -86,8 +86,8 @@ export function resolveReferenceNode(
 }
 
 export function resolveReferenceType(
-  addressSpace: MinimalistAddressSpace,
-  reference: UAReference
+    addressSpace: MinimalistAddressSpace,
+    reference: UAReference
 ): UAReferenceType {
 
     const _reference = reference as Reference;
@@ -95,7 +95,7 @@ export function resolveReferenceType(
         if (!_reference.referenceType) {
             console.log(chalk.red("ERROR MISSING reference"), reference);
         }
-        _reference._referenceType  =  addressSpace.findReferenceType(reference.referenceType)!;
+        _reference._referenceType = addressSpace.findReferenceType(reference.referenceType)!;
     }
     return _reference._referenceType;
 }
@@ -110,13 +110,13 @@ export function resolveReferenceType(
 export class Reference implements UAReference {
 
     public static resolveReferenceNode(
-      addressSpace: MinimalistAddressSpace,
-      reference: UAReference
-    ): BaseNode  { return resolveReferenceNode(addressSpace, reference); }
+        addressSpace: MinimalistAddressSpace,
+        reference: UAReference
+    ): BaseNode { return resolveReferenceNode(addressSpace, reference); }
 
     public static resolveReferenceType(
-      addressSpace: MinimalistAddressSpace,
-      reference: UAReference
+        addressSpace: MinimalistAddressSpace,
+        reference: UAReference
     ): UAReferenceType {
         return resolveReferenceType(addressSpace, reference);
     }
@@ -137,7 +137,7 @@ export class Reference implements UAReference {
         assert(options.nodeId instanceof NodeId);
 
         this.referenceType = coerceNodeId(options.referenceType);
-        this.isForward = (options.isForward  === undefined ) ? true : !!options.isForward;
+        this.isForward = (options.isForward === undefined) ? true : !!options.isForward;
         this.nodeId = _localCoerceToNodeID(options.nodeId);
 
         // optional to speed up when AddReferenceOpts is in fact a Reference !
@@ -160,7 +160,7 @@ export class Reference implements UAReference {
         if (options && options.addressSpace) {
 
             const node = options.addressSpace.findNode(this.nodeId);
-            infoNode = "[" + infoNode + "]" + _w(node.browseName.toString(), 40);
+            infoNode = "[" + infoNode + "]" + _w(node?.browseName.toString(), 40);
 
             const ref = options.addressSpace.findReferenceType(this.referenceType);
             const refNode = options.addressSpace.findNode(ref.nodeId);

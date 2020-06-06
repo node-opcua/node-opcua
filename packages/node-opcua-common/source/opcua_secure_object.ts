@@ -1,33 +1,32 @@
 /**
  * @module node-opcua-common
  */
+import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import { assert } from "node-opcua-assert";
 import {
-    Certificate, exploreCertificateInfo, Nonce, PrivateKey,
+    Certificate,
     PrivateKeyPEM, readCertificate,
-    readKeyPem, readPrivateKey,
-    split_der,
-
+    readKeyPem, split_der
 } from "node-opcua-crypto";
 
-export interface  ICertificateKeyPairProvider {
-    getCertificate(): Certificate ;
+export interface ICertificateKeyPairProvider {
+    getCertificate(): Certificate;
     getCertificateChain(): Certificate;
     getPrivateKey(): PrivateKeyPEM;
 }
 
 function _load_certificate(certificateFilename: string): Certificate {
-    const der =  readCertificate(certificateFilename);
+    const der = readCertificate(certificateFilename);
     return der;
 }
 
 function _load_private_key_pem(privateKeyFilename: string): PrivateKeyPEM {
-   return readKeyPem(privateKeyFilename);
+    return readKeyPem(privateKeyFilename);
 }
 
-export interface    IOPCUASecureObjectOptions {
+export interface IOPCUASecureObjectOptions {
     certificateFile?: string;
     privateKeyFile?: string;
 }
@@ -40,7 +39,7 @@ export interface    IOPCUASecureObjectOptions {
  * @param options.privateKeyFile {string}
  * @constructor
  */
-export class OPCUASecureObject extends  EventEmitter implements ICertificateKeyPairProvider {
+export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPairProvider {
 
     public readonly certificateFile: string;
     public readonly privateKeyFile: string;

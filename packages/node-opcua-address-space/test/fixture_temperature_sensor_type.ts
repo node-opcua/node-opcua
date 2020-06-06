@@ -1,13 +1,13 @@
-import { DataType } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
+import { Double } from "node-opcua-basic-types";
+import { DataType, Variant } from "node-opcua-variant";
 import { AddressSpace , InstantiateObjectOptions, UAObject , UAObjectType, UAVariableT} from "..";
 
 export interface TemperatureSensor extends UAObject {
-    temperature: UAVariableT<DataType.Double>;
+    temperature: UAVariableT<Double, DataType.Double>;
 }
 
 export interface TemperatureSensorType extends UAObjectType {
-    temperature: UAVariableT<DataType.Double>;
+    temperature: UAVariableT<Double, DataType.Double>;
     instantiate(options: InstantiateObjectOptions): TemperatureSensor;
 }
 

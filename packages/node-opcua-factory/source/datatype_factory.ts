@@ -2,71 +2,168 @@
  * @module node-opcua-factory
  */
 // tslint:disable:no-console
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as  _ from "underscore";
+import * as util from "util";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { ExpandedNodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 
+import { BasicTypeDefinition } from ".";
+import { ConstructorFunc, ConstructorFuncWithSchema } from "./constructor_type";
 import { BaseUAObject } from "./factories_baseobject";
-import { ConstructorFuncWithSchema, ConstructorFunc } from "./constructor_type";
+import {
+    getBuildInType,
+    hasBuiltInType,
+} from "./factories_builtin_types";
+import {
+    EnumerationDefinitionSchema,
+    getEnumeration,
+    hasEnumeration
+} from "./factories_enumerations";
 import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
-
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-
 export class DataTypeFactory {
-    
-    public defaultByteOrder: string; 
+
+    public defaultByteOrder: string;
     public targetNamespace: string;
     public imports: string[] = [];
 
-    private _structureTypeConstructorByNameMap: { [ key: string ]: ConstructorFuncWithSchema } = {};
+    private _structureTypeConstructorByNameMap: { [key: string]: ConstructorFuncWithSchema } = {};
+    private _structureTypeConstructorByDataTypeMap: { [key: string]: ConstructorFuncWithSchema } = {};
     private _structureTypeConstructorByEncodingNodeIdMap: any = {};
-    private baseDataFactories: DataTypeFactory[];
 
-    public constructor(baseDataFactories: DataTypeFactory[]){
+    private _enumerations: {
+        [key: string]: EnumerationDefinitionSchema
+    } = {};
+    private _simpleTypes: {
+        [key: string]: { nodeId: NodeId, definition: BasicTypeDefinition }
+    } = {};
+
+    private readonly baseDataFactories: DataTypeFactory[];
+
+    public constructor(baseDataFactories: DataTypeFactory[]) {
         this.defaultByteOrder = "LittleEndian";
         this.targetNamespace = "";
         this.baseDataFactories = baseDataFactories;
     }
 
-    public registerFactory(typeName: string, constructor: ConstructorFuncWithSchema): void
-    {
-        /* istanbul ignore next */
-        if (this.hasStructuredType(typeName)) {
-            console.log(this.getStructureTypeConstructor(typeName));
-            console.log("target namespace =", this.targetNamespace);
-            throw new Error(" registerFactory  : " + typeName + " already registered");
+    // -----------------------------
+    public registerSimpleType(name: string, dataTypeNodeId: NodeId, def: BasicTypeDefinition) {
+        if (this._simpleTypes[name]) {
+            throw new Error("registerSimpleType " + name + " already register");
         }
-        this._structureTypeConstructorByNameMap[typeName] = constructor;
-        Object.defineProperty(constructor.schema , "$typeDictionary", {
-            enumerable: false,
-            writable: false,
-            value: this
-        });
-
+        this._simpleTypes[name] = { nodeId: dataTypeNodeId, definition: def };
     }
- 
-    public getStructureTypeConstructor(typeName: string): ConstructorFuncWithSchema {
-        const constructor =  this._structureTypeConstructorByNameMap[typeName];
+
+    public hasSimpleType(name: string): boolean {
+        if (this._simpleTypes[name]) {
+            return true;
+        }
+        for (const factory of this.baseDataFactories) {
+            if (factory.hasSimpleType(name)) {
+                return true;
+            }
+        }
+        const hasSimpleT = hasBuiltInType(name);
+        if (hasSimpleT) {
+            return hasSimpleT;
+        }
+        return hasBuiltInType(name);
+    }
+    public getSimpleType(name: string): BasicTypeDefinition {
+        if (this._simpleTypes[name]) {
+            return this._simpleTypes[name].definition;
+        }
+        for (const factory of this.baseDataFactories) {
+            if (factory.hasSimpleType(name)) {
+                return factory.getSimpleType(name);
+            }
+        }
+        return getBuildInType(name);
+    }
+    // -----------------------------
+    // EnumerationDefinitionSchema
+    public registerEnumeration(enumeration: EnumerationDefinitionSchema): void {
+        assert(!this._enumerations[enumeration.name]);
+        this._enumerations[enumeration.name] = enumeration;
+    }
+    public hasEnumeration(enumName: string): boolean {
+        if (this._enumerations[enumName]) {
+            return true;
+        }
+        for (const factory of this.baseDataFactories) {
+            const e = factory.hasEnumeration(enumName);
+            if (e) {
+                return true;
+            }
+        }
+        if (hasEnumeration(enumName)) {
+            return true;
+        }
+        return false;
+    }
+    public getEnumeration(enumName: string): EnumerationDefinitionSchema | null {
+        if (this._enumerations[enumName]) {
+            return this._enumerations[enumName];
+        }
+        for (const factory of this.baseDataFactories) {
+            const e = factory.getEnumeration(enumName);
+            if (e !== null) {
+                return e;
+            }
+        }
+        const ee = getEnumeration(enumName);
+        return ee;
+    }
+    //  ----------------------------
+
+    public findConstructorForDataType(dataTypeNodeId: NodeId): ConstructorFuncWithSchema {
+        const constructor = this._structureTypeConstructorByDataTypeMap[dataTypeNodeId.toString()];
         if (constructor) {
             return constructor;
         }
         for (const factory of this.baseDataFactories) {
+            const constructor2 = factory.findConstructorForDataType(dataTypeNodeId);
+            if (constructor2) {
+                return constructor2;
+            }
+        }
+        throw new Error("Cannot find StructureType constructor for dataType " + dataTypeNodeId.toString());
+    }
+    // ----------------------------------------------------------------------------------------------------
+    // Acces by typeName
+    // ----------------------------------------------------------------------------------------------------
+    public structuredTypesNames(): string[] {
+        return Object.keys(this._structureTypeConstructorByNameMap);
+    }
+
+    public getStructureTypeConstructor(typeName: string): ConstructorFuncWithSchema {
+        const constructor = this._structureTypeConstructorByNameMap[typeName];
+        if (constructor) {
+            return constructor;
+        }
+        for (const factory of this.baseDataFactories) {
+            if (!factory.hasStructuredType(typeName)) {
+                continue;
+            }
             const constructor2 = factory.getStructureTypeConstructor(typeName);
             if (constructor2) {
                 return constructor2;
             }
         }
-        throw new Error("Cannot find StructureType constructor for " + typeName);
+        if (doDebug) {
+            console.log(Object.keys(this._structureTypeConstructorByNameMap).join(" "));
+        }
+        throw new Error("Cannot find StructureType constructor for " + typeName + " - it may be abstract, or it could be a basic type");
     }
-    public hasStructuredType(typeName: string): boolean
-    {
-        const flag =  !!this._structureTypeConstructorByNameMap[typeName];
+
+    public hasStructuredType(typeName: string): boolean {
+        const flag = !!this._structureTypeConstructorByNameMap[typeName];
         if (flag) { return true; }
         for (const factory of this.baseDataFactories) {
             const flag2 = factory.hasStructuredType(typeName);
@@ -76,80 +173,65 @@ export class DataTypeFactory {
         }
         return false;
     }
+
     public getStructuredTypeSchema(typeName: string): StructuredTypeSchema {
         const constructor = this.getStructureTypeConstructor(typeName);
         return constructor.schema;
-   }
+    }
 
-   public dump(): void {
-      console.log(" dumping registered factories");
-      console.log(" Factory ", Object.keys(this._structureTypeConstructorByNameMap)
-        .sort().forEach((e) => e));
+    public dump(): void {
+        console.log(" dumping registered factories");
+        console.log(" Factory ", Object.keys(this._structureTypeConstructorByNameMap)
+            .sort().forEach((e) => e));
         console.log(" done");
     }
 
-    public registerClassDefinition(className: string, classConstructor: ConstructorFuncWithSchema): void
-    {
-        this.registerFactory(className, classConstructor);
-
-        const expandedNodeId = classConstructor.encodingDefaultBinary;
-        this.associateWithBinaryEncoding(className, expandedNodeId);
-    
-    }
-    public associateWithBinaryEncoding(className: string, expandedNodeId: ExpandedNodeId) 
-    {
-        const classConstructor = this.getStructureTypeConstructor(className);
-        if (doDebug) {
-            debugLog(" associateWithBinaryEncoding ", className, expandedNodeId.toString());
+    public registerClassDefinition(dataTypeNodeId: NodeId, className: string, classConstructor: ConstructorFuncWithSchema): void {
+        this._registerFactory(dataTypeNodeId, className, classConstructor);
+        if (classConstructor.encodingDefaultBinary && classConstructor.encodingDefaultBinary.value !== 0) {
+            this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
+        } else {
+            // for instance in DI FetchResultDataType should be abstract but is not
+            debugLog("warning ", dataTypeNodeId.toString(),
+                "name=", className, " do not have binary encoding");
         }
-    
-        /* istanbul ignore next */
-        if (!verifyExpandedNodeId(expandedNodeId)) {
-            throw new Error("Invalid expandedNodeId");
-        }
-        const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
-    
-        /* istanbul ignore next */
-        if (expandedNodeIdKey in this._structureTypeConstructorByEncodingNodeIdMap) {
-            throw new Error(" Class " + className + " with ID " + expandedNodeId +
-              "  already in constructorMap for  " + this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey].name);
-        }
-    
-        this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey] = classConstructor;
     }
 
-    public getConstructor(expandedNodeId: ExpandedNodeId): ConstructorFunc | null {
-        const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);  
+    // ----------------------------------------------------------------------------------------------------
+    // Acces by binaryEncodingNodeId
+    // ----------------------------------------------------------------------------------------------------
+    public getConstructor(binaryEncodingNodeId: NodeId): ConstructorFunc | null {
+        const expandedNodeIdKey = makeExpandedNodeIdKey(binaryEncodingNodeId);
         const constructor = this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey];
         if (constructor) {
             return constructor;
         }
         for (const factory of this.baseDataFactories) {
-            const constructor2 = factory.getConstructor(expandedNodeId);
+            const constructor2 = factory.getConstructor(binaryEncodingNodeId);
             if (constructor2) {
                 return constructor2;
             }
         }
-        debugLog(chalk.red("#getConstructor : cannot find constructor for expandedId "), expandedNodeId.toString());
+        debugLog(chalk.red("#getConstructor : cannot find constructor for expandedId "), binaryEncodingNodeId.toString());
         return null;
     }
 
-    public hasConstructor(expandedNodeId: ExpandedNodeId): boolean {
-        if (!expandedNodeId) {
+    public hasConstructor(binaryEncodingNodeId: NodeId): boolean {
+        if (!binaryEncodingNodeId) {
             return false;
         }
         /* istanbul ignore next */
-        if (!verifyExpandedNodeId(expandedNodeId)) {
+        if (!verifyExpandedNodeId(binaryEncodingNodeId)) {
             console.log("Invalid expandedNodeId");
             return false;
         }
-        const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
+        const expandedNodeIdKey = makeExpandedNodeIdKey(binaryEncodingNodeId);
         const constructor = this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey];
         if (constructor) {
             return true;
         }
         for (const factory of this.baseDataFactories) {
-            const constructor2 = factory.getConstructor(expandedNodeId);
+            const constructor2 = factory.getConstructor(binaryEncodingNodeId);
             if (constructor2) {
                 return true;
             }
@@ -157,45 +239,116 @@ export class DataTypeFactory {
         return false;
     }
 
-    public constructObject(expandedNodeId: ExpandedNodeId): BaseUAObject  {
-        if (!verifyExpandedNodeId(expandedNodeId)) {
-            throw new Error(" constructObject : invalid expandedNodeId provided " + expandedNodeId.toString());
+    public constructObject(binaryEncodingNodeId: NodeId): BaseUAObject {
+        if (!verifyExpandedNodeId(binaryEncodingNodeId)) {
+            throw new Error(" constructObject : invalid expandedNodeId provided " + binaryEncodingNodeId.toString());
         }
-        const constructor = this.getConstructor(expandedNodeId);
-    
+        const constructor = this.getConstructor(binaryEncodingNodeId);
+
         if (!constructor) {
-            debugLog("Cannot find constructor for " + expandedNodeId.toString());
+            debugLog("Cannot find constructor for " + binaryEncodingNodeId.toString());
             return new BaseUAObject();
             // throw new Error("Cannot find constructor for " + expandedNodeId.toString());
         }
         return callConstructor(constructor);
-    
+
+    }
+
+    public associateWithBinaryEncoding(className: string, expandedNodeId: ExpandedNodeId) {
+        const classConstructor = this.getStructureTypeConstructor(className);
+        if (doDebug) {
+            debugLog(" associateWithBinaryEncoding ", className, expandedNodeId.toString());
+        }
+
+        /* istanbul ignore next */
+        if (!verifyExpandedNodeId(expandedNodeId)) {
+            throw new Error("Invalid expandedNodeId " + expandedNodeId.toString() + " className = " + className);
+        }
+        const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
+
+        /* istanbul ignore next */
+        if (expandedNodeIdKey in this._structureTypeConstructorByEncodingNodeIdMap) {
+            throw new Error(" Class " + className + " with ID " + expandedNodeId +
+                "  already in constructorMap for  " + this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey].name);
+        }
+
+        this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey] = classConstructor;
+    }
+
+    public toString(): string {
+        const l: string[] = [];
+        function write(...args: [any, ...any[]]) {
+            l.push(util.format.apply(util.format, args));
+        }
+        dumpDataFactory(this, write);
+        return l.join("\n");
+    }
+
+    private _registerFactory(dataTypeNodeId: NodeId, typeName: string, constructor: ConstructorFuncWithSchema): void {
+        assert(dataTypeNodeId.value !== 0, "dataTypeNodeId cannot be null");
+        /* istanbul ignore next */
+        if (this.hasStructuredType(typeName)) {
+            console.log(this.getStructureTypeConstructor(typeName));
+            console.log("target namespace =", this.targetNamespace);
+            throw new Error(" registerFactory  : " + typeName + " already registered");
+        }
+        debugLog("registerning typeName ", typeName, dataTypeNodeId.toString());
+        this._structureTypeConstructorByNameMap[typeName] = constructor;
+        this._structureTypeConstructorByDataTypeMap[dataTypeNodeId.toString()] = constructor;
+        Object.defineProperty(constructor.schema, "$$factory", {
+            enumerable: false,
+            value: this,
+            writable: false,
+        });
+    }
+
+}
+
+function dumpSchema(schema: StructuredTypeSchema, write: any) {
+    write("name           ", schema.name);
+    write("dataType       ", schema.dataTypeNodeId.toString());
+    write("binaryEncoding ", schema.encodingDefaultBinary!.toString());
+    for (const f of schema.fields) {
+        write("          ", f.name.padEnd(30, " "), f.isArray ? true : false, f.fieldType);
+    }
+}
+function dumpDataFactory(dataFactory: DataTypeFactory, write: any) {
+
+    for (const structureTypeName of dataFactory.structuredTypesNames()) {
+        const schema = dataFactory.getStructuredTypeSchema(structureTypeName);
+
+        write("structureTypeName =", structureTypeName);
+
+        if (!dataFactory.findConstructorForDataType(schema.dataTypeNodeId)) {
+            write("  ( No constructor for " + schema.name + "  " + schema.dataTypeNodeId.toString());
+        }
+        if (!schema.encodingDefaultBinary) {
+            write(" (Schema has no encoding defaultBinary )");
+        } else {
+            if (dataFactory.hasConstructor(schema.encodingDefaultBinary)) {
+                console.log("schema", schema.name);
+                console.log("schema", schema.dataTypeNodeId.toString());
+                console.log("schema", schema.encodingDefaultBinary ? schema.encodingDefaultBinary.toString() : " ");
+                console.log("schema", schema.encodingDefaultXml ? schema.encodingDefaultXml.toString() : " ");
+                // return;
+                // throw new Error("Not  in Binary Encoding Map!!!!!  " + schema.encodingDefaultBinary);
+
+            }
+        }
+        dumpSchema(schema, write);
     }
 }
 
-function verifyExpandedNodeId(expandedNodeId: ExpandedNodeId): boolean {
+function verifyExpandedNodeId(expandedNodeId: NodeId): boolean {
     /* istanbul ignore next */
     if (expandedNodeId.value instanceof Buffer) {
         throw new Error("getConstructor not implemented for opaque nodeid");
     }
-    if (expandedNodeId.namespace === 0) {
-        if (expandedNodeId.namespaceUri === "http://opcfoundation.org/UA/" || !expandedNodeId.namespaceUri ) {
-            return true;
-        }
-        // When namespace is ZERO, namepaceUri must be "http://opcfoundation.org/UA/"  or nothing
-        return false;
-    } else {
-        // expandedNodeId.namespace  !==0
-        // in this case a valid expandedNodeId.namespaceUri  must be provided
-        return !!expandedNodeId.namespaceUri && expandedNodeId.namespaceUri.length > 2;
-    }
+    return true;
 }
 
-function makeExpandedNodeIdKey(expandedNodeId: ExpandedNodeId): string {
-    if (expandedNodeId.namespace === 0) {
-        return expandedNodeId.value.toString();
-    }
-    return expandedNodeId.namespaceUri + "@" + expandedNodeId.value.toString();
+function makeExpandedNodeIdKey(expandedNodeId: NodeId): string {
+    return expandedNodeId.toString();
 }
 
 export function callConstructor(constructor: ConstructorFunc): BaseUAObject {
@@ -203,5 +356,3 @@ export function callConstructor(constructor: ConstructorFunc): BaseUAObject {
     const constructorFunc: any = constructor.bind.apply(constructor, arguments as any);
     return new constructorFunc();
 }
-
-

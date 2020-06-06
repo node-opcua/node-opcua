@@ -6,6 +6,8 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
+import { DataType } from "node-opcua-variant";
+
 import { UAVariable, UAVariableT } from "../../source";
 import { NamespacePrivate } from "../namespace_private";
 import {
@@ -79,7 +81,7 @@ export class UAExclusiveDeviationAlarm extends UAExclusiveLimitAlarm implements 
     }
 }
 export interface UAExclusiveDeviationAlarm {
-    setpointNode: UAVariableT<NodeId>;
+    setpointNode: UAVariableT<NodeId, DataType.NodeId>;
     setpointNodeNode: UAVariable;
 }
 

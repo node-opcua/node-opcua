@@ -186,13 +186,19 @@ const gClock: PreciseClockEx = {
     picoseconds: 0
 };
 
-
 // make sure we get a pointer to the actual process.hrtime,
 // just in case it get overridden by some library (such as sinon)
 const hrtime = process.hrtime;
 
+const setTimeout_chek = setTimeout;
 /*kWithProcessHRTime*/
 export function getCurrentClock(): PreciseClock {
+
+    if (setTimeout_chek !== setTimeout) {
+        // is fake sinon clock being used ?
+        // in this case hrtime is not working
+        return getCurrentClockWithJavascriptDate();
+    }
     gClock.tick = hrtime(origin); // [seconds, nanoseconds]
     const milliseconds = gClock.tick[0] * 1000 + Math.floor(gClock.tick[1] / 1000000) + refTime;
     const picoseconds = (gClock.tick[1] % 1000000) * 1000;

@@ -2,7 +2,7 @@
  * @module node-opcua-nodeid
  */
 // tslint:disable:no-conditional-assignment
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import {
     DataTypeIds,
@@ -122,7 +122,7 @@ export class NodeId {
                 break;
             default:
                 assert(this.identifierType === NodeIdType.BYTESTRING,
-                  "invalid identifierType in NodeId : " + this.identifierType);
+                    "invalid identifierType in NodeId : " + this.identifierType);
                 if (this.value) {
                     str = "ns=" + this.namespace + ";b=" + (this.value as Buffer).toString("hex");
                 } else {
@@ -136,7 +136,7 @@ export class NodeId {
                 // find standard browse name
                 const name = reverse_map(this.value.toString()) || "<undefined>";
                 str += " " + chalk.green.bold(name);
-            } else {
+            } else if (addressSpace.findNode) {
                 // let use the provided address space to figure out the browseNode of this node.
                 // to make the message a little bit more useful.
                 const n = addressSpace.findNode(this);
@@ -177,7 +177,7 @@ export class NodeId {
                 return !this.value || this.value === emptyGuid;
             default:
                 assert(this.identifierType === NodeIdType.BYTESTRING,
-                  "invalid identifierType in NodeId : " + this.identifierType);
+                    "invalid identifierType in NodeId : " + this.identifierType);
                 return !this.value || (this.value as Buffer).length === 0;
         }
     }

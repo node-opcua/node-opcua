@@ -16,7 +16,7 @@ export async function extractConditionFields(
     // or it could be directly a ObhectType which is a  subType of ConditionType
 
     const _duplicateMap: any = {};
-    const fields1 : string[]= [];
+    const fields1: string[] = [];
 
     function addField(name: string) {
         if (!_duplicateMap[name]) {

@@ -45,7 +45,6 @@ export const verifyMessageChunkSignatureForTest = construct_verifyMessageChunkSi
 
 export function performMessageChunkManagerTest(options: SecureMessageChunkManagerOptions) {
 
-    options = options || {};
     const securityHeader = new SymmetricAlgorithmSecurityHeader();
 
     const bodySize = 32;
@@ -59,7 +58,7 @@ export function performMessageChunkManagerTest(options: SecureMessageChunkManage
     const sequenceNumberGenerator = new SequenceNumberGenerator();
 
     const msgChunkManager = new SecureMessageChunkManager(
-      "HEL", options, securityHeader, sequenceNumberGenerator
+        "HEL", options, securityHeader, sequenceNumberGenerator
     );
 
     const chunks: Buffer[] = [];

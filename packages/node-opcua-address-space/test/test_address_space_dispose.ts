@@ -28,7 +28,7 @@ function callGarbageCollector() {
     }
 }
 
-describe("Testing AddressSpace memory Leaks", function(this: any) {
+describe("Testing AddressSpace memory Leaks", function (this: any) {
 
     const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
     fs.existsSync(xml_file).should.be.eql(true, "cannot find mini node set");

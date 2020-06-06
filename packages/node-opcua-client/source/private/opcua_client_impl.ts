@@ -6,7 +6,7 @@
 // tslint:disable:no-empty
 
 import * as async from "async";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as crypto from "crypto";
 import * as _ from "underscore";
 import { callbackify } from "util";
@@ -32,7 +32,6 @@ import {
 } from "node-opcua-hostname";
 import {
     ClientSecureChannelLayer, computeSignature, ConnectionStrategyOptions,
-    ErrorCallback,
     fromURI,
     getCryptoFactory,
     SecurityPolicy
@@ -56,6 +55,10 @@ import {
     X509IdentityToken
 } from "node-opcua-service-session";
 import { StatusCodes } from "node-opcua-status-code";
+import {
+    ErrorCallback,
+} from "node-opcua-status-code";
+
 import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { isNullOrUndefined } from "node-opcua-utils";
 
@@ -70,7 +73,8 @@ import {
     UserIdentityInfoUserName,
     UserIdentityInfoX509,
     WithSessionFuncP,
-    WithSubscriptionFuncP
+    WithSubscriptionFuncP,
+    EndpointWithUserIdentity
 } from "../opcua_client";
 import { repair_client_sessions } from "../reconnection";
 import { ClientBaseImpl } from "./client_base_impl";
@@ -91,8 +95,8 @@ function validateServerNonce(serverNonce: Nonce | null): boolean {
 }
 
 function verifyEndpointDescriptionMatches(
-  client: OPCUAClientImpl,
-  responseServerEndpoints: EndpointDescription[]
+    client: OPCUAClientImpl,
+    responseServerEndpoints: EndpointDescription[]
 ): boolean {
     // The Server returns its EndpointDescriptions in the response. Clients use this information to
     // determine whether the list of EndpointDescriptions returned from the Discovery Endpoint matches
@@ -115,14 +119,21 @@ function verifyEndpointDescriptionMatches(
 function findUserTokenPolicy(endpointDescription: EndpointDescription, userTokenType: UserTokenType) {
     endpointDescription.userIdentityTokens = endpointDescription.userIdentityTokens || [];
     const r = _.filter(endpointDescription.userIdentityTokens, (userIdentity: UserTokenPolicy) =>
-      userIdentity.tokenType === userTokenType
+        userIdentity.tokenType === userTokenType
     );
     return r.length === 0 ? null : r[0];
 }
 
-function createAnonymousIdentityToken(session: ClientSessionImpl): AnonymousIdentityToken {
+interface IdentityTokenContext {
+    endpoint: EndpointDescription;
+    securityPolicy: SecurityPolicy;
+    serverCertificate: Certificate;
+    serverNonce: Buffer;
+}
 
-    const endpoint = session.endpoint;
+function createAnonymousIdentityToken(context: IdentityTokenContext): AnonymousIdentityToken {
+
+    const endpoint = context.endpoint;
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.Anonymous);
     if (!userTokenPolicy) {
         throw new Error("Cannot find ANONYMOUS user token policy in end point description");
@@ -137,17 +148,17 @@ interface X509TokenAndSignature {
 
 /**
  *
- * @param session
+ * @param context
  * @param certificate - the user certificate
  * @param privateKey  - the private key associated with the user certificate
  */
 function createX509IdentityToken(
-  session: ClientSessionImpl,
-  certificate: Certificate,
-  privateKey: PrivateKeyPEM
+    context: IdentityTokenContext,
+    certificate: Certificate,
+    privateKey: PrivateKeyPEM
 ): X509TokenAndSignature {
 
-    const endpoint = session.endpoint;
+    const endpoint = context.endpoint;
     assert(endpoint instanceof EndpointDescription);
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.Certificate);
     // istanbul ignore next
@@ -158,17 +169,17 @@ function createX509IdentityToken(
 
     // if the security policy is not specified we use the session security policy
     if (securityPolicy === SecurityPolicy.Invalid) {
-        securityPolicy = session._client._secureChannel.securityPolicy;
+        securityPolicy = context.securityPolicy;
     }
     const userIdentityToken = new X509IdentityToken({
         certificateData: certificate,
         policyId: userTokenPolicy.policyId
     });
 
-    const serverCertificate: Certificate = session.serverCertificate;
+    const serverCertificate: Certificate = context.serverCertificate;
     assert(serverCertificate instanceof Buffer);
 
-    const serverNonce: Nonce = session.serverNonce || Buffer.alloc(0);
+    const serverNonce: Nonce = context.serverNonce || Buffer.alloc(0);
     assert(serverNonce instanceof Buffer);
 
     // see Release 1.02 155 OPC Unified Architecture, Part 4
@@ -206,20 +217,19 @@ function createX509IdentityToken(
      * the UserTokenPolicy if the SecureChannel has a SecurityPolicy of None.
      */
 
-      // now create the proof of possession, by creating a signature
-      // The data to sign is created by appending the last serverNonce to the serverCertificate
+    // now create the proof of possession, by creating a signature
+    // The data to sign is created by appending the last serverNonce to the serverCertificate
 
-      // The signature generated with private key associated with the User Certificate
+    // The signature generated with private key associated with the User Certificate
     const userTokenSignature: SignatureDataOptions = computeSignature(
-      serverCertificate, serverNonce, privateKey, securityPolicy)!;
+        serverCertificate, serverNonce, privateKey, securityPolicy)!;
 
     return { userIdentityToken, userTokenSignature };
 }
-
 function createUserNameIdentityToken(
-  session: ClientSessionImpl,
-  userName: string | null,
-  password: string | null
+    session: IdentityTokenContext,
+    userName: string | null,
+    password: string | null
 ): UserNameIdentityToken {
 
     // assert(endpoint instanceof EndpointDescription);
@@ -248,7 +258,7 @@ function createUserNameIdentityToken(
 
     // if the security policy is not specified we use the session security policy
     if (securityPolicy === SecurityPolicy.Invalid) {
-        securityPolicy = session._client._secureChannel.securityPolicy;
+        securityPolicy = session.securityPolicy;
     }
 
     let identityToken;
@@ -311,10 +321,7 @@ function createUserNameIdentityToken(
     return identityToken;
 }
 
-export interface EndpointWithUserIdentity {
-    endpointUrl: string;
-    userIdentity: UserIdentityInfo;
-}
+
 
 /***
  *
@@ -358,8 +365,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         // by GetEndpointsRequest.
         // By default, the client is strict.
         this.endpoint_must_exist = (isNullOrUndefined(options.endpoint_must_exist))
-          ? true
-          : !!options.endpoint_must_exist;
+            ? true
+            : !!options.endpoint_must_exist;
 
         this.requestedSessionTimeout = options.requestedSessionTimeout || 60000; // 1 minute
 
@@ -390,8 +397,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     public async createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
     public createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
     public createSession(
-      userIdentityInfo: UserIdentityInfo,
-      callback: (err: Error | null, session?: ClientSession) => void): void ;
+        userIdentityInfo: UserIdentityInfo,
+        callback: (err: Error | null, session?: ClientSession) => void): void;
     public createSession(callback: (err: Error | null, session?: ClientSession) => void): void;
     /**
      * @internal
@@ -421,9 +428,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 this._addSession(session as ClientSessionImpl);
 
                 this._activateSession(session as ClientSessionImpl,
-                  (err1: Error | null, session2?: ClientSessionImpl) => {
-                      callback(err1, session2);
-                  });
+                    (err1: Error | null, session2?: ClientSessionImpl) => {
+                        callback(err1, session2);
+                    });
             }
         });
     }
@@ -436,20 +443,20 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @async
      */
     public async changeSessionIdentity(
-      session: ClientSession,
-      userIdentityInfo: UserIdentityInfo
+        session: ClientSession,
+        userIdentityInfo: UserIdentityInfo
     ): Promise<void>;
     public changeSessionIdentity(
-      session: ClientSession,
-      userIdentityInfo: UserIdentityInfo,
-      callback: (err?: Error) => void
+        session: ClientSession,
+        userIdentityInfo: UserIdentityInfo,
+        callback: (err?: Error) => void
     ): void;
     /**
      * @internal
      * @param args
      */
     public changeSessionIdentity(
-      ...args: any[]
+        ...args: any[]
     ): any {
 
         const session = args[0] as ClientSessionImpl;
@@ -462,9 +469,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         this.userIdentityInfo = userIdentityInfo;
 
         this._activateSession(session as ClientSessionImpl,
-          (err1: Error | null, session1?: ClientSessionImpl) => {
-              callback(err1 ? err1 : undefined);
-          });
+            (err1: Error | null, session1?: ClientSessionImpl) => {
+                callback(err1 ? err1 : undefined);
+            });
     }
 
     /**
@@ -480,7 +487,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @internals
      * @param args
      */
-    public closeSession(...args: any []): any {
+    public closeSession(...args: any[]): any {
 
         const session = args[0] as ClientSessionImpl;
         const deleteSubscriptions = args[1];
@@ -509,9 +516,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
     public toString(): string {
         let str = ClientBaseImpl.prototype.toString.call(this);
-        str += "  requestedSessionTimeout....... " + this.requestedSessionTimeout;
-        str += "  endpointUrl................... " + this.endpointUrl;
-        str += "  serverUri..................... " + this.serverUri;
+        str += "  requestedSessionTimeout....... " + this.requestedSessionTimeout + "\n";
+        str += "  endpointUrl................... " + this.endpointUrl + "\n";
+        str += "  serverUri..................... " + this.serverUri + "\n";
         return str;
     }
 
@@ -519,14 +526,14 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @method withSession
      */
     public withSession<T>(
-      endpointUrl: string | EndpointWithUserIdentity,
-      inner_func: (session: ClientSession) => Promise<T>
+        endpointUrl: string | EndpointWithUserIdentity,
+        inner_func: (session: ClientSession) => Promise<T>
     ): Promise<T>;
 
     public withSession(
-      endpointUrl: string | EndpointWithUserIdentity,
-      inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
-      callback: (err?: Error) => void
+        endpointUrl: string | EndpointWithUserIdentity,
+        inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
+        callback: (err?: Error) => void
     ): void;
 
     /**
@@ -538,8 +545,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
         ...args: any[]): any {
 
-        const endpointUrl: string  = (typeof connectionPoint === "string" ) ? connectionPoint : connectionPoint.endpointUrl ;
-        const userIdentity: UserIdentityInfo = (typeof connectionPoint === "string" ) ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity ;
+        const endpointUrl: string = (typeof connectionPoint === "string") ? connectionPoint : connectionPoint.endpointUrl;
+        const userIdentity: UserIdentityInfo = (typeof connectionPoint === "string") ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity;
 
         const callback = args[0];
 
@@ -584,6 +591,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                         innerCallback();
                     });
                 } catch (err) {
+                    console.log("Execption catch in inner function,  check your code ", err);
                     errorLog("OPCUAClientImpl#withClientSession", err.message);
                     the_error = err;
                     innerCallback();
@@ -626,10 +634,10 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     public withSubscription(
-      endpointUrl: string | EndpointWithUserIdentity,
-      subscriptionParameters: ClientSubscriptionOptions,
-      innerFunc: (session: ClientSession, subscription: ClientSubscription, done: (err?: Error) => void) => void,
-      callback: (err?: Error) => void
+        endpointUrl: string | EndpointWithUserIdentity,
+        subscriptionParameters: ClientSubscriptionOptions,
+        innerFunc: (session: ClientSession, subscription: ClientSubscription, done: (err?: Error) => void) => void,
+        callback: (err?: Error) => void
     ) {
 
         assert(_.isFunction(innerFunc));
@@ -660,8 +668,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         assert(_.isFunction(func));
         assert(func.length === 1, "expecting a single argument in func");
 
-        const endpointUrl: string  = (typeof connectionPoint === "string" ) ? connectionPoint : connectionPoint.endpointUrl ;
-        const userIdentity: UserIdentityInfo = (typeof connectionPoint === "string" ) ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity ;
+        const endpointUrl: string = (typeof connectionPoint === "string") ? connectionPoint : connectionPoint.endpointUrl;
+        const userIdentity: UserIdentityInfo = (typeof connectionPoint === "string") ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity;
 
         try {
             await this.connect(endpointUrl);
@@ -672,9 +680,11 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 result = await func(session);
             } catch (err) {
                 errorLog(err);
+                throw err;
+            } finally {
+                await session.close();
+                await this.disconnect();
             }
-            await session.close();
-            await this.disconnect();
             return result;
         } catch (err) {
             throw err;
@@ -682,8 +692,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     public async withSubscriptionAsync(
-      connectionPoint: string | EndpointWithUserIdentity,
-      parameters: ClientSubscriptionOptions, func: WithSubscriptionFuncP<any>
+        connectionPoint: string | EndpointWithUserIdentity,
+        parameters: ClientSubscriptionOptions, func: WithSubscriptionFuncP<any>
     ): Promise<any> {
 
         await this.withSessionAsync(connectionPoint, async (session: ClientSession) => {
@@ -704,12 +714,12 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             try {
                 const result = await func(session, subscription);
                 return result;
-            } catch {
-                return undefined;
+            } catch (err) {
+                console.log("withSubscriptionAsync inner functon failed ", err.message);
+                throw err;
             } finally {
                 await subscription.terminate();
             }
-
         });
     }
 
@@ -727,15 +737,16 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         const internalSession = session as ClientSessionImpl;
 
         assert(typeof callback === "function");
-        assert(this._secureChannel, " client must be connected first");
-
+        if (!this._secureChannel) {
+            throw new Error(" client must be connected first");
+        }
         // istanbul ignore next
         if (!this.__resolveEndPoint() || !this.endpoint) {
             return callback!(new Error(" End point must exist " + this._secureChannel.endpointUrl));
         }
 
         assert(!internalSession._client || internalSession._client.endpointUrl === this.endpointUrl,
-          "cannot reactivateSession on a different endpoint");
+            "cannot reactivateSession on a different endpoint");
 
         const old_client = internalSession._client;
 
@@ -790,9 +801,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @private
      */
     public __createSession_step2(
-      session: ClientSessionImpl,
-      callback: (err: Error | null, session?: ClientSessionImpl
-      ) => void) {
+        session: ClientSessionImpl,
+        callback: (err: Error | null, session?: ClientSessionImpl
+        ) => void) {
 
         callbackify(extractFullyQualifiedDomainName)(() => {
             this.__createSession_step3(session, callback);
@@ -805,12 +816,12 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @private
      */
     public __createSession_step3(
-      session: ClientSessionImpl,
-      callback: (err: Error | null, session?: ClientSessionImpl
-      ) => void) {
+        session: ClientSessionImpl,
+        callback: (err: Error | null, session?: ClientSessionImpl
+        ) => void) {
 
         assert(typeof callback === "function");
-        assert(this._secureChannel);
+        if (!this._secureChannel) { throw new Error("Invalid channel"); }
         assert(this.serverUri !== undefined, " must have a valid server URI");
         assert(this.endpointUrl !== undefined, " must have a valid server endpointUrl");
         assert(this.endpoint);
@@ -847,10 +858,12 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
 
+            /* istanbul ignore next */
             if (err) {
                 return callback(err);
             }
 
+            /* istanbul ignore next */
             if (!response || !(response instanceof CreateSessionResponse)) {
                 return callback(new Error("internal error"));
             }
@@ -861,7 +874,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
             if (response.responseHeader.serviceResult !== StatusCodes.Good) {
                 err = new Error("Error " + response.responseHeader.serviceResult.name
-                  + " " + response.responseHeader.serviceResult.description);
+                    + " " + response.responseHeader.serviceResult.description);
                 return callback(err);
             }
 
@@ -903,8 +916,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @private
      */
     public _activateSession(
-      session: ClientSessionImpl,
-      callback: (err: Error | null, session?: ClientSessionImpl) => void
+        session: ClientSessionImpl,
+        callback: (err: Error | null, session?: ClientSessionImpl) => void
     ) {
 
         // see OPCUA Part 4 - $7.35
@@ -924,98 +937,116 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         // make sure session is attached to this client
         const _old_client = session._client;
+
         session._client = this;
 
+        const context: IdentityTokenContext = {
+            endpoint: this.endpoint!,
+            securityPolicy: this._secureChannel.securityPolicy,
+            serverCertificate,
+            serverNonce: serverNonce! // please checl this !
+        };
+
         this.createUserIdentityToken(
-          session,
-          this.userIdentityInfo,
-          (err: Error | null, data?: TokenAndSignature | null) => {
+            context,
+            this.userIdentityInfo,
+            (err: Error | null, data?: TokenAndSignature | null) => {
 
-              if (err) {
-                  session._client = _old_client;
-                  return callback(err);
-              }
+                if (err) {
+                    session._client = _old_client;
+                    return callback(err);
+                }
 
-              data = data!;
-              const userIdentityToken: UserIdentityToken = data.userIdentityToken!;
-              const userTokenSignature: SignatureDataOptions = data.userTokenSignature!;
-              // TODO. fill the ActivateSessionRequest
-              // see 5.6.3.2 Parameters OPC Unified Architecture, Part 4 30 Release 1.02
-              const request = new ActivateSessionRequest({
+                data = data!;
+                const userIdentityToken: UserIdentityToken = data.userIdentityToken!;
+                const userTokenSignature: SignatureDataOptions = data.userTokenSignature!;
+                // TODO. fill the ActivateSessionRequest
+                // see 5.6.3.2 Parameters OPC Unified Architecture, Part 4 30 Release 1.02
+                const request = new ActivateSessionRequest({
 
-                  // This is a signature generated with the private key associated with the
-                  // clientCertificate. The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm
-                  // specified in the SecurityPolicy for the Endpoint. The SignatureData type is defined in 7.30.
+                    // This is a signature generated with the private key associated with the
+                    // clientCertificate. The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm
+                    // specified in the SecurityPolicy for the Endpoint. The SignatureData type is defined in 7.30.
 
-                  clientSignature: this.computeClientSignature(
-                    this._secureChannel,
-                    serverCertificate,
-                    serverNonce) || undefined,
+                    clientSignature: this.computeClientSignature(
+                        this._secureChannel!,
+                        serverCertificate,
+                        serverNonce) || undefined,
 
-                  // These are the SoftwareCertificates which have been issued to the Client application.
-                  // The productUri contained in the SoftwareCertificates shall match the productUri in the
-                  // ApplicationDescription passed by the Client in the CreateSession requests. Certificates without
-                  // matching productUri should be ignored.  Servers may reject connections from Clients if they are
-                  // not satisfied with the SoftwareCertificates provided by the Client.
-                  // This parameter only needs to be specified in the first ActivateSession request
-                  // after CreateSession.
-                  // It shall always be omitted if the maxRequestMessageSize returned from the Server in the
-                  // CreateSession response is less than one megabyte.
-                  // The SignedSoftwareCertificate type is defined in 7.31.
+                    // These are the SoftwareCertificates which have been issued to the Client application.
+                    // The productUri contained in the SoftwareCertificates shall match the productUri in the
+                    // ApplicationDescription passed by the Client in the CreateSession requests. Certificates without
+                    // matching productUri should be ignored.  Servers may reject connections from Clients if they are
+                    // not satisfied with the SoftwareCertificates provided by the Client.
+                    // This parameter only needs to be specified in the first ActivateSession request
+                    // after CreateSession.
+                    // It shall always be omitted if the maxRequestMessageSize returned from the Server in the
+                    // CreateSession response is less than one megabyte.
+                    // The SignedSoftwareCertificate type is defined in 7.31.
 
-                  clientSoftwareCertificates: [],
+                    clientSoftwareCertificates: [],
 
-                  // List of locale ids in priority order for localized strings. The first LocaleId in the list
-                  // has the highest priority. If the Server returns a localized string to the Client, the Server
-                  // shall return the translation with the highest priority that it can. If it does not have a
-                  // translation for any of the locales identified in this list, then it shall return the string
-                  // value that it has and include the locale id with the string.
-                  // See Part 3 for more detail on locale ids. If the Client fails to specify at least one locale id,
-                  // the Server shall use any that it has.
-                  // This parameter only needs to be specified during the first call to ActivateSession during
-                  // a single application Session. If it is not specified the Server shall keep using the current
-                  // localeIds for the Session.
-                  localeIds: [],
+                    // List of locale ids in priority order for localized strings. The first LocaleId in the list
+                    // has the highest priority. If the Server returns a localized string to the Client, the Server
+                    // shall return the translation with the highest priority that it can. If it does not have a
+                    // translation for any of the locales identified in this list, then it shall return the string
+                    // value that it has and include the locale id with the string.
+                    // See Part 3 for more detail on locale ids. If the Client fails to specify at least one locale id,
+                    // the Server shall use any that it has.
+                    // This parameter only needs to be specified during the first call to ActivateSession during
+                    // a single application Session. If it is not specified the Server shall keep using the current
+                    // localeIds for the Session.
+                    localeIds: [],
 
-                  // The credentials of the user associated with the Client application. The Server uses these
-                  // credentials to determine whether the Client should be allowed to activate a Session and what
-                  // resources the Client has access to during this Session. The UserIdentityToken is an extensible
-                  // parameter type defined in 7.35.
-                  // The EndpointDescription specifies what UserIdentityTokens the Server shall accept.
-                  userIdentityToken,
+                    // The credentials of the user associated with the Client application. The Server uses these
+                    // credentials to determine whether the Client should be allowed to activate a Session and what
+                    // resources the Client has access to during this Session. The UserIdentityToken is an extensible
+                    // parameter type defined in 7.35.
+                    // The EndpointDescription specifies what UserIdentityTokens the Server shall accept.
+                    userIdentityToken,
 
-                  // If the Client specified a user   identity token that supports digital signatures,
-                  // then it shall create a signature and pass it as this parameter. Otherwise the parameter
-                  // is omitted.
-                  // The SignatureAlgorithm depends on the identity token type.
-                  userTokenSignature
+                    // If the Client specified a user   identity token that supports digital signatures,
+                    // then it shall create a signature and pass it as this parameter. Otherwise the parameter
+                    // is omitted.
+                    // The SignatureAlgorithm depends on the identity token type.
+                    userTokenSignature
 
-              });
+                });
 
-              session.performMessageTransaction(request, (err1: Error | null, response?: Response) => {
+                request.requestHeader.authenticationToken = session.authenticationToken!;
+                session.lastRequestSentTime = new Date();
 
-                  if (!err1 && response && response.responseHeader.serviceResult === StatusCodes.Good) {
+                this.performMessageTransaction(request, (err1: Error | null, response?: Response) => {
 
-                      if (!(response instanceof ActivateSessionResponse)) {
-                          return callback(new Error("Internal Error"));
-                      }
+                    if (!err1 && response && response.responseHeader.serviceResult === StatusCodes.Good) {
 
-                      session.serverNonce = response.serverNonce;
+                        /* istanbul ignore next */
+                        if (!(response instanceof ActivateSessionResponse)) {
+                            return callback(new Error("Internal Error"));
+                        }
 
-                      if (!validateServerNonce(session.serverNonce)) {
-                          return callback(new Error("Invalid server Nonce"));
-                      }
-                      return callback(null, session);
+                        if (!validateServerNonce(response.serverNonce)) {
+                            return callback(new Error("Invalid server Nonce"));
+                        }
+                        session._client = this;
+                        session.serverNonce = response.serverNonce;
+                        session.lastResponseReceivedTime = new Date();
+                        return callback(null, session);
 
-                  } else {
-                      if (!err1 && response) {
-                          err1 = new Error(response.responseHeader.serviceResult.toString());
-                      }
-                      session._client = _old_client;
-                      return callback(err1);
-                  }
-              });
-          });
+                    } else {
+
+                        // restore client
+                        session._client = _old_client;
+
+                        /* istanbul ignore next */
+                        if (!err1 && response) {
+                            err1 = new Error(response.responseHeader.serviceResult.toString());
+                        }
+                        session._client = _old_client;
+                        return callback(err1);
+                    }
+                });
+            });
     }
 
     /**
@@ -1051,7 +1082,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             applicationUri = makeApplicationUrn(getFullyQualifiedDomainName(), this.applicationName);
         }
         return resolveFullyQualifiedDomainName(applicationUri);
-
     }
 
     /**
@@ -1062,7 +1092,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         this.securityPolicy = this.securityPolicy || SecurityPolicy.None;
 
-        let endpoint = this.findEndpoint(this._secureChannel.endpointUrl, this.securityMode, this.securityPolicy);
+        let endpoint = this.findEndpoint(this._secureChannel!.endpointUrl, this.securityMode, this.securityPolicy);
         this.endpoint = endpoint;
 
         // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
@@ -1074,7 +1104,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             if (this.endpoint_must_exist) {
 
                 debugLog("OPCUAClientImpl#endpoint_must_exist = true and endpoint with url ",
-                  this._secureChannel.endpointUrl, " cannot be found");
+                    this._secureChannel!.endpointUrl, " cannot be found");
 
                 return false;
             } else {
@@ -1103,14 +1133,15 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         assert(this._secureChannel);
         if (!this.__resolveEndPoint() || !this.endpoint) {
 
-            if (this._serverEndpoints) {
+            /* istanbul ignore next */
+            if (doDebug && this._serverEndpoints) {
                 debugLog(this._serverEndpoints.map((endpoint) =>
-                  endpoint.endpointUrl + " " + endpoint.securityMode.toString() + " " + endpoint.securityPolicyUri));
+                    endpoint.endpointUrl + " " + endpoint.securityMode.toString() + " " + endpoint.securityPolicyUri));
             }
-            return callback(new Error(" End point must exist " + this._secureChannel.endpointUrl));
+            return callback(new Error(" End point must exist " + this._secureChannel!.endpointUrl));
         }
         this.serverUri = this.endpoint.server.applicationUri || "invalid application uri";
-        this.endpointUrl = this._secureChannel.endpointUrl;
+        this.endpointUrl = this._secureChannel!.endpointUrl;
 
         const session = new ClientSessionImpl(this);
         this.__createSession_step2(session, callback);
@@ -1121,22 +1152,22 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @private
      */
     private computeClientSignature(
-      channel: ClientSecureChannelLayer,
-      serverCertificate: Buffer,
-      serverNonce: Nonce | undefined
+        channel: ClientSecureChannelLayer,
+        serverCertificate: Buffer,
+        serverNonce: Nonce | undefined
     ) {
         return computeSignature(
-          serverCertificate,
-          serverNonce || Buffer.alloc(0),
-          this.getPrivateKey(),
-          channel.securityPolicy
+            serverCertificate,
+            serverNonce || Buffer.alloc(0),
+            this.getPrivateKey(),
+            channel.securityPolicy
         );
     }
 
     private _closeSession(
-      session: ClientSessionImpl,
-      deleteSubscriptions: boolean,
-      callback: (err: Error | null, response?: CloseSessionResponse) => void
+        session: ClientSessionImpl,
+        deleteSubscriptions: boolean,
+        callback: (err: Error | null, response?: CloseSessionResponse) => void
     ) {
 
         assert(_.isFunction(callback));
@@ -1150,6 +1181,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         if (!this._secureChannel.isValid()) {
             return callback(null);
         }
+
+        debugLog(chalk.bgWhite.green("_closeSession ") + this._secureChannel!.channelId);
 
         if (this.isReconnecting) {
             errorLog("OPCUAClientImpl#_closeSession called while reconnection in progress ! What shall we do");
@@ -1175,9 +1208,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @private
      */
     private createUserIdentityToken(
-      session: ClientSessionImpl,
-      userIdentityInfo: UserIdentityInfo,
-      callback: (err: Error | null, data?: TokenAndSignature) => void
+        context: IdentityTokenContext,
+        userIdentityInfo: UserIdentityInfo,
+        callback: (err: Error | null, data?: TokenAndSignature) => void
     ) {
 
         function coerceUserIdentityInfo(identityInfo: any): UserIdentityInfo {
@@ -1222,13 +1255,13 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             switch (userIdentityInfo.type) {
 
                 case UserTokenType.Anonymous:
-                    userIdentityToken = createAnonymousIdentityToken(session);
+                    userIdentityToken = createAnonymousIdentityToken(context);
                     break;
 
                 case UserTokenType.UserName: {
                     const userName = userIdentityInfo.userName || "";
                     const password = userIdentityInfo.password || "";
-                    userIdentityToken = createUserNameIdentityToken(session, userName, password);
+                    userIdentityToken = createUserNameIdentityToken(context, userName, password);
                     break;
                 }
 
@@ -1239,7 +1272,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     ({
                         userIdentityToken,
                         userTokenSignature
-                    } = createX509IdentityToken(session, certificate, privateKey));
+                    } = createX509IdentityToken(context, certificate, privateKey));
                     break;
                 }
 
@@ -1272,7 +1305,11 @@ OPCUAClientImpl.prototype.disconnect = thenify.withCallback(OPCUAClientImpl.prot
  *
  * @example
  *     // create a session with a userName and password
- *     const userIdentityInfo  = {UserTokenType.UserName, userName: "JoeDoe", password:"secret"};
+ *     const userIdentityInfo  = {
+ *          type: UserTokenType.UserName,
+ *          userName: "JoeDoe",
+ *          password:"secret"
+ *     };
  *     const session = client.createSession(userIdentityInfo);
  *
  */
