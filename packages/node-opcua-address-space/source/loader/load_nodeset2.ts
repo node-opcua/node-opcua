@@ -28,7 +28,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import {
     findSimpleType,
-    getStandartDataTypeFactory,
+    getStandardDataTypeFactory,
     getStructureTypeConstructor,
     registerBasicType,
     StructuredTypeSchema,
@@ -102,7 +102,7 @@ export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraD
         addressSpacePriv.$$extraDataTypeManager = dataTypeManager;
 
         for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
-            const dataTypeFactory1 = new DataTypeFactory([getStandartDataTypeFactory()]);
+            const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
             dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
         }
         // inject simple types
@@ -682,8 +682,6 @@ export function generateAddressSpace(
 
                     } else if (isEnumeration /* && dataTypeNode.nodeId.namespace !== 0 */) {
                         (dataTypeNode as any).$definition = makeEnumDefinition(definitionFields);
-                    } else {
-
                     }
                 }
                 if (!isEnumeration && !isStructure && this.obj.nodeId.namespace !== 0) {
@@ -1489,7 +1487,7 @@ export function generateAddressSpace(
                 await ensureDatatypeExtracted(addressSpace);
 
                 /// ----------------------------------------------------------------------------------------
-                debugLog(chalk.bgGreenBright("DataType extaction done ") + chalk.green("DONE"), err?.message);
+                debugLog(chalk.bgGreenBright("DataType extraction done ") + chalk.green("DONE"), err?.message);
 
                 for (const { name, dataTypeNodeId } of pendingSimpleTypeToRegister) {
                     if (dataTypeNodeId.namespace === 0) {

@@ -20,7 +20,7 @@ import {
 import {
     EnumerationDefinitionSchema,
     FieldCategory,
-    getStandartDataTypeFactory,
+    getStandardDataTypeFactory,
     StructuredTypeSchema,
     DataTypeFactory,
 } from "node-opcua-factory";
@@ -179,7 +179,7 @@ export async function generate(
             }
         };
 
-        const dataTypeFactory = new DataTypeFactory([getStandartDataTypeFactory()]);
+        const dataTypeFactory = new DataTypeFactory([getStandardDataTypeFactory()]);
         await parseBinaryXSDAsync(content, idProvider, dataTypeFactory);
 
         write(
