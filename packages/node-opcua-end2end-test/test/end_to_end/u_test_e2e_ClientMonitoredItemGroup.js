@@ -6,13 +6,9 @@ const should = require("should");
 const async = require("async");
 const _ = require("underscore");
 
-var opcua = require("node-opcua");
+const opcua = require("node-opcua");
 
-
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
-var opcua = require("node-opcua");
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
 const OPCUAClient = opcua.OPCUAClient;
 
@@ -21,27 +17,27 @@ const resolveNodeId = opcua.resolveNodeId;
 const doDebug = false;
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Testing ClientMonitoredItemGroup", function () {
+    describe("Testing ClientMonitoredItemGroup", function() {
 
         let server, client, endpointUrl;
 
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             client = OPCUAClient.create();
             server = test.server;
             endpointUrl = test.endpointUrl;
             done();
         });
 
-        afterEach(function (done) {
+        afterEach(function(done) {
             client = null;
             done();
         });
 
 
-        it("AA11 should create a ClientMonitoredItem and get notified", function (done) {
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+        it("AA11 should create a ClientMonitoredItem and get notified", function(done) {
+            perform_operation_on_subscription(client, endpointUrl, function(session, subscription, callback) {
 
                 const itemToMonitor = {
                     nodeId: resolveNodeId("ns=0;i=2258"), // Server_ServerStatus_CurrentTime
@@ -57,14 +53,14 @@ module.exports = function (test) {
                 const monitoredItem = opcua.ClientMonitoredItem.create(subscription, itemToMonitor, options);
 
                 let count = 0;
-                monitoredItem.on("changed", function (dataValue) {
+                monitoredItem.on("changed", function(dataValue) {
 
                     if (doDebug) {
                         console.log(" Count +++");
                     }
                     count++;
                     if (count === 10) {
-                        monitoredItem.terminate(function () {
+                        monitoredItem.terminate(function() {
                             if (doDebug) {
                                 console.log(" terminated !");
                             }
@@ -74,7 +70,7 @@ module.exports = function (test) {
                 });
 
                 // subscription.on("item_added",function(monitoredItem){
-                monitoredItem.on("initialized", function () {
+                monitoredItem.on("initialized", function() {
                     if (doDebug) {
                         console.log(" Initialized !");
                     }
@@ -83,9 +79,9 @@ module.exports = function (test) {
             }, done);
 
         });
-        it("AA12 should create a ClientMonitoredItemGroup ", function (done) {
+        it("AA12 should create a ClientMonitoredItemGroup ", function(done) {
 
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_subscription(client, endpointUrl, function(session, subscription, callback) {
 
                 const itemsToMonitor = [
                     {
@@ -104,17 +100,17 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItemGroup =  opcua.ClientMonitoredItemGroup.create(subscription,itemsToMonitor, options);
+                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
 
                 // subscription.on("item_added",function(monitoredItem){
-                monitoredItemGroup.on("initialized", function () {
+                monitoredItemGroup.on("initialized", function() {
                     if (doDebug) {
                         console.log(" Initialized !");
                     }
 
                     monitoredItemGroup.monitoredItems.length.should.eql(2);
 
-                    monitoredItemGroup.terminate(function () {
+                    monitoredItemGroup.terminate(function() {
                         if (doDebug) {
                             console.log(" terminated !");
                         }
@@ -124,9 +120,9 @@ module.exports = function (test) {
 
             }, done);
         });
-        it("AA13 should create a ClientMonitoredItemGroup and get notified when one monitored item out of many is changing", function (done) {
+        it("AA13 should create a ClientMonitoredItemGroup and get notified when one monitored item out of many is changing", function(done) {
 
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_subscription(client, endpointUrl, function(session, subscription, callback) {
 
                 const itemsToMonitor = [
                     {
@@ -148,14 +144,14 @@ module.exports = function (test) {
                 const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
 
                 let count = 0;
-                monitoredItemGroup.on("changed", function (item, dataValue, index) {
+                monitoredItemGroup.on("changed", function(item, dataValue, index) {
 
                     count++;
                     if (doDebug) {
                         console.log(" Count +++", item.itemToMonitor.nodeId.toString(), dataValue.value.toString(), index);
                     }
                     if (count === 10) {
-                        monitoredItemGroup.terminate(function () {
+                        monitoredItemGroup.terminate(function() {
                             if (doDebug) {
                                 console.log(" terminated !");
                             }
@@ -165,7 +161,7 @@ module.exports = function (test) {
                 });
 
                 // subscription.on("item_added",function(monitoredItem){
-                monitoredItemGroup.on("initialized", function () {
+                monitoredItemGroup.on("initialized", function() {
                     if (doDebug) {
                         console.log(" Initialized !");
                     }
@@ -174,9 +170,9 @@ module.exports = function (test) {
 
             }, done);
         });
-        it("AA14 should create a ClientMonitoredItemGroup ", function (done) {
+        it("AA14 should create a ClientMonitoredItemGroup ", function(done) {
 
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_subscription(client, endpointUrl, function(session, subscription, callback) {
 
                 const itemsToMonitor = [
                     {
@@ -195,17 +191,17 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription,itemsToMonitor, options);
+                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
 
-// subscription.on("item_added",function(monitoredItem){
-                monitoredItemGroup.on("initialized", function () {
+                // subscription.on("item_added",function(monitoredItem){
+                monitoredItemGroup.on("initialized", function() {
                     if (doDebug) {
                         console.log(" Initialized !");
                     }
                     console.log(monitoredItemGroup.toString());
                     monitoredItemGroup.monitoredItems.length.should.eql(2);
 
-                    monitoredItemGroup.terminate(function () {
+                    monitoredItemGroup.terminate(function() {
                         if (doDebug) {
                             console.log(" terminated !");
                         }
@@ -215,9 +211,9 @@ module.exports = function (test) {
 
             }, done);
         });
-        it("AA15 should call toString function of ClientMonitoredItemGroup ", function (done) {
+        it("AA15 should call toString function of ClientMonitoredItemGroup ", function(done) {
 
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_subscription(client, endpointUrl, function(session, subscription, callback) {
 
                 const itemsToMonitor = [
                     {
@@ -236,16 +232,16 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription,itemsToMonitor, options);
+                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
 
-                monitoredItemGroup.on("initialized", function () {
+                monitoredItemGroup.on("initialized", function() {
                     if (doDebug) {
                         console.log(" Initialized !");
                     }
 
-                    console.log("monitoredItemGroup = ",monitoredItemGroup.toString());
+                    console.log("monitoredItemGroup = ", monitoredItemGroup.toString());
 
-                    monitoredItemGroup.terminate(function () {
+                    monitoredItemGroup.terminate(function() {
                         if (doDebug) {
                             console.log(" terminated !");
                         }
@@ -255,8 +251,8 @@ module.exports = function (test) {
 
             }, done);
         });
-        it("AA16 should create a clientMonitoredItemGroup with invalid node #534",function (done) {
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, callback) {
+        it("AA16 should create a clientMonitoredItemGroup with invalid node #534", function(done) {
+            perform_operation_on_subscription(client, endpointUrl, function(session, subscription, callback) {
 
                 const itemsToMonitor = [
                     {
@@ -280,17 +276,17 @@ module.exports = function (test) {
                     queueSize: 1
                 };
 
-                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription,itemsToMonitor, options);
+                const monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
 
                 // subscription.on("item_added",function(monitoredItem){
-                monitoredItemGroup.on("initialized", function () {
+                monitoredItemGroup.on("initialized", function() {
                     if (doDebug) {
                         console.log(" Initialized !");
                     }
 
                     monitoredItemGroup.monitoredItems.length.should.eql(3);
 
-                    monitoredItemGroup.terminate(function () {
+                    monitoredItemGroup.terminate(function() {
                         if (doDebug) {
                             console.log(" terminated !");
                         }

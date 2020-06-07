@@ -7,7 +7,7 @@ import assert from "node-opcua-assert";
 import {
     ConstructorFunc,
     DataTypeFactory,
-    getStandartDataTypeFactory,
+    getStandardDataTypeFactory,
     StructuredTypeSchema,
 } from "node-opcua-factory";
 import {
@@ -53,7 +53,7 @@ export class ExtraDataTypeManager {
     }
     public getDataTypeFactory(namespaceIndex: number): DataTypeFactory {
         if (namespaceIndex === 0) {
-            return getStandartDataTypeFactory();
+            return getStandardDataTypeFactory();
         }
         return this.dataTypeFactoryMapByNamespace[namespaceIndex];
     }
@@ -85,7 +85,7 @@ export class ExtraDataTypeManager {
         function write(...args: [any, ...any[]]) {
             l.push(util.format.apply(util.format, args));
         }
-        write("ExtraDataTypeMananager");
+        write("ExtraDataTypeManager");
         for (let n = 0; n < this.namespaceArray.length; n++) {
             write("-----------", this.namespaceArray[n]);
             const dataFactory = this.dataTypeFactoryMapByNamespace[n];

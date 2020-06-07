@@ -136,7 +136,7 @@ exports.perform_operation_on_subscription_async = perform_operation_on_subscript
 
 function perform_operation_on_raw_subscription(client, endpointUrl, f, done) {
 
-    var result = {
+    const result = {
         id: null
     };
     perform_operation_on_client_session(client, endpointUrl, function(session, inner_callback) {

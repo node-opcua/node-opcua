@@ -134,7 +134,7 @@ import {
     VariantLike
 } from "node-opcua-variant";
 
-import { DataTypeFactory, getStandartDataTypeFactory, StructuredTypeSchema } from "node-opcua-factory";
+import { DataTypeFactory, getStandardDataTypeFactory, StructuredTypeSchema } from "node-opcua-factory";
 import {
     ArgumentDefinition,
     BrowseDescriptionLike,
@@ -1632,7 +1632,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 if (!pendingTransactionMessageDisplayed) {
                     pendingTransactionMessageDisplayed = true;
                     // tslint:disable-next-line: no-console
-                    console.log("Pending transations: ", privateThis.pendingTransactions.map((a: any) => a.request.constructor.name).join(" "));
+                    console.log("Pending transactions: ", privateThis.pendingTransactions.map((a: any) => a.request.constructor.name).join(" "));
                     // tslint:disable-next-line: no-console
                     console.log(chalk.yellow("Warning : your opcua client is sending multiple requests simultaneously to the server", request.constructor.name));
                     // tslint:disable-next-line: no-console
@@ -2065,7 +2065,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this._keepAliveManager.on("failure", () => {
             /**
              * raised when a keep-alive request has failed on the session, may be the session has timeout
-             * unexpectidaly on the server side, may be the connection is broken.
+             * unexpectedly on the server side, may be the connection is broken.
              * @event keepalive_failure
              */
             this.emit("keepalive_failure");
@@ -2103,11 +2103,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const now = Date.now();
         const lap1 = (now - this.lastRequestSentTime.getTime());
         const lap2 = now - this.lastResponseReceivedTime.getTime();
-        const timeoutDelai = this.timeout - lap1;
+        const timeoutDelay = this.timeout - lap1;
 
-        const timeoutInfo = timeoutDelai < 0
-            ? chalk.red(" expired since " + (-timeoutDelai / 1000) + " seconds")
-            : chalk.green(" timeout in " + timeoutDelai / 1000 + " seconds");
+        const timeoutInfo = timeoutDelay < 0
+            ? chalk.red(" expired since " + (-timeoutDelay / 1000) + " seconds")
+            : chalk.green(" timeout in " + timeoutDelay / 1000 + " seconds");
 
         let str = "";
         str += " name..................... " + this.name;
@@ -2264,7 +2264,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             dataTypeManager.setNamespaceArray(namespaceArray);
 
             for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
-                const dataTypeFactory1 = new DataTypeFactory([getStandartDataTypeFactory()]);
+                const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
                 dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
             }
             await populateDataTypeManager(this, dataTypeManager);
