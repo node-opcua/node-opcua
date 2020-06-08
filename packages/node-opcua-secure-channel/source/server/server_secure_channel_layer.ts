@@ -1111,9 +1111,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // let prepare self.securityHeader;
         this.securityHeader = this._prepare_security_header(request, message);
 
+        /* istanbul ignore next */
         if (!this.securityHeader) {
             console.log("Cannot find SecurityHeader !!!!!!!! ")
-            return this._sendOpenSecureChannelResponseError(StatusCodes.BadCertificateInvalid, message, callback);
+            return this.send_fatal_error_and_abort(StatusCodes.BadInternalError, "invalid request", message, callback);
         }
 
         assert(this.securityHeader);
@@ -1121,10 +1122,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.clientNonce = request.clientNonce;
 
         if (nonceAlreadyBeenUsed(this.clientNonce)) {
-            console.log(chalk.red("SERVER with secure connection: Nonee has already been used"),
+            console.log(chalk.red("SERVER with secure connection: Nonce has already been used"),
                 this.clientNonce.toString("hex"));
             serviceResult = StatusCodes.BadNonceInvalid;
-            // return this._sendOpenSecureChannelResponseError(StatusCodes.BadNonceInvalid, message, callback);
         }
 
         this._set_lifetime(request.requestedLifetime);
@@ -1212,24 +1212,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 );
                 this.close();
             }
-            callback();
-        });
-    }
-
-    private _sendOpenSecureChannelResponseError(serviceResult: StatusCode, message: Message, callback: ErrorCallback) {
-
-        const response: Response = new OpenSecureChannelResponse({
-            responseHeader: { serviceResult },
-            securityToken: this.securityToken,
-            serverNonce: this.serverNonce || undefined,
-            serverProtocolVersion: this.protocolVersion
-        });
-        response.responseHeader.serviceResult = serviceResult;
-        this.send_response("OPN", response, message, (/*err*/) => {
-            this.close();
-            console.log(response.toString());
-            process.exit(1);
-
             callback();
         });
     }
@@ -1480,7 +1462,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 // OPCUA specification v1.02 part 6 page 42 $6.7.4
                 // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
                 // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
-                /// return this._sendOpenSecureChannelResponseError(statusCode!, message, callback);
                 if (
                     statusCode === StatusCodes.BadCertificateUntrusted ||
                     statusCode === StatusCodes.BadCertificateRevoked ||
@@ -1490,7 +1471,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     statusCode = StatusCodes.BadSecurityChecksFailed;
                 }
                 return this.send_fatal_error_and_abort(statusCode!, "", message, callback);
-                // return this._handle_OpenSecureChannelRequest(statusCode!, message, callback);
             }
 
             this._handle_OpenSecureChannelRequest(statusCode!, message, callback);
