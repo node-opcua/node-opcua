@@ -41,6 +41,8 @@ function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     return FieldCategory.basic;
 }
 
+const regExp = /((ns[0-9]+:)?)(.*)/;
+
 function figureOutSchema(underConstructSchema: StructuredTypeSchema, field: FieldInterfaceOptions, category: FieldCategory): CommonInterface {
 
     if (field.schema) {
@@ -53,20 +55,28 @@ function figureOutSchema(underConstructSchema: StructuredTypeSchema, field: Fiel
 
     let returnValue: any = null;
 
+    // may be the field.type  contains a ns<X>: prefix !! like the one found in Beckhoff PLC !
+    const m = field.fieldType.match(regExp);
+    /* istanbul ignore next */
+    if (!m) {
+        throw new Error("malformed fieldType ? : " + field.fieldType);
+    }
+    const fieldTypeWithoutNS = m[3];
+
     switch (category) {
         case FieldCategory.complex:
             if (hasStructuredType(field.fieldType)) {
-                returnValue = getStructuredTypeSchema(field.fieldType);
+                returnValue = getStructuredTypeSchema(fieldTypeWithoutNS);
             } else {
                 // LocalizedText etc ...
-                returnValue = getBuildInType(field.fieldType);
+                returnValue = getBuildInType(fieldTypeWithoutNS);
             }
             break;
         case FieldCategory.basic:
-            returnValue = getBuildInType(field.fieldType);
+            returnValue = getBuildInType(fieldTypeWithoutNS);
             break;
         case FieldCategory.enumeration:
-            returnValue = getEnumeration(field.fieldType);
+            returnValue = getEnumeration(fieldTypeWithoutNS);
             break;
     }
     if (null === returnValue || undefined === returnValue) {
