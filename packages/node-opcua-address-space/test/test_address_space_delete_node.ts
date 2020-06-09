@@ -79,7 +79,7 @@ describe("AddressSpace#delete", () => {
     });
 });
 
-describe("AddressSpace#deleteNode", () => {
+describe("AddressSpace#deleteNode-b", () => {
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;

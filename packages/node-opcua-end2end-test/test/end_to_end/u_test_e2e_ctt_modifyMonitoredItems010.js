@@ -3,7 +3,8 @@ const {
     ClientSubscription,
     AttributeIds,
     ClientMonitoredItemGroup,
-    StatusCodes
+    StatusCodes,
+    ClientSidePublishEngine
 } = require("node-opcua");
 const { perform_operation_on_session_async } = require("../../test_helpers/perform_operation_on_client_session");
 const sinon = require("sinon");
@@ -114,26 +115,32 @@ module.exports = function(test) {
 
     describe("Testing ctt 010  - Modify the samplingInterval of multiple nodes, where the first half are set to 1000 msec and the latter half 3000 msec", function() {
 
-        xit("should create a large number of monitored item and alter samplingInterval for half of them", async () => {
+        let old_publishRequestCountInPipeline = 0;
+        beforeEach(() => {
+            old_publishRequestCountInPipeline = ClientSidePublishEngine.publishRequestCountInPipeline;
+            ClientSidePublishEngine.publishRequestCountInPipeline = 1;
+        });
+
+        afterEach(() => {
+            ClientSidePublishEngine.publishRequestCountInPipeline = old_publishRequestCountInPipeline;
+        });
+        it("should create a large number of monitored item and alter samplingInterval for half of them", async () => {
             const client = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
 
             await client.withSessionAsync(endpointUrl, async (session) => {
 
-                session.getPublishEngine().constructor.publishRequestCountInPipeline = 1;
                 session.getPublishEngine().suspend(true);
 
                 const subscription = ClientSubscription.create(session, {
-                    requestedPublishingInterval: 1000,
+                    requestedPublishingInterval: 200,
                     requestedLifetimeCount: 10 * 60 * 10,
                     requestedMaxKeepAliveCount: 600,
                     maxNotificationsPerPublish: 0,
                     publishingEnabled: true,
                     priority: 6
                 });
-
-
 
                 const subscription_raw_notification_event = sinon.spy();
 
@@ -175,15 +182,22 @@ module.exports = function(test) {
 
                 await new Promise((resolve) => setTimeout(resolve, 4000));
 
-                console.log("subscription_raw_notification_event", subscription_raw_notification_event.callCount);
-
-                for (const c of subscription_raw_notification_event.getCalls()) {
-                    console.log(c.args[0].toString());
+                function dumpNotificationResult() {
+                    console.log("notification received  = ", subscription_raw_notification_event.callCount);
+                    for (const c of subscription_raw_notification_event.getCalls()) {
+                        console.log("Initial l=", c.args[0].notificationData.length.toString());
+                        for (const n of c.args[0].notificationData) {
+                            console.log(" monitoredItem changes = ", n.monitoredItems.length);
+                        }
+                    }
                 }
+
+                dumpNotificationResult();
 
                 subscription_raw_notification_event.getCall(0).args[0].notificationData[0].monitoredItems.length.should.eql(itemsToMonitor.length);
 
                 subscription_raw_notification_event.resetHistory();
+                subscription_raw_notification_event.callCount.should.eql(0);
 
                 // --------------------------------------------------------------------------------------------------
 
@@ -206,10 +220,8 @@ module.exports = function(test) {
                 session.getPublishEngine().internalSendPublishRequest();
 
                 await new Promise((resolve) => setTimeout(resolve, 6000));
-                for (const c of subscription_raw_notification_event.getCalls()) {
-                    console.log(c.args[0].toString());
-                }
-                console.log("subscription_raw_notification_event", subscription_raw_notification_event.callCount);
+
+                dumpNotificationResult();
 
 
                 await new Promise(resolve => {
@@ -220,11 +232,9 @@ module.exports = function(test) {
                 });
 
 
+                await subscription.terminate();
 
             });
-
-
         });
-
     });
 }

@@ -44,7 +44,7 @@ export class DataTypeFactory {
         [key: string]: { nodeId: NodeId, definition: BasicTypeDefinition }
     } = {};
 
-    private readonly baseDataFactories: DataTypeFactory[];
+    private baseDataFactories: DataTypeFactory[];
 
     public constructor(baseDataFactories: DataTypeFactory[]) {
         this.defaultByteOrder = "LittleEndian";
@@ -52,6 +52,9 @@ export class DataTypeFactory {
         this.baseDataFactories = baseDataFactories;
     }
 
+    public repairBaseDataFactories(baseDataFactories: DataTypeFactory[]): void {
+        this.baseDataFactories = baseDataFactories;
+    }
     // -----------------------------
     public registerSimpleType(name: string, dataTypeNodeId: NodeId, def: BasicTypeDefinition) {
         if (this._simpleTypes[name]) {
@@ -89,6 +92,7 @@ export class DataTypeFactory {
     // -----------------------------
     // EnumerationDefinitionSchema
     public registerEnumeration(enumeration: EnumerationDefinitionSchema): void {
+        debugLog("Registering Enumeration ", enumeration.name);
         assert(!this._enumerations[enumeration.name]);
         this._enumerations[enumeration.name] = enumeration;
     }
@@ -112,8 +116,9 @@ export class DataTypeFactory {
             return this._enumerations[enumName];
         }
         for (const factory of this.baseDataFactories) {
-            const e = factory.getEnumeration(enumName);
-            if (e !== null) {
+            const hasEnum = factory.hasEnumeration(enumName);
+            if (hasEnum) {
+                const e = factory.getEnumeration(enumName);
                 return e;
             }
         }
@@ -136,7 +141,7 @@ export class DataTypeFactory {
         throw new Error("Cannot find StructureType constructor for dataType " + dataTypeNodeId.toString());
     }
     // ----------------------------------------------------------------------------------------------------
-    // Acces by typeName
+    // Access by typeName
     // ----------------------------------------------------------------------------------------------------
     public structuredTypesNames(): string[] {
         return Object.keys(this._structureTypeConstructorByNameMap);
@@ -198,7 +203,7 @@ export class DataTypeFactory {
     }
 
     // ----------------------------------------------------------------------------------------------------
-    // Acces by binaryEncodingNodeId
+    // Access by binaryEncodingNodeId
     // ----------------------------------------------------------------------------------------------------
     public getConstructor(binaryEncodingNodeId: NodeId): ConstructorFunc | null {
         const expandedNodeIdKey = makeExpandedNodeIdKey(binaryEncodingNodeId);
@@ -292,7 +297,7 @@ export class DataTypeFactory {
             console.log("target namespace =", this.targetNamespace);
             throw new Error(" registerFactory  : " + typeName + " already registered");
         }
-        debugLog("registerning typeName ", typeName, dataTypeNodeId.toString());
+        debugLog("registering typeName ", typeName, dataTypeNodeId.toString());
         this._structureTypeConstructorByNameMap[typeName] = constructor;
         this._structureTypeConstructorByDataTypeMap[dataTypeNodeId.toString()] = constructor;
         Object.defineProperty(constructor.schema, "$$factory", {

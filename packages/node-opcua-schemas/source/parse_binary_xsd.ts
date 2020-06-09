@@ -390,6 +390,7 @@ export async function parseBinaryXSDAsync(
     dataTypeFactory: DataTypeFactory
 ): Promise<void> {
 
+    debugLog("parseBinaryXSDAsync");
     await new Promise((resolve, reject) => {
         parseBinaryXSD(xmlString, idProvider, dataTypeFactory, (err?: Error | null) => {
             if (err) {
