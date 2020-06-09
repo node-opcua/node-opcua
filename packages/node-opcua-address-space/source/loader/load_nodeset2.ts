@@ -5,7 +5,6 @@ import * as async from "async";
 import * as chalk from "chalk";
 import * as fs from "fs";
 import * as _ from "underscore";
-import * as util from "util";
 import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
@@ -305,10 +304,6 @@ function makeDefaultVariant2(
     return variant;
 }
 
-function isOldWayForExtractiongSchema() {
-    return false;
-}
-
 export function generateAddressSpace(
     addressSpace: AddressSpacePublic,
     xmlFiles: string | string[],
@@ -323,7 +318,7 @@ export function generateAddressSpace(
     const addressSpace1 = addressSpace as AddressSpace;
 
     let postTasks: Task[] = [];
-    let postTaskinitializeVariable: Task[] = [];
+    let postTaskInitializeVariable: Task[] = [];
     let postTasks2: Task[] = [];
     let postTasks3: Task[] = [];
 
@@ -332,9 +327,9 @@ export function generateAddressSpace(
     /**
      * @param aliasName
      */
-    function addAlias(aliasName: string, nodeIdinXmlContext: string) {
-        assert(typeof nodeIdinXmlContext === "string");
-        const nodeId = _translateNodeId(nodeIdinXmlContext);
+    function addAlias(aliasName: string, nodeIdInXmlContext: string) {
+        assert(typeof nodeIdInXmlContext === "string");
+        const nodeId = _translateNodeId(nodeIdInXmlContext);
         assert(nodeId instanceof NodeId);
         alias_map[aliasName] = nodeId;
         addressSpace1.getNamespace(nodeId.namespace).addAlias(aliasName, nodeId);
@@ -434,7 +429,7 @@ export function generateAddressSpace(
     }
 
     /**
-     * convert a nodedId
+     * convert a nodeId
      *
      * @method convertToNodeId
      * @param nodeId {String|null}
@@ -582,44 +577,6 @@ export function generateAddressSpace(
         }
     };
 
-    // const _mapDefinition: { [key: string]: Definition } = {};
-    // function makeStructureSchemaFromDefinition(dataTypeNodeId: NodeId, name: string, fields: StructureField[]): Definition {
-
-    //     let schema: any;
-    //     if (!fields || !fields.length) {
-    //         schema = { name, fields: [] };
-    //     } else {
-
-    //         schema = {
-    //             name,
-
-    //             fields: fields!.map((x: any) => {
-    //                 x = { ...x };
-    //                 console.log(x.dataType);
-    //                 if (x.dataType && x.dataType.match(/(ns=[0-9]+;)?i=[0-9]+.*/)) {
-    //                     const replacement = _mapDefinition[x.dataType];
-    //                     if (replacement) {
-    //                         x.dataType = _mapDefinition[x.dataType].name;
-    //                     } else {
-    //                         const dataTypeNode = addressSpace.findNode(x.dataType)! as UADataType;
-    //                         if (dataTypeNode) {
-    //                             x.dataType = dataTypeNode.symbolicName!;
-    //                         } else {
-    //                             // tslint:disable-next-line: no-console
-    //                             console.log("Warning!!: cannot find " + x.dataType.toString());
-    //                         }
-    //                     }
-    //                 }
-    //                 return x;
-    //             })
-    //         };
-    //     }
-    //     _mapDefinition[name] = schema;
-    //     // todo convert i=XX string with dataType Name;
-    //     _mapDefinition[dataTypeNodeId.toString()] = _mapDefinition[name];
-
-    // }
-
     const pendingSimpleTypeToRegister: any[] = [];
 
     const state_UADataType = {
@@ -674,7 +631,7 @@ export function generateAddressSpace(
                     const nameWithoutNamespace = definitionName.split(":").slice(-1)[0];
 
                     if (isStructure /*&& dataTypeNode.nodeId.namespace !== 0*/) {
-                        // note: at this stage, structure definituon will be incomplete as we do not know
+                        // note: at this stage, structure definition will be incomplete as we do not know
                         //       what is the subType yet, encodings are also unknown...
                         //       structureType may also be inaccurate
                         debugLog("setting structure $definition for ", definitionName, nameWithoutNamespace);
@@ -958,7 +915,7 @@ export function generateAddressSpace(
                         const xmlBody = this.bodyXML;
                         // this is a user defined Extension Object
                         debugLog(
-                            "loadnodeset2: typeDefinitionId in ExtensionObject Default XML = " + xmlEncodingNodeId.toString()
+                            "load nodeset2: typeDefinitionId in ExtensionObject Default XML = " + xmlEncodingNodeId.toString()
                         );
                         if (doDebug) {
                             debugLog("xxxx ", chalk.yellow(xmlBody));
@@ -1261,7 +1218,7 @@ export function generateAddressSpace(
                     }
                     variable.setValueFromSource(capturedValue);
                 };
-                postTaskinitializeVariable.push(task);
+                postTaskInitializeVariable.push(task);
             } else {
 
                 const task = async (addressSpace2: AddressSpace) => {
@@ -1275,7 +1232,7 @@ export function generateAddressSpace(
                         variable.setValueFromSource(value);
                     };
                 }
-                postTaskinitializeVariable.push(task);
+                postTaskInitializeVariable.push(task);
             }
             this.obj.value = undefined;
             variable = _internal_createNode(this.obj) as UAVariable;
@@ -1462,6 +1419,22 @@ export function generateAddressSpace(
         (err?: Error | null) => {
             make_back_references(addressSpace1);
 
+            // setting up Server_NamespaceArray
+
+            if (addressSpace.rootFolder?.objects?.server?.namespaceArray) {
+                addressSpace.rootFolder.objects.server.namespaceArray.setValueFromSource({
+                    arrayType: VariantArrayType.Array,
+                    dataType: DataType.String,
+                    value: addressSpace1.getNamespaceArray().map(ns => ns.namespaceUri)
+                });
+                // istanbul ignore next
+                if (doDebug) {
+                    debugLog("addressSpace NS = ", addressSpace.rootFolder.objects.server.namespaceArray.readValue().value.value.join(" "));
+                }
+
+            }
+            debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") + chalk.green("DONE"));
+
             async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
                 for (const task of tasks) {
                     try {
@@ -1504,14 +1477,13 @@ export function generateAddressSpace(
                 postTasks2 = [];
 
                 debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
-                await performPostLoadingTasks(postTaskinitializeVariable);
-                postTaskinitializeVariable = [];
+                await performPostLoadingTasks(postTaskInitializeVariable);
+                postTaskInitializeVariable = [];
 
                 debugLog(chalk.bgGreenBright("Performing post loading tasks 3 (assigning Extension Object to Variables) ---------------------"));
                 await performPostLoadingTasks(postTasks3);
                 postTasks3 = [];
 
-                debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") + chalk.green("DONE"));
             }
             callbackify(finalSteps)((err1?: Error) => {
                 if (err1) {

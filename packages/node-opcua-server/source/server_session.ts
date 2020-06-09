@@ -647,12 +647,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             return false;
         }
 
-        if (false) {
-            // set serverDiagnosticsNode enabledFlag writeable
-            // TO DO ... 
-            serverDiagnosticsNode.enabledFlag.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
-            serverDiagnosticsNode.enabledFlag.accessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
-        }
 
         const sessionDiagnosticsObjectType = this.addressSpace.findObjectType("SessionDiagnosticsObjectType");
 

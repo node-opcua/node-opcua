@@ -27,7 +27,8 @@ import {
   UAServerDiagnosticsSummary,
   UAServerStatus,
   UASessionSecurityDiagnostics,
-  UAVariable
+  UAVariable,
+  UAServerDiagnostics
 } from "node-opcua-address-space";
 import { apply_timestamps, DataValue } from "node-opcua-data-value";
 
@@ -37,7 +38,7 @@ import {
   ServerStatusDataType,
   SubscriptionDiagnosticsDataType
 } from "node-opcua-common";
-import { AttributeIds, BrowseDirection, NodeClass, coerceLocalizedText, LocalizedTextLike } from "node-opcua-data-model";
+import { AttributeIds, BrowseDirection, NodeClass, coerceLocalizedText, LocalizedTextLike, makeAccessLevelFlag } from "node-opcua-data-model";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseResult } from "node-opcua-service-browse";
 import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
@@ -722,6 +723,20 @@ export class ServerEngine extends EventEmitter {
           return engine.isAuditing;
         });
 
+      function makeNotReadableIfEnabledFlagIsFalse(variable: UAVariable) {
+        const originalIsReadable = variable.isReadable;
+        variable.isUserReadable = checkReadableFlag;
+        function checkReadableFlag(this: UAVariable, context: SessionContext): boolean {
+          const isEnabled = engine.serverDiagnosticsEnabled;
+          return originalIsReadable.call(this, context) && isEnabled;
+        }
+        for (const c of variable.getAggregates()) {
+          if (c.nodeClass === NodeClass.Variable) {
+            makeNotReadableIfEnabledFlagIsFalse(c as UAVariable);
+          }
+        }
+      }
+
       function bindServerDiagnostics() {
 
         bindStandardScalar(VariableIds.Server_ServerDiagnostics_EnabledFlag,
@@ -732,11 +747,12 @@ export class ServerEngine extends EventEmitter {
           });
 
         const nodeId = makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary);
-        const serverDiagnosticsSummary = addressSpace.findNode(nodeId) as UAServerDiagnosticsSummary;
+        const serverDiagnosticsSummaryNode = addressSpace.findNode(nodeId) as UAServerDiagnosticsSummary;
 
-        if (serverDiagnosticsSummary) {
-          serverDiagnosticsSummary.bindExtensionObject(engine.serverDiagnosticsSummary);
-          engine.serverDiagnosticsSummary = serverDiagnosticsSummary.$extensionObject;
+        if (serverDiagnosticsSummaryNode) {
+          serverDiagnosticsSummaryNode.bindExtensionObject(engine.serverDiagnosticsSummary);
+          engine.serverDiagnosticsSummary = serverDiagnosticsSummaryNode.$extensionObject;
+          makeNotReadableIfEnabledFlagIsFalse(serverDiagnosticsSummaryNode);
         }
 
       }
@@ -1041,30 +1057,38 @@ export class ServerEngine extends EventEmitter {
         }
 
         // create SessionsDiagnosticsSummary
-        const serverDiagnostics = server.getComponentByName("ServerDiagnostics");
-        if (!serverDiagnostics) {
+        const serverDiagnosticsNode = server.getComponentByName("ServerDiagnostics") as UAServerDiagnostics;
+        if (!serverDiagnosticsNode) {
           return;
+        }
+        if (true) {
+          // set serverDiagnosticsNode enabledFlag writeable for admin user only
+          // TO DO ...
+          serverDiagnosticsNode.enabledFlag.userAccessLevel = makeAccessLevelFlag("CurrentRead");
+          serverDiagnosticsNode.enabledFlag.accessLevel = makeAccessLevelFlag("CurrentRead");
         }
 
         // A Server may not expose the SamplingIntervalDiagnosticsArray if it does not use fixed sampling rates.
         // because we are not using fixed sampling rate, we need to remove the optional SamplingIntervalDiagnosticsArray
         // component
         const samplingIntervalDiagnosticsArray =
-          serverDiagnostics.getComponentByName("SamplingIntervalDiagnosticsArray");
+          serverDiagnosticsNode.getComponentByName("SamplingIntervalDiagnosticsArray");
         if (samplingIntervalDiagnosticsArray) {
           addressSpace.deleteNode(samplingIntervalDiagnosticsArray);
-          const s = serverDiagnostics.getComponents();
+          const s = serverDiagnosticsNode.getComponents();
           // xx console.log(s.map((x) => x.browseName.toString()).join(" "));
         }
 
-        const subscriptionDiagnosticsArray =
-          serverDiagnostics.getComponentByName("SubscriptionDiagnosticsArray")! as
+        const subscriptionDiagnosticsArrayNode =
+          serverDiagnosticsNode.getComponentByName("SubscriptionDiagnosticsArray")! as
           UADynamicVariableArray<SessionDiagnosticsDataType>;
-        assert(subscriptionDiagnosticsArray.nodeClass === NodeClass.Variable);
-        bindExtObjArrayNode(subscriptionDiagnosticsArray,
+        assert(subscriptionDiagnosticsArrayNode.nodeClass === NodeClass.Variable);
+        bindExtObjArrayNode(subscriptionDiagnosticsArrayNode,
           "SubscriptionDiagnosticsType", "subscriptionId");
 
-        const sessionsDiagnosticsSummary = serverDiagnostics.getComponentByName("SessionsDiagnosticsSummary")!;
+        makeNotReadableIfEnabledFlagIsFalse(subscriptionDiagnosticsArrayNode);
+
+        const sessionsDiagnosticsSummary = serverDiagnosticsNode.getComponentByName("SessionsDiagnosticsSummary")!;
 
         const sessionDiagnosticsArray =
           sessionsDiagnosticsSummary.getComponentByName("SessionDiagnosticsArray")! as
@@ -1634,7 +1658,7 @@ export class ServerEngine extends EventEmitter {
       return new TransferResult({ statusCode: StatusCodes.BadInternalError });
     }
 
-    // update diagnostics 
+    // update diagnostics
     subscription.subscriptionDiagnostics.transferRequestCount++;
 
     // now check that new session has sufficient right
@@ -1792,7 +1816,7 @@ export class ServerEngine extends EventEmitter {
   private _exposeSubscriptionDiagnostics(subscription: Subscription): void {
 
     debugLog("ServerEngine#_exposeSubscriptionDiagnostics");
-    const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArray();
+    const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
     const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     assert((subscriptionDiagnostics as any).$subscription === subscription);
     assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
@@ -1804,7 +1828,7 @@ export class ServerEngine extends EventEmitter {
 
   private _unexposeSubscriptionDiagnostics(subscription: Subscription) {
 
-    const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArray();
+    const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
     const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
@@ -2014,7 +2038,7 @@ export class ServerEngine extends EventEmitter {
     }
   }
 
-  private _getServerSubscriptionDiagnosticsArray()
+  private _getServerSubscriptionDiagnosticsArrayNode()
     : UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
 
     if (!this.addressSpace) {
@@ -2032,9 +2056,9 @@ export class ServerEngine extends EventEmitter {
     }
 
     // SubscriptionDiagnosticsArray = i=2290
-    const subscriptionDiagnosticsArray = this.addressSpace.findNode(
+    const subscriptionDiagnosticsArrayNode = this.addressSpace.findNode(
       makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray))!;
 
-    return subscriptionDiagnosticsArray as UADynamicVariableArray<SubscriptionDiagnosticsDataType>;
+    return subscriptionDiagnosticsArrayNode as UADynamicVariableArray<SubscriptionDiagnosticsDataType>;
   }
 }

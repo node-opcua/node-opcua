@@ -85,7 +85,9 @@ export function getOrCreateStructuredTypeSchema(
                         } else {
                             // must be a structure then ....
                             field.category = FieldCategory.complex;
-                            field.schema = _getOrCreateStructuredTypeSchema(fieldTypeName);
+                            const schema1 = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
+                            field.schema = schema1;
+                            // _getOrCreateStructuredTypeSchema(fieldTypeName);
                             if (!field.schema) {
                                 // tslint:disable-next-line:no-console
                                 console.log("cannot find schema for ", fieldTypeName);
@@ -97,9 +99,9 @@ export function getOrCreateStructuredTypeSchema(
                         if (hasBuiltInType(fieldTypeName)) {
                             field.category = FieldCategory.basic;
                             field.schema = getBuildInType(fieldTypeName);
-                        } else if (hasStructuredType(fieldTypeName)) {
+                        } else if (dataTypeFactory.hasStructuredType(fieldTypeName)) {
                             field.category = FieldCategory.complex;
-                            field.schema = getStructuredTypeSchema(fieldTypeName);
+                            field.schema = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
 
                         } else {
                             field.category = FieldCategory.basic;
@@ -128,6 +130,17 @@ export function getOrCreateStructuredTypeSchema(
                             throw new Error("Unknown basic type " + fieldTypeName);
                         }
                         field.category = FieldCategory.basic;
+                        break;
+                    default:
+                        if (dataTypeFactory.hasEnumeration(fieldTypeName)) {
+                            field.category = FieldCategory.enumeration;
+                            const enumeratedType = dataTypeFactory.getEnumeration(fieldTypeName);
+                            field.schema = enumeratedType;
+                        } else if (dataTypeFactory.hasStructuredType(fieldTypeName)) {
+                            field.category = FieldCategory.complex;
+                            const schema1 = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
+                            field.schema = schema1;
+                        }
                         break;
                 }
             }

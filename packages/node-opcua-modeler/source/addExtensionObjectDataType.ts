@@ -38,7 +38,7 @@ import {
 import { DataType, Variant } from "node-opcua-variant";
 
 /**
- * create the deprecated DataTypeDictionnary node that was
+ * create the deprecated DataTypeDictionary node that was
  * used up to version 1.03
  */
 export function getOrCreateDataTypeSystem(namespace: Namespace): UAObject {
@@ -121,7 +121,7 @@ export function addDataTypeDescription(namespace: Namespace, dataType: UADataTyp
 
     const addressSpace = namespace.addressSpace;
 
-    const dataTypeDictionnary = getDataTypeDictionary(namespace);
+    const dataTypeDictionary = getDataTypeDictionary(namespace);
 
     const dataTypeDescriptionType = addressSpace.findVariableType("DataTypeDescriptionType");
     if (!dataTypeDescriptionType) {
@@ -130,7 +130,7 @@ export function addDataTypeDescription(namespace: Namespace, dataType: UADataTyp
 
     const dataTypeDescription = dataTypeDescriptionType.instantiate({
         browseName: dataType.browseName.name!,
-        componentOf: dataTypeDictionnary,
+        componentOf: dataTypeDictionary,
     });
     dataTypeDescription.setValueFromSource({
         dataType: DataType.String,
@@ -192,8 +192,6 @@ export async function addExtensionObjectDataType(
         // nodeId: defaultBinaryEncodingNode,
     })!;
     assert(defaultBinary.browseName.toString() === "Default Binary");
-
-
 
     (dataType as any).$definition = new StructureDefinition(structureDefinition);
     assert(!NodeId.sameNodeId((dataType as any).$definition.baseDataType, NodeId.nullNodeId));
