@@ -20,7 +20,7 @@ import {
 import { DateTime } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
-import { apply_timestamps, DataValue, extractRange, sameDataValue } from "node-opcua-data-value";
+import { apply_timestamps, DataValue, extractRange, sameDataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
 import {
   checkDebugFlag, make_debugLog
 } from "node-opcua-debug";
@@ -411,7 +411,7 @@ export class MonitoredItem extends EventEmitter {
     // user has to call setMonitoringMode
     this.monitoringMode = MonitoringMode.Invalid;
 
-    this.timestampsToReturn = options.timestampsToReturn || TimestampsToReturn.Neither;
+    this.timestampsToReturn = coerceTimestampsToReturn(options.timestampsToReturn);
 
     this.itemToMonitor = options.itemToMonitor;
 

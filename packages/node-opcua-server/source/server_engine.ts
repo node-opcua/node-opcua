@@ -30,7 +30,7 @@ import {
   UAVariable,
   UAServerDiagnostics
 } from "node-opcua-address-space";
-import { apply_timestamps, DataValue } from "node-opcua-data-value";
+import { apply_timestamps, DataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
 
 import {
   ServerDiagnosticsSummaryDataType,
@@ -1908,7 +1908,7 @@ export class ServerEngine extends EventEmitter {
       return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
     }
 
-    timestampsToReturn = (timestampsToReturn !== undefined) ? timestampsToReturn : TimestampsToReturn.Neither;
+    timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
 
     const obj = engine.__findObject(nodeId!);
 
@@ -1960,7 +1960,7 @@ export class ServerEngine extends EventEmitter {
     const dataEncoding = nodeToRead.dataEncoding;
     const continuationPoint = nodeToRead.continuationPoint;
 
-    timestampsToReturn = (_.isObject(timestampsToReturn)) ? timestampsToReturn : TimestampsToReturn.Neither;
+    timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
 
     const obj = this.__findObject(nodeId) as UAVariable;
 

@@ -6,7 +6,7 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import { DataValue, TimestampsToReturn, coerceTimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { MonitoringMode, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
@@ -55,7 +55,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
             itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId!);
         });
 
-        timestampsToReturn = timestampsToReturn || TimestampsToReturn.Neither;
+        timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
 
         assert(subscription.constructor.name === "ClientSubscriptionImpl");
 
