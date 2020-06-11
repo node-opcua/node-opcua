@@ -673,6 +673,7 @@ describe("ZZA- testing Secure Client-Server communication", function() {
             }, function(err) {
                 debugLog(err.message);
                 err.message.should.match(/BadSecurityModeRejected/);
+                ClientSecureChannelLayer.prototype._performMessageTransaction.should.eql(old_performMessageTransaction);
                 done();
             });
         });

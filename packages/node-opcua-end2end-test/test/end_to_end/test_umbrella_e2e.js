@@ -190,7 +190,7 @@ describe("testing Client - Umbrella ", function() {
 
 
     require("./u_test_e2e_ctt_modifyMonitoredItems010")(test);
-
+    require("./u_test_e2e_monitored_item_with_timestamp_source_issue#804")(test);
     require("./u_test_e2e_issue445_currentSessionCount")(test);
     require("./u_test_e2e_browse_read")(test);
     require("./u_test_e2e_ctt_582022")(test);
