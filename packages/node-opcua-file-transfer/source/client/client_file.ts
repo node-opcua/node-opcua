@@ -3,12 +3,13 @@
  */
 import { Byte, Int32, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { ReadValueId, ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType } from "node-opcua-variant";
+import { MethodIds } from "node-opcua-constants";
 
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
@@ -17,7 +18,6 @@ const errorLog = make_errorLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
 import { OpenFileMode } from "../open_mode";
-
 export { OpenFileMode } from "../open_mode";
 
 /**
@@ -26,8 +26,9 @@ export { OpenFileMode } from "../open_mode";
  */
 export class ClientFile {
 
-    public fileHandle: number = 0;
+    public static useGlobalMethod: boolean = false;
 
+    public fileHandle: number = 0;
     private session: IBasicSession;
     private readonly fileNodeId: NodeId;
 
@@ -206,6 +207,30 @@ export class ClientFile {
     }
 
     private async extractMethodsIds(): Promise<void> {
+
+        if (ClientFile.useGlobalMethod) {
+            debugLog("Using GlobalMethodId");
+            this.openMethodNodeId = resolveNodeId(MethodIds.FileType_Open);
+            this.closeMethodNodeId = resolveNodeId(MethodIds.FileType_Close);
+            this.setPositionNodeId = resolveNodeId(MethodIds.FileType_SetPosition);
+            this.getPositionNodeId = resolveNodeId(MethodIds.FileType_GetPosition);
+            this.writeNodeId = resolveNodeId(MethodIds.FileType_Write);
+            this.readNodeId = resolveNodeId(MethodIds.FileType_Read);
+            const browsePaths: BrowsePath[] = [
+                makeBrowsePath(this.fileNodeId, "/OpenCount"),
+                makeBrowsePath(this.fileNodeId, "/Size")
+            ];
+            const results = await this.session.translateBrowsePath(browsePaths);
+            if (results[0].statusCode !== StatusCodes.Good) {
+                throw new Error("fileType object does not expose mandatory OpenCount Property");
+            }
+            if (results[1].statusCode !== StatusCodes.Good) {
+                throw new Error("fileType object does not expose mandatory Size Property");
+            }
+            this.openCountNodeId = results[0].targets![0].targetId;
+            this.sizeNodeId = results[1].targets![0].targetId;
+            return;
+        }
         const browsePaths: BrowsePath[] = [
             makeBrowsePath(this.fileNodeId, "/Open"),
             makeBrowsePath(this.fileNodeId, "/Close"),

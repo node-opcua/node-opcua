@@ -73,6 +73,10 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         return true;
     }
 
+    public isBound(): boolean {
+        return !!this._asyncExecutionFunction;
+    }
+
     public readAttribute(context: SessionContext, attributeId: AttributeIds): DataValue {
 
         const options: DataValueLike = {};

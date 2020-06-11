@@ -19,302 +19,322 @@ import { nodesets } from "node-opcua-nodesets";
 import {
     ClientFile,
     FileTypeData,
-
     getFileData,
     installFileType,
     OpenFileMode
 } from "..";
+import { MethodIds } from "node-opcua-client";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("FileTransfer", () => {
 
-    let addressSpace: AddressSpace;
+["with File object methods", "with FileType methods"].forEach((message) => {
 
-    before(async () => {
-        const xmlFiles = [
-            nodesets.standard
-        ];
-        addressSpace = AddressSpace.create();
-        await generateAddressSpace(addressSpace, xmlFiles);
-        addressSpace.registerNamespace("Own");
-    });
-    after(() => {
-        addressSpace.dispose();
-    });
+    const useGlobalMethod = !!message.match(/FileType/);
 
-    let opcuaFile: UAFileType;
-    let opcuaFile2: UAFileType;
+    describe("FileTransfer " + message, () => {
 
-    before(async () => {
-        const namespace = addressSpace.getOwnNamespace();
+        let addressSpace: AddressSpace;
 
-        const fileType = addressSpace.findObjectType("FileType")!;
-        should.exists(fileType);
+        before(() => {
+            if (useGlobalMethod) {
+                ClientFile.useGlobalMethod = true;
+            }
+        });
+        after(() => {
+            if (useGlobalMethod) {
+                ClientFile.useGlobalMethod = false;
+            }
+        });
+        before(async () => {
+            const xmlFiles = [
+                nodesets.standard
+            ];
+            addressSpace = AddressSpace.create();
+            await generateAddressSpace(addressSpace, xmlFiles);
+            addressSpace.registerNamespace("Own");
+        });
+        after(() => {
+            addressSpace.dispose();
+        });
 
-        // install file 1
-        opcuaFile = fileType.instantiate({
-            browseName: "FileTransferObj",
-            organizedBy: addressSpace.rootFolder.objects.server
-        }) as UAFileType;
+        let opcuaFile: UAFileType;
+        let opcuaFile2: UAFileType;
 
-        const tempFolder = await promisify(fs.mkdtemp)(path.join(os.tmpdir(), "test-"));
+        before(async () => {
+            const namespace = addressSpace.getOwnNamespace();
 
-        const filename = path.join(tempFolder, "tempFile1.txt");
-        await promisify(fs.writeFile)(filename, "content", "utf8");
+            const fileType = addressSpace.findObjectType("FileType")!;
+            should.exists(fileType);
 
-        installFileType(opcuaFile, { filename });
+            // install file 1
+            opcuaFile = fileType.instantiate({
+                browseName: "FileTransferObj",
+                organizedBy: addressSpace.rootFolder.objects.server
+            }) as UAFileType;
 
-        // install file 2
-        opcuaFile2 = fileType.instantiate({
-            browseName: "FileTransferObj2",
-            organizedBy: addressSpace.rootFolder.objects.server
-        }) as UAFileType;
-        const filename2 = path.join(tempFolder, "tempFile2.txt");
-        installFileType(opcuaFile2, { filename: filename2 });
+            const tempFolder = await promisify(fs.mkdtemp)(path.join(os.tmpdir(), "test-"));
 
-    });
-    after(() => {
-        /* empty */
-    });
+            const filename = path.join(tempFolder, "tempFile1.txt");
+            await promisify(fs.writeFile)(filename, "content", "utf8");
 
-    it("should expose a File Transfer node and open/close", async () => {
+            installFileType(opcuaFile, { filename });
 
-        const session = new PseudoSession(addressSpace);
+            // install file 2
+            opcuaFile2 = fileType.instantiate({
+                browseName: "FileTransferObj2",
+                organizedBy: addressSpace.rootFolder.objects.server
+            }) as UAFileType;
+            const filename2 = path.join(tempFolder, "tempFile2.txt");
+            installFileType(opcuaFile2, { filename: filename2 });
 
-        const clientFile = new ClientFile(session, opcuaFile.nodeId);
+        });
+        after(() => {
+            /* empty */
+        });
 
-        const handle = await clientFile.open(1);
-        handle.should.not.eql(0);
-        /// clientFile.handle.should.eql(handle);
+        it("should expose a File Transfer node and open/close", async () => {
 
-        await clientFile.close();
-        // clientFile.handle.should.eql(0);
+            const session = new PseudoSession(addressSpace);
 
-    });
+            const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
-    it("should expose a File Transfer node", async () => {
+            const handle = await clientFile.open(1);
+            handle.should.not.eql(0);
+            /// clientFile.handle.should.eql(handle);
 
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile.nodeId);
+            await clientFile.close();
+            // clientFile.handle.should.eql(0);
 
-        await clientFile.open(1);
+            if (ClientFile.useGlobalMethod) {
+                (clientFile as any).openMethodNodeId.value.should.eql(MethodIds.FileType_Open);
+            }
 
-        const curPos = await clientFile.getPosition();
-        curPos.should.eql([0, 0]);
+        });
 
-        await clientFile.setPosition([0, 1]);
-        const curPos1 = await clientFile.getPosition();
-        curPos1.should.eql([0, 1]);
+        it("should expose a File Transfer node", async () => {
 
-        await clientFile.close();
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
-    });
+            await clientFile.open(1);
 
-    it("should read a file ", async () => {
+            const curPos = await clientFile.getPosition();
+            curPos.should.eql([0, 0]);
 
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile.nodeId);
+            await clientFile.setPosition([0, 1]);
+            const curPos1 = await clientFile.getPosition();
+            curPos1.should.eql([0, 1]);
 
-        await clientFile.open(1);
+            await clientFile.close();
 
-        const buf = await clientFile.read(1000);
-        await clientFile.close();
+        });
 
-        buf.toString("ascii").should.eql("content");
+        it("should read a file ", async () => {
 
-    });
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
-    it("should increase openCount when a file is opened and decrease it when it's closed", async () => {
+            await clientFile.open(1);
 
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile.nodeId);
+            const buf = await clientFile.read(1000);
+            await clientFile.close();
 
-        const countBefore = await clientFile.openCount();
+            buf.toString("ascii").should.eql("content");
 
-        await clientFile.open(OpenFileMode.Read);
-        const buf = await clientFile.read(1000);
+        });
 
-        const countAfter = await clientFile.openCount();
-        countAfter.should.eql(countBefore + 1);
+        it("should increase openCount when a file is opened and decrease it when it's closed", async () => {
 
-        await clientFile.close();
-        const countAfter2 = await clientFile.openCount();
-        countAfter2.should.eql(countBefore);
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
-    });
-    it("should expose the size of the current file", async () => {
+            const countBefore = await clientFile.openCount();
 
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile.nodeId);
+            await clientFile.open(OpenFileMode.Read);
+            const buf = await clientFile.read(1000);
 
-        const size: UInt64 = await clientFile.size();
-        size.should.eql([0, 7]); // 7 bytes file
-    });
+            const countAfter = await clientFile.openCount();
+            countAfter.should.eql(countBefore + 1);
 
-    it("should not be possible to write to a file if Write Bit is not set in open mode", async () => {
+            await clientFile.close();
+            const countAfter2 = await clientFile.openCount();
+            countAfter2.should.eql(countBefore);
 
-        // Given a OCUA File
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile.nodeId);
+        });
+        it("should expose the size of the current file", async () => {
 
-        // Given that the file is opened in ReadMode Only
-        await clientFile.open(OpenFileMode.Read);
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
-        // When I try to write to the file
-        let hasSucceeded = false;
-        let hasReceivedException: any = null;
-        try {
-            const buf = await clientFile.write(Buffer.from("This is Me !!!"));
-            hasSucceeded = true;
-        } catch (err) {
-            err.message.should.match(/BadInvalidState/);
-            hasReceivedException = err;
-        }
-        await clientFile.close();
+            const size: UInt64 = await clientFile.size();
+            size.should.eql([0, 7]); // 7 bytes file
+        });
 
-        // Then I should verify that the read method has failed
-        should.exist(hasReceivedException);
-        hasSucceeded.should.eql(false);
-    });
+        it("should not be possible to write to a file if Write Bit is not set in open mode", async () => {
 
-    it("should be possible to write a file - in create mode", async () => {
+            // Given a OCUA File
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
-        // Given a file on server side with some original content
-        const fileData = getFileData(opcuaFile2);
-        fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
-        await fileData.refresh();
+            // Given that the file is opened in ReadMode Only
+            await clientFile.open(OpenFileMode.Read);
 
-        // Given a client that open the file (ReadWrite Mode)
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile2.nodeId);
-        const handle = await clientFile.open(OpenFileMode.ReadWrite);
-        await clientFile.setPosition([0, 0]);
+            // When I try to write to the file
+            let hasSucceeded = false;
+            let hasReceivedException: any = null;
+            try {
+                const buf = await clientFile.write(Buffer.from("This is Me !!!"));
+                hasSucceeded = true;
+            } catch (err) {
+                err.message.should.match(/BadInvalidState/);
+                hasReceivedException = err;
+            }
+            await clientFile.close();
 
-        // When I write "#### REPLACE ####" at position 0
-        await clientFile.write(Buffer.from("#### REPLACE ####"));
-        await clientFile.close();
+            // Then I should verify that the read method has failed
+            should.exist(hasReceivedException);
+            hasSucceeded.should.eql(false);
+        });
 
-        // Then I should verify that the file now contains "#### REPLACE ####"
-        fs.readFileSync(fileData.filename, "utf-8").should.eql("#### REPLACE ####");
+        it("should be possible to write a file - in create mode", async () => {
 
-    });
+            // Given a file on server side with some original content
+            const fileData = getFileData(opcuaFile2);
+            fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+            await fileData.refresh();
 
-    it("should be possible to write to a file - in append mode", async () => {
+            // Given a client that open the file (ReadWrite Mode)
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+            const handle = await clientFile.open(OpenFileMode.ReadWrite);
+            await clientFile.setPosition([0, 0]);
 
-        // Given a file on server side with some original content
-        const fileData = getFileData(opcuaFile2);
-        fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
-        await fileData.refresh();
+            // When I write "#### REPLACE ####" at position 0
+            await clientFile.write(Buffer.from("#### REPLACE ####"));
+            await clientFile.close();
 
-        // Given a client
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+            // Then I should verify that the file now contains "#### REPLACE ####"
+            fs.readFileSync(fileData.filename, "utf-8").should.eql("#### REPLACE ####");
 
-        // When I open the file in (ReadWriteAppend Mode)
-        const handle = await clientFile.open(OpenFileMode.ReadWriteAppend);
+        });
 
-        // then I should verify that position is set at the end of the file
-        const fileSize = await clientFile.size();
-        const position0 = await clientFile.getPosition();
-        position0.should.eql(fileSize, "expecting position to be at the end of the file after open in Append Mode");
+        it("should be possible to write to a file - in append mode", async () => {
 
-        // and When I write some more data
-        await clientFile.write(Buffer.from("#### REPLACE ####"));
+            // Given a file on server side with some original content
+            const fileData = getFileData(opcuaFile2);
+            fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+            await fileData.refresh();
 
-        // then I should verify that the position has evolved accordingly
-        const position1 = await clientFile.getPosition();
+            // Given a client
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile2.nodeId);
 
-        position1.should.eql([0, 41], "expecting position to be at the end of the file");
+            // When I open the file in (ReadWriteAppend Mode)
+            const handle = await clientFile.open(OpenFileMode.ReadWriteAppend);
 
-        await clientFile.close();
+            // then I should verify that position is set at the end of the file
+            const fileSize = await clientFile.size();
+            const position0 = await clientFile.getPosition();
+            position0.should.eql(fileSize, "expecting position to be at the end of the file after open in Append Mode");
 
-        // and I should verify that the file on the server side contains the expected data
-        fs.readFileSync(fileData.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
+            // and When I write some more data
+            await clientFile.write(Buffer.from("#### REPLACE ####"));
 
-    });
+            // then I should verify that the position has evolved accordingly
+            const position1 = await clientFile.getPosition();
 
-    it("should not allow read method if Read bit is not set in open mode", async () => {
+            position1.should.eql([0, 41], "expecting position to be at the end of the file");
 
-        // Given a OCUA File
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile.nodeId);
+            await clientFile.close();
 
-        // When I open the file without Read bit set
-        await clientFile.open(OpenFileMode.Write); // open in write mode
+            // and I should verify that the file on the server side contains the expected data
+            fs.readFileSync(fileData.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
 
-        // When I read the file
-        let hasSucceeded = false;
-        let hasReceivedException: any = null;
-        try {
-            const numberOfByteToRead = 1;
-            const buf = await clientFile.read(numberOfByteToRead);
-            hasSucceeded = true;
-        } catch (err) {
-            err.message.should.match(/BadInvalidState/);
-            hasReceivedException = err;
-        }
-        await clientFile.close();
+        });
 
-        // Then I should verify that the read method has failed
-        should.exist(hasReceivedException, "It should have received an exception");
-        hasSucceeded.should.eql(false);
+        it("should not allow read method if Read bit is not set in open mode", async () => {
 
-    });
+            // Given a OCUA File
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
-    it("should allow file to grow", async () => {
+            // When I open the file without Read bit set
+            await clientFile.open(OpenFileMode.Write); // open in write mode
 
-        const fileData = getFileData(opcuaFile2);
-        fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
-        await fileData.refresh();
+            // When I read the file
+            let hasSucceeded = false;
+            let hasReceivedException: any = null;
+            try {
+                const numberOfByteToRead = 1;
+                const buf = await clientFile.read(numberOfByteToRead);
+                hasSucceeded = true;
+            } catch (err) {
+                err.message.should.match(/BadInvalidState/);
+                hasReceivedException = err;
+            }
+            await clientFile.close();
 
- 
-        // Given a client
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+            // Then I should verify that the read method has failed
+            should.exist(hasReceivedException, "It should have received an exception");
+            hasSucceeded.should.eql(false);
 
-        // When I open the file in (ReadWriteAppend Mode)
-        const handle = await clientFile.open(OpenFileMode.ReadWriteAppend);
+        });
 
-        // read original file size (UInt64!)
-        const originalFileSize = await clientFile.size();
-        const position0 = await clientFile.getPosition();
-        // console.log("position0 = ",position0, "originalFileSize", originalFileSize);
-        // then I should verify that position is set at the end of the file
-        position0.should.eql(originalFileSize, "expecting position to be at the end of the file after open in Append Mode");
+        it("should allow file to grow", async () => {
 
-        // then When I write some more data
-        const extraData = "#### SOMM MORE DATA ####";
-        await clientFile.write(Buffer.from(extraData));
-        // and I should verify that the file on the server side contains the expected data
-        fs.readFileSync(fileData.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + extraData);
+            const fileData = getFileData(opcuaFile2);
+            fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+            await fileData.refresh();
 
-        // When I re-read file size and check that it has grown accordingly
-        const newFileSize = await clientFile.size();
 
-        // I should verify that file size has changed accordingly
-        newFileSize[1].should.eql(originalFileSize[1] + extraData.length);
- 
-        await clientFile.close();
+            // Given a client
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile2.nodeId);
 
-    });
-    it("file size must change on client size if file changes on server side", async () => {
+            // When I open the file in (ReadWriteAppend Mode)
+            const handle = await clientFile.open(OpenFileMode.ReadWriteAppend);
 
-        const fileData = getFileData(opcuaFile2);
-        fs.writeFileSync(fileData.filename, "1", "utf-8");
-        await fileData.refresh();
+            // read original file size (UInt64!)
+            const originalFileSize = await clientFile.size();
+            const position0 = await clientFile.getPosition();
+            // console.log("position0 = ",position0, "originalFileSize", originalFileSize);
+            // then I should verify that position is set at the end of the file
+            position0.should.eql(originalFileSize, "expecting position to be at the end of the file after open in Append Mode");
 
-        // Given a client
-        const session = new PseudoSession(addressSpace);
-        const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+            // then When I write some more data
+            const extraData = "#### SOMM MORE DATA ####";
+            await clientFile.write(Buffer.from(extraData));
+            // and I should verify that the file on the server side contains the expected data
+            fs.readFileSync(fileData.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + extraData);
 
-        const size1 = await clientFile.size();
-        size1.should.eql(coerceUInt64(1));
+            // When I re-read file size and check that it has grown accordingly
+            const newFileSize = await clientFile.size();
 
-        fs.writeFileSync(fileData.filename, "22", "utf-8");
-        await fileData.refresh();
+            // I should verify that file size has changed accordingly
+            newFileSize[1].should.eql(originalFileSize[1] + extraData.length);
 
-        const size2 = await clientFile.size();
-        size2.should.eql(coerceUInt64(2));
+            await clientFile.close();
+
+        });
+        it("file size must change on client size if file changes on server side", async () => {
+
+            const fileData = getFileData(opcuaFile2);
+            fs.writeFileSync(fileData.filename, "1", "utf-8");
+            await fileData.refresh();
+
+            // Given a client
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+
+            const size1 = await clientFile.size();
+            size1.should.eql(coerceUInt64(1));
+
+            fs.writeFileSync(fileData.filename, "22", "utf-8");
+            await fileData.refresh();
+
+            const size2 = await clientFile.size();
+            size2.should.eql(coerceUInt64(2));
+        });
     });
 });
