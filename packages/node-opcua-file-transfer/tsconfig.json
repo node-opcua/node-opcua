@@ -68,6 +68,9 @@
     },
     {
       "path": "../node-opcua-leak-detector"
+    },
+    {
+      "path": "../node-opcua-constants"
     }
   ],
   "exclude": [

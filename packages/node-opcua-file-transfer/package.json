@@ -16,6 +16,7 @@
     "node-opcua-assert": "^2.6.1",
     "node-opcua-basic-types": "^2.6.1",
     "node-opcua-client": "^2.6.4",
+    "node-opcua-constants": "^2.6.1",
     "node-opcua-data-model": "^2.6.1",
     "node-opcua-debug": "^2.6.1",
     "node-opcua-nodeid": "^2.6.1",
