@@ -5,7 +5,7 @@ import {
     extractEventFields
 } from "../../source";
 import {
-    ContentFilter, FilterOperator, LiteralOperand, SimpleAttributeOperand
+    ContentFilter, FilterOperator, LiteralOperand, SimpleAttributeOperand, FilterOperand, ElementOperand
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
@@ -17,6 +17,21 @@ import { UAObject } from "../ua_object";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { UAVariable } from "../ua_variable";
+
+function checkNot(
+    addressSpace: AddressSpace,
+    sessionContext: SessionContext,
+    whereClause: ContentFilter,
+    eventData: IEventData,
+    filteredOperands: FilterOperand[]
+): boolean {
+
+    if (filteredOperands[0] instanceof ElementOperand) {
+        const index = (filteredOperands[0] as ElementOperand).index;
+        return !__checkWhereClause(addressSpace, sessionContext, whereClause, index, eventData);
+    }
+    return false;
+}
 
 function checkOfType(
     addressSpace: AddressSpace,
@@ -42,7 +57,7 @@ function checkOfType(
 
     // istanbul ignore next
     if (ofTypeNode.nodeClass !== NodeClass.ObjectType) {
-        throw new Error("operaand should be a ObjectType " + ofTypeNode.nodeId.toString());
+        throw new Error("operand should be a ObjectType " + ofTypeNode.nodeId.toString());
     }
     const node = eventData.$eventDataSource! as (UAObjectType | UAObject | UAReferenceType | UAVariableType);
     if (!node) {
@@ -95,6 +110,39 @@ function checkInList(
     return false;
 }
 
+export function __checkWhereClause(
+    addressSpace: AddressSpace,
+    sessionContext: SessionContext,
+    whereClause: ContentFilter,
+    index: number,
+    eventData: IEventData
+): boolean {
+
+    if (!whereClause.elements || whereClause.elements.length === 0) {
+        return true;
+    }
+    const element = whereClause.elements[index];
+    if (!element) {
+        return true;
+    }
+    switch (element.filterOperator) {
+        case FilterOperator.Not:
+            return checkNot(addressSpace, sessionContext, whereClause, eventData, element.filterOperands as FilterOperand[]);
+        case FilterOperator.OfType:
+            return checkOfType(addressSpace, element.filterOperands![0] as LiteralOperand, eventData);
+        case FilterOperator.InList:
+            return checkInList(addressSpace, element.filterOperands as ExtensionObject[], eventData);
+        default:
+            // from Spec  OPC Unified Architecture, Part 4 133 Release 1.04
+            //  Any basic FilterOperator in Table 119 may be used in the whereClause, however, only the
+            //  OfType_14 FilterOperator from Table 120 is permitted.
+            // tslint:disable-next-line: no-console
+            console.log("whereClause = ", whereClause.toString());
+            throw new Error("Only OfType operator are allowed in checkWhereClause")
+    }
+    return true;
+}
+
 export function checkWhereClause(
     addressSpace: AddressSpace,
     sessionContext: SessionContext,
@@ -105,18 +153,5 @@ export function checkWhereClause(
     if (!whereClause.elements || whereClause.elements.length === 0) {
         return true;
     }
-    for (const element of whereClause.elements) {
-        switch (element.filterOperator) {
-            case FilterOperator.OfType:
-                return checkOfType(addressSpace, element.filterOperands![0] as LiteralOperand, eventData);
-            case FilterOperator.InList:
-                return checkInList(addressSpace, element.filterOperands as ExtensionObject[], eventData);
-            default:
-                // from Spec  OPC Unified Architecture, Part 4 133 Release 1.04
-                //  Any basic FilterOperator in Table 119 may be used in the whereClause, however, only the
-                //  OfType_14 FilterOperator from Table 120 is permitted.
-                throw new Error("Only OfType operator are allowed in checkWhereClause")
-        }
-    }
-    return true;
+    return __checkWhereClause(addressSpace, sessionContext, whereClause, 0, eventData);
 }
