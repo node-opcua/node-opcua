@@ -35,7 +35,8 @@ describe("ServerConfiguration", () => {
     const session: ISessionBase = {
         userIdentityToken: new UserNameIdentityToken({
             userName: "joedoe"
-        })
+        }),
+        getSessionId() { return NodeId.nullNodeId; }
     };
     const _tempFolder = path.join(__dirname, "../temp");
 
@@ -148,11 +149,11 @@ describe("ServerConfiguration", () => {
             const nonce = Buffer.alloc(0);
 
             const result = await clientPullCertificateManager.createSigningRequest(
-              certificateGroupId,
-              certificateTypeId,
-              subjectName,
-              regeneratePrivateKey,
-              nonce
+                certificateGroupId,
+                certificateTypeId,
+                subjectName,
+                regeneratePrivateKey,
+                nonce
             );
             result.statusCode.should.eql(StatusCodes.Good);
 
@@ -175,14 +176,14 @@ describe("ServerConfiguration", () => {
             const privateKey = Buffer.from("1234");
 
             const result = await clientPushCertificateManager.updateCertificate(
-              certificateGroupId,
-              certificateTypeId,
-              certificate,
-              issuerCertificates
+                certificateGroupId,
+                certificateTypeId,
+                certificate,
+                issuerCertificates
             );
 
             result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
-//            result.applyChangesRequired!.should.eql(true);
+            //            result.applyChangesRequired!.should.eql(true);
 
         });
     });
