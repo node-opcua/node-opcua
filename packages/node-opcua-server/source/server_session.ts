@@ -190,6 +190,10 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this._registeredNodesInv = {};
     }
 
+    public getSessionId(): NodeId {
+        return this.nodeId;
+    }
+
     public dispose() {
 
         debugLog("ServerSession#dispose()");

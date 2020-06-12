@@ -4,10 +4,15 @@
 import * as async from "async";
 import * as _ from "underscore";
 import { promisify } from "util";
-import { assert } from "node-opcua-assert";
-import { DataValue } from "node-opcua-data-value";
+
 import {
-    NodeId, resolveNodeId
+    assert
+} from "node-opcua-assert";
+import {
+    DataValue
+} from "node-opcua-data-value";
+import {
+    NodeId, resolveNodeId, NodeIdType
 } from "node-opcua-nodeid";
 import {
     ArgumentDefinition,
@@ -36,9 +41,16 @@ import {
 import {
     StatusCodes, StatusCode
 } from "node-opcua-status-code";
+import {
+    NodeClass, AttributeIds
+} from "node-opcua-data-model";
+import {
+    MessageSecurityMode, ReadValueId, WriteValueOptions, WriteValue
+} from "node-opcua-types";
+import {
+    randomGuid
+} from "node-opcua-basic-types";
 
-import { NodeClass, AttributeIds } from "node-opcua-data-model";
-import { MessageSecurityMode, ReadValueId, WriteValueOptions, WriteValue } from "node-opcua-types";
 import { AddressSpace } from "./address_space_ts";
 import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 import { callMethodHelper } from "./helpers/call_helpers";
@@ -61,23 +73,30 @@ export class PseudoSession implements IBasicSession {
     public server: IServerBase;
     public session: ISessionBase;
     public requestedMaxReferencesPerNode: number = 0;
-
+    private _sessionId: NodeId = new NodeId(NodeIdType.GUID, randomGuid())
     private readonly addressSpace: AddressSpace;
     private readonly continuationPointManager: ContinuationPointManager;
 
     constructor(addressSpace: AddressSpace, server?: IServerBase, session?: ISessionBase) {
         this.addressSpace = addressSpace;
         this.server = server || {};
+        const self = this;
         this.session = session || {
             channel: {
                 clientCertificate: null,
                 securityMode: MessageSecurityMode.None,
                 securityPolicy: "http://opcfoundation.org/UA/SecurityPolicy#None" // SecurityPolicy.None
+            },
+            getSessionId() {
+                return self._sessionId;
             }
         };
         this.continuationPointManager = new ContinuationPointManager();
     }
 
+    public getSessionId(): NodeId {
+        return this._sessionId;
+    }
     public browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
     public browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
     public browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;

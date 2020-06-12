@@ -23,6 +23,7 @@ import {
     OpenFileMode,
     OpenFileModeMask
 } from "../open_mode";
+import { NodeId, sameNodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
@@ -133,7 +134,7 @@ interface FileAccessData {
     fd: number; // nodejs handler
     position: UInt64; // position in file
     openMode: OpenFileMode;
-
+    sessionId: NodeId;
 }
 
 interface FileTypeM {
@@ -141,9 +142,10 @@ interface FileTypeM {
     $$files: { [key: number]: FileAccessData };
 }
 
+interface AddressSpacePriv extends AddressSpace, FileTypeM {
+}
 function _prepare(addressSpace: AddressSpace, context: SessionContext): FileTypeM {
-
-    const _context = addressSpace as any;
+    const _context = addressSpace as AddressSpacePriv;
     _context.$$currentFileHandle = _context.$$currentFileHandle ? _context.$$currentFileHandle : 41;
     _context.$$files = _context.$$files || {};
     return _context as FileTypeM;
@@ -158,16 +160,23 @@ function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode:
         fd: -1,
         handle: fileHandle,
         openMode,
-        position: [0, 0]
+        position: [0, 0],
+        sessionId: context.session!.getSessionId()
     };
     _context.$$files[fileHandle] = _fileData;
 
     return fileHandle;
 }
 
-function _getFileInfo(addressSpace: AddressSpace, context: SessionContext, fileHandle: UInt32): FileAccessData {
+function _getFileInfo(addressSpace: AddressSpace, context: SessionContext, fileHandle: UInt32): FileAccessData | null {
     const _context = _prepare(addressSpace, context);
-    return _context.$$files[fileHandle];
+    const _fileInfo = _context.$$files[fileHandle];
+    if (!_fileInfo || !sameNodeId(_fileInfo.sessionId, context.session!.getSessionId())) {
+        errorLog("Invalid session ID this file descriptor doesn't belong to this session");
+        return null;
+    }
+    return _fileInfo;
+
 }
 
 function _close(addressSpace: AddressSpace, context: SessionContext, fileData: FileAccessData) {
@@ -270,6 +279,9 @@ async function _openFile(
     const fileHandle = _addFile(addressSpace, context, mode as OpenFileMode);
 
     const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
+    if (!_fileInfo) {
+        return { statusCode: StatusCodes.BadInvalidArgument };
+    }
 
     const fileData = (context.object as any).$fileData as FileTypeData;
     const filename = fileData.filename;
@@ -329,6 +341,7 @@ async function _closeFile(
     if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
+
     const data = (context.object as any).$fileData as FileTypeData;
 
     debugLog("Closing file handle ", fileHandle, "filename: ", data.filename, "openCount: ", data.openCount);
