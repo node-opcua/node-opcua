@@ -46,7 +46,16 @@ export interface ClientSubscription extends EventEmitter {
     monitoredItems: ClientMonitoredItemBaseMap;
     timeoutHint: number;
 
+    /**
+     * return the session associated with the subscription.
+     * (may throw if the session is not valid)
+     */
     session: ClientSession;
+
+    /**
+     * return true if the subscription is attached to a valid session
+     */
+    hasSession: boolean;
 
     /**
      * true is the subscription is fully active
