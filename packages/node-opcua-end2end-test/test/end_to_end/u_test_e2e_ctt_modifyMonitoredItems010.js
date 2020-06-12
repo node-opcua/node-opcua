@@ -135,8 +135,8 @@ module.exports = function(test) {
 
                 const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 200,
-                    requestedLifetimeCount: 10 * 60 * 10,
-                    requestedMaxKeepAliveCount: 600,
+                    requestedLifetimeCount: 10 * 60 * 1000,
+                    requestedMaxKeepAliveCount: 60000,
                     maxNotificationsPerPublish: 0,
                     publishingEnabled: true,
                     priority: 6
@@ -180,7 +180,14 @@ module.exports = function(test) {
                 session.getPublishEngine().internalSendPublishRequest();
                 // session.getPublishEngine().suspend(true);
 
-                await new Promise((resolve) => setTimeout(resolve, 4000));
+                async function wait_notification() {
+                    if (subscription_raw_notification_event.callCount > 0) {
+                        return;
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                    await wait_notification();
+                }
+                await wait_notification();
 
                 function dumpNotificationResult() {
                     console.log("notification received  = ", subscription_raw_notification_event.callCount);

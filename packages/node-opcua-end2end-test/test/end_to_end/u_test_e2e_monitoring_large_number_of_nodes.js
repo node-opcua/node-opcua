@@ -6,38 +6,38 @@ const should = require("should");
 const sinon = require("sinon");
 
 const opcua = require("node-opcua");
-const OPCUAClient        = opcua.OPCUAClient;
-const ClientSession      = opcua.ClientSession;
+const OPCUAClient = opcua.OPCUAClient;
+const ClientSession = opcua.ClientSession;
 const ClientSubscription = opcua.ClientSubscription;
-const AttributeIds       = opcua.AttributeIds;
-const resolveNodeId      = opcua.resolveNodeId;
+const AttributeIds = opcua.AttributeIds;
+const resolveNodeId = opcua.resolveNodeId;
 
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-module.exports = function (test) {
-    describe("Testing client with many monitored items", function () {
+module.exports = function(test) {
+    describe("Testing client with many monitored items", function() {
 
         let client, endpointUrl;
 
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             if (process.gc) { process.gc(); }
             client = OPCUAClient.create();
             endpointUrl = test.endpointUrl;
 
             console.log("client.tokenRenewalInterval = ", client.tokenRenewalInterval);
-            client.on("lifetime_75",() => console.log("token about to expire"));
+            client.on("lifetime_75", () => console.log("token about to expire"));
             client.on("send_chunk", (buf) => console.log("chunk =>", buf.length));
-            client.on("receive_chunk",(buf) =>  console.log("chunk <= ", buf.length));
+            client.on("receive_chunk", (buf) => console.log("chunk <= ", buf.length));
 
             done();
         });
 
-        afterEach(function (done) {
+        afterEach(function(done) {
             client.disconnect(done);
             client = null;
         });
 
-        it("should monitor a large number of node (see #69)", function (done) {
+        it("should monitor a large number of node (see #69)", function(done) {
 
 
             const changeByNodes = {};
@@ -45,14 +45,14 @@ module.exports = function (test) {
             function make_callback(_nodeId) {
 
                 const nodeId = _nodeId;
-                return function (dataValue) {
+                return function(dataValue) {
                     //Xx console.log(nodeId.toString() , "\t value : ",dataValue.value.value.toString());
                     const idx = nodeId.toString();
                     changeByNodes[idx] = changeByNodes[idx] ? changeByNodes[idx] + 1 : 1;
                 };
             }
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
                 const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 150,
@@ -73,18 +73,18 @@ module.exports = function (test) {
                     "Scalar_Simulation_Int64",
                     "Scalar_Simulation_LocalizedText"
                 ];
-                ids.forEach(function (id) {
+                ids.forEach(function(id) {
                     const nodeId = "ns=2;s=" + id;
 
                     const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
-                        {nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value},
-                        {samplingInterval: 10, discardOldest: true, queueSize: 1});
+                        { nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value },
+                        { samplingInterval: 10, discardOldest: true, queueSize: 1 });
 
                     monitoredItem.on("changed", make_callback(nodeId));
                 });
 
-                subscription.once("started", function (subscriptionId) {
-                    setTimeout(function () {
+                subscription.once("started", function(subscriptionId) {
+                    setTimeout(function() {
                         subscription.terminate(inner_done);
                         Object.keys(changeByNodes).length.should.eql(ids.length);
                     }, 3000);
@@ -96,7 +96,7 @@ module.exports = function (test) {
         });
 
 
-        it("should monitor a very large number of nodes (5000) ", function (done) {
+        it("should monitor a very large number of nodes (5000) ", function(done) {
             const ids = [
                 "Scalar_Simulation_Double",
                 "Scalar_Simulation_Float",
@@ -126,7 +126,7 @@ module.exports = function (test) {
 
                 let clientHandle = 1;
 
-                ids50000.forEach(function (s) {
+                ids50000.forEach(function(s) {
                     const nodeId = "ns=2;s=" + s;
                     const itemToMonitor = new opcua.ReadValueId({
                         attributeId: opcua.AttributeIds.Value,
@@ -155,13 +155,13 @@ module.exports = function (test) {
 
             }
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
                 const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 10,
-                    requestedLifetimeCount:      10 * 60 * 10,
-                    requestedMaxKeepAliveCount:            3,
-                    maxNotificationsPerPublish:             0, // unlimited
+                    requestedLifetimeCount: 10 * 60 * 10,
+                    requestedMaxKeepAliveCount: 3,
+                    maxNotificationsPerPublish: 0, // unlimited
                     publishingEnabled: true,
                     priority: 6
                 });
@@ -169,42 +169,43 @@ module.exports = function (test) {
 
                 const notificationMessageSpy = new sinon.spy();
 
-                subscription.on("raw_notification",notificationMessageSpy);
+                subscription.on("raw_notification", notificationMessageSpy);
 
-                subscription.once("started", function (subscriptionId) {
+                subscription.once("started", function(subscriptionId) {
 
 
-                        const timestampsToReturn = opcua.TimestampsToReturn.Neither;
+                    const timestampsToReturn = opcua.TimestampsToReturn.Neither;
 
-                        const itemsToCreate = make5000Items();
-                        const createMonitorItemsRequest = new opcua.CreateMonitoredItemsRequest({
-                            subscriptionId: subscription.subscriptionId,
-                            timestampsToReturn: timestampsToReturn,
-                            itemsToCreate: itemsToCreate
+                    const itemsToCreate = make5000Items();
+                    const createMonitorItemsRequest = new opcua.CreateMonitoredItemsRequest({
+                        subscriptionId: subscription.subscriptionId,
+                        timestampsToReturn: timestampsToReturn,
+                        itemsToCreate: itemsToCreate
+                    });
+
+                    console.log(createMonitorItemsRequest.toString());
+                    session.createMonitoredItems(createMonitorItemsRequest, function(err, response) {
+
+                        if (err) {
+                            subscription.terminate(inner_done);
+                            return;
+
+                        }
+                        //Xx console.log(response.toString());
+                        subscription.on("raw_notification", function(n) {
+
+                            //xx console.log(n.notificationData[0].monitoredItems[0].toString());
+
+                            n.notificationData[0].monitoredItems.length.should.eql(itemsToCreate.length);
+
+                            //xx console.log(notificationMessageSpy.callCount);
+                            //xx console.log(notificationMessageSpy.getCall(0).args[0].toString());
+                            //xx console.log(notificationMessageSpy.getCall(1).args[0].toString());
+
+                            subscription.terminate(inner_done);
                         });
 
-                     console.log(createMonitorItemsRequest.toString());
-                     session.createMonitoredItems(createMonitorItemsRequest, function (err, response) {
-
-                            if(err){
-                                return; subscription.terminate(inner_done);
-
-                            }
-                            //Xx console.log(response.toString());
-                            subscription.on("raw_notification",function(n){
-
-                                //xx console.log(n.notificationData[0].monitoredItems[0].toString());
-
-                                n.notificationData[0].monitoredItems.length.should.eql(itemsToCreate.length);
-
-                                //xx console.log(notificationMessageSpy.callCount);
-                                //xx console.log(notificationMessageSpy.getCall(0).args[0].toString());
-                                //xx console.log(notificationMessageSpy.getCall(1).args[0].toString());
-
-                                subscription.terminate(inner_done);
-                            });
-
-                        });
+                    });
 
                 });
 
