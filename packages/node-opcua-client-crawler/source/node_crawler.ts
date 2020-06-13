@@ -854,7 +854,7 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         /* reconstruct a more manageable object
          * var obj = {
          *    browseName: "Objects",
-         *    organises : [
+         *    organizes : [
          *       {
          *            browseName: "Server",
          *            hasComponent: [
@@ -876,11 +876,11 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
         }
         if (object instanceof CacheNodeVariable || object instanceof CacheNodeVariableType) {
             if (object.dataType) {
-                obj.dataType = object.dataType.toString();
+                obj.dataType = object.dataType.toJSON();
                 // xx obj.dataTypeName = object.dataTypeName;
             }
             if (object.dataValue) {
-                obj.dataValue = object.dataValue.toString();
+                obj.dataValue = object.dataValue.toJSON();
             }
         }
         objMap[key2] = obj;
@@ -933,9 +933,9 @@ export class NodeCrawler extends EventEmitter implements NodeCrawlerEvents {
                         // tslint:disable-next-line: no-console
                         console.log("node id ", reference.toString());
                     }
-                    this._add_for_reconstruction(queue, objMap, reference, (err: Error | null, mobject: any) => {
+                    this._add_for_reconstruction(queue, objMap, reference, (err: Error | null, mObject: any) => {
                         if (!err) {
-                            referenceMap[refName].push(mobject);
+                            referenceMap[refName].push(mObject);
                         }
                     });
                 }
