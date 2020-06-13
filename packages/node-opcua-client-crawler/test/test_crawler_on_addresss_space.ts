@@ -181,6 +181,7 @@ describe("NodeCrawler", function (this: any) {
             crawler.maxNodesPerBrowse = 0;
             await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
 
+            
             // then NodeCrawler shall be set with value provided by server
             crawler.maxNodesPerRead.should.eql(251);
             crawler.maxNodesPerBrowse.should.eql(252);
