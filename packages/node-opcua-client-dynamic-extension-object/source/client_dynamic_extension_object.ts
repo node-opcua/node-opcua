@@ -618,7 +618,7 @@ export async function populateDataTypeManager(
             infos.push(info);
 
             if (!isDictionaryDeprecated && rawSchema.length > 0) {
-                const matches = rawSchema.match(/<opc:TypeDictionary(.*)>/);
+                const matches = rawSchema.match(/<opc:TypeDictionary([^\>]+)>/);
                 if (matches) {
                     // extract xml:NS="namespace" from attribute list
                     // for instance:
