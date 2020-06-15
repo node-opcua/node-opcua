@@ -1,7 +1,7 @@
 /**
  * @module node-opca-aggregates
  */
-export { 
+export {
     addAggregateSupport,
     installAggregateConfigurationOptions,
     getAggregateConfiguration,
@@ -11,3 +11,5 @@ export * from "./interpolate";
 export * from "./minmax";
 export * from "./interval";
 export * from "./common";
+export * from "./average";
+export * from "./read_processed_details";
