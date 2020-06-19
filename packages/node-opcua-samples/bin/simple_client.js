@@ -6,6 +6,7 @@ const treeify = require("treeify");
 const _ = require("underscore");
 const chalk = require("chalk");
 const Table = require("easy-table");
+const util = require("util");
 const {
     ApplicationType,
     assert,
@@ -30,6 +31,7 @@ const {
     resolveNodeId,
     SecurityPolicy,
     VariableIds,
+    ObjectIds,
 } = require("node-opcua");
 const { toPem } = require("node-opcua-crypto");
 
@@ -463,10 +465,15 @@ async function main() {
     let t2;
 
     function print_stat() {
-        t2 = Date.now();
-        const str = util.format("R= %d W= %d T=%d t= %d",
-            client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
-        console.log(chalk.yellow.bold(str));
+        try {
+
+            t2 = Date.now();
+            const str = util.format("R= %d W= %d T=%d t= %d",
+                client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
+            console.log(chalk.yellow.bold(str));
+        } catch (err) {
+            console.log("err =", err);
+        }
     }
 
     if (doCrawling) {
@@ -481,20 +488,25 @@ async function main() {
         client.on("receive_response", print_stat);
 
         t5 = Date.now();
-        // xx crawler.on("browsed", function (element) {
-        // xx     console.log("->",(new Date()).getTime()-t,element.browseName.name,element.nodeId.toString());
-        // xx });
+        crawler.on("browsed", function(element) {
+            try {
+                console.log("->", (new Date()).getTime() - t, element.browseName.name, element.nodeId.toString());
+            } catch (err) {
+                console.log("err =", err);
+            }
+        });
 
-        const nodeId = "ObjectsFolder";
+        const nodeId = resolveNodeId(ObjectIds.Server);
         console.log("now crawling object folder ...please wait...");
 
         const obj = await crawler.read(nodeId);
+
         console.log(" Time        = ", (new Date()).getTime() - t5);
         console.log(" read        = ", crawler.readCounter);
         console.log(" browse      = ", crawler.browseCounter);
         console.log(" browseNext  = ", crawler.browseNextCounter);
         console.log(" transaction = ", crawler.transactionCounter);
-        if (false) {
+        if (true) {
             // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
             // xx console.log(treeify.asTree(obj, true));
             treeify.asLines(obj, true, true, (line) => {

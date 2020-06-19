@@ -9,9 +9,6 @@ const util = require("util");
 
 const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
-const StatusCodes = opcua.StatusCodes;
-const Variant = opcua.Variant;
-const DataType = opcua.DataType;
 const NodeCrawler = opcua.NodeCrawler;
 
 
