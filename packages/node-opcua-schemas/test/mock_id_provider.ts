@@ -12,7 +12,7 @@ export class MockProvider implements MapDataTypeAndEncodingIdProvider {
     constructor() {
         //
     }
-    public getDataTypeAndEncodingId(key: string) {
+    public getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId | null {
         if (!this._map[key]) {
             const dataTypeNodeId = new NodeId(NodeId.NodeIdType.NUMERIC, this.i++, 1);
             const binaryEncodingNodeId = new NodeId(NodeId.NodeIdType.NUMERIC, this.i++, 1);
@@ -26,6 +26,6 @@ export class MockProvider implements MapDataTypeAndEncodingIdProvider {
                 xmlEncodingNodeId,
             };
         }
-        return this._map[key];
+        return this._map[key] || null;
     }
 }
