@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?><opc:TypeDictionary
+DefaultByteOrder="LittleEndian"
+TargetNamespace="http://www.siemens.com/simatic-s7-opcua"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:opc="http://opcfoundation.org/BinarySchema/"
+xmlns:ua="http://opcfoundation.org/UA/"
+xmlns:tns="http://www.siemens.com/simatic-s7-opcua"
+><opc:Import Namespace="http://opcfoundation.org/UA/"/>
+
+
+<opc:StructuredType BaseType="ua:ExtensionObject" Name="REP_BMD_Station">
+<opc:Field TypeName="opc:Int32" Name="Value"/>
+</opc:StructuredType>
+
+<opc:StructuredType BaseType="ua:ExtensionObject" Name="Recipe_BMD_Rep">
+<opc:Field TypeName="tns:Rep_BMD_ProcStepCtrl" Name="ProcStepCtrl"/>
+<opc:Field TypeName="tns:REP_BMD_Station" Name="STN1"/>
+<opc:Field TypeName="tns:REP_BMD_Station" Name="STN2"/>
+<opc:Field TypeName="tns:REP_BMD_Station" Name="STN3"/>
+<opc:Field TypeName="tns:REP_BMD_Station" Name="STN4"/>
+<opc:Field TypeName="tns:REP_BMD_Station" Name="STN5"/>
+<opc:Field TypeName="tns:REP_BMD_Station" Name="STN6"/>
+<opc:Field TypeName="tns:REP_BMD_Station" Name="STN7"/>
+</opc:StructuredType>
+
+<opc:StructuredType BaseType="ua:ExtensionObject" Name="Rep_BMD_ProcStepCtrl">
+<opc:Field TypeName="opc:Boolean" Name="REP_NoRecover"/>
+<opc:Field TypeName="opc:Byte" Name="REP_Type"/>
+<opc:Field TypeName="opc:Byte" Name="REP_EndPoint_Cond"/>
+<opc:Field TypeName="opc:Float" Name="REP_StepEnd_Time"/>
+<opc:Field TypeName="opc:Int32" Name="REP_StepEnd_Passes"/>
+<opc:Field TypeName="opc:Byte" Name="REP_ShutterOpenType"/>
+<opc:Field TypeName="opc:Float" Name="REP_ShutterOpenDrumPosition"/>
+</opc:StructuredType>
+</opc:TypeDictionary>

@@ -290,7 +290,6 @@ export class DataTypeFactory {
     }
 
     private _registerFactory(dataTypeNodeId: NodeId, typeName: string, constructor: ConstructorFuncWithSchema): void {
-        assert(dataTypeNodeId.value !== 0, "dataTypeNodeId cannot be null");
         /* istanbul ignore next */
         if (this.hasStructuredType(typeName)) {
             console.log(this.getStructureTypeConstructor(typeName));
@@ -299,7 +298,9 @@ export class DataTypeFactory {
         }
         debugLog("registering typeName ", typeName, dataTypeNodeId.toString());
         this._structureTypeConstructorByNameMap[typeName] = constructor;
-        this._structureTypeConstructorByDataTypeMap[dataTypeNodeId.toString()] = constructor;
+        if (dataTypeNodeId.value !== 0) {
+            this._structureTypeConstructorByDataTypeMap[dataTypeNodeId.toString()] = constructor;
+        }
         Object.defineProperty(constructor.schema, "$$factory", {
             enumerable: false,
             value: this,

@@ -383,8 +383,8 @@ async function _extractNodeIds(
     }
 
     return {
-        getDataTypeAndEncodingId(key: string) {
-            return map[key];
+        getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId | null{
+            return map[key] || null;
         }
     };
 }

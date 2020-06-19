@@ -302,7 +302,7 @@ export interface DataTypeAndEncodingId {
 }
 export interface MapDataTypeAndEncodingIdProvider {
     // getDataTypeNodeId(key: string): NodeId;
-    getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId;
+    getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId | null;
 }
 
 export function parseBinaryXSD(

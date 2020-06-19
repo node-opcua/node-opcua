@@ -149,7 +149,11 @@ export function getOrCreateStructuredTypeSchema(
         const schema = buildStructuredType(structuredType as StructuredTypeOptions);
         const ids = idProvider.getDataTypeAndEncodingId(schema.name);
         if (!ids) {
-            throw new Error("Cannot find getDataTypeAndEncodingId for " + schema.name);
+            // this may happen if the type is abstract or if the type referes to a internal ExtnsionObject
+            // that can only exists inside an other extension object.this Type of extension object cannot 
+            // instantiated as standalone object and do not have encoding nodeIds...
+            const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
+            return schema;
         }
         schema.id = ids.dataTypeNodeId;
         schema.dataTypeNodeId = ids.dataTypeNodeId;
