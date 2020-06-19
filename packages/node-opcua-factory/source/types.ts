@@ -22,7 +22,7 @@ export interface CommonInterface {
     decode?: (stream: BinaryStream) => any;
 
     coerce?: (value: any) => any;
-    toJSON?: () => any;
+    toJSON?: (value: any) => any;
     random?: () => any;
     validate?: (value: any) => void;
 
@@ -112,7 +112,7 @@ export interface TypeSchemaConstructorOptions {
 
 export interface BasicTypeDefinitionOptions extends TypeSchemaConstructorOptions {
     subType: string;
-    toJSON?: () => any;
+    toJSON?: (value: any) => any;
     random?: () => any;
     validate?: (value: any) => void;
 }

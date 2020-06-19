@@ -18,7 +18,7 @@ export interface BasicTypeOptions {
     decode?: (stream: BinaryStream) => void;
     validate?: (value: any) => boolean;
     coerce?: (value: any) => any;
-    toJSON?: () => any;
+    toJSON?: (value: any) => any;
     random?: () => any;
     defaultValue?: any;
 }
