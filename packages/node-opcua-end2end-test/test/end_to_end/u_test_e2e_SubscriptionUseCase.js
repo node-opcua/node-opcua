@@ -2529,7 +2529,7 @@ module.exports = function(test) {
 
             const node = server.engine.addressSpace.findNode(nodeId);
             //xx console.log(chalk.cyan("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"),node.toString());
-            const server_node = test.server.engine.addressSpace.rootFolder.objects.simulation.scalar.scalar_Static.scalar_Static_Int16;
+            const server_node = test.server.engine.addressSpace.rootFolder.objects.simulation.scalar.scalar_static.scalar_static_int16;
             //xx console.log("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
             server_node.minimumSamplingInterval = forcedMinimumInterval;
 

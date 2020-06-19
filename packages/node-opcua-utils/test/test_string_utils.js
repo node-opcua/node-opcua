@@ -44,7 +44,10 @@ describe("string_utils", function() {
             ["Ab", "ab"],
             ["A", "a"],
             ["T1ABC8", "T1ABC8"],
-            ["F_ABC_D", "F_ABC_D"]
+            ["F_ABC_D", "F_ABC_D"],
+            ["ALM_Timeout", "ALM_timeout"],
+            ["SV_GasOn", "SV_gasOn"],
+            ["DI_VAL_FlowImpl", "DI_VAL_flowImpl"],
         ];
         for (const c of cases) {
             const a = c;
