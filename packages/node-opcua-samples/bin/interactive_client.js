@@ -29,12 +29,12 @@ const client = opcua.OPCUAClient.create({
     keepSessionAlive: true
 });
 
-let the_session  = null;
+let the_session = null;
 let proxyManager = null;
 
-let crawler           = null;
-let dumpPacket        = false;
-const dumpMessageChunk  = false;
+let crawler = null;
+let dumpPacket = false;
+const dumpMessageChunk = false;
 let endpoints_history = [];
 
 const endpoints_history_file = path.join(__dirname, ".history_endpoints");
@@ -70,22 +70,22 @@ if (fs.existsSync(endpoints_history_file)) {
 const history_file = path.join(__dirname, ".history");
 
 
-function completer(line,callback) {
+function completer(line, callback) {
 
     let completions, hits;
 
-    if ( (line.trim() === "" ) && curNode) {
+    if ((line.trim() === "") && curNode) {
         // console.log(" completions ",completions);
         let c = [".."].concat(curNodeCompletion);
         if (curNodeCompletion.length === 1) {
             c = curNodeCompletion;
         }
-        return callback(null, [ c, line]);
+        return callback(null, [c, line]);
     }
 
     if ("open".match(new RegExp("^" + line.trim()))) {
         completions = ["open localhost:port"];
-        return callback(null, [ completions, line]);
+        return callback(null, [completions, line]);
 
     } else {
         if (the_session === null) {
@@ -99,10 +99,10 @@ function completer(line,callback) {
         }
     }
     assert(completions.length >= 0);
-    hits = completions.filter(function (c) {
+    hits = completions.filter(function(c) {
         return c.indexOf(line) === 0;
     });
-    return callback(null,[hits.length ? hits : completions, line]);
+    return callback(null, [hits.length ? hits : completions, line]);
 }
 
 
@@ -122,8 +122,8 @@ function save_history(callback) {
     callback();
 }
 
-function w(str,width) {
-    return (str + "                                                      ").substr(0,width);
+function w(str, width) {
+    return (str + "                                                      ").substr(0, width);
 }
 /**
  * @method toDate
@@ -154,11 +154,11 @@ function toDate(str) {
         // HH:MM of current date
         const year = now.getFullYear();
         const month = now.getMonth(); // 0  : jan , 1: feb etc ...
-        const day  = now.getDate();
+        const day = now.getDate();
         const hours = parseInt(tt[1], 10);
         const minutes = parseInt(tt[2], 10);
         const seconds = 0;
-        const date = new Date(year,month,day,hours,minutes,seconds);
+        const date = new Date(year, month, day, hours, minutes, seconds);
         return date;
     }
     // check if provided date looks like "3 hours ago" | "1 day ago" etc...
@@ -166,9 +166,9 @@ function toDate(str) {
     const m = str.match(r);
     if (m) {
         let tvalue = parseInt(m[1], 10);
-        switch(m[2][0]) {
+        switch (m[2][0]) {
             case "d":
-                tvalue *= 24*3600;
+                tvalue *= 24 * 3600;
                 break;
             case "h":
                 tvalue *= 3600;
@@ -179,22 +179,21 @@ function toDate(str) {
             default:
                 throw new Error(" invalidate date");
         }
-        return  new Date(now - tvalue*1000);
+        return new Date(now - tvalue * 1000);
     } else {
         return new Date(str);
     }
 
 }
-function log()
-{
+function log() {
     rl.pause();
     rl.clearLine(process.stdout);
-    const str =_.map(arguments).join(" ");
+    const str = _.map(arguments).join(" ");
     process.stdout.write(str);
     rl.resume();
 }
 
-let rootFolder   = null;
+let rootFolder = null;
 
 let nodePath = [];
 let nodePathName = [];
@@ -213,7 +212,7 @@ function setCurrentNode(node) {
         }
         return lowerFirstLetter(c.browseName.name.toString());
     });
-    the_prompt = chalk.yellow(nodePathName.join("."))+">";
+    the_prompt = chalk.yellow(nodePathName.join(".")) + ">";
     rl.setPrompt(the_prompt);
 }
 function setRootNode(node) {
@@ -225,12 +224,12 @@ function moveToChild(browseName) {
 
     if (browseName === "..") {
         nodePathName.pop();
-        curNode = nodePath.splice(-1,1)[0];
-        the_prompt = chalk.yellow(nodePathName.join("."))+">";
+        curNode = nodePath.splice(-1, 1)[0];
+        the_prompt = chalk.yellow(nodePathName.join(".")) + ">";
         rl.setPrompt(the_prompt);
         return;
     }
-    const child= curNode[browseName];
+    const child = curNode[browseName];
     if (!child) {
         return;
     }
@@ -238,14 +237,14 @@ function moveToChild(browseName) {
 }
 function get_root_folder(callback) {
 
-    if(!rootFolder) {
+    if (!rootFolder) {
 
         rl.pause();
-        proxyManager.getObject(opcua.makeNodeId(opcua.ObjectIds.RootFolder),function(err,data) {
+        proxyManager.getObject(opcua.makeNodeId(opcua.ObjectIds.RootFolder), function(err, data) {
 
             if (!err) {
                 rootFolder = data;
-                assert(rootFolder,"expecting rootFolder");
+                assert(rootFolder, "expecting rootFolder");
                 setRootNode(rootFolder);
                 rl.resume();
             }
@@ -258,26 +257,26 @@ function get_root_folder(callback) {
 }
 
 
-client.on("send_chunk", function (message_chunk) {
+client.on("send_chunk", function(message_chunk) {
     if (dumpMessageChunk) {
         process.stdout.write(">> " + message_chunk.length + "\r");
     }
 });
 
-client.on("receive_chunk", function (message_chunk) {
+client.on("receive_chunk", function(message_chunk) {
     if (dumpMessageChunk) {
         process.stdout.write("<< " + message_chunk.length + "\r");
     }
 });
 
-client.on("send_request", function (message) {
+client.on("send_request", function(message) {
     if (dumpPacket) {
         log(chalk.red(" sending request"));
         opcua.analyze_object_binary_encoding(message);
     }
 });
 
-client.on("receive_response", function (message) {
+client.on("receive_response", function(message) {
     if (dumpPacket) {
         assert(message);
         log(chalk.cyan.bold(" receive response"));
@@ -317,7 +316,7 @@ if (rl.history) {
     }
 }
 
-process.on("uncaughtException", function (e) {
+process.on("uncaughtException", function(e) {
     util.puts(e.stack.red);
     rl.prompt();
 });
@@ -325,8 +324,8 @@ process.on("uncaughtException", function (e) {
 
 
 
-function apply_command(cmd,func,callback) {
-    callback = callback || function(){};
+function apply_command(cmd, func, callback) {
+    callback = callback || function() { };
     rl.pause();
     func(function(err) {
         callback();
@@ -335,14 +334,14 @@ function apply_command(cmd,func,callback) {
     });
 }
 
-function apply_on_valid_session(cmd, func ,callback) {
+function apply_on_valid_session(cmd, func, callback) {
 
     assert(_.isFunction(func));
     assert(func.length === 2);
 
     if (the_session) {
-        apply_command(cmd,function(callback) {
-            func(the_session,callback);
+        apply_command(cmd, function(callback) {
+            func(the_session, callback);
         });
     } else {
         log("command : ", chalk.yellow(cmd), " requires a valid session , use createSession first");
@@ -352,7 +351,7 @@ function apply_on_valid_session(cmd, func ,callback) {
 function dump_dataValues(nodesToRead, dataValues) {
     for (let i = 0; i < dataValues.length; i++) {
         const dataValue = dataValues[i];
-        log("           Node : ",chalk.cyan.bold((nodesToRead[i].nodeId.toString())), nodesToRead[i].attributeId.toString());
+        log("           Node : ", chalk.cyan.bold((nodesToRead[i].nodeId.toString())), nodesToRead[i].attributeId.toString());
         if (dataValue.value) {
             log("           type : ", colorize(DataType[dataValue.value.dataType]));
             log("           value: ", colorize(dataValue.value.value));
@@ -364,20 +363,20 @@ function dump_dataValues(nodesToRead, dataValues) {
     }
 }
 
-function dump_historyDataValues(nodeToRead,startDate,endDate, historyReadResult) {
+function dump_historyDataValues(nodeToRead, startDate, endDate, historyReadResult) {
 
-    log("           Node : ",chalk.cyan.bold((nodeToRead.nodeId.toString())), nodeToRead.attributeId.toString());
-    log("      startDate : ",startDate);
-    log("        endDate : ",endDate);
+    log("           Node : ", chalk.cyan.bold((nodeToRead.nodeId.toString())), nodeToRead.attributeId.toString());
+    log("      startDate : ", startDate);
+    log("        endDate : ", endDate);
     if (historyReadResult.statusCode !== opcua.StatusCodes.Good) {
-        log("                          error ",historyReadResult.statusCode.toString());
+        log("                          error ", historyReadResult.statusCode.toString());
         return;
     }
 
-    log("historyReadResult = ",historyReadResult.toString());
+    log("historyReadResult = ", historyReadResult.toString());
 
     const dataValues = historyReadResult.historyData.dataValues;
-    log(" Length = ",dataValues.length);
+    log(" Length = ", dataValues.length);
 
     if (!dataValues || dataValues.length === 0) {
         log("                          No Data");
@@ -390,12 +389,12 @@ function dump_historyDataValues(nodeToRead,startDate,endDate, historyReadResult)
         const dataValue = dataValues[i];
         if (dataValue.value) {
             log(
-              dataValue.sourceTimestamp,
-              w(dataValue.sourcePicoseconds,4),
-              colorize(w(dataValue.value.value,15)),
-              w(dataValue.statusCode.toString(16),16));
+                dataValue.sourceTimestamp,
+                w(dataValue.sourcePicoseconds, 4),
+                colorize(w(dataValue.value.value, 15)),
+                w(dataValue.statusCode.toString(16), 16));
         } else {
-            log("           value: <null>" , dataValue.toString());
+            log("           value: <null>", dataValue.toString());
         }
     }
 }
@@ -410,7 +409,7 @@ function open_session(callback) {
     } else {
 
         client.requestedSessionTimeout = sessionTimeout;
-        client.createSession(function (err, session) {
+        client.createSession(function(err, session) {
             if (err) {
                 log(chalk.red("Error : "), err);
             } else {
@@ -429,7 +428,7 @@ function open_session(callback) {
             }
             callback();
         });
-        client.on("close", function () {
+        client.on("close", function() {
             log(chalk.red(" Server has disconnected "));
             the_session = null;
             crawler = null;
@@ -438,8 +437,8 @@ function open_session(callback) {
 }
 
 function close_session(outer_callback) {
-    apply_on_valid_session("closeSession", function (session,inner_callback) {
-        session.close(function (err) {
+    apply_on_valid_session("closeSession", function(session, inner_callback) {
+        session.close(function(err) {
             the_session = null;
             crawler = null;
             if (!outer_callback) {
@@ -475,7 +474,7 @@ function process_line(line) {
     }
     switch (cmd) {
         case "debug":
-            const flag = (!args[1]) ? true : ( ["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0);
+            const flag = (!args[1]) ? true : (["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0);
             set_debug(flag);
             break;
         case "open":
@@ -490,10 +489,10 @@ function process_line(line) {
             log("    hostname : ", chalk.yellow(hostname || "<null>"));
             log("        port : ", chalk.yellow(port.toString()));
 
-            apply_command(cmd,function(callback) {
+            apply_command(cmd, function(callback) {
 
 
-                client.connect(endpointUrl, function (err) {
+                client.connect(endpointUrl, function(err) {
                     if (err) {
                         log("client connected err=", err);
                     } else {
@@ -501,7 +500,7 @@ function process_line(line) {
 
                         add_endpoint_to_history(endpointUrl);
 
-                        save_history(function () {
+                        save_history(function() {
                         });
                     }
                     callback(err);
@@ -511,8 +510,8 @@ function process_line(line) {
 
         case "fs":
         case "FindServers":
-            apply_command(cmd,function(callback){
-                client.findServers({}, function (err, data) {
+            apply_command(cmd, function(callback) {
+                client.findServers({}, function(err, data) {
                     const { servers, endpoints } = data;
                     if (err) {
                         log(err.message);
@@ -524,8 +523,8 @@ function process_line(line) {
             break;
         case "gep":
         case "getEndpoints":
-            apply_command(cmd,function(callback){
-                client.getEndpoints(function (err, endpoints) {
+            apply_command(cmd, function(callback) {
+                client.getEndpoints(function(err, endpoints) {
                     if (err) {
                         log(err.message);
                     }
@@ -538,7 +537,7 @@ function process_line(line) {
 
         case "createSession":
         case "cs":
-            apply_command(cmd,open_session);
+            apply_command(cmd, open_session);
             break;
 
         case "closeSession":
@@ -547,14 +546,14 @@ function process_line(line) {
 
         case "disconnect":
             if (the_session) {
-                close_session(function (callback) {
-                    client.disconnect(function () {
+                close_session(function(callback) {
+                    client.disconnect(function() {
                         rl.write("client disconnected");
                         callback();
                     });
                 });
             } else {
-                client.disconnect(function () {
+                client.disconnect(function() {
                     rl.write("client disconnected");
                 });
             }
@@ -562,18 +561,18 @@ function process_line(line) {
 
         case "b":
         case "browse":
-            apply_on_valid_session(cmd, function (the_session,callback) {
+            apply_on_valid_session(cmd, function(the_session, callback) {
 
                 nodes = [args[1]];
 
-                the_session.browse(nodes, function (err, nodeResults) {
+                the_session.browse(nodes, function(err, nodeResults) {
 
                     if (err) {
                         log(err);
                         log(nodeResults);
                     } else {
 
-                        save_history(function () {
+                        save_history(function() {
                         });
 
                         for (let i = 0; i < nodeResults.length; i++) {
@@ -591,7 +590,7 @@ function process_line(line) {
 
         case "rootFolder":
 
-            apply_on_valid_session(cmd, function (the_session,callback) {
+            apply_on_valid_session(cmd, function(the_session, callback) {
 
                 get_root_folder(callback);
             });
@@ -599,7 +598,7 @@ function process_line(line) {
 
         case "hr":
         case "readHistoryValue":
-            apply_on_valid_session(cmd, function (the_session,callback ) {
+            apply_on_valid_session(cmd, function(the_session, callback) {
 
                 // example:
                 // hr ns=2;s=Demo.History.DoubleWithHistory 13:45 13:59
@@ -607,22 +606,22 @@ function process_line(line) {
 
                 let startTime = toDate(args[2]);// "2015-06-10T09:00:00.000Z"
                 let endTime = toDate(args[3]);  // "2015-06-10T09:01:00.000Z"
-                if (startTime>endTime) {
-                    const tmp = endTime;endTime = startTime;startTime =tmp;
+                if (startTime > endTime) {
+                    const tmp = endTime; endTime = startTime; startTime = tmp;
                 }
                 nodes = nodes.map(opcua.coerceNodeId);
 
-                the_session.readHistoryValue(nodes,startTime,endTime, function (err, historyReadResults) {
+                the_session.readHistoryValue(nodes, startTime, endTime, function(err, historyReadResults) {
                     if (err) {
                         log(err);
                         log(historyReadResults.toString());
                     } else {
-                        save_history(function () {});
+                        save_history(function() { });
                         assert(historyReadResults.length === 1);
                         dump_historyDataValues({
                             nodeId: nodes[0],
                             attributeId: 13
-                        }, startTime,endTime,historyReadResults[0]);
+                        }, startTime, endTime, historyReadResults[0]);
                     }
                     callback();
 
@@ -632,17 +631,17 @@ function process_line(line) {
             break;
         case "r":
         case "read":
-            apply_on_valid_session(cmd, function (the_session,callback ) {
+            apply_on_valid_session(cmd, function(the_session, callback) {
 
                 nodes = [args[1]];
                 nodes = nodes.map(opcua.coerceNodeId);
 
-                the_session.readVariableValue(nodes, function (err, dataValues) {
+                the_session.readVariableValue(nodes, function(err, dataValues) {
                     if (err) {
                         log(err);
                         log(dataValues);
                     } else {
-                        save_history(function () {
+                        save_history(function() {
                         });
                         dump_dataValues([{
                             nodeId: nodes[0],
@@ -655,12 +654,12 @@ function process_line(line) {
             break;
         case "ra":
         case "readall":
-            apply_on_valid_session(cmd, function (the_session, callback) {
+            apply_on_valid_session(cmd, function(the_session, callback) {
                 const node = args[1];
 
-                the_session.readAllAttributes(node, function (err, result/*,diagnosticInfos*/) {
+                the_session.readAllAttributes(node, function(err, result/*,diagnosticInfos*/) {
                     if (!err) {
-                        save_history(function () {
+                        save_history(function() {
                         });
                         console.log(result);
                         //xx dump_dataValues(nodesToRead, dataValues);
@@ -671,50 +670,50 @@ function process_line(line) {
             break;
 
         case "tb":
-            apply_on_valid_session(cmd, function (the_session, callback) {
+            apply_on_valid_session(cmd, function(the_session, callback) {
 
                 const path = args[1];
-                the_session.translateBrowsePath(path, function (err, results) {
+                the_session.translateBrowsePath(path, function(err, results) {
                     if (err) {
                         log(err.message);
                     }
                     log(" Path ", path, " is ");
-                    log(util.inspect(results, {colors: true, depth: 100}));
+                    log(util.inspect(results, { colors: true, depth: 100 }));
 
                     callback();
                 });
             });
             break;
         case "crawl":
-        {
-            apply_on_valid_session(cmd, function (the_session, callback) {
+            {
+                apply_on_valid_session(cmd, function(the_session, callback) {
 
-                if (!crawler) {
-                    crawler = new opcua.NodeCrawler(the_session);
-                    crawler.on("browsed", function (element) {
-                        // log("->",element.browseName.name,element.nodeId.toString());
-                    });
-
-                }
-
-                const nodeId = args[1] || "ObjectsFolder";
-                log("now crawling " + chalk.yellow(nodeId) + " ...please wait...");
-                crawler.read(nodeId, function (err, obj) {
-                    if (!err) {
-                        log(" crawling done ");
-                        // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
-                        //xx log(treeify.asTree(obj, true));
-                        treeify.asLines(obj, true, true, function (line) {
-                            log(line);
+                    if (!crawler) {
+                        crawler = new opcua.NodeCrawler(the_session);
+                        crawler.on("browsed", function(element) {
+                            // log("->",element.browseName.name,element.nodeId.toString());
                         });
-                    } else {
-                        log("err ", err.message);
+
                     }
-                    crawler = null;
-                    callback();
+
+                    const nodeId = args[1] || "ObjectsFolder";
+                    log("now crawling " + chalk.yellow(nodeId) + " ...please wait...");
+                    crawler.read(nodeId, function(err, obj) {
+                        if (!err) {
+                            log(" crawling done ");
+                            // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
+                            //xx log(treeify.asTree(obj, true));
+                            treeify.asLines(obj, true, true, function(line) {
+                                log(line);
+                            });
+                        } else {
+                            log("err ", err.message);
+                        }
+                        crawler = null;
+                        callback();
+                    });
                 });
-            });
-        }
+            }
             break;
 
         case ".info":
@@ -732,14 +731,14 @@ function process_line(line) {
             process.exit(0);
             break;
         default:
-            if (cmd.trim().length>0) {
+            if (cmd.trim().length > 0) {
                 log("Say what? I might have heard `" + cmd.trim() + "`");
             }
             break;
     }
 }
 
-rl.on("line", function (line) {
+rl.on("line", function(line) {
 
     try {
         process_line(line);
