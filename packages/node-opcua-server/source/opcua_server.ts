@@ -11,7 +11,7 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 import { callbackify } from "util";
 
-import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
+import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 
 import { assert } from "node-opcua-assert";
 import * as utils from "node-opcua-utils";
@@ -644,6 +644,12 @@ export enum RegisterServerMethod {
 export interface OPCUAServerEndpointOptions {
 
   /**
+   * the primary hostname of the endpoint.
+   * @default getFullyQualifiedDomainName()
+   */
+  hostname?: string;
+
+  /**
    * the TCP port to listen to.
    * @default 26543
    */
@@ -1075,10 +1081,11 @@ export class OPCUAServer extends OPCUABaseServer {
       this.objectFactory = new Factory(this.engine);
 
       const endpointDefinitions = options.alternateEndpoints || [];
+      var hostname = getFullyQualifiedDomainName();
 
       endpointDefinitions.push({
         port: options.port || 26543,
-
+        hostname: options.hostname || hostname,
         allowAnonymous: options.allowAnonymous,
         alternateHostname: options.alternateHostname,
         disableDiscovery: options.disableDiscovery,
@@ -3313,7 +3320,8 @@ export class OPCUAServer extends OPCUABaseServer {
     if (!endpointOptions) {
       throw new Error("internal error");
     }
-
+    var hostname = getFullyQualifiedDomainName();
+    endpointOptions.hostname = endpointOptions.hostname || hostname;
     endpointOptions.port = endpointOptions.port || 26543;
 
     /* istanbul ignore next */
@@ -3334,6 +3342,7 @@ export class OPCUAServer extends OPCUABaseServer {
       securityModes: endpointOptions.securityModes,
       securityPolicies: endpointOptions.securityPolicies,
 
+      hostname: endpointOptions.hostname,
       alternateHostname,
 
       disableDiscovery: !!endpointOptions.disableDiscovery,
