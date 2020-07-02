@@ -1081,7 +1081,7 @@ export class OPCUAServer extends OPCUABaseServer {
       this.objectFactory = new Factory(this.engine);
 
       const endpointDefinitions = options.alternateEndpoints || [];
-      var hostname = getFullyQualifiedDomainName();
+      const hostname = getFullyQualifiedDomainName();
 
       endpointDefinitions.push({
         port: options.port || 26543,
