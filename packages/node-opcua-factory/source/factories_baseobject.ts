@@ -318,12 +318,21 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
             const s = field.schema as EnumerationDefinition;
 
             // istanbul ignore next
-            if (!s.typedEnum) {
+            if (!s.typedEnum ) {
                 // tslint:disable:no-console
                 console.log("xxxx cannot find typeEnum", s);
             }
-            str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value)!.key + " ( " + value + ")";
-            data.lines.push(str);
+             // istanbul ignore next
+            if (!s.typedEnum.get(value)) {
+                // tslint:disable:no-console
+                (s.typedEnum as any)._isFlaggable = true;
+                console.log("xxxx cannot find typeEnum value ", value);
+                str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value) + " ( " + value + ")";
+                data.lines.push(str);
+            } else {
+                str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value)!.key + " ( " + value + ")";
+                data.lines.push(str);
+            }
             break;
         case FieldCategory.basic:
             _dump_simple_value(self, field, data, value, fieldType);

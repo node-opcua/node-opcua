@@ -147,6 +147,7 @@ const state0: any = {
                     },
                     finish: function (this: any) {
                         // _register_namespace_uri(this.text);
+                        // istanbul ignore next
                         if (doDebug) {
                             debugLog("Import NameSpace = ", this.attrs.Namespace,
                                 " Location", this.attrs.Location);
@@ -158,6 +159,7 @@ const state0: any = {
                     init: function (this: any) {
 
                         this.typescriptDefinition = "";
+                        // istanbul ignore next
                         if (doDebug) {
                             debugLog(chalk.cyan("EnumeratedType Name="),
                                 w(this.attrs.Name, 40), "LengthInBits=", this.attrs.LengthInBits);
@@ -179,6 +181,7 @@ const state0: any = {
                         },
                         EnumeratedValue: {
                             finish: function (this: any) {
+                                // istanbul ignore next
                                 if (doDebug) {
                                     debugLog(" EnumeratedValue Name=",
                                         w(this.attrs.Name, 40), " Value=", this.attrs.Value);
@@ -194,6 +197,7 @@ const state0: any = {
                     finish: function (this: any) {
                         this.typescriptDefinition += `\n}`;
                         this.parent.typeDictionary.enumeratedTypesRaw[this.attrs.Name] = this.enumeratedType;
+                        // istanbul ignore next
                         if (doDebug) {
                             debugLog(" this.typescriptDefinition  = ", this.typescriptDefinition);
                         }
@@ -201,7 +205,7 @@ const state0: any = {
                 },
                 StructuredType: {
                     init: function (this: any) {
-
+                        // istanbul ignore next
                         if (doDebug) {
                             debugLog(chalk.cyan("StructureType Name="),
                                 chalk.green(this.attrs.Name), " BaseType=", this.attrs.BaseType);
@@ -229,6 +233,7 @@ const state0: any = {
                                     // ignore  this field, This is a repetition of the base type field with same name
                                     return;
                                 }
+                                // istanbul ignore next
                                 if (doDebug) {
                                     debugLog(
                                         chalk.yellow(" field Name="), w(this.attrs.Name, 40),
@@ -270,12 +275,14 @@ const state0: any = {
                                     if (this.attrs.SwitchValue) {
                                         // we are in a union
                                         field.switchValue = parseInt(this.attrs.SwitchValue, 10);
+                                        // istanbul ignore next
                                         if (doDebug) {
                                             debugLog("field", field.name, " is part of a union  => ", switchField, " value #", field.switchValue);
                                         }
                                     } else {
                                         field.switchBit = structuredType.bitFields ?
                                             structuredType.bitFields!.findIndex((x) => x.name === switchField) : -2;
+                                        // istanbul ignore next
                                         if (doDebug) {
                                             debugLog("field", field.name, " is optional => ", switchField, "bit #", field.switchBit);
                                         }
@@ -325,12 +332,14 @@ export function parseBinaryXSD(
             }
             const enumeratedType = typeDictionary.enumeratedTypesRaw[key];
             const e = new EnumerationDefinitionSchema({
+                lengthInBits: enumeratedType.lengthInBits || 32,
                 enumValues: enumeratedType.enumeratedValues,
                 name: key
             });
             dataTypeFactory.registerEnumeration(e);
         }
 
+        // istanbul ignore next
         if (doDebug) {
             debugLog("------------------------------- Resolving complex Type");
             typeDictionary.structuredTypesRaw.map((x: any) => debugLog(x.name));

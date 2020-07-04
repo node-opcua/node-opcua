@@ -67,6 +67,22 @@ export function getOrCreateStructuredTypeSchema(
         structuredType.baseType = _removeNamespacePart(structuredType.baseType);
         structuredType.baseType = structuredType.baseType ? structuredType.baseType : "ExtensionObject";
 
+        const baseSchema = typeDictionary.getStructuredTypesRawByName(structuredType.baseType);
+
+        // remove redundant fields
+        // Note :some file do no thave SourceType property and may be replicated here ..
+        //       but they belongs to the base class and shall be remove/
+        //       For instance DataTypeSchemaHeader => UABinaryFileDataType
+        if (baseSchema && baseSchema.fields && baseSchema.name !== "ExtesionObject") {
+            structuredType.fields = structuredType.fields.filter((field)=> { 
+                const name = field.name;
+                const index = baseSchema.fields.findIndex((f)=> f.name === name);
+                if(index>=0) {
+                    console.log("Warning : find duplicated field from base structure : name ", name, "baseSchema = ",baseSchema.name, name);
+                }
+                return index < 0;
+            }); 
+        }
         for (const field of structuredType.fields) {
             const fieldType = field.fieldType;
             if (!field.schema) {

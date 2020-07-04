@@ -51,11 +51,6 @@ function write(...args: string[]) {
 
 function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
 
-    // make sure there is a Invalid key in the enum => else insert one
-    const hasInvalid = enumerationSchema.enumValues.hasOwnProperty("Invalid");
-    if (!hasInvalid) {
-        enumerationSchema.enumValues[enumerationSchema.enumValues.Invalid = 0xFFFFFFFF] = "Invalid";
-    }
 
     const arrayValues = Object.keys(enumerationSchema.enumValues)
         .filter((a: string) => a.match("[0-9]+"))
@@ -72,8 +67,13 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     const minEnumValue = Math.min.apply(null, arrayValues);
     const maxEnumValue = Math.max.apply(null, arrayValues);
 
+    // make sure there is a Invalid key in the enum => else insert one (but only if not flaggable)
+    const hasInvalid = enumerationSchema.enumValues.hasOwnProperty("Invalid");
+    if (!hasInvalid && !isFlaggable) {
+        enumerationSchema.enumValues[enumerationSchema.enumValues.Invalid = 0xFFFFFFFF] = "Invalid";
+    }
+    
     write("");
-
     write(`// --------------------------------------------------------------------------------------------`);
     write(`export enum ${enumerationSchema.name} {`);
 
@@ -100,7 +100,12 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     write(`};`);
     write(`function decode${enumerationSchema.name}(stream: BinaryStream): ${enumerationSchema.name} {`);
     if (!isFlaggable) {
-        write(`    let value =  stream.readUInt32() as ${enumerationSchema.name};`);
+        if (enumerationSchema.lengthInBits === 16) {
+            write(`    let value =  stream.readUInt16() as ${enumerationSchema.name};`);
+        } else {
+            assert(enumerationSchema.lengthInBits === 32);
+            write(`    let value =  stream.readUInt32() as ${enumerationSchema.name};`);
+        }
         write(`    value = (value < schema${enumerationSchema.name}.minValue || value > schema${enumerationSchema.name}.maxValue) ? ${enumerationSchema.name}.Invalid : value; `);
         write(`    return value;`);
     } else {
@@ -108,7 +113,12 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     }
     write(`}`);
     write(`function encode${enumerationSchema.name}(value: ${enumerationSchema.name}, stream: OutputBinaryStream): void {`);
-    write(`    stream.writeUInt32(value);`);
+    if (enumerationSchema.lengthInBits === 16) {
+        write(`    stream.writeUInt16(value);`);
+    } else {
+        assert(enumerationSchema.lengthInBits === 32);
+        write(`    stream.writeUInt32(value);`);
+    }
     write(`}`);
 
     write(`export const _enumeration${enumerationSchema.name} = registerEnumeration(schema${enumerationSchema.name});`);
