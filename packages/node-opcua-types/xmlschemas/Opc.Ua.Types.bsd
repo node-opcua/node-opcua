@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
- * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2020 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  * 
@@ -124,7 +124,7 @@
     <opc:Field Name="AdditionalInfoSpecified" TypeName="opc:Bit" />
     <opc:Field Name="InnerStatusCodeSpecified" TypeName="opc:Bit" />
     <opc:Field Name="InnerDiagnosticInfoSpecified" TypeName="opc:Bit" />
-    <opc:Field Name="Reserved1" TypeName="opc:Bit" Length="2" />
+    <opc:Field Name="Reserved1" TypeName="opc:Bit" Length="1" />
     <opc:Field Name="SymbolicId" TypeName="opc:Int32" SwitchField="SymbolicIdSpecified" />
     <opc:Field Name="NamespaceURI" TypeName="opc:Int32" SwitchField="NamespaceURISpecified" />
     <opc:Field Name="Locale" TypeName="opc:Int32" SwitchField="LocaleSpecified" />
@@ -240,16 +240,6 @@
   <opc:StructuredType Name="KeyValuePair" BaseType="ua:ExtensionObject">
     <opc:Field Name="Key" TypeName="ua:QualifiedName" />
     <opc:Field Name="Value" TypeName="ua:Variant" />
-  </opc:StructuredType>
-
-  <opc:StructuredType Name="AdditionalParametersType" BaseType="ua:ExtensionObject">
-    <opc:Field Name="NoOfParameters" TypeName="opc:Int32" />
-    <opc:Field Name="Parameters" TypeName="tns:KeyValuePair" LengthField="NoOfParameters" />
-  </opc:StructuredType>
-
-  <opc:StructuredType Name="EphemeralKeyType" BaseType="ua:ExtensionObject">
-    <opc:Field Name="PublicKey" TypeName="opc:ByteString" />
-    <opc:Field Name="Signature" TypeName="opc:ByteString" />
   </opc:StructuredType>
 
   <opc:StructuredType Name="EndpointType" BaseType="ua:ExtensionObject">
@@ -1534,9 +1524,6 @@
   </opc:StructuredType>
 
   <opc:OpaqueType Name="RsaEncryptedSecret">
-  </opc:OpaqueType>
-
-  <opc:OpaqueType Name="EccEncryptedSecret">
   </opc:OpaqueType>
 
   <opc:StructuredType Name="ActivateSessionRequest" BaseType="ua:ExtensionObject">
