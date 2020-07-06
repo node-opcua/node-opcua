@@ -1,4 +1,5 @@
 const ServerSecureChannelLayer = require("node-opcua-secure-channel").ServerSecureChannelLayer;
+const ServerTCP_transport = require("node-opcua-transport").ServerTCP_transport;
 const should = require("should");
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const DirectTransport = require("node-opcua-transport/dist/test_helpers").DirectTransport;
@@ -23,12 +24,11 @@ describe("testing ServerSecureChannelLayer ", function () {
     });
 
     it("KK2 should end with a timeout if no message is received from client", function (done) {
-
         const node = new DirectTransport();
         const serverSecureChannel = new ServerSecureChannelLayer({
             timeout: 50,
-
-        });
+        },
+        new ServerTCP_transport());
 
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
@@ -51,7 +51,7 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         let server_has_emitted_the_abort_message = false;
 
-        const serverSecureChannel = new ServerSecureChannelLayer({});
+        const serverSecureChannel = new ServerSecureChannelLayer({},new ServerTCP_transport());
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
 
@@ -80,7 +80,7 @@ describe("testing ServerSecureChannelLayer ", function () {
         const node = new DirectTransport();
 
         let server_has_emitted_the_abort_message = false;
-        let serverSecureChannel = new ServerSecureChannelLayer({});
+        let serverSecureChannel = new ServerSecureChannelLayer({},new ServerTCP_transport());
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
 
@@ -116,7 +116,7 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         const node = new DirectTransport();
 
-        let serverSecureChannel = new ServerSecureChannelLayer({});
+        let serverSecureChannel = new ServerSecureChannelLayer({}, new ServerTCP_transport());
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50; // milliseconds !
         serverSecureChannel.init(node.server, function (err) {
@@ -143,7 +143,7 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         const node = new DirectTransport();
 
-        const serverSecureChannel = new ServerSecureChannelLayer({});
+        const serverSecureChannel = new ServerSecureChannelLayer({}, new ServerTCP_transport());
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
 
@@ -186,7 +186,7 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         const node = new DirectTransport();
 
-        let serverSecureChannel = new ServerSecureChannelLayer({});
+        let serverSecureChannel = new ServerSecureChannelLayer({}, new ServerTCP_transport());
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
         serverSecureChannel.init(node.server, function (err) {
