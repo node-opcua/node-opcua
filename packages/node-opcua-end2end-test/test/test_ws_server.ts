@@ -89,14 +89,19 @@ describe("----------------------------- Websocket Transport Tests --------------
 
         const endpoints1 = await extractEndpoints(setup.endpointUrl1);
         const endpoints2 = await extractEndpoints(setup.endpointUrl2);
+        const endpoints3 = await extractEndpoints(setup.endpointUrl3);
 
         dumpEndpoints(endpoints1);
 
         console.log("----------");
         dumpEndpoints(endpoints2);
 
-        endpoints1.length.should.eql(2);
-        endpoints2.length.should.eql(2);
+        console.log("----------");
+        dumpEndpoints(endpoints3);
+
+        endpoints1.length.should.eql(3);
+        endpoints2.length.should.eql(3);
+        endpoints3.length.should.eql(3);
 
     });
 
@@ -201,5 +206,28 @@ describe("----------------------------- Websocket Transport Tests --------------
         const dataValue = await setup.session.read({nodeId});
         dataValue.should.be.instanceOf(DataValue);
         dataValue.value.value.should.equal(30);
+    });
+
+    it('should provide a secure websocket connection', async () => {
+        const client = OPCUAClient.create({
+            endpoint_must_exist: false,
+            connectionStrategy: {
+                maxDelay: 1000,
+                maxRetry: 0
+            }
+        });
+
+        await client.connect(setup.endpointUrl3);
+        const session = await client.createSession();
+        session.should.not.equal(undefined);
+
+        //and read a variable
+        const nodeId = "ns=1;s=SetPointTemperature";
+        const dataValue = await setup.session.read({nodeId});
+        dataValue.should.be.instanceOf(DataValue);
+        dataValue.value.value.should.not.equal(undefined);
+
+        await client.disconnect();
+
     })
 });

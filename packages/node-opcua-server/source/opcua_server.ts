@@ -168,7 +168,7 @@ import { RegisterServerManager } from "./register_server_manager";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import { ServerCapabilitiesOptions } from "./server_capabilities";
-import { OPCUAServerEndPoint, OPCUATCPServerEndPoint, OPCUAWSServerEndPoint } from "./server_end_point";
+import { OPCUAServerEndPoint, OPCUATCPServerEndPoint, OPCUAWSServerEndPoint, OPCUAWSSecureServerEndPoint } from "./server_end_point";
 import { ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
@@ -643,7 +643,8 @@ export enum RegisterServerMethod {
 
 export enum TransportType {
   TCP = 1,
-  WEBSOCKET = 2
+  WEBSOCKET = 2,
+  WEBSOCKET_SECURE = 3
 }
 
 export interface OPCUAServerEndpointOptions {
@@ -3299,8 +3300,8 @@ export class OPCUAServer extends OPCUABaseServer {
   }
 
   private createEndpoint(port1: number,transportType: TransportType, serverOptions: OPCUAServerOptions): OPCUAServerEndPoint {
-    // add the tcp/ip endpoint with no security
-    let transportConstructor = (transportType === TransportType.TCP) ? OPCUATCPServerEndPoint : OPCUAWSServerEndPoint;
+    // add the tcp/ip endpoint with no security, a ws endpoint or a wss endpoint
+    let transportConstructor = this.getTransportConstructor(transportType);
 
     const endPoint = new transportConstructor({
 
@@ -3320,6 +3321,17 @@ export class OPCUAServer extends OPCUABaseServer {
     });
     return endPoint;
   };
+
+  private getTransportConstructor(transportType: TransportType) {
+    switch(transportType){
+      case TransportType.TCP:
+        return OPCUATCPServerEndPoint;
+      case TransportType.WEBSOCKET:
+        return OPCUAWSServerEndPoint;
+      case TransportType.WEBSOCKET_SECURE:
+        return OPCUAWSSecureServerEndPoint;
+    }
+  }
 
   private createEndpointDescriptions(serverOption: OPCUAServerOptions, endpointOptions: OPCUAServerEndpointOptions): OPCUAServerEndPoint {
 

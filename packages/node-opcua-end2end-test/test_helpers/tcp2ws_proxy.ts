@@ -91,7 +91,9 @@ export class Tcp2WSProxy {
 
     start() {
         this.server = net.createServer((s) => {
-            var ws = new ws_module(this.remoteHost, {});
+            var ws = new ws_module(this.remoteHost, {
+                rejectUnauthorized: false /** allow self signed certificates for testing */
+            });
             const connection = new Tcp2WSProxyConnection(s,ws);
             connection.init();
         });

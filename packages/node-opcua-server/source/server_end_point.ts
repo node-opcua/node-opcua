@@ -8,6 +8,7 @@ import { EventEmitter } from "events";
 import * as net from "net";
 import { Server, Socket } from "net";
 import * as _ from "underscore";
+import * as https from 'https';
 
 import { assert } from "node-opcua-assert";
 import {
@@ -18,7 +19,8 @@ import {
     convertPEMtoDER,
     makeSHA1Thumbprint,
     PrivateKeyPEM,
-    split_der
+    split_der,
+    toPem
 } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -32,7 +34,7 @@ import {
 import { UserTokenType } from "node-opcua-service-endpoints";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
-import { ServerTCP_transport, ServerWS_transport } from "../../node-opcua-transport/dist/source";
+import { ServerTCP_transport, ServerWS_transport } from "node-opcua-transport";
 
 import * as WebSocket from 'ws';
 import { IncomingMessage } from "http";
@@ -77,6 +79,7 @@ export interface OPCUAServerEndPointOptions {
      * the tcp port
      */
     port: number;
+ 
     /**
      * the DER certificate chain
      */
@@ -1154,10 +1157,9 @@ export class OPCUAWSServerEndPoint extends OPCUAServerEndPoint {
         assert(_.isFunction(callback));
         assert(!this._started, "OPCUAWSServerEndPoint is already listening");
         assert(!this._server);
+ 
+        this._server = this.createWSServer();
 
-        this._server = new WebSocket.Server({ 
-            port: this.port, 
-            verifyClient:  (info: { origin: string; secure: boolean; req: IncomingMessage })  => this._verifyClient(info) });
         this._server.setMaxListeners(this.maxConnections + 1); // plus one extra
 
         this._listen_callback = callback;
@@ -1181,7 +1183,16 @@ export class OPCUAWSServerEndPoint extends OPCUAServerEndPoint {
         });
 
         this._started = true;
-    }    
+    }  
+    
+    protected createWSServer() {
+        const wsserver = new WebSocket.Server({ 
+            port: this.port, 
+            verifyClient:  (info: { origin: string; secure: boolean; req: IncomingMessage })  => this._verifyClient(info),
+        });
+        
+        return wsserver;
+    }
     
     protected _close_server(): void {
         this._server!.close(() => {
@@ -1200,7 +1211,7 @@ export class OPCUAWSServerEndPoint extends OPCUAServerEndPoint {
         throw new Error("Method not implemented.");
     }
 
-    private _verifyClient(info: { origin: string; secure: boolean; req: IncomingMessage }): boolean {
+    protected _verifyClient(info: { origin: string; secure: boolean; req: IncomingMessage }): boolean {
         if (!this._started) {
             debugLog(chalk.bgWhite.cyan("OPCUATCPServerEndPoint#_on_client_connection " +
               "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"));
@@ -1276,6 +1287,21 @@ export class OPCUAWSServerEndPoint extends OPCUAServerEndPoint {
         this._prevent_DDOS_Attack(establish_connection);
 
     }
+}
 
-
+export class OPCUAWSSecureServerEndPoint extends OPCUAWSServerEndPoint {
+    protected createWSServer() {
+        const pemCert = toPem(this.getCertificate(), "CERTIFICATE");
+        const httpServer = https.createServer({
+            cert: pemCert,
+            key: this.getPrivateKey()
+        })
+        const wsserver = new WebSocket.Server({ 
+           // port: this.port, 
+            verifyClient:  (info: { origin: string; secure: boolean; req: IncomingMessage })  => this._verifyClient(info),
+            server: httpServer
+        });
+        httpServer.listen(this.port);
+        return wsserver;
+    }
 }
