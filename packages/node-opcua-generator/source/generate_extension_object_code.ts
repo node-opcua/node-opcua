@@ -20,7 +20,7 @@ import {
 import {
     EnumerationDefinitionSchema,
     FieldCategory,
-    getStandartDataTypeFactory,
+    getStandardDataTypeFactory,
     StructuredTypeSchema,
     DataTypeFactory,
 } from "node-opcua-factory";
@@ -152,13 +152,13 @@ export async function generate(
         const content = await readFile(filename, "ascii");
 
         const idProvider: MapDataTypeAndEncodingIdProvider = {
-            getDataTypeAndEncodingId(name: string): DataTypeAndEncodingId {
+            getDataTypeAndEncodingId(name: string): DataTypeAndEncodingId | null {
                 const dataType = (DataTypeIds as any)[name] || 0;
                 const binEncoding = (ObjectIds as any)[name + "_Encoding_DefaultBinary"] || 0;
                 const xmlEncoding = (ObjectIds as any)[name + "_Encoding_DefaultXml"] || 0;
                 const jsonEncoding = (ObjectIds as any)[name + "_Encoding_DefaultJson"] || 0;
                 if (dataType === undefined) {
-                    throw new Error("Cannot find " + name);
+                    return null;
                 }
                 const dataTypeNodeId = new NodeId(NodeId.NodeIdType.NUMERIC, dataType, 0);
                 const binaryEncodingNodeId = new NodeId(NodeId.NodeIdType.NUMERIC, binEncoding, 0);
@@ -179,7 +179,7 @@ export async function generate(
             }
         };
 
-        const dataTypeFactory = new DataTypeFactory([getStandartDataTypeFactory()]);
+        const dataTypeFactory = new DataTypeFactory([getStandardDataTypeFactory()]);
         await parseBinaryXSDAsync(content, idProvider, dataTypeFactory);
 
         write(

@@ -31,3 +31,7 @@ export function decodeTimestampsToReturn(stream: BinaryStream): TimestampsToRetu
 }
 
 export const _enumerationTimestampsToReturn = registerEnumeration(schemaTimestampsToReturn);
+
+export function coerceTimestampsToReturn(value: number | null | undefined): TimestampsToReturn {
+    return (typeof value === "number") ? +value : TimestampsToReturn.Neither;
+}

@@ -6,6 +6,7 @@ import { BrowseDescription } from "node-opcua-service-browse";
 
 import { AddressSpace, Namespace, SessionContext, UAVariable } from "..";
 import { getMiniAddressSpace } from "../";
+import { NodeId } from "node-opcua-nodeid";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -59,7 +60,9 @@ describe("AddressSpace : Variable.setPermissions", () => {
     it("should adjust userAccessLevel based on session Context permission", () => {
 
         const context = new SessionContext({
-            session: {},
+            session: {
+                getSessionId() { return NodeId.nullNodeId; }
+            },
         });
         context.getCurrentUserRole = () => "Operator";
 

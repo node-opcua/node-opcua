@@ -459,8 +459,8 @@ module.exports = function(test) {
             const issuerCertificateRevocationListFile = m("certificates/CA/crl/revocation_list.der");
             const issuerCertificate = readCertificate(issuerCertificateFile);
             const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
-            test.server.serverCertificateManager.addIssuer(issuerCertificate);
-            test.server.serverCertificateManager.addRevocationList(issuerCrl);
+            await test.server.serverCertificateManager.addIssuer(issuerCertificate);
+            await test.server.serverCertificateManager.addRevocationList(issuerCrl);
             callback();
           }
           doIt();

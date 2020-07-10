@@ -49,5 +49,6 @@ export async function promoteOpaqueStructure(
         async (dataValue: PseudoDataValue) => {
             return await resolveDynamicExtensionObject(dataValue.value, extraDataTypeManager)
         });
-    await Promise.all(promises);
+    // https://medium.com/swlh/dealing-with-multiple-promises-in-javascript-41d6c21f20ff
+    await Promise.all(promises.map(p => p.catch(e => e)));
 }

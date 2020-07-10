@@ -726,7 +726,7 @@ export function utest_condition(test: any) {
                     const context = new SessionContext({
                         object: conditionType,
                         server: {},
-                        session: {},
+                        session: { getSessionId() { return NodeId.nullNodeId; } },
                     });
 
                     // install the event catcher

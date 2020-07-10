@@ -882,6 +882,9 @@ export declare class UAMethod extends BaseNode {
     public execute(inputArguments: null | VariantLike[], context: SessionContext): Promise<CallMethodResultOptions>;
 
     public clone(options: any, optionalFilter?: any, extraInfo?: any): UAMethod;
+
+    public isBound(): boolean;
+
 }
 
 export interface UADataType extends BaseNode {

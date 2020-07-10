@@ -122,13 +122,17 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                 },
             },
             timestamp: new Date(2018, 11, 23),
+
             location: {
                 local: {
                     x: 100,
                     y: 200,
                     z: 300,
+
                     timestamp: new Date(),
+
                     dilutionOfPrecision: 0.01,
+
                     usefulPrecicision: 2  // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
                 }
             }
@@ -141,6 +145,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
 
             organizedBy: addressSpace.rootFolder.objects,
             value: { dataType: DataType.ExtensionObject, value: scanResult },
+
             minimumSamplingInterval: -1
         });
 
@@ -162,6 +167,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
 
         const client = OPCUAClient.create({
             requestedSessionTimeout: 10000000,
+            // tslint:disable-next-line: object-literal-sort-keys
             endpoint_must_exist: false
         });
 
@@ -305,5 +311,4 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
         });
 
     });
-
 });

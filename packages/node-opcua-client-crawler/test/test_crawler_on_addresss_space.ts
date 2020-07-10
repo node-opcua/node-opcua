@@ -20,11 +20,11 @@ import {
 import { DataType } from "node-opcua-client";
 import {
     CacheNode,
-    NodeCrawler,
+    NodeCrawlerBase,
     UserData
 } from "..";
 
-describe("NodeCrawler", function (this: any) {
+describe("NodeCrawlerBase", function (this: any) {
 
     this.timeout(200000);
 
@@ -71,11 +71,11 @@ describe("NodeCrawler", function (this: any) {
         }
     });
 
-    function followForward(crawler: NodeCrawler, cacheNode: CacheNode, userData: UserData) {
+    function followForward(crawler: NodeCrawlerBase, cacheNode: CacheNode, userData: UserData) {
 
-        NodeCrawler.follow(crawler, cacheNode, userData, "Organizes", BrowseDirection.Forward);
-        NodeCrawler.follow(crawler, cacheNode, userData, "HasComponent", BrowseDirection.Forward);
-        NodeCrawler.follow(crawler, cacheNode, userData, "HasProperty", BrowseDirection.Forward);
+        NodeCrawlerBase.follow(crawler, cacheNode, userData, "Organizes", BrowseDirection.Forward);
+        NodeCrawlerBase.follow(crawler, cacheNode, userData, "HasComponent", BrowseDirection.Forward);
+        NodeCrawlerBase.follow(crawler, cacheNode, userData, "HasProperty", BrowseDirection.Forward);
 
         // for (const reference  of cacheNode.references) {
         //    if (reference.isForward && reference.referenceTypeId.toString() === "i=35") {
@@ -89,12 +89,12 @@ describe("NodeCrawler", function (this: any) {
 
         const session = new PseudoSession(addressSpace);
 
-        const crawler = new NodeCrawler(session);
+        const crawler = new NodeCrawlerBase(session);
 
         const results: string[] = [];
 
         const data = {
-            onBrowse(this: UserData, crawler1: NodeCrawler, cacheNode: CacheNode) {
+            onBrowse(this: UserData, crawler1: NodeCrawlerBase, cacheNode: CacheNode) {
                 results.push(cacheNode.browseName.toString());
                 followForward(crawler1, cacheNode, this);
             }
@@ -133,15 +133,15 @@ describe("NodeCrawler", function (this: any) {
         (session as any).browseNext = sinon.spy(session, "browseNext");
         (session as any).read = sinon.spy(session, "read");
 
-        const crawler = new NodeCrawler(session);
+        const crawler = new NodeCrawlerBase(session);
         crawler.maxNodesPerBrowse = 5;
         const results: string[] = [];
 
         const data = {
-            onBrowse(this: UserData, crawler1: NodeCrawler, cacheNode: CacheNode) {
+            onBrowse(this: UserData, crawler1: NodeCrawlerBase, cacheNode: CacheNode) {
                 results.push(cacheNode.browseName.toString());
                 followForward(crawler1, cacheNode, this);
-                // NodeCrawler.follow(crawler1, cacheNode, this, "Organizes");
+                // NodeCrawlerBase.follow(crawler1, cacheNode, this, "Organizes");
             }
         };
 
@@ -175,38 +175,39 @@ describe("NodeCrawler", function (this: any) {
         const session = new PseudoSession(addressSpace);
 
         {
-            // Given that NodeCrawler doesn't specify minimum value for  maxNodesPerRead/Browse
-            const crawler = new NodeCrawler(session);
+            // Given that NodeCrawlerBase doesn't specify minimum value for  maxNodesPerRead/Browse
+            const crawler = new NodeCrawlerBase(session);
             crawler.maxNodesPerRead = 0;
             crawler.maxNodesPerBrowse = 0;
             await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
 
-            // then NodeCrawler shall be set with value provided by server
+
+            // then NodeCrawlerBase shall be set with value provided by server
             crawler.maxNodesPerRead.should.eql(251);
             crawler.maxNodesPerBrowse.should.eql(252);
             crawler.dispose();
         }
 
         {
-            // Given that NodeCrawler does  specify minimum value for  maxNodesPerRead/Browse
+            // Given that NodeCrawlerBase does  specify minimum value for  maxNodesPerRead/Browse
             // which are below server provided limit
-            const crawler = new NodeCrawler(session);
+            const crawler = new NodeCrawlerBase(session);
             crawler.maxNodesPerRead = 5;
             crawler.maxNodesPerBrowse = 10;
             await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
-            // then NodeCrawler shall be set with value provided by itself
+            // then NodeCrawlerBase shall be set with value provided by itself
             crawler.maxNodesPerRead.should.eql(5);
             crawler.maxNodesPerBrowse.should.eql(10);
             crawler.dispose();
         }
         {
-            // Given that NodeCrawler does  specify minimum value for  maxNodesPerRead/Browse
+            // Given that NodeCrawlerBase does  specify minimum value for  maxNodesPerRead/Browse
             // which are above server provided limit
-            const crawler = new NodeCrawler(session);
+            const crawler = new NodeCrawlerBase(session);
             crawler.maxNodesPerRead = 501;
             crawler.maxNodesPerBrowse = 502;
             await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
-            // then NodeCrawler shall be set with value provided by server
+            // then NodeCrawlerBase shall be set with value provided by server
             crawler.maxNodesPerRead.should.eql(251);
             crawler.maxNodesPerBrowse.should.eql(252);
             crawler.dispose();
@@ -228,11 +229,11 @@ describe("NodeCrawler", function (this: any) {
         const session = new PseudoSession(addressSpace);
 
         {
-            // Given that NodeCrawler doesn't specify minimum value for  maxNodesPerRead/Browse
-            const crawler = new NodeCrawler(session);
+            // Given that NodeCrawlerBase doesn't specify minimum value for  maxNodesPerRead/Browse
+            const crawler = new NodeCrawlerBase(session);
             crawler.maxNodesPerRead = 0;
             crawler.maxNodesPerBrowse = 0;
-            // then NodeCrawler shall be set with default value provided by NodeCrawler
+            // then NodeCrawlerBase shall be set with default value provided by NodeCrawlerBase
             await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
             crawler.maxNodesPerRead.should.eql(100);
             crawler.maxNodesPerBrowse.should.eql(100);
@@ -240,24 +241,24 @@ describe("NodeCrawler", function (this: any) {
         }
 
         {
-            const crawler = new NodeCrawler(session);
-            // Given that NodeCrawler doesn't specify minimum value for  maxNodesPerRead/Browse
+            const crawler = new NodeCrawlerBase(session);
+            // Given that NodeCrawlerBase doesn't specify minimum value for  maxNodesPerRead/Browse
             crawler.maxNodesPerRead = 5;
             crawler.maxNodesPerBrowse = 10;
             await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
-            // then NodeCrawler shall be set with value provided by itself
+            // then NodeCrawlerBase shall be set with value provided by itself
             crawler.maxNodesPerRead.should.eql(5);
             crawler.maxNodesPerBrowse.should.eql(10);
             crawler.dispose();
         }
         {
-            const crawler = new NodeCrawler(session);
-            // Given that NodeCrawler doesn't specify minimum value for  maxNodesPerRead/Browse
+            const crawler = new NodeCrawlerBase(session);
+            // Given that NodeCrawlerBase doesn't specify minimum value for  maxNodesPerRead/Browse
             // and greater than default value
             crawler.maxNodesPerRead = 501;
             crawler.maxNodesPerBrowse = 502;
             await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
-            // then NodeCrawler shall be set with value provided by itself
+            // then NodeCrawlerBase shall be set with value provided by itself
             crawler.maxNodesPerRead.should.eql(501);
             crawler.maxNodesPerBrowse.should.eql(502);
             crawler.dispose();
@@ -282,13 +283,13 @@ describe("NodeCrawler", function (this: any) {
         const browseNext = sinon.spy(session, "browseNext");
         const read = sinon.spy(session, "read");
 
-        const crawler = new NodeCrawler(session);
+        const crawler = new NodeCrawlerBase(session);
 
         let results: string[] = [];
 
         let onBrowseCallCount = 0;
         const data = {
-            onBrowse(this: UserData, crawler1: NodeCrawler, cacheNode: CacheNode) {
+            onBrowse(this: UserData, crawler1: NodeCrawlerBase, cacheNode: CacheNode) {
                 results.push(cacheNode.browseName.toString());
                 followForward(crawler1, cacheNode, this);
                 onBrowseCallCount += 1;
@@ -321,12 +322,12 @@ describe("NodeCrawler", function (this: any) {
 
         const session = new PseudoSession(addressSpace);
 
-        const crawler = new NodeCrawler(session);
+        const crawler = new NodeCrawlerBase(session);
 
         let results: { browseName: string, nodeClass: string }[] = [];
 
         const data = {
-            onBrowse(this: UserData, crawler1: NodeCrawler, cacheNode: CacheNode) {
+            onBrowse(this: UserData, crawler1: NodeCrawlerBase, cacheNode: CacheNode) {
                 results.push({
                     browseName: cacheNode.browseName.toString(),
                     nodeClass: NodeClass[cacheNode.nodeClass]

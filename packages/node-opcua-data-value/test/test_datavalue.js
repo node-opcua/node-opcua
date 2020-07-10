@@ -434,5 +434,86 @@ describe("DataValue", () => {
 
     });
 
+    it("should convert a DataValue to a JSON Object", () => {
+
+        const dataValue = new DataValue({
+            statusCode: StatusCodes.BadAggregateListMismatch,
+            serverTimestamp: new Date(Date.UTC(1789, 6, 14)),
+            value: {
+                dataType: DataType.UInt16,
+                arrayType: VariantArrayType.Array,
+                value: [12, 13, 14]
+            }
+        });
+
+        // it should be possible to convert a DataValue to a JSON object
+        // console.log(dataValue.toJSON());
+
+        const json = dataValue.toJSON();
+        json.should.eql({
+            value:
+            {
+                dataType: 'UInt16',
+                arrayType: 'Array',
+                value: new Uint16Array([12, 13, 14])
+            },
+            statusCode: { value: 2161377280 },
+            sourcePicoseconds: 0,
+            serverTimestamp: '1789-07-14T00:00:00.000Z',
+            serverPicoseconds: 0
+        });
+        // it should be possible to reconstruct a dataValue from the json object
+        const dataValue1 = new DataValue(json);
+        const json1 = dataValue1.toJSON();
+        json1.should.eql({
+            value:
+            {
+                dataType: 'UInt16',
+                arrayType: 'Array',
+                value: new Uint16Array([12, 13, 14])
+            },
+            statusCode: { value: 2161377280 },
+            sourcePicoseconds: 0,
+            serverTimestamp: '1789-07-14T00:00:00.000Z',
+            serverPicoseconds: 0
+        });
+        // console.log(dataValue1.toString());
+    });
+    it("should convert a DataValue with ExtensionObject to JSON", () => {
+
+
+        class SomeExtensionObject extends ExtensionObject {
+
+            constructor(options/*: { name: string } */) {
+                super();
+                this.name = options.a;
+            }
+            toJSON() {
+                return { name: this.name }
+            }
+        }
+
+        const dataValue = new DataValue({
+            statusCode: StatusCodes.BadAggregateListMismatch,
+            serverTimestamp: new Date(17898, 6, 14),
+            value: {
+                dataType: DataType.ExtensionObject,
+                arrayType: VariantArrayType.Array,
+                value: [
+                    new SomeExtensionObject({
+                        name: "1"
+                    }),
+                    new SomeExtensionObject({
+                        name: "2"
+                    }),
+                ]
+            }
+        });
+
+        console.log(dataValue.toJSON());
+        console.log(dataValue.toString());
+
+    });
+
 });
 

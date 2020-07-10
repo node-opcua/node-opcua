@@ -412,7 +412,7 @@ export function apply_timestamps(
   assert(dataValue.hasOwnProperty("serverTimestamp"));
   assert(dataValue.hasOwnProperty("sourceTimestamp"));
 
-  let cloneDataValue = null;
+  let cloneDataValue: DataValue | null = null;
   let now = null;
   // apply timestamps
   switch (timestampsToReturn) {

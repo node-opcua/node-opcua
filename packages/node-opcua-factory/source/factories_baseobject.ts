@@ -15,7 +15,7 @@ import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { callConstructor, DataTypeFactory } from "./datatype_factory";
 import { getStructureTypeConstructor } from "./factories_factories";
 import { get_base_schema, StructuredTypeSchema } from "./factories_structuredTypeSchema";
-import { EnumerationDefinition, FieldCategory, StructuredTypeField } from "./types";
+import { EnumerationDefinition, FieldCategory, StructuredTypeField, BuiltInTypeDefinition, FieldType } from "./types";
 import { AttributeIds } from "node-opcua-basic-types";
 
 function r(str: string, length = 30) {
@@ -336,16 +336,22 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
     }
 }
 
-function json_ify(t: any, f: any, field: any, value: any) {
+function json_ify(t: BuiltInTypeDefinition, value: any, fieldType: FieldType) {
 
-    if (_.isFunction(field.toJSON)) {
-        return field.toJSON(value);
-    } else if (t && t.toJSON) {
+    if (value instanceof Array) {
+        return value.map((e) => (e && e.toJSON) ? e.toJSON() : e);
+    }
+    /*
+    if (_.isFunction(fieldType.toJSON)) {
+        return fieldType.toJSON(value);
+    } else
+    */
+    if (t && t.toJSON) {
         return t.toJSON(value);
     } else if (value.toJSON) {
         return value.toJSON();
     } else {
-        return f;
+        return value;
     }
 
 }
@@ -354,8 +360,8 @@ function _JSONify(self: BaseUAObject, schema: StructuredTypeSchema, pojo: any) {
 
     /* jshint validthis: true */
     for (const field of schema.fields) {
-        const f = (self as any)[field.name];
-        if (f === null || f === undefined) {
+        const fieldValue = (self as any)[field.name];
+        if (fieldValue === null || fieldValue === undefined) {
             continue;
         }
 
@@ -363,20 +369,19 @@ function _JSONify(self: BaseUAObject, schema: StructuredTypeSchema, pojo: any) {
             const enumeration = getEnumeration(field.fieldType);
             assert(enumeration !== null);
             if (field.isArray) {
-                pojo[field.name] = f.map((value: any) => enumeration.enumValues[value.toString()]);
+                pojo[field.name] = fieldValue.map((value: any) => enumeration.enumValues[value.toString()]);
             } else {
-                pojo[field.name] = enumeration.enumValues[f.toString()];
+                pojo[field.name] = enumeration.enumValues[fieldValue.toString()];
             }
-
             continue;
 
         }
         const t = getBuildInType(field.fieldType);
 
         if (field.isArray) {
-            pojo[field.name] = f.map((value: any) => json_ify(t, value, field, value));
+            pojo[field.name] = fieldValue.map((value: any) => json_ify(t, value, field));
         } else {
-            pojo[field.name] = json_ify(t, f, field, f);
+            pojo[field.name] = json_ify(t, fieldValue, field);
         }
     }
 }
@@ -436,7 +441,7 @@ export class BaseUAObject {
      */
     public toString(...args: any[]): string {
 
-        if (this.   schema && this.schema.hasOwnProperty("toString")) {
+        if (this.schema && this.schema.hasOwnProperty("toString")) {
             return this.schema.toString.apply(this, arguments as any);
         } else {
             if (!this.explore) {

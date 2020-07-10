@@ -9,6 +9,7 @@ import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
 import { AnonymousIdentityToken, MessageSecurityMode, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 
 import { BaseNode, ISessionContext, UAObject, UAObjectType } from "./address_space_ts";
+import { NodeId } from "node-opcua-nodeid";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -45,7 +46,10 @@ export interface IChannelBase {
  */
 export interface ISessionBase {
     userIdentityToken?: UserIdentityToken;
+
     channel?: IChannelBase;
+
+    getSessionId(): NodeId; // session NodeID
 }
 
 /**

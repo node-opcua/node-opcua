@@ -82,7 +82,7 @@ async function test1() {
             nodeId: "ns=1;s=FanSpeed"
         };
 
-        const item1 = await subscription.monitor(itemToMonitor1, parameters1, TimestampsToReturn.Both);
+        const item1 = await subscription.monitor(itemToMonitor1, parameters1, TimestampsToReturn.Source);
 
         console.log(" Item1 = ", item1.result!.statusCode.toString());
 

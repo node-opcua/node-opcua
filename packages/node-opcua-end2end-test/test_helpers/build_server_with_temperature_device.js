@@ -40,7 +40,7 @@ const build_address_space_for_conformance_testing = address_space_for_conformanc
  */
 function addTestUAAnalogItem(parentNode) {
 
-//xx    assert(parentNode instanceof opcua.BaseNode);
+    //xx    assert(parentNode instanceof opcua.BaseNode);
 
     const addressSpace = parentNode.addressSpace;
     const namespace = addressSpace.getOwnNamespace();
@@ -57,7 +57,7 @@ function addTestUAAnalogItem(parentNode) {
         engineeringUnits: opcua.standardUnits.degree_celsius,
         dataType: "Double",
         value: {
-            get: function () {
+            get: function() {
                 return new Variant({ dataType: DataType.Double, value: Math.random() + 19.0 });
             }
         }
@@ -67,7 +67,7 @@ function addTestUAAnalogItem(parentNode) {
 
 
 const userManager = {
-    isValidUser: function (userName, password) {
+    isValidUser: function(userName, password) {
 
         if (userName === "user1" && password === "password1") {
             return true;
@@ -103,9 +103,9 @@ function build_server_with_temperature_device(options, done) {
 
     // use mini_nodeset_filename for speed up if not otherwise specified
     options.nodeset_filename = options.nodeset_filename ||
-      [
-          opcua.nodesets.standard_nodeset_file
-      ];
+        [
+            opcua.nodesets.standard_nodeset_file
+        ];
 
     options.userManager = userManager;
 
@@ -126,12 +126,12 @@ function _build_server_with_temperature_device(server, options, done) {
 
     //xx console.log("xxx building server with temperature device");
 
-    server.on("session_closed", function (session, reason) {
-        debugLog(" server_with_temperature_device has closed a session :",reason);
-        debugLog(chalk.cyan("              session name: "),session.sessionName.toString());
+    server.on("session_closed", function(session, reason) {
+        debugLog(" server_with_temperature_device has closed a session :", reason);
+        debugLog(chalk.cyan("              session name: "), session.sessionName.toString());
     });
 
-    server.on("post_initialize", function () {
+    server.on("post_initialize", function() {
 
         const addressSpace = server.engine.addressSpace;
 
@@ -158,10 +158,10 @@ function _build_server_with_temperature_device(server, options, done) {
             nodeId: setPointTemperatureId,
             dataType: "Double",
             value: {
-                get: function () {
+                get: function() {
                     return new Variant({ dataType: DataType.Double, value: server.set_point_temperature });
                 },
-                set: function (variant) {
+                set: function(variant) {
                     // to do : test if variant can be coerce to Float or Double
                     server.set_point_temperature = parseFloat(variant.value);
                     return StatusCodes.Good;
@@ -178,11 +178,11 @@ function _build_server_with_temperature_device(server, options, done) {
             nodeId: pumpSpeedId,
             dataType: "Double",
             value: {
-                get: function () {
+                get: function() {
                     const pump_speed = 200 + Math.random();
                     return new Variant({ dataType: DataType.Double, value: pump_speed });
                 },
-                set: function (variant) {
+                set: function(variant) {
                     return StatusCodes.BadNotWritable;
                 }
             }
@@ -214,7 +214,7 @@ function _build_server_with_temperature_device(server, options, done) {
 
             value: {
                 // asynchronous read
-                refreshFunc: function (callback) {
+                refreshFunc: function(callback) {
 
                     const dataValue = new DataValue({
                         value: {
@@ -224,12 +224,12 @@ function _build_server_with_temperature_device(server, options, done) {
                         sourceTimestamp: new Date()
                     });
                     // simulate a asynchronous behaviour
-                    setTimeout(function () {
+                    setTimeout(function() {
                         callback(null, dataValue);
                     }, 100);
                 },
-                set: function (variant) {
-                    setTimeout(function () {
+                set: function(variant) {
+                    setTimeout(function() {
                         asyncValue = variant.value;
                     }, 1000);
                     return StatusCodes.GoodCompletesAsynchronously;
@@ -253,9 +253,9 @@ function _build_server_with_temperature_device(server, options, done) {
 
             value: {
                 // asynchronous read
-                timestamped_get: function (callback) {
+                timestamped_get: function(callback) {
                     assert(_.isFunction(callback), "callback must be a function");
-                    setTimeout(function () {
+                    setTimeout(function() {
                         callback(null, asyncWriteFull_dataValue);
                     }, 100);
                 },
@@ -263,10 +263,10 @@ function _build_server_with_temperature_device(server, options, done) {
                 // in this case, we are using timestamped_set and not set
                 // as we want to control and deal with the dataValue provided by the client write
                 // This will allow us to handle more specifically timestamps and statusCodes
-                timestamped_set: function (dataValue, callback) {
+                timestamped_set: function(dataValue, callback) {
                     assert(_.isFunction(callback), "callback must be a function");
                     //xxx console.log(chalk.cyan(" DATA VALUE !!!"), chalk.yellow(dataValue.toString()));
-                    setTimeout(function () {
+                    setTimeout(function() {
                         asyncWriteFull_dataValue = new DataValue(dataValue);
                         callback();
                     }, 500);
@@ -280,13 +280,11 @@ function _build_server_with_temperature_device(server, options, done) {
     server.set_point_temperature = 20.0;
 
     function start(done) {
-        server.start(function (err) {
+        server.start(function(err) {
 
             if (err) {
                 return done(err);
             }
-
-            assert(server.engine.status === "initialized");
 
             done();
 

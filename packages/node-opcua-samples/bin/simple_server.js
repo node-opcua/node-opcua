@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+#!/usr/bin / env node
+/* eslint-disable max-statements */
 /* eslint no-process-exit: 0 */
 "use strict";
 const path = require("path");
@@ -83,22 +84,22 @@ const os = require('os');
 async function getIpAddresses() {
 
   const ipAddresses = [];
-  const ifaces = os.networkInterfaces();
-  Object.keys(ifaces).forEach(function(ifname) {
+  const interfaces = os.networkInterfaces();
+  Object.keys(interfaces).forEach(function(interfaceName) {
     let alias = 0;
 
-    ifaces[ifname].forEach(function(iface) {
+    interfaces[interfaceName].forEach(function(iface) {
       if ('IPv4' !== iface.family || iface.internal !== false) {
         // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
         return;
       }
       if (alias >= 1) {
         // this single interface has multiple ipv4 addresses
-        console.log(ifname + ':' + alias, iface.address);
+        console.log(interfaceName + ':' + alias, iface.address);
         ipAddresses.push(iface.address);
       } else {
-        // this interface has only one ipv4 adress
-        console.log(ifname, iface.address);
+        // this interface has only one ipv4 address
+        console.log(interfaceName, iface.address);
         ipAddresses.push(iface.address);
       }
       ++alias;
@@ -230,7 +231,10 @@ const paths = envPaths(productUri);
   const server = new OPCUAServer(server_options);
 
   const hostname = require("os").hostname();
-  server.on("post_initialize", function() {
+
+  await server.initialize();
+
+  function post_initialize() {
 
     const addressSpace = server.engine.addressSpace;
 
@@ -445,7 +449,9 @@ const paths = envPaths(productUri);
       nodeId: node.nodeId
     });
 
-  });
+  }
+
+  post_initialize();
 
 
   function dumpObject(obj) {
@@ -527,6 +533,12 @@ const paths = envPaths(productUri);
   server.on("response", function(response) {
 
     if (argv.silent) { return; }
+    if (response.constructor.name === "PublishResponse") {
+      console.log("PublishResponse", response.responseHeader.toString());
+    }
+    if (response.constructor.name === "CreateSubscriptionResponse") {
+      console.log("CreateSubscriptionResponse", response.toString());
+    }
 
     console.log(t(response.responseHeader.timestamp), response.responseHeader.requestHandle,
       response.schema.name.padEnd(30, " "), " status = ", response.responseHeader.serviceResult.toString());
@@ -535,6 +547,9 @@ const paths = envPaths(productUri);
 
   server.on("request", function(request, channel) {
     if (argv.silent) { return; }
+    if (request.constructor.name === "PublishRequest") {
+      console.log("PublishRequest", request.toString());
+    }
     console.log(t(request.requestHeader.timestamp), request.requestHeader.requestHandle,
       request.schema.name.padEnd(30, " "), " ID =", channel.channelId.toString());
   });

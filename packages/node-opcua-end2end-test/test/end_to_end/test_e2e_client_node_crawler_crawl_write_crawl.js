@@ -21,7 +21,7 @@ const build_address_space_for_conformance_testing = address_space_for_conformanc
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-describe("NodeCrawler after write", function () {
+describe("NodeCrawlerBase after write", function() {
 
     const namespaceIndex = 411;
     const port = 2555;
@@ -32,11 +32,11 @@ describe("NodeCrawler after write", function () {
 
     let server, client, temperatureVariableId, endpointUrl;
 
-    before(function (done) {
+    before(function(done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         //port+=1;
-        server = build_server_with_temperature_device({ port: port }, function (err) {
+        server = build_server_with_temperature_device({ port: port }, function(err) {
 
             build_address_space_for_conformance_testing(server.engine.addressSpace, { mass_variables: false });
 
@@ -46,7 +46,7 @@ describe("NodeCrawler after write", function () {
         });
     });
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         client = OPCUAClient.create({
             requestedSessionTimeout: 60 * 1000 * 4 // 4 minutes
         });
@@ -56,26 +56,26 @@ describe("NodeCrawler after write", function () {
         done();
     });
 
-    afterEach(function (done) {
+    afterEach(function(done) {
         client = null;
         done();
     });
 
-    after(function (done) {
+    after(function(done) {
         server.shutdown(done);
     });
 
 
-    it("should crawl, write to node, and crawl again", function (done) {
+    it("should crawl, write to node, and crawl again", function(done) {
 
-        perform_operation_on_client_session(client, endpointUrl, function (session, session_done) {
+        perform_operation_on_client_session(client, endpointUrl, function(session, session_done) {
             async.series([
-                function (inner_done) {
+                function(inner_done) {
                     const crawler = new NodeCrawler(session);
 
                     const nodeId = "RootFolder";
 
-                    crawler.read(nodeId, function (err, obj) {
+                    crawler.read(nodeId, function(err, obj) {
 
                         if (!err) {
                             obj.browseName.toString().should.equal("Root");
@@ -90,7 +90,7 @@ describe("NodeCrawler after write", function () {
                     });
                 },
 
-                function (inner_done) {
+                function(inner_done) {
 
                     const nodeId = "ns=2;s=Scalar_Static_Boolean";// opcua.coerceNodeId(2294);
 
@@ -99,7 +99,7 @@ describe("NodeCrawler after write", function () {
                         value: true
                     };
 
-                    session.writeSingleNode(nodeId, dataValue, function (err, results) {
+                    session.writeSingleNode(nodeId, dataValue, function(err, results) {
 
 
                         if (err) {
@@ -113,12 +113,12 @@ describe("NodeCrawler after write", function () {
                     });
                 },
 
-                function (inner_done) {
+                function(inner_done) {
                     const crawler = new NodeCrawler(session);
 
                     const nodeId = "RootFolder";
 
-                    crawler.read(nodeId, function (err, obj) {
+                    crawler.read(nodeId, function(err, obj) {
                         if (!err) {
                             obj.browseName.toString().should.equal("Root");
                             obj.organizes.length.should.equal(3);

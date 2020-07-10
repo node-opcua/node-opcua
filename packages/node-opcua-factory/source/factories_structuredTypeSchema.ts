@@ -22,8 +22,11 @@ import { getBuildInType, hasBuiltInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType } from "./factories_factories";
 import { parameters } from "./factories_schema_helpers";
+import { DataTypeFactory } from "./datatype_factory";
 
-function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
+function figureOutFieldCategory(
+    field: FieldInterfaceOptions
+): FieldCategory {
     const fieldType = field.fieldType;
 
     if (field.category) {
@@ -41,7 +44,13 @@ function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     return FieldCategory.basic;
 }
 
-function figureOutSchema(underConstructSchema: StructuredTypeSchema, field: FieldInterfaceOptions, category: FieldCategory): CommonInterface {
+const regExp = /((ns[0-9]+:)?)(.*)/;
+
+function figureOutSchema(
+    underConstructSchema: StructuredTypeSchema,
+    field: FieldInterfaceOptions,
+    category: FieldCategory
+): CommonInterface {
 
     if (field.schema) {
         return field.schema;
@@ -53,24 +62,33 @@ function figureOutSchema(underConstructSchema: StructuredTypeSchema, field: Fiel
 
     let returnValue: any = null;
 
+    // may be the field.type  contains a ns<X>: prefix !! like the one found in Beckhoff PLC !
+    const m = field.fieldType.match(regExp);
+    /* istanbul ignore next */
+    if (!m) {
+        throw new Error("malformed fieldType ? : " + field.fieldType);
+    }
+    const fieldTypeWithoutNS = m[3];
+
     switch (category) {
         case FieldCategory.complex:
             if (hasStructuredType(field.fieldType)) {
-                returnValue = getStructuredTypeSchema(field.fieldType);
+                returnValue = getStructuredTypeSchema(fieldTypeWithoutNS);
             } else {
                 // LocalizedText etc ...
-                returnValue = getBuildInType(field.fieldType);
+                returnValue = getBuildInType(fieldTypeWithoutNS);
             }
             break;
         case FieldCategory.basic:
-            returnValue = getBuildInType(field.fieldType);
+            returnValue = getBuildInType(fieldTypeWithoutNS);
             break;
         case FieldCategory.enumeration:
-            returnValue = getEnumeration(field.fieldType);
+            returnValue = getEnumeration(fieldTypeWithoutNS);
             break;
     }
     if (null === returnValue || undefined === returnValue) {
-        throw new Error("Cannot find Schema for field with name " + field.name +
+        returnValue = getEnumeration(fieldTypeWithoutNS);
+        throw new Error("Cannot find Schema for field with name " + field.name + " fieldTypeWithoutNS= " + fieldTypeWithoutNS +
             " with type " + field.fieldType + " category = " + category + JSON.stringify(field, null, "\t"));
     }
     return returnValue;
@@ -292,6 +310,10 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
         throw new Error(" invalid field found in option :" + JSON.stringify(invalidOptionsFields));
     }
     return true;
+}
+
+export function buildStructuredType2(dataTypeFactory: DataTypeFactory, schemaLight: StructuredTypeOptions): StructuredTypeSchema {
+    return new StructuredTypeSchema(schemaLight);
 }
 
 export function buildStructuredType(schemaLight: StructuredTypeOptions): StructuredTypeSchema {

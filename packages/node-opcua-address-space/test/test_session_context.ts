@@ -10,6 +10,7 @@ import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject } from ".."
 const keep_should = should;
 
 import { getMiniAddressSpace } from "../";
+import { NodeId } from "node-opcua-nodeid";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -105,7 +106,10 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
     const mockSession = {
         userIdentityToken: new X509IdentityToken({
             certificateData: certificate
-        })
+        }),
+        getSessionId() {
+            return NodeId.nullNodeId
+        }
     };
 
     before(async () => {

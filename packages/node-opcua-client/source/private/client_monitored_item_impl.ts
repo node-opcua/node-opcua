@@ -8,7 +8,7 @@ import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
 import { AttributeIds } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import { DataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { EventFilter } from "node-opcua-service-filter";
@@ -86,7 +86,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         assert(this.monitoringParameters.clientHandle === 0xFFFFFFFF, "should not have a client handle yet");
 
         assert(subscription.session, "expecting session");
-        timestampsToReturn = timestampsToReturn || TimestampsToReturn.Neither;
+        timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
         assert(subscription.constructor.name === "ClientSubscriptionImpl");
         this.timestampsToReturn = timestampsToReturn;
 

@@ -16,7 +16,7 @@ import {
     UAConditionBase
 } from "../..";
 import { nodesets } from "node-opcua-nodesets";
-import { EventFilter, EventFilterOptions, FilterOperator, LiteralOperand, ContentFilter, SimpleAttributeOperand } from "node-opcua-types";
+import { EventFilter, EventFilterOptions, FilterOperator, LiteralOperand, ContentFilter, SimpleAttributeOperand, ElementOperand } from "node-opcua-types";
 import { coerceQualifiedName, AttributeIds } from "node-opcua-data-model";
 import { coerceNodeId, resolveNodeId, NodeId } from "node-opcua-nodeid";
 import { Variant, DataType } from "node-opcua-variant";
@@ -245,4 +245,48 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
             checkWhereClause(addressSpace, sessionContext, whereClause, eventData1).should.eql(false);
         }
     });
+
+    it("EVF4- check WhereClause with Not Operand #810", () => {
+
+        const whereClause = new ContentFilter({
+
+            elements /* ContentFilterElem[] */: [
+                { /*0*/
+                    filterOperator          /* FilterOperator      */: FilterOperator.Not,
+
+                    filterOperands          /* ExtensionObject  [] */: [
+                        new ElementOperand({
+                            index /* UInt32*/: 1
+                        })
+                    ]
+                },
+
+                {
+                    filterOperator: FilterOperator.OfType,
+
+                    filterOperands: [
+                        new LiteralOperand({
+                            value: new Variant({
+                                dataType: DataType.NodeId,
+                                value: resolveNodeId("GeneralModelChangeEventType")// (ns = 0; i=2133))
+                            })
+                        })
+                    ]
+                }
+            ]
+        });
+
+        const sessionContext = SessionContext.defaultContext;
+
+        {
+            const eventData1 = createEventData("AuditCertificateExpiredEventType");
+            checkWhereClause(addressSpace, sessionContext, whereClause, eventData1).should.eql(true);
+        }
+        {
+            const eventData1 = createEventData("GeneralModelChangeEventType");
+            checkWhereClause(addressSpace, sessionContext, whereClause, eventData1).should.eql(false);
+        }
+
+    });
+
 });
