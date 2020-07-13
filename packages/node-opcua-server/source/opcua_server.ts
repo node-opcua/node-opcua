@@ -281,9 +281,15 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
     securityPolicyUri: endpoint.securityPolicyUri,
     transportProfileUri: endpoint.transportProfileUri,
     userIdentityTokens: endpoint.userIdentityTokens
+    server: {applicationUri: endpoint.server.applicationUri}
   });
   // reduce even further by explicitly setting unwanted members to null
-  (e as any).server = null;
+  (e as any).productUri = null;
+  (e as any).applicationName = null;
+  (e as any).applicationType = null;
+  (e as any).gatewayServerUri = null;
+  (e as any).discoveryProfileUri = null;
+  (e as any).discoveryUrls = null;
   (e as any).serverCertificate = null;
   return e;
 }
