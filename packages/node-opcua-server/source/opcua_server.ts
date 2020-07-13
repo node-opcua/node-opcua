@@ -236,7 +236,7 @@ function _attempt_to_close_some_old_unactivated_session(server: OPCUAServer) {
 
 function getRequiredEndpointInfo(endpoint: EndpointDescription) {
     assert(endpoint instanceof EndpointDescription);
-    // It is recommended that Servers only include the endpointUrl, securityMode,
+    // It is recommended that Servers only include the server.applicationUri,  endpointUrl, securityMode,
     // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all
     // other parameters set to null. Only the recommended parameters shall be verified by
     // the client.
@@ -246,11 +246,17 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
         securityLevel: endpoint.securityLevel,
         securityMode: endpoint.securityMode,
         securityPolicyUri: endpoint.securityPolicyUri,
+        server: { applicationUri: endpoint.server.applicationUri },
         transportProfileUri: endpoint.transportProfileUri,
         userIdentityTokens: endpoint.userIdentityTokens
     });
     // reduce even further by explicitly setting unwanted members to null
-    (e as any).server = null;
+    (e as any).productUri = null;
+    (e as any).applicationName = null;
+    (e as any).applicationType = null;
+    (e as any).gatewayServerUri = null;
+    (e as any).discoveryProfileUri = null;
+    (e as any).discoveryUrls = null;
     (e as any).serverCertificate = null;
     return e;
 }
