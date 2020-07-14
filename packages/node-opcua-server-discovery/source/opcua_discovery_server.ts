@@ -114,7 +114,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         const serverInfo = options.serverInfo;
         serverInfo.applicationType = ApplicationType.DiscoveryServer;
         serverInfo.applicationUri = serverInfo.applicationUri || defaultApplicationUri;
-        serverInfo.productUri = serverInfo.productUri || "NodeOPCUA-DiscoveryServer";
+        serverInfo.productUri = serverInfo.productUri || "urn:NodeOPCUA-DiscoveryServer";
         serverInfo.applicationName = serverInfo.applicationName || { text: "NodeOPCUA-DiscoveryServer", locale: null };
         serverInfo.gatewayServerUri = serverInfo.gatewayServerUri || "";
         serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri || "";
@@ -222,7 +222,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         const servers: ApplicationDescription[] = [this.serverInfo];
 
         for (const registered_server of Object.values(this.registeredServers)) {
-            const serverInfo: ApplicationDescription = (registered_server as any).serverInfo;
+            const serverInfo: ApplicationDescription = new ApplicationDescription(registered_server.serverInfo);
             servers.push(serverInfo);
         }
 
@@ -360,6 +360,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         discoveryConfigurations: MdnsDiscoveryConfiguration[] | undefined,
         callback: (err: Error | null, response?: Response) => void
     ) {
+        // istanbul ignore next
         callback(new Error("internal Error"));
     }
 
@@ -458,10 +459,12 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         // check serverType is valid
         if (!_isValidServerType(server.serverType)) {
+            debugLog("Invalid server Type", ApplicationType[server.serverType]);
             return sendError(StatusCodes.BadInvalidArgument);
         }
 
         if (!server.serverUri) {
+            debugLog("Missing serverURI");
             return sendError(StatusCodes.BadInvalidArgument);
         }
 
@@ -469,13 +472,13 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         // TODO
         server.serverNames = server.serverNames || [];
         // BadServerNameMissing
-        if (server.serverNames.length === 0) {
+        if (server.serverNames.length === 0 || !server.serverNames[0].text) {
             return sendError(StatusCodes.BadServerNameMissing);
         }
 
         // BadDiscoveryUrlMissing
         server.discoveryUrls = server.discoveryUrls || [];
-        if (server.discoveryUrls.length === 0) {
+        if (server.discoveryUrls.length === 0 || !server.discoveryUrls[0]) {
             return sendError(StatusCodes.BadDiscoveryUrlMissing);
         }
 

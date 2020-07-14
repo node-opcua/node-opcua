@@ -134,7 +134,6 @@ const paths = envPaths(productUri);
   const applicationUri = makeApplicationUrn(fqdn, productUri);
   // -----------------------------------------------
   const configFolder = paths.config;
-  const certificateFolder = path.join(configFolder);
   const pkiFolder = path.join(configFolder, "pki");
   const userPkiFolder = path.join(configFolder, "userPki");
 

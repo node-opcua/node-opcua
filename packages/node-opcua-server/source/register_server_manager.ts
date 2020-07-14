@@ -9,8 +9,8 @@ import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
-import { OPCUAClientBase } from "node-opcua-client";
-import { make_debugLog } from "node-opcua-debug";
+import { OPCUAClientBase, ResponseCallback } from "node-opcua-client";
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import { resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
     coerceSecurityPolicy,
@@ -23,12 +23,14 @@ import {
     RegisterServerRequest,
     RegisterServerResponse
 } from "node-opcua-service-discovery";
-import { EndpointDescription, MdnsDiscoveryConfiguration } from "node-opcua-types";
+import { EndpointDescription, MdnsDiscoveryConfiguration, RegisteredServerOptions } from "node-opcua-types";
 import { OPCUABaseServer } from "./base_server";
 import { IRegisterServerManager } from "./I_register_server_manager";
+import { exploreCertificateInfo, exploreCertificate } from "node-opcua-crypto";
 
 export type EmptyCallback = (err?: Error) => void;
 
+const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
 export enum RegisterServerManagerStatus {
@@ -107,70 +109,78 @@ function findSecureEndpoint(endpoints: EndpointDescription[]): EndpointDescripti
     return endpoints[0];
 }
 
-function constructRegisterServerRequest(
-    server: any,
+function constructRegisteredServer(
+    server: OPCUABaseServer,
     isOnline: boolean
-): RegisterServerRequest {
+): RegisteredServerOptions {
 
     const discoveryUrls = server.getDiscoveryUrls();
     assert(!isOnline || discoveryUrls.length >= 1, "expecting some discoveryUrls if we go online ....");
 
+    const info = exploreCertificate(server.getCertificate());
+    const commonName = info.tbsCertificate.subject.commonName!;
+
+    const serverUri = info.tbsCertificate.extensions?.subjectAltName.uniformResourceIdentifier[0];
+    // istanbul ignore next
+    if (serverUri !== server.serverInfo.applicationUri) {
+        console.log("Warning certificate uniformResourceIdentifier doesn't match serverInfo.applicationUri");
+        console.log("subjectKeyIdentifier : ", info.tbsCertificate.extensions?.subjectKeyIdentifier);
+        console.log("subjectAltName       : ", info.tbsCertificate.extensions?.subjectAltName);
+        console.log("commonName           : ", info.tbsCertificate.subject.commonName!);
+        console.log("applicationUri       : ", server.serverInfo.applicationUri);
+    }
+
+    // istanbul ignore next
+    if (!server.serverInfo.applicationName.text) {
+        debugLog("warning: application name is missing");
+    }
+    // The globally unique identifier for the Server instance. The serverUri matches
+    // the applicationUri from the ApplicationDescription defined in 7.1.
+    const s = {
+
+        serverUri: server.serverInfo.applicationUri,
+
+        // The globally unique identifier for the Server product.
+        productUri: server.serverInfo.productUri,
+
+        serverNames: [
+            { locale: "en-US", text: server.serverInfo.applicationName.text }
+        ],
+        serverType: server.serverType,
+
+        discoveryUrls,
+        gatewayServerUri: null,
+        isOnline,
+        semaphoreFilePath: null
+    };
+    return s;
+}
+function constructRegisterServerRequest(
+    serverB: OPCUABaseServer,
+    isOnline: boolean
+): RegisterServerRequest {
+
+    const server = constructRegisteredServer(serverB, isOnline);
     return new RegisterServerRequest({
-
-        server: {
-            // The globally unique identifier for the Server instance. The serverUri matches
-            // the applicationUri from the ApplicationDescription defined in 7.1.
-            serverUri: server.serverInfo.applicationUri,
-
-            // The globally unique identifier for the Server product.
-            productUri: server.serverInfo.productUri,
-            serverNames: [
-                { locale: "en", text: server.serverInfo.productName }
-            ],
-            serverType: server.serverType,
-
-            discoveryUrls,
-            gatewayServerUri: null,
-            isOnline,
-            semaphoreFilePath: null
-        }
+        server
     });
 }
 
 function constructRegisterServer2Request(
-    server: any,
+    serverB: OPCUABaseServer,
     isOnline: boolean
 ): RegisterServer2Request {
 
-    const discoveryUrls = server.getDiscoveryUrls();
-    assert(!isOnline || discoveryUrls.length >= 1, "expecting some discoveryUrls if we go online ....");
+    const server = constructRegisteredServer(serverB, isOnline);
 
     return new RegisterServer2Request({
-
-        server: {
-            // The globally unique identifier for the Server instance. The serverUri matches
-            // the applicationUri from the ApplicationDescription defined in 7.1.
-            serverUri: server.serverInfo.applicationUri,
-
-            // The globally unique identifier for the Server product.
-            productUri: server.serverInfo.productUri,
-            serverNames: [
-                { locale: "en", text: server.serverInfo.productName }
-            ],
-            serverType: server.serverType,
-
-            discoveryUrls,
-            gatewayServerUri: null,
-            isOnline,
-            semaphoreFilePath: null
-        },
-
         discoveryConfiguration: [
             new MdnsDiscoveryConfiguration({
-                mdnsServerName: server.serverInfo.applicationUri,
-                serverCapabilities: server.capabilitiesForMDNS
+                mdnsServerName: serverB.serverInfo.applicationUri,
+                serverCapabilities: serverB.capabilitiesForMDNS
             })
-        ]
+        ],
+        server
     });
 }
 
@@ -187,17 +197,25 @@ const infinite_connectivity_strategy = {
     randomisationFactor: 0
 };
 
+interface ClientBaseEx extends OPCUAClientBase {
+
+    _serverEndpoints: EndpointDescription[];
+
+    performMessageTransaction(request: RegisterServer2Request, callback: ResponseCallback<RegisterServer2Response>): void;
+    performMessageTransaction(request: RegisterServerRequest, callback: ResponseCallback<RegisterServerResponse>): void;
+}
+
 function sendRegisterServerRequest(
-    self: any,
-    client: any,
+    server: OPCUABaseServer,
+    client: ClientBaseEx,
     isOnline: boolean,
     callback: EmptyCallback
 ) {
 
     // try to send a RegisterServer2Request
-    const request = constructRegisterServer2Request(self.server, isOnline);
+    const request = constructRegisterServer2Request(server, isOnline);
 
-    client.performMessageTransaction(request, (err: Error | null, response: RegisterServer2Response) => {
+    client.performMessageTransaction(request, (err: Error | null, response?: RegisterServer2Response) => {
         if (!err) {
             // RegisterServerResponse
             debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has succeeded (isOnline",
@@ -210,9 +228,9 @@ function sendRegisterServerRequest(
             debugLog("RegisterServerManager#_registerServer" +
                 " falling back to using sendRegisterServerRequest instead");
             // fall back to
-            const request1 = constructRegisterServerRequest(self.server, isOnline);
+            const request1 = constructRegisterServerRequest(server, isOnline);
             // xx console.log("request",request.toString());
-            client.performMessageTransaction(request1, (err1: Error | null, response1: RegisterServerResponse) => {
+            client.performMessageTransaction(request1, (err1: Error | null, response1?: RegisterServerResponse) => {
                 if (!err1) {
                     debugLog("RegisterServerManager#_registerServer sendRegisterServerRequest " +
                         "has succeeded (isOnline", isOnline, ")");
@@ -227,6 +245,10 @@ function sendRegisterServerRequest(
     });
 }
 
+export interface RegisterServerManagerOptions {
+    server: OPCUABaseServer;
+    discoveryServerEndpointUrl: string;
+}
 /**
  * RegisterServerManager is responsible to Register an opcua server on a LDS or LDS-ME server
  * This class takes in charge :
@@ -272,10 +294,10 @@ export class RegisterServerManager
     private _registrationTimerId: NodeJS.Timer | null;
     private state: RegisterServerManagerStatus = RegisterServerManagerStatus.INACTIVE;
     private _registration_client: OPCUAClientBase | null = null;
-    private selectedEndpoint: any;
-    private _serverEndpoints: any;
+    private selectedEndpoint?: EndpointDescription;
+    private _serverEndpoints: EndpointDescription[] = [];
 
-    constructor(options: any) {
+    constructor(options: RegisterServerManagerOptions) {
 
         super();
 
@@ -304,8 +326,8 @@ export class RegisterServerManager
     }
 
     public _setState(status: RegisterServerManagerStatus) {
-        const previousState = this.state || "";
-        debugLog("RegisterServerManager#setState : => ", status.toString(), " was ", previousState.toString());
+        const previousState = this.state || RegisterServerManagerStatus.INACTIVE;
+        debugLog("RegisterServerManager#setState : ", RegisterServerManagerStatus[previousState], " => ", RegisterServerManagerStatus[status]);
         this.state = status;
     }
 
@@ -360,24 +382,24 @@ export class RegisterServerManager
         assert(typeof this.discoveryServerEndpointUrl === "string");
         assert(this.state === RegisterServerManagerStatus.INACTIVE);
         this._setState(RegisterServerManagerStatus.INITIALIZING);
-        this.selectedEndpoint = null;
+        this.selectedEndpoint = undefined;
 
         // Retry Strategy must be set
         const client = OPCUAClientBase.create({
             certificateFile: this.server.certificateFile,
             clientName: "RegistrationClient-1",
             connectionStrategy: infinite_connectivity_strategy,
-            privateKeyFile: this.server.privateKeyFile
-        });
+            privateKeyFile: this.server.privateKeyFile,
+        }) as ClientBaseEx;
 
         this._registration_client = client;
 
-        client.on("backoff", (nretry: number, delay: number) => {
+        client.on("backoff", (nbRetry: number, delay: number) => {
             debugLog("RegisterServerManager - received backoff");
             console.log(
                 chalk.bgWhite.cyan("contacting discovery server backoff "),
                 this.discoveryServerEndpointUrl, " attempt #",
-                nretry, " retrying in ", delay / 1000.0, " seconds");
+                nbRetry, " retrying in ", delay / 1000.0, " seconds");
             this._emitEvent("serverRegistrationPending");
         });
 
@@ -409,7 +431,7 @@ export class RegisterServerManager
                             assert(endpoint.serverCertificate);
                             this.selectedEndpoint = endpoint;
                         } else {
-                            this.selectedEndpoint = null;
+                            this.selectedEndpoint = undefined;
                         }
                     } else {
                         debugLog("RegisterServerManager#_establish_initial_connection " +
@@ -422,7 +444,7 @@ export class RegisterServerManager
             // function closing_discovery_server_connection
             (callback: EmptyCallback) => {
 
-                this._serverEndpoints = (client as any)._serverEndpoints;
+                this._serverEndpoints = client._serverEndpoints;
 
                 client.disconnect((err?: Error) => {
                     // client = null;
@@ -550,7 +572,7 @@ export class RegisterServerManager
         assert(_.isFunction(outer_callback));
 
         debugLog("RegisterServerManager#_registerServer isOnline:",
-            isOnline, "seleectedEndpoint: ", this.selectedEndpoint.endpointUrl);
+            isOnline, "selectedEndpoint: ", this.selectedEndpoint?.endpointUrl);
 
         assert(this.selectedEndpoint,
             "must have a selected endpoint => please call _establish_initial_connection");
@@ -579,10 +601,10 @@ export class RegisterServerManager
             connectionStrategy: no_reconnect_connectivity_strategy
         };
 
-        const client = OPCUAClientBase.create(options);
+        const client = OPCUAClientBase.create(options) as ClientBaseEx;
 
         const tmp = this._serverEndpoints;
-        (client as any)._serverEndpoints = tmp;
+        client._serverEndpoints = tmp;
         (server as any)._registration_client = client;
 
         const theStatus = isOnline
@@ -596,7 +618,7 @@ export class RegisterServerManager
             // establish_connection_with_lds
             (callback: EmptyCallback) => {
 
-                client.connect(selectedEndpoint.endpointUrl, (err?: Error) => {
+                client.connect(selectedEndpoint?.endpointUrl!, (err?: Error) => {
                     debugLog("establish_connection_with_lds => err = ", err);
                     if (err) {
                         debugLog("RegisterServerManager#_registerServer connection to client has failed");
@@ -652,7 +674,7 @@ export class RegisterServerManager
                 });
             },
             (callback: EmptyCallback) => {
-                sendRegisterServerRequest(this, client, isOnline, (err?: Error) => {
+                sendRegisterServerRequest(this.server!, client as ClientBaseEx, isOnline, (err?: Error) => {
                     callback(err!);
                 });
             },
