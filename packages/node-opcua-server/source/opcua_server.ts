@@ -215,7 +215,7 @@ function g_sendError(
 
 const default_build_info = {
   manufacturerName: "Node-OPCUA : MIT Licence ( see http://node-opcua.github.io/)",
-  productName: "NODEOPCUA-SERVER",
+  productName: "urn:NODEOPCUA-SERVER",
   productUri: null, // << should be same as default_server_info.productUri?
   softwareVersion: package_info.version
   // xx buildDate: fs.statSync(package_json_file).mtime
@@ -3451,7 +3451,7 @@ export interface OPCUAServer {
 export interface OPCUAServer extends EventEmitter {
   on(event: "create_session", eventHandler: (session: ServerSession) => void): this;
 
-  on(event: "session_activated", eventHandler: (session: ServerSession, ) => void): this;
+  on(event: "session_activated", eventHandler: (session: ServerSession,) => void): this;
 
   on(event: "session_closed", eventHandler: (session: ServerSession, reason: string) => void): this;
 
