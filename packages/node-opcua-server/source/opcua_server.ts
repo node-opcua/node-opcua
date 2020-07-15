@@ -280,7 +280,7 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
     securityMode: endpoint.securityMode,
     securityPolicyUri: endpoint.securityPolicyUri,
     transportProfileUri: endpoint.transportProfileUri,
-    userIdentityTokens: endpoint.userIdentityTokens
+    userIdentityTokens: endpoint.userIdentityTokens,
     server: {applicationUri: endpoint.server.applicationUri}
   });
   // reduce even further by explicitly setting unwanted members to null
