@@ -11,7 +11,7 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 import { callbackify } from "util";
 
-import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
+import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 
 import { assert } from "node-opcua-assert";
 import * as utils from "node-opcua-utils";
@@ -215,7 +215,7 @@ function g_sendError(
 
 const default_build_info = {
   manufacturerName: "Node-OPCUA : MIT Licence ( see http://node-opcua.github.io/)",
-  productName: "NODEOPCUA-SERVER",
+  productName: "urn:NODEOPCUA-SERVER",
   productUri: null, // << should be same as default_server_info.productUri?
   softwareVersion: package_info.version
   // xx buildDate: fs.statSync(package_json_file).mtime
@@ -654,6 +654,12 @@ export interface OPCUAServerEndpointOptions {
    */
   transportType?: TransportType
 
+  /*
+   * the primary hostname of the endpoint.
+   * @default getFullyQualifiedDomainName()
+   */
+  hostname?: string;
+
   /**
    * the TCP port to listen to.
    * @default 26543
@@ -1088,10 +1094,11 @@ export class OPCUAServer extends OPCUABaseServer {
       this.objectFactory = new Factory(this.engine);
 
       const endpointDefinitions = options.alternateEndpoints || [];
+      const hostname = getFullyQualifiedDomainName();
 
       endpointDefinitions.push({
         port: options.port || 26543,
-
+        hostname: options.hostname || hostname,
         allowAnonymous: options.allowAnonymous,
         alternateHostname: options.alternateHostname,
         disableDiscovery: options.disableDiscovery,
@@ -3339,7 +3346,8 @@ export class OPCUAServer extends OPCUABaseServer {
     if (!endpointOptions) {
       throw new Error("internal error");
     }
-
+    var hostname = getFullyQualifiedDomainName();
+    endpointOptions.hostname = endpointOptions.hostname || hostname;
     endpointOptions.port = endpointOptions.port || 26543;
 
     /* istanbul ignore next */
@@ -3362,6 +3370,7 @@ export class OPCUAServer extends OPCUABaseServer {
       securityModes: endpointOptions.securityModes,
       securityPolicies: endpointOptions.securityPolicies,
 
+      hostname: endpointOptions.hostname,
       alternateHostname,
 
       disableDiscovery: !!endpointOptions.disableDiscovery,
@@ -3479,7 +3488,7 @@ export interface OPCUAServer {
 export interface OPCUAServer extends EventEmitter {
   on(event: "create_session", eventHandler: (session: ServerSession) => void): this;
 
-  on(event: "session_activated", eventHandler: (session: ServerSession, ) => void): this;
+  on(event: "session_activated", eventHandler: (session: ServerSession,) => void): this;
 
   on(event: "session_closed", eventHandler: (session: ServerSession, reason: string) => void): this;
 

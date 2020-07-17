@@ -29,6 +29,7 @@ export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptio
 
     enumValues: any;
     typedEnum?: any;
+    lengthInBits?: number;
 
     // specialized methods
     defaultValue?: EnumItem;
@@ -39,6 +40,7 @@ export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptio
 export class EnumerationDefinitionSchema extends TypeSchemaBase implements EnumerationDefinition {
     public enumValues: any;
     public typedEnum: Enum;
+    public lengthInBits: number;
     // xx encode: (value: EnumItem, stream: OutputBinaryStream) => void;
     // xx decode: (stream: BinaryStream) => EnumItem;
 
@@ -56,7 +58,7 @@ export class EnumerationDefinitionSchema extends TypeSchemaBase implements Enume
 
         this.typedEnum = options.typedEnum;
         this.defaultValue = this.typedEnum.getDefaultValue().value;
-
+        this.lengthInBits = options.lengthInBits || 32;
     }
 }
 

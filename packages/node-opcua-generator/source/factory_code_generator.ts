@@ -362,7 +362,7 @@ function write_encode(write: WriteFunc, schema: StructuredTypeSchema): void {
             write("     */");
         }
         write("     public encode(stream: OutputBinaryStream): void {");
-        write("        super.encode(stream);");
+        write("        /* NEEDED */ super.encode(stream);");
 
         const n = schema.fields.length;
         for (let i = 0; i < n; i++) {
@@ -459,7 +459,7 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
         }
         write("    public decode(stream: BinaryStream): void {");
         write("        // call base class implementation first");
-        write("        super.decode(stream);");
+        write("        /* NEEDED !!! */ super.decode(stream);");
 
         const n = schema.fields.length;
         for (let i = 0; i < n; i++) {
