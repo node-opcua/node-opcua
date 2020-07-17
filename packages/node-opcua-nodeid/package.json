@@ -15,7 +15,8 @@
         "node-opcua-constants": "^2.6.1",
         "node-opcua-enum": "^2.6.1",
         "node-opcua-guid": "^2.6.1",
-        "underscore": "^1.10.2"
+        "underscore": "^1.10.2",
+        "chalk": "^4.0.0"
     },
     "devDependencies": {
         "node-opcua-benchmarker": "^2.6.1",
