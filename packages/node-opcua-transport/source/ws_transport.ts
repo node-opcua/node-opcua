@@ -138,10 +138,13 @@ export class Websocket_transport extends Transport<WebSocket> {
         debugLog("setting " + this.name + " _socket.setTimeout to ", this.timeout);
 
         // let use a large timeout here to make sure that we not conflict with our internal timeout
-        setTimeout(() => {
-            debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
-            this.prematureTerminate(new Error("INTERNAL_EPIPE timeout=" + this.timeout));
-        }, this.timeout + 2000);
+       
+        if (nativeSocket) {
+            nativeSocket.setTimeout(this.timeout + 2000, () => {
+                debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
+                this.prematureTerminate(new Error("INTERNAL_EPIPE timeout=" + this.timeout));
+            });
+        }
     }
 
     public prematureTerminate(err: Error) {
