@@ -72,8 +72,16 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
         stream.writeUInt8(0x00); // no body is encoded
         // note : Length shall not hbe specified, end of the job!
     } else {
+
+        if (object instanceof OpaqueStructure) {
+            // Writing raw Opaque buffer as Opaque Structure ...
+            encodeNodeId(object.nodeId, stream);
+            stream.writeUInt8(0x01); // 0x01 The body is encoded as a ByteString.
+            stream.writeByteStream(object.buffer);
+            return;
+        }
         /* istanbul ignore next */
-        if (!((object as any) instanceof BaseUAObject)) {
+        if (!(object instanceof BaseUAObject)) {
             throw new Error("Expecting a extension object");
         }
         // ensure we have a valid encoding Default Binary ID !!!

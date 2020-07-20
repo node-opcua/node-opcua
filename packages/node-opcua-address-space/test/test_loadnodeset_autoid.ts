@@ -5,7 +5,7 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import {
     resolveDynamicExtensionObject
 } from "node-opcua-client-dynamic-extension-object";
-import { ExtensionObject } from "node-opcua-extension-object";
+import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 
@@ -14,6 +14,7 @@ import {
     ensureDatatypeExtracted,
     generateAddressSpace,
 } from "..";
+import { assert } from "console";
 
 describe("Testing AutoID custom types", async function (this: any) {
 
@@ -188,11 +189,15 @@ describe("Testing AutoID custom types", async function (this: any) {
                 }
             }
         });
+        // tslint:disable-next-line: no-console
+        // console.log(scanResult.toString());
 
         const v = new Variant({
             dataType: DataType.ExtensionObject,
             value: scanResult
         });
+
+
         const reload_v = encode_decode(v);
 
         const extraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
@@ -200,9 +205,21 @@ describe("Testing AutoID custom types", async function (this: any) {
 
         // tslint:disable-next-line: no-console
         console.log(reload_v.toString());
-        // tslint:disable-next-line: no-console
-        console.log(scanResult.toString());
 
+        // re-encode reload_vso that we keep the Opaque structure
+        const reload_v2 = encode_decode(reload_v);
+        reload_v2.value.should.be.instanceOf(OpaqueStructure);
+
+        // now let's encode the variant that contains the Opaque Strucgture
+        const bs2 = new BinaryStream(10000);
+        reload_v2.encode(bs2);
+
+        // and verify that it could be decoded well
+        const v2 = new Variant();
+        bs2.length =0;
+        v2.decode(bs2);
+        await resolveDynamicExtensionObject(v2, extraDataTypeManager);
+        //  console.log(v2);
 
     });
 });

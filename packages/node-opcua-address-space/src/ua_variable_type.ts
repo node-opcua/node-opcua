@@ -311,16 +311,16 @@ class MandatoryChildOrRequestedOptionalFilter {
         }
     }
 
-    public filterFor(childinstance: UAVariableType) {
+    public filterFor(childInstance: UAVariableType) {
 
-        const browseName: string = childinstance.browseName.name!;
+        const browseName: string = childInstance.browseName.name!;
 
         let map = {};
 
         if (browseName in this.optionalsMap) {
             map = this.optionalsMap[browseName];
         }
-        const newFilter = new MandatoryChildOrRequestedOptionalFilter(childinstance, map);
+        const newFilter = new MandatoryChildOrRequestedOptionalFilter(childInstance, map);
         return newFilter;
     }
 }
@@ -389,7 +389,7 @@ class CloneHelper {
 
         //
         //   /-----------------------------\
-        //   | AcknowledgableConditionType |
+        //   | AcknowledgeableConditionType |
         //   \-----------------------------/
         //              ^        |
         //              |        +---------------------|- (EnabledState)   (shadow element)
