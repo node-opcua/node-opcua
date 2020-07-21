@@ -696,23 +696,22 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * @param callback
      */
     public readHistoryValue(
-        nodes: ReadValueIdLike[],
+        nodes: NodeIdLike[],
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult[]) => void): void;
     public async readHistoryValue(
-        nodes: ReadValueIdLike[],
+        nodes: NodeIdLike[],
         start: DateTime,
         end: DateTime
     ): Promise<HistoryReadResult[]>;
-
     public readHistoryValue(
-        node: ReadValueIdLike,
+        node: NodeIdLike,
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult) => void): void;
     public async readHistoryValue(
-        nodes: ReadValueIdLike,
+        nodes: NodeIdLike,
         start: DateTime,
         end: DateTime
     ): Promise<HistoryReadResult>;

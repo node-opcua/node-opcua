@@ -42,7 +42,7 @@ describe("Testing AutoID custom types", async function (this: any) {
             NMEA = 0,// An NMEA string representing a coordinate as defined in 9.1.2.
             LOCAL = 2,// A local coordinate as defined in 9.3.4
             WGS84 = 4,// A lat / lon / alt coordinate as defined in 9.3.16
-            NAME = 5 //A name for a location as defined in 9.1.1
+            NAME = 5 // A name for a location as defined in 9.1.1
         }
         interface ScanSettings extends ExtensionObject {
             duration: number;

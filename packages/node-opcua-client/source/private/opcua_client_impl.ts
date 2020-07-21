@@ -57,6 +57,7 @@ import {
 import { StatusCodes } from "node-opcua-status-code";
 import {
     ErrorCallback,
+    Callback
 } from "node-opcua-status-code";
 
 import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
@@ -395,14 +396,14 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      *
      */
     public async createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
-    public createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
     public createSession(
         userIdentityInfo: UserIdentityInfo,
-        callback: (err: Error | null, session?: ClientSession) => void): void;
-    public createSession(callback: (err: Error | null, session?: ClientSession) => void): void;
+        callback: Callback<ClientSession>): void;
+    public createSession(callback: Callback<ClientSession>): void;
     /**
      * @internal
      * @param args
+     * 
      */
     public createSession(...args: any[]): any {
 
@@ -591,7 +592,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                         innerCallback();
                     });
                 } catch (err) {
-                    console.log("Execption catch in inner function,  check your code ", err);
+                    console.log("Exception catch in inner function,  check your code ", err);
                     errorLog("OPCUAClientImpl#withClientSession", err.message);
                     the_error = err;
                     innerCallback();
@@ -715,7 +716,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 const result = await func(session, subscription);
                 return result;
             } catch (err) {
-                console.log("withSubscriptionAsync inner functon failed ", err.message);
+                console.log("withSubscriptionAsync inner function failed ", err.message);
                 throw err;
             } finally {
                 await subscription.terminate();
@@ -899,7 +900,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             response.serverEndpoints = response.serverEndpoints || [];
 
             if (!verifyEndpointDescriptionMatches(this, response.serverEndpoints)) {
-                errorLog("Endpoint description previously retrieved with GetendpointsDescription");
+                errorLog("Endpoint description previously retrieved with GetEndpointsDescription");
                 errorLog("CreateSessionResponse.serverEndpoints= ");
                 errorLog(response.serverEndpoints);
                 return callback(new Error("Invalid endpoint descriptions Found"));
@@ -944,7 +945,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             endpoint: this.endpoint!,
             securityPolicy: this._secureChannel.securityPolicy,
             serverCertificate,
-            serverNonce: serverNonce! // please checl this !
+            serverNonce: serverNonce! // please check this !
         };
 
         this.createUserIdentityToken(
