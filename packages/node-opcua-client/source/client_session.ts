@@ -492,27 +492,27 @@ export interface ClientSessionSubscriptionService {
 export interface ClientSessionReadHistoryService {
 
     readHistoryValue(
-        nodes: ReadValueIdOptions[],
+        nodes: NodeIdLike[],
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult[]) => void
     ): void;
 
     readHistoryValue(
-        nodes: ReadValueIdOptions[],
+        nodes: NodeIdLike[],
         start: DateTime,
         end: DateTime
     ): Promise<HistoryReadResult[]>;
 
     readHistoryValue(
-        node: ReadValueIdOptions,
+        node: NodeIdLike,
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, result?: HistoryReadResult) => void
     ): void;
 
     readHistoryValue(
-        nodes: ReadValueIdOptions,
+        nodes: NodeIdLike,
         start: DateTime,
         end: DateTime
     ): Promise<HistoryReadResult>;

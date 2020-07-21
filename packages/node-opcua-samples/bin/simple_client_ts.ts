@@ -580,9 +580,8 @@ async function main() {
         console.log(" ---------------------------------------------------------- History Read------------------------");
         const now = Date.now();
         const start = now - 1000; // read 1 seconds of history
-        const historicalReadResult = await the_session.readHistoryValue({
-            nodeId: monitored_node
-        }, new Date(start), new Date(now));
+        const historicalReadResult = await the_session.readHistoryValue(monitored_node, new Date(start), new Date(now));
+        console.log(historicalReadResult.toString());
         console.log(" -----------------------------------------------------------------------------------------------------------------");
     }
 
