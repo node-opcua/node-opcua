@@ -28,7 +28,6 @@ export interface ObjectExplorerOptions {
 
 const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
 
-
 function convertNodeIdToDataType(dataTypeId: NodeId): DataType {
     return (dataTypeId as any)._dataType as DataType;
 }
