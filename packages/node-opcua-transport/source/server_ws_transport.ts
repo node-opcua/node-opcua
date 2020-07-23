@@ -4,7 +4,6 @@
 // tslint:disable:class-name
 // system
 import * as chalk from "chalk";
-import { Socket } from "net";
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
@@ -12,23 +11,21 @@ import * as _ from "underscore";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { verify_message_chunk } from "node-opcua-chunkmanager";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ErrorCallback } from "node-opcua-status-code";
-
-// this package requires
 import { AcknowledgeMessage } from "./AcknowledgeMessage";
 import { HelloMessage } from "./HelloMessage";
-import { TCP_transport } from "./tcp_transport";
+import * as WebSocket from "ws";
+// this package requires
 import { TCPErrorMessage } from "./TCPErrorMessage";
 import { decodeMessage, packTcpMessage } from "./tools";
 
 import * as debug from "node-opcua-debug";
+import { ErrorCallback } from "node-opcua-status-code";
+import { Websocket_transport } from "./ws_transport";
 import { ServerTransport } from "./transport";
 
 const hexDump = debug.hexDump;
 const debugLog = debug.make_debugLog(__filename);
 const doDebug = debug.checkDebugFlag(__filename);
-
-type CallbackFunc = (err: null | Error) => void;
 
 function clamp_value(value: number, minVal: number, maxVal: number): number {
     assert(minVal < maxVal);
@@ -53,7 +50,7 @@ const minimumBufferSize = 8192;
  * @constructor
  *
  */
-export class ServerTCP_transport extends TCP_transport implements ServerTransport<Socket> {
+export class ServerWS_transport extends Websocket_transport implements ServerTransport<WebSocket> {
 
     public receiveBufferSize: number;
     public sendBufferSize: number;
@@ -91,7 +88,7 @@ export class ServerTCP_transport extends TCP_transport implements ServerTranspor
      *
      *
      */
-    public init(socket: Socket, callback: ErrorCallback) {
+    public init(socket: WebSocket, callback: ErrorCallback) {
         if (debugLog) {
             debugLog(chalk.cyan("init socket"));
         }
@@ -219,8 +216,8 @@ export class ServerTCP_transport extends TCP_transport implements ServerTranspor
             // The Server shall always accept versions greater than what it supports.
             if (helloMessage.protocolVersion !== this.protocolVersion) {
                 debugLog(`warning ! client sent helloMessage.protocolVersion = ` +
-                    ` 0x${helloMessage.protocolVersion.toString(16)} ` +
-                    `whereas server protocolVersion is 0x${this.protocolVersion.toString(16)}`);
+                  ` 0x${helloMessage.protocolVersion.toString(16)} ` +
+                  `whereas server protocolVersion is 0x${this.protocolVersion.toString(16)}`);
             }
 
             if (helloMessage.protocolVersion === 0xDEADBEEF || helloMessage.protocolVersion < this.protocolVersion) {
@@ -228,7 +225,7 @@ export class ServerTCP_transport extends TCP_transport implements ServerTranspor
                 // Note: 0xDEADBEEF is our special version number to simulate BadProtocolVersionUnsupported in tests
                 // invalid protocol version requested by client
                 return this._abortWithError(StatusCodes.BadProtocolVersionUnsupported,
-                    "Protocol Version Error" + this.protocolVersion, callback);
+                  "Protocol Version Error" + this.protocolVersion, callback);
 
             }
 
@@ -239,7 +236,7 @@ export class ServerTCP_transport extends TCP_transport implements ServerTranspor
             // TransportProtocol. UASC requires a TransportProtocol buffer size that is at least 8 192 bytes
             if (helloMessage.receiveBufferSize < minimumBufferSize || helloMessage.sendBufferSize < minimumBufferSize) {
                 return this._abortWithError(StatusCodes.BadConnectionRejected,
-                    "Buffer size too small (should be at least " + minimumBufferSize, callback);
+                  "Buffer size too small (should be at least " + minimumBufferSize, callback);
             }
             // the helloMessage shall only be received once.
             this._helloReceived = true;
@@ -254,8 +251,8 @@ export class ServerTCP_transport extends TCP_transport implements ServerTranspor
                 debugLog(chalk.red("BadCommunicationError ") + "Expecting 'HEL' message to initiate communication");
             }
             this._abortWithError(
-                StatusCodes.BadCommunicationError,
-                "Expecting 'HEL' message to initiate communication", callback);
+              StatusCodes.BadCommunicationError,
+              "Expecting 'HEL' message to initiate communication", callback);
 
         }
     }

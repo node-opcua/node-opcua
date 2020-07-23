@@ -12,8 +12,9 @@ import * as chalk from "chalk";
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 import { Socket } from "net";
+import * as WebSocket from 'ws';
 import * as _ from "underscore";
-import { callbackify, promisify } from "util";
+import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import {
@@ -37,7 +38,7 @@ import {
     SymmetricAlgorithmSecurityHeader
 } from "node-opcua-service-secure-channel";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ServerTCP_transport } from "node-opcua-transport";
+import { ServerTransport } from "node-opcua-transport";
 import { get_clock_tick } from "node-opcua-utils";
 import { Callback2, ErrorCallback } from "node-opcua-status-code";
 
@@ -193,7 +194,7 @@ export function nonceAlreadyBeenUsed(nonce?: Buffer): boolean {
  * @uses MessageBuilder
  * @uses MessageChunker
  */
-export class ServerSecureChannelLayer extends EventEmitter {
+export class ServerSecureChannelLayer<SOCKET_TYPE extends Socket | WebSocket = Socket | WebSocket> extends EventEmitter {
 
     public get securityTokenCount() {
         assert(_.isNumber(this.lastTokenId));
@@ -201,11 +202,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     public get remoteAddress() {
-        return this._remoteAddress;
+        return this.transport.remoteAddress;
     }
 
     public get remotePort() {
-        return this._remotePort;
+        return this.transport.remotePort;
     }
 
     /**
@@ -296,7 +297,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private _securityTokenTimeout: NodeJS.Timer | null;
     private _transactionsCount: number;
     private revisedLifetime: number;
-    private readonly transport: ServerTCP_transport;
+    private readonly transport: ServerTransport<SOCKET_TYPE>;
     private derivedKeys?: DerivedKeys1;
 
     private objectFactory?: ObjectFactory;
@@ -315,7 +316,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private __verifId: any;
     private _transport_socket_close_listener?: any;
 
-    public constructor(options: SeverSecureChannelLayerOptions) {
+    public constructor(options: SeverSecureChannelLayerOptions, transport: ServerTransport<SOCKET_TYPE>) {
 
         super();
 
@@ -331,7 +332,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.clientCertificate = null;
         this.clientNonce = null;
 
-        this.transport = new ServerTCP_transport();
+        this.transport = transport;
 
         this.__hash = getNextChannelId();
         assert(this.__hash > 0);
@@ -442,11 +443,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     public abruptlyInterrupt() {
-        const clientSocket = this.transport._socket;
-        if (clientSocket) {
-            clientSocket.end();
-            clientSocket.destroy();
-        }
+        this.transport.dispose();
     }
 
     /**
@@ -518,12 +515,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @param socket
      * @param callback
      */
-    public init(socket: Socket, callback: ErrorCallback): void {
+    public init(socket: SOCKET_TYPE, callback: ErrorCallback): void {
 
         this.transport.timeout = this.timeout;
         debugLog("Setting socket timeout to ", this.transport.timeout);
 
-        this.transport.init(socket, (err?: Error) => {
+        this.transport.init(socket, (err?: Error| null) => {
             if (err) {
                 callback(err);
             } else {
@@ -712,13 +709,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
         const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy);
         return endpoint_desc !== null;
-    }
-
-    public _rememberClientAddressAndPort() {
-        if (this.transport && this.transport._socket) {
-            this._remoteAddress = this.transport._socket.remoteAddress || "";
-            this._remotePort = this.transport._socket.remotePort || 0;
-        }
     }
 
     private _stop_security_token_watch_dog() {
@@ -1277,7 +1267,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         requestId = this.messageBuilder.sequenceHeader.requestId;
 
         const message: Message = {
-            channel: this,
+            channel: this as ServerSecureChannelLayer<any>,
             request,
             requestId
         };

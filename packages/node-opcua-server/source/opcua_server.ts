@@ -168,7 +168,7 @@ import { RegisterServerManager } from "./register_server_manager";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import { ServerCapabilitiesOptions } from "./server_capabilities";
-import { OPCUAServerEndPoint } from "./server_end_point";
+import { OPCUAServerEndPoint, OPCUATCPServerEndPoint, OPCUAWSServerEndPoint, OPCUAWSSecureServerEndPoint } from "./server_end_point";
 import { ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
@@ -641,9 +641,20 @@ export enum RegisterServerMethod {
   LDS = 3 // the server registers itself to the LDS or LDS-ME (Local Discovery Server)
 }
 
+export enum TransportType {
+  TCP = 1,
+  WEBSOCKET = 2,
+  WEBSOCKET_SECURE = 3
+}
+
 export interface OPCUAServerEndpointOptions {
 
   /**
+   * the transport type of this endpoint (default: TCP)
+   */
+  transportType?: TransportType
+
+  /*
    * the primary hostname of the endpoint.
    * @default getFullyQualifiedDomainName()
    */
@@ -1010,6 +1021,8 @@ export class OPCUAServer extends OPCUABaseServer {
     options = options || {};
 
     this.options = options;
+
+    options.transportType = options.transportType || TransportType.TCP;
 
     /**
      * @property maxAllowedSessionNumber
@@ -3293,9 +3306,11 @@ export class OPCUAServer extends OPCUABaseServer {
     return g_sendError(channel, message, HistoryUpdateResponse, StatusCodes.BadNotImplemented);
   }
 
-  private createEndpoint(port1: number, serverOptions: OPCUAServerOptions): OPCUAServerEndPoint {
-    // add the tcp/ip endpoint with no security
-    const endPoint = new OPCUAServerEndPoint({
+  private createEndpoint(port1: number,transportType: TransportType, serverOptions: OPCUAServerOptions): OPCUAServerEndPoint {
+    // add the tcp/ip endpoint with no security, a ws endpoint or a wss endpoint
+    let transportConstructor = this.getTransportConstructor(transportType);
+
+    const endPoint = new transportConstructor({
 
       port: port1,
 
@@ -3314,6 +3329,17 @@ export class OPCUAServer extends OPCUABaseServer {
     return endPoint;
   };
 
+  private getTransportConstructor(transportType: TransportType) {
+    switch(transportType){
+      case TransportType.TCP:
+        return OPCUATCPServerEndPoint;
+      case TransportType.WEBSOCKET:
+        return OPCUAWSServerEndPoint;
+      case TransportType.WEBSOCKET_SECURE:
+        return OPCUAWSSecureServerEndPoint;
+    }
+  }
+
   private createEndpointDescriptions(serverOption: OPCUAServerOptions, endpointOptions: OPCUAServerEndpointOptions): OPCUAServerEndPoint {
 
     /* istanbul ignore next */
@@ -3331,7 +3357,9 @@ export class OPCUAServer extends OPCUABaseServer {
 
     const port = Number(endpointOptions.port || 0);
 
-    const endPoint = this.createEndpoint(port, serverOption);
+    endpointOptions.transportType = endpointOptions.transportType || TransportType.TCP;
+                
+    const endPoint = this.createEndpoint(port, endpointOptions.transportType, serverOption);
 
     endpointOptions.alternateHostname = endpointOptions.alternateHostname || [];
     const alternateHostname = (endpointOptions.alternateHostname instanceof Array) ? endpointOptions.alternateHostname : [endpointOptions.alternateHostname];

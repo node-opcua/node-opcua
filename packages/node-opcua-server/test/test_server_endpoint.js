@@ -14,7 +14,7 @@ const it_with_crypto = it;
 
 const default_port = 1234;
 
-const OPCUAServerEndPoint = require("..").OPCUAServerEndPoint;
+const OPCUATCPServerEndPoint = require("..").OPCUATCPServerEndPoint;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServerEndpoint#addEndpointDescription", function () {
@@ -27,7 +27,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
 
     beforeEach(function () {
 
-        server_endpoint = new OPCUAServerEndPoint({
+        server_endpoint = new OPCUATCPServerEndPoint({
             port: default_port,
             serverInfo: {},
             certificateChain: null,
@@ -79,7 +79,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
         await extractFullyQualifiedDomainName();
     });
     beforeEach(function () {
-        server_endpoint = new OPCUAServerEndPoint({
+        server_endpoint = new OPCUATCPServerEndPoint({
             port: default_port,
             serverInfo: {},
             certificateChain: null,
@@ -115,7 +115,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
 
     let server_endpoint;
     beforeEach(function () {
-        server_endpoint = new OPCUAServerEndPoint({
+        server_endpoint = new OPCUATCPServerEndPoint({
             port: default_port,
             serverInfo: {},
             certificateChain: null,
@@ -158,7 +158,7 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
     let server_endpoint;
     beforeEach(function () {
 
-        server_endpoint = new OPCUAServerEndPoint({
+        server_endpoint = new OPCUATCPServerEndPoint({
             port: default_port,
             serverInfo: {},
             certificateChain: null,

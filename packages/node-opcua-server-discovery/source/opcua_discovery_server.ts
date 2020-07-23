@@ -27,7 +27,7 @@ import {
 import {
     OPCUABaseServer,
     OPCUABaseServerOptions,
-    OPCUAServerEndPoint
+    OPCUATCPServerEndPoint
 } from "node-opcua-server";
 
 import {
@@ -135,7 +135,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         // opc.tcp://localhost:4840/UADiscovery
 
         this._delayInit = () => {
-            const endPoint = new OPCUAServerEndPoint({
+            const endPoint = new OPCUATCPServerEndPoint({
                 port,
 
                 certificateChain: this.getCertificateChain(),

@@ -55,6 +55,7 @@
         "@istanbuljs/nyc-config-typescript": "^1.0.1",
         "@types/mocha": "^7.0.2",
         "@types/prettier": "^2.0.0",
+        "@types/ws": "^7.2.5",
         "app-module-path": "^2.2.0",
         "babel-minify-webpack-plugin": "^0.3.1",
         "babili-webpack-plugin": "^0.1.2",
@@ -151,6 +152,7 @@
         "unirest": "^0.6.0",
         "vorpal": "^1.12.0",
         "vorpal-repl": "^1.1.8",
+        "ws": "^7.3.0",
         "xml-writer": "^1.7.0",
         "yargs": "^15.3.1"
     },
