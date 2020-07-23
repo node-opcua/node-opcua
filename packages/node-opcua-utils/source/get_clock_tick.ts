@@ -2,8 +2,9 @@
  * @module node-opcua-utils
  */
 export let get_clock_tick: () => number;
+import hrtime = require("browser-process-hrtime");
 
-if (process.hrtime) {
+if (process && process.hrtime) {
     const tickOrigin = process.hrtime()[0];
     // clock it as a double in millisecond
     // so we can measure very tiny time intervals

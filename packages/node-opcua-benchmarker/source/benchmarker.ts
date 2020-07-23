@@ -9,6 +9,8 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { format } from "url";
 
+import hrtime = require("browser-process-hrtime");
+
 export interface IPerformanceData {
     message: string;
     ops: number;
@@ -37,9 +39,9 @@ export interface ITestRun {
 }
 
 async function measure_cycle(func: TestFunction): Promise<number> {
-    const start = process.hrtime(); // tuple [second, nanosecond]
+    const start = hrtime(); // tuple [second, nanosecond]
     await func();
-    const elapsed = process.hrtime(start);
+    const elapsed = hrtime(start);
     return elapsed[0] + elapsed[1] / 1000000000;
 }
 

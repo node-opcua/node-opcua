@@ -5,6 +5,7 @@ import { assert } from "node-opcua-assert";
 import {
     checkDebugFlag, make_debugLog
 } from "node-opcua-debug";
+import hrtime = require("browser-process-hrtime");
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -37,7 +38,7 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
 
         _t._samplingId = setInterval(() => {
 
-            const start = doDebug ? process.hrtime() : undefined;
+            const start = doDebug ? hrtime() : undefined;
             let counter = 0;
             for (const m in _t.monitoredItems) {
                 if (_t.monitoredItems.hasOwnProperty(m)) {
@@ -46,7 +47,7 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
                 }
             }
             if (doDebug) {
-                const elapsed = process.hrtime(start);
+                const elapsed = hrtime(start);
                 debugLog(`Sampler ${samplingInterval}  ms : Benchmark took ${((elapsed[0] * NS_PER_SEC + elapsed[1]) / 1000 / 1000.0).toFixed(3)} milliseconds for ${counter} elements`);
             }
         }, samplingInterval);

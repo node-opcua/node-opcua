@@ -32,7 +32,7 @@ describe("Benchmarking javascript clock", function () {
                 //
                 // note : we cannot make any assumption here
                 //        on travis for instance process.hrtime could be slower than new Date()
-                //        on windows barebone this could be the opposite
+                //        on windows bare bone this could be the opposite
                 //
                 // this.fastest.name.should.eql("process.hrtime");
                 done();

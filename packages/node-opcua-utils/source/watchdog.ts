@@ -5,7 +5,6 @@ import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
-
 type ArbitraryClockTick = number; // in millisecond
 type DurationInMillisecond = number;
 
@@ -15,10 +14,16 @@ type DurationInMillisecond = number;
  * 
  */
 function _getCurrentSystemTick(): ArbitraryClockTick {
-    const h = process.hrtime();
-    const n = h[1] / 1000000;
-    assert(n <= 1000);
-    return (h[0] * 1000 + n);
+
+    if (process && process.hrtime) {
+        const h = process.hrtime();
+        const n = h[1] / 1000000;
+        assert(n <= 1000);
+        return (h[0] * 1000 + n);
+    } else {
+        // fallback to Date as process.hrtime doesn't exit
+        return Date.now();
+    }
 }
 
 export interface IWatchdogData2 {

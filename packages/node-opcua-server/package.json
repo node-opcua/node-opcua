@@ -17,6 +17,7 @@
         "bonjour": "^3.5.0",
         "colors": "^1.4.0",
         "dequeue": "^1.0.5",
+        "browser-process-hrtime": "^1.0.0",
         "node-opcua-address-space": "^2.8.0",
         "node-opcua-assert": "^2.6.1",
         "node-opcua-basic-types": "^2.8.0",
