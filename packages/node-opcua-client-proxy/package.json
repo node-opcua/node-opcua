@@ -14,7 +14,6 @@
         "async": "^3.2.0",
         "node-opcua-address-space": "^2.8.0",
         "node-opcua-assert": "^2.6.1",
-        "node-opcua-client": "^2.8.0",
         "node-opcua-constants": "^2.6.1",
         "node-opcua-data-model": "^2.8.0",
         "node-opcua-data-value": "^2.8.0",
