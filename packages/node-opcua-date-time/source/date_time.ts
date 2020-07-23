@@ -3,6 +3,7 @@
  */
 import * as  long from "long";
 import { assert } from "node-opcua-assert";
+import hrtime = require("browser-process-hrtime");
 
 export class DateWithPicoseconds extends Date {
 
@@ -151,7 +152,7 @@ export function getCurrentClockWithJavascriptDate(): PreciseClock {
     };
 }
 
-let origin = process.hrtime();
+let origin = hrtime();
 let refTime = Date.now();
 
 // update refTime now and then to make sure that we don't miss
@@ -167,7 +168,7 @@ export function installPeriodicClockAdjustmement() {
         return;
     }
     timerId = g_setInterval(() => {
-        origin = process.hrtime();
+        origin = hrtime();
         refTime = Date.now();
     }, 30000 /* every 30 seconds */);
 }
@@ -188,18 +189,18 @@ const gClock: PreciseClockEx = {
 
 // make sure we get a pointer to the actual process.hrtime,
 // just in case it get overridden by some library (such as sinon)
-const hrtime = process.hrtime;
+const original_hrtime = hrtime;
 
-const setTimeout_chek = setTimeout;
+const setTimeout_check = setTimeout;
 /*kWithProcessHRTime*/
 export function getCurrentClock(): PreciseClock {
 
-    if (setTimeout_chek !== setTimeout) {
+    if (setTimeout_check !== setTimeout) {
         // is fake sinon clock being used ?
         // in this case hrtime is not working
         return getCurrentClockWithJavascriptDate();
     }
-    gClock.tick = hrtime(origin); // [seconds, nanoseconds]
+    gClock.tick = original_hrtime(origin); // [seconds, nanoseconds]
     const milliseconds = gClock.tick[0] * 1000 + Math.floor(gClock.tick[1] / 1000000) + refTime;
     const picoseconds = (gClock.tick[1] % 1000000) * 1000;
     // display drift in seconds :

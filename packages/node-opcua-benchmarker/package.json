@@ -12,6 +12,7 @@
 	"dependencies": {
 		"async": "^3.2.0",
 		"node-opcua-assert": "^2.6.1",
+		"browser-process-hrtime": "^1.0.0",
 		"underscore": "^1.10.2"
 	},
 	"author": "Etienne Rossignon",
