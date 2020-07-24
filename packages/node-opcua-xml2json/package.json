@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-xml2json",
-  "version": "2.7.0",
+  "version": "2.8.1",
   "description": "pure nodejs OPCUA SDK - module -xml2json",
   "main": "dist/source/index.js",
   "type": "dist/source/index.d.ts",
@@ -13,8 +13,8 @@
     "bomstrip": "^0.1.4",
     "ltx": "^2.9.2",
     "node-opcua-assert": "^2.6.1",
-    "node-opcua-debug": "^2.6.1",
-    "node-opcua-utils": "^2.7.0",
+    "node-opcua-debug": "^2.8.1",
+    "node-opcua-utils": "^2.8.1",
     "underscore": "^1.10.2",
     "xml-writer": "^1.7.0"
   },
