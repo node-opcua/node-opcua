@@ -383,7 +383,7 @@ async function _extractNodeIds(
     }
 
     return {
-        getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId | null{
+        getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId | null {
             return map[key] || null;
         }
     };
@@ -1022,15 +1022,13 @@ async function resolveFieldType(
     }
 
     if (dataTypeNodeId.value === 0) {
-        const category = FieldCategory.basic;
-        const schema = dataTypeFactory.getSimpleType("Variant");
-        const v2: Cache = {
-            category,
+        const v3: Cache = {
+            category: FieldCategory.basic,
             fieldTypeName: "Variant",
-            schema
+            schema: dataTypeFactory.getSimpleType("Variant")
         };
-        cache[key] = v2;
-        return v2;
+        cache[key] = v3;
+        return v3;
     }
 
     const fieldTypeName = await readBrowseName(session, dataTypeNodeId);
