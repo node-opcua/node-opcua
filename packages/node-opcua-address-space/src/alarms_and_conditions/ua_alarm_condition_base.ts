@@ -154,7 +154,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         }
 
         // SuppressedOrShelved : Mandatory
-        // install supressedOrShelved automatic detection
+        // install suppressedOrShelved automatic detection
         /**
          * The SuppressedState and the ShelvingState together result in the SuppressedOrShelved status of the
          * Condition. When an Alarm is in one of the states, the SuppressedOrShelved property will be set TRUE
