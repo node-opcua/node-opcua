@@ -7,28 +7,29 @@ import { LocalizedText, QualifiedName, QualifiedNameLike } from "node-opcua-data
 import { NodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import {
-    InstantiateObjectOptions, ModellingRuleType,
+    InstantiateObjectOptions,
+    ModellingRuleType,
     Property,
     UAObject,
     UAObjectType,
     UAReferenceType,
-    UAVariable, UAVariableT,
-    UAVariableType, UAVariableTypeT
+    UAVariable,
+    UAVariableT,
+    UAVariableType,
+    UAVariableTypeT,
 } from "../address_space_ts";
 
 export type UtcTime = DateTime;
 
 export type UABaseEventType = UAObjectType;
 
-export interface NonHierarchicalReferences extends UAReferenceType {
-}
+export interface NonHierarchicalReferences extends UAReferenceType {}
 
 /**
  * The StateVariableType is the base VariableType for Variables that store the current state of a
  * StateMachine as a human readable name.
  */
 export interface StateVariableB {
-
     // readonly dataType: NodeId; //  new NodeId(DataType.LocalizedText)
     // readonly valueRank: -1;
 
@@ -48,16 +49,15 @@ export interface StateVariableB {
      *  semantics of the StateMachineType
      */
     effectiveDisplayName?: UAVariableT<LocalizedText, DataType.LocalizedText>;
-
 }
 
 export interface StateVariableType extends UAVariableTypeT<LocalizedText, DataType.LocalizedText>, StateVariableB {
-     // attributes
-     isAbstract: false;
+    // attributes
+    isAbstract: false;
 }
 
 export interface StateVariable extends UAVariableT<LocalizedText, DataType.LocalizedText>, StateVariableB {
-//
+    //
 }
 
 /**
@@ -79,7 +79,7 @@ export interface TransitionVariableB {
      *
      * A subtype may restrict the DataType.
      */
-    id: UAVariableT<UAString | NodeId| UInt32, DataType.String |  DataType.NodeId | DataType.UInt32>;
+    id: UAVariableT<UAString | NodeId | UInt32, DataType.String | DataType.NodeId | DataType.UInt32>;
 
     /**
      * Name is a QualifiedName which uniquely identifies a transition within the StateMachineType
@@ -107,7 +107,7 @@ export interface TransitionVariableB {
 }
 
 export interface TransitionVariable extends UAVariableT<LocalizedText, DataType.LocalizedText>, TransitionVariableB {
-//
+    //
 }
 
 // ----------------
@@ -115,22 +115,18 @@ export interface StateB {
     stateNumber: Property<UInt32, DataType.UInt32>;
 }
 
-export interface StateType extends StateB, UAObjectType {
-}
+export interface StateType extends StateB, UAObjectType {}
 
-export interface State extends StateB, UAObject {
-}
+export interface State extends StateB, UAObject {}
 
 // ----------------
 export interface TransitionB {
     transitionNumber: Property<UInt32, DataType.UInt32>;
 }
 
-export interface TransitionType extends TransitionB, UAObjectType {
-}
+export interface TransitionType extends TransitionB, UAObjectType {}
 
-export interface Transition extends TransitionB, UAObject {
-}
+export interface Transition extends TransitionB, UAObject {}
 
 /**
  * Initial State Type
@@ -152,14 +148,11 @@ export interface Transition extends TransitionB, UAObject {
  * If no initial state for a SubStateMachine exists and the State having the SubStateMachine is
  * entered directly, then the State of the SubStateMachine is server-specific.
  */
-export interface InitialStateB extends StateB {
-}
+export interface InitialStateB extends StateB {}
 
-export interface InitialStateType extends InitialStateB, StateType {
-}
+export interface InitialStateType extends InitialStateB, StateType {}
 
-export interface InitialState extends InitialStateB, State {
-}
+export interface InitialState extends InitialStateB, State {}
 
 /**
  * ToState Reference Type
@@ -177,9 +170,7 @@ export interface InitialState extends InitialStateB, State {
  * References of this ReferenceType may be only exposed uni-directional. Sometimes this is
  * required, for example, if a Transition points to a State of a sub-machine.
  */
-export interface ToStateReferenceType extends NonHierarchicalReferences {
-
-}
+export interface ToStateReferenceType extends NonHierarchicalReferences {}
 
 /**
  *
@@ -195,9 +186,7 @@ export interface ToStateReferenceType extends NonHierarchicalReferences {
  * one of its subtypes. The TargetNode of this ReferenceType shall be an Object of the ObjectType
  * StateType or one of its subtypes.
  */
-export interface FromStateReferenceType extends NonHierarchicalReferences {
-
-}
+export interface FromStateReferenceType extends NonHierarchicalReferences {}
 
 /**
  * HasCause
@@ -230,9 +219,7 @@ export interface HasCauseReferenceType extends NonHierarchicalReferences {
  * The SourceNode of this ReferenceType shall be an Object of the ObjectType TransitionType or
  * one of its subtypes. The TargetNode can be of any NodeClass.
  */
-export interface HasEffectReferenceType extends NonHierarchicalReferences {
-
-}
+export interface HasEffectReferenceType extends NonHierarchicalReferences {}
 
 /**
  * The HasSubStateMachine ReferenceType is a concrete ReferenceType and can be used
@@ -251,9 +238,7 @@ export interface HasEffectReferenceType extends NonHierarchicalReferences {
  * same StateMachine, that is, both shall be referenced from the same Object of type
  * StateMachineType using a HasComponent Reference or a subtype of HasComponent.
  */
-export interface HasSubStateMachine extends NonHierarchicalReferences {
-
-}
+export interface HasSubStateMachine extends NonHierarchicalReferences {}
 
 /**
  * The TransitionEventType is a subtype of the BaseEventType. It can be used to generate an
@@ -293,7 +278,6 @@ export interface TransitionEventType extends UABaseEventType {
  * when the Transition was triggered.
  */
 export interface TransitionB {
-
     transitionNumber: Property<UInt32, DataType.UInt32>;
 
     // nde-opcua specific:
@@ -309,11 +293,11 @@ export interface TransitionB {
     fromStateNode: State | null;
 }
 
-export interface TransitionType extends TransitionB, UAObjectType {
-}
+export interface TransitionType extends TransitionB, UAObjectType {}
 
-export interface Transition extends TransitionB, UAObject {
-}
+export interface Transition extends TransitionB, UAObject {}
+
+export type TransitionSelector = (transitions: Transition[], fromState: State, toState: State) => Transition | null;
 
 /**
  * State Machine type
@@ -359,7 +343,7 @@ export interface StateMachineB {
      * Last transition
      *
      * LastTransition stores the last transition which occurred in an instance of the StateMachineType.
-     * LastTransition provides a human readable na ition.
+     * LastTransition provides a human readable name.
      */
     readonly lastTransition?: TransitionVariable | null;
 
@@ -374,7 +358,7 @@ export interface StateMachineB {
     getStates(): State[];
 
     /**
-     * return all state to state transition node assiciated with this state machine
+     * return all state to state transition node associated with this state machine
      */
     getTransitions(): Transition[];
 
@@ -388,17 +372,14 @@ export interface StateMachineB {
      * returns true if there is a valid transition from currentStateNode to toStateNode
      * @param toStateNode
      */
-    isValidTransition(toStateNode: State | string): boolean;
+    isValidTransition(toStateNode: State | string,  predicate?: TransitionSelector): boolean;
 
     /**
      * try to find the valid transition between fromState Node to toState Node
      * @param fromStateNode
      * @param toStateNode
      */
-    findTransitionNode(
-      fromStateNode: State,
-      toStateNode: State
-    ): Transition | null;
+    findTransitionNode(fromStateNode: State, toStateNode: State, predicate?: TransitionSelector): Transition | null;
 
     /**
      * return the current state as string
@@ -413,8 +394,7 @@ export interface StateMachineB {
      * - a TransitionEventType event will be raised
      * @param toStateNode
      */
-    setState(toStateNode: State | string | null): void;
-
+    setState(toStateNode: State | string | null, predicate?: TransitionSelector): void;
 }
 
 export interface StateMachineType extends UAObjectType, StateMachineB {
@@ -426,7 +406,6 @@ export interface StateMachineType extends UAObjectType, StateMachineB {
 export declare function promoteToStateMachine(node: UAObject): StateMachine;
 
 export interface StateMachine extends UAObject, StateMachineB {
-
     readonly currentState: StateVariable;
     readonly lastTransition?: TransitionVariable | null;
     readonly initialState: InitialState | null;
@@ -439,14 +418,11 @@ export interface StateMachine extends UAObject, StateMachineB {
 
     getStateByName(name: string): State | null;
 
-    isValidTransition(toStateNode: State | string): boolean;
+    isValidTransition(toStateNode: State | string, predicate?: TransitionSelector): boolean;
 
-    findTransitionNode(
-      fromStateNode: State,
-      toStateNode: State
-    ): Transition | null;
+    findTransitionNode(fromStateNode: State, toStateNode: State, predicate?: TransitionSelector): Transition | null;
 
     getCurrentState(): string | null;
 
-    setState(toStateNode: State | string): void;
+    setState(toStateNode: State | string, predicate?: TransitionSelector): void;
 }

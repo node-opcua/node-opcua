@@ -14,7 +14,10 @@ import {
     InstantiateObjectOptions,
     promoteToStateMachine,
     StateMachine,
-    StateMachineType
+    StateMachineType,
+    UAObject,
+    State,
+    Transition
 } from "../..";
 
 const doDebug = false;
@@ -134,14 +137,14 @@ describe("Testing Finite State Machine", () => {
         finiteStateMachineType.currentState.id.dataTypeObj.browseName.toString().should.eql("NodeId");
 
         finiteStateMachineType.currentState.typeDefinitionObj.browseName.toString()
-          .should.eql("FiniteStateVariableType");
+            .should.eql("FiniteStateVariableType");
 
     });
 
     it("should handle a FiniteStateMachine Type defined in a nodeset.xml file", () => {
 
         const exclusiveLimitStateMachineType =
-          addressSpace.findObjectType("ExclusiveLimitStateMachineType")! as ExclusiveLimitStateMachineType;
+            addressSpace.findObjectType("ExclusiveLimitStateMachineType")! as ExclusiveLimitStateMachineType;
 
         exclusiveLimitStateMachineType.browseName.toString().should.eql("ExclusiveLimitStateMachineType");
 
@@ -279,5 +282,120 @@ describe("Testing Finite State Machine", () => {
         namespace.addTransition(myFiniteStateMachine, "Maintenance", "Shutdown", 10);
 
     });
+
+});
+
+import {
+    nodesets,
+} from "node-opcua-nodesets";
+import * as sinon from "sinon";
+
+describe("FiniteStateMachine with Multiple transition from one state to an other", () => {
+
+    // some state machine may have multiple transition from one state to the other
+    // this is the case in the VisionStateMachine of the MachineVision nodeset
+    // for this reason the setState method need to have a extra argument that allows disambiguation
+
+    const oldConsole = console.log;
+    let _output: string[] = [];
+    function captureConsoleLog() {
+        /* */
+        // tslint:disable-next-line: only-arrow-functions
+        console.log = function (...args: [any, ... any[]]) {
+            _output.push(args.map(a=>""+a).join(" "));
+        }
+    }
+    function unCaptureConsoleLog() : string {
+        /* */
+        console.log = oldConsole;
+        const ret = _output.join("\n");
+        _output = [];
+        return ret;
+    }
+
+    interface UAVisionSystem extends UAObject {
+        // configurationManagement: UAConfigurationManagementSystem;
+        // recipeManagement: UARecipeManagement;
+        // resultManagement: UAResultManagement;
+        // safetyStateManagement: UASafetyStateManagement;
+        // diagnosticLevel: UAVariableT<number, DataType.UInt32>;
+        visionStateMachine: StateMachine;
+        // systemState: UAVariable;
+
+    }
+    let visionSystem: UAVisionSystem;
+    let addressSpace: AddressSpace;
+
+    before(async () => {
+
+        addressSpace = AddressSpace.create();
+
+        const xml_file = [
+            nodesets.standard,
+            nodesets.di,
+            nodesets.machineVision
+        ];
+        await generateAddressSpace(addressSpace, xml_file);
+
+        addressSpace.installAlarmsAndConditionsService();
+
+        const nsVision = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/MachineVision");
+        const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+        const visionSystemType = addressSpace.findObjectType("VisionSystemType", nsVision);
+
+        const deviceSet = addressSpace.rootFolder.objects.getFolderElementByName("DeviceSet", nsDI);
+        if (!deviceSet) throw new Error("Cannot find device set in namespace  " + nsDI);
+
+        visionSystem = visionSystemType!.instantiate({
+            browseName: "VisionSystem1",
+            organizedBy: deviceSet, // addressSpace.rootFolder.objects,
+        }) as UAVisionSystem;
+
+        promoteToStateMachine(visionSystem.visionStateMachine);
+
+        visionSystem.visionStateMachine.raiseEvent = sinon.spy();
+
+    });
+
+    after(async () => {
+        addressSpace.dispose();
+    });
+
+    beforeEach(()=>{
+        captureConsoleLog();
+        visionSystem.visionStateMachine.setState("Halted");
+        unCaptureConsoleLog();
+    });
+
+    it("MachineState#setState: should display a warning if multiple transition exists and no predicate is provided", () => {
+        
+
+        captureConsoleLog();
+        visionSystem.visionStateMachine.setState("Preoperational");
+
+        const output = unCaptureConsoleLog();
+
+        console.log(output);
+
+        output.should.match(/warning: a duplicated FromState Reference to the same target has been found/);
+        output.should.match(/Please check your model or provide a predicate method to select which one to use/);
+
+
+    });
+    it("MachineState#setState: should properly use the predicate to select which transition to use for the TransitionEventType Event", () => {
+        
+        captureConsoleLog();
+        visionSystem.visionStateMachine.setState(
+            "Preoperational",
+            (possibleTransitions: Transition[]) => possibleTransitions.find((t) => t.browseName.toString().match(/Auto/)) || null
+         );
+        const output = unCaptureConsoleLog();
+
+        console.log(output);
+
+        output.should.eql("");
+
+    });
+
 
 });
