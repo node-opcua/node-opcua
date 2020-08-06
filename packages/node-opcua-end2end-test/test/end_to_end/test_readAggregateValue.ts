@@ -6,10 +6,10 @@ import {
     ReadValueIdOptions,
     StatusCodes,
     ClientSubscription,
-    HistoryReadValueIdOptions2
-
+    HistoryReadValueIdOptions2,
+    AggregateFunction,
 } from "node-opcua";
-import { addAggregateSupport, AggregateFunction } from "node-opcua-aggregates";
+import { addAggregateSupport  } from "node-opcua-aggregates";
 import {
     createHistorian1,
     createHistorian2,

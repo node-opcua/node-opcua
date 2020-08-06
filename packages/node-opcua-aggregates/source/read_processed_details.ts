@@ -1,3 +1,4 @@
+import { AggregateFunction } from "node-opcua-constants";
 import { SessionContext, ContinuationPoint, UAVariable } from "node-opcua-address-space";
 import { NumericRange } from "node-opcua-numeric-range";
 import { QualifiedNameLike } from "node-opcua-data-model";
@@ -13,7 +14,7 @@ import {
     HistoryReadResult, ReadAtTimeDetails, ReadEventDetails, ReadProcessedDetails,
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
-import { AggregateFunction } from "./aggregates";
+
 import { getInterpolatedData } from "./interpolate";
 import { getAverageData } from "./average";
 

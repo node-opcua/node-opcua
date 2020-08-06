@@ -6,7 +6,7 @@ import { EventEmitter } from "events";
 import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
-import { AggregateFunction } from "node-opcua-aggregates"
+import { AggregateFunction } from "node-opcua-constants";
 import { DateTime } from "node-opcua-basic-types";
 import {
     ExtraDataTypeManager,

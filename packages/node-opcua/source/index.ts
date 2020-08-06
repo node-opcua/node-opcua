@@ -50,7 +50,8 @@ export {
     ObjectIds,
     ObjectTypeIds,
     ReferenceTypeIds,
-    DataTypeIds
+    DataTypeIds,
+    AggregateFunction
 } from "node-opcua-constants";
 
 export { DataType, Variant, VariantArrayType, buildVariantArray } from "node-opcua-variant";
@@ -131,3 +132,5 @@ export { OPCUADiscoveryServer } from "node-opcua-server-discovery";
 
 export { build_address_space_for_conformance_testing } from "node-opcua-address-space-for-conformance-testing";
 export { install_optional_cpu_and_memory_usage_node } from "node-opcua-vendor-diagnostic";
+
+export * from "node-opcua-aggregates";
