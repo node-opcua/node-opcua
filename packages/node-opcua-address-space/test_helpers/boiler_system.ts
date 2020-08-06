@@ -133,11 +133,11 @@ export interface BoilerOutputPipe extends Folder {
 
 }
 
-export interface BoilerDrumpType extends FolderType {
+export interface BoilerDrumType extends FolderType {
     levelIndicator: LevelIndicator;
 }
 
-export interface BoilerDrump extends Folder {
+export interface BoilerDrum extends Folder {
     levelIndicator: LevelIndicator;
 }
 
@@ -153,9 +153,9 @@ export interface BoilerType extends UAObjectType {
     flowController: FlowController;
     levelController: LevelController;
     inputPipe: BoilerInputPipe;
-    boilerDrum: BoilerDrump;
+    boilerDrum: BoilerDrum;
     outputPipe: BoilerOutputPipe;
-    boilerDrum2: BoilerDrump;
+    boilerDrum2: BoilerDrum;
     simulation: BoilerStateMachine;
 
     instantiate(options: InstantiateObjectOptions): Boiler;
@@ -166,9 +166,9 @@ export interface Boiler extends UAObject {
     flowController: FlowController;
     levelController: LevelController;
     inputPipe: BoilerInputPipe;
-    boilerDrum: BoilerDrump;
+    boilerDrum: BoilerDrum;
     outputPipe: BoilerOutputPipe;
-    boilerDrum2: BoilerDrump;
+    boilerDrum2: BoilerDrum;
     simulation: BoilerStateMachine;
 }
 
@@ -573,7 +573,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         componentOf: boilerType,
         modellingRule: "Mandatory",
         notifierOf: boilerType
-    }) as BoilerDrump;
+    }) as BoilerDrum;
 
     // BoilerType.OutputPipe (BoilerOutputPipeType)
     const outputPipe = boilerOutputPipeType.instantiate({

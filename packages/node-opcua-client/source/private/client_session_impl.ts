@@ -119,7 +119,8 @@ import {
 import {
     BrowseNextRequest,
     BrowseNextResponse,
-    HistoryReadValueIdOptions
+    HistoryReadValueIdOptions,
+    HistoryReadValueId
 } from "node-opcua-types";
 import {
     buffer_ellipsis,
@@ -154,7 +155,8 @@ import {
     SetMonitoringModeRequestLike,
     SubscriptionId,
     TransferSubscriptionsRequestLike,
-    WriteValueLike
+    WriteValueLike,
+    HistoryReadValueIdOptions2
 } from "../client_session";
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
 import { ClientSubscription } from "../client_subscription";
@@ -307,6 +309,7 @@ function __findBasicDataType(
 const emptyUint32Array = new Uint32Array(0);
 
 import { repair_client_session } from "../reconnection";
+
 
 /**
  * @class ClientSession
@@ -690,32 +693,31 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      *   "2015-06-10T09:00:00.000Z",
      *   "2015-06-10T09:01:00.000Z");
      * ```
-     * @param nodes   the read value id
+     * @param nodeToRead   the read value id
      * @param start   the start time in UTC format
      * @param end     the end time in UTC format
      * @param callback
      */
     public readHistoryValue(
-        nodes: NodeIdLike[],
+        nodesToRead: NodeIdLike[] | HistoryReadValueIdOptions2[],
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult[]) => void): void;
     public async readHistoryValue(
-        nodes: NodeIdLike[],
+        nodesToRead: NodeIdLike[] | HistoryReadValueIdOptions2[],
         start: DateTime,
         end: DateTime
     ): Promise<HistoryReadResult[]>;
     public readHistoryValue(
-        node: NodeIdLike,
+        nodeToRead: NodeIdLike | HistoryReadValueIdOptions2,
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult) => void): void;
     public async readHistoryValue(
-        nodes: NodeIdLike,
+        nodeToRead: NodeIdLike | HistoryReadValueIdOptions2,
         start: DateTime,
         end: DateTime
     ): Promise<HistoryReadResult>;
-
     public readHistoryValue(...args: any[]): any {
 
         const start = args[1];
@@ -728,16 +730,20 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         const nodes = isArray ? arg0 : [arg0];
 
-        const nodesToRead = [];
-        const historyReadDetails = [];
+        const nodesToRead: HistoryReadValueIdOptions[] = [];
 
         for (const node of nodes) {
-            nodesToRead.push({
-                continuationPoint: undefined,
-                dataEncoding: undefined, // {namespaceIndex: 0, name: undefined},
-                indexRange: undefined,
-                nodeId: resolveNodeId(node)
-            });
+
+            if (!node.nodeId) {
+                nodesToRead.push({
+                    continuationPoint: undefined,
+                    dataEncoding: undefined, // {namespaceIndex: 0, name: undefined},
+                    indexRange: undefined,
+                    nodeId: resolveNodeId(node as NodeIdLike)
+                });
+            } else {
+                nodesToRead.push(node as HistoryReadValueIdOptions);
+            }
         }
 
         const readRawModifiedDetails = new ReadRawModifiedDetails({
@@ -791,7 +797,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * ```javascript
      * //  es5
      * session.readAggregateValue(
-     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   { nodeId: "ns=5;s=Simulation Examples.Functions.Sine1" },
      *   "2015-06-10T09:00:00.000Z",
      *   "2015-06-10T09:01:00.000Z", 'Average', 3600000, function(err,dataValues) {
      *
@@ -801,7 +807,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * ```javascript
      * //  es6
      * const dataValues = await session.readAggregateValue(
-     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   { nodeId: "ns=5;s=Simulation Examples.Functions.Sine1" },
      *   "2015-06-10T09:00:00.000Z",
      *   "2015-06-10T09:01:00.000Z", 'Average', 3600000);
      * ```
@@ -813,7 +819,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * @param callback
      */
     public readAggregateValue(
-        nodes: HistoryReadValueIdOptions[],
+        nodesToRead: HistoryReadValueIdOptions[],
         startTime: DateTime,
         endTime: DateTime,
         aggregateFn: AggregateFunction,
@@ -821,14 +827,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         callback: Callback<HistoryReadResult[]>
     ): void;
     public async readAggregateValue(
-        nodes: HistoryReadValueIdOptions[],
+        nodesToRead: HistoryReadValueIdOptions[],
         startTime: DateTime,
         endTime: DateTime,
         aggregateFn: AggregateFunction,
         processingInterval: number,
     ): Promise<HistoryReadResult[]>;
     public readAggregateValue(
-        nodes: HistoryReadValueIdOptions,
+        nodeToRead: HistoryReadValueIdOptions,
         startTime: DateTime,
         endTime: DateTime,
         aggregateFn: AggregateFunction,
@@ -836,7 +842,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         callback: Callback<HistoryReadResult>
     ): void;
     public async readAggregateValue(
-        nodes: HistoryReadValueIdOptions,
+        nodeToRead: HistoryReadValueIdOptions,
         startTime: DateTime,
         endTime: DateTime,
         aggregateFn: AggregateFunction,
