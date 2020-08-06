@@ -488,31 +488,35 @@ export interface ClientSessionSubscriptionService {
     ): void;
 }
 
+export interface HistoryReadValueIdOptions2 extends HistoryReadValueIdOptions {
+    nodeId: NodeIdLike; // nodeId is mandatory here
+}
+
 // history services
 export interface ClientSessionReadHistoryService {
 
     readHistoryValue(
-        nodes: NodeIdLike[],
+        nodesToRead: NodeIdLike[] | HistoryReadValueIdOptions2[],
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult[]) => void
     ): void;
 
     readHistoryValue(
-        nodes: NodeIdLike[],
+        nodesToRead: NodeIdLike[] | HistoryReadValueIdOptions2[],
         start: DateTime,
         end: DateTime
     ): Promise<HistoryReadResult[]>;
 
     readHistoryValue(
-        node: NodeIdLike,
+        nodeToRead: NodeIdLike | HistoryReadValueIdOptions2,
         start: DateTime,
         end: DateTime,
         callback: (err: Error | null, result?: HistoryReadResult) => void
     ): void;
 
     readHistoryValue(
-        nodes: NodeIdLike,
+        nodeToRead: NodeIdLike | HistoryReadValueIdOptions2,
         start: DateTime,
         end: DateTime
     ): Promise<HistoryReadResult>;
@@ -526,7 +530,7 @@ export interface ClientSessionReadHistoryService {
      * ```javascript
      * //  es5
      * session.readAggregateValue(
-     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   {nodeId: "ns=5;s=Simulation Examples.Functions.Sine1" },
      *   "2015-06-10T09:00:00.000Z",
      *   "2015-06-10T09:01:00.000Z", AggregateFunction.Average, 3600000, function(err,dataValues) {
      *
@@ -536,7 +540,7 @@ export interface ClientSessionReadHistoryService {
      * ```javascript
      * //  es6
      * const dataValues = await session.readAggregateValue(
-     *   "ns=5;s=Simulation Examples.Functions.Sine1",
+     *   { nodeId: "ns=5;s=Simulation Examples.Functions.Sine1" },
      *   "2015-06-10T09:00:00.000Z",
      *   "2015-06-10T09:01:00.000Z", AggregateFunction.Average, 3600000);
      * ```
@@ -548,28 +552,28 @@ export interface ClientSessionReadHistoryService {
      * @param callback
      */
     readAggregateValue(
-        nodes: HistoryReadValueIdOptions[],
+        nodesToRead: HistoryReadValueIdOptions[],
         startTime: DateTime,
         endTime: DateTime,
         aggregateFn: AggregateFunction,
         processingInterval: number,
         callback: Callback<HistoryReadResult[]>): void;
     readAggregateValue(
-        nodes: HistoryReadValueIdOptions[],
+        nodesToRead: HistoryReadValueIdOptions[],
         startTime: DateTime,
         endTime: DateTime,
         aggregateFn: AggregateFunction,
         processingInterval: number,
     ): Promise<HistoryReadResult[]>;
     readAggregateValue(
-        nodes: HistoryReadValueIdOptions,
+        nodeToRead: HistoryReadValueIdOptions,
         startTime: DateTime,
         endTime: DateTime,
         aggregateFn: AggregateFunction,
         processingInterval: number,
         callback: Callback<HistoryReadResult>): void;
     readAggregateValue(
-        nodes: HistoryReadValueIdOptions,
+        nodeToRead: HistoryReadValueIdOptions,
         startTime: DateTime,
         endTime: DateTime,
         aggregateFn: AggregateFunction,
